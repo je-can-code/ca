@@ -76,13 +76,15 @@ J.Base.Notetags = {
   UseOnPickup: "useOnPickup",
 
   // on equipment in database.
+  BonusHits: "bonusHits",
   SkillId: "skillId",
   SpeedBoost: "speedBoost",
 
   // on enemies in database.
+  Drops: "drops",
   EnemyLevel: "level",
   PrepareTime: "prepare",
-  Drops: "drops",
+  SdpPoints: "sdp",
 
   // on events on map.
   BattlerId: "e",
@@ -368,6 +370,48 @@ DataManager.addExtraStateData = function() {
   });
 };
 //#endregion DataManager
+
+//#region TextManager
+/**
+ * Gets the name of the given sp-parameter.
+ * @param {number} sParamId The id of the sp-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
+TextManager.sparam = function (sParamId) {
+  switch (sParamId) {
+    case 0: return "Aggro";// J.Param.TGR_text;
+    case 1: return "Parry";//J.Param.GRD_text;
+    case 2: return "Healing"; //J.Param.REC_text;
+    case 3: return "Pharmacy"; //J.Param.PHA_text;
+    case 4: return "Magi Reduce"; //J.Param.MCR_text;
+    case 5: return "Tech Reduce"; //J.Param.TCR_text;
+    case 6: return "Phys DOWN"; //J.Param.PDR_text;
+    case 7: return "Magi DOWN"; //J.Param.MDR_text;
+    case 8: return "Light-footed"; //J.Param.FDR_text;
+    case 9: return "Experience UP"; //J.Param.EXR_text;
+  }
+};
+
+/**
+ * Gets the name of the given ex-parameter.
+ * @param {number} xParamId The id of the ex-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
+TextManager.xparam = function (xParamId) {
+  switch (xParamId) {
+    case 0: return "Hit Rate";// J.Param.HIT_text;
+    case 1: return "Evasion Rate";//J.Param.EVA_text;
+    case 2: return "Crit Rate"; //J.Param.CRI_text;
+    case 3: return "Crit Evade"; //J.Param.CEV_text;
+    case 4: return "Magic Evade"; //J.Param.MEV_text;
+    case 5: return "Magic Reflect"; //J.Param.MRF_text;
+    case 6: return "Counter Rate"; //J.Param.CNT_text;
+    case 7: return "Life Regen"; //J.Param.HRG_text;
+    case 8: return "Magi Regen"; //J.Param.MRG_text;
+    case 9: return "Tech Regen"; //J.Param.TRG_text;
+  }
+};
+//#endregion TextManager
 //#endregion Static objects
 
 //#region Scene objects
@@ -739,7 +783,45 @@ Game_Enemy.prototype.extraDrops = function() {
     }
   });
 
+  // if there is a panel that needs to be added to the list, then add it.
+  const sdpDrop = this.needsSdpDrop();
+  if (sdpDrop) dropList.push(sdpDrop);
+
   return dropList;
+};
+
+/**
+ * Determines if there is an SDP to drop, and whether or not to drop it.
+ * @returns {{kind, dataId, denominator}}
+ */
+Game_Enemy.prototype.needsSdpDrop = function() {
+  const referenceData = this.enemy();
+  const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // get the panel key from this enemy if it exists.
+  let panelKey = "";
+  notedata.forEach(note => {
+    if (note.match(structure)) {
+      panelKey = RegExp.$1;
+    }
+  });
+
+  // if we don't have a panel key, then give up.
+  if (!panelKey) return null;
+
+  // if a panel exists to be earned, but we already have it, then give up.
+  const alreadyEarned = $gameSystem.getSdpPanel(panelKey);
+  if (alreadyEarned) return null;
+
+  // create the new drop based on the SDP.
+  const newSdp = {
+    kind: 1, // all SDP drops are assumed to be "items".
+    dataId: parseInt(RegExp.$2),
+    denominator: parseInt(RegExp.$3)
+  };
+
+  return newSdp;
 };
 
 /**
@@ -818,6 +900,31 @@ Game_Enemy.prototype.retaliationSkillId = function() {
   }
 
   return parseInt(retaliation);
+};
+
+/**
+ * Gets the amount of sdp points granted by this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.sdpPoints = function() {
+  let points = 0;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.SdpPoints]) {
+    // if its in the metadata, then grab it from there.
+    points = referenceData.meta[J.Base.Notetags.SdpPoints];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        points = RegExp.$1;
+      }
+    })
+  }
+
+  return parseInt(points);
 };
 //#endregion Game_Enemy
 //#endregion Game objects
@@ -1085,7 +1192,19 @@ Window_Command.prototype.drawItem = function(index) {
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
     const rect = this.itemLineRect(index);
-    this.drawIcon(commandIcon, rect.x, rect.y + 2)
+    this.drawIcon(commandIcon, rect.x-32, rect.y+2)
+  }
+};
+
+J.Base.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
+Window_Command.prototype.itemLineRect = function(index) {
+  const commandIcon = this.commandIcon(index);
+  if (commandIcon) {
+    let baseRect = J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
+    baseRect.x += 32;
+    return baseRect;
+  } else {
+    return J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
   }
 };
 
@@ -1124,7 +1243,27 @@ class JABS_SkillData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
-  }
+  };
+
+  /**
+   * Gets the number of bonus hits this skill grants.
+   * @returns {number} The number of bonus hits.
+   */
+  get bonusHits() {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]) || 0;
+    } else {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return bonusHits;
+  };
 
   /**
    * Gets the amount of parry to ignore.
@@ -1600,6 +1739,26 @@ class JABS_EquipmentData {
     }
 
     return skillId;
+  };
+
+  /**
+   * Gets the number of bonus hits this piece of equipment grants.
+   * @returns {number} The number of bonus hits.
+   */
+  get bonusHits() {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]) || 0;
+    } else {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return bonusHits;
   };
 
   /**

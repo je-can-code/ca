@@ -75,8 +75,8 @@ J.LevelScaling.Aliased.Game_Action.BaseDamage = Game_Action.prototype.makeDamage
 Game_Action.prototype.makeDamageValue = function(target, critical) {
   const baseDamage = J.LevelScaling.Aliased.Game_Action.BaseDamage.call(this, target, critical);
   const multiplier = J.LevelScaling.Utilities.determineScalingMultiplier(
-    this.subject().level, 
-    target.level);
+    target.level, 
+    this.subject().level);
   
   const result = baseDamage * multiplier;
   return result;
@@ -139,8 +139,8 @@ Game_Party.prototype.averageActorLevel = function() {
  * Determines the scaling multiplier.
  * 
  * Based on the difference between user's level and target's level.
- * @param {number} user The level of the user.
  * @param {number} target The level of the target.
+ * @param {number} user The level of the user.
  * @returns A decimal representing the multiplier for the damage scaling.
  */
 J.LevelScaling.Utilities.determineScalingMultiplier = function(target, user) {
