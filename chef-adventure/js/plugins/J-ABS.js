@@ -55,6 +55,14 @@
  * @desc The default number of frames for an item's cooldown if one isn't specified.
  * @default 300
  * 
+ * @param BreakSettings
+ * @text --------------------------
+ * @default ----------------------------------
+ * 
+
+ // figure out how to write proper structures for the elemental icons.
+ 
+ * 
  * @command Enable JABS
  * @text Enable JABS
  * @desc Enables the JABS engine allowing battles on the map to take place.
@@ -101,6 +109,14 @@
  * @command Unlock All JABS Skill Slots
  * @text Unlock all JABS skill slots
  * @desc Unlocks all JABS skill slots for the leader.
+ * 
+ * @command Rotate Party Members
+ * @text Cycle to next leader
+ * @desc Cycles the leader to the back and shifts all members forward one slot.
+ * 
+ * @command Refresh JABS Menu
+ * @text Refresh JABS Menu
+ * @desc Refreshes the JABS menu in case there were any adjustments made to it.
  */
 //#endregion Introduction
 
@@ -423,6 +439,20 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots"
 
   leader.unlockAllSlots();
 });
+
+/**
+ * Plugin command for cycling through party members.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Rotate Party Members", () => {
+  $gameBattleMap.rotatePartyMembers();
+});
+
+/**
+ * Plugin command for updating the JABS menu.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () => {
+  $gameBattleMap.requestJabsMenuRefresh = true;
+});
 //#endregion Plugin Command Registration
 //#endregion Plugin metadata management
 
@@ -639,6 +669,7 @@ Game_Actor.prototype.initMembers = function() {
   this._j = {};
   this._j._equippedSkills = {};
   this._j._speedBoosts = 0;
+  this._j._bonusHits = 0;
 };
 
 /**
@@ -648,7 +679,8 @@ J.ABS.Aliased.Game_Actor.setup = Game_Actor.prototype.setup;
 Game_Actor.prototype.setup = function(actorId) {
   J.ABS.Aliased.Game_Actor.setup.call(this, actorId);
   this.initAbsSkills();
-  this.checkSpeedBoosts();
+  this.refreshSpeedBoosts();
+  this.refreshBonusHits();
 };
 
 /**
@@ -666,7 +698,19 @@ Game_Actor.prototype.initAbsSkills = function() {
   this._j._equippedSkills[Game_Actor.JABS_R1_X_SKILL] = { id: 0, locked: false, };
   this._j._equippedSkills[Game_Actor.JABS_R1_Y_SKILL] = { id: 0, locked: false, };
   this.updateEquipmentSkills();
-}
+};
+
+/**
+ * Disable built-in on-turn-end effects while JABS is active.
+ * (built-in effects include regeneration and poison, but those are
+ * already handled elsewhere in the engine)
+ */
+J.ABS.Aliased.Game_Actor.turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+Game_Actor.prototype.turnEndOnMap = function() {
+  if (!$gameBattleMap.absEnabled) {
+    J.ABS.Aliased.Game_Actor.turnEndOnMap.call(this);
+  }
+};
 
 /**
  * Retreives all skills that are currently equipped on this actor.
@@ -789,8 +833,9 @@ J.ABS.Aliased.Game_Actor.refresh = Game_Actor.prototype.refresh;
 Game_Actor.prototype.refresh = function() {
   J.ABS.Aliased.Game_Actor.refresh.call(this);
   this.updateEquipmentSkills();
-  this.checkSpeedBoosts();
-}
+  this.refreshSpeedBoosts();
+  this.refreshBonusHits();
+};
 
 /**
  * Overwrites the levelup display on the map to not display a message.
@@ -812,9 +857,9 @@ Game_Actor.prototype.levelUp = function() {
 };
 
 /**
- * Updates the speed boost for this actor based on equipment.
+ * Updates the speed boost scale for this actor based on equipment.
  */
-Game_Actor.prototype.checkSpeedBoosts = function() {
+Game_Actor.prototype.refreshSpeedBoosts = function() {
   const equips = this.equips();
   let speedBoosts = 0;
 
@@ -827,10 +872,34 @@ Game_Actor.prototype.checkSpeedBoosts = function() {
 };
 
 /**
- * Gets the current speed boosts for this actor.
+ * Gets the current speed boost scale for this actor.
+ * @returns {number}
  */
 Game_Actor.prototype.getSpeedBoosts = function() {
   return this._j._speedBoosts;
+};
+
+/**
+ * Updates the bonus hit count for this actor based on equipment.
+ */
+Game_Actor.prototype.refreshBonusHits = function() {
+  const equips = this.equips();
+  let bonusHits = 0;
+
+  equips.forEach(equip => {
+    if (!equip) return;
+    bonusHits += equip._jabs.bonusHits;
+  });
+
+  this._j._bonusHits = bonusHits;
+};
+
+/**
+ * Gets the current number of bonus hits for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getBonusHits = function() {
+  return this._j._bonusHits;
 };
 
 //#endregion
@@ -895,6 +964,27 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 };
 
 /**
+ * Intercepts the action result and prevents adding states entirely if precise-parried
+ * by the player.
+ */
+J.ABS.Aliased.Game_Action.itemEffectAddState = Game_Action.prototype.itemEffectAddState;
+Game_Action.prototype.itemEffectAddState = function(target, effect) {
+  const player = $gameBattleMap.getPlayerMapBattler();
+  const isPlayer = player.getBattler() == target;
+  if (isPlayer) {
+    // if it is the player, peek at the result before applying.
+    const result = player.getBattler().result();
+    if (result.preciseParried) {
+      // if the player precise-parried the action, no status effects applied.
+      return;
+    }
+  }
+
+  // if the precise-parry-state-prevention wasn't successful, apply as usual.
+  J.ABS.Aliased.Game_Action.itemEffectAddState.call(this, target, effect);
+};
+
+/**
  * Reduces 
  * @param {number} damage The amount of damage before damage reductions.
  * @param {JABS_Battler} player The player's `JABS_Battler`.
@@ -903,7 +993,7 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 Game_Action.prototype.handleGuardEffects = function(damage, player) {
   if (player.parrying) {
     const result = player.getBattler().result();
-    result.parried = true;
+    result.parried = true; // make sure the engine knows its parried.
     result.preciseParried = true;
     damage = 0;
     player.setParryWindow(0);
@@ -1077,7 +1167,8 @@ Game_Character.prototype.getActionSpriteProperties = function() {
  */
 Game_Character.prototype.getMapBattler = function() {
   const asp = this.getActionSpriteProperties();
-  const battler = $gameBattleMap.getBattlerByUuid(asp.battlerUuid);
+  const uuid = asp.battlerUuid;
+  const battler = $gameBattleMap.getBattlerByUuid(uuid);
   return battler;
 };
 
@@ -1096,9 +1187,6 @@ Game_Character.prototype.hasJabsBattler = function() {
   const asp = this.getActionSpriteProperties();
   const uuid = asp.battlerUuid;
   const battler = $gameBattleMap.getBattlerByUuid(uuid);
-  if (!uuid && !battler && asp.damagePops.length > 0) {
-    console.log("failure");
-  }
   return (uuid && battler) ? true : false;
 };
 
@@ -1209,7 +1297,7 @@ J.ABS.Aliased.Game_Character.isMovementSucceeded = Game_Character.prototype.isMo
 Game_Character.prototype.isMovementSucceeded = function() {
   const battler = this.getMapBattler();
   if (battler && !battler.canBattlerMove()) {
-    return;
+    return false;
   } else {
     return J.ABS.Aliased.Game_Character.isMovementSucceeded.call(this);
   }
@@ -1402,14 +1490,19 @@ Game_Event.prototype.configureCustomParameters = function() {
 /**
  * Overwrites this event's move speed with a custom move speed value.
  * This speed can be a decimal/float.
+ * @param {number?} newSpeed If provided, will set this event's movespeed to this.
  */
-Game_Event.prototype.setCustomMoveSpeed = function() {
+Game_Event.prototype.setCustomMoveSpeed = function(newSpeed = null) {
   const event = this.event();
   let speed = this.customMoveSpeed();
 
   // it wasn't assigned by notes, so just use the base event's movespeed.
   if (speed == 0) {
     speed = event.pages[0].moveSpeed;
+  }
+
+  if (newSpeed) {
+    speed = newSpeed;
   }
 
   this.setMoveSpeed(speed);
@@ -1578,6 +1671,21 @@ Game_Interpreter.prototype.command201 = function(params) {
 };
 
 /**
+ * Enables saving with JABS.
+ * Removed the check for seeing if the player is in-battle, because the player is
+ * technically ALWAYS in-battle while the ABS is enabled.
+ */
+J.ABS.Aliased.Game_Interpreter.command352 = Game_Interpreter.prototype.command352;
+Game_Interpreter.prototype.command352 = function() {
+  if ($gameBattleMap.absEnabled) {
+    SceneManager.push(Scene_Save);
+    return true;
+  } else {
+    return J.ABS.Aliased.Game_Interpreter.command352.call(this);
+  }
+};
+
+/**
  * Enables default battles with JABS.
  * Removed the check for seeing if the player is in-battle, because the player
  * is technically ALWAYS in-battle while the ABS is enabled.
@@ -1655,6 +1763,39 @@ Game_Map.prototype.getBattlers = function() {
 
   const livingBattlers = this._j._allBattlers.filter(battler => !battler.isDead);
   return livingBattlers;
+};
+
+/**
+ * Gets all non-enemy battlers on the current battle map.
+ * @returns {JABS_Battler[]} A list of allied battlers.
+ */
+Game_Map.prototype.getAlliedBattlers = function() {
+  const battlers = this.getBattlers();
+  const alliedBattlers = [];
+  alliedBattlers.push($gameBattleMap.getPlayerMapBattler());
+  battlers.forEach(battler => {
+    if (battler.isActor()) {
+      alliedBattlers.push(battler);
+    }
+  });
+
+  return alliedBattlers;
+};
+
+/**
+ * Gets all non-ally battlers on the current battle map.
+ * @returns {JABS_Battler[]} A list of enemy battlers.
+ */
+Game_Map.prototype.getEnemyBattlers = function() {
+  const battlers = this.getBattlers();
+  const enemyBattlers = [];
+  battlers.forEach(battler => {
+    if (battler.isEnemy()) {
+      enemyBattlers.push(battler);
+    }
+  });
+
+  return enemyBattlers;
 };
 
 /**
@@ -1820,7 +1961,7 @@ Game_Player.prototype.calculateMovespeedMultiplier = function(baseMoveSpeed) {
   if (!player) return 0;
 
   const scale = player.getSpeedBoosts();
-  if (scale === 0) return;
+  if (scale === 0) return 0;
 
   const multiplier = (scale > 0)
     ? this.translatePositiveSpeedBoost(scale)
@@ -2050,13 +2191,6 @@ Scene_Map.prototype.createAllWindows = function() {
 };
 
 /**
- * OVERWRITE Removes the buttons on the map/screen.
- */
-Scene_Map.prototype.createButtons = function() {
-  return;
-};
-
-/**
  * Update the `JABS_BattlerManager` while updating the regular scene map.
  */
 J.ABS.Aliased.Scene_Map.update = Scene_Map.prototype.update;
@@ -2066,19 +2200,34 @@ Scene_Map.prototype.update = function() {
 
   // if the ABS is disabled, then don't update it.
   if (!$gameBattleMap.absEnabled) return;
+
+  // update the JABS engine!
   JABS_AiManager.update();
 
+  // handle the JABS menu.
   if ($gameBattleMap.absPause) {
     this.manageAbsMenu();
   } else {
-    this._j._absMenu._mainWindow.hide();
-    this._j._absMenu._skillWindow.hide();
-    this._j._absMenu._equipSkillWindow.hide();
-    this._j._absMenu._toolWindow.hide();
-    this._j._absMenu._equipToolWindow.hide();
-    this._j._absMenu._dodgeWindow.hide();
-    this._j._absMenu._equipDodgeWindow.hide();
+    this.hideAllWindows();
   }
+
+  // handle rotation.
+  if ($gameBattleMap.requestPartyRotation) {
+    this.handlePartyRotation();
+  }
+
+  if ($gameBattleMap.requestJabsMenuRefresh) {
+    this.refreshJabsMenu();
+  }
+};
+
+/**
+ * Manages the party rotation.
+ */
+Scene_Map.prototype.handlePartyRotation = function() {
+  $gameBattleMap.requestPartyRotation = false;
+  this.toggleHud(true);
+  this.toggleHud(false);
 };
 
 /**
@@ -2094,6 +2243,19 @@ Scene_Map.prototype.handleJabsWindowsVisibility = function() {
     this.toggleLog(false);
     this.toggleKeys(false);
   }
+};
+
+/**
+ * Hides all windows of the JABS menu.
+ */
+Scene_Map.prototype.hideAllWindows = function() {
+  this._j._absMenu._mainWindow.hide();
+  this._j._absMenu._skillWindow.hide();
+  this._j._absMenu._equipSkillWindow.hide();
+  this._j._absMenu._toolWindow.hide();
+  this._j._absMenu._equipToolWindow.hide();
+  this._j._absMenu._dodgeWindow.hide();
+  this._j._absMenu._equipDodgeWindow.hide();
 };
 
 /**
@@ -2150,7 +2312,7 @@ Scene_Map.prototype.createJabsAbsMenu = function() {
   this.createJabsAbsMenuEquipSkillWindow();
   this.createJabsAbsMenuEquipToolWindow();
   this.createJabsAbsMenuEquipDodgeWindow();
-}
+};
 
 /**
  * Creates the first/main window of the Jabs quick menu.
@@ -2166,12 +2328,13 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
   mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
   mainMenu.setHandler("item-assign", this.commandItem.bind(this));
   mainMenu.setHandler("main-menu", this.commandMenu.bind(this));
+  mainMenu.setHandler("sdp-menu", this.commandSdp.bind(this));
   mainMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "main"));
   this._j._absMenu._mainWindow = mainMenu;
   this._j._absMenu._mainWindow.close();
   this._j._absMenu._mainWindow.hide();
   this.addWindow(this._j._absMenu._mainWindow);
-}
+};
 
 /**
  * Creates the skill assignment window of the Jabs quick menu.
@@ -2189,7 +2352,7 @@ Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function() {
   this._j._absMenu._skillWindow.close();
   this._j._absMenu._skillWindow.hide();
   this.addWindow(this._j._absMenu._skillWindow);
-}
+};
 
 /**
  * Creates the skill assignment window of the Jabs quick menu.
@@ -2207,7 +2370,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function() {
   this._j._absMenu._equipSkillWindow.close();
   this._j._absMenu._equipSkillWindow.hide();
   this.addWindow(this._j._absMenu._equipSkillWindow);
-}
+};
 
 /**
  * Creates the item assignment window of the Jabs quick menu.
@@ -2225,7 +2388,7 @@ Scene_Map.prototype.createJabsAbsMenuToolListWindow = function() {
   this._j._absMenu._toolWindow.close();
   this._j._absMenu._toolWindow.hide();
   this.addWindow(this._j._absMenu._toolWindow);
-}
+};
 
 /**
  * Creates the skill assignment window of the Jabs quick menu.
@@ -2243,7 +2406,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function() {
   this._j._absMenu._equipToolWindow.close();
   this._j._absMenu._equipToolWindow.hide();
   this.addWindow(this._j._absMenu._equipToolWindow);
-}
+};
 
 /**
  * Creates the dodge assignment window of the Jabs quick menu.
@@ -2261,7 +2424,7 @@ Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function() {
   this._j._absMenu._dodgeWindow.close();
   this._j._absMenu._dodgeWindow.hide();
   this.addWindow(this._j._absMenu._dodgeWindow);
-}
+};
 
 /**
  * Creates the skill assignment window of the Jabs quick menu.
@@ -2279,7 +2442,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function() {
   this._j._absMenu._equipDodgeWindow.close();
   this._j._absMenu._equipDodgeWindow.hide();
   this.addWindow(this._j._absMenu._equipDodgeWindow);
-}
+};
 
 /**
  * Manages the ABS main menu's interactivity.
@@ -2319,7 +2482,7 @@ Scene_Map.prototype.manageAbsMenu = function() {
       this._j._absMenu._windowFocus = "main";
       break;
   }
-}
+};
 
 /**
  * When the "assign skills" option is chosen, it prioritizes this window.
@@ -2332,7 +2495,7 @@ Scene_Map.prototype.commandSkill = function() {
   this._j._absMenu._skillWindow.activate();
   this._j._absMenu._equipType = "skill";
   return;
-}
+};
 
 /**
  * When the "assign items" option is chosen, it prioritizes this window.
@@ -2345,7 +2508,7 @@ Scene_Map.prototype.commandItem = function() {
   this._j._absMenu._toolWindow.activate();
   this._j._absMenu._equipType = "tool";
   return;
-}
+};
 
 /**
  * When the "assign dodge" option is chosen, it prioritizes this window.
@@ -2358,15 +2521,28 @@ Scene_Map.prototype.commandDodge = function() {
   this._j._absMenu._dodgeWindow.activate();
   this._j._absMenu._equipType = "dodge";
   return;
-}
+};
 
 /**
- * When the "assign dodge" option is chosen, it prioritizes this window.
+ * Brings up the main menu.
  */
 Scene_Map.prototype.commandMenu = function() {
   SceneManager.push(Scene_Menu);
   return;
-}
+};
+
+/**
+ * Brings up the SDP menu.
+ */
+Scene_Map.prototype.commandSdp = function() {
+  SceneManager.push(Scene_SDP);
+  return;
+};
+
+Scene_Map.prototype.refreshJabsMenu = function() {
+  $gameBattleMap.requestJabsMenuRefresh = false;
+  this._j._absMenu._mainWindow.refresh();
+};
 
 /**
  * When a decision is made in skill assign, prioritize the equip window.
@@ -2380,7 +2556,7 @@ Scene_Map.prototype.commandEquipSkill = function() {
   this._j._absMenu._equipSkillWindow.open();
   this._j._absMenu._equipSkillWindow.activate();
   return;
-}
+};
 
 /**
  * When a decision is made in tool assign, prioritize the equip window.
@@ -2394,7 +2570,7 @@ Scene_Map.prototype.commandEquipTool = function() {
   this._j._absMenu._equipToolWindow.open();
   this._j._absMenu._equipToolWindow.activate();
   return;
-}
+};
 
 /**
  * When a decision is made in tool assign, prioritize the equip window.
@@ -2408,7 +2584,7 @@ Scene_Map.prototype.commandEquipDodge = function() {
   this._j._absMenu._equipDodgeWindow.open();
   this._j._absMenu._equipDodgeWindow.activate();
   return;
-}
+};
 
 /**
  * When assigning a slot, determine the last opened window and use that.
@@ -2433,13 +2609,14 @@ Scene_Map.prototype.commandAssign = function() {
     default:
       break;
   }
+
   actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
   if (J.ActionKeys.Metadata.Enabled) {
     this._j._actionKeys.refresh();
   }
 
   this.closeAbsWindow("assign");
-}
+};
 
 /**
  * Closes a given Abs menu window.
@@ -2486,7 +2663,7 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow) {
       this._j._absMenu._windowFocus = "main"
       break;
   }
-}
+};
 
 /**
  * Close out from the Abs menu.
@@ -2494,7 +2671,7 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow) {
 Scene_Map.prototype.closeAbsMenu = function() {
   this._j._absMenu._mainWindow.closeMenu();
   return;
-}
+};
 //#endregion JABS Menu
 //#endregion
 //#endregion Scene objects
@@ -2675,7 +2852,7 @@ Sprite_Character.prototype.createSpriteGauge = function() {
   const hpGauge = new Sprite_MapGauge();
   hpGauge.setup(battler, "hp");
   hpGauge.x = this.x  - (hpGauge.width / 1.5);
-  hpGauge.y = this.y - 72;
+  hpGauge.y = this.y - 12;
   return hpGauge;
 };
 
@@ -2935,6 +3112,11 @@ Sprite_Character.prototype.configurePopup = function(popup) {
       sprite._yVariance = 20;
       this.buildExperiencePopSprite(sprite, popup);
       break;
+    case "sdp":
+      sprite._xVariance = -40;
+      sprite._yVariance = 20;
+      this.buildSdpPopSprite(sprite, popup);
+      break;
     case "gold":
       sprite._xVariance = -40;
       sprite._yVariance = 40;
@@ -3052,6 +3234,18 @@ Sprite_Character.prototype.buildGoldPopSprite = function(sprite, popup) {
   sprite._colorType = popup.getTextColor();
   sprite._duration += 180;
   sprite.createValue(`G +${gold}`);
+};
+
+/**
+ * Configures the values for this gold popup.
+ * @param {Sprite_Damage} sprite The sprite to configure for this gold pop.
+ * @param {JABS_TextPop} popup The data for this pop.
+ */
+Sprite_Character.prototype.buildSdpPopSprite = function(sprite, popup) {
+  const gold = popup.getDirectValue();
+  sprite._colorType = popup.getTextColor();
+  sprite._duration += 180;
+  sprite.createValue(`SDP +${gold}`);
 };
 
 /**
@@ -3206,7 +3400,11 @@ class Window_AbsMenu extends Window_Command {
     this.addCommand("Equip Combat Skills", "skill-assign", true, null, 77);
     this.addCommand("Equip Dodge Skills", "dodge-assign", true, null, 82);
     this.addCommand("Equip Tools", "item-assign", true, null, 83);
-    this.addCommand("Main Menu", "main-menu", true, null, 79);
+    this.addCommand("Main Menu", "main-menu", true, null, 189);
+    if ($gameSwitches.value(5)) {
+      const panels = $gameSystem.getSdpPanels();
+      this.addCommand("Distribute", "sdp-menu", panels.length, null, 2563);
+    }
     this.addCommand("Cancel", "cancel", true, null, 73);
   };
 
@@ -3457,6 +3655,12 @@ class Game_BattleMap {
     this._requestLootRendering = false;
 
     /**
+     * True if we want to cycle through our party members, false otherwise.
+     * @type {boolean}
+     */
+    this._requestPartyRotation = false;
+
+    /**
      * True if we want to render additional sprites to the screen, false otherwise.
      * @type {boolean}
      */
@@ -3479,6 +3683,12 @@ class Game_BattleMap {
      * @type {boolean}
      */
     this._requestAbsMenu = false;
+
+    /**
+     * True if we want to refresh the commands of the JABS menu, false otherwise.
+     * @type {boolean}
+     */
+    this._requestJabsMenuRefresh = false;
 
     /**
      * Whether or not this ABS is enabled.
@@ -3557,6 +3767,39 @@ class Game_BattleMap {
    */
   get actionEvents() {
     return this._actionEvents;
+  };
+
+  /**
+   * Gets whether or not there is a request to cycle through party members.
+   * @returns {boolean}
+   */
+  get requestPartyRotation() {
+    return this._requestPartyRotation;
+  };
+
+  /**
+   * Sets the request for party rotation.
+   * @param {boolean} rotate True if we want to rotate party members, false otherwise.
+   */
+  set requestPartyRotation(rotate) {
+    this._requestPartyRotation = rotate;
+  };
+
+  /**
+   * Gets whether or not there is a request to refresh the JABS menu.
+   * The most common use case for this is adding new commands to the menu.
+   * @returns {boolean}
+   */
+  get requestJabsMenuRefresh() {
+    return this._requestJabsMenuRefresh;
+  };
+
+  /**
+   * Sets the request for refreshing the JABS menu.
+   * @param {boolean} rotate True if we want to refresh the JABS menu, false otherwise.
+   */
+  set requestJabsMenuRefresh(requested) {
+    this._requestJabsMenuRefresh = requested;
   };
 
   /**
@@ -3744,7 +3987,9 @@ class Game_BattleMap {
   updatePlayerBattler() {
     const player = this.getPlayerMapBattler();
     if (player == null) return;
-    if (player.getBattler().isDead()) return;
+    if (player.getBattler().isDead()) {
+      this.handleDefeatedPlayer();
+    }
 
     this.handleInput();
     player.update();
@@ -3880,6 +4125,40 @@ class Game_BattleMap {
     if (Input.isTriggered(J.ABS.Input.Start) || Input.isTriggered("escape")) {
       this.performMenuAction();
     }
+
+    // party rotation
+    if (Input.isTriggered(J.ABS.Input.Select)) {
+      this.rotatePartyMembers();
+    }
+  };
+
+  /**
+   * Rotates the leader out to the back and pulls in the next-in-line.
+   */
+  rotatePartyMembers() {
+    // you can't rotate if there is no party to rotate through.
+    if ($gameParty._actors.length === 1) return;
+
+    //const isNextAllyDead = $gameParty._actors.find(actorId => {
+    //  return !$gameActors.actor(actorId).isDead();
+    //});
+
+    // if next member is dead, then don't rotate.
+    const isNextMemberDead = $gameActors.actor($gameParty._actors[1]).isDead();
+    if (isNextMemberDead) return;
+
+    // swap to the next party member in the sequence.
+    $gameParty._actors.push($gameParty._actors.shift());
+    $gamePlayer.refresh();
+    $gamePlayer.requestAnimation(40, false);
+
+    // recreate the JABS player battler and set it to the player character.
+    this._playerBattler = JABS_Battler.createPlayer();
+    const newPlayer = this.getPlayerMapBattler().getCharacter();
+    newPlayer.setMapBattler(this._playerBattler.getUuid());
+
+    // request the scene overlord to take notice and react accordingly (refresh hud etc).
+    this.requestPartyRotation = true;
   };
 
   /**
@@ -4096,8 +4375,12 @@ class Game_BattleMap {
    */
   getBattlerByUuid(uuid) {
     const battlers = $gameMap.getBattlers();
-    battlers.push($gameBattleMap.getPlayerMapBattler());
-    const jabsBattler = battlers.find(battler => battler.getUuid() === uuid);
+    const player = $gameBattleMap.getPlayerMapBattler();
+    battlers.push(player);
+    const jabsBattler = battlers.find(battler => {
+      const result = battler.getUuid() === uuid;
+      return result
+    });
     return jabsBattler
       ? jabsBattler
       : null;
@@ -4332,13 +4615,16 @@ class Game_BattleMap {
    * @param {JABS_Action} action The `JABS_Action` to execute.
    */
   applyCooldownCounters(caster, action) {
+    const cooldownType = action.getCooldownType();
+    const cooldownValue = action.getCooldown();
     if (!caster.isPlayer()) {
-      caster.modCooldownCounter(action.getCooldownType(), action.getCooldown());
+      caster.modCooldownCounter(cooldownType, cooldownValue);
     } else {
       const skill = action.getBaseSkill();
-      if (skill._jabs.uniqueCooldown) {
+      if (skill._jabs.uniqueCooldown || this.isBasicAttack(cooldownType)) {
         // if the skill is unique, only apply the cooldown to the slot assigned.
-        caster.modCooldownCounter(action.getCooldownType(), action.getCooldown());
+        //caster.modCooldownCounter(cooldownType, cooldownValue);
+        caster.setCooldownCounter(cooldownType, cooldownValue);
         return;
       }
 
@@ -4346,10 +4632,22 @@ class Game_BattleMap {
       Object.keys(equippedSkills).forEach(key => {
         const equippedSkillId = equippedSkills[key].id;
         if (equippedSkillId == skill.id) {
-          caster.setCooldownCounter(key, action.getCooldown());
+          caster.setCooldownCounter(key, cooldownValue);
         }
       });
     }
+  };
+
+  /**
+   * Checks whether or not this skill is a basic attack.
+   * @param {string} cooldownKey The cooldown key to check.
+   * @returns {boolean} True if the skill is a basic attack, false otherwise.
+   */
+  isBasicAttack(cooldownKey) {
+    const isMainHand = cooldownKey === Game_Actor.JABS_MAINHAND;
+    const isOffHand = cooldownKey === Game_Actor.JABS_OFFHAND;
+    const isBasicAttack = (isMainHand || isOffHand);
+    return isBasicAttack;
   };
 
   /**
@@ -4439,7 +4737,7 @@ class Game_BattleMap {
     const animationId = this.getAnimationId(skill, casterMapBattler);
 
     // apply effects that require landing a successful hit.
-    if (result.isHit()) {
+    if (result.isHit() || result.parried) {
       // apply the animation against the target's map character.
       const isAnimating = action.getAnimating(targetUuid);
       if (!isAnimating) {
@@ -4460,7 +4758,6 @@ class Game_BattleMap {
     this.checkRetaliate(action, target);
 
     // generate log for this action.
-    // TODO: lift this higher to capture entire result?
     this.createAttackLog(action, skill, result, casterMapBattler, target);
 
     // generate the text popup for this action.
@@ -4632,8 +4929,7 @@ class Game_BattleMap {
   checkParry(caster, target) {
     const isFacing = caster.isFacingTarget(target.getCharacter());
     // cannot parry if not facing target.
-    if (!isFacing)
-      return false;
+    if (!isFacing) return false;
 
     const casterBattler = caster.getBattler();
     const targetBattler = target.getBattler();
@@ -4721,7 +5017,6 @@ class Game_BattleMap {
     }
 
     if (needsCounterGuard) {
-      console.log(battler.counterGuard);
       this.forceMapAction(battler, battler.counterGuard, true);
     }
   };
@@ -4841,18 +5136,16 @@ class Game_BattleMap {
 
     // hard-coded element-to-icon relationships.
     switch (elementId) {
-      case 0: return 78; // none / non-elemental
-      case 1: return 77; // physical
-      case 2: return 64; // fire
-      case 3: return 67; // water
-      case 4: return 68; // ground
-      case 5: return 69; // air
-      case 6: return 66; // electric
-      case 7: return 65; // ice
-      case 8: return 183; // nature
-      case 9: return 118; // magma
-      case 10: return 70; // energy
-      case 11: return 71; // void
+      case 0: return 127; // none / non-elemental
+      case 1: return 97; // cut
+      case 2: return 107; // poke
+      case 3: return 110; // blunt
+      case 4: return 64; // heat
+      case 5: return 67; // liquid
+      case 6: return 69; // air
+      case 7: return 68; // ground
+      case 8: return 70; // energy
+      case 9: return 71; // void
       default: return 0;
     }
   };
@@ -5132,25 +5425,60 @@ class Game_BattleMap {
    * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
    */
   handleDefeatedTarget(target, caster) {
-    if (target.isPlayer()) {
-      console.log("TODO: if player defeated, gameover? switch?");
-      return;
-    } else if (target.isActor()) {
-      console.log("TODO: if ally defeated, handle this!");
-    } else {
-      const targetBattler = target.getBattler();
-      const targetCharacter = target.getCharacter();
-      if (!targetCharacter.isInanimate()) {
-        SoundManager.playEnemyCollapse();
-      }
+    switch (true) {
+      case (target.isPlayer()):
+        this.handleDefeatedPlayer();
+        return;
+      case (target.isActor() && !target.isPlayer()):
+        this.handleDefeatedAlly();
+        return;
+      case (target.isEnemy()):
+        this.handleDefeatedEnemy(target, caster);
+        break;
+      default:
+        break;
+    }
+  };
 
-      //J.Base.Helpers.modVariable(2, 1);
-      this.processDeathControls(targetCharacter);
-      this.gainBasicRewards(targetBattler, caster);
-      this.createLootDrops(target, caster);
+  /**
+   * Handles the defeat of the battler the player is currently controlling.
+   */
+  handleDefeatedPlayer() {
+    console.log("player has died.");
+    this.rotatePartyMembers();
+  };
+
+  /**
+   * Handles a non-player ally that was defeated.
+   */
+  handleDefeatedAlly() {
+    console.log("if non-player ally defeated, handle this!");
+  };
+
+  /**
+   * Handles an enemy that was defeated, including dolling out exp/gold and loot drops.
+   * @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
+   * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
+   */
+  handleDefeatedEnemy(defeatedTarget, caster) {
+    // perform the death cry if they are dunzo.
+    const targetCharacter = defeatedTarget.getCharacter();
+    if (!targetCharacter.isInanimate()) {
+      SoundManager.playEnemyCollapse();
     }
 
-    target.destroy();
+    // if the defeated target is an enemy, check for death controls.
+    this.processDeathControls(targetCharacter);
+
+    // if the caster is player/actor, gain aftermath.
+    if (caster && caster.isActor()) {
+      const targetBattler = defeatedTarget.getBattler();
+      this.gainBasicRewards(targetBattler, caster);
+      this.createLootDrops(defeatedTarget, caster);
+    }
+
+    // remove the target's character from the map.
+    defeatedTarget.destroy();
   };
 
   /**
@@ -5193,7 +5521,6 @@ class Game_BattleMap {
       const selfSwitchId = selfSwitchData[0].toUpperCase();
       const eventId = selfSwitchData[1];
       const key = [mapId, eventId, selfSwitchId];
-      console.log(key);
       $gameSelfSwitches.setValue(key, true);
     });
   };
@@ -5225,18 +5552,31 @@ class Game_BattleMap {
     let gold = enemy.gold();
     const userSprite = actor.getCharacter();
 
-    // if using the level scaling plugin, then add in the multiplier.
-    if (J.LevelScaling && J.LevelScaling.Metadata.Enabled) {
-      const levelMultiplier = J.LevelScaling.Utilities.determineScalingMultiplier(
-        actor.getBattler().level,
-        enemy.level);
-      experience = Math.ceil(experience * levelMultiplier);
-      gold = Math.ceil(gold * levelMultiplier);
-    }
+    const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
+    experience = Math.ceil(experience * levelMultiplier);
+    gold = Math.ceil(gold * levelMultiplier);
 
     this.gainExperienceReward(experience, userSprite);
     this.gainGoldReward(gold, userSprite);
     this.createRewardsLog(experience, gold, actor);
+  };
+
+  /**
+   * Gets the multiplier based on difference in level between attacker and
+   * target to determine if the battle was "too easy" or "very hard", resulting
+   * in reduced or increased numeric rewards (excludes loot drops).
+   * @param {Game_Battler} enemy The target battler that was defeated.
+   * @param {JABS_Battler} actor The map battler that defeated the target.
+   */
+  getRewardScalingMultiplier(enemy, actor) {
+    let multiplier = 1.0;
+    if (J.LevelScaling && J.LevelScaling.Metadata.Enabled) {
+      multiplier = J.LevelScaling.Utilities.determineScalingMultiplier(
+        actor.getBattler().level,
+        enemy.level);
+    }
+
+    return multiplier;
   };
 
   /**
@@ -5245,6 +5585,9 @@ class Game_BattleMap {
    * @param {Game_Character} casterSprite The character who defeated the target.
    */
   gainExperienceReward(experience, casterSprite) {
+    // don't do anything if the enemy didn't grant any experience.
+    if (!experience) return;
+
     const activeParty = $gameParty.battleMembers();
     activeParty.forEach(member => member.gainExp(experience));
     const expPop = this.configureExperiencePop(experience);
@@ -5258,7 +5601,7 @@ class Game_BattleMap {
    */
   configureExperiencePop(exp) {
     const iconId = 0; // TODO: decide on icons.
-    const textColor = 6; // TODO: decide on text colors based on dmg type?
+    const textColor = 6;
     const popup = new JABS_TextPop(
       null,
       iconId,
@@ -5276,6 +5619,9 @@ class Game_BattleMap {
    * @param {Game_Character} casterSprite The character who defeated the target.
    */
   gainGoldReward(gold, casterSprite) {
+    // don't do anything if the enemy didn't grant any gold.
+    if (!gold) return;
+
     $gameParty.gainGold(gold);
     const goldPop = this.configureGoldPop(gold);
     casterSprite.addTextPop(goldPop);
@@ -5288,7 +5634,7 @@ class Game_BattleMap {
    */
   configureGoldPop(gold) {
     const iconId = 0; // TODO: decide on icons.
-    const textColor = 14; // TODO: decide on text colors based on dmg type?
+    const textColor = 14;
     const popup = new JABS_TextPop(
       null,
       iconId,
@@ -5307,12 +5653,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} caster The ally gaining the experience and gold.
    */
   createRewardsLog(experience, gold, caster) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active)
-      return;
-
-    // if an enemy is the one who defeated a battler, also skip this.
-    if (caster.isEnemy())
-      return;
+    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
 
     const casterData = caster.getReferenceData();
     const expMessage = `${casterData.name} gained ${experience} experience.`;
@@ -5820,6 +6161,8 @@ class JABS_AiManager {
     const cooldownName = `${mapActions[0].getBaseSkill().name}`;
     mapActions.forEach(action => action.setCooldownType(cooldownName));
     battler.setDecidedAction(mapActions);
+    const battlerCharacter = battler.getCharacter();
+    battlerCharacter.requestAnimation(135);
   };
 
   /**
@@ -6951,7 +7294,9 @@ class JABS_Battler {
    * @returns {boolean} True if the battler can move, false otherwise.
    */
   canBattlerMove = () => {
-    if (this.getMovementLock()) return false;
+    if (this.getMovementLock()) {
+      return false;
+    }
 
     const states = this.getBattler().states();
     if (!states.length) {
@@ -7458,16 +7803,25 @@ class JABS_Battler {
   /**
    * Creates a new `JABS_Action` from a skill id.
    * @param {number} skillId The id of the skill to create a `JABS_Action` from.
+   * @param {boolean} isRetaliation True if this is a retaliation action, false otherwise.
+   * @param {string} cooldownKey The cooldown key associated with this action.
    * @returns {JABS_Action[]} The `JABS_Action` based on the skill id provided.
    */
-  createMapActionFromSkill = (skillId, isRetaliation = false) => {
+  createMapActionFromSkill = (skillId, isRetaliation = false, cooldownKey = null) => {
+    const battler = this.getBattler();
     const skill = $dataSkills[skillId];
-    const action = new Game_Action(this.getBattler());
+    const action = new Game_Action(battler);
     action.setSkill(skill.id);
 
-    const { 
-      cooldown, range, actionId, duration, shape, piercing, projectile, proximity
-    } = skill._jabs;
+    let { cooldown, range, actionId, duration, shape, piercing, projectile, proximity } = skill._jabs;
+
+    let isBasicAttack = false;
+
+    if (this.isActor() && cooldownKey) {
+      isBasicAttack = (cooldownKey === Game_Actor.JABS_MAINHAND || cooldownKey === Game_Actor.JABS_OFFHAND);
+      const bonusHits = this.getAdditionalHits(skill, isBasicAttack);
+      piercing[0] += bonusHits;
+    }
 
     let actions = [];
 
@@ -7479,7 +7833,7 @@ class JABS_Battler {
       const mapAction = new JABS_Action(
         skill,          // the skill data
         this.getTeam(), // the caster's team id
-        cooldown,       // cooldown
+        cooldown,       // cooldown frames
         range,          // the aoe range of the skill (affects collision)
         proximity,      // the proximity required to use this skill
         shape,          // the collision hitbox
@@ -7490,6 +7844,7 @@ class JABS_Battler {
         piercing,       // the piercing data
         isRetaliation,  // whether or not this is a retaliation
         direction,      // the direction this action is initially facing
+        isBasicAttack,  // whether or not this is a basic attack
       );
 
       actions.push(mapAction);
@@ -7498,55 +7853,158 @@ class JABS_Battler {
     return actions;
   };
 
+  getAdditionalHits(skill, isBasicAttack) {
+    // TODO: enemies don't get bonus hits (yet).
+    if (this.isEnemy()) return 0;
+
+    let bonusHits = 0;
+    const battler = this.getBattler();
+    if (isBasicAttack) {
+      // TODO: split "basic attack" bonus hits from "skill" and "all" bonus hits.
+      bonusHits += battler.getBonusHits();
+    } else {
+      // check for skills that may have non-pierce-related bonus hits?
+    }
+
+    return bonusHits;
+  };
+
   /**
-   * Consumes an item and performs its effects on the user.
+   * Consumes an item and performs its effects.
    * @param {number} toolId The id of the tool/item to be used.
    * @param {boolean} isLoot Whether or not this is a loot pickup.
    */
   applyToolEffects = (toolId, isLoot = false) => {
     const item = $dataItems[toolId];
-    const battler = this.getBattler();
-    const character = this.getCharacter();
-    let cooldown = 0;
-
-    character.requestAnimation(item.animationId, false);
-
-    const gameAction = new Game_Action(battler);
+    const playerBattler = this.getBattler();
+    playerBattler.consumeItem(item);
+    const gameAction = new Game_Action(playerBattler);
     gameAction.setItem(toolId);
-    gameAction.apply(battler);
-    battler.consumeItem(item);
-    const popup = $gameBattleMap.configureDamagePop(gameAction, item, this, this);
-    character.addTextPop(popup);
-    character.setRequestTextPop();
+
+    // handle scopes of the tool.
+    const scopeSelf = gameAction.isForUser();
+    const scopeAlly = gameAction.isForFriend();
+    const scopeOpponent = gameAction.isForOpponent();
+    const scopeSingle = gameAction.isForOne();
+    const scopeAll = gameAction.isForAll();
+    const scopeEverything = gameAction.isForEveryone();
+
+    const scopeAllAllies = scopeEverything || (scopeAll && scopeAlly);
+    const scopeAllOpponents = scopeEverything || (scopeAll && scopeOpponent);
+    const scopeOneAlly = (scopeSingle && scopeAlly);
+    const scopeOneOpponent = (scopeSingle && scopeOpponent);
+
+    // apply tool effects based on scope.
+    if (scopeSelf || scopeOneAlly) {
+      this.applyToolToPlayer(toolId);
+    } else if (scopeEverything) {
+      this.applyToolForAllAllies(toolId);
+      this.applyToolForAllOpponents(toolId);
+    } else if (scopeOneOpponent) {
+      // TODO: do things related to a single opponent.
+    } else if (scopeAllAllies) {
+      this.applyToolForAllAllies(toolId);
+    } else if (scopeAllOpponents) {
+      this.applyToolForAllOpponents(toolId);
+    } else {
+      console.warn("unhandled scope for tool!", gameAction.item().scope);
+    }
+
+    // applies common events that may be a part of an item's effect.
+    gameAction.applyGlobal();
 
     // create the log for the tool use.
     this.createToolLog(item);
+
+    const { cooldown: itemCooldown, skillId: itemSkillId } = item._jabs;
   
     // it is an item with a custom cooldown.
-    if (item._jabs.cooldown) {
-      cooldown = item._jabs.cooldown;
-      if (!isLoot) this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, cooldown);
+    if (itemCooldown) {
+      if (!isLoot) this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, itemCooldown);
     }
 
     // it was an item with a skill attached.
-    if (item._jabs.skillId) {
-      const mapAction = this.createMapActionFromSkill(item._jabs.skillId);
+    if (itemSkillId) {
+      const mapAction = this.createMapActionFromSkill(itemSkillId);
       mapAction.setCooldownType(Game_Actor.JABS_TOOLSKILL);
       $gameBattleMap.executeMapAction(this, mapAction);
     }
 
     // it was an item, didn't have a skill attached, and didn't have a cooldown.
-    if (!item._jabs.cooldown && !item._jabs.skillId) {
-      if (!isLoot) this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, J.ABS.DefaultValues.CooldownlessItems);
+    if (!itemCooldown && !itemSkillId) {
+      if (!isLoot) {
+        this.modCooldownCounter(
+          Game_Actor.JABS_TOOLSKILL, 
+          J.ABS.DefaultValues.CooldownlessItems);
+      }
     }
 
     // if the last item was consumed, unequip it.
     if (!isLoot && !$gameParty.items().includes(item)) {
-      battler.setEquippedSkill(Game_Actor.JABS_TOOLSKILL, 0);
+      playerBattler.setEquippedSkill(Game_Actor.JABS_TOOLSKILL, 0);
       const lastItemMessage = `The last ${item.name} was consumed and unequipped.`;
       const log = new Map_TextLog(lastItemMessage, -1);
       $gameTextLog.addLog(log);
     }
+  };
+
+  /**
+   * Applies the effects of the tool against the leader.
+   * @param {number} toolId The id of the tool/item being used.
+   */
+  applyToolToPlayer(toolId) {
+    // apply tool effects against player.
+    const playerBattler = this.getBattler();
+    const playerGameAction = new Game_Action(playerBattler);
+    playerGameAction.setItem(toolId);
+    playerGameAction.apply(playerBattler);
+
+    // display popup from item.
+    const tool = $dataItems[toolId];
+    const playerCharacter = this.getCharacter();
+    const popup = $gameBattleMap.configureDamagePop(playerGameAction, tool, this, this);
+    playerCharacter.addTextPop(popup);
+    playerCharacter.setRequestTextPop();
+
+    // show tool animation.
+    playerCharacter.requestAnimation(tool.animationId, false);
+  };
+
+  /**
+   * Applies the effects of the tool against all allies on the team.
+   * @param {number} toolId The id of the tool/item being used.
+   */
+  applyToolForAllAllies(toolId) {
+    const battlers = $gameParty.battleMembers();
+    if (battlers.length > 1) {
+      battlers.shift(); // remove the leader, because thats the player.
+      battlers.forEach(battler => {
+        const gameAction = new Game_Action(battler);
+        gameAction.setItem(toolId);
+        gameAction.apply(battler);
+      });
+    }
+
+    // also apply effects to player/leader.
+    this.applyToolToPlayer(toolId);
+  };
+
+  /**
+   * Applies the effects of the tool against all opponents on the map.
+   * @param {number} toolId The id of the tool/item being used.
+   */
+  applyToolForAllOpponents(toolId) {
+    const item = $dataItems[toolId];
+    const battlers = $gameMap.getEnemyBattlers();
+    battlers.forEach(jabsBattler => {
+      const battler = jabsBattler.getBattler();
+      const gameAction = new Game_Action(battler);
+      gameAction.apply(battler);
+      const battlerSprite = jabsBattler.getCharacter();
+      const popup = $gameBattleMap.configureDamagePop(gameAction, item, this, jabsBattler);
+      battlerSprite.addTextPop(popup);
+      battlerSprite.setRequestTextPop();
+    });
   };
 
   /**
@@ -7584,11 +8042,11 @@ class JABS_Battler {
         return null;
       }
 
-      const comboMapActions = this.createMapActionFromSkill(comboActionId);
+      const comboMapActions = this.createMapActionFromSkill(comboActionId, false, cooldownKey);
       return comboMapActions;
     }
 
-    const attackMapActions = this.createMapActionFromSkill(id);
+    const attackMapActions = this.createMapActionFromSkill(id, false, cooldownKey);
     return attackMapActions;
   };
 
@@ -8387,9 +8845,11 @@ class JABS_Action {
    * @param {array} piercing The piercing data associated with the skill this `JABS_Action` represents.
    * @param {boolean} isRetaliation Whether or not this is a retaliation action.
    * @param {number} direction The direction this action will face initially.
+   * @param {boolean} isBasicAttack Whether or not this is a basic attack action.
    */
   constructor(baseSkill, teamId, cooldownFrames, range, proximity, shape, 
-    gameAction, caster, actionId, duration, piercing, isRetaliation, direction) {
+    gameAction, caster, actionId, duration, piercing, isRetaliation, direction,
+    isBasicAttack) {
       /**
        * The base skill object, in case needed for something.
        * @type {object}
@@ -8475,6 +8935,12 @@ class JABS_Action {
        * @type {number}
        */
       this._facing = direction;
+
+      /**
+       * Whether or not this action was generated from a mainhand or offhand skill.
+       * @type {boolean}
+       */
+      this._isBasicAttack = isBasicAttack;
       this.initialize();
   }
 
@@ -8750,7 +9216,16 @@ class JABS_Action {
    */
   get direction() {
     return this._facing || this.getActionSprite().direction();
-  }
+  };
+
+  /**
+   * Gets whether or not this action is a basic attack (mainhand/offhand).
+   * @returns {boolean} True if it is a basic attack, false otherwise.
+   */
+  get isBasicAttack() {
+    return this._isBasicAttack;
+  };
+
 };
 //#endregion
 
@@ -8940,6 +9415,10 @@ class JABS_LootDrop {
     return this._lootObject.iconIndex;
   };
 
+  /**
+   * Gets whether or not this loot should be automatically consumed on pickup.
+   * @returns {boolean}
+   */
   get useOnPickup() {
     return this._lootObject._jabs.useOnPickup;
   }

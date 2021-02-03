@@ -142,10 +142,10 @@ Scene_Map.prototype.onMapLoaded = function() {
  * Creates the internal text log for JABS.
  */
 Scene_Map.prototype.createJabsTextLog = function() {
-  const ww = 600; // width
-  const wh = 220; // height
-  const wx = -45; // location X
-  const wy = 485; // location Y
+  const ww = 640; // width
+  const wh = 180; // height
+  const wx = -4; // location X
+  const wy = Graphics.height - wh - 4; // location Y
   const rect = new Rectangle(wx, wy, ww, wh);
   this._j._mapTextLog = this._j._mapTextLog || new Window_TextLog(rect);
   this.addWindow(this._j._mapTextLog);
@@ -381,7 +381,7 @@ Window_TextLog.prototype.playerInterference = function() {
   const player = $gamePlayer;
   const playerX = player.screenX();
   const playerY = player.screenY();
-  if (playerX < this.width && playerY > this.y) {
+  if (playerX < (this.width + 50) && playerY > (this.y - 50)) {
     return true;
   }
 

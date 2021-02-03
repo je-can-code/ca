@@ -250,7 +250,7 @@ Window_ActionKeys.prototype.playerInterference = function() {
   const player = $gamePlayer;
   const playerX = player.screenX();
   const playerY = player.screenY();
-  if (playerX > this.x && playerY > this.y) {
+  if (playerX > (this.x + 50) && playerY > (this.y + 50)) {
     return true;
   }
 
