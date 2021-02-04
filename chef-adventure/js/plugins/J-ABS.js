@@ -1946,7 +1946,7 @@ Game_Player.prototype.refresh = function() {
  */
 J.ABS.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
 Game_Player.prototype.distancePerFrame = function() {
-  const base = J.ABS.Aliased.Game_Player.distancePerFrame.call(this);
+  const base = J.ABS.Aliased.Game_Player.distancePerFrame.call(this) * 1.20;
   const bonus = this.calculateMovespeedMultiplier(base);
   return (base + bonus);
 };
@@ -3112,15 +3112,15 @@ Sprite_Character.prototype.configurePopup = function(popup) {
       sprite._yVariance = 20;
       this.buildExperiencePopSprite(sprite, popup);
       break;
-    case "sdp":
-      sprite._xVariance = -40;
-      sprite._yVariance = 20;
-      this.buildSdpPopSprite(sprite, popup);
-      break;
     case "gold":
       sprite._xVariance = -40;
       sprite._yVariance = 40;
       this.buildGoldPopSprite(sprite, popup);
+      break;
+    case "sdp":
+      sprite._xVariance = -40;
+      sprite._yVariance = 60;
+      this.buildSdpPopSprite(sprite, popup);
       break;
     case "item":
       sprite._xVariance = 60;
@@ -3221,7 +3221,7 @@ Sprite_Character.prototype.buildExperiencePopSprite = function(sprite, popup) {
   const exp = popup.getDirectValue();
   sprite._colorType = popup.getTextColor();
   sprite._duration += 180;
-  sprite.createValue(`E +${exp}`);
+  sprite.createValue(`EXP. +${exp}`);
 };
 
 /**
@@ -3233,7 +3233,7 @@ Sprite_Character.prototype.buildGoldPopSprite = function(sprite, popup) {
   const gold = popup.getDirectValue();
   sprite._colorType = popup.getTextColor();
   sprite._duration += 180;
-  sprite.createValue(`G +${gold}`);
+  sprite.createValue(`GOLD +${gold}`);
 };
 
 /**
@@ -3245,7 +3245,7 @@ Sprite_Character.prototype.buildSdpPopSprite = function(sprite, popup) {
   const gold = popup.getDirectValue();
   sprite._colorType = popup.getTextColor();
   sprite._duration += 180;
-  sprite.createValue(`SDP +${gold}`);
+  sprite.createValue(`SDP  +${gold}`);
 };
 
 /**
