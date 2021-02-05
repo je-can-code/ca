@@ -1379,129 +1379,112 @@ class Window_SDP_ConfirmUpgrade extends Window_Command {
 
 //#region Custom classes
 //#region StatDistributionPanel
+function StatDistributionPanel() { this.initialize(...arguments); }
+StatDistributionPanel.prototype = {};
+StatDistributionPanel.prototype.constructor = StatDistributionPanel;
+StatDistributionPanel.prototype.initialize = function(
+  name,
+  key, 
+  iconIndex,
+  description,
+  maxRank, 
+  baseCost,
+  flatGrowthCost,
+  multGrowthCost,
+  maxReward,
+  maxRewardDescription,
+  ...panelParameters) {
+    /**
+     * Gets the friendly name for this SDP.
+     * @type {string}
+     */
+    this.name = name;
+    
+    /**
+     * Gets the unique identifier key that represents this SDP.
+     * @type {string}
+     */
+    this.key = key;
+
+    /**
+     * Gets the icon index for this SDP.
+     * @type {number}
+     */
+    this.iconIndex = iconIndex;
+
+    /**
+     * Gets the description for this SDP.
+     * @type {string}
+     */
+    this.description = description;
+
+    /**
+     * Gets the maximum rank for this SDP.
+     * @type {number}
+     */
+    this.maxRank = maxRank;
+
+    /**
+     * The base cost to rank up this panel.
+     * @type {number}
+     */
+    this.baseCost = baseCost;
+
+    /**
+     * The flat amount per rank that the cost will grow.
+     * @type {number}
+     */
+    this.flatGrowthCost = flatGrowthCost;
+
+    /**
+     * The multiplicative amount per rank that the cost will grow.
+     * @type {number}
+     */
+    this.multGrowthCost = multGrowthCost;
+
+    /**
+     * The effect of what happens when this panel is maxed out.
+     * @type {string}
+     */
+    this.maxReward = maxReward;
+
+    /**
+     * The description of the what happens when you max out this panel.
+     * @type {string}
+     */
+    this.maxRewardDescription = maxRewardDescription;
+
+    /**
+     * Gets all parameters that this SDP affects.
+     * @returns {PanelParameter[]}
+     */
+    this.panelParameters = panelParameters;
+};
+
 /**
- * The class representing a single collection of parameters and costs that impact actor
- * parameters passively and permanently.
+ * Calculates the cost of SDP points to rank this panel up.
+ * @param {number} currentRank The current ranking of this panel for a given actor.
+ * @returns {number}
  */
-class StatDistributionPanel {
-  /**
-   * @constructor
-   * @param {string} name The friendly name for this SDP.
-   * @param {string} key The less-friendly unique key that represents this SDP.
-   * @param {number} iconIndex The icon index for this panel.
-   * @param {string} description The description for this panel. Can include escape characters.
-   * @param {number} maxRank The maximum rank for this SDP.
-   * @param {number} baseCost The base cost for this SDP.
-   * @param {number} flatGrowthCost The flat cost increase per rank.
-   * @param {number} multGrowthCost The multiplicative cost increase per rank.
-   * @param {string} maxReward The effects performed when a panel is maxed out.
-   * @param {string} maxRewardDescription The effects performed when a panel is maxed out.
-   * @param  {...PanelParameter} panelParameters The parameters that this SDP affects.
-   */
-  constructor(
-    name,
-    key, 
-    iconIndex,
-    description,
-    maxRank, 
-    baseCost,
-    flatGrowthCost,
-    multGrowthCost,
-    maxReward,
-    maxRewardDescription,
-    ...panelParameters) {
-      /**
-       * Gets the friendly name for this SDP.
-       * @type {string}
-       */
-      this.name = name;
-      
-      /**
-       * Gets the unique identifier key that represents this SDP.
-       * @type {string}
-       */
-      this.key = key;
+StatDistributionPanel.prototype.rankUpCost = function(currentRank) {
+  if (currentRank === this.maxRank) {
+    return 0;
+  } else {
+    const growth = Math.floor(this.multGrowthCost * (this.flatGrowthCost * (currentRank + 1)));
+    const cost = this.baseCost + growth;
+    return cost;
+  }
+};
 
-      /**
-       * Gets the icon index for this SDP.
-       * @type {number}
-       */
-      this.iconIndex = iconIndex;
-
-      /**
-       * Gets the description for this SDP.
-       * @type {string}
-       */
-      this.description = description;
-
-      /**
-       * Gets the maximum rank for this SDP.
-       * @type {number}
-       */
-      this.maxRank = maxRank;
-
-      /**
-       * The base cost to rank up this panel.
-       * @type {number}
-       */
-      this.baseCost = baseCost;
-
-      /**
-       * The flat amount per rank that the cost will grow.
-       * @type {number}
-       */
-      this.flatGrowthCost = flatGrowthCost;
-
-      /**
-       * The multiplicative amount per rank that the cost will grow.
-       * @type {number}
-       */
-      this.multGrowthCost = multGrowthCost;
-
-      /**
-       * The effect of what happens when this panel is maxed out.
-       * @type {string}
-       */
-      this.maxReward = maxReward;
-
-      /**
-       * The description of the what happens when you max out this panel.
-       * @type {string}
-       */
-      this.maxRewardDescription = maxRewardDescription;
-
-      /**
-       * Gets all parameters that this SDP affects.
-       * @returns {PanelParameter[]}
-       */
-      this.panelParameters = panelParameters;
-  };
-
-  /**
-   * Calculates the cost of SDP points to rank this panel up.
-   * @param {number} currentRank The current ranking of this panel for a given actor.
-   * @returns {number}
-   */
-  rankUpCost(currentRank) {
-    if (currentRank === this.maxRank) {
-      return 0;
-    } else {
-      const growth = Math.floor(this.multGrowthCost * (this.flatGrowthCost * (currentRank + 1)));
-      const cost = this.baseCost + growth;
-      return cost;
-    }
-  };
-
-  /**
-   * Retrieves all panel parameters associated with a provided `paramId`.
-   * @param {number} paramId The `paramId` to find parameters for.
-   * @returns {PanelParameter[]}
-   */
-  getPanelParameterById(paramId) {
-    const panelParameters = this.panelParameters;
-    const result = panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
-    return result;
-  };
+/**
+ * Retrieves all panel parameters associated with a provided `paramId`.
+ * @param {number} paramId The `paramId` to find parameters for.
+ * @returns {PanelParameter[]}
+ */
+StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
+  const panelParameters = this.panelParameters;
+  const result = panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
+  return result;
 };
 //#endregion StatDistributionPanel
 
@@ -1509,32 +1492,34 @@ class StatDistributionPanel {
 /**
  * A class that represents a single parameter and its growth for a `StatDistributionPanel`.
  */
-class PanelParameter {
+function PanelParameter() { this.initialize(...arguments); }
+PanelParameter.prototype = {};
+PanelParameter.prototype.constructor = PanelParameter;
+
+/**
+ * 
+ * @param {number} parameterId The parameter this class represents.
+ * @param {number} perRank The amount per rank this parameter gives.
+ * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
+ */
+PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
   /**
-   * @constructor
-   * @param {number} parameterId The parameter this class represents.
-   * @param {number} perRank The amount per rank this parameter gives.
-   * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
+   * The id of the parameter this class represents.
+   * @type {number}
    */
-  constructor(parameterId, perRank, isFlat) {
-    /**
-     * The id of the parameter this class represents.
-     * @type {number}
-     */
-    this.parameterId = parameterId;
+  this.parameterId = parameterId;
 
-    /**
-     * The amount per rank this parameter gives.
-     * @type {number}
-     */
-    this.perRank = perRank;
+  /**
+   * The amount per rank this parameter gives.
+   * @type {number}
+   */
+  this.perRank = perRank;
 
-    /**
-     * Whether or not the growth per rank for this parameter is flat or percent.
-     * @type {boolean} True if it is flat growth, false if it is percent growth.
-     */
-    this.isFlat = isFlat;
-  };
+  /**
+   * Whether or not the growth per rank for this parameter is flat or percent.
+   * @type {boolean} True if it is flat growth, false if it is percent growth.
+   */
+  this.isFlat = isFlat;
 };
 //#endregion PanelParameter
 
@@ -1542,13 +1527,11 @@ class PanelParameter {
 /**
  * A class for tracking an actor's ranking in a particular panel.
  */
-class PanelRanking {
-  /**
-   * @constructor
-   * @param {string} key The unique key that correlates to a panel.
-   * @param {number} maxRank The maximum rank for the panel.
-   */
-  constructor(key, maxRank) {
+function PanelRanking() { this.initialize(...arguments); }
+PanelRanking.prototype = {};
+PanelRanking.prototype.constructor = PanelRanking;
+
+PanelRanking.prototype.initialize = function(key, maxRank) {
     /**
      * The key for this panel ranking.
      */
@@ -1559,43 +1542,45 @@ class PanelRanking {
      */
     this.maxRank = maxRank;
     this.initMembers();
-  };
+};
 
-  /**
-   * Initializes all members of this class.
-   */
-  initMembers() {
+/**
+ * Initializes all members of this class.
+ */
+PanelRanking.prototype.initMembers = function(key, maxRank) {
     /**
      * The current rank for this panel ranking.
      */
     this.currentRank = 0;
-  };
+};
 
-  /**
-   * Ranks up this panel.
-   */
-  rankUp() {
-    if (this.currentRank < this.maxRank) {
-      this.currentRank++;
-      if (this.currentRank === this.maxRank) {
-        this.performMaxEffect();
-      }
-    } else {
-      // can't rank up beyond max.
+/**
+ * Ranks up this panel.
+ */
+PanelRanking.prototype.rankUp = function() {
+  if (this.currentRank < this.maxRank) {
+    this.currentRank++;
+    if (this.currentRank === this.maxRank) {
+      this.performMaxEffect();
     }
-  };
+  } else {
+    // can't rank up beyond max.
+  }
+};
 
-  performMaxEffect() {
-    const a = $gameParty.leader();
-    const rewardEffect = $gameSystem.getSdpPanel(this.key).maxReward;
-    console.log(rewardEffect);
-    try {
-      eval(rewardEffect);
-    } catch (err) {
-      console.error(`An error occurred while trying to execute the maxreward for panel: ${this.key}`);
-      console.error(err);
-    }
-  };
+/**
+ * Upon maxing the panel, try to perform this `javascript` effect.
+ */
+PanelRanking.prototype.performMaxEffect = function() {
+  const a = $gameParty.leader();
+  const rewardEffect = $gameSystem.getSdpPanel(this.key).maxReward;
+  console.log(rewardEffect);
+  try {
+    eval(rewardEffect);
+  } catch (err) {
+    console.error(`An error occurred while trying to execute the maxreward for panel: ${this.key}`);
+    console.error(err);
+  }
 };
 //#endregion PanelRanking
 //#endregion Custom classes
