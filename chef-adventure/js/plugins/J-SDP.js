@@ -1205,6 +1205,7 @@ class Window_SDP_Details extends Window_Base {
 
   /**
    * Gets the icon index of the given parameter.
+   * TODO: move this to the base plugin.
    * @param {number} parameterId The id of a parameter to get the icon for.
    * @returns {number} The `iconIndex` of this parameter.
    */
@@ -1547,7 +1548,7 @@ PanelRanking.prototype.initialize = function(key, maxRank) {
 /**
  * Initializes all members of this class.
  */
-PanelRanking.prototype.initMembers = function(key, maxRank) {
+PanelRanking.prototype.initMembers = function() {
     /**
      * The current rank for this panel ranking.
      */
@@ -1573,8 +1574,8 @@ PanelRanking.prototype.rankUp = function() {
  */
 PanelRanking.prototype.performMaxEffect = function() {
   const a = $gameParty.leader();
+  SoundManager.playMagicEvasion();
   const rewardEffect = $gameSystem.getSdpPanel(this.key).maxReward;
-  console.log(rewardEffect);
   try {
     eval(rewardEffect);
   } catch (err) {

@@ -150,6 +150,16 @@ Scene_Map.prototype.createJabsTextLog = function() {
   this._j._mapTextLog = this._j._mapTextLog || new Window_TextLog(rect);
   this.addWindow(this._j._mapTextLog);
 };
+
+/**
+ * Toggles the visibility and functionality of the externally managed text log.
+ * @param {boolean} toggle Whether or not to display the external text log.
+ */
+Scene_Map.prototype.toggleLog = function(toggle = true) {
+  if (J.TextLog.Metadata.Enabled) {
+    this._j._mapTextLog.toggle(toggle);
+  }
+};
 //#endregion Scene_Map
 
 //#region Game_TextLog

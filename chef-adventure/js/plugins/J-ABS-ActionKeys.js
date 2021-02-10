@@ -95,7 +95,7 @@ Scene_Map.prototype.initialize = function() {
   } else {
     this._j._actionKeys = null;
   }
-}
+};
 
 /**
  * Once the map is loaded, hook in and create the `JABS_BattlerManager` for managing
@@ -105,7 +105,7 @@ J.ActionKeys.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function() {
   J.ActionKeys.Aliased.Scene_Map.onMapLoaded.call(this);
   this.createJabsActionKeys();
-}
+};
 
 /**
  * Creates the internal action keys for JABS.
@@ -118,7 +118,17 @@ Scene_Map.prototype.createJabsActionKeys = function() {
   const rect = new Rectangle(wx, wy, ww, wh);
   this._j._actionKeys = new Window_ActionKeys(rect);
   this.addWindow(this._j._actionKeys);
-}
+};
+
+/**
+ * Toggles the visibility and functionality of the externally managed action keys.
+ * @param {boolean} toggle Whether or not to display the external action keys.
+ */
+Scene_Map.prototype.toggleKeys = function(toggle = true) {
+  if (J.ActionKeys.Metadata.Enabled) {
+    this._j._actionKeys.toggle(toggle);
+  }
+};
 //#endregion Scene_Map
 //#endregion Scene objects
 
@@ -139,7 +149,7 @@ Window_ActionKeys.prototype.initialize = function(rect) {
   Window_Base.prototype.initialize.call(this, rect);
   this.opacity = 0;
   this.initMembers();
-}
+};
 
 /**
  * Initializes all the properties of this class.
@@ -159,7 +169,7 @@ Window_ActionKeys.prototype.initMembers = function() {
    * Whether or not the action keys should be visible.
    */
   this._enabled = true;
-}
+};
 
 /**
  * The update cycle. Refreshes values as-needed and handles all the drawing.
@@ -171,7 +181,7 @@ Window_ActionKeys.prototype.update = function() {
   } else {
     this.refresh();
   }
-}
+};
 
 /**
  * Toggles visibility of the action keys on the screen.
@@ -179,7 +189,7 @@ Window_ActionKeys.prototype.update = function() {
  */
 Window_ActionKeys.prototype.toggle = function(toggle = true) {
   this._enabled = toggle;
-}
+};
 
 /**
  * Whether or not this window actually has an actor to display data for.
@@ -192,7 +202,7 @@ Window_ActionKeys.prototype.canUpdate = function() {
   }
 
   return true;
-}
+};
 
 /**
  * Refreshes the window and forces a recreation of all sprites.
@@ -206,7 +216,7 @@ Window_ActionKeys.prototype.refresh = function() {
   })
 
   this._sprites = {};
-}
+};
 
 /**
  * Draws the contents of the action keys window.
