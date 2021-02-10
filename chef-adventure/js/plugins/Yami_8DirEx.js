@@ -108,7 +108,7 @@
     Game_Event.prototype.determineDirection = function() {
       const player = this.getMapActionData().getCaster();
       const playerDirection = player.getCharacter().direction();
-      const projectiles = this.getMapActionData().getBaseSkill()._jabs.projectile;
+      const projectiles = this.getMapActionData().getBaseSkill()._j.projectile;
       const playerX = player.getX();
       const playerY = player.getY();
       const actionX = this.x;

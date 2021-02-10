@@ -128,6 +128,16 @@ Scene_Map.prototype.mapNameWindowRect = function() {
     return J.Hud.Aliased.mapNameWindowRect.call(this);
   }
 };
+
+/**
+ * Toggles the visibility and functionality of the built-in JABS hud.
+ * @param {boolean} toggle Whether or not to display the default hud.
+ */
+Scene_Map.prototype.toggleHud = function(toggle = true) {
+  if (J.Hud.Metadata.Enabled) {
+    this._j._hud.toggle(toggle);
+  }
+};
 //#endregion Scene_Map
 //#endregion Scene objects
 
@@ -355,28 +365,32 @@ Window_Hud.prototype.drawStates = function() {
   const iconWidth = ImageManager.iconWidth;
   if (!this._actor.states().length) return;
 
-  const player = $gameBattleMap.getPlayerMapBattler();
-  this._actor.states().forEach((state, i) => {
-    const stateData = player.getStateData(state.id);
-    if (stateData && stateData.active) {
-      this.drawState(state, 124 + i*iconWidth, 70);
-    }
-  })
+  if (J.ABS && J.ABS.Metadata.Enabled) {
+    const player = $gameBattleMap.getPlayerMapBattler();
+    this._actor.states().forEach((state, i) => {
+      const stateData = player.getStateData(state.id);
+      if (stateData && stateData.active) {
+        this.drawState(state, 124 + i*iconWidth, 70);
+      }
+    })
+  }
 };
 
 /**
  * Hides the sprites associated with a given state id.
  */
 Window_Hud.prototype.hideExpiredStates = function() {
-  const allStateData = $gameBattleMap.getPlayerMapBattler().getAllStateData();
-  Object.keys(allStateData).forEach(stateKey => {
-    Object.keys(this._hudSprites).forEach(spriteKey => {
-      const match = `state-${stateKey}`;
-      if (spriteKey.contains(match) && !allStateData[stateKey].active) {
-        this._hudSprites[spriteKey].hide()
-      }
+  if (J.ABS && J.ABS.Metadata.Enabled) {
+    const allStateData = $gameBattleMap.getPlayerMapBattler().getAllStateData();
+    Object.keys(allStateData).forEach(stateKey => {
+      Object.keys(this._hudSprites).forEach(spriteKey => {
+        const match = `state-${stateKey}`;
+        if (spriteKey.contains(match) && !allStateData[stateKey].active) {
+          this._hudSprites[spriteKey].hide()
+        }
+      })
     })
-  })
+  }
 };
 
 /**
@@ -386,9 +400,11 @@ Window_Hud.prototype.hideExpiredStates = function() {
  * @param {number} y The `y` coordinate to draw this state at.
  */
 Window_Hud.prototype.drawState = function(state, x, y) {
-  const stateData = $gameBattleMap.getPlayerMapBattler().getStateData(state.id);
-  this.placeStateIconSprite(state.id, state.iconIndex, x, y);
-  this.placeStateTimerSprite(state.id, stateData, x, y);
+  if (J.ABS && J.ABS.Metadata.Enabled) {
+    const stateData = $gameBattleMap.getPlayerMapBattler().getStateData(state.id);
+    this.placeStateIconSprite(state.id, state.iconIndex, x, y);
+    this.placeStateTimerSprite(state.id, stateData, x, y);
+  }
 };
 
 /**

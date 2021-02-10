@@ -73,6 +73,10 @@ J.Base.Notetags = {
   UniqueCooldown: "unique",
 
   // on items in database
+  JaftingIngredient: "ingredient",
+  JaftingTool: "tool",
+  JaftingCategory: "category",
+  JaftingOutput: "output",
   UseOnPickup: "useOnPickup",
 
   // on equipment in database.
@@ -187,6 +191,26 @@ J.Base.Projectiles = {
 };
 
 /**
+ * The various item types that an item can be.
+ */
+J.Base.ItemTypes = {
+  /**
+   * The type representing an item from the `$dataItems`.
+   */
+  Item: "i",
+
+  /**
+   * The type representing an item from the `$dataArmors`.
+   */
+  Weapon: "w",
+
+  /**
+   * The type representing an item from the `$dataWeapons`.
+   */
+  Armor: "a",
+};
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.Base.Aliased = {
@@ -290,7 +314,8 @@ DataManager.isDatabaseLoaded = function() {
 DataManager.loadExtraData = function() {
   if (!DataManager._extraDataLoaded) {
     this.addExtraSkillData();
-    this.addExtraEquipmentData();
+    this.addExtraWeaponData();
+    this.addExtraArmorData();
     this.addExtraItemData();
     this.addExtraStateData();
     this._extraDataLoaded = true;
@@ -304,18 +329,10 @@ DataManager.addExtraSkillData = function() {
   $dataSkills.forEach(skill => {
     if (!skill) return;
     const extraSkillData = new JABS_SkillData(skill.note, skill.meta);
-    Object.defineProperty(skill, "_jabs", {
+    Object.defineProperty(skill, "_j", {
       get() { return extraSkillData; }
     });
   });
-};
-
-/**
- * Loads all extra data from the notes of equipment (weapons and armors).
- */
-DataManager.addExtraEquipmentData = function() {
-  this.addExtraWeaponData();
-  this.addExtraArmorData();
 };
 
 /**
@@ -325,8 +342,13 @@ DataManager.addExtraWeaponData = function() {
   $dataWeapons.forEach(weapon => {
     if (!weapon) return;
     const extraWeaponData = new JABS_EquipmentData(weapon.note, weapon.meta);
-    Object.defineProperty(weapon, "_jabs", {
+    Object.defineProperty(weapon, "_j", {
       get() { return extraWeaponData; }
+    });
+
+    const extraJaftingData = new JAFT_Data(weapon.note, weapon.id, "w");
+    Object.defineProperty(weapon, "_jaft", {
+      get() { return extraJaftingData; }
     });
   });
 };
@@ -338,8 +360,13 @@ DataManager.addExtraArmorData = function() {
   $dataArmors.forEach(armor => {
     if (!armor) return;
     const extraArmorData = new JABS_EquipmentData(armor.note, armor.meta);
-    Object.defineProperty(armor, "_jabs", {
+    Object.defineProperty(armor, "_j", {
       get() { return extraArmorData; }
+    });
+
+    const extraJaftingData = new JAFT_Data(armor.note, armor.id, "a");
+    Object.defineProperty(armor, "_jaft", {
+      get() { return extraJaftingData; }
     });
   });
 };
@@ -351,8 +378,13 @@ DataManager.addExtraItemData = function() {
   $dataItems.forEach(item => {
     if (!item) return;
     const extraItemData = new JABS_ItemData(item.note, item.meta);
-    Object.defineProperty(item, "_jabs", {
+    Object.defineProperty(item, "_j", {
       get() { return extraItemData; }
+    });
+
+    const extraJaftingData = new JAFT_Data(item.note, item.id, "i");
+    Object.defineProperty(item, "_jaft", {
+      get() { return extraJaftingData; }
     });
   });
 };
@@ -364,7 +396,7 @@ DataManager.addExtraStateData = function() {
   $dataStates.forEach(state => {
     if (!state) return;
     const extraStateData = new JABS_StateData(state.note, state.meta);
-    Object.defineProperty(state, "_jabs", {
+    Object.defineProperty(state, "_j", {
       get() { return extraStateData; }
     });
   });
@@ -2076,4 +2108,278 @@ class JABS_StateData {
 //#endregion JABS_StateData
 //#endregion JABS Classes
 
+//#region JAFTING classes
+//#region JAFT_Data
+/**
+ * All data associated with JAFTING for this item.
+ * Includes a slew of helpful functions to retrieve the information.
+ */
+function JAFT_Data() { this.initialize(...arguments); }
+JAFT_Data.prototype = {};
+JAFT_Data.prototype.constructor = JAFT_Data;
+JAFT_Data.prototype.initialize = function(notes, baseId, baseType) {
+  this._notes = notes.split(/[\r\n]+/);
+  this._baseId = baseId;
+  this._baseType = baseType;
+};
+
+/**
+ * Gets all ingredients that are described in this recipe.
+ * @returns {Crafting_Ingredient[]}
+ */
+JAFT_Data.prototype.ingredients = function() {
+  const ingredients = [];
+  const structure = /<ingredient:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const itemId = parseInt(RegExp.$1);
+      const itemType = RegExp.$2;
+      const itemCount = parseInt(RegExp.$3);
+      const i = new Crafting_Ingredient(itemId, itemType, itemCount, false);
+      ingredients.push(i);
+    }
+  })
+
+  return ingredients;
+};
+
+/**
+ * Gets all tools that are described in this recipe.
+ * @returns {Crafting_Ingredient[]}
+ */
+JAFT_Data.prototype.tools = function() {
+  const tools = [];
+  const structure = /<tool:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const toolId = parseInt(RegExp.$1);
+      const toolType = RegExp.$2;
+      const t = new Crafting_Ingredient(toolId, toolType, 1, true);
+      tools.push(t);
+    }
+  })
+
+  return tools;
+};
+
+/**
+ * Gets all category keys that this item's recipe belongs to.
+ * @returns {string[]}
+ */
+JAFT_Data.prototype.categories = function() {
+  const categories = [];
+  const structure = /<category:[ ]?(\w+)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const key = RegExp.$1;
+      categories.push(key);
+    }
+  })
+
+  return categories;
+};
+
+/**
+ * Gets the list of items created as a result of executing this recipe.
+ * @returns {object[]} The list of RPG::Items that are generated.
+ */
+JAFT_Data.prototype.output = function() {
+  const output = [];
+  const structure = /<output:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const outputId = RegExp.$1;
+      const outputType = RegExp.$2;
+      const outputCount = parseInt(RegExp.$3);
+      Array.from(Array(outputCount)).forEach(() => {
+        const item = JAFT_Data.translateItem(outputId, outputType);
+        output.push(item);
+      });
+    }
+  })
+
+  if (!output.length) {
+    const item = JAFT_Data.translateItem(this._baseId, this._baseType);
+    output.push(item);
+  }
+
+  return output;
+};
+
+/**
+ * Translates the id and type into a proper RPG::Item.
+ * @param {number} id The id of the item in the database.
+ * @param {string} type An abbreviation for the type of item this is.
+ */
+JAFT_Data.translateItem = function(id, type) {
+  switch (type) {
+    case "i":
+      return $dataItems[id];
+    case "w":
+      return $dataWeapons[id];
+    case "a":
+      return $dataArmors[id];
+  }
+};
+
+/**
+ * Gets all items that are unlocked upon consumption of this item.
+ * @returns {Crafting_Unlock[]}
+ */
+JAFT_Data.prototype.unlocks = function() {
+  const unlocks = [];
+  const structure = /<unlock:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const unlockedItemId = parseInt(RegExp.$1);
+      const unlockedItemType = RegExp.$2;
+      const u = new Crafting_Unlock(unlockedItemId, unlockedItemType);
+      unlocks.push(u);
+    }
+  });
+
+  return unlocks;
+};
+
+/**
+ * Gets whether or not this item is currently locked by a switch.
+ * Items locked by switches will show up as disabled in the list
+ * regardless of the recipe being unlocked or not.
+ * @returns {boolean}
+ */
+JAFT_Data.prototype.isSwitchUnlocked = function() {
+  const switches = [];
+  const structure = /<switchUnlock:[ ]?(\d+)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const switchId = parseInt(RegExp.$1);
+      switches.push(switchId);
+    }
+  });
+
+  if (switches.length) {
+    // finds any false switches; if found, return false.
+    const result = switches.find(switchId => !$gameSwitches.value(switchId));
+    return result
+      ? false
+      : true;
+  } else {
+    return true;
+  }
+};
+
+/**
+ * Gets the name and iconIndex for this recipe.
+ * Typically used when a recipe outputs items other than what the recipe lives on.
+ * @returns {{string, number}} The name and iconIndex.
+ */
+JAFT_Data.prototype.nameData = function() {
+  let name = ``;
+  let iconIndex = 0;
+  const structure = /<recipeName:[ ]?\[([-a-zA-Z0-9_ ]*),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      name = RegExp.$1.trim();
+      iconIndex = RegExp.$2;
+    }
+  });
+
+  // if there are no notes specifying this data, get it from the base item.
+  if (!name.length && !iconIndex) {
+    const baseItem = JAFT_Data.translateItem(this._baseId, this._baseType);
+    name = baseItem.name;
+    iconIndex = parseInt(baseItem.iconIndex);
+  }
+
+  return { name, iconIndex };
+};
+
+/**
+ * Gets the description associated with this recipe.
+ * Typically used when a recipe outputs items other than what the recipe lives on.
+ * @returns {string}
+ */
+JAFT_Data.prototype.description = function() {
+  let description = ``;
+  const structure = /<recipeDesc:[ ]?([.-\w+ ]*)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      description = RegExp.$1.trim();
+    }
+  });
+
+  if (!description.length) {
+    const baseItem = JAFT_Data.translateItem(this._baseId, this._baseType);
+    description = baseItem.description;
+  }
+
+  return description;
+};
+//#endregion JAFT_ItemData
+
+//#region Crafting_Ingredient
+/**
+ * A single instance of a particular crafting ingredient for use in JAFTING.
+ */
+function Crafting_Ingredient() { this.initialize(...arguments); }
+Crafting_Ingredient.prototype = {};
+Crafting_Ingredient.prototype.constructor = Crafting_Ingredient;
+Crafting_Ingredient.prototype.initialize = function(id, type, count, isTool) {
+  /**
+   * The id of the underlying ingredient.
+   * @type {number}
+   */
+  this.id = id;
+
+  /**
+   * The type of ingredient this is, such as `i`/`w`/`a`.
+   * @type {string}
+   */
+  this.type = type;
+
+  /**
+   * How many of this ingredient is required.
+   * @type {number}
+   */
+  this.count = count;
+
+  /**
+   * Whether or not this ingredient is a non-consumable tool that is required
+   * to perform crafting for particular recipes.
+   * @type {boolean}
+   */
+  this.isTool = isTool;
+};
+//#endregion Crafting_Ingredient
+
+//#region Crafting_Unlock
+/**
+ * Represents an unlocked item and type.
+ * Without these, the items will show up as disabled in the list of recipes.
+ */
+function Crafting_Unlock() { this.initialize(...arguments); }
+Crafting_Unlock.prototype = {};
+Crafting_Unlock.prototype.constructor = Crafting_Unlock;
+Crafting_Unlock.prototype.initialize = function(itemId, itemType) {
+  /**
+   * The id of the item.
+   * @type {number}
+   */
+  this.itemId = itemId;
+
+  /**
+   * The type of item this is- one of: `i`/`w`/`a`.
+   * @type {string}
+   */
+  this.itemType = itemType;
+
+  /**
+   * Whether or not this item has been crafted yet.
+   * While an item is available but not-yet crafted, will be masked with `??`s.
+   * @type {boolean}
+   */
+  this.crafted = false;
+};
+//#endregion Crafting_Unlock
+//#endregion JAFTING classes
 //ENDFILE
