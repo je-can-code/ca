@@ -1672,6 +1672,25 @@ Game_Interpreter.prototype.command201 = function(params) {
 };
 
 /**
+ * 
+ */
+J.ABS.Aliased.Game_Interpreter.command302 = Game_Interpreter.prototype.command302;
+Game_Interpreter.prototype.command302 = function(params) {
+  if ($gameBattleMap.absEnabled) {
+      const goods = [params];
+      while (this.nextEventCode() === 605) {
+          this._index++;
+          goods.push(this.currentCommand().parameters);
+      }
+      SceneManager.push(Scene_Shop);
+      SceneManager.prepareNextScene(goods, params[4]);
+      return true;
+  } else {
+    return J.ABS.Aliased.Game_Interpreter.command302.call(this, params);
+  }
+};
+
+/**
  * Enables saving with JABS.
  * Removed the check for seeing if the player is in-battle, because the player is
  * technically ALWAYS in-battle while the ABS is enabled.
