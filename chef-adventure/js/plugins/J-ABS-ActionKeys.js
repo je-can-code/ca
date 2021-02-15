@@ -197,7 +197,7 @@ Window_ActionKeys.prototype.toggle = function(toggle = true) {
  */
 Window_ActionKeys.prototype.canUpdate = function() {
   if (!$gameParty || !$gameParty.leader() || !this.contents || 
-    !this._enabled || !J.ActionKeys.Metadata.Active) {
+    !this._enabled || !J.ActionKeys.Metadata.Active || $gameMessage.isBusy()) {
     return false;
   }
 

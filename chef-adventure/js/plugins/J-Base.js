@@ -284,6 +284,23 @@ J.Base.Helpers = {
   getRandomNumber(min, max) {
     return Math.floor(min + Math.random() * (max + 1 - min))
   },
+
+/**
+ * Translates the id and type into a proper `RPG::Item`.
+ * @param {number} id The id of the item in the database.
+ * @param {string} type An abbreviation for the type of item this is.
+ * @returns {object} The `RPG::Item` of the correct id and type.
+ */
+translateItem(id, type) {
+  switch (type) {
+    case "i":
+      return $dataItems[id];
+    case "w":
+      return $dataWeapons[id];
+    case "a":
+      return $dataArmors[id];
+    }
+  },
 };
 //#endregion Helpers
 //#endregion Introduction
@@ -2181,7 +2198,7 @@ JAFT_Data.prototype.categories = function() {
 
 /**
  * Gets the list of items created as a result of executing this recipe.
- * @returns {object[]} The list of RPG::Items that are generated.
+ * @returns {Crafting_Output[]} The list of RPG::Items that are generated.
  */
 JAFT_Data.prototype.output = function() {
   const output = [];
@@ -2191,35 +2208,19 @@ JAFT_Data.prototype.output = function() {
       const outputId = RegExp.$1;
       const outputType = RegExp.$2;
       const outputCount = parseInt(RegExp.$3);
-      Array.from(Array(outputCount)).forEach(() => {
-        const item = JAFT_Data.translateItem(outputId, outputType);
-        output.push(item);
-      });
+      const item = J.Base.Helpers.translateItem(outputId, outputType);
+      const newCraftingOutput = new Crafting_Output(item, outputCount);
+      output.push(newCraftingOutput);
     }
   })
 
   if (!output.length) {
-    const item = JAFT_Data.translateItem(this._baseId, this._baseType);
-    output.push(item);
+    const item = J.Base.Helpers.translateItem(this._baseId, this._baseType);
+    const newCraftingOutput = new Crafting_Output(item, 1);
+    output.push(newCraftingOutput);
   }
 
   return output;
-};
-
-/**
- * Translates the id and type into a proper RPG::Item.
- * @param {number} id The id of the item in the database.
- * @param {string} type An abbreviation for the type of item this is.
- */
-JAFT_Data.translateItem = function(id, type) {
-  switch (type) {
-    case "i":
-      return $dataItems[id];
-    case "w":
-      return $dataWeapons[id];
-    case "a":
-      return $dataArmors[id];
-  }
 };
 
 /**
@@ -2286,7 +2287,7 @@ JAFT_Data.prototype.nameData = function() {
 
   // if there are no notes specifying this data, get it from the base item.
   if (!name.length && !iconIndex) {
-    const baseItem = JAFT_Data.translateItem(this._baseId, this._baseType);
+    const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
     name = baseItem.name;
     iconIndex = parseInt(baseItem.iconIndex);
   }
@@ -2301,7 +2302,7 @@ JAFT_Data.prototype.nameData = function() {
  */
 JAFT_Data.prototype.description = function() {
   let description = ``;
-  const structure = /<recipeDesc:[ ]?([.-\w+ ]*)>/i;
+  const structure = /<recipeDesc:[ ]?([,'.-\w \\]*)>/i;
   this._notes.forEach(note => {
     if (note.match(structure)) {
       description = RegExp.$1.trim();
@@ -2309,7 +2310,7 @@ JAFT_Data.prototype.description = function() {
   });
 
   if (!description.length) {
-    const baseItem = JAFT_Data.translateItem(this._baseId, this._baseType);
+    const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
     description = baseItem.description;
   }
 
@@ -2381,5 +2382,28 @@ Crafting_Unlock.prototype.initialize = function(itemId, itemType) {
   this.crafted = false;
 };
 //#endregion Crafting_Unlock
+
+//#region Crafting_Output
+/**
+ * Represents a single unique output from JAFTING.
+ * Different items should get their own output slot.
+ */
+function Crafting_Output() { this.initialize(...arguments); }
+Crafting_Output.prototype = {};
+Crafting_Output.prototype.constructor = Crafting_Output;
+Crafting_Output.prototype.initialize = function(item, count) {
+  /**
+   * The underlying `RPG::Item` to be gained.
+   * @type {object}
+   */
+  this.item = item;
+
+  /**
+   * How many of this item will be produced as a output.
+   * @type {number}
+   */
+  this.count = count;
+};
+//#endregion Crafting_Output
 //#endregion JAFTING classes
 //ENDFILE

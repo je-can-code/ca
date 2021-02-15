@@ -346,8 +346,9 @@ Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
  * @returns {boolean} True if the log can be updated, false otherwise.
  */
 Window_TextLog.prototype.canUpdate = function() {
-  if (!this.contents || (!this._enabled || !J.TextLog.Metadata.Active)) {
-    return false;
+  if (!this.contents || (!this._enabled || 
+    !J.TextLog.Metadata.Active || $gameMessage.isBusy())) {
+      return false;
   }
 
   return true;
@@ -406,12 +407,12 @@ Window_TextLog.prototype.interferenceOpacity = function() {
   const keys = Object.keys(sprites);
   keys.forEach(key => {
     const sprite = sprites[key];
-    if (sprite.opacity > 64) sprite.opacity -= 15;
-    if (sprite.opacity < 64) sprite.opacity += 1;
+    if (sprite.opacity > 0) sprite.opacity -= 15;
+    if (sprite.opacity < 0) sprite.opacity += 1;
   });
 
-  if (this.opacity > 64) this.opacity -= 15;
-  if (this.opacity < 64) this.opacity += 1;
+  if (this.opacity > 0) this.opacity -= 15;
+  if (this.opacity < 0) this.opacity += 1;
 };
 
 /**

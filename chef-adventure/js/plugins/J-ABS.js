@@ -1472,6 +1472,31 @@ Game_Event.prototype.event = function() {
 };
 
 /**
+ * OVERWRITE When an map battler is hidden by something like a switch or some
+ * other condition, unveil it upon meeting such conditions. 
+ */
+J.ABS.Aliased.Game_Event.refresh = Game_Event.prototype.refresh;
+Game_Event.prototype.refresh = function() {
+  if ($gameBattleMap.absEnabled) {
+    const newPageIndex = this._erased ? -1 : this.findProperPageIndex();
+    if (this._pageIndex !== newPageIndex) {
+      this._pageIndex = newPageIndex;
+      this.setupPage();
+      this.revealHiddenBattler();
+    }
+  } else {
+    J.ABS.Aliased.Game_Event.refresh.call(this);
+  }
+};
+
+Game_Event.prototype.revealHiddenBattler = function() {
+  const battler = this.getMapBattler();
+  if (battler) {
+    battler.revealHiddenBattler();
+  }
+};
+
+/**
  * Extends the pagesettings for events and adds on custom parameters to this event.
  */
 J.ABS.Aliased.Game_Event.setupPageSettings = Game_Event.prototype.setupPageSettings;
@@ -1672,7 +1697,9 @@ Game_Interpreter.prototype.command201 = function(params) {
 };
 
 /**
- * 
+ * Enables the shop scene with JABS.
+ * Removed the check for seeing if the player is in-battle, because the player is
+ * technically ALWAYS in-battle while the ABS is enabled.
  */
 J.ABS.Aliased.Game_Interpreter.command302 = Game_Interpreter.prototype.command302;
 Game_Interpreter.prototype.command302 = function(params) {
@@ -1855,15 +1882,16 @@ Game_Map.prototype.parseBattlers = function() {
 };
 
 /**
- * Converts applicable `Game_Event`s into `Game_Enemy[]`.
+ * Converts applicable `Game_Event`s into `Game_Enemy`s.
  * @param {Game_Event[]} evs A `Game_Event[]`.
  * @returns {JABS_Battler[]} A `JABS_Battler[]`.
  */
 Game_Map.prototype.convertToEnemies = function(events) {
   const mapBattlers = events.map(event => {
     const battlerId = event.battlerId();
+    const isHidden = event.findProperPageIndex() === -1;
     const battler = new Game_Enemy(battlerId, null, null);
-    const mapBattler = new JABS_Battler(event, battler, 1);
+    const mapBattler = new JABS_Battler(event, battler, 1, isHidden);
     const uuid = mapBattler.getUuid();
     event.setMapBattler(uuid);
     return mapBattler;
@@ -1936,6 +1964,29 @@ Game_Map.prototype.clearStaleMapActions = function() {
 //#endregion
 
 //#region Game_Player
+/**
+ * While JABS is enabled, don't try to interact with events if they are enemies.
+ */
+J.ABS.Aliased.Game_Player.startMapEvent = Game_Player.prototype.startMapEvent;
+Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
+  if ($gameBattleMap.absEnabled) {
+    if (!$gameMap.isEventRunning()) {
+      for (const event of $gameMap.eventsXy(x, y)) {
+        if (
+          event.isTriggerIn(triggers) &&
+          event.isNormalPriority() === normal &&
+          !event.getMapBattler()
+        ) {
+          event.start();
+        }
+      }
+    }
+  } else {
+    J.ABS.Aliased.Game_Player.startMapEvent.call(this, x, y, triggers, normal);
+  }
+
+};
+
 /**
  * If the Abs menu is pulled up, the player shouldn't be able to move.
  */
@@ -2273,8 +2324,7 @@ Scene_Map.prototype.update = function() {
  */
 Scene_Map.prototype.handlePartyRotation = function() {
   $gameBattleMap.requestPartyRotation = false;
-  this.toggleHud(true);
-  this.toggleHud(false);
+  this.refreshHud();
 };
 
 /**
@@ -4320,7 +4370,7 @@ class Game_BattleMap {
     const battlers = $gameMap.getBattlers();
     battlers.forEach(battler => {
       battler.update();
-      if (battler.getBattler().isDead()) {
+      if (battler.getBattler().isDead() && !battler.isDying()) {
         this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
       }
     });
@@ -4360,7 +4410,7 @@ class Game_BattleMap {
       if (targets.length > 0) {
         targets.forEach(target => {
           this.applyPrimaryBattleEffects(action, target);
-          if (target.getBattler().isDead()) {
+          if (target.getBattler().isDead() && !target.isDying()) {
             this.handleDefeatedTarget(target, action.getCaster());
             target.setInvincible();
           }
@@ -5192,9 +5242,8 @@ class Game_BattleMap {
     const scopeEverything = gameAction.isForEveryone();
     let targetsHit = [];
     battlers.forEach(battler => {
-      // likely already dead, skip this battler.
-      if (battler.isInvincible())
-        return;
+      // this battler is untargetable.
+      if (battler.isInvincible() || battler.isHidden()) return;
 
       // the character itself is invincible, skip this battler.
       const character = battler.getCharacter();
@@ -5486,6 +5535,9 @@ class Game_BattleMap {
 
     // if the defeated target is an enemy, check for death controls.
     this.processDeathControls(targetCharacter);
+    if (defeatedTarget.hasEventActions()) {
+      targetCharacter.start();
+    }
 
     // if the caster is player/actor, gain aftermath.
     if (caster && caster.isActor()) {
@@ -5495,7 +5547,8 @@ class Game_BattleMap {
     }
 
     // remove the target's character from the map.
-    defeatedTarget.destroy();
+    //defeatedTarget.setWaitCountdown(15);
+    defeatedTarget.setDying(true);
   };
 
   /**
@@ -5672,13 +5725,18 @@ class Game_BattleMap {
   createRewardsLog(experience, gold, caster) {
     if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
 
-    const casterData = caster.getReferenceData();
-    const expMessage = `${casterData.name} gained ${experience} experience.`;
-    const expLog = new Map_TextLog(expMessage, -1);
-    $gameTextLog.addLog(expLog);
-    const goldMessage = `The party gained ${gold} G.`;
-    const goldLog = new Map_TextLog(goldMessage, -1);
-    $gameTextLog.addLog(goldLog);
+    if (experience != 0) {
+      const casterData = caster.getReferenceData();
+      const expMessage = `${casterData.name} gained ${experience} experience.`;
+      const expLog = new Map_TextLog(expMessage, -1);
+      $gameTextLog.addLog(expLog);  
+    }
+
+    if (gold != 0) {
+      const goldMessage = `The party gained ${gold} G.`;
+      const goldLog = new Map_TextLog(goldMessage, -1);
+      $gameTextLog.addLog(goldLog);
+    }
   };
 
   /**
@@ -5844,6 +5902,8 @@ class JABS_AiManager {
     battlers.forEach(battler => {
       if (battler._team === 0) {
         // act accordingly to being on the same team.
+      } else if (battler.isHidden()) {
+        // do nothing, because you're hidden by switches or something!
       } else {
         // act as though against, default.
         this.executeAi(battler);
@@ -6272,8 +6332,6 @@ class JABS_AiManager {
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
  * This can be for either the player, an ally, or an enemy.
- * 
- * NOTE: When generating new battlers, use the static `create*` methods.
  */
 function JABS_Battler() { this.initialize(...arguments); }
 //#region initialize battler
@@ -6285,8 +6343,9 @@ JABS_Battler.prototype.constructor = JABS_Battler;
  * @param {Game_Event} event The event the battler is bound to.
  * @param {Game_Battler} battler The battler data itself.
  * @param {number} teamId The team the battler is associated with.
+ * @param {boolean} hidden Whether or not this battler is "hidden".
  */
-JABS_Battler.prototype.initialize = function(event, battler, teamId) {
+JABS_Battler.prototype.initialize = function(event, battler, teamId, hidden = false) {
   /**
    * The character/sprite that represents this battler on the map.
    * @type {Game_Character}
@@ -6304,6 +6363,14 @@ JABS_Battler.prototype.initialize = function(event, battler, teamId) {
    * @type {number}
    */
   this._team = teamId;
+
+  /**
+   * Whether or not the battler is hidden.
+   * Hidden AI-controlled battlers (like enemies) will not take action, nor will they
+   * be targetable.
+   * @type {boolean}
+   */
+  this._hidden = hidden;
   this.initFromNotes();
   this.initGeneralInfo();
   this.initBattleInfo();
@@ -6569,6 +6636,12 @@ JABS_Battler.prototype.initBattleInfo = function() {
    * @type {number}
    */
   this._counterGuardId = 0;
+
+  /**
+   * Whether or not this battler is in a state of dying.
+   * @type {boolean}
+   */
+  this._dying = false;
 };
 
 /**
@@ -6764,6 +6837,7 @@ JABS_Battler.prototype.update = function() {
   this.updateStates();
   this.updateRG();
   this.updateDodging();
+  this.updateDeathHandling();
 };
 
 /**
@@ -6803,7 +6877,7 @@ JABS_Battler.prototype.updateCooldowns = function() {
  * Monitors all other battlers and determines if they are engaged or not.
  */
 JABS_Battler.prototype.updateEngagement = function() {
-  if (this.isPlayer() || $gameBattleMap.absPause) return;
+  if (this.isPlayer() || $gameBattleMap.absPause || this.isHidden()) return;
 
   // inanimate characters cannot engage.
   const character = this.getCharacter();
@@ -6888,6 +6962,22 @@ JABS_Battler.prototype.updateDodging = function() {
   }
 };
 
+/**
+ * Handles when this battler is dying.
+ */
+JABS_Battler.prototype.updateDeathHandling = function() {
+  // don't do this for actors/players.
+  if (this.isActor()) return;
+
+  // do nothing if we are waiting.
+  if (this.isWaiting()) return;
+
+  // if we are dying, self-destruct.
+  if (this.isDying() && !$gameMap._interpreter.isRunning()) {
+    this.setDying(false);
+    this.destroy();
+  }
+};
 //#endregion updates
 
 //#region update helpers
@@ -6911,7 +7001,7 @@ JABS_Battler.prototype.countdownWait = function() {
  * zero, then the battler must wait before doing anything else.
  * @param {number} wait The duration for this battler to wait.
  */
-JABS_Battler.prototype.setWaitCountdown = function() {
+JABS_Battler.prototype.setWaitCountdown = function(wait) {
   this._waitCounter = wait;
   if (this._waitCounter > 0) {
     this._waiting = true;
@@ -7427,6 +7517,19 @@ JABS_Battler.prototype.setBaseSpriteIndex = function(index) {
 
 //#region reference helpers
 /**
+ * Events that have no actual conditions associated with them may have a -1 index.
+ * Ignore that if thats the case.
+ */
+JABS_Battler.prototype.hasEventActions = function() {
+  // allies and the player don't have event commands.
+  if (this.isActor()) return false;
+
+  const event = this.getCharacter();
+  const hasEventcommands = event._pageIndex !== -1;
+  return hasEventcommands;
+};
+
+/**
  * Whether or not the battler has an "offhand" piece of gear equipped.
  * This can either be a dual-wielded second weapon, or the first armor equipped.
  * @returns {boolean} True if the battler has offhand equip with a skill, false otherwise.
@@ -7447,6 +7550,28 @@ JABS_Battler.prototype.hasOffhandSkill = function() {
 JABS_Battler.prototype.destroy = function() {
   this.setInvincible();
   $gameMap.destroyBattler(this);
+};
+
+/**
+ * Destroys this battler and removes it from the current battle map.
+ */
+JABS_Battler.prototype.revealHiddenBattler = function() {
+  this._hidden = false;
+};
+
+/**
+ * Destroys this battler and removes it from the current battle map.
+ */
+JABS_Battler.prototype.isHidden = function() {
+  return this._hidden;
+};
+
+JABS_Battler.prototype.isDying = function() {
+  return this._dying;
+};
+
+JABS_Battler.prototype.setDying = function(dying) {
+  this._dying = dying;
 };
 
 /**
