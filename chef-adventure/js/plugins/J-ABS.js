@@ -4079,7 +4079,7 @@ class Game_BattleMap {
    */
   handleAbsInput() {
     // don't swing all willy nilly while events are executing.
-    if ($gameMap.isEventRunning()) return;
+    if ($gameMap.isEventRunning() || $gameMessage.isBusy()) return;
 
     // strafing can be done concurrently to other actions.
     if (Input.isPressed(J.ABS.Input.L2)) {
