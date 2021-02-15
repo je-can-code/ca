@@ -138,6 +138,13 @@ Scene_Map.prototype.toggleHud = function(toggle = true) {
     this._j._hud.toggle(toggle);
   }
 };
+
+/**
+ * Refreshes the hud on-command.
+ */
+Scene_Map.prototype.refreshHud = function() {
+  this._j._hud.refresh();
+};
 //#endregion Scene_Map
 //#endregion Scene objects
 
@@ -221,7 +228,7 @@ Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
  */
 Window_Hud.prototype.canUpdate = function() {
   if (!$gameParty || !$gameParty.leader() || !this.contents || 
-    !this._enabled || !J.Hud.Metadata.Active) {
+    !this._enabled || !J.Hud.Metadata.Active || $gameMessage.isBusy()) {
       return false;
   }
 
