@@ -148,18 +148,18 @@ J.LevelScaling.Utilities.determineScalingMultiplier = function(target, user) {
     user == 0 || target == 0) 
       return 1.0;
   const compared = target - user;
-  if (compared < -9) return 3.0;     // 10 or more levels higher than the target.
+  if (compared < -9) return 2.0;     // 10 or more levels higher than the target.
   else if (compared > 9) return 0.1; // 10 or more levels lower than the target.
   
   switch (compared) {
-    case -9: return 2.6;  // nine levels above the target.
-    case -8: return 2.3
-    case -7: return 2.0;
-    case -6: return 1.8;
-    case -5: return 1.6;  // five levels above the target.
-    case -4: return 1.4;
-    case -3: return 1.2;
-    case -2: return 1.1;
+    case -9: return 1.8;  // nine levels above the target.
+    case -8: return 1.6;
+    case -7: return 1.5;
+    case -6: return 1.4;
+    case -5: return 1.3;  // five levels above the target.
+    case -4: return 1.2;
+    case -3: return 1.1;
+    case -2: return 1.0;
     case -1: return 1.0;
     case 0: return 1.0;   // same level as the target.
     case 1: return 1.0;
