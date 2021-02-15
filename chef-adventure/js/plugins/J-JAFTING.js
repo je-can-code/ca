@@ -169,6 +169,46 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
   J.JAFTING.Aliased.Game_Party.gainItem.call(this, item, amount, includeEquip);
   $gameSystem.setRefreshRequest(true);
 };
+
+/**
+ * 
+ * @param {object} item 
+ */
+Game_Party.prototype.itemContainer = function(item) {
+  if (!item) {
+      return null;
+  } else if (item.itypeId) {
+      return this._items;
+  } else if (item.wtypeId) {
+      return this._weapons;
+  } else if (item.atypeId) {
+      return this._armors;
+  } else {
+      return null;
+  }
+};
+
+J.JAFTING.Aliased.Game_Party.maxItems = Game_Party.prototype.maxItems;
+Game_Party.prototype.maxItems = function(item = null) {
+  const defaultMaxItems = 999;
+  // if there is no item passed, then just return max.
+  if (!item) {
+    console.log('no item, default max!');
+    return defaultMaxItems;
+  }
+  else {
+    const baseMax = J.JAFTING.Aliased.Game_Party.maxItems.call(this, item);
+    if (!baseMax || isNaN(baseMax)) {
+      console.log('was nan!');
+      // if there is a problem with someone elses' plugins, return our max.
+      return defaultMaxItems;
+    } else {
+      console.log('base max ok!');
+      // return other plugins max if available.
+      return baseMax;
+    }
+  }
+};
 //#endregion Game_Party
 
 //#region Game_Player
@@ -476,15 +516,15 @@ Game_System.prototype.getUnlocksByCategory = function(category) {
  * @returns {string} One of: `i`, `w`, `a` for `item`, `weapon`, `armor`.
  */
 Game_System.prototype.translateRpgItemToType = function(rpgItem) {
-  if (DataManager.isItem(rpgItem)) {
+  if (rpgItem.itypeId) {
     return "i";
-  } else if (DataManager.isWeapon(rpgItem)) {
+  } else if (rpgItem.wtypeId) {
     return "w";
-  } else if (DataManager.isArmor(rpgItem)) {
+  } else if (rpgItem.atypeId) {
     return "a";
   } else {
     console.error(rpgItem);
-    throw new Error(`invalid item provided.`);
+    console.error(`check the logs, there were issues translating items for recipes.`)
   }
 };
 //#endregion Game_System
@@ -732,7 +772,7 @@ Scene_Map.prototype.jaftingGainOutput = function() {
   const outputs = recipe.output;
   outputs.forEach(output => {
     const item = output.item;
-    const count = output.count;
+    const count = parseInt(output.count);
     $gameParty.gainItem(item, count);
   });
 };
