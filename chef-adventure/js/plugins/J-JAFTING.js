@@ -203,7 +203,6 @@ Game_Party.prototype.maxItems = function(item = null) {
       // if there is a problem with someone elses' plugins, return our max.
       return defaultMaxItems;
     } else {
-      console.log('base max ok!');
       // return other plugins max if available.
       return baseMax;
     }

@@ -3395,7 +3395,7 @@ Sprite_Damage.prototype.initialize = function() {
  */
 Sprite_Damage.prototype.createValue = function(value) {
   const h = this.fontSize();
-  const w = value.length * this.fontSize() + 32;
+  const w = 200;
   const sprite = this.createChildSprite(w, h);
   let fontSize = 20;
   if (this._isCritical) {
@@ -3426,7 +3426,7 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
   sprite.scale.x = 0.75;
   sprite.scale.y = 0.75;
   sprite.y += 15;
-  sprite.x -= 30;
+  sprite.x -= 80;
   sprite.dy = 0;
 }
 
@@ -4268,6 +4268,9 @@ class Game_BattleMap {
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
+    const battlerName = this.getPlayerMapBattler().battlerName();
+    const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
+    $gameTextLog.addLog(log);
   };
 
   /**
@@ -5239,8 +5242,10 @@ class Game_BattleMap {
       }
     }
 
+    // if its an item, then use the item's icon index.
     if (DataManager.isItem(skill)) {
-      return 208;
+      const itemIconIndex = $dataItems[skill.id].iconIndex;
+      return itemIconIndex;
     }
 
     // hard-coded element-to-icon relationships.
@@ -7030,7 +7035,6 @@ JABS_Battler.prototype.updateDeathHandling = function() {
  */
 JABS_Battler.prototype.countdownWait = function() {
   if (this._waitCounter > 0) {
-    console.log("waiting ", this._waitCounter);
     this._waitCounter--;
     return;
   }
@@ -7561,6 +7565,14 @@ JABS_Battler.prototype.setBaseSpriteIndex = function(index) {
 //#endregion update helpers
 
 //#region reference helpers
+/**
+ * Destroys this battler and removes it from the current battle map.
+ */
+JABS_Battler.prototype.battlerName = function() {
+  const name = this.getReferenceData().name;
+  return name;
+};
+
 /**
  * Events that have no actual conditions associated with them may have a -1 index.
  * Ignore that if thats the case.
