@@ -1319,10 +1319,23 @@ Game_CharacterBase.prototype.initMembers = function() {
 
 /**
  * OVERWRITE Replaces the "real move speed" value to return
- * our custom real move speed instead.
+ * our custom real move speed instead, along with dash boosts as necessary.
+ * @returns {number} 
  */
 Game_CharacterBase.prototype.realMoveSpeed = function() {
-  return this._realMoveSpeed;
+  let realMoveSpeed = this._realMoveSpeed;
+  const dashBoost = (this.isDashing() 
+    ? this.dashSpeed() 
+    : 0);
+  realMoveSpeed += dashBoost;
+  return realMoveSpeed;
+};
+
+/**
+ * Default speed boost for all characters.
+ */
+Game_CharacterBase.prototype.dashSpeed = function() {
+  return 0.5;
 };
 
 /**
@@ -1964,6 +1977,27 @@ Game_Map.prototype.clearStaleMapActions = function() {
 //#endregion
 
 //#region Game_Player
+/**
+ * The player may have different dash speed. 
+ * That is determined in this function.
+ * @returns {number} 
+ */
+Game_Player.prototype.dashSpeed = function() {
+  return 0.5;
+};
+
+/**
+ * OVERWRITE Changes the button detection to look for a different button instead of SHIFT.
+ */
+Game_Player.prototype.isDashButtonPressed = function() {
+  const shift = Input.isPressed(J.ABS.Input.X);
+  if (ConfigManager.alwaysDash) {
+      return !shift;
+  } else {
+      return shift;
+  }
+};
+
 /**
  * While JABS is enabled, don't try to interact with events if they are enemies.
  */
@@ -4089,11 +4123,13 @@ class Game_BattleMap {
     }
 
     // rotating can be done concurrently to other actions.
+    /*
     if (Input.isPressed(J.ABS.Input.X)) {
       this.performRotate(true);
     } else {
       this.performRotate(false);
     }
+    */
 
     // dodge roll
     if (Input.isTriggered(J.ABS.Input.R2)) {
@@ -4126,9 +4162,15 @@ class Game_BattleMap {
         this.performSkillAction(7);
       } else if (Input.isTriggered(J.ABS.Input.Y)) {
         this.performSkillAction(8);
+      } else {
+        // if pressing R1, but not any keys, defend instead.
+        this.performRotate(true);
       }
 
       return;
+    } else {
+      // not defending now.
+      this.performRotate(false);
     }
 
     // track for keyboard-exclusive input for skills.
@@ -5547,7 +5589,6 @@ class Game_BattleMap {
     }
 
     // remove the target's character from the map.
-    //defeatedTarget.setWaitCountdown(15);
     defeatedTarget.setDying(true);
   };
 
@@ -6240,6 +6281,9 @@ class JABS_AiManager {
     battler.setDecidedAction(mapActions);
     const battlerCharacter = battler.getCharacter();
     battlerCharacter.requestAnimation(135);
+    
+    // TODO: revisit a brief pause after deciding your skill.
+    //battler.setWaitCountdown(15);
   };
 
   /**
@@ -6986,6 +7030,7 @@ JABS_Battler.prototype.updateDeathHandling = function() {
  */
 JABS_Battler.prototype.countdownWait = function() {
   if (this._waitCounter > 0) {
+    console.log("waiting ", this._waitCounter);
     this._waitCounter--;
     return;
   }
