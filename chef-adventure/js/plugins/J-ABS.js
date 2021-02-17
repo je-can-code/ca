@@ -1484,6 +1484,17 @@ Game_Event.prototype.event = function() {
   }
 };
 
+J.ABS.Aliased.Game_Event.findProperPageIndex = Game_Event.prototype.findProperPageIndex;
+Game_Event.prototype.findProperPageIndex = function() {
+  try {
+    const test = J.ABS.Aliased.Game_Event.findProperPageIndex.call(this);
+    if (test !== undefined || test !== null) return test;
+  } catch (err) {
+    console.error("something went wrong", err);
+    return -1;
+  }
+};
+
 /**
  * OVERWRITE When an map battler is hidden by something like a switch or some
  * other condition, unveil it upon meeting such conditions. 

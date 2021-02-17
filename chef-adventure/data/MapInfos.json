@@ -13,7 +13,7 @@ null,
 {"id":11,"expanded":true,"name":"Cave - 8a","order":14,"parentId":3,"scrollX":1296.75,"scrollY":809.25},
 {"id":12,"expanded":true,"name":"Adventurer's Road","order":3,"parentId":0,"scrollX":1320.75,"scrollY":821.25},
 {"id":13,"expanded":true,"name":"Path: Intro D. to Raevula","order":4,"parentId":12,"scrollX":1320.75,"scrollY":821.25},
-{"id":14,"expanded":true,"name":"Intro Dungeon Entrance","order":5,"parentId":13,"scrollX":1320.75,"scrollY":821.25},
+{"id":14,"expanded":false,"name":"Intro Dungeon Entrance","order":5,"parentId":13,"scrollX":1320.75,"scrollY":821.25},
 {"id":15,"expanded":false,"name":"Cave - 8b","order":15,"parentId":11,"scrollX":848,"scrollY":640},
 {"id":16,"expanded":false,"name":"Riverside Stroll","order":16,"parentId":13,"scrollX":1320.75,"scrollY":2538.75},
 {"id":17,"expanded":false,"name":"Stone's Throw","order":17,"parentId":13,"scrollX":1320.75,"scrollY":821.25},
@@ -31,5 +31,5 @@ null,
 {"id":29,"expanded":false,"name":"Inn - Upstairs Mainstay","order":25,"parentId":28,"scrollX":1320.75,"scrollY":821.25},
 {"id":30,"expanded":false,"name":"Inn - Upstairs Suite","order":26,"parentId":28,"scrollX":0,"scrollY":0},
 {"id":31,"expanded":false,"name":"Pub Building","order":27,"parentId":20,"scrollX":1320.75,"scrollY":821.25},
-{"id":32,"expanded":false,"name":"Smithy Building","order":30,"parentId":21,"scrollX":832,"scrollY":624}
+{"id":32,"expanded":false,"name":"Smithy Building","order":30,"parentId":21,"scrollX":1320.75,"scrollY":821.25}
 ]
