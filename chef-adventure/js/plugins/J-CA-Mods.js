@@ -45,6 +45,7 @@ J.CAMods.Metadata = {
  */
 J.CAMods.Aliased = {
   Game_Actor: {},
+  Game_Player: {},
 };
 //#endregion Initialization
 
@@ -60,6 +61,21 @@ Game_Actor.prototype.equipSlots = function() {
   return baseSlots;
 };
 //#endregion Game_Actor
+
+//#region Game_Player
+/**
+ * Hooks into the distance per frame algorithm and extends it for custom move speeds
+ * based on equipment for the player.
+ * @return {number} The modified distance per frame to move.
+ */
+J.CAMods.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
+Game_Player.prototype.distancePerFrame = function() {
+  const base = J.CAMods.Aliased.Game_Player.distancePerFrame.call(this);
+  const caOnlyBonus = 1.12;
+  return (base * caOnlyBonus);
+};
+//#endregion Game_Player
+
 //#endregion Game objects
 
 /**

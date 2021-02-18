@@ -2069,7 +2069,7 @@ Game_Player.prototype.refresh = function() {
  */
 J.ABS.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
 Game_Player.prototype.distancePerFrame = function() {
-  const base = J.ABS.Aliased.Game_Player.distancePerFrame.call(this) * 1.20;
+  const base = J.ABS.Aliased.Game_Player.distancePerFrame.call(this);
   const bonus = this.calculateMovespeedMultiplier(base);
   return (base + bonus);
 };
@@ -2440,7 +2440,9 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
   mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
   mainMenu.setHandler("item-assign", this.commandItem.bind(this));
   mainMenu.setHandler("main-menu", this.commandMenu.bind(this));
-  mainMenu.setHandler("sdp-menu", this.commandSdp.bind(this));
+  if (J.SDP) { // optional
+    mainMenu.setHandler("sdp-menu", this.commandSdp.bind(this));
+  }
   mainMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "main"));
   this._j._absMenu._mainWindow = mainMenu;
   this._j._absMenu._mainWindow.close();
@@ -3513,7 +3515,7 @@ class Window_AbsMenu extends Window_Command {
     this.addCommand("Equip Dodge Skills", "dodge-assign", true, null, 82);
     this.addCommand("Equip Tools", "item-assign", true, null, 83);
     this.addCommand("Main Menu", "main-menu", true, null, 189);
-    if ($gameSwitches.value(5)) {
+    if (J.SDP && $gameSwitches.value(5)) {
       const panels = $gameSystem.getSdpPanels();
       this.addCommand("Distribute", "sdp-menu", panels.length, null, 2563);
     }
