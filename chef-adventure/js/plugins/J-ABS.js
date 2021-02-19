@@ -59,9 +59,14 @@
  * @text --------------------------
  * @default ----------------------------------
  * 
-
- // figure out how to write proper structures for the elemental icons.
- 
+ * @param Elemental Icons
+ * @type struct<ElementalIconStruct>[]
+ * @desc The collection of element ids and their icon indices.
+ * @default []
+ * 
+ * @param BreakSettings
+ * @text --------------------------
+ * @default ----------------------------------
  * 
  * @command Enable JABS
  * @text Enable JABS
@@ -118,6 +123,17 @@
  * @text Refresh JABS Menu
  * @desc Refreshes the JABS menu in case there were any adjustments made to it.
  */
+/*~struct~ElementalIconStruct:
+ * @param elementId
+ * @type number
+ * @desc The id of the element to match an icon to.
+ * @default 0
+ * 
+ * @param iconIndex
+ * @type number
+ * @desc The index of the icon for this element.
+ * @default 64
+*/
 //#endregion Introduction
 
 //#region Plugin metadata management
@@ -141,6 +157,53 @@ var J = J || {};
 J.ABS = {};
 
 /**
+ * A collection of helpful functions for use within this plugin.
+ */
+J.ABS.Helpers = {};
+
+/**
+ * A collection of helper functions for the use with the plugin manager.
+ */
+J.ABS.Helpers.PluginManager = {};
+
+/**
+ * A helpful function for translating a plugin command's slot to a valid slot.
+ * @param {string} slot The slot from the plugin command to translate.
+ * @returns {string} The translated slot.
+ */
+J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot => {
+  switch (slot) {
+    case "Tool": return Game_Actor.JABS_TOOLSKILL;
+    case "Dodge": return Game_Actor.JABS_DODGESKILL;
+    case "R1A": return Game_Actor.JABS_R1_A_SKILL;
+    case "R1B": return Game_Actor.JABS_R1_B_SKILL;
+    case "R1X": return Game_Actor.JABS_R1_X_SKILL;
+    case "R1Y": return Game_Actor.JABS_R1_Y_SKILL;
+    case "L1A": return Game_Actor.JABS_L1_A_SKILL;
+    case "L1B": return Game_Actor.JABS_L1_B_SKILL;
+    case "L1X": return Game_Actor.JABS_L1_X_SKILL;
+    case "L1Y": return Game_Actor.JABS_L1_Y_SKILL;
+  };
+};
+
+/**
+ * A helpful function for translating a plugin command's slot to a valid slot.
+ * @param {object} obj The slot from the plugin command to translate.
+ * @returns {{element: number, icon: number}} The translated slot.
+ */
+J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj => {
+  const arr = JSON.parse(obj);
+  if (!obj.length) return [];
+  const elementalIcons = arr.map(el => {
+    const kvp = JSON.parse(el);
+    const { elementId, iconIndex } = kvp;
+    return { element: parseInt(elementId), icon: parseInt(iconIndex) };
+  });
+
+  return elementalIcons;
+};
+
+/**
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.Metadata = {};
@@ -159,6 +222,7 @@ J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['Default
 J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['Default Dodge Skill Type Id']);
 J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['Default Guard Skill Type Id']);
 J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['Default Tool Cooldown Time']);
+J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['Elemental Icons']);
 
 /**
  * The various default values across the engine. Often configurable.
@@ -352,38 +416,10 @@ J.ABS.Aliased = {
   Sprite_Gauge: {},
 };
 
-/**
- * A collection of helpful functions for use within this plugin.
- */
-J.ABS.Helpers = {};
+
 //#endregion Plugin setup & configuration
 
 //#region Plugin Command Registration
-/**
- * A collection of helper functions for the use with the plugin manager commands.
- */
-J.ABS.Helpers.PluginManager = {};
-
-/**
- * A helpful function for translating a plugin command's slot to a valid slot.
- * @param {string} slot The slot from the plugin command to translate.
- * @returns {string} The translated slot.
- */
-J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot => {
-  switch (slot) {
-    case "Tool": return Game_Actor.JABS_TOOLSKILL;
-    case "Dodge": return Game_Actor.JABS_DODGESKILL;
-    case "R1A": return Game_Actor.JABS_R1_A_SKILL;
-    case "R1B": return Game_Actor.JABS_R1_B_SKILL;
-    case "R1X": return Game_Actor.JABS_R1_X_SKILL;
-    case "R1Y": return Game_Actor.JABS_R1_Y_SKILL;
-    case "L1A": return Game_Actor.JABS_L1_A_SKILL;
-    case "L1B": return Game_Actor.JABS_L1_B_SKILL;
-    case "L1X": return Game_Actor.JABS_L1_X_SKILL;
-    case "L1Y": return Game_Actor.JABS_L1_Y_SKILL;
-  };
-};
-
 /**
  * Plugin command for enabling JABS.
  */
@@ -1179,8 +1215,6 @@ Game_Character.prototype.getMapBattler = function() {
  */
 Game_Character.prototype.setMapBattler = function(uuid) {
   const actionSpriteProperties = this.getActionSpriteProperties();
-
-  //TODO: you cannot bind the whole battler, only a single identifying property or else SAVE DISABLED.
   actionSpriteProperties.battlerUuid = uuid;
 };
 
@@ -3150,7 +3184,7 @@ Sprite_Character.prototype.updateDamagePopups = function() {
   if (this._damages.length > 0) {
     this._damages.forEach(damage => {
       damage.update();
-      damage.x = this.x + damage._xVariance;
+      damage.x = this.x + 150 + damage._xVariance;
       damage.y = this.y + damage._yVariance;
     })
 
@@ -3169,7 +3203,7 @@ Sprite_Character.prototype.updateNonDamagePopups = function() {
   if (this._nonDamages.length > 0) {
     this._nonDamages.forEach(nonDamage => {
       nonDamage.update();
-      nonDamage.x = this.x + nonDamage._xVariance;
+      nonDamage.x = this.x + 150 + nonDamage._xVariance;
       nonDamage.y = this.y + nonDamage._yVariance;
     })
 
@@ -3208,8 +3242,6 @@ Sprite_Character.prototype.configurePopup = function(popup) {
   }
 
   let sprite = new Sprite_Damage();
-  sprite.x = this.x;
-  sprite.y = this.y;
 
   if (popup.getIcon() > 0) {
     sprite.addIcon(popup.getIcon());
@@ -3408,7 +3440,7 @@ Sprite_Damage.prototype.initialize = function() {
  */
 Sprite_Damage.prototype.createValue = function(value) {
   const h = this.fontSize();
-  const w = 200;
+  const w = 400;
   const sprite = this.createChildSprite(w, h);
   let fontSize = 20;
   if (this._isCritical) {
@@ -3439,7 +3471,7 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
   sprite.scale.x = 0.75;
   sprite.scale.y = 0.75;
   sprite.y += 15;
-  sprite.x -= 80;
+  sprite.x -= 180;
   sprite.dy = 0;
 }
 
@@ -4929,7 +4961,6 @@ class Game_BattleMap {
       return result;
     }
 
-    // TODO: add guarding manipulation here?
     gameAction.apply(targetBattler);
     const result = targetBattler.result();
     return result;
@@ -5275,21 +5306,9 @@ class Game_BattleMap {
       return itemIconIndex;
     }
 
-    // hard-coded element-to-icon relationships.
-    // TODO: update these to be parameterized.
-    switch (elementId) {
-      case 0: return 127; // none / non-elemental
-      case 1: return 97; // cut
-      case 2: return 107; // poke
-      case 3: return 110; // blunt
-      case 4: return 64; // heat
-      case 5: return 67; // liquid
-      case 6: return 69; // air
-      case 7: return 68; // ground
-      case 8: return 70; // energy
-      case 9: return 71; // void
-      default: return 0;
-    }
+    const iconData = J.ABS.Metadata.ElementalIcons;
+    const elementalIcon = iconData.find(data => data.element === elementId);
+    return elementalIcon ? elementalIcon.icon : 0;
   };
 
   /**
@@ -5744,7 +5763,7 @@ class Game_BattleMap {
    * @param {number} exp The amount of experience gained.
    */
   configureExperiencePop(exp) {
-    const iconId = 0; // TODO: decide on icons.
+    const iconId = 125;
     const textColor = 6;
     const popup = new JABS_TextPop(
       null,
@@ -5777,7 +5796,7 @@ class Game_BattleMap {
    * @param {number} gold The amount of gold gained.
    */
   configureGoldPop(gold) {
-    const iconId = 0; // TODO: decide on icons.
+    const iconId = 314;
     const textColor = 14;
     const popup = new JABS_TextPop(
       null,
@@ -6315,8 +6334,7 @@ class JABS_AiManager {
     const battlerCharacter = battler.getCharacter();
     battlerCharacter.requestAnimation(135);
     
-    // TODO: revisit a brief pause after deciding your skill.
-    //battler.setWaitCountdown(15);
+    battler.setWaitCountdown(15);
   };
 
   /**
@@ -8607,7 +8625,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
     this.applyToolForAllAllies(toolId);
     this.applyToolForAllOpponents(toolId);
   } else if (scopeOneOpponent) {
-    // TODO: do things related to a single opponent.
+    // TODO: do things related to a single opponent... but we need a target?
   } else if (scopeAllAllies) {
     this.applyToolForAllAllies(toolId);
   } else if (scopeAllOpponents) {
