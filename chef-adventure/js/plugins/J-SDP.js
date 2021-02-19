@@ -9,6 +9,11 @@
  * @help
  * This should go below both J-Base and J-ABS.
  * 
+ * @param SDP Icon
+ * @type number
+ * @desc The default iconIndex to represent "SDP points".
+ * @default 306
+ * 
  * @command Call SDP Menu
  * @text Access the SDP Menu
  * @desc Calls the SDP Menu directly via plugin command.
@@ -188,8 +193,15 @@ J.SDP.Metadata = {
   ...J.SDP.Metadata,
   /**
    * The version of this plugin.
+   * @type {number}
    */
   Version: 1.00,
+
+  /**
+   * The icon that will be used to represent the SDP points earned for an actor.
+   * @type {number}
+   */
+  PointsIcon: parseInt(J.SDP.PluginParameters['SDP Icon']),
 };
 
 J.SDP.Aliased = {
@@ -511,7 +523,7 @@ Game_BattleMap.prototype.gainSdpReward = function(sdpPoints, actorSprite) {
  * @param {number} exp The amount of experience gained.
  */
 Game_BattleMap.prototype.configureSdpPop = function(sdpPoints) {
-  const iconId = 0; // TODO: decide on icons.
+  const iconId = 306;
   const textColor = 17;
   const popup = new JABS_TextPop(
     null,
@@ -1307,7 +1319,7 @@ class Window_SDP_Points extends Window_Base {
   drawSdpIcon() {
     const x = 0;
     const y = 2;
-    const iconIndex = 300; // TODO: parameterize it.
+    const iconIndex = J.SDP.Metadata.PointsIcon;
     this.drawIcon(iconIndex, x, y);
   };
 
