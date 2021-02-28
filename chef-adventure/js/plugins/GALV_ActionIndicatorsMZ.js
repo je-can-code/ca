@@ -91,7 +91,7 @@ Galv.AI.status = function(status) {
 
 Galv.AI.checkActionIcon = function() {
 	const x2 = $gameMap.roundXWithDirection($gamePlayer._x, $gamePlayer._direction);
-    const y2 = $gameMap.roundYWithDirection($gamePlayer._y, $gamePlayer._direction);
+	const y2 = $gameMap.roundYWithDirection($gamePlayer._y, $gamePlayer._direction);
 	let action = null;
 	
 	// CHECK EVENT STANDING ON
@@ -110,7 +110,7 @@ Galv.AI.checkActionIcon = function() {
 	if (!action && $gameMap.isCounter(x2, y2)) {
 		const direction = $gamePlayer.direction();
 		const x3 = $gameMap.roundXWithDirection(x2, direction);
-        const y3 = $gameMap.roundYWithDirection(y2, direction);
+		const y3 = $gameMap.roundYWithDirection(y2, direction);
 		$gameMap.eventsXy(x3, y3).forEach(function(event) {
 			if (event.isNormalPriority()) action = Galv.AI.checkEventForIcon(event);
 		});
