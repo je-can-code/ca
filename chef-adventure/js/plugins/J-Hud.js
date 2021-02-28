@@ -361,7 +361,8 @@ Window_Hud.prototype.drawHudNumberSprites = function() {
   this.placeNumberSprite("hp", 90, -2, 5);
   this.placeNumberSprite("mp", 90, 26);
   this.placeNumberSprite("tp", 0, 44);
-  this.placeNumberSprite("xp", -110, 76);
+  this.placeNumberSprite("xp", -80, 80, -2);
+  this.placeNumberSprite("lvl", -160, 60, -7);
 };
 
 /**
@@ -660,6 +661,7 @@ Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod
   this._j._last._mp = actor.mp;
   this._j._last._tp = actor.tp;
   this._j._last._xp = actor.currentExp();
+  this._j._last._lvl = actor.level;
   this._j._autoCounter = 60;
 };
 
@@ -717,6 +719,10 @@ Sprite_ActorValue.prototype.hasParameterChanged = function() {
       changed = this._j._actor.currentExp() != this._j._last._xp;
       if (changed) this._j._last._xp = this._j._actor.currentExp();
       return changed;
+    case "lvl":
+      changed = this._j._actor.level != this._j._last._lvl;
+      if (changed) this._j._last._lvl = this._j._actor.level;
+      return changed;
   }
 };
 
@@ -752,6 +758,11 @@ Sprite_ActorValue.prototype.createBitmap = function() {
       const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
       const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
       value = curExp - nextLv;
+      break;
+    case "lvl":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+      value = this._j._actor.level.padZero(3);
       break;
   }
   

@@ -1295,6 +1295,26 @@ class JABS_SkillData {
   };
 
   /**
+   * Gets whether or not this skill is a direct-targeting skill.
+   * @returns {boolean} True if it is a direct-targeting skill, false otherwise.
+   */
+  get direct() {
+    let isDirect = false;
+    if (this._meta && this._meta[J.Base.Notetags.DirectSkill]) {
+      isDirect = true;
+    } else {
+      const structure = /<direct>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          isDirect = true;
+        }
+      });
+    }
+
+    return isDirect;
+  };
+
+  /**
    * Gets the number of bonus hits this skill grants.
    * @returns {number} The number of bonus hits.
    */
@@ -1503,7 +1523,7 @@ class JABS_SkillData {
    * @returns {number} The duration in frames (default = 60).
    */
   get duration() {
-    let duration = 60;
+    let duration = 0;
     if (this._meta && this._meta[J.Base.Notetags.Duration]) {
       duration = parseInt(this._meta[J.Base.Notetags.Duration]) || duration;
     } else {

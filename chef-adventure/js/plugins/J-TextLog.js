@@ -142,11 +142,11 @@ Scene_Map.prototype.onMapLoaded = function() {
  * Creates the internal text log for JABS.
  */
 Scene_Map.prototype.createJabsTextLog = function() {
-  const ww = 640; // width
-  const wh = 180; // height
-  const wx = -4; // location X
-  const wy = Graphics.height - wh - 4; // location Y
-  const rect = new Rectangle(wx, wy, ww, wh);
+  const width = 640;
+  const height = 180;
+  const x = 0;
+  const y = Graphics.boxHeight - height;
+  const rect = new Rectangle(x, y, width, height);
   this._j._mapTextLog = this._j._mapTextLog || new Window_TextLog(rect);
   this.addWindow(this._j._mapTextLog);
 };
@@ -376,12 +376,12 @@ Window_TextLog.prototype.refresh = function() {
 Window_TextLog.prototype.drawLogs = function() {
   if (this.playerInterference()) {
     this.interferenceOpacity();
-  } else {
-    this.writeAllEntries();
-    this.handleIncomingLogs();
-    this.handleOutgoingLogs();
-    this.fadeWhileInactive();
   }
+  
+  this.writeAllEntries();
+  this.handleIncomingLogs();
+  this.handleOutgoingLogs();
+  this.fadeWhileInactive();  
 };
 
 /**

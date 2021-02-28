@@ -41,11 +41,36 @@ J.CAMods.Metadata = {
 };
 
 /**
+ * A collection of data points being tracked for CA, and their respective variable assignment.
+ */
+J.CAMods.Tracking = {
+  EnemiesDefeated: 101,
+  DestructiblesDestroyed: 102,
+  TotalDamageDealt: 103,
+  HighestDamageDealt: 104,
+  NumberOfCritsDealt: 105,
+  BiggestCritDealt: 106,
+  NumberOfParries: 107,
+  NumberOfPreciseParries: 108,
+  TotalDamageTaken: 109,
+  HighestDamageTaken: 110,
+  NumberOfCritsTaken: 111,
+  BiggestCritTaken: 112,
+  MainhandSkillUsage: 113,
+  OffhandSkillUsage: 114,
+  AssignedSkillUsage: 115,
+  DodgeSkillUsage: 116,
+  NumberOfDeaths: 117,
+};
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.CAMods.Aliased = {
   Game_Actor: {},
   Game_Player: {},
+  Game_BattleMap: {},
+  JABS_Battler: {},
 };
 //#endregion Initialization
 
@@ -62,10 +87,158 @@ Game_Actor.prototype.equipSlots = function() {
 };
 //#endregion Game_Actor
 
+//#region Game_BattleMap
+/**
+ * Extends the handling of defeated enemies to track data.
+ * @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
+ * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
+ */
+J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy = Game_BattleMap.prototype.handleDefeatedEnemy;
+Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
+  J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy.call(this, defeatedTarget, caster);
+
+  // determine whether to add to the destructibles count or regular count.
+  if (defeatedTarget.isInanimate()) {
+    // add to destructibles destroyed count.
+    J.Base.Helpers.modVariable(J.CAMods.Tracking.DestructiblesDestroyed, 1);
+  } else {
+    // add to enemy defeated count.
+    J.Base.Helpers.modVariable(J.CAMods.Tracking.EnemiesDefeated, 1);
+  }
+};
+
+/**
+ * Extends the handling of defeated players to track data.
+ */
+J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer = Game_BattleMap.prototype.handleDefeatedPlayer;
+Game_BattleMap.prototype.handleDefeatedPlayer = function() {
+  J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
+  J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer.call(this);
+};
+
+/**
+ * Extends the handling of skill execution to track data.
+ * @param {JABS_Action} action The action being executed.
+ * @param {JABS_Battler} target The target to apply skill effects against.
+ */
+J.CAMods.Aliased.Game_BattleMap.executeSkillEffects = Game_BattleMap.prototype.executeSkillEffects;
+Game_BattleMap.prototype.executeSkillEffects = function(action, target) {
+  const actionResult = J.CAMods.Aliased.Game_BattleMap.executeSkillEffects.call(this, action, target);
+  if (target.isEnemy()) {
+    this.trackAttackData(actionResult);
+  } else if (target.isPlayer()) {
+    this.trackDefensiveData(actionResult);
+  }
+
+  return actionResult;
+};
+
+/**
+ * Tracks various attack-related data points and assigns them to variables.
+ * @param {Game_ActionResult} actionResult The action result to analyze the data of.
+ */
+Game_BattleMap.prototype.trackAttackData = function(actionResult) {
+  const { hpDamage, critical } = actionResult;
+  if (hpDamage) {
+    // count all damage dealt.
+    J.Base.Helpers.modVariable(J.CAMods.Tracking.TotalDamageDealt, hpDamage);
+
+    // track the highest damage dealt in a single hit.
+    const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageDealt);
+    if (hpDamage > highestDamage) {
+      $gameVariables.setValue(J.CAMods.Tracking.HighestDamageDealt, hpDamage);
+    }
+
+    if (critical) {
+      // count of landed critical hits.
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsDealt, 1);
+
+      // track the biggest critical hit landed.
+      const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritDealt);
+      if (hpDamage > biggestCrit) {
+        $gameVariables.setValue(J.CAMods.Tracking.BiggestCritDealt, hpDamage);
+      }
+    }
+  }
+};
+
+/**
+ * Tracks various defensive-related data points and assigns them to variables.
+ * @param {Game_ActionResult} actionResult The action result to analyze the data of.
+ */
+Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
+  const { hpDamage, critical, parried, preciseParried } = actionResult;
+  if (hpDamage) {
+    // count all damage received.
+    J.Base.Helpers.modVariable(J.CAMods.Tracking.TotalDamageTaken, hpDamage);
+
+    // track the highest damage received in a single hit.
+    const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageTaken);
+    if (hpDamage > highestDamage) {
+      $gameVariables.setValue(J.CAMods.Tracking.HighestDamageTaken, hpDamage);
+    }
+
+    if (critical) {
+      // count of landed critical hits.
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsTaken, 1);
+
+      // track the biggest critical hit landed.
+      const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritTaken);
+      if (hpDamage > biggestCrit) {
+        $gameVariables.setValue(J.CAMods.Tracking.BiggestCritTaken, hpDamage);
+      }
+    }
+
+  } else if (parried) {
+    // count of all types of successful parries.
+    J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfParries, 1);
+
+    if (preciseParried) {
+      // count of all types of successful parries.
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfPreciseParries, 1);
+    }
+  }
+};
+
+/**
+ * Extends the handling of action execution to track data.
+ * @param {JABS_Battler} caster The battler executing the action.
+ * @param {JABS_Action} action The action being executed.
+ */
+J.CAMods.Aliased.Game_BattleMap.executeMapAction = Game_BattleMap.prototype.executeMapAction;
+Game_BattleMap.prototype.executeMapAction = function(caster, action) {
+  J.CAMods.Aliased.Game_BattleMap.executeMapAction.call(this, caster, action);
+
+  if (caster.isPlayer()) {
+    this.trackActionData(action);
+  }
+};
+
+/**
+ * Tracks mainhand/offhand/skill usage data points and assigns them to variables.
+ * @param {JABS_Action} action 
+ */
+Game_BattleMap.prototype.trackActionData = function(action) {
+  const cooldownType = action.getCooldownType();
+  switch (cooldownType) {
+    case Game_Actor.JABS_MAINHAND:
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.MainhandSkillUsage, 1);
+      break;
+    case Game_Actor.JABS_OFFHAND:
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.OffhandSkillUsage, 1);
+      break;
+    default:
+      J.Base.Helpers.modVariable(J.CAMods.Tracking.AssignedSkillUsage, 1);
+      // any skills
+      break;
+  }
+};
+//#endregion Game_BattleMap
+
 //#region Game_Player
 /**
- * Hooks into the distance per frame algorithm and extends it for custom move speeds
- * based on equipment for the player.
+ * Extends the distance the player can move per frame by 12%.
+ * CA only.
  * @return {number} The modified distance per frame to move.
  */
 J.CAMods.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
@@ -75,12 +248,29 @@ Game_Player.prototype.distancePerFrame = function() {
   return (base * caOnlyBonus);
 };
 //#endregion Game_Player
-
 //#endregion Game objects
 
+//#region Scene objects
+//#region Scene_Map
 /**
  * OVERWRITE Removes the buttons on the map/screen.
  */
-Scene_Map.prototype.createButtons = function() {
-  return;
+Scene_Map.prototype.createButtons = function() { return; };
+//#endregion Scene_Map
+//#endregion Scene objects
+
+//#region JABS_Battler
+/**
+ * Extends the handling of dodge skill execution to track data.
+ * @param {object} skill The RPG item representing the dodge skill.
+ */
+J.CAMods.Aliased.JABS_Battler.executeDodgeSkill = JABS_Battler.prototype.executeDodgeSkill;
+JABS_Battler.prototype.executeDodgeSkill = function(skill) {
+  J.CAMods.Aliased.JABS_Battler.executeDodgeSkill.call(this, skill);
+
+  // count all successful dodge skills.
+  J.Base.Helpers.modVariable(J.CAMods.Tracking.DodgeSkillUsage, 1);
 };
+//#endregion JABS_Battler
+
+//ENDFILE
