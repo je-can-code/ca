@@ -1,0 +1,6 @@
+{
+"autoplayBgm":false,"autoplayBgs":false,"battleback1Name":"","battleback2Name":"","bgm":{"name":"_LoH_FeelingsOfHometownishness","pan":0,"pitch":100,"volume":30},"bgs":{"name":"","pan":0,"pitch":100,"volume":90},"disableDashing":false,"displayName":"Lavishly Gaudy Home","encounterList":[],"encounterStep":30,"height":0,"note":"","parallaxLoopX":false,"parallaxLoopY":false,"parallaxName":"","parallaxShow":false,"parallaxSx":2,"parallaxSy":1,"scrollType":0,"specifyBattleback":false,"tilesetId":13,"width":0,
+"data":[],
+"events":[
+]
+}

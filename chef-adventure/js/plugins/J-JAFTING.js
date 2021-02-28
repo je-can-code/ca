@@ -12,6 +12,11 @@
  * @text Access the Jafting Menu
  * @desc Calls the Jafting Menu via plugin command.
  * 
+ * @command Close Jafting Menu
+ * @text End the Jafting session
+ * @desc Ends the current Jafting session immediately.
+ * Typically used for triggering a parallel item created event.
+ * 
  * @command Unlock Category
  * @text Unlock new category
  * @desc Within the Crafting Mode, unlocks a new category of crafting.
@@ -111,6 +116,16 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Call Jafting Menu", () =
 });
 
 /**
+ * Plugin command for ending the current JAFTING session.
+ */
+PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Close Jafting Menu", () => {
+  $gameSystem.endJafting();
+  if (J.ABS && J.ABS.Metadata.Enabled) {
+    $gameBattleMap.absPause = false;
+  }
+});
+
+/**
  * Plugin command for unlocking a JAFTING category (such as cooking or blacksmithing).
  */
 PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Unlock Category", args => {
@@ -171,8 +186,9 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 };
 
 /**
- * 
- * @param {object} item 
+ * An overwrite of how the itemcontainer function determines the type.
+ * @param {object} item The item to discern type of.
+ * @returns {object[]} The bucket containing the passed-in item type.
  */
 Game_Party.prototype.itemContainer = function(item) {
   if (!item) {
@@ -1117,6 +1133,9 @@ Scene_Map.prototype.hideAllJaftingWindows = function() {
   this.toggleJaftingHelpWindow(false);
   this.toggleJaftingModeWindow(false);
   this.toggleJaftingCraftTypeWindow(false);
+  this.toggleJaftingRecipeListWindow(false);
+  this.toggleJaftingRecipeDetailsWindow(false);
+  this.resetAllIndices();
 };
 
 /**
