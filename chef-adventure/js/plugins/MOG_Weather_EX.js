@@ -1048,10 +1048,10 @@ SpriteWeatherEX.prototype.createSprites = function() {
 	var power = this.data().mode >= 32 ? 1 : this.data().power;
     for (var i = 0; i < power; i++) {
 		if (this.isTilingWeather()) {
-		    this._sprites[i] = new TilingSprite(this._image);
+			this._sprites[i] = new TilingSprite(this._image);
 			this._sprites[i].tiling = true;
 			this._sprites[i].needRefreshMove = false;
-		    this._sprites[i].move(0, 0,Graphics.width + 32,Graphics.height + 32);
+			this._sprites[i].move(0, 0,Graphics.width + 32,Graphics.height + 32);
 			this._sprites[i].x = -16 + (Graphics.width / 2);
 			this._sprites[i].y = -16 + (Graphics.height / 2);
 		} else {
@@ -1111,41 +1111,41 @@ SpriteWeatherEX.prototype.setupBase = function(sprite,index) {
 // * loadPreData
 //==============================
 SpriteWeatherEX.prototype.loadPreData = function(sprite,data) {
-	 sprite.x = data.x;
-	 sprite.y = data.x;
-	 sprite.scale.x = data.scaleX;
-	 sprite.scale.y = data.scaleY;
-	 sprite.anchor.x = data.anchorX;
-	 sprite.anchor.y = data.anchorY;
-	 sprite.blendMode = data.blendMode;
-  	 sprite.rotation = data.rotation;
-	 sprite.opacity = data.opacity;
-	 sprite._realX = data.realX;
-	 sprite._realY = data.realY;
-	 sprite._sx = data.sx;
-	 sprite._sy = data.sy;
-	 sprite._rt = data.rt;
-	 sprite._zx = data.zx;
-	 sprite._zy = data.zy;
-	 sprite._zx2 = data.zx2;
-	 sprite._zy2 = data.zy2;	 
-	 sprite._zp = data.zp;
-	 sprite._ani = data.ani;	
-	 sprite._roll = data.roll;
-	 sprite._frames = data.frames;
-	 sprite._id = data.idS;
-	 sprite.origin.x = data.originX;
-	 sprite.origin.y = data.originY;
-	 if (this.isTilingWeather()) {this.refreshTilingPos(sprite)};
+	sprite.x = data.x;
+	sprite.y = data.x;
+	sprite.scale.x = data.scaleX;
+	sprite.scale.y = data.scaleY;
+	sprite.anchor.x = data.anchorX;
+	sprite.anchor.y = data.anchorY;
+	sprite.blendMode = data.blendMode;
+	sprite.rotation = data.rotation;
+	sprite.opacity = data.opacity;
+	sprite._realX = data.realX;
+	sprite._realY = data.realY;
+	sprite._sx = data.sx;
+	sprite._sy = data.sy;
+	sprite._rt = data.rt;
+	sprite._zx = data.zx;
+	sprite._zy = data.zy;
+	sprite._zx2 = data.zx2;
+	sprite._zy2 = data.zy2;	 
+	sprite._zp = data.zp;
+	sprite._ani = data.ani;	
+	sprite._roll = data.roll;
+	sprite._frames = data.frames;
+	sprite._id = data.idS;
+	sprite.origin.x = data.originX;
+	sprite.origin.y = data.originY;
+	if (this.isTilingWeather()) {this.refreshTilingPos(sprite)};
 };		
 
 //==============================
 // * refreshTilingPos
 //==============================
 SpriteWeatherEX.prototype.refreshTilingPos = function(sprite) {
-     sprite.move(0, 0,Graphics.width + 32 + this._cam[7],Graphics.height + 32 + this._cam[8]);
-	 sprite.x = -16 + (Graphics.width / 2) - this._cam[0];
-	 sprite.y = -16 + (Graphics.height / 2) - this._cam[1];
+	sprite.move(0, 0,Graphics.width + 32 + this._cam[7],Graphics.height + 32 + this._cam[8]);
+	sprite.x = -16 + (Graphics.width / 2) - this._cam[0];
+	sprite.y = -16 + (Graphics.height / 2) - this._cam[1];
 };
 
 //==============================
@@ -1741,11 +1741,11 @@ SpriteWeatherEX.prototype.refreshWeather = function(sprite,initial) {
 // * set Cam Offset
 //==============================
 SpriteWeatherEX.prototype.setCamOffset = function(sprite) {
-    var x = Graphics.width / 3;
+	var x = Graphics.width / 3;
 	var x2 = Graphics.width / 3;
 	var y = Graphics.height / 3;
 	var y2 = Graphics.height / 2;
-    this._cam = [x,y,false,0,0,0,0,x2,y2];
+	this._cam = [x,y,false,0,0,0,0,x2,y2];
 	if (this.isTilingWeather()) {this.refreshTilingPos(sprite)};
 };
 
