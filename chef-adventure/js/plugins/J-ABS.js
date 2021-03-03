@@ -4765,8 +4765,11 @@ class Game_BattleMap {
    * Cycles through and updates all things related to battlers other than the player.
    */
   updateNonPlayerBattlers() {
-    const battlers = $gameMap.getBattlers();
-    battlers.forEach(battler => {
+    const player = $gameBattleMap.getPlayerMapBattler();
+    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 20);
+
+    //const battlers = $gameMap.getBattlers();
+    visibleBattlers.forEach(battler => {
       battler.update();
       if (battler.getBattler().isDead() && !battler.isDying()) {
         battler.setInvincible();
@@ -6290,7 +6293,7 @@ class JABS_AiManager {
     battlers.forEach(battler => {
       if (battler._team === 0) {
         // act accordingly to being on the same team.
-      } else if (battler.isHidden()) {
+      } else if (battler.isHidden() || battler.isInanimate()) {
         // do nothing, because you're hidden by switches or something!
       } else {
         // act as though against, default.

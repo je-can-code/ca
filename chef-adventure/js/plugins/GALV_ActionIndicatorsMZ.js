@@ -120,8 +120,8 @@ Galv.AI.checkActionIcon = function() {
 };
 
 Galv.AI.checkEventForIcon = function(event) {
-	let icon = 0;
-			
+	if (!event) return;
+	
 	if (event.page()) {
 		const listCount = event.page().list.length;
 		
@@ -143,7 +143,6 @@ Galv.AI.checkEventForIcon = function(event) {
 						}
 					}
 					return {eventId: event._eventId,iconId: Number(iconId), xy:offset};
-					break;
 				};
 			};
 		};
