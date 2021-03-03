@@ -142,6 +142,7 @@ DataManager.loadMapData = function(mapId) {
         const filename = "Map%1.json".format(mapId.padZero(3));
         this.loadDataFile("$dataMap", filename);
     } else {
+        console.log("emptied map!");
         this.makeEmptyMap();
     }
 };
