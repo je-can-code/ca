@@ -4,8 +4,8 @@
     "chromium-args": "--force-color-profile=srgb",
     "window": {
         "title": "Chef Adventure",
-        "width": 1280,
-        "height": 720,
+        "width": 1600,
+        "height": 900,
         "position": "center",
         "icon": "icon/icon.png"
     }
