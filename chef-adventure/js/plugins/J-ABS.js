@@ -1181,6 +1181,7 @@ Game_Character.prototype.initActionSpriteProperties = function() {
 Game_Character.prototype.initLootSpriteProperties = function() {
   this._j._loot = {
     _needsAdding: false,
+    _needsRemoving: false,
     _data: null,
   };
 };
@@ -1217,6 +1218,23 @@ Game_Character.prototype.getLootNeedsAdding = function() {
 Game_Character.prototype.setLootNeedsAdding = function(needsAdding = true) {
   const loot = this.getLootSpriteProperties();
   loot._needsAdding = needsAdding;
+};
+
+/**
+ * Gets whether or not this loot object is flagged for removal.
+ */
+Game_Character.prototype.getLootNeedsRemoving = function() {
+  const loot = this.getLootSpriteProperties();
+  return loot._needsRemoving;
+};
+
+/**
+ * Sets the loot object to be flagged for removal.
+ * @param {boolean} needsRemoving True if we want to remove the loot, false otherwise.
+ */
+Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true) {
+  const loot = this.getLootSpriteProperties();
+  loot._needsRemoving = needsRemoving;
 };
 
 /**
@@ -1583,6 +1601,8 @@ Game_Event.prototype.findProperPageIndex = function() {
     const test = J.ABS.Aliased.Game_Event.findProperPageIndex.call(this);
     if (Number.isInteger(test)) return test;
   } catch (err) {
+    console.log($dataMap.events);
+    console.log($gameMap._events);
     console.error(this);
     console.error("something went wrong", err);
     return -1;
@@ -1596,6 +1616,9 @@ Game_Event.prototype.findProperPageIndex = function() {
 J.ABS.Aliased.Game_Event.refresh = Game_Event.prototype.refresh;
 Game_Event.prototype.refresh = function() {
   if ($gameBattleMap.absEnabled) {
+    // don't refresh loot.
+    if (this.isLoot()) return;
+
     const newPageIndex = this._erased ? -1 : this.findProperPageIndex();
     if (this._pageIndex !== newPageIndex) {
       this._pageIndex = newPageIndex;
@@ -2206,6 +2229,17 @@ Game_Map.prototype.clearStaleMapActions = function() {
     }
   });
 };
+
+Game_Map.prototype.clearStaleLootDrops = function() {
+  const eventSprites = this.events();
+
+  // get all the game_event sprites that need removing.
+  eventSprites.forEach(event => {
+    if (event.getLootNeedsRemoving()) {
+      this.removeEvent(event);
+    }
+  });
+};
 //#endregion
 
 //#region Game_Party
@@ -2511,7 +2545,8 @@ Game_Player.prototype.storeOnPickup = function(lootData) {
  * @param {Game_Event} lootEvent The loot to remove from the map.
  */
 Game_Player.prototype.removeLoot = function(lootEvent) {
-  $gameMap.removeEvent(lootEvent);
+  lootEvent.setLootNeedsRemoving(true);
+  $gameBattleMap.requestClearLoot = true;
 };
 //#endregion
 
@@ -3086,6 +3121,10 @@ Spriteset_Map.prototype.updateJabsSprites = function() {
   if ($gameBattleMap.requestClearMap) {
     this.removeActionSprites();
   }
+
+  if ($gameBattleMap.requestClearLoot) {
+    this.removeLootSprites();
+  }
 };
 
 /**
@@ -3147,6 +3186,36 @@ Spriteset_Map.prototype.removeActionSprites = function() {
   });
 
   $gameBattleMap.requestClearMap = false;
+};
+
+/**
+ * Removes all needing-to-be-removed loot sprites from the map.
+ */
+Spriteset_Map.prototype.removeLootSprites = function() {
+  const events = $gameMap.events();
+  events.forEach(event => {
+    // if they aren't loot, this function doesn't care.
+    const isLoot = event.isLoot();
+    if (!isLoot) return;
+
+    const shouldRemoveLoot = event.getLootNeedsRemoving();
+    if (shouldRemoveLoot) {
+      this._characterSprites.forEach((sprite, index) => {
+        const lootSprite = sprite._character;
+        const needsRemoval = lootSprite.getLootNeedsRemoving();
+        if (needsRemoval) {
+          sprite.deleteLootSprite();
+          this._characterSprites.splice(index, 1);
+          lootSprite.erase();
+          return;
+        }
+      });
+
+      $gameMap.clearStaleLootDrops();
+    }
+  });
+
+  $gameBattleMap.requestClearLoot = false;
 };
 //#endregion
 
@@ -3282,6 +3351,12 @@ Sprite_Character.prototype.createLootSprite = function() {
   const yOffset = J.Base.Helpers.getRandomNumber(-90, -70);
   lootSprite.move(xOffset, yOffset);
   return lootSprite;
+};
+
+Sprite_Character.prototype.deleteLootSprite = function() {
+  if (this.children.length > 0) {
+    this.children.splice(0, this.children.length);
+  }
 };
 
 /**
@@ -3556,22 +3631,26 @@ Sprite_Character.prototype.configurePopup = function(popup) {
     case "exp":
       sprite._xVariance = -40;
       sprite._yVariance = 20;
-      this.buildExperiencePopSprite(sprite, popup);
+      sprite._duration += 180;
+      this.buildBasicPopSprite(sprite, popup);
       break;
     case "gold":
       sprite._xVariance = -40;
       sprite._yVariance = 40;
-      this.buildGoldPopSprite(sprite, popup);
+      sprite._duration += 180;
+      this.buildBasicPopSprite(sprite, popup);
       break;
     case "sdp":
       sprite._xVariance = -40;
       sprite._yVariance = 60;
-      this.buildSdpPopSprite(sprite, popup);
+      sprite._duration += 180;
+      this.buildBasicPopSprite(sprite, popup);
       break;
     case "item":
       sprite._xVariance = 60;
       sprite._yVariance = getRandomNumber(-30, 30);
-      this.buildItemPopSprite(sprite, popup);
+      sprite._duration += 60;
+      this.buildBasicPopSprite(sprite, popup);
       break;
   }
 
@@ -3659,51 +3738,14 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
 };
 
 /**
- * Configures the values for this experience popup.
+ * Configures the values for a basic text popup.
  * @param {Sprite_Damage} sprite The sprite to configure for this experience pop.
  * @param {JABS_TextPop} popup The data for this pop.
  */
-Sprite_Character.prototype.buildExperiencePopSprite = function(sprite, popup) {
-  const exp = popup.getDirectValue();
+Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
+  const value = popup.getDirectValue();
   sprite._colorType = popup.getTextColor();
-  sprite._duration += 180;
-  sprite.createValue(`EXP. +${exp}`);
-};
-
-/**
- * Configures the values for this gold popup.
- * @param {Sprite_Damage} sprite The sprite to configure for this gold pop.
- * @param {JABS_TextPop} popup The data for this pop.
- */
-Sprite_Character.prototype.buildGoldPopSprite = function(sprite, popup) {
-  const gold = popup.getDirectValue();
-  sprite._colorType = popup.getTextColor();
-  sprite._duration += 180;
-  sprite.createValue(`GOLD +${gold}`);
-};
-
-/**
- * Configures the values for this gold popup.
- * @param {Sprite_Damage} sprite The sprite to configure for this gold pop.
- * @param {JABS_TextPop} popup The data for this pop.
- */
-Sprite_Character.prototype.buildSdpPopSprite = function(sprite, popup) {
-  const gold = popup.getDirectValue();
-  sprite._colorType = popup.getTextColor();
-  sprite._duration += 180;
-  sprite.createValue(`SDP  +${gold}`);
-};
-
-/**
- * Configures the values for this item popup.
- * @param {Sprite_Damage} sprite The sprite to configure for this item pop.
- * @param {JABS_TextPop} popup The data for this pop.
- */
-Sprite_Character.prototype.buildItemPopSprite = function(sprite, popup) {
-  const itemName = popup.getDirectValue();
-  sprite._colorType = popup.getTextColor();
-  sprite._duration += 60;
-  sprite.createValue(`+${itemName}`);
+  sprite.createValue(`+${value}`);
 };
 
 /**
@@ -4121,6 +4163,12 @@ class Game_BattleMap {
     this._requestClearMap = false;
 
     /**
+     * True if we want to empty the map of all stale loot sprites, false otherwise.
+     * @type {boolean}
+     */
+    this._requestClearLoot = false;
+
+    /**
      * A collection to manage all `JABS_Action`s on this battle map.
      * @type {JABS_Action[]}
      */
@@ -4333,7 +4381,24 @@ class Game_BattleMap {
    * @param {boolean} clearing Whether or not we want to clear the battle map (default = true).
    */
   set requestClearMap(clearing = true) {
-    return this._requestClearMap = clearing;
+    this._requestClearMap = clearing;
+  };
+
+  /**
+   * Checks whether or not we have a need to request a clearing of the loot sprites
+   * on the current map.
+   * @returns {boolean} True if clear loot requested, false otherwise.
+   */
+  get requestClearLoot() {
+    return this._requestClearLoot;
+  }
+
+  /**
+   * Issues a request to clear the map of any collected loot.
+   * @param {boolean} clearing if clear loot requested, false otherwise.
+   */
+  set requestClearLoot(clearing = true) {
+    this._requestClearLoot = clearing;
   };
 
   /**
