@@ -938,6 +938,46 @@ Game_Actor.prototype.levelUp = function() {
   }
 };
 
+J.ABS.Aliased.Game_Actor.learnSkill = Game_Actor.prototype.learnSkill;
+Game_Actor.prototype.learnSkill = function(skillId) {
+  if (!this.isLearnedSkill(skillId)) {
+    const isLeader = $gameParty.leader() == this;
+    const skill = $dataSkills[skillId];
+    if (isLeader && skill) {
+      $gameBattleMap.leaderSkillLearn(skill);
+      this.upgradeSkillIfUpgraded(skillId);
+    }
+  }
+  
+  J.ABS.Aliased.Game_Actor.learnSkill.call(this, skillId);
+};
+
+Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId) {
+  const equippedSkills = this.getAllEquippedSkills();
+  Object.keys(equippedSkills).forEach(slot => {
+    // we will only manage assignable skills.
+    if (slot != Game_Actor.JABS_TOOLSKILL && 
+    slot != Game_Actor.JABS_MAINHAND &&
+    slot != Game_Actor.JABS_OFFHAND) {
+      // do nothing if the slot is locked.
+      if (this.isSlotLocked(slot)) return;
+
+      // do nothing if the slot is empty.
+      const currentSkillId = this.getEquippedSkill(slot);
+      if (!currentSkillId) return;
+
+      // do nothing if the skill doesn't upgrade.
+      const skillData = $dataSkills[currentSkillId]
+      if (skillData.meta && skillData.meta["Hide if learned Skill"]) {
+        const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
+        if (upgradeSkillId === skillId) {
+          this.setEquippedSkill(slot, skillId);
+        }
+      }
+    }
+  });
+};
+
 /**
  * Updates the speed boost scale for this actor based on equipment.
  */
@@ -2021,6 +2061,7 @@ Game_Map.prototype.refreshOneBattler = function(event) {
     // the next page is an enemy, create a new one and add to the list.
     if (!(newBattler === null)) {
       this._j._allBattlers.push(newBattler);
+      console.log(newBattler);
     // the next page is not an enemy, do nothing.
     } else { }
   }
@@ -2040,9 +2081,10 @@ Game_Map.prototype.update = function(sceneActive) {
  * @returns {JABS_Battler[]}
  */
 Game_Map.prototype.getBattlers = function() {
-  if (this._j._allBattlers == null) return [];
+  if (this._j._allBattlers === null) return [];
 
-  const livingBattlers = this._j._allBattlers.filter(battler => !battler.isDead);
+  const livingBattlers = this._j._allBattlers.filter(battler => !!battler);
+
   return livingBattlers;
 };
 
@@ -3652,6 +3694,18 @@ Sprite_Character.prototype.configurePopup = function(popup) {
       sprite._duration += 60;
       this.buildBasicPopSprite(sprite, popup);
       break;
+    case "levelup":
+      sprite._xVariance = 0;
+      sprite._yVariance = getRandomNumber(-30, 30);
+      sprite._duration += 120;
+      this.buildBasicPopSprite(sprite, popup);
+      break;
+    case "skillLearn":
+      sprite._xVariance = 0;
+      sprite._yVariance = getRandomNumber(-30, 30);
+      sprite._duration += 210;
+      this.buildBasicPopSprite(sprite, popup);
+      break;
   }
 
   return sprite;
@@ -3745,19 +3799,7 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
 Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
   const value = popup.getDirectValue();
   sprite._colorType = popup.getTextColor();
-  sprite.createValue(`+${value}`);
-};
-
-/**
- * Configures the values for this levelup popup.
- * @param {Sprite_Damage} sprite The sprite to configure for this item pop.
- * @param {JABS_TextPop} popup The data for this pop.
- */
-Sprite_Character.prototype.buildLevelUpPopSprite = function(sprite, popup) {
-  const itemName = popup.getDirectValue();
-  sprite._colorType = popup.getTextColor();
-  sprite._duration += 120;
-  sprite.createValue(`+${itemName}`);
+  sprite.createValue(`${value}`);
 };
 //#endregion
 
@@ -3980,7 +4022,13 @@ class Window_AbsMenuSelect extends Window_Command {
     const skills = actor.skills().filter(skill => {
       const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
       const isGuardSkillType = JABS_Battler.isGuardSkillById(skill.id);
-      const addSkillToList = !isDodgeSkillType && !isGuardSkillType;
+      let needsHiding = false;
+      if (skill.meta && skill.meta["Hide if learned Skill"]) {
+        const nextSkillId = parseInt(skill.meta["Hide if learned Skill"]);
+        needsHiding = actor.isLearnedSkill(nextSkillId);
+      }
+
+      const addSkillToList = !isDodgeSkillType && !isGuardSkillType && !needsHiding;
       return addSkillToList;
     });
 
@@ -5330,11 +5378,11 @@ class Game_BattleMap {
     // apply effects that require landing a successful hit.
     if (result.isHit() || result.parried) {
       // apply the animation against the target's map character.
-      const isAnimating = action.getAnimating(targetUuid);
-      if (!isAnimating) {
-        targetSprite.requestAnimation(animationId, result.parried);
-        action.setAnimating(targetUuid, true);
-      }
+      //const isAnimating = action.getAnimating(targetUuid);
+      //if (!isAnimating) {
+      targetSprite.requestAnimation(animationId, result.parried);
+      //  action.setAnimating(targetUuid, true);
+      //}
 
       // if freecombo-ing, then we already checked for combo when executing the action.
       if (!skill._j.freeCombo) {
@@ -6262,7 +6310,7 @@ class Game_BattleMap {
    * @param {Game_Character} character The character to show the popup on.
    */
   createLevelUpPop(character) {
-    const text = "LEVEL+1";
+    const text = "LEVEL +1";
     const iconId = 348;
     const textColor = 24;
     const popup = new JABS_TextPop(
@@ -6271,7 +6319,7 @@ class Game_BattleMap {
       textColor,
       null,
       null,
-      "item",
+      "levelup",
       text);
     character.addTextPop(popup);
     character.setRequestTextPop();
@@ -6282,8 +6330,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} player The player.
    */
   createLevelUpLog(player) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active)
-      return;
+    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
 
     const leaderData = player.getReferenceData();
     const leaderName = leaderData.name;
@@ -6302,9 +6349,56 @@ class Game_BattleMap {
     character.requestAnimation(49);
   };
 
-};
+  /**
+   * Handles a skill being learned for the leader while on the map.
+   * @param {object} skill The skill being learned.
+   */
+  leaderSkillLearn(skill) {
+    const player = this.getPlayerMapBattler();
+    const character = player.getCharacter();
 
+    this.createSkillLearnPop(skill, character);
+    this.createSkillLearnLog(skill, player);
+  };
+
+  /**
+   * Creates a text pop of the skill being learned.
+   * @param {object} skill The skill being learned.
+   * @param {Game_Player} character The player's character.
+   */
+  createSkillLearnPop(skill, character) {
+    const text = `${skill.name} learned!`;
+    const iconId = skill.iconIndex;
+    const textColor = 27;
+    const popup = new JABS_TextPop(
+      null,
+      iconId,
+      textColor,
+      null,
+      null,
+      "skillLearn",
+      text);
+    character.addTextPop(popup);
+    character.setRequestTextPop();
+  };
+
+  /**
+   * Creates a skill learning log for the player.
+   * @param {object} skill The skill being learned.
+   * @param {JABS_Battler} character The player's `JABS_Battler`.
+   */
+  createSkillLearnLog(skill, player) {
+    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+
+    const leaderData = player.getReferenceData();
+    const leaderName = leaderData.name;
+    const skillName = skill.name;
+    const skillLearnedMessage = `${leaderName} learned the skill [${skillName}]!`;
+    const skillLearnLog = new Map_TextLog(skillLearnedMessage, -1);
+    $gameTextLog.addLog(skillLearnLog);
+  };
 //#endregion defeated target aftermath
+};
 
 //#endregion
 
@@ -10016,35 +10110,37 @@ class JABS_BattlerAI {
   decideActionForFollower(leaderBattler, followerBattler) {
     // all follower actions are decided based on the leader's ai.
     const { smart, executor, defensive, healer } = this;
+    const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
     let skillsToUse = followerBattler.getSkillIdsFromEnemy();
-    const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
-    const isAttack =  smart || executor;
-    if (healer || defensive) {
-      // get nearby allies with the leader's modified sight range of both battlers.
-      const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
-
-      // prioritize healing when self or allies are low on hp.
-      if (healer) {
-        skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
+    if (skillsToUse.length) {
+      const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
+      if (healer || defensive) {
+        // get nearby allies with the leader's modified sight range of both battlers.
+        const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
+  
+        // prioritize healing when self or allies are low on hp.
+        if (healer) {
+          skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
+        }
+  
+        // find skill that has the most buffs on it.
+        if (defensive) {
+          skillsToUse = this.filterSkillsDefensivePriority(skillsToUse, allies);
+        }
+      } else if (smart || executor) {
+        // focus on the leader's target instead of the follower's target.
+        skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);  
       }
-
-      // find skill that has the most buffs on it.
-      if (defensive) {
-        skillsToUse = this.filterSkillsDefensivePriority(skillsToUse, allies);
-      }
-
-    } else if (smart || executor) {
-      // focus on the leader's target instead of the follower's target.
-      skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
-
     } else {
+      // if there are no actual skills on this enemy, just use it's basic attack.
+      return basicAttackId;
     }
 
     let chosenSkillId = Array.isArray(skillsToUse)
       ? skillsToUse[0]
       : skillsToUse;
-    const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
     const followerGameBattler = followerBattler.getBattler();
+    console.log(skillsToUse);
     const canPayChosenSkillCosts = followerGameBattler.canPaySkillCost($dataSkills[chosenSkillId]);
     if (!canPayChosenSkillCosts) {
       // if they can't pay the cost of the decided skill, check the basic attack.

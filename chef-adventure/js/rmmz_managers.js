@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.1.1
+// rmmz_managers.js v1.2.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -142,7 +142,6 @@ DataManager.loadMapData = function(mapId) {
         const filename = "Map%1.json".format(mapId.padZero(3));
         this.loadDataFile("$dataMap", filename);
     } else {
-        console.log("emptied map!");
         this.makeEmptyMap();
     }
 };
@@ -580,7 +579,7 @@ StorageManager.jsonToObject = function(json) {
 StorageManager.jsonToZip = function(json) {
     return new Promise((resolve, reject) => {
         try {
-            const zip = pako.deflate(json, { to: "string", level: 5 });
+            const zip = pako.deflate(json, { to: "string", level: 1 });
             if (zip.length >= 50000) {
                 console.warn("Save data is too big.");
             }
