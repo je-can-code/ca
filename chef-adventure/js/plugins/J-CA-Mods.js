@@ -68,8 +68,9 @@ J.CAMods.Tracking = {
  */
 J.CAMods.Aliased = {
   Game_Actor: {},
-  Game_Player: {},
   Game_BattleMap: {},
+  Game_Map: {},
+  Game_Player: {},
   JABS_Battler: {},
 };
 //#endregion Initialization
@@ -235,6 +236,42 @@ Game_BattleMap.prototype.trackActionData = function(action) {
 };
 //#endregion Game_BattleMap
 
+//#region Game_Map
+/**
+ * OVERWRITE Disables the ability to walk over tiles with the terrain ID of 1.
+ * In practice, this prevents battlers from getting knocked into otherwise
+ * unreachable locations, like what is supposed to be ceiling tiles.
+ * @param {number} x The `x` coordinate.
+ * @param {number} y The `y` coordinate.
+ * @param {number} bit The bitwise operator being checked.
+ * @returns {boolean} True if the tile can be walked on, false otherwise.
+ */
+Game_Map.prototype.checkPassage = function(x, y, bit) {
+  const flags = this.tilesetFlags();
+  const tiles = this.allTiles(x, y);
+  for (const tile of tiles) {
+      const flag = flags[tile];
+      if ((flag & 0x10) !== 0) {
+          // [*] No effect on passage
+          continue;
+      }
+      if ((flag >> 12) === 1) { 
+          // [Terrain 1] No effect on passage
+          return false;
+      }
+      if ((flag & bit) === 0) {
+          // [o] Passable
+          return true;
+      }
+      if ((flag & bit) === bit) {
+          // [x] Impassable
+          return false;
+      }
+  }
+  return false;
+};
+//#endregion Game_Map
+
 //#region Game_Player
 /**
  * Extends the distance the player can move per frame by 12%.
@@ -259,6 +296,7 @@ Scene_Map.prototype.createButtons = function() { return; };
 //#endregion Scene_Map
 //#endregion Scene objects
 
+//#region JABS objects
 //#region JABS_Battler
 /**
  * Extends the handling of dodge skill execution to track data.
@@ -272,5 +310,5 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill) {
   J.Base.Helpers.modVariable(J.CAMods.Tracking.DodgeSkillUsage, 1);
 };
 //#endregion JABS_Battler
-
+//#endregion JABS objects
 //ENDFILE

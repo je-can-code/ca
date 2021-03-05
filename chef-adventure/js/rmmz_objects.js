@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_objects.js v1.1.1
+// rmmz_objects.js v1.2.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -8274,21 +8274,6 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         for (const event of $gameMap.eventsXy(x, y)) {
             if (
                 event.isTriggerIn(triggers) &&
-                event.isNormalPriority() === normal &&
-                !event.getMapBattler()
-            ) {
-                event.start();
-            }
-        }
-    }
-};
-
-/*
-Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
-    if (!$gameMap.isEventRunning()) {
-        for (const event of $gameMap.eventsXy(x, y)) {
-            if (
-                event.isTriggerIn(triggers) &&
                 event.isNormalPriority() === normal
             ) {
                 event.start();
@@ -8296,7 +8281,6 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         }
     }
 };
-*/
 
 Game_Player.prototype.moveByInput = function() {
     if (!this.isMoving() && this.canMove()) {

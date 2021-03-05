@@ -781,10 +781,10 @@ class Scene_SDP extends Scene_MenuBase {
    * Creates all windows associated with the SDP scene.
    */
   createAllWindows() {
-    this.createListWindow();
-    this.createDetailsWindow();
     this.createPointsWindow();
     this.createHelpWindow();
+    this.createDetailsWindow();
+    this.createListWindow();
     this.createConfirmationWindow();
   };
 
@@ -793,9 +793,10 @@ class Scene_SDP extends Scene_MenuBase {
    */
   createListWindow() {
     const width = 400;
-    const height = 532;
+    const heightFit = (this._j._sdpPointsWindow.height + this._j._sdpHelpWindow.height) + 8;
+    const height = Graphics.height - heightFit;
     const x = 0;
-    const y = 60;
+    const y = this._j._sdpPointsWindow.height;
     const rect = new Rectangle(x, y, width, height);
     this._j._sdpListWindow = new Window_SDP_List(rect);
     this._j._sdpListWindow.setHandler('cancel', this.popScene.bind(this));
