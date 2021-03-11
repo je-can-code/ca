@@ -267,16 +267,6 @@ J.Base.Helpers = {
   },
 
   /**
-   * Testing import from external files.
-   */
-  testImport() {
-    const path = 'js/plugins/test/test.js';
-    const { Ninja } = require(path);
-    const test2 = new Ninja("asdf");
-    console.log(test2.test.call(test2));
-  },
-
-  /**
    * Provides a random integer within the range
    * @param {number} min The lower bound for random numbers (inclusive).
    * @param {number} max The upper bound for random numbers (exclusive).
