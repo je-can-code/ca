@@ -980,6 +980,9 @@ class Window_SDP_List extends Window_Command {
 //#endregion Window_SDP_List
 
 //#region Window_SDP_Details
+/**
+ * The window that displays all details of how a panel would affect the actor's parameters.
+ */
 class Window_SDP_Details extends Window_Base {
   constructor(rect) {
     super(rect);
@@ -1141,7 +1144,7 @@ class Window_SDP_Details extends Window_Base {
   drawParameterHeaderRow(y) {
     const ox = 20;
     const rw = 200;
-    this.drawTextEx(`Parameter`, ox+rw*0, y, 100); // TODO: determine icon for params.
+    this.drawTextEx(`Parameter`, ox+rw*0, y, 100);
     this.drawText(`Current`, ox+rw*1, y, 100, "left");
     this.drawText(`Effect`, ox+rw*2, y, 100, "left");
     this.drawText(`Potential`, ox+rw*3, y, 120, "left");
@@ -1153,9 +1156,8 @@ class Window_SDP_Details extends Window_Base {
    * @param {number} y The `y` coordinate for this row.
    */
   drawParameterDetailsRow(panelParameter, y) {
-    const actor = this.currentActor;
     const { parameterId, perRank, isFlat } = panelParameter;
-    const { name, value, iconIndex } = this.translateParameter(parameterId);
+    const { name, value, iconIndex, smallerIsBetter } = this.translateParameter(parameterId);
     const ox = 20;
     const rw = 200;
     const isPositive = perRank >= 0 ? '+' : '';
@@ -1165,8 +1167,8 @@ class Window_SDP_Details extends Window_Base {
       : (currentValue + (currentValue * (perRank / 100)));
     const modifier = isFlat
       ? perRank
-      : (potentialValue - currentValue);
-    const potentialColor = (currentValue > potentialValue) 
+      : (potentialValue - currentValue).toFixed(2);
+    const potentialColor = (currentValue > potentialValue && !smallerIsBetter)
       ? ColorManager.deathColor() 
       : ColorManager.powerUpColor();
 
@@ -1186,19 +1188,18 @@ class Window_SDP_Details extends Window_Base {
   };
 
   /**
-   * Translates a parameter id into an object with its name and value.
+   * Translates a parameter id into an object with its name, value, and iconIndex.
    * @param {number} paramId The id to translate.
-   * @returns {{name:string, value:number}} An object containing the name and value.
+   * @returns {{name:string, value:number, iconIndex:number, smallerIsBetter:boolean}} An object containing the name, value, and iconIndex.
    */
   translateParameter(paramId) {
     const actor = this.currentActor;
     let name = '';
     let value = 0;
-    let difference = 0;
     switch (paramId) {
       case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: 
         name = TextManager.param(paramId);
-        value = actor.param(paramId);
+        value = actor.param(paramId).toFixed(2);
         break;
       case  8: case  9: case 10: case 11: case 12:
       case 13: case 14: case 15: case 16: case 17: 
@@ -1210,10 +1211,11 @@ class Window_SDP_Details extends Window_Base {
         name = TextManager.sparam(paramId-18);
         value = (actor.sparam(paramId-18) * 100).toFixed(2);
     }
+    const smallerIsBetter = this.isNegativeGood(paramId);
 
     const iconIndex = this.getIconByParameterId(paramId);
 
-    return { name, value, iconIndex };
+    return { name, value, iconIndex, smallerIsBetter };
   };
 
   /**
@@ -1263,11 +1265,29 @@ class Window_SDP_Details extends Window_Base {
         return 0;
     };
   };
+
+  /**
+   * Determines whether or not the parameter should be marked as "improved" if it is negative.
+   * @param {number} parameterId The paramId to check if smaller is better for.
+   * @returns {boolean} True if the smaller is better for this paramId, false otherwise.
+   */
+  isNegativeGood(parameterId) {
+    const smallerIsBetterParameterIds = [18, 22, 23, 24, 25, 26];
+    const smallerIsBetter = smallerIsBetterParameterIds.includes(parameterId);
+    return smallerIsBetter;
+  };
 };
 //#endregion Window_SDP_Details
 
 //#region Window_SDP_Help
+/**
+ * The window that displays the help text associated with a panel.
+ */
 class Window_SDP_Help extends Window_Help {
+  /**
+   * @constructor
+   * @param {Rectangle} rect The dimensions of the window.
+   */
   constructor(rect) {
     super(rect);
     this.initialize(rect);
@@ -1351,6 +1371,9 @@ class Window_SDP_Points extends Window_Base {
 //#endregion Window_SDP_Points
 
 //#region Window_SDP_ConfirmUpgrade
+/**
+ * The window that prompts the user to confirm/cancel the upgrading of a chosen panel.
+ */
 class Window_SDP_ConfirmUpgrade extends Window_Command {
   /**
    * @constructor
@@ -1388,11 +1411,13 @@ class Window_SDP_ConfirmUpgrade extends Window_Command {
   };
 };
 //#endregion Window_SDP_ConfirmUpgrade
-
 //#endregion Window objects
 
 //#region Custom classes
 //#region StatDistributionPanel
+/**
+ * The class that governs the details of a single SDP.
+ */
 function StatDistributionPanel() { this.initialize(...arguments); }
 StatDistributionPanel.prototype = {};
 StatDistributionPanel.prototype.constructor = StatDistributionPanel;
@@ -1504,7 +1529,7 @@ StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
 
 //#region PanelParameter
 /**
- * A class that represents a single parameter and its growth for a `StatDistributionPanel`.
+ * A class that represents a single parameter and its growth for a SDP.
  */
 function PanelParameter() { this.initialize(...arguments); }
 PanelParameter.prototype = {};

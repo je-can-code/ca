@@ -4,7 +4,7 @@
  * @plugindesc 
  * Enables greater control over what and how often loot is dropped.
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
  * @help
  * # Start of Help
  * 

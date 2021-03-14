@@ -1,83 +1,119 @@
 //#region Introduction
- /*:
+/*:
  * @target MZ
  * @plugindesc 
- * Welcome to JABS,
- * J's Action Battle System!
+ * v2.2 JABS (J's Action Battle System)
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help
  * It would be overwhelming to write everything here.
  * Do visit the URL attached to this plugin for documentation.
  * 
- * @param BreakHead
- * @text --------------------------
- * @default ----------------------------------
- *
- * @param Extensions
- * @default Modify Below
- *
- * @param BreakSettings
+ * @param LineBreak1
  * @text --------------------------
  * @default ----------------------------------
  * 
- * @param ABS System
- * @type boolean
- * @desc Turn on ABS?
- * @default true
+ * @param baseConfigs
+ * @text BASE SETUP
  * 
- * @param Default Enemy Prepare Time
- * @type number
- * @desc The default number of frames for "prepare" time.
- * @default 180
- * 
- * @param Default Action Map Id
+ * @param Action Map Id
+ * @parent baseConfigs
  * @type number
  * @desc The default id of the map used for cloning action events off of.
  * @default 2
  * 
- * @param Default Attack Animation Id
- * @type number
- * @desc The default id of the animation for battlers when none is defined.
- * @default 1
- * 
- * @param Default Dodge Skill Type Id
+ * @param Dodge Skill Type Id
+ * @parent baseConfigs
  * @type number
  * @desc The default id of the skill type that acts as a classification for dodge skills.
  * @default 1
  * 
- * @param Default Guard Skill Type Id
+ * @param Guard Skill Type Id
+ * @parent baseConfigs
  * @type number
  * @desc The default id of the skill type that acts as a classification for guard skills.
  * @default 2
  * 
+ * @param LineBreak2
+ * @text --------------------------
+ * @default ----------------------------------
+ * 
+ * @param defaultConfigs
+ * @text WHEN UNASSIGNED
+ * 
+ * @param Default Enemy Prepare Time
+ * @parent defaultConfigs
+ * @type number
+ * @desc The default number of frames for "prepare" time.
+ * @default 180
+ * 
  * @param Default Tool Cooldown Time
+ * @parent defaultConfigs
  * @type number
  * @desc The default number of frames for an item's cooldown if one isn't specified.
  * @default 300
  * 
- * @param BreakSettings
+ * @param Default Attack Animation Id
+ * @parent defaultConfigs
+ * @type number
+ * @desc The default id of the animation for battlers when none is defined.
+ * @default 1
+ * 
+ * @param LineBreak3
  * @text --------------------------
  * @default ----------------------------------
+ * 
+ * @param iconConfigs
+ * @text ICON CONFIGURATIONS
+ * 
+ * @param Use Elemental Icons
+ * @parent iconConfigs
+ * @type boolean
+ * @desc Enable or disable the display of elemental icons on damage popups with this option.
+ * @default true
  * 
  * @param Elemental Icons
+ * @parent iconConfigs
  * @type struct<ElementalIconStruct>[]
  * @desc The collection of element ids and their icon indices.
- * @default []
+ * @default ["{\"elementId\":\"0\",\"iconIndex\":\"127\"}","{\"elementId\":\"1\",\"iconIndex\":\"97\"}","{\"elementId\":\"2\",\"iconIndex\":\"107\"}","{\"elementId\":\"3\",\"iconIndex\":\"110\"}","{\"elementId\":\"4\",\"iconIndex\":\"64\"}","{\"elementId\":\"5\",\"iconIndex\":\"67\"}","{\"elementId\":\"6\",\"iconIndex\":\"69\"}","{\"elementId\":\"7\",\"iconIndex\":\"68\"}","{\"elementId\":\"8\",\"iconIndex\":\"70\"}","{\"elementId\":\"9\",\"iconIndex\":\"71\"}"]
  * 
- * @param BreakSettings
+ * @param Use Danger Indicator Icons
+ * @parent iconConfigs
+ * @type boolean
+ * @desc Enable or disable the display of danger indicator icons beside enemy hp gauges with this option.
+ * @default true
+ *
+ * @param Danger Indicator Icons
+ * @parent iconConfigs
+ * @type struct<DangerIconsStruct>
+ * @desc The collection of icons to represent enemy danger levels beside their hp gauge.
+ * @default {"Worthless":"880","Simple":"881","Easy":"882","Average":"883","Hard":"884","Grueling":"885","Deadly":"886"}
+ * 
+ * @param LineBreak4
  * @text --------------------------
  * @default ----------------------------------
  * 
+ * @param animationConfigs
+ * @text ACTION DECIDED ANIMATIONS
+ * 
  * @param Attack Decided Animation Id
+ * @parent animationConfigs
  * @type animation
  * @desc The animation id that plays on the ai-controlled battler when they decide an attack-action.
  * @default 135
  * 
  * @param Support Decided Animation Id
+ * @parent animationConfigs
  * @type animation
  * @desc The animation id that plays on the ai-controlled battler when they decide a support-action.
  * @default 136
+ * 
+ * @param LineBreak5
+ * @text --------------------------
+ * @default ----------------------------------
+ *
+ *=================================================================================================
  * 
  * @command Enable JABS
  * @text Enable JABS
@@ -86,7 +122,7 @@
  * @command Disable JABS
  * @text Disable JABS
  * @desc Disables the JABS engine.
- * 
+ *
  * @command Set JABS Skill
  * @text Force-assign a JABS skill
  * @desc Forcefully assigns a specific skill id or (item id) to a designated slot.
@@ -144,6 +180,7 @@
  * @text Refresh JABS Menu
  * @desc Refreshes the JABS menu in case there were any adjustments made to it.
  */
+//=================================================================================================
 /*~struct~ElementalIconStruct:
  * @param elementId
  * @type number
@@ -155,6 +192,50 @@
  * @desc The index of the icon for this element.
  * @default 64
 */
+/*~struct~DangerIconsStruct:
+ * @param Worthless
+ * @type number
+ * @text Extremely Easy <7
+ * @desc When an enemy is more 7+ levels below the player, display this icon.
+ * @default 591
+ * 
+ * @param Simple
+ * @type number
+ * @text Very Easy <5-6
+ * @desc When an enemy is more 5-6 levels below the player, display this icon.
+ * @default 583
+ * 
+ * @param Easy
+ * @type number
+ * @text Easy <3-4
+ * @desc When an enemy is more 3-4 levels below the player, display this icon.
+ * @default 581
+ * 
+ * @param Average
+ * @type number
+ * @text Normal +/- 2
+ * @desc When the player and enemy are within 0-2 levels of eachother, display this icon.
+ * @default 579
+ * 
+ * @param Hard
+ * @type number
+ * @text Hard >3-4
+ * @desc When an player is more 3-4 levels below the enemy, display this icon.
+ * @default 578
+ * 
+ * @param Grueling
+ * @type number
+ * @text Very Hard >5-6
+ * @desc When an player is more 5-6 levels below the enemy, display this icon.
+ * @default 577
+ * 
+ * @param Deadly
+ * @type number
+ * @text Extremely Hard >7+
+ * @desc When an player is more 7+ levels below the enemy, display this icon.
+ * @default 588
+*/
+//=================================================================================================
 //#endregion Introduction
 
 //#region Plugin metadata management
@@ -227,6 +308,19 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj => {
   return elementalIcons;
 };
 
+J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj => {
+  // no danger indicator icons identified.
+  if (!obj) return {};
+
+  // parse the JSON and update the values to be actual numbers.
+  const raw = JSON.parse(obj);
+  Object.keys(raw).forEach(key => {
+    raw[key] = parseInt(raw[key]);
+  });
+
+  return raw;
+};
+
 /**
  * The `metadata` associated with this plugin, such as version.
  */
@@ -239,16 +333,70 @@ J.ABS.Metadata.Version = 1.00;
  */
 J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
 
-J.ABS.Metadata.Enabled = Boolean(J.ABS.PluginParameters['ABS System']);
+J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['Action Map Id']);
+J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['Dodge Skill Type Id']);
+J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['Guard Skill Type Id']);
+
 J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['Default Enemy Prepare Time']);
-J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['Default Action Map Id']);
-J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['Default Attack Animation Id']);
-J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['Default Dodge Skill Type Id']);
-J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['Default Guard Skill Type Id']);
 J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['Default Tool Cooldown Time']);
+J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['Default Attack Animation Id']);
+
+J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['Use Elemental Icons'] == "true");
+J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['Elemental Icons']);
+J.ABS.Metadata.UseDangerIndicatorIcons = Boolean(J.ABS.PluginParameters['Use Danger Indicator Icons'] == "true");
+J.ABS.Metadata.DangerIndicatorIcons = J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.PluginParameters['Danger Indicator Icons']);
+
 J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['Attack Decided Animation Id']);
 J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['Support Decided Animation Id']);
-J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['Elemental Icons']);
+
+console.log(J.ABS.Metadata.DangerIndicatorIcons);
+
+/**
+ * A collection of icons that represent the danger level of a given enemy relative to the player.
+ */
+J.ABS.DangerIndicatorIcons = {
+  /**
+   * Worthless enemies are 7+ levels below the player.
+   * @type {number}
+   */
+  Worthless: J.ABS.Metadata.DangerIndicatorIcons.Worthless,
+
+  /**
+   * Simple enemies are 5-6 levels below the player.
+   * @type {number}
+   */
+  Simple: J.ABS.Metadata.DangerIndicatorIcons.Simple,
+
+  /**
+   * Easy enemies are 3-4 levels below the player.
+   * @type {number}
+   */
+  Easy: J.ABS.Metadata.DangerIndicatorIcons.Easy,
+
+  /**
+   * Average enemies are +/- 2 levels of the player.
+   * @type {number}
+   */
+  Average: J.ABS.Metadata.DangerIndicatorIcons.Average,
+
+  /**
+   * Hard enemies are 3-4 levels above the player.
+   * @type {number}
+   */
+  Hard: J.ABS.Metadata.DangerIndicatorIcons.Hard,
+
+  /**
+   * Grueling enemies are 5-6 levels above the player.
+   * @type {number}
+   */
+  Grueling: J.ABS.Metadata.DangerIndicatorIcons.Grueling,
+
+  /**
+   * Deadly enemies are 7+ levels above the player.
+   * @type {number}
+   */
+  Deadly: J.ABS.Metadata.DangerIndicatorIcons.Deadly,
+};
 
 /**
  * The various default values across the engine. Often configurable.
@@ -447,8 +595,6 @@ J.ABS.Aliased = {
   Sprite_Damage: {},
   Sprite_Gauge: {},
 };
-
-
 //#endregion Plugin setup & configuration
 
 //#region Plugin Command Registration
@@ -1720,6 +1866,8 @@ Game_Event.prototype.parseEnemyComments = function() {
   let alertDuration = 0;
   let canIdle = true;
   let showHpBar = true;
+  let showDangerIndicator = true;
+  let showBattlerName = true;
   let isInvincible = false;
   let isInanimate = false;
   let customMoveSpeed = 0;
@@ -1769,6 +1917,12 @@ Game_Event.prototype.parseEnemyComments = function() {
           case (/<noHpBar>/i.test(comment)): // show hp bar?
             showHpBar = false;
             break;
+          case (/<noDangerIndicator>/i.test(comment)):
+            showDangerIndicator = false;
+            break;
+          case (/<noName>/i.test(comment)):
+            showBattlerName = false;
+            break;
           case (/<invincible>/i.test(comment)): // is invincible?
             isInvincible = true;
             break;
@@ -1793,6 +1947,8 @@ Game_Event.prototype.parseEnemyComments = function() {
       alertDuration,
       canIdle,
       showHpBar,
+      showDangerIndicator,
+      showBattlerName,
       isInvincible,
       isInanimate);
     this.setBattlerCoreData(battlerCoreData);
@@ -3277,8 +3433,10 @@ J.ABS.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMemb
 Sprite_Character.prototype.initMembers = function() {
   this._damages = [];
   this._nonDamages = [];
-  this._stateOverlaySprite = new Sprite_StateOverlay();
+  this._stateOverlaySprite = null;
   this._hpGauge = null;
+  this._dangerIndicator = null;
+  this._battlerName = null;
   this._loot = {};
   this._loot._img = null;
   this._loot._swing = false;
@@ -3355,6 +3513,8 @@ Sprite_Character.prototype.setTileBitmap = function() {
 Sprite_Character.prototype.setupMapSprite = function() {
   this.setupStateOverlay();
   this.setupHpGauge();
+  this.setupDangerIndicator();
+  this.setupBattlerName();
 };
 
 /**
@@ -3362,10 +3522,21 @@ Sprite_Character.prototype.setupMapSprite = function() {
  */
 Sprite_Character.prototype.setupStateOverlay = function() {
   const battler = this.getBattler();
+  this._stateOverlaySprite = this.createStateOverlaySprite();
   if (battler) {
     this._stateOverlaySprite.setup(battler);
   }
+
   this.addChild(this._stateOverlaySprite);
+};
+
+/**
+ * Creates the sprite representing the overlay of the state on the field.
+ * @returns {Sprite_StateOverlay} The state overlay for this character.
+ */
+Sprite_Character.prototype.createStateOverlaySprite = function() {
+  const sprite = new Sprite_StateOverlay();
+  return sprite;
 };
 
 /**
@@ -3373,23 +3544,126 @@ Sprite_Character.prototype.setupStateOverlay = function() {
  */
 Sprite_Character.prototype.setupHpGauge = function() {
   const battler = this.getBattler();
-  this._hpGauge = this.createSpriteGauge();
+  this._hpGauge = this.createGenericSpriteGauge();
   if (battler) {
     this._hpGauge.setup(battler, "hp");
   }
+
   this.addChild(this._hpGauge);
 };
 
 /**
  * Creates an on-the-map HP gauge for this battler.
  */
-Sprite_Character.prototype.createSpriteGauge = function() {
-  const hpGauge = new Sprite_MapGauge();
-  hpGauge.x = this.x  - (hpGauge.width / 1.5);
-  hpGauge.y = this.y - 12;
-  return hpGauge;
+ Sprite_Character.prototype.createGenericSpriteGauge = function() {
+  const sprite = new Sprite_MapGauge();
+  const x = this.x  - (sprite.width / 1.5);
+  const y = this.y - 12;
+  sprite.move(x, y);
+  return sprite;
 };
 
+//#region danger indicator icon
+/**
+ * Sets up the danger indicator sprite for this battler.
+ */
+Sprite_Character.prototype.setupDangerIndicator = function() {
+  this._dangerIndicator = this.createDangerIndicatorSprite();
+  this.addChild(this._dangerIndicator);
+};
+
+/**
+ * Creates the danger indicator sprite for this battler.
+ * @returns {Sprite_Icon} The icon representing this danger indicator.
+ */
+Sprite_Character.prototype.createDangerIndicatorSprite = function() {
+  const dangerIndicatorIcon = this.getDangerIndicatorIcon();
+  const sprite = new Sprite_Icon(dangerIndicatorIcon);
+  sprite.scale.x = 0.5;
+  sprite.scale.y = 0.5;
+  sprite.move(-50, 8);
+  return sprite;
+};
+
+/**
+ * Determines the iconIndex that indicates the danger level relative to the player and enemy.
+ * @returns The icon index of the danger indicator icon.
+ */
+Sprite_Character.prototype.getDangerIndicatorIcon = function() {
+  // if we aren't using them, don't give an icon.
+  if (!J.ABS.Metadata.UseDangerIndicatorIcons) return -1;
+
+  // if a battler isn't on this sprite, then don't do it.
+  const battler = this.getBattler();
+  if (!battler) return -1;
+
+  // calculate the level difference.
+  const player = $gameBattleMap.getPlayerMapBattler().getBattler();
+  const diff = Math.abs(battler.level - player.level);
+  const isPlayerBigger = player.level > battler.level;
+
+  // player or enemy, same icon.
+  if (diff <= 2) { // 0-2
+    return J.ABS.DangerIndicatorIcons.Average;
+  // the player is bigger, so set the icons to be nicer (blue-er).
+  } else if (isPlayerBigger) {
+    switch (true) {
+      case (diff > 2 && diff <= 4): // 3-4
+        return J.ABS.DangerIndicatorIcons.Easy;
+      case (diff > 4 && diff <= 6): // 5-6
+        return J.ABS.DangerIndicatorIcons.Simple;
+      case (diff > 6): // 7+
+        return J.ABS.DangerIndicatorIcons.Worthless;
+    }
+  // the enemy is bigger, so set the icons to be scarier (red-der).
+  } else {
+    switch (true) {
+      case (diff > 2 && diff <= 4): // 3-4
+        return J.ABS.DangerIndicatorIcons.Hard;
+      case (diff > 4 && diff <= 6): // 5-6
+        return J.ABS.DangerIndicatorIcons.Grueling;
+      case (diff > 6): // 7+
+        return J.ABS.DangerIndicatorIcons.Deadly;
+    }
+  }
+};
+//#endregion danger indicator icon
+
+//#region battler name
+/**
+ * Sets up this battler's name as a sprite below the character.
+ */
+Sprite_Character.prototype.setupBattlerName = function() {
+  this._battlerName = this.createBattlerNameSprite();
+  this.addChild(this._battlerName);
+};
+
+/**
+ * Creates the sprite that contains this battler's name.
+ * @returns {Sprite_Text} The battlers name, as a sprite.
+ */
+ Sprite_Character.prototype.createBattlerNameSprite = function() {
+  const battlerName = this.getBattlerName();
+  const sprite = new Sprite_Text(battlerName, null, -16, "left");
+  sprite.move(-30, 10);
+  return sprite;
+};
+
+/**
+ * 
+ * @returns {string} The battlers name.
+ */
+Sprite_Character.prototype.getBattlerName = function() {
+  const battler = this.getBattler();
+  if (!battler) return "";
+
+  return battler.opponentsUnit() === $gameParty
+    ? battler.enemy().name
+    : battler.actor().name;
+};
+//#endregion battler name
+
+//#region loot
 /**
  * Sets up this character's sprite for activities on the map.
  */
@@ -3424,6 +3698,23 @@ Sprite_Character.prototype.deleteLootSprite = function() {
 };
 
 /**
+ * Gets whether or not this sprite is actually just some loot to be gathered.
+ * @returns {boolean} True if this sprite represents a loot object, false otherwise.
+ */
+ Sprite_Character.prototype.isLoot = function() {
+  return this._character.isLoot();
+};
+
+/**
+ * Gets the loot data associated with this sprite.
+ * @returns {JABS_LootDrop}
+ */
+Sprite_Character.prototype.getLootData = function() {
+  return this._character.getLootData();
+};
+//#endregion loot
+
+/**
  * Returns the `Game_Battler` associated with the current sprite.
  * @returns {Game_Battler} The battler this sprite is bound to.
  */
@@ -3443,22 +3734,6 @@ Sprite_Character.prototype.getBattler = function() {
 };
 
 /**
- * Gets whether or not this sprite is actually just some loot to be gathered.
- * @returns {boolean} True if this sprite represents a loot object, false otherwise.
- */
-Sprite_Character.prototype.isLoot = function() {
-  return this._character.isLoot();
-};
-
-/**
- * Gets the loot data associated with this sprite.
- * @returns {JABS_LootDrop}
- */
-Sprite_Character.prototype.getLootData = function() {
-  return this._character.getLootData();
-};
-
-/**
  * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
 J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
@@ -3469,6 +3744,8 @@ Sprite_Character.prototype.update = function() {
       this.updateStateOverlay();
       this.updateMapPopups();
       this.updateGauges();
+      this.updateDangerIndicator();
+      this.updateBattlerName();
     } else {
       // if the conditions changed for an event that used to have an hp gauge
       // now hide the gauge.
@@ -3491,11 +3768,60 @@ Sprite_Character.prototype.updateGauges = function() {
         this._hpGauge.move(0 - (this._hpGauge.width / 1.5), 0 - 12);
       }
       this._hpGauge._battler = this.getBattler();
-      this._hpGauge.update();  
+      this._hpGauge.update();
+      this.showHpGauge();
     } else {
       this.hideHpGauge();
     }
   }
+};
+
+/**
+ * Updates the danger indicator associated with this battler
+ */
+ Sprite_Character.prototype.updateDangerIndicator = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate() && mapBattler.showDangerIndicator()) {
+      if (!this._dangerIndicator) {
+        this.setupMapSprite();
+      }
+
+      this.showDangerIndicator();
+    } else {
+      this.hideDangerIndicator();
+    }
+  }
+};
+
+/**
+ * Updates this battler's name.
+ */
+ Sprite_Character.prototype.updateBattlerName = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate() && mapBattler.showBattlerName()) {
+      if (!this._battlerName) {
+        this.setupMapSprite();
+      }
+
+      this.showBattlerName();
+    } else {
+      this.hideBattlerName();
+    }
+  }
+};
+
+/**
+ * Whether or not we should be executing JABS-related updates for this sprite.
+ * @returns {boolean} True if updating is available, false otherwise.
+ */
+ Sprite_Character.prototype.canUpdate = function() {
+  if (!$gameBattleMap.absEnabled) {
+    return false;
+  }
+
+  return true;
 };
 
 /**
@@ -3513,6 +3839,42 @@ Sprite_Character.prototype.showHpGauge = function() {
 Sprite_Character.prototype.hideHpGauge = function() {
   if (this._hpGauge) {
     this._hpGauge.opacity = 0;
+  }
+};
+
+/**
+ * Shows the danger indicator if it exists.
+ */
+Sprite_Character.prototype.showDangerIndicator = function() {
+  if (this._dangerIndicator) {
+    this._dangerIndicator.opacity = 255;
+  }
+};
+
+/**
+ * Hides the danger indicator if it exists.
+ */
+Sprite_Character.prototype.hideDangerIndicator = function() {
+  if (this._dangerIndicator) {
+    this._dangerIndicator.opacity = 0;
+  }
+};
+
+/**
+ * Shows the battler's name if it exists.
+ */
+ Sprite_Character.prototype.showBattlerName = function() {
+  if (this._battlerName) {
+    this._battlerName.opacity = 255;
+  }
+};
+
+/**
+ * Hides the battler's name if it exists.
+ */
+ Sprite_Character.prototype.hideBattlerName = function() {
+  if (this._battlerName) {
+    this._battlerName.opacity = 0;
   }
 };
 
@@ -3563,19 +3925,6 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite) {
   this._loot._oy -= 0.3;
   lootSprite.y -= 0.3;
   if (this._loot._oy < -5) this._loot._swing = true;
-};
-
-/**
- * Whether or not we should be executing JABS-related updates for this sprite.
- * @returns {boolean} True if updating is available, false otherwise.
- */
-Sprite_Character.prototype.canUpdate = function() {
-  if (!$gameBattleMap.absEnabled) {
-    return false;
-  }
-
-  this.showHpGauge();
-  return true;
 };
 
 /**
@@ -5779,6 +6128,9 @@ class Game_BattleMap {
    * @returns {number} The icon index to use for this popup.
    */
   determineElementalIcon(skill, caster) {
+    // if not using the elemental icons, don't return one.
+    if (!J.ABS.Metadata.UseElementalIcons) return 0;
+
     let elementId = skill.damage.elementId;
 
     // if the battler is an actor and the action is based on the weapon's elements
@@ -7006,11 +7358,30 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData) {
 
   /**
    * Whether or not this battler's hp bar is visible.
+   * Inanimate battlers do not show their hp bar by default.
    * @type {boolean}
    */
   this._showHpBar = battlerCoreData.isInanimate() 
     ? false // don't show hp bar if inanimate.
     : battlerCoreData.showHpBar();
+
+  /**
+   * Whether or not this battler's danger indicator is visible.
+   * Inanimate battlers do not show their danger indicator by default.
+   * @type {boolean}
+     */
+  this._showDangerIndicator = battlerCoreData.isInanimate() 
+    ? false // don't show danger indicator if inanimate.
+    : battlerCoreData.showDangerIndicator();
+
+  /**
+   * Whether or not this battler's name is visible.
+   * Inanimate battlers do not show their name by default.
+   * @type {boolean}
+   */
+  this._showBattlerName = battlerCoreData.isInanimate() 
+    ? false // don't show battler name if inanimate.
+    : battlerCoreData.showBattlerName();
 
   /**
    * Whether or not this battler is invincible, rendering them unable
@@ -7425,6 +7796,8 @@ JABS_Battler.createPlayer = function() {
     0,                  // alert duration
     false,              // can move idly
     false,              // show hp bar
+    false,              // show danger indicator
+    false,              // show name
     false,              // is invincible
     false);             // is inanimate
   const player = new JABS_Battler($gamePlayer, battler, coreBattlerData);
@@ -8828,11 +9201,27 @@ JABS_Battler.prototype.canIdle = function() {
 };
 
 /**
- * Gets whether or not this battler will move around while idle.
+ * Gets whether or not this battler should show its hp bar.
  * @returns {boolean}
  */
 JABS_Battler.prototype.showHpBar = function() {
   return this._showHpBar;
+};
+
+/**
+ * Gets whether or not this battler should show its danger indicator.
+ * @returns {boolean}
+ */
+ JABS_Battler.prototype.showDangerIndicator = function() {
+  return this._showDangerIndicator;
+};
+
+/**
+ * Gets whether or not this battler should show its name.
+ * @returns {boolean}
+ */
+ JABS_Battler.prototype.showBattlerName = function() {
+  return this._showBattlerName;
 };
 
 /**
@@ -11112,12 +11501,15 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {number} alertDuration The duration in frames of how long to remain alerted.
  * @param {boolean} canIdle Whether or not this battler can idle.
  * @param {boolean} showHpBar Whether or not to show the hp bar.
+ * @param {boolean} showDangerIndicator Whether or not to show the danger indiciator.
+ * @param {boolean} showBattlerName Whether or not to show the battler's name.
  * @param {boolean} isInvincible Whether or not this battler is invincible.
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
  */
 JABS_BattlerCoreData.prototype.initialize = function(
   battlerId, teamId, battlerAI, sightRange, alertedSightBoost, pursuitRange, 
-  alertedPursuitBoost, alertDuration, canIdle, showHpBar, isInvincible, isInanimate
+  alertedPursuitBoost, alertDuration, canIdle, showHpBar, showDangerIndicator,
+  showBattlerName, isInvincible, isInanimate,
 ) {
   /**
    * The id of the enemy that this battler represents.
@@ -11178,6 +11570,18 @@ JABS_BattlerCoreData.prototype.initialize = function(
    * @type {boolean} True if the battler's hp bar should show, false otherwise.
    */
   this._showHpBar = showHpBar;
+
+  /**
+   * Whether or not this battler's danger indicator will be visible.
+   * @type {boolean} True if the battler's danger indicator should show, false otherwise.
+   */
+   this._showDangerIndicator = showDangerIndicator;
+
+  /**
+   * Whether or not this battler's name will be visible.
+   * @type {boolean} True if the battler's name should show, false otherwise.
+   */
+   this._showBattlerName = showBattlerName;
 
   /**
    * Whether or not this battler is invincible.
@@ -11274,6 +11678,22 @@ JABS_BattlerCoreData.prototype.canIdle = function() {
  */
 JABS_BattlerCoreData.prototype.showHpBar = function() {
   return this._showHpBar;
+};
+
+/**
+ * Gets whether or not this battler's danger indicator will be visible.
+ * @returns {boolean}
+ */
+ JABS_BattlerCoreData.prototype.showDangerIndicator = function() {
+  return this._showDangerIndicator;
+};
+
+/**
+ * Gets whether or not this battler's name will be visible.
+ * @returns {boolean}
+ */
+ JABS_BattlerCoreData.prototype.showBattlerName = function() {
+  return this._showBattlerName;
 };
 
 /**

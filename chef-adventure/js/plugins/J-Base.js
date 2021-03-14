@@ -424,8 +424,8 @@ TextManager.sparam = function (sParamId) {
     case 3: return "Pharmacy"; //J.Param.PHA_text;
     case 4: return "Magi Reduce"; //J.Param.MCR_text;
     case 5: return "Tech Reduce"; //J.Param.TCR_text;
-    case 6: return "Phys DOWN"; //J.Param.PDR_text;
-    case 7: return "Magi DOWN"; //J.Param.MDR_text;
+    case 6: return "Phys Dmg DOWN"; //J.Param.PDR_text;
+    case 7: return "Magi Dmg DOWN"; //J.Param.MDR_text;
     case 8: return "Light-footed"; //J.Param.FDR_text;
     case 9: return "Experience UP"; //J.Param.EXR_text;
   }
@@ -1012,7 +1012,8 @@ function Sprite_MapGauge() { this.initialize(...arguments); }
 Sprite_MapGauge.prototype = Object.create(Sprite_Gauge.prototype);
 Sprite_MapGauge.prototype.constructor = Sprite_MapGauge;
 Sprite_MapGauge.prototype.initialize = function(
-  bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6, label = "", value = null) {
+  bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6,
+  label = "", value = null, iconIndex = -1) {
     this._duration = 0;
     this._gauge = {};
     this._gauge._bitmapWidth = bitmapWidth;
@@ -1020,6 +1021,7 @@ Sprite_MapGauge.prototype.initialize = function(
     this._gauge._gaugeHeight = gaugeHeight;
     this._gauge._label = label;
     this._gauge._value = value;
+    this._gauge._iconIndex = iconIndex;
 
     Sprite_Gauge.prototype.initialize.call(this);
     this.initMembers();
@@ -1069,10 +1071,51 @@ Sprite_MapGauge.prototype.gaugeHeight = function() {
 };
 
 /**
- * Don't draw labels for gauges on the map.
+ * Set this gauge's label.
+ * @param {string} label The label to set this gauge to.
+ */
+ Sprite_MapGauge.prototype.setLabel = function(label) {
+  this._gauge._label = label;
+  this.redraw();
+};
+
+/**
+ * Gets this gauge's label.
  */
 Sprite_MapGauge.prototype.drawLabel = function() {
-  return this._gauge._label;
+  if (this._gauge._label) {
+    const x = 32;
+    const y = 0;
+    this.bitmap.fontSize = 12;
+    this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
+  }
+};
+
+/**
+ * Set this gauge's iconIndex.
+ * @param {number} iconIndex The index/id of the icon to assign.
+ */
+Sprite_MapGauge.prototype.setIcon = function(iconIndex) {
+  this._gauge._iconIndex = iconIndex;
+  this.redraw();
+};
+
+/**
+ * Draws the icon associated with this gauge.
+ */
+Sprite_MapGauge.prototype.drawIcon = function() {
+  if (this._gauge._iconIndex > 0 && !this.children.length) {
+    const sprite = this.createIconSprite();
+    sprite.move(10, 20);
+    this.addChild(sprite);
+  }
+};
+
+Sprite_MapGauge.prototype.createIconSprite = function() {
+  const sprite = new Sprite_Icon(this._gauge._iconIndex);
+  sprite.scale.x = 0.5;
+  sprite.scale.y = 0.5;
+  return sprite;
 };
 
 /**
@@ -1095,6 +1138,7 @@ Sprite_MapGauge.prototype.redraw = function() {
     this.drawGauge();
     if (this._statusType !== "time") {
       this.drawLabel();
+      this.drawIcon();
       if (this.isValid()) {
         this.drawValue();
       }
@@ -1142,20 +1186,25 @@ Sprite_MapGauge.prototype.currentMaxValue = function() {
 function Sprite_Text() { this.initialize(...arguments); }
 Sprite_Text.prototype = Object.create(Sprite.prototype);
 Sprite_Text.prototype.constructor = Sprite_Text;
-Sprite_Text.prototype.initialize = function(text, color = null) {
+Sprite_Text.prototype.initialize = function(text, color = null, fontSizeMod = 0, alignment = "center") {
   Sprite.prototype.initialize.call(this);
-  this.initMembers(text, color);
+  this.initMembers(text, color, fontSizeMod, alignment);
   this.loadBitmap();
 };
 
 /**
  * Initializes the properties associated with this sprite.
  * @param {string} text The static text to display for this sprite.
+ * @param {number} fontSizeMod The font size modifier for this instance of text.
+ * @param {string} alignment The alignment of this sprite's text.
  */
-Sprite_Text.prototype.initMembers = function(text, color) {
-  this._j = {};
-  this._j._text = text;
-  this._j._color = color;
+Sprite_Text.prototype.initMembers = function(text, color, fontSizeMod, alignment) {
+  this._j = {
+    _text: text,
+    _color: color,
+    _fontSizeMod: fontSizeMod,
+    _alignment: alignment,
+  };
 };
 
 /**
@@ -1181,7 +1230,7 @@ Sprite_Text.prototype.update = function() {
  * Determines the width of the bitmap accordingly to the length of the string.
  */
 Sprite_Text.prototype.bitmapWidth = function() {
-  return 48;
+  return 128;
 };
 
 /**
@@ -1195,14 +1244,14 @@ Sprite_Text.prototype.bitmapHeight = function() {
  * Determines the font size for text in this sprite.
  */
 Sprite_Text.prototype.fontSize = function() {
-  return $gameSystem.mainFontSize() - 10;
+  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
 };
 
 /**
  * Determines the font face for text in this sprite.
  */
 Sprite_Text.prototype.fontFace = function() {
-  return $gameSystem.numberFontFace();
+  return $gameSystem.mainFontFace();
 };
 
 /**
@@ -1215,7 +1264,7 @@ Sprite_Text.prototype.textColor = function() {
 };
 
 Sprite_Text.prototype.textAlignment = function() {
-  return "center";
+  return this._j._alignment;
 };
 //#endregion
 //#endregion Sprite objects
