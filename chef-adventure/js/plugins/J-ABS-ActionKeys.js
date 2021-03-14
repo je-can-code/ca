@@ -322,10 +322,10 @@ Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = f
 
   const iconIndex = referenceData.iconIndex;
   this.placeActionKeyIconSprite(iconIndex, skillType, x+4, y+20);
-  this.placeActionKeyButtonLabel(skillType, x-4, y);
+  this.placeActionKeyButtonLabel(skillType, x-44, y);
   this.placeActionKeyComboGauge(skillType, cooldownData, x, y+70)
   this.placeActionKeyCooldownTimer(skillType, cooldownData, x, y+40, isItem);
-  this.placeActionKeyAbilityCosts(skillType, referenceData, x-4, y+40);
+  this.placeActionKeyAbilityCosts(skillType, referenceData, x-84, y+40);
   return;
 }
 
@@ -398,7 +398,7 @@ Window_ActionKeys.prototype.createActionKeyButtonLabel = function(key, skillType
   if (sprites[key]) {
     return sprites[key];
   } else {
-    const sprite = new Sprite_Text(skillType);
+    const sprite = new Sprite_Text(skillType, null, -10);
     sprites[key] = sprite;
     this.addInnerChild(sprite);
     return sprite;

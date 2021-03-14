@@ -411,8 +411,8 @@ Window_TextLog.prototype.interferenceOpacity = function() {
     if (sprite.opacity < 0) sprite.opacity += 1;
   });
 
-  if (this.opacity > 0) this.opacity -= 15;
-  if (this.opacity < 0) this.opacity += 1;
+  //if (this.opacity > 0) this.opacity -= 15;
+  //if (this.opacity < 0) this.opacity += 1;
 };
 
 /**
@@ -477,8 +477,8 @@ Window_TextLog.prototype.fadeWhileInactive = function() {
  * While the log window is inactive, reduce opacity of the window and text.
  */
 Window_TextLog.prototype.fadeOpacity = function() {
-  if (this.opacity > this._opacityMinimum) this.opacity -= this._opacityRate;
-  if (this.opacity < this._opacityMinimum) this.opacity = this._opacityMinimum;
+  //if (this.opacity > this._opacityMinimum) this.opacity -= this._opacityRate;
+  //if (this.opacity < this._opacityMinimum) this.opacity = this._opacityMinimum;
 
   if (this.isFaded()) {
     Object.values(this._messageSprites).forEach(sprite => {
@@ -495,8 +495,8 @@ Window_TextLog.prototype.fadeOpacity = function() {
  * When activity in the text log resumes, quickly increase opacity back to max(255).
  */
 Window_TextLog.prototype.resetOpacity = function() {
-  if (this.opacity < 255) this.opacity += this._opacityRate;
-  if (this.opacity > 255) this.opacity = 255;
+  //if (this.opacity < 255) this.opacity += this._opacityRate;
+  //if (this.opacity > 255) this.opacity = 255;
   if (this.isFaded()) {
     Object.values(this._messageSprites).forEach(sprite => {
       if (sprite.opacity < 255) sprite.opacity += this._opacityRate;

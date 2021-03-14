@@ -207,15 +207,14 @@
  * =============================================================================
  * - MAP NOTETAGS
  * =============================================================================
- * Para ativar o clima use o comentário abaixo através da função PLUGIN COMMAND
+ * To activate the climate use the comment below through the PLUGIN COMMAND function
  *
  * weather ID : TYPE : POWER : SPEED : BLEND_TYPE : FILE_NAME 
  *
  *
- * -> ID - Define a ID do clima, é possível utilizar até 10 climas diferentes ao 
- * mesmo tempo.
+ * -> ID - Defines the climate ID, it is possible to use up to 10 different climates at the  same time.
  *
- * -> TYPE - Efeito (de 0 a 29)
+ * -> TYPE - Weather (from 0 to 29)
  *        0 -  Wind 1 (Falling)
  *        1 -  Wind 2 (Left Side)
  *        2 -  Wind 3 (Zoom)
