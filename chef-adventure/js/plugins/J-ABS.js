@@ -9801,6 +9801,9 @@ JABS_Battler.prototype.canActionConnect = function() {
   // this battler is untargetable.
   if (this.isInvincible() || this.isHidden()) return false;
 
+  // the player cannot be targeted while holding the DEBUG button.
+  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Cheat)) return false;
+
   // precise timing allows for battlers to hit other battlers the instant they
   // meet event conditions, and that is not grounds to hit enemies.
   if (this.getCharacter().isAction()) return false;

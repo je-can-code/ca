@@ -142,8 +142,8 @@ Scene_Map.prototype.onMapLoaded = function() {
  * Creates the internal text log for JABS.
  */
 Scene_Map.prototype.createJabsTextLog = function() {
-  const width = 640;
-  const height = 180;
+  const width = 768;
+  const height = 200;
   const x = 0;
   const y = Graphics.boxHeight - height;
   const rect = new Rectangle(x, y, width, height);
