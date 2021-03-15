@@ -273,43 +273,6 @@ J.SDP.Metadata = {
   Name: `J-SDP`,
 };
 
-
-//#region PanelParameter
-/**
- * A class that represents a single parameter and its growth for a SDP.
- */
- function PanelParameter() { this.initialize(...arguments); }
- PanelParameter.prototype = {};
- PanelParameter.prototype.constructor = PanelParameter;
- 
- /**
-  * 
-  * @param {number} parameterId The parameter this class represents.
-  * @param {number} perRank The amount per rank this parameter gives.
-  * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
-  */
- PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
-   /**
-    * The id of the parameter this class represents.
-    * @type {number}
-    */
-   this.parameterId = parameterId;
- 
-   /**
-    * The amount per rank this parameter gives.
-    * @type {number}
-    */
-   this.perRank = perRank;
- 
-   /**
-    * Whether or not the growth per rank for this parameter is flat or percent.
-    * @type {boolean} True if it is flat growth, false if it is percent growth.
-    */
-   this.isFlat = isFlat;
- };
- //#endregion PanelParameter
- 
-
 /**
  * A collection of helpful functions to use throughout the plugin.
  */
@@ -399,48 +362,6 @@ J.SDP.Aliased = {
  */
 PluginManager.registerCommand(J.SDP.Metadata.Name, "Call SDP Menu", () => {
   SceneManager.push(Scene_SDP);
-});
-
-/**
- * Adds a new panel to the list of available panels. 
- * Does nothing if a panel with the same key already exists.
- */
-PluginManager.registerCommand(J.SDP.Metadata.Name, "Add New SDP", args => {
-  const { 
-    name,
-    key, 
-    iconIndex,
-    description,
-    maxRank, 
-    baseCost,
-    flatGrowthCost,
-    multGrowthCost,
-    maxReward,
-    maxRewardDescription,
-    panelParameters } = args;
-  const parsedParams = JSON.parse(panelParameters);
-  const newPanelParams = Object.values(parsedParams).map(param => {
-    const parsed = JSON.parse(param);
-    const panelParam = new PanelParameter(
-      parseInt(parsed.parameterId), 
-      parseFloat(parsed.perRank), 
-      parsed.isFlat === 'true');
-    return panelParam;
-  })
-
-  $gameSystem.addSdpPanel(
-    name, 
-    key, 
-    parseInt(iconIndex), 
-    description, 
-    parseInt(maxRank),
-    parseInt(baseCost), 
-    parseInt(flatGrowthCost), 
-    parseFloat(multGrowthCost), 
-    maxReward,
-    maxRewardDescription,
-    ...newPanelParams
-  );
 });
 
 /**
@@ -811,47 +732,6 @@ Game_System.prototype.getUnlockedSdps = function() {
 };
 
 /**
- * Creates and adds a panel to the currently available list.
- * @param {string} name The friendly name for this SDP.
- * @param {string} key The less-friendly unique key that represents this SDP.
- * @param {number} iconIndex The icon index for this panel.
- * @param {string} description The description for this panel. Can include escape characters.
- * @param {number} maxRank The maximum rank for this SDP.
- * @param {number} baseCost The base cost for this SDP.
- * @param {number} flatGrowthCost The flat cost increase per rank.
- * @param {number} multGrowthCost The multiplicative cost increase per rank.
- * @param {string} maxReward The effects performed when a panel is maxed out.
- * @param {string} maxRewardDescription The description of the effect for maxing this panel.
- * @param {...PanelParameter} panelParameters The parameters that this SDP affects.
- */
-Game_System.prototype.addSdpPanel = function(
-  name, key, iconIndex, description, maxRank, 
-  baseCost, flatGrowthCost, multGrowthCost, maxReward, maxRewardDescription,
-  ...panelParameters) {
-    const exists = this.getSdpPanel(key);
-    if (exists) {
-      console.error('Panel with that key already exists.');
-      return;
-    }
-
-    const newPanel = new StatDistributionPanel(
-      name,
-      key,
-      iconIndex,
-      description,
-      maxRank,
-      baseCost,
-      flatGrowthCost,
-      multGrowthCost,
-      maxReward,
-      maxRewardDescription,
-      ...panelParameters
-    );
-
-    this._j._sdp._panels.push(newPanel);
-};
-
-/**
  * Unlocks a SDP by its key.
  * @param {string} key The key of the SDP to unlock.
  */
@@ -998,8 +878,10 @@ class Scene_SDP extends Scene_MenuBase {
    * Updates the index to keep in sync with the window's currently-selected index.
    */
   updateIndex() {
+    if (this._j._sdpListWindow._list.length === 0) return;
+
     const currentIndex = this._j._index;
-    const newIndex = this._j._sdpListWindow.index()
+    const newIndex = this._j._sdpListWindow.index();
     if (currentIndex !== newIndex) {
       this._j._index = this._j._sdpListWindow.index();
       this._j._currentPanel = this._j._sdpListWindow._list[this._j._index].ext;
@@ -1138,9 +1020,7 @@ class Scene_SDP extends Scene_MenuBase {
     const panelRanking = actor.getSdpByKey(panel.key);
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);
     actor.modSdpPoints(-panelRankupCost);
-    console.log(panelRanking.currentRank);
     actor.rankUpPanel(panel.key);
-    console.log(panelRanking.currentRank);
     this.refreshAllWindows();
     this._j._sdpDetailsWindow.setActor(this._j._currentActor);
 
@@ -1205,7 +1085,6 @@ class Window_SDP_List extends Window_Command {
    * OVERWRITE Creates the command list for this window.
    */
   makeCommandList() {
-    //const panels = $gameSystem.getSdpPanels();
     const panels = $gameSystem.getUnlockedSdps();
     const actor = this.currentActor;
     if (!panels.length || !actor) return;

@@ -850,7 +850,7 @@ Game_Enemy.prototype.needsSdpDrop = function() {
   if (!panelKey) return null;
 
   // if a panel exists to be earned, but we already have it, then give up.
-  const alreadyEarned = $gameSystem.getSdpPanel(panelKey);
+  const alreadyEarned = $gameSystem.getSdpPanel(panelKey).isUnlocked();
   if (alreadyEarned) return null;
 
   // create the new drop based on the SDP.
