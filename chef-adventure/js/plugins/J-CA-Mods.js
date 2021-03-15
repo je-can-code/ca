@@ -296,19 +296,4 @@ Scene_Map.prototype.createButtons = function() { return; };
 //#endregion Scene_Map
 //#endregion Scene objects
 
-//#region JABS objects
-//#region JABS_Battler
-/**
- * Extends the handling of dodge skill execution to track data.
- * @param {object} skill The RPG item representing the dodge skill.
- */
-J.CAMods.Aliased.JABS_Battler.executeDodgeSkill = JABS_Battler.prototype.executeDodgeSkill;
-JABS_Battler.prototype.executeDodgeSkill = function(skill) {
-  J.CAMods.Aliased.JABS_Battler.executeDodgeSkill.call(this, skill);
-
-  // count all successful dodge skills.
-  J.Base.Helpers.modVariable(J.CAMods.Tracking.DodgeSkillUsage, 1);
-};
-//#endregion JABS_Battler
-//#endregion JABS objects
 //ENDFILE

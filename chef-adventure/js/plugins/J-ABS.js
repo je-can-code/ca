@@ -2,9 +2,11 @@
 /*:
  * @target MZ
  * @plugindesc 
- * v2.2 JABS (J's Action Battle System)
+ * v2.3 JABS (J's Action Battle System)
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-Base
+ * @orderAfter J-Base
  * @help
  * It would be overwhelming to write everything here.
  * Do visit the URL attached to this plugin for documentation.
@@ -4638,7 +4640,7 @@ class Game_BattleMap {
    * Sets the ABS enabled switch to a new boolean value.
    * @param {boolean} enabled Whether or not the ABS is enabled (default = true).
    */
-  set absEnabled(enabled = true) {
+  set absEnabled(enabled) {
     return this._absEnabled = enabled;
   };
 
@@ -4654,7 +4656,7 @@ class Game_BattleMap {
    * Sets the ABS pause switch to a new boolean value.
    * @param {boolean} paused Whether or not the ABS is paused (default = true).
    */
-  set absPause(paused = true) {
+  set absPause(paused) {
     this._absPause = paused;
   }
 
@@ -4670,7 +4672,7 @@ class Game_BattleMap {
    * Sets the current request for calling the ABS-specific menu.
    * @param {boolean} requested Whether or not we want to request the menu (default: true).
    */
-  set requestAbsMenu(requested = true) {
+  set requestAbsMenu(requested) {
     return this._requestAbsMenu = requested;
   };
 
@@ -4764,7 +4766,7 @@ class Game_BattleMap {
    * Issues a request to render actions on the map.
    * @param {boolean} rendering Whether or not we want to render actions (default = true).
    */
-  set requestActionRendering(rendering = true) {
+  set requestActionRendering(rendering) {
     this._requestActionRendering = rendering;
   };
 
@@ -4780,7 +4782,7 @@ class Game_BattleMap {
    * Issues a request to render loot onto the map.
    * @param {boolean} rendering Whether or not we want to render actions (default = true).
    */
-  set requestLootRendering(rendering = true) {
+  set requestLootRendering(rendering) {
     this._requestLootRendering = rendering;
   };
 
@@ -4797,7 +4799,7 @@ class Game_BattleMap {
    * Issues a request to clear the map of all stale actions.
    * @param {boolean} clearing Whether or not we want to clear the battle map (default = true).
    */
-  set requestClearMap(clearing = true) {
+  set requestClearMap(clearing) {
     this._requestClearMap = clearing;
   };
 
@@ -4814,7 +4816,7 @@ class Game_BattleMap {
    * Issues a request to clear the map of any collected loot.
    * @param {boolean} clearing if clear loot requested, false otherwise.
    */
-  set requestClearLoot(clearing = true) {
+  set requestClearLoot(clearing) {
     this._requestClearLoot = clearing;
   };
 
@@ -5038,6 +5040,11 @@ class Game_BattleMap {
 
     // mainhand action
     if (Input.isTriggered(J.ABS.Input.A)) {
+      // if we are about to interact with an NPC, don't cut them down pls.
+      if (this.isNonBattlerEventInFrontOfPlayer()) {
+        return;
+      }
+
       this.performMainhandAction();
     }
 
@@ -5062,6 +5069,44 @@ class Game_BattleMap {
     if (Input.isTriggered(J.ABS.Input.Select)) {
       this.rotatePartyMembers();
     }
+  };
+
+  /**
+   * 
+   * @returns {boolean} True if there is an event infront of the player, false otherwise.
+   */
+  isNonBattlerEventInFrontOfPlayer() {
+    const player = this.getPlayerMapBattler().getCharacter();
+    const direction = player.direction();
+    const x1 = player.x;
+    const y1 = player.y;
+    const x2 = $gameMap.roundXWithDirection(x1, direction);
+    const y2 = $gameMap.roundYWithDirection(y1, direction);
+    const triggers = [0, 1, 2];
+    for (const event of $gameMap.eventsXy(x2, y2)) {
+      // if the player is mashing the button at an enemy, let them continue.
+      if (event.isJabsBattler()) return false;
+
+      if (event.isTriggerIn(triggers) && event.isNormalPriority() === true) {
+        return true;
+      }
+    }
+
+    if ($gameMap.isCounter(x2, y2)) {
+      const x3 = $gameMap.roundXWithDirection(x2, direction);
+      const y3 = $gameMap.roundYWithDirection(y2, direction);
+
+      for (const event in $gameMap.eventsXy(x3, y3)) {
+        // if the player is mashing the button at an enemy, let them continue.
+        if (event.isJabsBattler()) return false;
+
+        if (event.isTriggerIn(triggers) && event.isNormalPriority() === true) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   };
 
   /**
