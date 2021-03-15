@@ -6,8 +6,11 @@
  * contain various stats.
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-ABS
  * @help
- * This should go below both J-Base and J-ABS.
+ * This should go below both J-Base (and J-ABS if that is being used, too).
  * 
  * @param LineBreak1
  * @text --------------------------
@@ -27,25 +30,25 @@
  * @text Stat Distribution Panels
  * @type struct<SDPStruct>[]
  * @desc All available Stat Distribution Panels that are available to be unlocked.
- * @default ["{\"name\":\"Some Cool Panel\",\"key\":\"SCP_1\",\"iconIndex\":\"1\",\"unlocked\":\"false\",\"description\":\"Some really cool panel that has lots of hardcore powers.\",\"maxRank\":\"10\",\"baseCost\":\"110\",\"flatGrowthCost\":\"40\",\"multGrowthCost\":\"1.20\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"3.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\"]\",\"maxReward\":\"a.learnSkill(52);\",\"maxRewardDescription\":\"Learn the skill \\\"Lunge\\\" when this panel is maxed.\"}","{\"name\":\"Some Dumb Panel\",\"key\":\"SDP_1\",\"iconIndex\":\"2\",\"unlocked\":\"true\",\"description\":\"Some really dumb panel that has no powers whatsoever.\",\"maxRank\":\"50\",\"baseCost\":\"10\",\"flatGrowthCost\":\"15\",\"multGrowthCost\":\"1.30\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"27\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\"]\",\"maxReward\":\"\",\"maxRewardDescription\":\"You wish this did something cool when maxing, but alas, it does not.\"}"]
+ * @default ["{\"name\":Some Cool Panel,\"key\":SCP_1,\"iconIndex\":\"1\",\"unlocked\":\"false\",\"description\":\"Some really cool panel that has lots of hardcore powers.\",\"maxRank\":\"10\",\"baseCost\":\"110\",\"flatGrowthCost\":\"40\",\"multGrowthCost\":\"1.20\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"3.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\"]\",\"maxReward\":\"a.learnSkill(52);\",\"maxRewardDescription\":\"Learn the skill \\\"Lunge\\\" when this panel is maxed.\"}","{\"name\":Some Dumb Panel,\"key\":SDP_1,\"iconIndex\":\"2\",\"unlocked\":\"true\",\"description\":\"Some really dumb panel that has no powers whatsoever.\",\"maxRank\":\"50\",\"baseCost\":\"10\",\"flatGrowthCost\":\"15\",\"multGrowthCost\":\"1.30\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"27\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\"]\",\"maxReward\":\"\",\"maxRewardDescription\":\"You wish this did something cool when maxing, but alas, it does not.\"}"]
  * 
  * @command Call SDP Menu
  * @text Access the SDP Menu
  * @desc Calls the SDP Menu directly via plugin command.
  * 
  * @command Unlock SDP
- * @text Unlock Panel
+ * @text Unlock Panel(s)
  * @desc Unlocks a new panel for the player to level up by its key. Key must exist in the SDPs list above.
- * @arg key
- * @type string
- * @desc The unique key for the SDP that will be unlocked.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the SDPs that will be unlocked.
  * 
  * @command Lock SDP
- * @text Lock Panel
+ * @text Lock Panel(s)
  * @desc Locks a SDP by its key. Locked panels do not appear in the list nor affect the player's parameters.
- * @arg key
- * @type string
- * @desc The unique key for the SDP that will be locked.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the SDPs that will be locked.
  * 
  * @command Add New SDP
  * @text Adding a new panel
@@ -109,12 +112,12 @@
  * @type string
  * @desc The name of the panel.
  * Displayed in the list of panels on the left.
- * @default "Some Cool Panel"
+ * @default Some Cool Panel
  * @param key
  * @type string
  * @desc A unique identifier for this panel.
  * Only letters, numbers, and underscores are recognized.
- * @default "SCP_1"
+ * @default SCP_1
  * @param iconIndex
  * @type number
  * @desc The index of the icon to represent this panel.
@@ -322,7 +325,6 @@ J.SDP.Helpers.TranslateSDPs = function(obj) {
     parsedPanels.push(panel);
   });
 
-  console.log(parsedPanels);
   return parsedPanels;
 };
 
@@ -368,17 +370,22 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Call SDP Menu", () => {
  * Plugin command for unlocking a SDP to be leveled.
  */
 PluginManager.registerCommand(J.SDP.Metadata.Name, "Unlock SDP", args => {
-  const { key } = args;
-  $gameSystem.unlockSdpPanel(key);
+  let { keys } = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key => {
+    $gameSystem.unlockSdpPanel(key);
+  });
 });
 
 /**
  * Plugin command for locking a SDP to no longer be available for the player.
  */
  PluginManager.registerCommand(J.SDP.Metadata.Name, "Lock SDP", args => {
-  const { key } = args;
-  $gameSystem.lockSdpPanel(key);
-});
+  let { keys } = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key => {
+    $gameSystem.lockSdpPanel(key);
+  });});
 //#endregion Introduction
 
 //#region Static objects
@@ -695,8 +702,7 @@ Game_System.prototype.initSdpMembers = function() {
    * The collection of all panels earned (though maybe not unlocked).
    * @type {StatDistributionPanel[]}
    */
-  this._j._sdp._panels = J.SDP.Metadata.Panels;// this._j._sdp._panels || [];
-  console.log(this._j._sdp._panels);
+  this._j._sdp._panels = J.SDP.Metadata.Panels;
 };
 
 /**
