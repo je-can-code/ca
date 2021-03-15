@@ -349,8 +349,6 @@ J.ABS.Metadata.DangerIndicatorIcons = J.ABS.Helpers.PluginManager.TranslateDange
 J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['Attack Decided Animation Id']);
 J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['Support Decided Animation Id']);
 
-console.log(J.ABS.Metadata.DangerIndicatorIcons);
-
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
  */

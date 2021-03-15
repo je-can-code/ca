@@ -2465,4 +2465,264 @@ Crafting_Output.prototype.initialize = function(item, count) {
 };
 //#endregion Crafting_Output
 //#endregion JAFTING classes
+
+//#region SDP classes
+//#region StatDistributionPanel
+/**
+ * The class that governs the details of a single SDP.
+ */
+ function StatDistributionPanel() { this.initialize(...arguments); }
+ StatDistributionPanel.prototype = {};
+ StatDistributionPanel.prototype.constructor = StatDistributionPanel;
+ StatDistributionPanel.prototype.initialize = function(
+   name,
+   key, 
+   iconIndex,
+   unlocked,
+   description,
+   maxRank,
+   baseCost,
+   flatGrowthCost,
+   multGrowthCost,
+   maxReward,
+   maxRewardDescription,
+   ...panelParameters) {
+     /**
+      * Gets the friendly name for this SDP.
+      * @type {string}
+      */
+     this.name = name;
+     
+     /**
+      * Gets the unique identifier key that represents this SDP.
+      * @type {string}
+      */
+     this.key = key;
+ 
+     /**
+      * Gets the icon index for this SDP.
+      * @type {number}
+      */
+     this.iconIndex = iconIndex;
+ 
+     /**
+      * Gets whether or not this SDP is unlocked.
+      * @type {boolean}
+      */
+     this.unlocked = unlocked;
+ 
+     /**
+      * Gets the description for this SDP.
+      * @type {string}
+      */
+     this.description = description;
+ 
+     /**
+      * Gets the maximum rank for this SDP.
+      * @type {number}
+      */
+     this.maxRank = maxRank;
+ 
+     /**
+      * The base cost to rank up this panel.
+      * @type {number}
+      */
+     this.baseCost = baseCost;
+ 
+     /**
+      * The flat amount per rank that the cost will grow.
+      * @type {number}
+      */
+     this.flatGrowthCost = flatGrowthCost;
+ 
+     /**
+      * The multiplicative amount per rank that the cost will grow.
+      * @type {number}
+      */
+     this.multGrowthCost = multGrowthCost;
+ 
+     /**
+      * The effect of what happens when this panel is maxed out.
+      * @type {string}
+      */
+     this.maxReward = maxReward;
+ 
+     /**
+      * The description of the what happens when you max out this panel.
+      * @type {string}
+      */
+     this.maxRewardDescription = maxRewardDescription;
+ 
+     /**
+      * Gets all parameters that this SDP affects.
+      * @returns {PanelParameter[]}
+      */
+     this.panelParameters = panelParameters;
+ };
+ 
+ /**
+  * Calculates the cost of SDP points to rank this panel up.
+  * @param {number} currentRank The current ranking of this panel for a given actor.
+  * @returns {number}
+  */
+ StatDistributionPanel.prototype.rankUpCost = function(currentRank) {
+   if (currentRank === this.maxRank) {
+     return 0;
+   } else {
+     const growth = Math.floor(this.multGrowthCost * (this.flatGrowthCost * (currentRank + 1)));
+     const cost = this.baseCost + growth;
+     return cost;
+   }
+ };
+ 
+ /**
+  * Retrieves all panel parameters associated with a provided `paramId`.
+  * @param {number} paramId The `paramId` to find parameters for.
+  * @returns {PanelParameter[]}
+  */
+ StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
+   const panelParameters = this.panelParameters;
+   const result = panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
+   return result;
+ };
+
+ /**
+  * Gets whether or not this SDP is unlocked.
+  * @returns {boolean} True if this SDP is unlocked, false otherwise.
+  */
+ StatDistributionPanel.prototype.isUnlocked = function() {
+   return this.unlocked;
+ };
+
+ /**
+  * Sets this SDP to be unlocked.
+  */
+ StatDistributionPanel.prototype.unlock = function() {
+   this.unlocked = true;
+ };
+
+  /**
+  * Sets this SDP to be locked.
+  */
+   StatDistributionPanel.prototype.lock = function() {
+    this.unlocked = false;
+  };
+ //#endregion StatDistributionPanel
+ 
+ //#region PanelParameter
+ /**
+  * A class that represents a single parameter and its growth for a SDP.
+  */
+ function PanelParameter() { this.initialize(...arguments); }
+ PanelParameter.prototype = {};
+ PanelParameter.prototype.constructor = PanelParameter;
+ 
+ /**
+  * 
+  * @param {number} parameterId The parameter this class represents.
+  * @param {number} perRank The amount per rank this parameter gives.
+  * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
+  */
+ PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
+   /**
+    * The id of the parameter this class represents.
+    * @type {number}
+    */
+   this.parameterId = parameterId;
+ 
+   /**
+    * The amount per rank this parameter gives.
+    * @type {number}
+    */
+   this.perRank = perRank;
+ 
+   /**
+    * Whether or not the growth per rank for this parameter is flat or percent.
+    * @type {boolean} True if it is flat growth, false if it is percent growth.
+    */
+   this.isFlat = isFlat;
+ };
+ //#endregion PanelParameter
+ 
+ //#region PanelRanking
+ /**
+  * A class for tracking an actor's ranking in a particular panel.
+  */
+ function PanelRanking() { this.initialize(...arguments); }
+ PanelRanking.prototype = {};
+ PanelRanking.prototype.constructor = PanelRanking;
+ 
+ PanelRanking.prototype.initialize = function(key) {
+     /**
+      * The key for this panel ranking.
+      */
+     this.key = key;
+     this.initMembers();
+ };
+ 
+ /**
+  * Initializes all members of this class.
+  */
+ PanelRanking.prototype.initMembers = function() {
+     /**
+      * The current rank for this panel ranking.
+      * @type {number}
+      */
+     this.currentRank = 0;
+ 
+     /**
+      * Whether or not this panel is maxed out.
+      * @type {boolean}
+      */
+     this.maxed = false;
+ };
+ 
+ /**
+  * Ranks up this panel.
+  * If it is at max rank, then perform the max effect exactly once
+  * and then max the panel out.
+  */
+ PanelRanking.prototype.rankUp = function() {
+   const maxRank = $gameSystem.getSdpPanel(this.key).maxRank;
+   if (this.currentRank < maxRank) {
+     this.currentRank++;
+   }
+ 
+   if (this.currentRank === maxRank && !this.isPanelMaxed()) {
+     this.performMaxEffect();
+   }
+ };
+ 
+ /**
+  * Gets whether or not this panel is maxed out.
+  * @returns {boolean} True if this panel is maxed out, false otherwise.
+  */
+ PanelRanking.prototype.isPanelMaxed = function() {
+   return this.maxed;
+ };
+ 
+ /**
+  * Sets this panel to be maxed out.
+  */
+ PanelRanking.prototype.maxPanel = function() {
+   this.maxed = true;
+ };
+ 
+ /**
+  * Upon maxing the panel, try to perform this `javascript` effect.
+  */
+ PanelRanking.prototype.performMaxEffect = function() {
+   const a = $gameParty.leader();
+   SoundManager.playMagicEvasion();
+   const rewardEffect = $gameSystem.getSdpPanel(this.key).maxReward;
+   try {
+     eval(rewardEffect);
+     this.maxPanel();
+   } catch (err) {
+     console.error(`An error occurred while trying to execute the maxreward for panel: ${this.key}`);
+     console.error(err);
+   }
+ };
+ //#endregion PanelRanking
+ //#endregion SDP classes
 //ENDFILE
