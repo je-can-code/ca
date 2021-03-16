@@ -1,7 +1,7 @@
  /*:
  * @target MZ
  * @plugindesc 
- * A non-battle-reliant text log (designed for JABS, though).
+ * [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
  * @help

@@ -1,7 +1,7 @@
  /*:
  * @target MZ
  * @plugindesc 
- * The Hud for JABS. 
+ * [v1.0 HUD] The Hud for JABS. 
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
  * @help

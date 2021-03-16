@@ -4,7 +4,7 @@
  * @plugindesc 
  * Mods exclusive to Chef Adventure.
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
  * @help
  * These modifications of code are exclusive to Chef Adventure.
  */
