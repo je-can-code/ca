@@ -1,7 +1,7 @@
  /*:
  * @target MZ
  * @plugindesc 
- * The Action Keys for JABS. 
+ * [v1.0 KEYS] The Action Keys for JABS. 
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
  * @help

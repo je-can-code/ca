@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * Enables the SDP system, allowing for distribution of points into panels that
+ * [v1.0 SDP] Enables the SDP system, allowing for distribution of points into panels that
  * contain various stats.
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
@@ -12,12 +12,34 @@
  * @help
  * This should go below both J-Base (and J-ABS if that is being used, too).
  * 
- * @param LineBreak1
- * @text --------------------------
- * @default ----------------------------------
+ * Step1:
+ * Add new SDPs to the Stat Distribution Panels section.
+ * 
+ * Step2:
+ * Unlock panels using plugin commands.
+ * 
+ * Step3:
+ * Assign enemies points with <sdpPoints:NUM>, where NUM is how many points an enemy is worth.
+ * 
+ * Step4:
+ * Defeat said enemies to gain points.
+ * 
+ * Step5:
+ * Access the SDP menu either by:
+ * - using the plugin command
+ * - using a script call: SceneManager.push(Scene_Sdp);
+ * 
+ * Step6:
+ * Level up your panels and profit.
  * 
  * @param SDPconfigs
  * @text SDP SETUP
+ * 
+ * @param SDP Switch
+ * @parent SDPconfigs
+ * @type switch
+ * @desc When this switch is ON, then this command is visible in the menu.
+ * @default 1
  * 
  * @param SDP Icon
  * @parent SDPconfigs
@@ -25,12 +47,28 @@
  * @desc The default iconIndex to represent "SDP points".
  * @default 306
  * 
+ * @param JABSconfigs
+ * @text JABS-ONLY CONFIG
+ * @desc Without JABS, these configurations are irrelevant.
+ * 
+ * @param SDP JABS Menu Icon
+ * @parent JABSconfigs
+ * @type number
+ * @desc The icon to show next to the command in the JABS quick menu.
+ * @default 2563
+ * 
+ * @param Show In Both
+ * @parent JABSconfigs
+ * @type boolean
+ * @desc If ON, then show in both JABS quick menu and main menu, otherwise only JABS quick menu.
+ * @default false
+ * 
  * @param SDPs
  * @parent SDPconfigs
  * @text Stat Distribution Panels
  * @type struct<SDPStruct>[]
  * @desc All available Stat Distribution Panels that are available to be unlocked.
- * @default ["{\"name\":Some Cool Panel,\"key\":SCP_1,\"iconIndex\":\"1\",\"unlocked\":\"false\",\"description\":\"Some really cool panel that has lots of hardcore powers.\",\"maxRank\":\"10\",\"baseCost\":\"110\",\"flatGrowthCost\":\"40\",\"multGrowthCost\":\"1.20\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"3.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\"]\",\"maxReward\":\"a.learnSkill(52);\",\"maxRewardDescription\":\"Learn the skill \\\"Lunge\\\" when this panel is maxed.\"}","{\"name\":Some Dumb Panel,\"key\":SDP_1,\"iconIndex\":\"2\",\"unlocked\":\"true\",\"description\":\"Some really dumb panel that has no powers whatsoever.\",\"maxRank\":\"50\",\"baseCost\":\"10\",\"flatGrowthCost\":\"15\",\"multGrowthCost\":\"1.30\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"27\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\"]\",\"maxReward\":\"\",\"maxRewardDescription\":\"You wish this did something cool when maxing, but alas, it does not.\"}"]
+ * @default ["{\"name\":\"Some Cool Panel\",\"key\":\"SCP_1\",\"iconIndex\":\"1\",\"unlocked\":\"false\",\"description\":\"Some really cool panel that has lots of hardcore powers.\",\"maxRank\":\"10\",\"baseCost\":\"110\",\"flatGrowthCost\":\"40\",\"multGrowthCost\":\"1.2\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"25.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"4.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"8\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"19\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"10\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"15\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"4.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"16\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"17\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"1.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\"]\",\"maxReward\":\"a.learnSkill(52);\",\"maxRewardDescription\":\"Learn the skill \\\"Lunge\\\" when this panel is maxed.\"}","{\"name\":\"Some Dumb Panel\",\"key\":\"SDP_1\",\"iconIndex\":\"2\",\"unlocked\":\"true\",\"description\":\"Some really dumb panel that does likely nothing good for you.\",\"maxRank\":\"10\",\"baseCost\":\"10\",\"flatGrowthCost\":\"10\",\"multGrowthCost\":\"1.20\",\"panelParameters\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-5.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-5.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"true\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"perRank\\\\\\\":\\\\\\\"-2.00\\\\\\\",\\\\\\\"isFlat\\\\\\\":\\\\\\\"false\\\\\\\"}\\\"]\",\"maxReward\":\"\",\"maxRewardDescription\":\"You only get dumber from leveling this SDP.\"}"]
  * 
  * @command Call SDP Menu
  * @text Access the SDP Menu
@@ -50,62 +88,22 @@
  * @type string[]
  * @desc The unique keys for the SDPs that will be locked.
  * 
- * @command Add New SDP
- * @text Adding a new panel
- * @desc Add a new panel to the collection.
- * @arg name
- * @type string
- * @desc The name of the panel.
- * Displayed in the list of panels on the left.
- * @default "Some Cool Panel"
- * @arg key
- * @type string
- * @desc A unique identifier for this panel.
- * Only letters, numbers, and underscores are recognized.
- * @default "SCP_1"
- * @arg iconIndex
+ * @command Modify SDP points
+ * @text Add/Remove SDP points
+ * @desc Adds or removes a designated amount of points from an actor.
+ * @arg actorId
+ * @type actor
+ * @desc The actor to modify the points of.
+ * @arg sdpPoints
  * @type number
- * @desc The index of the icon to represent this panel.
- * @default 1
- * @arg description
- * @type string
- * @desc The description of the panel.
- * Shows up in the bottom help window.
- * @default Some really cool panel that has lots of hardcore powers.
- * @arg maxRank
+ * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
+ * 
+ * @command Modify party SDP points
+ * @text Add/Remove party's SDP points
+ * @desc Adds or removes a designated amount of points from all members of the current party.
+ * @arg sdpPoints
  * @type number
- * @desc The maximum rank this panel can reach.
- * @default 10
- * @arg baseCost
- * @type number
- * @desc The base formula is:
- * baseCost + (multGrowthCost * (flatGrowthCost * rank))
- * @default 110
- * @arg flatGrowthCost
- * @type number
- * @desc The base formula is:
- * baseCost + (multGrowthCost * (flatGrowthCost * rank))
- * @default 40
- * @arg multGrowthCost
- * @type number
- * @desc The base formula is:
- * baseCost + (multGrowthCost * (flatGrowthCost * rank))
- * @decimals 2
- * @default 1.2
- * @arg panelParameters
- * @type struct<PanelParameterStruct>[]
- * @desc Add one or more parameters here that will grow as this panel ranks up. Per rank can be negative.
- * @default []
- * @arg maxReward
- * @type multiline_string
- * @desc Use Javascript to execute code when the panel is maxed.
- * a = the actor leveling the panel.
- * @default a.learnSkill(52);
- * @arg maxRewardDescription
- * @type string
- * @desc An extra line for flavor text, or whatever you want.
- * Designed for describing the reward for maxing this panel.
- * @default Learn the skill "Lunge" when this panel is maxed.
+ * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 /*~struct~SDPStruct:
  * @param name
@@ -338,7 +336,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: 1.00,
+  Version: 1.0,
 
   /**
    * The translated SDPs from the plugin parameters.
@@ -346,10 +344,28 @@ J.SDP.Metadata = {
   Panels: J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']),
 
   /**
-   * The icon that will be used to represent the SDP points earned for an actor.
+   * The iconIndex that will be used to represent the SDP points earned for an actor.
    * @type {number}
    */
   PointsIcon: parseInt(J.SDP.PluginParameters['SDP Icon']),
+
+  /**
+   * The switch id that adds visibility for this in menus.
+   * @type {number}
+   */
+  Switch: parseInt(J.SDP.PluginParameters['SDP Switch']),
+
+  /**
+   * The icon index for the SDP option in the JABS quick menu.
+   * @type {number}
+   */
+  JabsMenuIcon: parseInt(J.SDP.PluginParameters['SDP JABS Menu Icon']),
+
+  /**
+   * Whether or not to show this in both the JABS quick menu AND main menu, or just the JABS quick menu.
+   * @type {boolean}
+   */
+  JabsShowBoth: J.SDP.PluginParameters['Show In Both'] === "true",
 };
 
 J.SDP.Aliased = {
@@ -357,7 +373,12 @@ J.SDP.Aliased = {
   DataManager: {},
   Game_Actor: {},
   Game_BattleMap: {},
+  Game_Switches: {},
   Game_System: {},
+  Scene_Map: {},
+  Scene_Menu: {},
+  Window_AbsMenu: {},
+  Window_MenuCommand: {},
 };
 
 /**
@@ -381,12 +402,34 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Unlock SDP", args => {
 /**
  * Plugin command for locking a SDP to no longer be available for the player.
  */
- PluginManager.registerCommand(J.SDP.Metadata.Name, "Lock SDP", args => {
+PluginManager.registerCommand(J.SDP.Metadata.Name, "Lock SDP", args => {
   let { keys } = args;
   keys = JSON.parse(keys);
   keys.forEach(key => {
     $gameSystem.lockSdp(key);
-  });});
+  });
+});
+
+/**
+ * Plugin command for modifying an actor's SDP points.
+ */
+PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify SDP points", args => {
+  let { actorId, sdpPoints } = args;
+  actorId = parseInt(actorId);
+  sdpPoints = parseInt(sdpPoints);
+  $dataActors[actorId].modSdpPoints(sdpPoints);
+});
+
+/**
+ * Plugin command for modifying all current party members' SDP points.
+ */
+PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify party SDP points", args => {
+  let { sdpPoints } = args;
+  sdpPoints = parseInt(sdpPoints);
+  $gameParty.members().forEach(member => {
+    member.modSdpPoints(sdpPoints);
+  });
+});
 //#endregion Introduction
 
 //#region Static objects
@@ -683,6 +726,19 @@ Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler) {
 };
 //#endregion Game_BattleMap
 
+//#region Game_Switches
+/**
+ * Hooks into the `onChange` function for updating the JABS quick menu when switches change.
+ */
+J.SDP.Aliased.Game_Switches.onChange = Game_Switches.prototype.onChange;
+Game_Switches.prototype.onChange = function() {
+  $gameMap.requestRefresh();
+  if (J.ABS) {
+    $gameBattleMap.requestJabsMenuRefresh = true;
+  }
+};
+//#endregion Game_Switches
+
 //#region Game_System
 /**
  * Hooks in and initializes the SDP system.
@@ -772,6 +828,45 @@ Game_Troop.prototype.sdpTotal = function() {
 //#endregion Game objects
 
 //#region Scene objects
+//#region Scene_Map
+/**
+ * Adds the functionality for calling the SDP menu from the JABS quick menu.
+ */
+J.SDP.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
+Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
+  J.SDP.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
+  this._j._absMenu._mainWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
+};
+
+/**
+ * Brings up the SDP menu.
+ */
+Scene_Map.prototype.commandSdp = function() {
+  console.log("called");
+  SceneManager.push(Scene_SDP);
+  return;
+};
+//#endregion Scene_Map
+
+//#region Scene_Menu
+/**
+ * Hooks into the command window creation of the menu to add functionality for the SDP menu.
+ */
+J.SDP.Aliased.Scene_Menu.createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+Scene_Menu.prototype.createCommandWindow = function() {
+  J.SDP.Aliased.Scene_Menu.createCommandWindow.call(this);
+  this._commandWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
+};
+
+/**
+ * Brings up the SDP menu.
+ */
+Scene_Menu.prototype.commandSdp = function() {
+  SceneManager.push(Scene_SDP);
+  return;
+};
+//#endregion Scene_Menu
+
 //#region Scene_SDP
 class Scene_SDP extends Scene_MenuBase {
   constructor() {
@@ -1030,6 +1125,50 @@ class Scene_SDP extends Scene_MenuBase {
 //#endregion Scene objects
 
 //#region Window objects
+//#region Window_AbsMenu
+/**
+ * Extends the make command list for the JABS quick menu to include SDP, if it meets the conditions.
+ */
+J.SDP.Aliased.Window_AbsMenu.makeCommandList = Window_AbsMenu.prototype.makeCommandList;
+Window_AbsMenu.prototype.makeCommandList = function() {
+  J.SDP.Aliased.Window_AbsMenu.makeCommandList.call(this);
+  // if the SDP switch is not ON, then this menu command is not present.
+  if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
+
+  // The menu shouldn't be accessible if there are no panels to work with.
+  const enabled = $gameSystem.getUnlockedSdps().length;
+
+  const sdpCommand = { name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: J.SDP.Metadata.JabsMenuIcon };
+  this._list.splice(this._list.length-2, 0, sdpCommand);
+};
+//#endregion Window_AbsMenu
+
+//#region Window_MenuCommand
+/**
+ * Extends the make command list for the main menu to include SDP, if it meets the conditions.
+ */
+J.SDP.Aliased.Window_MenuCommand.makeCommandList = Window_MenuCommand.prototype.makeCommandList;
+Window_MenuCommand.prototype.makeCommandList = function() {
+  J.SDP.Aliased.Window_MenuCommand.makeCommandList.call(this);
+  // if the SDP switch is not ON, then this menu command is not present.
+  if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
+
+  // if we're using JABS but not allowing to show this command in both menus, then skip.
+  if (J.ABS && !J.SDP.Metadata.JabsShowBoth) return;
+
+  // The menu shouldn't be accessible if there are no panels to work with.
+  const enabled = $gameSystem.getUnlockedSdps().length;
+
+  const sdpCommand = { name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
+  const lastCommand = this._list[this._list.length-1];
+  if (lastCommand.symbol === "gameEnd") {
+    this._list.splice(this._list.length-2, 0, sdpCommand);
+  } else {
+    this._list.splice(this._list.length-1, 0, sdpCommand);
+  }
+};
+//#endregion Window_MenuCommand
+
 //#region Window_SDP_List
 /**
  * The SDP window containing the list of all earned SDPs.

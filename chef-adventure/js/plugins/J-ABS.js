@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * v2.3 JABS (J's Action Battle System)
+ * [v2.3 JABS] (J's Action Battle System)
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-Base
@@ -328,7 +328,7 @@ J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj => {
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = `J-ABS`;
-J.ABS.Metadata.Version = 1.00;
+J.ABS.Metadata.Version = 2.3;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2946,6 +2946,10 @@ Scene_Map.prototype.createJabsAbsMenu = function() {
   this.createJabsAbsMenuEquipDodgeWindow();
 };
 
+Scene_Map.prototype.setupJabsAbsMenuMainWindow = function() {
+  this.createJabsAbsMenuMainWindow();
+};
+
 /**
  * Creates the first/main window of the Jabs quick menu.
  */
@@ -2960,9 +2964,6 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
   mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
   mainMenu.setHandler("item-assign", this.commandItem.bind(this));
   mainMenu.setHandler("main-menu", this.commandMenu.bind(this));
-  if (J.SDP) { // optional
-    mainMenu.setHandler("sdp-menu", this.commandSdp.bind(this));
-  }
   mainMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "main"));
   this._j._absMenu._mainWindow = mainMenu;
   this._j._absMenu._mainWindow.close();
@@ -3162,14 +3163,6 @@ Scene_Map.prototype.commandDodge = function() {
  */
 Scene_Map.prototype.commandMenu = function() {
   SceneManager.push(Scene_Menu);
-  return;
-};
-
-/**
- * Brings up the SDP menu.
- */
-Scene_Map.prototype.commandSdp = function() {
-  SceneManager.push(Scene_SDP);
   return;
 };
 
@@ -4338,10 +4331,6 @@ class Window_AbsMenu extends Window_Command {
     this.addCommand("Equip Dodge Skills", "dodge-assign", true, null, 82);
     this.addCommand("Equip Tools", "item-assign", true, null, 83);
     this.addCommand("Main Menu", "main-menu", true, null, 189);
-    if (J.SDP && $gameSwitches.value(5)) {
-      const panels = $gameSystem.getUnlockedSdps();
-      this.addCommand("Distribute", "sdp-menu", panels.length, null, 2563);
-    }
     this.addCommand("Cancel", "cancel", true, null, 73);
   };
 
@@ -5812,7 +5801,7 @@ class Game_BattleMap {
     // create 
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
     lootEventData.x = target.getX();
-    lootEventData.y = target.getY() + 1;
+    lootEventData.y = target.getY();
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;

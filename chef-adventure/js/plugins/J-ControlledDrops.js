@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * Enables greater control over what and how often loot is dropped.
+ * [v1.0 DROP] Enables greater control over what and how often loot is dropped.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help

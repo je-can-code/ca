@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * Enables a new jafting menu that allows item creation and refinement.
+ * [v1.0 JAFT] Enables a new jafting menu that allows item creation and refinement.
  * @author JE
  * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
  * @help
@@ -209,13 +209,11 @@ Game_Party.prototype.maxItems = function(item = null) {
   const defaultMaxItems = 999;
   // if there is no item passed, then just return max.
   if (!item) {
-    console.log('no item, default max!');
     return defaultMaxItems;
   }
   else {
     const baseMax = J.JAFTING.Aliased.Game_Party.maxItems.call(this, item);
     if (!baseMax || isNaN(baseMax)) {
-      console.log('was nan!');
       // if there is a problem with someone elses' plugins, return our max.
       return defaultMaxItems;
     } else {
@@ -389,8 +387,6 @@ Game_System.prototype.unlockCategory = function(name, key, iconIndex, descriptio
     const newCategory = new Crafting_Category(name, key, iconIndex, description);
     this._j._jafting._categories.push(newCategory);
     this.setRefreshRequest(true);
-  } else {
-    console.error(`attempted to add a JAFTING category that already exists: ${key}`);
   }
 };
 
@@ -404,8 +400,6 @@ Game_System.prototype.lockCategory = function(key) {
     const newCategoryList = this._j._jafting._categories.filter(category => category.key != categoryToRemove.key);
     this._j._jafting._categories = newCategoryList;
     this.setRefreshRequest(true);
-  } else {
-    console.error(`attempted to remove a JAFTING category that doesn't exist: ${key}`);
   }
 };
 
@@ -428,8 +422,6 @@ Game_System.prototype.unlockOutput = function(itemId, itemType) {
     const newUnlock = new Crafting_Unlock(itemId, itemType);
     this._j._jafting._unlocked.push(newUnlock);
     this.setRefreshRequest(true);
-  } else {
-    console.error(`attempted to add a JAFTING unlock that already exists: ${itemId}/${itemType}`);
   }
 };
 
@@ -731,7 +723,6 @@ Scene_Map.prototype.chooseJaftingCraftMode = function() {
  * Opens up the items-only window for picking a base item to freestyle off of.
  */
 Scene_Map.prototype.chooseJaftingFreeMode = function() {
-  console.log(`free mode selected!`);
   this._j._jaftingMenu._jaftingMode = "free";
 };
 
@@ -740,7 +731,6 @@ Scene_Map.prototype.chooseJaftingFreeMode = function() {
  * Opens up the equipment-only window for picking a base item to refine further.
  */
 Scene_Map.prototype.chooseJaftingRefineMode = function() {
-  console.log(`refinement mode selected!`);
   this._j._jaftingMenu._jaftingMode = "refine";
 };
 
@@ -1107,7 +1097,6 @@ Scene_Map.prototype.determineRecipeHelpWindowText = function() {
   // extract the unique key of the category from the panel.
   const details = this._j._jaftingMenu._recipeListWindow.getRecipeDetails();
   if (!details) {
-    console.warn("no unlocked recipes.");
     this._j._jaftingMenu._helpWindow.setText("There are no unlocked recipes.");
     return;
   }

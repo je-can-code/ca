@@ -1,6 +1,7 @@
  /*:
  * @target MZ
- * @plugindesc Scales damage and exp/gold rewards from defeated enemies.
+ * @plugindesc
+ * [v1.0 LVL] Scales damage and exp/gold rewards from defeated enemies.
  * @author JE
  * @url https://github.com/jragyn
  * @help
