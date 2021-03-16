@@ -4339,7 +4339,7 @@ class Window_AbsMenu extends Window_Command {
     this.addCommand("Equip Tools", "item-assign", true, null, 83);
     this.addCommand("Main Menu", "main-menu", true, null, 189);
     if (J.SDP && $gameSwitches.value(5)) {
-      const panels = $gameSystem.getSdpPanels();
+      const panels = $gameSystem.getUnlockedSdps();
       this.addCommand("Distribute", "sdp-menu", panels.length, null, 2563);
     }
     this.addCommand("Cancel", "cancel", true, null, 73);
