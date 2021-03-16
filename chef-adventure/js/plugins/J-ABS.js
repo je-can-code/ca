@@ -1079,9 +1079,22 @@ Game_Actor.prototype.shouldDisplayLevelUp = function() {
 J.ABS.Aliased.Game_Actor.levelUp = Game_Actor.prototype.levelUp;
 Game_Actor.prototype.levelUp = function() {
   J.ABS.Aliased.Game_Actor.levelUp.call(this);
-  const isLeader = $gameParty.leader() == this;
+  const isLeader = $gameParty.leader() === this;
   if (isLeader) {
+    $gameBattleMap.requestSpriteRefresh = true;
     $gameBattleMap.leaderLevelUp();
+  }
+};
+
+/**
+ * Extends the level down function to refresh sprites' danger indicator.
+ */
+J.ABS.Aliased.Game_Actor.levelDown = Game_Actor.prototype.levelDown;
+Game_Actor.prototype.levelDown = function() {
+  J.ABS.Aliased.Game_Actor.levelDown.call(this);
+  const isLeader = $gameParty.leader() === this;
+  if (isLeader) {
+    $gameBattleMap.requestSpriteRefresh = true;
   }
 };
 
@@ -3327,6 +3340,11 @@ Spriteset_Map.prototype.updateJabsSprites = function() {
   if ($gameBattleMap.requestClearLoot) {
     this.removeLootSprites();
   }
+
+  if ($gameBattleMap.requestSpriteRefresh) {
+    console.log("request received!");
+    this.refreshAllCharacterSprites();
+  }
 };
 
 /**
@@ -3422,6 +3440,16 @@ Spriteset_Map.prototype.removeLootSprites = function() {
   });
 
   $gameBattleMap.requestClearLoot = false;
+};
+
+Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
+  this._characterSprites.forEach(sprite => {
+    if (sprite.isJabsBattler()) {
+      sprite.setupDangerIndicator();
+    }
+  });
+
+  $gameBattleMap.requestSpriteRefresh = false;
 };
 //#endregion
 
@@ -3557,7 +3585,7 @@ Sprite_Character.prototype.setupHpGauge = function() {
  */
  Sprite_Character.prototype.createGenericSpriteGauge = function() {
   const sprite = new Sprite_MapGauge();
-  const x = this.x  - (sprite.width / 1.5);
+  const x = this.x - (sprite.width / 1.5);
   const y = this.y - 12;
   sprite.move(x, y);
   return sprite;
@@ -3644,8 +3672,8 @@ Sprite_Character.prototype.setupBattlerName = function() {
  */
  Sprite_Character.prototype.createBattlerNameSprite = function() {
   const battlerName = this.getBattlerName();
-  const sprite = new Sprite_Text(battlerName, null, -16, "left");
-  sprite.move(-30, 10);
+  const sprite = new Sprite_Text(battlerName, null, -12, "left");
+  sprite.move(-30, 8);
   return sprite;
 };
 
@@ -3731,6 +3759,14 @@ Sprite_Character.prototype.getBattler = function() {
       return null;
     }
   }
+};
+
+/**
+ * Gets whether or not this sprite belongs to a battler.
+ * @returns {boolean} True if this sprite belongs to a battler, false otherwise.
+ */
+Sprite_Character.prototype.isJabsBattler = function() {
+  return !!this._character.hasJabsBattler();
 };
 
 /**
@@ -4588,6 +4624,12 @@ class Game_BattleMap {
     this._requestClearLoot = false;
 
     /**
+     * True if we want to refresh all sprites and their add-ons, false otherwise.
+     * @type {boolean}
+     */
+    this._requestSpriteRefresh = false;
+
+    /**
      * A collection to manage all `JABS_Action`s on this battle map.
      * @type {JABS_Action[]}
      */
@@ -4764,10 +4806,10 @@ class Game_BattleMap {
 
   /**
    * Issues a request to render actions on the map.
-   * @param {boolean} rendering Whether or not we want to render actions (default = true).
+   * @param {boolean} request Whether or not we want to render actions (default = true).
    */
-  set requestActionRendering(rendering) {
-    this._requestActionRendering = rendering;
+  set requestActionRendering(request) {
+    this._requestActionRendering = request;
   };
 
   /**
@@ -4780,10 +4822,10 @@ class Game_BattleMap {
 
   /**
    * Issues a request to render loot onto the map.
-   * @param {boolean} rendering Whether or not we want to render actions (default = true).
+   * @param {boolean} request Whether or not we want to render actions (default = true).
    */
-  set requestLootRendering(rendering) {
-    this._requestLootRendering = rendering;
+  set requestLootRendering(request) {
+    this._requestLootRendering = request;
   };
 
   /**
@@ -4797,10 +4839,10 @@ class Game_BattleMap {
 
   /**
    * Issues a request to clear the map of all stale actions.
-   * @param {boolean} clearing Whether or not we want to clear the battle map (default = true).
+   * @param {boolean} request Whether or not we want to clear the battle map (default = true).
    */
-  set requestClearMap(clearing) {
-    this._requestClearMap = clearing;
+  set requestClearMap(request) {
+    this._requestClearMap = request;
   };
 
   /**
@@ -4814,10 +4856,26 @@ class Game_BattleMap {
 
   /**
    * Issues a request to clear the map of any collected loot.
-   * @param {boolean} clearing if clear loot requested, false otherwise.
+   * @param {boolean} request True if clear loot requested, false otherwise.
    */
-  set requestClearLoot(clearing) {
-    this._requestClearLoot = clearing;
+  set requestClearLoot(request) {
+    this._requestClearLoot = request;
+  };
+
+  /**
+   * Checks whether or not we have a need to refresh all character sprites on the current map.
+   * @returns {boolean} True if refresh is requested, false otherwise.
+   */
+  get requestSpriteRefresh() {
+    return this._requestSpriteRefresh;
+  };
+
+  /**
+   * Issues a request to refresh all character sprites on the current map.
+   * @param {boolean} request True if we want to refresh all sprites, false otherwise.
+   */
+  set requestSpriteRefresh(request) {
+    this._requestSpriteRefresh = request;
   };
 
   /**
