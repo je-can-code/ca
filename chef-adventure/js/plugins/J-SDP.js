@@ -354,6 +354,7 @@ J.SDP.Metadata = {
 
 J.SDP.Aliased = {
   BattleManager: {},
+  DataManager: {},
   Game_Actor: {},
   Game_BattleMap: {},
   Game_System: {},
@@ -373,7 +374,7 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Unlock SDP", args => {
   let { keys } = args;
   keys = JSON.parse(keys);
   keys.forEach(key => {
-    $gameSystem.unlockSdpPanel(key);
+    $gameSystem.unlockSdp(key);
   });
 });
 
@@ -384,7 +385,7 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Unlock SDP", args => {
   let { keys } = args;
   keys = JSON.parse(keys);
   keys.forEach(key => {
-    $gameSystem.lockSdpPanel(key);
+    $gameSystem.lockSdp(key);
   });});
 //#endregion Introduction
 
@@ -534,7 +535,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam) {
   panelRankings.forEach(panelRanking => {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpPanel(panelRanking.key)
+      .getSdp(panelRanking.key)
       .getPanelParameterById(paramId);
     if (panelParameters.length) {
       panelParameters.forEach(panelParameter => {
@@ -568,7 +569,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   panelRankings.forEach(panelRanking => {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpPanel(panelRanking.key)
+      .getSdp(panelRanking.key)
       .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
     if (panelParameters.length) {
       panelParameters.forEach(panelParameter => {
@@ -698,6 +699,7 @@ Game_System.prototype.initialize = function() {
 Game_System.prototype.initSdpMembers = function() {
   this._j = this._j || {};
   this._j._sdp = this._j._sdp || {};
+
   /**
    * The collection of all panels earned (though maybe not unlocked).
    * @type {StatDistributionPanel[]}
@@ -706,19 +708,11 @@ Game_System.prototype.initSdpMembers = function() {
 };
 
 /**
- * Gets all the currently earned panels.
- * @returns {StatDistributionPanel[]}
- */
-Game_System.prototype.getSdpPanels = function() {
-  return this._j._sdp._panels;
-};
-
-/**
  * Gets a single panel based on the key provided.
  * @param {string} key The less-friendly unique key that represents this SDP.
  * @returns {StatDistributionPanel}
  */
-Game_System.prototype.getSdpPanel = function(key) {
+Game_System.prototype.getSdp = function(key) {
   // if we don't have panels to search through, don't do it.
   if (!this._j._sdp._panels.length) return null;
 
@@ -741,8 +735,8 @@ Game_System.prototype.getUnlockedSdps = function() {
  * Unlocks a SDP by its key.
  * @param {string} key The key of the SDP to unlock.
  */
-Game_System.prototype.unlockSdpPanel = function(key) {
-  const panel = this.getSdpPanel(key);
+Game_System.prototype.unlockSdp = function(key) {
+  const panel = this.getSdp(key);
   if (panel) {
     panel.unlock();
   } else {
@@ -754,24 +748,13 @@ Game_System.prototype.unlockSdpPanel = function(key) {
  * Locks a SDP by its key.
  * @param {string} key The key of the SDP to lock.
  */
- Game_System.prototype.lockSdpPanel = function(key) {
-  const panel = this.getSdpPanel(key);
+ Game_System.prototype.lockSdp = function(key) {
+  const panel = this.getSdp(key);
   if (panel) {
     panel.lock();
   } else {
     console.error(`The SDP key of ${key} was not found in the list of panels to lock.`);
   }
-};
-
-/**
- * Create a single parameter to add to a SDP.
- * @param {number} parameterId The parameter this class represents.
- * @param {number} perRank The amount per rank this parameter gives.
- * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
- */
-Game_System.prototype.createPanelParam = function(parameterId, perRankAmount, isFlatGrowth) {
-  const panelParam = new PanelParameter(parameterId, perRankAmount, isFlatGrowth);
-  return panelParam;
 };
 //#endregion Game_System
 

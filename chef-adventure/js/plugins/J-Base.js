@@ -850,7 +850,7 @@ Game_Enemy.prototype.needsSdpDrop = function() {
   if (!panelKey) return null;
 
   // if a panel exists to be earned, but we already have it, then give up.
-  const alreadyEarned = $gameSystem.getSdpPanel(panelKey).isUnlocked();
+  const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
   if (alreadyEarned) return null;
 
   // create the new drop based on the SDP.
@@ -2683,7 +2683,7 @@ Crafting_Output.prototype.initialize = function(item, count) {
   * and then max the panel out.
   */
  PanelRanking.prototype.rankUp = function() {
-   const maxRank = $gameSystem.getSdpPanel(this.key).maxRank;
+   const maxRank = $gameSystem.getSdp(this.key).maxRank;
    if (this.currentRank < maxRank) {
      this.currentRank++;
    }
@@ -2714,7 +2714,7 @@ Crafting_Output.prototype.initialize = function(item, count) {
  PanelRanking.prototype.performMaxEffect = function() {
    const a = $gameParty.leader();
    SoundManager.playMagicEvasion();
-   const rewardEffect = $gameSystem.getSdpPanel(this.key).maxReward;
+   const rewardEffect = $gameSystem.getSdp(this.key).maxReward;
    try {
      eval(rewardEffect);
      this.maxPanel();
