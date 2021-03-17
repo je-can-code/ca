@@ -5801,7 +5801,7 @@ class Game_BattleMap {
     // create 
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
     lootEventData.x = target.getX();
-    lootEventData.y = target.getY();
+    lootEventData.y = target.getY() + 1;
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;

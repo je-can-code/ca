@@ -834,33 +834,34 @@ return dropList;
  * @returns {{kind, dataId, denominator}}
  */
 Game_Enemy.prototype.needsSdpDrop = function() {
-const referenceData = this.enemy();
-const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
-const notedata = referenceData.note.split(/[\r\n]+/);
+  const referenceData = this.enemy();
+  const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
+  const notedata = referenceData.note.split(/[\r\n]+/);
 
-// get the panel key from this enemy if it exists.
-let panelKey = "";
-notedata.forEach(note => {
-  if (note.match(structure)) {
-    panelKey = RegExp.$1;
-  }
-});
+  // get the panel key from this enemy if it exists.
+  let panelKey = "";
+  notedata.forEach(note => {
+    if (note.match(structure)) {
+      panelKey = RegExp.$1;
+    }
+  });
 
-// if we don't have a panel key, then give up.
-if (!panelKey) return null;
+  // if we don't have a panel key, then give up.
+  if (!panelKey) return null;
 
-// if a panel exists to be earned, but we already have it, then give up.
-const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
-if (alreadyEarned) return null;
+  // if a panel exists to be earned, but we already have it, then give up.
+  const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
+  console.log(alreadyEarned);
+  if (alreadyEarned) return null;
 
-// create the new drop based on the SDP.
-const newSdp = {
-  kind: 1, // all SDP drops are assumed to be "items".
-  dataId: parseInt(RegExp.$2),
-  denominator: parseInt(RegExp.$3)
-};
+  // create the new drop based on the SDP.
+  const newSdp = {
+    kind: 1, // all SDP drops are assumed to be "items".
+    dataId: parseInt(RegExp.$2),
+    denominator: parseInt(RegExp.$3)
+  };
 
-return newSdp;
+  return newSdp;
 };
 
 /**
