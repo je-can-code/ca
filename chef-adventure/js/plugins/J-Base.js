@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0 BASE] The base class for all J plugins.
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
  * @help
  * # Start of Help
  * 
@@ -25,10 +25,10 @@ J.Base = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.Base.Metadata = {
-/**
- * The version of this plugin.
- */
-Name: `J-Base`,
+  /**
+   * The version of this plugin.
+   */
+  Name: `J-Base`,
 };
 
 /**
@@ -36,11 +36,11 @@ Name: `J-Base`,
  */
 J.Base.PluginParameters = PluginManager.parameters(J.Base.Metadata.Name);
 J.Base.Metadata = {
-...J.Base.Metadata,
-/**
- * The version of this plugin.
- */
-Version: 1.00,
+  ...J.Base.Metadata,
+  /**
+   * The version of this plugin.
+   */
+  Version: 1.00,
 };
 
 /**
@@ -48,175 +48,179 @@ Version: 1.00,
  * various locations, like events on the map, or in a database enemy.
  */
 J.Base.Notetags = {
-// on skills in database.
-ActionId: "actionId",
-CastAnimation: "castAnimation",
-Combo: "combo",
-Cooldown: "cooldown",
-CounterParry: "counterParry",
-CounterGuard: "counterGuard",
-Duration: "duration",
-FreeCombo: "freeCombo",
-IgnoreParry: "ignoreParry",
-Guard: "guard",
-Parry: "parry",
-Knockback: "knockback",
-KnockbackResist: "knockbackResist",
-MoveType: "moveType",
-Piercing: "pierce",
-PoseSuffix: "poseSuffix",
-Projectile: "projectile",
-Proximity: "proximity",
-Range: "range",
-Retaliate: "retaliate",
-Shape: "shape",
-UniqueCooldown: "unique",
+  // on actors in database.
+  HitGrowth: "hitGrowth",
+  GuardGrowth: "guardGrowth",
+  KnockbackResist: "knockbackResist",
 
-// on items in database
-JaftingIngredient: "ingredient",
-JaftingTool: "tool",
-JaftingCategory: "category",
-JaftingOutput: "output",
-UseOnPickup: "useOnPickup",
+  // on skills in database.
+  ActionId: "actionId",
+  CastAnimation: "castAnimation",
+  Combo: "combo",
+  Cooldown: "cooldown",
+  CounterParry: "counterParry",
+  CounterGuard: "counterGuard",
+  Duration: "duration",
+  FreeCombo: "freeCombo",
+  IgnoreParry: "ignoreParry",
+  Guard: "guard",
+  Parry: "parry",
+  Knockback: "knockback",
+  MoveType: "moveType",
+  Piercing: "pierce",
+  PoseSuffix: "poseSuffix",
+  Projectile: "projectile",
+  Proximity: "proximity",
+  Range: "range",
+  Retaliate: "retaliate",
+  Shape: "shape",
+  UniqueCooldown: "unique",
 
-// on equipment in database.
-BonusHits: "bonusHits",
-SkillId: "skillId",
-SpeedBoost: "speedBoost",
+  // on items in database
+  JaftingIngredient: "ingredient",
+  JaftingTool: "tool",
+  JaftingCategory: "category",
+  JaftingOutput: "output",
+  UseOnPickup: "useOnPickup",
 
-// on enemies in database.
-Drops: "drops",
-EnemyLevel: "level",
-PrepareTime: "prepare",
-SdpPoints: "sdp",
+  // on equipment in database.
+  BonusHits: "bonusHits",
+  SkillId: "skillId",
+  SpeedBoost: "speedBoost",
 
-// on events on map.
-BattlerId: "e",
-AiCode: "ai",
-Sight: "s",
-Pursuit: "p",
-MoveSpeed: "ms",
-NoIdle: "noIdle",
-NoHpBar: "noHpBar",
-Inanimate: "inanimate",
-Invincible: "invincible", // also on skills
-AlertDuration: "ad",
-AlertSightBoost: "as",
-AlertPursuitBoost: "ap",
+  // on enemies in database.
+  Drops: "drops",
+  EnemyLevel: "level",
+  PrepareTime: "prepare",
+  SdpPoints: "sdp",
 
-// on states in database.
-Paralyzed: "paralyzed",
-Rooted: "rooted",
-Muted: "muted",
-Disabled: "disabled",
-HpFlat: "hpFlat",
-MpFlat: "mpFlat",
-TpFlat: "tpFlat",
-HpPerc: "hpPerc",
-MpPerc: "mpPerc",
-TpPerc: "tpPerc",
+  // on events on map.
+  BattlerId: "e",
+  AiCode: "ai",
+  Sight: "s",
+  Pursuit: "p",
+  MoveSpeed: "ms",
+  NoIdle: "noIdle",
+  NoHpBar: "noHpBar",
+  Inanimate: "inanimate",
+  Invincible: "invincible", // also on skills
+  AlertDuration: "ad",
+  AlertSightBoost: "as",
+  AlertPursuitBoost: "ap",
+
+  // on states in database.
+  Paralyzed: "paralyzed",
+  Rooted: "rooted",
+  Muted: "muted",
+  Disabled: "disabled",
+  HpFlat: "hpFlat",
+  MpFlat: "mpFlat",
+  TpFlat: "tpFlat",
+  HpPerc: "hpPerc",
+  MpPerc: "mpPerc",
+  TpPerc: "tpPerc",
 };
 
 /**
  * The various collision shapes an attack can be for JABS.
  */
 J.Base.Shapes = {
-/**
- * A rhombus (aka diamond) shaped hitbox.
- */
-Rhombus: "rhombus",
+  /**
+   * A rhombus (aka diamond) shaped hitbox.
+   */
+  Rhombus: "rhombus",
 
-/**
- * A square around the target hitbox.
- */
-Square: "square",
+  /**
+   * A square around the target hitbox.
+   */
+  Square: "square",
 
-/**
- *  A square in front of the target hitbox.
- */
-FrontSquare: "frontsquare",
+  /**
+   *  A square in front of the target hitbox.
+   */
+  FrontSquare: "frontsquare",
 
-/**
- * A line from the target hitbox.
- */
-Line: "line",
+  /**
+   * A line from the target hitbox.
+   */
+  Line: "line",
 
-/**
- * An arc shape hitbox in front of the action.
- */
-Arc: "arc",
+  /**
+   * An arc shape hitbox in front of the action.
+   */
+  Arc: "arc",
 
-/**
- * A wall infront of the target hitbox.
- */
-Wall: "wall",
+  /**
+   * A wall infront of the target hitbox.
+   */
+  Wall: "wall",
 
-/**
- * A cross from the target hitbox.
- */
-Cross: "cross"
+  /**
+   * A cross from the target hitbox.
+   */
+  Cross: "cross"
 };
 
 /**
  * The various number of projectiles available to create.
  */
 J.Base.Projectiles = {
-/**
- * The default; A single projectile per normal.
- */
-Single: 1,
+  /**
+   * The default; A single projectile per normal.
+   */
+  Single: 1,
 
-/**
- * Two projectiles side-by-side.
- */
-Double: 2,
+  /**
+   * Two projectiles side-by-side.
+   */
+  Double: 2,
 
-/**
- * Three projectiles, one infront and two adjacent diagonals.
- */
-Triple: 3,
+  /**
+   * Three projectiles, one infront and two adjacent diagonals.
+   */
+  Triple: 3,
 
-/**
- * Four projectiles, one in all of dir4.
- * Basic: (2, 4, 6, 8)
- */
-Quadra: 4,
+  /**
+   * Four projectiles, one in all of dir4.
+   * Basic: (2, 4, 6, 8)
+   */
+  Quadra: 4,
 
-/**
- * Eight projectiles, one in all of dir8. 
- * Basic: (2, 4, 6, 8)
- * Diagonal: (1, 3, 7, 9)
- */
-Octa: 8,
+  /**
+   * Eight projectiles, one in all of dir8. 
+   * Basic: (2, 4, 6, 8)
+   * Diagonal: (1, 3, 7, 9)
+   */
+  Octa: 8,
 };
 
 /**
  * The various item types that an item can be.
  */
 J.Base.ItemTypes = {
-/**
- * The type representing an item from the `$dataItems`.
- */
-Item: "i",
+  /**
+   * The type representing an item from the `$dataItems`.
+   */
+  Item: "i",
 
-/**
- * The type representing an item from the `$dataArmors`.
- */
-Weapon: "w",
+  /**
+   * The type representing an item from the `$dataArmors`.
+   */
+  Weapon: "w",
 
-/**
- * The type representing an item from the `$dataWeapons`.
- */
-Armor: "a",
+  /**
+   * The type representing an item from the `$dataWeapons`.
+   */
+  Armor: "a",
 };
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.Base.Aliased = {
-DataManager: {},
-Game_Character: {},
-Window_Command: {},
+  DataManager: {},
+  Game_Character: {},
+  Window_Command: {},
 };
 
 //#region Helpers
@@ -224,73 +228,73 @@ Window_Command: {},
  * The helper functions used commonly throughout my plugins.
  */
 J.Base.Helpers = {
-/**
- * Generates a `uuid`- a universally unique identifier- for this battler.
- * @returns {string} The `uuid`.
- */
-generateUuid() {
-  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    .replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  return uuid;
-},
+  /**
+   * Generates a `uuid`- a universally unique identifier- for this battler.
+   * @returns {string} The `uuid`.
+   */
+  generateUuid() {
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+      .replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    return uuid;
+  },
 
-/**
- * Imports the required `fs` import.
- */
-fs() { return require('fs'); },
+  /**
+   * Imports the required `fs` import.
+   */
+  fs() { return require('fs'); },
 
-/**
- * Confirms the existence of a given file.
- * @param {string} path The path of the file we're checking.
- * @returns {boolean} True if the file exists, false otherwise.
- */
-checkFile(path) {
-  const fs = J.Base.Helpers.fs();
-  const result = fs.existsSync(path);
-  return result;
-},
+  /**
+   * Confirms the existence of a given file.
+   * @param {string} path The path of the file we're checking.
+   * @returns {boolean} True if the file exists, false otherwise.
+   */
+  checkFile(path) {
+    const fs = J.Base.Helpers.fs();
+    const result = fs.existsSync(path);
+    return result;
+  },
 
-/**
- * Updates the value of a variable by a given amount.
- * 
- * NOTE: This assumes the variable contains only a number.
- * @param {number} variableId The id of the variable to modify.
- * @param {number} amount The amount to modify the variable by.
- */
-modVariable(variableId, amount) {
-  const oldValue = $gameVariables.value(variableId);
-  const newValue = oldValue + amount;
-  $gameVariables.setValue(variableId, newValue);
-},
+  /**
+   * Updates the value of a variable by a given amount.
+   * 
+   * NOTE: This assumes the variable contains only a number.
+   * @param {number} variableId The id of the variable to modify.
+   * @param {number} amount The amount to modify the variable by.
+   */
+  modVariable(variableId, amount) {
+    const oldValue = $gameVariables.value(variableId);
+    const newValue = oldValue + amount;
+    $gameVariables.setValue(variableId, newValue);
+  },
 
-/**
- * Provides a random integer within the range
- * @param {number} min The lower bound for random numbers (inclusive).
- * @param {number} max The upper bound for random numbers (exclusive).
- */
-getRandomNumber(min, max) {
-  return Math.floor(min + Math.random() * (max + 1 - min))
-},
+  /**
+   * Provides a random integer within the range
+   * @param {number} min The lower bound for random numbers (inclusive).
+   * @param {number} max The upper bound for random numbers (exclusive).
+   */
+  getRandomNumber(min, max) {
+    return Math.floor(min + Math.random() * (max + 1 - min))
+  },
 
-/**
- * Translates the id and type into a proper `RPG::Item`.
- * @param {number} id The id of the item in the database.
- * @param {string} type An abbreviation for the type of item this is.
- * @returns {object} The `RPG::Item` of the correct id and type.
- */
-translateItem(id, type) {
-switch (type) {
-  case "i":
-    return $dataItems[id];
-  case "w":
-    return $dataWeapons[id];
-  case "a":
-    return $dataArmors[id];
-  }
-},
+  /**
+   * Translates the id and type into a proper `RPG::Item`.
+   * @param {number} id The id of the item in the database.
+   * @param {string} type An abbreviation for the type of item this is.
+   * @returns {object} The `RPG::Item` of the correct id and type.
+   */
+  translateItem(id, type) {
+  switch (type) {
+    case "i":
+      return $dataItems[id];
+    case "w":
+      return $dataWeapons[id];
+    case "a":
+      return $dataArmors[id];
+    }
+  },
 };
 //#endregion Helpers
 //#endregion Introduction
@@ -453,13 +457,41 @@ switch (xParamId) {
 //#endregion TextManager
 //#endregion Static objects
 
-//#region Scene objects
-
-
-
-//#endregion Scene objects
-
 //#region Game objects
+//#region Game_Actor
+Game_Actor.prototype.hitGrowth = function() {
+  let hitGrowthPerLevel = 0;
+  if (this._meta && this._meta[J.Base.Notetags.HitGrowth]) {
+    hitGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.HitGrowth]);
+  } else {
+    const structure = /<hitGrowth:[ ]?([\.\d]+)>/i;
+    this.actor().note.split(/[\r\n]+/).forEach(note => {
+      if (note.match(structure)) {
+        hitGrowthPerLevel = parseFloat(RegExp.$1);
+      }
+    });
+  }
+
+  return parseFloat(((hitGrowthPerLevel * this.level) / 100).toFixed(2));
+};
+
+Game_Actor.prototype.grdGrowth = function() {
+  let grdGrowthPerLevel = 0;
+  if (this._meta && this._meta[J.Base.Notetags.GuardGrowth]) {
+    grdGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.GuardGrowth]);
+  } else {
+    const structure = /<grdGrowth:[ ]?([\.\d]+)>/i;
+    this.actor().note.split(/[\r\n]+/).forEach(note => {
+      if (note.match(structure)) {
+        grdGrowthPerLevel = parseFloat(RegExp.$1);
+      }
+    });
+  }
+
+  return parseFloat(((grdGrowthPerLevel * this.level) / 100).toFixed(2));
+};
+//#endregion Game_Actor
+
 //#region Game_Character
 /**
  * Gets the `aiCode` for this character.
@@ -768,25 +800,25 @@ return inanimate;
  * @returns {number}
  */
 Object.defineProperty(Game_Enemy.prototype, "level", {
-get() {
-  let level = 0;
+  get() {
+    let level = 0;
 
-  const referenceData = $dataEnemies[this.enemyId()];
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.EnemyLevel]) {
-    level = parseInt(referenceData.meta[J.Base.Notetags.EnemyLevel]) || level;
-  } else {
-    const structure = /<level:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
-        level = RegExp.$1;
-      }
-    })
-  }
+    const referenceData = $dataEnemies[this.enemyId()];
+    if (referenceData.meta && referenceData.meta[J.Base.Notetags.EnemyLevel]) {
+      level = parseInt(referenceData.meta[J.Base.Notetags.EnemyLevel]) || level;
+    } else {
+      const structure = /<level:[ ]?([0-9]*)>/i;
+      const notedata = referenceData.note.split(/[\r\n]+/);
+      notedata.forEach(note => {
+        if (note.match(structure)) {
+          level = RegExp.$1;
+        }
+      })
+    }
 
-  return parseInt(level);
-},
-configurable: true,
+    return parseInt(level);
+  },
+  configurable: true,
 });
 
 /**

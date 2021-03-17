@@ -5,7 +5,7 @@
  * [v1.0 SDP] Enables the SDP system, allowing for distribution of points into panels that
  * contain various stats.
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-ABS
@@ -647,8 +647,12 @@ Game_Actor.prototype.param = function(paramId) {
 J.SDP.Aliased.Game_Actor.xparam = Game_Actor.prototype.xparam;
 Game_Actor.prototype.xparam = function(xparamId) {
   const baseParam = J.SDP.Aliased.Game_Actor.xparam.call(this, xparamId);
+  let hitGrowth = 0;
+  if (xparamId === 0) { // HIT-only
+    hitGrowth = this.hitGrowth();
+  }
   const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
-  const result = baseParam + panelModifications;
+  const result = baseParam + panelModifications + hitGrowth;
   return result;
 };
 
@@ -658,8 +662,12 @@ Game_Actor.prototype.xparam = function(xparamId) {
 J.SDP.Aliased.Game_Actor.sparam = Game_Actor.prototype.sparam;
 Game_Actor.prototype.sparam = function(sparamId) {
   const baseParam = J.SDP.Aliased.Game_Actor.sparam.call(this, sparamId);
+  let grdGrowth = 0;
+  if (sparamId === 1) { // GRD-only
+    grdGrowth = this.grdGrowth();
+  }
   const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
-  const result = baseParam + panelModifications;
+  const result = baseParam + panelModifications + grdGrowth;
   return result;
 };
 //#endregion Game_Actor
