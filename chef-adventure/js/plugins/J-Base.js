@@ -11,6 +11,8 @@
  * # End of Help
  */
 
+const { isFunction } = require('util');
+
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -459,7 +461,11 @@ switch (xParamId) {
 
 //#region Game objects
 //#region Game_Actor
-Game_Actor.prototype.hitGrowth = function() {
+/**
+ * Gets how much bonus HIT this actor has based on level.
+ * @returns {number} The amount of growth in HIT for this actor.
+ */
+ Game_Actor.prototype.hitGrowth = function() {
   let hitGrowthPerLevel = 0;
   if (this._meta && this._meta[J.Base.Notetags.HitGrowth]) {
     hitGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.HitGrowth]);
@@ -475,6 +481,10 @@ Game_Actor.prototype.hitGrowth = function() {
   return parseFloat(((hitGrowthPerLevel * this.level) / 100).toFixed(2));
 };
 
+/**
+ * Gets how much bonus GRD this actor has based on level.
+ * @returns {number} The amount of growth in GRD for this actor.
+ */
 Game_Actor.prototype.grdGrowth = function() {
   let grdGrowthPerLevel = 0;
   if (this._meta && this._meta[J.Base.Notetags.GuardGrowth]) {
@@ -883,7 +893,6 @@ Game_Enemy.prototype.needsSdpDrop = function() {
 
   // if a panel exists to be earned, but we already have it, then give up.
   const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
-  console.log(alreadyEarned);
   if (alreadyEarned) return null;
 
   // create the new drop based on the SDP.
@@ -2507,6 +2516,22 @@ this.count = count;
 function StatDistributionPanel() { this.initialize(...arguments); }
 StatDistributionPanel.prototype = {};
 StatDistributionPanel.prototype.constructor = StatDistributionPanel;
+
+/**
+ * Initializes a single stat distribution panel.
+ * @param {string} name The name that displays in the menu for this panel.
+ * @param {string} key The unique identifier for this panel.
+ * @param {number} iconIndex The icon index that represents this panel.
+ * @param {boolean} unlocked Whether or not this panel is unlocked.
+ * @param {string} description The description for this panel.
+ * @param {number} maxRank The maximum rank this panel can reach.
+ * @param {number} baseCost The base component of the cost formula.
+ * @param {number} flatGrowthCost The flat component of the cost formula.
+ * @param {numbe} multGrowthCost The multiplier component of the cost formula.
+ * @param {string} topFlavorText The flavor text for this panel, if any.
+ * @param {PanelRankupReward[]} panelRewards All rewards associated with this panel.
+ * @param {PanelParameter[]} panelParameters All parameters this panel affects.
+ */
 StatDistributionPanel.prototype.initialize = function(
   name,
   key, 
@@ -2517,9 +2542,9 @@ StatDistributionPanel.prototype.initialize = function(
   baseCost,
   flatGrowthCost,
   multGrowthCost,
-  maxReward,
-  maxRewardDescription,
-  ...panelParameters) {
+  topFlavorText,
+  panelRewards,
+  panelParameters) {
     /**
     * Gets the friendly name for this SDP.
     * @type {string}
@@ -2575,19 +2600,19 @@ StatDistributionPanel.prototype.initialize = function(
     this.multGrowthCost = multGrowthCost;
 
     /**
-    * The effect of what happens when this panel is maxed out.
+    * The description that shows up underneath the name in the details window.
     * @type {string}
     */
-    this.maxReward = maxReward;
+    this.topFlavorText = topFlavorText;
 
     /**
-    * The description of the what happens when you max out this panel.
-    * @type {string}
-    */
-    this.maxRewardDescription = maxRewardDescription;
+     * The collection of all rewards this panel can grant by ranking it up.
+     * @type {PanelRankupReward[]}
+     */
+    this.panelRewards = panelRewards;
 
     /**
-    * Gets all parameters that this SDP affects.
+    * The collection of all parameters that this panel affects when ranking it up.
     * @returns {PanelParameter[]}
     */
     this.panelParameters = panelParameters;
@@ -2620,6 +2645,17 @@ StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
 };
 
 /**
+ * Gets the panel rewards attached to the provided `rank`.
+ * @param {number} rank The rank to check and see if there are any rewards for.
+ * @returns {PanelRankupReward[]}
+ */
+StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank) {
+  const panelRewards = this.panelRewards;
+  const result = panelRewards.filter(reward => reward.rankRequired === rank);
+  return result;
+};
+
+/**
 * Gets whether or not this SDP is unlocked.
 * @returns {boolean} True if this SDP is unlocked, false otherwise.
 */
@@ -2642,6 +2678,35 @@ StatDistributionPanel.prototype.unlock = function() {
 };
 //#endregion StatDistributionPanel
 
+//#region PanelRankupReward
+/**
+* A class that represents a single reward for achieving a particular rank in a panel.
+*/
+function PanelRankupReward() { this.initialize(...arguments); }
+PanelRankupReward.prototype = {};
+PanelRankupReward.prototype.constructor = PanelRankupReward;
+
+/**
+ * Initializes a single rankup reward.
+ * @param {number} rankRequired The rank required.
+ * @param {string} effect The effect to execute.
+ */
+PanelRankupReward.prototype.initialize = function(rankRequired, effect) {
+  /**
+   * The rank required for this panel rankup reward to be executed.
+   * @type {number}
+   */
+  this.rankRequired = rankRequired;
+
+  /**
+   * The effect to be executed upon reaching the rank required.
+   * The effect is captured as javascript.
+   * @type {string}
+   */
+  this.effect = effect;
+};
+//#endregion PanelRankupReward
+
 //#region PanelParameter
 /**
 * A class that represents a single parameter and its growth for a SDP.
@@ -2651,7 +2716,7 @@ PanelParameter.prototype = {};
 PanelParameter.prototype.constructor = PanelParameter;
 
 /**
-* 
+* Initializes a single panel parameter.
 * @param {number} parameterId The parameter this class represents.
 * @param {number} perRank The amount per rank this parameter gives.
 * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
@@ -2685,6 +2750,10 @@ function PanelRanking() { this.initialize(...arguments); }
 PanelRanking.prototype = {};
 PanelRanking.prototype.constructor = PanelRanking;
 
+/**
+ * Initializes a single panel ranking for tracking on a given actor.
+ * @param {string} key The unique key for the panel to be tracked.
+ */
 PanelRanking.prototype.initialize = function(key) {
   /**
   * The key for this panel ranking.
@@ -2716,9 +2785,11 @@ PanelRanking.prototype.initMembers = function() {
 * and then max the panel out.
 */
 PanelRanking.prototype.rankUp = function() {
-  const maxRank = $gameSystem.getSdp(this.key).maxRank;
+  const panel = $gameSystem.getSdp(this.key);
+  const maxRank = panel.maxRank;
   if (this.currentRank < maxRank) {
     this.currentRank++;
+    this.performRankupEffects();
   }
 
   if (this.currentRank === maxRank && !this.isPanelMaxed()) {
@@ -2747,14 +2818,42 @@ PanelRanking.prototype.maxPanel = function() {
 PanelRanking.prototype.performMaxEffect = function() {
   const a = $gameParty.leader();
   SoundManager.playMagicEvasion();
-  const rewardEffect = $gameSystem.getSdp(this.key).maxReward;
-  try {
-    eval(rewardEffect);
+  const rewardEffects = $gameSystem
+    .getSdp(this.key)
+    .getPanelRewardsByRank(0);
+  if (rewardEffects.length > 0) {
+    rewardEffects.forEach(rewardEffect => {
+      try {
+        eval(rewardEffect.effect);
+      } catch (err) {
+        console.error(`An error occurred while trying to execute the maxreward for panel: ${this.key}`);
+        console.error(err);
+      }
+    });
+
     this.maxPanel();
-  } catch (err) {
-    console.error(`An error occurred while trying to execute the maxreward for panel: ${this.key}`);
-    console.error(err);
   }
+};
+
+/**
+ * Upon reaching a given rank of this panel, try to perform this `javascript` effect.
+ */
+PanelRanking.prototype.performRankupEffects = function() {
+  const a = $gameParty.leader();
+  const rewardEffects = $gameSystem
+    .getSdp(this.key)
+    .getPanelRewardsByRank(this.currentRank);
+  if (rewardEffects.length > 0) {
+    rewardEffects.forEach(rewardEffect => {
+      try {
+        eval(rewardEffect.effect);
+      } catch (err) {
+        console.error(`An error occurred while trying to execute the rank-${this.currentRank} reward for panel: ${this.key}`);
+        console.error(err);
+      }
+    });
+  }
+  
 };
 //#endregion PanelRanking
 //#endregion SDP classes
