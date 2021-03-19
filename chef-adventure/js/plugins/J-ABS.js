@@ -3335,7 +3335,6 @@ Spriteset_Map.prototype.updateJabsSprites = function() {
   }
 
   if ($gameBattleMap.requestSpriteRefresh) {
-    console.log("request received!");
     this.refreshAllCharacterSprites();
   }
 };
