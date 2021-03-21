@@ -1856,15 +1856,6 @@ Game_Event.prototype.setupPageSettings = function() {
 };
 
 /**
- * Detects whether or not the event code is one that matches the "comment" code.
- * @param {number} code The code to match.
- * @returns {boolean}
- */
-Game_Event.prototype.matchesControlCode = function(code) {
-  return (code === 108 || code === 408);
-};
-
-/**
  * Parses the comments of this event to extract battler core data if available.
  */
 Game_Event.prototype.parseEnemyComments = function() {
@@ -5141,8 +5132,7 @@ class Game_BattleMap {
     if ($gameMap.isCounter(x2, y2)) {
       const x3 = $gameMap.roundXWithDirection(x2, direction);
       const y3 = $gameMap.roundYWithDirection(y2, direction);
-
-      for (const event in $gameMap.eventsXy(x3, y3)) {
+      for (const event of $gameMap.eventsXy(x3, y3)) {
         // if the player is mashing the button at an enemy, let them continue.
         if (event.isJabsBattler()) return false;
 
@@ -5796,11 +5786,11 @@ class Game_BattleMap {
    * @param {JABS_Battler} target The battler dropped this loot.
    * @param {object} item The loot's raw data object.
    */
-  addLootDropToMap(target, item) {
+  addLootDropToMap(targetX, targetY, item) {
     // create 
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
-    lootEventData.x = target.getX();
-    lootEventData.y = target.getY() + 1;
+    lootEventData.x = targetX;
+    lootEventData.y = targetY;
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;
@@ -6717,9 +6707,9 @@ class Game_BattleMap {
 
     // if we have no drops, don't bother.
     const items = target.getBattler().makeDropItems();
-    if (items.length == 0) return;
+    if (items.length === 0) return;
 
-    items.forEach(item => this.addLootDropToMap(target, item));
+    items.forEach(item => this.addLootDropToMap(target.getX(), target.getY(), item));
   };
 
   /**

@@ -90,6 +90,18 @@ Game_Actor.prototype.equipSlots = function() {
 
 //#region Game_BattleMap
 /**
+ * Fixes the weird problem where CA uniquely seems to want to move character sprites up
+ * by 1 when generating loot.
+ * @param {number} targetX The `x` coordiante where the loot will be dropped/placed.
+ * @param {number} targetY The `y` coordinate where the loot will be dropped/placed.
+ */
+J.CAMods.Aliased.Game_BattleMap.addLootDropToMap = Game_BattleMap.prototype.addLootDropToMap;
+Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item) {
+  targetY += 1;
+  J.CAMods.Aliased.Game_BattleMap.addLootDropToMap.call(this, targetX, targetY, item);
+};
+
+/**
  * Extends the handling of defeated enemies to track data.
  * @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
  * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
