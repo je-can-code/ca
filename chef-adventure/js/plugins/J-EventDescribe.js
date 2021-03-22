@@ -60,7 +60,7 @@ J.Event.Metadata = {
   /**
  * The name of this plugin.
  */
-  Name: `J-Event`,
+  Name: `J-EventDescribe`,
 };
  
 /**
@@ -162,12 +162,17 @@ Game_Event.prototype.setupPage = function() {
  * Parses the event comments to discern the describe data, if any.
  */
 Game_Event.prototype.parseEventComments = function() {
+  // don't try to do things with actions- they are volatile.
+  if (J.ABS && (this.isAction() || this.isLoot())) return;
+
+  // don't try to parse events that aren't "present".
+  if (this._pageIndex === -1 || this._pageIndex === -2) return;
+
+  // initialize values.
   let text = "";
   let iconIndex = -1;
   let proximityText = -1;
   let proximityIcon = -1;
-
-  if (this._pageIndex === -1) return;
 
   // iterate over all commands to construct the event data.
   this.list().forEach(command => {
@@ -335,6 +340,19 @@ Sprite_Character.prototype.initMembers = function() {
   J.Event.Aliased.Sprite_Character.initMembers.call(this);
 };
 
+/**
+ * If the "character" has describe data, don't make it invisible for the time being.
+ * @returns {boolean} True if the character should be drawn, false otherwise.
+ */
+J.Event.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
+Sprite_Character.prototype.isEmptyCharacter = function() {
+   if (this._character.hasDescribeData() && !this._character._erased) {
+     return false;
+   } else {
+     return J.Event.Aliased.Sprite_Character.isEmptyCharacter.call(this);
+   }
+};
+
 //#region setup describe sprites
 /**
  * Hooks into the `Sprite_Character.setCharacter` and sets up the visual components
@@ -344,11 +362,7 @@ J.Event.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype
 Sprite_Character.prototype.setCharacterBitmap = function() {
   J.Event.Aliased.Sprite_Character.setCharacterBitmap.call(this);
   this._character.parseEventComments();
-  if (this._character.x === 12) {
-    console.log(this._character.hasDescribeData());
-  }
   if (this._character.hasDescribeData()) {
-
     this.setupDescribeSprites();
   }
 };
