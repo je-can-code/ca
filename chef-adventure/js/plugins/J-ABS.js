@@ -3776,6 +3776,24 @@ Sprite_Character.prototype.update = function() {
 };
 
 /**
+ * Updates the battler's overlay for states (if applicable).
+ */
+Sprite_Character.prototype.updateStateOverlay = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate()) {
+      if (!this._stateOverlaySprite) {
+        this.setupMapSprite();
+      }
+
+      this._stateOverlaySprite.update();
+      this.showStateOverlay();
+    } else {
+      this.hideStateOverlay();
+    }
+  }};
+
+/**
  * Updates the all gauges associated with this battler
  */
 Sprite_Character.prototype.updateGauges = function() {
@@ -3841,6 +3859,24 @@ Sprite_Character.prototype.updateGauges = function() {
   }
 
   return true;
+};
+
+/**
+ * Shows the state overlay if it exists.
+ */
+Sprite_Character.prototype.showStateOverlay = function() {
+  if (this._stateOverlaySprite) {
+    this._stateOverlaySprite.opacity = 255;
+  }
+};
+
+/**
+ * Hides the state overlay if it exists.
+ */
+Sprite_Character.prototype.hideStateOverlay = function() {
+  if (this._stateOverlaySprite) {
+    this._stateOverlaySprite.opacity = 0;
+  }
 };
 
 /**
@@ -3944,13 +3980,6 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite) {
   this._loot._oy -= 0.3;
   lootSprite.y -= 0.3;
   if (this._loot._oy < -5) this._loot._swing = true;
-};
-
-/**
- * Updates the battler's overlay for states (if applicable).
- */
-Sprite_Character.prototype.updateStateOverlay = function() {
-  this._stateOverlaySprite.update();
 };
 
 /**
