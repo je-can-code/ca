@@ -68,8 +68,10 @@ J.CAMods.Tracking = {
  */
 J.CAMods.Aliased = {
   Game_Actor: {},
+  Game_BattlerBase: {},
   Game_BattleMap: {},
   Game_Map: {},
+  Game_Party: {},
   Game_Player: {},
   JABS_Battler: {},
 };
@@ -87,6 +89,17 @@ Game_Actor.prototype.equipSlots = function() {
   return baseSlots;
 };
 //#endregion Game_Actor
+
+//#region Game_BattlerBase
+/**
+ * Extends the "recover all" event command to also restore all TP to the battlers.
+ */
+J.CAMods.Aliased.Game_BattlerBase.recoverAll = Game_BattlerBase.prototype.recoverAll;
+Game_BattlerBase.prototype.recoverAll = function() {
+  J.CAMods.Aliased.Game_BattlerBase.recoverAll.call(this);
+  this._tp = this.maxTp();
+};
+//#endregion Game_BattlerBase
 
 //#region Game_BattleMap
 /**
