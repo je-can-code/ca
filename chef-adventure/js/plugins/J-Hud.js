@@ -375,12 +375,21 @@ Window_Hud.prototype.drawStates = function() {
 
   if (J.ABS) {
     const player = $gameBattleMap.getPlayerMapBattler();
+    const playerBattler = player.getBattler();
+    const trackedStates = $gameBattleMap.getStateTrackerByBattler(playerBattler);
+    trackedStates.forEach((trackedState, i) => {
+      if (!trackedState.isExpired()) {
+        this.drawState(trackedState, 124 + i*iconWidth, 70);
+      }
+    });
+    /*
     this._actor.states().forEach((state, i) => {
       const stateData = player.getStateData(state.id);
       if (stateData && stateData.active) {
         this.drawState(state, 124 + i*iconWidth, 70);
       }
     })
+    */
   }
 };
 
@@ -389,28 +398,36 @@ Window_Hud.prototype.drawStates = function() {
  */
 Window_Hud.prototype.hideExpiredStates = function() {
   if (J.ABS) {
-    const allStateData = $gameBattleMap.getPlayerMapBattler().getAllStateData();
-    Object.keys(allStateData).forEach(stateKey => {
+    const trackedStates = $gameBattleMap.getStateTrackerByBattler(this._actor);
+    trackedStates.forEach(state => {
       Object.keys(this._hudSprites).forEach(spriteKey => {
-        const match = `state-${stateKey}`;
-        if (spriteKey.contains(match) && !allStateData[stateKey].active) {
+        const match = `state-${state.stateId}`;
+        if (spriteKey.contains(match) && state.isExpired()) {
           this._hudSprites[spriteKey].hide()
         }
       })
-    })
+    });
+
+    // Object.keys(allStateData).forEach(stateKey => {
+    //   Object.keys(this._hudSprites).forEach(spriteKey => {
+    //     const match = `state-${stateKey}`;
+    //     if (spriteKey.contains(match) && !allStateData[stateKey].active) {
+    //       this._hudSprites[spriteKey].hide()
+    //     }
+    //   })
+    // });
   }
 };
 
 /**
  * Draws a single state icon and it's duration timer.
- * @param {object} state The state afflicted on the character to draw.
+ * @param {JABS_TrackedState} state The state afflicted on the character to draw.
  * @param {number} x The `x` coordinate to draw this state at.
  * @param {number} y The `y` coordinate to draw this state at.
  */
 Window_Hud.prototype.drawState = function(state, x, y) {
-  const stateData = $gameBattleMap.getPlayerMapBattler().getStateData(state.id);
-  this.placeStateIconSprite(state.id, state.iconIndex, x, y);
-  this.placeStateTimerSprite(state.id, stateData, x, y);
+  this.placeStateIconSprite(state.stateId, state.iconIndex, x, y);
+  this.placeStateTimerSprite(state.stateId, state, x, y);
 };
 
 /**

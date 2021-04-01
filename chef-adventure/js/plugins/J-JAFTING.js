@@ -1,69 +1,170 @@
 //#region Introduction
 /*:
-* @target MZ
-* @plugindesc 
-* [v1.0 JAFT] Enables a new jafting menu that allows item creation and refinement.
-* @author JE
-* @url https://github.com/je-can-code/rmmz
-* @help
-* This is not officially released and thus has no/incomplete documentation.
-* 
-* If you really want to use it, just look at the plugin commands.
-* 
-* @command Call Jafting Menu
-* @text Access the Jafting Menu
-* @desc Calls the Jafting Menu via plugin command.
-* 
-* @command Close Jafting Menu
-* @text End the Jafting session
-* @desc Ends the current Jafting session immediately.
-* Typically used for triggering a parallel item created event.
-* 
-* @command Unlock Category
-* @text Unlock new category
-* @desc Within the Crafting Mode, unlocks a new category of crafting.
-* @arg name
-* @type string
-* @desc The name that shows up in the list of categories.
-* @default Some Category
-* @arg key
-* @type string
-* @desc The unique identifier to this category.
-* @default C_SOME
-* @arg iconIndex
-* @type number
-* @desc The icon index that represents this category. 0 = no icon.
-* @default 0
-* @arg description
-* @type string
-* @desc This is the text that shows up in the help window when hovering over this option.
-* @default A wonderful category of JAFTING that everyone loves to work from!
-* 
-* @command Unlock Output
-* @text Unlock new crafting output
-* @desc Within the Crafting Mode, all these items from the database will be craftable.
-* @arg itemIds
-* @type item[]
-* @desc All items chosen here will be unlocked and available for crafting.
-* @arg weaponIds
-* @type weapon[]
-* @desc All weapons chosen here will be unlocked and available for crafting.
-* @arg armorIds
-* @type armor[]
-* @desc All armors chosen here will be unlocked and available for crafting.
-* 
-* @command Lock Category
-* @text Lock a category
-* @desc Within the Crafting Mode, locks a previously unlocked category of crafting.
-* @arg key
-* @type string
-* @desc The unique identifier to this category to remove.
-* @default C_SOME
-* 
-* @command Lock All Categories
-* @text Lock all crafting categories
-* @desc Locks all categories that were previously unlocked, effectively disabling crafting.
-*/
+ * @target MZ
+ * @plugindesc 
+ * [v1.0 JAFT] Enables a new jafting menu that allows item creation and refinement.
+ * @author JE
+ * @url https://github.com/je-can-code/rmmz
+ * @help
+ * This is not officially released and thus has no/incomplete documentation.
+ * 
+ * If you really want to use it, just look at the plugin commands.
+ * 
+ * @param JAFTINGconfigs
+ * @text JAFTING SETUP
+ * 
+ * @param JAFTINGrecipes
+ * @parent JAFTINGconfigs
+ * @type struct<RecipeStruct>[]
+ * @text JAFTING Recipes
+ * 
+ * @param JAFTINGcategories
+ * @parent JAFTINGconfigs
+ * @type struct<CategoryStruct>[]
+ * @text JAFTING Categories
+ * 
+ * @command Call Jafting Menu
+ * @text Access the Jafting Menu
+ * @desc Calls the Jafting Menu via plugin command.
+ * 
+ * @command Close Jafting Menu
+ * @text End the Jafting session
+ * @desc Ends the current Jafting session immediately.
+ * Typically used for triggering a parallel item created event.
+ * 
+ * @command Unlock Category
+ * @text Unlock new category
+ * @desc Within the Crafting Mode, unlocks a new category of crafting.
+ * @arg categoryKeys
+ * @type string[]
+ * @text Category Keys
+ * @desc All the keys of the categories to be unlocked.
+ * 
+ * @command Unlock Recipe
+ * @text Unlock new recipe
+ * @desc Within the Crafting Mode, unlocks a new recipe of a category of crafting.
+ * @arg recipeKeys
+ * @type string[]
+ * @text Recipe Keys
+ * @desc All the keys of the recipes to be unlocked.
+ * 
+ * @command Lock Category
+ * @text Lock a category
+ * @desc Within the Crafting Mode, locks a previously unlocked category of crafting.
+ * @arg key
+ * @type string
+ * @desc The unique identifier to this category to remove.
+ * @default C_SOME
+ * 
+ * @command Lock All Categories
+ * @text Lock all crafting categories
+ * @desc Locks all categories that were previously unlocked, effectively disabling crafting.
+ */
+/*~struct~RecipeStruct:
+ * @param name
+ * @type string
+ * @text Name
+ * @desc The name of the recipe.
+ * 
+ * @param description
+ * @type string
+ * @text Description
+ * @desc The description of this recipe. If unspecified, it will pull from the first output description.
+ * 
+ * @param iconIndex
+ * @type number
+ * @text Icon Index
+ * @desc The icon index of this recipe. If unspecified, it will pull from the first output description.
+ * 
+ * @param recipeKey
+ * @type string
+ * @text Recipe Key
+ * @desc A unique identifier for this recipe.
+ * 
+ * @param categoryKeys
+ * @type string[]
+ * @text Category Keys
+ * @desc The keys of the categories that this recipe belongs to.
+ * @default []
+ * 
+ * @param ingredients
+ * @type struct<ComponentStruct>[]
+ * @text Ingredients
+ * @desc The ingredients required to JAFT this recipe. These are consumed.
+ * @default []
+ * 
+ * @param tools
+ * @type struct<ComponentStruct>[]
+ * @text Tools
+ * @desc The tools required to JAFT this recipe. These are not consumed.
+ * @default []
+ * 
+ * @param output
+ * @type struct<ComponentStruct>[]
+ * @text Output
+ * @desc Upon JAFTING this recipe, these items are given to the created.
+ * @default []
+ * 
+ * @param maskedUntilCrafted
+ * @type boolean
+ * @text Masked Until Crafted
+ * @desc If this is set to true, then it will appear as all question marks until crafted the first time.
+ * @default false
+ * 
+ */
+/*~struct~ComponentStruct:
+ * @param itemId
+ * @parent chooseOneType
+ * @type item
+ * @text Item ID
+ * @desc The item this component represents.
+ * 
+ * @param weaponId
+ * @parent chooseOneType
+ * @type weapon
+ * @text Weapon ID
+ * @desc The weapon this component represents.
+ * 
+ * @param armorId
+ * @parent chooseOneType
+ * @type armor
+ * @text Armor ID
+ * @desc The armor this component represents.
+ * 
+ * @param quantity
+ * @parent chooseOneType
+ * @type number
+ * @min 1
+ * @text Quantity
+ * @desc The quantity of this JAFTING component.
+ * @default 1
+ * 
+ * @param chooseOneType
+ * @text CHOOSE ONE TYPE
+ */
+/*~struct~CategoryStruct:
+ * 
+ * @param name
+ * @type string
+ * @text Category Name
+ * @desc The name of this category.
+ * 
+ * @param key
+ * @type string
+ * @text Category Key
+ * @desc The unique key for this category.
+ * 
+ * @param iconIndex
+ * @type number
+ * @text Icon Index
+ * @desc The icon index to represent this category.
+ * @default 0
+ * 
+ * @param description
+ * @type string
+ * @text Description
+ * @desc The description of this category to show up in the help window.
+ */
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -76,10 +177,143 @@ var J = J || {};
 J.JAFTING = {};
 
 /**
-* The `metadata` associated with this plugin, such as version.
-*/
+ * A helpful collection of functions for this plugin.
+ */
+J.JAFTING.Helpers = {};
+
+/**
+ * Translates the plugin settings from JSON to JAFTING recipes.
+ * @param {JSON} rawRecipeBlobs The raw JSON data representing the recipes.
+ * @returns {Crafting_Recipe[]}
+ */
+J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
+  const parsedRecipeBlobs = JSON.parse(rawRecipeBlobs);
+  const parsedRecipes = [];
+  parsedRecipeBlobs.forEach(recipeBlob => {
+    // get at the high-level recipe data.
+    const parsedRecipeBlob = JSON.parse(recipeBlob);
+
+    // parse all ingredients from the recipe.
+    const parsedIngredientsBlob = JSON.parse(parsedRecipeBlob.ingredients);
+    const parsedIngredients = [];
+    parsedIngredientsBlob.forEach(rawIngredient => {
+      const parsedIngredient = JSON.parse(rawIngredient);
+      const itemId = parseInt(parsedIngredient.itemId);
+      const weaponId = parseInt(parsedIngredient.weaponId);
+      const armorId = parseInt(parsedIngredient.armorId);
+      const quantity = parseInt(parsedIngredient.quantity);
+      if (itemId) {
+        const newItemIngredient = new Crafting_Component(itemId, `i`, quantity, false);
+        parsedIngredients.push(newItemIngredient);
+      }
+      if (weaponId) {
+        const newWeaponIngredient = new Crafting_Component(weaponId, `w`, quantity, false);
+        parsedIngredients.push(newWeaponIngredient);
+      }
+      if (armorId) {
+        const newArmorIngredient = new Crafting_Component(armorId, `a`, quantity, false);
+        parsedIngredients.push(newArmorIngredient);
+      }
+    });
+
+    // parse all tools from the recipe.
+    const parsedToolsBlob = JSON.parse(parsedRecipeBlob.tools);
+    const parsedTools = [];
+    parsedToolsBlob.forEach(rawTool => {
+      const parsedTool = JSON.parse(rawTool);
+      const itemId = parseInt(parsedTool.itemId);
+      const weaponId = parseInt(parsedTool.weaponId);
+      const armorId = parseInt(parsedTool.armorId);
+      const quantity = parseInt(parsedTool.quantity);
+      if (itemId) {
+        const newItemTool = new Crafting_Component(itemId, `i`, quantity, false);
+        parsedTools.push(newItemTool);
+      }
+      if (weaponId) {
+        const newWeaponTool = new Crafting_Component(weaponId, `w`, quantity, false);
+        parsedTools.push(newWeaponTool);
+      }
+      if (armorId) {
+        const newArmorTool = new Crafting_Component(armorId, `a`, quantity, false);
+        parsedTools.push(newArmorTool);
+      }
+    });
+
+    // parse all output from the recipe.
+    const parsedOutputBlob = JSON.parse(parsedRecipeBlob.output);
+    const parsedOutputs = [];
+    parsedOutputBlob.forEach(rawOutput => {
+      const parsedOutput = JSON.parse(rawOutput);
+      const itemId = parseInt(parsedOutput.itemId);
+      const weaponId = parseInt(parsedOutput.weaponId);
+      const armorId = parseInt(parsedOutput.armorId);
+      const quantity = parseInt(parsedOutput.quantity);
+      if (itemId) {
+        const newItemOutput = new Crafting_Component(itemId, `i`, quantity, false);
+        parsedOutputs.push(newItemOutput);
+      }
+      if (weaponId) {
+        const newWeaponOutput = new Crafting_Component(weaponId, `w`, quantity, false);
+        parsedOutputs.push(newWeaponOutput);
+      }
+      if (armorId) {
+        const newArmorOutput = new Crafting_Component(armorId, `a`, quantity, false);
+        parsedOutputs.push(newArmorOutput);
+      }
+    });
+
+    // parse recipe metadata.
+    const parsedDescription = parsedRecipeBlob.description;
+    const parsedIconIndex = parseInt(parsedRecipeBlob.iconIndex)
+      ? parseInt(parsedRecipeBlob.iconIndex)
+      : -1;
+    const parsedCategoryKeys = JSON.parse(parsedRecipeBlob.categoryKeys);
+
+    // create and add JAFTING recipe.
+    const parsedRecipe = new Crafting_Recipe(
+      parsedRecipeBlob.name,
+      parsedRecipeBlob.recipeKey,
+      parsedDescription,
+      parsedCategoryKeys,
+      parsedIconIndex,
+      parsedTools,
+      parsedIngredients,
+      parsedOutputs,
+      (parsedRecipeBlob.maskedUntilCrafted === 'true')
+    );
+    parsedRecipes.push(parsedRecipe);
+  });
+
+  return parsedRecipes;
+};
+
+/**
+ * Translates the plugin settings from JSON to JAFTING categories.
+ * @param {JSON} rawRecipeBlobs The raw JSON data representing the categories.
+ * @returns {Crafting_Category[]}
+ */
+J.JAFTING.Helpers.translateCategories = rawCategoryBlobs => {
+  const parsedCategoryBlobs = JSON.parse(rawCategoryBlobs);
+  const parsedCategories = [];
+  parsedCategoryBlobs.forEach(categoryBlob => {
+    const parsedCategoryBlob = JSON.parse(categoryBlob);
+    const parsedCategory = new Crafting_Category(
+      parsedCategoryBlob.name,
+      parsedCategoryBlob.key,
+      parseInt(parsedCategoryBlob.iconIndex),
+      parsedCategoryBlob.description
+    );
+    parsedCategories.push(parsedCategory);
+  });
+
+  return parsedCategories;
+};
+
+/**
+ * The `metadata` associated with this plugin, such as version.
+ */
 J.JAFTING.Metadata = {
-  /**
+ /**
   * The version of this plugin.
   */
   Name: `J-JAFTING`,
@@ -91,16 +325,27 @@ J.JAFTING.Metadata = {
 J.JAFTING.PluginParameters = PluginManager.parameters(J.JAFTING.Metadata.Name);
 J.JAFTING.Metadata = {
   ...J.JAFTING.Metadata,
-  /**
+ /**
   * The version of this plugin.
   */
   Version: 1.00,
+
+  /**
+   * All recipes defined in the plugin settings that can be JAFTED.
+   */
+  Recipes: J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']),
+
+  /**
+   * All categories defined in the plugin settings that can contain JAFTING recipes.
+   */
+  Categories: J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']),
 };
 
 /**
 * A helpful mapping of all the various RMMZ classes being extended.
 */
 J.JAFTING.Aliased = {
+  DataManager: {},
   Game_Party: {},
   Game_Player: {},
   Game_System: {},
@@ -125,36 +370,20 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Close Jafting Menu", () 
 * Plugin command for unlocking a JAFTING category (such as cooking or blacksmithing).
 */
 PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Unlock Category", args => {
-  const { name, key, iconIndex, description } = args;
-  $gameSystem.unlockCategory(name, key, iconIndex, description);
+  const { categoryKeys } = args;
+
+  const parsedCategoryKeys = JSON.parse(categoryKeys);
+  parsedCategoryKeys.forEach(parsedCategoryKey => $gameSystem.unlockCategory(parsedCategoryKey));
 });
 
 /**
 * Plugin command for unlocking any recipes that output only this item (or other unlocked items).
 */
-PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Unlock Output", args => {
-  const { itemIds, weaponIds, armorIds } = args;
+PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Unlock Recipe", args => {
+  const { recipeKeys } = args;
 
-  // unlock items
-  if (itemIds) {
-    JSON.parse(itemIds).forEach(itemId => {
-      $gameSystem.unlockOutput(parseInt(itemId), "i");
-    });  
-  }
-
-  // unlock weapons
-  if (weaponIds) {
-    JSON.parse(weaponIds).forEach(weaponId => {
-      $gameSystem.unlockOutput(parseInt(weaponId), "w");
-    });  
-  }
-
-  // unlock armors
-  if (armorIds) {
-    JSON.parse(armorIds).forEach(armorId => {
-      $gameSystem.unlockOutput(parseInt(armorId), "a");
-    });  
-  }
+  const parsedRecipeKeys = JSON.parse(recipeKeys);
+  parsedRecipeKeys.forEach(parsedRecipeKey => $gameSystem.unlockRecipe(parsedRecipeKey));
 });
 
 /**
@@ -172,6 +401,58 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Lock All Categories", ()
   $gameSystem.lockAllCategories();
 });
 //#endregion Introduction
+
+//#region Static objects
+
+//#region DataManager
+/**
+ * Extends the save data extraction to include any changes in recipes/categories
+ * from the plugin settings.
+ */
+J.JAFTING.Aliased.DataManager.extractSaveContents = DataManager.extractSaveContents;
+DataManager.extractSaveContents = function(contents) {
+  const fromPluginSettingsJafting = $gameSystem._j._jafting;
+  const fromSaveFileJafting = contents.system._j._jafting;
+  fromSaveFileJafting._recipes.forEach(savedRecipe => {
+    const updatedRecipe = fromPluginSettingsJafting._recipes
+      .find(settingsRecipe => settingsRecipe.key === savedRecipe.key);
+    // if the recipe no longer exists, don't do anything with it.
+    if (!updatedRecipe) return;
+
+    // if it was unlocked before, it stays unlocked.
+    if (savedRecipe.isUnlocked()) {
+      if (updatedRecipe) {
+        updatedRecipe.unlock();
+      }
+    }
+
+    // if it was crafted before, it stays crafted.
+    if (savedRecipe.hasBeenCrafted()) {
+      updatedRecipe.setCrafted();
+    }
+  });
+
+  // iterate over all categories from the save file and update the unlock status of each.
+  fromSaveFileJafting._categories.forEach(savedCategory => {
+    const updatedCategory = fromPluginSettingsJafting._categories
+      .find(settingsCategory => settingsCategory.key === savedCategory.key);
+
+    // if the category no longer exists, don't do anything with it.
+    if (!updatedCategory) return;
+
+    if (savedCategory.isUnlocked()) {
+      updatedCategory.unlock();
+    }
+  });
+
+  // update the save file data with the modified plugin settings JAFTING data.
+  contents.system._j._jafting = fromPluginSettingsJafting;
+  const extracted = J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
+  return extracted;
+};
+//#endregion DataManager
+
+//#endregion Static objects
 
 //#region Game objects
 //#region Game_Party
@@ -262,71 +543,19 @@ Game_System.prototype.initJaftingMembers = function() {
   * The collection of all jafting recipes extracted from the database.
   * @type {Crafting_Recipe[]}
   */
-  this._j._jafting._recipes = [];
+  this._j._jafting._recipes = J.JAFTING.Metadata.Recipes;
 
   /**
-  * The collection of all unlocked categories that are viewable
-  * within the JAFTING menu.
+  * The collection of all categories that are viewable within the JAFTING menu.
   * @type {Crafting_Category[]}
   */
-  this._j._jafting._categories = this._j._jafting._categories || [];
-
-  /**
-  * The collection of all unlocked recipes that will be viewable
-  * within the JAFTING menu.
-  * @type {Crafting_Unlock[]}
-  */
-  this._j._jafting._unlocked = this._j._jafting._unlocked || [];
+  this._j._jafting._categories = J.JAFTING.Metadata.Categories;
 
   /**
   * A request to refresh the windows of JAFTING.
   * @type {boolean} 
   */
   this._j._jafting._requestRefresh = false;
-  this.populateRecipes();
-};
-
-/**
-* Iterate over all database tabs that recipes could live in to extract
-* the recipes into the list.
-*/
-Game_System.prototype.populateRecipes = function() {
-  const stores = [$dataItems, $dataWeapons, $dataArmors];
-  stores.forEach(store => {
-    this.extractDataFromStore(store);
-  });
-};
-
-/**
-* Extracts all recipes currently available from the current iteration
-* of the given database store.
-* @param {object[]} store The database object to iterate over. ex: `$dataItems`
-*/
-Game_System.prototype.extractDataFromStore = function(store) {
-  store.forEach(obj => {
-    // the first entry is always null.
-    if (!obj) return;
-
-    // if there are no ingredients, then its not a recipe.
-    const ingredients = obj._jaft.ingredients();
-    if (!ingredients.length) return;
-
-    const tools = obj._jaft.tools();
-    const categories = obj._jaft.categories();
-    const output = obj._jaft.output();
-    const { name, iconIndex } = obj._jaft.nameData();
-    const description = obj._jaft.description();
-    const recipe = new Crafting_Recipe(
-      name, 
-      description, 
-      categories, 
-      parseInt(iconIndex), 
-      tools, 
-      ingredients, 
-      output);
-
-    this._j._jafting._recipes.push(recipe);
-  });
 };
 
 /**
@@ -362,69 +591,77 @@ Game_System.prototype.getCategoryByKey = function(key) {
 };
 
 /**
-* Gets whether or not the item id and type has been unlocked already or not.
-* @param {string} key The unique identifier of a category of crafting.
-* @returns {boolean}
-*/
-Game_System.prototype.isItemIdUnlocked = function(itemId, itemType) {
-  const result = this._j._jafting._unlocked
-    .find(unlock => unlock.itemId === itemId && unlock.itemType === itemType);
-  return !!result;
-};
-
-/**
 * Unlocks/adds a new category to the list of available categories.
 * @param {string} name The name that shows up in the category list column.
 * @param {string} key The unique identifier of this category.
 * @param {number} iconIndex The index of the icon that shows up in the category list.
 * @param {string} description The visual description that shows up in the help text box for this category.
 */
-Game_System.prototype.unlockCategory = function(name, key, iconIndex, description) {
-  const exists = this.getCategoryByKey(key);
-  if (!exists) {
-    const newCategory = new Crafting_Category(name, key, iconIndex, description);
-    this._j._jafting._categories.push(newCategory);
+Game_System.prototype.unlockCategory = function(key) {
+  const category = this._j._jafting._categories.find(category => category.key === key);
+  if (category) {
+    category.unlock();
     this.setRefreshRequest(true);
+  } else {
+    console.warn(`Attempted to unlock a category that doesn't exist in the plugin parameters.`);
+    console.warn(`Please add a category with key of [${key}] to unlock it.`);
   }
 };
 
 /**
-* Locks/removes a previously unlocked category of crafting.
-* @param {string} key The unique identifier of this category.
-*/
-Game_System.prototype.lockCategory = function(key) {
-  const categoryToRemove = this.getCategoryByKey(key);
-  if (categoryToRemove) {
-    const newCategoryList = this._j._jafting._categories.filter(category => category.key != categoryToRemove.key);
-    this._j._jafting._categories = newCategoryList;
-    this.setRefreshRequest(true);
-  }
-};
-
-/**
-* Locks all categories of crafting.
-*/
-Game_System.prototype.lockAllCategories = function() {
-  this._j._jafting._categories = [];
+ * Unlocks all categories of JAFTING.
+ */
+Game_System.prototype.unlockAllCategories = function() {
+  this._j._jafting._categories.forEach(category => category.unlock());
   this.setRefreshRequest(true);
 };
 
 /**
-* Unlocks/adds a new output result for crafting.
-* @param {string} itemId The id of the item in the database.
-* @param {string} itemType The type of item this is.
-*/
-Game_System.prototype.unlockOutput = function(itemId, itemType) {
-  const exists = this.isItemIdUnlocked(itemId, itemType);
-  if (!exists) {
-    const newUnlock = new Crafting_Unlock(itemId, itemType);
-    this._j._jafting._unlocked.push(newUnlock);
+ * Locks/removes a previously unlocked category of JAFTING.
+ * @param {string} key The unique identifier of this category.
+ */
+Game_System.prototype.lockCategory = function(key) {
+  const category = this._j._jafting._categories.find(category => category.key === key);
+  if (category) {
+    category.lock();
     this.setRefreshRequest(true);
   }
 };
 
 /**
-* Gets all recipes that exist in the database at this time.
+ * Locks all categories of JAFTING.
+ */
+Game_System.prototype.lockAllCategories = function() {
+  this._j._jafting._categories.forEach(category => category.lock());
+  this.setRefreshRequest(true);
+};
+
+/**
+ * Unlocks a recipe. Does not unlock the category this recipe belongs to.
+ * @param {string} key The key of the recipe to unlock.
+ */
+Game_System.prototype.unlockRecipe = function(key) {
+  const recipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
+  if (recipe) {
+    recipe.unlock();
+    this.setRefreshRequest(true);  
+  }
+};
+
+/**
+ * Locks a recipe. Does not lock the category this recipe belongs to.
+ * @param {string} key The key of the recipe to unlock.
+ */
+Game_System.prototype.lockRecipe = function(key) {
+  const recipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
+  if (recipe) {
+    recipe.lock();
+    this.setRefreshRequest(true);  
+  }
+};
+
+/**
+* Gets all defined JAFTING recipes.
 * @returns {Crafting_Recipe[]}
 */
 Game_System.prototype.getAllRecipes = function() {
@@ -432,19 +669,11 @@ Game_System.prototype.getAllRecipes = function() {
 };
 
 /**
-* Gets a list of all items that have been unlocked.
-* @returns {Crafting_Unlock}
-*/
-Game_System.prototype.getAllRecipeUnlocks = function() {
-  return this._j._jafting._unlocked;
-};
-
-/**
 * Gets a list of all categories that have been unlocked.
 * @returns {Crafting_Category[]}
 */
 Game_System.prototype.getUnlockedCategories = function() {
-  return this._j._jafting._categories;
+  return this._j._jafting._categories.filter(category => category.isUnlocked());
 };
 
 /**
@@ -469,48 +698,17 @@ Game_System.prototype.setRefreshRequest = function(requested = true) {
 * @returns {Crafting_Recipe[]}
 */
 Game_System.prototype.getUnlockedRecipes = function() {
-  const recipes = this.getAllRecipes();       // all recipes in the database.
-  const unlocks = this.getAllRecipeUnlocks(); // all unlocks the player has.
-
-  // determine which recipes are unlocked based on unlocked output.
-  const unlockedRecipes = recipes.filter(recipe => {
-    const allOutputUnlocks = [];
-    recipe.output.forEach(result => {
-      const fakeType = this.translateRpgItemToType(result.item);
-      const fakeUnlock = new Crafting_Unlock(result.item.id, fakeType);
-      allOutputUnlocks.push(fakeUnlock);
-    });
-
-    // unique-ify the unlocks.
-    const uniqueOutputUnlocks = [...new Set(allOutputUnlocks)];
-
-    // only compares ids and type, the ".crafted" is irrelevant.
-    const isUnlocked = uniqueOutputUnlocks.every(unique => unlocks.some(unlocked => {
-      if ((unique.itemId === unlocked.itemId) && (unique.itemType === unlocked.itemType))
-        return true;
-      else
-        return false;
-    }));
-
-    return isUnlocked;
-  });
-
-  return unlockedRecipes;
+  return this._j._jafting._recipes.filter(recipe => recipe.isUnlocked());
 };
 
 /**
 * Gets all unlocked recipes that are a part of a given category.
-* @param {string} category The category to get all unlocked recipes for.
+* @param {string} categoryKey The category to get all unlocked recipes for.
 * @returns {Crafting_Recipe[]}
 */
-Game_System.prototype.getUnlocksByCategory = function(category) {
+Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey) {
   const recipes = this.getUnlockedRecipes();
-  const unlocked = recipes.filter(recipe => {
-    if (recipe.categories.includes(category))
-      return true;
-    else
-      return false;
-  });
+  const unlocked = recipes.filter(recipe => recipe.categories.includes(categoryKey));
 
   return unlocked;
 };
@@ -750,34 +948,15 @@ Scene_Map.prototype.chooseJaftingCraftRecipe = function() {
 */
 Scene_Map.prototype.confirmSelectedRecipe = function() {
   SoundManager.playShop();
-  this.jaftingConsumeIngredients();
-  this.jaftingGainOutput();
-};
-
-/**
-* Forces the player to lose all ingredients of the given recipe.
-*/
-Scene_Map.prototype.jaftingConsumeIngredients = function() {
-  const recipe = this.getCurrentRecipe();
-  const ingredients = recipe.ingredients;
-  ingredients.forEach(ingredient => {
-    const item = J.Base.Helpers.translateItem(ingredient.id, ingredient.type);
-    const count = ingredient.count;
-    $gameParty.loseItem(item, count);
-  });
+  this.jaftRecipe();
 };
 
 /**
 * Forces the player to gain all items of the given recipe's output.
 */
-Scene_Map.prototype.jaftingGainOutput = function() {
+Scene_Map.prototype.jaftRecipe = function() {
   const recipe = this.getCurrentRecipe();
-  const outputs = recipe.output;
-  outputs.forEach(output => {
-    const item = output.item;
-    const count = parseInt(output.count);
-    $gameParty.gainItem(item, count);
-  });
+  recipe.craft();
 };
 
 Scene_Map.prototype.createJaftingFreeModeWindows = function() {
@@ -804,6 +983,7 @@ Scene_Map.prototype.update = function() {
     this._j._jaftingMenu._recipeListWindow.refresh();
     this._j._jaftingMenu._ingredientsRequiredWindow.refresh();
     this._j._jaftingMenu._categoryWindow.refresh();
+    this.setRecipeDescription();
   }
 
   if ($gameSystem.isJafting()) {
@@ -1038,7 +1218,7 @@ Scene_Map.prototype.determineModeHelpWindowText = function() {
   switch (currentSymbol) {
     case `craft-mode`:
       message = `Crafting mode allows for the creation of new items.\n`;
-      message += `Choose from your currently learned recipes of a given type to get started.`;
+      message += `Choose a category of JAFTING to get started.`;
       break;
     case `free-mode`:
       message = `Free mode leverages RNG will create new items from experimentation.\n`;
@@ -1088,7 +1268,10 @@ Scene_Map.prototype.determineCategoryHelpWindowText = function() {
 Scene_Map.prototype.determineRecipeHelpWindowText = function() {
   const index = this._j._jaftingMenu._recipeListWindow.index();
   // don't update the text if the index matches! (prevents tons of unnecessary updates)
-  if (index === this._j._jaftingMenu._recipeListWindow.currentIndex) return;
+  if (index === this._j._jaftingMenu._recipeListWindow.currentIndex && 
+    !$gameSystem.isRefreshRequested()) {
+      return;
+  }
 
   this._j._jaftingMenu._recipeListWindow.currentIndex = index;
 
@@ -1103,8 +1286,18 @@ Scene_Map.prototype.determineRecipeHelpWindowText = function() {
   this.setCurrentRecipe(details);
   this._j._jaftingMenu._ingredientsRequiredWindow.currentRecipe = this.getCurrentRecipe();
 
+  this.setRecipeDescription();
+};
+
+/**
+ * Sets the description of the recipe into the help window text.
+ */
+Scene_Map.prototype.setRecipeDescription = function() {
+  const details = this._j._jaftingMenu._recipeListWindow.getRecipeDetails();
+  if (!details) return;
+
   // handle multi-line descriptions separated by a "\n" new line.
-  const description = details.description;
+  const description = details.getRecipeDescription();
   const multipartDescription = description.split("\\n");
   let message = `${multipartDescription[0]}`;
   if (multipartDescription.length > 1) {
@@ -1202,7 +1395,7 @@ class Window_JaftingModeMenu extends Window_HorzCommand {
   */
   makeCommandList() {
     const hasCategories = $gameSystem.getUnlockedCategories();
-    this.addCommand(`Crafting`, `craft-mode`, hasCategories, null, 193);
+    this.addCommand(`Crafting`, `craft-mode`, hasCategories.length, null, 193);
     this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
     this.addCommand(`Refine`, `refine-mode`, false, null, 223); // disabled till implemented.
     this.addCommand(`Cancel`, `cancel`, true, null, 90);
@@ -1234,67 +1427,72 @@ class Window_JaftingModeMenu extends Window_HorzCommand {
 
 //#region Window_JaftingCraftCategory
 /**
-* A simple window that shows a list of categories unlocked.
-*/
+ * A simple window that shows a list of categories unlocked.
+ */
 class Window_JaftingCraftCategory extends Window_Command {
   /**
-  * @constructor
-  * @param {Rectangle} rect The rectangle that represents this window.
-  */
+   * @constructor
+   * @param {Rectangle} rect The rectangle that represents this window.
+   */
   constructor(rect) {
     super(rect);
     this.initialize(rect);
 
     /**
-    * The currently selected index of this mode selection window.
-    * @type {number}
-    */
+     * The currently selected index of this mode selection window.
+     * @type {number}
+     */
     this._currentIndex = null;
   };
 
   /**
-  * Gets the current index that was last assigned of this window.
-  * @returns {number}
-  */
+   * Gets the current index that was last assigned of this window.
+   * @returns {number}
+   */
   get currentIndex() {
     return this._currentIndex;
   };
 
   /**
-  * Sets the current index to a given value.
-  */
+   * Sets the current index to a given value.
+   */
   set currentIndex(index) {
     this._currentIndex = index;
   };
 
   /**
-  * OVERWRITE Sets the alignment for this command window to be left-aligned.
-  */
+   * OVERWRITE Sets the alignment for this command window to be left-aligned.
+   */
   itemTextAlign() {
     return "left";
   };
 
   /**
-  * Gets the details of the currently selected category.
-  * @returns {Crafting_Category}
-  */
+   * Gets the details of the currently selected category.
+   * @returns {Crafting_Category}
+   */
   getCategoryDetails() {
     // cannot return details for null.
-    if (this.currentIndex === null) return null;
+    if (this.currentIndex === null || !this._list.length) return null;
 
     const details = this._list[this.currentIndex].ext;
     return details;
   };
 
+  /**
+   * Determines whether or not there are any recipes learned for a given category.
+   * @param {string} categoryKey The key of the category to check for recipes.
+   * @returns {boolean}
+   */
   hasRecipes(categoryKey) {
-    const unlockedRecipes = $gameSystem.getUnlocksByCategory(categoryKey);
+    const unlockedRecipes = $gameSystem.getUnlockedRecipesByCategory(categoryKey);
     const hasRecipesForCategory = unlockedRecipes.length > 0;
     return hasRecipesForCategory;
   };
 
   /**
-  * Creates a list of all unlocked categories of crafting.
-  */
+   * Creates a list of all unlocked categories of crafting.
+   */
   makeCommandList() {
     const unlockedCategories = $gameSystem.getUnlockedCategories();
 
@@ -1311,53 +1509,56 @@ class Window_JaftingCraftCategory extends Window_Command {
 
 //#region Window_JaftingCraftRecipeList
 /**
-* A simple window that shows a list of recipes available based on unlocked ingredients.
-*/
+ * A simple window that shows a list of recipes available based on unlocked ingredients.
+ */
 class Window_JaftingCraftRecipeList extends Window_Command {
   /**
-  * @constructor
-  * @param {Rectangle} rect The rectangle that represents this window.
-  */
+   * @constructor
+   * @param {Rectangle} rect The rectangle that represents this window.
+   */
   constructor(rect) {
     super(rect);
     this.initialize(rect);
 
     /**
-    * The currently selected index of this mode selection window.
-    * @type {number}
-    */
+     * The currently selected index of this mode selection window.
+     * @type {number}
+     */
     this._currentIndex = null;
 
     /**
-    * The currently selected category that this recipe list is derived from.
-    * @type {string}
-    */
+     * The currently selected category that this recipe list is derived from.
+     * @type {string}
+     */
     this._currentCategory = null;
   };
 
   /**
-  * Gets the current index that was last assigned of this window.
-  * @returns {number}
-  */
+   * Gets the current index that was last assigned of this window.
+   * @returns {number}
+   */
   get currentIndex() {
     return this._currentIndex;
   };
 
   /**
-  * Sets the current index to a given value.
-  */
+   * Sets the current index to a given value.
+   */
   set currentIndex(index) {
     this._currentIndex = index;
   };
 
   /**
-  * Gets the current category that the recipe list is based off of.
-  * @returns {string}
-  */
+   * Gets the current category that the recipe list is based off of.
+   * @returns {string}
+   */
   get currentCategory() {
     return this._currentCategory;
   };
 
+  /**
+   * Sets the current category to a given category.
+   */
   set currentCategory(category) {
     this._currentCategory = category;
     this.refresh();
@@ -1391,61 +1592,22 @@ class Window_JaftingCraftRecipeList extends Window_Command {
   };
 
   /**
-  * Determines whether or not the player has the necessary ingredients on-hand
-  * to craft a given item.
-  * @param {Crafting_Ingredient[]} craftingIngredients The collection of required ingredients.
-  * @returns {boolean} True if the ingredients are present, false otherwise.
-  */
-  hasIngredients(craftingIngredients) {
-    let hasIngredients = true;
-    craftingIngredients.forEach(ingredient => {
-      const rpgItem = J.Base.Helpers.translateItem(ingredient.id, ingredient.type);
-      const count = $gameParty.numItems(rpgItem);
-      if (ingredient.count > count) {
-        hasIngredients = false;
-      }
-    });
-
-    return hasIngredients;
-  };
-
-  /**
-  * Determines whether or not the player has the necessary tools on-hand
-  * to craft a given item.
-  * @param {Crafting_Ingredient[]} craftingTools The collection of required tools.
-  * @returns {boolean} True if the tools are present, false otherwise.
-  */
-  hasTools(craftingTools) {
-    let hasTools = true;
-    craftingTools.forEach(tool => {
-      const rpgItem = J.Base.Helpers.translateItem(tool.id, tool.type);
-      const count = $gameParty.numItems(rpgItem);
-
-      // recipe calls for more than we currently have.
-      if (tool.count > count) {
-        hasTools = false;
-      }
-    });
-
-    return hasTools;
-  };
-
-  /**
   * Creates a list of all unlocked recipes that belong to this category of crafting.
   */
   makeCommandList() {
-    const unlockedRecipes = $gameSystem.getUnlocksByCategory(this.currentCategory);
+    const unlockedRecipes = $gameSystem.getUnlockedRecipesByCategory(this.currentCategory);
 
     // don't make the list if we have no categories to draw.
     if (!unlockedRecipes.length) return;
 
     // create commands based on the recipe and the ingredients/tools vs player inventory.
     unlockedRecipes.forEach(recipe => {
-      const hasIngredients = this.hasIngredients(recipe.ingredients);
-      const hasTools = this.hasTools(recipe.tools);
-      const canCraft = (hasIngredients && hasTools);
+      const canCraft = recipe.canCraft();
+      const name = recipe.getRecipeName();
+      const iconIndex = recipe.getRecipeIconIndex();
+
       // determine if enabled/disabled by ingredients+tools in inventory.
-      this.addCommand(recipe.name, `chosen-recipe`, canCraft, recipe, recipe.iconIndex);
+      this.addCommand(name, `chosen-recipe`, canCraft, recipe, iconIndex);
     });
   };
 };
@@ -1520,8 +1682,9 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
   */
   drawRecipeTitle() {
     const recipe = this.currentRecipe;
+    const iconIndex = this.currentRecipe.getRecipeIconIndex();
     const lh = this.lineHeight();
-    this.drawTextEx(`\\{\\I[${recipe.iconIndex}] \\C[6]${recipe.name}\\C[0]\\}`, 0, lh*0, 300);
+    this.drawTextEx(`\\{\\I[${iconIndex}] \\C[6]${recipe.getRecipeName()}\\C[0]\\}`, 0, lh*0, 300);
   };
 
   /**
@@ -1608,9 +1771,9 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
     const lh = this.lineHeight();
     const ox = 430;
     this.drawTextEx(`\\C[1]Recipe Output\\C[0]`, ox, lh*8, 300);
-    outputs.forEach((output, index) => {
-      const count = output.count;
-      const rpgItem = output.item;
+    outputs.forEach((component, index) => {
+      const count = component.count;
+      const rpgItem = component.getItem();
       const y = lh*(9+(index));
       this.drawRecipeOutputItem(rpgItem, count, ox, y);
     });
@@ -1625,100 +1788,14 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
   */
   drawRecipeOutputItem(rpgItem, count, x, y) {
     const paddedCount = count.padZero(2);
-    this.drawTextEx(`${paddedCount}x \\I[${rpgItem.iconIndex}]${rpgItem.name}`, x, y, 300);
+    let name = rpgItem.name;
+    if (this.currentRecipe.maskedUntilCrafted && !this.currentRecipe.hasBeenCrafted()) {
+      name = name.replace(/[A-Za-z!-?.]/ig, "?");
+    }
+    this.drawTextEx(`${paddedCount}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
   };
 };
 //#endregion Window_JaftingCraftRecipeDetails
 //#endregion Window objects
-
-//#region Custom classes
-//#region Crafting_Recipe
-/**
-* The data that makes up what defines a crafting recipe for use with JAFTING.
-*/
-function Crafting_Recipe() { this.initialize(...arguments); }
-Crafting_Recipe.prototype = {};
-Crafting_Recipe.prototype.constructor = Crafting_Recipe;
-Crafting_Recipe.prototype.initialize = function(
-  name, description, categories, iconIndex, tools, ingredients, output) {
-    /**
-    * The name of this crafting recipe.
-    * @type {string}
-    */
-    this.name = name;
-
-    /**
-    * The description of this crafting recipe.
-    * @type {string}
-    */
-    this.description = description;
-
-    /**
-    * The category keys that this crafting recipe belongs to.
-    * @type {string[]}
-    */
-    this.categories = categories;
-
-    /**
-    * The icon that will display in the type selection window next to this category.
-    * @type {number}
-    */
-    this.iconIndex = iconIndex;
-
-    /**
-    * The list of required tools not consumed but required to execute the recipe.
-    * @type {Crafting_Ingredient[]}
-    */
-    this.tools = tools;
-
-    /**
-    * The list of ingredients that make up this recipe that will be consumed.
-    * @type {Crafting_Ingredient[]}
-    */
-    this.ingredients = ingredients;
-
-    /**
-    * The list of `RPG:Item`s that would be generated when this recipe is successfully crafted.
-    * @type {object}
-    */
-    this.output = output;
-};
-//#endregion Crafting_Recipe
-
-//#region Crafting_Category
-/**
-* Represents the category details for this recipe.
-* A single recipe can live in multiple categories.
-*/
-function Crafting_Category() { this.initialize(...arguments); }
-Crafting_Category.prototype = {};
-Crafting_Category.prototype.constructor = Crafting_Category;
-Crafting_Category.prototype.initialize = function(name, key, iconIndex, description) {
-  /**
-  * The name of this crafting category.
-  * @type {string}
-  */
-  this.name = name;
-
-  /**
-  * The unique key of this crafting category.
-  * @type {string}
-  */
-  this.key = key;
-
-  /**
-  * The icon that will display in the type selection window next to this category.
-  * @type {number}
-  */
-  this.iconIndex = iconIndex;
-
-  /**
-  * The description that shows up in the help window.
-  * @type {string}
-  */
-  this.description = description;
-};
-//#endregion Crafting_Category
-//#endregion Custom classes
 
 //ENDFILE

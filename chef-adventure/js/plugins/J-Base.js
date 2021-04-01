@@ -2267,7 +2267,7 @@ this._baseType = baseType;
 
 /**
 * Gets all ingredients that are described in this recipe.
-* @returns {Crafting_Ingredient[]}
+* @returns {Crafting_Component[]}
 */
 JAFT_Data.prototype.ingredients = function() {
 const ingredients = [];
@@ -2277,7 +2277,7 @@ this._notes.forEach(note => {
     const itemId = parseInt(RegExp.$1);
     const itemType = RegExp.$2;
     const itemCount = parseInt(RegExp.$3);
-    const i = new Crafting_Ingredient(itemId, itemType, itemCount, false);
+    const i = new Crafting_Component(itemId, itemType, itemCount, false);
     ingredients.push(i);
   }
 })
@@ -2287,7 +2287,7 @@ return ingredients;
 
 /**
 * Gets all tools that are described in this recipe.
-* @returns {Crafting_Ingredient[]}
+* @returns {Crafting_Component[]}
 */
 JAFT_Data.prototype.tools = function() {
 const tools = [];
@@ -2296,7 +2296,7 @@ this._notes.forEach(note => {
   if (note.match(structure)) {
     const toolId = parseInt(RegExp.$1);
     const toolType = RegExp.$2;
-    const t = new Crafting_Ingredient(toolId, toolType, 1, true);
+    const t = new Crafting_Component(toolId, toolType, 1, true);
     tools.push(t);
   }
 })
@@ -2443,93 +2443,363 @@ return description;
 };
 //#endregion JAFT_ItemData
 
-//#region Crafting_Ingredient
+//#region Crafting_Component
 /**
-* A single instance of a particular crafting ingredient for use in JAFTING.
-*/
-function Crafting_Ingredient() { this.initialize(...arguments); }
-Crafting_Ingredient.prototype = {};
-Crafting_Ingredient.prototype.constructor = Crafting_Ingredient;
-Crafting_Ingredient.prototype.initialize = function(id, type, count, isTool) {
-/**
-* The id of the underlying ingredient.
-* @type {number}
-*/
-this.id = id;
+ * A single instance of a particular crafting component, such as an ingredient/tool/output,
+ * for use in JAFTING.
+ */
+function Crafting_Component() { this.initialize(...arguments); }
+Crafting_Component.prototype = {};
+Crafting_Component.prototype.constructor = Crafting_Component;
+Crafting_Component.prototype.initialize = function(id, type, count, isTool) {
+  /**
+   * The id of the underlying component.
+   * @type {number}
+   */
+  this.id = id;
 
-/**
-* The type of ingredient this is, such as `i`/`w`/`a`.
-* @type {string}
-*/
-this.type = type;
+  /**
+   * The type of component this is, such as `i`/`w`/`a`.
+   * @type {string}
+   */
+  this.type = type;
 
-/**
-* How many of this ingredient is required.
-* @type {number}
-*/
-this.count = count;
+  /**
+   * How many of this component is required.
+   * @type {number}
+   */
+  this.count = count;
 
-/**
-* Whether or not this ingredient is a non-consumable tool that is required
-* to perform crafting for particular recipes.
-* @type {boolean}
-*/
-this.isTool = isTool;
+  /**
+   * Whether or not this component is a non-consumable tool that is required
+   * to perform crafting for particular recipes.
+   * @type {boolean}
+   */
+  this.isTool = isTool;
 };
-//#endregion Crafting_Ingredient
-
-//#region Crafting_Unlock
-/**
-* Represents an unlocked item and type.
-* Without these, the items will show up as disabled in the list of recipes.
-*/
-function Crafting_Unlock() { this.initialize(...arguments); }
-Crafting_Unlock.prototype = {};
-Crafting_Unlock.prototype.constructor = Crafting_Unlock;
-Crafting_Unlock.prototype.initialize = function(itemId, itemType) {
-/**
-* The id of the item.
-* @type {number}
-*/
-this.itemId = itemId;
 
 /**
-* The type of item this is- one of: `i`/`w`/`a`.
-* @type {string}
-*/
-this.itemType = itemType;
-
-/**
-* Whether or not this item has been crafted yet.
-* While an item is available but not-yet crafted, will be masked with `??`s.
-* @type {boolean}
-*/
-this.crafted = false;
+ * Gets the underlying RPG:Item that this component represents.
+ */
+Crafting_Component.prototype.getItem = function() {
+  switch (this.type) {
+    case `i`:
+      return $dataItems[this.id];
+    case `w`:
+      return $dataWeapons[this.id];
+    case `a`:
+      return $dataArmors[this.id];
+    default:
+      console.error("attempted to craft an invalid item.");
+      console.log(this);
+      throw new Error("The output's type of a recipe was invalid. Check your recipes' output types again.");
+  }
 };
-//#endregion Crafting_Unlock
-
-//#region Crafting_Output
-/**
-* Represents a single unique output from JAFTING.
-* Different items should get their own output slot.
-*/
-function Crafting_Output() { this.initialize(...arguments); }
-Crafting_Output.prototype = {};
-Crafting_Output.prototype.constructor = Crafting_Output;
-Crafting_Output.prototype.initialize = function(item, count) {
-/**
-* The underlying `RPG::Item` to be gained.
-* @type {object}
-*/
-this.item = item;
 
 /**
-* How many of this item will be produced as a output.
-* @type {number}
-*/
-this.count = count;
+ * Crafts this particular component based on it's type.
+ */
+Crafting_Component.prototype.craft = function() {
+  $gameParty.gainItem(this.getItem(), this.count);
 };
-//#endregion Crafting_Output
+
+/**
+ * Consumes this particular component based on it's type.
+ */
+Crafting_Component.prototype.consume = function() {
+  $gameParty.loseItem(this.getItem(), this.count);
+};
+//#endregion Crafting_Component
+
+//#region Crafting_Recipe
+/**
+* The data that makes up what defines a crafting recipe for use with JAFTING.
+*/
+function Crafting_Recipe() { this.initialize(...arguments); }
+Crafting_Recipe.prototype = {};
+Crafting_Recipe.prototype.constructor = Crafting_Recipe;
+Crafting_Recipe.prototype.initialize = function(
+  name, key, description, categories, iconIndex, tools, ingredients, output, masked) {
+    /**
+    * The name of this crafting recipe.
+    * @type {string}
+    */
+    this.name = name;
+
+    /**
+     * The unique key associated with this crafting recipe.
+     * @type {string}
+     */
+    this.key = key;
+
+    /**
+    * The description of this crafting recipe.
+    * @type {string}
+    */
+    this.description = description;
+
+    /**
+    * The category keys that this crafting recipe belongs to.
+    * @type {string[]}
+    */
+    this.categories = categories;
+
+    /**
+    * The icon that will display in the type selection window next to this category.
+    * @type {number}
+    */
+    this.iconIndex = iconIndex;
+
+    /**
+    * The list of required tools not consumed but required to execute the recipe.
+    * @type {Crafting_Component[]}
+    */
+    this.tools = tools;
+
+    /**
+    * The list of ingredients that make up this recipe that will be consumed.
+    * @type {Crafting_Component[]}
+    */
+    this.ingredients = ingredients;
+
+    /**
+    * The list of `Crafting_Output`s that would be generated when this recipe is successfully crafted.
+    * @type {Crafting_Output[]}
+    */
+    this.output = output;
+
+    /**
+     * Whether or not this recipe is masked by default until crafted the first time.
+     * Masked recipes show up as all question marks in place of their name.
+     * @type {boolean}
+     */
+    this.maskedUntilCrafted = masked;
+    this.initMembers();
+};
+
+/**
+ * Initializes all members that do not require parameters for this class.
+ */
+Crafting_Recipe.prototype.initMembers = function() {
+  /**
+   * Whether or not this recipe has been unlocked for JAFTING.
+   * @type {boolean}
+   */
+  this.unlocked = false;
+
+  /**
+   * Whether or not this recipe has been JAFTED before.
+   * @type {boolean}
+   */
+  this.crafted = false;
+};
+
+/**
+ * Gets whether or not this JAFTING recipe has been unlocked or not.
+ * @returns {boolean}
+ */
+Crafting_Recipe.prototype.isUnlocked = function() {
+  return this.unlocked;
+};
+
+/**
+ * Locks this JAFTING recipe.
+ */
+Crafting_Recipe.prototype.lock = function() {
+  this.unlocked = false;
+};
+
+/**
+ * Unlocks this JAFTING recipe. Does not unlock the category this recipe belongs to.
+ */
+Crafting_Recipe.prototype.unlock = function() {
+  this.unlocked = true;
+};
+
+/**
+ * Creates all output of this JAFTING recipe and marks the recipe as "crafted".
+ */
+Crafting_Recipe.prototype.craft = function() {
+  this.output.forEach(component => component.craft());
+  this.ingredients.forEach(component => component.consume());
+  this.setCrafted();
+};
+
+/**
+ * Gets whether or not this recipe is craftable based on the ingredients and tools on-hand.
+ * @returns {boolean}
+ */
+Crafting_Recipe.prototype.canCraft = function() {
+  let hasIngredients = true;
+  let hasTools = true;
+
+  // check over all ingredients to see if we have enough to JAFT this recipe.
+  this.ingredients.forEach(component => {
+    const count = $gameParty.numItems(component.getItem());
+    if (component.count > count) {
+      hasIngredients = false;
+    }
+  });
+
+  // check over all tools to see if we have them on-hand to JAFT this recipe.
+  this.tools.forEach(component => {
+    const count = $gameParty.numItems(component.getItem());
+    if (component.count > count) {
+      hasTools = false;
+    }
+  });
+
+  return hasIngredients && hasTools;
+};
+
+/**
+ * Gets whether or not this recipe has been crafted before.
+ * @returns {boolean}
+ */
+Crafting_Recipe.prototype.hasBeenCrafted = function() {
+  return this.crafted;
+};
+
+/**
+ * Sets this recipe to a "crafted" state.
+ * @param {boolean} crafted Whether or not this item has been crafted.
+ */
+Crafting_Recipe.prototype.setCrafted = function(crafted = true) {
+  this.crafted = crafted;
+};
+
+/**
+ * Gets the primary output of this recipe.
+ * Primary output is defined as the first item in the list of all output
+ * that this recipe creates.
+ * @returns {RPG_Item}
+ */
+Crafting_Recipe.prototype.getPrimaryOutput = function() {
+  return this.output[0].getItem();
+};
+
+/**
+ * Gets the name of this recipe.
+ * If none was specified, then the primary output's name will be used.
+ * @returns {string}
+ */
+Crafting_Recipe.prototype.getRecipeName = function() {
+  let name = "";
+  if (!this.name.length) {
+    const primaryOutput = this.getPrimaryOutput();
+    name = primaryOutput.name;
+  } else {
+    name = this.name;
+  }
+
+  if (this.maskedUntilCrafted && !this.crafted) {
+    name = name.replace(/[A-Za-z\-!?',.]/ig, "?");
+  }
+
+  return name;
+};
+
+/**
+ * Gets the icon index of this recipe.
+ * If none was specified, then the primary output's icon index will be used.
+ * @returns {number}
+ */
+Crafting_Recipe.prototype.getRecipeIconIndex = function() {
+  if (this.iconIndex === -1) {
+    const primaryOutput = this.getPrimaryOutput();
+    return primaryOutput.iconIndex;
+  } else {
+    return this.iconIndex;
+  }
+};
+
+/**
+ * Gets the description of this recipe.
+ * If none was specified, then the primary output's description will be used.
+ * @returns {string}
+ */
+Crafting_Recipe.prototype.getRecipeDescription = function() {
+  let description = "";
+  if (!this.description.length) {
+    const primaryOutput = this.getPrimaryOutput();
+    description = primaryOutput.description;
+  } else {
+    description = this.description;
+  }
+
+  if (this.maskedUntilCrafted && !this.crafted) {
+    description = description.replace(/[A-Za-z\-!?',.]/ig, "?");
+  }
+
+  return description;
+};
+//#endregion Crafting_Recipe
+
+//#region Crafting_Category
+/**
+* Represents the category details for this recipe.
+* A single recipe can live in multiple categories.
+*/
+function Crafting_Category() { this.initialize(...arguments); }
+Crafting_Category.prototype = {};
+Crafting_Category.prototype.constructor = Crafting_Category;
+Crafting_Category.prototype.initialize = function(name, key, iconIndex, description) {
+ /**
+  * The name of this crafting category.
+  * @type {string}
+  */
+  this.name = name;
+
+ /**
+  * The unique key of this crafting category.
+  * @type {string}
+  */
+  this.key = key;
+
+ /**
+  * The icon that will display in the type selection window next to this category.
+  * @type {number}
+  */
+  this.iconIndex = iconIndex;
+
+ /**
+  * The description that shows up in the help window.
+  * @type {string}
+  */
+  this.description = description;
+  this.initMembers();
+};
+
+Crafting_Category.prototype.initMembers = function() {
+  /**
+   * Whether or not this category is unlocked.
+   * @type {boolean}
+   */
+  this.unlocked = false;
+};
+
+/**
+ * Gets whether or not this JAFTING category is unlocked.
+ * @returns {boolean}
+ */
+Crafting_Category.prototype.isUnlocked = function() {
+  return this.unlocked;
+};
+
+/**
+ * Locks this JAFTING category.
+ */
+Crafting_Category.prototype.lock = function() {
+  this.unlocked = false;
+};
+
+/**
+ * Unlocks this JAFTING category.
+ */
+Crafting_Category.prototype.unlock = function() {
+  this.unlocked = true;
+};
+//#endregion Crafting_Category
 //#endregion JAFTING classes
 
 //#region SDP classes
