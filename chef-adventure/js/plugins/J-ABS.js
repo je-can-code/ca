@@ -553,23 +553,7 @@ J.ABS.Notetags = {
     Forward: "forward",
     Backward: "backward",
     Directional: "directional",
-  },
-  EventControl: {
-    /**
-     * The regex structure for retrieving a switch to toggle.
-     */
-    Switch: /<switch:[ ]?(\d+)>/i,
-
-    /**
-     * The regex structure for retrieving a self-switch to toggle.
-     */
-    SelfSwitch: /<self[-]?switch:[ ]?(a|b|c|d):[ ]?(\d+)>/i,
-
-    /**
-     * The regex structure for retrieving a variable to add to.
-     */
-    Variable: /<variable:[ ]?(\d+)[ ]?:[ ]?([-]?[\d]+)>/i,
-  },
+  }
 };
 
 /**
@@ -580,6 +564,7 @@ J.ABS.Aliased = {
   Game_Actor: {},
   Game_Action: {},
   Game_ActionResult: {},
+  Game_Battler: {},
   Game_Character: {},
   Game_CharacterBase: {},
   Game_Event: {},
@@ -874,7 +859,7 @@ Input.keyMapper = {
 //#endregion
 //#endregion Static objects
 
-//#region Core MZ Game Objects
+//#region Game objects
 //#region Game_Actor
 Game_Actor.JABS_MAINHAND = "Main";
 Game_Actor.JABS_OFFHAND = "Off";
@@ -1348,6 +1333,25 @@ Game_ActionResult.prototype.isHit = function() {
   return this.used && !this.parried && !this.evaded && !this.preciseParried;
 };
 //#endregion
+
+//#region Game_Battler
+J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
+Game_Battler.prototype.addNewState = function(stateId) {
+  J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
+  this.addJabsState(stateId);
+};
+
+Game_Battler.prototype.resetStateCounts = function(stateId) {
+  Game_BattlerBase.prototype.resetStateCounts.call(this, stateId);
+  this.addJabsState(stateId);
+};
+
+Game_Battler.prototype.addJabsState = function(stateId) {
+  const state = $dataStates[stateId];
+  const stateTracker = new JABS_TrackedState(this, stateId, state.iconIndex, state.stepsToRemove);
+  $gameBattleMap.addStateTracker(stateTracker);
+};
+//#endregion Game_Battler
 
 //#region Game_Character
 /**
@@ -2057,7 +2061,7 @@ Game_Interpreter.prototype.command201 = function(params) {
  * Removed the check for seeing if the player is in-battle, because the player
  * is technically ALWAYS in-battle while the ABS is enabled.
  */
-J.ABS.Aliased.Game_Interpreter.command201 = Game_Interpreter.prototype.command201;
+J.ABS.Aliased.Game_Interpreter.command204 = Game_Interpreter.prototype.command204;
 Game_Interpreter.prototype.command204 = function(params) {
   if ($gameBattleMap.absEnabled) {
     if ($gameMap.isScrolling()) {
@@ -2072,7 +2076,7 @@ Game_Interpreter.prototype.command204 = function(params) {
 
     return true;
   } else {
-    return J.ABS.Aliased.Game_Interpreter.command201.call(this, params);
+    return J.ABS.Aliased.Game_Interpreter.command204.call(this, params);
   }
 };
 
@@ -2179,6 +2183,9 @@ Game_Map.prototype.setup = function(mapId) {
  * Initializes all enemies and the battle map for JABS.
  */
 Game_Map.prototype.jabsInitialization = function() {
+  // don't do things if we aren't using JABS.
+  if (!$gameBattleMap.absEnabled) return;
+
   $gameBattleMap.initialize();
   this.refreshAllBattlers();
 };
@@ -2768,7 +2775,7 @@ Game_Unit.prototype.inBattle = function() {
     : J.ABS.Aliased.Game_Unit.inBattle.call(this);
 }
 //#endregion
-//#endregion Core MZ Game Objects
+//#endregion Game objects
 
 //#region Scene objects
 //#region Scene_Load
@@ -2806,8 +2813,11 @@ Scene_Map.prototype.initialize = function() {
  */
 J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function() {
-  $gameBattleMap.initialize();
-  $gameBattleMap.initializePlayerBattler();
+  if ($gameBattleMap.absEnabled) {
+    $gameBattleMap.initialize();
+    $gameBattleMap.initializePlayerBattler();
+  }
+
   J.ABS.Aliased.Scene_Map.onMapLoaded.call(this);
 };
 
@@ -2880,7 +2890,9 @@ Scene_Map.prototype.update = function() {
  */
 Scene_Map.prototype.handlePartyRotation = function() {
   $gameBattleMap.requestPartyRotation = false;
-  this.refreshHud();
+  if (J.Hud && J.Hud.Metadata.Enabled) {
+    this.refreshHud();
+  }
 };
 
 /**
@@ -2888,13 +2900,13 @@ Scene_Map.prototype.handlePartyRotation = function() {
  */
 Scene_Map.prototype.handleJabsWindowsVisibility = function() {
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy()) {
-    this.toggleHud(true);
-    this.toggleLog(true);
-    this.toggleKeys(true);
+    if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(true);
+    if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(true);
+    if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
   } else {
-    this.toggleHud(false);
-    this.toggleLog(false);
-    this.toggleKeys(false);
+    if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(false);
+    if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(false);
+    if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
   }
 };
 
@@ -3791,7 +3803,8 @@ Sprite_Character.prototype.updateStateOverlay = function() {
     } else {
       this.hideStateOverlay();
     }
-  }};
+  }
+};
 
 /**
  * Updates the all gauges associated with this battler
@@ -4565,7 +4578,7 @@ class Window_AbsMenuSelect extends Window_Command {
 //#endregion
 //#endregion Window objects
 
-//#region New Game objects
+//#region Custom classes
 
 //#region Game_BattleMap
 /**
@@ -4674,6 +4687,12 @@ class Game_BattleMap {
      * @type {boolean}
      */
     this._absPause = false;
+
+    /**
+     * A collection of all ongoing states.
+     * @type {JABS_TrackedState[]}
+     */
+    this._stateTracker = this._stateTracker || [];
     this.initializePlayerBattler();
   };
 
@@ -4691,7 +4710,7 @@ class Game_BattleMap {
    * @param {boolean} enabled Whether or not the ABS is enabled (default = true).
    */
   set absEnabled(enabled) {
-    return this._absEnabled = enabled;
+    this._absEnabled = enabled;
   };
 
   /**
@@ -4723,15 +4742,7 @@ class Game_BattleMap {
    * @param {boolean} requested Whether or not we want to request the menu (default: true).
    */
   set requestAbsMenu(requested) {
-    return this._requestAbsMenu = requested;
-  };
-
-  /**
-   * Returns all current events being managed on this battle map.
-   * @returns {JABS_Action[]} The collection of `JABS_Action`s on this battle map.
-   */
-  get actionEvents() {
-    return this._actionEvents;
+    this._requestAbsMenu = requested;
   };
 
   /**
@@ -4780,7 +4791,7 @@ class Game_BattleMap {
    * for removal.
    */
   clearActionEvents() {
-    const actionEvents = this.actionEvents;
+    const actionEvents = this._actionEvents;
     const updatedActionEvents = actionEvents.filter(action => {
       return !action.getNeedsRemoval();
     });
@@ -4979,6 +4990,7 @@ class Game_BattleMap {
     this.updatePlayerBattler();
     this.updateNonPlayerBattlers();
     this.updateActions();
+    this.updateStates();
   };
 
   //#region base battle updates
@@ -4987,7 +4999,7 @@ class Game_BattleMap {
    */
   updatePlayerBattler() {
     const player = this.getPlayerMapBattler();
-    if (player == null) return;
+    if (player === null) return;
     if (player.getBattler().isDead()) {
       this.handleDefeatedPlayer();
     }
@@ -5014,6 +5026,14 @@ class Game_BattleMap {
   handleAbsInput() {
     // don't swing all willy nilly while events are executing.
     if ($gameMap.isEventRunning() || $gameMessage.isBusy()) return;
+
+    // menu
+    if (Input.isTriggered(J.ABS.Input.Start) || Input.isTriggered("escape")) {
+      this.performMenuAction();
+    }
+
+    // don't allow for other inputs if the abs is disabled.
+    if (!this.absEnabled) return;
 
     // strafing can be done concurrently to other actions.
     if (Input.isPressed(J.ABS.Input.L2)) {
@@ -5126,11 +5146,6 @@ class Game_BattleMap {
       this.performToolAction();
     }
 
-    // menu
-    if (Input.isTriggered(J.ABS.Input.Start) || Input.isTriggered("escape")) {
-      this.performMenuAction();
-    }
-
     // party rotation
     if (Input.isTriggered(J.ABS.Input.Select)) {
       this.rotatePartyMembers();
@@ -5211,9 +5226,11 @@ class Game_BattleMap {
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
-    const battlerName = this.getPlayerMapBattler().battlerName();
-    const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
-    $gameTextLog.addLog(log);
+    if (J.TextLog && J.TextLog.Metadata.Enabled) {
+      const battlerName = this.getPlayerMapBattler().battlerName();
+      const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
+      $gameTextLog.addLog(log);
+    }
   };
 
   /**
@@ -5351,8 +5368,6 @@ class Game_BattleMap {
     }
   };
 
-  //#endregion perform actions
-
   /**
    * Cycles through and updates all things related to battlers other than the player.
    */
@@ -5376,7 +5391,7 @@ class Game_BattleMap {
    * checking piercing information, and applying effects against the map.
    */
   updateActions() {
-    const actionEvents = this.actionEvents;
+    const actionEvents = this._actionEvents;
     actionEvents.forEach(action => {
       // if the duration of the action expires, remove it.
       action.countdownDuration();
@@ -5424,7 +5439,48 @@ class Game_BattleMap {
     }
   };
 
-  //#endregion base battle updates
+  updateStates() {
+    this._stateTracker.forEach(trackedState => {
+      trackedState.update();
+      //if (trackedState.isExpired()) {
+      //  this.removeStateTracker(trackedState);
+      //}
+    });
+  };
+
+  addStateTracker(stateTracker) {
+    const index = this._stateTracker
+      .findIndex(trackedState => 
+        trackedState.battler == stateTracker.battler &&
+        trackedState.stateId === stateTracker.stateId);
+    console.log(index);
+    if (index > -1) {
+      const data = this._stateTracker[index];
+      data.duration = stateTracker.duration;
+      data.expired = false;
+      return;
+    }
+
+    this._stateTracker.push(stateTracker);
+  };
+
+  removeStateTracker(trackerToRemove) {
+    const index = this._stateTracker.findIndex(trackedState => {
+      return (
+        trackedState.battler === trackerToRemove.battler &&
+        trackedState.stateId === trackerToRemove.stateId);
+    });
+
+    if (index > -1) {
+      this._stateTracker.splice(index, 1);
+    }
+  };
+
+  getStateTrackerByBattler(battler) {
+    const filtered = this._stateTracker.filter(trackedState => trackedState.battler === battler);
+    return filtered;
+  };
+
   /**
    * Find a battler on this map by their `uuid`.
    * @param {string} uuid The unique identifier of a battler to find.
@@ -5434,10 +5490,7 @@ class Game_BattleMap {
     const battlers = $gameMap.getBattlers();
     const player = $gameBattleMap.getPlayerMapBattler();
     battlers.push(player);
-    const jabsBattler = battlers.find(battler => {
-      const result = battler.getUuid() === uuid;
-      return result
-    });
+    const jabsBattler = battlers.find(battler => battler.getUuid() === uuid);
     return jabsBattler
       ? jabsBattler
       : null;
@@ -5856,12 +5909,8 @@ class Game_BattleMap {
 
     // apply effects that require landing a successful hit.
     if (result.isHit() || result.parried) {
-      // apply the animation against the target's map character.
-      //const isAnimating = action.getAnimating(targetUuid);
-      //if (!isAnimating) {
+      // display the animation if it hit (or was parried).
       targetSprite.requestAnimation(animationId, result.parried);
-      //  action.setAnimating(targetUuid, true);
-      //}
 
       // if freecombo-ing, then we already checked for combo when executing the action.
       if (!skill._j.freeCombo) {
@@ -6167,7 +6216,7 @@ class Game_BattleMap {
    */
   createAttackLog(action, skill, result, caster, target) {
     // if not enabled, skip this.
-    if (!J.TextLog.Metadata.Enabled) return;
+    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
 
     const skillName = skill.name;
     const casterName = caster.getReferenceData().name;
@@ -6645,7 +6694,10 @@ class Game_BattleMap {
     if (!experience) return;
 
     const activeParty = $gameParty.battleMembers();
-    activeParty.forEach(member => member.gainExp(experience));
+    activeParty.forEach(member => {
+      const gainedExperience = experience *= member.exr;
+      member.gainExp(gainedExperience);
+    });
     const expPop = this.configureExperiencePop(experience);
     casterSprite.addTextPop(expPop);
     casterSprite.setRequestTextPop();
@@ -6709,7 +6761,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} caster The ally gaining the experience and gold.
    */
   createRewardsLog(experience, gold, caster) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
 
     if (experience != 0) {
       const casterData = caster.getReferenceData();
@@ -6747,7 +6799,7 @@ class Game_BattleMap {
    * @param {object} item The reference data for the item loot that was picked up.
    */
   createLootLog(item) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
 
     // the player is always going to be the one collecting the loot- for now.
     const casterName = this.getPlayerMapBattler().getReferenceData().name;
@@ -6812,7 +6864,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} player The player.
    */
   createLevelUpLog(player) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
 
     const leaderData = player.getReferenceData();
     const leaderName = leaderData.name;
@@ -6884,7 +6936,9 @@ class Game_BattleMap {
 
 //#endregion
 
-//#endregion New Game objects
+//#endregion Custom classes
+
+//#endregion Custom classes
 
 //#region JABS objects
 //#region JABS_AiManager
@@ -7993,7 +8047,7 @@ JABS_Battler.prototype.update = function() {
   this.updateAnimations();
   this.updateCooldowns();
   this.updateEngagement();
-  this.updateStates();
+  //this.updateStates();
   this.updateRG();
   this.updateDodging();
   this.updateDeathHandling();
@@ -8194,6 +8248,7 @@ JABS_Battler.prototype.countdownAlert = function() {
   }
 };
 
+//#region dodging
 /**
  * Gets whether or not this battler is dodging.
  * @returns {boolean} True if currently dodging, false otherwise.
@@ -8283,6 +8338,7 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType) {
 
   return direction;
 };
+//#endregion dodging
 
 /**
  * Whether or not the regen tick is ready.
@@ -10209,7 +10265,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId) {
  */
 JABS_Battler.prototype.createToolLog = function(item) {
   // if not enabled, skip this.
-  if (!J.TextLog.Metadata.Active) return;
+  if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
 
   const battleMessage = `${this.getReferenceData().name} used the ${item.name}.`;
   const log = new Map_TextLog(battleMessage, -1);
@@ -11823,6 +11879,42 @@ JABS_BattlerCoreData.prototype.isInanimate = function() {
   return this._isInanimate;
 };
 //#endregion JABS_BattlerCoreData
+//#endregion JABS objects
+
+//#region JABS_TrackedState
+class JABS_TrackedState {
+  constructor(battler, stateId, iconIndex, duration) {
+    this.battler = battler;
+    this.stateId = stateId;
+    this.iconIndex = iconIndex;
+    this.duration = duration;
+    this.expired = false;
+  };
+
+  update() {
+    if (this.duration > 0) {
+      this.duration--;
+    } else if (this.duration === 0) {
+      this.removeStateFromBattler();
+    }
+  };
+
+  removeStateFromBattler() {
+    const index = this.battler
+      .states()
+      .findIndex(state => state.id === this.stateId);
+    if (index > -1) {
+      this.battler.removeState(this.stateId);
+      this.expired = true;
+    }
+  };
+
+  isExpired() {
+    return this.expired;
+  };
+};
+//#endregion JABS_TrackedState
+
 //#endregion JABS objects
 
 //ENDFILE

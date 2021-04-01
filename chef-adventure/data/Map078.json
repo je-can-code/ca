@@ -1,0 +1,11 @@
+{
+"autoplayBgm":false,"autoplayBgs":false,"battleback1Name":"","battleback2Name":"","bgm":{"name":"_GU_PirosThe3rd","pan":0,"pitch":100,"volume":60},"bgs":{"name":"","pan":0,"pitch":100,"volume":90},"disableDashing":false,"displayName":"Intro School of Learning","encounterList":[],"encounterStep":30,"height":0,"note":"","parallaxLoopX":false,"parallaxLoopY":false,"parallaxName":"","parallaxShow":true,"parallaxSx":0,"parallaxSy":0,"scrollType":0,"specifyBattleback":false,"tilesetId":1,"width":0,
+"data":[],
+"events":[
+null,
+null,
+null,
+null,
+null
+]
+}
