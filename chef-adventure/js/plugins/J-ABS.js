@@ -1335,21 +1335,63 @@ Game_ActionResult.prototype.isHit = function() {
 //#endregion
 
 //#region Game_Battler
+/**
+ * Extends this function to add the state to the JABS state tracker.
+ */
 J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
 Game_Battler.prototype.addNewState = function(stateId) {
   J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
   this.addJabsState(stateId);
 };
 
+/**
+ * Refreshes the battler's state that is being re-applied.
+ * @param {number} stateId The state id to track.
+ */
 Game_Battler.prototype.resetStateCounts = function(stateId) {
   Game_BattlerBase.prototype.resetStateCounts.call(this, stateId);
   this.addJabsState(stateId);
 };
 
+/**
+ * Adds a particular state to become tracked by the tracker for this battler.
+ * @param {number} stateId The state id to track.
+ */
 Game_Battler.prototype.addJabsState = function(stateId) {
   const state = $dataStates[stateId];
   const stateTracker = new JABS_TrackedState(this, stateId, state.iconIndex, state.stepsToRemove);
   $gameBattleMap.addStateTracker(stateTracker);
+};
+
+/**
+ * Gets the numeric representation of this battler's strength.
+ * @returns {number}
+ */
+Game_Battler.prototype.getPowerLevel = function() {
+  let powerLevel = 0;
+  let counter = 2;
+  // skip MP
+  const bparams = [2, 3, 4, 5, 6, 7];
+  const xparams = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+  const sparams = [18, 19, 20, 21, 22, 23, 24, 25];
+  while (counter < 28) {
+    if (bparams.includes(counter)) {
+      powerLevel += parseFloat(this.param(counter));
+    }
+
+    if (xparams.includes(counter)) {
+      powerLevel += parseFloat(this.xparam(counter-8) * 100);
+    }
+
+    if (sparams.includes(counter)) {
+      powerLevel += parseFloat(this.sparam(counter-18) * 100 - 100);
+    }
+
+    counter++;
+  }
+
+  powerLevel += (this.level ** 2);
+  return Math.round(powerLevel);
 };
 //#endregion Game_Battler
 
@@ -3613,6 +3655,7 @@ Sprite_Character.prototype.createDangerIndicatorSprite = function() {
  * @returns The icon index of the danger indicator icon.
  */
 Sprite_Character.prototype.getDangerIndicatorIcon = function() {
+  //TODO: update this to gauge power levels instead of only level.
   // if we aren't using them, don't give an icon.
   if (!J.ABS.Metadata.UseDangerIndicatorIcons) return -1;
 
@@ -3620,34 +3663,32 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function() {
   const battler = this.getBattler();
   if (!battler) return -1;
 
-  // calculate the level difference.
+  // if the sprite belongs to the player, then don't do it.
   const player = $gameBattleMap.getPlayerMapBattler().getBattler();
-  const diff = Math.abs(battler.level - player.level);
-  const isPlayerBigger = player.level > battler.level;
+  if (player === battler) return -1;
 
-  // player or enemy, same icon.
-  if (diff <= 2) { // 0-2
-    return J.ABS.DangerIndicatorIcons.Average;
-  // the player is bigger, so set the icons to be nicer (blue-er).
-  } else if (isPlayerBigger) {
-    switch (true) {
-      case (diff > 2 && diff <= 4): // 3-4
-        return J.ABS.DangerIndicatorIcons.Easy;
-      case (diff > 4 && diff <= 6): // 5-6
-        return J.ABS.DangerIndicatorIcons.Simple;
-      case (diff > 6): // 7+
-        return J.ABS.DangerIndicatorIcons.Worthless;
-    }
-  // the enemy is bigger, so set the icons to be scarier (red-der).
-  } else {
-    switch (true) {
-      case (diff > 2 && diff <= 4): // 3-4
-        return J.ABS.DangerIndicatorIcons.Hard;
-      case (diff > 4 && diff <= 6): // 5-6
-        return J.ABS.DangerIndicatorIcons.Grueling;
-      case (diff > 6): // 7+
-        return J.ABS.DangerIndicatorIcons.Deadly;
-    }
+  // get the corresponding power levels.
+  const bpl = battler.getPowerLevel();
+  const ppl = player.getPowerLevel();
+
+  switch (true) {
+    case (bpl < ppl*0.5):
+      return J.ABS.DangerIndicatorIcons.Worthless;
+    case (bpl >= ppl*0.5 && bpl < ppl*0.7):
+      return J.ABS.DangerIndicatorIcons.Simple;
+    case (bpl >= ppl*0.7 && bpl < ppl*0.9):
+      return J.ABS.DangerIndicatorIcons.Easy;
+    case (bpl >= ppl*0.9 && bpl < ppl*1.1):
+      return J.ABS.DangerIndicatorIcons.Average;
+    case (bpl >= ppl*1.1 && bpl < ppl*1.3):
+      return J.ABS.DangerIndicatorIcons.Hard;
+    case (bpl >= ppl*1.3 && bpl <= ppl*1.5):
+      return J.ABS.DangerIndicatorIcons.Grueling;
+    case (bpl > ppl*1.5):
+      return J.ABS.DangerIndicatorIcons.Deadly;
+    default:
+      console.log(bpl);
+      return -1;
   }
 };
 //#endregion danger indicator icon
@@ -5206,16 +5247,16 @@ class Game_BattleMap {
    * Actually executes the party cycling and swaps to the next living member.
    */
   performPartyCycling() {
-    //const isNextAllyDead = $gameParty._actors.find(actorId => {
-    //  return !$gameActors.actor(actorId).isDead();
-    //});
+    const nextLivingAllyIndex = $gameParty._actors.findIndex((actorId, index) => {
+      if (index === 0) return false; // don't look at the current leader.
+      return !$gameActors.actor(actorId).isDead();
+    });
 
-    // if next member is dead, then don't rotate.
-    const isNextMemberDead = $gameActors.actor($gameParty._actors[1]).isDead();
-    if (isNextMemberDead) return;
+    // can't cycle if there are no living/valid members.
+    if (nextLivingAllyIndex === -1) return;
 
     // swap to the next party member in the sequence.
-    $gameParty._actors.push($gameParty._actors.shift());
+    $gameParty._actors = $gameParty._actors.concat($gameParty._actors.splice(0, nextLivingAllyIndex));
     $gamePlayer.refresh();
     $gamePlayer.requestAnimation(40, false);
 
@@ -5439,47 +5480,48 @@ class Game_BattleMap {
     }
   };
 
+  //#region state tracking
+  /**
+   * Updates all states for all battlers that are afflicted.
+   */
   updateStates() {
     this._stateTracker.forEach(trackedState => {
       trackedState.update();
-      //if (trackedState.isExpired()) {
-      //  this.removeStateTracker(trackedState);
-      //}
     });
   };
 
-  addStateTracker(stateTracker) {
+  /**
+   * Adds a state tracker to the collection.
+   * @param {JABS_TrackedState} stateTracker The state tracker to add.
+   */
+  addStateTracker(newStateTracker) {
     const index = this._stateTracker
       .findIndex(trackedState => 
-        trackedState.battler == stateTracker.battler &&
-        trackedState.stateId === stateTracker.stateId);
-    console.log(index);
+        trackedState.battler == newStateTracker.battler &&
+        trackedState.stateId === newStateTracker.stateId);
+    
+    // if there is already a tracked state for this battler and id, then refresh it instead.
+    // this is where to change reapplication functionality.
     if (index > -1) {
       const data = this._stateTracker[index];
-      data.duration = stateTracker.duration;
+      data.duration = newStateTracker.duration;
       data.expired = false;
       return;
     }
 
-    this._stateTracker.push(stateTracker);
+    this._stateTracker.push(newStateTracker);
   };
 
-  removeStateTracker(trackerToRemove) {
-    const index = this._stateTracker.findIndex(trackedState => {
-      return (
-        trackedState.battler === trackerToRemove.battler &&
-        trackedState.stateId === trackerToRemove.stateId);
-    });
-
-    if (index > -1) {
-      this._stateTracker.splice(index, 1);
-    }
-  };
-
+  /**
+   * Gets all tracked states for a given battler.
+   * @param {Game_Battler} battler The battler to find tracked states for.
+   * @returns {JABS_TrackedState[]}
+   */
   getStateTrackerByBattler(battler) {
     const filtered = this._stateTracker.filter(trackedState => trackedState.battler === battler);
     return filtered;
   };
+  //#endregion state tracking
 
   /**
    * Find a battler on this map by their `uuid`.
@@ -5550,6 +5592,7 @@ class Game_BattleMap {
     // if no actions, then don't actually do anything.
     if (!actions) return;
 
+    this.paySkillCosts(battler, actions[0]);
     actions.forEach(action => {
       this.executeMapAction(battler, action);
     });
@@ -5569,7 +5612,6 @@ class Game_BattleMap {
 
     // apply cooldowns and pay costs.
     this.applyCooldownCounters(caster, action);
-    this.paySkillCosts(caster, action);
     if (freeCombo) {
       this.checkComboSequence(caster, action)
     }
@@ -5767,6 +5809,9 @@ class Game_BattleMap {
     const cooldownValue = action.getCooldown();
     if (!caster.isPlayer()) {
       caster.modCooldownCounter(cooldownType, cooldownValue);
+      if (caster.isEnemy()) {
+        caster.startPostActionCooldown(cooldownValue);
+      }
     } else {
       const skill = action.getBaseSkill();
       if (skill._j.uniqueCooldown || this.isBasicAttack(cooldownType)) {
@@ -6717,7 +6762,7 @@ class Game_BattleMap {
       null,
       null,
       "exp",
-      exp);
+      Math.round(exp));
     return popup;
   };
 
@@ -7172,14 +7217,23 @@ class JABS_AiManager {
    * @param {JABS_Battler} battler The `JABS_Battler`.
    */
   static aiPhase2(battler) {
+    // step 1: decide your action.
     if (!battler.isActionDecided()) {
       this.decideAiPhase2Action(battler);
     }
   
+    // step 2: get into position.
     if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove()) {
       this.decideAiPhase2Movement(battler);
     }
+
+    // step 3: hold for cast time.
+    if (battler.isCasting()) {
+      battler.countdownCastTime();
+      return;
+    }
   
+    // step 4: execute your action.
     if (battler.isInPosition()) {
       const decidedAction = battler.getDecidedAction();
       battler.turnTowardTarget();
@@ -7319,16 +7373,18 @@ class JABS_AiManager {
    */
   static setupActionForNextPhase(battler, chosenSkillId) {
     const mapActions = battler.createMapActionFromSkill(chosenSkillId);
-    const cooldownName = `${mapActions[0].getBaseSkill().name}`;
+    const primaryMapAction = mapActions[0];
+    const cooldownName = `${primaryMapAction.getBaseSkill().name}`;
     mapActions.forEach(action => action.setCooldownType(cooldownName));
     battler.setDecidedAction(mapActions);
-    if (mapActions[0].isSupportAction()) {
+    if (primaryMapAction.isSupportAction()) {
       battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)
     } else {
       battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
     }
 
-    battler.setWaitCountdown(15);
+    battler.setWaitCountdown(30); // always wait a half-second before executing an action.
+    battler.setCastCountdown(primaryMapAction.getCastTime());
   };
 
   /**
@@ -7357,6 +7413,7 @@ class JABS_AiManager {
   /**
    * This is the post-action phase, when the battler has executed an action but not
    * yet restarted the cycle.
+   * @param {JABS_Battler} battler The battler for this AI.
    */
   static aiPhase3(battler) {
     if (!battler.isPostActionCooldownComplete()) {
@@ -7382,21 +7439,19 @@ class JABS_AiManager {
     const distance = battler.distanceToCurrentTarget();
     if (distance === null) return;
   
-    const ai = battler.getAiMode();
+    const { basic, smart, defensive} = battler.getAiMode();
   
-    if (ai.basic) {
+    if (basic && !smart) {
       // basic AI phase 3:
       // just kinda watches the target and doesn't move.
       if (JABS_Battler.isClose(distance) || JABS_Battler.isSafe(distance)) {
         battler.moveAwayFromTarget();
-      } else {
-        battler.smartMoveTowardTarget();
       }
   
       battler.turnTowardTarget();
     } 
     
-    if (ai.smart) {
+    if (smart) {
       // smart AI phase 1:
       // will try to maintain a comfortable distance from the target.
       if (JABS_Battler.isClose(distance)) {
@@ -7407,7 +7462,7 @@ class JABS_AiManager {
       battler.turnTowardTarget();
     } 
     
-    else if (ai.defensive) {
+    else if (defensive) {
       // defensive AI phase 1:
       // will try to maintain a great distance from the target.
       // NOTE: does not combine with smart.
@@ -7659,6 +7714,18 @@ JABS_Battler.prototype.initBattleInfo = function() {
    * @type {boolean}
    */
   this._postActionCooldownComplete = true;
+
+  /**
+   * The number of frames a skill requires prior to execution.
+   * @type {number}
+   */
+  this._castTimeCountdown = 0;
+
+  /**
+   * Whether or not this battler is currently in a casting state.
+   * @type {boolean}
+   */
+  this._casting = false;
       
   /**
    * Whether or not this battler is engaged in combat with a target.
@@ -8233,6 +8300,47 @@ JABS_Battler.prototype.isWaiting = function() {
 };
 
 /**
+ * Counts down the duration for this battler's cast time.
+ */
+JABS_Battler.prototype.countdownCastTime = function() {
+  if (this._castTimeCountdown > 0) {
+    this._castTimeCountdown--;
+    return;
+  }
+
+  if (this._castTimeCountdown <= 0) {
+    this._casting = false;
+    this._castTimeCountdown = 0;
+  }
+};
+
+/**
+ * Sets the cast time duration to a number. If this number is greater than
+ * zero, then the battler must spend this duration in frames casting before
+ * executing the skill.
+ * @param {number} castTime The duration in frames to spend casting.
+ */
+JABS_Battler.prototype.setCastCountdown = function(castTime) {
+  this._castTimeCountdown = castTime;
+  if (this._castTimeCountdown > 0) {
+    this._casting = true;
+  }
+
+  if (this._castTimeCountdown <= 0) {
+    this._casting = false;
+    this._castTimeCountdown = 0;
+  }
+};
+
+/**
+ * Gets whether or not this battler is currently casting a skill.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isCasting = function() {
+  return this._casting;
+};
+
+/**
  * Counts down the alertedness of this battler.
  */
 JABS_Battler.prototype.countdownAlert = function() {
@@ -8658,14 +8766,7 @@ JABS_Battler.prototype.canBattlerUseAttacks = function() {
   if (!states.length) {
     return true;
   } else {
-    const disabled = states.find(state => {
-      if (state._j.disabled || state._j.paralyzed) {
-        return true;
-      } else {
-        return false;
-      }
-    })
-
+    const disabled = states.find(state => (state._j.disabled || state._j.paralyzed));
     return !disabled;
   }
 };
@@ -8679,14 +8780,7 @@ JABS_Battler.prototype.canBattlerUseSkills = function() {
   if (!states.length) {
     return true;
   } else {
-    const muted = states.find(state => {
-      if (state._j.muted || state._j.paralyzed) {
-        return true;
-      } else {
-        return false;
-      }
-    })
-
+    const muted = states.find(state => (state._j.muted || state._j.paralyzed));
     return !muted;
   }
 };
@@ -9261,6 +9355,7 @@ JABS_Battler.prototype.engageTarget = function(target) {
   this.setTarget(target);
   this.isIdle(false);
   this._event.lock();
+  SoundManager.playEscape();
   this.showBalloon(J.ABS.Balloons.Exclamation);
 };
 
@@ -9627,6 +9722,16 @@ JABS_Battler.prototype.isPostActionCooldownComplete = function() {
     // we are ready to finish phase3!
     return true;
   }
+};
+
+/**
+ * Starts the post-action cooldown for this battler.
+ * @param {number} cooldown The cooldown duration.
+ */
+JABS_Battler.prototype.startPostActionCooldown = function(cooldown) {
+  this._postActionCooldownComplete = false;
+  this._postActionCooldown = 0;
+  this._postActionCooldownMax = cooldown;
 };
 
 /**
@@ -10010,8 +10115,11 @@ JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne) {
   }
 
   // action is from one of the target's allies.
-  if (actionIsSameTeam && (scopeAlly || scopeAllAllies || scopeEverything)) {
-    return true;
+  // inanimate battlers cannot be targeted by their allies with direct skills.
+  if (actionIsSameTeam &&
+    (scopeAlly || scopeAllAllies || scopeEverything) &&
+    !(action.isDirectAction() && target.isInanimate())) {
+      return true;
   }
 
   // action is for enemy battlers and scope is for opponents.
@@ -10040,7 +10148,22 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
     action.setSkill(skill.id);
     const isSupportAction = action.isForFriend();
 
-    let { cooldown, range, actionId, duration, shape, piercing, projectile, proximity, direct } = skill._j;
+    let { 
+      cooldown, 
+      enemyCooldown, 
+      range, 
+      actionId, 
+      duration, 
+      shape, 
+      piercing, 
+      projectile, 
+      proximity, 
+      direct } = skill._j;
+    
+    if (enemyCooldown > -1) {
+      cooldown = enemyCooldown;
+    }
+
     let isBasicAttack = false;
     if (this.isActor() && cooldownKey) {
       isBasicAttack = (cooldownKey === Game_Actor.JABS_MAINHAND || cooldownKey === Game_Actor.JABS_OFFHAND);
@@ -10785,11 +10908,7 @@ class JABS_BattlerAI {
         const testAction = new Game_Action(target.getBattler());
         testAction.setSkill(skillId);
         const rate = testAction.calcElementRate(target.getBattler());
-        if (rate < 1) {
-          return false;
-        } else {
-          return true;
-        }
+        return rate >= 1
       });
       
       skillsToUse = smartSkills;
@@ -11283,6 +11402,15 @@ class JABS_Action {
   getCooldown = () => {
     return this._cooldownFrames;
   };
+
+  /**
+   * Gets the cast time for this skill.
+   * @returns {number}
+   */
+  getCastTime = () => {
+    const skill = this.getBaseSkill();
+    return skill._j.castTime;
+  }
 
   /**
    * Gets the range of which this `JABS_Action` will reach.
@@ -11882,15 +12010,55 @@ JABS_BattlerCoreData.prototype.isInanimate = function() {
 //#endregion JABS objects
 
 //#region JABS_TrackedState
+/**
+ * A class containing the tracked data for a particular state and battler.
+ */
 class JABS_TrackedState {
+  /**
+   * @constructor
+   * @param {Game_Battler} battler The battler afflicted with this state.
+   * @param {number} stateId The id of the state being tracked.
+   * @param {number} iconIndex The icon index of the state being tracked.
+   * @param {number} duration The duration of the state being tracked.
+   */
   constructor(battler, stateId, iconIndex, duration) {
+    /**
+     * The battler being afflicted with this state.
+     * @type {Game_Battler}
+     */
     this.battler = battler;
+
+    /**
+     * The id of the state being tracked.
+     * @type {number}
+     */
     this.stateId = stateId;
+
+    /**
+     * The icon index of the state being tracked (for visual purposes).
+     * @type {number}
+     */
     this.iconIndex = iconIndex;
+
+    /**
+     * The current duration of the state being tracked. Decrements over time.
+     * @type {number}
+     */
     this.duration = duration;
+
+    /**
+     * Whether or not this tracked state is identified as `expired`.
+     * Expired states do not apply to the battler, but are kept in the tracking collection
+     * to grant the ability to refresh the state duration or whatever we choose to do.
+     * @type {boolean}
+     */
     this.expired = false;
   };
 
+  /**
+   * Updates this tracked state over time. If the duration reaches 0, then the state
+   * is removed and this tracked state becomes `expired`.
+   */
   update() {
     if (this.duration > 0) {
       this.duration--;
@@ -11899,6 +12067,9 @@ class JABS_TrackedState {
     }
   };
 
+  /**
+   * Performs the removal of the state from the battler and sets the `expired` to true.
+   */
   removeStateFromBattler() {
     const index = this.battler
       .states()
@@ -11909,6 +12080,10 @@ class JABS_TrackedState {
     }
   };
 
+  /**
+   * Gets whether or not this tracked state is `expired`.
+   * @returns {boolean}
+   */
   isExpired() {
     return this.expired;
   };
