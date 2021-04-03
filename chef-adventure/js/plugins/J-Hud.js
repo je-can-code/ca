@@ -370,8 +370,9 @@ Window_Hud.prototype.drawHudNumberSprites = function() {
  */
 Window_Hud.prototype.drawStates = function() {
   this.hideExpiredStates();
-  const iconWidth = ImageManager.iconWidth;
   if (!this._actor.states().length) return;
+
+  const iconWidth = ImageManager.iconWidth;
 
   if (J.ABS) {
     const player = $gameBattleMap.getPlayerMapBattler();
@@ -382,14 +383,6 @@ Window_Hud.prototype.drawStates = function() {
         this.drawState(trackedState, 124 + i*iconWidth, 70);
       }
     });
-    /*
-    this._actor.states().forEach((state, i) => {
-      const stateData = player.getStateData(state.id);
-      if (stateData && stateData.active) {
-        this.drawState(state, 124 + i*iconWidth, 70);
-      }
-    })
-    */
   }
 };
 
@@ -407,15 +400,6 @@ Window_Hud.prototype.hideExpiredStates = function() {
         }
       })
     });
-
-    // Object.keys(allStateData).forEach(stateKey => {
-    //   Object.keys(this._hudSprites).forEach(spriteKey => {
-    //     const match = `state-${stateKey}`;
-    //     if (spriteKey.contains(match) && !allStateData[stateKey].active) {
-    //       this._hudSprites[spriteKey].hide()
-    //     }
-    //   })
-    // });
   }
 };
 
