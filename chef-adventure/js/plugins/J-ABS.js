@@ -8338,6 +8338,10 @@ JABS_Battler.prototype.countdownCastTime = function() {
   }
 };
 
+/**
+ * If there is a cast animation to play and there is no current animation playing,
+ * then play the cast animation on this battler.
+ */
 JABS_Battler.prototype.performCastAnimation = function() {
   const { casterAnimation } = this.getDecidedAction()[0].getBaseSkill()._j;
   if (!casterAnimation) return;
