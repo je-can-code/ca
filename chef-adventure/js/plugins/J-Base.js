@@ -71,11 +71,12 @@ J.Base.Notetags = {
   Duration: "duration",
   EnemyCooldown: "enemyCooldown",
   FreeCombo: "freeCombo",
-  IgnoreParry: "ignoreParry",
   Guard: "guard",
-  Parry: "parry",
+  IgnoreParry: "ignoreParry",
   Knockback: "knockback",
   MoveType: "moveType",
+  OneTimeItemBoost: "otib",
+  Parry: "parry",
   Piercing: "pierce",
   PoseSuffix: "poseSuffix",
   Projectile: "projectile",
@@ -308,23 +309,6 @@ J.Base.Helpers = {
 //#endregion Helpers
 //#endregion Introduction
 
-//#region Extensions
-/**
- * Gets whether or not this number is between the two provided numbers.
- * The `inclusive` parameter defaults to true, and allows the edge numbers to
- * equal the target number being checked.
- * @param {number} a The lower range to check if between.
- * @param {number} b The upper range to check if between.
- * @param {boolean} inclusive Whether or not the edges should be included.
- * @returns {number}
- */
-Number.prototype.between = function(a, b, inclusive = true) {
-  const min = Math.min.apply(Math, [a, b]),
-      max = Math.max.apply(Math, [a, b]);
-  return inclusive ? this >= min && this <= max : this > min && this < max;
-};
-//#endregion Extensions
-
 //#region Static objects
 //#region DataManager
 /**
@@ -337,148 +321,148 @@ DataManager._extraDataLoaded = false;
  */
 J.Base.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-let result = J.Base.Aliased.DataManager.isDatabaseLoaded.call(this);
-if (result) {
-this.loadExtraData();
-}
+  let result = J.Base.Aliased.DataManager.isDatabaseLoaded.call(this);
+  if (result) {
+    this.loadExtraData();
+  }
 
-return result;
+  return result;
 };
 
 /**
-* Loads all extra data from notes and such into the various anonymous database objects.
-*/
+ * Loads all extra data from notes and such into the various anonymous database objects.
+ */
 DataManager.loadExtraData = function() {
-if (!DataManager._extraDataLoaded) {
-  this.addExtraSkillData();
-  this.addExtraWeaponData();
-  this.addExtraArmorData();
-  this.addExtraItemData();
-  this.addExtraStateData();
-  this._extraDataLoaded = true;
-}
+  if (!DataManager._extraDataLoaded) {
+    this.addExtraSkillData();
+    this.addExtraWeaponData();
+    this.addExtraArmorData();
+    this.addExtraItemData();
+    this.addExtraStateData();
+    this._extraDataLoaded = true;
+  }
 };
 
 /**
  * Loads all extra data from the notes of skills.
  */
 DataManager.addExtraSkillData = function() {
-$dataSkills.forEach(skill => {
-  if (!skill) return;
-  const extraSkillData = new JABS_SkillData(skill.note, skill.meta);
-  Object.defineProperty(skill, "_j", {
-    get() { return extraSkillData; }
+  $dataSkills.forEach(skill => {
+    if (!skill) return;
+    const extraSkillData = new JABS_SkillData(skill.note, skill.meta);
+    Object.defineProperty(skill, "_j", {
+      get() { return extraSkillData; }
+    });
   });
-});
 };
 
 /**
-* Loads all extra data from the notes of weapons.
-*/
+ * Loads all extra data from the notes of weapons.
+ */
 DataManager.addExtraWeaponData = function() {
-$dataWeapons.forEach(weapon => {
-  if (!weapon) return;
-  const extraWeaponData = new JABS_EquipmentData(weapon.note, weapon.meta);
-  Object.defineProperty(weapon, "_j", {
-    get() { return extraWeaponData; }
-  });
+  $dataWeapons.forEach(weapon => {
+    if (!weapon) return;
+    const extraWeaponData = new JABS_EquipmentData(weapon.note, weapon.meta);
+    Object.defineProperty(weapon, "_j", {
+      get() { return extraWeaponData; }
+    });
 
-  const extraJaftingData = new JAFT_Data(weapon.note, weapon.id, "w");
-  Object.defineProperty(weapon, "_jaft", {
-    get() { return extraJaftingData; }
+    const extraJaftingData = new JAFT_Data(weapon.note, weapon.id, "w");
+    Object.defineProperty(weapon, "_jaft", {
+      get() { return extraJaftingData; }
+    });
   });
-});
 };
 
 /**
-* Loads all extra data from the notes of armors.
-*/
+ * Loads all extra data from the notes of armors.
+ */
 DataManager.addExtraArmorData = function() {
-$dataArmors.forEach(armor => {
-  if (!armor) return;
-  const extraArmorData = new JABS_EquipmentData(armor.note, armor.meta);
-  Object.defineProperty(armor, "_j", {
-    get() { return extraArmorData; }
-  });
+  $dataArmors.forEach(armor => {
+    if (!armor) return;
+    const extraArmorData = new JABS_EquipmentData(armor.note, armor.meta);
+    Object.defineProperty(armor, "_j", {
+      get() { return extraArmorData; }
+    });
 
-  const extraJaftingData = new JAFT_Data(armor.note, armor.id, "a");
-  Object.defineProperty(armor, "_jaft", {
-    get() { return extraJaftingData; }
+    const extraJaftingData = new JAFT_Data(armor.note, armor.id, "a");
+    Object.defineProperty(armor, "_jaft", {
+      get() { return extraJaftingData; }
+    });
   });
-});
 };
 
 /**
-* Loads all extra data from the notes of items.
-*/
+ * Loads all extra data from the notes of items.
+ */
 DataManager.addExtraItemData = function() {
-$dataItems.forEach(item => {
-  if (!item) return;
-  const extraItemData = new JABS_ItemData(item.note, item.meta);
-  Object.defineProperty(item, "_j", {
-    get() { return extraItemData; }
-  });
+  $dataItems.forEach(item => {
+    if (!item) return;
+    const extraItemData = new JABS_ItemData(item.note, item.meta);
+    Object.defineProperty(item, "_j", {
+      get() { return extraItemData; }
+    });
 
-  const extraJaftingData = new JAFT_Data(item.note, item.id, "i");
-  Object.defineProperty(item, "_jaft", {
-    get() { return extraJaftingData; }
+    const extraJaftingData = new JAFT_Data(item.note, item.id, "i");
+    Object.defineProperty(item, "_jaft", {
+      get() { return extraJaftingData; }
+    });
   });
-});
 };
 
 /**
-* Loads all extra data from the notes of states.
-*/
+ * Loads all extra data from the notes of states.
+ */
 DataManager.addExtraStateData = function() {
-$dataStates.forEach(state => {
-  if (!state) return;
-  const extraStateData = new JABS_StateData(state.note, state.meta);
-  Object.defineProperty(state, "_j", {
-    get() { return extraStateData; }
+  $dataStates.forEach(state => {
+    if (!state) return;
+    const extraStateData = new JABS_StateData(state.note, state.meta);
+    Object.defineProperty(state, "_j", {
+      get() { return extraStateData; }
+    });
   });
-});
 };
 //#endregion DataManager
 
 //#region TextManager
 /**
-* Gets the name of the given sp-parameter.
-* @param {number} sParamId The id of the sp-param to get a name for.
-* @returns {string} The name of the parameter.
-*/
+ * Gets the name of the given sp-parameter.
+ * @param {number} sParamId The id of the sp-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
 TextManager.sparam = function (sParamId) {
-switch (sParamId) {
-  case 0: return "Aggro";// J.Param.TGR_text;
-  case 1: return "Parry";//J.Param.GRD_text;
-  case 2: return "Healing"; //J.Param.REC_text;
-  case 3: return "Pharmacy"; //J.Param.PHA_text;
-  case 4: return "Magi Reduce"; //J.Param.MCR_text;
-  case 5: return "Tech Reduce"; //J.Param.TCR_text;
-  case 6: return "Phys Dmg DOWN"; //J.Param.PDR_text;
-  case 7: return "Magi Dmg DOWN"; //J.Param.MDR_text;
-  case 8: return "Light-footed"; //J.Param.FDR_text;
-  case 9: return "Experience UP"; //J.Param.EXR_text;
-}
+  switch (sParamId) {
+    case 0: return "Aggro";// J.Param.TGR_text;
+    case 1: return "Parry";//J.Param.GRD_text;
+    case 2: return "Healing"; //J.Param.REC_text;
+    case 3: return "Pharmacy"; //J.Param.PHA_text;
+    case 4: return "Magi Reduce"; //J.Param.MCR_text;
+    case 5: return "Tech Reduce"; //J.Param.TCR_text;
+    case 6: return "Phys Dmg DOWN"; //J.Param.PDR_text;
+    case 7: return "Magi Dmg DOWN"; //J.Param.MDR_text;
+    case 8: return "Light-footed"; //J.Param.FDR_text;
+    case 9: return "Experience UP"; //J.Param.EXR_text;
+  }
 };
 
 /**
-* Gets the name of the given ex-parameter.
-* @param {number} xParamId The id of the ex-param to get a name for.
-* @returns {string} The name of the parameter.
-*/
+ * Gets the name of the given ex-parameter.
+ * @param {number} xParamId The id of the ex-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
 TextManager.xparam = function (xParamId) {
-switch (xParamId) {
-  case 0: return "Hit Rate";// J.Param.HIT_text;
-  case 1: return "Evasion Rate";//J.Param.EVA_text;
-  case 2: return "Crit Rate"; //J.Param.CRI_text;
-  case 3: return "Crit Evade"; //J.Param.CEV_text;
-  case 4: return "Magic Evade"; //J.Param.MEV_text;
-  case 5: return "Magic Reflect"; //J.Param.MRF_text;
-  case 6: return "Counter Rate"; //J.Param.CNT_text;
-  case 7: return "Life Regen"; //J.Param.HRG_text;
-  case 8: return "Magi Regen"; //J.Param.MRG_text;
-  case 9: return "Tech Regen"; //J.Param.TRG_text;
-}
+  switch (xParamId) {
+    case 0: return "Hit Rate";// J.Param.HIT_text;
+    case 1: return "Evasion Rate";//J.Param.EVA_text;
+    case 2: return "Crit Rate"; //J.Param.CRI_text;
+    case 3: return "Crit Evade"; //J.Param.CEV_text;
+    case 4: return "Magic Evade"; //J.Param.MEV_text;
+    case 5: return "Magic Reflect"; //J.Param.MRF_text;
+    case 6: return "Counter Rate"; //J.Param.CNT_text;
+    case 7: return "Life Regen"; //J.Param.HRG_text;
+    case 8: return "Magi Regen"; //J.Param.MRG_text;
+    case 9: return "Tech Regen"; //J.Param.TRG_text;
+  }
 };
 //#endregion TextManager
 //#endregion Static objects
@@ -486,9 +470,9 @@ switch (xParamId) {
 //#region Game objects
 //#region Game_Actor
 /**
-* Gets how much bonus HIT this actor has based on level.
-* @returns {number} The amount of growth in HIT for this actor.
-*/
+ * Gets how much bonus HIT this actor has based on level.
+ * @returns {number} The amount of growth in HIT for this actor.
+ */
 Game_Actor.prototype.hitGrowth = function() {
   let hitGrowthPerLevel = 0;
   if (this._meta && this._meta[J.Base.Notetags.HitGrowth]) {
@@ -506,9 +490,9 @@ Game_Actor.prototype.hitGrowth = function() {
 };
 
 /**
-* Gets how much bonus GRD this actor has based on level.
-* @returns {number} The amount of growth in GRD for this actor.
-*/
+ * Gets how much bonus GRD this actor has based on level.
+ * @returns {number} The amount of growth in GRD for this actor.
+ */
 Game_Actor.prototype.grdGrowth = function() {
   let grdGrowthPerLevel = 0;
   if (this._meta && this._meta[J.Base.Notetags.GuardGrowth]) {
@@ -528,311 +512,311 @@ Game_Actor.prototype.grdGrowth = function() {
 
 //#region Game_Character
 /**
-* Gets the `aiCode` for this character.
-* If no code is specified, return `00000000`.
-* @returns {string}
-*/
+ * Gets the `aiCode` for this character.
+ * If no code is specified, return `00000000`.
+ * @returns {string}
+ */
 Game_Character.prototype.aiCode = function() {
-let aiCode = "00000000";
-const referenceData = this.event();
+  let aiCode = "00000000";
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.AiCode]) {
-  aiCode = referenceData.meta[J.Base.Notetags.AiCode] || aiCode;
-} else {
-  const structure = /<ai:[ ]?([0|1]{8})>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      aiCode = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AiCode]) {
+    aiCode = referenceData.meta[J.Base.Notetags.AiCode] || aiCode;
+  } else {
+    const structure = /<ai:[ ]?([0|1]{8})>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        aiCode = RegExp.$1;
+      }
+    })
+  }
 
-return aiCode;
+  return aiCode;
 };
 
 /**
-* Gets the `battlerId` for this character.
-* If no id is specified, return `0`.
-* @returns {number}
-*/
+ * Gets the `battlerId` for this character.
+ * If no id is specified, return `0`.
+ * @returns {number}
+ */
 Game_Character.prototype.battlerId = function() {
-let battlerId = 0;
-const referenceData = this.event();
+  let battlerId = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.BattlerId]) {
-  // if its in the metadata, then grab it from there.
-  battlerId = referenceData.meta[J.Base.Notetags.BattlerId] || battlerId;
-} else {
-  // if its not in the metadata, then check the notes proper.
-  const structure = /<e:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      battlerId = RegExp.$1;
-    }
-  });
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.BattlerId]) {
+    // if its in the metadata, then grab it from there.
+    battlerId = referenceData.meta[J.Base.Notetags.BattlerId] || battlerId;
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<e:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        battlerId = RegExp.$1;
+      }
+    });
+  }
 
-return parseInt(battlerId);
+  return parseInt(battlerId);
 };
 
 /**
-* Gets the `sightRange` for this character.
-* If no sight is specified, return `0`.
-* @returns {number}
-*/
+ * Gets the `sightRange` for this character.
+ * If no sight is specified, return `0`.
+ * @returns {number}
+ */
 Game_Character.prototype.sightRadius = function() {
-let sightRadius = 0;
-const referenceData = this.event();
+  let sightRadius = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.Sight]) {
-  sightRadius = referenceData.meta[J.Base.Notetags.Sight] || sightRadius;
-} else {
-  const structure = /<s:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      sightRadius = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Sight]) {
+    sightRadius = referenceData.meta[J.Base.Notetags.Sight] || sightRadius;
+  } else {
+    const structure = /<s:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        sightRadius = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(sightRadius);
+  return parseInt(sightRadius);
 };
 
 /**
-* Gets the boost to `sightRange` for this character when alerted.
-* @returns {number}
-*/
+ * Gets the boost to `sightRange` for this character when alerted.
+ * @returns {number}
+ */
 Game_Character.prototype.alertedSightBoost = function() {
-let sightBoost = 0;
-const referenceData = this.event();
+  let sightBoost = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertSightBoost]) {
-  sightBoost = referenceData.meta[J.Base.Notetags.AlertSightBoost] || sightBoost;
-} else {
-  const structure = /<as:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      sightBoost = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertSightBoost]) {
+    sightBoost = referenceData.meta[J.Base.Notetags.AlertSightBoost] || sightBoost;
+  } else {
+    const structure = /<as:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        sightBoost = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(sightBoost);
+  return parseInt(sightBoost);
 };
 
 /**
-* Gets the `pursuitRange` for this character.
-* If no pursuit is specified, return `0`.
-* @returns {number}
-*/
+ * Gets the `pursuitRange` for this character.
+ * If no pursuit is specified, return `0`.
+ * @returns {number}
+ */
 Game_Character.prototype.pursuitRadius = function() {
-let pursuitRadius = 0;
-const referenceData = this.event();
+  let pursuitRadius = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.Pursuit]) {
-  pursuitRadius = referenceData.meta[J.Base.Notetags.Pursuit] || pursuitRadius;
-} else {
-  const structure = /<p:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      pursuitRadius = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Pursuit]) {
+    pursuitRadius = referenceData.meta[J.Base.Notetags.Pursuit] || pursuitRadius;
+  } else {
+    const structure = /<p:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        pursuitRadius = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(pursuitRadius);
+  return parseInt(pursuitRadius);
 };
 
 /**
-* Gets the boost to `pursuitRange` for this character when alerted.
-* @returns {number}
-*/
+ * Gets the boost to `pursuitRange` for this character when alerted.
+ * @returns {number}
+ */
 Game_Character.prototype.alertedPursuitBoost = function() {
-let pursuitBoost = 0;
-const referenceData = this.event();
+  let pursuitBoost = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertPursuitBoost]) {
-  pursuitBoost = referenceData.meta[J.Base.Notetags.AlertPursuitBoost] || pursuitBoost;
-} else {
-  const structure = /<ap:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      pursuitBoost = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertPursuitBoost]) {
+    pursuitBoost = referenceData.meta[J.Base.Notetags.AlertPursuitBoost] || pursuitBoost;
+  } else {
+    const structure = /<ap:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        pursuitBoost = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(pursuitBoost);
+  return parseInt(pursuitBoost);
 };
 
 /**
-* Gets the duration of which this battler will spend alerted.
-* @returns {number}
-*/
+ * Gets the duration of which this battler will spend alerted.
+ * @returns {number}
+ */
 Game_Character.prototype.alertedDuration = function() {
-let alertDuration = 300;
-const referenceData = this.event();
+  let alertDuration = 300;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertDuration]) {
-  alertDuration = referenceData.meta[J.Base.Notetags.AlertDuration] || alertDuration;
-} else {
-  const structure = /<ad:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      alertDuration = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertDuration]) {
+    alertDuration = referenceData.meta[J.Base.Notetags.AlertDuration] || alertDuration;
+  } else {
+    const structure = /<ad:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        alertDuration = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(alertDuration);
+  return parseInt(alertDuration);
 };
 
 /**
-* Gets the `pursuitRange` for this character.
-* If no pursuit is specified, return `0`.
-* @returns {number}
-*/
+ * Gets the `pursuitRange` for this character.
+ * If no pursuit is specified, return `0`.
+ * @returns {number}
+ */
 Game_Character.prototype.customMoveSpeed = function() {
-let customMoveSpeed = 0;
-const referenceData = this.event();
+  let customMoveSpeed = 0;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.MoveSpeed]) {
-  customMoveSpeed = referenceData.meta[J.Base.Notetags.MoveSpeed] || customMoveSpeed;
-} else {
-  const structure =/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      customMoveSpeed = RegExp.$1;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.MoveSpeed]) {
+    customMoveSpeed = referenceData.meta[J.Base.Notetags.MoveSpeed] || customMoveSpeed;
+  } else {
+    const structure =/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        customMoveSpeed = RegExp.$1;
+      }
+    })
+  }
 
-return parseFloat(customMoveSpeed);
+  return parseFloat(customMoveSpeed);
 };
 
 /**
-* Gets the `idle` boolean for this battler.
-* `True` by default.
-* @returns {boolean}
-*/
+ * Gets the `idle` boolean for this battler.
+ * `True` by default.
+ * @returns {boolean}
+ */
 Game_Character.prototype.canIdle = function() {
-let canIdle = true;
-const referenceData = this.event();
+  let canIdle = true;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoIdle]) {
-  canIdle = false;
-} else {
-  const structure =/<noIdle>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      canIdle = false;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoIdle]) {
+    canIdle = false;
+  } else {
+    const structure =/<noIdle>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        canIdle = false;
+      }
+    })
+  }
 
-if (this.isInanimate()) canIdle = false;
-return canIdle;
+  if (this.isInanimate()) canIdle = false;
+  return canIdle;
 };
 
 /**
-* Gets the boolean for whether or not to show the hp bar.
-* `True` by default.
-* @returns {boolean}
-*/
+ * Gets the boolean for whether or not to show the hp bar.
+ * `True` by default.
+ * @returns {boolean}
+ */
 Game_Character.prototype.showHpBar = function() {
-if (!(this instanceof Game_Event)) return;
+  if (!(this instanceof Game_Event)) return;
 
-let showHpBar = true;
-const referenceData = this.event();
+  let showHpBar = true;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoHpBar]) {
-  showHpBar = false;
-} else {
-  const structure =/<noHpBar>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      showHpBar = false;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoHpBar]) {
+    showHpBar = false;
+  } else {
+    const structure =/<noHpBar>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        showHpBar = false;
+      }
+    })
+  }
 
-if (this.isInanimate()) showHpBar = false;
-return showHpBar;
+  if (this.isInanimate()) showHpBar = false;
+  return showHpBar;
 };
 
 /**
-* Gets the boolean for whether or not this battler is invincible.
-* Invincible is defined as "not able to be collided with".
-* `False` by default.
-* @returns {boolean}
-*/
+ * Gets the boolean for whether or not this battler is invincible.
+ * Invincible is defined as "not able to be collided with".
+ * `False` by default.
+ * @returns {boolean}
+ */
 Game_Character.prototype.isInvincible = function() {
-if (!(this instanceof Game_Event)) return;
+  if (!(this instanceof Game_Event)) return;
 
-let invincible = false;
-const referenceData = this.event();
+  let invincible = false;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.Invincible]) {
-  invincible = true;
-} else {
-  const structure =/<invincible>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      invincible = true;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Invincible]) {
+    invincible = true;
+  } else {
+    const structure =/<invincible>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        invincible = true;
+      }
+    })
+  }
 
-return invincible;
+  return invincible;
 };
 
 /**
-* Gets the boolean for whether or not this is an inanimate object.
-* Inanimate objects have no hp bar, don't move idly, and cannot engage.
-* This is typically used for things like traps that perform actions.
-* `False` by default.
-* @returns {boolean}
-*/
+ * Gets the boolean for whether or not this is an inanimate object.
+ * Inanimate objects have no hp bar, don't move idly, and cannot engage.
+ * This is typically used for things like traps that perform actions.
+ * `False` by default.
+ * @returns {boolean}
+ */
 Game_Character.prototype.isInanimate = function() {
-if (!(this instanceof Game_Event)) return;
+  if (!(this instanceof Game_Event)) return;
 
-let inanimate = false;
-const referenceData = this.event();
+  let inanimate = false;
+  const referenceData = this.event();
 
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.Inanimate]) {
-  inanimate = true;
-} else {
-  const structure =/<inanimate>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      inanimate = true;
-    }
-  })
-}
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Inanimate]) {
+    inanimate = true;
+  } else {
+    const structure =/<inanimate>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        inanimate = true;
+      }
+    })
+  }
 
-return inanimate;
+  return inanimate;
 };
 
 //#endregion Game_Character
 
 //#region Game_Enemy
 /**
-* Gets the enemy's level.
-* If no level is specified, return `0`.
-* @returns {number}
-*/
+ * Gets the enemy's level.
+ * If no level is specified, return `0`.
+ * @returns {number}
+ */
 Object.defineProperty(Game_Enemy.prototype, "level", {
   get() {
     let level = 0;
@@ -856,50 +840,53 @@ Object.defineProperty(Game_Enemy.prototype, "level", {
 });
 
 /**
-* Gets any additional drops from the notes of this particular enemy.
-* @returns {[string, number, number][]}
-*/
+ * Gets any additional drops from the notes of this particular enemy.
+ * @returns {[string, number, number][]}
+ */
 Game_Enemy.prototype.extraDrops = function() {
-const referenceData = this.enemy();
-let dropList = [];
-const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)\]>/i;
-const notedata = referenceData.note.split(/[\r\n]+/);
-notedata.forEach(note => {
-  if (note.match(structure)) {
-    let kind = 0;
-    switch (RegExp.$1) {
-      case ("i" || "item"):
-        kind = 1;
-        break;
-      case ("w" || "weapon"):
-        kind = 2;
-        break;
-      case ("a" || "armor"):
-        kind = 3;
-        break;
-    };
+  const referenceData = this.enemy();
+  const dropList = [];
+  const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)\]>/i;
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  notedata.forEach(note => {
+    if (note.match(structure)) {
+      let kind = 0;
+      switch (RegExp.$1) {
+        case ("i" || "item"):
+          kind = 1;
+          break;
+        case ("w" || "weapon"):
+          kind = 2;
+          break;
+        case ("a" || "armor"):
+          kind = 3;
+          break;
+      };
 
-    const result = { 
-      kind, 
-      dataId: parseInt(RegExp.$2), 
-      denominator: parseInt(RegExp.$3)
-    };
-    dropList.push(result);
-  }
-});
+      const result = { 
+        kind, 
+        dataId: parseInt(RegExp.$2), 
+        denominator: parseInt(RegExp.$3)
+      };
+      dropList.push(result);
+    }
+  });
 
-// if there is a panel that needs to be added to the list, then add it.
-const sdpDrop = this.needsSdpDrop();
-if (sdpDrop) dropList.push(sdpDrop);
+  // if there is a panel that needs to be added to the list, then add it.
+  const sdpDrop = this.needsSdpDrop();
+  if (sdpDrop) dropList.push(sdpDrop);
 
-return dropList;
+  return dropList;
 };
 
 /**
-* Determines if there is an SDP to drop, and whether or not to drop it.
-* @returns {{kind, dataId, denominator}}
-*/
+ * Determines if there is an SDP to drop, and whether or not to drop it.
+ * @returns {{kind, dataId, denominator}}
+ */
 Game_Enemy.prototype.needsSdpDrop = function() {
+  // doesn't matter if we aren't even using the SDP system.
+  if (!J.SDP) return null;
+
   const referenceData = this.enemy();
   const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
   const notedata = referenceData.note.split(/[\r\n]+/);
@@ -930,106 +917,106 @@ Game_Enemy.prototype.needsSdpDrop = function() {
 };
 
 /**
-* Gets the enemy's basic attack skill id from their notes.
-* Defaults to `1` if no note is present.
-* @returns {number}
-*/
+ * Gets the enemy's basic attack skill id from their notes.
+ * Defaults to `1` if no note is present.
+ * @returns {number}
+ */
 Game_Enemy.prototype.skillId = function() {
-let skillId = 1;
+  let skillId = 1;
 
-const referenceData = this.enemy();
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.SkillId]) {
-  // if its in the metadata, then grab it from there.
-  skillId = parseInt(referenceData.meta[J.Base.Notetags.SkillId]) || skillId;
-} else {
-  // if its not in the metadata, then check the notes proper.
-  const structure = /<skillId:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      skillId = parseInt(RegExp.$1);
-    }
-  })
-}
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.SkillId]) {
+    // if its in the metadata, then grab it from there.
+    skillId = parseInt(referenceData.meta[J.Base.Notetags.SkillId]) || skillId;
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<skillId:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        skillId = parseInt(RegExp.$1);
+      }
+    })
+  }
 
-return skillId;
+  return skillId;
 };
 
 /**
-* Gets the enemy's basic attack skill id from their notes.
-* Defaults to `180` if no note is present.
-* @returns {number}
-*/
+ * Gets the enemy's basic attack skill id from their notes.
+ * Defaults to `180` if no note is present.
+ * @returns {number}
+ */
 Game_Enemy.prototype.prepareTime = function() {
-let prepare = 180;
+  let prepare = 180;
 
-const referenceData = this.enemy();
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.PrepareTime]) {
-  // if its in the metadata, then grab it from there.
-  prepare = referenceData.meta[J.Base.Notetags.PrepareTime];
-} else {
-  // if its not in the metadata, then check the notes proper.
-  const structure = /<prepare:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      prepare = RegExp.$1;
-    }
-  })
-}
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.PrepareTime]) {
+    // if its in the metadata, then grab it from there.
+    prepare = referenceData.meta[J.Base.Notetags.PrepareTime];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<prepare:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        prepare = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(prepare);
+  return parseInt(prepare);
 };
 
 /**
-* Gets the enemy's retaliation skill from their notes.
-* Defaults to `180` if no note is present.
-* @returns {number}
-*/
+ * Gets the enemy's retaliation skill from their notes.
+ * Defaults to `180` if no note is present.
+ * @returns {number}
+ */
 Game_Enemy.prototype.retaliationSkillId = function() {
-let retaliation = 0;
+  let retaliation = 0;
 
-const referenceData = this.enemy();
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.Retaliate]) {
-  // if its in the metadata, then grab it from there.
-  retaliation = referenceData.meta[J.Base.Notetags.Retaliate];
-} else {
-  // if its not in the metadata, then check the notes proper.
-  const structure = /<retaliate:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      retaliation = RegExp.$1;
-    }
-  })
-}
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Retaliate]) {
+    // if its in the metadata, then grab it from there.
+    retaliation = referenceData.meta[J.Base.Notetags.Retaliate];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<retaliate:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        retaliation = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(retaliation);
+  return parseInt(retaliation);
 };
 
 /**
-* Gets the amount of sdp points granted by this enemy.
-* @returns {number}
-*/
+ * Gets the amount of sdp points granted by this enemy.
+ * @returns {number}
+ */
 Game_Enemy.prototype.sdpPoints = function() {
-let points = 0;
+  let points = 0;
 
-const referenceData = this.enemy();
-if (referenceData.meta && referenceData.meta[J.Base.Notetags.SdpPoints]) {
-  // if its in the metadata, then grab it from there.
-  points = referenceData.meta[J.Base.Notetags.SdpPoints];
-} else {
-  // if its not in the metadata, then check the notes proper.
-  const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      points = RegExp.$1;
-    }
-  })
-}
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.Base.Notetags.SdpPoints]) {
+    // if its in the metadata, then grab it from there.
+    points = referenceData.meta[J.Base.Notetags.SdpPoints];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        points = RegExp.$1;
+      }
+    })
+  }
 
-return parseInt(points);
+  return parseInt(points);
 };
 //#endregion Game_Enemy
 
@@ -1039,7 +1026,7 @@ return parseInt(points);
  * @param {number} code The code to match.
  * @returns {boolean}
  */
- Game_Event.prototype.matchesControlCode = function(code) {
+Game_Event.prototype.matchesControlCode = function(code) {
   return (code === 108 || code === 408);
 };
 //#endregion Game_Event
@@ -1048,8 +1035,8 @@ return parseInt(points);
 //#region Sprite objects
 //#region Sprite_Icon
 /**
-* A sprite that displays a single icon.
-*/
+ * A sprite that displays a single icon.
+ */
 function Sprite_Icon() { this.initialize(...arguments); }
 Sprite_Icon.prototype = Object.create(Sprite.prototype);
 Sprite_Icon.prototype.constructor = Sprite_Icon;
@@ -1060,17 +1047,17 @@ Sprite.prototype.initialize.call(this);
 };
 
 /**
-* Initializes the properties associated with this sprite.
-* @param {number} iconIndex The index of the icon this sprite represents.
-*/
+ * Initializes the properties associated with this sprite.
+ * @param {number} iconIndex The index of the icon this sprite represents.
+ */
 Sprite_Icon.prototype.initMembers = function(iconIndex) {
   this._j = {};
   this._j._iconIndex = iconIndex;
 };
 
 /**
-* Loads the bitmap into the sprite.
-*/
+ * Loads the bitmap into the sprite.
+ */
 Sprite_Icon.prototype.loadBitmap = function() {
   this.bitmap = ImageManager.loadSystem("IconSet");
   const pw = ImageManager.iconWidth;
@@ -1083,36 +1070,39 @@ Sprite_Icon.prototype.loadBitmap = function() {
 
 //#region Sprite_MapGauge
 /**
-* The sprite for displaying an hp gauge over a character's sprite.
-*/
+ * The sprite for displaying an hp gauge over a character's sprite.
+ */
 function Sprite_MapGauge() { this.initialize(...arguments); }
 Sprite_MapGauge.prototype = Object.create(Sprite_Gauge.prototype);
 Sprite_MapGauge.prototype.constructor = Sprite_MapGauge;
 Sprite_MapGauge.prototype.initialize = function(
-bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6,
-label = "", value = null, iconIndex = -1) {
-  this._duration = 0;
-  this._gauge = {};
-  this._gauge._bitmapWidth = bitmapWidth;
-  this._gauge._bitmapHeight = bitmapHeight;
-  this._gauge._gaugeHeight = gaugeHeight;
-  this._gauge._label = label;
-  this._gauge._value = value;
-  this._gauge._iconIndex = iconIndex;
+  bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6,
+  label = "", value = null, iconIndex = -1) {
+    this._duration = 0;
+    this._gauge = {};
+    this._gauge._bitmapWidth = bitmapWidth;
+    this._gauge._bitmapHeight = bitmapHeight;
+    this._gauge._gaugeHeight = gaugeHeight;
+    this._gauge._label = label;
+    this._gauge._value = value;
+    this._gauge._iconIndex = iconIndex;
 
-  Sprite_Gauge.prototype.initialize.call(this);
-  this.initMembers();
-  this.createBitmap();
-};
-
-Sprite_MapGauge.prototype.update = function() {
-Sprite_Gauge.prototype.update.call(this);
-//this.manageGaugeVisibility();
+    Sprite_Gauge.prototype.initialize.call(this);
+    this.initMembers();
+    this.createBitmap();
 };
 
 /**
-* Handles the visibility of this hp bar based on interactivity.
-*/
+ * Hook into the superclass update to do more things.
+ */
+Sprite_MapGauge.prototype.update = function() {
+  Sprite_Gauge.prototype.update.call(this);
+  //this.manageGaugeVisibility();
+};
+
+/**
+ * Handles the visibility of this hp bar based on interactivity.
+ */
 Sprite_MapGauge.prototype.manageGaugeVisibility = function() {
   if (this._duration > 0) {
     this._duration--;
@@ -1132,54 +1122,54 @@ Sprite_MapGauge.prototype.bitmapWidth = function() {
 };
 
 /**
-* Enforces the bitmap's height to be this value.
-* @param {number} bitmapHeight The height of the bitmap for this gauge.
-*/
+ * Enforces the bitmap's height to be this value.
+ * @param {number} bitmapHeight The height of the bitmap for this gauge.
+ */
 Sprite_MapGauge.prototype.bitmapHeight = function() {
   return this._gauge._bitmapHeight;
 };
 
 /**
-* Enforces the map gauge's height to be this value.
-* @param {number} gaugeHeight height of the gauge itself.
-*/
+ * Enforces the map gauge's height to be this value.
+ * @param {number} gaugeHeight height of the gauge itself.
+ */
 Sprite_MapGauge.prototype.gaugeHeight = function() {
   return this._gauge._gaugeHeight;
 };
 
 /**
-* Set this gauge's label.
-* @param {string} label The label to set this gauge to.
-*/
+ * Set this gauge's label.
+ * @param {string} label The label to set this gauge to.
+ */
 Sprite_MapGauge.prototype.setLabel = function(label) {
   this._gauge._label = label;
   this.redraw();
 };
 
 /**
-* Gets this gauge's label.
-*/
+ * Gets this gauge's label.
+ */
 Sprite_MapGauge.prototype.drawLabel = function() {
   if (this._gauge._label) {
     const x = 32;
     const y = 0;
     this.bitmap.fontSize = 12;
     this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
-}
+  }
 };
 
 /**
-* Set this gauge's iconIndex.
-* @param {number} iconIndex The index/id of the icon to assign.
-*/
+ * Set this gauge's iconIndex.
+ * @param {number} iconIndex The index/id of the icon to assign.
+ */
 Sprite_MapGauge.prototype.setIcon = function(iconIndex) {
   this._gauge._iconIndex = iconIndex;
   this.redraw();
 };
 
 /**
-* Draws the icon associated with this gauge.
-*/
+ * Draws the icon associated with this gauge.
+ */
 Sprite_MapGauge.prototype.drawIcon = function() {
   if (this._gauge._iconIndex > 0 && !this.children.length) {
     const sprite = this.createIconSprite();
@@ -1196,18 +1186,17 @@ Sprite_MapGauge.prototype.createIconSprite = function() {
 };
 
 /**
-* Don't draw values for gauges on the map.
-* TODO: consider implementing values only when the enemy has been defeated.
-*/
+ * Don't draw values for gauges on the map.
+ * TODO: consider implementing values only when the enemy has been defeated.
+ */
 Sprite_MapGauge.prototype.drawValue = function() {
   return this._gauge._value;
 };
 
 /**
-* OVERWRITE
-* Rescopes `this` to point to the `Sprite_MapGauge` intead of the base
-* `Sprite_Gauge`. Otherwise, this is identical to the base `Sprite_Gauge.redraw()`.
-*/
+ * OVERWRITE Rescopes `this` to point to the `Sprite_MapGauge` intead of the base
+ * `Sprite_Gauge`. Otherwise, this is identical to the base `Sprite_Gauge.redraw()`.
+ */
 Sprite_MapGauge.prototype.redraw = function() {
   this.bitmap.clear();
   const currentValue = this.currentValue();
@@ -1223,6 +1212,11 @@ Sprite_MapGauge.prototype.redraw = function() {
   }
 };
 
+/**
+ * OVERWRITE Adjusts the value for drawing the EXP gauge instead.
+ * This is only used by the J-HUD plugin.
+ * @returns {number}
+ */
 Sprite_MapGauge.prototype.currentValue = function() {
   if (this._battler) {
       switch (this._statusType) {
@@ -1239,6 +1233,11 @@ Sprite_MapGauge.prototype.currentValue = function() {
   return NaN;
 };
 
+/**
+ * OVERWRITE Adjusts the max value for drawing the EXP gauge instead.
+ * This is only used by the J-HUD plugin.
+ * @returns {number}
+ */
 Sprite_MapGauge.prototype.currentMaxValue = function() {
   if (this._battler) {
       switch (this._statusType) {
@@ -1258,8 +1257,8 @@ Sprite_MapGauge.prototype.currentMaxValue = function() {
 
 //#region Sprite_Text
 /**
-* A sprite that displays some static text.
-*/
+ * A sprite that displays some static text.
+ */
 function Sprite_Text() { this.initialize(...arguments); }
 Sprite_Text.prototype = Object.create(Sprite.prototype);
 Sprite_Text.prototype.constructor = Sprite_Text;
@@ -1272,13 +1271,13 @@ Sprite_Text.prototype.initialize = function(
 };
 
 /**
-* Initializes the properties associated with this sprite.
-* @param {string} text The static text to display for this sprite.
-* @param {number} fontSizeMod The font size modifier for this instance of text.
-* @param {string} alignment The alignment of this sprite's text.
-* @param {number} widthMod The bitmap width modifier for this sprite.
-* @param {number} heightMod The bitmap height modifier for this sprite.
-*/
+ * Initializes the properties associated with this sprite.
+ * @param {string} text The static text to display for this sprite.
+ * @param {number} fontSizeMod The font size modifier for this instance of text.
+ * @param {string} alignment The alignment of this sprite's text.
+ * @param {number} widthMod The bitmap width modifier for this sprite.
+ * @param {number} heightMod The bitmap height modifier for this sprite.
+ */
 Sprite_Text.prototype.initMembers = function(
   text, color, fontSizeMod, alignment, widthMod, heightMod
 ) {
@@ -1293,8 +1292,8 @@ Sprite_Text.prototype.initMembers = function(
 };
 
 /**
-* Loads the bitmap into the sprite.
-*/
+ * Loads the bitmap into the sprite.
+ */
 Sprite_Text.prototype.loadBitmap = function() {
   this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
   this.bitmap.fontFace = this.fontFace();
@@ -1307,47 +1306,56 @@ Sprite_Text.prototype.loadBitmap = function() {
     this.textAlignment());
 };
 
+/**
+ * Hooks into the update to call the superclass update.
+ */
 Sprite_Text.prototype.update = function() {
   Sprite.prototype.update.call(this);
 };
 
 /**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
 Sprite_Text.prototype.bitmapWidth = function() {
   return 128 + this._j._widthMod;
 };
 
 /**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
 Sprite_Text.prototype.bitmapHeight = function() {
   return 24 + this._j._heightMod;
 };
 
 /**
-* Determines the font size for text in this sprite.
-*/
+ * Determines the font size for text in this sprite.
+ */
 Sprite_Text.prototype.fontSize = function() {
   return $gameSystem.mainFontSize() + this._j._fontSizeMod;
 };
 
 /**
-* Determines the font face for text in this sprite.
-*/
+ * Determines the font face for text in this sprite.
+ */
 Sprite_Text.prototype.fontFace = function() {
   return $gameSystem.mainFontFace();
 };
 
 /**
-* Determines the font face for text in this sprite.
-*/
+ * Determines the font color for text in this sprite.
+ * If no color is designated, then the default (white) is used.
+ * @returns {number}
+ */
 Sprite_Text.prototype.textColor = function() {
   return this._j._color
     ? ColorManager.textColor(this._j._color)
     : ColorManager.normalColor();
 };
 
+/**
+ * Determines the alignment for text in this sprite.
+ * @returns {string}
+ */
 Sprite_Text.prototype.textAlignment = function() {
   return this._j._alignment;
 };
@@ -1357,49 +1365,54 @@ Sprite_Text.prototype.textAlignment = function() {
 //#region Window objects
 //#region Window_Command
 /**
-* Draws the icon along with the item itself in the command window.
-*/
+ * Draws the icon along with the item itself in the command window.
+ */
 J.Base.Aliased.Window_Command.drawItem = Window_Command.prototype.drawItem;
 Window_Command.prototype.drawItem = function(index) {
-J.Base.Aliased.Window_Command.drawItem.call(this, index);
-const commandIcon = this.commandIcon(index);
-if (commandIcon) {
-  const rect = this.itemLineRect(index);
-  this.drawIcon(commandIcon, rect.x-32, rect.y+2)
-}
+  J.Base.Aliased.Window_Command.drawItem.call(this, index);
+  const commandIcon = this.commandIcon(index);
+  if (commandIcon) {
+    const rect = this.itemLineRect(index);
+    this.drawIcon(commandIcon, rect.x-32, rect.y+2)
+  }
 };
 
+/**
+ * Overwrites the `itemLineRect` (x starting coordinate for drawing) if there
+ * is an icon to draw at the start of a command.
+ * @returns {Rectangle}
+ */
 J.Base.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
 Window_Command.prototype.itemLineRect = function(index) {
-const commandIcon = this.commandIcon(index);
-if (commandIcon) {
-  let baseRect = J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
-  baseRect.x += 32;
-  return baseRect;
-} else {
-  return J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
-}
+  const commandIcon = this.commandIcon(index);
+  if (commandIcon) {
+    let baseRect = J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
+    baseRect.x += 32;
+    return baseRect;
+  } else {
+    return J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
+  }
 };
 
 /**
-* Retrieves the icon for the given command in the window if it exists.
-* @param {number} index the index of the command.
-* @returns {number} The icon index for the command, or 0 if it doesn't exist.
-*/
+ * Retrieves the icon for the given command in the window if it exists.
+ * @param {number} index the index of the command.
+ * @returns {number} The icon index for the command, or 0 if it doesn't exist.
+ */
 Window_Command.prototype.commandIcon = function(index) {
-return this._list[index].icon;
+  return this._list[index].icon;
 };
 
 /**
-* An overload for the `addCommand()` function that allows adding an icon to a command.
-* @param {string} name The visible name of this command.
-* @param {string} symbol The symbol for this command.
-* @param {boolean} enabled Whether or not this command is enabled.
-* @param {object} ext The extra data for this command.
-* @param {number} icon The icon index for this command.
-*/
+ * An overload for the `addCommand()` function that allows adding an icon to a command.
+ * @param {string} name The visible name of this command.
+ * @param {string} symbol The symbol for this command.
+ * @param {boolean} enabled Whether or not this command is enabled.
+ * @param {object} ext The extra data for this command.
+ * @param {number} icon The icon index for this command.
+ */
 Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext = null, icon = 0) {
-this._list.push({ name, symbol, enabled, ext, icon });
+  this._list.push({ name, symbol, enabled, ext, icon });
 };
 //#endregion Window_Command
 //#endregion Window objects
@@ -1407,21 +1420,26 @@ this._list.push({ name, symbol, enabled, ext, icon });
 //#region JABS classes
 //#region JABS_SkillData
 /**
-* A class that contains all custom data for JABS skills.
-* 
-* This class was created because skills do not inherently have a class to hook into
-* for extensions, like `Game_Actor` or `Game_Map`.
-*/
+ * A class that contains all custom data for JABS skills.
+ * 
+ * This class was created because skills do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
 class JABS_SkillData {
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
   };
 
   /**
-  * Gets whether or not this skill is a direct-targeting skill.
-  * @returns {boolean} True if it is a direct-targeting skill, false otherwise.
-  */
+   * Gets whether or not this skill is a direct-targeting skill.
+   * @returns {boolean} True if it is a direct-targeting skill, false otherwise.
+   */
   get direct() {
     let isDirect = false;
     if (this._meta && this._meta[J.Base.Notetags.DirectSkill]) {
@@ -1439,9 +1457,9 @@ class JABS_SkillData {
   };
 
   /**
-  * Gets the number of bonus hits this skill grants.
-  * @returns {number} The number of bonus hits.
-  */
+   * Gets the number of bonus hits this skill grants.
+   * @returns {number} The number of bonus hits.
+   */
   get bonusHits() {
     let bonusHits = 0;
     if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
@@ -1459,9 +1477,9 @@ class JABS_SkillData {
   };
 
   /**
-  * Gets the amount of parry to ignore.
-  * @type {number} The amount of parry to ignore; will be `-1` if should always ignores.
-  */
+   * Gets the amount of parry to ignore.
+   * @type {number} The amount of parry to ignore; will be `-1` if should always ignores.
+   */
   get ignoreParry() {
     let ignore = 0;
     if (this._meta && this._meta[J.Base.Notetags.IgnoreParry]) {
@@ -1483,9 +1501,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the amount of damage being reduced by guarding.
-  * @returns {[number, boolean]} [damage reduction, true if reduction is %-based, false otherwise].
-  */
+   * Gets the amount of damage being reduced by guarding.
+   * @returns {[number, boolean]} [damage reduction, true if reduction is %-based, false otherwise].
+   */
   get guard() {
     let guard = [0, false];
     if (this._meta && this._meta[J.Base.Notetags.Guard]) {
@@ -1503,9 +1521,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the number of frames that a precise-guard is available for.
-  * @returns {number} The number of frames for precise-guard.
-  */
+   * Gets the number of frames that a precise-guard is available for.
+   * @returns {number} The number of frames for precise-guard.
+   */
   get parry() {
     let parry = 0;
     if (this._meta && this._meta[J.Base.Notetags.Parry]) {
@@ -1523,9 +1541,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the id of the skill to retaliate with when executing a precise-parry.
-  * @returns {number} The skill id.
-  */
+   * Gets the id of the skill to retaliate with when executing a precise-parry.
+   * @returns {number} The skill id.
+   */
   get counterParry() {
     let id = 0;
     if (this._meta && this._meta[J.Base.Notetags.CounterParry]) {
@@ -1543,9 +1561,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the id of the skill to retaliate with when guarding.
-  * @returns {number} The skill id.
-  */
+   * Gets the id of the skill to retaliate with when guarding.
+   * @returns {number} The skill id.
+   */
   get counterGuard() {
     let id = 0;
     if (this._meta && this._meta[J.Base.Notetags.CounterGuard]) {
@@ -1563,9 +1581,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the animation id to show when executing a skill.
-  * @returns {number} The animation id for casting (default = 1)
-  */
+   * Gets the animation id to show when executing a skill.
+   * @returns {number} The animation id for casting (default = 1)
+   */
   get casterAnimation() {
     let animationId = 0;
     if (this._meta && this._meta[J.Base.Notetags.CastAnimation]) {
@@ -1587,9 +1605,9 @@ class JABS_SkillData {
    * @returns {number} The cast time in frames (default = 0).
    */
   get castTime() {
-    let castTime = 0;
+    let castTime = 1;
     if (this._meta && this._meta[J.Base.Notetags.CastTime]) {
-      castTime = parseInt(this._meta[J.Base.Notetags.CastTime]) || 0;
+      castTime = parseInt(this._meta[J.Base.Notetags.CastTime]) || 1;
     } else {
       const structure = /<castTime:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1643,9 +1661,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the range for this skill.
-  * @returns {number} The range in tiles/spaces/squares (default = 0).
-  */
+   * Gets the range for this skill.
+   * @returns {number} The range in tiles/spaces/squares (default = 0).
+   */
   get range() {
     let range = 0;
     if (this._meta && this._meta[J.Base.Notetags.Range]) {
@@ -1663,9 +1681,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the action id for this skill.
-  * @returns {number} The action id (default = 1).
-  */
+   * Gets the action id for this skill.
+   * @returns {number} The action id (default = 1).
+   */
   get actionId() {
     let actionId = 1;
     if (this._meta && this._meta[J.Base.Notetags.ActionId]) {
@@ -1683,9 +1701,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the duration this skill persists on the map.
-  * @returns {number} The duration in frames (default = 60).
-  */
+   * Gets the duration this skill persists on the map.
+   * @returns {number} The duration in frames (default = 60).
+   */
   get duration() {
     let duration = 0;
     if (this._meta && this._meta[J.Base.Notetags.Duration]) {
@@ -1703,9 +1721,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the hitbox shape for this skill.
-  * @returns {string} The hitbox shape (default = rhombus).
-  */
+   * Gets the hitbox shape for this skill.
+   * @returns {string} The hitbox shape (default = rhombus).
+   */
   get shape() {
     const defaultShape = 'rhombus';
     let shape = defaultShape;
@@ -1729,9 +1747,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the number of projectiles for this skill.
-  * @returns {string} The hitbox shape (default = rhombus).
-  */
+   * Gets the number of projectiles for this skill.
+   * @returns {string} The hitbox shape (default = rhombus).
+   */
   get projectile() {
     let projectile = 1;
     const possible = [1, 2, 3, 4, 8];
@@ -1754,9 +1772,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the piercing data for this skill.
-  * @returns {[number, number]} The piercing data (default = [1, 0]).
-  */
+   * Gets the piercing data for this skill.
+   * @returns {[number, number]} The piercing data (default = [1, 0]).
+   */
   get piercing() {
     let piercing = [1, 0];
     if (this._meta && this._meta[J.Base.Notetags.Piercing]) {
@@ -1774,9 +1792,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the combo data for this skill.
-  * @returns {[number, number]} The combo data (default = null).
-  */
+   * Gets the combo data for this skill.
+   * @returns {[number, number]} The combo data (default = null).
+   */
   get combo() {
     let combo = null;
     if (this._meta && this._meta[J.Base.Notetags.Combo]) {
@@ -1794,10 +1812,10 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the free combo boolean for this skill. "Free Combo" skills do not
-  * require the hit to land to continue combo-ing.
-  * @returns {boolean} True if free combo, false otherwise.
-  */
+   * Gets the free combo boolean for this skill. "Free Combo" skills do not
+   * require the hit to land to continue combo-ing.
+   * @returns {boolean} True if free combo, false otherwise.
+   */
   get freeCombo() {
     let freeCombo = false;
     if (this._meta && this._meta[J.Base.Notetags.FreeCombo]) {
@@ -1815,9 +1833,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the proximity required for this skill.
-  * @returns {number} The proximity (default = 2).
-  */
+   * Gets the proximity required for this skill.
+   * @returns {number} The proximity (default = 2).
+   */
   get proximity() {
     let proximity = 2;
     if (this._meta && this._meta[J.Base.Notetags.Proximity]) {
@@ -1835,11 +1853,11 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the knockback for this skill. Unlike many other numeric parameters,
-  * if there is no knockback, the default is `null` instead of `0` because `0`
-  * knockback will still knock up the battler.
-  * @returns {number} The knockback (default = null).
-  */
+   * Gets the knockback for this skill. Unlike many other numeric parameters,
+   * if there is no knockback, the default is `null` instead of `0` because `0`
+   * knockback will still knock up the battler.
+   * @returns {number} The knockback (default = null).
+   */
   get knockback() {
     let knockback = null;
     if (this._meta && this._meta[J.Base.Notetags.Knockback]) {
@@ -1857,9 +1875,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the animation id to show when executing a skill.
-  * @returns {number} The animation id for casting.
-  */
+   * Gets the animation id to show when executing a skill.
+   * @returns {number} The animation id for casting.
+   */
   get invincible() {
     let invincible = false;
     if (this._meta && this._meta[J.Base.Notetags.Invincible]) {
@@ -1877,11 +1895,11 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the unique cooldown boolean. Unique cooldown means that the skill
-  * can be assigned to multiple slots and cooldowns are impacted independently
-  * of one another.
-  * @returns {boolean} True if this skill is unique, false otherwise.
-  */
+   * Gets the unique cooldown boolean. Unique cooldown means that the skill
+   * can be assigned to multiple slots and cooldowns are impacted independently
+   * of one another.
+   * @returns {boolean} True if this skill is unique, false otherwise.
+   */
   get uniqueCooldown() {
     let uniqueCooldown = false;
     if (this._meta && this._meta[J.Base.Notetags.UniqueCooldown]) {
@@ -1899,9 +1917,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the animation id to show when executing a skill.
-  * @returns {number} The animation id for casting.
-  */
+   * Gets the animation id to show when executing a skill.
+   * @returns {number} The animation id for casting.
+   */
   get moveType() {
     let moveType = "forward";
     if (this._meta && this._meta[J.Base.Notetags.MoveType]) {
@@ -1919,9 +1937,9 @@ class JABS_SkillData {
   }
 
   /**
-  * Gets the action pose data for this skill.
-  * @returns {[string, number, number]} The action pose data (default = null).
-  */
+   * Gets the action pose data for this skill.
+   * @returns {[string, number, number]} The action pose data (default = null).
+   */
   get poseSuffix() {
     let actionPoseData = null;
     if (this._meta && this._meta[J.Base.Notetags.PoseSuffix]) {
@@ -1937,158 +1955,226 @@ class JABS_SkillData {
 
     return actionPoseData;
   }
-
 }
 //#endregion JABS_SkillData
 
 //#region JABS_EquipmentData
 /**
-* A class that contains all custom data for JABS equipment.
-* 
-* This class was created because equipment does not inherently have a class to hook into
-* for extensions, like `Game_Actor` or `Game_Map`.
-*/
+ * A class that contains all custom data for JABS equipment.
+ * 
+ * This class was created because equipment does not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
 class JABS_EquipmentData {
-constructor(notes, meta) {
-  this._notes = notes.split(/[\r\n]+/);
-  this._meta = meta;
-}
-
-/**
-* Gets the skill id associated with this piece of equipment.
-* @returns {number} The skill id.
-*/
-get skillId() {
-  let skillId = 0;
-  if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
-    skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
-  } else {
-    const structure = /<skillId:[ ]?(\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        skillId = parseInt(RegExp.$1);
-      }
-    });
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta) {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
   }
 
-  return skillId;
-};
+  /**
+   * Gets the skill id associated with this piece of equipment.
+   * @returns {number} The skill id.
+   */
+  get skillId() {
+    let skillId = 0;
+    if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
+      skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
+    } else {
+      const structure = /<skillId:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          skillId = parseInt(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the number of bonus hits this piece of equipment grants.
-* @returns {number} The number of bonus hits.
-*/
-get bonusHits() {
-  let bonusHits = 0;
-  if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
-    bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]) || 0;
-  } else {
-    const structure = /<bonusHits:[ ]?(\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        bonusHits = parseInt(RegExp.$1);
-      }
-    });
-  }
+    return skillId;
+  };
 
-  return bonusHits;
-};
+  /**
+   * Gets the number of bonus hits this piece of equipment grants.
+   * @returns {number} The number of bonus hits.
+   */
+  get bonusHits() {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]) || 0;
+    } else {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the speed boost value associated with this piece of equipment.
-* @returns {number} The speed boost value.
-*/
-get speedBoost() {
-  let speedBoost = 0;
-  if (this._meta && this._meta[J.Base.Notetags.SpeedBoost]) {
-    speedBoost = parseInt(this._meta[J.Base.Notetags.SpeedBoost]) || 0;
-  } else {
-    const structure = /<speedBoost:[ ]?([-]?\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        speedBoost = parseInt(RegExp.$1);
-      }
-    });
-  }
+    return bonusHits;
+  };
 
-  return speedBoost;
-};
+  /**
+   * Gets the speed boost value associated with this piece of equipment.
+   * @returns {number} The speed boost value.
+   */
+  get speedBoost() {
+    let speedBoost = 0;
+    if (this._meta && this._meta[J.Base.Notetags.SpeedBoost]) {
+      speedBoost = parseInt(this._meta[J.Base.Notetags.SpeedBoost]) || 0;
+    } else {
+      const structure = /<speedBoost:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          speedBoost = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return speedBoost;
+  };
 };
 //#endregion JABS_EquipmentData
 
 //#region JABS_ItemData
 /**
-* A class that contains all custom data for JABS items.
-* 
-* This class was created because items do not inherently have a class to hook into
-* for extensions, like `Game_Actor` or `Game_Map`.
-*/
+ * A class that contains all custom data for JABS items.
+ * 
+ * This class was created because items do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
 class JABS_ItemData {
-constructor(notes, meta) {
-  this._notes = notes.split(/[\r\n]+/);
-  this._meta = meta;
-}
-
-/**
-* Gets the skill id associated with this item/tool.
-* @returns {number} The skill id, or `0` if none is present.
-*/
-get skillId() {
-  let skillId = 0;
-  if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
-    skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
-  } else {
-    const structure = /<skillId:[ ]?(\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        skillId = parseInt(RegExp.$1);
-      }
-    })
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta) {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
   }
 
-  return skillId;
-};
+  /**
+   * Gets the skill id associated with this item/tool.
+   * @returns {number} The skill id, or `0` if none is present.
+   */
+  get skillId() {
+    let skillId = 0;
+    if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
+      skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
+    } else {
+      const structure = /<skillId:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          skillId = parseInt(RegExp.$1);
+        }
+      })
+    }
 
-/**
-* Gets the cooldown for this item.
-* @returns {number} The cooldown in frames (default = 0).
-*/
-get cooldown() {
-  let cooldown = 0;
-  if (this._meta && this._meta[J.Base.Notetags.Cooldown]) {
-    cooldown = parseInt(this._meta[J.Base.Notetags.Cooldown]);
-  } else {
-    const structure = /<cooldown:[ ]?(\d+)>/i;
+    return skillId;
+  }
+
+  /**
+   * Gets the cooldown for this item.
+   * @returns {number} The cooldown in frames (default = 0).
+   */
+  get cooldown() {
+    let cooldown = 0;
+    if (this._meta && this._meta[J.Base.Notetags.Cooldown]) {
+      cooldown = parseInt(this._meta[J.Base.Notetags.Cooldown]);
+    } else {
+      const structure = /<cooldown:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          cooldown = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return cooldown;
+  }
+
+  /**
+   * Gets whether or not this item will be used instantly on-pickup.
+   * @returns {boolean} True if this is an instant-use item, false otherwise.
+   */
+  get useOnPickup() {
+    let useOnPickup = false;
+    if (this._meta && this._meta[J.Base.Notetags.UseOnPickup]) {
+      useOnPickup = true;
+    } else {
+      const structure = /<useOnPickup>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          useOnPickup = true;
+        }
+      });
+    }
+
+    return useOnPickup;
+  }
+
+  /**
+   * Gets any one time item boost parameters that may live on this item.
+   * @returns {OneTimeItemBoostParam[]}
+   */
+  get oneTimeItemBoost() {
+    let otibs = [];
+    const structure = /<otib:[ ]?\[(\w+),[ ]?(-?[\d+])\]>/i;
     this._notes.forEach(note => {
       if (note.match(structure)) {
-        cooldown = parseInt(RegExp.$1);
+        const paramData = this.translateParamAbbreviation(RegExp.$1.toLowerCase());
+        const boost = parseFloat(RegExp.$2);
+        const otibParamData = new OneTimeItemBoostParam(paramData, boost);
+        otibs.push(otibParamData);
       }
     });
+
+    return otibs;
   }
 
-  return cooldown;
-};
-
-/**
-* Gets whether or not this item will be used instantly on-pickup.
-* @returns {boolean} True if this is an instant-use item, false otherwise.
-*/
-get useOnPickup() {
-  let useOnPickup = false;
-  if (this._meta && this._meta[J.Base.Notetags.UseOnPickup]) {
-    useOnPickup = true;
-  } else {
-    const structure = /<useOnPickup>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        useOnPickup = true;
-      }
-    });
+  /**
+   * 
+   * @param {string} abbreviation 
+   * @returns 
+   */
+  translateParamAbbreviation(abbreviation) {
+    switch(abbreviation) {
+      case "mhp": return [0,"b"];
+      case "mmp": return [1,"b"];
+      case "atk": return [2,"b"];
+      case "def": return [3,"b"];
+      case "mat": return [4,"b"];
+      case "mdf": return [5,"b"];
+      case "agi": return [6,"b"];
+      case "luk": return [7,"b"];
+      case "hit": return [0,"x"];
+      case "eva": return [1,"x"];
+      case "cri": return [2,"x"];
+      case "cev": return [3,"x"];
+      case "mev": return [4,"x"];
+      case "mrf": return [5,"x"];
+      case "cnt": return [6,"x"];
+      case "hrg": return [7,"x"];
+      case "mrg": return [8,"x"];
+      case "trg": return [9,"x"];
+      case "tgr": return [0,"s"];
+      case "grd": return [1,"s"];
+      case "rec": return [2,"s"];
+      case "pha": return [3,"s"];
+      case "mcr": return [4,"s"];
+      case "tcr": return [5,"s"];
+      case "pdr": return [6,"s"];
+      case "mdr": return [7,"s"];
+      case "fdr": return [8,"s"];
+      case "exr": return [9,"s"];
+      default: 
+        console.error(`Invalid oneTimeItemBoost parameter entered: [${abbreviation}].`);
+        return [0,"b"];
+    }
   }
-
-  return useOnPickup;
-}
-
 }
 //#endregion JABS_ItemData
 
@@ -2100,417 +2186,504 @@ get useOnPickup() {
 * for extensions, like `Game_Actor` or `Game_Map`.
 */
 class JABS_StateData {
-constructor(notes, meta) {
-  this._notes = notes.split(/[\r\n]+/);
-  this._meta = meta;
-}
-
-/**
-* Gets whether or not this state inflicts JABS paralysis.
-* @returns {boolean} True if it inflicts JABS paralysis, false otherwise.
-*/
-get paralyzed() {
-  let paralyzed = false;
-  if (this._meta && this._meta[J.Base.Notetags.Paralyzed]) {
-    paralyzed = true;
-  } else {
-    const structure = /<paralyzed>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        paralyzed = true;
-      }
-    })
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta) {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
   }
 
-  return paralyzed;
-}
+  /**
+   * Gets whether or not this state inflicts JABS paralysis.
+   * @returns {boolean} True if it inflicts JABS paralysis, false otherwise.
+   */
+  get paralyzed() {
+    let paralyzed = false;
+    if (this._meta && this._meta[J.Base.Notetags.Paralyzed]) {
+      paralyzed = true;
+    } else {
+      const structure = /<paralyzed>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          paralyzed = true;
+        }
+      })
+    }
 
-/**
-* Gets whether or not this state inflicts JABS root.
-* @returns {boolean} True if it inflicts JABS root, false otherwise.
-*/
-get rooted() {
-  let rooted = false;
-  if (this._meta && this._meta[J.Base.Notetags.Rooted]) {
-    rooted = true;
-  } else {
-    const structure = /<rooted>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        rooted = true;
-      }
-    })
+    return paralyzed;
   }
 
-  return rooted;
-}
+  /**
+   * Gets whether or not this state inflicts JABS root.
+   * @returns {boolean} True if it inflicts JABS root, false otherwise.
+   */
+  get rooted() {
+    let rooted = false;
+    if (this._meta && this._meta[J.Base.Notetags.Rooted]) {
+      rooted = true;
+    } else {
+      const structure = /<rooted>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          rooted = true;
+        }
+      })
+    }
 
-/**
-* Gets whether or not this state inflicts JABS mute.
-* @returns {boolean} True if it inflicts JABS mute, false otherwise.
-*/
-get muted() {
-  let muted = false;
-  if (this._meta && this._meta[J.Base.Notetags.Muted]) {
-    muted = true;
-  } else {
-    const structure = /<muted>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        muted = true;
-      }
-    })
+    return rooted;
   }
 
-  return muted;
-}
+  /**
+   * Gets whether or not this state inflicts JABS mute.
+   * @returns {boolean} True if it inflicts JABS mute, false otherwise.
+   */
+  get muted() {
+    let muted = false;
+    if (this._meta && this._meta[J.Base.Notetags.Muted]) {
+      muted = true;
+    } else {
+      const structure = /<muted>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          muted = true;
+        }
+      })
+    }
 
-/**
-* Gets whether or not this state inflicts JABS disable.
-* @returns {boolean} True if it inflicts JABS disable, false otherwise.
-*/
-get disabled() {
-  let disabled = false;
-  if (this._meta && this._meta[J.Base.Notetags.Disabled]) {
-    disabled = true;
-  } else {
-    const structure = /<disabled>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        disabled = true;
-      }
-    })
+    return muted;
   }
 
-  return disabled;
-}
+  /**
+   * Gets whether or not this state inflicts JABS disable.
+   * @returns {boolean} True if it inflicts JABS disable, false otherwise.
+   */
+  get disabled() {
+    let disabled = false;
+    if (this._meta && this._meta[J.Base.Notetags.Disabled]) {
+      disabled = true;
+    } else {
+      const structure = /<disabled>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          disabled = true;
+        }
+      })
+    }
 
-/**
-* Gets the flat hp5 for this state.
-* @returns {number} The flat hp5.
-*/
-get slipHpFlat() {
-  let hpFlat = 0;
-  if (this._meta && this._meta[J.Base.Notetags.HpFlat]) {
-    hpFlat = parseInt(this._meta[J.Base.Notetags.HpFlat]);
-  } else {
-    const structure = /<hpFlat:[ ]?([-]?\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        hpFlat = parseInt(RegExp.$1);
-      }
-    });
+    return disabled;
   }
 
-  return hpFlat;
-}
+  /**
+   * Gets the flat hp5 for this state.
+   * @returns {number} The flat hp5.
+   */
+  get slipHpFlat() {
+    let hpFlat = 0;
+    if (this._meta && this._meta[J.Base.Notetags.HpFlat]) {
+      hpFlat = parseInt(this._meta[J.Base.Notetags.HpFlat]);
+    } else {
+      const structure = /<hpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          hpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the percentage hp5 for this state.
-* @returns {number} The percentage hp5.
-*/
-get slipHpPerc() {
-  let hpPerc = 0;
-  if (this._meta && this._meta[J.Base.Notetags.HpPerc]) {
-    hpPerc = parseFloat(this._meta[J.Base.Notetags.HpPerc]);
-  } else {
-    const structure = /<hpPerc:[ ]?([-]?\d+)[%]?>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        hpPerc = parseFloat(RegExp.$1);
-      }
-    });
+    return hpFlat;
   }
 
-  return hpPerc;
-}
+  /**
+   * Gets the percentage hp5 for this state.
+   * @returns {number} The percentage hp5.
+   */
+  get slipHpPerc() {
+    let hpPerc = 0;
+    if (this._meta && this._meta[J.Base.Notetags.HpPerc]) {
+      hpPerc = parseFloat(this._meta[J.Base.Notetags.HpPerc]);
+    } else {
+      const structure = /<hpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          hpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the flat mp5 for this state.
-* @returns {number} The flat mp5.
-*/
-get slipMpFlat() {
-  let mpFlat = 0;
-  if (this._meta && this._meta[J.Base.Notetags.MpFlat]) {
-    mpFlat = parseInt(this._meta[J.Base.Notetags.MpFlat]);
-  } else {
-    const structure = /<mpFlat:[ ]?([-]?\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        mpFlat = parseInt(RegExp.$1);
-      }
-    });
+    return hpPerc;
   }
 
-  return mpFlat;
-}
+  /**
+   * Gets the flat mp5 for this state.
+   * @returns {number} The flat mp5.
+   */
+  get slipMpFlat() {
+    let mpFlat = 0;
+    if (this._meta && this._meta[J.Base.Notetags.MpFlat]) {
+      mpFlat = parseInt(this._meta[J.Base.Notetags.MpFlat]);
+    } else {
+      const structure = /<mpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          mpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the percentage mp5 for this state.
-* @returns {number} The percentage mp5.
-*/
-get slipMpPerc() {
-  let mpPerc = 0;
-  if (this._meta && this._meta[J.Base.Notetags.MpPerc]) {
-    mpPerc = parseFloat(this._meta[J.Base.Notetags.MpPerc]);
-  } else {
-    const structure = /<mpPerc:[ ]?([-]?\d+)[%]?>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        mpPerc = parseFloat(RegExp.$1);
-      }
-    });
+    return mpFlat;
   }
 
-  return mpPerc;
-}
+  /**
+   * Gets the percentage mp5 for this state.
+   * @returns {number} The percentage mp5.
+   */
+  get slipMpPerc() {
+    let mpPerc = 0;
+    if (this._meta && this._meta[J.Base.Notetags.MpPerc]) {
+      mpPerc = parseFloat(this._meta[J.Base.Notetags.MpPerc]);
+    } else {
+      const structure = /<mpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          mpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the flat tp5 for this state.
-* @returns {number} The flat tp5.
-*/
-get slipTpFlat() {
-  let tpFlat = 0;
-  if (this._meta && this._meta[J.Base.Notetags.TpFlat]) {
-    tpFlat = parseInt(this._meta[J.Base.Notetags.TpFlat]);
-  } else {
-    const structure = /<tpFlat:[ ]?([-]?\d+)>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        tpFlat = parseInt(RegExp.$1);
-      }
-    });
+    return mpPerc;
   }
 
-  return tpFlat;
-}
+  /**
+   * Gets the flat tp5 for this state.
+   * @returns {number} The flat tp5.
+   */
+  get slipTpFlat() {
+    let tpFlat = 0;
+    if (this._meta && this._meta[J.Base.Notetags.TpFlat]) {
+      tpFlat = parseInt(this._meta[J.Base.Notetags.TpFlat]);
+    } else {
+      const structure = /<tpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          tpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
 
-/**
-* Gets the percentage tp5 for this state.
-* @returns {number} The percentage tp5.
-*/
-get slipTpPerc() {
-  let tpPerc = 0;
-  if (this._meta && this._meta[J.Base.Notetags.TpPerc]) {
-    tpPerc = parseFloat(this._meta[J.Base.Notetags.TpPerc]);
-  } else {
-    const structure = /<tpPerc:[ ]?([-]?\d+)[%]?>/i;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
-        tpPerc = parseFloat(RegExp.$1);
-      }
-    });
+    return tpFlat;
   }
 
-  return tpPerc;
-}
+  /**
+   * Gets the percentage tp5 for this state.
+   * @returns {number} The percentage tp5.
+   */
+  get slipTpPerc() {
+    let tpPerc = 0;
+    if (this._meta && this._meta[J.Base.Notetags.TpPerc]) {
+      tpPerc = parseFloat(this._meta[J.Base.Notetags.TpPerc]);
+    } else {
+      const structure = /<tpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          tpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
 
-}
+    return tpPerc;
+  }
+};
 //#endregion JABS_StateData
+
+//#region OneTimeItemBoost
+/**
+ * A class representing the permanent data of a one time boost from a single item.
+ */
+function OneTimeItemBoost() { this.initialize(...arguments); }
+OneTimeItemBoost.prototype = {};
+OneTimeItemBoost.prototype.constructor = OneTimeItemBoost;
+OneTimeItemBoost.prototype.initialize = function(itemId, parameterData) {
+  /**
+   * The item id this one time item boost represents.
+   * @type {number}
+   */
+  this.itemId = itemId;
+
+  /**
+   * The parameter data this boost will grant permanently upon consumption.
+   * @type {OneTimeItemBoostParam[]}
+   */
+  this.parameterData = parameterData;
+  this.initMembers();
+};
+
+/**
+ * Initializes the rest of the members of this class with default parameters.
+ */
+OneTimeItemBoost.prototype.initMembers = function() {
+  /**
+   * Whether or not this boost has been unlocked.
+   * @type {boolean}
+   */
+  this.unlocked = false;
+};
+
+/**
+ * Gets whether or not this boost is unlocked.
+ * @returns {boolean}
+ */
+OneTimeItemBoost.prototype.isUnlocked = function() {
+  return this.unlocked;
+};
+
+/**
+ * Unlocks this boost.
+ */
+OneTimeItemBoost.prototype.unlock = function() {
+  this.unlocked = true;
+};
+
+/**
+ * Relocks this boost.
+ */
+OneTimeItemBoost.prototype.lock = function() {
+  this.unlocked = false;
+};
+
+/**
+ * A class representing the permanent data of a one time boost from a single item.
+ */
+function OneTimeItemBoostParam() { this.initialize(...arguments); }
+OneTimeItemBoostParam.prototype = {};
+OneTimeItemBoostParam.prototype.constructor = OneTimeItemBoostParam;
+OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent) {
+  /**
+   * The parameter id this parameter boost represents.
+   * @type {number}
+   */
+  this.paramId = paramId;
+
+  /**
+   * The value of the parameter boost.
+   * @type {number}
+   */
+  this.boost = boost;
+
+  /**
+   * Whether or not this boost is a multiplicative parameter boost or not.
+   * @type {boolean}
+   */
+  this.isPercent = isPercent;
+};
+//#endregion OneTimeItemBoost
+
 //#endregion JABS Classes
 
 //#region JAFTING classes
 //#region JAFT_Data
 /**
-* All data associated with JAFTING for this item.
-* Includes a slew of helpful functions to retrieve the information.
-*/
+ * All data associated with JAFTING for this item.
+ * Includes a slew of helpful functions to retrieve the information.
+ */
 function JAFT_Data() { this.initialize(...arguments); }
 JAFT_Data.prototype = {};
 JAFT_Data.prototype.constructor = JAFT_Data;
 JAFT_Data.prototype.initialize = function(notes, baseId, baseType) {
-this._notes = notes.split(/[\r\n]+/);
-this._baseId = baseId;
-this._baseType = baseType;
+  this._notes = notes.split(/[\r\n]+/);
+  this._baseId = baseId;
+  this._baseType = baseType;
 };
 
 /**
-* Gets all ingredients that are described in this recipe.
-* @returns {Crafting_Component[]}
-*/
+ * Gets all ingredients that are described in this recipe.
+ * @returns {JAFTING_Component[]}
+ */
 JAFT_Data.prototype.ingredients = function() {
-const ingredients = [];
-const structure = /<ingredient:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const itemId = parseInt(RegExp.$1);
-    const itemType = RegExp.$2;
-    const itemCount = parseInt(RegExp.$3);
-    const i = new Crafting_Component(itemId, itemType, itemCount, false);
-    ingredients.push(i);
-  }
-})
+  const ingredients = [];
+  const structure = /<ingredient:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const itemId = parseInt(RegExp.$1);
+      const itemType = RegExp.$2;
+      const itemCount = parseInt(RegExp.$3);
+      const i = new JAFTING_Component(itemId, itemType, itemCount, false);
+      ingredients.push(i);
+    }
+  })
 
-return ingredients;
+  return ingredients;
 };
 
 /**
-* Gets all tools that are described in this recipe.
-* @returns {Crafting_Component[]}
-*/
+ * Gets all tools that are described in this recipe.
+ * @returns {JAFTING_Component[]}
+ */
 JAFT_Data.prototype.tools = function() {
-const tools = [];
-const structure = /<tool:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const toolId = parseInt(RegExp.$1);
-    const toolType = RegExp.$2;
-    const t = new Crafting_Component(toolId, toolType, 1, true);
-    tools.push(t);
-  }
-})
+  const tools = [];
+  const structure = /<tool:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const toolId = parseInt(RegExp.$1);
+      const toolType = RegExp.$2;
+      const t = new JAFTING_Component(toolId, toolType, 1, true);
+      tools.push(t);
+    }
+  })
 
-return tools;
+  return tools;
 };
 
 /**
-* Gets all category keys that this item's recipe belongs to.
-* @returns {string[]}
-*/
+ * Gets all category keys that this item's recipe belongs to.
+ * @returns {string[]}
+ */
 JAFT_Data.prototype.categories = function() {
-const categories = [];
-const structure = /<category:[ ]?(\w+)>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const key = RegExp.$1;
-    categories.push(key);
-  }
-})
+  const categories = [];
+  const structure = /<category:[ ]?(\w+)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const key = RegExp.$1;
+      categories.push(key);
+    }
+  })
 
-return categories;
+  return categories;
 };
 
 /**
-* Gets the list of items created as a result of executing this recipe.
-* @returns {Crafting_Output[]} The list of RPG::Items that are generated.
-*/
+ * Gets the list of items created as a result of executing this recipe.
+ * @returns {Crafting_Output[]} The list of RPG::Items that are generated.
+ */
 JAFT_Data.prototype.output = function() {
-const output = [];
-const structure = /<output:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const outputId = RegExp.$1;
-    const outputType = RegExp.$2;
-    const outputCount = parseInt(RegExp.$3);
-    const item = J.Base.Helpers.translateItem(outputId, outputType);
-    const newCraftingOutput = new Crafting_Output(item, outputCount);
+  const output = [];
+  const structure = /<output:[ ]?\[(\d+),[ ]?([i|w|a]),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const outputId = RegExp.$1;
+      const outputType = RegExp.$2;
+      const outputCount = parseInt(RegExp.$3);
+      const item = J.Base.Helpers.translateItem(outputId, outputType);
+      const newCraftingOutput = new Crafting_Output(item, outputCount);
+      output.push(newCraftingOutput);
+    }
+  })
+
+  if (!output.length) {
+    const item = J.Base.Helpers.translateItem(this._baseId, this._baseType);
+    const newCraftingOutput = new Crafting_Output(item, 1);
     output.push(newCraftingOutput);
   }
-})
 
-if (!output.length) {
-  const item = J.Base.Helpers.translateItem(this._baseId, this._baseType);
-  const newCraftingOutput = new Crafting_Output(item, 1);
-  output.push(newCraftingOutput);
-}
-
-return output;
+  return output;
 };
 
 /**
-* Gets all items that are unlocked upon consumption of this item.
-* @returns {Crafting_Unlock[]}
-*/
+ * Gets all items that are unlocked upon consumption of this item.
+ * @returns {Crafting_Unlock[]}
+ */
 JAFT_Data.prototype.unlocks = function() {
-const unlocks = [];
-const structure = /<unlock:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const unlockedItemId = parseInt(RegExp.$1);
-    const unlockedItemType = RegExp.$2;
-    const u = new Crafting_Unlock(unlockedItemId, unlockedItemType);
-    unlocks.push(u);
-  }
-});
+  const unlocks = [];
+  const structure = /<unlock:[ ]?\[(\d+),[ ]?([i|w|a])\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const unlockedItemId = parseInt(RegExp.$1);
+      const unlockedItemType = RegExp.$2;
+      const u = new Crafting_Unlock(unlockedItemId, unlockedItemType);
+      unlocks.push(u);
+    }
+  });
 
-return unlocks;
+  return unlocks;
 };
 
 /**
-* Gets whether or not this item is currently locked by a switch.
-* Items locked by switches will show up as disabled in the list
-* regardless of the recipe being unlocked or not.
-* @returns {boolean}
-*/
+ * Gets whether or not this item is currently locked by a switch.
+ * Items locked by switches will show up as disabled in the list
+ * regardless of the recipe being unlocked or not.
+ * @returns {boolean}
+ */
 JAFT_Data.prototype.isSwitchUnlocked = function() {
-const switches = [];
-const structure = /<switchUnlock:[ ]?(\d+)>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    const switchId = parseInt(RegExp.$1);
-    switches.push(switchId);
-  }
-});
+  const switches = [];
+  const structure = /<switchUnlock:[ ]?(\d+)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      const switchId = parseInt(RegExp.$1);
+      switches.push(switchId);
+    }
+  });
 
-if (switches.length) {
-  // finds any false switches; if found, return false.
-  const result = switches.find(switchId => !$gameSwitches.value(switchId));
-  return result
-    ? false
-    : true;
-} else {
-  return true;
-}
+  if (switches.length) {
+    // finds any false switches; if found, return false.
+    const result = switches.find(switchId => !$gameSwitches.value(switchId));
+    return result
+      ? false
+      : true;
+  } else {
+    return true;
+  }
 };
 
 /**
-* Gets the name and iconIndex for this recipe.
-* Typically used when a recipe outputs items other than what the recipe lives on.
-* @returns {{string, number}} The name and iconIndex.
-*/
+ * Gets the name and iconIndex for this recipe.
+ * Typically used when a recipe outputs items other than what the recipe lives on.
+ * @returns {{string, number}} The name and iconIndex.
+ */
 JAFT_Data.prototype.nameData = function() {
-let name = ``;
-let iconIndex = 0;
-const structure = /<recipeName:[ ]?\[([-a-zA-Z0-9_ ]*),[ ]?(\d+)\]>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    name = RegExp.$1.trim();
-    iconIndex = RegExp.$2;
+  let name = ``;
+  let iconIndex = 0;
+  const structure = /<recipeName:[ ]?\[([-a-zA-Z0-9_ ]*),[ ]?(\d+)\]>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      name = RegExp.$1.trim();
+      iconIndex = RegExp.$2;
+    }
+  });
+
+  // if there are no notes specifying this data, get it from the base item.
+  if (!name.length && !iconIndex) {
+    const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
+    name = baseItem.name;
+    iconIndex = parseInt(baseItem.iconIndex);
   }
-});
 
-// if there are no notes specifying this data, get it from the base item.
-if (!name.length && !iconIndex) {
-  const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
-  name = baseItem.name;
-  iconIndex = parseInt(baseItem.iconIndex);
-}
-
-return { name, iconIndex };
+  return { name, iconIndex };
 };
 
 /**
-* Gets the description associated with this recipe.
-* Typically used when a recipe outputs items other than what the recipe lives on.
-* @returns {string}
-*/
+ * Gets the description associated with this recipe.
+ * Typically used when a recipe outputs items other than what the recipe lives on.
+ * @returns {string}
+ */
 JAFT_Data.prototype.description = function() {
-let description = ``;
-const structure = /<recipeDesc:[ ]?([,'.-\w \\]*)>/i;
-this._notes.forEach(note => {
-  if (note.match(structure)) {
-    description = RegExp.$1.trim();
+  let description = ``;
+  const structure = /<recipeDesc:[ ]?([,'.-\w \\]*)>/i;
+  this._notes.forEach(note => {
+    if (note.match(structure)) {
+      description = RegExp.$1.trim();
+    }
+  });
+
+  if (!description.length) {
+    const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
+    description = baseItem.description;
   }
-});
 
-if (!description.length) {
-  const baseItem = J.Base.Helpers.translateItem(this._baseId, this._baseType);
-  description = baseItem.description;
-}
-
-return description;
+  return description;
 };
 //#endregion JAFT_ItemData
 
-//#region Crafting_Component
+//#region JAFTING_Component
 /**
  * A single instance of a particular crafting component, such as an ingredient/tool/output,
  * for use in JAFTING.
  */
-function Crafting_Component() { this.initialize(...arguments); }
-Crafting_Component.prototype = {};
-Crafting_Component.prototype.constructor = Crafting_Component;
-Crafting_Component.prototype.initialize = function(id, type, count, isTool) {
+function JAFTING_Component() { this.initialize(...arguments); }
+JAFTING_Component.prototype = {};
+JAFTING_Component.prototype.constructor = JAFTING_Component;
+JAFTING_Component.prototype.initialize = function(id, type, count, isTool) {
   /**
    * The id of the underlying component.
    * @type {number}
@@ -2540,7 +2713,7 @@ Crafting_Component.prototype.initialize = function(id, type, count, isTool) {
 /**
  * Gets the underlying RPG:Item that this component represents.
  */
-Crafting_Component.prototype.getItem = function() {
+JAFTING_Component.prototype.getItem = function() {
   switch (this.type) {
     case `i`:
       return $dataItems[this.id];
@@ -2558,26 +2731,26 @@ Crafting_Component.prototype.getItem = function() {
 /**
  * Crafts this particular component based on it's type.
  */
-Crafting_Component.prototype.craft = function() {
+JAFTING_Component.prototype.craft = function() {
   $gameParty.gainItem(this.getItem(), this.count);
 };
 
 /**
  * Consumes this particular component based on it's type.
  */
-Crafting_Component.prototype.consume = function() {
+JAFTING_Component.prototype.consume = function() {
   $gameParty.loseItem(this.getItem(), this.count);
 };
-//#endregion Crafting_Component
+//#endregion JAFTING_Component
 
-//#region Crafting_Recipe
+//#region JAFTING_Recipe
 /**
 * The data that makes up what defines a crafting recipe for use with JAFTING.
 */
-function Crafting_Recipe() { this.initialize(...arguments); }
-Crafting_Recipe.prototype = {};
-Crafting_Recipe.prototype.constructor = Crafting_Recipe;
-Crafting_Recipe.prototype.initialize = function(
+function JAFTING_Recipe() { this.initialize(...arguments); }
+JAFTING_Recipe.prototype = {};
+JAFTING_Recipe.prototype.constructor = JAFTING_Recipe;
+JAFTING_Recipe.prototype.initialize = function(
   name, key, description, categories, iconIndex, tools, ingredients, output, masked) {
     /**
     * The name of this crafting recipe.
@@ -2611,13 +2784,13 @@ Crafting_Recipe.prototype.initialize = function(
 
     /**
     * The list of required tools not consumed but required to execute the recipe.
-    * @type {Crafting_Component[]}
+    * @type {JAFTING_Component[]}
     */
     this.tools = tools;
 
     /**
     * The list of ingredients that make up this recipe that will be consumed.
-    * @type {Crafting_Component[]}
+    * @type {JAFTING_Component[]}
     */
     this.ingredients = ingredients;
 
@@ -2639,7 +2812,7 @@ Crafting_Recipe.prototype.initialize = function(
 /**
  * Initializes all members that do not require parameters for this class.
  */
-Crafting_Recipe.prototype.initMembers = function() {
+JAFTING_Recipe.prototype.initMembers = function() {
   /**
    * Whether or not this recipe has been unlocked for JAFTING.
    * @type {boolean}
@@ -2657,28 +2830,28 @@ Crafting_Recipe.prototype.initMembers = function() {
  * Gets whether or not this JAFTING recipe has been unlocked or not.
  * @returns {boolean}
  */
-Crafting_Recipe.prototype.isUnlocked = function() {
+JAFTING_Recipe.prototype.isUnlocked = function() {
   return this.unlocked;
 };
 
 /**
  * Locks this JAFTING recipe.
  */
-Crafting_Recipe.prototype.lock = function() {
+JAFTING_Recipe.prototype.lock = function() {
   this.unlocked = false;
 };
 
 /**
  * Unlocks this JAFTING recipe. Does not unlock the category this recipe belongs to.
  */
-Crafting_Recipe.prototype.unlock = function() {
+JAFTING_Recipe.prototype.unlock = function() {
   this.unlocked = true;
 };
 
 /**
  * Creates all output of this JAFTING recipe and marks the recipe as "crafted".
  */
-Crafting_Recipe.prototype.craft = function() {
+JAFTING_Recipe.prototype.craft = function() {
   this.output.forEach(component => component.craft());
   this.ingredients.forEach(component => component.consume());
   this.setCrafted();
@@ -2688,7 +2861,7 @@ Crafting_Recipe.prototype.craft = function() {
  * Gets whether or not this recipe is craftable based on the ingredients and tools on-hand.
  * @returns {boolean}
  */
-Crafting_Recipe.prototype.canCraft = function() {
+JAFTING_Recipe.prototype.canCraft = function() {
   let hasIngredients = true;
   let hasTools = true;
 
@@ -2715,7 +2888,7 @@ Crafting_Recipe.prototype.canCraft = function() {
  * Gets whether or not this recipe has been crafted before.
  * @returns {boolean}
  */
-Crafting_Recipe.prototype.hasBeenCrafted = function() {
+JAFTING_Recipe.prototype.hasBeenCrafted = function() {
   return this.crafted;
 };
 
@@ -2723,7 +2896,7 @@ Crafting_Recipe.prototype.hasBeenCrafted = function() {
  * Sets this recipe to a "crafted" state.
  * @param {boolean} crafted Whether or not this item has been crafted.
  */
-Crafting_Recipe.prototype.setCrafted = function(crafted = true) {
+JAFTING_Recipe.prototype.setCrafted = function(crafted = true) {
   this.crafted = crafted;
 };
 
@@ -2733,7 +2906,7 @@ Crafting_Recipe.prototype.setCrafted = function(crafted = true) {
  * that this recipe creates.
  * @returns {RPG_Item}
  */
-Crafting_Recipe.prototype.getPrimaryOutput = function() {
+JAFTING_Recipe.prototype.getPrimaryOutput = function() {
   return this.output[0].getItem();
 };
 
@@ -2742,7 +2915,7 @@ Crafting_Recipe.prototype.getPrimaryOutput = function() {
  * If none was specified, then the primary output's name will be used.
  * @returns {string}
  */
-Crafting_Recipe.prototype.getRecipeName = function() {
+JAFTING_Recipe.prototype.getRecipeName = function() {
   let name = "";
   if (!this.name.length) {
     const primaryOutput = this.getPrimaryOutput();
@@ -2763,7 +2936,7 @@ Crafting_Recipe.prototype.getRecipeName = function() {
  * If none was specified, then the primary output's icon index will be used.
  * @returns {number}
  */
-Crafting_Recipe.prototype.getRecipeIconIndex = function() {
+JAFTING_Recipe.prototype.getRecipeIconIndex = function() {
   if (this.iconIndex === -1) {
     const primaryOutput = this.getPrimaryOutput();
     return primaryOutput.iconIndex;
@@ -2777,7 +2950,7 @@ Crafting_Recipe.prototype.getRecipeIconIndex = function() {
  * If none was specified, then the primary output's description will be used.
  * @returns {string}
  */
-Crafting_Recipe.prototype.getRecipeDescription = function() {
+JAFTING_Recipe.prototype.getRecipeDescription = function() {
   let description = "";
   if (!this.description.length) {
     const primaryOutput = this.getPrimaryOutput();
@@ -2792,44 +2965,47 @@ Crafting_Recipe.prototype.getRecipeDescription = function() {
 
   return description;
 };
-//#endregion Crafting_Recipe
+//#endregion JAFTING_Recipe
 
-//#region Crafting_Category
+//#region JAFTING_Category
 /**
-* Represents the category details for this recipe.
-* A single recipe can live in multiple categories.
-*/
-function Crafting_Category() { this.initialize(...arguments); }
-Crafting_Category.prototype = {};
-Crafting_Category.prototype.constructor = Crafting_Category;
-Crafting_Category.prototype.initialize = function(name, key, iconIndex, description) {
- /**
-  * The name of this crafting category.
-  * @type {string}
-  */
+ * Represents the category details for this recipe.
+ * A single recipe can live in multiple categories.
+ */
+function JAFTING_Category() { this.initialize(...arguments); }
+JAFTING_Category.prototype = {};
+JAFTING_Category.prototype.constructor = JAFTING_Category;
+JAFTING_Category.prototype.initialize = function(name, key, iconIndex, description) {
+  /**
+   * The name of this crafting category.
+   * @type {string}
+   */
   this.name = name;
 
- /**
-  * The unique key of this crafting category.
-  * @type {string}
-  */
+  /**
+   * The unique key of this crafting category.
+   * @type {string}
+   */
   this.key = key;
 
- /**
-  * The icon that will display in the type selection window next to this category.
-  * @type {number}
-  */
+  /**
+   * The icon that will display in the type selection window next to this category.
+   * @type {number}
+   */
   this.iconIndex = iconIndex;
 
- /**
-  * The description that shows up in the help window.
-  * @type {string}
-  */
+  /**
+   * The description that shows up in the help window.
+   * @type {string}
+   */
   this.description = description;
   this.initMembers();
 };
 
-Crafting_Category.prototype.initMembers = function() {
+/**
+ * Initializes all members in this class with defaults.
+ */
+JAFTING_Category.prototype.initMembers = function() {
   /**
    * Whether or not this category is unlocked.
    * @type {boolean}
@@ -2841,50 +3017,50 @@ Crafting_Category.prototype.initMembers = function() {
  * Gets whether or not this JAFTING category is unlocked.
  * @returns {boolean}
  */
-Crafting_Category.prototype.isUnlocked = function() {
+JAFTING_Category.prototype.isUnlocked = function() {
   return this.unlocked;
 };
 
 /**
  * Locks this JAFTING category.
  */
-Crafting_Category.prototype.lock = function() {
+JAFTING_Category.prototype.lock = function() {
   this.unlocked = false;
 };
 
 /**
  * Unlocks this JAFTING category.
  */
-Crafting_Category.prototype.unlock = function() {
+JAFTING_Category.prototype.unlock = function() {
   this.unlocked = true;
 };
-//#endregion Crafting_Category
+//#endregion JAFTING_Category
 //#endregion JAFTING classes
 
 //#region SDP classes
 //#region StatDistributionPanel
 /**
-* The class that governs the details of a single SDP.
-*/
+ * The class that governs the details of a single SDP.
+ */
 function StatDistributionPanel() { this.initialize(...arguments); }
 StatDistributionPanel.prototype = {};
 StatDistributionPanel.prototype.constructor = StatDistributionPanel;
 
 /**
-* Initializes a single stat distribution panel.
-* @param {string} name The name that displays in the menu for this panel.
-* @param {string} key The unique identifier for this panel.
-* @param {number} iconIndex The icon index that represents this panel.
-* @param {boolean} unlocked Whether or not this panel is unlocked.
-* @param {string} description The description for this panel.
-* @param {number} maxRank The maximum rank this panel can reach.
-* @param {number} baseCost The base component of the cost formula.
-* @param {number} flatGrowthCost The flat component of the cost formula.
-* @param {numbe} multGrowthCost The multiplier component of the cost formula.
-* @param {string} topFlavorText The flavor text for this panel, if any.
-* @param {PanelRankupReward[]} panelRewards All rewards associated with this panel.
-* @param {PanelParameter[]} panelParameters All parameters this panel affects.
-*/
+ * Initializes a single stat distribution panel.
+ * @param {string} name The name that displays in the menu for this panel.
+ * @param {string} key The unique identifier for this panel.
+ * @param {number} iconIndex The icon index that represents this panel.
+ * @param {boolean} unlocked Whether or not this panel is unlocked.
+ * @param {string} description The description for this panel.
+ * @param {number} maxRank The maximum rank this panel can reach.
+ * @param {number} baseCost The base component of the cost formula.
+ * @param {number} flatGrowthCost The flat component of the cost formula.
+ * @param {numbe} multGrowthCost The multiplier component of the cost formula.
+ * @param {string} topFlavorText The flavor text for this panel, if any.
+ * @param {PanelRankupReward[]} panelRewards All rewards associated with this panel.
+ * @param {PanelParameter[]} panelParameters All parameters this panel affects.
+ */
 StatDistributionPanel.prototype.initialize = function(
   name,
   key, 
@@ -3040,22 +3216,22 @@ PanelRankupReward.prototype = {};
 PanelRankupReward.prototype.constructor = PanelRankupReward;
 
 /**
-* Initializes a single rankup reward.
-* @param {number} rankRequired The rank required.
-* @param {string} effect The effect to execute.
-*/
+ * Initializes a single rankup reward.
+ * @param {number} rankRequired The rank required.
+ * @param {string} effect The effect to execute.
+ */
 PanelRankupReward.prototype.initialize = function(rankRequired, effect) {
   /**
-  * The rank required for this panel rankup reward to be executed.
-  * @type {number}
-  */
+   * The rank required for this panel rankup reward to be executed.
+   * @type {number}
+   */
   this.rankRequired = rankRequired;
 
   /**
-  * The effect to be executed upon reaching the rank required.
-  * The effect is captured as javascript.
-  * @type {string}
-  */
+   * The effect to be executed upon reaching the rank required.
+   * The effect is captured as javascript.
+   * @type {string}
+   */
   this.effect = effect;
 };
 //#endregion PanelRankupReward
@@ -3076,21 +3252,21 @@ PanelParameter.prototype.constructor = PanelParameter;
  */
 PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
   /**
- * The id of the parameter this class represents.
- * @type {number}
- */
+   * The id of the parameter this class represents.
+   * @type {number}
+   */
   this.parameterId = parameterId;
 
   /**
- * The amount per rank this parameter gives.
- * @type {number}
- */
+   * The amount per rank this parameter gives.
+   * @type {number}
+   */
   this.perRank = perRank;
 
   /**
- * Whether or not the growth per rank for this parameter is flat or percent.
- * @type {boolean} True if it is flat growth, false if it is percent growth.
- */
+   * Whether or not the growth per rank for this parameter is flat or percent.
+   * @type {boolean} True if it is flat growth, false if it is percent growth.
+   */
   this.isFlat = isFlat;
 };
 //#endregion PanelParameter
@@ -3104,13 +3280,13 @@ PanelRanking.prototype = {};
 PanelRanking.prototype.constructor = PanelRanking;
 
 /**
-* Initializes a single panel ranking for tracking on a given actor.
-* @param {string} key The unique key for the panel to be tracked.
-*/
+ * Initializes a single panel ranking for tracking on a given actor.
+ * @param {string} key The unique key for the panel to be tracked.
+ */
 PanelRanking.prototype.initialize = function(key) {
   /**
- * The key for this panel ranking.
- */
+   * The key for this panel ranking.
+   */
   this.key = key;
   this.initMembers();
 };
@@ -3120,15 +3296,15 @@ PanelRanking.prototype.initialize = function(key) {
  */
 PanelRanking.prototype.initMembers = function() {
   /**
- * The current rank for this panel ranking.
- * @type {number}
- */
+   * The current rank for this panel ranking.
+   * @type {number}
+   */
   this.currentRank = 0;
 
   /**
- * Whether or not this panel is maxed out.
- * @type {boolean}
- */
+   * Whether or not this panel is maxed out.
+   * @type {boolean}
+   */
   this.maxed = false;
 };
 
@@ -3160,9 +3336,9 @@ PanelRanking.prototype.isPanelMaxed = function() {
 };
 
 /**
-* Upon reaching a given rank of this panel, try to perform this `javascript` effect.
-* @param {number} newRank The rank to inspect and execute effects for.
-*/
+ * Upon reaching a given rank of this panel, try to perform this `javascript` effect.
+ * @param {number} newRank The rank to inspect and execute effects for.
+ */
 PanelRanking.prototype.performRankupEffects = function(newRank) {
   const a = $gameParty.leader();
   const rewardEffects = $gameSystem
@@ -3181,22 +3357,22 @@ PanelRanking.prototype.performRankupEffects = function(newRank) {
 };
 
 /**
-* Executes any rewards associated with the current rank (used after ranking up typically).
-*/
+ * Executes any rewards associated with the current rank (used after ranking up typically).
+ */
 PanelRanking.prototype.performCurrentRankupEffects = function() {
   this.performRankupEffects(this.currentRank);
 };
 
 /**
-* Executes any rewards that are defined as "repeat rankup effects", aka -1 rank.
-*/
+ * Executes any rewards that are defined as "repeat rankup effects", aka -1 rank.
+ */
 PanelRanking.prototype.performRepeatRankupEffects = function() {
   this.performRankupEffects(-1);
 };
 
 /**
-* Executes any rewards that are defined as "max rankup effects", aka 0 rank.
-*/
+ * Executes any rewards that are defined as "max rankup effects", aka 0 rank.
+ */
 PanelRanking.prototype.performMaxRankupEffects = function() {
   this.performRankupEffects(0);
 };

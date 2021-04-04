@@ -184,7 +184,7 @@ J.JAFTING.Helpers = {};
 /**
  * Translates the plugin settings from JSON to JAFTING recipes.
  * @param {JSON} rawRecipeBlobs The raw JSON data representing the recipes.
- * @returns {Crafting_Recipe[]}
+ * @returns {JAFTING_Recipe[]}
  */
 J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
   const parsedRecipeBlobs = JSON.parse(rawRecipeBlobs);
@@ -203,15 +203,15 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const armorId = parseInt(parsedIngredient.armorId);
       const quantity = parseInt(parsedIngredient.quantity);
       if (itemId) {
-        const newItemIngredient = new Crafting_Component(itemId, `i`, quantity, false);
+        const newItemIngredient = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedIngredients.push(newItemIngredient);
       }
       if (weaponId) {
-        const newWeaponIngredient = new Crafting_Component(weaponId, `w`, quantity, false);
+        const newWeaponIngredient = new JAFTING_Component(weaponId, `w`, quantity, false);
         parsedIngredients.push(newWeaponIngredient);
       }
       if (armorId) {
-        const newArmorIngredient = new Crafting_Component(armorId, `a`, quantity, false);
+        const newArmorIngredient = new JAFTING_Component(armorId, `a`, quantity, false);
         parsedIngredients.push(newArmorIngredient);
       }
     });
@@ -226,15 +226,15 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const armorId = parseInt(parsedTool.armorId);
       const quantity = parseInt(parsedTool.quantity);
       if (itemId) {
-        const newItemTool = new Crafting_Component(itemId, `i`, quantity, false);
+        const newItemTool = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedTools.push(newItemTool);
       }
       if (weaponId) {
-        const newWeaponTool = new Crafting_Component(weaponId, `w`, quantity, false);
+        const newWeaponTool = new JAFTING_Component(weaponId, `w`, quantity, false);
         parsedTools.push(newWeaponTool);
       }
       if (armorId) {
-        const newArmorTool = new Crafting_Component(armorId, `a`, quantity, false);
+        const newArmorTool = new JAFTING_Component(armorId, `a`, quantity, false);
         parsedTools.push(newArmorTool);
       }
     });
@@ -249,15 +249,15 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const armorId = parseInt(parsedOutput.armorId);
       const quantity = parseInt(parsedOutput.quantity);
       if (itemId) {
-        const newItemOutput = new Crafting_Component(itemId, `i`, quantity, false);
+        const newItemOutput = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedOutputs.push(newItemOutput);
       }
       if (weaponId) {
-        const newWeaponOutput = new Crafting_Component(weaponId, `w`, quantity, false);
+        const newWeaponOutput = new JAFTING_Component(weaponId, `w`, quantity, false);
         parsedOutputs.push(newWeaponOutput);
       }
       if (armorId) {
-        const newArmorOutput = new Crafting_Component(armorId, `a`, quantity, false);
+        const newArmorOutput = new JAFTING_Component(armorId, `a`, quantity, false);
         parsedOutputs.push(newArmorOutput);
       }
     });
@@ -270,7 +270,7 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
     const parsedCategoryKeys = JSON.parse(parsedRecipeBlob.categoryKeys);
 
     // create and add JAFTING recipe.
-    const parsedRecipe = new Crafting_Recipe(
+    const parsedRecipe = new JAFTING_Recipe(
       parsedRecipeBlob.name,
       parsedRecipeBlob.recipeKey,
       parsedDescription,
@@ -290,14 +290,14 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
 /**
  * Translates the plugin settings from JSON to JAFTING categories.
  * @param {JSON} rawRecipeBlobs The raw JSON data representing the categories.
- * @returns {Crafting_Category[]}
+ * @returns {JAFTING_Category[]}
  */
 J.JAFTING.Helpers.translateCategories = rawCategoryBlobs => {
   const parsedCategoryBlobs = JSON.parse(rawCategoryBlobs);
   const parsedCategories = [];
   parsedCategoryBlobs.forEach(categoryBlob => {
     const parsedCategoryBlob = JSON.parse(categoryBlob);
-    const parsedCategory = new Crafting_Category(
+    const parsedCategory = new JAFTING_Category(
       parsedCategoryBlob.name,
       parsedCategoryBlob.key,
       parseInt(parsedCategoryBlob.iconIndex),
@@ -541,13 +541,13 @@ Game_System.prototype.initJaftingMembers = function() {
 
   /**
   * The collection of all jafting recipes extracted from the database.
-  * @type {Crafting_Recipe[]}
+  * @type {JAFTING_Recipe[]}
   */
   this._j._jafting._recipes = J.JAFTING.Metadata.Recipes;
 
   /**
   * The collection of all categories that are viewable within the JAFTING menu.
-  * @type {Crafting_Category[]}
+  * @type {JAFTING_Category[]}
   */
   this._j._jafting._categories = J.JAFTING.Metadata.Categories;
 
@@ -583,7 +583,7 @@ Game_System.prototype.isJafting = function() {
 /**
 * Gets the category of crafting by key.
 * @param {string} key The unique identifier of a category of crafting.
-* @returns {Crafting_Category?}
+* @returns {JAFTING_Category?}
 */
 Game_System.prototype.getCategoryByKey = function(key) {
   const result = this._j._jafting._categories.find(category => category.key === key);
@@ -662,7 +662,7 @@ Game_System.prototype.lockRecipe = function(key) {
 
 /**
 * Gets all defined JAFTING recipes.
-* @returns {Crafting_Recipe[]}
+* @returns {JAFTING_Recipe[]}
 */
 Game_System.prototype.getAllRecipes = function() {
   return this._j._jafting._recipes;
@@ -670,7 +670,7 @@ Game_System.prototype.getAllRecipes = function() {
 
 /**
 * Gets a list of all categories that have been unlocked.
-* @returns {Crafting_Category[]}
+* @returns {JAFTING_Category[]}
 */
 Game_System.prototype.getUnlockedCategories = function() {
   return this._j._jafting._categories.filter(category => category.isUnlocked());
@@ -695,7 +695,7 @@ Game_System.prototype.setRefreshRequest = function(requested = true) {
 /**
 * For a recipe to be available for crafting/unlocked, the player must have
 * all outputs of a recipe unlocked.
-* @returns {Crafting_Recipe[]}
+* @returns {JAFTING_Recipe[]}
 */
 Game_System.prototype.getUnlockedRecipes = function() {
   return this._j._jafting._recipes.filter(recipe => recipe.isUnlocked());
@@ -704,7 +704,7 @@ Game_System.prototype.getUnlockedRecipes = function() {
 /**
 * Gets all unlocked recipes that are a part of a given category.
 * @param {string} categoryKey The category to get all unlocked recipes for.
-* @returns {Crafting_Recipe[]}
+* @returns {JAFTING_Recipe[]}
 */
 Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey) {
   const recipes = this.getUnlockedRecipes();
@@ -1469,7 +1469,7 @@ class Window_JaftingCraftCategory extends Window_Command {
 
   /**
    * Gets the details of the currently selected category.
-   * @returns {Crafting_Category}
+   * @returns {JAFTING_Category}
    */
   getCategoryDetails() {
     // cannot return details for null.
@@ -1573,7 +1573,7 @@ class Window_JaftingCraftRecipeList extends Window_Command {
 
   /**
   * Gets the details of the currently selected category.
-  * @returns {Crafting_Category}
+  * @returns {JAFTING_Category}
   */
   getRecipeDetails() {
     // cannot return details for null.
@@ -1634,14 +1634,14 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
   initMembers() {
     /**
     * The recipe currently being displayed in this window.
-    * @type {Crafting_Recipe}
+    * @type {JAFTING_Recipe}
     */
     this._currentRecipe = null;
   };
 
   /**
   * Gets the current recipe being displayed.
-  * @returns {Crafting_Recipe}
+  * @returns {JAFTING_Recipe}
   */
   get currentRecipe() {
     return this._currentRecipe;
@@ -1649,7 +1649,7 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
 
   /**
   * Sets the current recipe to be this recipe.
-  * @param {Crafting_Recipe} recipe The recipe to assign as the current.
+  * @param {JAFTING_Recipe} recipe The recipe to assign as the current.
   */
   set currentRecipe(recipe) {
     this._currentRecipe = recipe;
