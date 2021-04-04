@@ -392,7 +392,7 @@ Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, basePar
       // don't process this boost param.
       if (!(otibParam.paramId - idExtra === spexParamId)) return 0;
 
-      const boost = parseFloat(otibParam.boost / 100).toFixed(2);
+      const boost = parseFloat((otibParam.boost / 100).toFixed(2));
       if (otibParam.isPercent) {
         // if it is a percent, then multiply and divide
         otibsModifications += Math.floor(baseParam * (boost / 100));
