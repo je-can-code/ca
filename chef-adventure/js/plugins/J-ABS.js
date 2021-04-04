@@ -2219,6 +2219,7 @@ J.ABS.Aliased.Game_Map.setup = Game_Map.prototype.setup;
 Game_Map.prototype.setup = function(mapId) {
   J.ABS.Aliased.Game_Map.setup.call(this, mapId);
   this.jabsInitialization();
+  console.log("setup ran for map", $gameMap.mapId());
 };
 
 /**
@@ -2596,7 +2597,10 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
  */
 J.ABS.Aliased.Game_Player.canMove = Game_Player.prototype.canMove;
 Game_Player.prototype.canMove = function() {
-  if ($gameBattleMap.requestAbsMenu || $gameBattleMap.absPause) {
+  const isMenuRequested = $gameBattleMap.requestAbsMenu;
+  const isAbsPaused = $gameBattleMap.absPause;
+  const isPlayerCasting = $gameBattleMap.getPlayerMapBattler().isCasting();
+  if (isMenuRequested || isAbsPaused || isPlayerCasting) {
     return false;
   } else {
     return J.ABS.Aliased.Game_Player.canMove.call(this);
@@ -5076,6 +5080,22 @@ class Game_BattleMap {
     // don't allow for other inputs if the abs is disabled.
     if (!this.absEnabled) return;
 
+    const battler = this.getPlayerMapBattler();
+
+    // if the player is casting, then countdown and wait for it to finish before
+    // accepting additional input.
+    if (battler.isCasting()) {
+      battler.countdownCastTime();
+      return;
+    }
+
+    // if skills are queued, execute them.
+    if (battler.isActionDecided() && !battler.isCasting()) {
+      this.executeMapActions(battler, battler.getDecidedAction());
+      battler.clearDecidedAction();
+      return;
+    }
+
     // strafing can be done concurrently to other actions.
     if (Input.isPressed(J.ABS.Input.L2)) {
       this.performStrafe(true);
@@ -5361,7 +5381,10 @@ class Game_BattleMap {
     }
 
     if (mapActions && mapActions.length) {
-      this.executeMapActions(battler, mapActions);
+      battler.setDecidedAction(mapActions);
+      const primaryMapAction = mapActions[0];
+      battler.setCastCountdown(primaryMapAction.getCastTime());
+      //this.executeMapActions(battler, mapActions);
     } else {
       // either no skill equipped in that slot, or its not off cooldown.
       SoundManager.playCancel();
@@ -7383,7 +7406,7 @@ class JABS_AiManager {
       battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
     }
 
-    battler.setWaitCountdown(30); // always wait a half-second before executing an action.
+    battler.setWaitCountdown(20); // always wait a half-second before executing an action.
     battler.setCastCountdown(primaryMapAction.getCastTime());
   };
 
@@ -8202,7 +8225,7 @@ JABS_Battler.prototype.updateStates = function() {
  * Updates all regenerations and ticks four times per second.
  */
 JABS_Battler.prototype.updateRG = function() {
-  if (this.isRegenReady()) {
+  if (this.isRegenReady() && !this.getBattler().isDead()) {
     this.slipHp();
     this.slipMp();
     this.slipTp();
@@ -8303,6 +8326,7 @@ JABS_Battler.prototype.isWaiting = function() {
  * Counts down the duration for this battler's cast time.
  */
 JABS_Battler.prototype.countdownCastTime = function() {
+  this.performCastAnimation();
   if (this._castTimeCountdown > 0) {
     this._castTimeCountdown--;
     return;
@@ -8311,6 +8335,15 @@ JABS_Battler.prototype.countdownCastTime = function() {
   if (this._castTimeCountdown <= 0) {
     this._casting = false;
     this._castTimeCountdown = 0;
+  }
+};
+
+JABS_Battler.prototype.performCastAnimation = function() {
+  const { casterAnimation } = this.getDecidedAction()[0].getBaseSkill()._j;
+  if (!casterAnimation) return;
+
+  if (!this.getCharacter().isAnimationPlaying()) {
+    this.showAnimation(casterAnimation);
   }
 };
 
@@ -9271,6 +9304,13 @@ JABS_Battler.prototype.getDecidedAction = function() {
  */
 JABS_Battler.prototype.setDecidedAction = function(action) {
   this._decidedAction = action;
+};
+
+/**
+ * Clears this battler's decided action.
+ */
+JABS_Battler.prototype.clearDecidedAction = function() {
+  this._decidedAction = null;
 };
 
 /**
@@ -12062,8 +12102,9 @@ class JABS_TrackedState {
   update() {
     if (this.duration > 0) {
       this.duration--;
-    } else if (this.duration === 0) {
-      this.removeStateFromBattler();
+    } else if (this.duration === 0 &&
+      this.stateId !== this.battler.deathStateId()) {
+        this.removeStateFromBattler();
     }
   };
 
