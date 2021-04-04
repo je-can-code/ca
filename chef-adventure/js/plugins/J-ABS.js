@@ -2219,7 +2219,6 @@ J.ABS.Aliased.Game_Map.setup = Game_Map.prototype.setup;
 Game_Map.prototype.setup = function(mapId) {
   J.ABS.Aliased.Game_Map.setup.call(this, mapId);
   this.jabsInitialization();
-  console.log("setup ran for map", $gameMap.mapId());
 };
 
 /**
