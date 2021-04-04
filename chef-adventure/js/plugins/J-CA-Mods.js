@@ -303,7 +303,6 @@ J.CAMods.Aliased.Game_Map.setup = Game_Map.prototype.setup;
 Game_Map.prototype.setup = function(mapId) {
   J.CAMods.Aliased.Game_Map.setup.call(this, mapId);
   $gameVariables.setValue(13, Math.randomInt(100)+1);
-  console.log($gameVariables.value(13));
 };
 //#endregion Game_Map
 
