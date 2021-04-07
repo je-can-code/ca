@@ -2740,8 +2740,7 @@ Game_Player.prototype.checkForLoot = function() {
   const lootDrops = $gameMap.getLootDrops();
   if (lootDrops.length) {
     lootDrops.forEach(lootDrop => {
-      const isTouching = this.isTouchingLoot(lootDrop);
-      if (isTouching) {
+      if (this.isTouchingLoot(lootDrop)) {
         this.pickupLoot(lootDrop);
         this.removeLoot(lootDrop);
       }
@@ -2755,8 +2754,8 @@ Game_Player.prototype.checkForLoot = function() {
  * @returns {boolean}
  */
 Game_Player.prototype.isTouchingLoot = function(lootDrop) {
-  const isTouching = (lootDrop._x === this._x && lootDrop._y === this._y+1);
-  return isTouching;
+  const distance = $gameMap.distance(lootDrop._realX, lootDrop._realY, this._realX, this._realY);
+  return distance < 1.25; // TODO: parameterize this.
 };
 
 /**
@@ -7161,9 +7160,10 @@ class JABS_AiManager {
         if (JABS_Battler.isClose(distanceToHome)) {
           event.moveRandom();
         } else {
-          const nextDir = event.findDiagonalDirectionTo(
-            battler.getX(), battler.getY(),
-            battler.getHomeX(), battler.getHomeY());
+          //const nextDir = event.findDiagonalDirectionTo(
+          //  battler.getX(), battler.getY(),
+          //  battler.getHomeX(), battler.getHomeY());
+          const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY())
           event.moveStraight(nextDir);
         }
       } else {
@@ -9590,7 +9590,7 @@ JABS_Battler.prototype.setAlertedCoordinates = function(x, y) {
  * @returns {boolean} True if the battler is home, false otherwise.
  */
 JABS_Battler.prototype.isHome = function() {
-  return (this._event.x == this._homeX && this._event.y == this._homeY);
+  return (this._event.x === this._homeX && this._event.y === this._homeY);
 };
 
 /**
@@ -9614,7 +9614,7 @@ JABS_Battler.prototype.getHomeY = function() {
  * @returns {number} The X coordinate of this event.
  */
 JABS_Battler.prototype.getX = function() {
-  return this.getCharacter().x;
+  return this.getCharacter()._realX;
 };
 
 /**
@@ -9622,7 +9622,7 @@ JABS_Battler.prototype.getX = function() {
  * @returns {number} The Y coordinate of this event.
  */
 JABS_Battler.prototype.getY = function() {
-  return this.getCharacter().y;
+  return this.getCharacter()._realY;
 };
 
 /**
@@ -9690,14 +9690,15 @@ JABS_Battler.prototype.smartMoveTowardTarget = function() {
  */
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y) {
   const character = this.getCharacter();
-  const nextDir = character.findDiagonalDirectionTo(x, y);
+  //const nextDir = character.findDiagonalDirectionTo(x, y);
+  const nextDir = character.findDirectionTo(x, y);
 
-  if (character.isMoveDiagonally(nextDir)) {
-    const horzvert = character.getDiagonallyMovement(nextDir);
-    character.moveDiagonally(horzvert[0], horzvert[1]);
-  } else {
+  //if (character.isMoveDiagonally(nextDir)) {
+  //  const horzvert = character.getDiagonallyMovement(nextDir);
+  //  character.moveDiagonally(horzvert[0], horzvert[1]);
+  //} else {
     character.moveStraight(nextDir);
-  }
+  //}
 };
 
 /**
@@ -11813,7 +11814,7 @@ class JABS_LootDrop {
    */
   get useOnPickup() {
     return this._lootObject._j.useOnPickup;
-  }
+  };
 };
 //#endregion JABS_LootDrop
 

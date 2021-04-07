@@ -6552,6 +6552,7 @@ Game_Map.prototype.isValid = function(x, y) {
 Game_Map.prototype.checkPassage = function(x, y, bit) {
     const flags = this.tilesetFlags();
     const tiles = this.allTiles(x, y);
+    console.log(tiles);
     for (const tile of tiles) {
         const flag = flags[tile];
         if ((flag & 0x10) !== 0) {
