@@ -4372,12 +4372,13 @@ Sprite_Gauge.prototype.currentValue = function() {
 //#endregion Sprite_Gauge
 //#endregion Sprite objects
 
+//#region Custom classes
 //#region Window objects
 //#region Window_AbsMenu
 /**
  * The window representing what is called and manages the player's assigned skill slots.
  */
-class Window_AbsMenu extends Window_Command {
+ class Window_AbsMenu extends Window_Command {
   /**
    * @constructor
    * @param {Rectangle} rect The shape of the window.
@@ -4621,8 +4622,7 @@ class Window_AbsMenuSelect extends Window_Command {
 //#endregion
 //#endregion Window objects
 
-//#region Custom classes
-
+//#region Game objects
 //#region Game_BattleMap
 /**
  * This class handles how non-player `JABS_Battler`s interact with others.
@@ -7003,8 +7003,7 @@ class Game_BattleMap {
 //#endregion
 
 //#endregion Custom classes
-
-//#endregion Custom classes
+//#endregion Game objects
 
 //#region JABS objects
 //#region JABS_AiManager
@@ -12134,7 +12133,7 @@ class JABS_TrackedState {
   };
 };
 //#endregion JABS_TrackedState
-
 //#endregion JABS objects
+//#endregion Custom classes
 
 //ENDFILE
