@@ -1,5 +1,5 @@
- //#region Initialization
- /*:
+//#region Initialization
+/*:
  * @target MZ
  * @plugindesc 
  * Mods exclusive to Chef Adventure.
@@ -8,7 +8,8 @@
  * @help
  * These modifications of code are exclusive to Chef Adventure.
  */
- /**
+
+/**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
@@ -70,6 +71,7 @@ J.CAMods.Aliased = {
   Game_Actor: {},
   Game_BattlerBase: {},
   Game_BattleMap: {},
+  Game_Character: {},
   Game_Map: {},
   Game_Party: {},
   Game_Player: {},
