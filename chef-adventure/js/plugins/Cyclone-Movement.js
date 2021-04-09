@@ -2449,6 +2449,7 @@ const addPixelMovementToClass = (classRef) => {
 
 addPixelMovementToClass(Game_Player);
 addPixelMovementToClass(Game_Follower);
+addPixelMovementToClass(Game_Event);
 
 let tryToLeaveVehicleDelay = 0;
 
