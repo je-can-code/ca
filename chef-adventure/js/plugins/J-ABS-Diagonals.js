@@ -58,19 +58,21 @@
 var J = J || {};
 
 //#region version checks
-// Check to ensure we have the minimum required version of the J-Base plugin.
-const requiredBaseVersion = '1.0.0';
-const hasBaseRequirement = J.Base.Helpers.satisfies(requiredBaseVersion, J.Base.Metadata.Version);
-if (!hasBaseRequirement) {
-  throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-}
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.Base.Helpers.satisfies(requiredBaseVersion, J.Base.Metadata.Version);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
 
 // Check to ensure we have the minimum required version of the J-ABS plugin.
-const requiredJabsVersion = '2.3.0';
-const hasJabsRequirement = J.Base.Helpers.satisfies(requiredJabsVersion, J.ABS.Metadata.Version);
-if (!hasJabsRequirement) {
-  throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-}
+  const requiredJabsVersion = '2.3.0';
+  const hasJabsRequirement = J.Base.Helpers.satisfies(requiredJabsVersion, J.ABS.Metadata.Version);
+  if (!hasJabsRequirement) {
+    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+  }
+})();
 //#endregion version check
 
 //#region plugin metadata

@@ -62,6 +62,11 @@ J.Base.Notetags = {
 
   // on skills in database.
   ActionId: "actionId",
+  Aggro: "aggro",
+  AggroMultiplier: "aggroMultiplier",
+  AggroInAmp: "aggroInAmp",
+  AggroOutAmp: "aggroOutAmp",
+  AggroLock: "aggroLock",
   CastAnimation: "castAnimation",
   CastTime: "castTime",
   Combo: "combo",
@@ -497,7 +502,7 @@ Game_Actor.prototype.grdGrowth = function() {
   if (this._meta && this._meta[J.Base.Notetags.GuardGrowth]) {
     grdGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.GuardGrowth]);
   } else {
-    const structure = /<grdGrowth:[ ]?([\.\d]+)>/i;
+    const structure = /<grdGrowth:[ ]?([.\d]+)>/i;
     this.actor().note.split(/[\r\n]+/).forEach(note => {
       if (note.match(structure)) {
         grdGrowthPerLevel = parseFloat(RegExp.$1);
@@ -509,24 +514,33 @@ Game_Actor.prototype.grdGrowth = function() {
 };
 
 /**
- * Gets the enemy's basic attack skill id from their notes.
- * Defaults to `180` if no note is present.
+ * Gets the prepare time for this actor.
+ * Looks first to the class, then the actor for a prepare tag.
+ * If neither are present, then it returns the default.
  * @returns {number}
  */
  Game_Actor.prototype.prepareTime = function() {
-  let prepare = 180;
+  let prepare = Game_Battler.prototype.prepareTime();
 
   const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.Base.Notetags.PrepareTime]) {
+    return parseInt(referenceDataClass.meta[J.Base.Notetags.PrepareTime]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
   if (referenceData.meta && referenceData.meta[J.Base.Notetags.PrepareTime]) {
     // if its in the metadata, then grab it from there.
-    prepare = referenceData.meta[J.Base.Notetags.PrepareTime];
+    return parseInt(referenceData.meta[J.Base.Notetags.PrepareTime]);
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<prepare:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
     notedata.forEach(note => {
       if (note.match(structure)) {
-        prepare = RegExp.$1;
+        prepare = parseInt(RegExp.$1);
       }
     })
   }
@@ -545,7 +559,44 @@ Game_Battler.prototype.prepareTime = function() {
   return 180; // TODO: parameterize default prepare time.
 };
 
-//Game_Battler.prototype.
+/**
+ * all battlers have a skill id for their basic attack.
+ * At this level, returns the default skill id of 1.
+ * @returns {number}
+ */
+Game_Battler.prototype.skillId = function() {
+  return 1; // TODO: parameterize default skill id.
+};
+
+/**
+ * Gets whether or not the aggro is locked for this battler.
+ * Locked aggro means their aggro cannot be modified in any way.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isAggroLocked = function() {
+  return this.states().some(state => state._j.aggroLock);
+};
+
+/**
+ * Gets the multiplier for received aggro for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.aggroInAmp = function() {
+  let inAmp = 1.0;
+  this.states().forEach(state => inAmp += state._j.aggroInAmp);
+  return inAmp;
+};
+
+/**
+ * Gets the multiplier for dealt aggro for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.aggroOutAmp = function() {
+  let outAmp = 1.0;
+  this.states().forEach(state => outAmp += state._j.aggroOutAmp);
+  return outAmp;
+};
+
 //#endregion Game_Battler
 
 //#region Game_Character
@@ -771,7 +822,7 @@ Game_Character.prototype.canIdle = function() {
  * @returns {boolean}
  */
 Game_Character.prototype.showHpBar = function() {
-  if (!(this instanceof Game_Event)) return;
+  if (!(this instanceof Game_Event)) return false;
 
   let showHpBar = true;
   const referenceData = this.event();
@@ -945,13 +996,11 @@ Game_Enemy.prototype.needsSdpDrop = function() {
   if (alreadyEarned) return null;
 
   // create the new drop based on the SDP.
-  const newSdp = {
+  return {
     kind: 1, // all SDP drops are assumed to be "items".
     dataId: parseInt(RegExp.$2),
     denominator: parseInt(RegExp.$3)
   };
-
-  return newSdp;
 };
 
 /**
@@ -1471,6 +1520,47 @@ class JABS_SkillData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
+  };
+
+  /**
+   * Gets the bonus aggro this skill generates.
+   * @returns {number}
+   */
+  get bonusAggro() {
+    let aggro = 0;
+    if (this._meta && this._meta[J.Base.Notetags.Aggro]) {
+      aggro = parseInt(this._meta[J.Base.Notetags.Aggro]);
+    } else {
+      const structure = /<aggro:[ ]?(-?\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          aggro += parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return aggro;
+  };
+
+  /**
+   * Gets the aggro multiplier that this skill performs.
+   * Used for skills specifically that increase/decrease by a percent (or reset).
+   * @returns {number}
+   */
+  get aggroMultiplier() {
+    let multiplier = 1.0;
+    if (this._meta && this._meta[J.Base.Notetags.AggroMultiplier]) {
+      multiplier = parseFloat(this._meta[J.Base.Notetags.AggroMultiplier]);
+    } else {
+      const structure = /<aggroMultiply:[ ]?(\d+[.]?\d+)?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          multiplier += parseFloat(RegExp.$1);
+        }
+      });
+    }
+
+    return multiplier;
   };
 
   /**
@@ -2173,6 +2263,66 @@ class JABS_StateData {
   }
 
   /**
+   * Gets whether or not this state locks aggro modification.
+   * @returns {boolean}
+   */
+  get aggroLock() {
+    let aggroLocked = false;
+    if (this._meta && this._meta[J.Base.Notetags.AggroLock]) {
+      aggroLocked = true;
+    } else {
+      const structure = /<aggroLock>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          aggroLocked = true;
+        }
+      })
+    }
+
+    return aggroLocked;
+  };
+
+  /**
+   * Gets the aggro dealt amp multiplier bonus for this state.
+   * @returns {number}
+   */
+  get aggroOutAmp() {
+    let aggroOutAmp = 0.0;
+    if (this._meta && this._meta[J.Base.Notetags.AggroOutAmp]) {
+      aggroOutAmp = parseFloat(this._meta[J.Base.Notetags.AggroOutAmp]);
+    } else {
+      const structure = /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          aggroOutAmp = parseFloat(RegExp.$1);
+        }
+      })
+    }
+
+    return aggroOutAmp;
+  };
+
+  /**
+   * Gets the aggro received amp multiplier bonus for this state.
+   * @returns {number}
+   */
+  get aggroInAmp() {
+    let aggroInAmp = 0.0;
+    if (this._meta && this._meta[J.Base.Notetags.AggroInAmp]) {
+      aggroInAmp = parseFloat(this._meta[J.Base.Notetags.AggroInAmp]);
+    } else {
+      const structure = /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          aggroInAmp = parseFloat(RegExp.$1);
+        }
+      })
+    }
+
+    return aggroInAmp;
+  };
+
+  /**
    * Gets whether or not this state inflicts JABS paralysis.
    * @returns {boolean} True if it inflicts JABS paralysis, false otherwise.
    */
@@ -2190,7 +2340,7 @@ class JABS_StateData {
     }
 
     return paralyzed;
-  }
+  };
 
   /**
    * Gets whether or not this state inflicts JABS root.
@@ -2210,7 +2360,7 @@ class JABS_StateData {
     }
 
     return rooted;
-  }
+  };
 
   /**
    * Gets whether or not this state inflicts JABS mute.
@@ -2230,7 +2380,7 @@ class JABS_StateData {
     }
 
     return muted;
-  }
+  };
 
   /**
    * Gets whether or not this state inflicts JABS disable.
@@ -2250,7 +2400,7 @@ class JABS_StateData {
     }
 
     return disabled;
-  }
+  };
 
   /**
    * Gets the flat hp5 for this state.
@@ -2270,7 +2420,7 @@ class JABS_StateData {
     }
 
     return hpFlat;
-  }
+  };
 
   /**
    * Gets the percentage hp5 for this state.
@@ -2290,7 +2440,7 @@ class JABS_StateData {
     }
 
     return hpPerc;
-  }
+  };
 
   /**
    * Gets the flat mp5 for this state.
@@ -2310,7 +2460,7 @@ class JABS_StateData {
     }
 
     return mpFlat;
-  }
+  };
 
   /**
    * Gets the percentage mp5 for this state.
@@ -2330,7 +2480,7 @@ class JABS_StateData {
     }
 
     return mpPerc;
-  }
+  };
 
   /**
    * Gets the flat tp5 for this state.
@@ -2350,7 +2500,7 @@ class JABS_StateData {
     }
 
     return tpFlat;
-  }
+  };
 
   /**
    * Gets the percentage tp5 for this state.
@@ -2370,9 +2520,12 @@ class JABS_StateData {
     }
 
     return tpPerc;
-  }
+  };
 }
 //#endregion JABS_StateData
+//#endregion JABS Classes
+
+//#region OTIB classes
 
 //#region OneTimeItemBoost
 /**
@@ -2456,7 +2609,7 @@ OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent)
 };
 //#endregion OneTimeItemBoost
 
-//#endregion JABS Classes
+//#endregion OTIB classes
 
 //#region JAFTING classes
 //#region JAFTING_Component
