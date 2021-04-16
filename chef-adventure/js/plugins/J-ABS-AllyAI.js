@@ -12,7 +12,6 @@
  * It would be overwhelming to write everything here.
  * Do visit the URL attached to this plugin for documentation.
  */
-//#endregion Introduction
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -56,22 +55,35 @@ J.ALLYAI.Metadata.Version = '1.0.0';
 J.ALLYAI.Aliased = {
   Game_Actor: {},
   Game_Battler: {},
-  Game_Character: {},
-  Game_CharacterBase: {},
-  Game_Event: {},
   Game_Follower: {},
   Game_Followers: {},
+  Game_Interpreter: {},
   Game_Map: {},
   Game_Player: {},
   JABS_AiManager: {},
 };
 //#endregion plugin setup and configuration
+//#endregion Introduction
+
+//required:
+//TODO: allow for toggling of on/off gatherers.
+//TODO: build proper ally AI.
+//TODO: retrieve default AI from class for actors, enemy for enemies.
+//TODO: extend JABS quick menu for AI modification option.
+
+//optional:
+//TODO: rotate gameplayer to location of next follower?
 
 //#region Game objects
-Game_Actor.prototype.prepareTime = function() {
+//#region Game_Actor
 
-};
+//#endregion Game_Actor
+
 //#region Game_BattleMap
+/**
+ * OVERWRITE Updates the party cycle functionality to cycle to the next follower instead
+ * of generating a new player for every party cycle.
+ */
 J.ALLYAI.Aliased.Game_Follower.chaseCharacter = Game_Follower.prototype.chaseCharacter;
 Game_BattleMap.prototype.performPartyCycling = function() {
   // determine which battler in the party is the next living battler.
@@ -84,11 +96,17 @@ Game_BattleMap.prototype.performPartyCycling = function() {
   if (nextLivingAllyIndex === -1) return;
 
   // when cycling, jump all followers to the player.
-  $gamePlayer.followers().data().forEach(follower => follower.jumpToPlayer());
+  $gamePlayer.jumpFollowersToMe();
 
-  // swap to the next party member in the sequence.
+  // take a snapshot of the next battler for the player to control.
   const nextUuid = $gameParty.members()[nextLivingAllyIndex].getUuid();
   const nextJabsBattler = $gameBattleMap.getBattlerByUuid(nextUuid);
+  if (!nextJabsBattler) {
+    console.warn(`the next follower of uuid: [${nextUuid}], wasn't able to be retrieved.`);
+    return;
+  }
+
+  // swap to the next party member in the sequence.
   $gameParty._actors = $gameParty._actors.concat($gameParty._actors.splice(0, nextLivingAllyIndex));
   $gamePlayer.refresh();
   $gamePlayer.requestAnimation(40, false);
@@ -117,11 +135,21 @@ Game_BattleMap.prototype.performPartyCycling = function() {
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-Game_Followers.prototype.isVisible = function() {
-  // TODO: update this to be OK with toggling followers.
-  return true;
+J.ALLYAI.Aliased.Game_Followers.show = Game_Followers.prototype.show;
+Game_Followers.prototype.show = function() {
+  J.ALLYAI.Aliased.Game_Followers.show.call(this);
+  $gameMap.updateAllies();
 };
 
+/**
+ * OVERWRITE If you're using this, the followers always show up!
+ * @returns {boolean}
+ */
+J.ALLYAI.Aliased.Game_Followers.hide = Game_Followers.prototype.hide;
+Game_Followers.prototype.hide = function() {
+  J.ALLYAI.Aliased.Game_Followers.hide.call(this);
+  $gameMap.updateAllies();
+};
 /**
  * OVERWRITE Adjust the jumpAll function to prevent jumping to the player
  * when the player is hit.
@@ -130,7 +158,7 @@ Game_Followers.prototype.jumpAll = function() {
   if ($gamePlayer.isJumping()) {
     for (const follower of this._data) {
       // skip followers that don't exist.
-      if (!follower || !follower.actor()) return;
+      if (!follower || !follower.isVisible()) return;
 
       // don't jump to the player when the player gets hit.
       const battler = follower.getMapBattler();
@@ -163,7 +191,7 @@ Game_Follower.prototype.chaseCharacter = function(character) {
 
   const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
   const battler = this.getMapBattler();
-  if (!this.getMapBattler().isEngaged()) {
+  if (!battler.isEngaged()) {
     // if the battler isn't engaged, still follow the player.
     J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
     if (distanceToPlayer <= 5) {
@@ -191,14 +219,6 @@ Game_Follower.prototype.jumpToPlayer = function() {
   const sy = $gamePlayer.deltaYFrom(this.y);
   this.jump(sx, sy);
 };
-
-J.ALLYAI.Aliased.Game_Follower.update = Game_Follower.prototype.update;
-Game_Follower.prototype.update = function() {
-  J.ALLYAI.Aliased.Game_Follower.update.call(this);
-  if ($gameBattleMap.requestPartyRotation) {
-    console.log("rotating!");
-  }
-};
 //#endregion Game_Follower
 
 //#region Game_Map
@@ -214,18 +234,27 @@ Game_Map.prototype.parseBattlers = function() {
 };
 
 /**
+ * Gets all ally battlers out of the collection of battlers.
+ * @returns {JABS_Battler[]}
+ */
+Game_Map.prototype.getAllyBattlers = function() {
+  return this._j._allBattlers.filter(battler => battler.isActor());
+};
+
+/**
  * Updates all ally battlers in-place.
  * For use with party-cycling.
  */
 Game_Map.prototype.updateAllies = function() {
-  const allyJabsBattlers = this._j._allBattlers.filter(battler => battler.isActor());
-  if (!allyJabsBattlers.length) return;
+  // get all the ally battlers from the current collection.
+  const allyJabsBattlers = this.getAllyBattlers();
 
   // first remove all battlers.
   this.removeBattlers(allyJabsBattlers);
 
   // then re-add the updated ones.
-  this.addBattlers(this.parseAllyBattlers());
+  const allies = this.parseAllyBattlers();
+  this.addBattlers(allies);
 };
 
 Game_Map.prototype.addBattlers = function(battlers) {
@@ -240,11 +269,12 @@ Game_Map.prototype.addBattlers = function(battlers) {
  * @param {JABS_Battler[]} battlers The battlers to be removed.
  */
 Game_Map.prototype.removeBattlers = function(battlers) {
+  // disengage and destroy all battlers.
   battlers.forEach(battler => {
-    const foundIndex = this._j._allBattlers.findIndex(allBattler => allBattler.getUuid() === battler.getUuid());
-    if (foundIndex) {
-      this._j._allBattlers.splice(foundIndex, 1);
-    }
+    // disengage before destroying.
+    battler.disengageTarget();
+    // but do hold onto the event/sprite, because its a follower.
+    $gameMap.destroyBattler(battler, true);
   });
 };
 
@@ -263,7 +293,7 @@ Game_Map.prototype.parseAllyBattlers = function() {
  */
 Game_Map.prototype.getActiveFollowers = function() {
   const followers = $gamePlayer.followers().data();
-  return followers.filter(follower => follower.actor());
+  return followers.filter(follower => follower.isVisible());
 };
 
 /**
@@ -295,6 +325,15 @@ Game_Map.prototype.convertOneFollower = function(follower) {
   return mapBattler;
 };
 //#endregion Game_Map
+
+//#region Game_Player
+/**
+ * Jumps all followers of the player back to the player.
+ */
+Game_Player.prototype.jumpFollowersToMe = function() {
+  this.followers().data().forEach(follower => follower.jumpToPlayer());
+};
+//#endregion Game_Player
 //#endregion Game objects
 
 //#region JABS objects
@@ -316,6 +355,7 @@ JABS_AiManager.decideAiPhase2Action = function(battler) {
  */
 JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler) {
   // TODO: setup logic for allies to decide actions.
+  const { basic, smart, executor, } = allyBattler.getAiMode();
   const battler = allyBattler.getBattler();
   const validSkillSlots = battler.getValidEquippedSkillSlots();
   const chosenSkillSlot = validSkillSlots[Math.randomInt(validSkillSlots.length)];
