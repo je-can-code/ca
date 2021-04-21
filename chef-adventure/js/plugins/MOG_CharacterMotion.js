@@ -660,30 +660,33 @@ Game_Event.prototype.setupPage = function() {
 //==============================
 Game_Event.prototype.checkCharMotion = function() {
 	this.charEffectsClear()
-	if (!this._erased && this.page()) {this.list().forEach(function(l) {
-	       if (l.code === 108) {
-			   if (l.parameters[0].toLowerCase() == "float motion"){
-                  this._floatData[0] = 1;
-				  this._charEffectChecked = true;
-			   };
-			   if (l.parameters[0].toLowerCase() == "swing motion"){
-                  this._swingData[0] = 1;
-				  this._charEffectChecked = true;
-			   };			   
-			   var comment = l.parameters[0].split(' : ')
-			   if (comment[0].toLowerCase() == "breath motion 1"){
-                  this._breathData[0] = 1;
-				  this._charEffectChecked = true;
-			   } else if (comment[0].toLowerCase() == "breath motion 2"){
-                  this._breathData[0] = 2;
-				  this._charEffectChecked = true;				  
-			   };
-			   if (comment[0].toLowerCase() == "ghost motion"){				   
-                  this._ghostData[0] = 1;
-				  this._charEffectChecked = true;
-			   };				   		   	  
+	if (!this._erased && this.page()) {
+		this.list().forEach(function(l) {
+			if (l.code === 108) {
+				if (l.parameters[0].toLowerCase() == "float motion") {
+					this._floatData[0] = 1;
+					this._charEffectChecked = true;
+				};
+				if (l.parameters[0].toLowerCase() == "swing motion") {
+					this._swingData[0] = 1;
+					this._charEffectChecked = true;
+				};
+				
+				var comment = l.parameters[0].split(' : ')
+				if (comment[0].toLowerCase() == "breath motion 1"){
+					this._breathData[0] = 1;
+					this._charEffectChecked = true;
+				} else if (comment[0].toLowerCase() == "breath motion 2") {
+					this._breathData[0] = 2;
+					this._charEffectChecked = true;				  
+				};
+				if (comment[0].toLowerCase() == "ghost motion") {
+					this._ghostData[0] = 1;
+					this._charEffectChecked = true;
+				};
 			};
-	}, this);};
+		}, this);
+	};
 };
 
 //=============================================================================

@@ -3346,7 +3346,8 @@ CycloneMovement.patchClass(Game_Follower, $super => class {
 
   chaseCharacter(character) {
     if (this.isMoving()) {
-      return;
+      // TODO: should this consideration really be skipped?
+      //return;
     }
 
     const position = character.getPositionToFollow();
