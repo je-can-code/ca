@@ -128,6 +128,7 @@ J.Base.Notetags = {
   Rooted: "rooted",
   Muted: "muted",
   Disabled: "disabled",
+  NegativeState: "negative",
   HpFlat: "hpFlat",
   MpFlat: "mpFlat",
   TpFlat: "tpFlat",
@@ -2260,7 +2261,27 @@ class JABS_StateData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
-  }
+  };
+
+  /**
+   * Gets whether or not this state is identified as a "negative" state.
+   * @returns {boolean}
+   */
+  get negative() {
+    let negative = false;
+    if (this._meta && this._meta[J.Base.Notetags.NegativeState]) {
+      negative = true;
+    } else {
+      const structure = /<negative>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          negative = true;
+        }
+      })
+    }
+
+    return negative;
+  };
 
   /**
    * Gets whether or not this state locks aggro modification.
@@ -2287,7 +2308,7 @@ class JABS_StateData {
    * @returns {number}
    */
   get aggroOutAmp() {
-    let aggroOutAmp = 0.0;
+    let aggroOutAmp = 1.0;
     if (this._meta && this._meta[J.Base.Notetags.AggroOutAmp]) {
       aggroOutAmp = parseFloat(this._meta[J.Base.Notetags.AggroOutAmp]);
     } else {
@@ -2307,7 +2328,7 @@ class JABS_StateData {
    * @returns {number}
    */
   get aggroInAmp() {
-    let aggroInAmp = 0.0;
+    let aggroInAmp = 1.0;
     if (this._meta && this._meta[J.Base.Notetags.AggroInAmp]) {
       aggroInAmp = parseFloat(this._meta[J.Base.Notetags.AggroInAmp]);
     } else {
