@@ -57,47 +57,47 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.TextLog = {};
+J.LOG = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.TextLog.Metadata = {};
-J.TextLog.Metadata.Name = `J-TextLog`;
-J.TextLog.Metadata.Version = 1.00;
+J.LOG.Metadata = {};
+J.LOG.Metadata.Name = `J-TextLog`;
+J.LOG.Metadata.Version = 1.00;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.TextLog.PluginParameters = PluginManager.parameters(J.TextLog.Metadata.Name);
-J.TextLog.Metadata.Active = Boolean(J.TextLog.PluginParameters['Enabled']);
-J.TextLog.Metadata.Enabled = true;
+J.LOG.PluginParameters = PluginManager.parameters(J.LOG.Metadata.Name);
+J.LOG.Metadata.Active = Boolean(J.LOG.PluginParameters['Enabled']);
+J.LOG.Metadata.Enabled = true;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.TextLog.Aliased = {};
-J.TextLog.Aliased.DataManager = {};
-J.TextLog.Aliased.Scene_Map = {};
+J.LOG.Aliased = {};
+J.LOG.Aliased.DataManager = {};
+J.LOG.Aliased.Scene_Map = {};
 
 /**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.TextLog.Metadata.Name, "Enable Text Log", () => {
-  J.TextLog.Metadata.Active = true;
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Enable Text Log", () => {
+  J.LOG.Metadata.Active = true;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.TextLog.Metadata.Name, "Disable Text Log", () => {
-  J.TextLog.Metadata.Active = false;
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Disable Text Log", () => {
+  J.LOG.Metadata.Active = false;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.TextLog.Metadata.Name, "Add Text Log", args => {
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args => {
   const { Text, Icon } = args;
   const log = new Map_TextLog(Text, Icon);
   $gameTextLog.addLog(log);
@@ -108,9 +108,9 @@ PluginManager.registerCommand(J.TextLog.Metadata.Name, "Add Text Log", args => {
 /**
  * Hooks into `DataManager` to create the game objects.
  */
-J.TextLog.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.LOG.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function() {
-  J.TextLog.Aliased.DataManager.createGameObjects.call(this);
+  J.LOG.Aliased.DataManager.createGameObjects.call(this);
   $gameTextLog = new Game_TextLog();
 };
 //#endregion DataManager
@@ -119,9 +119,9 @@ DataManager.createGameObjects = function() {
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
-J.TextLog.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.LOG.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
 Scene_Map.prototype.initialize = function() {
-  J.TextLog.Aliased.Scene_Map.initialize.call(this);
+  J.LOG.Aliased.Scene_Map.initialize.call(this);
   if (!this._j) {
     this._j = this._j || {};
   }
@@ -132,9 +132,9 @@ Scene_Map.prototype.initialize = function() {
 /**
  * Once the map is loaded, create the text log.
  */
-J.TextLog.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.LOG.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function() {
-  J.TextLog.Aliased.Scene_Map.onMapLoaded.call(this);
+  J.LOG.Aliased.Scene_Map.onMapLoaded.call(this);
   this.createJabsTextLog();
 };
 
@@ -156,7 +156,7 @@ Scene_Map.prototype.createJabsTextLog = function() {
  * @param {boolean} toggle Whether or not to display the external text log.
  */
 Scene_Map.prototype.toggleLog = function(toggle = true) {
-  if (J.TextLog.Metadata.Enabled) {
+  if (J.LOG.Metadata.Enabled) {
     this._j._mapTextLog.toggle(toggle);
   }
 };
@@ -347,7 +347,7 @@ Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
  */
 Window_TextLog.prototype.canUpdate = function() {
   if (!this.contents || (!this._enabled || 
-    !J.TextLog.Metadata.Active || $gameMessage.isBusy())) {
+    !J.LOG.Metadata.Active || $gameMessage.isBusy())) {
       return false;
   }
 
@@ -692,7 +692,7 @@ Map_TextLog.prototype.initialize = function(text, iconIndex) {
 Map_TextLog.prototype.initMembers = function(text, iconIndex) {
   this._text = text;
   this._iconIndex = iconIndex;
-  this._uuid = J.Base.Helpers.generateUuid();
+  this._uuid = J.BASE.Helpers.generateUuid();
 };
 
 /**

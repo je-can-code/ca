@@ -311,7 +311,7 @@
  * @default a.learnSkill(10);
  */
 
-if (J.Base.Metadata.Version < 1.00) {
+if (J.BASE.Metadata.Version < 1.00) {
   let message = `In order to use JABS, `;
   message += `you gotta have the "J-Base.js" enabled, `;
   message += `placed above the SDP plugin, `;
@@ -847,7 +847,7 @@ if (J.ABS) {
   };
   
   Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+    if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
   
     const battlerData = battler.getReferenceData();
     const sdpMessage = `${battlerData.name} earned ${sdpPoints} SDP points.`;

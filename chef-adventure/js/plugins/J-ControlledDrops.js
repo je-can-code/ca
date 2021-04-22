@@ -19,12 +19,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.Drops = {};
+J.DROPS = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.Drops.Metadata = {
+J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
@@ -34,9 +34,9 @@ J.Drops.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.Drops.PluginParameters = PluginManager.parameters(J.Drops.Metadata.Name);
-J.Drops.Metadata = {
-  ...J.Drops.Metadata,
+J.DROPS.PluginParameters = PluginManager.parameters(J.DROPS.Metadata.Name);
+J.DROPS.Metadata = {
+  ...J.DROPS.Metadata,
   /**
    * The version of this plugin.
    */

@@ -22,14 +22,14 @@ var J = J || {};
 (() => {
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
-  const hasBaseRequirement = J.Base.Helpers.satisfies(requiredBaseVersion, J.Base.Metadata.Version);
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement) {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 
 // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '2.3.0';
-  const hasJabsRequirement = J.Base.Helpers.satisfies(requiredJabsVersion, J.ABS.Metadata.Version);
+  const requiredJabsVersion = '2.4.0';
+  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement) {
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
@@ -197,7 +197,7 @@ Game_BattleMap.prototype.performPartyCycling = function() {
 
   // request the scene overlord to take notice and react accordingly (refresh hud etc).
   this.requestPartyRotation = true;
-  if (J.TextLog && J.TextLog.Metadata.Enabled) {
+  if (J.LOG && J.LOG.Metadata.Enabled) {
     const battlerName = this.getPlayerMapBattler().battlerName();
     const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
     $gameTextLog.addLog(log);

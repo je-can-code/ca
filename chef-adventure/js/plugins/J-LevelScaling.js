@@ -35,47 +35,47 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.LevelScaling = {};
+J.LEVEL = {};
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.LevelScaling.PluginParameters = PluginManager.parameters(`J-LevelScaling`);
+J.LEVEL.PluginParameters = PluginManager.parameters(`J-LevelScaling`);
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.LevelScaling.Metadata = {};
-J.LevelScaling.Metadata.Version = '1.0.0';
-J.LevelScaling.Metadata.Enabled = Boolean(J.LevelScaling.PluginParameters['Level Scaling']) || true;
+J.LEVEL.Metadata = {};
+J.LEVEL.Metadata.Version = '1.0.0';
+J.LEVEL.Metadata.Enabled = Boolean(J.LEVEL.PluginParameters['Level Scaling']) || true;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.LevelScaling.Aliased = {};
-J.LevelScaling.Aliased.Game_Action = {};
-J.LevelScaling.Aliased.Game_Troop = {};
+J.LEVEL.Aliased = {};
+J.LEVEL.Aliased.Game_Action = {};
+J.LEVEL.Aliased.Game_Troop = {};
 
 /**
  * The various note tags that are available for use with this plugin.
  */
-J.LevelScaling.Notetags = {};
-J.LevelScaling.Notetags.EnemyLevel = "level";
+J.LEVEL.Notetags = {};
+J.LEVEL.Notetags.EnemyLevel = "level";
 
 /**
  * Helper functions that are used within this plugin, but also useful externally as well.
  */
-J.LevelScaling.Utilities = {};
+J.LEVEL.Utilities = {};
 //#endregion
 
 //#region Game_Action
 /**
  * Scales damaged dealt and received to be based on level differences.
  */
-J.LevelScaling.Aliased.Game_Action.BaseDamage = Game_Action.prototype.makeDamageValue;
+J.LEVEL.Aliased.Game_Action.BaseDamage = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
-  const baseDamage = J.LevelScaling.Aliased.Game_Action.BaseDamage.call(this, target, critical);
-  const multiplier = J.LevelScaling.Utilities.determineScalingMultiplier(
+  const baseDamage = J.LEVEL.Aliased.Game_Action.BaseDamage.call(this, target, critical);
+  const multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
     target.level, 
     this.subject().level);
   
@@ -89,13 +89,9 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
  * Upon defeating a troop of enemies, scales the earned experience based on
  * average actor level vs each of the enemies.
  */
-J.LevelScaling.Aliased.Game_Troop.expTotal = Game_Action.prototype.expTotal;
+J.LEVEL.Aliased.Game_Troop.expTotal = Game_Action.prototype.expTotal;
 Game_Troop.prototype.expTotal = function() {
-  if (J.Extensions.LevelScaling.Enabled) {
-    return this.getScaledExpResult();
-  } else {
-    return J.LevelScaling.Aliased.Game_Troop.expTotal.call(this);
-  }
+  return this.getScaledExpResult();
 }
 
 /**
@@ -111,7 +107,7 @@ Game_Troop.prototype.getScaledExpResult = function() {
   const averageActorLevel = $gameParty.averageActorLevel()
   deadEnemies.forEach(enemy => {
     const level = enemy.level;
-    const expFactor = J.LevelScaling.Utilities.determineScalingMultiplier(averageActorLevel, level);
+    const expFactor = J.LEVEL.Utilities.determineScalingMultiplier(averageActorLevel, level);
     const total = Math.round(expFactor * enemy.exp())
     expTotal += total;
   });
@@ -144,7 +140,7 @@ Game_Party.prototype.averageActorLevel = function() {
  * @param {number} user The level of the user.
  * @returns A decimal representing the multiplier for the damage scaling.
  */
-J.LevelScaling.Utilities.determineScalingMultiplier = function(target, user) {
+J.LEVEL.Utilities.determineScalingMultiplier = function(target, user) {
   if (!user || !target || // if user or target doesn't have a level
     user == 0 || target == 0) 
       return 1.0;

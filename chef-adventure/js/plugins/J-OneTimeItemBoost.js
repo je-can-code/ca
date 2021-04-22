@@ -247,7 +247,6 @@ DataManager.extractSaveContents = function(contents) {
       const foundBoost = actor.getOtibById(otib.itemId);
       if (foundBoost) {
         foundBoost.parameterData = otib.parameterData;
-        console.log(otib.parameterData);
       } else {
         actor._j._otibs.push(otib);
         actor._j._otibs.sort();

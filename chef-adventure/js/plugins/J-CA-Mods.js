@@ -128,10 +128,10 @@ Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) 
   // determine whether to add to the destructibles count or regular count.
   if (defeatedTarget.isInanimate()) {
     // add to destructibles destroyed count.
-    J.Base.Helpers.modVariable(J.CAMods.Tracking.DestructiblesDestroyed, 1);
+    J.BASE.Helpers.modVariable(J.CAMods.Tracking.DestructiblesDestroyed, 1);
   } else {
     // add to enemy defeated count.
-    J.Base.Helpers.modVariable(J.CAMods.Tracking.EnemiesDefeated, 1);
+    J.BASE.Helpers.modVariable(J.CAMods.Tracking.EnemiesDefeated, 1);
   }
 };
 
@@ -140,7 +140,7 @@ Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) 
  */
 J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer = Game_BattleMap.prototype.handleDefeatedPlayer;
 Game_BattleMap.prototype.handleDefeatedPlayer = function() {
-  J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
+  J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
   J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer.call(this);
 };
 
@@ -169,7 +169,7 @@ Game_BattleMap.prototype.trackAttackData = function(actionResult) {
   const { hpDamage, critical } = actionResult;
   if (hpDamage) {
     // count all damage dealt.
-    J.Base.Helpers.modVariable(J.CAMods.Tracking.TotalDamageDealt, hpDamage);
+    J.BASE.Helpers.modVariable(J.CAMods.Tracking.TotalDamageDealt, hpDamage);
 
     // track the highest damage dealt in a single hit.
     const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageDealt);
@@ -179,7 +179,7 @@ Game_BattleMap.prototype.trackAttackData = function(actionResult) {
 
     if (critical) {
       // count of landed critical hits.
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsDealt, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsDealt, 1);
 
       // track the biggest critical hit landed.
       const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritDealt);
@@ -198,7 +198,7 @@ Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
   const { hpDamage, critical, parried, preciseParried } = actionResult;
   if (hpDamage) {
     // count all damage received.
-    J.Base.Helpers.modVariable(J.CAMods.Tracking.TotalDamageTaken, hpDamage);
+    J.BASE.Helpers.modVariable(J.CAMods.Tracking.TotalDamageTaken, hpDamage);
 
     // track the highest damage received in a single hit.
     const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageTaken);
@@ -208,7 +208,7 @@ Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
 
     if (critical) {
       // count of landed critical hits.
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsTaken, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsTaken, 1);
 
       // track the biggest critical hit landed.
       const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritTaken);
@@ -219,11 +219,11 @@ Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
 
   } else if (parried) {
     // count of all types of successful parries.
-    J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfParries, 1);
+    J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfParries, 1);
 
     if (preciseParried) {
       // count of all types of successful parries.
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.NumberOfPreciseParries, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfPreciseParries, 1);
     }
   }
 };
@@ -250,13 +250,13 @@ Game_BattleMap.prototype.trackActionData = function(action) {
   const cooldownType = action.getCooldownType();
   switch (cooldownType) {
     case Game_Actor.JABS_MAINHAND:
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.MainhandSkillUsage, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.MainhandSkillUsage, 1);
       break;
     case Game_Actor.JABS_OFFHAND:
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.OffhandSkillUsage, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.OffhandSkillUsage, 1);
       break;
     default:
-      J.Base.Helpers.modVariable(J.CAMods.Tracking.AssignedSkillUsage, 1);
+      J.BASE.Helpers.modVariable(J.CAMods.Tracking.AssignedSkillUsage, 1);
       // any skills
       break;
   }
