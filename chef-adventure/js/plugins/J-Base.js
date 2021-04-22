@@ -26,12 +26,12 @@ var J = J || {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.Base = {};
+J.BASE = {};
 
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.Base.Metadata = {
+J.BASE.Metadata = {
   /**
   * The name of this plugin.
   */
@@ -41,9 +41,9 @@ J.Base.Metadata = {
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
-J.Base.PluginParameters = PluginManager.parameters(J.Base.Metadata.Name);
-J.Base.Metadata = {
-  ...J.Base.Metadata,
+J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
+J.BASE.Metadata = {
+  ...J.BASE.Metadata,
   /**
   * The version of this plugin.
   */
@@ -54,7 +54,7 @@ J.Base.Metadata = {
 * A collection of helpful mappings for `notes` that are placed in 
 * various locations, like events on the map, or in a database enemy.
 */
-J.Base.Notetags = {
+J.BASE.Notetags = {
   // on actors in database.
   HitGrowth: "hitGrowth",
   GuardGrowth: "guardGrowth",
@@ -75,7 +75,7 @@ J.Base.Notetags = {
   CounterGuard: "counterGuard",
   DirectSkill: "direct",
   Duration: "duration",
-  EnemyCooldown: "enemyCooldown",
+  AiCooldown: "aiCooldown",
   FreeCombo: "freeCombo",
   Guard: "guard",
   IgnoreParry: "ignoreParry",
@@ -140,7 +140,7 @@ J.Base.Notetags = {
 /**
 * The various collision shapes an attack can be for JABS.
 */
-J.Base.Shapes = {
+J.BASE.Shapes = {
   /**
   * A rhombus (aka diamond) shaped hitbox.
   */
@@ -180,7 +180,7 @@ J.Base.Shapes = {
 /**
 * The various number of projectiles available to create.
 */
-J.Base.Projectiles = {
+J.BASE.Projectiles = {
   /**
   * The default; A single projectile per normal.
   */
@@ -213,7 +213,7 @@ J.Base.Projectiles = {
 /**
 * The various item types that an item can be.
 */
-J.Base.ItemTypes = {
+J.BASE.ItemTypes = {
   /**
   * The type representing an item from the `$dataItems`.
   */
@@ -233,7 +233,7 @@ J.Base.ItemTypes = {
 /**
 * A collection of all aliased methods for this plugin.
 */
-J.Base.Aliased = {
+J.BASE.Aliased = {
   DataManager: {},
   Game_Character: {},
   Window_Command: {},
@@ -243,13 +243,13 @@ J.Base.Aliased = {
 /**
  * The helper functions used commonly throughout my plugins.
  */
-J.Base.Helpers = {};
+J.BASE.Helpers = {};
 
 /**
  * Generates a `uuid`- a universally unique identifier- for this battler.
  * @returns {string} The `uuid`.
  */
-J.Base.Helpers.generateUuid = function() {
+J.BASE.Helpers.generateUuid = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
     .replace(/[xy]/g, c => {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -262,7 +262,7 @@ J.Base.Helpers.generateUuid = function() {
  * @param {string} path The path of the file we're checking.
  * @returns {boolean} True if the file exists, false otherwise.
  */
-J.Base.Helpers.checkFile = function(path) {
+J.BASE.Helpers.checkFile = function(path) {
   const fs = require('fs');
   return fs.existsSync(path);
 };
@@ -274,7 +274,7 @@ J.Base.Helpers.checkFile = function(path) {
  * @param {number} variableId The id of the variable to modify.
  * @param {number} amount The amount to modify the variable by.
  */
-J.Base.Helpers.modVariable = function(variableId, amount) {
+J.BASE.Helpers.modVariable = function(variableId, amount) {
   const oldValue = $gameVariables.value(variableId);
   const newValue = oldValue + amount;
   $gameVariables.setValue(variableId, newValue);
@@ -285,7 +285,7 @@ J.Base.Helpers.modVariable = function(variableId, amount) {
  * @param {number} min The lower bound for random numbers (inclusive).
  * @param {number} max The upper bound for random numbers (exclusive).
  */
-J.Base.Helpers.getRandomNumber = function(min, max) {
+J.BASE.Helpers.getRandomNumber = function(min, max) {
   return Math.floor(min + Math.random() * (max + 1 - min))
 };
 
@@ -295,7 +295,7 @@ J.Base.Helpers.getRandomNumber = function(min, max) {
  * @param {string} type An abbreviation for the type of item this is.
  * @returns {object} The `RPG::Item` of the correct id and type.
  */
-J.Base.Helpers.translateItem = function(id, type) {
+J.BASE.Helpers.translateItem = function(id, type) {
   switch (type) {
     case "i":
       return $dataItems[id];
@@ -310,16 +310,16 @@ J.Base.Helpers.translateItem = function(id, type) {
  * Quick and dirty semver without having access to the full nodejs ecosystem.
  * Checks to ensure the version meets the required version- same as `semver.satisfies()`.
  * Double tilda is shorthand for `parseInt()`.
- * @param {string} minimumVersion String representation of the minimum required version.
  * @param {string} currentVersion String representation of the version being checked.
+ * @param {string} minimumVersion String representation of the minimum required version.
  * @returns {boolean}
  */
-J.Base.Helpers.satisfies = function (minimumVersion, currentVersion) {
-  const minimumVersionParts = minimumVersion.split('.');
+J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
   const currentVersionParts = currentVersion.split('.');
+  const minimumVersionParts = minimumVersion.split('.');
   for (const i in currentVersionParts) {
-    const a = ~~minimumVersionParts[i];
-    const b = ~~currentVersionParts[i];
+    const a = ~~currentVersionParts[i];
+    const b = ~~minimumVersionParts[i];
     if (a > b) return true;
     if (a < b) return false;
   }
@@ -339,9 +339,9 @@ DataManager._extraDataLoaded = false;
 /**
  * Hooks into the database loading and loads our extra data from notes and such.
  */
-J.Base.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
+J.BASE.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-  let result = J.Base.Aliased.DataManager.isDatabaseLoaded.call(this);
+  let result = J.BASE.Aliased.DataManager.isDatabaseLoaded.call(this);
   if (result) {
     this.loadExtraData();
   }
@@ -480,8 +480,8 @@ TextManager.xparam = function (xParamId) {
  */
 Game_Actor.prototype.hitGrowth = function() {
   let hitGrowthPerLevel = 0;
-  if (this._meta && this._meta[J.Base.Notetags.HitGrowth]) {
-    hitGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.HitGrowth]);
+  if (this._meta && this._meta[J.BASE.Notetags.HitGrowth]) {
+    hitGrowthPerLevel = parseFloat(this._meta[J.BASE.Notetags.HitGrowth]);
   } else {
     const structure = /<hitGrowth:[ ]?([.\d]+)>/i;
     this.actor().note.split(/[\r\n]+/).forEach(note => {
@@ -500,8 +500,8 @@ Game_Actor.prototype.hitGrowth = function() {
  */
 Game_Actor.prototype.grdGrowth = function() {
   let grdGrowthPerLevel = 0;
-  if (this._meta && this._meta[J.Base.Notetags.GuardGrowth]) {
-    grdGrowthPerLevel = parseFloat(this._meta[J.Base.Notetags.GuardGrowth]);
+  if (this._meta && this._meta[J.BASE.Notetags.GuardGrowth]) {
+    grdGrowthPerLevel = parseFloat(this._meta[J.BASE.Notetags.GuardGrowth]);
   } else {
     const structure = /<grdGrowth:[ ]?([.\d]+)>/i;
     this.actor().note.split(/[\r\n]+/).forEach(note => {
@@ -527,14 +527,14 @@ Game_Actor.prototype.grdGrowth = function() {
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.Base.Notetags.PrepareTime]) {
-    return parseInt(referenceDataClass.meta[J.Base.Notetags.PrepareTime]);
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.PrepareTime]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.PrepareTime]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.PrepareTime]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
     // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.Base.Notetags.PrepareTime]);
+    return parseInt(referenceData.meta[J.BASE.Notetags.PrepareTime]);
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<prepare:[ ]?([0-9]*)>/i;
@@ -610,8 +610,8 @@ Game_Character.prototype.aiCode = function() {
   let aiCode = "00000000";
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AiCode]) {
-    aiCode = referenceData.meta[J.Base.Notetags.AiCode] || aiCode;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode]) {
+    aiCode = referenceData.meta[J.BASE.Notetags.AiCode] || aiCode;
   } else {
     const structure = /<ai:[ ]?([0|1]{8})>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -634,9 +634,9 @@ Game_Character.prototype.battlerId = function() {
   let battlerId = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.BattlerId]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.BattlerId]) {
     // if its in the metadata, then grab it from there.
-    battlerId = referenceData.meta[J.Base.Notetags.BattlerId] || battlerId;
+    battlerId = referenceData.meta[J.BASE.Notetags.BattlerId] || battlerId;
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<e:[ ]?([0-9]*)>/i;
@@ -660,8 +660,8 @@ Game_Character.prototype.sightRadius = function() {
   let sightRadius = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Sight]) {
-    sightRadius = referenceData.meta[J.Base.Notetags.Sight] || sightRadius;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight]) {
+    sightRadius = referenceData.meta[J.BASE.Notetags.Sight] || sightRadius;
   } else {
     const structure = /<s:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -683,8 +683,8 @@ Game_Character.prototype.alertedSightBoost = function() {
   let sightBoost = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertSightBoost]) {
-    sightBoost = referenceData.meta[J.Base.Notetags.AlertSightBoost] || sightBoost;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost]) {
+    sightBoost = referenceData.meta[J.BASE.Notetags.AlertSightBoost] || sightBoost;
   } else {
     const structure = /<as:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -707,8 +707,8 @@ Game_Character.prototype.pursuitRadius = function() {
   let pursuitRadius = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Pursuit]) {
-    pursuitRadius = referenceData.meta[J.Base.Notetags.Pursuit] || pursuitRadius;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit]) {
+    pursuitRadius = referenceData.meta[J.BASE.Notetags.Pursuit] || pursuitRadius;
   } else {
     const structure = /<p:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -730,8 +730,8 @@ Game_Character.prototype.alertedPursuitBoost = function() {
   let pursuitBoost = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertPursuitBoost]) {
-    pursuitBoost = referenceData.meta[J.Base.Notetags.AlertPursuitBoost] || pursuitBoost;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+    pursuitBoost = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost] || pursuitBoost;
   } else {
     const structure = /<ap:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -753,8 +753,8 @@ Game_Character.prototype.alertedDuration = function() {
   let alertDuration = 300;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.AlertDuration]) {
-    alertDuration = referenceData.meta[J.Base.Notetags.AlertDuration] || alertDuration;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration]) {
+    alertDuration = referenceData.meta[J.BASE.Notetags.AlertDuration] || alertDuration;
   } else {
     const structure = /<ad:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -777,8 +777,8 @@ Game_Character.prototype.customMoveSpeed = function() {
   let customMoveSpeed = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.MoveSpeed]) {
-    customMoveSpeed = referenceData.meta[J.Base.Notetags.MoveSpeed] || customMoveSpeed;
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.MoveSpeed]) {
+    customMoveSpeed = referenceData.meta[J.BASE.Notetags.MoveSpeed] || customMoveSpeed;
   } else {
     const structure =/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
@@ -801,7 +801,7 @@ Game_Character.prototype.canIdle = function() {
   let canIdle = true;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoIdle]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle]) {
     canIdle = false;
   } else {
     const structure =/<noIdle>/i;
@@ -828,7 +828,7 @@ Game_Character.prototype.showHpBar = function() {
   let showHpBar = true;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.NoHpBar]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar]) {
     showHpBar = false;
   } else {
     const structure =/<noHpBar>/i;
@@ -856,7 +856,7 @@ Game_Character.prototype.isInvincible = function() {
   let invincible = false;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Invincible]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible]) {
     invincible = true;
   } else {
     const structure =/<invincible>/i;
@@ -884,7 +884,7 @@ Game_Character.prototype.isInanimate = function() {
   let inanimate = false;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Inanimate]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate]) {
     inanimate = true;
   } else {
     const structure =/<inanimate>/i;
@@ -912,8 +912,8 @@ Object.defineProperty(Game_Enemy.prototype, "level", {
     let level = 0;
 
     const referenceData = $dataEnemies[this.enemyId()];
-    if (referenceData.meta && referenceData.meta[J.Base.Notetags.EnemyLevel]) {
-      level = parseInt(referenceData.meta[J.Base.Notetags.EnemyLevel]) || level;
+    if (referenceData.meta && referenceData.meta[J.BASE.Notetags.EnemyLevel]) {
+      level = parseInt(referenceData.meta[J.BASE.Notetags.EnemyLevel]) || level;
     } else {
       const structure = /<level:[ ]?([0-9]*)>/i;
       const notedata = referenceData.note.split(/[\r\n]+/);
@@ -1013,9 +1013,9 @@ Game_Enemy.prototype.skillId = function() {
   let skillId = 1;
 
   const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.SkillId]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SkillId]) {
     // if its in the metadata, then grab it from there.
-    skillId = parseInt(referenceData.meta[J.Base.Notetags.SkillId]) || skillId;
+    skillId = parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<skillId:[ ]?([0-9]*)>/i;
@@ -1039,9 +1039,9 @@ Game_Enemy.prototype.prepareTime = function() {
   let prepare = 180;
 
   const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.PrepareTime]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
     // if its in the metadata, then grab it from there.
-    prepare = referenceData.meta[J.Base.Notetags.PrepareTime];
+    prepare = referenceData.meta[J.BASE.Notetags.PrepareTime];
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<prepare:[ ]?([0-9]*)>/i;
@@ -1065,9 +1065,9 @@ Game_Enemy.prototype.retaliationSkillId = function() {
   let retaliation = 0;
 
   const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.Retaliate]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Retaliate]) {
     // if its in the metadata, then grab it from there.
-    retaliation = referenceData.meta[J.Base.Notetags.Retaliate];
+    retaliation = referenceData.meta[J.BASE.Notetags.Retaliate];
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<retaliate:[ ]?([0-9]*)>/i;
@@ -1090,9 +1090,9 @@ Game_Enemy.prototype.sdpPoints = function() {
   let points = 0;
 
   const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.Base.Notetags.SdpPoints]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SdpPoints]) {
     // if its in the metadata, then grab it from there.
-    points = referenceData.meta[J.Base.Notetags.SdpPoints];
+    points = referenceData.meta[J.BASE.Notetags.SdpPoints];
   } else {
     // if its not in the metadata, then check the notes proper.
     const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
@@ -1454,9 +1454,9 @@ Sprite_Text.prototype.textAlignment = function() {
 /**
  * Draws the icon along with the item itself in the command window.
  */
-J.Base.Aliased.Window_Command.drawItem = Window_Command.prototype.drawItem;
+J.BASE.Aliased.Window_Command.drawItem = Window_Command.prototype.drawItem;
 Window_Command.prototype.drawItem = function(index) {
-  J.Base.Aliased.Window_Command.drawItem.call(this, index);
+  J.BASE.Aliased.Window_Command.drawItem.call(this, index);
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
     const rect = this.itemLineRect(index);
@@ -1469,15 +1469,15 @@ Window_Command.prototype.drawItem = function(index) {
  * is an icon to draw at the start of a command.
  * @returns {Rectangle}
  */
-J.Base.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
+J.BASE.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
 Window_Command.prototype.itemLineRect = function(index) {
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
-    let baseRect = J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
+    let baseRect = J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
     baseRect.x += 32;
     return baseRect;
   } else {
-    return J.Base.Aliased.Window_Command.itemLineRect.call(this, index);
+    return J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
   }
 };
 
@@ -1529,8 +1529,8 @@ class JABS_SkillData {
    */
   get bonusAggro() {
     let aggro = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Aggro]) {
-      aggro = parseInt(this._meta[J.Base.Notetags.Aggro]);
+    if (this._meta && this._meta[J.BASE.Notetags.Aggro]) {
+      aggro = parseInt(this._meta[J.BASE.Notetags.Aggro]);
     } else {
       const structure = /<aggro:[ ]?(-?\d+)>/i;
       this._notes.forEach(note => {
@@ -1550,8 +1550,8 @@ class JABS_SkillData {
    */
   get aggroMultiplier() {
     let multiplier = 1.0;
-    if (this._meta && this._meta[J.Base.Notetags.AggroMultiplier]) {
-      multiplier = parseFloat(this._meta[J.Base.Notetags.AggroMultiplier]);
+    if (this._meta && this._meta[J.BASE.Notetags.AggroMultiplier]) {
+      multiplier = parseFloat(this._meta[J.BASE.Notetags.AggroMultiplier]);
     } else {
       const structure = /<aggroMultiply:[ ]?(\d+[.]?\d+)?>/i;
       this._notes.forEach(note => {
@@ -1570,7 +1570,7 @@ class JABS_SkillData {
    */
   get direct() {
     let isDirect = false;
-    if (this._meta && this._meta[J.Base.Notetags.DirectSkill]) {
+    if (this._meta && this._meta[J.BASE.Notetags.DirectSkill]) {
       isDirect = true;
     } else {
       const structure = /<direct>/i;
@@ -1590,8 +1590,8 @@ class JABS_SkillData {
    */
   get bonusHits() {
     let bonusHits = 0;
-    if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
-      bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]);
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
     } else {
       const structure = /<bonusHits:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1610,10 +1610,10 @@ class JABS_SkillData {
    */
   get ignoreParry() {
     let ignore = 0;
-    if (this._meta && this._meta[J.Base.Notetags.IgnoreParry]) {
-      ignore = (typeof this._meta[J.Base.Notetags.IgnoreParry] === "boolean")
+    if (this._meta && this._meta[J.BASE.Notetags.IgnoreParry]) {
+      ignore = (typeof this._meta[J.BASE.Notetags.IgnoreParry] === "boolean")
         ? -1
-        : parseInt(this._meta[J.Base.Notetags.IgnoreParry]) || 0;
+        : parseInt(this._meta[J.BASE.Notetags.IgnoreParry]) || 0;
     } else {
       const structure = /<ignoreParry([:]?[ ]?((\d+)[%])?)?>/i;
       this._notes.forEach(note => {
@@ -1634,8 +1634,8 @@ class JABS_SkillData {
    */
   get guard() {
     let guard = [0, false];
-    if (this._meta && this._meta[J.Base.Notetags.Guard]) {
-      guard = JSON.parse(this._meta[J.Base.Notetags.Guard]);
+    if (this._meta && this._meta[J.BASE.Notetags.Guard]) {
+      guard = JSON.parse(this._meta[J.BASE.Notetags.Guard]);
     } else {
       const structure = /<guard:[ ]?(\[\d+,[ ]?\d+])>/i;
       this._notes.forEach(note => {
@@ -1654,8 +1654,8 @@ class JABS_SkillData {
    */
   get parry() {
     let parry = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Parry]) {
-      parry = parseInt(this._meta[J.Base.Notetags.Parry]);
+    if (this._meta && this._meta[J.BASE.Notetags.Parry]) {
+      parry = parseInt(this._meta[J.BASE.Notetags.Parry]);
     } else {
       const structure = /<parry:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1674,8 +1674,8 @@ class JABS_SkillData {
    */
   get counterParry() {
     let id = 0;
-    if (this._meta && this._meta[J.Base.Notetags.CounterParry]) {
-      id = parseInt(this._meta[J.Base.Notetags.CounterParry]);
+    if (this._meta && this._meta[J.BASE.Notetags.CounterParry]) {
+      id = parseInt(this._meta[J.BASE.Notetags.CounterParry]);
     } else {
       const structure = /<counterParry:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1694,8 +1694,8 @@ class JABS_SkillData {
    */
   get counterGuard() {
     let id = 0;
-    if (this._meta && this._meta[J.Base.Notetags.CounterGuard]) {
-      id = parseInt(this._meta[J.Base.Notetags.CounterGuard]);
+    if (this._meta && this._meta[J.BASE.Notetags.CounterGuard]) {
+      id = parseInt(this._meta[J.BASE.Notetags.CounterGuard]);
     } else {
       const structure = /<counterGuard:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1714,8 +1714,8 @@ class JABS_SkillData {
    */
   get casterAnimation() {
     let animationId = 0;
-    if (this._meta && this._meta[J.Base.Notetags.CastAnimation]) {
-      animationId = parseInt(this._meta[J.Base.Notetags.CastAnimation]);
+    if (this._meta && this._meta[J.BASE.Notetags.CastAnimation]) {
+      animationId = parseInt(this._meta[J.BASE.Notetags.CastAnimation]);
     } else {
       const structure = /<castAnimation:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1734,8 +1734,8 @@ class JABS_SkillData {
    */
   get castTime() {
     let castTime = 1;
-    if (this._meta && this._meta[J.Base.Notetags.CastTime]) {
-      castTime = parseInt(this._meta[J.Base.Notetags.CastTime]) || 1;
+    if (this._meta && this._meta[J.BASE.Notetags.CastTime]) {
+      castTime = parseInt(this._meta[J.BASE.Notetags.CastTime]) || 1;
     } else {
       const structure = /<castTime:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1754,8 +1754,8 @@ class JABS_SkillData {
    */
   get cooldown() {
     let cooldown = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Cooldown]) {
-      cooldown = parseInt(this._meta[J.Base.Notetags.Cooldown]) || 0;
+    if (this._meta && this._meta[J.BASE.Notetags.Cooldown]) {
+      cooldown = parseInt(this._meta[J.BASE.Notetags.Cooldown]) || 0;
     } else {
       const structure = /<cooldown:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1769,23 +1769,25 @@ class JABS_SkillData {
   }
 
   /**
-   * Gets the cooldown for this skill.
+   * Gets the cooldown for this skill when performed by AI.
+   * If this is also an actor using the skill, the base cooldown will
+   * still be applied to the cooldown slot.
    * @returns {number} The cooldown in frames (default = 0).
    */
-  get enemyCooldown() {
-    let enemyCooldown = -1;
-    if (this._meta && this._meta[J.Base.Notetags.EnemyCooldown]) {
-      enemyCooldown = parseInt(this._meta[J.Base.Notetags.EnemyCooldown]);
+  get aiCooldown() {
+    let aiCooldown = -1;
+    if (this._meta && this._meta[J.BASE.Notetags.AiCooldown]) {
+      aiCooldown = parseInt(this._meta[J.BASE.Notetags.AiCooldown]);
     } else {
-      const structure = /<enemyCooldown:[ ]?(\d+)>/i;
+      const structure = /<aiCooldown:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
         if (note.match(structure)) {
-          enemyCooldown = parseInt(RegExp.$1);
+          aiCooldown = parseInt(RegExp.$1);
         }
       });
     }
 
-    return enemyCooldown;
+    return aiCooldown;
   }
 
   /**
@@ -1794,8 +1796,8 @@ class JABS_SkillData {
    */
   get range() {
     let range = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Range]) {
-      range = parseInt(this._meta[J.Base.Notetags.Range]) || 0;
+    if (this._meta && this._meta[J.BASE.Notetags.Range]) {
+      range = parseInt(this._meta[J.BASE.Notetags.Range]) || 0;
     } else {
       const structure = /<range:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1814,8 +1816,8 @@ class JABS_SkillData {
    */
   get actionId() {
     let actionId = 1;
-    if (this._meta && this._meta[J.Base.Notetags.ActionId]) {
-      actionId = parseInt(this._meta[J.Base.Notetags.ActionId]) || 1;
+    if (this._meta && this._meta[J.BASE.Notetags.ActionId]) {
+      actionId = parseInt(this._meta[J.BASE.Notetags.ActionId]) || 1;
     } else {
       const structure = /<actionId:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1834,8 +1836,8 @@ class JABS_SkillData {
    */
   get duration() {
     let duration = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Duration]) {
-      duration = parseInt(this._meta[J.Base.Notetags.Duration]) || duration;
+    if (this._meta && this._meta[J.BASE.Notetags.Duration]) {
+      duration = parseInt(this._meta[J.BASE.Notetags.Duration]) || duration;
     } else {
       const structure = /<duration:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1855,9 +1857,9 @@ class JABS_SkillData {
   get shape() {
     let shape = 'rhombus';
     const possibleShapes = ['rhombus', 'square', 'frontsquare', 'line', 'arc', 'wall', 'cross'];
-    if (this._meta && this._meta[J.Base.Notetags.Shape]) {
-      if (possibleShapes.includes(this._meta[J.Base.Notetags.Shape].toLowerCase())) {
-        shape = this._meta[J.Base.Notetags.Shape].toLowerCase();
+    if (this._meta && this._meta[J.BASE.Notetags.Shape]) {
+      if (possibleShapes.includes(this._meta[J.BASE.Notetags.Shape].toLowerCase())) {
+        shape = this._meta[J.BASE.Notetags.Shape].toLowerCase();
       } else {
         console.warn('invalid shape provided- defaulted to "rhombus".');
       }
@@ -1880,9 +1882,9 @@ class JABS_SkillData {
   get projectile() {
     let projectile = 1;
     const possible = [1, 2, 3, 4, 8];
-    if (this._meta && this._meta[J.Base.Notetags.Projectile]) {
-      if (possible.includes(parseInt(this._meta[J.Base.Notetags.Projectile]))) {
-        projectile = parseInt(this._meta[J.Base.Notetags.Projectile]);
+    if (this._meta && this._meta[J.BASE.Notetags.Projectile]) {
+      if (possible.includes(parseInt(this._meta[J.BASE.Notetags.Projectile]))) {
+        projectile = parseInt(this._meta[J.BASE.Notetags.Projectile]);
       } else {
         console.warn('invalid projectile provided- defaulted to "1".');
       }
@@ -1904,8 +1906,8 @@ class JABS_SkillData {
    */
   get piercing() {
     let piercing = [1, 0];
-    if (this._meta && this._meta[J.Base.Notetags.Piercing]) {
-      piercing = JSON.parse(this._meta[J.Base.Notetags.Piercing]);
+    if (this._meta && this._meta[J.BASE.Notetags.Piercing]) {
+      piercing = JSON.parse(this._meta[J.BASE.Notetags.Piercing]);
     } else {
       const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+])>/i;
       this._notes.forEach(note => {
@@ -1924,8 +1926,8 @@ class JABS_SkillData {
    */
   get combo() {
     let combo = null;
-    if (this._meta && this._meta[J.Base.Notetags.Combo]) {
-      combo = JSON.parse(this._meta[J.Base.Notetags.Combo]);
+    if (this._meta && this._meta[J.BASE.Notetags.Combo]) {
+      combo = JSON.parse(this._meta[J.BASE.Notetags.Combo]);
     } else {
       const structure = /<combo:[ ]?(\[\d+,[ ]?\d+])>/i;
       this._notes.forEach(note => {
@@ -1945,7 +1947,7 @@ class JABS_SkillData {
    */
   get freeCombo() {
     let freeCombo = false;
-    if (this._meta && this._meta[J.Base.Notetags.FreeCombo]) {
+    if (this._meta && this._meta[J.BASE.Notetags.FreeCombo]) {
       freeCombo = true;
     } else {
       const structure = /<freeCombo>/i;
@@ -1965,8 +1967,8 @@ class JABS_SkillData {
    */
   get proximity() {
     let proximity = 1;
-    if (this._meta && this._meta[J.Base.Notetags.Proximity]) {
-      proximity = parseInt(this._meta[J.Base.Notetags.Proximity]);
+    if (this._meta && this._meta[J.BASE.Notetags.Proximity]) {
+      proximity = parseInt(this._meta[J.BASE.Notetags.Proximity]);
     } else {
       const structure = /<proximity:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -1987,8 +1989,8 @@ class JABS_SkillData {
    */
   get knockback() {
     let knockback = null;
-    if (this._meta && this._meta[J.Base.Notetags.Knockback]) {
-      knockback = parseInt(this._meta[J.Base.Notetags.Knockback]);
+    if (this._meta && this._meta[J.BASE.Notetags.Knockback]) {
+      knockback = parseInt(this._meta[J.BASE.Notetags.Knockback]);
     } else {
       const structure = /<knockback:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -2007,7 +2009,7 @@ class JABS_SkillData {
    */
   get invincible() {
     let invincible = false;
-    if (this._meta && this._meta[J.Base.Notetags.Invincible]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Invincible]) {
       invincible = true;
     } else {
       const structure = /<invincible>/i;
@@ -2029,7 +2031,7 @@ class JABS_SkillData {
    */
   get uniqueCooldown() {
     let uniqueCooldown = false;
-    if (this._meta && this._meta[J.Base.Notetags.UniqueCooldown]) {
+    if (this._meta && this._meta[J.BASE.Notetags.UniqueCooldown]) {
       uniqueCooldown = true;
     } else {
       const structure = /<unique>/i;
@@ -2049,8 +2051,8 @@ class JABS_SkillData {
    */
   get moveType() {
     let moveType = "forward";
-    if (this._meta && this._meta[J.Base.Notetags.MoveType]) {
-      moveType = this._meta[J.Base.Notetags.MoveType];
+    if (this._meta && this._meta[J.BASE.Notetags.MoveType]) {
+      moveType = this._meta[J.BASE.Notetags.MoveType];
     } else {
       const structure = /<moveType:[ ]?(forward|backward|directional)>/i;
       this._notes.forEach(note => {
@@ -2069,8 +2071,8 @@ class JABS_SkillData {
    */
   get poseSuffix() {
     let actionPoseData = null;
-    if (this._meta && this._meta[J.Base.Notetags.PoseSuffix]) {
-      actionPoseData = JSON.parse(this._meta[J.Base.Notetags.PoseSuffix]);
+    if (this._meta && this._meta[J.BASE.Notetags.PoseSuffix]) {
+      actionPoseData = JSON.parse(this._meta[J.BASE.Notetags.PoseSuffix]);
     } else {
       const structure = /<poseSuffix:[ ]?(\["[-_]?\w+",[ ]?\d+,[ ]?\d+])>/i;
       this._notes.forEach(note => {
@@ -2109,8 +2111,8 @@ class JABS_EquipmentData {
    */
   get skillId() {
     let skillId = 0;
-    if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
-      skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SkillId]) {
+      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
     } else {
       const structure = /<skillId:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -2129,8 +2131,8 @@ class JABS_EquipmentData {
    */
   get speedBoost() {
     let speedBoost = 0;
-    if (this._meta && this._meta[J.Base.Notetags.SpeedBoost]) {
-      speedBoost = parseInt(this._meta[J.Base.Notetags.SpeedBoost]) || 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SpeedBoost]) {
+      speedBoost = parseInt(this._meta[J.BASE.Notetags.SpeedBoost]) || 0;
     } else {
       const structure = /<speedBoost:[ ]?([-]?\d+)>/i;
       this._notes.forEach(note => {
@@ -2149,8 +2151,8 @@ class JABS_EquipmentData {
    */
   get bonusHits() {
     let bonusHits = 0;
-    if (this._meta && this._meta[J.Base.Notetags.BonusHits]) {
-      bonusHits = parseInt(this._meta[J.Base.Notetags.BonusHits]);
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
     } else {
       const structure = /<bonusHits:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -2189,8 +2191,8 @@ class JABS_ItemData {
    */
   get skillId() {
     let skillId = 0;
-    if (this._meta && this._meta[J.Base.Notetags.SkillId]) {
-      skillId = parseInt(this._meta[J.Base.Notetags.SkillId]) || 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SkillId]) {
+      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
     } else {
       const structure = /<skillId:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -2209,8 +2211,8 @@ class JABS_ItemData {
    */
   get cooldown() {
     let cooldown = 0;
-    if (this._meta && this._meta[J.Base.Notetags.Cooldown]) {
-      cooldown = parseInt(this._meta[J.Base.Notetags.Cooldown]);
+    if (this._meta && this._meta[J.BASE.Notetags.Cooldown]) {
+      cooldown = parseInt(this._meta[J.BASE.Notetags.Cooldown]);
     } else {
       const structure = /<cooldown:[ ]?(\d+)>/i;
       this._notes.forEach(note => {
@@ -2229,7 +2231,7 @@ class JABS_ItemData {
    */
   get useOnPickup() {
     let useOnPickup = false;
-    if (this._meta && this._meta[J.Base.Notetags.UseOnPickup]) {
+    if (this._meta && this._meta[J.BASE.Notetags.UseOnPickup]) {
       useOnPickup = true;
     } else {
       const structure = /<useOnPickup>/i;
@@ -2269,7 +2271,7 @@ class JABS_StateData {
    */
   get negative() {
     let negative = false;
-    if (this._meta && this._meta[J.Base.Notetags.NegativeState]) {
+    if (this._meta && this._meta[J.BASE.Notetags.NegativeState]) {
       negative = true;
     } else {
       const structure = /<negative>/i;
@@ -2289,7 +2291,7 @@ class JABS_StateData {
    */
   get aggroLock() {
     let aggroLocked = false;
-    if (this._meta && this._meta[J.Base.Notetags.AggroLock]) {
+    if (this._meta && this._meta[J.BASE.Notetags.AggroLock]) {
       aggroLocked = true;
     } else {
       const structure = /<aggroLock>/i;
@@ -2309,8 +2311,8 @@ class JABS_StateData {
    */
   get aggroOutAmp() {
     let aggroOutAmp = 1.0;
-    if (this._meta && this._meta[J.Base.Notetags.AggroOutAmp]) {
-      aggroOutAmp = parseFloat(this._meta[J.Base.Notetags.AggroOutAmp]);
+    if (this._meta && this._meta[J.BASE.Notetags.AggroOutAmp]) {
+      aggroOutAmp = parseFloat(this._meta[J.BASE.Notetags.AggroOutAmp]);
     } else {
       const structure = /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
       this._notes.forEach(note => {
@@ -2329,8 +2331,8 @@ class JABS_StateData {
    */
   get aggroInAmp() {
     let aggroInAmp = 1.0;
-    if (this._meta && this._meta[J.Base.Notetags.AggroInAmp]) {
-      aggroInAmp = parseFloat(this._meta[J.Base.Notetags.AggroInAmp]);
+    if (this._meta && this._meta[J.BASE.Notetags.AggroInAmp]) {
+      aggroInAmp = parseFloat(this._meta[J.BASE.Notetags.AggroInAmp]);
     } else {
       const structure = /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
       this._notes.forEach(note => {
@@ -2349,7 +2351,7 @@ class JABS_StateData {
    */
   get paralyzed() {
     let paralyzed = false;
-    if (this._meta && this._meta[J.Base.Notetags.Paralyzed]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Paralyzed]) {
       paralyzed = true;
     } else {
       const structure = /<paralyzed>/i;
@@ -2369,7 +2371,7 @@ class JABS_StateData {
    */
   get rooted() {
     let rooted = false;
-    if (this._meta && this._meta[J.Base.Notetags.Rooted]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Rooted]) {
       rooted = true;
     } else {
       const structure = /<rooted>/i;
@@ -2389,7 +2391,7 @@ class JABS_StateData {
    */
   get muted() {
     let muted = false;
-    if (this._meta && this._meta[J.Base.Notetags.Muted]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Muted]) {
       muted = true;
     } else {
       const structure = /<muted>/i;
@@ -2409,7 +2411,7 @@ class JABS_StateData {
    */
   get disabled() {
     let disabled = false;
-    if (this._meta && this._meta[J.Base.Notetags.Disabled]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Disabled]) {
       disabled = true;
     } else {
       const structure = /<disabled>/i;
@@ -2429,8 +2431,8 @@ class JABS_StateData {
    */
   get slipHpFlat() {
     let hpFlat = 0;
-    if (this._meta && this._meta[J.Base.Notetags.HpFlat]) {
-      hpFlat = parseInt(this._meta[J.Base.Notetags.HpFlat]);
+    if (this._meta && this._meta[J.BASE.Notetags.HpFlat]) {
+      hpFlat = parseInt(this._meta[J.BASE.Notetags.HpFlat]);
     } else {
       const structure = /<hpFlat:[ ]?([-]?\d+)>/i;
       this._notes.forEach(note => {
@@ -2449,8 +2451,8 @@ class JABS_StateData {
    */
   get slipHpPerc() {
     let hpPerc = 0;
-    if (this._meta && this._meta[J.Base.Notetags.HpPerc]) {
-      hpPerc = parseFloat(this._meta[J.Base.Notetags.HpPerc]);
+    if (this._meta && this._meta[J.BASE.Notetags.HpPerc]) {
+      hpPerc = parseFloat(this._meta[J.BASE.Notetags.HpPerc]);
     } else {
       const structure = /<hpPerc:[ ]?([-]?\d+)[%]?>/i;
       this._notes.forEach(note => {
@@ -2469,8 +2471,8 @@ class JABS_StateData {
    */
   get slipMpFlat() {
     let mpFlat = 0;
-    if (this._meta && this._meta[J.Base.Notetags.MpFlat]) {
-      mpFlat = parseInt(this._meta[J.Base.Notetags.MpFlat]);
+    if (this._meta && this._meta[J.BASE.Notetags.MpFlat]) {
+      mpFlat = parseInt(this._meta[J.BASE.Notetags.MpFlat]);
     } else {
       const structure = /<mpFlat:[ ]?([-]?\d+)>/i;
       this._notes.forEach(note => {
@@ -2489,8 +2491,8 @@ class JABS_StateData {
    */
   get slipMpPerc() {
     let mpPerc = 0;
-    if (this._meta && this._meta[J.Base.Notetags.MpPerc]) {
-      mpPerc = parseFloat(this._meta[J.Base.Notetags.MpPerc]);
+    if (this._meta && this._meta[J.BASE.Notetags.MpPerc]) {
+      mpPerc = parseFloat(this._meta[J.BASE.Notetags.MpPerc]);
     } else {
       const structure = /<mpPerc:[ ]?([-]?\d+)[%]?>/i;
       this._notes.forEach(note => {
@@ -2509,8 +2511,8 @@ class JABS_StateData {
    */
   get slipTpFlat() {
     let tpFlat = 0;
-    if (this._meta && this._meta[J.Base.Notetags.TpFlat]) {
-      tpFlat = parseInt(this._meta[J.Base.Notetags.TpFlat]);
+    if (this._meta && this._meta[J.BASE.Notetags.TpFlat]) {
+      tpFlat = parseInt(this._meta[J.BASE.Notetags.TpFlat]);
     } else {
       const structure = /<tpFlat:[ ]?([-]?\d+)>/i;
       this._notes.forEach(note => {
@@ -2529,8 +2531,8 @@ class JABS_StateData {
    */
   get slipTpPerc() {
     let tpPerc = 0;
-    if (this._meta && this._meta[J.Base.Notetags.TpPerc]) {
-      tpPerc = parseFloat(this._meta[J.Base.Notetags.TpPerc]);
+    if (this._meta && this._meta[J.BASE.Notetags.TpPerc]) {
+      tpPerc = parseFloat(this._meta[J.BASE.Notetags.TpPerc]);
     } else {
       const structure = /<tpPerc:[ ]?([-]?\d+)[%]?>/i;
       this._notes.forEach(note => {

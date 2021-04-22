@@ -171,6 +171,24 @@
  */
 var J = J || {};
 
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+
+// Check to ensure we have the minimum required version of the J-ABS plugin.
+  const requiredJabsVersion = '2.4.0';
+  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
+  if (!hasJabsRequirement) {
+    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+  }
+})();
+//#endregion version check
+
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -1049,7 +1067,7 @@ Scene_Map.prototype.getCurrentRecipe = function() {
 */
 Scene_Map.prototype.hideNonJaftingWindows = function() {
   if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(false);
-  if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(false);
+  if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
   if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
 };
 
@@ -1058,7 +1076,7 @@ Scene_Map.prototype.hideNonJaftingWindows = function() {
 */
 Scene_Map.prototype.showNonJaftingWindows = function() {
   if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(true);
-  if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(true);
+  if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
   if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
 };
 
@@ -1697,7 +1715,7 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
     const lh = this.lineHeight();
     this.drawTextEx(`\\C[1]Ingredients\\C[0]`, ox, lh*2, 300);
     ingredients.forEach((ingredient, index) => {
-      const rpgItem = J.Base.Helpers.translateItem(ingredient.id, ingredient.type);
+      const rpgItem = J.BASE.Helpers.translateItem(ingredient.id, ingredient.type);
       const x = ox+40;
       const y = lh*(3+(index));
       const need = ingredient.count;
@@ -1731,7 +1749,7 @@ class Window_JaftingCraftRecipeDetails extends Window_Base {
     const lh = this.lineHeight();
     this.drawTextEx(`\\C[1]Tools Required\\C[0]`, ox, lh*2, 300);
     tools.forEach((tool, index) => {
-      const rpgItem = J.Base.Helpers.translateItem(tool.id, tool.type);
+      const rpgItem = J.BASE.Helpers.translateItem(tool.id, tool.type);
       const x = ox+40;
       const y = lh*(3+(index));
       const available = $gameParty.numItems(rpgItem);

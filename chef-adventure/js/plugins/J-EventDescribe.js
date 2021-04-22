@@ -51,12 +51,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.Event = {};
+J.DESCRIBE = {};
  
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.Event.Metadata = {
+J.DESCRIBE.Metadata = {
   /**
  * The name of this plugin.
  */
@@ -66,19 +66,19 @@ J.Event.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.Event.PluginParameters = PluginManager.parameters(J.Event.Metadata.Name);
-J.Event.Metadata = {
-  ...J.Event.Metadata,
+J.DESCRIBE.PluginParameters = PluginManager.parameters(J.DESCRIBE.Metadata.Name);
+J.DESCRIBE.Metadata = {
+  ...J.DESCRIBE.Metadata,
   /**
    * The version of this plugin.
    */
-  Version: 1.0,
+  Version: '1.0.0',
 };
 
 /**
  * The collection of all aliased classes for extending.
  */
-J.Event.Aliased = {
+J.DESCRIBE.Aliased = {
   Game_Character: {},
   Game_Event: {},
   Game_Player: {},
@@ -119,7 +119,7 @@ Game_Character.prototype.parseEventComments = function() {
 /**
  * Hooks into the initialization to add our members for containing event data.
  */
-J.Event.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
+J.DESCRIBE.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
 Game_Event.prototype.initMembers = function() {
   this._j = this._j || {};
 
@@ -146,16 +146,16 @@ Game_Event.prototype.initMembers = function() {
      */
     _playerNearbyIcon: null,
   };
-  J.Event.Aliased.Game_Event.initMembers.call(this);
+  J.DESCRIBE.Aliased.Game_Event.initMembers.call(this);
 };
 
 /**
  * Extends the page settings for events and adds on custom parameters to this event.
  */
-J.Event.Aliased.Game_Event.setupPage = Game_Event.prototype.setupPage;
+J.DESCRIBE.Aliased.Game_Event.setupPage = Game_Event.prototype.setupPage;
 Game_Event.prototype.setupPage = function() {
   this.parseEventComments();
-  J.Event.Aliased.Game_Event.setupPage.call(this);
+  J.DESCRIBE.Aliased.Game_Event.setupPage.call(this);
 };
 
 /**
@@ -265,9 +265,9 @@ Game_Event.prototype.hasProximityDescribeData = function() {
 /**
  * Hooks into the update function for this event to update the describe data.
  */
-J.Event.Aliased.Game_Event.update = Game_Event.prototype.update;
+J.DESCRIBE.Aliased.Game_Event.update = Game_Event.prototype.update;
 Game_Event.prototype.update = function() {
-  J.Event.Aliased.Game_Event.update.call(this);
+  J.DESCRIBE.Aliased.Game_Event.update.call(this);
   if (this.hasProximityDescribeData()) {
     this.updateDescribeTextProximity();
     this.updateDescribeIconProximity();
@@ -320,7 +320,7 @@ Game_Event.prototype.distanceFromPlayer = function() {
 /**
  * Hooks into the initmembers function to add our properties.
  */
-J.Event.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMembers;
+J.DESCRIBE.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMembers;
 Sprite_Character.prototype.initMembers = function() {
   this._j = this._j || {};
 
@@ -337,19 +337,19 @@ Sprite_Character.prototype.initMembers = function() {
     },
   };
 
-  J.Event.Aliased.Sprite_Character.initMembers.call(this);
+  J.DESCRIBE.Aliased.Sprite_Character.initMembers.call(this);
 };
 
 /**
  * If the "character" has describe data, don't make it invisible for the time being.
  * @returns {boolean} True if the character should be drawn, false otherwise.
  */
-J.Event.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
+J.DESCRIBE.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
 Sprite_Character.prototype.isEmptyCharacter = function() {
    if (this._character.hasDescribeData() && !this._character._erased) {
      return false;
    } else {
-     return J.Event.Aliased.Sprite_Character.isEmptyCharacter.call(this);
+     return J.DESCRIBE.Aliased.Sprite_Character.isEmptyCharacter.call(this);
    }
 };
 
@@ -358,9 +358,9 @@ Sprite_Character.prototype.isEmptyCharacter = function() {
  * Hooks into the `Sprite_Character.setCharacter` and sets up the visual components
  * of the describe for this event..
  */
-J.Event.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
+J.DESCRIBE.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
 Sprite_Character.prototype.setCharacterBitmap = function() {
-  J.Event.Aliased.Sprite_Character.setCharacterBitmap.call(this);
+  J.DESCRIBE.Aliased.Sprite_Character.setCharacterBitmap.call(this);
   this._character.parseEventComments();
   if (this._character.hasDescribeData()) {
     this.setupDescribeSprites();
@@ -450,9 +450,9 @@ Sprite_Character.prototype.createDescribeIconSprite = function() {
 /**
  * Hooks into the update function to update our describe sprites.
  */
-J.Event.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
+J.DESCRIBE.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
 Sprite_Character.prototype.update = function() {
-  J.Event.Aliased.Sprite_Character.update.call(this);
+  J.DESCRIBE.Aliased.Sprite_Character.update.call(this);
   if (this._character.hasDescribeData()) {
     this.updateDescribe();
   }

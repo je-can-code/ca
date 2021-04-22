@@ -248,7 +248,7 @@ var J = J || {};
 (() => {
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
-  const hasBaseRequirement = J.Base.Helpers.satisfies(requiredBaseVersion, J.Base.Metadata.Version);
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement) {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
@@ -257,7 +257,6 @@ var J = J || {};
 
 //#region Plugin metadata management
 //#region plugin setup and configuration
-
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -329,7 +328,7 @@ J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj => {
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = `J-ABS`;
-J.ABS.Metadata.Version = '2.3.0';
+J.ABS.Metadata.Version = '2.4.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -1404,7 +1403,7 @@ Game_Battler.prototype.initMembers = function() {
      * The `uuid` of this battler.
      * @type {string}
      */
-    _uuid: J.Base.Helpers.generateUuid(),
+    _uuid: J.BASE.Helpers.generateUuid(),
   };
 };
 
@@ -3324,11 +3323,11 @@ Scene_Map.prototype.handlePartyRotation = function() {
 Scene_Map.prototype.handleJabsWindowsVisibility = function() {
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy()) {
     if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(true);
-    if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(true);
+    if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
     if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
   } else {
     if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(false);
-    if (J.TextLog && J.TextLog.Metadata.Enabled) this.toggleLog(false);
+    if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
     if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
   }
 };
@@ -4111,8 +4110,8 @@ Sprite_Character.prototype.createLootSprite = function() {
   const lootData = this.getLootData();
   const iconIndex = lootData.lootIcon;
   const lootSprite = new Sprite_Icon(iconIndex);
-  const xOffset = J.Base.Helpers.getRandomNumber(-30, 0);
-  const yOffset = J.Base.Helpers.getRandomNumber(-90, -70);
+  const xOffset = J.BASE.Helpers.getRandomNumber(-30, 0);
+  const yOffset = J.BASE.Helpers.getRandomNumber(-90, -70);
   lootSprite.move(xOffset, yOffset);
   return lootSprite;
 };
@@ -5630,7 +5629,7 @@ class Game_BattleMap {
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
-    if (J.TextLog && J.TextLog.Metadata.Enabled) {
+    if (J.LOG && J.LOG.Metadata.Enabled) {
       const battlerName = this.getPlayerMapBattler().battlerName();
       const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
       $gameTextLog.addLog(log);
@@ -6179,13 +6178,19 @@ class Game_BattleMap {
   applyCooldownCounters(caster, action) {
     const cooldownType = action.getCooldownType();
     const cooldownValue = action.getCooldown();
+    const aiCooldownValue = action.getAiCooldown();
+
     // if the caster isn't a player, then apply cooldowns as normal to the slots.
     if (!caster.isPlayer()) {
       caster.modCooldownCounter(cooldownType, cooldownValue);
 
       // if the caster is any AI-controlled battler, then also trigger the postaction cooldown.
       if (caster.isEnemy() || caster.isActor()) {
-        caster.startPostActionCooldown(cooldownValue);
+        if (aiCooldownValue > -1) {
+          caster.startPostActionCooldown(aiCooldownValue);
+        } else {
+          caster.startPostActionCooldown(cooldownValue);
+        }
       }
     } else {
       const skill = action.getBaseSkill();
@@ -6725,7 +6730,7 @@ class Game_BattleMap {
    */
   createAttackLog(action, skill, result, caster, target) {
     // if not enabled, skip this.
-    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
+    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
     const skillName = skill.name;
     const casterName = caster.getReferenceData().name;
@@ -6894,25 +6899,25 @@ class Game_BattleMap {
     let hit = false;
 
     switch (shape) {
-      case J.Base.Shapes.Rhombus:
+      case J.BASE.Shapes.Rhombus:
         hit = this.collisionRhombus(Math.abs(dx), Math.abs(dy), range);
         break;
-      case J.Base.Shapes.Square:
+      case J.BASE.Shapes.Square:
         hit = this.collisionSquare(Math.abs(dx), Math.abs(dy), range);
         break;
-      case J.Base.Shapes.FrontSquare:
+      case J.BASE.Shapes.FrontSquare:
         hit = this.collisionFrontSquare(dx, dy, range, facing);
         break;
-      case J.Base.Shapes.Line:
+      case J.BASE.Shapes.Line:
         hit = this.collisionLine(dx, dy, range, facing);
         break;
-      case J.Base.Shapes.Arc:
+      case J.BASE.Shapes.Arc:
         hit = this.collisionArc(dx, dy, range, facing);
         break;
-      case J.Base.Shapes.Wall:
+      case J.BASE.Shapes.Wall:
         hit = this.collisionWall(dx, dy, range, facing);
         break;
-      case J.Base.Shapes.Cross:
+      case J.BASE.Shapes.Cross:
         hit = this.collisionCross(dx, dy, range);
         break;
     }
@@ -7176,8 +7181,8 @@ class Game_BattleMap {
    */
   getRewardScalingMultiplier(enemy, actor) {
     let multiplier = 1.0;
-    if (J.LevelScaling && J.LevelScaling.Metadata.Enabled) {
-      multiplier = J.LevelScaling.Utilities.determineScalingMultiplier(
+    if (J.LEVEL && J.LEVEL.Metadata.Enabled) {
+      multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
         actor.getBattler().level,
         enemy.level);
     }
@@ -7260,7 +7265,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} caster The ally gaining the experience and gold.
    */
   createRewardsLog(experience, gold, caster) {
-    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
+    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
     if (experience !== 0) {
       const casterData = caster.getReferenceData();
@@ -7297,7 +7302,7 @@ class Game_BattleMap {
    * @param {object} item The reference data for the item loot that was picked up.
    */
   createLootLog(item) {
-    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
+    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
     // the player is always going to be the one collecting the loot- for now.
     const casterName = this.getPlayerMapBattler().getReferenceData().name;
@@ -7361,7 +7366,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} player The player.
    */
   createLevelUpLog(player) {
-    if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
+    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
     const leaderData = player.getReferenceData();
     const leaderName = leaderData.name;
@@ -7419,7 +7424,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} player The player's `JABS_Battler`.
    */
   createSkillLearnLog(skill, player) {
-    if (!J.TextLog.Metadata.Enabled || !J.TextLog.Metadata.Active) return;
+    if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
 
     const leaderData = player.getReferenceData();
     const leaderName = leaderData.name;
@@ -11129,7 +11134,7 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
 
     let { 
       cooldown, 
-      enemyCooldown, 
+      aiCooldown, 
       range, 
       actionId, 
       duration, 
@@ -11139,8 +11144,8 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
       proximity, 
       direct } = skill._j;
     
-    if (enemyCooldown > -1) {
-      cooldown = enemyCooldown;
+    if (aiCooldown > -1) {
+      cooldown = aiCooldown;
     }
 
     let isBasicAttack = false;
@@ -11165,6 +11170,7 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
         skill,          // the skill data
         this.getTeam(), // the caster's team id
         cooldown,       // cooldown frames
+        aiCooldown,     // ai cooldown frames
         range,          // the aoe range of the skill (affects collision)
         proximity,      // the proximity required to use this skill
         shape,          // the collision hitbox
@@ -11365,7 +11371,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId) {
  */
 JABS_Battler.prototype.createToolLog = function(item) {
   // if not enabled, skip this.
-  if (!J.TextLog || !J.TextLog.Metadata.Enabled) return;
+  if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
   const battleMessage = `${this.getReferenceData().name} used the ${item.name}.`;
   const log = new Map_TextLog(battleMessage, -1);
@@ -11598,7 +11604,7 @@ JABS_Battler.prototype.performActionPose = function(skill) {
     return;
   }
 
-  const exists = J.Base.Helpers.checkFile(`img/characters/${newCharacterSprite}.png`);
+  const exists = J.BASE.Helpers.checkFile(`img/characters/${newCharacterSprite}.png`);
   if (exists) {
     character.setImage(newCharacterSprite, index);
   } else {
@@ -12124,6 +12130,7 @@ class JABS_Action {
    * @param {object} baseSkill The skill retrieved from `$dataSkills[id]`. 
    * @param {number} teamId A shorthand for the team id this skill belongs to.
    * @param {number} cooldownFrames The number of frames until the caster can act again.
+   * @param {number} aiCooldownFrames The custom ai-specific cooldown frames for this action, if any.
    * @param {number} range The range of collision for this `JABS_Action`.
    * @param {number} proximity The proximity to the target required for using this `JABS_Action`.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
@@ -12138,7 +12145,7 @@ class JABS_Action {
    * @param {boolean} isSupportAction Whether or not this is a support action for allies.
    * @param {boolean} isDirect Whether or not this is a direct action.
    */
-  constructor(baseSkill, teamId, cooldownFrames, range, proximity, shape, 
+  constructor(baseSkill, teamId, cooldownFrames, aiCooldownFrames, range, proximity, shape, 
     gameAction, caster, actionId, duration, piercing, isRetaliation, direction,
     isBasicAttack, isSupportAction, isDirect) {
       /**
@@ -12158,6 +12165,14 @@ class JABS_Action {
        * @type {number}
        */
       this._cooldownFrames = cooldownFrames;
+
+      /**
+       * The number of frames before the battler using this action can act again.
+       * This is typically used to overwrite long-cooldown skills that the AI doesn't
+       * have to obey. If the value for this is `-1`, then this will be ignored.
+       * @type {number}
+       */
+      this._aiCooldownFrames = aiCooldownFrames;
 
       /**
        * The range of collision for this action.
@@ -12368,6 +12383,15 @@ class JABS_Action {
    */
   getCooldown = () => {
     return this._cooldownFrames;
+  };
+
+  /**
+   * Gets the ai-specific cooldown for this skill.
+   * This overwrites the basic cooldown value if it is greater than `-1`.
+   * @returns {number}
+   */
+  getAiCooldown = () => {
+    return this._aiCooldownFrames;
   };
 
   /**
@@ -12675,7 +12699,7 @@ class JABS_LootDrop {
      * The universally unique identifier for this loot drop.
      * @type {string}
      */
-    this._uuid = J.Base.Helpers.generateUuid();
+    this._uuid = J.BASE.Helpers.generateUuid();
   };
 
   /**

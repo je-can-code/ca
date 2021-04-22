@@ -40,6 +40,24 @@
  */
 var J = J || {};
 
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+
+// Check to ensure we have the minimum required version of the J-ABS plugin.
+  const requiredJabsVersion = '2.4.0';
+  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
+  if (!hasJabsRequirement) {
+    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+  }
+})();
+//#endregion version check
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -163,7 +181,7 @@ Window_ActionKeys.prototype.initMembers = function() {
   /**
    * The dictionary of sprites for this window, used for action keys.
    */
-  this._sprites ={};
+  this._sprites = {};
 
   /**
    * Whether or not the action keys should be visible.
@@ -304,6 +322,7 @@ Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = f
   this.hideUnusedActionKeys(skillType);
   const mapBattler = $gameBattleMap.getPlayerMapBattler();
   const cooldownData = mapBattler.getCooldown(skillType);
+  console.log(cooldownData);
   if (!cooldownData) {
     return;
   }
