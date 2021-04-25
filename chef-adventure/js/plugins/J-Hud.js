@@ -227,34 +227,15 @@ Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
  * @returns {boolean} True if there is an actor to update, false otherwise.
  */
 Window_Hud.prototype.canUpdate = function() {
-  if (!$gameParty || !$gameParty.leader() || !this.contents || 
-    !this._enabled || !J.Hud.Metadata.Active || $gameMessage.isBusy()) {
-      return false;
-  }
-
-  return true;
-};
-
-/**
- * Refreshes the window and forces a recreation of all sprites.
- */
-Window_Hud.prototype.refresh = function() {
-  this.contents.clear();
-  const keys = Object.keys(this._hudSprites);
-  keys.forEach(key => {
-    this._hudSprites[key].destroy();
-    delete this._hudSprites[key];
-  })
-
-  this._hudSprites = {};
+  return !(!$gameParty || !$gameParty.leader() || !this.contents ||
+    !this._enabled || !J.Hud.Metadata.Active || $gameMessage.isBusy());
 };
 
 /**
  * Draws the contents of the Hud.
  */
 Window_Hud.prototype.drawHud = function() {
-  const actor = $gameParty.leader();
-  this._actor = actor;
+  this._actor = $gameParty.leader();
   this.drawFace(this._actor.faceName(), this._actor.faceIndex(), 0, 0, 128, 72);
   this.drawHudGaugeSprites();
   this.drawHudNumberSprites();
@@ -275,11 +256,7 @@ Window_Hud.prototype.playerInterference = function() {
   const player = $gamePlayer;
   const playerX = player.screenX();
   const playerY = player.screenY();
-  if (playerX < this.width && playerY < this.height) {
-    return true;
-  }
-
-  return false;
+  return playerX < this.width && playerY < this.height;
 };
 
 /**
@@ -359,8 +336,8 @@ Window_Hud.prototype.drawHudGaugeSprites = function() {
  */
 Window_Hud.prototype.drawHudNumberSprites = function() {
   this.placeNumberSprite("hp", 90, -2, 5);
-  this.placeNumberSprite("mp", 90, 26);
-  this.placeNumberSprite("tp", 0, 44);
+  this.placeNumberSprite("mp", 90, 26, 0);
+  this.placeNumberSprite("tp", 0, 44, 0);
   this.placeNumberSprite("xp", -80, 80, -2);
   this.placeNumberSprite("lvl", -160, 60, -7);
 };

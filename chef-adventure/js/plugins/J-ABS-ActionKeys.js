@@ -322,7 +322,6 @@ Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = f
   this.hideUnusedActionKeys(skillType);
   const mapBattler = $gameBattleMap.getPlayerMapBattler();
   const cooldownData = mapBattler.getCooldown(skillType);
-  console.log(cooldownData);
   if (!cooldownData) {
     return;
   }
