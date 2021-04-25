@@ -67,6 +67,7 @@ J.BASE.Notetags = {
   AggroInAmp: "aggroInAmp",
   AggroOutAmp: "aggroOutAmp",
   AggroLock: "aggroLock",
+  AiCooldown: "aiCooldown",
   CastAnimation: "castAnimation",
   CastTime: "castTime",
   Combo: "combo",
@@ -75,7 +76,6 @@ J.BASE.Notetags = {
   CounterGuard: "counterGuard",
   DirectSkill: "direct",
   Duration: "duration",
-  AiCooldown: "aiCooldown",
   FreeCombo: "freeCombo",
   Guard: "guard",
   IgnoreParry: "ignoreParry",
@@ -516,37 +516,263 @@ Game_Actor.prototype.grdGrowth = function() {
 
 /**
  * Gets the prepare time for this actor.
- * Looks first to the class, then the actor for a prepare tag.
- * If neither are present, then it returns the default.
+ * Actors are not gated by prepare times, only by post-action cooldowns.
  * @returns {number}
  */
  Game_Actor.prototype.prepareTime = function() {
-  let prepare = Game_Battler.prototype.prepareTime();
+  return 1;
+};
 
+/**
+ * Gets the skill id for this actor.
+ * Actors don't use this functionality, they have equipped skills instead.
+ * @returns {null}
+ */
+Game_Actor.prototype.skillId = function() {
+  return null;
+};
+
+/**
+ * Gets the sight range for this actor.
+ * Looks first to the class, then the actor for the tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.sightRange = function() {
+  let val = Game_Battler.prototype.sightRange.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.PrepareTime]) {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.PrepareTime]);
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Sight]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight]) {
     // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.PrepareTime]);
+    return parseInt(referenceData.meta[J.BASE.Notetags.Sight]);
   } else {
     // if its not in the metadata, then check the notes proper.
-    const structure = /<prepare:[ ]?([0-9]*)>/i;
+    const structure = /<s:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
     notedata.forEach(note => {
       if (note.match(structure)) {
-        prepare = parseInt(RegExp.$1);
+        val = parseInt(RegExp.$1);
       }
     })
   }
 
-  return parseInt(prepare);
+  return val;
+};
+
+/**
+ * Gets the alerted sight boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertedSightBoost = function() {
+  let val = Game_Battler.prototype.alertedSightBoost.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost]) {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertSightBoost]);
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<as:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alerted pursuit boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.pursuitRange = function() {
+  let val = Game_Battler.prototype.pursuitRange.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Pursuit]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit]) {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.Pursuit]);
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<p:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alerted pursuit boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertedPursuitBoost = function() {
+  let val = Game_Battler.prototype.alertedPursuitBoost.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]);
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ap:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alert duration for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertDuration = function() {
+  let val = Game_Battler.prototype.alertDuration.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration]) {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertDuration]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration]) {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertDuration]);
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ad:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the team id for this actor.
+ * Actors are ALWAYS on team id of 0.
+ * @returns {number}
+ */
+Game_Actor.prototype.teamId = function() {
+  return 0;
+};
+
+/**
+ * Gets the ai of the actor.
+ * Though allies leverage ally ai for action decision making, this AI does
+ * have one effect: how to move around and stuff throughout the phases.
+ * @returns {null}
+ */
+Game_Actor.prototype.ai = function() {
+  return new JABS_BattlerAI(true, true);
+};
+
+/**
+ * Gets whether or not the actor can idle.
+ * Actors can never idle.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.canIdle = function() {
+  return false;
+};
+
+/**
+ * Gets whether or not the actor's hp bar will show.
+ * Actors never show their hp bar (they use HUDs for that).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.showHpBar = function() {
+  return false;
+};
+
+/**
+ * Gets whether or not the actor's danger indicator will show.
+ * Danger indicator is not applicable to actors (since it is relative to the player).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.showDangerIndicator = function() {
+  return false;
+};
+
+/**
+ * Gets whether or not the actor's name will show below their character.
+ * Actors never show their name (the use HUDs for that).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.showBattlerName = function() {
+  return false;
+};
+
+/**
+ * Gets whether or not the actor is invincible.
+ * Actors are never invincible by this means.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isInvincible = function() {
+  return false;
+};
+
+/**
+ * Gets whether or not the actor is inanimate.
+ * Actors are never inanimate (duh).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isInanimate = function() {
+  return false;
 };
 //#endregion Game_Actor
 
@@ -557,16 +783,121 @@ Game_Actor.prototype.grdGrowth = function() {
  * @returns {number}
  */
 Game_Battler.prototype.prepareTime = function() {
-  return 180; // TODO: parameterize default prepare time.
+  return 180;
 };
 
 /**
- * all battlers have a skill id for their basic attack.
+ * All battlers have a skill id for their basic attack.
  * At this level, returns the default skill id of 1.
  * @returns {number}
  */
 Game_Battler.prototype.skillId = function() {
-  return 1; // TODO: parameterize default skill id.
+  return 1;
+};
+
+/**
+ * All battlers have a default sight range.
+ * @returns {number}
+ */
+Game_Battler.prototype.sightRange = function() {
+  return 4;
+};
+
+/**
+ * All battlers have a default alerted sight boost.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertedSightBoost = function() {
+  return 2;
+};
+
+/**
+ * All battlers have a default pursuit range.
+ * @returns {number}
+ */
+Game_Battler.prototype.pursuitRange = function() {
+  return 6;
+};
+
+/**
+ * All battlers have a default alerted pursuit boost.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertedPursuitBoost = function() {
+  return 4;
+};
+
+/**
+ * All battlers have a default alert duration.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertDuration = function() {
+  return 300;
+};
+
+/**
+ * All battlers have a default team id.
+ * At this level, the default team id is 1 (the default for enemies).
+ * @returns {number}
+ */
+Game_Battler.prototype.teamId = function() {
+  return 1;
+};
+
+/**
+ * All battlers have a default AI.
+ * @returns {JABS_BattlerAI}
+ */
+Game_Battler.prototype.ai = function() {
+  return new JABS_BattlerAI();
+};
+
+/**
+ * All battlers can idle by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.canIdle = function() {
+  return true;
+};
+
+/**
+ * All battlers will show their hp bar by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showHpBar = function() {
+  return true;
+};
+
+/**
+ * All battlers will show their danger indicator by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showDangerIndicator = function() {
+  return true;
+};
+
+/**
+ * All battlers will show their database name by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showBattlerName = function() {
+  return true;
+};
+
+/**
+ * All battlers can be invincible, but are not by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isInvincible = function() {
+  return false;
+};
+
+/**
+ * All battlers can be inanimate, but are not by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isInanimate = function() {
+  return false;
 };
 
 /**
@@ -597,7 +928,6 @@ Game_Battler.prototype.aggroOutAmp = function() {
   this.states().forEach(state => outAmp += state._j.aggroOutAmp);
   return outAmp;
 };
-
 //#endregion Game_Battler
 
 //#region Game_Character
@@ -898,7 +1228,6 @@ Game_Character.prototype.isInanimate = function() {
 
   return inanimate;
 };
-
 //#endregion Game_Character
 
 //#region Game_Enemy
@@ -1129,14 +1458,14 @@ function Sprite_Icon() { this.initialize(...arguments); }
 Sprite_Icon.prototype = Object.create(Sprite.prototype);
 Sprite_Icon.prototype.constructor = Sprite_Icon;
 Sprite_Icon.prototype.initialize = function(iconIndex) {
-Sprite.prototype.initialize.call(this);
+  Sprite.prototype.initialize.call(this);
   this.initMembers(iconIndex);
   this.loadBitmap();
 };
 
 /**
  * Initializes the properties associated with this sprite.
- * @param {number} iconIndex The index of the icon this sprite represents.
+ * @param {Bitmap} iconIndex The index of the icon this sprite represents.
  */
 Sprite_Icon.prototype.initMembers = function(iconIndex) {
   this._j = {
@@ -1155,7 +1484,7 @@ Sprite_Icon.prototype.loadBitmap = function() {
   const sy = Math.floor(this._j._iconIndex / 16) * ph;
   this.setFrame(sx, sy, pw, ph);
 };
-//#endregion
+//#endregion Sprite_Icon
 
 //#region Sprite_MapGauge
 /**

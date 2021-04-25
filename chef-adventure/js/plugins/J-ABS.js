@@ -328,7 +328,7 @@ J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj => {
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = `J-ABS`;
-J.ABS.Metadata.Version = '2.4.0';
+J.ABS.Metadata.Version = '3.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2846,7 +2846,6 @@ Game_Map.prototype.removeEvent = function(event) {
     // if the index is found, remove the event.
     event.erase();
     this._events.splice(index, 1);
-    //$dataMap.events.splice(index+1, 1);
   }
 };
 
@@ -2864,6 +2863,9 @@ Game_Map.prototype.clearStaleMapActions = function() {
   });
 };
 
+/**
+ * Removes all loot on the map that has been flagged for removal.
+ */
 Game_Map.prototype.clearStaleLootDrops = function() {
   const eventSprites = this.events();
 
@@ -3875,18 +3877,59 @@ Sprite_Character.prototype.initMembers = function() {
   J.ABS.Aliased.Sprite_Character.initMembers.call(this);
 };
 
+//#region setup & reference
 /**
- * If the "character" is actually a loot drop, don't identify it as empty for the purposes
- * of drawing the loot icon on the map.
- * @returns {boolean} True if the character should be drawn, false otherwise.
+ * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
-J.ABS.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
-Sprite_Character.prototype.isEmptyCharacter = function() {
-  if (this.isLoot()) {
-    return false;
+J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
+Sprite_Character.prototype.update = function() {
+  J.ABS.Aliased.Sprite_Character.update.call(this);
+  if (this.getBattler()) {
+    this.updateStateOverlay();
+    this.updateMapPopups();
+    this.updateGauges();
+    this.updateDangerIndicator();
+    this.updateBattlerName();
   } else {
-    return J.ABS.Aliased.Sprite_Character.isEmptyCharacter.call(this);
+    // if the conditions changed for an event that used to have an hp gauge
+    // now hide the gauge.
+    if (this._hpGauge) {
+      this.hideHpGauge();
+    }
   }
+};
+
+/**
+ * Returns the `Game_Battler` associated with the current sprite.
+ * @returns {Game_Battler} The battler this sprite is bound to.
+ */
+Sprite_Character.prototype.getBattler = function() {
+  if (!this._character ||
+    this._character instanceof Game_Vehicle) {
+    return null;
+  } else {
+    if (this.isJabsBattler()) {
+      return this._character.getMapBattler().getBattler();
+    } else {
+      return null;
+    }
+  }
+};
+
+/**
+ * Gets whether or not this sprite belongs to a battler.
+ * @returns {boolean} True if this sprite belongs to a battler, false otherwise.
+ */
+Sprite_Character.prototype.isJabsBattler = function() {
+  return !!this._character.hasJabsBattler();
+};
+
+/**
+ * Whether or not we should be executing JABS-related updates for this sprite.
+ * @returns {boolean} True if updating is available, false otherwise.
+ */
+Sprite_Character.prototype.canUpdate = function() {
+  return $gameBattleMap.absEnabled;
 };
 
 /**
@@ -3900,41 +3943,10 @@ Sprite_Character.prototype.setCharacter = function(character) {
     this.setupMapSprite();
   }
 
+  // if this is just loot, then setup the visual components of the loot.
   if (this.isLoot()) {
     this.setupLootSprite();
   }
-};
-
-/**
- * If this is loot, then treat it as loot instead of a regular character.
- */
-J.ABS.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
-Sprite_Character.prototype.setCharacterBitmap = function() {
-  if (this.isLoot()) {
-    if (!this.children.length) {
-      this.setupLootSprite();
-    }
-
-    return;
-  }
-  
-  J.ABS.Aliased.Sprite_Character.setCharacterBitmap.call(this);
-};
-
-/**
- * If this is loot, then treat it as loot instead of a tilemap.
- */
-J.ABS.Aliased.Sprite_Character.setTileBitmap = Sprite_Character.prototype.setTileBitmap;
-Sprite_Character.prototype.setTileBitmap = function() {
-  if (this.isLoot()) {
-    if (!this.children.length) {
-      this.setupLootSprite();
-    }
-
-    return;
-  }
-  
-  J.ABS.Aliased.Sprite_Character.setTileBitmap.call(this);
 };
 
 /**
@@ -3946,7 +3958,9 @@ Sprite_Character.prototype.setupMapSprite = function() {
   this.setupDangerIndicator();
   this.setupBattlerName();
 };
+//#endregion setup & reference
 
+//#region state overlay
 /**
  * Sets up this character's state overlay, to show things like poison or paralysis.
  */
@@ -3968,6 +3982,45 @@ Sprite_Character.prototype.createStateOverlaySprite = function() {
   return new Sprite_StateOverlay();
 };
 
+/**
+ * Updates the battler's overlay for states (if applicable).
+ */
+Sprite_Character.prototype.updateStateOverlay = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate()) {
+      if (!this._stateOverlaySprite) {
+        this.setupMapSprite();
+      }
+
+      this._stateOverlaySprite.update();
+      this.showStateOverlay();
+    } else {
+      this.hideStateOverlay();
+    }
+  }
+};
+
+/**
+ * Shows the state overlay if it exists.
+ */
+Sprite_Character.prototype.showStateOverlay = function() {
+  if (this._stateOverlaySprite) {
+    this._stateOverlaySprite.opacity = 255;
+  }
+};
+
+/**
+ * Hides the state overlay if it exists.
+ */
+Sprite_Character.prototype.hideStateOverlay = function() {
+  if (this._stateOverlaySprite) {
+    this._stateOverlaySprite.opacity = 0;
+  }
+};
+//#endregion state overlay
+
+//#region gauges
 /**
  * Sets up this character's hp gauge, to show the hp bar as-needed.
  */
@@ -3991,6 +4044,45 @@ Sprite_Character.prototype.setupHpGauge = function() {
   sprite.move(x, y);
   return sprite;
 };
+
+/**
+ * Updates the all gauges associated with this battler
+ */
+Sprite_Character.prototype.updateGauges = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate() && mapBattler.showHpBar()) {
+      if (!this._hpGauge) {
+        this.setupMapSprite();
+        this._hpGauge.move(0 - (this._hpGauge.width / 1.5), 0 - 12);
+      }
+      this._hpGauge._battler = this.getBattler();
+      this._hpGauge.update();
+      this.showHpGauge();
+    } else {
+      this.hideHpGauge();
+    }
+  }
+};
+
+/**
+ * Shows the hp gauge if it exists.
+ */
+Sprite_Character.prototype.showHpGauge = function() {
+  if (this._hpGauge) {
+    this._hpGauge.opacity = 255;
+  }
+};
+
+/**
+ * Hides the hp gauge if it exists.
+ */
+Sprite_Character.prototype.hideHpGauge = function() {
+  if (this._hpGauge) {
+    this._hpGauge.opacity = 0;
+  }
+};
+//#endregion gauges
 
 //#region danger indicator icon
 /**
@@ -4055,6 +4147,42 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function() {
       return -1;
   }
 };
+
+/**
+ * Updates the danger indicator associated with this battler
+ */
+Sprite_Character.prototype.updateDangerIndicator = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate() && mapBattler.showDangerIndicator()) {
+      if (!this._dangerIndicator) {
+        this.setupMapSprite();
+      }
+
+      this.showDangerIndicator();
+    } else {
+      this.hideDangerIndicator();
+    }
+  }
+};
+
+/**
+ * Shows the danger indicator if it exists.
+ */
+Sprite_Character.prototype.showDangerIndicator = function() {
+  if (this._dangerIndicator) {
+    this._dangerIndicator.opacity = 255;
+  }
+};
+
+/**
+ * Hides the danger indicator if it exists.
+ */
+Sprite_Character.prototype.hideDangerIndicator = function() {
+  if (this._dangerIndicator) {
+    this._dangerIndicator.opacity = 0;
+  }
+};
 //#endregion danger indicator icon
 
 //#region battler name
@@ -4089,9 +4217,93 @@ Sprite_Character.prototype.getBattlerName = function() {
     ? battler.enemy().name
     : battler.actor().name;
 };
+
+/**
+ * Updates this battler's name.
+ */
+Sprite_Character.prototype.updateBattlerName = function() {
+  const mapBattler = this._character.getMapBattler();
+  if (mapBattler) {
+    if (this.canUpdate() && mapBattler.showBattlerName()) {
+      if (!this._battlerName) {
+        this.setupMapSprite();
+      }
+
+      this.showBattlerName();
+    } else {
+      this.hideBattlerName();
+    }
+  }
+};
+
+/**
+ * Shows the battler's name if it exists.
+ */
+Sprite_Character.prototype.showBattlerName = function() {
+  if (this._battlerName) {
+    this._battlerName.opacity = 255;
+  }
+};
+
+/**
+ * Hides the battler's name if it exists.
+ */
+Sprite_Character.prototype.hideBattlerName = function() {
+  if (this._battlerName) {
+    this._battlerName.opacity = 0;
+  }
+};
 //#endregion battler name
 
 //#region loot
+/**
+ * If the "character" is actually a loot drop, don't identify it as empty for the purposes
+ * of drawing the loot icon on the map.
+ * @returns {boolean} True if the character should be drawn, false otherwise.
+ */
+J.ABS.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
+Sprite_Character.prototype.isEmptyCharacter = function() {
+  if (this.isLoot()) {
+    return false;
+  } else {
+    return J.ABS.Aliased.Sprite_Character.isEmptyCharacter.call(this);
+  }
+};
+
+/**
+ * If this is loot, then treat it as loot instead of a regular character.
+ */
+J.ABS.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
+Sprite_Character.prototype.setCharacterBitmap = function() {
+  if (this.isLoot()) {
+    if (!this.children.length) {
+      // if there are no sprites currently drawn for the loot, then draw them.
+      this.setupLootSprite();
+    }
+
+    return;
+  }
+
+  J.ABS.Aliased.Sprite_Character.setCharacterBitmap.call(this);
+};
+
+/**
+ * If this is loot, then treat it as loot instead of a tilemap.
+ */
+J.ABS.Aliased.Sprite_Character.setTileBitmap = Sprite_Character.prototype.setTileBitmap;
+Sprite_Character.prototype.setTileBitmap = function() {
+  if (this.isLoot()) {
+    if (!this.children.length) {
+      // if there are no sprites currently drawn for the loot, then draw them.
+      this.setupLootSprite();
+    }
+
+    return;
+  }
+
+  J.ABS.Aliased.Sprite_Character.setTileBitmap.call(this);
+};
+
 /**
  * Sets up this character's sprite for activities on the map.
  */
@@ -4140,211 +4352,6 @@ Sprite_Character.prototype.deleteLootSprite = function() {
 Sprite_Character.prototype.getLootData = function() {
   return this._character.getLootData();
 };
-//#endregion loot
-
-/**
- * Returns the `Game_Battler` associated with the current sprite.
- * @returns {Game_Battler} The battler this sprite is bound to.
- */
-Sprite_Character.prototype.getBattler = function() {
-  if (!this._character || 
-    this._character instanceof Game_Vehicle || 
-    this._character instanceof Game_Follower) {
-      return null;
-  } else {
-    if (this._character.hasJabsBattler()) {
-      return this._character.getMapBattler().getBattler();
-    } else {
-      return null;
-    }
-  }
-};
-
-/**
- * Gets whether or not this sprite belongs to a battler.
- * @returns {boolean} True if this sprite belongs to a battler, false otherwise.
- */
-Sprite_Character.prototype.isJabsBattler = function() {
-  return !!this._character.hasJabsBattler();
-};
-
-/**
- * Hooks into the `Sprite_Character.update` and adds our ABS updates.
- */
-J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
-Sprite_Character.prototype.update = function() {
-	J.ABS.Aliased.Sprite_Character.update.call(this);
-	if (this.bitmap) {
-    if (this.getBattler()) {
-      this.updateStateOverlay();
-      this.updateMapPopups();
-      this.updateGauges();
-      this.updateDangerIndicator();
-      this.updateBattlerName();
-    } else {
-      // if the conditions changed for an event that used to have an hp gauge
-      // now hide the gauge.
-      if (this._hpGauge) {
-        this.hideHpGauge();
-      }
-    }
-  }
-};
-
-/**
- * Updates the battler's overlay for states (if applicable).
- */
-Sprite_Character.prototype.updateStateOverlay = function() {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate()) {
-      if (!this._stateOverlaySprite) {
-        this.setupMapSprite();
-      }
-
-      this._stateOverlaySprite.update();
-      this.showStateOverlay();
-    } else {
-      this.hideStateOverlay();
-    }
-  }
-};
-
-/**
- * Updates the all gauges associated with this battler
- */
-Sprite_Character.prototype.updateGauges = function() {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showHpBar()) {
-      if (!this._hpGauge) {
-        this.setupMapSprite();
-        this._hpGauge.move(0 - (this._hpGauge.width / 1.5), 0 - 12);
-      }
-      this._hpGauge._battler = this.getBattler();
-      this._hpGauge.update();
-      this.showHpGauge();
-    } else {
-      this.hideHpGauge();
-    }
-  }
-};
-
-/**
- * Updates the danger indicator associated with this battler
- */
- Sprite_Character.prototype.updateDangerIndicator = function() {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showDangerIndicator()) {
-      if (!this._dangerIndicator) {
-        this.setupMapSprite();
-      }
-
-      this.showDangerIndicator();
-    } else {
-      this.hideDangerIndicator();
-    }
-  }
-};
-
-/**
- * Updates this battler's name.
- */
- Sprite_Character.prototype.updateBattlerName = function() {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showBattlerName()) {
-      if (!this._battlerName) {
-        this.setupMapSprite();
-      }
-
-      this.showBattlerName();
-    } else {
-      this.hideBattlerName();
-    }
-  }
-};
-
-/**
- * Whether or not we should be executing JABS-related updates for this sprite.
- * @returns {boolean} True if updating is available, false otherwise.
- */
-Sprite_Character.prototype.canUpdate = function() {
-  return $gameBattleMap.absEnabled;
-};
-
-/**
- * Shows the state overlay if it exists.
- */
-Sprite_Character.prototype.showStateOverlay = function() {
-  if (this._stateOverlaySprite) {
-    this._stateOverlaySprite.opacity = 255;
-  }
-};
-
-/**
- * Hides the state overlay if it exists.
- */
-Sprite_Character.prototype.hideStateOverlay = function() {
-  if (this._stateOverlaySprite) {
-    this._stateOverlaySprite.opacity = 0;
-  }
-};
-
-/**
- * Shows the hp gauge if it exists.
- */
-Sprite_Character.prototype.showHpGauge = function() {
-  if (this._hpGauge) {
-    this._hpGauge.opacity = 255;
-  }
-};
-
-/**
- * Hides the hp gauge if it exists.
- */
-Sprite_Character.prototype.hideHpGauge = function() {
-  if (this._hpGauge) {
-    this._hpGauge.opacity = 0;
-  }
-};
-
-/**
- * Shows the danger indicator if it exists.
- */
-Sprite_Character.prototype.showDangerIndicator = function() {
-  if (this._dangerIndicator) {
-    this._dangerIndicator.opacity = 255;
-  }
-};
-
-/**
- * Hides the danger indicator if it exists.
- */
-Sprite_Character.prototype.hideDangerIndicator = function() {
-  if (this._dangerIndicator) {
-    this._dangerIndicator.opacity = 0;
-  }
-};
-
-/**
- * Shows the battler's name if it exists.
- */
- Sprite_Character.prototype.showBattlerName = function() {
-  if (this._battlerName) {
-    this._battlerName.opacity = 255;
-  }
-};
-
-/**
- * Hides the battler's name if it exists.
- */
- Sprite_Character.prototype.hideBattlerName = function() {
-  if (this._battlerName) {
-    this._battlerName.opacity = 0;
-  }
-};
 
 /**
  * Intercepts the update frame for loot and performs the things we need to
@@ -4352,12 +4359,12 @@ Sprite_Character.prototype.hideDangerIndicator = function() {
  */
 J.ABS.Aliased.Sprite_Character.updateFrame = Sprite_Character.prototype.updateFrame;
 Sprite_Character.prototype.updateFrame = function() {
-	if (this.isLoot()) {
+  if (this.isLoot()) {
     this.updateLootFloat();
     return;
   }
-  
-	J.ABS.Aliased.Sprite_Character.updateFrame.call(this);
+
+  J.ABS.Aliased.Sprite_Character.updateFrame.call(this);
 };
 
 /**
@@ -4394,26 +4401,9 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite) {
   lootSprite.y -= 0.3;
   if (this._loot._oy < -5) this._loot._swing = true;
 };
+//#endregion loot
 
-/**
- * If one doesn't already exist, creates a blank state icon for the character.
- */
-Sprite_Character.prototype.createStateIconSprite = function() {
-  this._stateIconSprite = new Sprite_StateIcon();
-  this._stateIconSprite.setup(this.getBattler());
-  this.addChild(this._stateIconSprite);
-};
-
-/**
- * Updates the state sprite for this character.
- */
-Sprite_Character.prototype.updateStateSprite = function() {
-  if (this.getBattler()) {
-    const ph = this._isBigCharacter ? 4 : 8;
-    this._stateIconSprite.y = -Math.floor(this.bitmap.height / ph) - 24;
-  }
-};
-
+//#region popups
 /**
  * Updates the sprites for all current damage popups.
  */
@@ -4490,7 +4480,7 @@ Sprite_Character.prototype.configurePopup = function(popup) {
 
   let sprite = new Sprite_Damage();
 
-  if (popup.getIcon() > 0) {
+  if (popup.getIcon() > -1) {
     sprite.addIcon(popup.getIcon());
   }
 
@@ -4631,7 +4621,8 @@ Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
   sprite._colorType = popup.getTextColor();
   sprite.createValue(`${value}`);
 };
-//#endregion
+//#endregion popups
+//#endregion Sprite_Character
 
 //#region Sprite_Damage
 /**
@@ -4663,7 +4654,7 @@ Sprite_Damage.prototype.createValue = function(value) {
   } else if (value.includes("Missed") || value.includes("Evaded") || value.includes("Parry")) {
     fontSize -= 6;
     sprite.bitmap.fontItalic = true;
-  } 
+  }
 
   sprite.bitmap.fontSize = fontSize;
   sprite.bitmap.drawText(value, 32, 0, w, h, "left");
@@ -4684,8 +4675,8 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
   sprite.bitmap.blt(bitmap, sx, sy, pw, ph, 0, 0);
   sprite.scale.x = 0.75;
   sprite.scale.y = 0.75;
-  sprite.y += 15;
   sprite.x -= 180;
+  sprite.y += 15;
   sprite.dy = 0;
 }
 
@@ -4701,14 +4692,12 @@ Sprite_Damage.prototype.updateOpacity = function() {
 }
 
 /**
- * OVERWRITE
- * 
- * Updates the damage color to be any color on the system palette.
+ * OVERWRITE Updates the damage color to be any color on the system palette.
  */
 Sprite_Damage.prototype.damageColor = function() {
   return ColorManager.textColor(this._colorType);
 }
-//#endregion
+//#endregion Sprite_Damage
 
 //#region Sprite_Gauge
 /**
@@ -6347,7 +6336,11 @@ class Game_BattleMap {
 
       this.checkKnockback(action, target);
       this.triggerAlert(casterMapBattler, target);
-      casterMapBattler.setBattlerLastHit(target);
+
+      // if the attacker and the target are the same, then don't set that as "last hit".
+      if (!(casterMapBattler.isSameTeam(target.getTeam()))) {
+        casterMapBattler.setBattlerLastHit(target);
+      }
     }
 
     // checks for retaliation from the target.
@@ -6402,6 +6395,9 @@ class Game_BattleMap {
    * @param {JABS_Battler} target The target having the action applied against.
    */
   applyAggroEffects(gameActionResult, action, attacker, target) {
+    // don't aggro your allies against you! Thats dumb.
+    if (attacker.isSameTeam(target.getTeam())) return;
+
     // TODO: parameterize these defaults.
     let aggro = 100;
 
@@ -6614,7 +6610,7 @@ class Game_BattleMap {
    */
   triggerAlert(attacker, target) {
     // check if the target can actually be alerted first.
-    if (!this.canBeAlerted(target)) return;
+    if (!this.canBeAlerted(attacker, target)) return;
 
     // alert the target!
     target.showBalloon(J.ABS.Balloons.Question);
@@ -6630,10 +6626,14 @@ class Game_BattleMap {
 
   /**
    * Checks if the battler can even be alerted in the first place.
+   * @param {JABS_Battler} attacker The battler that initiated the alert.
    * @param {JABS_Battler} battler The battler to be alerted.
    * @return {boolean} True if they can be alerted, false otherwise.
    */
-  canBeAlerted(battler) {
+  canBeAlerted(attacker, battler) {
+    // cannot alert your own allies.
+    if (attacker.isSameTeam(battler.getTeam())) return false;
+
     // cannot alert the player.
     if (battler.isPlayer()) return false;
 
@@ -6744,17 +6744,22 @@ class Game_BattleMap {
     } else if (result.evaded) {
       message = `${targetName} dodged ${casterName}'s ${skillName}.`;
     } else {
-      const roundedDamage = Math.round(result.hpDamage);
+      let roundedDamage = Math.round(result.hpDamage);
+      const isHeal = roundedDamage > 0;
+      roundedDamage = roundedDamage >= 0 ? roundedDamage : roundedDamage.toString().replace("-", "");
       const damageReduction = Math.round(result.reduced);
       let reducedAmount = "";
       if (damageReduction) {
         reducedAmount = `(${parseInt(damageReduction)})`;
       }
 
+
       if (result.critical) {
-        message = `${casterName} landed a critical ${skillName} on ${targetName} for ${roundedDamage}${reducedAmount}!`;
+        const hitOrHeal = isHeal ? "landed a critical" : "critically healed";
+        message = `${casterName} ${hitOrHeal} ${skillName} on ${targetName} for ${roundedDamage}${reducedAmount}!`;
       } else {
-        message = `${casterName} hit ${targetName} with ${skillName} for ${roundedDamage}${reducedAmount}.`;
+        const hitOrHeal = isHeal ? "hit" : "healed";
+        message = `${casterName} ${hitOrHeal} ${targetName} with ${skillName} for ${roundedDamage}${reducedAmount}.`;
       }
     }
 
@@ -7960,10 +7965,14 @@ class JABS_AiManager {
     if (!actions || !actions.length) return;
   
     const proximity = actions[0].getProximity();
-    const distanceToTarget = battler.distanceToCurrentTarget();
+    const distanceToTarget = battler.getAllyTarget() 
+    ? battler.distanceToAllyTarget()
+    : battler.distanceToCurrentTarget()
 
     if (distanceToTarget > proximity) {
-      battler.smartMoveTowardTarget();
+      battler.getAllyTarget()
+        ? battler.smartMoveTowardAllyTarget()
+        : battler.smartMoveTowardTarget();
     } else {
       battler.setInPosition();
     }
@@ -7988,7 +7997,6 @@ class JABS_AiManager {
     }
   
     // done with cooling down, lets start over back to phase 1!
-    battler.setPhase(1);
     battler.resetPhases();
   };
 
@@ -9875,11 +9883,12 @@ JABS_Battler.prototype.setPhase = function(newPhase) {
  * Resets the phase of this battler back to one and resets all flags.
  */
 JABS_Battler.prototype.resetPhases = function() {
-  this._phase = 1; // reset to the planning phase
+  this.setPhase(1);
   this._prepareReady = false;
   this._prepareCounter = 0;
   this._postActionCooldownComplete = false;
   this.setDecidedAction(null);
+  this.setAllyTarget(null);
   this.setInPosition(false);
 };
 
@@ -10208,6 +10217,17 @@ JABS_Battler.prototype.distanceToCurrentTarget = function() {
 };
 
 /**
+ * Determines distance from this battler and the current ally target.
+ * @returns {number} The distance.
+ */
+JABS_Battler.prototype.distanceToAllyTarget = function() {
+  const target = this.getAllyTarget();
+  if (!target) return null;
+
+  return this.distanceToPoint(target.getX(), target.getY());
+};
+
+/**
  * A shorthand reference to the distance this battler is from it's home.
  * @returns {number} The distance.
  */
@@ -10396,6 +10416,14 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function() {
  */
 JABS_Battler.prototype.smartMoveTowardTarget = function() {
   const target = this.getTarget();
+  this.smartMoveTowardCoordinates(target.getX(), target.getY());
+};
+
+/**
+ * Tries to move this battler towards its ally target.
+ */
+JABS_Battler.prototype.smartMoveTowardAllyTarget = function() {
+  const target = this.getAllyTarget();
   this.smartMoveTowardCoordinates(target.getX(), target.getY());
 };
 
@@ -10868,6 +10896,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function() {
   }
 
   // if the target is dead, disengage and end combat.
+  // TODO: is this a race condition?
   this.removeAggroIfTargetDead(this.getTarget().getUuid());
 
   // if there is no aggros remaining, disengage.

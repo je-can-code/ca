@@ -6,11 +6,178 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-Base
+ * @base J-ABS
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @help
- * It would be overwhelming to write everything here.
- * Do visit the URL attached to this plugin for documentation.
+ * ============================================================================
+ * This plugin enables allies to leverage one of four modes to calculate their
+ * actions decided in-combat based on what skills they have equipped presently.
+ *
+ * In order for this plugin to do anything, followers must be enabled. If the
+ * followers functionality is disabled, then they will simply do nothing.
+ *
+ * The modes available to swap between for your allies are below.
+ *
+ * - Do Nothing:
+ *   Your ally will take no action.
+ *
+ * - Only Attack:
+ *   Your ally will only execute the action from their mainhand weapon.
+ *
+ * - Variety:
+ *   Your ally will pick and choose an action from it's available skills. There
+ *   is a 50% chance that if an ally is in need of support, this mode will
+ *   select a support skill instead- if any are equipped. This will leverage
+ *   battle memories where applicable.
+ *
+ * - Full Force:
+ *   Your ally will always select the skill that will deal the most damage to
+ *   it's current target. This will leverage battle memories where applicable.
+ *
+ * - Support:
+ *   Your ally will attempt to keep all allies in the vicinity healthy. They
+ *   will first address any <negative> states, second address allies health who
+ *   are below a designated threshold of max hp (configurable), third address
+ *   an effort to buff allies and debuff enemies. For the buff/debuff address,
+ *   the AI will make an active effort to keep your party buffed with all
+ *   states available, and refresh states once they reach a designated
+ *   threshold of duration (configurable) left.
+ *
+ * Additionally, in the modes of "Variety" and "Full Force", there is an extra
+ * functionality to be considered called "battle memories"- unique to ally ai.
+ * Battle Memories are effectively a snapshot recollection of your ally using
+ * a skill against the enemy. The ally remembers the damage dealt, and the
+ * level of effectiveness (elemental efficacy) versus a given target with a
+ * given skill. This will influence the allies decision making when it comes to
+ * deciding skills (preferring known effectiveness over otherwise).
+ *
+ * Lastly, there is a party-wide toggle available that will toggle between two
+ * options: Passive and Aggressive. When "Passive" is enabled, your allies will
+ * not engage unless they are hit directly, or you attack a foe. When
+ * "Aggressive" is enabled, your allies will engage with any enemy that comes
+ * within their designated sight range (configurable) similar to how enemies
+ * will engage the player when you enter their sight range.
+ * ============================================================================
+ * Caveats to note:
+ * - When party-cycling, all allies will be pulled to the player and all aggro
+ *   will be removed (so they don't just try to resume fighting).
+ *
+ * - When an ally is defeated, party-cycling will skip over them and they will
+ *   follow the player like a normal non-battler follower.
+ *
+ * ============================================================================
+ * @param LineBreak1
+ * @text --------------------------
+ * @default ----------------------------------
+ *
+ * @param menuConfigs
+ * @text MENU DETAILS
+ *
+ * @param jabsMenuAllyAiCommandName
+ * @parent menuConfigs
+ * @type string
+ * @text Menu Text
+ * @desc The text displayed in the JABS quick menu for the ally ai command.
+ * @default Assign Ally AI
+ *
+ * @param jabsMenuAllyAiCommandIconIndex
+ * @parent menuConfigs
+ * @type number
+ * @text Menu Icon
+ * @desc The icon displayed beside the above menu text.
+ * @default 2564
+ *
+ * @param jabsMenuAllyAiCommandSwitchId
+ * @parent menuConfigs
+ * @type number
+ * @text Menu Switch
+ * @desc The control switch for whether or not the ally ai command displays in the menu.
+ * @default 101
+ *
+ * @param partyConfigs
+ * @text PARTY-WIDE DETAILS
+ *
+ * @param partyWidePassiveText
+ * @parent partyConfigs
+ * @type string
+ * @text Party Passive Text
+ * @desc The text displayed when the party-wide toggle is set to "passive".
+ * @default Passive Enabled
+ *
+ * @param partyWidePassiveIconIndex
+ * @parent partyConfigs
+ * @type number
+ * @text Party Passive Icon
+ * @desc The icon indicating party-wide passive engagement is enabled.
+ * @default 4
+ *
+ * @param partyWideAggressiveText
+ * @parent partyConfigs
+ * @type string
+ * @text Party Aggressive Text
+ * @desc The text displayed when the party-wide toggle is set to "aggressive".
+ * @default Aggressive Enabled
+ *
+ * @param partyWideAggressiveIconIndex
+ * @parent partyConfigs
+ * @type number
+ * @text Party Aggressive Icon
+ * @desc The icon indicating party-wide aggressive engagement is enabled.
+ * @default 15
+ *
+ * @param aiModeConfigs
+ * @text AI-MODE DETAILS
+ *
+ * @param aiModeEquipped
+ * @parent aiModeConfigs
+ * @type number
+ * @text Mode Equipped Icon
+ * @desc The icon indicating that the mode is equipped.
+ * @default 91
+ *
+ * @param aiModeNotEquipped
+ * @parent aiModeConfigs
+ * @type number
+ * @text Mode Not Equipped Icon
+ * @desc The icon indicating that the mode is not equipped.
+ * @default 95
+ *
+ * @param aiModeDoNothing
+ * @parent aiModeConfigs
+ * @type string
+ * @text "Do Nothing" Text
+ * @desc The text displayed for the ally ai mode of "do nothing".
+ * @default Do Nothing
+ *
+ * @param aiModeOnlyAttack
+ * @parent aiModeConfigs
+ * @type string
+ * @text "Only Attack" Text
+ * @desc The text displayed for the ally ai mode of "only attack".
+ * @default Only Attack
+ *
+ * @param aiModeVariety
+ * @parent aiModeConfigs
+ * @type string
+ * @text "Variety" Text
+ * @desc The text displayed for the ally ai mode of "variety".
+ * @default Variety
+ *
+ * @param aiModeFullForce
+ * @parent aiModeConfigs
+ * @type string
+ * @text "Full Force" Text
+ * @desc The text displayed for the ally ai mode of "full force".
+ * @default Full Force
+ *
+ * @param aiModeSupport
+ * @parent aiModeConfigs
+ * @type string
+ * @text "Support" Text
+ * @desc The text displayed for the ally ai mode of "support".
+ * @default Support
+ *
  */
 
 /**
@@ -28,7 +195,7 @@ var J = J || {};
   }
 
 // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '2.4.0';
+  const requiredJabsVersion = '3.0.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement) {
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -49,6 +216,29 @@ J.ALLYAI.Metadata = {};
 J.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
 J.ALLYAI.Metadata.Version = '1.0.0';
 
+// plugin parameters for user-customization.
+J.ALLYAI.PluginParameters = PluginManager.parameters(J.ALLYAI.Metadata.Name);
+
+// configuration for the main JABS quick menu command for ally AI.
+J.ALLYAI.Metadata.AllyAiCommandName = J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
+J.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
+J.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
+
+// configuration for party-wide commands.
+J.ALLYAI.Metadata.PartyAiPassiveText = J.ALLYAI.PluginParameters['partyWidePassiveText'];
+J.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
+J.ALLYAI.Metadata.PartyAiAggressiveText = J.ALLYAI.PluginParameters['partyWideAggressiveText'];
+J.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
+
+// configuration for the various ai modes.
+J.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeEquipped']);
+J.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeNotEquipped']);
+J.ALLYAI.Metadata.AiModeDoNothingText = J.ALLYAI.PluginParameters['aiModeDoNothing'];
+J.ALLYAI.Metadata.AiModeOnlyAttackText = J.ALLYAI.PluginParameters['aiModeOnlyAttack'];
+J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety'];
+J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
+J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
+
 /**
  * A collection of all aliased methods for this plugin.
  */
@@ -62,6 +252,7 @@ J.ALLYAI.Aliased = {
   Game_Map: {},
   Game_Party: {},
   Game_Player: {},
+  Game_Switches: {},
   JABS_AiManager: {},
   JABS_Battler: {},
   Scene_Map: {},
@@ -333,9 +524,10 @@ Game_Map.prototype.parseBattlers = function() {
 
 /**
  * Gets all ally battlers out of the collection of battlers.
+ * This does not include the player.
  * @returns {JABS_Battler[]}
  */
-Game_Map.prototype.getAllyBattlers = function() {
+Game_Map.prototype.getFollowerBattlers = function() {
   return this._j._allBattlers.filter(battler => battler.isActor());
 };
 
@@ -345,7 +537,7 @@ Game_Map.prototype.getAllyBattlers = function() {
  */
 Game_Map.prototype.updateAllies = function() {
   // get all the ally battlers from the current collection.
-  const allyJabsBattlers = this.getAllyBattlers();
+  const allyJabsBattlers = this.getFollowerBattlers();
 
   // first remove all battlers.
   this.removeBattlers(allyJabsBattlers);
@@ -401,23 +593,22 @@ Game_Map.prototype.getActiveFollowers = function() {
  */
 Game_Map.prototype.convertOneFollower = function(follower) {
   const battler = follower.actor();
-  // TODO: dynamically fetch AI from the actor's page as default.
   const tempAI = new JABS_BattlerAI(true, true);
   const coreBattlerData = new JABS_BattlerCoreData(
-    battler.actorId(),    // battler id
-    0,                    // team id
-    tempAI,               // battler AI
-    4,                    // sight range
-    6,                    // alerted sight boost
-    10,                   // pursuit range
-    10,                   // alerted pursuit boost
-    300,                  // alert duration
-    false,                // can move idly
-    false,                // show hp bar
-    false,                // show danger indicator
-    false,                // show name
-    false,                // is invincible
-    false);               // is inanimate
+    battler.actorId(),              // battler id
+    JABS_Battler.allyTeamId(),      // team id
+    battler.ai(),                   // battler AI
+    battler.sightRange(),           // sight range
+    battler.alertedSightBoost(),    // alerted sight boost
+    battler.pursuitRange(),         // pursuit range
+    battler.alertedPursuitBoost(),  // alerted pursuit boost
+    battler.alertDuration(),        // alert duration
+    battler.canIdle(),              // can move idly
+    battler.showHpBar(),            // show hp bar
+    battler.showDangerIndicator(),  // show danger indicator
+    battler.showBattlerName(),      // show name
+    battler.isInvincible(),         // is invincible
+    battler.isInanimate());         // is inanimate
   const mapBattler = new JABS_Battler(follower, battler, coreBattlerData);
   follower.setMapBattler(mapBattler.getUuid());
   return mapBattler;
@@ -469,6 +660,14 @@ Game_Player.prototype.jumpFollowersToMe = function() {
   this.followers().data().forEach(follower => follower.jumpToPlayer());
 };
 //#endregion Game_Player
+
+//#region Game_Switches
+J.ALLYAI.Aliased.Game_Switches.onChange = Game_Switches.prototype.onChange;
+Game_Switches.prototype.onChange = function() {
+  J.ALLYAI.Aliased.Game_Switches.onChange.call(this);
+  $gameBattleMap.requestJabsMenuRefresh = true;
+};
+//#endregion Game_Switches
 //#endregion Game objects
 
 //#region JABS objects
@@ -519,6 +718,7 @@ JABS_AiManager.decideAllyAiPhase1Movement = function(battler) {
 
 /**
  * Extend the action decision phase to also handle ally decision-making.
+ * @param {JABS_Battler} battler The battler deciding the action.
  */
 J.ALLYAI.Aliased.JABS_AiManager.decideAiPhase2Action = JABS_AiManager.decideAiPhase2Action;
 JABS_AiManager.decideAiPhase2Action = function(battler) {
@@ -545,7 +745,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler) {
   // decide the action based on the ally ai mode currently assigned.
   const decidedSkillId = allyAi.decideAction(currentlyEquippedSkillIds, allyBattler, allyBattler.getTarget());
   if (!decidedSkillId || !battler.canPaySkillCost($dataSkills[decidedSkillId])) {
-    allyBattler.setPhase(1);
+    // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
     allyBattler.resetPhases();
     return;
   }
@@ -591,38 +791,54 @@ JABS_AllyAI.prototype.constructor = JABS_AllyAI;
 //#region statics
 /**
  * The strict enumeration of what ai modes are available for ally ai.
+ * @type {any}
  */
 JABS_AllyAI.modes = {
   /**
    * When this mode is assigned, the battler will take no action.
    */
-  DO_NOTHING: "do-nothing",
+  DO_NOTHING: {
+    key: "do-nothing",
+    name: J.ALLYAI.Metadata.AiModeDoNothingText,
+  },
 
   /**
    * When this mode is assigned, the battler will only use their mainhand attack skill.
    * If no skill is equipped in their main hand, they will do nothing.
    */
-  BASIC_ATTACK: "basic-attack",
+  BASIC_ATTACK: {
+    key: "basic-attack",
+    name: J.ALLYAI.Metadata.AiModeOnlyAttackText,
+  },
 
   /**
    * When this mode is assigned, the battler will intelligently decide from any skill they have equipped.
    */
-  VARIETY: "variety",
+  VARIETY: {
+    key: "variety",
+    name: J.ALLYAI.Metadata.AiModeVarietyText
+  },
 
   /**
    * When this mode is assigned, the battler will use the biggest and strongest skills available.
    */
-  FULL_FORCE: "full-force",
+  FULL_FORCE: {
+    key: "full-force",
+    name: J.ALLYAI.Metadata.AiModeFullForceText
+  },
 
   /**
    * When this mode is assigned, the battler will prioritize supporting and healing allies.
    */
-  SUPPORT: "support"
+  SUPPORT: {
+    key: "support",
+    name: J.ALLYAI.Metadata.AiModeSupportText
+  },
 };
 
 /**
  * Gets all valid values of the possible modes currently implemented.
- * @returns {string[]}
+ * @returns {any[]}
  */
 JABS_AllyAI.getModes = () => Object.keys(JABS_AllyAI.modes).map(key => JABS_AllyAI.modes[key]);
 
@@ -913,6 +1129,8 @@ JABS_AllyAI.prototype.decideSupport = function(availableSkills, healer) {
   if (!supportSkillId) {
     return this.decideDoNothing();
   }
+
+  return supportSkillId;
 };
 
 //#region support-cleansing
@@ -1010,11 +1228,6 @@ JABS_AllyAI.prototype.decideSupportHealing = function(availableSkills, healer) {
   // set the lowest hp ally as your target for supporting with one of our skills.
   const lowestAlly = this.determineLowestHpAlly(healer);
   healer.setAllyTarget(lowestAlly);
-
-  // if there is only one healing-type skill, then just use that.
-  if (healingTypeSkills.length === 1) {
-    return healingTypeSkills[0];
-  }
 
   // get all the low hp allies.
   let below60 = this.countLowHpAllies(healer);
@@ -1330,14 +1543,19 @@ JABS_Battler.prototype.shouldEngage = function(distance) {
  * @returns {boolean}
  */
 JABS_Battler.prototype.shouldAllyEngage = function(distance) {
+  const isAlerted = this.isAlerted();
+  const playerHitSomething = $gameBattleMap.getPlayerMapBattler().hasBattlerLastHit();
+  console.log(playerHitSomething);
   const inSight = this.inSightRange(distance);
-  const shouldEngage = (this.isAlerted() || $gameBattleMap.getPlayerMapBattler().hasBattlerLastHit());
+  const shouldEngage = (isAlerted || playerHitSomething);
   return inSight && shouldEngage;
 };
 //#endregion JABS_Battler
 //#endregion JABS objects
 
 //#region Scene objects
+
+//#region Scene_Map
 /**
  * Extends the JABS menu initialization to include the new ally ai management selection.
  */
@@ -1464,7 +1682,6 @@ Scene_Map.prototype.commandAggroPassiveToggle = function() {
  * When an ai mode is chosen, it replaces it for the actor.
  */
 Scene_Map.prototype.commandEquipMemberAi = function() {
-  //this._j._absMenu._windowFocus = "select-ai";
   const newMode = this._j._absMenu._allyAiEquipWindow.currentExt();
   const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
   allyAi.changeMode(newMode);
@@ -1526,6 +1743,8 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow) {
       break;
   }
 };
+//#endregion Scene_Map
+
 //#endregion Scene objects
 
 //#region Window objects
@@ -1538,12 +1757,18 @@ Window_AbsMenu.prototype.makeCommandList = function() {
   J.ALLYAI.Aliased.Window_AbsMenu.makeCommandList.call(this);
   if (!$dataSystem) return;
 
-  // TODO: add a switch lever here for enable/disable the visibility of the command as a whole.
+  // if the switch is disabled, then the command won't even appear in the menu.
+  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return;
 
-  // TODO: parameterize these defaults.
   // if followers aren't being used, then this command will be disabled.
   const enabled = $gamePlayer.followers().isVisible();
-  const newCommand = { name: 'Assign Ally AI', symbol: 'ally-ai', enabled: enabled, ext: null, icon: 2564 };
+  const newCommand = {
+    name: J.ALLYAI.Metadata.AllyAiCommandName,
+    symbol: 'ally-ai',
+    enabled: enabled,
+    ext: null,
+    icon: J.ALLYAI.Metadata.AllyAiCommandIconIndex
+  };
   this._list.splice(this._list.length-2, 0, newCommand);
 };
 //#endregion Window_AbsMenu
@@ -1599,9 +1824,12 @@ Window_AbsMenuSelect.prototype.makeAllyList = function() {
     this.addCommand(member.name(), "party-member", true, member.actorId());
   });
 
-  // TODO: parameterize these things.
-  const aggroPassiveCommandName = $gameParty.isAggro() ? `Aggro Enabled` : `Passive Enabled`;
-  const aggroPassiveCommandIcon = $gameParty.isAggro() ? 15 : 4;
+  const aggroPassiveCommandName = $gameParty.isAggro()
+    ? J.ALLYAI.Metadata.PartyAiAggressiveText
+    : J.ALLYAI.Metadata.PartyAiPassiveText;
+  const aggroPassiveCommandIcon = $gameParty.isAggro()
+    ? J.ALLYAI.Metadata.PartyAiAggressiveIconIndex
+    : J.ALLYAI.Metadata.PartyAiPassiveIconIndex;
   this.addCommand(aggroPassiveCommandName, "aggro-passive-toggle", true, null, aggroPassiveCommandIcon);
 };
 
@@ -1613,13 +1841,14 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function() {
   if (!currentActor) return;
 
   const modes = JABS_AllyAI.getModes();
-  const equippedModeIcon = 91;
   const currentAi = currentActor.getAllyAI();
 
   modes.forEach(mode => {
     const isEquipped = currentAi.getMode() === mode;
-    const iconIndex = isEquipped ? equippedModeIcon : 95;
-    this.addCommand(mode, "select-ai", true, mode, iconIndex);
+    const iconIndex = isEquipped
+      ? J.ALLYAI.Metadata.AiModeEquippedIconIndex
+      : J.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+    this.addCommand(mode.name, "select-ai", true, mode, iconIndex);
   });
 };
 //#endregion Window_AbsMenuSelect
