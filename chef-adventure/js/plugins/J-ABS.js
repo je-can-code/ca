@@ -2371,7 +2371,6 @@ Game_Event.prototype.getBattlerId = function() {
 J.ABS.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
 Game_Event.prototype.moveStraight = function(direction) {
   J.ABS.Aliased.Game_Event.moveStraight.call(this, direction);
-  console.log(direction);
 };
 //#endregion Game_Event
 
@@ -2676,7 +2675,11 @@ Game_Map.prototype.getOpposingBattlers = function(user) {
     battlers.push(player);
   }
 
-  return battlers.filter(battler => !user.isSameTeam(battler.getTeam()));
+  return battlers.filter(battler => {
+    const isNotSameTeam = !user.isSameTeam(battler.getTeam());
+    const isNotNeutral = battler.getTeam() !== JABS_Battler.neutralTeamId();
+    return isNotSameTeam && isNotNeutral;
+  });
 };
 
 /**
@@ -3314,7 +3317,7 @@ Scene_Map.prototype.update = function() {
  */
 Scene_Map.prototype.handlePartyRotation = function() {
   $gameBattleMap.requestPartyRotation = false;
-  if (J.Hud && J.Hud.Metadata.Enabled) {
+  if (J.HUD && J.HUD.Metadata.Enabled) {
     this.refreshHud();
   }
 };
@@ -3324,11 +3327,11 @@ Scene_Map.prototype.handlePartyRotation = function() {
  */
 Scene_Map.prototype.handleJabsWindowsVisibility = function() {
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy()) {
-    if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(true);
+    if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
     if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
   } else {
-    if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(false);
+    if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
     if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
   }
@@ -3846,6 +3849,9 @@ Spriteset_Map.prototype.removeLootSprites = function() {
   $gameBattleMap.requestClearLoot = false;
 };
 
+/**
+ * Refreshes all character 
+ */
 Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
   this._characterSprites.forEach(sprite => {
     if (sprite.isJabsBattler()) {
@@ -4143,7 +4149,7 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function() {
     case (bpl > ppl*1.5):
       return J.ABS.DangerIndicatorIcons.Deadly;
     default:
-      console.log(bpl);
+      console.error(bpl);
       return -1;
   }
 };
@@ -6323,11 +6329,8 @@ class Game_BattleMap {
 
     // apply effects that require landing a successful hit.
     if (result.isHit() || result.parried) {
-      // determine animation id based on skill and user.
-      const animationId = this.getAnimationId(skill, casterMapBattler);
-
       // display the animation if it hit (or was parried).
-      targetSprite.requestAnimation(animationId, result.parried);
+      targetSprite.requestAnimation(this.getAnimationId(skill, casterMapBattler), result.parried);
 
       // if freecombo-ing, then we already checked for combo when executing the action.
       if (!skill._j.freeCombo) {
@@ -7115,7 +7118,6 @@ class Game_BattleMap {
    * Handles the defeat of the battler the player is currently controlling.
    */
   handleDefeatedPlayer() {
-    console.log("player has died.");
     this.rotatePartyMembers();
   };
 
@@ -7123,7 +7125,7 @@ class Game_BattleMap {
    * Handles a non-player ally that was defeated.
    */
   handleDefeatedAlly() {
-    console.log("if non-player ally defeated, handle this!");
+    console.log("if non-player ally defeated, add extra things here.");
   };
 
   /**
@@ -7738,7 +7740,10 @@ class JABS_AiManager {
    */
   static decideAiPhase1Movement(battler) {
     const distance = battler.distanceToCurrentTarget();
-    if (distance === null) return;
+    if (distance === null || distance > 15) {
+      // if the battler is beyond a fixed distance, just give up.
+      battler.disengageTarget();
+    };
   
     const ai = (battler.getLeaderAiMode() !== null)
       ? battler.getLeaderAiMode()
@@ -7833,7 +7838,6 @@ class JABS_AiManager {
     // the leader's decision.
     if (follower) {
       shouldUseBasicAttack = true;
-
       // do nothing while waiting for leader to decide action.
       if (battler.hasLeader() && battler.getLeaderBattler() && battler.getLeaderBattler().isEngaged()) {
         if (battler.hasLeaderDecidedActions()) {
@@ -7857,6 +7861,7 @@ class JABS_AiManager {
         }
       }
     }
+
     // if non-aggressive ai traits, then figure out some healing skills or something to use.
     if (healer || defensive) {
       skillsToUse = ai.decideSupportAction(battler, skillsToUse);
@@ -7906,7 +7911,7 @@ class JABS_AiManager {
       }
     }
 
-    if (basicAttackInstead || skillsToUse.length === 0 || !skillsToUse) {
+    if (basicAttackInstead || !skillsToUse || skillsToUse.length === 0) {
       // skip the formula, only basic attack.
       chosenSkillId = basicAttack[0];
     } else {
@@ -7966,8 +7971,8 @@ class JABS_AiManager {
   
     const proximity = actions[0].getProximity();
     const distanceToTarget = battler.getAllyTarget() 
-    ? battler.distanceToAllyTarget()
-    : battler.distanceToCurrentTarget()
+      ? battler.distanceToAllyTarget()
+      : battler.distanceToCurrentTarget()
 
     if (distanceToTarget > proximity) {
       battler.getAllyTarget()
@@ -8630,7 +8635,7 @@ JABS_Battler.isClose = function(distance) {
  * @param {number} distance The distance away from the target.
  */
 JABS_Battler.isSafe = function(distance) {
-  return (distance >= 1.8) && (distance <= 3.5);
+  return (distance > 1.7) && (distance <= 3.5);
 };
 
 /**
@@ -8638,7 +8643,7 @@ JABS_Battler.isSafe = function(distance) {
  * @param {number} distance The distance away from the target.
  */
 JABS_Battler.isFar = function(distance) {
-  return distance >= 3.6;
+  return distance > 3.5;
 };
 
 /**
@@ -8926,6 +8931,9 @@ JABS_Battler.prototype.countdownCastTime = function() {
  * then play the cast animation on this battler.
  */
 JABS_Battler.prototype.performCastAnimation = function() {
+  // if we don't have a decided action somehow, then don't do cast animation things.
+  if (!this.getDecidedAction()) return;
+
   const { casterAnimation } = this.getDecidedAction()[0].getBaseSkill()._j;
   if (!casterAnimation) return;
 
@@ -10040,9 +10048,11 @@ JABS_Battler.prototype.engageTarget = function(target) {
  */
 JABS_Battler.prototype.disengageTarget = function() {
   this.setTarget(null);
+  this.setAllyTarget(null);
   this._engaged = false;
   this.clearFollowers();
   this.clearLeaderData();
+  this.clearDecidedAction();
   this.showBalloon(J.ABS.Balloons.Frustration);
 };
 
@@ -11851,7 +11861,6 @@ class JABS_BattlerAI {
       ? skillsToUse[0]
       : skillsToUse;
     const followerGameBattler = followerBattler.getBattler();
-    console.log(skillsToUse);
     const canPayChosenSkillCosts = followerGameBattler.canPaySkillCost($dataSkills[chosenSkillId]);
     if (!canPayChosenSkillCosts) {
       // if they can't pay the cost of the decided skill, check the basic attack.
@@ -11867,8 +11876,11 @@ class JABS_BattlerAI {
    * @param {number[]} skillsToUse The available skills to use.
    */
   decideSupportAction(user, skillsToUse) {
+    // don't do things if we have no skills to work with.
+    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+
     const { healer, defensive } = this;
-    const allies = $gameMap.getBattlersWithinRange(user, user.getSightRadius());
+    const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
 
     // prioritize healing when self or allies are low on hp.
     if (healer) {
@@ -11880,6 +11892,11 @@ class JABS_BattlerAI {
       skillsToUse = this.filterSkillsDefensivePriority(user, skillsToUse, allies);
     }
 
+    // if we ended up not picking a skill, then clear any ally targeting.
+    if (!skillsToUse.length) {
+      user.setAllyTarget(null);
+    }
+
     return skillsToUse;
   }
 
@@ -11889,6 +11906,9 @@ class JABS_BattlerAI {
    * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
    */
   decideAttackAction(user, skillsToUse) {
+    // don't do things if we have no skills to work with.
+    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+
     const { smart, executor } = this;
     const target = user.getTarget();
 
@@ -11959,10 +11979,24 @@ class JABS_BattlerAI {
     return skillsToUse;
   };
 
+  /**
+   * Filters skills by a defensive priority.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
+   * @param {JABS_Battler[]} allies 
+   * @returns 
+   */
   filterSkillsDefensivePriority(user, skillsToUse, allies) {
     return skillsToUse;
   };
 
+  /**
+   * Filters skills by a healing priority.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
+   * @param {JABS_Battler[]} allies 
+   * @returns 
+   */
   filterSkillsHealerPriority(user, skillsToUse, allies) {
     // if we have no skills to work with, then don't process.
     if (!skillsToUse.length > 1) return skillsToUse;
@@ -13075,9 +13109,8 @@ class JABS_TrackedState {
   update() {
     if (this.duration > 0) {
       this.duration--;
-    } else if (this.duration === 0 &&
-      this.stateId !== this.battler.deathStateId()) {
-        this.removeStateFromBattler();
+    } else if (this.duration === 0 && this.stateId !== this.battler.deathStateId()) {
+      this.removeStateFromBattler();
     }
   };
 

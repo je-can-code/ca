@@ -463,21 +463,11 @@ Game_Follower.prototype.chaseCharacter = function(character) {
   if (!battler.isEngaged() && !battler.isAlerted()) {
     // if the battler isn't engaged, still follow the player.
     J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
-    if (distanceToPlayer <= 5) {
-      // if the ally is within range of the player, then re-enable the ability to engage.
-      battler.unlockEngagement();
-    }
-
+    this.handleEngagementDistancing();
     return;
   } else {
     // if the battler is engaged, make sure they stay within range of the player.
-    if (distanceToPlayer > 10) {
-      // when the ally is too far away from the player, disengage and prevent further engagement.
-      battler.lockEngagement();
-      battler.disengageTarget();
-      battler.resetAllAggro(null, true);
-      this.jumpToPlayer();
-    }
+    this.handleEngagementDistancing();
   }
 };
 
@@ -497,6 +487,7 @@ Game_Follower.prototype.update = function() {
     this.setWalkAnime($gamePlayer.hasWalkAnime());
     this.setStepAnime($gamePlayer.hasStepAnime());
     this.setTransparent($gamePlayer.isTransparent());
+    this.handleEngagementDistancing();
   }
 };
 
@@ -507,6 +498,30 @@ Game_Follower.prototype.jumpToPlayer = function() {
   const sx = $gamePlayer.deltaXFrom(this.x);
   const sy = $gamePlayer.deltaYFrom(this.y);
   this.jump(sx, sy);
+};
+
+/**
+ * If the battler is too far from the player, jump to them.
+ */
+Game_Follower.prototype.handleEngagementDistancing = function() {
+  const battler = this.getMapBattler();
+  const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
+  if (!battler.isEngaged() && !battler.isAlerted()) {
+    if (distanceToPlayer <= 5) {
+      // if the ally is within range of the player, then re-enable the ability to engage.
+      battler.unlockEngagement();
+    }
+
+  // if the battler is engaged, make sure they stay within range of the player.
+  } 
+  
+  if (distanceToPlayer > 10) {
+    // when the ally is too far away from the player, disengage and prevent further engagement.
+    battler.lockEngagement();
+    battler.disengageTarget();
+    battler.resetAllAggro(null, true);
+    this.jumpToPlayer();
+  }
 };
 //#endregion Game_Follower
 
@@ -904,25 +919,26 @@ JABS_AllyAI.prototype.changeMode = function(newMode) {
  * @returns {number}
  */
 JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target) {
-  const currentMode = this.getMode();
+  const currentMode = this.getMode().key;
   switch (currentMode) {
-    case JABS_AllyAI.modes.DO_NOTHING:
+    case JABS_AllyAI.modes.DO_NOTHING.key:
       return this.decideDoNothing();
-    case JABS_AllyAI.modes.BASIC_ATTACK:
+    case JABS_AllyAI.modes.BASIC_ATTACK.key:
       return this.decideBasicAttack(availableSkills, attacker);
-    case JABS_AllyAI.modes.VARIETY:
+    case JABS_AllyAI.modes.VARIETY.key:
       return this.decideVariety(availableSkills, attacker, target);
-    case JABS_AllyAI.modes.FULL_FORCE:
+    case JABS_AllyAI.modes.FULL_FORCE.key:
       return this.decideFullForce(availableSkills, attacker, target);
-    case JABS_AllyAI.modes.SUPPORT:
+    case JABS_AllyAI.modes.SUPPORT.key:
       return this.decideSupport(availableSkills, attacker);
   }
 
+  console.log(currentMode);
   console.warn(`The currently selected AI mode of [${currentMode}] is not yet implemented.`);
   return availableSkills[0];
 };
 
-//#region nothing
+//#region do-nothing
 /**
  * Decides to do nothing.
  * @returns {null}
@@ -930,7 +946,7 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
 JABS_AllyAI.prototype.decideDoNothing = function() {
   return null;
 };
-//#endregion nothing
+//#endregion do-nothing
 
 //#region basic-attack
 /**
@@ -1310,6 +1326,12 @@ JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, heale
     const testAction = new Game_Action(healerBattler);
     testAction.setItemObject(skill);
 
+    // if the lowest ally isn't yourself, and this skill only targets yourself, don't consider it.
+    if (healerBattler !== lowestAllyBattler && testAction.isForUser()) return;
+
+    // if the skill doesn't target 1 or all or dead allies, then don't use it (omit random).
+    if (!testAction.isForOne() || !testAction.isForAll() || !testAction.isForDeadFriend()) return;
+
     // get the test heal amount for this skill against the ally.
     const healAmount = Math.abs(testAction.makeDamageValue(lowestAllyBattler, false));
 
@@ -1333,7 +1355,7 @@ JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, heale
  * @param {Game_Battler} lowestAllyBattler The ally battler who has the lowest hp.
  * @returns {number}
  */
- JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler) {
+JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler) {
   let bestSkillId = 0;
 
   // filter out all skills that are not for multiple targets.
@@ -1545,7 +1567,6 @@ JABS_Battler.prototype.shouldEngage = function(distance) {
 JABS_Battler.prototype.shouldAllyEngage = function(distance) {
   const isAlerted = this.isAlerted();
   const playerHitSomething = $gameBattleMap.getPlayerMapBattler().hasBattlerLastHit();
-  console.log(playerHitSomething);
   const inSight = this.inSightRange(distance);
   const shouldEngage = (isAlerted || playerHitSomething);
   return inSight && shouldEngage;
@@ -1844,7 +1865,7 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function() {
   const currentAi = currentActor.getAllyAI();
 
   modes.forEach(mode => {
-    const isEquipped = currentAi.getMode() === mode;
+    const isEquipped = currentAi.getMode().key === mode.key;
     const iconIndex = isEquipped
       ? J.ALLYAI.Metadata.AiModeEquippedIconIndex
       : J.ALLYAI.Metadata.AiModeNotEquippedIconIndex;

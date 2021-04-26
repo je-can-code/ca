@@ -2267,7 +2267,10 @@ Scene_Save.prototype.executeSave = function(savefileId) {
     $gameSystem.onBeforeSave();
     DataManager.saveGame(savefileId)
         .then(() => this.onSaveSuccess())
-        .catch(() => this.onSaveFailure());
+        .catch((e) => {
+            console.log(e);
+            this.onSaveFailure()
+        });
 };
 
 Scene_Save.prototype.onSaveSuccess = function() {
