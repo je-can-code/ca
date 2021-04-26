@@ -5561,6 +5561,8 @@ class Game_BattleMap {
     const x2 = $gameMap.roundXWithDirection(x1, direction);
     const y2 = $gameMap.roundYWithDirection(y1, direction);
     const triggers = [0, 1, 2];
+
+    // look over events directly infront of the player.
     for (const event of $gameMap.eventsXy(x2, y2)) {
       // if the player is mashing the button at an enemy, let them continue.
       if (event.isJabsBattler()) return false;
@@ -5570,6 +5572,7 @@ class Game_BattleMap {
       }
     }
 
+    // if we're looking over a counter, address events a space away instead.
     if ($gameMap.isCounter(x2, y2)) {
       const x3 = $gameMap.roundXWithDirection(x2, direction);
       const y3 = $gameMap.roundYWithDirection(y2, direction);

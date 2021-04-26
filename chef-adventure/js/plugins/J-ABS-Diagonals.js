@@ -531,7 +531,7 @@ J.DIAG.Aliased.Game_Player.moveDiagonally = Game_Player.prototype.moveDiagonally
 Game_Player.prototype.moveDiagonally = function(horz, vert) {
   J.DIAG.Aliased.Game_Player.moveDiagonally.call(this, horz, vert);
   // if we're using cyclone movement, rely on that instead.
-  if (globalThis.CycloneMovement) return;
+  if (globalThis && globalThis.CycloneMovement) return;
 
   if (!this.isMovementSucceeded()) {
 
@@ -548,6 +548,21 @@ Game_Player.prototype.moveDiagonally = function(horz, vert) {
     }
   }
 };
+
+/**
+ * If we're using cyclone movement, adjust their triggering of events to not interact
+ * with battlers and such if they are also events that have event commands.
+ */
+if (globalThis && globalThis.CycloneMovement) {
+  J.DIAG.Aliased.Game_Player.shouldTriggerEvent = Game_Player.prototype.shouldTriggerEvent;
+  Game_Player.prototype.shouldTriggerEvent = function(event, triggers, normal) {
+    if (event.isJabsBattler()) {
+      return false;
+    } else {
+      return J.DIAG.Aliased.Game_Player.shouldTriggerEvent.call(this, event, triggers, normal);
+    }
+  };
+}
 //#endregion Game_Player
 //#endregion Game objects
 //ENDOFFILE
