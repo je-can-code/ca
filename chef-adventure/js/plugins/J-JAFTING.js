@@ -1066,7 +1066,7 @@ Scene_Map.prototype.getCurrentRecipe = function() {
 * Hides all non-JAFTING windows that may overlap with the JAFTING windows.
 */
 Scene_Map.prototype.hideNonJaftingWindows = function() {
-  if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(false);
+  if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
   if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
   if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
 };
@@ -1075,7 +1075,7 @@ Scene_Map.prototype.hideNonJaftingWindows = function() {
 * Shows the various non-JAFTING hud-type windows.
 */
 Scene_Map.prototype.showNonJaftingWindows = function() {
-  if (J.Hud && J.Hud.Metadata.Enabled) this.toggleHud(true);
+  if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
   if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
   if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
 };
