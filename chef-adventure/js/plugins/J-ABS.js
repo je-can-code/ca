@@ -5550,7 +5550,9 @@ class Game_BattleMap {
   };
 
   /**
-   * 
+   * Handles event interaction for events in front of the player. If they exist,
+   * and the player meets the criteria to interact with the event, then do so.
+   * It also prevents the player from swinging their weapon willy nilly at NPCs.
    * @returns {boolean} True if there is an event infront of the player, false otherwise.
    */
   isNonBattlerEventInFrontOfPlayer() {

@@ -2,37 +2,96 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 HUD] The Hud for JABS. 
+ * [v1.0 HUD] A default HUD, designed for JABS.
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
  * @help
- * # Start of Help
+ * ============================================================================
+ * This is a simple HUD plugin that shows some of the key data points that the
+ * player may want to see while on the map. This primarily was designed for use
+ * with JABS, but does not require it.
  * 
- * # End of Help
+ * This was designed to be uncustomizable from a regular RM dev perspective,
+ * however the code is more than clear enough to go in and tweak as you need in
+ * order to move the HUD itself or any of it's components around.
  * 
- * @param BreakHead
- * @text --------------------------
- * @default ----------------------------------
- *
- * @param Extensions
- * @default Modify Below
- *
- * @param BreakSettings
- * @text --------------------------
- * @default ----------------------------------
+ * There is a single plugin command for toggling the HUD itself.
  * 
- * @param Enabled
+ * If you have followers, but maybe aren't using JABS, or aren't using the ally
+ * AI plugin to turn your followers into battlers as well, or just don't like
+ * showing the the follower's information, there is a plugin parameter to
+ * toggle other member's HUD visibility.
+ * 
+ * If you decide that the HUD isn't the greatest so you want to use another
+ * HUD (like moghunter's or something). However, you're using JABS, and want to
+ * be able to view the state data (which is custom-managed by JABS)... then
+ * there is another plugin parameter for you! "Hide All but States?" toggle
+ * will force the HUD to skip drawing all but the states functionality.
+ * 
+ * Additionally, to compliment the desire to only draw states, there are plugin
+ * parameters for adjusting the X/Y coordinates of the HUD, which will allow
+ * you to move where the states are displayed. Alternatively, you are free to
+ * lift the code within the "//#region states" block and place it in another
+ * plugin and adjust it as-needed to add the state functionality into another
+ * HUD instead. You probably will need some degree of RM plugin development
+ * experience to accomplish this effort.
+ * ============================================================================
+ * 
+ * @param baseConfigs
+ * @text BASE SETUP
+ * 
+ * @param enabled
+ * @parent baseConfigs
  * @type boolean
- * @desc Use Hud?
+ * @text Enable HUD?
+ * @desc If this is set to true, then the HUD will show up. False will hide it.
  * @default true
  * 
- * @command Show Hud
- * @text Show Hud
- * @desc Shows the Hud on the map.
+ * @param hideFollowersHudAlways
+ * @parent baseConfigs
+ * @type boolean
+ * @text Hide Followers HUD?
+ * @desc If followers are enabled, by default their HUD will show.
+ * This hides the follower's HUD components no matter what.
+ * @default false
  * 
- * @command Hide Hud
- * @text Hide Hud
- * @desc Hides the Hud on the map.
+ * @param externalConfigs
+ * @text EXTERNAL COMPATIBILITY
+ *  
+ * @param hideAllButStates
+ * @parent externalConfigs
+ * @type boolean
+ * @text Hide all but States?
+ * @desc If using another HUD, you may want to only show states.
+ * This will hide all components of the HUD except states.
+ * @default false
+ * 
+ * @param hudX
+ * @parent externalConfigs
+ * @type number
+ * @min -1
+ * @text HUD X coordinate
+ * @desc Sets the X coordinate of the HUD window to this value.
+ * If this is -1, it will use the default coordinates.
+ * @default -1
+ * 
+ * @param hudY
+ * @parent externalConfigs
+ * @type number
+ * @min -1
+ * @text HUD Y coordinate
+ * @desc Sets the Y coordinate of the HUD window to this value.
+ * If this is -1, it will use the default coordinates.
+ * @default -1
+ * 
+ * 
+ * @command Show HUD
+ * @text Show HUD
+ * @desc Shows the HUD on the map.
+ * 
+ * @command Hide HUD
+ * @text Hide HUD
+ * @desc Hides the HUD on the map.
  */
 
 /**
@@ -45,6 +104,16 @@ var J = J || {};
  */
 J.HUD = {};
 
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//#endregion version check
 
 /**
  * The `metadata` associated with this plugin, such as version.
@@ -57,8 +126,11 @@ J.HUD.Metadata.Name = `J-Hud`;
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.HUD.PluginParameters = PluginManager.parameters(`J-Hud`);
-J.HUD.Metadata.Active = Boolean(J.HUD.PluginParameters['Enabled']);
-J.HUD.Metadata.Enabled = true;
+J.HUD.Metadata.Enabled = J.HUD.PluginParameters['enabled'] === "true";
+J.HUD.Metadata.HideFollowersHudAlways = J.HUD.PluginParameters['hideFollowersHudAlways'] === "true";
+J.HUD.Metadata.HideAllButStates = J.HUD.PluginParameters['hideAllButStates'] === "true";
+J.HUD.Metadata.Xcoordinate = Number(J.HUD.PluginParameters['hudX']);
+J.HUD.Metadata.Ycoordinate = Number(J.HUD.PluginParameters['hudY']);
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -71,14 +143,14 @@ J.HUD.Aliased = {
  * Plugin command for enabling the text log and showing it.
  */
 PluginManager.registerCommand(J.HUD.Metadata.Name, "Show Hud", () => {
-  J.HUD.Metadata.Active = true;
+  J.HUD.Metadata.Enabled = true;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
 PluginManager.registerCommand(J.HUD.Metadata.Name, "Hide Hud", () => {
-  J.HUD.Metadata.Active = false;
+  J.HUD.Metadata.Enabled = false;
 });
 //#endregion introduction
 
@@ -109,8 +181,14 @@ Scene_Map.prototype.createAllWindows = function() {
 Scene_Map.prototype.createHud = function() {
   const ww = 400;
   const wh = 800;
-  const wx = -((Graphics.width - Graphics.boxWidth) / 2);
-  const wy = -((Graphics.height - Graphics.boxHeight) / 2);
+  // if we have coordinates from the plugin parameters, use those instead.
+  const wx = (J.HUD.Metadata.Xcoordinate > -1)
+    ? parseInt(J.HUD.Metadata.Xcoordinate)
+    : -((Graphics.width - Graphics.boxWidth) / 2);
+  const wy = (J.HUD.Metadata.Ycoordinate > -1)
+    ? parseInt(J.HUD.Metadata.Ycoordinate)
+    : -((Graphics.height - Graphics.boxHeight) / 2);
+
   const rect = new Rectangle(wx, wy, ww, wh);
   this._j._hud = new Window_Hud(rect);
   this.addWindow(this._j._hud);
@@ -175,7 +253,7 @@ Window_Hud.prototype.initialize = function(rect) {
  */
 Window_Hud.prototype.initMembers = function() {
   /**
-   * The dictionary of sprites for this window, used for gauges and numbers.
+   * The cache of sprites used within this HUD window.
    */
   this._hudSprites = {};
 
@@ -225,15 +303,18 @@ Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
  */
 Window_Hud.prototype.canUpdate = function() {
   return !(!$gameParty || !$gameParty.leader() || !this.contents ||
-    !this._enabled || !J.HUD.Metadata.Active || $gameMessage.isBusy());
+    !this._enabled || $gameMessage.isBusy());
 };
 
 /**
- * Draws the contents of the Hud.
+ * Draws the contents of the HUD.
  */
 Window_Hud.prototype.drawHud = function() {
   this.drawLeaderHud();
-  this.drawOtherMembersHuds();
+  if (!J.HUD.Metadata.HideFollowersHudAlways) {
+    this.drawOtherMembersHuds();
+  }
+
   if (this.playerInterference()) {
     this.interferenceOpacity();
   } else {
@@ -246,14 +327,17 @@ Window_Hud.prototype.drawHud = function() {
  * Leader data includes face/HP/MP/TP/experience/level.
  */
 Window_Hud.prototype.drawLeaderHud = function() {
-  this.drawFace($gameParty.leader().faceName(), $gameParty.leader().faceIndex(), 0, 0, 128, 72);
-  this.drawLeaderGauges();
-  this.drawLeaderNumbers();
+  if (!J.HUD.Metadata.HideAllButStates) {
+    this.drawFace($gameParty.leader().faceName(), $gameParty.leader().faceIndex(), 0, 0, 128, 72);
+    this.drawLeaderGauges();
+    this.drawLeaderNumbers();  
+  }
+
   this.drawStates();
 };
 
 /**
- * A component of the Hud-drawing: draws the status gauges.
+ * Draws all the gauge sprites for the leader's data.
  */
  Window_Hud.prototype.drawLeaderGauges = function() {
   const leader = $gameParty.leader();
@@ -264,7 +348,7 @@ Window_Hud.prototype.drawLeaderHud = function() {
 };
 
 /**
- * A component of the Hud-drawing: draws the numbers to match the gauges.
+ * Draws all the number sprites for the leader's data.
  */
 Window_Hud.prototype.drawLeaderNumbers = function() {
   const leader = $gameParty.leader();
@@ -275,6 +359,10 @@ Window_Hud.prototype.drawLeaderNumbers = function() {
   this.placeNumberSprite("lvl", leader, -160, 60, -7);
 };
 
+/**
+ * Draws all the non-leader data for the HUD.
+ * Does not draw them if the followers are not identified as battlers.
+ */
 Window_Hud.prototype.drawOtherMembersHuds = function() {
   // don't draw ally members if they don't exist.
   if ($gameParty._actors.length === 1) return;
@@ -289,10 +377,24 @@ Window_Hud.prototype.drawOtherMembersHuds = function() {
     // draw the extra actor hud data.
     const follower = $gameActors.actor(actorId);
     const y = 70 + (index * 45);
+    this.drawOtherMemberHud(follower, 35, y);
     this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), 0, y);
     this.placeGaugeSprite("hp", follower, 35, y, 100, 24, 8);
     this.placeGaugeSprite("mp", follower, 35, y+5, 100, 24, 6);
   });
+};
+
+/**
+ * Draws all the HUD data for a non-leader member.
+ * Non-leader data includes only the face, hp, and mp gauges.
+ * @param {Game_Actor} follower The follower actor to draw hud data for.
+ * @param {number} x The `x` coordinate to draw data at.
+ * @param {number} y The `y` coordinate to draw data at.
+ */
+Window_Hud.prototype.drawOtherMemberHud = function(follower, x, y) {
+  this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), x-35, y);
+  this.placeGaugeSprite("hp", follower, x, y, 100, 24, 8);
+  this.placeGaugeSprite("mp", follower, x, y+5, 100, 24, 6);
 };
 
 /**
