@@ -1068,7 +1068,7 @@ Scene_Map.prototype.getCurrentRecipe = function() {
 Scene_Map.prototype.hideNonJaftingWindows = function() {
   if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
   if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
-  if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
+  if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
 };
 
 /**
@@ -1077,7 +1077,7 @@ Scene_Map.prototype.hideNonJaftingWindows = function() {
 Scene_Map.prototype.showNonJaftingWindows = function() {
   if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
   if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
-  if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
+  if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
 };
 
 /**

@@ -67,10 +67,6 @@
  *   follow the player like a normal non-battler follower.
  *
  * ============================================================================
- * @param LineBreak1
- * @text --------------------------
- * @default ----------------------------------
- *
  * @param menuConfigs
  * @text MENU DETAILS
  *

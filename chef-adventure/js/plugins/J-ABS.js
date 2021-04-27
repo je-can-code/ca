@@ -2,119 +2,195 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v2.3 JABS] Enables battles to be carried out on the map.
+ * [v3.0 JABS] Enables battles to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-Base
  * @orderAfter J-Base
  * @help
- * It would be overwhelming to write everything here.
- * Do visit the URL attached to this plugin for documentation.
+ * ============================================================================
+ * This plugin enables battles to carried out on the map, akin to what you'd
+ * find in the Zelda franchise or other hack'n'slash games.
  * 
- * @param LineBreak1
- * @text --------------------------
- * @default ----------------------------------
+ * In order to accomplish this, events are tagged with comments that this
+ * engine translates into various data points that create battlers on the map.
  * 
+ * The sheer number of tags that can be added across the database makes it
+ * rather nonsensical to list them here, so I would highly encourage you visit
+ * the documentation pages in the github repo linked in the url here.
+ * ============================================================================
  * @param baseConfigs
  * @text BASE SETUP
  * 
- * @param Action Map Id
+ * @param actionMapId
  * @parent baseConfigs
  * @type number
+ * @text Action Map Id
  * @desc The default id of the map used for cloning action events off of.
  * @default 2
  * 
- * @param Dodge Skill Type Id
+ * @param dodgeSkillTypeId
  * @parent baseConfigs
  * @type number
+ * @text Dodge Skill Type Id
  * @desc The default id of the skill type that acts as a classification for dodge skills.
  * @default 1
  * 
- * @param Guard Skill Type Id
+ * @param guardSkillTypeId
  * @parent baseConfigs
  * @type number
+ * @text Guard Skill Type Id
  * @desc The default id of the skill type that acts as a classification for guard skills.
  * @default 2
- * 
- * @param LineBreak2
- * @text --------------------------
- * @default ----------------------------------
  * 
  * @param defaultConfigs
  * @text WHEN UNASSIGNED
  * 
- * @param Default Enemy Prepare Time
+ * @param defaultEnemyPrepareTime
  * @parent defaultConfigs
  * @type number
+ * @text Default Enemy Prepare Time
  * @desc The default number of frames for "prepare" time.
  * @default 180
  * 
- * @param Default Tool Cooldown Time
+ * @param defaultToolCooldownTime
  * @parent defaultConfigs
  * @type number
+ * @text Default Tool Cooldown Time
  * @desc The default number of frames for an item's cooldown if one isn't specified.
  * @default 300
  * 
- * @param Default Attack Animation Id
+ * @param defaultAttackAnimationId
  * @parent defaultConfigs
  * @type number
+ * @text Default Attack Animation Id
  * @desc The default id of the animation for battlers when none is defined.
  * @default 1
- * 
- * @param LineBreak3
- * @text --------------------------
- * @default ----------------------------------
  * 
  * @param iconConfigs
  * @text ICON CONFIGURATIONS
  * 
- * @param Use Elemental Icons
+ * @param useElementalIcons
  * @parent iconConfigs
  * @type boolean
+ * @text Use Elemental Icons
  * @desc Enable or disable the display of elemental icons on damage popups with this option.
  * @default true
  * 
- * @param Elemental Icons
+ * @param elementalIconData
  * @parent iconConfigs
  * @type struct<ElementalIconStruct>[]
+ * @text Elemental Icon Data
  * @desc The collection of element ids and their icon indices.
  * @default ["{\"elementId\":\"0\",\"iconIndex\":\"127\"}","{\"elementId\":\"1\",\"iconIndex\":\"97\"}","{\"elementId\":\"2\",\"iconIndex\":\"107\"}","{\"elementId\":\"3\",\"iconIndex\":\"110\"}","{\"elementId\":\"4\",\"iconIndex\":\"64\"}","{\"elementId\":\"5\",\"iconIndex\":\"67\"}","{\"elementId\":\"6\",\"iconIndex\":\"69\"}","{\"elementId\":\"7\",\"iconIndex\":\"68\"}","{\"elementId\":\"8\",\"iconIndex\":\"70\"}","{\"elementId\":\"9\",\"iconIndex\":\"71\"}"]
  * 
- * @param Use Danger Indicator Icons
+ * @param useDangerIndicatorIcons
  * @parent iconConfigs
  * @type boolean
+ * @text Use Danger Indicator Icons
  * @desc Enable or disable the display of danger indicator icons beside enemy hp gauges with this option.
  * @default true
  *
- * @param Danger Indicator Icons
+ * @param dangerIndicatorIconData
  * @parent iconConfigs
  * @type struct<DangerIconsStruct>
+ * @text Danger Indicator Icons Data
  * @desc The collection of icons to represent enemy danger levels beside their hp gauge.
  * @default {"Worthless":"880","Simple":"881","Easy":"882","Average":"883","Hard":"884","Grueling":"885","Deadly":"886"}
- * 
- * @param LineBreak4
- * @text --------------------------
- * @default ----------------------------------
  * 
  * @param animationConfigs
  * @text ACTION DECIDED ANIMATIONS
  * 
- * @param Attack Decided Animation Id
+ * @param attackDecidedAnimationId
  * @parent animationConfigs
  * @type animation
+ * @text Attack Decided Animation Id
  * @desc The animation id that plays on the ai-controlled battler when they decide an attack-action.
  * @default 135
  * 
- * @param Support Decided Animation Id
+ * @param supportDecidedAnimationId
  * @parent animationConfigs
  * @type animation
+ * @text Support Decided Animation Id
  * @desc The animation id that plays on the ai-controlled battler when they decide a support-action.
  * @default 136
  * 
- * @param LineBreak5
- * @text --------------------------
- * @default ----------------------------------
- *
+ * @param aggroConfigs
+ * @text AGGRO DEFAULTS
+ * 
+ * @param baseAggro
+ * @parent aggroConfigs
+ * @type number
+ * @text Base Aggro
+ * @desc The base amount of aggro generated by every action, in addition to the rest of the formula.
+ * @default 100
+ * 
+ * @param aggroPerHp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per HP damage
+ * @desc The amount of aggro generated per 1 HP damage dealt to a non-allied target.
+ * @default 1
+ * 
+ * @param aggroPerMp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per MP damage
+ * @desc The amount of aggro generated per 1 MP damage dealt to a non-allied target.
+ * @default 2
+ * 
+ * @param aggroPerTp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per TP damage
+ * @desc The amount of aggro generated per 1 TP damage dealt to a non-allied target.
+ * @default 10
+ * 
+ * @param aggroDrainMultiplier
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Drain Multiplier
+ * @desc If the skill was an HP Drain, then generate an additional X aggro per HP drained.
+ * @default 4
+ * 
+ * @param aggroParryFlatAmount
+ * @parent aggroConfigs
+ * @type number
+ * @min -999999
+ * @text Aggro Parry Flat Amount
+ * @desc If the skill didn't connect because it was parried, add this much instead. Can be negative.
+ * @default -50
+ * 
+ * @param aggroParryUserGain
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Parry User Gain
+ * @desc If the skill didn't connect because it was parried, aggro the attacker this much.
+ * @default 200
+ * 
+ * @param aggroPlayerReduction
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Player Reduction
+ * @desc The player can attack much faster than AI, so reducing their aggro output by default is sensible.
+ * @decimals 2
+ * @default 0.50
+ * 
+ * @param miscConfigs
+ * @text MISCELLANEOUS SETUP
+ * 
+ * @param lootPickupDistance
+ * @parent miscConfigs
+ * @type number
+ * @text Loot Pickup Distance
+ * @desc The distance of which the player must be to collect loot on the ground.
+ * @decimals 2
+ * @default 1.50
+ * 
+ * 
+ * 
+ * 
+ * 
  *=================================================================================================
  * 
  * @command Enable JABS
@@ -335,21 +411,37 @@ J.ABS.Metadata.Version = '3.0.0';
  */
 J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
 
-J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['Action Map Id']);
-J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['Dodge Skill Type Id']);
-J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['Guard Skill Type Id']);
+// defaults configurations.
+J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
+J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
+J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['guardSkillTypeId']);
+J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
+J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
+J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
 
-J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['Default Enemy Prepare Time']);
-J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['Default Tool Cooldown Time']);
-J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['Default Attack Animation Id']);
+// custom data configurations.
+J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['useElementalIcons'] === "true");
+J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
+J.ABS.Metadata.UseDangerIndicatorIcons = Boolean(J.ABS.PluginParameters['useDangerIndicatorIcons'] === "true");
+J.ABS.Metadata.DangerIndicatorIcons = J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.PluginParameters['dangerIndicatorIconData']);
 
-J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['Use Elemental Icons'] === "true");
-J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['Elemental Icons']);
-J.ABS.Metadata.UseDangerIndicatorIcons = Boolean(J.ABS.PluginParameters['Use Danger Indicator Icons'] === "true");
-J.ABS.Metadata.DangerIndicatorIcons = J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.PluginParameters['Danger Indicator Icons']);
+// action decided configurations.
+J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
+J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['supportDecidedAnimationId']);
 
-J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['Attack Decided Animation Id']);
-J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['Support Decided Animation Id']);
+// aggro configurations.
+J.ABS.Metadata.BaseAggro = Number(J.ABS.PluginParameters['baseAggro']);
+J.ABS.Metadata.AggroPerHp = Number(J.ABS.PluginParameters['aggroPerHp']);
+J.ABS.Metadata.AggroPerMp = Number(J.ABS.PluginParameters['aggroPerMp']);
+J.ABS.Metadata.AggroPerTp = Number(J.ABS.PluginParameters['aggroPerTp']);
+J.ABS.Metadata.AggroDrain = Number(J.ABS.PluginParameters['aggroDrainMultiplier']);
+J.ABS.Metadata.AggroParryFlatAmount = Number(J.ABS.PluginParameters['aggroParryFlatAmount']);
+J.ABS.Metadata.AggroParryUserGain = Number(J.ABS.PluginParameters['aggroParryUserGain']);
+J.ABS.Metadata.AggroPlayerReduction = Number(J.ABS.PluginParameters['aggroPlayerReduction']);
+
+// miscellaneous configurations.
+J.ABS.Metadata.lootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
+
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
@@ -3138,7 +3230,7 @@ Game_Player.prototype.checkForLoot = function() {
  */
 Game_Player.prototype.isTouchingLoot = function(lootDrop) {
   const distance = $gameMap.distance(lootDrop._realX, lootDrop._realY, this._realX, this._realY);
-  return distance < 1.25; // TODO: parameterize this.
+  return distance < J.ABS.Metadata.lootPickupRange;
 };
 
 /**
@@ -3329,11 +3421,11 @@ Scene_Map.prototype.handleJabsWindowsVisibility = function() {
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy()) {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
-    if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(true);
+    if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
   } else {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
-    if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) this.toggleKeys(false);
+    if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
   }
 };
 
@@ -3352,10 +3444,15 @@ Scene_Map.prototype.hideAllJabsWindows = function() {
 
 //#region JABS Menu
 /**
- * OVERWRITE Disable the primary menu from being called.
- * TODO: update this to still work, but not while JABS is enabled.
+ * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
-Scene_Map.prototype.callMenu = function() { };
+J.ABS.Aliased.Scene_Map.callMenu = Scene_Map.prototype.callMenu;
+Scene_Map.prototype.callMenu = function() {
+  // if the ABS is disabled, then allow the menu to be called.
+  if (!$gameBattleMap.absEnabled) {
+    J.ABS.Aliased.Scene_Map.callMenu.call(this);
+  }
+};
 
 /**
  * Creates the Jabs quick menu for use.
@@ -3656,7 +3753,7 @@ Scene_Map.prototype.commandAssign = function() {
   }
 
   actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
-  if (J.ActionKeys && J.ActionKeys.Metadata.Enabled) {
+  if (J.KEYS && J.KEYS.Metadata.Enabled) {
     this._j._actionKeys.refresh();
   }
 
@@ -4117,7 +4214,6 @@ Sprite_Character.prototype.createDangerIndicatorSprite = function() {
  * @returns The icon index of the danger indicator icon.
  */
 Sprite_Character.prototype.getDangerIndicatorIcon = function() {
-  //TODO: update this to gauge power levels instead of only level.
   // if we aren't using them, don't give an icon.
   if (!J.ABS.Metadata.UseDangerIndicatorIcons) return -1;
 
@@ -6407,33 +6503,33 @@ class Game_BattleMap {
     if (attacker.isSameTeam(target.getTeam())) return;
 
     // TODO: parameterize these defaults.
-    let aggro = 100;
+    let aggro = J.ABS.Metadata.BaseAggro;
 
     // hp damage counts for 1.
     if (gameActionResult.hpDamage > 0) {
-      aggro += gameActionResult.hpDamage;
+      aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroPerHp;
     }
 
     // mp damage counts for 2.
     if (gameActionResult.mpDamage > 0) {
-      aggro += gameActionResult.mpDamage * 2;
+      aggro += gameActionResult.mpDamage * J.ABS.Metadata.AggroPerMp;
     }
 
     // tp damage counts for 10.
     if (gameActionResult.tpDamage > 0) {
-      aggro += gameActionResult.tpDamage * 10;
+      aggro += gameActionResult.tpDamage * J.ABS.Metadata.AggroPerTp;
     }
 
     // if the attacker also healed from it, extra aggro for each point healed!
     if (gameActionResult.drain) {
-      aggro += gameActionResult.hpDamage * 4;
+      aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroDrain;
     }
 
     // if the attacker was parried, reduce aggro on this battler...
     if (gameActionResult.parried) {
-      aggro -= 50;
+      aggro += J.ABS.Metadata.AggroParryFlatAmount;
       // ...and also increase the aggro of the attacking battler!
-      attacker.addUpdateAggro(target.getUuid(), 200);
+      attacker.addUpdateAggro(target.getUuid(), J.ABS.Metadata.AggroParryUserGain);
     }
 
     // apply any bonus aggro from the underlying skill.
@@ -6468,7 +6564,7 @@ class Game_BattleMap {
     // the player can attack tremendously faster than the AI can...
     // ...so reduce the aggro dealt to compensate.
     if (attacker.isPlayer()) {
-      aggro *= 0.5;
+      aggro *= J.ABS.Metadata.AggroPlayerReduction;
     }
 
     // apply the aggro to the target.
@@ -10115,6 +10211,21 @@ JABS_Battler.prototype.getBattlerLastHit = function() {
 };
 
 /**
+ * Sets the last battler struck by this battler.
+ * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
+ */
+JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit) {
+  this._lastHit = battlerLastHit;
+
+  // the player-controlled character cannot have a target by normal means due
+  // to them not being controlled by AI. However, their "last hit" is basically
+  // the same thing, so assign their target as well.
+  if (this.isPlayer()) {
+    this.setTarget(this._lastHit);
+  }
+};
+
+/**
  * Gets whether or not this has a last battler hit currently stored.
  * @returns {boolean}
  */
@@ -10122,9 +10233,18 @@ JABS_Battler.prototype.hasBattlerLastHit = function() {
   return !!this.getBattlerLastHit();
 };
 
+/**
+ * Clears the last battler hit tracker from this battler.
+ */
 JABS_Battler.prototype.clearBattlerLastHit = function() {
   this.setBattlerLastHit(null);
   this.setLastBattlerHitCountdown(0);
+
+  // when clearing the last battler hit, also remove the player's target that
+  // was likely added via the above function of "setBattlerLastHit".
+  if (this.isPlayer()) {
+    this.setTarget(null);
+  }
 };
 
 /**
@@ -10168,14 +10288,6 @@ JABS_Battler.prototype.isDead = function() {
   } else { // battler is OK!
     return false;
   }
-};
-
-/**
- * Sets the last battler struck by this battler.
- * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
- */
-JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit) {
-  this._lastHit = battlerLastHit;
 };
 
 /**

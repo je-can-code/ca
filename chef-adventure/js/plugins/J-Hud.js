@@ -99,11 +99,6 @@
  */
 var J = J || {};
 
-/**
- * The plugin umbrella that governs all things related to this plugin.
- */
-J.HUD = {};
-
 //#region version checks
 (() => {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -114,6 +109,11 @@ J.HUD = {};
   }
 })();
 //#endregion version check
+
+/**
+ * The plugin umbrella that governs all things related to this plugin.
+ */
+J.HUD = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.

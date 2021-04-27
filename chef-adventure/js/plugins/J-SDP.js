@@ -10,6 +10,7 @@
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @help
+ * ==============================================================================
  * This should go below both J-Base (and J-ABS if that is being used, too).
  * 
  * Step1:
@@ -19,7 +20,8 @@
  * Unlock panels using plugin commands.
  * 
  * Step3:
- * Assign enemies points with <sdpPoints:NUM>, where NUM is how many points an enemy is worth.
+ * Assign enemies points with <sdpPoints:NUM>, 
+ * where NUM is how many points an enemy is worth.
  * 
  * Step4:
  * Defeat said enemies to gain points.
@@ -31,6 +33,7 @@
  * 
  * Step6:
  * Level up your panels and profit.
+ * ==============================================================================
  * 
  * @param SDPconfigs
  * @text SDP SETUP
@@ -311,17 +314,21 @@
  * @default a.learnSkill(10);
  */
 
-if (J.BASE.Metadata.Version < 1.00) {
-  let message = `In order to use JABS, `;
-  message += `you gotta have the "J-Base.js" enabled, `;
-  message += `placed above the SDP plugin, `;
-  message += `and at version 1.00 or higher.`;
-  throw Error(message);
-}
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//#endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.

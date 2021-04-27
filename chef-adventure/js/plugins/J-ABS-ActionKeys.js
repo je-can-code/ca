@@ -61,40 +61,40 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.ActionKeys = {};
+J.KEYS = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ActionKeys.Metadata = {};
-J.ActionKeys.Metadata.Version = 1.00;
-J.ActionKeys.Metadata.Name = `J-ABS-ActionKeys`;
+J.KEYS.Metadata = {};
+J.KEYS.Metadata.Version = 1.00;
+J.KEYS.Metadata.Name = `J-ABS-ActionKeys`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ActionKeys.PluginParameters = PluginManager.parameters(`J-ABS-ActionKeys`);
-J.ActionKeys.Metadata.Active = Boolean(J.ActionKeys.PluginParameters['Enabled']);
-J.ActionKeys.Metadata.Enabled = true;
+J.KEYS.PluginParameters = PluginManager.parameters(`J-ABS-ActionKeys`);
+J.KEYS.Metadata.Active = Boolean(J.KEYS.PluginParameters['Enabled']);
+J.KEYS.Metadata.Enabled = true;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ActionKeys.Aliased = {};
-J.ActionKeys.Aliased.Scene_Map = {};
+J.KEYS.Aliased = {};
+J.KEYS.Aliased.Scene_Map = {};
 
 /**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.ActionKeys.Metadata.Name, "Show Action Keys", () => {
-  J.ActionKeys.Metadata.Active = true;
+PluginManager.registerCommand(J.KEYS.Metadata.Name, "Show Action Keys", () => {
+  J.KEYS.Metadata.Active = true;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.ActionKeys.Metadata.Name, "Hide Action Keys", () => {
-  J.ActionKeys.Metadata.Active = false;
+PluginManager.registerCommand(J.KEYS.Metadata.Name, "Hide Action Keys", () => {
+  J.KEYS.Metadata.Active = false;
 });
 //#endregion plugin setup and configuration
 
@@ -103,9 +103,9 @@ PluginManager.registerCommand(J.ActionKeys.Metadata.Name, "Hide Action Keys", ()
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
-J.ActionKeys.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.KEYS.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
 Scene_Map.prototype.initialize = function() {
-  J.ActionKeys.Aliased.Scene_Map.initialize.call(this);
+  J.KEYS.Aliased.Scene_Map.initialize.call(this);
   if (!J.ABS || !J.ABS.Metadata || !J.ABS.Metadata.Version || J.ABS.Metadata.Version < 1.00) {
     let msg = "The JABS Action Keys plugin was designed for and requires JABS.";
     msg += " Please add the JABS plugin above this plugin.";
@@ -119,9 +119,9 @@ Scene_Map.prototype.initialize = function() {
  * Once the map is loaded, hook in and create the `JABS_BattlerManager` for managing
  * the JABS.
  */
-J.ActionKeys.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.KEYS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function() {
-  J.ActionKeys.Aliased.Scene_Map.onMapLoaded.call(this);
+  J.KEYS.Aliased.Scene_Map.onMapLoaded.call(this);
   this.createJabsActionKeys();
 };
 
@@ -143,7 +143,7 @@ Scene_Map.prototype.createJabsActionKeys = function() {
  * @param {boolean} toggle Whether or not to display the external action keys.
  */
 Scene_Map.prototype.toggleKeys = function(toggle = true) {
-  if (J.ActionKeys.Metadata.Enabled) {
+  if (J.KEYS.Metadata.Enabled) {
     this._j._actionKeys.toggle(toggle);
   }
 };
@@ -215,7 +215,7 @@ Window_ActionKeys.prototype.toggle = function(toggle = true) {
  */
 Window_ActionKeys.prototype.canUpdate = function() {
   if (!$gameParty || !$gameParty.leader() || !this.contents || 
-    !this._enabled || !J.ActionKeys.Metadata.Active || $gameMessage.isBusy()) {
+    !this._enabled || !J.KEYS.Metadata.Active || $gameMessage.isBusy()) {
     return false;
   }
 
