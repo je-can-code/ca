@@ -3,31 +3,31 @@
  * @plugindesc 
  * [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
+ * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-ABS
+ * @orderBefore J-SDP
  * @help
- * # Start of Help
+ * ============================================================================
  * This plugin creates a window on the screen that will act as a log of sorts.
- * It was initially designed as a battle log for JABS, but it can do things without
- * the help of JABS if you want it to.
+ * It was initially designed as a battle log for JABS, but it can do things 
+ * without the help of JABS if you really want it to.
  * 
- * Use the "plugin command" or "script" event commands to add logs to the text log.
- * # End of Help
+ * If not using this with JABS, then you'll need to leverage the plugin
+ * commands to add logs manually where applicable.
  * 
- * @param BreakHead
- * @text --------------------------
- * @default ----------------------------------
- *
- * @param Extensions
- * @default Modify Below
- *
- * @param BreakSettings
- * @text --------------------------
- * @default ----------------------------------
- * 
+ * Icons were initially a part of the design, but that was never implemented
+ * due to lack of popularity of the plugin and never really needing it myself.
+ * If this starts to pick up traction and people like it, I'll refactor it to
+ * be more feature-complete.
+ * ============================================================================
  * @param Enabled
  * @type boolean
- * @desc Use the text log feature?
+ * @text Enable Log?
+ * @desc True if you want the log to be enabled, false otherwise.
  * @default true
+ * 
  * 
  * @command Enable Text Log
  * @text Enable the Text Log
@@ -53,6 +53,17 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//#endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.

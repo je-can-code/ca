@@ -1,22 +1,22 @@
 //#region Introduction
 /*:
-* @target MZ
-* @plugindesc 
-* [v1.0 BASE] The base class for all J plugins.
-* @author JE
-* @url https://github.com/je-can-code/rmmz
-* @help
-* ==============================================================================
-* This is the base class that is required for basically ALL of J-* plugins.
-* Please be sure this is above all other J-* plugins, and keep it up to date!
-* ==============================================================================
-* This contains little innate functionality on its own, but does keep within it
-* all the various classes and objects that other plugins use but needed to be
-* declared ahead of time.
-* ==============================================================================
-* Additionally, most of the note-reading and such takes place here as well.
-* ==============================================================================
-*/
+ * @target MZ
+ * @plugindesc 
+ * [v1.0 BASE] The base class for all J plugins.
+ * @author JE
+ * @url https://github.com/je-can-code/rmmz
+ * @help
+ * ==============================================================================
+ * This is the base class that is required for basically ALL of J-* plugins.
+ * Please be sure this is above all other J-* plugins, and keep it up to date!
+ * ==============================================================================
+ * This contains little innate functionality on its own, but does keep within it
+ * all the various classes and objects that other plugins use but needed to be
+ * declared ahead of time.
+ * ==============================================================================
+ * Additionally, most of the note-reading and such takes place here as well.
+ * ==============================================================================
+ */
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -24,36 +24,29 @@
 var J = J || {};
 
 /**
-* The plugin umbrella that governs all things related to this plugin.
-*/
+ * The plugin umbrella that governs all things related to this plugin.
+ */
 J.BASE = {};
 
 /**
-* The `metadata` associated with this plugin, such as version.
-*/
+ * The `metadata` associated with this plugin, such as version.
+ */
 J.BASE.Metadata = {
   /**
-  * The name of this plugin.
-  */
+   * The name of this plugin.
+   */
   Name: `J-Base`,
-};
 
-/**
-* The actual `plugin parameters` extracted from RMMZ.
-*/
-J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
-J.BASE.Metadata = {
-  ...J.BASE.Metadata,
   /**
-  * The version of this plugin.
-  */
-  Version: '1.0.0',
+   * The version of this plugin.
+   */
+   Version: '1.0.0',
 };
 
 /**
-* A collection of helpful mappings for `notes` that are placed in 
-* various locations, like events on the map, or in a database enemy.
-*/
+ * A collection of helpful mappings for `notes` that are placed in 
+ * various locations, like events on the map, or in a database enemy.
+ */
 J.BASE.Notetags = {
   // on actors in database.
   HitGrowth: "hitGrowth",
@@ -138,101 +131,48 @@ J.BASE.Notetags = {
 };
 
 /**
-* The various collision shapes an attack can be for JABS.
-*/
+ * The various collision shapes an attack can be for JABS.
+ */
 J.BASE.Shapes = {
   /**
-  * A rhombus (aka diamond) shaped hitbox.
-  */
+   * A rhombus (aka diamond) shaped hitbox.
+   */
   Rhombus: "rhombus",
 
   /**
-  * A square around the target hitbox.
-  */
+   * A square around the target hitbox.
+   */
   Square: "square",
 
   /**
-  *  A square in front of the target hitbox.
-  */
+   *  A square in front of the target hitbox.
+   */
   FrontSquare: "frontsquare",
 
   /**
-  * A line from the target hitbox.
-  */
+   * A line from the target hitbox.
+   */
   Line: "line",
 
   /**
-  * An arc shape hitbox in front of the action.
-  */
+   * An arc shape hitbox in front of the action.
+   */
   Arc: "arc",
 
   /**
-  * A wall in front of the target hitbox.
-  */
+   * A wall in front of the target hitbox.
+   */
   Wall: "wall",
 
   /**
-  * A cross from the target hitbox.
-  */
+   * A cross from the target hitbox.
+   */
   Cross: "cross"
 };
 
 /**
-* The various number of projectiles available to create.
-*/
-J.BASE.Projectiles = {
-  /**
-  * The default; A single projectile per normal.
-  */
-  Single: 1,
-
-  /**
-  * Two projectiles side-by-side.
-  */
-  Double: 2,
-
-  /**
-  * Three projectiles, one in front and two adjacent diagonals.
-  */
-  Triple: 3,
-
-  /**
-  * Four projectiles, one in all of dir4.
-  * Basic: (2, 4, 6, 8)
-  */
-  Quadra: 4,
-
-  /**
-  * Eight projectiles, one in all of dir8. 
-  * Basic: (2, 4, 6, 8)
-  * Diagonal: (1, 3, 7, 9)
-  */
-  Octa: 8,
-};
-
-/**
-* The various item types that an item can be.
-*/
-J.BASE.ItemTypes = {
-  /**
-  * The type representing an item from the `$dataItems`.
-  */
-  Item: "i",
-
-  /**
-  * The type representing an item from the `$dataArmors`.
-  */
-  Weapon: "w",
-
-  /**
-  * The type representing an item from the `$dataWeapons`.
-  */
-  Armor: "a",
-};
-
-/**
-* A collection of all aliased methods for this plugin.
-*/
+ * A collection of all aliased methods for this plugin.
+ */
 J.BASE.Aliased = {
   DataManager: {},
   Game_Character: {},

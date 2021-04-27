@@ -8,7 +8,8 @@
  * @help
  * ============================================================================
  * This should be placed after J-ABS.
- * If Cyclone-Movement is being used, then this should go after that as well.
+ * If Cyclone-Movement is being used, then this should go after that as well,
+ * as it does alter some of the functionality associated with it.
  *
  * This updates the various rotates and movement directions to also take note
  * of the four diagonal directions as well as the cardinal directions.

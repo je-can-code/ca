@@ -48,6 +48,17 @@
  */
 var J = J || {};
 
+//#region version checks
+(() => {
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '1.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement) {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//#endregion version check
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -58,17 +69,10 @@ J.DESCRIBE = {};
  */
 J.DESCRIBE.Metadata = {
   /**
- * The name of this plugin.
- */
+   * The name of this plugin.
+   */
   Name: `J-EventDescribe`,
-};
- 
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.DESCRIBE.PluginParameters = PluginManager.parameters(J.DESCRIBE.Metadata.Name);
-J.DESCRIBE.Metadata = {
-  ...J.DESCRIBE.Metadata,
+
   /**
    * The version of this plugin.
    */
@@ -315,7 +319,6 @@ Game_Event.prototype.distanceFromPlayer = function() {
 //#endregion Game objects
 
 //#region Sprite objects
-
 //#region Sprite_Character
 /**
  * Hooks into the initmembers function to add our properties.
@@ -559,14 +562,11 @@ Sprite_Character.prototype.fadeInDescribeIcon = function() {
 
   sprite.opacity += 17;
 };
-//#endregion describe sprites
-
+//#endregion update describe sprites
 //#endregion Sprite_Character
-
 //#endregion Sprite objects
 
 //#region Custom classes
-
 //#region Event_Describe
 /**
  * A single "describe" class which contains various data to describe this event on the map.
@@ -625,7 +625,6 @@ Event_Describe.prototype.proximityIconRange = function() {
   return this._proximityIcon;
 };
 //#endregion Event_Describe
-
 //#endregion Custom classes
 
 //ENDOFFILE
