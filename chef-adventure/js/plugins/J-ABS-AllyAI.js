@@ -503,7 +503,7 @@ Game_Follower.prototype.handleEngagementDistancing = function() {
   const battler = this.getMapBattler();
   const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
   if (!battler.isEngaged() && !battler.isAlerted()) {
-    if (distanceToPlayer <= 5) {
+    if (distanceToPlayer <= Math.round(JABS_Battler.allyRubberbandRange() / 2)) {
       // if the ally is within range of the player, then re-enable the ability to engage.
       battler.unlockEngagement();
     }
@@ -511,7 +511,7 @@ Game_Follower.prototype.handleEngagementDistancing = function() {
   // if the battler is engaged, make sure they stay within range of the player.
   } 
   
-  if (distanceToPlayer > 10) {
+  if (distanceToPlayer > JABS_Battler.allyRubberbandRange()) {
     // when the ally is too far away from the player, disengage and prevent further engagement.
     battler.lockEngagement();
     battler.disengageTarget();

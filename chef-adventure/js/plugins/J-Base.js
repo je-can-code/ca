@@ -85,11 +85,8 @@ J.BASE.Notetags = {
   UniqueCooldown: "unique",
 
   // on items in database
-  JaftingIngredient: "ingredient",
-  JaftingTool: "tool",
-  JaftingCategory: "category",
-  JaftingOutput: "output",
   UseOnPickup: "useOnPickup",
+  LootExpiration: "expires",
 
   // on equipment in database.
   BonusHits: "bonusHits",
@@ -105,13 +102,16 @@ J.BASE.Notetags = {
   // on events on map.
   BattlerId: "e",
   AiCode: "ai",
+  Team: "team",
   Sight: "s",
   Pursuit: "p",
   MoveSpeed: "ms",
   NoIdle: "noIdle",
   NoHpBar: "noHpBar",
+  NoDangerIndicator: "noDangerIndicator",
+  NoBattlerName: "noName",
   Inanimate: "inanimate",
-  Invincible: "invincible", // also on skills
+  Invincible: "invincible", // also on dodge skills
   AlertDuration: "ad",
   AlertSightBoost: "as",
   AlertPursuitBoost: "ap",
@@ -648,6 +648,10 @@ Game_Actor.prototype.alertDuration = function() {
  * @returns {number}
  */
 Game_Actor.prototype.teamId = function() {
+  if (J.ABS) {
+    return JABS_Battler.allyTeamId();
+  }
+
   return 0;
 };
 
@@ -781,6 +785,8 @@ Game_Battler.prototype.alertDuration = function() {
  * @returns {number}
  */
 Game_Battler.prototype.teamId = function() {
+  if (J.ABS) return JABS_Battler.enemyTeamId();
+
   return 1;
 };
 
@@ -789,7 +795,9 @@ Game_Battler.prototype.teamId = function() {
  * @returns {JABS_BattlerAI}
  */
 Game_Battler.prototype.ai = function() {
-  return new JABS_BattlerAI();
+  if (J.ABS) return new JABS_BattlerAI();
+
+  return null;
 };
 
 /**
@@ -873,11 +881,11 @@ Game_Battler.prototype.aggroOutAmp = function() {
 //#region Game_Character
 /**
  * Gets the `aiCode` for this character.
- * If no code is specified, return `00000000`.
+ * If no code is specified, return `10000000`.
  * @returns {string}
  */
 Game_Character.prototype.aiCode = function() {
-  let aiCode = "00000000";
+  let aiCode = "10000000";
   const referenceData = this.event();
 
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode]) {
@@ -1271,84 +1279,6 @@ Game_Enemy.prototype.needsSdpDrop = function() {
     dataId: parseInt(RegExp.$2),
     denominator: parseInt(RegExp.$3)
   };
-};
-
-/**
- * Gets the enemy's basic attack skill id from their notes.
- * Defaults to `1` if no note is present.
- * @returns {number}
- */
-Game_Enemy.prototype.skillId = function() {
-  let skillId = 1;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SkillId]) {
-    // if its in the metadata, then grab it from there.
-    skillId = parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
-  } else {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<skillId:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
-        skillId = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return skillId;
-};
-
-/**
- * Gets the enemy's basic attack skill id from their notes.
- * Defaults to `180` if no note is present.
- * @returns {number}
- */
-Game_Enemy.prototype.prepareTime = function() {
-  let prepare = 180;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
-    // if its in the metadata, then grab it from there.
-    prepare = referenceData.meta[J.BASE.Notetags.PrepareTime];
-  } else {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<prepare:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
-        prepare = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(prepare);
-};
-
-/**
- * Gets the enemy's retaliation skill from their notes.
- * Defaults to `180` if no note is present.
- * @returns {number}
- */
-Game_Enemy.prototype.retaliationSkillId = function() {
-  let retaliation = 0;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Retaliate]) {
-    // if its in the metadata, then grab it from there.
-    retaliation = referenceData.meta[J.BASE.Notetags.Retaliate];
-  } else {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<retaliate:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
-        retaliation = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(retaliation);
 };
 
 /**
@@ -2494,7 +2424,7 @@ class JABS_ItemData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
-  }
+  };
 
   /**
    * Gets the skill id associated with this item/tool.
@@ -2514,7 +2444,7 @@ class JABS_ItemData {
     }
 
     return skillId;
-  }
+  };
 
   /**
    * Gets the cooldown for this item.
@@ -2534,7 +2464,7 @@ class JABS_ItemData {
     }
 
     return cooldown;
-  }
+  };
 
   /**
    * Gets whether or not this item will be used instantly on-pickup.
@@ -2554,7 +2484,28 @@ class JABS_ItemData {
     }
 
     return useOnPickup;
-  }
+  };
+
+  /**
+   * Gets the duration in frames of how long this loot will persist on the map.
+   * If none is specified, the default will be used.
+   * @returns {number}
+   */
+  get expires() {
+    let expires = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.LootExpiration]) {
+      expires = parseInt(this._meta[J.BASE.Notetags.LootExpiration]);
+    } else {
+      const structure = /<expires:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          expires = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return expires;
+  };
 }
 //#endregion JABS_ItemData
 
