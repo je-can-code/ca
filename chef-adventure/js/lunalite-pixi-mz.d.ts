@@ -29895,7 +29895,7 @@ declare class Game_BattlerBase {
 	 */
 	readonly tgr: number;
 	/**
-	 * [read-only] Ggweqrtg*xzuaRD effect rate
+	 * [read-only] GuaRD effect rate
 	 */
 	readonly grd: number;
 	/**

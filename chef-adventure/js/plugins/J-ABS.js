@@ -43,15 +43,115 @@
  * @desc The default id of the skill type that acts as a classification for guard skills.
  * @default 2
  * 
- * @param defaultConfigs
- * @text WHEN UNASSIGNED
+ * @param enemyDefaultConfigs
+ * @text ENEMY BATTLER DEFAULTS
  * 
  * @param defaultEnemyPrepareTime
- * @parent defaultConfigs
+ * @parent enemyDefaultConfigs
  * @type number
  * @text Default Enemy Prepare Time
  * @desc The default number of frames for "prepare" time.
  * @default 180
+ * 
+ * @param defaultEnemyAttackSkillId
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Attack Skill
+ * @desc The default skill id used for an enemy basic attack where their animation is "normal attack".
+ * @default 1
+ * 
+ * @param defaultEnemySightRange
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Sight Range
+ * @desc The default range from a battler that they can engage in combat from.
+ * @default 4
+ * 
+ * @param defaultEnemyPursuitRange
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Pursuit Range
+ * @desc The default range from a battler that they can remain in combat within.
+ * @default 6
+ * 
+ * @param defaultEnemyAlertedSightBoost
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Alerted Sight Boost
+ * @desc The default boost to sight an enemy gains while alerted (alerted: hit from out of combat).
+ * @default 2
+ * 
+ * @param defaultEnemyAlertedPursuitBoost
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Alerted Pursuit Boost
+ * @desc The default boost to pursuit an enemy gains while alerted (alerted: hit from out of combat).
+ * @default 4
+ * 
+ * @param defaultEnemyAlertDuration
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 60
+ * @text Default Enemy Alert Duration
+ * @desc The default number of frames an enemy remains alerted (alerted: hit from out of combat).
+ * @default 300
+ * 
+ * @param defaultEnemyAiCode
+ * @parent enemyDefaultConfigs
+ * @type string
+ * @text Default Enemy AI Code
+ * @desc The default ai code for enemy battlers. Don't change it if you don't understand it!
+ * @default 10000000
+ * 
+ * @param defaultEnemyCanIdle
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Can Idle
+ * @desc The default for whether or not enemies can idle.
+ * @default true
+ * 
+ * @param defaultEnemyShowHpBar
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Show HP Bar
+ * @desc The default for whether or not enemies' HP bars are visible.  
+ * @default true
+ * 
+ * @param defaultEnemyShowDangerIndicator
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Show HP Bar
+ * @desc The default for whether or not enemies' danger indicators are visible.
+ * @default true
+ * 
+ * @param defaultEnemyShowBattlerName
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Show Battler Name
+ * @desc The default for whether or not enemies' names are visible.
+ * @default true
+ * 
+ * @param defaultEnemyIsInvincible
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Is Invincible
+ * @desc Setting this to true will cause all enemies to be invincible by default. USE WITH CAUTION.
+ * @default false
+ * 
+ * @param defaultEnemyIsInanimate
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Is Inanimate
+ * @desc Setting this to true will cause all enemies to be inanimate by default. USE WITH CAUTION.
+ * @default false
+ * 
+ * @param defaultConfigs
+ * @text WHEN UNASSIGNED
  * 
  * @param defaultToolCooldownTime
  * @parent defaultConfigs
@@ -59,6 +159,14 @@
  * @text Default Tool Cooldown Time
  * @desc The default number of frames for an item's cooldown if one isn't specified.
  * @default 300
+ * 
+ * @param defaultLootExpiration
+ * @parent defaultConfigs
+ * @type number
+ * @min -1
+ * @text Default Loot Duration
+ * @desc The default number of frames before an item expires from the map. Set to -1 for no expiration.
+ * @default 900
  * 
  * @param defaultAttackAnimationId
  * @parent defaultConfigs
@@ -187,11 +295,37 @@
  * @decimals 2
  * @default 1.50
  * 
+ * @param disableTextPops
+ * @parent miscConfigs
+ * @type boolean
+ * @text Disable Text Pops
+ * @desc Whether or not to disable the text popups, including: damage, rewards, parry, etc.
+ * @default false
  * 
+ * @param lootPickupDistance
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Loot Pickup Distance
+ * @desc The distance of which the player must be to collect loot on the ground.
+ * @default 1.50
  * 
+ * @param allyRubberbandAdjustment
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Ally Rubberband Adjustment
+ * @desc A modifier on the ally rubber band range (defaults of 10). This also affects the ally AI plugin if used.
+ * @default 2.00
  * 
+ * @param dashSpeedBoost
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Dash Movespeed Boost
+ * @desc The boost to movement speed when dashing. You may need to toy with this a bit to get it right.
+ * @default 1.25
  * 
- *=================================================================================================
  * 
  * @command Enable JABS
  * @text Enable JABS
@@ -415,9 +549,27 @@ J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
 J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
 J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
 J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['guardSkillTypeId']);
-J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
 J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
 J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
+J.ABS.Metadata.DefaultLootExpiration = Number(J.ABS.PluginParameters['defaultLootExpiration']);
+
+// enemy battler default configurations.
+J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
+J.ABS.Metadata.DefaultEnemyAttackSkillId = Number(J.ABS.PluginParameters['defaultEnemyAttackSkillId']);
+J.ABS.Metadata.DefaultEnemySightRange = Number(J.ABS.PluginParameters['defaultEnemySightRange']);
+J.ABS.Metadata.DefaultEnemyPursuitRange = Number(J.ABS.PluginParameters['defaultEnemyPursuitRange']);
+J.ABS.Metadata.DefaultEnemyAlertedSightBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedSightBoost']);
+J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedPursuitBoost']);
+J.ABS.Metadata.DefaultEnemyAlertDuration = Number(J.ABS.PluginParameters['defaultEnemyAlertDuration']);
+J.ABS.Metadata.DefaultEnemyAiCode = J.ABS.PluginParameters['defaultEnemyAiCode'];
+J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === "true");
+J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === "true");
+J.ABS.Metadata.DefaultEnemyShowDangerIndicator = Boolean(J.ABS.PluginParameters['defaultEnemyShowDangerIndicator'] === "true");
+J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === "true");
+J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
+J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
+
+
 
 // custom data configurations.
 J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['useElementalIcons'] === "true");
@@ -440,8 +592,10 @@ J.ABS.Metadata.AggroParryUserGain = Number(J.ABS.PluginParameters['aggroParryUse
 J.ABS.Metadata.AggroPlayerReduction = Number(J.ABS.PluginParameters['aggroPlayerReduction']);
 
 // miscellaneous configurations.
-J.ABS.Metadata.lootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
-
+J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
+J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === "true");
+J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
+J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
@@ -1829,6 +1983,9 @@ Game_Character.prototype.getRequestTextPop = function() {
  * @param {boolean} damagePopRequest True to trigger damage pops, false otherwise (default: true).
  */
 Game_Character.prototype.setRequestTextPop = function(damagePopRequest = true) {
+  // don't do this if popups are disabled.
+  if (J.ABS.Metadata.DisableTextPops) return;
+
   const actionSpriteProperties = this.getActionSpriteProperties();
   return actionSpriteProperties.requestDamagePop = damagePopRequest;
 };
@@ -1847,6 +2004,9 @@ Game_Character.prototype.getDamagePops = function() {
  * @param {JABS_TextPop} damage A number representing the damage to pop.
  */
 Game_Character.prototype.addTextPop = function(damage) {
+  // don't do this if popups are disabled.
+  if (J.ABS.Metadata.DisableTextPops) return;
+
   const actionSpriteProperties = this.getActionSpriteProperties();
   actionSpriteProperties.damagePops.push(damage);
 };
@@ -2102,10 +2262,10 @@ Game_CharacterBase.prototype.realMoveSpeed = function() {
 };
 
 /**
- * Default speed boost for all characters.
+ * Default speed boost for all characters when dashing.
  */
 Game_CharacterBase.prototype.dashSpeed = function() {
-  return 0.5;
+  return J.ABS.Metadata.DashSpeedBoost;
 };
 
 /**
@@ -2171,7 +2331,7 @@ Game_Enemies.prototype.initialize = function() {
 };
 
 /**
- * Looks up an enemy of the given id.
+ * Looks up and caches an enemy of the given id.
  * @param {number} enemyId The id to look up an enemy for.
  * @returns {Game_Enemy}
  */
@@ -2185,6 +2345,415 @@ Game_Enemies.prototype.enemy = function(enemyId) {
   return null;
 };
 //#endregion
+
+//#region Game_Enemy
+/**
+ * Gets the enemy's prepare time from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.prepareTime = function() {
+  let val = J.ABS.Metadata.DefaultEnemyPrepareTime;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.PrepareTime];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<prepare:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's basic attack skill id from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.skillId = function() {
+  let val = J.ABS.Metadata.DefaultEnemyAttackSkillId;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SkillId]) {
+    // if its in the metadata, then grab it from there.
+    val = parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<skillId:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = parseInt(RegExp.$1);
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets the enemy's sight range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.sightRange = function() {
+  let val = J.ABS.Metadata.DefaultEnemySightRange;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.Sight];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<s:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's boost to sight range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedSightBoost = function() {
+  let val = J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.AlertSightBoost];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ad:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's pursuit range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.pursuitRange = function() {
+  let val = J.ABS.Metadata.DefaultEnemyPursuitRange;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.Pursuit];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<p:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's boost to pursuit range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedPursuitBoost = function() {
+  let val = J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ap:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's duration for being alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertDuration = function() {
+  let val = J.ABS.Metadata.DefaultEnemyAlertDuration;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.AlertDuration];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ad:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's team id from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.teamId = function() {
+  let val = JABS_Battler.enemyTeamId();
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.Team];
+  } else {
+    const structure = /<team:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Gets the enemy's ai code from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.ai = function() {
+  let val = J.ABS.Metadata.DefaultEnemyAiCode;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode]) {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.AiCode];
+  } else {
+    const structure = /<ai:[ ]?([0|1]{8})>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy can idle about from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.canIdle = function() {
+  let val = J.ABS.Metadata.DefaultEnemyCanIdle;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle]) {
+    // if its in the metadata, then grab it from there.
+    val = false;
+  } else {
+    const structure = /<noIdle>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = false;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy has a visible hp bar from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.showHpBar = function() {
+  let val = J.ABS.Metadata.DefaultEnemyShowHpBar;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar]) {
+    // if its in the metadata, then grab it from there.
+    val = false;
+  } else {
+    const structure = /<noHpBar>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = false;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy has a visible danger indicator from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.showDangerIndicator = function() {
+  let val = J.ABS.Metadata.DefaultEnemyShowDangerIndicator;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoDangerIndicator]) {
+    // if its in the metadata, then grab it from there.
+    val = false;
+  } else {
+    const structure = /<noDangerIndicator>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = false;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy has a visible battler name from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.showBattlerName = function() {
+  let val = J.ABS.Metadata.DefaultEnemyShowBattlerName;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoBattlerName]) {
+    // if its in the metadata, then grab it from there.
+    val = false;
+  } else {
+    const structure = /<noName>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = false;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy is invincible from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.isInvincible = function() {
+  let val = J.ABS.Metadata.DefaultEnemyIsInvincible;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible]) {
+    // if its in the metadata, then grab it from there.
+    val = true;
+  } else {
+    const structure = /<invincible>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = true;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets whether or not an enemy is invincible from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.isInanimate = function() {
+  let val = J.ABS.Metadata.DefaultEnemyIsInanimate;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate]) {
+    // if its in the metadata, then grab it from there.
+    val = true;
+  } else {
+    const structure = /<inanimate>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        val = true;
+      }
+    });
+  }
+
+  return val;
+};
+
+/**
+ * Gets the enemy's retaliation skill from their notes.
+ * @returns {number}
+ */
+Game_Enemy.prototype.retaliationSkillId = function() {
+  let retaliation = 0;
+
+  const referenceData = this.enemy();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Retaliate]) {
+    // if its in the metadata, then grab it from there.
+    retaliation = referenceData.meta[J.BASE.Notetags.Retaliate];
+  } else {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<retaliate:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        retaliation = RegExp.$1;
+      }
+    })
+  }
+
+  return parseInt(retaliation);
+};
+//#endregion Game_Enemy
 
 //#region Game_Event
 J.ABS.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
@@ -2319,32 +2888,40 @@ Game_Event.prototype.setupPageSettings = function() {
 
 /**
  * Parses the comments of this event to extract battler core data if available.
+ * If an event has an enemy id but no other tags, it will attempt to then pull it from the
+ * database notes. If THOSE are unavailable, it'll instead return the defaults.
  */
 Game_Event.prototype.parseEnemyComments = function() {
   // the defaults for battler core data.
   let battlerId = 0;
   let teamId = null;
   let ai = null;
-  let sightRange = 0;
-  let alertedSightBoost = 0;
-  let pursuitRange = 0;
-  let alertedPursuitBoost = 0;
-  let alertDuration = 0;
-  let canIdle = true;
-  let showHpBar = true;
-  let showDangerIndicator = true;
-  let showBattlerName = true;
-  let isInvincible = false;
-  let isInanimate = false;
-  let customMoveSpeed = 0;
+  let sightRange = null;
+  let alertedSightBoost = null;
+  let pursuitRange = null;
+  let alertedPursuitBoost = null;
+  let alertDuration = null;
+  let canIdle = null;
+  let showHpBar = null;
+  let showDangerIndicator = null;
+  let showBattlerName = null;
+  let isInvincible = null;
+  let isInanimate = null;
+  let customMoveSpeed = null;
 
   const currentPageIndex = this.findProperPageIndex();
   if (currentPageIndex > -1) {
+    // also assign the custom move speed to this event.
     customMoveSpeed = this.event().pages[currentPageIndex].moveSpeed;
+  } else {
+    // if we have -1 or lower page index somehow, then we aren't even a renderable event.
+    this.setBattlerCoreData(null);
+    return;
   }
 
   // iterate over all commands to construct the battler core data.
   this.list().forEach(command => {
+    // assuming the event command is a comment, assign the values.
     if (this.matchesControlCode(command.code)) {
       const comment = command.parameters[0];
       if (comment.match(/^<[.\w:-]+>$/i)) {
@@ -2403,21 +2980,22 @@ Game_Event.prototype.parseEnemyComments = function() {
 
   // if we don't have an enemy id, the rest doesn't even matter.
   if (battlerId > 0) {
+    const enemyBattler = $gameEnemies.enemy(battlerId);
     const battlerCoreData = new JABS_BattlerCoreData(
       battlerId,
-      teamId ?? JABS_Battler.enemyTeamId(),
-      ai ?? new JABS_BattlerAI(),
-      sightRange,
-      alertedSightBoost,
-      pursuitRange,
-      alertedPursuitBoost,
-      alertDuration,
-      canIdle,
-      showHpBar,
-      showDangerIndicator,
-      showBattlerName,
-      isInvincible,
-      isInanimate);
+      teamId ?? enemyBattler.teamId(),
+      ai ?? enemyBattler.ai(),
+      sightRange ?? enemyBattler.sightRange(),
+      alertedSightBoost ?? enemyBattler.alertedSightBoost(),
+      pursuitRange ?? enemyBattler.pursuitRange(),
+      alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost(),
+      alertDuration ?? enemyBattler.alertDuration(),
+      canIdle ?? enemyBattler.canIdle(),
+      showHpBar ?? enemyBattler.showHpBar(),
+      showDangerIndicator ?? enemyBattler.showDangerIndicator(),
+      showBattlerName ?? enemyBattler.showBattlerName(),
+      isInvincible ?? enemyBattler.isInvincible(),
+      isInanimate ?? enemyBattler.isInanimate());
     this.setBattlerCoreData(battlerCoreData);
   } else {
     this.setBattlerCoreData(null);
@@ -3024,15 +3602,6 @@ Game_Party.prototype.canPartyCycle = function() {
 
 //#region Game_Player
 /**
- * The player may have different dash speed. 
- * That is determined in this function.
- * @returns {number} 
- */
-Game_Player.prototype.dashSpeed = function() {
-  return 0.5;
-};
-
-/**
  * OVERWRITE Changes the button detection to look for a different button instead of SHIFT.
  */
 Game_Player.prototype.isDashButtonPressed = function() {
@@ -3230,7 +3799,7 @@ Game_Player.prototype.checkForLoot = function() {
  */
 Game_Player.prototype.isTouchingLoot = function(lootDrop) {
   const distance = $gameMap.distance(lootDrop._realX, lootDrop._realY, this._realX, this._realY);
-  return distance < J.ABS.Metadata.lootPickupRange;
+  return distance < J.ABS.Metadata.LootPickupRange;
 };
 
 /**
@@ -4475,8 +5044,18 @@ Sprite_Character.prototype.updateFrame = function() {
 Sprite_Character.prototype.updateLootFloat = function() {
   const lootData = this.getLootData();
   lootData.countdownDuration();
-  // TODO: implement expiring loot.
-  //console.log(lootData.expired); // works!
+
+  // if the loot is expired, remove it.
+  if (lootData.expired) {
+    // don't reset the removal if its already set.
+    if (this._character.getLootNeedsRemoving()) return;
+
+    // set the loot to be removed.
+    this._character.setLootNeedsRemoving(true);
+    $gameBattleMap.requestClearLoot = true;
+    return;
+  }
+
   const { _img: lootSprite, _swing: swingDown } = this._loot;
 
   swingDown
@@ -5416,6 +5995,8 @@ class Game_BattleMap {
 
   /**
    * Determines the animation id for this particular attack.
+   * -1 as an animation id represents "use normal attack", but enemies don't have that!
+   * So for the case of enemies
    * @param {object} skill The $dataSkills object for this skill.
    * @param {JABS_Battler} caster The caster of this skill.
    */
@@ -6023,7 +6604,6 @@ class Game_BattleMap {
    * @returns {JABS_Battler[]} All ai-traited `follower` battlers. 
    */
   getNearbyFollowers(leaderBattler) {
-    // TODO: optimize the range parameter passed in here?
     const range = leaderBattler.getSightRadius() + leaderBattler.getPursuitRadius();
     const nearbyBattlers = $gameMap.getBattlersWithinRange(leaderBattler, range);
     return nearbyBattlers.filter(battler => {
@@ -6392,7 +6972,7 @@ class Game_BattleMap {
    * @param {object} item The loot's raw data object.
    */
   addLootDropToMap(targetX, targetY, item) {
-    // create 
+    // clone the loot data from the action map event id of 1.
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
     lootEventData.x = targetX;
     lootEventData.y = targetY;
@@ -6402,10 +6982,16 @@ class Game_BattleMap {
 
     // create the loot event by hand with this new data.
     const jabsLootData = new JABS_LootDrop(item);
+
+    // set the duration of this loot drop
+    // if a custom time is available, then use that, otherwise use the default.
+    jabsLootData.duration = item._j.expires || J.ABS.Metadata.DefaultLootExpiration;
+
+    // generate a new event to visually represent the loot drop and flag it for adding.
     const eventId = $dataMap.events.length - 1;
     const lootEvent = new Game_Event($gameMap.mapId(), eventId);
-    lootEvent.setLootNeedsAdding();
     lootEvent.setLootData(jabsLootData);
+    lootEvent.setLootNeedsAdding();
 
     // add loot event to map.
     this.requestLootRendering = true;
@@ -6502,7 +7088,6 @@ class Game_BattleMap {
     // don't aggro your allies against you! Thats dumb.
     if (attacker.isSameTeam(target.getTeam())) return;
 
-    // TODO: parameterize these defaults.
     let aggro = J.ABS.Metadata.BaseAggro;
 
     // hp damage counts for 1.
@@ -6777,14 +7362,50 @@ class Game_BattleMap {
     const needsCounterParry = result.preciseParried && battler.counterParry();
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
 
+    // if we should be counter-parrying.
     if (needsCounterParry) {
       this.forceMapAction(battler, battler.counterParry(), true);
     }
 
+    // if we should be counter-guarding.
     if (needsCounterGuard) {
       this.forceMapAction(battler, battler.counterGuard(), true);
     }
+
+    // if auto-counter is available, then just do that.
+    if (result.parried) {
+      this.handleAutoCounter(battler);
+    }
   };
+
+  /**
+   * If the counter rate is sufficient, then automatically perform your counterskills on any
+   * incoming passive parry!
+   * @param {JABS_Battler} battler The battler performing the counter.
+   * @param {number} counterGuard The skill id for the counterguard skill.
+   * @param {number} counterParry The skill id for the counterparry skill.
+   */
+  handleAutoCounter(battler) {
+    // if we don't have anything to auto-counter with, skip it.
+    const guardData = battler.getGuardData(Game_Actor.JABS_OFFHAND);
+    if (!guardData.canCounter()) return;
+
+    // if RNG is within the threshold...
+    const shouldAutoCounter = battler.getBattler().cnt > Math.random();
+
+    // ...then execute all counters available!
+    if (shouldAutoCounter) {
+      if (guardData.counterGuardId) {
+        // if we have a counterguard, perform it.
+        this.forceMapAction(battler, guardData.counterGuardId, true);
+      }
+
+      if (guardData.counterParryId) {
+        // if we have a counterparry, perform it.
+        this.forceMapAction(battler, guardData.counterParryId, true);
+      }
+    }
+  }
 
   /**
    * Executes any retaliation the enemy may have when receiving a hit at any time.
@@ -6826,6 +7447,7 @@ class Game_BattleMap {
 
   /**
    * Generates a log in the `Map_TextLog` if applicable.
+   * It is important to note that only HP damage is published to the log.
    * @param {JABS_Action} action The action affecting the target.
    * @param {object} skill The database object of the skill executed.
    * @param {Game_ActionResult} result The result of the executed action.
@@ -6848,8 +7470,9 @@ class Game_BattleMap {
     } else if (result.evaded) {
       message = `${targetName} dodged ${casterName}'s ${skillName}.`;
     } else {
+      // get the base damage dealt and clean that up.
       let roundedDamage = Math.round(result.hpDamage);
-      const isHeal = roundedDamage > 0;
+      const isNotHeal = roundedDamage > 0;
       roundedDamage = roundedDamage >= 0 ? roundedDamage : roundedDamage.toString().replace("-", "");
       const damageReduction = Math.round(result.reduced);
       let reducedAmount = "";
@@ -6857,23 +7480,41 @@ class Game_BattleMap {
         reducedAmount = `(${parseInt(damageReduction)})`;
       }
 
-
       if (result.critical) {
-        const hitOrHeal = isHeal ? "landed a critical" : "critically healed";
+        // if critical, write the log accordingly.
+        const hitOrHeal = isNotHeal ? "landed a critical" : "critically healed";
         message = `${casterName} ${hitOrHeal} ${skillName} on ${targetName} for ${roundedDamage}${reducedAmount}!`;
       } else {
-        const hitOrHeal = isHeal ? "hit" : "healed";
+        // if the log was not critical, say so.
+        const hitOrHeal = isNotHeal ? "hit" : "healed";
         message = `${casterName} ${hitOrHeal} ${targetName} with ${skillName} for ${roundedDamage}${reducedAmount}.`;
       }
     }
 
+    // if the action is a retaliation, then log that.
     if (action.isRetaliation) {
       const retaliationLog = new Map_TextLog(`${casterName} retaliated!`, -1);
       $gameTextLog.addLog(retaliationLog);
     }
 
+    // if no damage of any kind was dealt, and no states were applied, then you get a special message!
+    if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length) {
+      message = `${casterName} used ${skillName} on ${targetName}, but it dealt no damage.`;
+    }
+
+    // publish the attack log.
     const log = new Map_TextLog(message, -1);
     $gameTextLog.addLog(log);
+
+    // also publish any logs regarding application of states against the target.
+    if (result.addedStates.length) {
+      result.addedStates.forEach(stateId => {
+        const state = $dataStates[stateId];
+        const message = `${targetName} became afflicted with ${state.name}.`;
+        const log = new Map_TextLog(message, -1);
+        $gameTextLog.addLog(log);
+      });
+    }
   };
 
   /**
@@ -6890,8 +7531,8 @@ class Game_BattleMap {
     const elementalIcon = this.determineElementalIcon(skill, caster);
     const iconId = actionResult.parried
       ? 128
-      : elementalIcon; // TODO: decide on icons.
-    const textColor = 0; // TODO: decide on text colors based on dmg type?
+      : elementalIcon;
+    const textColor = 0;
     return new JABS_TextPop(
         actionResult,
         iconId,
@@ -7426,7 +8067,7 @@ class Game_BattleMap {
   configureItemPop(item) {
     const name = item.name;
     const iconId = item.iconIndex;
-    const textColor = 1; // TODO: implement item rarity color here?
+    const textColor = 1;
     return new JABS_TextPop(
         null,
         iconId,
@@ -8808,6 +9449,14 @@ JABS_Battler.enemyTeamId = function() {
 JABS_Battler.neutralTeamId = function() {
   return 2;
 };
+
+/**
+ * Gets the distance that allies are detected and can extend away from the player.
+ * @returns {number}
+ */
+JABS_Battler.allyRubberbandRange = function() {
+  return parseFloat(10 + J.ABS.Metadata.AllyRubberbandAdjustment);
+};
 //#endregion statics
 
 //#region updates
@@ -9409,51 +10058,6 @@ JABS_Battler.prototype.isMovementLocked = function() {
  */
 JABS_Battler.prototype.setMovementLock = function(locked = true) {
   this._movementLock = locked;
-};
-
-/**
- * Adds the state into the state tracking object for this battler if missing.
- * @param {object} state The reference data of the state.
- */
-JABS_Battler.prototype.addMissingState = function(state) {
-  // TODO: modify here for handling state refresh/renewals/stacking/etc.
-  this._stateTracker[state.id] = this._stateTracker[state.id] || {};
-  this._stateTracker[state.id].active = true;
-  this._stateTracker[state.id].duration = state.stepsToRemove;
-};
-
-/**
- * Removes a state from the battler.
- * @param {Game_Battler} battler The battler that has the state to remove.
- * @param {number} stateId The id of the state to remove.
- */
-JABS_Battler.prototype.removeExpiredState = function(battler, stateId) {
-  if (!this._stateTracker[stateId].active) return;
-
-  if (this._stateTracker[stateId].duration <= 0) {
-    this._stateTracker[stateId].active = false;
-    this._stateTracker[stateId].duration = 0;
-    battler.removeState(stateId);
-  }
-};
-
-/**
- * Counts down the state counter to removal.
- * @param {number} stateId The id of the state to countdown for.
- */
-JABS_Battler.prototype.stateCountdown = function(stateId) {
-  if (this._stateTracker[stateId].active) {
-    this._stateTracker[stateId].duration--;
-  }
-};
-
-/**
- * Gets the tracking data associated with a given state.
- * @param {number} stateId The id of the state to get tracking data for.
- * @returns {object} The object containing the specified state data for this battler.
- */
-JABS_Battler.prototype.getStateData = function(stateId) {
-  return this._stateTracker[stateId];
 };
 
 /**
@@ -10515,6 +11119,8 @@ JABS_Battler.prototype.getLeaderAiMode = function() {
 JABS_Battler.prototype.moveAwayFromTarget = function() {
   const battler = this.getCharacter();
   const target = this.getTarget().getCharacter();
+  if (!target) return;
+
   battler.moveAwayFromCharacter(target);
 };
 
@@ -10527,6 +11133,8 @@ JABS_Battler.prototype.moveAwayFromTarget = function() {
 JABS_Battler.prototype.smartMoveAwayFromTarget = function() {
   const battler = this.getCharacter();
   const target = this.getTarget();
+  if (!target) return;
+
   battler.moveAwayFromCharacter(target.getCharacter());
   if (!battler.isMovementSucceeded()) {
     const threatDir = battler.reverseDir(battler.direction());
@@ -10543,6 +11151,8 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function() {
  */
 JABS_Battler.prototype.smartMoveTowardTarget = function() {
   const target = this.getTarget();
+  if (!target) return;
+
   this.smartMoveTowardCoordinates(target.getX(), target.getY());
 };
 
@@ -10551,6 +11161,8 @@ JABS_Battler.prototype.smartMoveTowardTarget = function() {
  */
 JABS_Battler.prototype.smartMoveTowardAllyTarget = function() {
   const target = this.getAllyTarget();
+  if (!target) return;
+
   this.smartMoveTowardCoordinates(target.getX(), target.getY());
 };
 
@@ -10577,6 +11189,8 @@ JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y) {
 JABS_Battler.prototype.turnTowardTarget = function() {
   const character = this.getCharacter();
   const target = this.getTarget();
+  if (!target) return;
+
   character.turnTowardCharacter(target.getCharacter());
 };
 
@@ -10716,7 +11330,7 @@ JABS_Battler.prototype.isBaseCooldownReady = function(cooldownKey) {
   if (!this._cooldowns[cooldownKey]) {
     console.warn(`Cooldown key of ${cooldownKey} was never initialized- initializing!`);
     // this cooldown was never initialized for some reason- initialize it.
-    this.initializeCooldown(cooldownKey, 120); // TODO: parameterize default value?
+    this.initializeCooldown(cooldownKey, 120);
     return false;
   } else {
     return this._cooldowns[cooldownKey].ready;
@@ -10889,8 +11503,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId) {
  * @returns {JABS_Battler[]}
  */
 JABS_Battler.prototype.getAllNearbyAllies = function() {
-  //TODO: parameterize this with max rubber band range for allies before disengage.
-  return $gameMap.getAllyBattlersWithinRange(this, 10);
+  return $gameMap.getAllyBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
 };
 
 /**
@@ -11409,13 +12022,13 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
     this.applyToolForAllAllies(toolId);
     this.applyToolForAllOpponents(toolId);
   } else if (scopeOneOpponent) {
-    // TODO: do things related to a single opponent... but we need a target?
+    this.applyToolForOneOpponent(toolId);
   } else if (scopeAllAllies) {
     this.applyToolForAllAllies(toolId);
   } else if (scopeAllOpponents) {
     this.applyToolForAllOpponents(toolId);
   } else {
-    console.warn("unhandled scope for tool!", gameAction.item().scope);
+    console.warn(`unhandled scope for tool: [${gameAction.item().scope}]!`);
   }
 
   // applies common events that may be a part of an item's effect.
@@ -11503,6 +12116,33 @@ JABS_Battler.prototype.applyToolForAllAllies = function(toolId) {
   // also apply effects to player/leader.
   this.applyToolToPlayer(toolId);
 };
+
+/**
+ * Applies the effects of the tool against all opponents on the map.
+ * @param {number} toolId The id of the tool/item being used.
+ */
+JABS_Battler.prototype.applyToolForOneOpponent = function(toolId) {
+  const item = $dataItems[toolId];
+  let jabsBattler = this.getTarget();
+  if (!jabsBattler) {
+    // if we don't have a target, get the last hit battler instead.
+    jabsBattler = this.getBattlerLastHit();
+  }
+
+  if (!jabsBattler) {
+    // if we don't have a last hit battler, then give up on this.
+    return;
+  }
+
+  const battler = jabsBattler.getBattler();
+  const gameAction = new Game_Action(battler, false);
+  gameAction.apply(battler);
+  const battlerSprite = jabsBattler.getCharacter();
+  const popup = $gameBattleMap.configureDamagePop(gameAction, item, this, jabsBattler);
+  battlerSprite.addTextPop(popup);
+  battlerSprite.setRequestTextPop();
+};
+
 
 /**
  * Applies the effects of the tool against all opponents on the map.
@@ -11609,13 +12249,21 @@ JABS_Battler.prototype.setPercGuardReduction = function(percReduction) {
 };
 
 /**
- * Gets the id of the skill to retaliate with when successfully guarding.
+ * Checks to see if retrieving the counter-guard skill id is appropriate.
  * @returns {number}
  */
 JABS_Battler.prototype.counterGuard = function() {
   return this.guarding()
-  ? this._counterGuardId
-  : 0;
+    ? this.counterGuardId()
+    : 0;
+};
+
+/**
+ * Gets the id of the skill for counter-guarding.
+ * @returns {number}
+ */
+JABS_Battler.prototype.counterGuardId = function() {
+  return this._counterGuardId;
 };
 
 /**
@@ -11627,13 +12275,21 @@ JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillId) {
 };
 
 /**
- * Gets the id of the skill to retaliate with when successfully precise-parrying.
+ * Checks to see if retrieving the counter-parry skill id is appropriate.
  * @returns {number}
  */
 JABS_Battler.prototype.counterParry = function() {
   return this.guarding()
-  ? this._counterParryId
-  : 0;
+    ? this.counterParryId()
+    : 0;
+};
+
+/**
+ * Gets the id of the skill for counter-parrying.
+ * @returns {number}
+ */
+JABS_Battler.prototype.counterParryId = function() {
+  return this._counterParryId;
 };
 
 /**
@@ -11647,7 +12303,7 @@ JABS_Battler.prototype.setCounterParry = function(counterParrySkillId) {
 
 /**
  * Gets all data associated with guarding for this battler.
- * @returns {[number, number, number, number, number]|null}
+ * @returns {JABS_GuardData}
  */
 JABS_Battler.prototype.getGuardData = function(cooldownKey) {
   const battler = this.getBattler()
@@ -11661,7 +12317,8 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey) {
 
   const skill = $dataSkills[id];
   const { guard, parry, counterGuard, counterParry } = skill._j;
-  return [guard[0], guard[1], parry, counterGuard, counterParry];
+  return new JABS_GuardData(guard[0], guard[1], counterGuard, counterParry, parry);
+  //return [guard[0], guard[1], parry, counterGuard, counterParry];
 };
 
 /**
@@ -11700,18 +12357,18 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot) {
   // if not guarding, wasn't guarding before, but want to guard, then let's guard!
   const guardData = this.getGuardData(skillSlot);
   
-  // if there is no guard data, don't try to guard.
-  if (!guardData || !guardData.length) return;
+  // if we cannot guard, then don't try.
+  if (!guardData.canGuard()) return;
 
   // begin guarding!
   this.setGuarding(true);
-  this.setFlatGuardReduction(guardData[0]);
-  this.setPercGuardReduction(guardData[1]);
-  this.setCounterGuard(guardData[3]);
-  this.setCounterParry(guardData[4]);
+  this.setFlatGuardReduction(guardData.flatGuardReduction);
+  this.setPercGuardReduction(guardData.percGuardReduction);
+  this.setCounterGuard(guardData.counterGuardId);
+  this.setCounterParry(guardData.counterParryId);
 
   // if the guarding skill has a parry window, apply those frames once.
-  if (guardData[2]) this.setParryWindow(guardData[2]);
+  if (guardData.canParry()) this.setParryWindow(guardData.parryDuration);
 
   // set the pose!
   const skill = $dataSkills[this.getBattler().getEquippedSkill(skillSlot)];
@@ -12523,18 +13180,6 @@ class JABS_Action {
   };
 
   /**
-   * Whether or not the cooldown has been applied.
-   * @type {boolean} True if it has already been checked, false otherwise.
-   */
-  getCooldownChecked = () => this._cooldownChecked;
-
-  /**
-   * Prevents a single action that hits multiple times from applying cooldown multiple times.
-   * @param {boolean} checked True if the cooldown has been checked, false otherwise (default = true).
-   */
-  setCooldownChecked = (checked = true) => this._cooldownChecked = checked;
-
-  /**
    * Gets the name of the cooldown for this action.
    */
   getCooldownType = () => this._actionCooldownType;
@@ -12876,6 +13521,12 @@ class JABS_LootDrop {
     this._duration = 900;
 
     /**
+     * Whether or not this loot drop can expire.
+     * @type {boolean}
+     */
+    this._canExpire = true;
+
+    /**
      * The universally unique identifier for this loot drop.
      * @type {string}
      */
@@ -12893,15 +13544,22 @@ class JABS_LootDrop {
   /**
    * Sets the duration for this loot drop.
    */
-  set duration(dur) {
-    this._duration = dur;
+  set duration(newDuration) {
+    if (newDuration === -1) {
+      this._canExpire = false;
+    }
+
+    this._duration = newDuration;
   };
 
   /**
    * Whether or not this loot drop's duration is expired.
-   * @returns {boolean} True if this loot is expired, false otherwise.
+   * If the loot cannot expire, this will always return false, regardless of duration.
+   * @returns {boolean}
    */
   get expired() {
+    if (!this._canExpire) return false;
+
     return this._duration <= 0;
   };
 
@@ -12909,7 +13567,7 @@ class JABS_LootDrop {
    * Counts down the duration for this loot drop.
    */
   countdownDuration() {
-    if (this._duration <= 0) return;
+    if (!this._canExpire || this._duration <= 0) return;
 
     this._duration--;
   };
@@ -13261,6 +13919,83 @@ class JABS_TrackedState {
   };
 }
 //#endregion JABS_TrackedState
+
+//#region JABS_GuardData
+/**
+ * A class responsible for managing the data revolving around guarding and parrying.
+ */
+class JABS_GuardData {
+  /**
+   * @constructor
+   * @param {number} flatGuardReduction The flat amount of damage reduced when guarding, if any.
+   * @param {number} percGuardReduction The percent amount of damage mitigated when guarding, if any.
+   * @param {number} counterGuardId The skill id to counter with when guarding, if any.
+   * @param {number} counterParryId The skill id to counter with when precise-parrying, if any.
+   * @param {number} parryDuration The duration of which a precise-parry is available, if any.
+   */
+  constructor(
+    flatGuardReduction,
+    percGuardReduction,
+    counterGuardId,
+    counterParryId,
+    parryDuration
+  ) {
+    /**
+     * The flat amount of damage reduced when guarding, if any.
+     * @type {number} 
+     */
+    this.flatGuardReduction = flatGuardReduction;
+
+    /**
+     * The percent amount of damage mitigated when guarding, if any.
+     * @type {number}
+     */
+    this.percGuardReduction = percGuardReduction;
+
+    /**
+     * The skill id to counter with when guarding, if any.
+     * @type {number}
+     */
+    this.counterGuardId = counterGuardId;
+
+    /**
+     * The skill id to counter with when precise-parrying, if any.
+     * @type {number}
+     */
+    this.counterParryId = counterParryId;
+
+    /**
+     * The duration of which a precise-parry is available, if any.
+     * @type {number}
+     */
+    this.parryDuration = parryDuration;
+  };
+
+  /**
+   * Gets whether or not this guard data includes the ability to guard at all.
+   * @returns {boolean}
+   */
+  canGuard() {
+    return !!(this.flatGuardReduction || this.percGuardReduction);
+  };
+
+  /**
+   * Gets whether or not this guard data includes the ability to precise-parry.
+   * @returns {boolean}
+   */
+  canParry() {
+    return this.parryDuration > 0;
+  };
+
+  /**
+   * Gets whether or not this guard data enables countering of any kind.
+   * @returns {boolean}
+   */
+  canCounter() {
+    return !!(this.counterGuardId || this.counterParryId);
+  };
+}
+//#endregion JABS_GuardData
 //#endregion JABS objects
 //#endregion Custom classes
 
