@@ -5,8 +5,8 @@
  * [v3.0 JABS] Enables battles to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-Base
- * @orderAfter J-Base
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This plugin enables battles to carried out on the map, akin to what you'd
@@ -21,6 +21,14 @@
  * ============================================================================
  * @param baseConfigs
  * @text BASE SETUP
+ * 
+ * @param maxAiUpdateRange
+ * @parent baseConfigs
+ * @type number
+ * @min 10
+ * @text Max AI Update Range
+ * @desc CHANGE THIS VALUE WITH CAUTION. MAKING THIS TOO HIGH WILL CAUSE LAG IF THERE ARE LOTS(30+) OF ENEMIES IN RANGE.
+ * @default 15
  * 
  * @param actionMapId
  * @parent baseConfigs
@@ -326,6 +334,60 @@
  * @desc The boost to movement speed when dashing. You may need to toy with this a bit to get it right.
  * @default 1.25
  * 
+ * @param quickmenuConfigs
+ * @text QUICKMENU SETUP
+ * 
+ * @param equipCombatSkillsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Combat Skills Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip combat skills" command.
+ * @default Equip Combat Skills
+ * 
+ * @param equipDodgeSkillsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Dodge Skills Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip dodge skills" command.
+ * @default Equip Dodge Skills
+ * 
+ * @param equipToolsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Tools Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip tools" command.
+ * @default Equip Tools
+ * 
+ * @param mainMenuText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Main MenuText
+ * @desc The text that shows up in the JABS quickmenu for the "main menu" command.
+ * @default Main Menu
+ * 
+ * @param cancelText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Cancel Text
+ * @desc The text that shows up in the JABS quickmenu for the "cancel" command.
+ * @default Cancel
+ * 
+ * @param clearSlotText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Clear Slot Text
+ * @desc The text that shows up in the JABS quickmenu for the "clear slot" command.
+ * @default Clear Slot...
+ * 
+ * @param unassignedText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text UnassignedText
+ * @desc The text that shows up in the JABS quickmenu for the "- unassigned -" command.
+ * @default - unassigned -
+ * 
+ * 
+ * 
  * 
  * @command Enable JABS
  * @text Enable JABS
@@ -545,6 +607,9 @@ J.ABS.Metadata.Version = '3.0.0';
  */
 J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
 
+// the most important configuration!
+J.ABS.Metadata.MaxAiUpdateRange = Number(J.ABS.PluginParameters['maxAiUpdateRange']) || 20;
+
 // defaults configurations.
 J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
 J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
@@ -596,6 +661,15 @@ J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistan
 J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === "true");
 J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
 J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
+
+// quick menu commands configurations.
+J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
+J.ABS.Metadata.EquipDodgeSkillsText = J.ABS.PluginParameters['equipDodgeSkillsText'];
+J.ABS.Metadata.EquipToolsText = J.ABS.PluginParameters['equipToolsText'];
+J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
+J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
+J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
+J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
@@ -5428,11 +5502,12 @@ Sprite_Gauge.prototype.currentValue = function() {
    * Generates the command list for the JABS menu.
    */
   makeCommandList() {
-    this.addCommand("Equip Combat Skills", "skill-assign", true, null, 77);
-    this.addCommand("Equip Dodge Skills", "dodge-assign", true, null, 82);
-    this.addCommand("Equip Tools", "item-assign", true, null, 83);
-    this.addCommand("Main Menu", "main-menu", true, null, 189);
-    this.addCommand("Cancel", "cancel", true, null, 73);
+    // to adjust the icons, change the number that is the last parameter of these commands.
+    this.addCommand(J.ABS.Metadata.EquipCombatSkillsText, "skill-assign", true, null, 77);
+    this.addCommand(J.ABS.Metadata.EquipDodgeSkillsText, "dodge-assign", true, null, 82);
+    this.addCommand(J.ABS.Metadata.EquipToolsText, "item-assign", true, null, 83);
+    this.addCommand(J.ABS.Metadata.MainMenuText, "main-menu", true, null, 189);
+    this.addCommand(J.ABS.Metadata.CancelText, "cancel", true, null, 73);
   };
 
   /**
@@ -5520,6 +5595,7 @@ class Window_AbsMenuSelect extends Window_Command {
       const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
       const isGuardSkillType = JABS_Battler.isGuardSkillById(skill.id);
       let needsHiding = false;
+      // supports yanfly's skill core functionality and hides from the menu where applicable.
       if (skill.meta && skill.meta["Hide if learned Skill"]) {
         const nextSkillId = parseInt(skill.meta["Hide if learned Skill"]);
         needsHiding = actor.isLearnedSkill(nextSkillId);
@@ -5528,7 +5604,7 @@ class Window_AbsMenuSelect extends Window_Command {
       return !isDodgeSkillType && !isGuardSkillType && !needsHiding;
     });
 
-    this.addCommand("Clear Slot...", "skill", true, 0, 16);
+    this.addCommand(J.ABS.Metadata.ClearSlotText, "skill", true, 0, 16);
     skills.forEach(skill => {
       this.addCommand(skill.name, "skill", true, skill.id, skill.iconIndex);
     });
@@ -5544,7 +5620,7 @@ class Window_AbsMenuSelect extends Window_Command {
       return isItem && isUsable;
     });
 
-    this.addCommand("Clear Slot...", "tool", true, 0, 16);
+    this.addCommand(J.ABS.Metadata.ClearSlotText, "tool", true, 0, 16);
     items.forEach(item => {
       const name = `${item.name}: ${$gameParty.numItems(item)}`;
       this.addCommand(name, "tool", true, item.id, item.iconIndex);
@@ -5561,7 +5637,7 @@ class Window_AbsMenuSelect extends Window_Command {
       return skill.stypeId === 1;
     });
 
-    this.addCommand("Clear Slot...", "dodge", true, 0, 16);
+    this.addCommand(J.ABS.Metadata.ClearSlotText, "dodge", true, 0, 16);
     dodgeSkills.forEach(dodge => {
       this.addCommand(dodge.name, "dodge", true, dodge.id, dodge.iconIndex);
     });
@@ -5583,7 +5659,7 @@ class Window_AbsMenuSelect extends Window_Command {
 
     keys.forEach(key => {
       const skillSlot = equippedActions[key];
-      let name = `${key}: - unassigned -`;
+      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
       let iconIndex = 0;
       if (skillSlot.id !== 0) {
         const equippedSkill = $dataSkills[skillSlot.id];
@@ -5605,7 +5681,7 @@ class Window_AbsMenuSelect extends Window_Command {
 
     keys.forEach(key => {
       const toolSlot = equippedActions[key];
-      let name = `${key}: - unassigned -`;
+      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
       let iconIndex = 0;
       if (toolSlot.id !== 0) {
         const equippedTool = $dataItems[toolSlot.id];
@@ -5627,7 +5703,7 @@ class Window_AbsMenuSelect extends Window_Command {
 
     keys.forEach(key => {
       const dodgeSlot = equippedActions[key];
-      let name = `${key}: - unassigned -`;
+      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
       let iconIndex = 0;
       if (dodgeSlot.id !== 0) {
         const equippedDodgeSkill = $dataSkills[dodgeSlot.id];
@@ -6085,7 +6161,7 @@ class Game_BattleMap {
     // don't swing all willy nilly while events are executing.
     if ($gameMap.isEventRunning() || $gameMessage.isBusy()) return;
 
-    // menu
+    // pull up the jabs quick menu.
     if (Input.isTriggered(J.ABS.Input.Start) || Input.isTriggered("escape")) {
       this.performMenuAction();
     }
@@ -7509,6 +7585,15 @@ class Game_BattleMap {
     // also publish any logs regarding application of states against the target.
     if (result.addedStates.length) {
       result.addedStates.forEach(stateId => {
+        // show a custom line when an enemy is defeated.
+        if (stateId === target.getBattler().deathStateId()) {
+          const message = `${targetName} was defeated.`;
+          const log = new Map_TextLog(message, -1);
+          $gameTextLog.addLog(log);
+          return;
+        };
+
+        // show all the rest of the non-death states.
         const state = $dataStates[stateId];
         const message = `${targetName} became afflicted with ${state.name}.`;
         const log = new Map_TextLog(message, -1);
@@ -8321,20 +8406,18 @@ class JABS_AiManager {
    * Define whether or not the player is engaged in combat with any of the current battlers.
    */
   static manageAi() {
-    const battlers = $gameMap.getBattlers();
+    const battlers = $gameMap.getBattlersWithinRange(
+      $gameBattleMap.getPlayerMapBattler(),
+      J.ABS.Metadata.MaxAiUpdateRange);
     if (!battlers.length) return;
 
     // iterate over each battler available and process it's AI.
     battlers.forEach(battler => {
-      // no necromancers please!
-      if (battler.isDead()) return;
+      // no necromancers or ninjas please!
+      if (battler.isDead() || battler.isPlayer() || battler.isHidden() || battler.isInanimate()) return;
 
-      if (battler.isHidden() || battler.isInanimate()) {
-        // do nothing, because you're hidden by switches or something!
-      } else {
-        // act as though against, default.
-        this.executeAi(battler);
-      }
+      // act as though against, default.
+      this.executeAi(battler);
     });
   };
 
@@ -9621,6 +9704,15 @@ JABS_Battler.prototype.updateDeathHandling = function() {
 
 //#region update helpers
 /**
+ * Set whether or not the battler is strafing.
+ * Only applicable to the player.
+ * @param {boolean} strafing Whether or not the player is strafing. 
+ */
+JABS_Battler.prototype.setStrafing = function(strafing) {
+  this._strafing = strafing;
+};
+
+/**
  * Counts down the duration for this battler's wait time.
  */
 JABS_Battler.prototype.countdownWait = function() {
@@ -10289,7 +10381,7 @@ JABS_Battler.prototype.getNextLeaderDecidedAction = function() {
  * @param {number} skillId The skill id decided by the leader.
  */
 JABS_Battler.prototype.setLeaderDecidedAction = function(skillId) {
-  this._leaderDecidedAction = action;
+  this._leaderDecidedAction = skillId;
 };
 
 /**
