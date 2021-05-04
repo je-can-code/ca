@@ -5,9 +5,9 @@
  * [v1.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-Base
+ * @base J-BASE
  * @base J-ABS
- * @orderAfter J-Base
+ * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @help
  * ============================================================================
@@ -17,25 +17,37 @@
  * In order for this plugin to do anything, followers must be enabled. If the
  * followers functionality is disabled, then they will simply do nothing.
  *
+ * In order to set a default ally AI mode (defaults to "variety"), you can use
+ * a tag on the actor and/or class. Class will take priority over actor tags:
+ * 
+ * <defaultAi:MODE>
+ * where MODE is one of the 5 below (the key in the parentheses).
+ * 
+ * Example of a working default ai mode:
+ * <defaultAi:only-attack>
+ * 
+ * 
+ * ============================================================================
+ * 
  * The modes available to swap between for your allies are below.
  *
- * - Do Nothing:
+ * - Do Nothing (do-nothing):
  *   Your ally will take no action.
  *
- * - Only Attack:
+ * - Only Attack (basic-attack):
  *   Your ally will only execute the action from their mainhand weapon.
  *
- * - Variety:
+ * - Variety (variety):
  *   Your ally will pick and choose an action from it's available skills. There
  *   is a 50% chance that if an ally is in need of support, this mode will
  *   select a support skill instead- if any are equipped. This will leverage
  *   battle memories where applicable.
  *
- * - Full Force:
+ * - Full Force (full-force):
  *   Your ally will always select the skill that will deal the most damage to
  *   it's current target. This will leverage battle memories where applicable.
  *
- * - Support:
+ * - Support (support):
  *   Your ally will attempt to keep all allies in the vicinity healthy. They
  *   will first address any <negative> states, second address allies health who
  *   are below a designated threshold of max hp (configurable), third address
@@ -333,7 +345,7 @@ Game_Actor.prototype.getDefaultAllyAI = function() {
     }
   });
 
-  return defaultAllyAi;
+  return JABS_AllyAI.validateMode(defaultAllyAi);
 };
 //#endregion Game_Actor
 
@@ -417,6 +429,7 @@ Game_Followers.prototype.hide = function() {
   $gameMap.updateAllies();
   $gameBattleMap.requestJabsMenuRefresh = true;
 };
+
 /**
  * OVERWRITE Adjust the jumpAll function to prevent jumping to the player
  * when the player is hit.
@@ -438,6 +451,20 @@ Game_Followers.prototype.jumpAll = function() {
     }
   }
 };
+
+/**
+ * Sets whether or not all followers are direction-fixed.
+ * @param {boolean} isFixed Whether or not the direction should be fixed.
+ */
+Game_Followers.prototype.setDirectionFixAll = function(isFixed) {
+  this._data.forEach(follower => {
+      // skip followers that don't exist.
+      if (!follower ) return;
+
+      // set their direction to be whatever the player's is.
+      follower.setDirection(isFixed);
+  });
+};
 //#endregion Game_Followers
 
 //#region Game_Follower
@@ -455,7 +482,6 @@ Game_Follower.prototype.chaseCharacter = function(character) {
     return;
   }
 
-  const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
   if (!battler.isEngaged() && !battler.isAlerted()) {
     // if the battler isn't engaged, still follow the player.
     J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
@@ -520,6 +546,25 @@ Game_Follower.prototype.handleEngagementDistancing = function() {
   }
 };
 //#endregion Game_Follower
+
+//#region Game_Interpreter
+/**
+ * Extends the "Set Moveroute" event command.
+ * Sets all follower's direction-fix to be whatever the player's is after a moveroute.
+ * This accommodates the other adjustment regarding the player direction locking and allowing
+ * the allies to stay agnostic to that input.
+ */
+J.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
+Game_Interpreter.prototype.command205 = function(params) {
+  // execute the move route command.
+  const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
+
+  // then check the player's lock status and set all followers to be the same.
+  $gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
+  $gamePlayer.jumpFollowersToMe();
+  return result;
+};
+//#endregion Game_Interpreter
 
 //#region Game_Map
 /**
@@ -858,7 +903,7 @@ JABS_AllyAI.getModes = () => Object.keys(JABS_AllyAI.modes).map(key => JABS_Ally
  * @param {string} potentialMode The mode to validate.
  * @returns {boolean}
  */
-JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI.getModes().includes(potentialMode);
+JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI.getModes().find(mode => mode.key === potentialMode);
 //#endregion statics
 
 //#region initialize
@@ -897,7 +942,7 @@ JABS_AllyAI.prototype.getMode = function() {
  * @param {string} newMode 
  */
 JABS_AllyAI.prototype.changeMode = function(newMode) {
-  if (!JABS_AllyAI.validateMode(newMode)) {
+  if (!JABS_AllyAI.validateMode(newMode.key)) {
     console.error(`Attempted to assign ally ai mode: [${newMode}], but is not a valid ai mode.`);
     return;
   }
@@ -1418,7 +1463,7 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer) {
         // ...and check each ally and see if they have it yet.
         nearbyAllies.forEach(ally => {
 
-          // see if the state for this ally is 
+          // see if the state for this ally is expired or about to expire.
           const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(ally.getBattler(), effect.dataId);
           if (!trackedState || trackedState.isAboutToExpire()) {
             ready = true; // stop looking and use the below skill and target ally.

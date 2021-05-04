@@ -3,11 +3,16 @@
  * @plugindesc 
  * [v1.0 KEYS] The Action Keys for JABS. 
  * @author JE
- * @url https://dev.azure.com/je-can-code/RPG%20Maker/_git/rmmz
+ * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @base J-ABS
+ * @orderAfter J-BASE
+ * @orderAfter J-ABS
  * @help
- * # Start of Help
- * 
- * # End of Help
+ * ============================================================================
+ * This plugin displays all equipped skills that the leader of the party has
+ * equipped in the context of JABS. It will also show cooldowns and costs.
+ * ============================================================================
  * 
  * @param BreakHead
  * @text --------------------------
@@ -50,7 +55,7 @@ var J = J || {};
   }
 
 // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '2.4.0';
+  const requiredJabsVersion = '1.0.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement) {
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);

@@ -35,7 +35,7 @@ J.BASE.Metadata = {
   /**
    * The name of this plugin.
    */
-  Name: `J-Base`,
+  Name: `J-BASE`,
 
   /**
    * The version of this plugin.
@@ -50,7 +50,7 @@ J.BASE.Metadata = {
 J.BASE.Notetags = {
   // on actors in database.
   HitGrowth: "hitGrowth",
-  GuardGrowth: "guardGrowth",
+  GuardGrowth: "grdGrowth",
   KnockbackResist: "knockbackResist",
 
   // on skills in database.

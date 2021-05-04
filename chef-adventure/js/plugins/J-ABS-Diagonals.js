@@ -5,6 +5,10 @@
  * [v.1.0 DIAG] Fixes diagonal movement for projectiles and characters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @base J-ABS
+ * @orderAfter J-BASE
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * This should be placed after J-ABS.

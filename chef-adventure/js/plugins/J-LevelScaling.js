@@ -4,7 +4,9 @@
  * @plugindesc
  * [v1.0 LEVEL] Scales damage and exp/gold rewards from defeated enemies.
  * @author JE
- * @url https://github.com/jragyn
+ * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This plugin scales damage dealt and received in combat by a factor based on
