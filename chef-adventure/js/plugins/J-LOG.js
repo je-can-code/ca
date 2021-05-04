@@ -4,8 +4,8 @@
  * [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-Base
- * @orderAfter J-Base
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @orderBefore J-SDP
  * @help
@@ -74,7 +74,7 @@ J.LOG = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.LOG.Metadata = {};
-J.LOG.Metadata.Name = `J-TextLog`;
+J.LOG.Metadata.Name = `J-LOG`;
 J.LOG.Metadata.Version = 1.00;
 
 /**

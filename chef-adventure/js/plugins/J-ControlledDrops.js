@@ -5,10 +5,28 @@
  * [v1.0 DROP] Enables greater control over what and how often loot is dropped.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
- * # Start of Help
+ * ============================================================================
+ * This plugin enables the ability to drop items at a percent rate instead of
+ * the obscure 1/1(100%), 1/2(50%), 1/3(33%), etc, rates of drop. This also
+ * enables the ability to drop more than the default of three items. In order
+ * to leverage this, you'll simply need to add some tags into the note box of
+ * your enemies in the database. They will look something like this:
  * 
- * # End of Help
+ * <drops:[TYPE,ID,CHANCE]>
+ * 
+ * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
+ * where ID is the id of the drop in the database.
+ * where CHANCE is the percent chance to drop.
+ * 
+ * An example of a correctly formed tag looks like this:
+ * 
+ * <drops:[i,3,10]>
+ * 
+ * An enemy with this tag will drop an item of id 3 with a 10% chance.
+ * ============================================================================
  */
 
  /**
@@ -29,19 +47,14 @@ J.DROPS.Metadata = {
    * The version of this plugin.
    */
   Name: `J-ControlledDrops`,
-};
 
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.DROPS.PluginParameters = PluginManager.parameters(J.DROPS.Metadata.Name);
-J.DROPS.Metadata = {
-  ...J.DROPS.Metadata,
   /**
    * The version of this plugin.
    */
-  Version: 1.00,
+  Version: '1.0.0',
 };
+//#endregion Introduction
+
 //#region Game objects
 //#region Game_Enemy
 /**

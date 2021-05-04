@@ -5,18 +5,19 @@
  * [v1.0 BOOST] Enables items to grant a one time item boost, permanently.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This plugin allows items to grant a permanent one time bonus when used.
  * 
- * One time item boosts affect actors independently.
- * 
- * The effects are triggered instantly upon consuming an item.
+ * - One time item boosts affect actors independently.
+ * - The effects are triggered instantly upon consuming an item.
  * 
  * Use the configuration on the right to pick the items and their boost.
  * 
- * If multiple entries for a single item id exist, only the first one parsed
- * will be used.
+ * NOTE: If multiple entries for a single item id exist, only the first one 
+ * parsed will be used.
  * ============================================================================
  * 
  * @param OTIBConfigs

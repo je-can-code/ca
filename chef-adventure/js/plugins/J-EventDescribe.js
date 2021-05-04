@@ -5,6 +5,8 @@
  * [v1.0 DESC] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This plugin allows the functionality to have events with text and/or icons

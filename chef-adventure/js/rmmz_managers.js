@@ -340,7 +340,6 @@ DataManager.savefileExists = function(savefileId) {
 
 DataManager.saveGame = function(savefileId) {
     const contents = this.makeSaveContents();
-    console.log(contents);
     const saveName = this.makeSavename(savefileId);
     return StorageManager
     .saveObject(saveName, contents)

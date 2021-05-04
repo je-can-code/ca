@@ -5,10 +5,14 @@
  * [v1.0 JAFT] Enables a new jafting menu that allows item creation and refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
+ * ============================================================================
  * This is not officially released and thus has no/incomplete documentation.
  * 
- * If you really want to use it, just look at the plugin commands.
+ * If you really want to use it, just look at the plugin commands & parameters.
+ * ============================================================================
  * 
  * @param JAFTINGconfigs
  * @text JAFTING SETUP

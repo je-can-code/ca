@@ -6,34 +6,38 @@
  * contain various stats.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-Base
- * @orderAfter J-Base
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @help
- * ==============================================================================
- * This should go below both J-Base (and J-ABS if that is being used, too).
+ * ============================================================================
+ * This plugin is a form of "stat distribution"- an alternative to the standard
+ * of leveling up to raise an actor's stats.
  * 
- * Step1:
- * Add new SDPs to the Stat Distribution Panels section.
+ * This system allows the player's party to unlock "stat distribution panels"
+ * (aka SDPs), by means of plugin command.
  * 
- * Step2:
- * Unlock panels using plugin commands.
+ * The scene to manage unlocked SDPs is accessible via the menu, the JABS
+ * quick menu, or via plugin command.
  * 
- * Step3:
- * Assign enemies points with <sdpPoints:NUM>, 
- * where NUM is how many points an enemy is worth.
+ * Each SDP has the following:
+ * - 1+ parameters (of the 27 available in RMMZ) with flat/percent growth.
+ * - A fixed rank max.
+ * - A relatively customizable formula to determine cost to rank up.
+ * - Customizable name/icon/description1/description2.
+ * - Rank up rewards for any/every/max rank, which can be most anything.
  * 
- * Step4:
- * Defeat said enemies to gain points.
+ * In order to rank up these SDPs, you'll need to use SDP points (surprise!).
+ * These are most commonly acquired from enemies through tags:
  * 
- * Step5:
- * Access the SDP menu either by:
- * - using the plugin command
- * - using a script call: SceneManager.push(Scene_Sdp);
+ * <sdp:POINTS>
+ * where POINTS is a number representing the amount of points earned.
  * 
- * Step6:
- * Level up your panels and profit.
- * ==============================================================================
+ * SDP points can also be acquired by using plugin commands. Typically, when
+ * an enemy is defeated, all members of the party will gain the SDP points, but
+ * when spending them, it is actor-specific due to panel ranks also being
+ * actor-specific (allowing specialization for the player if they want).
+ * ============================================================================
  * 
  * @param SDPconfigs
  * @text SDP SETUP

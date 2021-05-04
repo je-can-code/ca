@@ -5,6 +5,8 @@
  * [v1.0 HUD] A default HUD, designed for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-BASE
+ * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This is a simple HUD plugin that shows some of the key data points that the
@@ -125,7 +127,7 @@ J.HUD.Metadata.Name = `J-Hud`;
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.HUD.PluginParameters = PluginManager.parameters(`J-Hud`);
+J.HUD.PluginParameters = PluginManager.parameters(`J-HUD`);
 J.HUD.Metadata.Enabled = J.HUD.PluginParameters['enabled'] === "true";
 J.HUD.Metadata.HideFollowersHudAlways = J.HUD.PluginParameters['hideFollowersHudAlways'] === "true";
 J.HUD.Metadata.HideAllButStates = J.HUD.PluginParameters['hideAllButStates'] === "true";
@@ -450,7 +452,7 @@ Window_Hud.prototype.drawStates = function() {
     const trackedStates = $gameBattleMap.getStateTrackerByBattler(playerBattler);
     const actorId = $gameParty.leader().actorId();
     trackedStates.forEach((trackedState, i) => {
-      if (!trackedState.isExpired()) {
+      if (!trackedState.isExpired() && (trackedState.stateId !== playerBattler.deathStateId())) {
         this.drawState(trackedState, actorId, 124 + i*iconWidth, 70);
       }
     });
