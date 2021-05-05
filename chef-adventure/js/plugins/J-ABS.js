@@ -10504,9 +10504,12 @@ JABS_Battler.prototype.clearFollowers = function() {
 JABS_Battler.prototype.clearLeader = function() {
   // get the leader's uuid for searching.
   const leaderUuid = this.getLeader();
+  // if found, remove this follower from that leader.
   if (leaderUuid) {
-    // if found, remove this follower from that leader.
     const uuid = this.getUuid();
+    // in some instances, "this" may not be alive anymore so handle that.
+    if (!uuid) return;
+
     const leader = $gameBattleMap.getBattlerByUuid(leaderUuid);
     leader.removeFollowerByUuid(uuid);
   }
