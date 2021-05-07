@@ -140,6 +140,70 @@ Game_Event.prototype.moveStraight = function(direction) {
   }
 };
 
+J.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
+Game_Event.prototype.moveDiagonally = function(horz, vert) {
+  J.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
+  console.log(this._direction, this.getCustomDirection());
+  if (this.isDiagonalDirection(this._direction)) {
+    this.convertDiagonalToDir4();
+  }
+};
+
+Game_Event.prototype.convertDiagonalToDir4 = function() {
+  const castedDirection = this.getCastedDirection();
+  const actionDirection = this.direction();
+  switch (castedDirection) {
+    case 2: // caster faced down
+      switch (actionDirection) {
+        case 1: // action moving lower left
+        case 3: // action moving lower right
+          this.setDirection(castedDirection);
+          break;
+        case 7: // action moving upper left
+        case 9: // action moving upper right
+          this.setDirection(this.reverseDir(castedDirection));
+          break;
+      }
+      return;
+    case 4: // caster faced left
+      switch (actionDirection) {
+        case 1: // action moving lower left
+        case 7: // action moving upper left
+          this.setDirection(castedDirection);
+          break;
+        case 3: // action moving lower right
+        case 9: // action moving upper right
+          this.setDirection(this.reverseDir(castedDirection));
+          break;
+      }
+      return;
+    case 6: // caster faced right
+      switch (actionDirection) {
+        case 3: // action moving lower right
+        case 9: // action moving upper right
+          this.setDirection(castedDirection);
+          break;
+        case 1: // action moving lower left
+        case 7: // action moving upper left
+          this.setDirection(this.reverseDir(castedDirection));
+          break;
+      }
+      return;
+    case 8: // caster faced up
+      switch (actionDirection) {
+        case 7: // action moving upper left
+        case 9: // action moving upper right
+          this.setDirection(castedDirection);
+          break;
+        case 1: // action moving lower left
+        case 3: // action moving lower right
+          this.setDirection(this.reverseDir(castedDirection));
+          break;
+      }
+      return;
+  }
+};
+
 /**
  * Extends the turn 180 to also manage diagonal rotations.
  */

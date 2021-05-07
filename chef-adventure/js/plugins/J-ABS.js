@@ -2846,6 +2846,13 @@ Game_Event.prototype.initMembers = function() {
    * The initial direction this event is facing.
    */
   this._j._initialDirection = 0;
+
+  /**
+   * The direction the player was facing when the skill was executed.
+   * Only applicable to action events.
+   * @type {number}
+   */
+  this._j._castedDirection = 0;
   J.ABS.Aliased.Game_Event.initMembers.call(this);
 };
 
@@ -2870,10 +2877,29 @@ Game_Event.prototype.setCustomDirection = function(direction) {
 
 /**
  * Gets the initial direction being faced on this event's creation.
- * @returns {number|number|*}
+ * @returns {number}
  */
 Game_Event.prototype.getCustomDirection = function() {
   return this._j._initialDirection;
+};
+
+/**
+ * Sets the initial direction being faced on this event's creation.
+ * @param {number} direction The initial direction faced on creation.
+ */
+Game_Event.prototype.setCastedDirection = function(direction) {
+  // don't turn if direction is fixed.
+  if (this.isDirectionFixed()) return;
+
+  this._j._castedDirection = direction;
+};
+
+/**
+ * Gets the initial direction being faced on this event's creation.
+ * @returns {number}
+ */
+Game_Event.prototype.getCastedDirection = function() {
+  return this._j._castedDirection;
 };
 
 /**
@@ -7025,6 +7051,7 @@ class Game_BattleMap {
       actionEventSprite.setMoveRoute(pageData.moveRoute);
       actionEventSprite.setDirection(action.direction);
       actionEventSprite.setCustomDirection(action.direction);
+      actionEventSprite.setCastedDirection($gamePlayer.direction());
       actionEventSprite.setMapActionData(action);
   
       // overwrites the "start" of the event for this event to be nothing.
@@ -7033,8 +7060,8 @@ class Game_BattleMap {
       actionEventSprite.start = () => false;
   
       action.setActionSprite(actionEventSprite);
-      this.requestActionRendering = true;
       $gameMap.addEvent(actionEventSprite);
+      this.requestActionRendering = true;
     } catch (err) {
       console.error(err);
       console.error("The action event sprite: ", actionEventSprite);
@@ -8526,7 +8553,7 @@ class JABS_AiManager {
         if (JABS_Battler.isClose(distanceToHome)) {
           event.moveRandom();
         } else {
-          const nextDir = event.findDiagonalDirectionTo(battler.getHomeX(), battler.getHomeY());
+          const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY());
           event.moveStraight(nextDir);
         }
       } else {
