@@ -3,13 +3,19 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# rpg maker files
+file*.rmmzsave
+
+# invisible OS configuration files
+.DS_Store
+desktop.ini
+
 # User-specific files
 *.rsuser
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
-file*.rmmzsave
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
