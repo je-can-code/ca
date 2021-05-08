@@ -143,8 +143,7 @@ Game_Event.prototype.moveStraight = function(direction) {
 J.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
 Game_Event.prototype.moveDiagonally = function(horz, vert) {
   J.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
-  console.log(this._direction, this.getCustomDirection());
-  if (this.isDiagonalDirection(this._direction)) {
+  if (this.isDiagonalDirection(this.direction())) {
     this.convertDiagonalToDir4();
   }
 };

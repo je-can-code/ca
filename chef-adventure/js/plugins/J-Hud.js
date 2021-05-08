@@ -182,7 +182,7 @@ Scene_Map.prototype.createAllWindows = function() {
  */
 Scene_Map.prototype.createHud = function() {
   const ww = 400;
-  const wh = 800;
+  const wh = 300;
   // if we have coordinates from the plugin parameters, use those instead.
   const wx = (J.HUD.Metadata.Xcoordinate > -1)
     ? parseInt(J.HUD.Metadata.Xcoordinate)
@@ -191,7 +191,7 @@ Scene_Map.prototype.createHud = function() {
     ? parseInt(J.HUD.Metadata.Ycoordinate)
     : -((Graphics.height - Graphics.boxHeight) / 2);
 
-  const rect = new Rectangle(wx, wy, ww, wh);
+  const rect = new Rectangle(wx-8, wy-8, ww, wh);
   this._j._hud = new Window_Hud(rect);
   this.addWindow(this._j._hud);
 };
@@ -330,7 +330,7 @@ Window_Hud.prototype.drawHud = function() {
  */
 Window_Hud.prototype.drawLeaderHud = function() {
   if (!J.HUD.Metadata.HideAllButStates) {
-    this.drawFace($gameParty.leader().faceName(), $gameParty.leader().faceIndex(), 0, 0, 128, 72);
+    this.drawLeaderFace();
     this.drawLeaderGauges();
     this.drawLeaderNumbers();  
   }
@@ -339,14 +339,22 @@ Window_Hud.prototype.drawLeaderHud = function() {
 };
 
 /**
+ * Draws the leader's face sprite.
+ */
+Window_Hud.prototype.drawLeaderFace = function() {
+  const leader = $gameParty.leader();
+  this.placeFaceSprite(leader.actorId(), leader.faceName(), leader.faceIndex(), true, 0, 0);
+};
+
+/**
  * Draws all the gauge sprites for the leader's data.
  */
  Window_Hud.prototype.drawLeaderGauges = function() {
   const leader = $gameParty.leader();
-  this.placeGaugeSprite("hp", leader, 100, 0, 200, 24, 14);
-  this.placeGaugeSprite("mp", leader, 100, 25, 200, 24, 14);
-  this.placeGaugeSprite("tp", leader, 100, 44, 200, 20, 8);
-  this.placeGaugeSprite("time", leader, 0, 72, 128, 22, 20);
+  this.placeGaugeSprite("hp",   leader, 100, 0, 200, 24, 14);
+  this.placeGaugeSprite("mp",   leader, 100, 25, 200, 24, 14);
+  this.placeGaugeSprite("tp",   leader, 100, 44, 200, 20, 8);
+  this.placeGaugeSprite("time", leader, 130, 72, 170, 20, 10); // xp
 };
 
 /**
@@ -354,11 +362,11 @@ Window_Hud.prototype.drawLeaderHud = function() {
  */
 Window_Hud.prototype.drawLeaderNumbers = function() {
   const leader = $gameParty.leader();
-  this.placeNumberSprite("hp", leader, 90, -2, 5);
-  this.placeNumberSprite("mp", leader, 90, 26, 0);
-  this.placeNumberSprite("tp", leader, 0, 44, 0);
-  this.placeNumberSprite("xp", leader, -80, 80, -2);
-  this.placeNumberSprite("lvl", leader, -160, 60, -7);
+  this.placeNumberSprite("hp",  leader, 90, -2, 5);
+  this.placeNumberSprite("mp",  leader, 90, 26, 0);
+  this.placeNumberSprite("tp",  leader, 0, 44, 0);
+  this.placeNumberSprite("xp",  leader, 90, 84, -6);
+  this.placeNumberSprite("lvl", leader, -77, 77, -10);
 };
 
 /**
@@ -380,9 +388,6 @@ Window_Hud.prototype.drawOtherMembersHuds = function() {
     const follower = $gameActors.actor(actorId);
     const y = 70 + (index * 45);
     this.drawOtherMemberHud(follower, 35, y);
-    this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), 0, y);
-    this.placeGaugeSprite("hp", follower, 35, y, 100, 24, 8);
-    this.placeGaugeSprite("mp", follower, 35, y+5, 100, 24, 6);
   });
 };
 
@@ -394,7 +399,7 @@ Window_Hud.prototype.drawOtherMembersHuds = function() {
  * @param {number} y The `y` coordinate to draw data at.
  */
 Window_Hud.prototype.drawOtherMemberHud = function(follower, x, y) {
-  this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), x-35, y);
+  this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), false, x-35, y);
   this.placeGaugeSprite("hp", follower, x, y, 100, 24, 8);
   this.placeGaugeSprite("mp", follower, x, y+5, 100, 24, 6);
 };
@@ -444,7 +449,7 @@ Window_Hud.prototype.drawStates = function() {
   this.hideExpiredStates();
   if (!$gameParty.leader().states().length) return;
 
-  const iconWidth = ImageManager.iconWidth;
+  const iconWidth = ImageManager.iconWidth + 8;
 
   if (J.ABS) {
     const player = $gameBattleMap.getPlayerMapBattler();
@@ -453,7 +458,7 @@ Window_Hud.prototype.drawStates = function() {
     const actorId = $gameParty.leader().actorId();
     trackedStates.forEach((trackedState, i) => {
       if (!trackedState.isExpired() && (trackedState.stateId !== playerBattler.deathStateId())) {
-        this.drawState(trackedState, actorId, 124 + i*iconWidth, 70);
+        this.drawState(trackedState, actorId, 128 + i*iconWidth, 100);
       }
     });
   }
@@ -554,21 +559,39 @@ Window_Hud.prototype.createStateTimerSprite = function(key, stateData) {
 };
 //#endregion states
 
-Window_Hud.prototype.placeFaceSprite = function(actorId, faceName, faceIndex, x, y) {
+/**
+ * Draws an actor's face.
+ * @param {number} actorId The id of the actor.
+ * @param {string} faceName The name of the facesheet.
+ * @param {number} faceIndex The index of the face on the facesheet.
+ * @param {boolean} isLeader Whether or not this is the leader.
+ * @param {number} x The `x` coordinate to draw data at.
+ * @param {number} y The `y` coordinate to draw data at.
+ */
+Window_Hud.prototype.placeFaceSprite = function(actorId, faceName, faceIndex, isLeader, x, y) {
   const key = `actor${actorId}-face-${faceName}-index${faceIndex}`;
-  const sprite = this.createFaceSprite(key, faceName, faceIndex);
+  const sprite = this.createFaceSprite(key, faceName, faceIndex, isLeader);
   sprite.move(x, y);
   sprite.show();
 };
 
-Window_Hud.prototype.createFaceSprite = function(key, faceName, faceIndex) {
+/**
+ * Creates the face sprite, or pulls it from cache if it was already created.
+ * @param {string} key The name of this face sprite.
+ * @param {string} faceName The name of the facesheet.
+ * @param {number} faceIndex The index of the face on the facesheet.
+ * @param {boolean} isLeader Whether or not this is the leader.
+ * @returns {Sprite_Face}
+ */
+Window_Hud.prototype.createFaceSprite = function(key, faceName, faceIndex, isLeader) {
   const sprites = this._hudSprites;
   if (sprites[key]) {
     return sprites[key];
   } else {
     const sprite = new Sprite_Face(faceName, faceIndex);
-    sprite.scale.x = 0.3;
-    sprite.scale.y = 0.3;
+    const scale = isLeader ? 0.8 : 0.3;
+    sprite.scale.x = scale;
+    sprite.scale.y = scale;
     sprites[key] = sprite;
     this.addInnerChild(sprite);
     return sprite;
