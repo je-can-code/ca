@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 JAFT] Enables a new jafting menu that allows item creation and refinement.
+ * [v1.0 JAFT] Enables a new jafting menu that allows item creation by recipe.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
@@ -183,19 +183,12 @@ var J = J || {};
   if (!hasBaseRequirement) {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
-
-// Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '2.4.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement) {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
 })();
 //#endregion version check
 
 /**
-* The plugin umbrella that governs all things related to this plugin.
-*/
+ * The plugin umbrella that governs all things related to this plugin.
+ */
 J.JAFTING = {};
 
 /**
@@ -335,22 +328,22 @@ J.JAFTING.Helpers.translateCategories = rawCategoryBlobs => {
  * The `metadata` associated with this plugin, such as version.
  */
 J.JAFTING.Metadata = {
- /**
-  * The version of this plugin.
-  */
+  /**
+   * The version of this plugin.
+   */
   Name: `J-JAFTING`,
 };
 
 /**
-* The actual `plugin parameters` extracted from RMMZ.
-*/
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
 J.JAFTING.PluginParameters = PluginManager.parameters(J.JAFTING.Metadata.Name);
 J.JAFTING.Metadata = {
   ...J.JAFTING.Metadata,
- /**
-  * The version of this plugin.
-  */
-  Version: 1.00,
+  /**
+   * The version of this plugin.
+   */
+  Version: '2.0.0',
 
   /**
    * All recipes defined in the plugin settings that can be JAFTED.
@@ -364,8 +357,8 @@ J.JAFTING.Metadata = {
 };
 
 /**
-* A helpful mapping of all the various RMMZ classes being extended.
-*/
+ * A helpful mapping of all the various RMMZ classes being extended.
+ */
 J.JAFTING.Aliased = {
   DataManager: {},
   Game_Party: {},
@@ -1418,8 +1411,8 @@ class Window_JaftingModeMenu extends Window_HorzCommand {
   makeCommandList() {
     const hasCategories = $gameSystem.getUnlockedCategories();
     this.addCommand(`Crafting`, `craft-mode`, hasCategories.length, null, 193);
-    this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
     this.addCommand(`Refine`, `refine-mode`, false, null, 223); // disabled till implemented.
+    this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
     this.addCommand(`Cancel`, `cancel`, true, null, 90);
   };
 
