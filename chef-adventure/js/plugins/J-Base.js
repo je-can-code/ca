@@ -718,6 +718,74 @@ Game_Actor.prototype.isInvincible = function() {
 Game_Actor.prototype.isInanimate = function() {
   return false;
 };
+
+/**
+ * Gets the retaliation skill ids for this actor.
+ * Will retrieve from actor, class, all equipment, and states.
+ * @returns {number[]}
+ */
+Game_Actor.prototype.retaliationSkillId = function() {
+  const structure = /<retaliate:[ ]?([0-9]*)>/i;
+  let vals = [];
+
+  // get all tags from actor.
+  const referenceData = this.actor();
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  notedata.forEach(note => {
+    if (note.match(structure)) {
+      const classVal = parseInt(RegExp.$1);
+      if (classVal) {
+        vals.push(classVal);
+      }
+    }
+  });
+
+  // get all tags from class.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  const classNotedata = referenceDataClass.note.split(/[\r\n]+/);
+  classNotedata.forEach(note => {
+    if (note.match(structure)) {
+      const classVal = parseInt(RegExp.$1);
+      if (classVal) {
+        vals.push(classVal);
+      }
+    }
+  });
+
+  // get all tags from equipment.
+  const equips = this.equips().filter(equip => !!equip);
+  if (equips.length) {
+    equips.forEach(equip => {
+      const equipNoteData = equip.note.split(/[\r\n]+/);
+      equipNoteData.forEach(note => {
+        if (note.match(structure)) {
+          const equipVal = parseInt(RegExp.$1);
+          if (equipVal) {
+            vals.push(equipVal);
+          }
+        }
+      });
+    });
+  }
+
+  // get all tags from states.
+  const states = this.states();
+  if (states.length) {
+    states.forEach(state => {
+      const stateNoteData = state.note.split(/[\r\n]+/);
+      stateNoteData.forEach(note => {
+        if (note.match(structure)) {
+          const stateVal = parseInt(RegExp.$1);
+          if (stateVal) {
+            vals.push(stateVal);
+          }
+        }
+      });
+    });
+  }
+
+  return vals;
+};
 //#endregion Game_Actor
 
 //#region Game_Battler
@@ -846,6 +914,14 @@ Game_Battler.prototype.isInvincible = function() {
  */
 Game_Battler.prototype.isInanimate = function() {
   return false;
+};
+
+/**
+ * All battlers have a default of no retaliation skill id.
+ * @returns {number}
+ */
+Game_Battler.prototype.retaliationSkillId = function() {
+  return 0;
 };
 
 /**
