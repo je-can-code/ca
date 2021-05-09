@@ -6742,8 +6742,13 @@ class Game_BattleMap {
     if (!actions) return;
 
     const primaryAction = actions[0];
-    this.paySkillCosts(battler, primaryAction);
-    this.applyCooldownCounters(battler, primaryAction);
+
+    // retaliations do not follow normal skill execution behaviors.
+    if (!primaryAction.isRetaliation) {
+      this.paySkillCosts(battler, primaryAction);
+      this.applyCooldownCounters(battler, primaryAction);
+    }
+
     actions.forEach(action => {
       this.executeMapAction(battler, action);
     });
@@ -7447,6 +7452,9 @@ class Game_BattleMap {
     // do not retaliate against other battler's retaliations.
     if (action.isRetaliation) return;
 
+    // do not retaliate against being targeted by battlers of the same team.
+    if (action.getCaster().isSameTeam(battler.getTeam())) return;
+
     if (battler.isPlayer()) {
       // handle player retaliations.
       this.handlePlayerRetaliation(battler);
@@ -7464,6 +7472,7 @@ class Game_BattleMap {
     const result = battler.getBattler().result();
     const needsCounterParry = result.preciseParried && battler.counterParry();
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
+    const needsPassiveRetaliation = battler.getBattler().retaliationSkillId();
 
     // if we should be counter-parrying.
     if (needsCounterParry) {
@@ -7478,6 +7487,14 @@ class Game_BattleMap {
     // if auto-counter is available, then just do that.
     if (result.parried) {
       this.handleAutoCounter(battler);
+    }
+
+    // if there are any passive retaliation skills to perform...
+    if (needsPassiveRetaliation.length) {
+      // ...perform them!
+      needsPassiveRetaliation.forEach(skillId => {
+        this.forceMapAction(battler, skillId, true);
+      })
     }
   };
 
@@ -7695,13 +7712,16 @@ class Game_BattleMap {
    * @returns {JABS_Battler[]} A collection of `JABS_Battler`s that this action hit.
    */
   getCollisionTargets(action) {
+    if (action.getAction().isForUser()) {
+      return [action.getCaster()];
+    }
+
     const actionSprite = action.getActionSprite();
     const range = action.getRange();
     const shape = action.getShape();
     const casterJabsBattler = action.getCaster();
     const caster = casterJabsBattler.getCharacter();
-    const battlers = $gameMap.getBattlers();
-    battlers.push(this.getPlayerMapBattler());
+    const battlers = $gameMap.getAllBattlers();
     let hitOne = false;
     let targetsHit = [];
 
@@ -7723,6 +7743,11 @@ class Game_BattleMap {
       // if the action is a direct-targeting action,
       // then only check distance between the caster and target.
       if (action.isDirectAction()) {
+        if (action.getAction().isForUser()) {
+          targetsHit.push(battler);
+          hitOne = true;
+          return;
+        }
         const maxDistance = action.getProximity();
         const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
         if (distance <= maxDistance) {
@@ -11975,7 +12000,7 @@ JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne) {
   const scopeAllAllies = scopeAlly && scopeMany;
   const scopeAllOpponents = scopeOpponent && scopeMany;
 
-  const targetIsSelf = user.getUuid() === target.getUuid();
+  const targetIsSelf = (user.getUuid() === target.getUuid() || (action.getAction().isForUser()));
   const actionIsSameTeam = user.getTeam() === this.getTeam();
   const targetIsOpponent = !user.isSameTeam(this.getTeam());
 
@@ -12440,7 +12465,6 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey) {
   const skill = $dataSkills[id];
   const { guard, parry, counterGuard, counterParry } = skill._j;
   return new JABS_GuardData(guard[0], guard[1], counterGuard, counterParry, parry);
-  //return [guard[0], guard[1], parry, counterGuard, counterParry];
 };
 
 /**
