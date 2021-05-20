@@ -74,11 +74,14 @@
  * the player from adding an unreasonable number of traits onto an equip.
  * 
  * [PLUGIN PARAMETERS]:
- * There are none. I debated on putting all the various text bits that show up
+ * There are just a couple that will control the visibility of the actual
+ * command that shows up for refinement in the JAFTING mode select window.
+ * 
+ * I debated on putting all the various text bits that show up
  * throughout the menu here for translation, but instead I captured them all 
  * and put them in the J.JAFTING.Messages object. If you want to change the 
  * text, feel free to edit that instead. Additionally, for the various traits 
- * text, you can find that text hard-coded english starting at line 2034 by 
+ * text, you can find that text hard-coded english starting at line 2164 by 
  * trait code.
  * ============================================================================
  * CHANGELOG:
@@ -86,6 +89,22 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ * 
+ * @command hideJaftingRefinement
+ * @text Hide Refinement Option
+ * @desc Removes the "refinement" option from the JAFTING mode selection window.
+ * 
+ * @command showJaftingRefinement
+ * @text Show Refinement Option
+ * @desc Adds the "refinement" option to the JAFTING mode selection window.
+ * 
+ * @command disableJaftingRefinement
+ * @text Disable Refinement Option
+ * @desc Disables the "refinement" option in the JAFTING mode selection window.
+ * 
+ * @command enableJaftingRefinement
+ * @text Enable Refinement Option
+ * @desc Enables the "refinement" option in the JAFTING mode selection window.
  */
 
 /**
@@ -217,6 +236,33 @@ J.JAFTING.Aliased = {
  */
 $gameJAFTING = null;
 
+/**
+ * Plugin command for hiding the refinement option in the JAFTING mode selection window.
+ */
+PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "hideJaftingRefinement", () => {
+  $gameJAFTING.hideRefinement();
+});
+
+/**
+ * Plugin command for showing the refinement option in the JAFTING mode selection window.
+ */
+PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "showJaftingRefinement", () => {
+  $gameJAFTING.showRefinement();
+});
+
+/**
+ * Plugin command for disabling the refinement option in the JAFTING mode selection window.
+ */
+PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "disableJaftingRefinement", () => {
+  $gameJAFTING.disableRefinement();
+});
+
+/**
+ * Plugin command for enabling the refinement option in the JAFTING mode selection window.
+ */
+PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJaftingRefinement", () => {
+  $gameJAFTING.enableRefinement();
+});
 //#endregion Introduction
 
 //#region Static objects
@@ -297,6 +343,26 @@ Game_JAFTING.startingIndex = 2001;
  * Initializes all members of this class.
  */
 Game_JAFTING.prototype.initialize = function() {
+  /**
+   * Whether or not this option is enabled in the JAFTING mode menu.
+   * @type {boolean}
+   */
+  this._enabled = true;
+
+  /**
+   * Whether or not this option is rendered in the JAFTING mode menu.
+   * @type {boolean}
+   */
+  this._hidden = false;
+
+  /**
+   * The starting index. I was going to make this configurable, but I figured since the
+   * default max for the database was 2000, i'd lock this at 2001 and call it a day.
+   * 
+   * This defines where the custom refined equips will be injected into the database
+   * weapons/armors objects.
+   * @type {number}
+   */
   this._startingIndex = 2001;
 
   /**
@@ -333,6 +399,50 @@ Game_JAFTING.prototype.initialize = function() {
     this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] || Game_JAFTING.startingIndex;
 };
 
+/**
+ * Enables the refine mode in the JAFTING mode selection menu.
+ */
+Game_JAFTING.prototype.enableRefinement = function() {
+  this._enabled = true;
+};
+
+/**
+ * Disables the refine mode in the JAFTING mode selection menu.
+ */
+Game_JAFTING.prototype.disableRefinement = function() {
+  this._enabled = false;
+};
+
+/**
+ * Gets whether or not the refine option is enabled in the JAFTING mode selection window.
+ * @returns {boolean}
+ */
+Game_JAFTING.prototype.isRefinementEnabled = function() {
+  return this._enabled;
+};
+
+/**
+ * Hides the refine option in the JAFTING mode selection menu.
+ */
+Game_JAFTING.prototype.hideRefinement = function() {
+  this._hidden = true;
+};
+
+/**
+ * Shows the refine option in the JAFTING mode selection menu.
+ */
+Game_JAFTING.prototype.showRefinement = function() {
+  this._hidden = false;
+};
+
+/**
+ * Gets whether or not the refine mode option is rendered in the JAFTING 
+ * mode selection menu.
+ * @returns {boolean}
+ */
+Game_JAFTING.prototype.isRefinementHidden = function() {
+  return this._hidden;
+};
 /**
  * Increments the refinement index for a particular datastore.
  * @param {string} refinementType One of the refinement types.
@@ -1515,8 +1625,10 @@ Scene_Map.prototype.toggleJaftingRefineConfirmationWindow = function(visible) {
 J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
 Window_JaftingModeMenu.prototype.makeCommandList = function() {
   J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
-  const hasEquipment = $gameParty.equipItems().length > 1;
-  const refineAllowed = true; //! TODO: 
+  if ($gameJAFTING.isRefinementHidden()) return;
+
+  const hasEquipment = $gameParty.equipItems().length > 1; // need at least 2 items to refine.
+  const refineAllowed = $gameJAFTING.isRefinementEnabled();
   const canRefine = hasEquipment && refineAllowed;
   const refineCommand = {
     name: J.JAFTING.Messages.RefineCommandName,
