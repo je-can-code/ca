@@ -1256,7 +1256,6 @@ class Scene_SDP extends Scene_MenuBase {
     this._j._sdpHelpWindow.refresh();
     this._j._sdpPointsWindow.refresh();
     this._j._sdpListWindow.refresh();
-    //this._j._sdpConfirmationWindow.refresh();
   };
 
   /**

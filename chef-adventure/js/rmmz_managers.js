@@ -582,6 +582,7 @@ StorageManager.jsonToZip = function(json) {
     return new Promise((resolve, reject) => {
         try {
             const zip = pako.deflate(json, { to: "string", level: 1 });
+            console.log(json, zip.length);
             if (zip.length >= 50000) {
                 console.warn("Save data is too big.");
             }
