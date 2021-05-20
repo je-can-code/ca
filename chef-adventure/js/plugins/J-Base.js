@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 BASE] The base class for all J plugins.
+ * [v1.0.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help
@@ -15,6 +15,15 @@
  * declared ahead of time.
  * ==============================================================================
  * Additionally, most of the note-reading and such takes place here as well.
+ * ==============================================================================
+ * CHANGELOG:
+ * 
+ * - 1.0.1
+ *    Updates for new models leveraged by the JAFTING system (refinement).
+ *    All equipment now have a ._jafting property available on them.
+ * 
+ * - 1.0.0
+ *    First proper actual release where I'm leveraging and enforcing versioning.
  * ==============================================================================
  */
 
@@ -40,7 +49,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-   Version: '1.0.0',
+   Version: '1.0.1',
 };
 
 /**
@@ -92,6 +101,12 @@ J.BASE.Notetags = {
   BonusHits: "bonusHits",
   SkillId: "skillId",
   SpeedBoost: "speedBoost",
+
+  MaxRefineCount: "maxRefine",
+  MaxRefineTraits: "maxRefinedTraits",
+  NotRefinementBase: "notRefinementBase",
+  NotRefinementMaterial: "notRefinementMaterial",
+  NoRefinement: "noRefine",
 
   // on enemies in database.
   Drops: "drops",
@@ -307,12 +322,10 @@ DataManager.loadExtraData = function() {
  * Loads all extra data from the notes of skills.
  */
 DataManager.addExtraSkillData = function() {
-  $dataSkills.forEach(skill => {
+  $dataSkills.forEach((skill, index) => {
     if (!skill) return;
-    const extraSkillData = new JABS_SkillData(skill.note, skill.meta);
-    Object.defineProperty(skill, "_j", {
-      get() { return extraSkillData; }
-    });
+    skill._j = new JABS_SkillData(skill.note, skill.meta);
+    skill.index = index;
   });
 };
 
@@ -320,38 +333,51 @@ DataManager.addExtraSkillData = function() {
  * Loads all extra data from the notes of weapons.
  */
 DataManager.addExtraWeaponData = function() {
-  $dataWeapons.forEach(weapon => {
-    if (!weapon) return;
-    const extraWeaponData = new JABS_EquipmentData(weapon.note, weapon.meta);
-    Object.defineProperty(weapon, "_j", {
-      get() { return extraWeaponData; }
-    });
-  });
+  $dataWeapons.forEach(DataManager.parseWeaponData);
+};
+
+/**
+ * The action to perform on each weapon.
+ * This was separated out for extensibility if desired.
+ * @param {rm.types.EquipItem} weapon The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.parseWeaponData = function(weapon, index) {
+  if (!weapon) return;
+  weapon._j = new JABS_EquipmentData(weapon.note, weapon.meta);
+  weapon._jafting = new JAFTING_RefinementData(weapon.note, weapon.meta);
+  weapon.index = index;
 };
 
 /**
  * Loads all extra data from the notes of armors.
  */
 DataManager.addExtraArmorData = function() {
-  $dataArmors.forEach(armor => {
-    if (!armor) return;
-    const extraArmorData = new JABS_EquipmentData(armor.note, armor.meta);
-    Object.defineProperty(armor, "_j", {
-      get() { return extraArmorData; }
-    });
-  });
+  $dataArmors.forEach(DataManager.parseArmorData);
+};
+
+/**
+ * The action to perform on each armor.
+ * This was separated out for extensibility if desired.
+ * @param {rm.types.EquipItem} armor The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.parseArmorData = function(armor, index) {
+  if (!armor) return;
+  armor._j = new JABS_EquipmentData(armor.note, armor.meta);
+  armor._jafting = new JAFTING_RefinementData(armor.note, armor.meta);
+  armor.index = index;
 };
 
 /**
  * Loads all extra data from the notes of items.
  */
 DataManager.addExtraItemData = function() {
-  $dataItems.forEach(item => {
+  $dataItems.forEach((item, index) => {
     if (!item) return;
-    const extraItemData = new JABS_ItemData(item.note, item.meta);
-    Object.defineProperty(item, "_j", {
-      get() { return extraItemData; }
-    });
+    item._j = new JABS_ItemData(item.note, item.meta);
+    item.index = index;
+    item.refinedCount = 0;
   });
 };
 
@@ -359,12 +385,10 @@ DataManager.addExtraItemData = function() {
  * Loads all extra data from the notes of states.
  */
 DataManager.addExtraStateData = function() {
-  $dataStates.forEach(state => {
+  $dataStates.forEach((state, index) => {
     if (!state) return;
-    const extraStateData = new JABS_StateData(state.note, state.meta);
-    Object.defineProperty(state, "_j", {
-      get() { return extraStateData; }
-    });
+    state._j = new JABS_StateData(state.note, state.meta);
+    state.index = index;
   });
 };
 //#endregion DataManager
@@ -2420,13 +2444,16 @@ class JABS_EquipmentData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
+    this.skillId = this.skillId();
+    this.speedBoost = this.speedBoost();
+    this.bonusHits = this.bonusHits();
   }
 
   /**
    * Gets the skill id associated with this piece of equipment.
    * @returns {number} The skill id.
    */
-  get skillId() {
+  skillId() {
     let skillId = 0;
     if (this._meta && this._meta[J.BASE.Notetags.SkillId]) {
       skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
@@ -2446,7 +2473,7 @@ class JABS_EquipmentData {
    * Gets the speed boost value associated with this piece of equipment.
    * @returns {number} The speed boost value.
    */
-  get speedBoost() {
+  speedBoost() {
     let speedBoost = 0;
     if (this._meta && this._meta[J.BASE.Notetags.SpeedBoost]) {
       speedBoost = parseInt(this._meta[J.BASE.Notetags.SpeedBoost]) || 0;
@@ -2466,7 +2493,7 @@ class JABS_EquipmentData {
    * Gets the number of bonus hits this skill grants.
    * @returns {number} The number of bonus hits.
    */
-  get bonusHits() {
+  bonusHits() {
     let bonusHits = 0;
     if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
       bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
@@ -3333,6 +3360,130 @@ JAFTING_Category.prototype.unlock = function() {
   this.unlocked = true;
 };
 //#endregion JAFTING_Category
+
+//#region JAFTING_RefinementData
+/**
+ * A class containing all the various data points extracted from notes.
+ */
+class JAFTING_RefinementData {
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta) {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
+    this.refinedCount = 0;
+    this.maxRefineCount = this.getMaxRefineCount();
+    this.maxTraitCount = this.getMaxTraitCount();
+    this.notRefinementMaterial = this.isNotMaterial();
+    this.notRefinementBase = this.isNotBase();
+    this.unrefinable = this.isNotRefinable();
+  };
+
+  /**
+   * The number of times this piece of equipment can be refined.
+   * @returns {number}
+   */
+  getMaxRefineCount() {
+    let count = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineCount]) {
+      count = parseInt(this._meta[J.BASE.Notetags.MaxRefineCount]) || count;
+    } else {
+      const structure = /<maxRefine:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          count = parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return count;
+  };
+
+  /**
+   * The number of transferable traits that this piece of equipment can have at any one time.
+   * @returns {number}
+   */
+   getMaxTraitCount() {
+    let count = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineTraits]) {
+      count = parseInt(this._meta[J.BASE.Notetags.MaxRefineTraits]) || count;
+    } else {
+      const structure = /<maxRefinedTraits:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          count = parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return count;
+  };
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement as a material.
+   * @returns {boolean}
+   */
+  isNotMaterial() {
+    let notMaterial = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementMaterial]) {
+      notMaterial = true;
+    } else {
+      const structure = /<notRefinementMaterial>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          notMaterial = true;
+        }
+      })
+    }
+
+    return notMaterial;
+  };
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement as a base.
+   * @returns {boolean}
+   */
+  isNotBase() {
+    let notBase = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementBase]) {
+      notBase = true;
+    } else {
+      const structure = /<notRefinementBase>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          notBase = true;
+        }
+      })
+    }
+
+    return notBase;
+  };
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement.
+   * If this is true, this will mean this cannot be used in refinement as base or material.
+   * @returns 
+   */
+  isNotRefinable() {
+    let noRefine = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NoRefinement]) {
+      noRefine = true;
+    } else {
+      const structure = /<noRefine>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          noRefine = true;
+        }
+      })
+    }
+
+    return noRefine;
+  };
+};
+//#endregion JAFTING_RefinementData
 //#endregion JAFTING classes
 
 //#region SDP classes

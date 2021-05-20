@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 JAFT] Enables a new jafting menu that allows item creation by recipe.
+ * [v1.0.0 JAFT] Enables a new jafting menu that allows item creation by recipe.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
@@ -478,24 +478,28 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 };
 
 /**
-* An overwrite of how the itemcontainer function determines the type.
-* @param {object} item The item to discern type of.
-* @returns {object[]} The bucket containing the passed-in item type.
-*/
+ * An overwrite of how the itemcontainer function determines the type.
+ * @param {object} item The item to discern type of.
+ * @returns {object[]} The bucket containing the passed-in item type.
+ */
 Game_Party.prototype.itemContainer = function(item) {
   if (!item) {
-      return null;
+    return null;
   } else if (item.itypeId) {
-      return this._items;
-  } else if (item.wtypeId) {
-      return this._weapons;
-  } else if (item.atypeId) {
-      return this._armors;
+    return this._items;
+  } else if (item.wtypeId && item.wtypeId > -1) {
+    return this._weapons;
+  } else if (item.atypeId && item.atypeId > -1) {
+    return this._armors;
   } else {
-      return null;
+    return null;
   }
 };
 
+/**
+ * OVERWRITE Changes the max to be what I set instead, or handle other plugins'
+ * max item count if they modify it.
+ */
 J.JAFTING.Aliased.Game_Party.maxItems = Game_Party.prototype.maxItems;
 Game_Party.prototype.maxItems = function(item = null) {
   const defaultMaxItems = 999;
@@ -518,9 +522,9 @@ Game_Party.prototype.maxItems = function(item = null) {
 
 //#region Game_Player
 /**
-* Extends the canMove function to ensure the player can't move around while
-* in the JAFTING menu.
-*/
+ * Extends the canMove function to ensure the player can't move around while
+ * in the JAFTING menu.
+ */
 J.JAFTING.Aliased.Game_Player.canMove = Game_Player.prototype.canMove;
 Game_Player.prototype.canMove = function() {
   if ($gameSystem.isJafting()) {
@@ -533,8 +537,8 @@ Game_Player.prototype.canMove = function() {
 
 //#region Game_System
 /**
-* Extends the `Game_System.initialize()` to include the JAFTING setup.
-*/
+ * Extends the `Game_System.initialize()` to include the JAFTING setup.
+ */
 J.JAFTING.Aliased.Game_System.initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function() {
   this.initJaftingMembers();
@@ -542,8 +546,8 @@ Game_System.prototype.initialize = function() {
 };
 
 /**
-* Initializes the JAFTING object for tracking various things related to the system.
-*/
+ * Initializes the JAFTING object for tracking various things related to the system.
+ */
 Game_System.prototype.initJaftingMembers = function() {
   this._j = this._j || {};
   this._j._jafting = this._j._jafting || {};
@@ -574,44 +578,44 @@ Game_System.prototype.initJaftingMembers = function() {
 };
 
 /**
-* Summons the JAFTING menu.
-*/
+ * Summons the JAFTING menu.
+ */
 Game_System.prototype.startJafting = function() {
   this._j._jafting._callJafting = true;
 };
 
 /**
-* Closes the JAFTING menu.
-*/
+ * Closes the JAFTING menu.
+ */
 Game_System.prototype.endJafting = function() {
   this._j._jafting._callJafting = false;
 };
 
 /**
-* Gets whether or not the player is currently using the JAFTING menu.
-* @returns {boolean}
-*/
+ * Gets whether or not the player is currently using the JAFTING menu.
+ * @returns {boolean}
+ */
 Game_System.prototype.isJafting = function() {
   return this._j._jafting._callJafting;
 };
 
 /**
-* Gets the category of crafting by key.
-* @param {string} key The unique identifier of a category of crafting.
-* @returns {JAFTING_Category?}
-*/
+ * Gets the category of crafting by key.
+ * @param {string} key The unique identifier of a category of crafting.
+ * @returns {JAFTING_Category?}
+ */
 Game_System.prototype.getCategoryByKey = function(key) {
   const result = this._j._jafting._categories.find(category => category.key === key);
   return result;
 };
 
 /**
-* Unlocks/adds a new category to the list of available categories.
-* @param {string} name The name that shows up in the category list column.
-* @param {string} key The unique identifier of this category.
-* @param {number} iconIndex The index of the icon that shows up in the category list.
-* @param {string} description The visual description that shows up in the help text box for this category.
-*/
+ * Unlocks/adds a new category to the list of available categories.
+ * @param {string} name The name that shows up in the category list column.
+ * @param {string} key The unique identifier of this category.
+ * @param {number} iconIndex The index of the icon that shows up in the category list.
+ * @param {string} description The visual description that shows up in the help text box for this category.
+ */
 Game_System.prototype.unlockCategory = function(key) {
   const category = this._j._jafting._categories.find(category => category.key === key);
   if (category) {
@@ -786,12 +790,6 @@ Scene_Map.prototype.initJaftingMenu = function() {
     // for free mode
     _inventoryWindow: null,
     _freeMixDetailsWindow: null,
-
-    // for refine mode
-    _refinementMixDetailsWindow: null,
-    _refinementCostWindow: null,
-    _projectedRefinementResultsWindow: null,
-
   };
 };
 
@@ -811,7 +809,6 @@ Scene_Map.prototype.createJaftingMenu = function() {
   this.createJaftingSharedWindows();
   this.createJaftingCraftModeWindows();
   this.createJaftingFreeModeWindows();
-  this.createJaftingRefinementModeWindows();
 };
 
 /**
@@ -824,8 +821,8 @@ Scene_Map.prototype.createJaftingSharedWindows = function() {
 };
 
 /**
-* Creates the help window used throughout all of the JAFTING menu.
-*/
+ * Creates the help window used throughout all of the JAFTING menu.
+ */
 Scene_Map.prototype.createJaftingHelpWindow = function() {
   const w = Graphics.boxWidth;
   const h = 100;
@@ -840,9 +837,9 @@ Scene_Map.prototype.createJaftingHelpWindow = function() {
 };
 
 /**
-* Creates the mode selection window used to determine which type of JAFTING
-* that the player will perform.
-*/
+ * Creates the mode selection window used to determine which type of JAFTING
+ * that the player will perform.
+ */
 Scene_Map.prototype.createJaftingModeWindow = function() {
   const w = 800;
   const h = 68;
@@ -853,7 +850,6 @@ Scene_Map.prototype.createJaftingModeWindow = function() {
   wind.setHandler('cancel', this.closeJaftingMenu.bind(this));
   wind.setHandler('craft-mode', this.chooseJaftingCraftMode.bind(this));
   wind.setHandler('free-mode', this.chooseJaftingFreeMode.bind(this));
-  wind.setHandler('refine-mode', this.chooseJaftingRefineMode.bind(this));
   this._j._jaftingMenu._modeWindow = wind;
   this._j._jaftingMenu._modeWindow.close();
   this._j._jaftingMenu._modeWindow.hide();
@@ -861,9 +857,9 @@ Scene_Map.prototype.createJaftingModeWindow = function() {
 };
 
 /**
-* Creates the category selection window used to determine which category of
-* craft-mode or free-mode 
-*/
+ * Creates the category selection window used to determine which category of
+ * craft-mode or free-mode 
+ */
 Scene_Map.prototype.createJaftingCategoryWindow = function() {
   const w = 350;
   const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 60;
@@ -882,12 +878,11 @@ Scene_Map.prototype.createJaftingCategoryWindow = function() {
 Scene_Map.prototype.createJaftingCraftModeWindows = function() {
   this.createJaftingCraftRecipeListWindow();
   this.createJaftingCraftRecipeDetailsWindow();
-  //this._j._jaftingMenu._projectedCraftingResultWindow = null;
 };
 
 /**
-* Creates the window containing the list of recipes available for crafting.
-*/
+ * Creates the window containing the list of recipes available for crafting.
+ */
 Scene_Map.prototype.createJaftingCraftRecipeListWindow = function() {
   const w = 350;
   const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 60;
@@ -904,9 +899,9 @@ Scene_Map.prototype.createJaftingCraftRecipeListWindow = function() {
 };
 
 /**
-* Creates the window containing the recipe details, such as ingredients and tools required
-* and the items it will output on crafting the recipe.
-*/
+ * Creates the window containing the recipe details, such as ingredients and tools required
+ * and the items it will output on crafting the recipe.
+ */
 Scene_Map.prototype.createJaftingCraftRecipeDetailsWindow = function() {
   const w = this._j._jaftingMenu._helpWindow.width - this._j._jaftingMenu._recipeListWindow.width;
   const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 60;
@@ -925,7 +920,6 @@ Scene_Map.prototype.createJaftingCraftRecipeDetailsWindow = function() {
 * Opens up the category window to choose a category to look at recipes for.
 */
 Scene_Map.prototype.chooseJaftingCraftMode = function() {
-  this._j._jaftingMenu._jaftingMode = "craft";
   this.setWindowFocus("craft-mode");
 };
 
@@ -934,15 +928,7 @@ Scene_Map.prototype.chooseJaftingCraftMode = function() {
 * Opens up the items-only window for picking a base item to freestyle off of.
 */
 Scene_Map.prototype.chooseJaftingFreeMode = function() {
-  this._j._jaftingMenu._jaftingMode = "free";
-};
-
-/**
-* The actions to perform when selecting the "refinement" mode.
-* Opens up the equipment-only window for picking a base item to refine further.
-*/
-Scene_Map.prototype.chooseJaftingRefineMode = function() {
-  this._j._jaftingMenu._jaftingMode = "refine";
+  throw new Error("Free mode is not implemented in this version.");
 };
 
 /**
@@ -979,13 +965,6 @@ Scene_Map.prototype.createJaftingFreeModeWindows = function() {
   //this._j._jaftingMenu._freeMixDetailsWindow = null;
 };
 
-Scene_Map.prototype.createJaftingRefinementModeWindows = function() {
-  //this._j._jaftingMenu._recipeListWindow = null;
-  //this._j._jaftingMenu._projectedCraftingResultWindow = null;
-  //this._j._jaftingMenu._ingredientsRequiredWindow = null;
-  //this._j._jaftingMenu._craftCostWindow = null;
-};
-
 /**
 * Extends the `Scene_Map.update()` to include updating these windows as well.
 */
@@ -994,11 +973,7 @@ Scene_Map.prototype.update = function() {
   J.JAFTING.Aliased.Scene_Map.update.call(this);
 
   if ($gameSystem.isRefreshRequested()) {
-    $gameSystem.setRefreshRequest(false);
-    this._j._jaftingMenu._recipeListWindow.refresh();
-    this._j._jaftingMenu._ingredientsRequiredWindow.refresh();
-    this._j._jaftingMenu._categoryWindow.refresh();
-    this.setRecipeDescription();
+    this.refreshJafting();
   }
 
   if ($gameSystem.isJafting()) {
@@ -1009,6 +984,19 @@ Scene_Map.prototype.update = function() {
     this.hideAllJaftingWindows();
     this.showNonJaftingWindows();
   }
+};
+
+/**
+ * Refreshes all windows that could possibly require refreshing when requested.
+ * As an example, if the player gains/loses an item, all windows will need refreshing
+ * to reflect the change in quantity.
+ */
+Scene_Map.prototype.refreshJafting = function() {
+  $gameSystem.setRefreshRequest(false);
+  this._j._jaftingMenu._recipeListWindow.refresh();
+  this._j._jaftingMenu._ingredientsRequiredWindow.refresh();
+  this._j._jaftingMenu._categoryWindow.refresh();
+  this.setRecipeDescription();
 };
 
 /**
@@ -1078,7 +1066,7 @@ Scene_Map.prototype.showNonJaftingWindows = function() {
 };
 
 /**
-* Manages window visibility within the JAFTING menus.
+* Manages window focus within the JAFTING menus.
 * Compare with `Scene_Map.prototype.closeJaftingWindow` to know what close.
 */
 Scene_Map.prototype.manageJaftingMenu = function() {
@@ -1117,9 +1105,9 @@ Scene_Map.prototype.manageJaftingMenu = function() {
 };
 
 /**
-* Toggles the visibility for the help window in the JAFTING menu.
-* @param {boolean} visible Whether or not to show this window.
-*/
+ * Toggles the visibility for the help window in the JAFTING menu.
+ * @param {boolean} visible Whether or not to show this window.
+ */
 Scene_Map.prototype.toggleJaftingHelpWindow = function(visible) {
   if (visible) {
     this._j._jaftingMenu._helpWindow.show();
@@ -1131,9 +1119,9 @@ Scene_Map.prototype.toggleJaftingHelpWindow = function(visible) {
 };
 
 /**
-* Toggles the visibility for the mode selection window in the JAFTING menu.
-* @param {boolean} visible Whether or not to show this window.
-*/
+ * Toggles the visibility for the mode selection window in the JAFTING menu.
+ * @param {boolean} visible Whether or not to show this window.
+ */
 Scene_Map.prototype.toggleJaftingModeWindow = function(visible) {
   if (visible) {
     this._j._jaftingMenu._modeWindow.show();
@@ -1142,16 +1130,16 @@ Scene_Map.prototype.toggleJaftingModeWindow = function(visible) {
   } else {
     this._j._jaftingMenu._modeWindow.close();
     this._j._jaftingMenu._modeWindow.hide();
-    this._j._jaftingMenu._modeWindow.select(0);
     this._j._jaftingMenu._modeWindow.deactivate();
+    this._j._jaftingMenu._modeWindow.select(0);
   }
 };
 
 /**
-* Toggles the visibility for the type selection window in the JAFTING menu
-* for the craft mode.
-* @param {boolean} visible Whether or not to show this window.
-*/
+ * Toggles the visibility for the type selection window in the JAFTING menu
+ * for the craft mode.
+ * @param {boolean} visible Whether or not to show this window.
+ */
 Scene_Map.prototype.toggleJaftingCraftTypeWindow = function(visible) {
   if (visible) {
     this._j._jaftingMenu._categoryWindow.show();
@@ -1165,10 +1153,10 @@ Scene_Map.prototype.toggleJaftingCraftTypeWindow = function(visible) {
 };
 
 /**
-* Toggles the visibility for the recipe selection window in the JAFTING menu
-* for the craft mode.
-* @param {boolean} visible Whether or not to show this window.
-*/
+ * Toggles the visibility for the recipe selection window in the JAFTING menu
+ * for the craft mode.
+ * @param {boolean} visible Whether or not to show this window.
+ */
 Scene_Map.prototype.toggleJaftingRecipeListWindow = function(visible) {
   if (visible) {
     this._j._jaftingMenu._recipeListWindow.show();
@@ -1183,10 +1171,10 @@ Scene_Map.prototype.toggleJaftingRecipeListWindow = function(visible) {
 };
 
 /**
-* Toggles the visibility for the recipe details window in the JAFTING menu
-* for the craft mode.
-* @param {boolean} visible Whether or not to show this window.
-*/
+ * Toggles the visibility for the recipe details window in the JAFTING menu
+ * for the craft mode.
+ * @param {boolean} visible Whether or not to show this window.
+ */
 Scene_Map.prototype.toggleJaftingRecipeDetailsWindow = function(visible) {
   if (visible) {
     this._j._jaftingMenu._ingredientsRequiredWindow.show();
@@ -1200,8 +1188,8 @@ Scene_Map.prototype.toggleJaftingRecipeDetailsWindow = function(visible) {
 };
 
 /**
-* Resets the current index of the recipe window to `null`.
-*/
+ * Resets the current index of the recipe window to `null`.
+ */
 Scene_Map.prototype.resetAllIndices = function() {
   this._j._jaftingMenu._modeWindow.currentIndex = null;
   this._j._jaftingMenu._modeWindow.refresh();
@@ -1218,9 +1206,9 @@ Scene_Map.prototype.resetAllIndices = function() {
 };
 
 /**
-* Sets the text of the help window for the mode selection based on
-* the currently selected option.
-*/
+ * Sets the text of the help window for the mode selection based on
+ * the currently selected option.
+ */
 Scene_Map.prototype.determineModeHelpWindowText = function() {
   const index = this._j._jaftingMenu._modeWindow.index();
   // don't update the text if the index matches! (prevents tons of unnecessary updates)
@@ -1253,9 +1241,9 @@ Scene_Map.prototype.determineModeHelpWindowText = function() {
 };
 
 /**
-* Sets the text of the help window for the mode selection based on
-* the currently selected category.
-*/
+ * Sets the text of the help window for the mode selection based on
+ * the currently selected category.
+ */
 Scene_Map.prototype.determineCategoryHelpWindowText = function() {
   const index = this._j._jaftingMenu._categoryWindow.index();
   // don't update the text if the index matches! (prevents tons of unnecessary updates)
@@ -1277,9 +1265,9 @@ Scene_Map.prototype.determineCategoryHelpWindowText = function() {
 };
 
 /**
-* Sets the text of the help window for the mode selection based on
-* the currently selected recipe.
-*/
+ * Sets the text of the help window for the mode selection based on
+ * the currently selected recipe.
+ */
 Scene_Map.prototype.determineRecipeHelpWindowText = function() {
   const index = this._j._jaftingMenu._recipeListWindow.index();
   // don't update the text if the index matches! (prevents tons of unnecessary updates)
@@ -1322,8 +1310,8 @@ Scene_Map.prototype.setRecipeDescription = function() {
 };
 
 /**
-* Hides all windows associated with JAFTING.
-*/
+ * Hides all windows associated with JAFTING.
+ */
 Scene_Map.prototype.hideAllJaftingWindows = function() {
   this.toggleJaftingHelpWindow(false);
   this.toggleJaftingModeWindow(false);
@@ -1334,10 +1322,10 @@ Scene_Map.prototype.hideAllJaftingWindows = function() {
 };
 
 /**
-* Closes a designated window from somewhere within the JAFTING menu.
-* Compare with `Scene_Map.prototype.manageJaftingMenu` to see where the focus goes.
-* @param {string} jaftingWindow The type of window we're closing.
-*/
+ * Closes a designated window from somewhere within the JAFTING menu.
+ * Compare with `Scene_Map.prototype.manageJaftingMenu` to see where the focus goes.
+ * @param {string} jaftingWindow The type of window we're closing.
+ */
 Scene_Map.prototype.closeJaftingWindow = function(jaftingWindow) {
   this.resetAllIndices();
   switch (jaftingWindow) {
@@ -1360,8 +1348,8 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindow) {
 };
 
 /**
-* Closes the entire menu of JAFTING.
-*/
+ * Closes the entire menu of JAFTING.
+ */
 Scene_Map.prototype.closeJaftingMenu = function() {
   this._j._jaftingMenu._modeWindow.closeMenu();
   return;
@@ -1373,8 +1361,8 @@ Scene_Map.prototype.closeJaftingMenu = function() {
 //#region Window objects
 //#region Window_JaftingModeMenu
 /**
-* The mode selection window for JAFTING.
-*/
+ * The mode selection window for JAFTING.
+ */
 class Window_JaftingModeMenu extends Window_HorzCommand {
   /**
   * @constructor
@@ -1391,41 +1379,40 @@ class Window_JaftingModeMenu extends Window_HorzCommand {
   };
 
   /**
-  * Gets the current index that was last assigned of this window.
-  * @returns {number}
-  */
+   * Gets the current index that was last assigned of this window.
+   * @returns {number}
+   */
   get currentIndex() {
     return this._currentIndex;
   };
 
   /**
-  * Sets the current index to a given value.
-  */
+   * Sets the current index to a given value.
+   */
   set currentIndex(index) {
     this._currentIndex = index;
   };
 
   /**
-  * Generate commands for all modes of crafting.
-  */
+   * Generate commands for all modes of crafting.
+   */
   makeCommandList() {
     const hasCategories = $gameSystem.getUnlockedCategories();
     this.addCommand(`Crafting`, `craft-mode`, hasCategories.length, null, 193);
-    this.addCommand(`Refine`, `refine-mode`, false, null, 223); // disabled till implemented.
     this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
     this.addCommand(`Cancel`, `cancel`, true, null, 90);
   };
 
   /**
-  * OVERWRITE Sets the alignment for this command window to be left-aligned.
-  */
+   * OVERWRITE Sets the alignment for this command window to be left-aligned.
+   */
   itemTextAlign() {
     return "left";
   };
 
   /**
-  * Closes the entire JAFTING menu.
-  */
+   * Closes the entire JAFTING menu.
+   */
   closeMenu() {
     if (!this.isClosed()) {
       this.close();
