@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0.1 BASE] The base class for all J plugins.
+ * [v1.0.2 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help
@@ -17,6 +17,9 @@
  * Additionally, most of the note-reading and such takes place here as well.
  * ==============================================================================
  * CHANGELOG:
+ * 
+ * - 1.0.2
+ *    Added an "IconManager" for consistent icon indexing between all my plugins.
  * 
  * - 1.0.1
  *    Updates for new models leveraged by the JAFTING system (refinement).
@@ -407,8 +410,8 @@ TextManager.sparam = function (sParamId) {
     case 3: return "Pharmacy"; //J.Param.PHA_text;
     case 4: return "Magi Reduce"; //J.Param.MCR_text;
     case 5: return "Tech Reduce"; //J.Param.TCR_text;
-    case 6: return "Phys Dmg DOWN"; //J.Param.PDR_text;
-    case 7: return "Magi Dmg DOWN"; //J.Param.MDR_text;
+    case 6: return "Phys Dmg Rate"; //J.Param.PDR_text;
+    case 7: return "Magi Dmg Rate"; //J.Param.MDR_text;
     case 8: return "Light-footed"; //J.Param.FDR_text;
     case 9: return "Experience UP"; //J.Param.EXR_text;
   }
@@ -434,6 +437,97 @@ TextManager.xparam = function (xParamId) {
   }
 };
 //#endregion TextManager
+
+//#region IconManager
+// Assigns icons to B-parameter ID's based on icon number provided in default params.
+class IconManager {
+  /**
+   * The constructor is not designed to be called. 
+   * This is a static class.
+   * @constructor
+   */
+   constructor() { throw new Error("The IconManager is a static class."); };
+
+   /**
+    * Gets the corresponding `iconIndex` for the param.
+    * @param {number} paramId The id of the param.
+    * @returns {number}
+    */
+  static param(paramId) {
+    switch (paramId) {
+      case  0: return 247; // mhp
+      case  1: return 248; // mmp
+      case  2: return 2755; // atk
+      case  3: return 251; // def
+      case  4: return 252; // mat
+      case  5: return 253; // mdf
+      case  6: return 254; // agi
+      case  7: return 255; // luk
+    }
+  };
+
+  /**
+   * Gets the corresponding `iconIndex` for the x-param.
+   * @param {number} paramId The id of the param.
+   * @returns {number}
+   */
+  static xparam(paramId) {
+    switch (paramId) {
+      case  0: return 102; // hit
+      case  1: return  82; // eva
+      case  2: return 127; // cri
+      case  3: return  81; // cev
+      case  4: return  71; // mev
+      case  5: return 222; // mrf
+      case  6: return  15; // cnt
+      case  7: return 2153; // hrg
+      case  8: return 2245; // mrg
+      case  9: return   13; // trg
+    }
+  };
+
+  /**
+   * Gets the corresponding `iconIndex` for the s-param.
+   * @param {number} paramId The id of the param.
+   * @returns {number}
+   */
+  static sparam(paramId) {
+    switch (paramId) {
+      case  0: return  14; // trg (aggro)
+      case  1: return 128; // grd (parry)
+      case  2: return  84; // rec
+      case  3: return 209; // pha
+      case  4: return 189; // mcr (mp reduce)
+      case  5: return 126; // tcr (tp reduce)
+      case  6: return 129; // pdr
+      case  7: return 147; // mdr
+      case  8: return 141; // fdr
+      case  9: return 156; // exr
+    }
+  };
+
+  /**
+   * Gets the corresponding `iconIndex` for the element.
+   * @param {number} paramId The id of the element.
+   * @returns {number}
+   */
+  static elementIcon(elementId) {
+    switch(elementId) {
+      case 0: return 127;
+      case 1: return 912;
+      case 2: return 913;
+      case 3: return 914;
+      case 4: return 915;
+      case 5: return 916;
+      case 6: return 917;
+      case 7: return 918;
+      case 8: return 919;
+      case 9: return 920;
+    }
+  };
+  
+};
+//#endregion IconManager
 //#endregion Static objects
 
 //#region Game objects
