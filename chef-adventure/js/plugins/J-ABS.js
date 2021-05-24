@@ -6557,9 +6557,8 @@ class Game_BattleMap {
    */
   updateNonPlayerBattlers() {
     const player = $gameBattleMap.getPlayerMapBattler();
-    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 20);
+    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 10);
 
-    //const battlers = $gameMap.getBattlers();
     visibleBattlers.forEach(battler => {
       battler.update();
       if (battler.getBattler().isDead() && !battler.isDying()) {
@@ -6576,6 +6575,8 @@ class Game_BattleMap {
    */
   updateActions() {
     const actionEvents = this._actionEvents;
+    if (!actionEvents.length) return;
+
     actionEvents.forEach(action => {
       // if the duration of the action expires, remove it.
       action.countdownDuration();
@@ -7508,6 +7509,7 @@ class Game_BattleMap {
   handleAutoCounter(battler) {
     // if we don't have anything to auto-counter with, skip it.
     const guardData = battler.getGuardData(Game_Actor.JABS_OFFHAND);
+    if (!guardData) return;
     if (!guardData.canCounter()) return;
 
     // if RNG is within the threshold...

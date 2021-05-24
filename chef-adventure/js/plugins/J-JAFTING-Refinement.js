@@ -1076,6 +1076,7 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
       }
       $gameMap.requestRefresh();
   }
+  $gameSystem.setRefreshRequest(true);
 };
 
 /**
