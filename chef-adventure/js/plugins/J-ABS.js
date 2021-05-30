@@ -634,8 +634,6 @@ J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['def
 J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
 J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
 
-
-
 // custom data configurations.
 J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['useElementalIcons'] === "true");
 J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
@@ -1674,6 +1672,84 @@ Game_Action.prototype.percDamageReduction = function(base, player) {
   return base;
 };
 
+/**
+ * OVERWRITE Replaces the hitrate formula with a standardized one that
+ * makes it so the default is NOT to miss with half of your swings just
+ * because you don't have +100% hit rate on every single skill.
+ * @returns {number}
+ */
+Game_Action.prototype.itemHit = function() {
+  return (this.item().successRate * 0.01 * (this.subject().hit));
+};
+
+/**
+ * OVERWRITE Alters this functionality to be determined by attacker's hit vs target's evade.
+ * @param {Game_Battler} target The target of this action.
+ * @returns {boolean}
+ */
+Game_Action.prototype.itemEva = function(target) {
+  switch (true) {
+    case (this.isPhysical()): return target.eva;
+    case (this.isMagical()): return target.mev;
+    default: return 0;
+  }
+};
+
+/**
+ * OVERWRITE Adjusts how a skill is applied against the target in the context of JABS.
+ */
+J.ABS.Aliased.Game_Action.apply = Game_Action.prototype.apply;
+Game_Action.prototype.apply = function(target) {
+  if ($gameBattleMap._absEnabled) {
+    this.applySkill(target);
+  } else {
+    J.ABS.Aliased.Game_Action.apply.call(this, target);
+  }
+};
+
+/**
+ * Applies a skill against the target.
+ * This is effectively Game_Action.apply, but with some adjustments to accommodate
+ * the fact that we're using this in an action battle system instead.
+ * 
+ * "Missed" is no longer a possibility. It is false 100% of the time. Missing in
+ * an ABS means your action didn't connect, not some RNGesus chance. However, you
+ * can still be evaded if the target's evasion is high enough.
+ * @param {Game_Battler} target The target the skill is being applied to.
+ */
+Game_Action.prototype.applySkill = function(target) {
+  const result = target.result();
+  this.subject().clearResult();
+  result.clear();
+  result.used = this.testApply(target);
+  result.evaded = !this.calculateHitSuccess(target);
+  result.physical = this.isPhysical();
+  result.drain = this.isDrain();
+  if (result.isHit()) {
+      if (this.item().damage.type > 0) {
+        result.critical = Math.random() < this.itemCri(target);
+        const value = this.makeDamageValue(target, result.critical);
+        this.executeDamage(target, value);
+      }
+
+      this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
+      this.applyItemUserEffect(target);
+  }
+  this.updateLastTarget(target);
+};
+
+/**
+ * Calculates whether or not the attacker was precise enough to land the hit.
+ * If this returns false, the result is that the skill was evaded.
+ * @param {Game_Battler} target The target the skill is being applied to.
+ * @returns {boolean}
+ */
+Game_Action.prototype.calculateHitSuccess = function(target) {
+  const hitRate = Math.random() + this.itemHit();
+  const evadeRate = this.itemEva(target);
+  const success = (hitRate - evadeRate) > 0;
+  return success;
+};
 //#endregion
 
 //#region Game_ActionResult
