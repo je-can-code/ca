@@ -394,6 +394,20 @@ function Game_Time() { this.initialize(...arguments) };
 Game_Time.prototype = {};
 Game_Time.prototype.constructor = Game_Time;
 
+//#region statics
+/**
+ * A static representation of the tones for each time of day.
+ */
+Game_Time.toneOfDay = {
+  Night: [-100, -100, -30, 100],
+  Dawn: [-30, -15, 15, 64],
+  Morning: [0, 0, 0, 0],
+  Afternoon: [10, 10, 10, 10],
+  Evening: [0, -30, -30, -30],
+  Twilight: [-68, -68, 0, 68],
+};
+//#endregion statics
+
 /**
  * Initializes the members of this class.
  */
@@ -580,7 +594,18 @@ Game_Time.prototype.getNeedsToneChange = function() {
     return false;
   }
 
-  //! TODO: add check for gameMap having tag that says don't change tone ever.
+  // if we don't have a map to inspect, don't try to interpret it.
+  if (!$dataMap || !$dataMap.meta) {
+    console.log("no datamap to inspect.");
+    return false;
+  }
+
+  // if there is a tag on the map that specifies not to change the tone, then don't.
+  if ($dataMap.meta["noToneChange"]) {
+    console.log("no tone change on this map.");
+    return false;
+  }
+
   return this._needsToneChange;
 };
 
@@ -618,18 +643,6 @@ Game_Time.prototype.updateCurrentTone = function() {
     return;
   };
 
-  // if we don't have a map to inspect, don't try to interpret it.
-  if (!$dataMap || !$dataMap.meta) {
-    console.log("no datamap to inspect.");
-    return;
-  }
-
-  // if there is a tag on the map that specifies not to change the tone, then don't.
-  if ($dataMap.meta["noToneChange"]) {
-    console.log("no tone change on this map.");
-    return;
-  }
-
   // if we reached this point, then grab the target tone 
   const tone = this.translateHourToTone();
   if (!this.isSameTone(tone)) {
@@ -644,7 +657,7 @@ Game_Time.prototype.updateCurrentTone = function() {
  * Tone is represented as whole numbers in an array: `[red, green, blue, grey]`.
  * For example: `[100, -50, 0, 0]`. `Grey` must be between 0 and 255, while the rest can
  * be between -255 and 255.
- * @returns {number[]}
+ * @returns {[number, number, number, number]}
  */
 Game_Time.prototype.translateHourToTone = function() {
   const hours = J.TIME.Metadata.UseRealTime
@@ -653,44 +666,104 @@ Game_Time.prototype.translateHourToTone = function() {
   let tone = [0, 0, 0, 0];
   switch (hours) {
     case  0: // night
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, 0.25);
+      break;
     case  1: // night
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, 0.50);
+      break;
     case  2: // night
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, 0.75);
+      break;
     case  3: // night
-      tone = [-100, -100, -30, 100];
+      tone = Game_Time.toneOfDay.Night;
       break;
     case  4: // dawn
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, 0.25);
+      break;
     case  5: // dawn
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, 0.50);
+      break;
     case  6: // dawn
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, 0.75);
+      break;
     case  7: // dawn
-      tone = [-30, -15, 15, 64];
+      tone = Game_Time.toneOfDay.Dawn;
       break;
     case  8: // morning
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, 0.25);
+      break;
     case  9: // morning
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, 0.50);
+      break;
     case 10: // morning
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, 0.75);
+      break;
     case 11: // morning
-      tone = [0, 0, 0, 0];
+      tone = Game_Time.toneOfDay.Morning;
       break;
     case 12: // afternoon
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, 0.25);
+      break;
     case 13: // afternoon
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, 0.50);
+      break;
     case 14: // afternoon
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, 0.75);
+      break;
     case 15: // afternoon
-      tone = [10, 10, 10, 10];
+      tone = Game_Time.toneOfDay.Afternoon;
       break;
     case 16: // evening
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, 0.25);
+      break;
     case 17: // evening
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, 0.50);
+      break;
     case 18: // evening
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, 0.75);
+      break;
     case 19: // evening
-      tone = [0, -30, -30, -30];
+      tone = Game_Time.toneOfDay.Evening;
       break;
     case 20: // twilight
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, 0.25);
+      break;
     case 21: // twilight
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, 0.50);
+      break;
     case 22: // twilight
+      tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, 0.75);
+      break;
     case 23: // twilight
-      tone = [-68, -68, 0, 68];
+      tone = Game_Time.toneOfDay.Twilight;
       break;
   }
 
   return tone;
+};
+
+/**
+ * Calculates the tone that is a percentage of the way between two tones.
+ * 
+ * Order is important here, as we are calculating a percent of the way from
+ * the first tone to the second tone.
+ * @param {[number, number, number, number]} tone1 The starting tone.
+ * @param {[number, number, number, number]} tone2 The next tone.
+ * @param {number} rate The decimal rate of which we are transitioning to.
+ * @returns {[number, number, number, number]}
+ */
+Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate) {
+  const diff = (a, b) => a > b ? a - b : b - a;
+  const newTone = [];
+  tone1.forEach((color1, index) => {
+    const color2 = tone2[index];
+    const diffToNext = diff(color1, color2);
+    const partial = Math.round(diffToNext * rate);
+    const newRgbValue = color2 > color1 ? color1 + partial : color1 - partial;
+    newTone.push(newRgbValue);
+  });
+
+  return newTone;
 };
 
 /**
@@ -714,7 +787,7 @@ Game_Time.prototype.isSameTone = function(targetTone) {
  * Processes the screen's tone change.
  */
 Game_Time.prototype.processToneChange = function() {
-  $gameScreen.startTint(this._currentTone, 180);
+  $gameScreen.startTint(this._currentTone, 30);
 };
 
 /**
