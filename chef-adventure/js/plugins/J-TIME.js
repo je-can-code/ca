@@ -48,6 +48,15 @@
  * @off Disallow
  * @default true
  * 
+ * @param useVariableAssignment
+ * @parent BASEconfigs
+ * @type boolean
+ * @text Auto-assign Variables
+ * @desc Assign all components of the time to variables.
+ * @on Assign to Variables
+ * @off Do Nothing
+ * @default true
+ * 
  * @param ARTIFICIALconfigs
  * @text ARTIFICAL CONFIGS
  * 
@@ -162,6 +171,8 @@
  * 
  * 
  * 
+ * 
+ * 
  * @command showMapTime
  * @text Show TIME on Map
  * @desc Shows the TIME window on the map.
@@ -207,6 +218,7 @@ J.TIME.PluginParameters = PluginManager.parameters(J.TIME.Metadata.Name);
 J.TIME.Metadata.StartEnabled = J.TIME.PluginParameters['startEnabled'] === "true";
 J.TIME.Metadata.UseRealTime = J.TIME.PluginParameters['useRealTime'] === "true";
 J.TIME.Metadata.ChangeToneByTime = J.TIME.PluginParameters['changeToneByTime'] === "true";
+J.TIME.Metadata.UseVariableAssignment = J.TIME.PluginParameters['useVariableAssignment'] === "true";
 J.TIME.Metadata.FramesPerTick = Number(J.TIME.PluginParameters['framesPerTick']);
 
 J.TIME.Metadata.StartingSecond = Number(J.TIME.PluginParameters['startingSecond']);
@@ -785,9 +797,14 @@ Game_Time.prototype.isSameTone = function(targetTone) {
 
 /**
  * Processes the screen's tone change.
+ * @param {boolean} skip If true, then there will be no transition time. Defaults to false.
  */
-Game_Time.prototype.processToneChange = function() {
-  $gameScreen.startTint(this._currentTone, 30);
+Game_Time.prototype.processToneChange = function(skip = false) {
+  if (skip) {
+    $gameScreen.startTint(this._currentTone, 1);
+  } else {
+    $gameScreen.startTint(this._currentTone, 300);
+  }
 };
 
 /**
@@ -795,11 +812,39 @@ Game_Time.prototype.processToneChange = function() {
  * @returns {Time_Snapshot}
  */
 Game_Time.prototype.currentTime = function() {
+  let timeSnapshot;
   if (J.TIME.Metadata.UseRealTime) {
-    return this.determineRealTime();
+    timeSnapshot = this.determineRealTime();
   } else {
-    return this.determineArtificialTime();
+    timeSnapshot = this.determineArtificialTime();
   }
+
+  // also update the variables with the current time snapshot.
+  this.updateVariables(timeSnapshot);
+  return timeSnapshot;
+};
+
+/**
+ * Assigns the current time to the designated variables.
+ * @param {Time_Snapshot} timeSnapshot The current time to update.
+ */
+Game_Time.prototype.updateVariables = function(timeSnapshot) {
+  // if they haven't chosen to use variable assignment, then don't do that.
+  if (!J.TIME.Metadata.UseVariableAssignment) {
+    return;
+  }
+
+  // assign all them values to their variables.
+  $gameVariables.setValue(121, timeSnapshot.seconds);
+  $gameVariables.setValue(122, timeSnapshot.minutes);
+  $gameVariables.setValue(123, timeSnapshot.hours);
+  $gameVariables.setValue(124, timeSnapshot.days);
+  $gameVariables.setValue(125, timeSnapshot.months);
+  $gameVariables.setValue(126, timeSnapshot.years);
+  $gameVariables.setValue(127, timeSnapshot._timeOfDayId);
+  $gameVariables.setValue(128, timeSnapshot.timeOfDayName);
+  $gameVariables.setValue(129, timeSnapshot._seasonOfYearId);
+  $gameVariables.setValue(130, timeSnapshot.seasonOfTheYearName);
 };
 
 /**
