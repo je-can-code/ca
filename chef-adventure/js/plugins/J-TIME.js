@@ -20,13 +20,22 @@
  * @param BASEconfigs
  * @text BASE SETUP
  * 
- * @param startEnabled
+ * @param startVisible
  * @parent BASEconfigs
  * @type boolean
- * @text Start Enabled
+ * @text Start Visible
  * @desc Begins the game with the time window visible.
- * @on Start Enabled
- * @off Start Disabled
+ * @on Start Visible
+ * @off Start Invisible
+ * @default true
+ * 
+ * @param startActivated
+ * @parent BASEconfigs
+ * @type boolean
+ * @text Start Activated
+ * @desc Begins the game with TIME active and flowing.
+ * @on Start Activated
+ * @off Start Deactivated
  * @default true
  * 
  * @param useRealTime
@@ -56,6 +65,80 @@
  * @on Assign to Variables
  * @off Do Nothing
  * @default true
+ * 
+ * @param VARIABLEconfigs
+ * @parent BASEconfigs
+ * @text VARIABLE CONFIGS
+ * 
+ * @param secondsVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Seconds Variable
+ * @desc The variable id the seconds value will be assigned to.
+ * @default 121
+ * 
+ * @param minutesVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Minutes Variable
+ * @desc The variable id the minutes value will be assigned to.
+ * @default 122
+ * 
+ * @param hoursVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Hours Variable
+ * @desc The variable id the hours value will be assigned to.
+ * @default 123
+ * 
+ * @param daysVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Days Variable
+ * @desc The variable id the days value will be assigned to.
+ * @default 124
+ * 
+ * @param monthsVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Months Variable
+ * @desc The variable id the months value will be assigned to.
+ * @default 125
+ * 
+ * @param yearsVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Years Variable
+ * @desc The variable id the years value will be assigned to.
+ * @default 126
+ * 
+ * @param timeOfDayIdVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Time of Day Id Variable
+ * @desc The variable id the time of the day's name will be assigned to.
+ * @default 127
+ * 
+ * @param timeOfDayNameVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Time of Day Name Variable
+ * @desc The variable id the time of the day's name will be assigned to.
+ * @default 128
+ * 
+ * @param seasonOfYearIdVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Season of Year Id Variable
+ * @desc The variable id the season of the year's id will be assigned to.
+ * @default 129
+ * 
+ * @param seasonOfYearNameVariable
+ * @parent VARIABLEconfigs
+ * @type variable
+ * @text Season of Year Name Variable
+ * @desc The variable id the season of the year's name will be assigned to.
+ * @default 130
  * 
  * @param ARTIFICIALconfigs
  * @text ARTIFICAL CONFIGS
@@ -123,6 +206,7 @@
  * @param secondsPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Seconds per Tick
  * @desc The number of seconds that are incremented per tick.
  * Also affects direct time manipulation for seconds.
@@ -131,6 +215,7 @@
  * @param minutesPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Minutes per Tock
  * @desc The number of minutes that are incremented per tock.
  * Also affects direct time manipulation for minutes.
@@ -139,6 +224,7 @@
  * @param hoursPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Hours per Tock
  * @desc The number of hours that are incremented per tock.
  * Also affects direct time manipulation for hours.
@@ -147,6 +233,7 @@
  * @param daysPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Days per Tock
  * @desc The number of days that are incremented per tock.
  * Also affects direct time manipulation for days.
@@ -155,6 +242,7 @@
  * @param monthsPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Months per Tock
  * @desc The number of months that are incremented per tock.
  * Also affects direct time manipulation for months.
@@ -163,6 +251,7 @@
  * @param yearsPerIncrement
  * @parent ARTIFICIALconfigs
  * @type number
+ * @min 1
  * @text Years per Tock
  * @desc The number of years that are incremented per tock.
  * Also affects direct time manipulation for years.
@@ -170,8 +259,74 @@
  * 
  * 
  * 
+ * @command setTime
+ * @text Set Time
+ * @desc Sets the time to a fixed time; only applicable to artificial time.
+ * @arg Second
+ * @type number
+ * @max 59
+ * @arg Minute
+ * @type number
+ * @max 59
+ * @arg Hour
+ * @type number
+ * @max 12
+ * @arg Day
+ * @type number
+ * @min 1
+ * @max 30
+ * @arg Month
+ * @type number
+ * @min 1
+ * @max 12
+ * @default 1
+ * @arg Year
+ * @type number
+ * @default 2021
  * 
+ * @command fastForwardtime
+ * @text Fast Forward Time
+ * @desc Fast forwards time by a designated amount; only applicable to artificial time.
+ * @arg Second
+ * @type number
+ * @default 0
+ * @arg Minute
+ * @type number
+ * @default 0
+ * @arg Hour
+ * @type number
+ * @default 0
+ * @arg Day
+ * @type number
+ * @default 0
+ * @arg Month
+ * @type number
+ * @default 0
+ * @arg Year
+ * @type number
+ * @default 0
  * 
+ * @command rewindTime
+ * @text Rewind Time
+ * @desc Rewinds time by a designated amount; only applicable to artificial time.
+ * @arg Second
+ * @type number
+ * @default 0
+ * @arg Minute
+ * @type number
+ * @default 0
+ * @arg Hour
+ * @type number
+ * @default 0
+ * @arg Day
+ * @type number
+ * @default 0
+ * @arg Month
+ * @type number
+ * @default 0
+ * @arg Year
+ * @type number
+ * @default 0
  * 
  * @command showMapTime
  * @text Show TIME on Map
@@ -180,6 +335,14 @@
  * @command hideMapTime
  * @text Hide TIME on Map
  * @desc Hides the TIME window on the map.
+ * 
+ * @command stopTime
+ * @text Stop TIME
+ * @desc Stops the flow of time; only applicable to artificial time.
+ * 
+ * @command startTime
+ * @text Start TIME
+ * @desc Starts the flow of time; only applicable to artificial time.
  * 
  */
 
@@ -215,10 +378,23 @@ J.TIME.Metadata.Name = `J-TIME`;
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.TIME.PluginParameters = PluginManager.parameters(J.TIME.Metadata.Name);
-J.TIME.Metadata.StartEnabled = J.TIME.PluginParameters['startEnabled'] === "true";
+J.TIME.Metadata.StartVisible = J.TIME.PluginParameters['startVisible'] === "true";
+J.TIME.Metadata.StartActivated = J.TIME.PluginParameters['startActivated'] === "true";
 J.TIME.Metadata.UseRealTime = J.TIME.PluginParameters['useRealTime'] === "true";
 J.TIME.Metadata.ChangeToneByTime = J.TIME.PluginParameters['changeToneByTime'] === "true";
 J.TIME.Metadata.UseVariableAssignment = J.TIME.PluginParameters['useVariableAssignment'] === "true";
+
+J.TIME.Metadata.SecondsVariable = Number(J.TIME.PluginParameters['secondsVariable']);
+J.TIME.Metadata.MinutesVariable = Number(J.TIME.PluginParameters['minutesVariable']);
+J.TIME.Metadata.HoursVariable = Number(J.TIME.PluginParameters['hoursVariable']);
+J.TIME.Metadata.DaysVariable = Number(J.TIME.PluginParameters['daysVariable']);
+J.TIME.Metadata.MonthsVariable = Number(J.TIME.PluginParameters['monthsVariable']);
+J.TIME.Metadata.YearsVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+J.TIME.Metadata.TimeOfDayIdVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+J.TIME.Metadata.TimeOfDayNameVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+J.TIME.Metadata.SeasonOfYearIdVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+J.TIME.Metadata.SeasonOfYearNameVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+
 J.TIME.Metadata.FramesPerTick = Number(J.TIME.PluginParameters['framesPerTick']);
 
 J.TIME.Metadata.StartingSecond = Number(J.TIME.PluginParameters['startingSecond']);
@@ -256,6 +432,61 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "hideMapTime", () => {
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "showMapTime", () => {
   $gameTime.showMapWindow();
+});
+
+/**
+ * Plugin command for setting the time to a new point in time.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args => {
+  const { Second, Minute, Hour, Day, Month, Year } = args;
+  $gameTime.setTime(
+    parseInt(Second),
+    parseInt(Minute),
+    parseInt(Hour),
+    parseInt(Day),
+    parseInt(Month),
+    parseInt(Year)
+  );
+});
+
+/**
+ * Plugin command for fast-forwarding time by a designated amount.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args => {
+  const { Second, Minute, Hour, Day, Month, Year } = args;
+  $gameTime.addSeconds(parseInt(Second));
+  $gameTime.addMinutes(parseInt(Minute));
+  $gameTime.addHours(parseInt(Hour));
+  $gameTime.addDays(parseInt(Day));
+  $gameTime.addMonths(parseInt(Month));
+  $gameTime.addYears(parseInt(Year));
+});
+
+/**
+ * Plugin command for rewinding time by a designated amount.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args => {
+  const { Second, Minute, Hour, Day, Month, Year } = args;
+  $gameTime.addSeconds(-parseInt(Second));
+  $gameTime.addMinutes(-parseInt(Minute));
+  $gameTime.addHours(-parseInt(Hour));
+  $gameTime.addDays(-parseInt(Day));
+  $gameTime.addMonths(-parseInt(Month));
+  $gameTime.addYears(-parseInt(Year));
+});
+
+/**
+ * Plugin command for hiding the TIME window on the map.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "stopTime", () => {
+  $gameTime.deactivate();
+});
+
+/**
+ * Plugin command for showing the TIME window on the map.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "startTime", () => {
+  $gameTime.activate();
 });
 
 /**
@@ -321,7 +552,11 @@ Scene_Base.prototype.update = function() {
  */
 Scene_Base.prototype.shouldUpdateTime = function() {
   const noTimeScenes = [Scene_Boot, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover];
-  return !noTimeScenes.some(scene => SceneManager._scene instanceof scene);
+  const checkIfNoTimeScene = scene => SceneManager._scene instanceof scene;
+  const isNoTimeScene = !noTimeScenes.some(checkIfNoTimeScene);
+  const isTimeActive = $gameTime.isActive();
+
+  return isNoTimeScene && isTimeActive;
 };
 //#endregion Scene_Base
 
@@ -342,6 +577,7 @@ Scene_Map.prototype.initialize = function() {
 Scene_Map.prototype.initTimeWindow = function() {
   /**
    * The window that displays the current time, real or artificial.
+   * @type {Window_Time}
    */
   this._j._timeWindow = null;
 };
@@ -530,7 +766,13 @@ Game_Time.prototype.initialize = function() {
    * Whether or not the time window is visible on the map.
    * @type {boolean}
    */
-  this._visible = this._visible ?? J.TIME.Metadata.StartEnabled;
+  this._visible = this._visible ?? (J.TIME.Metadata.StartVisible);
+
+  /**
+   * Whether or not time is currently flowing.
+   * @type {boolean}
+   */
+  this._active = this._active ?? J.TIME.Metadata.StartActivated;
   this.updateCurrentTone();
 };
 
@@ -548,6 +790,28 @@ Game_Time.prototype.getTickSpeed = function() {
  */
 Game_Time.prototype.isMapWindowVisible = function() {
   return this._visible;
+};
+
+/**
+ * Gets whether or not time is actively flowing right now.
+ * @returns {boolean}
+ */
+Game_Time.prototype.isActive = function() {
+  return this._active;
+};
+
+/**
+ * Deactivates TIME. Time will stop flowing if it wasn't already stopped.
+ */
+Game_Time.prototype.deactivate = function() {
+  this._active = false;
+};
+
+/**
+ * Activates TIME. Time will now start flowing if it wasn't already started.
+ */
+Game_Time.prototype.activate = function() {
+  this._active = true;
 };
 
 /**
@@ -835,16 +1099,16 @@ Game_Time.prototype.updateVariables = function(timeSnapshot) {
   }
 
   // assign all them values to their variables.
-  $gameVariables.setValue(121, timeSnapshot.seconds);
-  $gameVariables.setValue(122, timeSnapshot.minutes);
-  $gameVariables.setValue(123, timeSnapshot.hours);
-  $gameVariables.setValue(124, timeSnapshot.days);
-  $gameVariables.setValue(125, timeSnapshot.months);
-  $gameVariables.setValue(126, timeSnapshot.years);
-  $gameVariables.setValue(127, timeSnapshot._timeOfDayId);
-  $gameVariables.setValue(128, timeSnapshot.timeOfDayName);
-  $gameVariables.setValue(129, timeSnapshot._seasonOfYearId);
-  $gameVariables.setValue(130, timeSnapshot.seasonOfTheYearName);
+  $gameVariables.setValue(J.TIME.Metadata.SecondsVariable, timeSnapshot.seconds);
+  $gameVariables.setValue(J.TIME.Metadata.MinutesVariable, timeSnapshot.minutes);
+  $gameVariables.setValue(J.TIME.Metadata.HoursVariable, timeSnapshot.hours);
+  $gameVariables.setValue(J.TIME.Metadata.DaysVariable, timeSnapshot.days);
+  $gameVariables.setValue(J.TIME.Metadata.MonthsVariable, timeSnapshot.months);
+  $gameVariables.setValue(J.TIME.Metadata.YearsVariable, timeSnapshot.years);
+  $gameVariables.setValue(J.TIME.Metadata.TimeOfDayIdVariable, timeSnapshot._timeOfDayId);
+  $gameVariables.setValue(J.TIME.Metadata.TimeOfDayNameVariable, timeSnapshot.timeOfDayName);
+  $gameVariables.setValue(J.TIME.Metadata.SeasonOfYearIdVariable, timeSnapshot._seasonOfYearId);
+  $gameVariables.setValue(J.TIME.Metadata.SeasonOfYearNameVariable, timeSnapshot.seasonOfTheYearName);
 };
 
 /**
@@ -933,6 +1197,24 @@ Game_Time.prototype.seasonOfYear = function(months) {
     default:
       return -1;
   }
+};
+
+/**
+ * Sets the time to a fixed point.
+ * @param {number} seconds The new second.
+ * @param {number} minutes The new minute.
+ * @param {number} hours The new hour.
+ * @param {number} days The new day.
+ * @param {number} months The new month.
+ * @param {number} years The new year.
+ */
+Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, years) {
+  this._seconds = seconds;
+  this._minutes = minutes;
+  this._hours = hours;
+  this._days = days;
+  this._months = months;
+  this._years = years;
 };
 
 /**
@@ -1102,6 +1384,10 @@ class Window_Time extends Window_Base {
    */
   update() {
     super.update();
+
+    // don't actually update rendering the time if time isn't active.
+    if (!$gameTime.isActive()) return;
+
     this._frames++;
     if (this._frames % $gameTime.getTickSpeed() === 0) {
       this.refresh();
@@ -1118,8 +1404,6 @@ class Window_Time extends Window_Base {
    */
   refresh() {
     this.time = $gameTime.currentTime();
-
-    // redraw all the contents.
     this.contents.clear();
     this.drawContent();
   };
