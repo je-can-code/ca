@@ -257,7 +257,25 @@
  * Also affects direct time manipulation for years.
  * @default 1
  * 
- * 
+ * @command jumpToTimeOfDay
+ * @text Jump to Time of Day
+ * @desc Jumps to the next instance of a particular time of day, such as morning or night.
+ * @arg TimeOfDay
+ * @type select
+ * @desc Use the dropdown to select a time of day to jump to.
+ * This will jump to the next day rather than rewind.
+ * @option Night (00:00am aka midnight)
+ * @value 0
+ * @option Dawn (04:00am)
+ * @value 1
+ * @option Morning (08:00am)
+ * @value 2
+ * @option Afternoon (12:00pm aka noon)
+ * @value 3
+ * @option Evening (16:00pm)
+ * @value 4
+ * @option Twilight (20:00pm)
+ * @value 5
  * 
  * @command setTime
  * @text Set Time
@@ -476,6 +494,14 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args => {
 });
 
 /**
+ * Plugin command for jumping to the next instance of a particular time of day.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "jumpToTimeOfDay", args => {
+  const { TimeOfDay } = args;
+  $gameTime.jumpToTimeOfDay(parseInt(TimeOfDay));
+});
+
+/**
  * Plugin command for hiding the TIME window on the map.
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "stopTime", () => {
@@ -555,8 +581,9 @@ Scene_Base.prototype.shouldUpdateTime = function() {
   const checkIfNoTimeScene = scene => SceneManager._scene instanceof scene;
   const isNoTimeScene = !noTimeScenes.some(checkIfNoTimeScene);
   const isTimeActive = $gameTime.isActive();
+  const isTimeUnblocked = !$gameTime.isBlocked();
 
-  return isNoTimeScene && isTimeActive;
+  return isNoTimeScene && isTimeActive && isTimeUnblocked;
 };
 //#endregion Scene_Base
 
@@ -628,6 +655,34 @@ Scene_Map.prototype.manageTimeVisibility = function() {
   } else {
     this._j._timeWindow.close();
     this._j._timeWindow.hide();
+  }
+};
+
+/**
+ * Extends the `Scene_Map.onMapLoaded()` function to handle blocking/unblocking by tag.
+ */
+J.TIME.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+Scene_Map.prototype.onMapLoaded = function() {
+  if (this._transfer) {
+    this.blockIfTagged();
+  }
+
+  J.TIME.Aliased.Scene_Map.onMapLoaded.call(this);
+};
+
+/**
+ * Blocks the flow of time if the target map is tagged with the specified tag.
+ */
+Scene_Map.prototype.blockIfTagged = function() {
+  if ($dataMap.meta['timeBlock']) {
+    console.log('Time is blocked on this map.');
+    $gameTime.block();
+  } else {
+    if ($gameTime.isBlocked()) {
+      console.log('Time is no longer blocked..');
+    }
+
+    $gameTime.unblock();
   }
 };
 //#endregion Scene_Map
@@ -773,6 +828,12 @@ Game_Time.prototype.initialize = function() {
    * @type {boolean}
    */
   this._active = this._active ?? J.TIME.Metadata.StartActivated;
+
+  /**
+   * Whether or not time is blocked from flowing for some predetermined reason.
+   * @type {boolean}
+   */
+  this._blocked = this._blocked ?? false;
   this.updateCurrentTone();
 };
 
@@ -812,6 +873,28 @@ Game_Time.prototype.deactivate = function() {
  */
 Game_Time.prototype.activate = function() {
   this._active = true;
+};
+
+/**
+ * Gets whether or not TIME is blocked from flowing.
+ * @returns {boolean}
+ */
+Game_Time.prototype.isBlocked = function() {
+  return this._blocked;
+};
+
+/**
+ * Blocks time and prevents it from flowing regardless of previous flow.
+ */
+Game_Time.prototype.block = function() {
+  this._blocked = true;
+};
+
+/**
+ * Unblocks time and allows it to return to it's previous flow.
+ */
+Game_Time.prototype.unblock = function() {
+  this._blocked = false;
 };
 
 /**
@@ -1177,6 +1260,15 @@ Game_Time.prototype.timeOfDay = function(hours) {
 };
 
 /**
+ * Determines when the (hour) start of a given time of day is.
+ * @param {number} timeOfDayId The id of the time of day.
+ * @returns 
+ */
+Game_Time.prototype.startOfTimeOfDay = function(timeOfDayId) {
+  return (timeOfDayId * 4);
+};
+
+/**
  * Translates the current month into the season of the year id.
  * @returns {number}
  */
@@ -1215,6 +1307,31 @@ Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, ye
   this._days = days;
   this._months = months;
   this._years = years;
+};
+
+/**
+ * Fast forwards to the next instance of a specific time of day.
+ * 
+ * If the current time of day IS the target time of day, it will instead skip
+ * to the following day's time of day.
+ * @param {number} targetTimeOfDayId The target time of day's id.
+ */
+Game_Time.prototype.jumpToTimeOfDay = function(targetTimeOfDayId) {
+  const currentTimeOfDay = this.timeOfDay(this._hours);
+  let timeUntilTargetTimeOfDay = 0;
+
+  if (currentTimeOfDay >= targetTimeOfDayId) {
+    const timeToEndOfDay = 24 - this._hours;
+    const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
+    timeUntilTargetTimeOfDay = timeToEndOfDay + startingHourTargetTimeOfday
+  } else {
+    const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
+    timeUntilTargetTimeOfDay = startingHourTargetTimeOfday - this._hours;
+  }
+
+  this.addHours(timeUntilTargetTimeOfDay);
+  this._seconds = 0;
+  this._minutes = 0;
 };
 
 /**
@@ -1386,7 +1503,7 @@ class Window_Time extends Window_Base {
     super.update();
 
     // don't actually update rendering the time if time isn't active.
-    if (!$gameTime.isActive()) return;
+    if (!$gameTime.isActive() || $gameTime.isBlocked()) return;
 
     this._frames++;
     if (this._frames % $gameTime.getTickSpeed() === 0) {
