@@ -11,6 +11,110 @@
  * various components of the game based on the time.
  * 
  * 	Temporally Integrated Monitoring of Ecosystems- aka TIME.
+ * 
+ * ==============================================================================
+ * This plugin enables a TIME system. The TIME system functions much like you'd
+ * expect: it tracks TIME. This TIME however, is configurable in many ways that
+ * regular time is not.
+ * 
+ * There are two forms of time-keeping, real and artificial.
+ * 
+ * REAL TIME
+ * Real time acts much like you'd expect: it reads the client's computer's time
+ * and updates every half of a second to keep in sync with real time. All of
+ * the features surrounding this TIME system (relating to time of day or seasons)
+ * operate the same as artificial, but based on real time.
+ * 
+ * ARTIFICIAL TIME
+ * Artificial time acts similar to real time, but instead of reading the time
+ * from your computer, it starts at a designated point that you specify and ticks
+ * ever forward. The rate at which time ticks forward defaults to 60 frames per
+ * second, but you can reduce that if you want time to pass faster. Alternatively
+ * (or in addition to), you can also adjust the amount of time that passes per
+ * "tock". A "tock" is defined as "on-increment", so for example, when the second
+ * counter increments past 59 to 60, you would expect the minutes to go up by 1.
+ * That incrementing is a "tock", that is defined by you. You can define how much
+ * that increment is for each unit of time: seconds, minutes, hours, days,
+ * months, and years. I would encourage this be explored before tweaking the
+ * defaults.
+ * 
+ * TIME OF DAY
+ * Additionally, this system tracks "time of day". "Time of Day" is defined as
+ * a block of time (measured in hours) that is named.
+ * There are six of these blocks of time that make up a day:
+ * - Night (00:00am - 03:59am)
+ * - Dawn (04:00am - 7:59am)
+ * - Morning (08:00am - 11:59am)
+ * - Afternoon (12:00pm - 15:59pm)
+ * - Evening (16:00pm - 19:59pm)
+ * - Twilight (20:00pm - 23:59pm)
+ * 
+ * Alongside the "time of day" functionality, there is also an optional "tone"
+ * adjustment to alter the screen tone based on "time of day". The tone will
+ * change on the hour. This can be disabled entirely, or with a tag on the map's
+ * notebox:
+ * 
+ * SEASON OF YEAR
+ * Additionally, this system tracks the "season of the year". The "season of
+ * the year" is defined likely much how you think it is: a block of time 
+ * (measured in months) that is named.
+ * - Spring (march, april, may)
+ * - Summer (june, july, august)
+ * - Autumn (september, october, november)
+ * - Winter (december, january, february)
+ * Nothing special happens as months progress, you as the developer can decide
+ * what to do when it is the summer months or the winter months if you want.
+ * 
+ * TAGS
+ * If you want the auto-tone changing, but want it disabled for certain maps,
+ * then you can use this note tag which will cause the system to not change the
+ * tone when transfering to that particular map:
+ * <noToneChange>
+ * 
+ * If you are using artificial TIME, and you need TIME to be stopped for some
+ * reason or another, you can use this tag on a map and while on that map, TIME
+ * will be considered "blocked", where TIME will not flow:
+ * <timeBlock>
+ * 
+ * COMMANDS
+ * There are a number of plugin commands available to manipulate TIME:
+ * - Jump to time of day
+ *   Jumping to a specific time of day may result in skipping a day. This will
+ *   fast-forward to a particular time of day. If that time of day has already
+ *   passed (or it is currently that time of day), the system will proceed to
+ *   the next day's time of day. (common use case is sleeping at an inn till
+ *   morning)
+ * 
+ * - Set Time
+ *   This sets the time to a fixed point in time. This is not relative. You will
+ *   likely need to be cautious when using this particular command.
+ * 
+ * - Fast Forward Time
+ *   This fast-forwards time by a given amount.
+ * 
+ * - Rewind Time
+ *   This rewinds time by a given amount.
+ * 
+ * - Show TIME on Map
+ *   This toggles the TIME window to be visible on the map.
+ * 
+ * - Hide TIME on Map
+ *   This toggles the TIME window to be invisible on the map.
+ *   NOTE: TIME will still pass while the window is hidden.
+ * 
+ * - Stop TIME
+ *   This halts the flow of TIME.
+ *   NOTE: This is not compatible with "real" time. If you use this command with
+ *   real time, it will pause the counting for the duration and pick back up
+ *   with the current time when TIME is unblocked.
+ * 
+ * - Start TIME
+ *   This re-enables the flow of TIME.
+ *   NOTE: This is not compatible with "real" time. If you used the stop command
+ *   to halt real time, when re-enabled, it will pick up wherever it is currently
+ *   which may result in skipping time.
+ * 
+ * 
  * ==============================================================================
  * CHANGELOG:
  * - 1.0.0
