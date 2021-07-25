@@ -38,6 +38,15 @@
  * months, and years. I would encourage this be explored before tweaking the
  * defaults.
  * 
+ * VARIABLES
+ * Unless disabled, both real and artificial TIME will track the various
+ * components of the current TIME in variables, to allow for developing events
+ * revolving around TIME. You can specify in the plugin parameters which variables
+ * you want these to be assigned to. If you do not want one or more of the TIME
+ * components tracked in variable, but do want to leverage the functionality of
+ * variable assignment, then just assign the TIME components that you do not care
+ * about to variable id of 0.
+ * 
  * TIME OF DAY
  * Additionally, this system tracks "time of day". "Time of Day" is defined as
  * a block of time (measured in hours) that is named.
@@ -51,8 +60,11 @@
  * 
  * Alongside the "time of day" functionality, there is also an optional "tone"
  * adjustment to alter the screen tone based on "time of day". The tone will
- * change on the hour. This can be disabled entirely, or with a tag on the map's
- * notebox:
+ * change on the hour. This can be disabled entirely, or selectively with tags.
+ * Keep in mind that, understandably, this does not play nicely with manual
+ * tone-changes from outside this system. If you intend to control the tone
+ * yourself, you should probably disable the tone-change functionality for
+ * those maps.
  * 
  * SEASON OF YEAR
  * Additionally, this system tracks the "season of the year". The "season of
@@ -114,6 +126,13 @@
  *   to halt real time, when re-enabled, it will pick up wherever it is currently
  *   which may result in skipping time.
  * 
+ * - Unlock Screen Tone
+ *   This (re-)allows the TIME system to control screen tone.
+ *   NOTE: This does nothing if the plugin parameters are set to disable screen
+ *   tone changing entirely.
+ * 
+ * - Lock Screen Tone
+ *   This locks the TIME system from controlling the screen tone.
  * 
  * ==============================================================================
  * CHANGELOG:
@@ -466,6 +485,15 @@
  * @text Start TIME
  * @desc Starts the flow of time; only applicable to artificial time.
  * 
+ * @command unlockTone
+ * @text Unlock Screen Tone
+ * @desc Allows the TIME system to control screen tone.
+ * Does nothing if screen tone changing was initially disabled.
+ * 
+ * @command lockTone
+ * @text Lock Screen Tone
+ * @desc Prevents the TIME system from controlling the screen tone.
+ * 
  */
 
 /**
@@ -606,17 +634,32 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "jumpToTimeOfDay", args => {
 });
 
 /**
- * Plugin command for hiding the TIME window on the map.
+ * Plugin command for stopping artificial TIME.
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "stopTime", () => {
   $gameTime.deactivate();
 });
 
 /**
- * Plugin command for showing the TIME window on the map.
+ * Plugin command for resuming artificial TIME.
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "startTime", () => {
   $gameTime.activate();
+});
+
+/**
+ * Plugin command for allowing the TIME system to control the screen tone.
+ * Does nothing if the plugin parameters are set to disable tone changing.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "unlockTone", () => {
+  $gameTime.unlockTone();
+});
+
+/**
+ * Plugin command for locking the TIME system from controlling screen tone.
+ */
+PluginManager.registerCommand(J.TIME.Metadata.Name, "lockTone", () => {
+  $gameTime.lockTone();
 });
 
 /**
@@ -922,10 +965,16 @@ Game_Time.prototype.initialize = function() {
   this._currentTone = [];
 
   /**
+   * Whether or not the tone is able to be changed.
+   * @type {boolean}
+   */
+  this._toneLocked = this._toneLocked ?? !J.TIME.Metadata.ChangeToneByTime;
+
+  /**
    * Whether or not the time window is visible on the map.
    * @type {boolean}
    */
-  this._visible = this._visible ?? (J.TIME.Metadata.StartVisible);
+  this._visible = this._visible ?? J.TIME.Metadata.StartVisible;
 
   /**
    * Whether or not time is currently flowing.
@@ -935,6 +984,8 @@ Game_Time.prototype.initialize = function() {
 
   /**
    * Whether or not time is blocked from flowing for some predetermined reason.
+   * This is typically used for manually stopping artificial time with with
+   * plugin commands.
    * @type {boolean}
    */
   this._blocked = this._blocked ?? false;
@@ -999,6 +1050,28 @@ Game_Time.prototype.block = function() {
  */
 Game_Time.prototype.unblock = function() {
   this._blocked = false;
+};
+
+/**
+ * Gets whether or not the screen tone is currently locked from changing.
+ * @returns {boolean}
+ */
+Game_Time.prototype.isToneLocked = function() {
+  return this._toneLocked;
+};
+
+/**
+ * Locks the screen's tone, preventing it from changing by this system.
+ */
+Game_Time.prototype.lockTone = function() {
+  this._toneLocked = true;
+};
+
+/**
+ * Unlocks the screen's tone, allowing this system to regain control over it.
+ */
+Game_Time.prototype.unlockTone = function() {
+  this._toneLocked = false;
 };
 
 /**
@@ -1100,11 +1173,7 @@ Game_Time.prototype.setCurrentTone = function(newTone) {
  * Updates the screen's tone based on the current time.
  */
 Game_Time.prototype.updateCurrentTone = function() {
-  // if the user decided they don't want to update tones, then don't force them.
-  if (!J.TIME.Metadata.ChangeToneByTime) {
-    console.log("no tone change per plugin configuration.");
-    return;
-  };
+  if (!this.canUpdateTone()) return;
 
   // if we reached this point, then grab the target tone 
   const tone = this.translateHourToTone();
@@ -1113,6 +1182,26 @@ Game_Time.prototype.updateCurrentTone = function() {
     this.setCurrentTone(tone.clone());
     this.setNeedsToneChange(true);
   }
+};
+
+/**
+ * Gets whether or not the screen's tone can be updated.
+ * @returns {boolean}
+ */
+Game_Time.prototype.canUpdateTone = function() {
+  // if the user decided they never want to update tones, then don't force them.
+  if (!J.TIME.Metadata.ChangeToneByTime) {
+    console.log("no tone change per plugin configuration.");
+    return false;
+  }
+
+  // if the tone is locked for control reasons, then don't update it.
+  if (this.isToneLocked()) {
+    console.log("tone is locked from changing per command.");
+    return false;
+  }
+
+  return true;
 };
 
 /**
@@ -1237,7 +1326,7 @@ Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate) {
 Game_Time.prototype.isSameTone = function(targetTone) {
   if (this._currentTone.length < 4) return false;
 
-  // individually compare each array item with the new tone.
+  // individually compare each of the RGBA elements with the new tone's elements.
   if (this._currentTone[0] !== targetTone[0]) return false;
   if (this._currentTone[1] !== targetTone[1]) return false;
   if (this._currentTone[2] !== targetTone[2]) return false;
@@ -1405,6 +1494,9 @@ Game_Time.prototype.seasonOfYear = function(months) {
  * @param {number} years The new year.
  */
 Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, years) {
+  // don't actually set time if using real time, it'll just get reset in 0.5 seconds.
+  if (J.TIME.Metadata.UseRealTime) return;
+
   this._seconds = seconds;
   this._minutes = minutes;
   this._hours = hours;
