@@ -79,6 +79,7 @@ J.BASE.Notetags = {
   Cooldown: "cooldown",
   CounterParry: "counterParry",
   CounterGuard: "counterGuard",
+  Delay: "delay",
   DirectSkill: "direct",
   Duration: "duration",
   FreeCombo: "freeCombo",
@@ -1957,6 +1958,27 @@ class JABS_SkillData {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
   };
+
+  /**
+   * Gets the duration of the delay for this action and whether or not it can be triggered
+   * by colliding with it.
+   * @returns {{duration: number, touchToTrigger: boolean}}
+   */
+  get delay() {
+    let temp = [0, false];
+    if (this._meta && this._meta[J.BASE.Notetags.Delay]) {
+      temp = JSON.parse(this._meta[J.BASE.Notetags.Delay]);
+    } else {
+      const structure = /<delay:[ ]?(\[-?\d+,[ ]?(true|false))\]>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          temp = JSON.parse(RegExp.$1);
+        }
+      });
+    }
+
+    return { duration: parseInt(temp[0]) ?? 0, touchToTrigger: temp[1] };
+  }
 
   /**
    * Gets the bonus aggro this skill generates.
