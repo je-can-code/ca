@@ -6654,8 +6654,20 @@ class Game_BattleMap {
     if (!actionEvents.length) return;
 
     actionEvents.forEach(action => {
+      // decrement the delay timer prior to action countdown.
+      action.countdownDelay();
+      if (!action.triggerOnTouch() && !action.isDelayCompleted()) {
+        // if we aren't done delaying and not triggering by touch,
+        // then stop processing this action.
+        return;
+      }
+
+      // if the delay is completed, decrement the action timer.
+      if (action.isDelayCompleted()) {
+        action.countdownDuration();
+      }
+
       // if the duration of the action expires, remove it.
-      action.countdownDuration();
       if (action.isActionExpired()) {
         this.cleanupAction(action);
         return;
@@ -6681,6 +6693,9 @@ class Game_BattleMap {
         targets.forEach(target => {
           this.applyPrimaryBattleEffects(action, target);
         });
+
+        // if we were delaying, end the delay.
+        action.endDelay();
 
         // if the target can pierce enemies, adjust those values.
         action.resetPiercingDelay();
@@ -12136,7 +12151,8 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
       piercing, 
       projectile, 
       proximity, 
-      direct } = skill._j;
+      direct,
+      delay } = skill._j;
     
     if (aiCooldown > -1) {
       cooldown = aiCooldown;
@@ -12178,6 +12194,7 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
         isBasicAttack,  // whether or not this is a basic attack
         isSupportAction,// whether or not this is a support action
         direct,         // whether or not this is a direct-targeting action
+        delay,          // the delay data for this action.
       );
 
       actions.push(mapAction);
@@ -13205,10 +13222,11 @@ class JABS_Action {
    * @param {boolean} isBasicAttack Whether or not this is a basic attack action.
    * @param {boolean} isSupportAction Whether or not this is a support action for allies.
    * @param {boolean} isDirect Whether or not this is a direct action.
+   * @param {{duration: number, touchToTrigger: boolean}} delay The delay data for this action.
    */
   constructor(baseSkill, teamId, cooldownFrames, aiCooldownFrames, range, proximity, shape, 
     gameAction, caster, actionId, duration, piercing, isRetaliation, direction,
-    isBasicAttack, isSupportAction, isDirect) {
+    isBasicAttack, isSupportAction, isDirect, delay) {
       /**
        * The base skill object, in case needed for something.
        * @type {object}
@@ -13320,6 +13338,18 @@ class JABS_Action {
        * @type {boolean}
        */
       this._isDirect = isDirect;
+
+      /**
+       * The duration remaining before this will action will autotrigger.
+       * @type {number}
+       */
+      this._delayDuration = delay.duration;
+
+      /**
+       * Whether or not this action will trigger when an enemy touches it.
+       * @type {boolean}
+       */
+      this._triggerOnTouch = delay.touchToTrigger;
       this.initialize();
   }
 
@@ -13373,7 +13403,7 @@ class JABS_Action {
   /**
    * Initializes the piercing data for this action.
    * @param {number} times The number of times this action can pierce the target.
-   * @returns {{number: times, number: delay}}
+   * @returns {{times: number, delay: number}}
    */
   initPiercingData = times => {
     return {
@@ -13416,7 +13446,7 @@ class JABS_Action {
 
   /**
    * Gets the base skill this `JABS_Action` is based on.
-   * @returns {object} The base skill of this `JABS_Action`.
+   * @returns {any} The base skill of this `JABS_Action`.
    */
   getBaseSkill = () => this._baseSkill;
 
@@ -13565,6 +13595,53 @@ class JABS_Action {
     const isExpired = this._maxDuration <= this._currentDuration;
     const minDurationElapsed = this._currentDuration > JABS_Action.getMinimumDuration();
     return (isExpired && minDurationElapsed);
+  };
+
+  /**
+   * Decrements the pre-countdown delay timer for this action. If the action does not
+   * have `touchOnTrigger`, then the action will not affect anyone until the timer expires. 
+   */
+  countdownDelay = () => {
+    if (this._delayDuration > 0) {
+      this._delayDuration--;
+    }
+  };
+
+  /**
+   * Gets whether or not the delay on this action has completed.
+   * 
+   * This also includes if an action never had a delay to begin with.
+   * @returns {boolean}
+   */
+  isDelayCompleted = () => {
+    return this._delayDuration <= 0 && !this.isEndlessDelay();
+  };
+
+  /**
+   * Automatically finishes the delay regardless of its current status.
+   */
+  endDelay = () => {
+    this._delayDuration = 0;
+  };
+
+  /**
+   * Gets whether or not this action will be delayed until triggered.
+   * @returns {boolean}
+   */
+  isEndlessDelay = () => {
+    return this._delayDuration === -1;
+  };
+
+  /**
+   * Gets whether or not this action will be triggered by touch, regardless of its
+   * delay counter. 
+   * 
+   * If `isEndlessDelay()` applies to this action, then it will automatically
+   * trigger by touch regardless of configuration.
+   * @returns {boolean}
+   */
+  triggerOnTouch = () => {
+    return this._triggerOnTouch || this.isEndlessDelay();
   };
 
   /**
