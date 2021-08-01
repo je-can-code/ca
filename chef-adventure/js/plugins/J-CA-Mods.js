@@ -7,6 +7,18 @@
  * @url https://github.com/je-can-code/rmmz
  * @help
  * These modifications of code are exclusive to Chef Adventure.
+ * 
+ * New things modified:
+ * - variable assignment for a wide variety of battle data points.
+ * - additional accessory for all actors (as accessory)
+ * - "recover all" recovers TP too
+ * - prevent passage on region id 1
+ * - random variable assignment for "rare enemies appearance" on map transfer
+ * - removal of touch buttons on the map
+ * 
+ * System adjustments unique to CA:
+ * - loot drop x,y adjustment unique to CA
+ * - 12% bonus movespeed unique to CA
  */
 
 /**
@@ -299,7 +311,8 @@ Game_Map.prototype.checkPassage = function(x, y, bit) {
 };
 
 /**
- * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
+ * Extends `Game_Map.setup()` to conditionally parse out "rare" enemies that only
+ * have a chance of appearing.
  */
 J.CAMods.Aliased.Game_Map.setup = Game_Map.prototype.setup;
 Game_Map.prototype.setup = function(mapId) {

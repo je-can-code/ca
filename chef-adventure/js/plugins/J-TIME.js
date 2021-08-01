@@ -1132,13 +1132,12 @@ Game_Time.prototype.getNeedsToneChange = function() {
 
   // if we don't have a map to inspect, don't try to interpret it.
   if (!$dataMap || !$dataMap.meta) {
-    console.log("no datamap to inspect.");
+    console.warn("no datamap to inspect.");
     return false;
   }
 
   // if there is a tag on the map that specifies not to change the tone, then don't.
   if ($dataMap.meta["noToneChange"]) {
-    console.log("no tone change on this map.");
     return false;
   }
 
@@ -1178,7 +1177,6 @@ Game_Time.prototype.updateCurrentTone = function() {
   // if we reached this point, then grab the target tone 
   const tone = this.translateHourToTone();
   if (!this.isSameTone(tone)) {
-    console.log("target tone is different! applying new tone...")
     this.setCurrentTone(tone.clone());
     this.setNeedsToneChange(true);
   }
@@ -1191,13 +1189,11 @@ Game_Time.prototype.updateCurrentTone = function() {
 Game_Time.prototype.canUpdateTone = function() {
   // if the user decided they never want to update tones, then don't force them.
   if (!J.TIME.Metadata.ChangeToneByTime) {
-    console.log("no tone change per plugin configuration.");
     return false;
   }
 
   // if the tone is locked for control reasons, then don't update it.
   if (this.isToneLocked()) {
-    console.log("tone is locked from changing per command.");
     return false;
   }
 
