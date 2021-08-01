@@ -12253,7 +12253,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
   } else if (scopeAllOpponents) {
     this.applyToolForAllOpponents(toolId);
   } else {
-    console.warn(`unhandled scope for tool: [${gameAction.item().scope}]!`);
+    console.warn(`unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
   }
 
   // applies common events that may be a part of an item's effect.
