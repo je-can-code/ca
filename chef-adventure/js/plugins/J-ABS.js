@@ -2878,31 +2878,6 @@ Game_Enemy.prototype.isInanimate = function() {
 
   return val;
 };
-
-/**
- * Gets the enemy's retaliation skill from their notes.
- * @returns {number}
- */
-Game_Enemy.prototype.retaliationSkillId = function() {
-  let retaliation = 0;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Retaliate]) {
-    // if its in the metadata, then grab it from there.
-    retaliation = referenceData.meta[J.BASE.Notetags.Retaliate];
-  } else {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<retaliate:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
-        retaliation = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(retaliation);
-};
 //#endregion Game_Enemy
 
 //#region Game_Event
@@ -6633,7 +6608,7 @@ class Game_BattleMap {
    */
   updateNonPlayerBattlers() {
     const player = $gameBattleMap.getPlayerMapBattler();
-    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 10);
+    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15);
 
     visibleBattlers.forEach(battler => {
       battler.update();
@@ -6814,22 +6789,26 @@ class Game_BattleMap {
    * @param {JABS_Battler} battler The battler executing the skill.
    * @param {number} skillId The skill to be executed.
    * @param {boolean} isRetaliation Whether or not this skill is from a retaliation.
+   * @param {number?} targetX The target's `x` coordinate, if applicable.
+   * @param {number?} targetY The target's `y` coordinate, if applicable.
    */
-  forceMapAction(battler, skillId, isRetaliation = false) {
+  forceMapAction(battler, skillId, isRetaliation = false, targetX = null, targetY = null) {
     const actions = battler.createMapActionFromSkill(skillId, isRetaliation);
 
     // if no actions, then don't actually do anything.
     if (!actions || !actions.length) return;
 
-    this.executeMapActions(battler, actions);
+    this.executeMapActions(battler, actions, targetX, targetY);
   };
 
   /**
    * Iterates over all actions provided and executes them.
    * @param {JABS_Battler} battler The battler executing the action.
    * @param {JABS_Action[]} actions All actions to perform.
+   * @param {number?} targetX The target's `x` coordinate, if applicable.
+   * @param {number?} targetY The target's `y` coordinate, if applicable.
    */
-  executeMapActions(battler, actions) {
+  executeMapActions(battler, actions, targetX = null, targetY = null) {
     // if no actions, then don't actually do anything.
     if (!actions) return;
 
@@ -6842,7 +6821,7 @@ class Game_BattleMap {
     }
 
     actions.forEach(action => {
-      this.executeMapAction(battler, action);
+      this.executeMapAction(battler, action, targetX, targetY);
     });
   };
 
@@ -6852,8 +6831,10 @@ class Game_BattleMap {
    * based on it's moveroute.
    * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
    * @param {JABS_Action} action The `JABS_Action` to execute.
+   * @param {number?} targetX The target's `x` coordinate, if applicable.
+   * @param {number?} targetY The target's `y` coordinate, if applicable.
    */
-  executeMapAction(caster, action) {
+  executeMapAction(caster, action, targetX, targetY) {
     const character = caster.getCharacter();
     const baseSkill = action.getBaseSkill();
     const { casterAnimation, freeCombo } = baseSkill._j;
@@ -6876,8 +6857,8 @@ class Game_BattleMap {
       // actually perform the event creation for spawning a new action on the map.
       const eventId = action.getActionId();
       const actionEventData = JsonEx.makeDeepCopy($actionMap.events[eventId]);
-      actionEventData.x = caster.getX();
-      actionEventData.y = caster.getY();
+      actionEventData.x = targetX ?? caster.getX();
+      actionEventData.y = targetY ?? caster.getY();
       actionEventData.isAction = true;
       actionEventData.id += 1000;
 
@@ -7564,7 +7545,7 @@ class Game_BattleMap {
     const result = battler.getBattler().result();
     const needsCounterParry = result.preciseParried && battler.counterParry();
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
-    const needsPassiveRetaliation = battler.getBattler().retaliationSkillId();
+    const retaliationSkills = battler.getBattler().retaliationSkills();
 
     // if we should be counter-parrying.
     if (needsCounterParry) {
@@ -7582,10 +7563,12 @@ class Game_BattleMap {
     }
 
     // if there are any passive retaliation skills to perform...
-    if (needsPassiveRetaliation.length) {
+    if (retaliationSkills.length) {
       // ...perform them!
-      needsPassiveRetaliation.forEach(skillId => {
-        this.forceMapAction(battler, skillId, true);
+      retaliationSkills.forEach(skillChance => {
+        if (skillChance.shouldTrigger()) {
+          this.forceMapAction(battler, skillChance.skillId, true);
+        }
       })
     }
   };
@@ -7629,10 +7612,17 @@ class Game_BattleMap {
     if (!enemy.isEnemy()) return;
 
     // assumes enemy battler is enemy.
-    const enemyBattler = enemy.getBattler();
-    const needsRetaliation = enemyBattler.retaliationSkillId();
-    if (needsRetaliation) {
-      this.forceMapAction(enemy, needsRetaliation);
+    const battler = enemy.getBattler();
+    const retaliationSkills = battler.retaliationSkills();
+
+    // if there are any passive retaliation skills to perform...
+    if (retaliationSkills.length) {
+      // ...perform them!
+      retaliationSkills.forEach(skillChance => {
+        if (skillChance.shouldTrigger()) {
+          this.forceMapAction(battler, skillChance.skillId, true);
+        }
+      })
     }
   };
 
@@ -8071,6 +8061,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
    */
   handleDefeatedTarget(target, caster) {
+    this.predefeatHandler(target, caster);
     switch (true) {
       case (target.isPlayer()):
         this.handleDefeatedPlayer();
@@ -8084,6 +8075,16 @@ class Game_BattleMap {
       default:
         break;
     }
+  };
+
+  /**
+   * Handles the effects that occur before a target's defeat is processed,
+   * such as "executes skill on death".
+   * @param {JABS_Battler} target The `Game_Battler` that was defeated.
+   * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
+   */
+  predefeatHandler(target, caster) {
+    target.performPredefeatEffects(caster);
   };
 
   /**
@@ -12414,6 +12415,37 @@ JABS_Battler.prototype.createToolLog = function(item) {
   const battleMessage = `${this.getReferenceData().name} used the ${item.name}.`;
   const log = new Map_TextLog(battleMessage, -1);
   $gameTextLog.addLog(log);
+};
+
+/**
+ * Executes the processing for a defeated battler.
+ * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ */
+JABS_Battler.prototype.performPredefeatEffects = function(victor) {
+  const battler = this.getBattler();
+  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
+  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
+  if (onOwnDefeatSkills.length) {
+    onOwnDefeatSkills.forEach(onDefeatSkill => {
+      if (onDefeatSkill.shouldTrigger()) {
+        $gameBattleMap.forceMapAction(this, onDefeatSkill.skillId, false);
+      }
+    });
+  }
+
+  if (onTargetDefeatSkills.length) {
+    console.log(onTargetDefeatSkills);
+    onTargetDefeatSkills.forEach(onDefeatSkill => {
+      const castFromTarget = onDefeatSkill.appearOnTarget();
+      if (onDefeatSkill.shouldTrigger()) {
+        if (castFromTarget) {
+          $gameBattleMap.forceMapAction(victor, onDefeatSkill.skillId, false, this.getX(), this.getY());
+        } else {
+          $gameBattleMap.forceMapAction(victor, onDefeatSkill.skillId, false);
+        }
+      }
+    });
+  }
 };
 //#endregion apply effects
 

@@ -244,10 +244,12 @@ Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
  * Extends the handling of action execution to track data.
  * @param {JABS_Battler} caster The battler executing the action.
  * @param {JABS_Action} action The action being executed.
+ * @param {number?} targetX The target's `x` coordinate, if applicable.
+ * @param {number?} targetY The target's `y` coordinate, if applicable.
  */
 J.CAMods.Aliased.Game_BattleMap.executeMapAction = Game_BattleMap.prototype.executeMapAction;
-Game_BattleMap.prototype.executeMapAction = function(caster, action) {
-  J.CAMods.Aliased.Game_BattleMap.executeMapAction.call(this, caster, action);
+Game_BattleMap.prototype.executeMapAction = function(caster, action, targetX, targetY) {
+  J.CAMods.Aliased.Game_BattleMap.executeMapAction.call(this, caster, action, targetX, targetY);
 
   if (caster.isPlayer()) {
     this.trackActionData(action);
