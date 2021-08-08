@@ -1,0 +1,15 @@
+target: MZ
+author: J / JE / Jragyn
+description: Test Bundling
+help: |-  
+  We should write something helpful here.
+params:
+  - name: hello
+    description: my first param desc
+    text: some text for first param
+    type: number
+
+commands:
+  - name: goodbye
+    description: says goodbye desc
+    text: goodbye??

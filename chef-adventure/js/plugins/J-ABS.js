@@ -6865,7 +6865,7 @@ class Game_BattleMap {
 
     // perform self-animation and pose.
     caster.performActionPose(baseSkill);
-    if (casterAnimation && !character.isAnimationPlaying()) {
+    if (casterAnimation) {// && !character.isAnimationPlaying()) { // remove limiter.
       character.requestAnimation(casterAnimation);
     }
 
