@@ -18,6 +18,9 @@
  * ==============================================================================
  * CHANGELOG:
  * 
+ * - 1.0.3
+ *    Added "ondeath" tag for enemies.
+ * 
  * - 1.0.2
  *    Added an "IconManager" for consistent icon indexing between all my plugins.
  * 
@@ -52,7 +55,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-   Version: '1.0.1',
+   Version: '1.0.3',
 };
 
 /**
@@ -115,6 +118,8 @@ J.BASE.Notetags = {
   // on enemies in database.
   Drops: "drops",
   EnemyLevel: "level",
+  OnOwnDefeat: "onOwnDefeat",
+  OnTargetDefeat: "onTargetDefeat",
   PrepareTime: "prepare",
   SdpPoints: "sdp",
 
@@ -285,6 +290,30 @@ J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
 
   return true; // must be the same
 };
+
+/**
+ * 
+ * @param {RegExp} structure 
+ * @param {rm.types.BaseItem} referenceData 
+ * @returns {JABS_SkillChance}
+ */
+J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return [];
+
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  const skills = [];
+  notedata.forEach(line => {
+    if (line.match(structure)) {
+      const data = JSON.parse(RegExp.$1);
+      const skillId = parseInt(data[0]);
+      const chance = parseInt(data[1]);
+      skills.push(new JABS_SkillChance(skillId, chance));
+    }
+  });
+
+  return skills;
+}; 
 //#endregion Helpers
 //#endregion Introduction
 
@@ -533,6 +562,54 @@ class IconManager {
 
 //#region Game objects
 //#region Game_Actor
+/**
+ * Gets all skills that are executed when this actor is defeated.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Actor.prototype.onOwnDefeatSkillIds = function() {
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const skills = [];
+  objectsToCheck.forEach(obj => {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
+};
+
+/**
+ * Gets all skills that are executed when this actor defeats a target.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Actor.prototype.onTargetDefeatSkillIds = function() {
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const skills = [];
+  objectsToCheck.forEach(obj => {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
+};
+
+/**
+ * Gets all things the things that this actor has that can possibly have
+ * notes on it at the present moment. This includes the actor itself, the
+ * actor's class, their skills, their equips, and their current states.
+ * @returns {rm.types.BaseItem[]}
+ */
+Game_Actor.prototype.getEverythingWithNotes = function() {
+  const objectsWithNotes = [];
+  objectsWithNotes.push(this.actor());
+  objectsWithNotes.push(this.currentClass());
+  objectsWithNotes.push(...this.skills());
+  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+  objectsWithNotes.push(...this.states());
+  return objectsWithNotes;
+};
+
 /**
  * Gets how much bonus HIT this actor has based on level.
  * @returns {number} The amount of growth in HIT for this actor.
@@ -841,69 +918,18 @@ Game_Actor.prototype.isInanimate = function() {
 /**
  * Gets the retaliation skill ids for this actor.
  * Will retrieve from actor, class, all equipment, and states.
- * @returns {number[]}
+ * @returns {JABS_SkillChance[]}
  */
-Game_Actor.prototype.retaliationSkillId = function() {
-  const structure = /<retaliate:[ ]?([0-9]*)>/i;
-  let vals = [];
-
-  // get all tags from actor.
-  const referenceData = this.actor();
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      const classVal = parseInt(RegExp.$1);
-      if (classVal) {
-        vals.push(classVal);
-      }
-    }
+Game_Actor.prototype.retaliationSkills = function() {
+  const structure = /<retaliation:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const objectsToCheck = this.getEverythingWithNotes();
+  const skills = [];
+  objectsToCheck.forEach(obj => {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
   });
 
-  // get all tags from class.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  const classNotedata = referenceDataClass.note.split(/[\r\n]+/);
-  classNotedata.forEach(note => {
-    if (note.match(structure)) {
-      const classVal = parseInt(RegExp.$1);
-      if (classVal) {
-        vals.push(classVal);
-      }
-    }
-  });
-
-  // get all tags from equipment.
-  const equips = this.equips().filter(equip => !!equip);
-  if (equips.length) {
-    equips.forEach(equip => {
-      const equipNoteData = equip.note.split(/[\r\n]+/);
-      equipNoteData.forEach(note => {
-        if (note.match(structure)) {
-          const equipVal = parseInt(RegExp.$1);
-          if (equipVal) {
-            vals.push(equipVal);
-          }
-        }
-      });
-    });
-  }
-
-  // get all tags from states.
-  const states = this.states();
-  if (states.length) {
-    states.forEach(state => {
-      const stateNoteData = state.note.split(/[\r\n]+/);
-      stateNoteData.forEach(note => {
-        if (note.match(structure)) {
-          const stateVal = parseInt(RegExp.$1);
-          if (stateVal) {
-            vals.push(stateVal);
-          }
-        }
-      });
-    });
-  }
-
-  return vals;
+  return skills;
 };
 //#endregion Game_Actor
 
@@ -1036,11 +1062,43 @@ Game_Battler.prototype.isInanimate = function() {
 };
 
 /**
- * All battlers have a default of no retaliation skill id.
- * @returns {number}
+ * All battlers have a default of no retaliation skills.
+ * @returns {JABS_SkillChance[]}
  */
-Game_Battler.prototype.retaliationSkillId = function() {
-  return 0;
+Game_Battler.prototype.retaliationSkills = function() {
+  const structure = /<retaliation:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const objectsToCheck = this.getEverythingWithNotes();
+  const skills = [];
+  objectsToCheck.forEach(obj => {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
+};
+
+/**
+ * All battlers have a default of no on-own-defeat skill ids.
+ * @returns {number[]}
+ */
+Game_Battler.prototype.onOwnDefeatSkillIds = function() {
+  return [];
+};
+
+/**
+ * All battlers have a default of no on-defeating-a-target skill ids.
+ * @returns {number[]}
+ */
+Game_Battler.prototype.onTargetDefeatSkillIds = function() {
+  return [];
+};
+
+/**
+ * All battlers have this, but actors and enemies perform this function differently.
+ * @returns {rm.types.BaseItem[]}
+ */
+Game_Battler.prototype.getEverythingWithNotes = function() {
+  return [];
 };
 
 /**
@@ -1500,6 +1558,34 @@ Game_Enemy.prototype.sdpPoints = function() {
 
   return parseInt(points);
 };
+
+/**
+ * Gets all skills that are executed by this enemy when it is defeated.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Enemy.prototype.onOwnDefeatSkillIds = function() {
+  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
+};
+
+/**
+ * Gets all skills that are executed by this enemy when it defeats its target.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
+};
+
+
+
+Game_Enemy.prototype.getEverythingWithNotes = function() {
+  const objectsWithNotes = [];
+  objectsWithNotes.push(this.enemy());
+  objectsWithNotes.push(...this.skills());
+  objectsWithNotes.push(...this.states());
+  return objectsWithNotes;
+};
 //#endregion Game_Enemy
 
 //#region Game_Event
@@ -1941,6 +2027,45 @@ Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext
 //#endregion Window objects
 
 //#region JABS classes
+//#region JABS_SkillChance
+/**
+ * A class defining the structure of an on-death skill, either for ally or enemy.
+ */
+class JABS_SkillChance {
+  constructor(skillId, chance) {
+    this.skillId = skillId;
+    this.chance = chance;
+  }
+
+  /**
+   * Gets the underlying skill.
+   * @returns {rm.types.Skill}
+   */
+  baseSkill() {
+    return $dataSkills[this.skillId];
+  };
+
+  /**
+   * Gets whether or not the skill this chance is associated with should cast from the
+   * target instead of the user.
+   * @returns {boolean}
+   */
+  appearOnTarget() {
+    const skill = this.baseSkill();
+    return !!skill.meta["onDefeatedTarget"];
+  };
+
+  /**
+   * Rolls for whether or not this skill should proc.
+   * @returns {boolean}
+   */
+  shouldTrigger() {
+    const chance = Math.randomInt(100) + 1;
+    return chance <= this.chance;
+  };
+}
+//#endregion JABS_SkillChance
+
 //#region JABS_SkillData
 /**
  * A class that contains all custom data for JABS skills.
@@ -2366,7 +2491,7 @@ class JABS_SkillData {
     if (this._meta && this._meta[J.BASE.Notetags.Piercing]) {
       piercing = JSON.parse(this._meta[J.BASE.Notetags.Piercing]);
     } else {
-      const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+])>/i;
+      const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+\])>/i;
       this._notes.forEach(note => {
         if (note.match(structure)) {
           piercing = JSON.parse(RegExp.$1);
