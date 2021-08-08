@@ -514,7 +514,9 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify SDP points", args => 
   let { actorId, sdpPoints } = args;
   actorId = parseInt(actorId);
   sdpPoints = parseInt(sdpPoints);
-  $dataActors[actorId].modSdpPoints(sdpPoints);
+  $gameActors
+    .actor(actorId)
+    .modSdpPoints(sdpPoints);
 });
 
 /**

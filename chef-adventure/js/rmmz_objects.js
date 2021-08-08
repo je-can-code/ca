@@ -10626,7 +10626,6 @@ Game_Interpreter.prototype.command222 = function() {
 
 // Tint Screen
 Game_Interpreter.prototype.command223 = function(params) {
-    console.log(params);
     $gameScreen.startTint(params[0], params[1]);
     if (params[2]) {
         this.wait(params[1]);

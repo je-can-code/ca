@@ -502,27 +502,30 @@ Window_ActionKeys.prototype.createActionKeyCooldownTimer = function(key, skillTy
  */
 Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, referenceData, x, y) {
     const isItem = DataManager.isItem(referenceData);
+    const actorId = this._actor.actorId();
+    const actor = $gameActors.actor(actorId);
 
     // for abilities with an hp cost, draw that.
-    const hpCost = isItem ? "" : referenceData.hpCost || "";
+    // TODO: figure out hp cost reduction when thats a thing.
+    const hpCost = isItem ? "" : (referenceData.hpCost * 1) || "";
     const hpColor = 21;
-    const hpKey = "actor%1-hpcost-%2".format(this._actor.actorId(), skillType);
+    const hpKey = "actor%1-hpcost-%2".format(actorId, skillType);
     const hpSprite = this.createActionKeyAbilityCosts(hpKey, hpCost, hpColor);
     hpSprite.move(x, y-30);
     hpSprite.show();
 
     // for abilities with an mp cost, draw that.
-    const mpCost = isItem ? "" : referenceData.mpCost || "";
+    const mpCost = isItem ? "" : (referenceData.mpCost * actor.mcr).toFixed(0) || "";
     const mpColor = 23;
-    const mpKey = "actor%1-mpcost-%2".format(this._actor.actorId(), skillType);
+    const mpKey = "actor%1-mpcost-%2".format(actorId, skillType);
     const mpSprite = this.createActionKeyAbilityCosts(mpKey, mpCost, mpColor);
     mpSprite.move(x, y-15);
     mpSprite.show();
 
     // for abilities with an tp cost, draw that.
-    const tpCost = isItem ? "" : referenceData.tpCost || "";
+    const tpCost = isItem ? "" : (referenceData.tpCost * actor.tcr).toFixed(0) || "";
     const tpColor = 29;
-    const tpKey = "actor%1-tpcost-%2".format(this._actor.actorId(), skillType);
+    const tpKey = "actor%1-tpcost-%2".format(actorId, skillType);
     const tpSprite = this.createActionKeyAbilityCosts(tpKey, tpCost, tpColor);
     tpSprite.move(x, y);
     tpSprite.show();
@@ -531,7 +534,7 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
     if (isItem) {
       const itemsLeft = $gameParty.numItems(referenceData);
       const itemColor = 0;
-      const itemKey = "actor%1-itemcount-%2-%3".format(this._actor.actorId(), skillType, referenceData.id);
+      const itemKey = "actor%1-itemcount-%2-%3".format(actorId, skillType, referenceData.id);
       const itemSprite = this.createActionKeyAbilityCosts(itemKey, itemsLeft, itemColor, referenceData.id);
       itemSprite.move(x-30, y);
       itemSprite.show();
