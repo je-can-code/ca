@@ -7612,15 +7612,14 @@ class Game_BattleMap {
     if (!enemy.isEnemy()) return;
 
     // assumes enemy battler is enemy.
-    const battler = enemy.getBattler();
-    const retaliationSkills = battler.retaliationSkills();
+    const retaliationSkills = enemy.getBattler().retaliationSkills();
 
     // if there are any passive retaliation skills to perform...
     if (retaliationSkills.length) {
       // ...perform them!
       retaliationSkills.forEach(skillChance => {
         if (skillChance.shouldTrigger()) {
-          this.forceMapAction(battler, skillChance.skillId, true);
+          this.forceMapAction(enemy, skillChance.skillId, true);
         }
       })
     }
