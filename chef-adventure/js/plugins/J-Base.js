@@ -292,9 +292,9 @@ J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
 };
 
 /**
- * 
- * @param {RegExp} structure 
- * @param {rm.types.BaseItem} referenceData 
+ * Parses out a skill chance based on the regex from the reference data.
+ * @param {RegExp} structure The RegExp expression to match.
+ * @param {rm.types.BaseItem} referenceData The reference data to parse.
  * @returns {JABS_SkillChance}
  */
 J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
@@ -306,14 +306,27 @@ J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
   notedata.forEach(line => {
     if (line.match(structure)) {
       const data = JSON.parse(RegExp.$1);
-      const skillId = parseInt(data[0]);
-      const chance = parseInt(data[1]);
-      skills.push(new JABS_SkillChance(skillId, chance));
+      const skillChance = new JABS_SkillChance(
+        parseInt(data[0]),
+        parseInt(data[1]),
+        J.BASE.Helpers.getKeyFromRegexp(structure));
+      skills.push(skillChance);
     }
   });
 
   return skills;
-}; 
+};
+
+/**
+ * Extracts the key portion from a tag.
+ * @param {RegExp} structure The structure of the regular expression.
+ * @returns {string}
+ */
+J.BASE.Helpers.getKeyFromRegexp = function(structure) {
+  const stringifiedStructure = structure.toString();
+  return stringifiedStructure
+    .substring(stringifiedStructure.indexOf('<') + 1, stringifiedStructure.indexOf(':'));
+};
 //#endregion Helpers
 //#endregion Introduction
 
@@ -921,7 +934,7 @@ Game_Actor.prototype.isInanimate = function() {
  * @returns {JABS_SkillChance[]}
  */
 Game_Actor.prototype.retaliationSkills = function() {
-  const structure = /<retaliation:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const objectsToCheck = this.getEverythingWithNotes();
   const skills = [];
   objectsToCheck.forEach(obj => {
@@ -1066,7 +1079,7 @@ Game_Battler.prototype.isInanimate = function() {
  * @returns {JABS_SkillChance[]}
  */
 Game_Battler.prototype.retaliationSkills = function() {
-  const structure = /<retaliation:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const objectsToCheck = this.getEverythingWithNotes();
   const skills = [];
   objectsToCheck.forEach(obj => {
@@ -2032,9 +2045,10 @@ Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext
  * A class defining the structure of an on-death skill, either for ally or enemy.
  */
 class JABS_SkillChance {
-  constructor(skillId, chance) {
+  constructor(skillId, chance, key) {
     this.skillId = skillId;
     this.chance = chance;
+    this.key = key;
   }
 
   /**
