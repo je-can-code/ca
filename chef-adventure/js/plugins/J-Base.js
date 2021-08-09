@@ -19,7 +19,8 @@
  * CHANGELOG:
  * 
  * - 1.0.3
- *    Added "ondeath" tag for enemies.
+ *    Added "on-own-death" and "on-target-death" tag for battlers.
+ *    Changed "retaliate" tag structure to allow a chance for triggering.
  * 
  * - 1.0.2
  *    Added an "IconManager" for consistent icon indexing between all my plugins.
