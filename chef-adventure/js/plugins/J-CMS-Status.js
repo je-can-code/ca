@@ -135,6 +135,24 @@ Scene_Status.prototype.statusParamsWindowRect = function() {
 //#endregion Scene objects
 
 //#region Window objects
+//#region Window_Status
+
+Window_Status.prototype.drawBlock1 = function() {
+  const y = this.block1Y();
+  this.drawActorName(this._actor, 0, y, 168);
+  this.drawActorClass(this._actor, 204, y, 168);
+  this.drawActorNickname(this._actor, 0, y+200, 270);
+};
+
+Window_Status.prototype.drawBlock2 = function() {
+  const y = this.block2Y();
+  this.drawActorFace(this._actor, 12, y);
+  this.drawBasicInfo(204, y);
+  this.drawExpInfo(0, y + 250);
+};
+//#endregion Window_Status
+
+//#region Window_StatusParameters
 /**
  * A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
@@ -296,4 +314,5 @@ class Window_StatusParameters extends Window_Base {
     this.drawTextEx(`\\{\\C[${colorIndex}]${text}\\C[0]\\}`, x+32, y+8, 350);
   };
 }
+//#endregion Window_StatusParameters
 //#endregion Window objects
