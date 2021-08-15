@@ -822,11 +822,10 @@ Scene_Map.prototype.onMapLoaded = function() {
  */
 Scene_Map.prototype.blockIfTagged = function() {
   if ($dataMap.meta['timeBlock']) {
-    console.log('Time is blocked on this map.');
     $gameTime.block();
   } else {
     if ($gameTime.isBlocked()) {
-      console.log('Time is no longer blocked..');
+      // console.log('Time is no longer blocked.');
     }
 
     $gameTime.unblock();

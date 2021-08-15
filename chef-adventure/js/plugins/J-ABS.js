@@ -9925,6 +9925,7 @@ JABS_Battler.prototype.performCastAnimation = function() {
   if (!casterAnimation) return;
 
   if (!this.getCharacter().isAnimationPlaying()) {
+    console.log("performing new animation!");
     this.showAnimation(casterAnimation);
   }
 };
@@ -10656,6 +10657,8 @@ JABS_Battler.prototype.clearLeader = function() {
     if (!uuid) return;
 
     const leader = $gameBattleMap.getBattlerByUuid(leaderUuid);
+    if (!leader) return;
+
     leader.removeFollowerByUuid(uuid);
   }
 };
@@ -11349,7 +11352,10 @@ JABS_Battler.prototype.getLeaderAiMode = function() {
   // if we don't have a leader, don't.
   if (!this.hasLeader()) return null;
 
-  return $gameBattleMap.getBattlerByUuid(this.getLeader()).getAiMode();
+  const leader = $gameBattleMap.getBattlerByUuid(this.getLeader());
+  if (!leader) return null;
+
+  return leader.getAiMode();
 };
 
 /**
