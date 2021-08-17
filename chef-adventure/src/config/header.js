@@ -5,3 +5,13 @@
 // reading. If you are interested on the source code, please take a look at
 // the Github repository for this plugin!
 //=============================================================================
+
+/**
+ * The core where all of my extensions live: in the `J` object.
+ */
+var J = J || {};
+
+/**
+ * The plugin umbrella that governs all things related to this plugin.
+ */
+J.STAR = {};

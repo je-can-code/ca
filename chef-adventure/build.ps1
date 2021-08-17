@@ -1,6 +1,6 @@
 #Requires -PSEdition Core
 param(
-  [string]$pluginRootDirectory = "."
+  [string]$pluginRootDirectory = "./src"
 )
 
 $stopwatch =  [System.Diagnostics.Stopwatch]::StartNew()
@@ -18,7 +18,7 @@ npm i -g rollup @comuns-rpgmaker/plugin-metadata -sD | Out-Null
 
 # Validates local installation (or installs globally) the necessary plugins to execute the transpilation.
 Write-Host "[STEP 1] Validating/installing dependencies..." -BackgroundColor DarkMagenta -ForegroundColor White
-npm i @comuns-rpgmaker/plugin-metadata rollup yaml @rollup/plugin-babel rollup-plugin-terser -sD | Out-Null
+npm i yaml @rollup/plugin-babel rollup-plugin-terser @babel/preset-env -sD | Out-Null
 
 # Puts together the yaml metadata that ends up becoming the metadata at the top of the JS plugin.
 Write-Host "[STEP 2] Running plugin metadata pre-build..." -BackgroundColor DarkMagenta -ForegroundColor White

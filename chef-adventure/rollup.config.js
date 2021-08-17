@@ -15,6 +15,7 @@ export default [
   {
     input: 'src/index.js',
     output: [
+      /*
       {
         file: `${__dirname}/js/plugins/${meta.name}.js`,
         name: meta.namespace,
@@ -29,16 +30,22 @@ export default [
           })
         ]
       },
+      */
       {
-        file: `${__dirname}/js/plugins/${meta.name}.debug.js`,
+        // file: `${__dirname}/js/plugins/${meta.name}.debug.js`,
+        file: `${__dirname}/js/plugins/${meta.name}.js`,
         name: meta.namespace,
         format: 'iife',
         sourcemap: true,
-        banner: header
+        banner: header,
       }
     ],
     plugins: [
-      babel({ "presets": ["@babel/preset-env"], babelHelpers: 'bundled' })
+      babel(
+        {
+          "presets": ["@babel/preset-env"],
+          babelHelpers: 'bundled'
+        })
     ]
   }
 ];
