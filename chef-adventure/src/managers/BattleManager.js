@@ -1,34 +1,20 @@
-import { StarPhase } from "./models/StarPhase";
+import { StarPhase, StarPhases } from "../models/_models";
 
 BattleManager.enemyMap = BattleManager.enemyMap || { events: [] };
 
+/**
+ * Extends `initMembers` to include our members as well.
+ */
 J.STAR.Aliased.BattleManager.initMembers = BattleManager.initMembers;
 BattleManager.initMembers = function() {
   J.STAR.Aliased.BattleManager.initMembers.call(this);
 
   /**
-  * The player's origin map id- where they will be sent back to.
-  * @type {number}
-  */
-  this._originMapId = 0;
-
-  /**
-  * The player's origin x coordinate- where they will be sent back to.
-  * @type {number}
-  */
-  this._originX = 0;
-
-  /**
-  * The player's origin y coordinate- where they will be sent back to.
-  * @type {number}
-  */
-  this._originY = 0;
-
-  /**
-  * Whether or not the engine is setting up the battle for the player.
-  * @type {boolean}
-  */
-  this._preparingForBattle = false;
+   * The origin location that the player came from.
+   * This doubles as a return location, too.
+   * @type {{mapId: number, x: number, y: number}}
+   */
+  this._originLocation = null;
 
   /**
   * Whether or not the player is engaged in battle.
@@ -37,123 +23,127 @@ BattleManager.initMembers = function() {
   this._inBattle = false;
 
   /**
-   * The phase of star battle we are in.
-   * @type {string}
+   * An arbitrary counter for various purposes.
+   * @type {number}
    */
-  this._starPhase = this._starPhase || BattleManager.starPhases.DISENGAGED;
+  this._wait = 0;
+
+  /**
+   * The phase of star battle we are in.
+   * @type {StarPhase}
+   */
+  this._starPhase = this._starPhase || StarPhases.PREPARING;
 };
 
 /**
- * The various phases of which are available within star battle.
- * The player is ALWAYS in one of these phases while this plugin is active.
+ * Gets the current phase of star battle the player is in.
+ * @returns {StarPhase}
  */
-BattleManager.starPhases = {
-  /**
-   * "Disengaged" represents the state of which the player is
-   * not in-battle at all. This is the default phase while the player wanders.
-   * @type {StarPhase}
-   */
-  DISENGAGED: {
-    name: "Disengaged",
-    key: 0
-  },
+BattleManager.getStarPhase = function(){
+  return this._starPhase ?? StarPhases.DISENGAGED;
+};
 
-  /**
-   * "Preparing" represents the state of which the player is
-   * in-transition to battle from either a random or programmatic encounter.
-   * @type {StarPhase}
-   */
-  PREPARING: {
-    name: "Preparing",
-    key: 1
-  },
+/**
+ * Sets the current phase of star battle to the new one by the phase's key.
+ * @param {number} newPhaseKey 
+ */
+BattleManager.setStarPhase = function(newPhaseKey) {
+  switch (newPhaseKey) {
+    case StarPhases.DISENGAGED.key:
+      this._starPhase = StarPhases.DISENGAGED;
+      break;
+    case StarPhases.PREPARING.key:
+      this._starPhase = StarPhases.PREPARING;
+      break;
+    case StarPhases.INBATTLE.key:
+      this._starPhase = StarPhases.INBATTLE;
+      break;
+    case StarPhases.FINISHED.key:
+      this._starPhase = StarPhases.FINISHED;
+      break;
+    case StarPhases.CLEANUP.key:
+      this._starPhase = StarPhases.CLEANUP;
+      break;
+    case StarPhases.BACKTOMAP.key:
+      this._starPhase = StarPhases.BACKTOMAP;
+      break;
+  }
+};
 
-  /**
-   * "In-battle" represents the state of which the player is
-   * presently fighting the battle that they encountered.
-   * @type {StarPhase}
-   */
-  INBATTLE: {
-    name: "In-battle",
-    key: 2
-  },
+/**
+ * Sets the wait timer to countdown from a given value.
+ *
+ * While the wait value is greater than 0, phases will not update.
+ * @param {number} waitFrames The frames to wait for. 
+ */
+BattleManager.setWait = function(waitFrames) {
+  this._wait = waitFrames;
+};
 
-  /**
-   * "Finished" represents the state of which the player is
-   * has reached an end-condition of battle.
-   * @type {StarPhase}
-   */
-  FINISHED: {
-    name: "Finished",
-    key: 3
-  },
+/**
+ * Gets whether or not we are waiting.
+ * @returns {boolean} Whether or not we are waiting.
+ */
+BattleManager.waiting = function() {
+  if (this._wait > 0) {
+    this._wait--;
+    return true;
+  }
 
-  /**
-   * "Clean-up" represents the state of which the player is
-   * either reigning victorious, seeing the "you died" screen, or skipping
-   * this phase altogether for programmatic (story/dev/etc.) reasons.
-   * @type {StarPhase}
-   */
-  CLEANUP: {
-    name: "Clean-up",
-    key: 4
-  },
+  if (this._wait === 0) {
+    return false;
+  }
+};
 
-  /**
-   * "Back-to-map" represents the state of which the player is
-   * the player didn't gameover, and is now in transition
-   * @type {StarPhase}
-   */
-  BACKTOMAP: {
-    name: "Back-to-map",
-    key: 5
-  },
+/**
+ * Clears the wait timer.
+ */
+BattleManager.clearWait = function() {
+  this._wait = 0;
+  console.info('the wait timer has been cleared.');
 };
 
 /**
  * Initiates star battle.
- * @param {number} originMapId The mapId that the player came from.
- * @param {number} originX The `x` coordinate the player came from.
- * @param {number} originY The `y` coordinate the player came from.
+ * @param {{mapId: number, x: number, y: number}} originLocation The origin location that the player came from.
  */
-BattleManager.prepareForStarBattle = function(originMapId, originX, originY) {
+BattleManager.setupStarBattle = function(originLocation, battleMapId) {
   BattleManager.setup($gameTroop.troop().id, true, true);
+  $gameSystem.onBattleStart();
   this.engageInBattle();
-  this._originMapId = originMapId;
-  this._originX = originX;
-  this._originY = originY;
+  this._originLocation = originLocation;
+
   //* TODO: add more here for which map id to send based on player's map id?
-  $gamePlayer.reserveTransfer(109, 14, 9);
+  $gamePlayer.reserveTransfer(battleMapId, 14, 9);
 };
 
-BattleManager.beginBattlePreparation = function() {
-  this._preparingForBattle = true;
-};
-
-BattleManager.endBattlePreparation = function() {
-  this._preparingForBattle = false;
-};
-
-BattleManager.preparingForBattle = function() {
-  return this._preparingForBattle;
-};
-
+/**
+ * Marks the player as "in battle".
+ */
 BattleManager.engageInBattle = function() {
   this._inBattle = true;
 };
 
+/**
+ * Marks the player as "not in battle".
+ */
 BattleManager.disengageInBattle = function() {
   this._inBattle = false;
 };
 
+/**
+ * Gets whether or not the player is "in battle".
+ * @returns {boolean}
+ */
 BattleManager.isInBattle = function() {
   return this._inBattle;
 };
 
+/**
+ * Gets the origin location of the player- the map info for where the player
+ * came from prior to entering battle.
+ * @returns {{mapId: number, x: number, y: number}}
+ */
 BattleManager.origin = function() {
-  return {
-    mapId: this._originMapId,
-    originX: this._originX,
-    originY: this._originY,
-  };
+  return this._originLocation;
 };

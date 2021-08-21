@@ -821,7 +821,7 @@ Scene_Map.prototype.onMapLoaded = function() {
  * Blocks the flow of time if the target map is tagged with the specified tag.
  */
 Scene_Map.prototype.blockIfTagged = function() {
-  if ($dataMap.meta['timeBlock']) {
+  if ($dataMap.meta && $dataMap.meta['timeBlock']) {
     $gameTime.block();
   } else {
     if ($gameTime.isBlocked()) {

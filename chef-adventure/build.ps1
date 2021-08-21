@@ -3,7 +3,7 @@ param(
   [string]$pluginRootDirectory = "./src"
 )
 
-$stopwatch =  [System.Diagnostics.Stopwatch]::StartNew()
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 $stopwatch.Start();
 
 # This is a small powershell script that will install (or at least validate installation)
