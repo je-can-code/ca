@@ -36,7 +36,7 @@ export default [
         file: `${__dirname}/js/plugins/${meta.name}.js`,
         name: meta.namespace,
         format: 'iife',
-        sourcemap: true,
+        // sourcemap: true,
         banner: header,
       }
     ],

@@ -883,6 +883,7 @@ J.ABS.Aliased = {
   Game_Action: {},
   Game_ActionResult: {},
   Game_Battler: {},
+  Game_BattlerBase: {},
   Game_Character: {},
   Game_CharacterBase: {},
   Game_Event: {},
@@ -1216,6 +1217,12 @@ Game_Actor.prototype.initMembers = function() {
    * @type {number}
    */
   this._j._bonusHits = 0;
+
+  /**
+   * Whether or not the death effect has been performed.
+   * @type {boolean}
+   */
+  this._j._deathEffect = false;
 };
 
 /**
@@ -1240,6 +1247,35 @@ Game_Actor.prototype.getUuid = function() {
 
   console.warn("no uuid currently available.");
   return "";
+};
+
+/**
+ * Gets whether or not this actor needs a death effect.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.needsDeathEffect = function() {
+  return this._j._deathEffect;
+};
+
+/**
+ * Toggles this actor's need for a death effect.
+ */
+Game_Actor.prototype.toggleDeathEffect = function() {
+  this._j._deathEffect = !this._j._deathEffect;
+};
+
+J.ABS.Aliased.Game_Actor.die = Game_Actor.prototype.die;
+Game_Actor.prototype.die = function() {
+  J.ABS.Aliased.Game_Actor.die.call(this);
+  this.toggleDeathEffect();
+};
+
+/**
+ * Handles on-revive effects at the actor-level.
+ */
+J.ABS.Aliased.Game_Actor.revive = Game_Actor.prototype.revive;
+Game_Actor.prototype.revive = function() {
+  J.ABS.Aliased.Game_Actor.revive.call(this);
 };
 
 /**
@@ -4199,7 +4235,7 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
   const w = 400;
   const h = 250;
   const x = Graphics.boxWidth - w;
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const mainMenu = new Window_AbsMenu(rect);
   mainMenu.setHandler("skill-assign", this.commandSkill.bind(this));
@@ -6439,16 +6475,16 @@ class Game_BattleMap {
    */
   performPartyCycling() {
     // determine which battler in the party is the next living battler.
-    const nextLivingAllyIndex = $gameParty._actors.findIndex((actorId, index) => {
-      if (index === 0) return false; // don't look at the current leader.
-      return !$gameActors.actor(actorId).isDead();
-    });
+    const nextAllyIndex = $gameParty._actors.findIndex(this.canCycleToAlly);
 
     // can't cycle if there are no living/valid members.
-    if (nextLivingAllyIndex === -1) return;
+    if (nextAllyIndex === -1) {
+      console.warn('No members available to cycle to.');
+      return;
+    }
 
     // swap to the next party member in the sequence.
-    $gameParty._actors = $gameParty._actors.concat($gameParty._actors.splice(0, nextLivingAllyIndex));
+    $gameParty._actors = $gameParty._actors.concat($gameParty._actors.splice(0, nextAllyIndex));
     $gamePlayer.refresh();
     $gamePlayer.requestAnimation(40, false);
 
@@ -6464,6 +6500,32 @@ class Game_BattleMap {
       const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
       $gameTextLog.addLog(log);
     }
+  };
+
+  /**
+   * Determines whether or not this member can be party cycled to.
+   * @param {number} actorId The id of the actor.
+   * @param {number} partyIndex The index of the member in the party.
+   * @returns 
+   */
+  canCycleToAlly(actorId, partyIndex) {
+    // ignore switching to self.
+    if (partyIndex === 0) {
+      return false;
+    }
+
+    // don't switch to a dead member.
+    const actor = $gameActors.actor(actorId);
+    if (actor.isDead()) {
+      return false;
+    }
+
+    // don't switch with a member that is locked.
+    if (actor.switchLocked()) {
+      return false;
+    }
+
+    return true;
   };
 
   /**
@@ -9925,7 +9987,6 @@ JABS_Battler.prototype.performCastAnimation = function() {
   if (!casterAnimation) return;
 
   if (!this.getCharacter().isAnimationPlaying()) {
-    console.log("performing new animation!");
     this.showAnimation(casterAnimation);
   }
 };
@@ -12275,6 +12336,8 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
     this.applyToolForAllAllies(toolId);
   } else if (scopeAllOpponents) {
     this.applyToolForAllOpponents(toolId);
+  } else if (gameAction.item().scope === 0) {
+    // do nothing, the item has no scope and must be relying purely on the skillId.
   } else {
     console.warn(`unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
   }
@@ -12428,6 +12491,13 @@ JABS_Battler.prototype.createToolLog = function(item) {
  */
 JABS_Battler.prototype.performPredefeatEffects = function(victor) {
   const battler = this.getBattler();
+  if (this.isActor() && battler.needsDeathEffect()) {
+    this.showAnimation(152);
+    battler.toggleDeathEffect();
+  } else if (this.isEnemy()) {
+    this.showAnimation(151);
+  }
+
   const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
   const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
   if (onOwnDefeatSkills.length) {

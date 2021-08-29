@@ -363,10 +363,7 @@ Game_BattleMap.prototype.performPartyCycling = function() {
   }
 
   // determine which battler in the party is the next living battler.
-  const nextLivingAllyIndex = $gameParty._actors.findIndex((actorId, index) => {
-    if (index === 0) return false; // don't look at the current leader.
-    return !$gameActors.actor(actorId).isDead();
-  });
+  const nextLivingAllyIndex = $gameParty._actors.findIndex(this.canCycleToAlly);
 
   // can't cycle if there are no living/valid members.
   if (nextLivingAllyIndex === -1) return;
@@ -527,7 +524,14 @@ Game_Follower.prototype.jumpToPlayer = function() {
  */
 Game_Follower.prototype.handleEngagementDistancing = function() {
   const battler = this.getMapBattler();
-  const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
+  if (!battler) {
+    return;
+  }
+  const distanceToPlayer = $gameMap.distance(
+    this._realX,
+    this._realY,
+    $gamePlayer._realX,
+    $gamePlayer._realY);
   if (!battler.isEngaged() && !battler.isAlerted()) {
     if (distanceToPlayer <= Math.round(JABS_Battler.allyRubberbandRange() / 2)) {
       // if the ally is within range of the player, then re-enable the ability to engage.
@@ -705,6 +709,24 @@ Game_Party.prototype.becomeAggro = function() {
  */
 Game_Party.prototype.becomePassive = function() {
   this._j._allyAI._aggroPassiveToggle = false;
+};
+
+/**
+ * When adding party members, also update your allies.
+ */
+J.ALLYAI.Aliased.Game_Party.addActor = Game_Party.prototype.addActor;
+Game_Party.prototype.addActor = function(actorId) {
+  J.ALLYAI.Aliased.Game_Party.addActor.call(this, actorId);
+  $gameMap.updateAllies();
+};
+
+/**
+ * When removing party members, also update your allies.
+ */
+J.ALLYAI.Aliased.Game_Party.removeActor = Game_Party.prototype.removeActor;
+Game_Party.prototype.removeActor = function(actorId) {
+  J.ALLYAI.Aliased.Game_Party.removeActor.call(this, actorId);
+  $gameMap.updateAllies();
 };
 //#endregion Game_Party
 

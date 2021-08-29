@@ -1,5 +1,10 @@
 import { StarPhase, StarPhases } from "../models/_models";
 
+/**
+ * The `enemyMap` is a property containing the master map from which enemies
+ * from the troop are derived from.
+ * @type {{events: Game_Event[]}}
+ */
 BattleManager.enemyMap = BattleManager.enemyMap || { events: [] };
 
 /**

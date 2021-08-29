@@ -68,6 +68,7 @@ J.BASE.Notetags = {
   HitGrowth: "hitGrowth",
   GuardGrowth: "grdGrowth",
   KnockbackResist: "knockbackResist",
+  NoSwitch: "noSwitch",
 
   // on skills in database.
   ActionId: "actionId",
@@ -606,6 +607,27 @@ Game_Actor.prototype.onTargetDefeatSkillIds = function() {
   });
 
   return skills;
+};
+
+/**
+ * Checks all possible places for whether or not the actor is able to
+ * be switched to.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.switchLocked = function() {
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<noSwitch>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj => {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line => {
+      if (line.match(structure)) {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
 };
 
 /**

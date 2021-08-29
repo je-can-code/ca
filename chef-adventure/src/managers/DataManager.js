@@ -1,7 +1,9 @@
+/**
+ * Extends `createGameObjects` with the fetching of the enemy map into memory.
+ */
 J.STAR.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function() {
   J.STAR.Aliased.DataManager.createGameObjects.call(this);
-
   DataManager.getEnemyMasterMap();
 };
 
