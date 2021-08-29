@@ -49,7 +49,7 @@
  * "Seeking" is defined as:
  *   turning once per step and moving toward the target.
  *
- * Use this to force an event to see it's last-hit target:
+ * Use this to force an event to seek it's last-hit target:
  *   this.seekLastHit();
  *
  * Use this to force an event to seek it's current target:
