@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.2.1
+// rmmz_managers.js v1.3.2
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -341,9 +341,7 @@ DataManager.savefileExists = function(savefileId) {
 DataManager.saveGame = function(savefileId) {
     const contents = this.makeSaveContents();
     const saveName = this.makeSavename(savefileId);
-    return StorageManager
-    .saveObject(saveName, contents)
-    .then(() => {
+    return StorageManager.saveObject(saveName, contents).then(() => {
         this._globalInfo[savefileId] = this.makeSavefileInfo();
         this.saveGlobalInfo();
         return 0;
@@ -960,17 +958,17 @@ ImageManager.throwLoadError = function(bitmap) {
 };
 
 ImageManager.isObjectCharacter = function(filename) {
-    const sign = filename.match(/^[!$]+/);
+    const sign = Utils.extractFileName(filename).match(/^[!$]+/);
     return sign && sign[0].includes("!");
 };
 
 ImageManager.isBigCharacter = function(filename) {
-    const sign = filename.match(/^[!$]+/);
+    const sign = Utils.extractFileName(filename).match(/^[!$]+/);
     return sign && sign[0].includes("$");
 };
 
 ImageManager.isZeroParallax = function(filename) {
-    return filename.charAt(0) === "!";
+    return Utils.extractFileName(filename).charAt(0) === "!";
 };
 
 //-----------------------------------------------------------------------------
@@ -3048,10 +3046,11 @@ PluginManager._commands = {};
 
 PluginManager.setup = function(plugins) {
     for (const plugin of plugins) {
-        if (plugin.status && !this._scripts.includes(plugin.name)) {
-            this.setParameters(plugin.name, plugin.parameters);
+        const pluginName = Utils.extractFileName(plugin.name);
+        if (plugin.status && !this._scripts.includes(pluginName)) {
+            this.setParameters(pluginName, plugin.parameters);
             this.loadScript(plugin.name);
-            this._scripts.push(plugin.name);
+            this._scripts.push(pluginName);
         }
     }
 };

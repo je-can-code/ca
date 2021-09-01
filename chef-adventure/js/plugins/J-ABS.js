@@ -2539,24 +2539,44 @@ Game_Enemies.prototype.enemy = function(enemyId) {
  * @returns {number}
  */
 Game_Enemy.prototype.prepareTime = function() {
-  let val = J.ABS.Metadata.DefaultEnemyPrepareTime;
-
   const referenceData = this.enemy();
+
+  const prepareTimeTrait = referenceData.traits
+    .find(trait => trait.code === J.BASE.Traits.ATTACK_SPEED);
+  if (prepareTimeTrait) {
+    return prepareTimeTrait.value;
+  }
+
+  const prepareFromNotes = this.getPrepareTimeFromNotes(referenceData);
+  if (prepareFromNotes) {
+    return prepareFromNotes;
+  }
+
+  return J.ABS.Metadata.DefaultEnemyPrepareTime;
+};
+
+/**
+ * 
+ * @param {rm.types.Enemy} referenceData 
+ * @returns 
+ */
+Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData) {
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime]) {
     // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.PrepareTime];
+    return parseInt(referenceData.meta[J.BASE.Notetags.PrepareTime]);
   } else {
     // if its not in the metadata, then check the notes proper.
+    let prepareTime = 0;
     const structure = /<prepare:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
     notedata.forEach(note => {
       if (note.match(structure)) {
-        val = RegExp.$1;
+        prepareTime = parseInt(RegExp.$1);
       }
     });
-  }
 
-  return parseInt(val);
+    return prepareTime;
+  }
 };
 
 /**
@@ -2565,24 +2585,47 @@ Game_Enemy.prototype.prepareTime = function() {
  * @returns {number}
  */
 Game_Enemy.prototype.skillId = function() {
-  let val = J.ABS.Metadata.DefaultEnemyAttackSkillId;
-
   const referenceData = this.enemy();
+
+  // check the traits for the skill id first.
+  const attackSkillTrait = referenceData.traits
+    .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
+  if (attackSkillTrait) {
+    return attackSkillTrait.dataId;
+  }
+
+  // then check the notes for the skill id.
+  const notesSkillId = this.getSkillIdFromEnemyNotes(referenceData);
+  if (notesSkillId) {
+    return notesSkillId;
+  }
+
+  // still no dice, then use the default one.
+  return J.ABS.Metadata.DefaultEnemyAttackSkillId;
+};
+
+/**
+ * Gets the skill id from the notes.
+ * @param {rm.types.Enemy} referenceData The reference data for this enemy.
+ * @returns 
+ */
+Game_Enemy.prototype.getSkillIdFromEnemyNotes = function(referenceData) {
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SkillId]) {
     // if its in the metadata, then grab it from there.
-    val = parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
+    return parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
   } else {
     // if its not in the metadata, then check the notes proper.
+    let skillId = 0;
     const structure = /<skillId:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
     notedata.forEach(note => {
       if (note.match(structure)) {
-        val = parseInt(RegExp.$1);
+        skillId = parseInt(RegExp.$1);
       }
     });
-  }
 
-  return val;
+    return skillId;
+  }
 };
 
 /**

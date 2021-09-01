@@ -196,6 +196,52 @@ J.BASE.Shapes = {
   Cross: "cross"
 };
 
+J.BASE.Traits = {
+  /**
+   * Defines a modification to one of the base parameters.
+   * `.dataId` represents the parameter id, while `.value` represents the % modifier.
+   */
+  B_PARAMETER: 21,
+
+  /**
+   * Defines a modification to one of the ex parameters.
+   * `.dataId` represents the parameter id, while `.value` represents the % modifier.
+   */
+  X_PARAMETER: 22,
+
+  /**
+   * Defines a modification to one of the sp parameters.
+   * `.dataId` represents the parameter id, while `.value` represents the % modifier.
+   */
+  S_PARAMETER: 23,
+
+  /**
+   * Defines the element associated with a skill/equipment/enemy.
+   * `.dataId` represents the id of the element.
+   */
+  ATTACK_ELEMENT: 31,
+
+  /**
+   * Defines the speed of deciding what action to take.
+   * Caps at 1000 in the editor.
+   */
+  ATTACK_SPEED: 33,
+
+  /**
+   * Defines the skill id.
+   * For weapons and enemies, this represents the skill used for attacking.
+   * For armor, this does nothing directly- but when used in the context of
+   * JAFTING's refinement, it can redefine the skill used when a weapon attacks.
+   */
+  ATTACK_SKILLID: 35,
+
+  /**
+   * The `DIVIDER` trait, specifically for JAFTING's refinement functionality.
+   */
+  NO_DISAPPEAR: 63,
+
+};
+
 /**
  * A collection of all aliased methods for this plugin.
  */

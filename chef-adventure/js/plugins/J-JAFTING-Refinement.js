@@ -2143,7 +2143,7 @@ JAFTING_Trait.prototype.initialize = function(code, dataId, value) {
  * @returns {rm.types.Trait}
  */
 JAFTING_Trait.divider = function() {
-  return { code: 63, dataId: 0, value: 1 };
+  return { code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1 };s
 };
 
 /**
