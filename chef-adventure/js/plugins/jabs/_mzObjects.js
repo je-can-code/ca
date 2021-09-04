@@ -118,6 +118,11 @@ Game_Actor.prototype.die = function() {
 J.ABS.Aliased.Game_Actor.revive = Game_Actor.prototype.revive;
 Game_Actor.prototype.revive = function() {
   J.ABS.Aliased.Game_Actor.revive.call(this);
+  const jabsBattler = $gameMap.getBattlerByUuid(this.getUuid());
+  if (jabsBattler) {
+    console.log(`${this.getUuid()} is alive.`);
+    jabsBattler.setDying(false);
+  }
 };
 
 /**
@@ -159,11 +164,20 @@ Game_Actor.prototype.getAllEquippedSkills = function() {
 
 /**
  * Gets all skill slots that have skills assigned to them.
- * @returns {string[]}
+ * @returns {any[]}
  */
 Game_Actor.prototype.getValidEquippedSkillSlots = function() {
   return Object.keys(this.getAllEquippedSkills())
     .filter(slotKey => this._j._equippedSkills[slotKey].id);
+};
+
+/**
+ * Gets all skill slots that have skills assigned to them- excluding the tool slot.
+ * @returns {any[]}
+ */
+Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
+  return this.getValidEquippedSkillSlots()
+    .filter(slotKey => slotKey !== Game_Actor.JABS_TOOLSKILL);
 };
 
 /**
@@ -1775,24 +1789,11 @@ class Game_BattleMap {
   //#endregion state tracking
 
   /**
-   * Find a battler on this map by their `uuid`.
-   * @param {string} uuid The unique identifier of a battler to find.
-   * @returns {(JABS_Battler|null)}
-   */
-  getBattlerByUuid(uuid) {
-    const battlers = $gameMap.getAllBattlers();
-    const jabsBattler = battlers.find(battler => battler.getUuid() === uuid);
-    return jabsBattler
-      ? jabsBattler
-      : null;
-  };
-
-  /**
    * Clears leader data from another battler by it's `uuid`.
    * @param {string} uuid The `uuid` of the battler to clear leader data for.
    */
   clearLeaderDataByUuid(uuid) {
-    const battler = this.getBattlerByUuid(uuid);
+    const battler = $gameMap.getBattlerByUuid(uuid);
     if (battler) {
       battler.clearLeaderData();
     }
@@ -3100,16 +3101,18 @@ class Game_BattleMap {
     switch (true) {
       case (target.isPlayer()):
         this.handleDefeatedPlayer();
-        return;
-      case (target.isActor() && !target.isPlayer()):
-        this.handleDefeatedAlly();
-        return;
+        break;
+      case (target.isActor() && !target.isPlayer() && !target.isDying()):
+        this.handleDefeatedAlly(target);
+        break;
       case (target.isEnemy()):
         this.handleDefeatedEnemy(target, caster);
         break;
       default:
         break;
     }
+
+    this.postDefeatHandler(target, caster);
   };
 
   /**
@@ -3123,17 +3126,27 @@ class Game_BattleMap {
   };
 
   /**
+   * Handles the effects that occur after a target's defeat is processed.
+   * @param {JABS_Battler} target The `Game_Battler` that was defeated.
+   * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
+   */
+  postDefeatHandler(target, caster) {
+    target.performPostdefeatEffects(caster);
+  };
+
+  /**
    * Handles the defeat of the battler the player is currently controlling.
    */
   handleDefeatedPlayer() {
+    // TODO: gameover calls this like 100 times, make it stop.
     this.rotatePartyMembers();
   };
 
   /**
    * Handles a non-player ally that was defeated.
    */
-  handleDefeatedAlly() {
-    console.log("if non-player ally defeated, add extra things here.");
+  handleDefeatedAlly(defeatedAlly) {
+    console.log(`${defeatedAlly.getBattler().name()} has died.`);
   };
 
   /**
@@ -3580,7 +3593,7 @@ Game_Character.prototype.isAction = function() {
 Game_Character.prototype.getMapBattler = function() {
   const asp = this.getActionSpriteProperties();
   const uuid = asp.battlerUuid;
-  return $gameBattleMap.getBattlerByUuid(uuid);
+  return $gameMap.getBattlerByUuid(uuid);
 };
 
 /**
@@ -3611,7 +3624,7 @@ Game_Character.prototype.clearMapBattler = function() {
 Game_Character.prototype.hasJabsBattler = function() {
   const asp = this.getActionSpriteProperties();
   const uuid = asp.battlerUuid;
-  const battler = $gameBattleMap.getBattlerByUuid(uuid);
+  const battler = $gameMap.getBattlerByUuid(uuid);
   return !!(uuid && battler);
 };
 
@@ -4718,7 +4731,8 @@ Game_Event.prototype.parseEnemyComments = function() {
       showDangerIndicator ?? enemyBattler.showDangerIndicator(),
       showBattlerName ?? enemyBattler.showBattlerName(),
       isInvincible ?? enemyBattler.isInvincible(),
-      isInanimate ?? enemyBattler.isInanimate());
+      isInanimate ?? enemyBattler.isInanimate()
+    );
     this.setBattlerCoreData(battlerCoreData);
   } else {
     this.setBattlerCoreData(null);
@@ -5032,6 +5046,19 @@ Game_Map.prototype.getAllBattlers = function() {
   const battlers = this.getBattlers();
   battlers.push($gameBattleMap.getPlayerMapBattler());
   return battlers;
+};
+
+/**
+ * Find a battler on this map by their `uuid`.
+ * @param {string} uuid The unique identifier of a battler to find.
+ * @returns {(JABS_Battler|null)}
+ */
+Game_Map.prototype.getBattlerByUuid = function(uuid) {
+  const battlers = this.getAllBattlers();
+  const jabsBattler = battlers.find(battler => battler.getUuid() === uuid);
+  return jabsBattler
+    ? jabsBattler
+    : null;
 };
 
 /**

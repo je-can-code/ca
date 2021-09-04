@@ -373,7 +373,7 @@ Game_BattleMap.prototype.performPartyCycling = function() {
 
   // take a snapshot of the next battler for the player to control.
   const nextUuid = $gameParty.members()[nextLivingAllyIndex].getUuid();
-  const nextJabsBattler = $gameBattleMap.getBattlerByUuid(nextUuid);
+  const nextJabsBattler = $gameMap.getBattlerByUuid(nextUuid);
   if (!nextJabsBattler) {
     console.warn(`the next follower of uuid: [${nextUuid}], wasn't able to be retrieved.`);
     return;
@@ -653,7 +653,6 @@ Game_Map.prototype.getActiveFollowers = function() {
  */
 Game_Map.prototype.convertOneFollower = function(follower) {
   const battler = follower.actor();
-  const tempAI = new JABS_BattlerAI(true, true);
   const coreBattlerData = new JABS_BattlerCoreData(
     battler.actorId(),              // battler id
     JABS_Battler.allyTeamId(),      // team id
@@ -757,6 +756,10 @@ JABS_AiManager.aiPhase0 = function(battler) {
     : this.allyAiPhase0(battler);
 };
 
+/**
+ * Decides what to do for allies in their idle phase.
+ * @param {JABS_Battler} allyBattler The ally battler.
+ */
 JABS_AiManager.allyAiPhase0 = function(allyBattler) {
   const character = allyBattler.getCharacter();
   const isStopped = character.isStopping();
@@ -815,10 +818,11 @@ JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler) {
   const allyAi = allyBattler.getAllyAiMode();
 
   // get all slots that have skills in them.
-  const validSkillSlots = battler.getValidEquippedSkillSlots();
+  const validSkillSlots = battler.getValidSkillSlotsForAlly();
 
   // convert the slots into their respective skill ids.
-  const currentlyEquippedSkillIds = validSkillSlots.map(slotKey => battler.getEquippedSkill(slotKey));
+  const currentlyEquippedSkillIds = validSkillSlots
+    .map(slotKey => battler.getEquippedSkill(slotKey));
 
   // decide the action based on the ally ai mode currently assigned.
   const decidedSkillId = allyAi.decideAction(currentlyEquippedSkillIds, allyBattler, allyBattler.getTarget());
@@ -1017,7 +1021,6 @@ JABS_AllyAI.prototype.decideDoNothing = function() {
  * Only uses the "mainhand" slotted skill. If no skill is equipped in that slot, then returns nothing.
  * @param {number[]} availableSkills The skill ids available to choose from.
  * @param {JABS_Battler} attacker The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler to use the skill against.
  * @returns {number?}
  */
 JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker) {
@@ -1612,26 +1615,29 @@ JABS_BattleMemory.prototype.wasEffective = function() {
  * @returns {boolean}
  */
 J.ALLYAI.Aliased.JABS_Battler.shouldEngage = JABS_Battler.prototype.shouldEngage;
-JABS_Battler.prototype.shouldEngage = function(distance) {
+JABS_Battler.prototype.shouldEngage = function(target, distance) {
   if (this.isEnemy() || $gameParty.isAggro()) {
     // if this is an enemy, or the party is aggro and this isn't the player, do nothing different.
-    return J.ALLYAI.Aliased.JABS_Battler.shouldEngage.call(this, distance);
+    return J.ALLYAI.Aliased.JABS_Battler.shouldEngage.call(this, target, distance);
   } else {
     // if this is an ally, use the ally engagement determination to see if this ally should engage.
-    return this.shouldAllyEngage(distance);
+    return this.shouldAllyEngage(target, distance);
   }
 };
 
 /**
  * A custom determination for seeing if an ally should engage it's nearest target or not.
+ *
+ * Allies do not aggro against inanimate objects!
  * @param {number} distance The distance from this battler to the nearest potential target.
  * @returns {boolean}
  */
-JABS_Battler.prototype.shouldAllyEngage = function(distance) {
+JABS_Battler.prototype.shouldAllyEngage = function(target, distance) {
   const isAlerted = this.isAlerted();
   const playerHitSomething = $gameBattleMap.getPlayerMapBattler().hasBattlerLastHit();
   const inSight = this.inSightRange(distance);
-  const shouldEngage = (isAlerted || playerHitSomething);
+  const targetInanimate = target.isInanimate();
+  const shouldEngage = (isAlerted || playerHitSomething) && !targetInanimate;
   return inSight && shouldEngage;
 };
 //#endregion JABS_Battler
