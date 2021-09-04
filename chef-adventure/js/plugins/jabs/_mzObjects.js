@@ -251,20 +251,11 @@ Game_Actor.prototype.unlockAllSlots = function() {
  */
 Game_Actor.prototype.updateEquipmentSkills = function() {
   const equips = this.equips();
-  const hasMainhand = equips[0];
-  const hasOffhand = equips[1];
+  const mainhandSkill = equips[0] ? parseInt(equips[0]._j.skillId) : 0;
+  const offhandSkill = equips[1] ? parseInt(equips[1]._j.skillId) : 0;
 
-  this.setEquippedSkill(
-    Game_Actor.JABS_MAINHAND, 
-    hasMainhand 
-      ? parseInt(equips[0]._j.skillId)
-      : 0);
-
-  this.setEquippedSkill(
-    Game_Actor.JABS_OFFHAND, 
-    hasOffhand 
-      ? parseInt(equips[1]._j.skillId)
-      : 0);
+  this.setEquippedSkill(Game_Actor.JABS_MAINHAND, mainhandSkill);
+  this.setEquippedSkill(Game_Actor.JABS_OFFHAND, offhandSkill);
 
   this.releaseUnequippableSkills();
 };
@@ -1133,9 +1124,7 @@ class Game_BattleMap {
    */
   isMainhandActionReady() {
     const player = this.getPlayerMapBattler();
-    const attackReady = player.isBaseCooldownReady(Game_Actor.JABS_MAINHAND);
-    const comboReady = player.isComboCooldownReady(Game_Actor.JABS_MAINHAND);
-    return attackReady || comboReady;
+    return player.isSkillTypeCooldownReady(Game_Actor.JABS_MAINHAND);
   };
 
   /**
@@ -1144,9 +1133,7 @@ class Game_BattleMap {
    */
   isOffhandActionReady() {
     const player = this.getPlayerMapBattler();
-    const attackReady = player.isBaseCooldownReady(Game_Actor.JABS_OFFHAND);
-    const comboReady = player.isComboCooldownReady(Game_Actor.JABS_OFFHAND);
-    return attackReady || comboReady;
+    return player.isSkillTypeCooldownReady(Game_Actor.JABS_OFFHAND);
   };
 
   /**
