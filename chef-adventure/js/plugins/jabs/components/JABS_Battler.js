@@ -760,7 +760,7 @@ JABS_Battler.prototype.updateEngagement = function() {
       this.disengageTarget();
     }
   } else {
-    if (this.shouldEngage(distance)) {
+    if (this.shouldEngage(target, distance)) {
       this.engageTarget(target);
     }
   }
@@ -785,9 +785,10 @@ JABS_Battler.prototype.shouldDisengage = function(distance) {
 
 /**
  * Determines whether or not this battler should engage to the nearest target.
+ * @param {JABS_Battler} target The target to potentially engage.
  * @returns {boolean}
  */
-JABS_Battler.prototype.shouldEngage = function(distance) {
+JABS_Battler.prototype.shouldEngage = function(target, distance) {
   return this.inSightRange(distance);
 };
 
@@ -1553,7 +1554,7 @@ JABS_Battler.prototype.getLeader = function() {
  */
 JABS_Battler.prototype.getLeaderBattler = function() {
   if (this._leaderUuid) {
-    return $gameBattleMap.getBattlerByUuid(this._leaderUuid);
+    return $gameMap.getBattlerByUuid(this._leaderUuid);
   } else {
     return null;
   }
@@ -1564,7 +1565,7 @@ JABS_Battler.prototype.getLeaderBattler = function() {
  * @param {string} newLeader The leader's `uuid`.
  */
 JABS_Battler.prototype.setLeader = function(newLeader) {
-  const leader = $gameBattleMap.getBattlerByUuid(newLeader);
+  const leader = $gameMap.getBattlerByUuid(newLeader);
   if (leader) {
     this._leaderUuid = newLeader;
     leader.addFollower(this.getUuid());
@@ -1601,7 +1602,7 @@ JABS_Battler.prototype.getFollowerByUuid = function(followerUuid) {
   // search through the followers to find the matching battler.
   const foundUuid = this._followers.find(uuid => uuid === followerUuid);
   if (foundUuid) {
-    return $gameBattleMap.getBattlerByUuid(foundUuid);
+    return $gameMap.getBattlerByUuid(foundUuid);
   }
   else {
     return null;
@@ -1659,7 +1660,7 @@ JABS_Battler.prototype.clearLeader = function() {
     // in some instances, "this" may not be alive anymore so handle that.
     if (!uuid) return;
 
-    const leader = $gameBattleMap.getBattlerByUuid(leaderUuid);
+    const leader = $gameMap.getBattlerByUuid(leaderUuid);
     if (!leader) return;
 
     leader.removeFollowerByUuid(uuid);
@@ -2355,7 +2356,7 @@ JABS_Battler.prototype.getLeaderAiMode = function() {
   // if we don't have a leader, don't.
   if (!this.hasLeader()) return null;
 
-  const leader = $gameBattleMap.getBattlerByUuid(this.getLeader());
+  const leader = $gameMap.getBattlerByUuid(this.getLeader());
   if (!leader) return null;
 
   return leader.getAiMode();
@@ -2876,7 +2877,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function() {
 
   if (!this.getTarget()) {
     const highestAggro = this.getHighestAggro();
-    const newTarget = $gameBattleMap.getBattlerByUuid(highestAggro.uuid());
+    const newTarget = $gameMap.getBattlerByUuid(highestAggro.uuid());
     if (newTarget) {
       this.setTarget(newTarget);
     }
@@ -2903,7 +2904,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function() {
     // check to see if the last aggro in the list belongs to the current target.
     if (!(this.getTarget().getUuid() === zerothAggroUuid)) {
       // if it doesn't, then get that battler.
-      const newTarget = $gameBattleMap.getBattlerByUuid(zerothAggroUuid);
+      const newTarget = $gameMap.getBattlerByUuid(zerothAggroUuid);
       if (newTarget) {
         // then switch to that target!
         this.setTarget(newTarget);
@@ -2925,7 +2926,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function() {
   if (!(highestAggroTarget.uuid() === this.getTarget().getUuid())) {
 
     // find the new target to change to that has more aggro than the current target.
-    const newTarget = $gameBattleMap.getBattlerByUuid(highestAggroTarget.uuid());
+    const newTarget = $gameMap.getBattlerByUuid(highestAggroTarget.uuid());
 
     // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
     if (!newTarget) {
@@ -2969,7 +2970,7 @@ JABS_Battler.prototype.getHighestAggro = function() {
  * @param uuid
  */
 JABS_Battler.prototype.removeAggroIfTargetDead = function(uuid) {
-  const battler = $gameBattleMap.getBattlerByUuid(uuid);
+  const battler = $gameMap.getBattlerByUuid(uuid);
   if (!battler || battler.isDead()) {
     this.removeAggro(uuid);
   }
@@ -3428,7 +3429,7 @@ JABS_Battler.prototype.createToolLog = function(item) {
 };
 
 /**
- * Executes the processing for a defeated battler.
+ * Executes the pre-defeat processing for a battler.
  * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
  */
 JABS_Battler.prototype.performPredefeatEffects = function(victor) {
@@ -3441,7 +3442,6 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor) {
   }
 
   const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
-  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
   if (onOwnDefeatSkills.length) {
     onOwnDefeatSkills.forEach(onDefeatSkill => {
       if (onDefeatSkill.shouldTrigger()) {
@@ -3450,6 +3450,7 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor) {
     });
   }
 
+  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
   if (onTargetDefeatSkills.length) {
     console.log(onTargetDefeatSkills);
     onTargetDefeatSkills.forEach(onDefeatSkill => {
@@ -3462,6 +3463,16 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor) {
         }
       }
     });
+  }
+};
+
+/**
+ * Executes the post-defeat processing for a defeated battler.
+ * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ */
+JABS_Battler.prototype.performPostdefeatEffects = function(victor) {
+  if (this.isActor()) {
+    this.setDying(true);
   }
 };
 //#endregion apply effects
