@@ -210,7 +210,7 @@ JABS_Battler.prototype.initGeneralInfo = function() {
 JABS_Battler.prototype.initBattleInfo = function() {
   /**
    * An object to track cooldowns within.
-   * @type {any}
+   * @type {JABS_Cooldown[]}
    */
   this._cooldowns = {};
   this.initCooldowns();
@@ -720,10 +720,9 @@ JABS_Battler.prototype.updateAnimations = function() {
  * Updates all cooldowns for this battler.
  */
 JABS_Battler.prototype.updateCooldowns = function() {
-  const keys = Object.keys(this._cooldowns);
-  keys.forEach(cooldownKey => {
-    this.countdownBaseCooldown(cooldownKey);
-    this.countdownComboCooldown(cooldownKey);
+  const cooldownKeys = Object.keys(this._cooldowns);
+  cooldownKeys.forEach(key => {
+    this._cooldowns[key].update();
   });
 
   if (this.isWaiting()) {
@@ -2454,18 +2453,16 @@ JABS_Battler.prototype.turnTowardTarget = function() {
  */
 JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration) {
   if (!this._cooldowns[cooldownKey]) {
-    this._cooldowns[cooldownKey] = {};
-    this._cooldowns[cooldownKey].frames = duration;
-    this._cooldowns[cooldownKey].ready = true;
-    this._cooldowns[cooldownKey].comboNextActionId = 0;
-    this._cooldowns[cooldownKey].comboFrames = 0;
-    this._cooldowns[cooldownKey].comboReady = false;
+    const cooldown = new JABS_Cooldown(cooldownKey);
+    cooldown.setFrames(duration);
+    this._cooldowns[cooldownKey] = cooldown;
   }
 };
 
 /**
  * Gets the cooldown data for a given cooldown key.
  * @param {string} cooldownKey The cooldown to lookup.
+ * @returns {JABS_Cooldown}
  */
 JABS_Battler.prototype.getCooldown = function(cooldownKey) {
   return this._cooldowns[cooldownKey];
@@ -2547,73 +2544,7 @@ JABS_Battler.prototype.isIdleActionReady = function() {
  * @returns {boolean} True if the given skilltype is ready, false otherwise.
  */
 JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey) {
-  return this.isBaseCooldownReady(cooldownKey) || this.isComboCooldownReady(cooldownKey);
-};
-
-/**
- * Counts down the base action cooldown for this key.
- * @param {string} cooldownKey The key of this cooldown.
- */
-JABS_Battler.prototype.countdownBaseCooldown = function(cooldownKey) {
-  if (this._cooldowns[cooldownKey].ready) {
-    // if the base cooldown is ready, then clear the combo data.
-    this._cooldowns[cooldownKey].comboReady = false;
-    this._cooldowns[cooldownKey].comboNextActionId = 0;
-    return true;
-  } else {
-    if (this._cooldowns[cooldownKey].frames > 0) {
-      this._cooldowns[cooldownKey].frames--;
-      return false;
-    }
-
-    this._cooldowns[cooldownKey].ready = true;
-    this._cooldowns[cooldownKey].frames = 0;
-  }
-};
-
-/**
- * Whether or not the regular action's cooldown is ready.
- * @param {string} cooldownKey The key of this cooldown.
- * @returns {boolean} True if the base cooldown is ready, false otherwise.
- */
-JABS_Battler.prototype.isBaseCooldownReady = function(cooldownKey) {
-  if (!this._cooldowns[cooldownKey]) {
-    console.warn(`Cooldown key of ${cooldownKey} was never initialized- initializing!`);
-    // this cooldown was never initialized for some reason- initialize it.
-    this.initializeCooldown(cooldownKey, 120);
-    return false;
-  } else {
-    return this._cooldowns[cooldownKey].ready;
-  }
-};
-
-/**
- * Counts down the combo action cooldown for this key.
- * @param {string} cooldownKey The key of this cooldown.
- */
-JABS_Battler.prototype.countdownComboCooldown = function(cooldownKey) {
-  if (!this._cooldowns[cooldownKey].comboNextActionId || this._cooldowns[cooldownKey].comboReady)
-    return;
-
-  if (!this._cooldowns[cooldownKey].comboReady) {
-    if (this._cooldowns[cooldownKey].comboFrames > 0) {
-      this._cooldowns[cooldownKey].comboFrames--;
-      return;
-    }
-
-    this._cooldowns[cooldownKey].comboReady = true;
-    this._cooldowns[cooldownKey].comboFrames = 0;
-  }
-};
-
-/**
- * Whether or not the combo action for this skill is ready.
- * @param {string} cooldownKey The key of this cooldown.
- * @returns {boolean} True if the combo cooldown is ready, false otherwise.
- */
-JABS_Battler.prototype.isComboCooldownReady = function(cooldownKey) {
-  if (!this._cooldowns[cooldownKey].comboNextActionId) return false;
-  return this._cooldowns[cooldownKey].comboReady;
+  return this._cooldowns[cooldownKey].isAnyReady();
 };
 
 /**
@@ -2622,15 +2553,7 @@ JABS_Battler.prototype.isComboCooldownReady = function(cooldownKey) {
  * @param {number} duration The duration of this cooldown.
  */
 JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration) {
-  this._cooldowns[cooldownKey].frames += duration;
-  if (this._cooldowns[cooldownKey].frames > 0) {
-    this._cooldowns[cooldownKey].ready = false;
-  }
-
-  if (this._cooldowns[cooldownKey].frames <= 0) {
-    this._cooldowns[cooldownKey].ready = true;
-    this._cooldowns[cooldownKey].frames = 0;
-  }
+  this._cooldowns[cooldownKey].modBaseFrames(duration);
 };
 
 /**
@@ -2639,14 +2562,7 @@ JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration) {
  * @param {number} duration The duration of this cooldown.
  */
 JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration) {
-  this._cooldowns[cooldownKey].frames = duration;
-  if (this._cooldowns[cooldownKey].frames === 0) {
-    this._cooldowns[cooldownKey].ready = true;
-  }
-
-  if (this._cooldowns[cooldownKey].frames > 0) {
-    this._cooldowns[cooldownKey].ready = false;
-  }
+  this._cooldowns[cooldownKey].setFrames(duration);
 };
 
 /**
@@ -2654,26 +2570,16 @@ JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration) {
  * @param {string} cooldownKey The key of this cooldown.
  */
 JABS_Battler.prototype.resetComboData = function(cooldownKey) {
-  this._cooldowns[cooldownKey].comboFrames = 0;
-  this._cooldowns[cooldownKey].comboNextActionId = 0;
-  this._cooldowns[cooldownKey].comboReady = false;
+  this._cooldowns[cooldownKey].resetCombo();
 };
 
 /**
  * Sets the combo frames to be a given value.
  * @param {string} cooldownKey The key associated with the cooldown.
- * @param {number} frames The number of frames until this combo action is ready.
+ * @param {number} duration The number of frames until this combo action is ready.
  */
-JABS_Battler.prototype.setComboFrames = function(cooldownKey, frames) {
-  this._cooldowns[cooldownKey].comboFrames = frames;
-  if (this._cooldowns[cooldownKey].comboFrames > 0) {
-    this._cooldowns[cooldownKey].comboReady = false;
-  }
-
-  if (this._cooldowns[cooldownKey].comboFrames <= 0) {
-    this._cooldowns[cooldownKey].comboReady = true;
-    this._cooldowns[cooldownKey].comboFrames = 0;
-  }
+JABS_Battler.prototype.setComboFrames = function(cooldownKey, duration) {
+  this._cooldowns[cooldownKey].setComboFrames(duration);
 };
 
 /**

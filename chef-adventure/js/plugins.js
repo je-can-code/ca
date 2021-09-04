@@ -36,6 +36,7 @@ var $plugins =
 {"name":"jabs/components/JABS_Battler","status":true,"description":"[v3.0 JABS] Data structure of a JABS_Battler.","parameters":{}},
 {"name":"jabs/components/JABS_BattlerAI","status":true,"description":"[v3.0 JABS] Data structure of a JABS_Battler's AI.","parameters":{}},
 {"name":"jabs/components/JABS_BattlerCoreData","status":true,"description":"[v3.0 JABS] Core data structure of a JABS_Battler.","parameters":{}},
+{"name":"jabs/components/JABS_Cooldown","status":true,"description":"","parameters":{}},
 {"name":"jabs/components/JABS_GuardData","status":true,"description":"[v3.0 JABS] Guard data structure.","parameters":{}},
 {"name":"jabs/components/JABS_LootDrop","status":true,"description":"[v3.0 JABS] Loot Drop data structure.","parameters":{}},
 {"name":"jabs/components/JABS_TextPop","status":true,"description":"[v3.0 JABS] Pop-up data structure.","parameters":{}},

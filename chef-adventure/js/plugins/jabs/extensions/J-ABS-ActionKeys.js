@@ -462,7 +462,7 @@ Window_ActionKeys.prototype.createActionKeyComboGauge = function(key, cooldownDa
 /**
  * Places the action key cooldown timer sprite at a designated location.
  * @param {string} skillType The skill type of this action key.
- * @param {object} cooldownData The cooldown data for this action.
+ * @param {JABS_Cooldown} cooldownData The cooldown data for this action.
  * @param {number} x The `x` coordinate of this sprite.
  * @param {number} y The `y` coordinate of this sprite.
  * @param {boolean} isItem True if this is an item, false if it is a skill.
@@ -478,7 +478,7 @@ Window_ActionKeys.prototype.placeActionKeyCooldownTimer = function(skillType, co
  * Creates (or fetches) the sprite for this cooldown timer.
  * @param {string} key The key of the sprite.
  * @param {string} skillType The skill type of this action key.
- * @param {object} cooldownData The cooldown data for this action.
+ * @param {JABS_Cooldown} cooldownData The cooldown data for this action.
  * @param {boolean} isItem True if this is an item, false if it is a skill.
  */
 Window_ActionKeys.prototype.createActionKeyCooldownTimer = function(key, skillType, cooldownData, isItem) {
@@ -545,7 +545,7 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
  * Creates (or fetches) the sprite for this cooldown timer.
  * @param {string} key The key of the sprite.
  * @param {string} skillType The skill type of this action key.
- * @param {object} cooldownData The cooldown data for this action.
+ * @param {JABS_Cooldown} cooldownData The cooldown data for this action.
  * @param {boolean} itemId The id of the item if an item, otherwise 0 (for updating count).
  */
 Window_ActionKeys.prototype.createActionKeyAbilityCosts = function(key, cost, color, itemId = 0) {
