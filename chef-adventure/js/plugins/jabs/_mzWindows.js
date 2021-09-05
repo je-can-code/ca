@@ -189,72 +189,51 @@ class Window_AbsMenuSelect extends Window_Command {
    * Fills the list with the currently assigned items.
    */
   makeEquippedSkillList() {
-    const actor = $gameParty.leader();
-    const equippedActions = actor.getAllEquippedSkills();
-    const keys = Object.keys(equippedActions).filter(key => {
-      return (
-        key !== Game_Actor.JABS_MAINHAND &&
-        key !== Game_Actor.JABS_OFFHAND &&
-        key !== Game_Actor.JABS_TOOLSKILL &&
-        key !== Game_Actor.JABS_DODGESKILL);
-    });
+    $gameParty.leader()
+      .getAllSecondarySkills()
+      .forEach(skillSlot => {
+        let name = `${skillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
+        let iconIndex = 0;
+        if (skillSlot.isUsable()) {
+          const equippedSkill = $dataSkills[skillSlot.id];
+          name = `${equippedSkill.name}`;
+          iconIndex = equippedSkill.iconIndex;
+        }
 
-    keys.forEach(key => {
-      const skillSlot = equippedActions[key];
-      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
-      let iconIndex = 0;
-      if (skillSlot.id !== 0) {
-        const equippedSkill = $dataSkills[skillSlot.id];
-        name = `${equippedSkill.name}`;
-        iconIndex = equippedSkill.iconIndex;
-      }
-
-      this.addCommand(name, "slot", true, key, iconIndex);
-    });
+        this.addCommand(name, "slot", true, skillSlot.key, iconIndex);
+      });
   };
 
   /**
    * Fills the list with the currently assigned items.
    */
   makeEquippedToolList() {
-    const actor = $gameParty.leader();
-    const equippedActions = actor.getAllEquippedSkills();
-    const keys = Object.keys(equippedActions).filter(key => key === Game_Actor.JABS_TOOLSKILL);
+    const toolSkill = $gameParty.leader().getToolSkill();
+    let name = `${toolSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
+    let iconIndex = 0;
+    if (toolSkill.isUsable()) {
+      const equippedTool = $dataItems[toolSkill.id];
+      name = `${equippedTool.name}: ${$gameParty.numItems(equippedTool)}`;
+      iconIndex = equippedTool.iconIndex;
+    }
 
-    keys.forEach(key => {
-      const toolSlot = equippedActions[key];
-      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
-      let iconIndex = 0;
-      if (toolSlot.id !== 0) {
-        const equippedTool = $dataItems[toolSlot.id];
-        name = `${equippedTool.name}: ${$gameParty.numItems(equippedTool)}`;
-        iconIndex = equippedTool.iconIndex;
-      }
-
-      this.addCommand(name, "slot", true, key, iconIndex);
-    });
+    this.addCommand(name, "slot", true, toolSkill.key, iconIndex);
   };
 
   /**
    * Fills the list with the currently assigned items.
    */
   makeEquippedDodgeList() {
-    const actor = $gameParty.leader();
-    const equippedActions = actor.getAllEquippedSkills();
-    const keys = Object.keys(equippedActions).filter(key => key === Game_Actor.JABS_DODGESKILL);
+    const dodgeSkill = $gameParty.leader().getDodgeSkill();
+    let name = `${dodgeSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
+    let iconIndex = 0;
+    if (dodgeSkill.isUsable()) {
+      const equippedDodgeSkill = $dataSkills[dodgeSkill.id];
+      name = `${equippedDodgeSkill.name}`;
+      iconIndex = equippedDodgeSkill.iconIndex;
+    }
 
-    keys.forEach(key => {
-      const dodgeSlot = equippedActions[key];
-      let name = `${key}: ${J.ABS.Metadata.UnassignedText}`;
-      let iconIndex = 0;
-      if (dodgeSlot.id !== 0) {
-        const equippedDodgeSkill = $dataSkills[dodgeSlot.id];
-        name = `${equippedDodgeSkill.name}`;
-        iconIndex = equippedDodgeSkill.iconIndex;
-      }
-
-      this.addCommand(name, "slot", true, key, iconIndex);
-    });
+    this.addCommand(name, "slot", true, dodgeSkill.key, iconIndex);
   };
 }
 //#endregion Window_AbsMenuSelect

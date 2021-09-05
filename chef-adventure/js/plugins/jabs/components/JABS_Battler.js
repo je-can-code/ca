@@ -2469,6 +2469,18 @@ JABS_Battler.prototype.getCooldown = function(cooldownKey) {
 };
 
 /**
+ * Gets the cooldown and skill slot data for a given key.
+ * @param {string} key The slot to get the data for.
+ * @returns {{ cooldown: JABS_Cooldown, skillslot: JABS_SkillSlot }}
+ */
+JABS_Battler.prototype.getActionKeyData = function(key) {
+  return {
+    cooldown: this.getCooldown(key),
+    skillslot: this.getBattler().getSkillSlot(key)
+  }
+};
+
+/**
  * Whether or not this battler has finished it's post-action cooldown phase.
  * @returns {boolean} True if the battler is cooled down, false otherwise.
  */
@@ -2553,7 +2565,12 @@ JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey) {
  * @param {number} duration The duration of this cooldown.
  */
 JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration) {
-  this._cooldowns[cooldownKey].modBaseFrames(duration);
+  try {
+    this._cooldowns[cooldownKey].modBaseFrames(duration);
+  } catch (ex) {
+    console.log(cooldownKey, duration);
+    console.warn(ex);
+  }
 };
 
 /**
