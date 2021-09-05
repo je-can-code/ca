@@ -44,9 +44,9 @@ Game_Actor.prototype.initMembers = function() {
   this._j = this._j || {};
   /**
    * All equipped skills on this actor.
-   * @type {any}
+   * @type {JABS_SkillSlotManager}
    */
-  this._j._equippedSkills = {};
+  this._j._equippedSkills = this._j._equippedSkills || new JABS_SkillSlotManager();
 
   /**
    * The total speed boosts currently applied to this actor.
@@ -62,6 +62,7 @@ Game_Actor.prototype.initMembers = function() {
 
   /**
    * Whether or not the death effect has been performed.
+   * The death effect is defined as "death animation".
    * @type {boolean}
    */
   this._j._deathEffect = false;
@@ -76,6 +77,18 @@ Game_Actor.prototype.setup = function(actorId) {
   this.initAbsSkills();
   this.refreshSpeedBoosts();
   this.refreshBonusHits();
+};
+
+/**
+ * Disable built-in on-turn-end effects while JABS is active.
+ * (built-in effects include regeneration and poison, but those are
+ * already handled elsewhere in the engine)
+ */
+J.ABS.Aliased.Game_Actor.turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+Game_Actor.prototype.turnEndOnMap = function() {
+  if (!$gameBattleMap.absEnabled) {
+    J.ABS.Aliased.Game_Actor.turnEndOnMap.call(this);
+  }
 };
 
 /**
@@ -129,65 +142,100 @@ Game_Actor.prototype.revive = function() {
  * Initializes the jabs equipped skills based on equipment.
  */
 Game_Actor.prototype.initAbsSkills = function() {
-  this._j._equippedSkills[Game_Actor.JABS_TOOLSKILL]  = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_DODGESKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_L1_A_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_L1_B_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_L1_X_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_L1_Y_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_R1_A_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_R1_B_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_R1_X_SKILL] = { id: 0, locked: false, };
-  this._j._equippedSkills[Game_Actor.JABS_R1_Y_SKILL] = { id: 0, locked: false, };
   this.updateEquipmentSkills();
 };
 
 /**
- * Disable built-in on-turn-end effects while JABS is active.
- * (built-in effects include regeneration and poison, but those are
- * already handled elsewhere in the engine)
+ * Retrieves all skills that are currently equipped on this actor.
+ * @returns {JABS_SkillSlot[]}
  */
-J.ABS.Aliased.Game_Actor.turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
-Game_Actor.prototype.turnEndOnMap = function() {
-  if (!$gameBattleMap.absEnabled) {
-    J.ABS.Aliased.Game_Actor.turnEndOnMap.call(this);
-  }
+Game_Actor.prototype.getAllEquippedSkills = function() {
+  return this._j._equippedSkills.getAllSlots();
 };
 
 /**
- * Retrieves all skills that are currently equipped on this actor.
- * @returns {any}
+ * Gets all skill slots identified as "primary".
+ * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getAllEquippedSkills = function() {
-  return this._j._equippedSkills;
+Game_Actor.prototype.getAllPrimarySkills = function() {
+  return this._j._equippedSkills.getAllPrimarySlots();
+};
+
+/**
+ * Gets all skill slots identified as "secondary".
+ * @returns {JABS_SkillSlot[]}
+ */
+Game_Actor.prototype.getAllSecondarySkills = function() {
+  return this._j._equippedSkills.getAllSecondarySlots();
+};
+
+/**
+ * Gets the skill dedicated to the tool slot.
+ * @returns {JABS_SkillSlot}
+ */
+Game_Actor.prototype.getToolSkill = function() {
+  return this._j._equippedSkills.getToolSlot();
+};
+
+/**
+ * Gets the skill dedicated to the dodge slot.
+ * @returns {JABS_SkillSlot}
+ */
+Game_Actor.prototype.getDodgeSkill = function() {
+  return this._j._equippedSkills.getDodgeSlot();
 };
 
 /**
  * Gets all skill slots that have skills assigned to them.
- * @returns {any[]}
+ * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getValidEquippedSkillSlots = function() {
-  return Object.keys(this.getAllEquippedSkills())
-    .filter(slotKey => this._j._equippedSkills[slotKey].id);
+  return this._j._equippedSkills.getAllValidSlots();
 };
 
 /**
  * Gets all skill slots that have skills assigned to them- excluding the tool slot.
- * @returns {any[]}
+ * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
-  return this.getValidEquippedSkillSlots()
-    .filter(slotKey => slotKey !== Game_Actor.JABS_TOOLSKILL);
+  return this._j._equippedSkills.getAlliedValidSlots();
+};
+
+/**
+ * Gets all skill slots that have skills that are upgradable.
+ * @returns {JABS_SkillSlot[]}
+ */
+Game_Actor.prototype.getUpgradableSkills = function() {
+  return this
+    .getValidEquippedSkillSlots()
+    .filter(skillSlot => {
+      if (JABS_SkillSlot.noAutoclearSlots.includes(skillSlot.key)) {
+        // skip the main/off/tool slots.
+        return false;
+      }
+
+      if (this.isSlotLocked(skillSlot.key)) {
+        // skip locked slots.
+        return false;
+      }
+
+      const skillData = $dataSkills[skillSlot.id];
+      if (!skillData.meta || !skillData.meta["Hide if learned Skill"]) {
+        // skip skills that don't "upgrade" per yanfly's plugin.
+        return false;
+      }
+
+      return true;
+    });
 };
 
 /**
  * Gets the key to the slot that the provided skill id lives within.
  * @param {number} skillIdToFind The skill id to find amidst all equipped skills.
- * @returns {string}
+ * @returns {JABS_SkillSlot}
  */
 Game_Actor.prototype.findSlotForSkillId = function(skillIdToFind) {
-  return Object.keys(this.getAllEquippedSkills())
-    .find(slotKey => this._j._equippedSkills[slotKey].id === skillIdToFind);
+  return this._j._equippedSkills.getSlotBySkillId(skillIdToFind);
 };
 
 /**
@@ -196,7 +244,16 @@ Game_Actor.prototype.findSlotForSkillId = function(skillIdToFind) {
  * @returns {number}
  */
 Game_Actor.prototype.getEquippedSkill = function(slot) {
-  return this._j._equippedSkills[slot].id;
+  return this.getSkillSlot(slot).id;
+};
+
+/**
+ * Gets the slot associated with a key.
+ * @param {string} slot The slot to retrieve a slot for.
+ * @returns {JABS_SkillSlot}
+ */
+Game_Actor.prototype.getSkillSlot = function(slot) {
+  return this._j._equippedSkills.getSkillBySlot(slot);
 };
 
 /**
@@ -206,27 +263,18 @@ Game_Actor.prototype.getEquippedSkill = function(slot) {
  * @param {boolean} locked Whether or not the skill is locked onto this slot.
  */
 Game_Actor.prototype.setEquippedSkill = function(slot, skillId, locked = false) {
-  if (this.isSlotLocked(slot)) {
-    console.warn("This slot is forcefully assigned and must be unlocked first.");
-    SoundManager.playBuzzer();
-    return;
-  }
-
-  this._j._equippedSkills[slot] = this._j._equippedSkills[slot] || {};
-  this._j._equippedSkills[slot].id = skillId;
-  this._j._equippedSkills[slot].locked = locked;
+  this._j._equippedSkills.setSlot(slot, skillId, locked);
 };
 
 /**
  * Checks if a slot is locked or not.
  * @param {string} slot The slot being checked to see if it is locked.
+ * @returns {boolean}
  */
 Game_Actor.prototype.isSlotLocked = function(slot) {
-  if (slot === Game_Actor.JABS_MAINHAND || slot === Game_Actor.JABS_OFFHAND) {
-    return false;
-  }
-
-  return this._j._equippedSkills[slot].locked;
+  return this._j._equippedSkills
+    .getSkillBySlot(slot)
+    .isLocked();
 };
 
 /**
@@ -234,22 +282,25 @@ Game_Actor.prototype.isSlotLocked = function(slot) {
  * @param {string} slot The slot to unlock.
  */
 Game_Actor.prototype.unlockSlot = function(slot) {
-  this._j._equippedSkills[slot].locked = false;
-}
+  this._j._equippedSkills
+    .getSkillBySlot(slot)
+    .unlock();
+};
 
 /**
  * Unlocks all slots that were forcefully assigned.
  */
 Game_Actor.prototype.unlockAllSlots = function() {
-  const slots = Object.keys(this._j._equippedSkills);
-  slots.forEach(slot => this._j._equippedSkills[slot].locked = false);
-}
+  this._j._equippedSkills.unlockAllSlots();
+};
 
 /**
  * Updates the latest equipped mainhand/offhand skill slots with whatever the
  * currently equipped gear provides.
  */
 Game_Actor.prototype.updateEquipmentSkills = function() {
+  this.releaseUnequippableSkills();
+
   const equips = this.equips();
   const mainhandSkill = equips[0] ? parseInt(equips[0]._j.skillId) : 0;
   const offhandSkill = equips[1] ? parseInt(equips[1]._j.skillId) : 0;
@@ -257,7 +308,6 @@ Game_Actor.prototype.updateEquipmentSkills = function() {
   this.setEquippedSkill(Game_Actor.JABS_MAINHAND, mainhandSkill);
   this.setEquippedSkill(Game_Actor.JABS_OFFHAND, offhandSkill);
 
-  this.releaseUnequippableSkills();
 };
 
 /**
@@ -266,27 +316,13 @@ Game_Actor.prototype.updateEquipmentSkills = function() {
  * no longer equipped to the character. Skills that are "forced" will not be removed.
  */
 Game_Actor.prototype.releaseUnequippableSkills = function() {
-  const equippedSkills = this.getAllEquippedSkills();
-  Object.keys(equippedSkills).forEach(slot => {
-    // we will only autoremove skills from the R1/L1/dodge slots.
-    if (slot !== Game_Actor.JABS_TOOLSKILL &&
-    slot !== Game_Actor.JABS_MAINHAND &&
-    slot !== Game_Actor.JABS_OFFHAND) {
-      // only remove non-locked skills when gear is unequipped.
-      if (!this.hasSkill(this.getEquippedSkill(slot)) && !this.isSlotLocked(slot)) {
-        this.removeEquippedSkill(slot);
+  this._j._equippedSkills
+    .getAllSlots()
+    .forEach(skillSlot => {
+      if (!this.hasSkill(skillSlot.id)) {
+        skillSlot.autoclear();
       }
-    }
   });
-};
-
-/**
- * Removes the skill id in the specified slot.
- * @param {string} slot The slot to unequip a skill for.
- */
-Game_Actor.prototype.removeEquippedSkill = function(slot) {
-  this._j._equippedSkills[slot].id = 0;
-  this._j._equippedSkills[slot].locked = false;
 };
 
 /**
@@ -354,27 +390,16 @@ Game_Actor.prototype.learnSkill = function(skillId) {
  * @param {number} skillId The skill id to upgrade.
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId) {
-  const equippedSkills = this.getAllEquippedSkills();
-  Object.keys(equippedSkills).forEach(slot => {
-    // we will only manage assignable skills.
-    if (slot !== Game_Actor.JABS_TOOLSKILL &&
-    slot !== Game_Actor.JABS_MAINHAND &&
-    slot !== Game_Actor.JABS_OFFHAND) {
-      // do nothing if the slot is locked.
-      if (this.isSlotLocked(slot)) return;
+  const upgradableSkills = this.getUpgradableSkills();
+  if (!upgradableSkills) {
+    return;
+  }
 
-      // do nothing if the slot is empty.
-      const currentSkillId = this.getEquippedSkill(slot);
-      if (!currentSkillId) return;
-
-      // do nothing if the skill doesn't upgrade.
-      const skillData = $dataSkills[currentSkillId]
-      if (skillData.meta && skillData.meta["Hide if learned Skill"]) {
-        const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
-        if (upgradeSkillId === skillId) {
-          this.setEquippedSkill(slot, skillId);
-        }
-      }
+  upgradableSkills.forEach(skillSlot => {
+    const skillData = $dataSkills[skillSlot.id];
+    const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
+    if (upgradeSkillId === skillId) {
+      this.setEquippedSkill(slot, skillId);
     }
   });
 };
@@ -2081,10 +2106,9 @@ class Game_BattleMap {
 
       // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
       const equippedSkills = caster.getBattler().getAllEquippedSkills();
-      Object.keys(equippedSkills).forEach(key => {
-        const equippedSkillId = equippedSkills[key].id;
-        if (equippedSkillId === skill.id) {
-          caster.setCooldownCounter(key, cooldownValue);
+      equippedSkills.forEach(skillSlot => {
+        if (skillSlot.id === skill.id) {
+          caster.setCooldownCounter(skillSlot.key, cooldownValue);
         }
       });
     }

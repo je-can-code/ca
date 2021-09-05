@@ -822,7 +822,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler) {
 
   // convert the slots into their respective skill ids.
   const currentlyEquippedSkillIds = validSkillSlots
-    .map(slotKey => battler.getEquippedSkill(slotKey));
+    .map(skillSlot => skillSlot.id);
 
   // decide the action based on the ally ai mode currently assigned.
   const decidedSkillId = allyAi.decideAction(currentlyEquippedSkillIds, allyBattler, allyBattler.getTarget());
@@ -849,7 +849,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler) {
 JABS_AiManager.setupAllyActionForNextPhase = function(battler, chosenSkillId, chosenSkillSlot) {
   const mapActions = battler.createMapActionFromSkill(chosenSkillId);
   const primaryMapAction = mapActions[0];
-  mapActions.forEach(action => action.setCooldownType(chosenSkillSlot));
+  mapActions.forEach(action => action.setCooldownType(chosenSkillSlot.key));
   battler.setDecidedAction(mapActions);
   if (primaryMapAction.isSupportAction()) {
     battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)

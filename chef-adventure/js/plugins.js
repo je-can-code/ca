@@ -39,6 +39,8 @@ var $plugins =
 {"name":"jabs/components/JABS_Cooldown","status":true,"description":"","parameters":{}},
 {"name":"jabs/components/JABS_GuardData","status":true,"description":"[v3.0 JABS] Guard data structure.","parameters":{}},
 {"name":"jabs/components/JABS_LootDrop","status":true,"description":"[v3.0 JABS] Loot Drop data structure.","parameters":{}},
+{"name":"jabs/components/JABS_SkillSlot","status":true,"description":"[v3.0 JABS] Data structure of a equipped skill for JABS.","parameters":{}},
+{"name":"jabs/components/JABS_SkillSlotManager","status":true,"description":"[v3.0 JABS] Data structure of all equipped skills for a battler.","parameters":{}},
 {"name":"jabs/components/JABS_TextPop","status":true,"description":"[v3.0 JABS] Pop-up data structure.","parameters":{}},
 {"name":"jabs/components/JABS_TrackedState","status":true,"description":"[v3.0 JABS] Tracked State data structure.","parameters":{}},
 {"name":"jabs/_mzManagers","status":true,"description":"[v3.0 JABS] Mods/Adds for the various manager object classes.","parameters":{}},

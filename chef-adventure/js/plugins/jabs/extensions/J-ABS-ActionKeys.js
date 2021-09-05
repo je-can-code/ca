@@ -326,15 +326,16 @@ Window_ActionKeys.prototype.refreshOpacity = function() {
 Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = false) {
   this.hideUnusedActionKeys(skillType);
   const mapBattler = $gameBattleMap.getPlayerMapBattler();
-  const cooldownData = mapBattler.getCooldown(skillType);
+  const actionKeyData = mapBattler.getActionKeyData(skillType);
+  const cooldownData = actionKeyData.cooldown;
   if (!cooldownData) {
     return;
   }
 
-  const skillId = cooldownData.comboNextActionId
+  const skillslotData = actionKeyData.skillslot;
+  const skillId = (cooldownData.comboNextActionId > 0)
     ? cooldownData.comboNextActionId
-    : this._actor.getEquippedSkill(skillType);
-  
+    : skillslotData.id;
   if (!skillId) {
     return;
   }
@@ -515,7 +516,10 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
     hpSprite.show();
 
     // for abilities with an mp cost, draw that.
-    const mpCost = isItem ? "" : (referenceData.mpCost * actor.mcr).toFixed(0) || "";
+    let mpCost = isItem ? "" : (referenceData.mpCost * actor.mcr) || "";
+    if (mpCost.length) {
+      mpCost = mpCost.toFixed(0);
+    }
     const mpColor = 23;
     const mpKey = "actor%1-mpcost-%2".format(actorId, skillType);
     const mpSprite = this.createActionKeyAbilityCosts(mpKey, mpCost, mpColor);
@@ -523,7 +527,10 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
     mpSprite.show();
 
     // for abilities with an tp cost, draw that.
-    const tpCost = isItem ? "" : (referenceData.tpCost * actor.tcr).toFixed(0) || "";
+    let tpCost = isItem ? "" : (referenceData.tpCost * actor.tcr) || "";
+    if (tpCost.length) {
+      tpCost = tpCost.toFixed(0);
+    }
     const tpColor = 29;
     const tpKey = "actor%1-tpcost-%2".format(actorId, skillType);
     const tpSprite = this.createActionKeyAbilityCosts(tpKey, tpCost, tpColor);
@@ -803,7 +810,7 @@ Sprite_CooldownTimer.prototype.update = function() {
 
 Sprite_CooldownTimer.prototype.updateCooldownText = function() {
   this.bitmap.clear();
-  const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(2);
+  const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
   const cooldownBaseText = baseCooldown > 0 
     ? baseCooldown 
     : "✔";
