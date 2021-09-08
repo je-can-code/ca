@@ -4144,6 +4144,7 @@ PanelRanking.prototype.performRepeatRankupEffects = function() {
  * Executes any rewards that are defined as "max rankup effects", aka 0 rank.
  */
 PanelRanking.prototype.performMaxRankupEffects = function() {
+  SoundManager.playRecovery();
   this.performRankupEffects(0);
 };
 //#endregion PanelRanking

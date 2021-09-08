@@ -23,25 +23,6 @@ JABS_SkillSlot.prototype = {};
 JABS_SkillSlot.prototype.constructor = JABS_SkillSlot;
 
 /**
- * Skill slot keys that cannot be locked.
- * @type {string[]}
- */
-JABS_SkillSlot.lockproofSlots = [
-  Game_Actor.JABS_MAINHAND,
-  Game_Actor.JABS_OFFHAND
-];
-
-/**
- * Skill slot keys that are ignored when auto-clearing.
- * @type {string[]}
- */
-JABS_SkillSlot.noAutoclearSlots = [
-  Game_Actor.JABS_MAINHAND,
-  Game_Actor.JABS_OFFHAND,
-  Game_Actor.JABS_TOOLSKILL
-];
-
-/**
  * Initializes this class. Executed when this class is instantiated.
  */
  JABS_SkillSlot.prototype.initialize = function(key, skillId) {
@@ -89,10 +70,6 @@ JABS_SkillSlot.prototype.isUsable = function() {
  * @returns {boolean}
  */
 JABS_SkillSlot.prototype.isLocked = function() {
-  if (JABS_SkillSlot.lockproofSlots.includes(this.key)) {
-    return false;
-  }
-
   return this.locked;
 };
 
@@ -156,11 +133,24 @@ JABS_SkillSlot.prototype.setSkillId = function(skillId) {
  * @returns {this} Returns `this` for fluent chaining.
  */
 JABS_SkillSlot.prototype.setLock = function(locked) {
-  if (!JABS_SkillSlot.lockproofSlots.includes(this.key)) {
+  if (!this.canBeLocked()) {
     this.locked = locked;
   }
 
   return this;
+};
+
+/**
+ * Gets whether or not this slot can be locked.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.canBeLocked = function() {
+  const lockproofSlots = [
+    Game_Actor.JABS_MAINHAND,
+    Game_Actor.JABS_OFFHAND
+  ];
+
+  return !lockproofSlots.includes(this.key);
 };
 
 /**
@@ -198,10 +188,25 @@ JABS_SkillSlot.prototype.clear = function() {
  * @returns {this} Returns `this` for fluent chaining.
  */
 JABS_SkillSlot.prototype.autoclear = function() {
-  if (JABS_SkillSlot.noAutoclearSlots.includes(this.key)) {
+  if (!this.canBeAutocleared()) {
     // skip because you can't autoclear these slots.
     return this;
   } else {
     return this.setSkillId(0);
   }
+};
+
+/**
+ * Gets whether or not this slot can be autocleared, such as from auto-upgrading
+ * a skill or something.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.canBeAutocleared = function() {
+  const noAutoclearSlots = [
+    Game_Actor.JABS_MAINHAND,
+    Game_Actor.JABS_OFFHAND,
+    Game_Actor.JABS_TOOLSKILL
+  ];
+
+  return !noAutoclearSlots.includes(this.key);
 };

@@ -62,10 +62,8 @@
       $gameBattleMap.requestAbsMenu = false;
     }
   };
-
-}
-
-//#endregion
+};
+//#endregion Window_AbsMenu
 
 //#region Window_AbsMenuSelect
 /**
