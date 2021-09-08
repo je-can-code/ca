@@ -720,9 +720,9 @@ JABS_Battler.prototype.updateAnimations = function() {
  * Updates all cooldowns for this battler.
  */
 JABS_Battler.prototype.updateCooldowns = function() {
-  const cooldownKeys = Object.keys(this._cooldowns);
-  cooldownKeys.forEach(key => {
-    this._cooldowns[key].update();
+  Object.keys(this._cooldowns)
+    .forEach(key => {
+      this._cooldowns[key].update();
   });
 
   if (this.isWaiting()) {
@@ -2660,6 +2660,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId) {
 
   // if the skill cost is more than the battler has resources for, then fail.
   const battler = this.getBattler();
+  const canPay = battler.canPaySkillCost($dataSkills[chosenSkillId]);
   if (!battler.canPaySkillCost($dataSkills[chosenSkillId])) {
     return false;
   }
@@ -3087,10 +3088,6 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
       direct,
       delay } = skill._j;
     
-    if (aiCooldown > -1) {
-      cooldown = aiCooldown;
-    }
-
     let isBasicAttack = false;
     if (this.isActor() && cooldownKey) {
       isBasicAttack = (cooldownKey === Game_Actor.JABS_MAINHAND || cooldownKey === Game_Actor.JABS_OFFHAND);

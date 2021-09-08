@@ -957,7 +957,7 @@ JABS_AllyAI.prototype.initMembers = function() {
 //#region mode
 /**
  * Gets the current mode this ally's AI is set to.
- * @returns {string}
+ * @returns {{key: string, name: string}}
  */
 JABS_AllyAI.prototype.getMode = function() {
   return this.mode;
@@ -989,7 +989,7 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
   const currentMode = this.getMode().key;
   switch (currentMode) {
     case JABS_AllyAI.modes.DO_NOTHING.key:
-      return this.decideDoNothing();
+      return this.decideDoNothing(attacker);
     case JABS_AllyAI.modes.BASIC_ATTACK.key:
       return this.decideBasicAttack(availableSkills, attacker);
     case JABS_AllyAI.modes.VARIETY.key:
@@ -1007,10 +1007,11 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
 
 //#region do-nothing
 /**
- * Decides to do nothing.
+ * Decides to do nothing and waits 0.25 seconds before doing anything else.
  * @returns {null}
  */
-JABS_AllyAI.prototype.decideDoNothing = function() {
+JABS_AllyAI.prototype.decideDoNothing = function(attacker) {
+  attacker.setWaitCountdown(15);
   return null;
 };
 //#endregion do-nothing
@@ -1026,7 +1027,9 @@ JABS_AllyAI.prototype.decideDoNothing = function() {
 JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker) {
   // determine which skill of the skills available is the mainhand skill.
   const basicAttackSkillId = availableSkills
-    .find(id => attacker.getBattler().findSlotForSkillId(id) === Game_Actor.JABS_MAINHAND);
+    .find(id => attacker
+      .getBattler()
+      .findSlotForSkillId(id).key === Game_Actor.JABS_MAINHAND);
   
   // if the battler doesn't have a mainhand equipped, then do nothing.
   if (!basicAttackSkillId) return null;

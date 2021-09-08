@@ -190,7 +190,7 @@ Game_Actor.prototype.getDodgeSkill = function() {
  * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getValidEquippedSkillSlots = function() {
-  return this._j._equippedSkills.getAllValidSlots();
+  return this._j._equippedSkills.getEquippedSlots();
 };
 
 /**
@@ -198,7 +198,7 @@ Game_Actor.prototype.getValidEquippedSkillSlots = function() {
  * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
-  return this._j._equippedSkills.getAlliedValidSlots();
+  return this._j._equippedSkills.getEquippedAllySlots();
 };
 
 /**
@@ -209,12 +209,12 @@ Game_Actor.prototype.getUpgradableSkills = function() {
   return this
     .getValidEquippedSkillSlots()
     .filter(skillSlot => {
-      if (JABS_SkillSlot.noAutoclearSlots.includes(skillSlot.key)) {
+      if (!skillSlot.canBeAutocleared()) {
         // skip the main/off/tool slots.
         return false;
       }
 
-      if (this.isSlotLocked(skillSlot.key)) {
+      if (skillSlot.isLocked()) {
         // skip locked slots.
         return false;
       }
@@ -399,7 +399,7 @@ Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId) {
     const skillData = $dataSkills[skillSlot.id];
     const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
     if (upgradeSkillId === skillId) {
-      this.setEquippedSkill(slot, skillId);
+      this.setEquippedSkill(skillSlot.key, skillId);
     }
   });
 };
@@ -2077,40 +2077,56 @@ class Game_BattleMap {
    * @param {JABS_Action} action The `JABS_Action` to execute.
    */
   applyCooldownCounters(caster, action) {
+    if (caster.isPlayer()) {
+      this.applyPlayerCooldowns(caster, action);
+    } else {
+      this.applyAiCooldowns(caster, action);
+    }
+  };
+
+  /**
+   * Applies cooldowns in regards to the player for the casted action.
+   * @param {JABS_Battler} caster The player.
+   * @param {JABS_Action} action The `JABS_Action` to execute.
+   */
+  applyPlayerCooldowns(caster, action) {
+    const cooldownType = action.getCooldownType();
+    const cooldownValue = action.getCooldown();
+    const skill = action.getBaseSkill();
+
+    // if the skill has a unique cooldown functionality,
+    // then each slot will have an independent cooldown.
+    if (skill._j.uniqueCooldown || this.isBasicAttack(cooldownType)) {
+      // if the skill is unique, only apply the cooldown to the slot assigned.
+      caster.setCooldownCounter(cooldownType, cooldownValue);
+      return;
+    }
+
+    // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
+    const equippedSkills = caster.getBattler().getAllEquippedSkills();
+    equippedSkills.forEach(skillSlot => {
+      if (skillSlot.id === skill.id) {
+        caster.setCooldownCounter(skillSlot.key, cooldownValue);
+      }
+    });
+  };
+
+  /**
+   * Applies cooldowns in regards to an ai-controlled battler for the casted action.
+   * @param {JABS_Battler} caster The ai-controlled battler, ally or enemy.
+   * @param {JABS_Action} action The `JABS_Action` to execute.
+   */
+  applyAiCooldowns(caster, action) {
     const cooldownType = action.getCooldownType();
     const cooldownValue = action.getCooldown();
     const aiCooldownValue = action.getAiCooldown();
+    caster.modCooldownCounter(cooldownType, cooldownValue);
 
-    // if the caster isn't a player, then apply cooldowns as normal to the slots.
-    if (!caster.isPlayer()) {
-      caster.modCooldownCounter(cooldownType, cooldownValue);
-
-      // if the caster is any AI-controlled battler, then also trigger the postaction cooldown.
-      if (caster.isEnemy() || caster.isActor()) {
-        if (aiCooldownValue > -1) {
-          caster.startPostActionCooldown(aiCooldownValue);
-        } else {
-          caster.startPostActionCooldown(cooldownValue);
-        }
-      }
+    // if the caster is any AI-controlled battler, then also trigger the postaction cooldown.
+    if (aiCooldownValue > -1) {
+      caster.startPostActionCooldown(aiCooldownValue);
     } else {
-      const skill = action.getBaseSkill();
-
-      // if the skill has a unique cooldown functionality,
-      // then each slot will have an independent cooldown.
-      if (skill._j.uniqueCooldown || this.isBasicAttack(cooldownType)) {
-        // if the skill is unique, only apply the cooldown to the slot assigned.
-        caster.setCooldownCounter(cooldownType, cooldownValue);
-        return;
-      }
-
-      // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
-      const equippedSkills = caster.getBattler().getAllEquippedSkills();
-      equippedSkills.forEach(skillSlot => {
-        if (skillSlot.id === skill.id) {
-          caster.setCooldownCounter(skillSlot.key, cooldownValue);
-        }
-      });
+      caster.startPostActionCooldown(cooldownValue);
     }
   };
 
@@ -4013,6 +4029,7 @@ Game_CharacterBase.prototype.updateDodging = function() {
   if (!this._wasDodging && isDodging) {
     this.setMoveSpeed(this._moveSpeed + this._dodgeBoost);
   }
+  
   if (this._wasDodging && !isDodging) {
     this.setMoveSpeed(this._moveSpeed - this._dodgeBoost);
   }

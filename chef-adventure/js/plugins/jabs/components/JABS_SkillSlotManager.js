@@ -106,7 +106,7 @@ JABS_SkillSlotManager.prototype.getDodgeSlot = function() {
  * Gets all skill slots that have a skill assigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getAllValidSlots = function() {
+JABS_SkillSlotManager.prototype.getEquippedSlots = function() {
   return this.getAllSlots().filter(skillSlot => skillSlot.isUsable());
 };
 
@@ -114,8 +114,8 @@ JABS_SkillSlotManager.prototype.getAllValidSlots = function() {
  * Gets all skill slots that have a skill assigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getAlliedValidSlots = function() {
-  return this.getAllValidSlots()
+JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
+  return this.getEquippedSlots()
     .filter(skillSlot => skillSlot.key !== Game_Actor.JABS_TOOLSKILL);
 };
 
@@ -135,7 +135,7 @@ JABS_SkillSlotManager.prototype.getSkillBySlot = function(key) {
  * @returns {JABS_SkillSlot}
  */
 JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind) {
-  return this.getAllValidSlots()
+  return this.getEquippedSlots()
     .find(skillSlot => skillSlot.id === skillIdToFind);
 };
 
