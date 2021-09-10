@@ -3075,18 +3075,18 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
     action.setSkill(skill.id);
     const isSupportAction = action.isForFriend();
 
-    let { 
-      cooldown, 
-      aiCooldown, 
-      range, 
+    let { duration, piercing } = skill._j;
+    const {
       actionId, 
-      duration, 
-      shape, 
-      piercing, 
-      projectile, 
-      proximity, 
+      aiCooldown, 
+      cooldown, 
+      delay,
       direct,
-      delay } = skill._j;
+      projectile,
+      proximity,
+      range, 
+      shape,
+    } = skill._j;
     
     let isBasicAttack = false;
     if (this.isActor() && cooldownKey) {
@@ -3105,27 +3105,28 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
       this.getCharacter().direction(), 
       projectile);
     
+    const caster = this;
     projectileDirections.forEach(direction => {
-      const mapAction = new JABS_Action(
-        skill,          // the skill data
-        this.getTeam(), // the caster's team id
-        cooldown,       // cooldown frames
-        aiCooldown,     // ai cooldown frames
+      const mapAction = new JABS_Action({
+        baseSkill: skill,          // the skill data
+        teamId: this.getTeam(), // the caster's team id
+        cooldownFrames: cooldown,       // cooldown frames
+        aiCooldownFrames: aiCooldown,     // ai cooldown frames
         range,          // the aoe range of the skill (affects collision)
         proximity,      // the proximity required to use this skill
         shape,          // the collision hitbox
-        action,         // the Game_Action itself
-        this,           // the JABS_Battler caster
-        actionId,       // the action id to use
-        duration,       // the duration this action persists on the map
+        gameAction: action,         // the Game_Action itself
+        caster: caster,           // the JABS_Battler caster
+        actionId: actionId,       // the action id to use
+        duration: duration,       // the duration this action persists on the map
         piercing,       // the piercing data
-        isRetaliation,  // whether or not this is a retaliation
-        direction,      // the direction this action is initially facing
-        isBasicAttack,  // whether or not this is a basic attack
-        isSupportAction,// whether or not this is a support action
-        direct,         // whether or not this is a direct-targeting action
-        delay,          // the delay data for this action.
-      );
+        isRetaliation: isRetaliation,  // whether or not this is a retaliation
+        direction: direction,      // the direction this action is initially facing
+        isBasicAttack: isBasicAttack,  // whether or not this is a basic attack
+        isSupportAction: isSupportAction,// whether or not this is a support action
+        isDirect: direct,         // whether or not this is a direct-targeting action
+        delay: delay,          // the delay data for this action.
+      });
 
       actions.push(mapAction);
     });

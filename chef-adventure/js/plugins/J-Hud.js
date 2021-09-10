@@ -362,11 +362,11 @@ Window_Hud.prototype.drawLeaderFace = function() {
  */
 Window_Hud.prototype.drawLeaderNumbers = function() {
   const leader = $gameParty.leader();
-  this.placeNumberSprite("hp",  leader, 90, -2, 5);
-  this.placeNumberSprite("mp",  leader, 90, 26, 0);
-  this.placeNumberSprite("tp",  leader, 0, 44, 0);
-  this.placeNumberSprite("xp",  leader, 90, 84, -6);
-  this.placeNumberSprite("lvl", leader, -77, 77, -10);
+  this.placeNumberSprite("hp",  leader, 302, 6, -10);
+  this.placeNumberSprite("mp",  leader, 302, 31, -10);
+  this.placeNumberSprite("tp",  leader, 302, 53, -16);
+  this.placeNumberSprite("xp",  leader, 302, 78, -12);
+  this.placeNumberSprite("lvl", leader, 90, 78, -6);
 };
 
 /**
@@ -890,7 +890,7 @@ Sprite_ActorValue.prototype.createBitmap = function() {
       break;
   }
   
-  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "right");
+  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
   return bitmap;
 };
 

@@ -47,133 +47,135 @@ class JABS_Action {
    * @param {boolean} isDirect Whether or not this is a direct action.
    * @param {{duration: number, touchToTrigger: boolean}} delay The delay data for this action.
    */
-  constructor(baseSkill, teamId, cooldownFrames, aiCooldownFrames, range, proximity, shape, 
+  constructor({
+    baseSkill, teamId, cooldownFrames, aiCooldownFrames, range, proximity, shape, 
     gameAction, caster, actionId, duration, piercing, isRetaliation, direction,
-    isBasicAttack, isSupportAction, isDirect, delay) {
-      /**
-       * The base skill object, in case needed for something.
-       * @type {object}
-       */
-      this._baseSkill = baseSkill;
+    isBasicAttack, isSupportAction, isDirect, delay
+  }) {
+    /**
+     * The base skill object, in case needed for something.
+     * @type {object}
+     */
+    this._baseSkill = baseSkill;
 
-      /**
-       * The team the owner of this skill is a part of.
-       * @type {number}
-       */
-      this._teamId = teamId;
+    /**
+     * The team the owner of this skill is a part of.
+     * @type {number}
+     */
+    this._teamId = teamId;
 
-      /**
-       * The number of frames before the battler using this action can act again.
-       * @type {number}
-       */
-      this._cooldownFrames = cooldownFrames;
+    /**
+     * The number of frames before the battler using this action can act again.
+     * @type {number}
+     */
+    this._cooldownFrames = cooldownFrames;
 
-      /**
-       * The number of frames before the battler using this action can act again.
-       * This is typically used to overwrite long-cooldown skills that the AI doesn't
-       * have to obey. If the value for this is `-1`, then this will be ignored.
-       * @type {number}
-       */
-      this._aiCooldownFrames = aiCooldownFrames;
+    /**
+     * The number of frames before the battler using this action can act again.
+     * This is typically used to overwrite long-cooldown skills that the AI doesn't
+     * have to obey. If the value for this is `-1`, then this will be ignored.
+     * @type {number}
+     */
+    this._aiCooldownFrames = aiCooldownFrames;
 
-      /**
-       * The range of collision for this action.
-       * @type {number}
-       */
-      this._range = range;
+    /**
+     * The range of collision for this action.
+     * @type {number}
+     */
+    this._range = range;
 
-      /**
-       * The proximity required to use this skill.
-       */
-      this._proximity = proximity;
+    /**
+     * The proximity required to use this skill.
+     */
+    this._proximity = proximity;
 
-      /**
-       * The shape of this action.
-       * @type {string}
-       */
-      this._shape = shape;
+    /**
+     * The shape of this action.
+     * @type {string}
+     */
+    this._shape = shape;
 
-      /**
-       * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
-       * @type {Game_Action}
-       */
-      this._gameAction = gameAction;
+    /**
+     * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
+     * @type {Game_Action}
+     */
+    this._gameAction = gameAction;
 
-      /**
-       * The `JABS_Battler` that used created this `JABS_Action`. 
-       * @type {JABS_Battler}
-       */
-      this._caster = caster;
-      
-      /**
-       * The id of the event that maps to this skill from the skill master map.
-       * @type {number}
-       */
-      this._actionId = actionId;
+    /**
+     * The `JABS_Battler` that used created this `JABS_Action`. 
+     * @type {JABS_Battler}
+     */
+    this._caster = caster;
+    
+    /**
+     * The id of the event that maps to this skill from the skill master map.
+     * @type {number}
+     */
+    this._actionId = actionId;
 
-      /**
-       * The duration in frames for how long this event should last on
-       * the battle map.
-       * @type {number}
-       */
-      this._maxDuration = duration;
+    /**
+     * The duration in frames for how long this event should last on
+     * the battle map.
+     * @type {number}
+     */
+    this._maxDuration = duration;
 
-      /**
-       * The object that defines the various properties associated with "piercing" for this `JABS_Action`.
-       * `times` = if piercing, then this represents how many times this action can repeatedly hit.
-       * `delay` = the number of frames between each individual hit for this action.
-       * @type {any} Including properties: `times`, and `delay`.
-       */
-      this._piercingData = this.initPiercingData(piercing[0]);
+    /**
+     * The object that defines the various properties associated with "piercing" for this `JABS_Action`.
+     * `times` = if piercing, then this represents how many times this action can repeatedly hit.
+     * `delay` = the number of frames between each individual hit for this action.
+     * @type {any} Including properties: `times`, and `delay`.
+     */
+    this._piercingData = this.initPiercingData(piercing[0]);
 
-      /**
-       * The base pierce delay in frames.
-       * @type {number}
-       */
-      this._basePierceDelay = piercing[1];
+    /**
+     * The base pierce delay in frames.
+     * @type {number}
+     */
+    this._basePierceDelay = piercing[1];
 
-      /**
-       * Whether or not this action was generated as a retaliation to another battler's action.
-       * @type {boolean}
-       */
-      this._isRetaliation = isRetaliation;
+    /**
+     * Whether or not this action was generated as a retaliation to another battler's action.
+     * @type {boolean}
+     */
+    this._isRetaliation = isRetaliation;
 
-      /**
-       * The direction this projectile will initially face and move.
-       * @type {number}
-       */
-      this._facing = direction;
+    /**
+     * The direction this projectile will initially face and move.
+     * @type {number}
+     */
+    this._facing = direction;
 
-      /**
-       * Whether or not this action was generated from a mainhand or offhand skill.
-       * @type {boolean}
-       */
-      this._isBasicAttack = isBasicAttack;
+    /**
+     * Whether or not this action was generated from a mainhand or offhand skill.
+     * @type {boolean}
+     */
+    this._isBasicAttack = isBasicAttack;
 
-      /**
-       * Whether or not this action is a support type skill, for targeting allies.
-       * @type {boolean}
-       */
-      this._isSupportAction = isSupportAction;
+    /**
+     * Whether or not this action is a support type skill, for targeting allies.
+     * @type {boolean}
+     */
+    this._isSupportAction = isSupportAction;
 
-      /**
-       * Whether or not this action is a direct-targeting skill, for bypassing projectile movement.
-       * @type {boolean}
-       */
-      this._isDirect = isDirect;
+    /**
+     * Whether or not this action is a direct-targeting skill, for bypassing projectile movement.
+     * @type {boolean}
+     */
+    this._isDirect = isDirect;
 
-      /**
-       * The duration remaining before this will action will autotrigger.
-       * @type {number}
-       */
-      this._delayDuration = delay.duration;
+    /**
+     * The duration remaining before this will action will autotrigger.
+     * @type {number}
+     */
+    this._delayDuration = delay.duration;
 
-      /**
-       * Whether or not this action will trigger when an enemy touches it.
-       * @type {boolean}
-       */
-      this._triggerOnTouch = delay.touchToTrigger;
-      this.initialize();
+    /**
+     * Whether or not this action will trigger when an enemy touches it.
+     * @type {boolean}
+     */
+    this._triggerOnTouch = delay.touchToTrigger;
+    this.initialize();
   }
 
   /**
