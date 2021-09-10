@@ -516,10 +516,9 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
     hpSprite.show();
 
     // for abilities with an mp cost, draw that.
-    let mpCost = isItem ? "" : (referenceData.mpCost * actor.mcr) || "";
-    if (mpCost.length) {
-      mpCost = mpCost.toFixed(0);
-    }
+    let mpCost = isItem ? 0 : Number(referenceData.mpCost * actor.mcr);
+    mpCost = (mpCost > 0) ? mpCost.toFixed(0) : mpCost = "";
+
     const mpColor = 23;
     const mpKey = "actor%1-mpcost-%2".format(actorId, skillType);
     const mpSprite = this.createActionKeyAbilityCosts(mpKey, mpCost, mpColor);
@@ -527,10 +526,9 @@ Window_ActionKeys.prototype.placeActionKeyAbilityCosts = function(skillType, ref
     mpSprite.show();
 
     // for abilities with an tp cost, draw that.
-    let tpCost = isItem ? "" : (referenceData.tpCost * actor.tcr) || "";
-    if (tpCost.length) {
-      tpCost = tpCost.toFixed(0);
-    }
+    let tpCost = isItem ? "" : Number(referenceData.tpCost * actor.tcr);
+    tpCost = (tpCost > 0) ? tpCost.toFixed(0) : tpCost = "";
+
     const tpColor = 29;
     const tpKey = "actor%1-tpcost-%2".format(actorId, skillType);
     const tpSprite = this.createActionKeyAbilityCosts(tpKey, tpCost, tpColor);
@@ -810,8 +808,12 @@ Sprite_CooldownTimer.prototype.update = function() {
 
 Sprite_CooldownTimer.prototype.updateCooldownText = function() {
   this.bitmap.clear();
-  const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
-  const cooldownBaseText = baseCooldown > 0 
+  let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
+  if (typeof baseCooldown === 'undefined') {
+    baseCooldown = 0;
+  }
+
+  let cooldownBaseText = baseCooldown > 0 
     ? baseCooldown 
     : "✔";
   let cooldownComboText = (cooldownBaseText > 0 && this._j._cooldownData.comboNextActionId != 0)
@@ -823,15 +825,15 @@ Sprite_CooldownTimer.prototype.updateCooldownText = function() {
     0, 0, 
     this.bitmapWidth(), this.bitmapHeight(), 
     "center");
-    this.bitmap.fontSize = this.fontSize() - 8;
-    this.bitmap.fontItalic = true;
+  this.bitmap.fontSize = this.fontSize() - 8;
+  this.bitmap.fontItalic = true;
   this.bitmap.drawText(
     cooldownComboText, 
     0, this.fontSize(), 
     this.bitmapWidth(), this.bitmapHeight(), 
     "center");
-    this.bitmap.fontSize = this.fontSize();
-    this.bitmap.fontItalic = false;
+  this.bitmap.fontSize = this.fontSize();
+  this.bitmap.fontItalic = false;
 
 }
 
@@ -839,7 +841,7 @@ Sprite_CooldownTimer.prototype.updateCooldownText = function() {
  * Determines the width of the bitmap accordingly to the length of the string.
  */
 Sprite_CooldownTimer.prototype.bitmapWidth = function() {
-  return 40; //this._j._text.length * (this.fontSize() - 6);
+  return 40;
 }
 
 /**
