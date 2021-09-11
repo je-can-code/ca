@@ -15,46 +15,33 @@
  */
 
 /**
- * An object that binds a `Game_Action` to a `Game_Event` and `JABS_Battler`
- * on the map.
+ * An object that binds a `Game_Action` to a `Game_Event` on the map.
  */
 class JABS_Action {
   /**
    * The minimum duration a `JABS_Action` must exist visually before cleaning it up.
    * 
-   * All actions should exist visually for at least 1/5 of a second.
+   * All actions should exist visually for at least 8 frames.
+   * @returns {8} The minimum number of frames, 8.
    */
-  static getMinimumDuration = () => 8;
+  static getMinimumDuration() {
+    return 8;
+  };
 
   /**
    * @constructor
-   * @param {object} baseSkill The skill retrieved from `$dataSkills[id]`. 
+   * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`. 
    * @param {number} teamId A shorthand for the team id this skill belongs to.
-   * @param {number} cooldownFrames The number of frames until the caster can act again.
-   * @param {number} aiCooldownFrames The custom ai-specific cooldown frames for this action, if any.
-   * @param {number} range The range of collision for this `JABS_Action`.
-   * @param {number} proximity The proximity to the target required for using this `JABS_Action`.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
-   * @param {string} shape The shape of the range for this `JABS_Action`.
    * @param {JABS_Battler} caster The `JABS_Battler` who created this `JABS_Action`.
-   * @param {number} actionId The id of the skill master map event representing this `JABS_Action`.
-   * @param {number} duration The duration in frames of how long this event should exist.
-   * @param {array} piercing The piercing data associated with the skill this `JABS_Action` represents.
    * @param {boolean} isRetaliation Whether or not this is a retaliation action.
    * @param {number} direction The direction this action will face initially.
-   * @param {boolean} isBasicAttack Whether or not this is a basic attack action.
-   * @param {boolean} isSupportAction Whether or not this is a support action for allies.
-   * @param {boolean} isDirect Whether or not this is a direct action.
-   * @param {{duration: number, touchToTrigger: boolean}} delay The delay data for this action.
+   * @param {string?} cooldownKey Whether or not this is a direct action.
    */
-  constructor({
-    baseSkill, teamId, cooldownFrames, aiCooldownFrames, range, proximity, shape, 
-    gameAction, caster, actionId, duration, piercing, isRetaliation, direction,
-    isBasicAttack, isSupportAction, isDirect, delay
-  }) {
+  constructor({ baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey }) {
     /**
      * The base skill object, in case needed for something.
-     * @type {object}
+     * @type {rm.types.Skill}
      */
     this._baseSkill = baseSkill;
 
@@ -63,37 +50,6 @@ class JABS_Action {
      * @type {number}
      */
     this._teamId = teamId;
-
-    /**
-     * The number of frames before the battler using this action can act again.
-     * @type {number}
-     */
-    this._cooldownFrames = cooldownFrames;
-
-    /**
-     * The number of frames before the battler using this action can act again.
-     * This is typically used to overwrite long-cooldown skills that the AI doesn't
-     * have to obey. If the value for this is `-1`, then this will be ignored.
-     * @type {number}
-     */
-    this._aiCooldownFrames = aiCooldownFrames;
-
-    /**
-     * The range of collision for this action.
-     * @type {number}
-     */
-    this._range = range;
-
-    /**
-     * The proximity required to use this skill.
-     */
-    this._proximity = proximity;
-
-    /**
-     * The shape of this action.
-     * @type {string}
-     */
-    this._shape = shape;
 
     /**
      * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
@@ -106,33 +62,6 @@ class JABS_Action {
      * @type {JABS_Battler}
      */
     this._caster = caster;
-    
-    /**
-     * The id of the event that maps to this skill from the skill master map.
-     * @type {number}
-     */
-    this._actionId = actionId;
-
-    /**
-     * The duration in frames for how long this event should last on
-     * the battle map.
-     * @type {number}
-     */
-    this._maxDuration = duration;
-
-    /**
-     * The object that defines the various properties associated with "piercing" for this `JABS_Action`.
-     * `times` = if piercing, then this represents how many times this action can repeatedly hit.
-     * `delay` = the number of frames between each individual hit for this action.
-     * @type {any} Including properties: `times`, and `delay`.
-     */
-    this._piercingData = this.initPiercingData(piercing[0]);
-
-    /**
-     * The base pierce delay in frames.
-     * @type {number}
-     */
-    this._basePierceDelay = piercing[1];
 
     /**
      * Whether or not this action was generated as a retaliation to another battler's action.
@@ -147,267 +76,176 @@ class JABS_Action {
     this._facing = direction;
 
     /**
-     * Whether or not this action was generated from a mainhand or offhand skill.
-     * @type {boolean}
+     * The type of action this is. Used for mapping cooldowns to the appropriate slot on the caster.
+     * @type {string}
      */
-    this._isBasicAttack = isBasicAttack;
+    this._actionCooldownType = cooldownKey ?? "global";
+
+    this.initMembers();
+  }
+
+  /**
+   * Initializes all properties on this class.
+   */
+   initMembers() {
+    /**
+     * The JABS metadata associated with the base skill.
+     * Almost all custom feature flags live inside this object.
+     * @type {JABS_SkillData}
+     */
+    this._jabsData = this._baseSkill._j;
 
     /**
-     * Whether or not this action is a support type skill, for targeting allies.
+     * The current timer on this particular action.
+     * @type {number}
+     */
+    this._currentDuration = 0;
+    
+    /**
+     * Whether or not the visual of this map action needs removing.
      * @type {boolean}
      */
-    this._isSupportAction = isSupportAction;
+    this._needsRemoval = false;
 
     /**
-     * Whether or not this action is a direct-targeting skill, for bypassing projectile movement.
-     * @type {boolean}
+     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
+     * @type {Game_Event}
      */
-    this._isDirect = isDirect;
+    this._actionSprite = null;
 
     /**
      * The duration remaining before this will action will autotrigger.
      * @type {number}
      */
-    this._delayDuration = delay.duration;
+     this._delayDuration = this._jabsData.delay.duration;
+
+     /**
+      * Whether or not this action will trigger when an enemy touches it.
+      * @type {boolean}
+      */
+     this._triggerOnTouch = this._jabsData.delay.touchToTrigger;
 
     /**
-     * Whether or not this action will trigger when an enemy touches it.
-     * @type {boolean}
+     * The remaining number of times this action can pierce a target.
+     * @type {number}
      */
-    this._triggerOnTouch = delay.touchToTrigger;
-    this.initialize();
-  }
+    this._pierceTimesLeft =
+      this._jabsData.piercing[0] + this._caster.getAdditionalHits(
+        this._baseSkill,
+        this._actionCooldownType === Game_Actor.JABS_MAINHAND || this._actionCooldownType === Game_Actor.JABS_OFFHAND);
 
-  /**
-   * Initializes all properties that don't require input parameters.
-   */
-  initialize = () => {
-      /**
-       * The type of action this is. Used for mapping cooldowns to the appropriate slot on the caster.
-       * @type {string}
-       */
-      this._actionCooldownType = "global";
-      
-      /**
-       * Whether or not this action has already begun animating.
-       * @type {boolean}
-       */
-      this._animating = {};
-      
-      /**
-       * The current timer on this particular action.
-       * @type {number}
-       */
-      this._currentDuration = 0;
-      
-      /**
-       * Whether or not the visual of this map action needs rendering.
-       * @type {boolean}
-       */
-      this._needsCreation = true;
-      
-      /**
-       * Whether or not the visual of this map action needs removing.
-       * @type {boolean}
-       */
-      this._needsRemoval = false;
+    /**
+     * The base pierce delay in frames.
+     * @type {number}
+     */
+    this._basePierceDelay = this._jabsData.piercing[1];
 
-      /**
-       * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
-       * @type {Game_Event}
-       */
-      this._actionSprite = null;
-
-      /**
-       * Whether or not this action has had it's cooldown checked from a previous pierced hit.
-       * @type {boolean}
-       */
-      this._cooldownChecked = false;
-  }
-
-  /**
-   * Initializes the piercing data for this action.
-   * @param {number} times The number of times this action can pierce the target.
-   * @returns {{times: number, delay: number}}
-   */
-  initPiercingData = times => {
-    return {
-      times,
-      delay: 0,
-    };
+    /**
+     * The current pierce delay in frames.
+     * @type {number}
+     */
+    this._currentPierceDelay = 0;
   };
-
-  /**
-   * Gets whether or not this action is a direct-targeting action.
-   * @returns {boolean}
-   */
-  isDirectAction = () => this._isDirect;
-
-  /**
-   * Gets whether or not this action is a support action.
-   * @returns {boolean}
-   */
-  isSupportAction = () => this._isSupportAction;
-
-  /**
-   * Sets whether or not this action is currently animating against the target.
-   * @param {string} targetKey The target's `uuid`.
-   * @param {boolean} animating True if it is currently animating, false otherwise.
-   */
-  setAnimating = (targetKey, animating) => {
-    this._animating[targetKey] = animating;
-  };
-
-  /**
-   * Gets the name of the cooldown for this action.
-   */
-  getCooldownType = () => this._actionCooldownType;
-
-  /**
-   * Sets the name of the cooldown for tracking on the caster.
-   * @param {string} type The name of the cooldown that this leverages.
-   */
-  setCooldownType = type => this._actionCooldownType = type;
 
   /**
    * Gets the base skill this `JABS_Action` is based on.
-   * @returns {any} The base skill of this `JABS_Action`.
+   * @returns {rm.types.Skill} The base skill of this `JABS_Action`.
    */
-  getBaseSkill = () => this._baseSkill;
+  getBaseSkill() {
+    return this._baseSkill;
+  };
 
   /**
-   * A shorthand to retrieve this `JABS_Action`'s team it belongs to.
+   * Gets the JABS-specific skill data associated with this action.
+   * @returns {JABS_SkillData} This action's JABS skill data object.
+   */
+  getJabsData() {
+    return this._jabsData;
+  };
+
+  /**
+   * Gets the team id of the caster of this action.
    * @returns {number} The team id of the caster of this `JABS_Action`.
    */
-  getTeamId = () => this._teamId;
-
-  /**
-   * The number of frames until the caster of this `JABS_Action` may act again.
-   * @returns {number} The cooldown frames of this `JABS_Action`.
-   */
-  getCooldown = () => {
-    return this._cooldownFrames;
+  getTeamId() {
+    return this.getCaster().getTeam();
   };
-
-  /**
-   * Gets the ai-specific cooldown for this skill.
-   * This overwrites the basic cooldown value if it is greater than `-1`.
-   * @returns {number}
-   */
-  getAiCooldown = () => {
-    return this._aiCooldownFrames;
-  };
-
-  /**
-   * Gets the cast time for this skill.
-   * @returns {number}
-   */
-  getCastTime = () => {
-    const skill = this.getBaseSkill();
-    return skill._j.castTime;
-  }
-
-  /**
-   * Gets the range of which this `JABS_Action` will reach.
-   * @returns {number} The range of this action.
-   */
-  getRange = () => this._range;
-
-  /**
-   * Gets the proximity to the target in order to use this `JABS_Action`.
-   * @returns {number} The proximity required for this action.
-   */
-  getProximity = () => this._proximity;
-
-  /**
-   * The shape of the hitbox for this `JABS_Action`.
-   */
-  getShape = () => this._shape;
 
   /**
    * The base game action this `JABS_Action` is based on.
    * @returns {Game_Action} The base game action for this action.
    */
-  getAction = () => this._gameAction;
+  getAction() {
+    return this._gameAction;
+  };
 
   /**
    * Gets the `JABS_Battler` that created this `JABS_Action`.
    * @returns {JABS_Battler} The caster of this `JABS_Action`.
    */
-  getCaster = () => this._caster;
-
-  /**
-   * Gets the event id associated with this `JABS_Action` from the action map.
-   * @returns {number} The event id for this `JABS_Action`.
-   */
-  getActionId = () => this._actionId;
-
-  /**
-   * Gets the number of times this action can potentially hit a target.
-   * @returns {number} The number of times remaining that this action can hit a target.
-   */
-  getPiercingTimes = () => this._piercingData.times;
-
-  /**
-   * Modifies the piercing times counter of this action by an amount (default = 1). If an action
-   * reaches zero or less times, then it also sets it up for removal.
-   * @param {number} decrement The number to decrement the times counter by for this action. 
-   */
-  modPiercingTimes = (decrement = 1) => {
-    this._piercingData.times -= decrement;
-    if (this._piercingData.times <= 0) {
-      this.setNeedsRemoval();
-    }
+  getCaster() {
+    return this._caster;
   };
 
   /**
-   * Gets the delay between hits for this action.
-   * @returns {number} The number of frames between repeated hits.
+   * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
+   * @returns {boolean} True if it is a retaliation, false otherwise.
    */
-  getPiercingDelay = () => this._piercingData.delay;
+  isRetaliation() {
+    return this._isRetaliation;
+  };
 
   /**
-   * Modifies the piercing delay by this amount (default = 1). If a negative number is
-   * provided, then this will increase the delay by that amount instead.
-   * @param {number} decrement The amount to modify the delay by.
+   * Gets the direction this action is facing.
+   * @returns {2|4|6|8|1|3|7|9}
    */
-  modPiercingDelay = (decrement = 1) => this._piercingData.delay -= decrement;
+  direction() {
+    return this._facing || this.getActionSprite().direction();
+  };
 
   /**
-   * Resets the piercing delay of this action back to it's base.
+   * Gets the name of the cooldown for this action.
+   * @returns {string} The cooldown key for this action.
    */
-  resetPiercingDelay = () => this._piercingData.delay = this._basePierceDelay;
+  getCooldownType() {
+    return this._actionCooldownType;
+  };
 
   /**
-   * Gets whether or not this `JABS_Action` needs rendering.
-   * @returns {boolean} Whether or not this action needs rendering.
+   * Sets the name of the cooldown for tracking on the caster.
+   * @param {string} type The name of the cooldown that this leverages.
    */
-  getNeedsCreation = () => this._needsCreation;
-
-  /**
-   * Gets whether or not this `JABS_Action` needs removing.
-   * @returns {boolean} Whether or not this action needs removing.
-   */
-  getNeedsRemoval = () => this._needsRemoval;
-
-  /**
-   * Sets whether or not this `JABS_Action` needs removing.
-   * @param {boolean} remove Whether or not to remove this `JABS_Action`.
-   */
-  setNeedsRemoval = (remove = true) => this._needsRemoval = remove;
+  setCooldownType(type) {
+    this._actionCooldownType = type;
+  };
 
   /**
    * Gets the durations remaining on this `JABS_Action`.
    */
-  getDuration = () => this._currentDuration;
+  getDuration() {
+    return this._currentDuration;
+  };
+
+  /**
+   * Gets the max duration in frames that this action will exist on the map.
+   * If the duration was unset, or is set but less than the minimum, it will be the minimum.
+   * @returns {number} The max duration in frames (min 8).
+   */
+  getMaxDuration() {
+    if (this.getJabsData().duration >= JABS_Action.getMinimumDuration()) {
+      return this.getJabsData().duration;
+    }
+
+    return JABS_Action.getMinimumDuration();
+  };
 
   /**
    * Increments the duration for this `JABS_Action`. If the duration drops
    * to or below 0, then it will also flag this `JABS_Action` for removal.
    */
-  countdownDuration = () => {
+  countdownDuration() {
     this._currentDuration++;
-    if (this._maxDuration <= this._currentDuration) {
+    if (this.getMaxDuration() <= this._currentDuration) {
       this.setNeedsRemoval();
     }
   };
@@ -416,17 +254,50 @@ class JABS_Action {
    * Gets whether or not this action is expired and should be removed.
    * @returns {boolean} True if expired and past the minimum count, false otherwise.
    */
-  isActionExpired = () => {
-    const isExpired = this._maxDuration <= this._currentDuration;
+  isActionExpired() {
+    const isExpired = this.getMaxDuration() <= this._currentDuration;
     const minDurationElapsed = this._currentDuration > JABS_Action.getMinimumDuration();
     return (isExpired && minDurationElapsed);
+  };
+
+  /**
+   * Gets whether or not this `JABS_Action` needs removing.
+   * @returns {boolean} Whether or not this action needs removing.
+   */
+  getNeedsRemoval() {
+    return this._needsRemoval;
+  };
+
+  /**
+   * Sets whether or not this `JABS_Action` needs removing.
+   * @param {boolean} remove Whether or not to remove this `JABS_Action`.
+   */
+  setNeedsRemoval(remove = true) {
+    this._needsRemoval = remove;
+  };
+
+  /**
+   * Gets the `Game_Event` this `JABS_Action` is bound to.
+   * The `Game_Event` represents the visual aspect of this action.
+   * @returns {Game_Event}
+   */
+  getActionSprite() {
+    return this._actionSprite;
+  }
+
+  /**
+   * Binds this `JABS_Action` to a provided `Game_Event`.
+   * @param {Game_Event} actionSprite The `Game_Event` to bind to this `JABS_Action`.
+   */
+  setActionSprite(actionSprite) {
+    this._actionSprite = actionSprite;
   };
 
   /**
    * Decrements the pre-countdown delay timer for this action. If the action does not
    * have `touchOnTrigger`, then the action will not affect anyone until the timer expires. 
    */
-  countdownDelay = () => {
+  countdownDelay() {
     if (this._delayDuration > 0) {
       this._delayDuration--;
     }
@@ -438,14 +309,14 @@ class JABS_Action {
    * This also includes if an action never had a delay to begin with.
    * @returns {boolean}
    */
-  isDelayCompleted = () => {
+  isDelayCompleted() {
     return this._delayDuration <= 0 && !this.isEndlessDelay();
   };
 
   /**
    * Automatically finishes the delay regardless of its current status.
    */
-  endDelay = () => {
+  endDelay() {
     this._delayDuration = 0;
   };
 
@@ -453,7 +324,7 @@ class JABS_Action {
    * Gets whether or not this action will be delayed until triggered.
    * @returns {boolean}
    */
-  isEndlessDelay = () => {
+  isEndlessDelay() {
     return this._delayDuration === -1;
   };
 
@@ -465,52 +336,143 @@ class JABS_Action {
    * trigger by touch regardless of configuration.
    * @returns {boolean}
    */
-  triggerOnTouch = () => {
+  triggerOnTouch() {
     return this._triggerOnTouch || this.isEndlessDelay();
   };
 
   /**
-   * Gets the `Game_Event` this `JABS_Action` is bound to.
-   * The `Game_Event` represents the visual aspect of this action.
-   * @returns {Game_Event}
+   * Gets the number of times this action can potentially hit a target.
+   * @returns {number} The number of times remaining that this action can hit a target.
    */
-  getActionSprite = () => this._actionSprite;
-
-  /**
-   * Binds this `JABS_Action` to a provided `Game_Event`.
-   * @param {Game_Event} actionSprite The `Game_Event` to bind to this `JABS_Action`.
-   */
-  setActionSprite = actionSprite => this._actionSprite = actionSprite;
-
-  /**
-   * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
-   * @returns {boolean} True if it is a retaliation, false otherwise.
-   */
-  get isRetaliation() {
-    return this._isRetaliation;
+  getPiercingTimes() {
+    return this._pierceTimesLeft;
   };
 
   /**
-   * Gets the direction this action is facing.
+   * Modifies the piercing times counter of this action by an amount (default = 1). If an action
+   * reaches zero or less times, then it also sets it up for removal.
+   * @param {number} decrement The number to decrement the times counter by for this action. 
    */
-  get direction() {
-    return this._facing || this.getActionSprite().direction();
+  modPiercingTimes(decrement = 1) {
+    this._pierceTimesLeft -= decrement;
+    if (this._pierceTimesLeft <= 0) {
+      this.setNeedsRemoval();
+    }
+  };
+
+  /**
+   * Gets the delay between hits for this action.
+   * @returns {number} The number of frames between repeated hits.
+   */
+  getPiercingDelay() {
+    return this._currentPierceDelay;
+  };
+
+  /**
+   * Modifies the piercing delay by this amount (default = 1). If a negative number is
+   * provided, then this will increase the delay by that amount instead.
+   * @param {number} decrement The amount to modify the delay by.
+   */
+  modPiercingDelay(decrement = 1) {
+    this._currentPierceDelay -= decrement;
+  };
+
+  /**
+   * Resets the piercing delay of this action back to it's base.
+   */
+  resetPiercingDelay() {
+    this._currentPierceDelay = this._basePierceDelay;
+  };
+
+  /**
+   * Gets whether or not this action is a direct-targeting action.
+   * @returns {boolean}
+   */
+  isDirectAction() {
+    return this.getJabsData().direct ?? false;
+  };
+
+  /**
+   * Gets whether or not this action is a support action.
+   * @returns {boolean}
+   */
+  isSupportAction() {
+    return this._gameAction.isForFriend();
+  };
+
+  /**
+   * The number of frames until this action's caster may act again.
+   * @returns {number} The cooldown frames of this `JABS_Action`.
+   */
+  getCooldown() {
+    return this.getJabsData().cooldown ?? 0;
+  };
+
+  /**
+   * Gets the ai-specific cooldown for this skill.
+   * This is used in place of regular cooldowns for skills when present.
+   * @returns {number}
+   */
+  getAiCooldown() {
+    return this.getJabsData().aiCooldown ?? 0;
+  };
+
+  /**
+   * Gets the cast time for this skill.
+   * @returns {number}
+   */
+  getCastTime() {
+    // TODO: add a cast time modifier based on actor "all notes" collection.
+    return this.getJabsData().castTime;
+  };
+
+  /**
+   * Gets the range of which this `JABS_Action` will reach.
+   * @returns {number} The range of this action.
+   */
+  getRange() {
+    // TODO: add ability to increase this (and duration).
+    return this.getJabsData().range;
+  };
+
+  /**
+   * Gets the proximity to the target in order to use this `JABS_Action`.
+   * @returns {number} The proximity required for this action.
+   */
+  getProximity() {
+    return this.getJabsData().proximity;
+  };
+
+  /**
+   * Gets the shape of the hitbox for this `JABS_Action`.
+   * @returns {string} The designated shape of the action.
+   */
+  getShape() {
+    return this.getJabsData().shape;
+  };
+
+  /**
+   * Gets the event id associated with this `JABS_Action` from the action map.
+   * @returns {number} The event id for this `JABS_Action`.
+   */
+  getActionId() {
+    return this.getJabsData().actionId;
   };
 
   /**
    * Gets any additional aggro this skill generates.
    * @returns {number}
    */
-  get bonusAggro() {
-    return this.getBaseSkill()._j.bonusAggro;
+  bonusAggro() {
+    return this.getJabsData().bonusAggro;
   };
 
   /**
    * Gets the aggro multiplier from this skill.
    * @returns {number}
    */
-  get aggroMultiplier() {
-    return this.getBaseSkill()._j.aggroMultiplier;
+  aggroMultiplier() {
+    return this.getJabsData().aggroMultiplier;
   };
 }
 //ENDFILE

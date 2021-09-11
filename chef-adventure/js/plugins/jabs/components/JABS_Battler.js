@@ -2759,7 +2759,7 @@ JABS_Battler.prototype.getEnemyBasicAttack = function() {
 /**
  * Gets the number of additional/bonus hits per basic attack.
  * Skills (such as magic) do not receive bonus hits at this time.
- * @param {object} skill The skill to consider regarding bonus hits.
+ * @param {rm.types.Skill} skill The skill to consider regarding bonus hits.
  * @param {boolean} isBasicAttack True if this is a basic attack, false otherwise.
  * @returns {number} The number of bonus hits per attack.
  */
@@ -3066,72 +3066,36 @@ JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne) {
  * @returns {JABS_Action[]} The `JABS_Action` based on the skill id provided.
  */
 JABS_Battler.prototype.createMapActionFromSkill = function(
-  skillId, 
-  isRetaliation = false, 
-  cooldownKey = null) {
-    const battler = this.getBattler();
-    const skill = $dataSkills[skillId];
-    const action = new Game_Action(battler, false);
-    action.setSkill(skill.id);
-    const isSupportAction = action.isForFriend();
+  skillId,
+  isRetaliation = false,
+  cooldownKey = null
+) {
+  const battler = this.getBattler();
+  const skill = $dataSkills[skillId];
+  const action = new Game_Action(battler, false);
+  action.setSkill(skillId);
 
-    let { duration, piercing } = skill._j;
-    const {
-      actionId, 
-      aiCooldown, 
-      cooldown, 
-      delay,
-      direct,
-      projectile,
-      proximity,
-      range, 
-      shape,
-    } = skill._j;
-    
-    let isBasicAttack = false;
-    if (this.isActor() && cooldownKey) {
-      isBasicAttack = (cooldownKey === Game_Actor.JABS_MAINHAND || cooldownKey === Game_Actor.JABS_OFFHAND);
-      const bonusHits = this.getAdditionalHits(skill, isBasicAttack);
-      piercing[0] += bonusHits;
-    }
-
-    if (!duration) {
-      duration = JABS_Action.getMinimumDuration();
-    }
-
-    let actions = [];
-
-    const projectileDirections = $gameBattleMap.determineActionDirections(
-      this.getCharacter().direction(), 
-      projectile);
-    
-    const caster = this;
-    projectileDirections.forEach(direction => {
-      const mapAction = new JABS_Action({
-        baseSkill: skill,          // the skill data
-        teamId: this.getTeam(), // the caster's team id
-        cooldownFrames: cooldown,       // cooldown frames
-        aiCooldownFrames: aiCooldown,     // ai cooldown frames
-        range,          // the aoe range of the skill (affects collision)
-        proximity,      // the proximity required to use this skill
-        shape,          // the collision hitbox
-        gameAction: action,         // the Game_Action itself
-        caster: caster,           // the JABS_Battler caster
-        actionId: actionId,       // the action id to use
-        duration: duration,       // the duration this action persists on the map
-        piercing,       // the piercing data
-        isRetaliation: isRetaliation,  // whether or not this is a retaliation
-        direction: direction,      // the direction this action is initially facing
-        isBasicAttack: isBasicAttack,  // whether or not this is a basic attack
-        isSupportAction: isSupportAction,// whether or not this is a support action
-        isDirect: direct,         // whether or not this is a direct-targeting action
-        delay: delay,          // the delay data for this action.
-      });
-
-      actions.push(mapAction);
+  const actions = [];
+  const projectileDirections = $gameBattleMap.determineActionDirections(
+    this.getCharacter().direction(), 
+    skill._j.projectile);
+  
+  const caster = this;
+  projectileDirections.forEach(direction => {
+    const mapAction = new JABS_Action({
+      baseSkill: skill,          // the skill data
+      teamId: caster.getTeam(), // the caster's team id
+      gameAction: action,         // the Game_Action itself
+      caster: caster,           // the JABS_Battler caster
+      isRetaliation: isRetaliation,  // whether or not this is a retaliation
+      direction: direction,      // the direction this action is initially facing
+      cooldownKey,
     });
 
-    return actions;
+    actions.push(mapAction);
+  });
+
+  return actions;
 };
 
 /**

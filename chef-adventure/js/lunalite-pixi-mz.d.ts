@@ -29590,16 +29590,27 @@ declare namespace rm.types {
 		 * The scope of effects.
 		 *
 		 * 0: None
+         * 
 		 * 1: One Enemy
+         * 
 		 * 2: All Enemies
+         * 
 		 * 3: One Random Enemy
+         * 
 		 * 4: Two Random Enemies
+         * 
 		 * 5: Three Random Enemies
+         * 
 		 * 6: Four Random Enemies
+         * 
 		 * 7: One Ally
+         * 
 		 * 8: All Allies
+         * 
 		 * 9: One Ally (Dead)
+         * 
 		 * 10: All Allies (Dead)
+         * 
 		 * 11: The User
 		 */
 		scope: number;
