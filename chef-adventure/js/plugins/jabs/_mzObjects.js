@@ -1665,7 +1665,7 @@ class Game_BattleMap {
    */
   updateNonPlayerBattlers() {
     const player = $gameBattleMap.getPlayerMapBattler();
-    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15);
+    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15, false);
 
     visibleBattlers.forEach(battler => {
       battler.update();
@@ -1860,7 +1860,7 @@ class Game_BattleMap {
     const primaryAction = actions[0];
 
     // retaliations do not follow normal skill execution behaviors.
-    if (!primaryAction.isRetaliation) {
+    if (!primaryAction.isRetaliation()) {
       this.paySkillCosts(battler, primaryAction);
       this.applyCooldownCounters(battler, primaryAction);
     }
@@ -2187,8 +2187,8 @@ class Game_BattleMap {
       const pageData = actionEventData.pages[pageIndex];
       actionEventSprite.setMoveFrequency(pageData.moveFrequency);
       actionEventSprite.setMoveRoute(pageData.moveRoute);
-      actionEventSprite.setDirection(action.direction);
-      actionEventSprite.setCustomDirection(action.direction);
+      actionEventSprite.setDirection(action.direction());
+      actionEventSprite.setCustomDirection(action.direction());
       actionEventSprite.setCastedDirection($gamePlayer.direction());
       actionEventSprite.setMapActionData(action);
   
@@ -2359,10 +2359,10 @@ class Game_BattleMap {
     }
 
     // apply any bonus aggro from the underlying skill.
-    aggro += action.bonusAggro;
+    aggro += action.bonusAggro();
 
     // apply the aggro multiplier from the underlying skill.
-    aggro *= action.aggroMultiplier;
+    aggro *= action.aggroMultiplier();
 
     // apply any aggro amplification from states.
     const attackerStates = attacker.getBattler().states();
@@ -2583,7 +2583,7 @@ class Game_BattleMap {
    */
   checkRetaliate(action, battler) {
     // do not retaliate against other battler's retaliations.
-    if (action.isRetaliation) return;
+    if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
     if (action.getCaster().isSameTeam(battler.getTeam())) return;
@@ -2754,7 +2754,7 @@ class Game_BattleMap {
     }
 
     // if the action is a retaliation, then log that.
-    if (action.isRetaliation) {
+    if (action.isRetaliation()) {
       const retaliationLog = new Map_TextLog(`${casterName} retaliated!`, -1);
       $gameTextLog.addLog(retaliationLog);
     }
@@ -5105,9 +5105,12 @@ Game_Map.prototype.battlerExists = function(battlerToCheck) {
  * @param {number} maxDistance The maximum distance that we check battlers for.
  * @returns {JABS_Battler[]}
  */
-Game_Map.prototype.getBattlersWithinRange = function(user, maxDistance) {
+Game_Map.prototype.getBattlersWithinRange = function(user, maxDistance, includePlayer = true) {
   const battlers = this.getBattlers();
-  battlers.push($gameBattleMap.getPlayerMapBattler());
+  if (includePlayer) {
+    battlers.push($gameBattleMap.getPlayerMapBattler());
+  }
+
   return battlers.filter(battler => user.distanceToDesignatedTarget(battler) <= maxDistance);
 };
 
