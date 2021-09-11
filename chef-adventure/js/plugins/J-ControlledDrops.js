@@ -60,7 +60,7 @@ J.DROPS.Metadata = {
 /**
  * OVERWRITE Modifies the drop chance algorithm to treat the number entered in the
  * database as a percent chance instead of some weird fractional shit.
- * @returns {object[]} The array of loot successfully found.
+ * @returns {rm.types.BaseItem[]} The array of loot successfully found.
  */
 Game_Enemy.prototype.makeDropItems = function() {
   const dropList = this.enemy().dropItems.concat(this.extraDrops());

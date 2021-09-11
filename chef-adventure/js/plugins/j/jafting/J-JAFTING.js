@@ -202,6 +202,10 @@ J.JAFTING.Helpers = {};
  * @returns {JAFTING_Recipe[]}
  */
 J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
+  if (!rawRecipeBlobs) {
+    return [];
+  }
+
   const parsedRecipeBlobs = JSON.parse(rawRecipeBlobs);
   const parsedRecipes = [];
   parsedRecipeBlobs.forEach(recipeBlob => {
@@ -308,6 +312,10 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
  * @returns {JAFTING_Category[]}
  */
 J.JAFTING.Helpers.translateCategories = rawCategoryBlobs => {
+  if (!rawCategoryBlobs) {
+    return [];
+  }
+  
   const parsedCategoryBlobs = JSON.parse(rawCategoryBlobs);
   const parsedCategories = [];
   parsedCategoryBlobs.forEach(categoryBlob => {
