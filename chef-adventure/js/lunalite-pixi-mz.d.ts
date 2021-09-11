@@ -33147,7 +33147,7 @@ declare class Game_Enemy extends Game_Battler {
 	 * @memberof Game_Enemy
 	 */
 	dropItemRate(): number;
-	itemObject(kind: number, dataId: number): void;
+	itemObject(kind: number, dataId: number): rm.types.BaseItem;
 	/**
 	 * Returns true if the enemy sprite is visible.
 	 *

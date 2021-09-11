@@ -207,8 +207,7 @@ Game_Troop.prototype.getScaledExpResult = function() {
   var deadEnemies = this.deadMembers();
   const averageActorLevel = $gameParty.averageActorLevel()
   deadEnemies.forEach(enemy => {
-    const level = enemy.level;
-    const expFactor = J.LEVEL.Utilities.determineScalingMultiplier(averageActorLevel, level);
+    const expFactor = J.LEVEL.Utilities.determineScalingMultiplier(averageActorLevel, enemy.level);
     const total = Math.round(expFactor * enemy.exp())
     expTotal += total;
   });
