@@ -8,10 +8,8 @@
  * @help
  * ============================================================================
  * A component of JABS.
- * This is a cluster of all changes/overwrites to the objects that would
- * otherwise be found in the rmmz_scenes.js, such as Scene_Menu. Also, any
- * new things that follow the pattern that defines a scene object can be found
- * in here.
+ * This is a cluster of all changes/overwrites/additions to the objects that
+ * would otherwise be found in the rmmz_scenes.js, such as Scene_Menu.
  * ============================================================================
  */
 

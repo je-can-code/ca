@@ -70,6 +70,27 @@ Game_Actor.prototype.switchLocked = function() {
 };
 
 /**
+ * Gets whether or not there are notes that indicate skills should be autoassigned
+ * when leveling up.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.autoAssignOnLevelup = function() {
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<autoAssignSkills>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj => {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line => {
+      if (line.match(structure)) {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
+};
+
+/**
  * Gets all things the things that this actor has that can possibly have
  * notes on it at the present moment. This includes the actor itself, the
  * actor's class, their skills, their equips, and their current states.

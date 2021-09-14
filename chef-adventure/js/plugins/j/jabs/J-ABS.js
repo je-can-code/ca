@@ -398,13 +398,28 @@
  * @desc Disables the JABS engine.
  *
  * @command Set JABS Skill
- * @text Force-assign a JABS skill
- * @desc Forcefully assigns a specific skill id or (item id) to a designated slot.
- * @arg Id
- * @type number
+ * @text Assign a JABS skill
+ * @desc
+ * Assigns a specific skill id or (item id) to a designated slot.
+ * Assigned skills will be removed if not learned (unless locked).
+ * @arg actorId
+ * @type actor
+ * @text Choose Actor
+ * @desc
+ * The actor to have the skill assigned to.
+ * Please don't choose "none", that'll cause the game to crash.
  * @default 1
- * @arg Slot
+ * @arg skillId
+ * @type skill
+ * @text Choose Skill
+ * @desc
+ * The skill to be assigned to the actor.
+ * You may choose "none" if you want to unassign the slot.
+ * @default 1
+ * @arg slot
  * @type select
+ * @text Choose Slot
+ * @desc The slot to assign the skill to for this actor.
  * @option Tool
  * @option Dodge
  * @option R1A
@@ -415,6 +430,13 @@
  * @option L1B
  * @option L1X
  * @option L1Y
+ * @default R1A
+ * @arg locked
+ * @type boolean
+ * @on Lock Skill
+ * @off Don't Lock
+ * @desc Locked skills cannot be unequipped until unlocked.
+ * @default false
  * 
  * @command Unlock JABS Skill Slot
  * @text Unlock a single JABS skill slot
@@ -921,15 +943,13 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () => {
  * Plugin command for assigning and locking a skill to a designated slot.
  */
 PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args => {
-  const leader = $gameParty.leader();
-  if (!leader) {
-    console.warn("There is no leader to manage skills for.");
-    return;
-  }
-
-  const { Id, Slot } = args;
-  const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
-  leader.setEquippedSkill(translation, Id, true);
+  const { actorId, skillId, slot, locked } = args;
+  const actor = $gameActors.actor(parseInt(actorId));
+  const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
+  actor.setEquippedSkill(
+    translation,
+    parseInt(skillId),
+    locked === 'true');
 });
 
 /**

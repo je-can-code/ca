@@ -29555,7 +29555,7 @@ declare namespace rm.types {
 		 * The use message.
 		 */
 		message2: string;
-		meta: Object;
+		meta: Record<string, any>;
 		/**
 		 * Number of MP consumed.
 		 */

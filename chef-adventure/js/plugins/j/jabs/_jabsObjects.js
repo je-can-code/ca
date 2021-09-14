@@ -8,16 +8,8 @@
  * @help
  * ============================================================================
  * A component of JABS.
- * This is a cluster of all changes/overwrites to the objects that would
- * otherwise be found in the rmmz_objects.js, such as Game_Map. Also, any new
- * things that follow the pattern that defines a game object can be found in
- * here.
- * 
- * Plugin Developer Note:
- * "game objects" are loosely defined by me as either anything found in the
- * rmmz_objects.js file, or any game object that is instantiated and morphed
- * over time for one reason or another. For convenience, I have followed the
- * same naming convention of Game_, such as Game_BattleMap.
+ * This is a cluster of all changes/overwrites/additions to the objects that
+ * would otherwise be found in the rmmz_objects.js, such as Game_Map.
  * ============================================================================
  */
 
@@ -205,7 +197,7 @@ Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
  * Gets all skill slots that have skills that are upgradable.
  * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getUpgradableSkills = function() {
+Game_Actor.prototype.getUpgradableSkillSlots = function() {
   return this
     .getValidEquippedSkillSlots()
     .filter(skillSlot => {
@@ -219,7 +211,7 @@ Game_Actor.prototype.getUpgradableSkills = function() {
         return false;
       }
 
-      const skillData = $dataSkills[skillSlot.id];
+      const skillData = $dataSkills[skillSlot.id]; 
       if (!skillData.meta || !skillData.meta["Hide if learned Skill"]) {
         // skip skills that don't "upgrade" per yanfly's plugin.
         return false;
@@ -254,6 +246,14 @@ Game_Actor.prototype.getEquippedSkill = function(slot) {
  */
 Game_Actor.prototype.getSkillSlot = function(slot) {
   return this._j._equippedSkills.getSkillBySlot(slot);
+};
+
+/**
+ * Gets all secondary slots that are unassigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+Game_Actor.prototype.getEmptySecondarySkills = function() {
+  return this._j._equippedSkills.getEmptySecondarySlots();
 };
 
 /**
@@ -349,11 +349,8 @@ Game_Actor.prototype.shouldDisplayLevelUp = function() {
 J.ABS.Aliased.Game_Actor.levelUp = Game_Actor.prototype.levelUp;
 Game_Actor.prototype.levelUp = function() {
   J.ABS.Aliased.Game_Actor.levelUp.call(this);
-  const isLeader = $gameParty.leader() === this;
-  if (isLeader) {
-    $gameBattleMap.requestSpriteRefresh = true;
-    $gameBattleMap.leaderLevelUp();
-  }
+  $gameBattleMap.requestSpriteRefresh = true;
+  $gameBattleMap.battlerLevelup(this.getUuid());
 };
 
 /**
@@ -374,11 +371,11 @@ Game_Actor.prototype.levelDown = function() {
 J.ABS.Aliased.Game_Actor.learnSkill = Game_Actor.prototype.learnSkill;
 Game_Actor.prototype.learnSkill = function(skillId) {
   if (!this.isLearnedSkill(skillId)) {
-    const isLeader = $gameParty.leader() === this;
     const skill = $dataSkills[skillId];
-    if (isLeader && skill) {
-      $gameBattleMap.leaderSkillLearn(skill);
+    if (skill) {
+      $gameBattleMap.battlerSkillLearn(skill, this.getUuid());
       this.upgradeSkillIfUpgraded(skillId);
+      this.autoAssignSkillsIfRequired(skillId);
     }
   }
   
@@ -390,18 +387,40 @@ Game_Actor.prototype.learnSkill = function(skillId) {
  * @param {number} skillId The skill id to upgrade.
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId) {
-  const upgradableSkills = this.getUpgradableSkills();
-  if (!upgradableSkills) {
+  const upgradableSkillsSlots = this.getUpgradableSkillSlots();
+  if (!upgradableSkillsSlots) {
     return;
   }
 
-  upgradableSkills.forEach(skillSlot => {
+  upgradableSkillsSlots.forEach(skillSlot => {
     const skillData = $dataSkills[skillSlot.id];
     const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
     if (upgradeSkillId === skillId) {
       this.setEquippedSkill(skillSlot.key, skillId);
     }
   });
+};
+
+/**
+ * If the actor has a tag/note somewhere for auto-assignment, then this will
+ * attempt to automatically slot the learned skill into an otherwise empty
+ * skill slot.
+ * 
+ * This will only attempt to assign skills to one of the 8 secondary slots.
+ * 
+ * If all slots are full, no action is taken.
+ * @param {number} skillId The skill id to auto-assign to a slot.
+ */
+Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId) {
+  if (this.autoAssignOnLevelup()) {
+    const emptySlots = this.getEmptySecondarySkills();
+    if (!emptySlots.length) {
+      return;
+    }
+
+    const slotKey = emptySlots[0].key;
+    this.setEquippedSkill(slotKey, skillId);
+  }
 };
 
 /**
@@ -2298,12 +2317,7 @@ class Game_BattleMap {
   executeSkillEffects(action, target) {
     const caster = action.getCaster();
     const targetBattler = target.getBattler();
-    const gameAction = action.getAction();
-    const skill = action.getBaseSkill();
-    let unparryable = false;
-    if (skill._j.ignoreParry === -1) {
-      unparryable = true;
-    }
+    const unparryable = (action.getBaseSkill()._j.ignoreParry === -1);
     const isParried = unparryable
       ? false // parry is cancelled because the skill ignores it.
       : this.checkParry(caster, target);
@@ -2314,6 +2328,7 @@ class Game_BattleMap {
       return result;
     }
 
+    const gameAction = action.getAction();
     gameAction.apply(targetBattler);
     return targetBattler.result();
   };
@@ -2516,20 +2531,60 @@ class Game_BattleMap {
    * Calculates whether or not the attack was parried.
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
+   * @returns {boolean}
    */
   checkParry(caster, target) {
     const isFacing = caster.isFacingTarget(target.getCharacter());
     // cannot parry if not facing target.
     if (!isFacing) return false;
 
-    const casterBattler = caster.getBattler();
+    // if the target battler has 0% GRD, they can't parry.
     const targetBattler = target.getBattler();
+    if (targetBattler.grd === 0) return false;
 
-    // gain bonus chance to bypass parry.
+    const casterBattler = caster.getBattler();
+
+    /*
+    // WIP formula!
+    // defender's stat calculation of grd, bonuses from agi/luk.
+    const baseGrd = parseFloat(((targetBattler.grd - 1) * 100).toFixed(3));
+    const bonusGrdFromAgi = parseFloat((targetBattler.agi * 0.1).toFixed(3));
+    const bonusGrdFromLuk = parseFloat((targetBattler.luk * 0.1).toFixed(3));
+    const defenderGrd = baseGrd + bonusGrdFromAgi + bonusGrdFromLuk;
+
+    // attacker's stat calculation of hit, bonuses from agi/luk.
+    const baseHit = parseFloat((casterBattler.hit * 100).toFixed(3));
+    const bonusHitFromAgi = parseFloat((casterBattler.agi * 0.1).toFixed(3));
+    const bonusHitFromLuk = parseFloat((casterBattler.luk * 0.1).toFixed(3));
+    const attackerHit = baseHit + bonusHitFromAgi + bonusHitFromLuk;
+
+    // determine the difference and apply the multiplier if applicable.
+    let difference = attackerHit - defenderGrd;
+    if (J.LEVEL && J.LEVEL.Metadata.Enabled) {
+      const multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
+        targetBattler.level,
+        casterBattler.level);
+      difference *= multiplier;
+    }
+
+    // the hit is too great, there is no chance of being parried.
+    if (difference > 100) {
+      return false;
+    // the grd is too great, there is no chance of landing a hit.
+    } else if (difference < 0) {
+      return true;
+    }
+
+    const rng = parseInt(Math.randomInt(100) + 1);
+    console.log(`attacker: ${attackerHit}, defender: ${defenderGrd}, rng: ${rng}, diff: ${difference}, parried: ${rng > difference}`);
+    return rng > difference;
+    */
+
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
     const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
-    const parryRate = parseFloat((targetBattler.grd - 1).toFixed(3));
-    return hit < parryRate;
+    const parry = parseFloat((targetBattler.grd - 1).toFixed(3));
+    // console.log(`attacker:${casterBattler.name()} bonus:${bonusHit} + hit:${hit-bonusHit} < grd:${parryRate} ?${hit < parryRate}`);
+    return hit < parry;
   };
 
   /**
@@ -3386,14 +3441,18 @@ class Game_BattleMap {
 
   /**
    * Handles a level up for the leader while on the map.
+   * @param {string} uuid The uuid of the battler leveling up.
    */
-  leaderLevelUp() {
-    const player = this.getPlayerMapBattler();
-    const character = player.getCharacter();
-
-    this.createLevelUpPop(character);
-    this.createLevelUpLog(player);
-    this.playLevelUpAnimation(character);
+  battlerLevelup(uuid) {
+    const battler = $gameMap.getBattlerByUuid(uuid);
+    if (battler) {
+      const character = battler.getCharacter();
+      this.playLevelUpAnimation(character);
+      this.createLevelUpPop(character);
+      this.createLevelUpLog(battler);
+    } else {
+      // console.warn(`There was an issue getting the battler for uuid: [${uuid}].`);
+    }
   };
 
   /**
@@ -3417,15 +3476,15 @@ class Game_BattleMap {
   };
 
   /**
-   * Creates a level up log for the player.
-   * @param {JABS_Battler} player The player.
+   * Creates a level up log for the given battler.
+   * @param {JABS_Battler} battler The given battler.
    */
-  createLevelUpLog(player) {
+  createLevelUpLog(battler) {
     if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
-    const leaderData = player.getReferenceData();
+    const leaderData = battler.getReferenceData();
     const leaderName = leaderData.name;
-    const leaderBattler = player.getBattler();
+    const leaderBattler = battler.getBattler();
     const leaderLevel = leaderBattler.level;
     const levelupMessage = `${leaderName} has reached level ${leaderLevel}!`;
     const levelupLog = new Map_TextLog(levelupMessage, -1);
@@ -3442,19 +3501,23 @@ class Game_BattleMap {
 
   /**
    * Handles a skill being learned for the leader while on the map.
-   * @param {object} skill The skill being learned.
+   * @param {rm.types.Skill} skill The skill being learned.
+   * @param {string} uuid The uuid of the battler leveling up.
    */
-  leaderSkillLearn(skill) {
-    const player = this.getPlayerMapBattler();
-    const character = player.getCharacter();
-
-    this.createSkillLearnPop(skill, character);
-    this.createSkillLearnLog(skill, player);
+  battlerSkillLearn(skill, uuid) {
+    const battler = $gameMap.getBattlerByUuid(uuid);
+    if (battler) {
+      const character = battler.getCharacter();
+      this.createSkillLearnPop(skill, character);
+      this.createSkillLearnLog(skill, battler);
+    } else {
+      // console.warn(`There was an issue getting the battler for uuid: [${uuid}].`);
+    }
   };
 
   /**
    * Creates a text pop of the skill being learned.
-   * @param {object} skill The skill being learned.
+   * @param {rm.types.Skill} skill The skill being learned.
    * @param {Game_Character} character The player's character.
    */
   createSkillLearnPop(skill, character) {
@@ -3475,7 +3538,7 @@ class Game_BattleMap {
 
   /**
    * Creates a skill learning log for the player.
-   * @param {object} skill The skill being learned.
+   * @param {rm.types.Skill} skill The skill being learned.
    * @param {JABS_Battler} player The player's `JABS_Battler`.
    */
   createSkillLearnLog(skill, player) {
