@@ -108,15 +108,15 @@ J.LEVEL.Utilities = {};
  * Determines the scaling multiplier.
  * 
  * Based on the difference between user's level and target's level.
- * @param {number} target The level of the target.
+ * @param {number} targetLevel The level of the target.
  * @param {number} user The level of the user.
  * @returns A decimal representing the multiplier for the damage scaling.
  */
-J.LEVEL.Utilities.determineScalingMultiplier = function(target, user) {
-  if (!user || !target || // if user or target doesn't have a level
-    user == 0 || target == 0) 
-      return 1.0;
-  const compared = target - user;
+J.LEVEL.Utilities.determineScalingMultiplier = function(targetLevel, userLevel) {
+  // if user or target doesn't have a level, return default multiplier.
+  if (!userLevel || !targetLevel || userLevel == 0 || targetLevel == 0) return 1.0;
+  
+  const compared = targetLevel - userLevel;
   if (compared < -9) return 2.0;     // 10 or more levels higher than the target.
   else if (compared > 9) return 0.1; // 10 or more levels lower than the target.
   

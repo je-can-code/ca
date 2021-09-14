@@ -111,6 +111,14 @@ JABS_SkillSlotManager.prototype.getEquippedSlots = function() {
 };
 
 /**
+ * Gets all secondary skill slots that are unassigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function() {
+  return this.getAllSecondarySlots().filter(skillSlot => skillSlot.isEmpty());
+};
+
+/**
  * Gets all skill slots that have a skill assigned.
  * @returns {JABS_SkillSlot[]}
  */

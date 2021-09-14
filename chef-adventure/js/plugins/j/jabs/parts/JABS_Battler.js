@@ -3553,11 +3553,16 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot) {
   this.setCounterGuard(guardData.counterGuardId);
   this.setCounterParry(guardData.counterParryId);
 
+  // calculate parry frames, include eva bonus to parry.
+  const gameBattler = this.getBattler();
+  const bonusParryFrames = Math.floor((gameBattler.eva) * guardData.parryDuration);
+  const totalParryFrames = bonusParryFrames + guardData.parryDuration;
+
   // if the guarding skill has a parry window, apply those frames once.
-  if (guardData.canParry()) this.setParryWindow(guardData.parryDuration);
+  if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 
   // set the pose!
-  const skill = $dataSkills[this.getBattler().getEquippedSkill(skillSlot)];
+  const skill = $dataSkills[gameBattler.getEquippedSkill(skillSlot)];
   this.performActionPose(skill);
 };
 

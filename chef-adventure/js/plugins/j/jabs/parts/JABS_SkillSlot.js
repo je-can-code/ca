@@ -58,11 +58,19 @@ JABS_SkillSlot.prototype.initMembers = function() {
 };
 
 /**
- * Gets whether or not this slot has anythign assigned to it.
+ * Gets whether or not this slot has anything assigned to it.
  * @returns {boolean}
  */
 JABS_SkillSlot.prototype.isUsable = function() {
   return this.id > 0;
+};
+
+/**
+ * Gets whether or not this slot is empty.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isEmpty = function() {
+  return this.id === 0;
 };
 
 /**
