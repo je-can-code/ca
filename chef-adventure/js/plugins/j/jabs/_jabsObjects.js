@@ -450,12 +450,23 @@ Game_Actor.prototype.getSpeedBoosts = function() {
  * Updates the bonus hit count for this actor based on equipment.
  */
 Game_Actor.prototype.refreshBonusHits = function() {
-  const equips = this.equips();
+  const equips = this.equips(); // while equipped
+  const states = this.states(); // temporary states
+  const skills = this.skills(); // passive skills
+
   let bonusHits = 0;
 
   equips.forEach(equip => {
     if (!equip) return;
-    bonusHits += equip._j.bonusHits;
+    bonusHits += equip._j.bonusHits();
+  });
+
+  states.forEach(state => {
+    bonusHits += state._j.bonusHits();
+  });
+
+  skills.forEach(skill => {
+    bonusHits += skill._j.bonusHits();
   });
 
   this._j._bonusHits = bonusHits;
@@ -2634,21 +2645,21 @@ class Game_BattleMap {
   /**
    * Executes a retalation if necessary on receiving a hit.
    * @param {JABS_Action} action The action affecting the target.
-   * @param {JABS_Battler} battler The target having the action applied against.
+   * @param {JABS_Battler} targetBattler The target having the action applied against.
    */
-  checkRetaliate(action, battler) {
+  checkRetaliate(action, targetBattler) {
     // do not retaliate against other battler's retaliations.
     if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
-    if (action.getCaster().isSameTeam(battler.getTeam())) return;
+    if (action.getCaster().isSameTeam(targetBattler.getTeam())) return;
 
-    if (battler.isPlayer()) {
+    if (targetBattler.isActor()) {
       // handle player retaliations.
-      this.handlePlayerRetaliation(battler);
+      this.handleActorRetaliation(targetBattler);
     } else {
       // handle non-player retaliations.
-      this.handleNonPlayerRetaliation(battler);
+      this.handleEnemyRetaliation(targetBattler);
     }
   };
 
@@ -2656,7 +2667,7 @@ class Game_BattleMap {
    * Executes any retaliation the player may have when receiving a hit while guarding/parrying.
    * @param {JABS_Battler} battler The player's `JABS_Battler`.
    */
-  handlePlayerRetaliation(battler) {
+  handleActorRetaliation(battler) {
     const result = battler.getBattler().result();
     const needsCounterParry = result.preciseParried && battler.counterParry();
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
@@ -2722,10 +2733,7 @@ class Game_BattleMap {
    * Executes any retaliation the enemy may have when receiving a hit at any time.
    * @param {JABS_Battler} enemy The enemy's `JABS_Battler`.
    */
-  handleNonPlayerRetaliation(enemy) {
-    // only work with enemies- for now.
-    if (!enemy.isEnemy()) return;
-
+   handleEnemyRetaliation(enemy) {
     // assumes enemy battler is enemy.
     const retaliationSkills = enemy.getBattler().retaliationSkills();
 
@@ -2921,7 +2929,9 @@ class Game_BattleMap {
     const shape = action.getShape();
     const casterJabsBattler = action.getCaster();
     const caster = casterJabsBattler.getCharacter();
-    const battlers = $gameMap.getAllBattlers();
+
+    /**  @type {JABS_Battler[]} */
+    const battlers = $gameMap.getAllBattlersDistanceSortedFromPlayer(casterJabsBattler);
     let hitOne = false;
     let targetsHit = [];
 
@@ -2933,43 +2943,55 @@ class Game_BattleMap {
       }
     }
 
-    battlers.forEach(battler => {
-      // this battler is untargetable.
-      if (!battler.canActionConnect()) return;
-      
-      // the action's scopes don't meet the criteria for this target.
-      if (!battler.isWithinScope(action, battler, hitOne)) return;
+    battlers
+      .filter(battler => {
+        // this battler is untargetable.
+        if (!battler.canActionConnect()) return false;
 
-      // if the action is a direct-targeting action,
-      // then only check distance between the caster and target.
-      if (action.isDirectAction()) {
-        if (action.getAction().isForUser()) {
-          targetsHit.push(battler);
-          hitOne = true;
-          return;
+        // the action's scopes don't meet the criteria for this target.
+        // excludes the "single"-hitonce check.
+        if (!battler.isWithinScope(action, battler)) return false;
+
+        // if the attacker is an enemy, do not consider inanimate targets.
+        if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
+
+        // this battler is potentially hit-able.
+        return true;
+      })
+      .forEach(battler => {
+        // this time, it is effectively checking for the single-scope.
+        if (!battler.isWithinScope(action, battler, hitOne)) return;
+
+        // if the action is a direct-targeting action,
+        // then only check distance between the caster and target.
+        if (action.isDirectAction()) {
+          if (action.getAction().isForUser()) {
+            targetsHit.push(battler);
+            hitOne = true;
+            return;
+          }
+          const maxDistance = action.getProximity();
+          const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
+          if (distance <= maxDistance) {
+            targetsHit.push(battler);
+            hitOne = true;
+          }
+          
+        // if the action is a standard projectile-based action,
+        // then check to see if this battler is now in range.
+        } else {
+          const sprite = battler.getCharacter();
+          let dx = actionSprite.x - sprite.x;
+          let dy = actionSprite.y - sprite.y;
+          dx = dx >= 0 ? Math.max(dx, 0) : Math.min(dx, 0);
+          dy = dy >= 0 ? Math.max(dy, 0) : Math.min(dy, 0);
+          const result = this.isTargetWithinRange(caster.direction(), dx, dy, range, shape);
+          if (result) {
+            targetsHit.push(battler);
+            hitOne = true;
+          }
         }
-        const maxDistance = action.getProximity();
-        const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
-        if (distance <= maxDistance) {
-          targetsHit.push(battler);
-          hitOne = true;
-        }
-        
-      // if the action is a standard projectile-based action,
-      // then check to see if this battler is now in range.
-      } else {
-        const sprite = battler.getCharacter();
-        let dx = actionSprite.x - sprite.x;
-        let dy = actionSprite.y - sprite.y;
-        dx = dx >= 0 ? Math.max(dx, 0) : Math.min(dx, 0);
-        dy = dy >= 0 ? Math.max(dy, 0) : Math.min(dy, 0);
-        const result = this.isTargetWithinRange(caster.direction(), dx, dy, range, shape);
-        if (result) {
-          targetsHit.push(battler);
-          hitOne = true;
-        }
-      }
-    });
+      });
 
     return targetsHit;
   };
@@ -2983,33 +3005,24 @@ class Game_BattleMap {
    * @param {string} shape The collision formula based on shape.
    */
   isTargetWithinRange(facing, dx, dy, range, shape) {
-    let hit = false;
-
     switch (shape) {
       case J.BASE.Shapes.Rhombus:
-        hit = this.collisionRhombus(Math.abs(dx), Math.abs(dy), range);
-        break;
+        return this.collisionRhombus(Math.abs(dx), Math.abs(dy), range);
       case J.BASE.Shapes.Square:
-        hit = this.collisionSquare(Math.abs(dx), Math.abs(dy), range);
-        break;
+        return this.collisionSquare(Math.abs(dx), Math.abs(dy), range);
       case J.BASE.Shapes.FrontSquare:
-        hit = this.collisionFrontSquare(dx, dy, range, facing);
-        break;
+        return this.collisionFrontSquare(dx, dy, range, facing);
       case J.BASE.Shapes.Line:
-        hit = this.collisionLine(dx, dy, range, facing);
-        break;
+        return this.collisionLine(dx, dy, range, facing);
       case J.BASE.Shapes.Arc:
-        hit = this.collisionArc(dx, dy, range, facing);
-        break;
+        return this.collisionArc(dx, dy, range, facing);
       case J.BASE.Shapes.Wall:
-        hit = this.collisionWall(dx, dy, range, facing);
-        break;
+        return this.collisionWall(dx, dy, range, facing);
       case J.BASE.Shapes.Cross:
-        hit = this.collisionCross(dx, dy, range);
-        break;
+        return this.collisionCross(dx, dy, range);
+      default:
+        return false;
     }
-
-    return hit;
   };
 
   /**
@@ -5137,6 +5150,32 @@ Game_Map.prototype.getAllBattlers = function() {
   const battlers = this.getBattlers();
   battlers.push($gameBattleMap.getPlayerMapBattler());
   return battlers;
+};
+
+/**
+ * Gets all battlers on the current map, and orders them by distance in relation to
+ * a given "origin" battler. It simply uses the given battler's coordinates as the
+ * origin and calculates distance from there for all battlers present. 
+ * @param {JABS_Battler} originBattler 
+ * @returns 
+ */
+Game_Map.prototype.getAllBattlersDistanceSortedFromPlayer = function(originBattler) {
+  const battlers = this.getAllBattlers();
+  return this.orderBattlersByDistanceFromBattler(battlers, originBattler);
+};
+
+/**
+ * Sorts a collection of battlers by their distance from an origin battler.
+ * @param {JABS_Battler[]} battlers The collection of battlers to sort.
+ * @param {JABS_Battler} originBattler The origin battler to check distance against.
+ * @returns 
+ */
+Game_Map.prototype.orderBattlersByDistanceFromBattler = function(battlers, originBattler) {
+  return battlers.sort((battlerA, battlerB) => {
+    const distanceA = originBattler.distanceToDesignatedTarget(battlerA);
+    const distanceB = originBattler.distanceToDesignatedTarget(battlerB);
+    return distanceA - distanceB;
+  });
 };
 
 /**
