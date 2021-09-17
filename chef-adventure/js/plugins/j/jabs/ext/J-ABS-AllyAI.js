@@ -1619,7 +1619,7 @@ JABS_BattleMemory.prototype.wasEffective = function() {
  */
 J.ALLYAI.Aliased.JABS_Battler.shouldEngage = JABS_Battler.prototype.shouldEngage;
 JABS_Battler.prototype.shouldEngage = function(target, distance) {
-  if (this.isEnemy() || $gameParty.isAggro()) {
+  if (this.isEnemy() || ($gameParty.isAggro() && !target.isInanimate())) {
     // if this is an enemy, or the party is aggro and this isn't the player, do nothing different.
     return J.ALLYAI.Aliased.JABS_Battler.shouldEngage.call(this, target, distance);
   } else {
@@ -1631,7 +1631,8 @@ JABS_Battler.prototype.shouldEngage = function(target, distance) {
 /**
  * A custom determination for seeing if an ally should engage it's nearest target or not.
  *
- * Allies do not aggro against inanimate objects!
+ * Allies do not aggro against inanimate objects while passive!
+ * @param {JABS_Battler} target The target to potentially engage with.
  * @param {number} distance The distance from this battler to the nearest potential target.
  * @returns {boolean}
  */

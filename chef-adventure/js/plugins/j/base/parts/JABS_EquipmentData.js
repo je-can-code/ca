@@ -31,7 +31,6 @@ class JABS_EquipmentData {
     this._meta = meta;
     this.skillId = this.skillId();
     this.speedBoost = this.speedBoost();
-    this.bonusHits = this.bonusHits();
   }
 
   /**

@@ -32,6 +32,26 @@ class JABS_StateData {
   };
 
   /**
+   * Gets the number of bonus hits this skill grants.
+   * @returns {number} The number of bonus hits.
+   */
+  bonusHits() {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
+      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
+    } else {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note => {
+        if (note.match(structure)) {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return bonusHits;
+  };
+
+  /**
    * Gets whether or not this state is identified as a "negative" state.
    * @returns {boolean}
    */

@@ -1178,7 +1178,7 @@ JABS_Battler.prototype.slipMp = function() {
         }
         
         if (slipMpPerc) {
-          const factor = battler.mhp * (slipMpPerc / 100);
+          const factor = battler.mmp * (slipMpPerc / 100);
           mp5mod += factor;
         }
 
@@ -1229,7 +1229,7 @@ JABS_Battler.prototype.slipTp = function() {
         }
         
         if (slipTpPerc) {
-          const factor = battler.mhp * (slipTpPerc / 100);
+          const factor = battler.maxTp() * (slipTpPerc / 100);
           tp5mod += factor;
         }
 
@@ -3015,7 +3015,7 @@ JABS_Battler.prototype.canActionConnect = function() {
  * @param {JABS_Battler} target The potential candidate for hitting with this action.
  * @param {boolean} alreadyHitOne Whether or not this action has already hit a target.
  */
-JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne) {
+JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne = false) {
   const user = action.getCaster();
   const gameAction = action.getAction();
   const scopeAlly = gameAction.isForFriend();
