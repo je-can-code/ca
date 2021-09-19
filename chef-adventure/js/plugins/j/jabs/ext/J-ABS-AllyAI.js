@@ -1212,7 +1212,7 @@ JABS_AllyAI.prototype.decideSupport = function(availableSkills, healer) {
 
   // if we still have no skill decided, then just do nothing.
   if (!supportSkillId) {
-    return this.decideDoNothing();
+    return this.decideDoNothing(healer);
   }
 
   return supportSkillId;
