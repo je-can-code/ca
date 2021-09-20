@@ -4396,7 +4396,7 @@ Game_Enemy.prototype.teamId = function() {
 /**
  * Gets the enemy's ai code from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {string}
  */
 Game_Enemy.prototype.ai = function() {
   let val = J.ABS.Metadata.DefaultEnemyAiCode;
@@ -4819,28 +4819,36 @@ Game_Event.prototype.parseEnemyComments = function() {
   });
 
   // if we don't have an enemy id, the rest doesn't even matter.
+  let battlerCoreData = null;
   if (battlerId > 0) {
     const enemyBattler = $gameEnemies.enemy(battlerId);
-    const battlerCoreData = new JABS_BattlerCoreData(
-      battlerId,
-      teamId ?? enemyBattler.teamId(),
-      ai ?? enemyBattler.ai(),
-      sightRange ?? enemyBattler.sightRange(),
-      alertedSightBoost ?? enemyBattler.alertedSightBoost(),
-      pursuitRange ?? enemyBattler.pursuitRange(),
-      alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost(),
-      alertDuration ?? enemyBattler.alertDuration(),
-      canIdle ?? enemyBattler.canIdle(),
-      showHpBar ?? enemyBattler.showHpBar(),
-      showDangerIndicator ?? enemyBattler.showDangerIndicator(),
-      showBattlerName ?? enemyBattler.showBattlerName(),
-      isInvincible ?? enemyBattler.isInvincible(),
-      isInanimate ?? enemyBattler.isInanimate()
-    );
-    this.setBattlerCoreData(battlerCoreData);
-  } else {
-    this.setBattlerCoreData(null);
+    battlerCoreData = new JABS_BattlerCoreData({
+      battlerId: battlerId,
+      teamId: teamId ?? enemyBattler.teamId(),
+      battlerAI: ai ?? enemyBattler.ai(),
+      sightRange: sightRange ?? enemyBattler.sightRange(),
+      alertedSightBoost: alertedSightBoost ?? enemyBattler.alertedSightBoost(),
+      pursuitRange: pursuitRange ?? enemyBattler.pursuitRange(),
+      alertedPursuitBoost: alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost(),
+      alertDuration: alertDuration ?? enemyBattler.alertDuration(),
+      canIdle: canIdle ?? enemyBattler.canIdle(),
+      showHpBar: showHpBar ?? enemyBattler.showHpBar(),
+      showDangerIndicator: showDangerIndicator ?? enemyBattler.showDangerIndicator(),
+      showBattlerName: showBattlerName ?? enemyBattler.showBattlerName(),
+      isInvincible: isInvincible ?? enemyBattler.isInvincible(),
+      isInanimate: isInanimate ?? enemyBattler.isInanimate()
+    });
   }
+
+  this.initializeCoreData(battlerCoreData);
+};
+
+/**
+ * Binds the initial core battler data to the event.
+ * @param {JABS_BattlerCoreData} battlerCoreData The core data of this battler.
+ */
+Game_Event.prototype.initializeCoreData = function(battlerCoreData) {
+  this.setBattlerCoreData(battlerCoreData);
 };
 
 /**

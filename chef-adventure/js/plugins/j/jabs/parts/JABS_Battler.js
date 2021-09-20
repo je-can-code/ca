@@ -578,21 +578,22 @@ JABS_Battler.createPlayer = function() {
     actorId = battler.actorId();
   }
 
-  const coreBattlerData = new JABS_BattlerCoreData(
-    actorId,                    // battler id
-    0,                          // team id
-    JABS_Battler.allyTeamId(),  // battler AI
-    0,                          // sight range
-    0,                          // alerted sight boost
-    0,                          // pursuit range
-    0,                          // alerted pursuit boost
-    0,                          // alert duration
-    false,                      // can move idly
-    false,                      // show hp bar
-    false,                      // show danger indicator
-    false,                      // show name
-    false,                      // is invincible
-    false);                     // is inanimate
+  const coreBattlerData = new JABS_BattlerCoreData({
+    battlerId: actorId,
+    teamId: JABS_Battler.allyTeamId(),
+    battlerAI: "11000000",
+    sightRange: 0,
+    alertedSightBoost: 0,
+    pursuitRange: 0,
+    alertedPursuitBoost: 0,
+    alertDuration: 0,
+    canIdle: false,
+    showHpBar: false,
+    showDangerIndicator: false,
+    showBattlerName: false,
+    isInvincible: false,
+    isInanimate: false
+  });
   return new JABS_Battler($gamePlayer, battler, coreBattlerData);
 };
 

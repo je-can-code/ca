@@ -39,11 +39,11 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {boolean} isInvincible Whether or not this battler is invincible.
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
  */
-JABS_BattlerCoreData.prototype.initialize = function(
+JABS_BattlerCoreData.prototype.initialize = function({
   battlerId, teamId, battlerAI, sightRange, alertedSightBoost, pursuitRange, 
   alertedPursuitBoost, alertDuration, canIdle, showHpBar, showDangerIndicator,
-  showBattlerName, isInvincible, isInanimate,
-) {
+  showBattlerName, isInvincible, isInanimate
+}) {
   /**
    * The id of the enemy that this battler represents.
    * @type {number}

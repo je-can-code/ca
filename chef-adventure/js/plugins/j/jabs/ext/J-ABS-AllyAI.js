@@ -653,21 +653,22 @@ Game_Map.prototype.getActiveFollowers = function() {
  */
 Game_Map.prototype.convertOneFollower = function(follower) {
   const battler = follower.actor();
-  const coreBattlerData = new JABS_BattlerCoreData(
-    battler.actorId(),              // battler id
-    JABS_Battler.allyTeamId(),      // team id
-    battler.ai(),                   // battler AI
-    battler.sightRange(),           // sight range
-    battler.alertedSightBoost(),    // alerted sight boost
-    battler.pursuitRange(),         // pursuit range
-    battler.alertedPursuitBoost(),  // alerted pursuit boost
-    battler.alertDuration(),        // alert duration
-    battler.canIdle(),              // can move idly
-    battler.showHpBar(),            // show hp bar
-    battler.showDangerIndicator(),  // show danger indicator
-    battler.showBattlerName(),      // show name
-    battler.isInvincible(),         // is invincible
-    battler.isInanimate());         // is inanimate
+  const coreBattlerData = new JABS_BattlerCoreData({
+    battlerId: battler.actorId(),
+    teamId: JABS_Battler.allyTeamId(),
+    battlerAI: battler.ai(),
+    sightRange: battler.sightRange(),
+    alertedSightBoost: battler.alertedSightBoost(),
+    pursuitRange: battler.pursuitRange(),
+    alertedPursuitBoost: battler.alertedPursuitBoost(),
+    alertDuration: battler.alertDuration(),
+    canIdle: battler.canIdle(),
+    showHpBar: battler.showHpBar(),
+    showDangerIndicator: battler.showDangerIndicator(),
+    showBattlerName: battler.showBattlerName(),
+    isInvincible: battler.isInvincible(),
+    isInanimate:  battler.isInanimate()
+  });
   const mapBattler = new JABS_Battler(follower, battler, coreBattlerData);
   follower.setMapBattler(mapBattler.getUuid());
   return mapBattler;
