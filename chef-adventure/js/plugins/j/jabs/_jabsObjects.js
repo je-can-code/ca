@@ -479,6 +479,88 @@ Game_Actor.prototype.refreshBonusHits = function() {
 Game_Actor.prototype.getBonusHits = function() {
   return this._j._bonusHits;
 };
+
+/**
+ * Determines the various state duration boosts available to this actor.
+ * @param {number} baseDuration The base duration of the state.
+ * @param {Game_Battler} attacker The attacker- for use with formulai.
+ * @returns {number}
+ */
+Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker) {
+  let flatDurationBoost = 0;
+  let multiplierDurationBoost = 0;
+  let formulaDurationBoost = 0;
+  const objectsToCheck = this.getEverythingWithNotes();
+  objectsToCheck.forEach(obj => {
+    flatDurationBoost += this.getStateDurationFlatPlus(obj);
+    multiplierDurationBoost += this.getStateDurationPercPlus(obj, baseDuration);
+    formulaDurationBoost += this.getStateDurationFormulaPlus(obj, baseDuration, attacker);
+  });
+
+  const totalDurationBoost = Math.round(flatDurationBoost + multiplierDurationBoost + formulaDurationBoost);
+  return totalDurationBoost;
+};
+
+/**
+ * Gets the combined amount of flat state duration boosts from all sources.
+ * @param {rm.types.BaseItem} noteObject object to inspect the notes of.
+ * @param {number} baseDuration The base duration of the state.
+ * @returns {number}
+ */
+Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject) {
+  const structure = /<stateDurationFlat:[ ]?([\-\+]?\d+)>/i;
+  const notedata = noteObject.note.split(/[\r\n]+/);
+  let flatDurationBoost = 0;
+  notedata.forEach(line => {
+    if (line.match(structure)) {
+      flatDurationBoost += parseInt(RegExp.$1);
+    }
+  });
+
+  return flatDurationBoost;
+};
+
+/**
+ * Gets the combined amount of percent-based state duration boosts from all sources.
+ * @param {rm.types.BaseItem}
+ * @param {number} baseDuration The base duration of the state.
+ * @param {Game_Battler} attacker The attacker- for use with formulai.
+ * @returns {number}
+ */
+Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuration) {
+  const structure = /<stateDurationPerc:[ ]?([\-\+]?\d+)>/i;
+  const notedata = noteObject.note.split(/[\r\n]+/);
+  let percDurationBoost = 0;
+  notedata.forEach(line => {
+    if (line.match(structure)) {
+      percDurationBoost += parseInt(RegExp.$1);
+    }
+  });
+
+  return Math.round(baseDuration * (percDurationBoost / 100));
+};
+
+/**
+ * Gets the combined amount of formula-based state duration boosts from all sources.
+ * @param {rm.types.BaseItem}
+ * @returns {number}
+ */
+Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDuration, attacker) {
+  const a = this;  // the one who applied the state.
+  const b = attacker; // this battler, afflicted by the state.
+  const v = $gameVariables._data; // access to variables if you need it.
+  const d = baseDuration;
+  const structure = /<(?:stateDurationFormula|stateDurationForm){1}:[ ]?\[([\+\-\*\/ \(\)\.\w]+)\]>/i;
+  const notedata = noteObject.note.split(/[\r\n]+/);
+  let formulaDurationBoost = 0;
+  notedata.forEach(line => {
+    if (line.match(structure)) {
+      formulaDurationBoost += eval(RegExp.$1) ?? 0;
+    }
+  });
+
+  return Math.round(formulaDurationBoost);
+};
 //#endregion
 
 //#region Game_Action
@@ -537,6 +619,45 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 
   base = Math.round(base);
   return base;
+};
+
+/**
+ * OVERWRITE Rewrites the handling of applying states to targets.
+ * 
+ * Passes the attacker as another data point to the application of state.
+ * @param {Game_Battler} target The target.
+ * @param {rm.types.Effect} effect The potential effect to add.
+ */
+Game_Action.prototype.itemEffectAddAttackState = function(target, effect) {
+    for (const stateId of this.subject().attackStates()) {
+        let chance = effect.value1;
+        chance *= target.stateRate(stateId);
+        chance *= this.subject().attackStatesRate(stateId);
+        chance *= this.lukEffectRate(target);
+        if (Math.random() < chance) {
+            target.addState(stateId, this.subject());
+            this.makeSuccess(target);
+        }
+    }
+};
+
+/**
+ * OVERWRITE Rewrites the handling of applying states to targets.
+ * 
+ * Passes the attacker as another data point to the application of state.
+ * @param {Game_Battler} target The target.
+ * @param {rm.types.Effect} effect The potential effect to add.
+ */
+Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
+    let chance = effect.value1;
+    if (!this.isCertainHit()) {
+        chance *= target.stateRate(effect.dataId);
+        chance *= this.lukEffectRate(target);
+    }
+    if (Math.random() < chance) {
+        target.addState(effect.dataId, this.subject());
+        this.makeSuccess(target);
+    }
 };
 
 /**
@@ -650,9 +771,7 @@ Game_Action.prototype.apply = function(target) {
  * This is effectively Game_Action.apply, but with some adjustments to accommodate
  * the fact that we're using this in an action battle system instead.
  * 
- * "Missed" is no longer a possibility. It is false 100% of the time. Missing in
- * an ABS means your action didn't connect, not some RNGesus chance. However, you
- * can still be evaded if the target's evasion is high enough.
+ * "Missed" is no longer a possibility. It is false 100% of the time.
  * @param {Game_Battler} target The target the skill is being applied to.
  */
 Game_Action.prototype.applySkill = function(target) {
@@ -670,6 +789,7 @@ Game_Action.prototype.applySkill = function(target) {
         this.executeDamage(target, value);
       }
 
+      // add the subject who is applying the state as a parameter for tracking purposes.
       this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
       this.applyItemUserEffect(target);
   }
@@ -759,30 +879,79 @@ Game_Battler.prototype.setUuid = function(uuid) {
 };
 
 /**
+ * OVERWRITE Rewrites the handling for state application. The attacker is
+ * now relevant to the state being applied.
+ * @param {number} stateId The state id to potentially apply. 
+ * @param {Game_Battler} attacker The battler who is applying this state.
+ */
+J.ABS.Aliased.Game_Battler.addState = Game_Battler.prototype.addState;
+Game_Battler.prototype.addState = function(stateId, attacker) {
+  if (!attacker || !$gameBattleMap._absEnabled) {
+    J.ABS.Aliased.Game_Battler.addState.call(this, stateId);
+    return;
+  }
+
+  if (this.isStateAddable(stateId)) {
+    if (!this.isStateAffected(stateId)) {
+      this.addNewState(stateId, attacker);
+      this.refresh();
+    }
+
+    this.resetStateCounts(stateId, attacker);
+    this._result.pushAddedState(stateId);
+  }
+};
+
+/**
  * Extends this function to add the state to the JABS state tracker.
+ * @param {number} stateId The state id to track.
+ * @param {Game_Battler} attacker The battler who is applying this state.
  */
 J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
-Game_Battler.prototype.addNewState = function(stateId) {
+Game_Battler.prototype.addNewState = function(stateId, attacker) {
   J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
-  this.addJabsState(stateId);
+  this.addJabsState(stateId, attacker);
 };
 
 /**
  * Refreshes the battler's state that is being re-applied.
  * @param {number} stateId The state id to track.
+ * @param {Game_Battler} attacker The battler who is applying this state.
  */
-Game_Battler.prototype.resetStateCounts = function(stateId) {
+Game_Battler.prototype.resetStateCounts = function(stateId, attacker) {
   Game_BattlerBase.prototype.resetStateCounts.call(this, stateId);
-  this.addJabsState(stateId);
+  this.addJabsState(stateId, attacker);
 };
 
 /**
  * Adds a particular state to become tracked by the tracker for this battler.
  * @param {number} stateId The state id to track.
+ * @param {Game_Battler} attacker The battler who is applying this state.
  */
-Game_Battler.prototype.addJabsState = function(stateId) {
+Game_Battler.prototype.addJabsState = function(stateId, attacker) {
   const state = $dataStates[stateId];
-  const stateTracker = new JABS_TrackedState(this, stateId, state.iconIndex, state.stepsToRemove);
+  let duration = state.stepsToRemove;
+  if (this.isActor()) {
+    const boost = this.getStateDurationBoost(duration, attacker);
+    console.log(`before: ${duration}`);
+    duration += boost;
+    console.log(`after: ${duration}`);
+
+    if (state._j.negative) {
+      // negative state
+      console.log(`stateId [${state.id}] is negative.`);
+    } else {
+      // positive state
+      console.log(`stateId [${state.id}] is not negative.`);
+    }
+  }
+  const stateTracker = new JABS_TrackedState({
+    battler: this,
+    stateId: stateId,
+    iconIndex: state.iconIndex,
+    duration: duration,
+    source: attacker
+  });
   $gameBattleMap.addStateTracker(stateTracker);
 };
 
@@ -793,7 +962,7 @@ Game_Battler.prototype.addJabsState = function(stateId) {
 Game_Battler.prototype.getPowerLevel = function() {
   let powerLevel = 0;
   let counter = 2;
-  // skip MP
+  // skip HP/MP
   const bparams = [2, 3, 4, 5, 6, 7];
   const xparams = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
   const sparams = [18, 19, 20, 21, 22, 23, 24, 25];
@@ -841,7 +1010,7 @@ Game_Battler.prototype.getSpeedBoosts = function() {
  * @returns {object}
  */
 Game_Battler.prototype.getAllEquippedSkills = function() {
-  return {};
+  return [];
 };
 
 /**
@@ -966,7 +1135,7 @@ class Game_BattleMap {
 
     /**
      * A collection of all ongoing states.
-     * @type {any[]}
+     * @type {JABS_TrackedState[]}
      */
     this._stateTracker = this._stateTracker || [];
     this.initializePlayerBattler();
@@ -1810,6 +1979,17 @@ class Game_BattleMap {
   };
 
   /**
+   * Gets all tracked states that are active for a battler.
+   * @param {Game_Battler} battler The battler to find tracked states for.
+   * @returns {JABS_TrackedState[]}
+   */
+  getAllActiveStatesByBattler(battler) {
+    return this
+      .getStateTrackerByBattler(battler)
+      .filter(trackedState => !trackedState.isExpired());
+  };
+
+  /**
    * Gets all tracked states for a given battler.
    * @param {Game_Battler} battler The battler to find tracked states for.
    * @returns {JABS_TrackedState[]}
@@ -1825,7 +2005,8 @@ class Game_BattleMap {
    * @returns {JABS_TrackedState}
    */
   findStateTrackerByBattlerAndState(battler, stateId) {
-    return this._stateTracker
+    return this
+      .getStateTrackerByBattler(battler)
       .find(trackedState => trackedState.battler === battler && trackedState.stateId === stateId);
   };
   //#endregion state tracking

@@ -212,6 +212,25 @@ class JABS_StateData {
   };
 
   /**
+   * Gets the formula for hp5 of this state.
+   * 
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipHpFormula() {
+    let formula = "";
+    const structure = /<slip:hp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
+    this._notes.forEach(note => {
+      if (note.match(structure)) {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
+  };
+
+  /**
    * Gets the flat hp5 for this state.
    * @returns {number} The flat hp5.
    */
@@ -252,6 +271,25 @@ class JABS_StateData {
   };
 
   /**
+   * Gets the formula for mp5 of this state.
+   * 
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipMpFormula() {
+    let formula = "";
+    const structure = /<slip:mp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
+    this._notes.forEach(note => {
+      if (note.match(structure)) {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
+  };
+
+  /**
    * Gets the flat mp5 for this state.
    * @returns {number} The flat mp5.
    */
@@ -289,6 +327,25 @@ class JABS_StateData {
     }
 
     return mpPerc;
+  };
+
+  /**
+   * Gets the formula for mp5 of this state.
+   * 
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipTpFormula() {
+    let formula = "";
+    const structure = /<slip:tp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
+    this._notes.forEach(note => {
+      if (note.match(structure)) {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
   };
 
   /**

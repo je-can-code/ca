@@ -1120,7 +1120,7 @@ JABS_Battler.prototype.slipHp = function() {
   if (states.length) {
     states.forEach(state => {
       if (state.meta) {
-        const { slipHpFlat, slipHpPerc } = state._j;
+        const { slipHpFlat, slipHpPerc, slipHpFormula } = state._j;
         if (slipHpFlat) {
           hp5mod += slipHpFlat;
           needPop = true;
@@ -1132,12 +1132,27 @@ JABS_Battler.prototype.slipHp = function() {
           needPop = true;
         }
 
-        hp5mod /= 4;
-        hp5mod /= 5;    
+        if (slipHpFormula) {
+          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+          const a = trackedState.source;  // the one who applied the state.
+          const b = trackedState.battler; // this battler, afflicted by the state.
+          const v = $gameVariables._data; // access to variables if you need it.
+          const result = Math.round(eval(slipHpFormula) * -1);
+          if (Number.isFinite(result)) {
+            hp5mod += result;
+            needPop = true;
+          } else {
+            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
+            console.warn(`formula parsed: ${slipHpFormula}`);
+            console.warn(`result produced: ${result}`);
+          }
+        }
       }
     });
   }
 
+  hp5mod /= 4; // 4x per second
+  hp5mod /= 5; // "per 5" seconds
   hp5 += hp5mod;
   battler.gainHp(hp5);
 
@@ -1173,7 +1188,7 @@ JABS_Battler.prototype.slipMp = function() {
   if (states.length) {
     states.forEach(state => {
       if (state.meta) {
-        const { slipMpFlat, slipMpPerc } = state._j;
+        const { slipMpFlat, slipMpPerc, slipMpFormula } = state._j;
         if (slipMpFlat) {
           mp5mod += slipMpFlat;
         }
@@ -1183,12 +1198,27 @@ JABS_Battler.prototype.slipMp = function() {
           mp5mod += factor;
         }
 
-        mp5mod /= 4;
-        mp5mod /= 5;    
+        if (slipMpFormula) {
+          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+          const a = trackedState.source;  // the one who applied the state.
+          const b = trackedState.battler; // this battler, afflicted by the state.
+          const v = $gameVariables._data; // access to variables if you need it.
+          const result = Math.round(eval(slipMpFormula) * -1);
+          if (Number.isFinite(result)) {
+            mp5mod += result;
+            needPop = true;
+          } else {
+            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
+            console.warn(`formula parsed: ${slipMpFormula}`);
+            console.warn(`result produced: ${result}`);
+          }
+        }
       }
     });
   }
 
+  mp5mod /= 4;
+  mp5mod /= 5;
   mp5 += mp5mod;
   battler.gainMp(mp5);
 
@@ -1224,7 +1254,7 @@ JABS_Battler.prototype.slipTp = function() {
   if (states.length) {
     states.forEach(state => {
       if (state.meta) {
-        const { slipTpFlat, slipTpPerc } = state._j;
+        const { slipTpFlat, slipTpPerc, slipTpFormula } = state._j;
         if (slipTpFlat) {
           tp5mod += slipTpFlat;
         }
@@ -1234,12 +1264,27 @@ JABS_Battler.prototype.slipTp = function() {
           tp5mod += factor;
         }
 
-        tp5mod /= 4;
-        tp5mod /= 5;    
+        if (slipTpFormula) {
+          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+          const a = trackedState.source;  // the one who applied the state.
+          const b = trackedState.battler; // this battler, afflicted by the state.
+          const v = $gameVariables._data; // access to variables if you need it.
+          const result = Math.round(eval(slipTpFormula) * -1);
+          if (Number.isFinite(result)) {
+            tp5mod += result;
+            needPop = true;
+          } else {
+            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
+            console.warn(`formula parsed: ${slipTpFormula}`);
+            console.warn(`result produced: ${result}`);
+          }
+        }
       }
     });
   }
 
+  tp5mod /= 4;
+  tp5mod /= 5;    
   tp5 += tp5mod;
   battler.gainTp(tp5);
 
