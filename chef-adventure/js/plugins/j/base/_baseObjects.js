@@ -1073,8 +1073,10 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
   return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
 
-
-
+/**
+ * Gets all objects with notes available to enemies.
+ * @returns {rm.types.BaseItem[]}
+ */
 Game_Enemy.prototype.getEverythingWithNotes = function() {
   const objectsWithNotes = [];
   objectsWithNotes.push(this.enemy());

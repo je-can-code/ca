@@ -23,8 +23,9 @@ class JABS_TrackedState {
    * @param {number} stateId The id of the state being tracked.
    * @param {number} iconIndex The icon index of the state being tracked.
    * @param {number} duration The duration of the state being tracked.
+   * @param {Game_Battler} source The origin that applied this state to the battler.
    */
-  constructor(battler, stateId, iconIndex, duration) {
+  constructor({ battler, stateId, iconIndex, duration, source }) {
     /**
      * The battler being afflicted with this state.
      * @type {Game_Battler}
@@ -56,6 +57,13 @@ class JABS_TrackedState {
      * @type {boolean}
      */
     this.expired = false;
+
+    /**
+     * The source that caused this state. Usually this is an opposing battler. If no source is specified,
+     * then the afflicted battler is the source.
+     * @type {Game_Battler}
+     */
+    this.source = source ?? battler;
   };
 
   /**

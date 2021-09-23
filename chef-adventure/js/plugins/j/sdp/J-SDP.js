@@ -1153,7 +1153,7 @@ class Scene_SDP extends Scene_MenuBase {
    * OVERWRITE Determines the current actor.
    */
   updateActor() {
-    this._j._currentActor = $gameParty.leader();
+    this._j._currentActor = $gameParty.menuActor();
   };
 
   /**
@@ -1188,6 +1188,8 @@ class Scene_SDP extends Scene_MenuBase {
     this._j._sdpListWindow = new Window_SDP_List(rect);
     this._j._sdpListWindow.setHandler('cancel', this.popScene.bind(this));
     this._j._sdpListWindow.setHandler('ok', this.onSelectPanel.bind(this));
+    this._j._sdpListWindow.setHandler('pagedown', this.cycleMembers.bind(this, true));
+    this._j._sdpListWindow.setHandler('pageup', this.cycleMembers.bind(this, false));
     this._j._sdpListWindow.setActor($gameParty.leader());
     this.addWindow(this._j._sdpListWindow);
   };
@@ -1254,10 +1256,12 @@ class Scene_SDP extends Scene_MenuBase {
    * Refreshes all windows in this scene.
    */
   refreshAllWindows() {
+    this._j._sdpListWindow.setActor(this._j._currentActor);
+    this._j._sdpDetailsWindow.setActor(this._j._currentActor);
     this._j._sdpDetailsWindow.refresh();
+    this._j._sdpPointsWindow.setActor(this._j._currentActor);
+
     this._j._sdpHelpWindow.refresh();
-    this._j._sdpPointsWindow.refresh();
-    this._j._sdpListWindow.refresh();
   };
 
   /**
@@ -1267,6 +1271,19 @@ class Scene_SDP extends Scene_MenuBase {
     this._j._sdpConfirmationWindow.show();
     this._j._sdpConfirmationWindow.open();
     this._j._sdpConfirmationWindow.activate();
+  };
+
+  /**
+   * Cycles the currently selected member to the next in the party.
+   * @param {boolean} isForward Whether or not to cycle to the next member or previous.
+   */
+  cycleMembers(isForward = true) {
+    isForward
+      ? $gameParty.makeMenuActorNext()
+      : $gameParty.makeMenuActorPrevious();
+    this._j._currentActor = $gameParty.menuActor();
+    this.refreshAllWindows();
+    this._j._sdpListWindow.activate();
   };
 
   /**
@@ -1370,7 +1387,7 @@ class Window_SDP_List extends Window_Command {
   };
 
   /**
-   * Sets the actor for this window to the provided actor.
+   * Sets the actor for this window to the provided actor. Implicit refresh.
    * @param {Game_Actor} actor The actor to assign to this window.
    */
   setActor(actor) {
@@ -1756,7 +1773,6 @@ class Window_SDP_Points extends Window_Base {
     super(rect);
     this.initialize(rect);
     this.initMembers();
-    this.refresh();
   };
 
   /**
@@ -1780,13 +1796,14 @@ class Window_SDP_Points extends Window_Base {
   drawPoints() {
     this.drawSdpIcon();
     this.drawSdpPoints();
+    this.drawSdpFace();
   };
 
   /**
    * Draws the "SDP icon" representing points.
    */
   drawSdpIcon() {
-    const x = 0;
+    const x = 200;
     const y = 2;
     const iconIndex = J.SDP.Metadata.PointsIcon;
     this.drawIcon(iconIndex, x, y);
@@ -1800,7 +1817,7 @@ class Window_SDP_Points extends Window_Base {
     if (!this._actor) return;
 
     const points = this._actor.getSdpPoints();
-    const x = 40;
+    const x = 240;
     const y = 0;
     const textWidth = 300;
     const alignment = "left";
@@ -1808,7 +1825,21 @@ class Window_SDP_Points extends Window_Base {
   };
 
   /**
-   * Sets the actor focus for the SDP points window.
+   * A wrapper around the drawing of the actor's face- in case we need logic.
+   */
+  drawSdpFace() {
+    // don't draw the points if the actor is unavailable.
+    if (!this._actor) return;
+
+    this.drawFace(
+      this._actor.faceName(),
+      this._actor.faceIndex(),
+      0, 0,   // x,y
+      128, 40);// w,h
+  };
+
+  /**
+   * Sets the actor focus for the SDP points window. Implicit refresh.
    * @param {Game_Actor} actor The actor to display SDP info for.
    */
   setActor(actor) {

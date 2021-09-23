@@ -29350,7 +29350,7 @@ declare namespace rm.types {
 		 */
 		iconIndex: number;
 		/**
-		 * The ID.
+		 * The ID of the state from the database; starts at 1, not 0.
 		 */
 		id: number;
 		internal: boolean;
@@ -29777,13 +29777,20 @@ declare namespace rm.types {
 		 * The amount of parameter change. An array of integers using the following IDs as subscripts:
 		 *
 		 * 0: Maximum hit points
+         * 
 		 * 1: Maximum magic points
-		 * 2: Attack power
-		 * 3: Defense power
-		 * 4: Magic attack power
-		 * 5: Magic defense power
-		 * 6: Agility
-		 * 7: Luck
+		 * 
+         * 2: Attack power
+		 * 
+         * 3: Defense power
+		 * 
+         * 4: Magic attack power
+		 * 
+         * 5: Magic defense power
+		 * 
+         * 6: Agility
+		 * 
+         * 7: Luck
 		 */
 		params: number[];
 		/**
@@ -31492,13 +31499,20 @@ declare namespace rm.types {
 		 * The format is params[param_id, level], and param_id is assigned as follows:
 		 *
 		 * 0: Maximum hit points
-		 * 1: Maximum magic points
-		 * 2: Attack power
-		 * 3: Defense power
-		 * 4: Magic attack power
-		 * 5: Magic defense power
-		 * 6: Agility
-		 * 7: Luck
+		 * 
+         * 1: Maximum magic points
+		 * 
+         * 2: Attack power
+		 * 
+         * 3: Defense power
+		 * 
+         * 4: Magic attack power
+		 * 
+         * 5: Magic defense power
+		 * 
+         * 6: Agility
+		 * 
+         * 7: Luck
 		 */
 		params: number[][];
 		platforms: haxe.display.Platform[];
