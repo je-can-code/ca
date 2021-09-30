@@ -1119,6 +1119,15 @@ JABS_Battler.prototype.slipHp = function() {
   const states = battler.states();
   if (states.length) {
     states.forEach(state => {
+      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+      if (!trackedState) {
+        // when loading a file that was saved with a state, we encounter a weird issue
+        // where the state is still on the battler but not in temporary memory as a
+        // JABS tracked state. In this case, we remove it.
+        battler.removeState(state.id);
+        return;
+      }
+
       if (state.meta) {
         const { slipHpFlat, slipHpPerc, slipHpFormula } = state._j;
         if (slipHpFlat) {
@@ -1133,7 +1142,6 @@ JABS_Battler.prototype.slipHp = function() {
         }
 
         if (slipHpFormula) {
-          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
           const a = trackedState.source;  // the one who applied the state.
           const b = trackedState.battler; // this battler, afflicted by the state.
           const v = $gameVariables._data; // access to variables if you need it.
@@ -1191,6 +1199,15 @@ JABS_Battler.prototype.slipMp = function() {
   const states = battler.states();
   if (states.length) {
     states.forEach(state => {
+      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+      if (!trackedState) {
+        // when loading a file that was saved with a state, we encounter a weird issue
+        // where the state is still on the battler but not in temporary memory as a
+        // JABS tracked state. In this case, we remove it.
+        battler.removeState(state.id);
+        return;
+      }
+
       if (state.meta) {
         const { slipMpFlat, slipMpPerc, slipMpFormula } = state._j;
         if (slipMpFlat) {
@@ -1203,7 +1220,6 @@ JABS_Battler.prototype.slipMp = function() {
         }
 
         if (slipMpFormula) {
-          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
           const a = trackedState.source;  // the one who applied the state.
           const b = trackedState.battler; // this battler, afflicted by the state.
           const v = $gameVariables._data; // access to variables if you need it.
@@ -1260,6 +1276,15 @@ JABS_Battler.prototype.slipTp = function() {
   const states = battler.states();
   if (states.length) {
     states.forEach(state => {
+      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+      if (!trackedState) {
+        // when loading a file that was saved with a state, we encounter a weird issue
+        // where the state is still on the battler but not in temporary memory as a
+        // JABS tracked state. In this case, we remove it.
+        battler.removeState(state.id);
+        return;
+      }
+
       if (state.meta) {
         const { slipTpFlat, slipTpPerc, slipTpFormula } = state._j;
         if (slipTpFlat) {
@@ -1272,7 +1297,6 @@ JABS_Battler.prototype.slipTp = function() {
         }
 
         if (slipTpFormula) {
-          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
           const a = trackedState.source;  // the one who applied the state.
           const b = trackedState.battler; // this battler, afflicted by the state.
           const v = $gameVariables._data; // access to variables if you need it.

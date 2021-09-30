@@ -1208,7 +1208,7 @@ class Scene_SDP extends Scene_MenuBase {
 
     const currentIndex = this._j._index;
     const newIndex = this._j._sdpListWindow.index();
-    if (currentIndex !== newIndex) {
+    if (currentIndex !== newIndex || currentIndex === null) {
       this._j._index = this._j._sdpListWindow.index();
       this._j._currentPanel = this._j._sdpListWindow._list[this._j._index].ext;
       this._j._sdpDetailsWindow.setPanel(this._j._currentPanel);
