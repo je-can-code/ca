@@ -145,6 +145,19 @@
  * @desc The index of the icon to represent this panel.
  * @default 1
  * 
+ * @param rarity
+ * @parent overview
+ * @text Panel Rarity
+ * @desc The rarity of a panel determines its color in the SDP list. This determines the SDP name color.
+ * @type select
+ * @option Common
+ * @option Magical
+ * @option Rare
+ * @option Epic
+ * @option Legendary
+ * @option Godlike
+ * @default Common
+ * 
  * @param unlocked
  * @parent overview
  * @text Is Unlocked
@@ -302,6 +315,14 @@
  * @on Flat
  * @off Percent
  * @default true
+ * 
+ * @param isCore
+ * @text Is Core Parameter
+ * @desc Core parameters are emphasized on the SDP scene, but do nothing special.
+ * @type boolean
+ * @on Core
+ * @off Regular
+ * @default false
  */
 /*~struct~PanelRankupRewardStruct:
  * @param rankRequired
@@ -374,10 +395,12 @@ J.SDP.Helpers.TranslateSDPs = function(obj) {
     const halfParsedParametersBlob = JSON.parse(panelParametersBlob);
     halfParsedParametersBlob.forEach(paramBlob => {
       const parsedParameter = JSON.parse(paramBlob);
-      const panelParameter = new PanelParameter(
-        parseInt(parsedParameter.parameterId),
-        parseFloat(parsedParameter.perRank),
-        (parsedParameter.isFlat === "true"));
+      const panelParameter = new PanelParameter({
+        parameterId: parseInt(parsedParameter.parameterId),
+        perRank: parseFloat(parsedParameter.perRank),
+        isFlat: (parsedParameter.isFlat === "true"),
+        isCore: (parsedParameter.isCore === "true"),
+      });
       parsedPanelParameters.push(panelParameter);
     });
 
@@ -395,21 +418,50 @@ J.SDP.Helpers.TranslateSDPs = function(obj) {
       });
     }
 
+    // parse the rarity color.
+    let rarity = 0;
+    switch (parsedPanel.rarity) {
+      case "Common":
+        rarity = 0;
+        break;
+      case "Magical":
+        rarity = 3;
+        break;
+      case "Rare":
+        rarity = 23;
+        break;
+      case "Epic":
+        rarity = 31;
+        break;
+      case "Legendary":
+        rarity = 20;
+        break;
+      case "Godlike":
+        rarity = 25;
+        break;
+      default:
+        rarity = 0;
+        console.warn("if modifying the rarity dropdown options, be sure to fix them here, too.");
+        console.warn(`${parsedPanel.rarity} was not an implemented option.`);
+        break;
+    }
+
     // create the panel.
-    const panel = new StatDistributionPanel(
-      parsedPanel.name,
-      parsedPanel.key,
-      parseInt(parsedPanel.iconIndex),
-      (parsedPanel.unlocked === "true"),
-      parsedPanel.description,
-      parseInt(parsedPanel.maxRank),
-      parseInt(parsedPanel.baseCost),
-      parseInt(parsedPanel.flatGrowthCost),
-      parseFloat(parsedPanel.multGrowthCost),
-      parsedPanel.topFlavorText,
-      parsedPanelRewards,
-      parsedPanelParameters
-    );
+    const panel = new StatDistributionPanel({
+      name: parsedPanel.name,
+      key: parsedPanel.key,
+      iconIndex: parseInt(parsedPanel.iconIndex),
+      unlocked: (parsedPanel.unlocked === "true"),
+      description: parsedPanel.description,
+      maxRank: parseInt(parsedPanel.maxRank),
+      baseCost: parseInt(parsedPanel.baseCost),
+      flatGrowthCost: parseInt(parsedPanel.flatGrowthCost),
+      multGrowthCost: parseFloat(parsedPanel.multGrowthCost),
+      topFlavorText: parsedPanel.topFlavorText,
+      panelRewards: parsedPanelRewards,
+      panelParameters: parsedPanelParameters,
+      rarity: rarity,
+    });
 
     parsedPanels.push(panel);
   });
@@ -463,6 +515,17 @@ J.SDP.Metadata = {
    * @type {boolean}
    */
   JabsShowBoth: J.SDP.PluginParameters['Show In Both'] === "true",
+};
+
+J.SDP.MenuCommand = isEnabled => {
+  return {
+    name: "Distribute",
+    symbol: "sdp-menu",
+    enabled: isEnabled,
+    ext: null,
+    icon: J.SDP.Metadata.JabsMenuIcon,
+    color: 1,
+  }
 };
 
 J.SDP.Aliased = {
@@ -945,6 +1008,15 @@ Game_System.prototype.unlockSdp = function(key) {
 };
 
 /**
+ * Unlocks all SDPs currently in the plugin parameters.
+ * 
+ * This is primarily a debug utility.
+ */
+Game_System.prototype.unlockAllSdps = function() {
+  this._j._sdp._panels.forEach(panel => panel.unlock());
+};
+
+/**
  * Locks a SDP by its key.
  * @param {string} key The key of the SDP to lock.
  */
@@ -1330,7 +1402,7 @@ if (J.ABS) {
     // The menu shouldn't be accessible if there are no panels to work with.
     const enabled = $gameSystem.getUnlockedSdps().length;
   
-    const sdpCommand = { name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: J.SDP.Metadata.JabsMenuIcon };
+    const sdpCommand = J.SDP.MenuCommand(enabled); //{ name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
     this._list.splice(this._list.length-2, 0, sdpCommand);
  }; 
 }
@@ -1352,7 +1424,7 @@ Window_MenuCommand.prototype.makeCommandList = function() {
   // The menu shouldn't be accessible if there are no panels to work with.
   const enabled = $gameSystem.getUnlockedSdps().length;
 
-  const sdpCommand = { name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
+  const sdpCommand = J.SDP.MenuCommand(enabled); //{ name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
   const lastCommand = this._list[this._list.length-1];
   if (lastCommand.symbol === "gameEnd") {
     this._list.splice(this._list.length-2, 0, sdpCommand);
@@ -1406,6 +1478,7 @@ class Window_SDP_List extends Window_Command {
    * OVERWRITE Creates the command list for this window.
    */
   makeCommandList() {
+    /** @type {StatDistributionPanel[]} */
     const panels = $gameSystem.getUnlockedSdps();
     const actor = this.currentActor;
     if (!panels.length || !actor) return;
@@ -1422,7 +1495,16 @@ class Window_SDP_List extends Window_Command {
       const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
       const isMaxRank = panel.maxRank === currentRank;
       const enabled = hasEnoughPoints && !isMaxRank;
-      this.addCommand(panel.name, panel.key, enabled, panel, panel.iconIndex);
+      this.addCommand(panel.name, panel.key, enabled, panel, panel.iconIndex, panel.rarity);
+
+      /*
+        common: 0
+        uncommon: 3
+        rare: 23
+        epic: 31
+        legendary: 21
+        godly: 25
+      */
     });
   };
 };
@@ -1502,7 +1584,7 @@ class Window_SDP_Details extends Window_Base {
   drawHeaderDetails() {
     const panel = this.currentPanel;
     const lh = this.lineHeight();
-    this.drawTextEx(`\\I[${panel.iconIndex}]${panel.name}`, 0, lh*0, 300);
+    this.drawTextEx(`\\I[${panel.iconIndex}]\\C[${panel.rarity}]${panel.name}\\C[0]`, 0, lh*0, 300);
     this.drawTextEx(`${panel.topFlavorText}`, 20, lh*1, 600);
   };
 
@@ -1594,8 +1676,8 @@ class Window_SDP_Details extends Window_Base {
     const ox = 20;
     const rw = 200;
     this.drawTextEx(`Parameter`, ox+rw*0, y, 100);
-    this.drawText(`Current`, ox+rw*1, y, 100, "left");
-    this.drawText(`Effect`, ox+rw*2, y, 100, "left");
+    this.drawText(`Current`, ox+rw*1+100, y, 100, "left");
+    this.drawText(`Effect`, ox+rw*2+50, y, 100, "left");
     this.drawText(`Potential`, ox+rw*3, y, 120, "left");
   };
 
@@ -1605,8 +1687,8 @@ class Window_SDP_Details extends Window_Base {
    * @param {number} y The `y` coordinate for this row.
    */
   drawParameterDetailsRow(panelParameter, y) {
-    const { parameterId, perRank, isFlat } = panelParameter;
-    const { name, value, iconIndex, smallerIsBetter } = this.translateParameter(parameterId);
+    const { parameterId, perRank, isFlat, isCore } = panelParameter;
+    const { name, value, iconIndex, smallerIsBetter, isPercentValue } = this.translateParameter(parameterId);
     const ox = 20;
     const rw = 200;
     const isPositive = perRank >= 0 ? '+' : '';
@@ -1618,36 +1700,58 @@ class Window_SDP_Details extends Window_Base {
     if (!Number.isInteger(potentialValue)) {
       potentialValue = potentialValue.toFixed(2);
     }
+
+    const upColor = ColorManager.textColor(24);
+    const upCoreColor = ColorManager.textColor(28);
+    const downColor = ColorManager.textColor(20);
+    const downCoreColor = ColorManager.textColor(18);
     const modifier = isFlat
       ? perRank
       : (potentialValue - currentValue).toFixed(2);
-    let potentialColor = (currentValue > potentialValue && !smallerIsBetter)
-      ? ColorManager.deathColor()
-      : ColorManager.powerUpColor();
+
+    let potentialColor = ColorManager.normalColor();
+    if (currentValue > potentialValue && !smallerIsBetter) {
+      potentialColor = isCore
+        ? downCoreColor
+        : downColor;
+    } else {
+      potentialColor = isCore
+        ? upCoreColor
+        : upColor;
+    }
 
     // if it is one of the parameters where smaller is better, then going up is bad.
     if (currentValue < potentialValue && smallerIsBetter) {
-      potentialColor = ColorManager.deathColor();
+      potentialColor = isCore
+        ? upCoreColor
+        : upColor;
     }
 
     const isPercent = isFlat ? `` : `%`;
 
-    // parameter name.
-    this.drawTextEx(`\\I[${iconIndex}]${name}${isPercent}`, ox+rw*0, y, 100);
+    // parameter name, drawn differently for core parameters.
+    if (isCore) {
+      this.drawTextEx(`\\I[${iconIndex}]\\C[14]${name}\\C[0]${isPercent}`, ox+rw*0, y, 32);
+    } else {
+      this.drawTextEx(`\\I[${iconIndex}]${name}${isPercent}`, ox+rw*0, y, 100);
+    }
 
     // parameter current value.
-    this.drawText(currentValue, ox+rw*1, y, 100, "center");
+    const needPercentSymbol = (isPercVal) => isPercVal ? '%' : '';
+    const basePercentSymbol = needPercentSymbol(isPercentValue);
+    this.drawText(`${currentValue}${basePercentSymbol}`, ox+rw*1+100, y, 100, "center");
 
     // parameter modifier by this panel.
+    const modPercentSymbol = needPercentSymbol(isPercent);
     this.changeTextColor(potentialColor);
     if (isPercent) {
-      this.drawText(`(${isPositive}${perRank}%)`, ox+rw*2, y, 100, "center");
+      this.drawText(`(${isPositive}${perRank}${isPercent})`, ox+rw*2+50, y, 100, "center");
     } else {
-      this.drawText(`(${isPositive}${modifier})`, ox+rw*2, y, 100, "center");
+      this.drawText(`(${isPositive}${modifier}${modPercentSymbol})`, ox+rw*2+50, y, 100, "center");
     }
 
     // new parameter value if this panel is ranked up.
-    this.drawText(`${potentialValue}`, ox+rw*3, y, 100, "center");
+    this.drawText(`${potentialValue}${basePercentSymbol}`, ox+rw*3, y, 100, "center");
     this.resetTextColor();    
   };
 
@@ -1655,80 +1759,46 @@ class Window_SDP_Details extends Window_Base {
    * Translates a parameter id into an object with its name, value, iconIndex, and whether or not
    * a parameter being smaller is an improvement..
    * @param {number} paramId The id to translate.
-   * @returns {{name:string, value:number, iconIndex:number, smallerIsBetter:boolean}}
+   * @returns {{name: string, value: number, iconIndex: number, smallerIsBetter: boolean, isPercentValue: boolean}}
    */
   translateParameter(paramId) {
-    const actor = this.currentActor;
+    const smallerIsBetter = this.isNegativeGood(paramId);
+    const isPercentValue = this.isPercentParameter(paramId);
     let name = '';
     let value = 0;
+    let iconIndex = 0;
     switch (paramId) {
-      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: 
+      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
         name = TextManager.param(paramId);
-        value = actor.param(paramId).toFixed(2);
+        value = this.currentActor.param(paramId).toFixed(2);
+        iconIndex = IconManager.param(paramId);
         break;
       case  8: case  9: case 10: case 11: case 12:
       case 13: case 14: case 15: case 16: case 17: 
         name = TextManager.xparam(paramId-8);
-        value = (actor.xparam(paramId-8) * 100).toFixed(2);
+        value = (this.currentActor.xparam(paramId-8) * 100).toFixed(2);
+        iconIndex = IconManager.xparam(paramId-8);
         break;
       case 18: case 19: case 20: case 21: case 22:
       case 23: case 24: case 25: case 26: case 27:
         name = TextManager.sparam(paramId-18);
-        value = (actor.sparam(paramId-18) * 100).toFixed(2);
+        value = (this.currentActor.sparam(paramId-18) * 100).toFixed(2);
+        iconIndex = IconManager.sparam(paramId-18);
     }
-    const smallerIsBetter = this.isNegativeGood(paramId);
 
-    const iconIndex = this.getIconByParameterId(paramId);
-
-    return { name, value, iconIndex, smallerIsBetter };
+    return { name, value, iconIndex, smallerIsBetter, isPercentValue };
   };
 
   /**
-   * Gets the icon index of the given parameter.
-   * TODO: move this to the base plugin.
-   * @param {number} parameterId The id of a parameter to get the icon for.
-   * @returns {number} The `iconIndex` of this parameter.
+   * Determines whether or not the parameter should be suffixed with a % character.
+   * This is specifically for parameters that truly are ranged between 0-100 and RNG.
+   * @param {number} parameterId The paramId to check if is a percent. 
+   * @returns {boolean}
    */
-  getIconByParameterId(parameterId) {
-    switch (parameterId) {
-      // core params
-      case  0: return 247; // mhp
-      case  1: return 248; // mmp
-      case  2: return 2755; // atk
-      case  3: return 251; // def
-      case  4: return 252; // mat
-      case  5: return 253; // mdf
-      case  6: return 254; // agi
-      case  7: return 255; // luk
-
-      // ex params
-      case  8: return 102; // hit
-      case  9: return  82; // eva
-      case 10: return 127; // cri
-      case 11: return  81; // cev
-      case 12: return  71; // mev
-      case 13: return 222; // mrf
-      case 14: return  15; // cnt
-      case 15: return 2153; // hrg
-      case 16: return 2245; // mrg
-      case 17: return   13; // trg
-
-      // sp params
-      case 18: return  14; // trg (aggro)
-      case 19: return 128; // grd (parry)
-      case 20: return  84; // rec
-      case 21: return 209; // pha
-      case 22: return 189; // mcr (mp reduce)
-      case 23: return 126; // tcr (tp reduce)
-      case 24: return 129; // pdr
-      case 25: return 147; // mdr
-      case 26: return 141; // fdr
-      case 27: return 156; // exr
-
-      default: 
-        console.error(`no icon is mapped for id: [${parameterId}].`);
-        return 0;
-    };
+  isPercentParameter(parameterId) {
+    const isPercentParameterIds = [9, 14, 20, 21, 22, 23, 24, 25, 26, 27];
+    const isPercent = isPercentParameterIds.includes(parameterId);
+    return isPercent;
   };
 
   /**

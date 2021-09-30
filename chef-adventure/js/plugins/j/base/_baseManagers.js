@@ -134,10 +134,10 @@ TextManager.sparam = function (sParamId) {
   switch (sParamId) {
     case 0: return "Aggro";// J.Param.TGR_text;
     case 1: return "Parry";//J.Param.GRD_text;
-    case 2: return "Healing"; //J.Param.REC_text;
-    case 3: return "Pharmacy"; //J.Param.PHA_text;
-    case 4: return "Magi Reduce"; //J.Param.MCR_text;
-    case 5: return "Tech Reduce"; //J.Param.TCR_text;
+    case 2: return "Healing Rate"; //J.Param.REC_text;
+    case 3: return "Item Effects"; //J.Param.PHA_text;
+    case 4: return "Magi Cost"; //J.Param.MCR_text;
+    case 5: return "Tech Cost"; //J.Param.TCR_text;
     case 6: return "Phys Dmg Rate"; //J.Param.PDR_text;
     case 7: return "Magi Dmg Rate"; //J.Param.MDR_text;
     case 8: return "Light-footed"; //J.Param.FDR_text;
@@ -152,16 +152,16 @@ TextManager.sparam = function (sParamId) {
  */
 TextManager.xparam = function (xParamId) {
   switch (xParamId) {
-    case 0: return "Hit Rate";// J.Param.HIT_text;
-    case 1: return "Evasion Rate";//J.Param.EVA_text;
-    case 2: return "Crit Rate"; //J.Param.CRI_text;
-    case 3: return "Crit Evade"; //J.Param.CEV_text;
+    case 0: return "Accuracy";// J.Param.HIT_text;
+    case 1: return "Parry Extend";//J.Param.EVA_text;
+    case 2: return "Critical Hit"; //J.Param.CRI_text;
+    case 3: return "Crit Dodge"; //J.Param.CEV_text;
     case 4: return "Magic Evade"; //J.Param.MEV_text;
     case 5: return "Magic Reflect"; //J.Param.MRF_text;
-    case 6: return "Counter Rate"; //J.Param.CNT_text;
-    case 7: return "Life Regen"; //J.Param.HRG_text;
-    case 8: return "Magi Regen"; //J.Param.MRG_text;
-    case 9: return "Tech Regen"; //J.Param.TRG_text;
+    case 6: return "Autocounter"; //J.Param.CNT_text;
+    case 7: return "HP Regen"; //J.Param.HRG_text;
+    case 8: return "MP Regen"; //J.Param.MRG_text;
+    case 9: return "TP Regen"; //J.Param.TRG_text;
   }
 };
 //#endregion TextManager
@@ -181,35 +181,35 @@ class IconManager {
    /**
     * Gets the corresponding `iconIndex` for the param.
     * @param {number} paramId The id of the param.
-    * @returns {number}
+    * @returns {number} The `iconIndex`.
     */
   static param(paramId) {
     switch (paramId) {
-      case  0: return 247; // mhp
-      case  1: return 248; // mmp
-      case  2: return 2755; // atk
-      case  3: return 251; // def
-      case  4: return 252; // mat
-      case  5: return 253; // mdf
-      case  6: return 254; // agi
-      case  7: return 255; // luk
+      case  0: return 32; // mhp
+      case  1: return 33; // mmp
+      case  2: return 34; // atk
+      case  3: return 35; // def
+      case  4: return 36; // mat
+      case  5: return 37; // mdf
+      case  6: return 38; // agi
+      case  7: return 39; // luk
     }
   };
 
   /**
    * Gets the corresponding `iconIndex` for the x-param.
    * @param {number} paramId The id of the param.
-   * @returns {number}
+   * @returns {number} The `iconIndex`.
    */
   static xparam(paramId) {
     switch (paramId) {
       case  0: return 102; // hit
-      case  1: return  82; // eva
+      case  1: return  82; // eva (parry boost)
       case  2: return 127; // cri
       case  3: return  81; // cev
       case  4: return  71; // mev
       case  5: return 222; // mrf
-      case  6: return  15; // cnt
+      case  6: return  15; // cnt (autocounter)
       case  7: return 2153; // hrg
       case  8: return 2245; // mrg
       case  9: return   13; // trg
@@ -219,7 +219,7 @@ class IconManager {
   /**
    * Gets the corresponding `iconIndex` for the s-param.
    * @param {number} paramId The id of the param.
-   * @returns {number}
+   * @returns {number} The `iconIndex`.
    */
   static sparam(paramId) {
     switch (paramId) {
@@ -227,8 +227,8 @@ class IconManager {
       case  1: return 128; // grd (parry)
       case  2: return  84; // rec
       case  3: return 209; // pha
-      case  4: return 189; // mcr (mp reduce)
-      case  5: return 126; // tcr (tp reduce)
+      case  4: return 189; // mcr (mp cost)
+      case  5: return 126; // tcr (tp cost)
       case  6: return 129; // pdr
       case  7: return 147; // mdr
       case  8: return 141; // fdr
@@ -237,7 +237,51 @@ class IconManager {
   };
 
   /**
-   * Gets the corresponding `iconIndex` for the element.
+   * Gets the `iconIndex` based on the "long" parameter id.
+   * 
+   * "Long" parameter ids are used in the context of 0-27, rather than
+   * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
+   * @param {number} paramId The "long" parameter id.
+   * @returns {number} The `iconIndex`.
+   */
+  static longParam(paramId) {
+    switch (paramId) {
+      case  0: return  247; // mhp
+      case  1: return  248; // mmp
+      case  2: return  2755; // atk
+      case  3: return  251; // def
+      case  4: return  252; // mat
+      case  5: return  253; // mdf
+      case  6: return  254; // agi
+      case  7: return  255; // luk
+      case  8: return  102; // hit
+      case  9: return   82; // eva (parry boost)
+      case 10: return  127; // cri
+      case 11: return   81; // cev
+      case 12: return   71; // mev (unused)
+      case 13: return  222; // mrf 
+      case 14: return   15; // cnt (autocounter)
+      case 15: return 2153; // hrg
+      case 16: return 2245; // mrg
+      case 17: return   13; // trg
+      case 18: return   14; // trg (aggro)
+      case 19: return  128; // grd (parry)
+      case 20: return   84; // rec
+      case 21: return  209; // pha
+      case 22: return  189; // mcr (mp cost)
+      case 23: return  126; // tcr (tp cost)
+      case 24: return  129; // pdr
+      case 25: return  147; // mdr
+      case 26: return  141; // fdr
+      case 27: return  156; // exr
+      default:
+        console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
+        return 0;
+    }
+  };
+
+  /**
+   * Gets the corresponding `iconIndex` for the element based on their id.
    * @param {number} paramId The id of the element.
    * @returns {number}
    */

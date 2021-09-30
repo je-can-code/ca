@@ -1153,12 +1153,16 @@ JABS_Battler.prototype.slipHp = function() {
 
   hp5mod /= 4; // 4x per second
   hp5mod /= 5; // "per 5" seconds
+  if (hp5mod > 0) {
+    hp5mod *= battler.rec;
+  }
+
   hp5 += hp5mod;
   battler.gainHp(hp5);
 
   if (needPop) {
     const character = this.getCharacter();
-    const textColor = (hp5 > 0) ? 3 : 0;
+    const textColor = (hp5 > 0) ? 21 : 0;
     const iconId = 0;
     const actionResult = null;
     const directValue = Math.ceil(hp5);
@@ -1219,12 +1223,15 @@ JABS_Battler.prototype.slipMp = function() {
 
   mp5mod /= 4;
   mp5mod /= 5;
+  if (mp5mod > 0) {
+    mp5mod *= battler.rec;
+  }
   mp5 += mp5mod;
   battler.gainMp(mp5);
 
   if (needPop) {
     const character = this.getCharacter();
-    const textColor = (mp5 > 0) ? 3 : 0;
+    const textColor = (mp5 > 0) ? 23 : 0;
     const iconId = 0;
     const actionResult = null;
     const directValue = Math.ceil(mp5);
@@ -1284,13 +1291,17 @@ JABS_Battler.prototype.slipTp = function() {
   }
 
   tp5mod /= 4;
-  tp5mod /= 5;    
+  tp5mod /= 5;
+  if (tp5mod > 0) {
+    tp5mod *= battler.rec;
+  }
+  
   tp5 += tp5mod;
   battler.gainTp(tp5);
 
   if (needPop) {
     const character = this.getCharacter();
-    const textColor = (tp5 > 0) ? 3 : 0;
+    const textColor = (tp5 > 0) ? 29 : 0;
     const iconId = 0;
     const actionResult = null;
     const directValue = Math.ceil(tp5);

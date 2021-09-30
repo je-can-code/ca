@@ -193,7 +193,7 @@ Scene_Map.prototype.createJabsAbsMenu = function() {
  */
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
   const w = 400;
-  const h = 250;
+  const h = 334;
   const x = Graphics.boxWidth - w;
   const y = 200;
   const rect = new Rectangle(x, y, w, h);
@@ -216,7 +216,7 @@ Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function() {
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - (w);
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const skillMenu = new Window_AbsMenuSelect(rect, "skill");
   skillMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "skill"));
@@ -234,7 +234,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function() {
   const w = 400;
   const h = 380;
   const x = Graphics.boxWidth - (w);
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const skillMenu = new Window_AbsMenuSelect(rect, "equip-skill");
   skillMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));
@@ -252,7 +252,7 @@ Scene_Map.prototype.createJabsAbsMenuToolListWindow = function() {
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - w;
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const itemMenu = new Window_AbsMenuSelect(rect, "tool");
   itemMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "tool"));
@@ -270,7 +270,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function() {
   const w = 400;
   const h = 70;
   const x = Graphics.boxWidth - (w);
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const itemMenu = new Window_AbsMenuSelect(rect, "equip-tool");
   itemMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));
@@ -288,7 +288,7 @@ Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function() {
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - w;
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const dodgeMenu = new Window_AbsMenuSelect(rect, "dodge");
   dodgeMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "dodge"));
@@ -306,7 +306,7 @@ Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function() {
   const w = 400;
   const h = 70;
   const x = Graphics.boxWidth - (w);
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const assignMenu = new Window_AbsMenuSelect(rect, "equip-dodge");
   assignMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));

@@ -65,6 +65,11 @@
  * @desc Locks all categories that were previously unlocked, effectively disabling crafting.
  */
 /*~struct~RecipeStruct:
+ * @param recipeKey
+ * @type string
+ * @text Recipe Key
+ * @desc A unique identifier for this recipe.
+ * 
  * @param name
  * @type string
  * @text Name
@@ -79,11 +84,6 @@
  * @type number
  * @text Icon Index
  * @desc The icon index of this recipe. If unspecified, it will pull from the first output description.
- * 
- * @param recipeKey
- * @type string
- * @text Recipe Key
- * @desc A unique identifier for this recipe.
  * 
  * @param categoryKeys
  * @type string[]
@@ -118,33 +118,29 @@
  */
 /*~struct~ComponentStruct:
  * @param itemId
- * @parent chooseOneType
  * @type item
  * @text Item ID
  * @desc The item this component represents.
+ * There can only be one "id" identified on a component.
  * 
  * @param weaponId
- * @parent chooseOneType
  * @type weapon
  * @text Weapon ID
  * @desc The weapon this component represents.
+ * There can only be one "id" identified on a component.
  * 
  * @param armorId
- * @parent chooseOneType
  * @type armor
  * @text Armor ID
  * @desc The armor this component represents.
+ * There can only be one "id" identified on a component.
  * 
- * @param quantity
- * @parent chooseOneType
+ * @param num
  * @type number
  * @min 1
  * @text Quantity
  * @desc The quantity of this JAFTING component.
  * @default 1
- * 
- * @param chooseOneType
- * @text CHOOSE ONE TYPE
  */
 /*~struct~CategoryStruct:
  * 
@@ -220,7 +216,7 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const itemId = parseInt(parsedIngredient.itemId);
       const weaponId = parseInt(parsedIngredient.weaponId);
       const armorId = parseInt(parsedIngredient.armorId);
-      const quantity = parseInt(parsedIngredient.quantity);
+      const quantity = parseInt(parsedIngredient.num);
       if (itemId) {
         const newItemIngredient = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedIngredients.push(newItemIngredient);
@@ -738,6 +734,24 @@ Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey) {
   const unlocked = recipes.filter(recipe => recipe.categories.includes(categoryKey));
 
   return unlocked;
+};
+
+/**
+ * Gets all unlocked recipes that are a part of a given category that have
+ * also been crafted at least once.
+ * @param {string} categoryKey The category to get all unlocked recipes for.
+ * @returns {JAFTING_Recipe[]}
+ */
+Game_System.prototype.getCraftedRecipesByCategory = function(categoryKey) {
+  const unlocked = this.getUnlockedRecipesByCategory(categoryKey);
+  if (unlocked.length) {
+    const isAvailable = (recipe) => {
+      if (recipe.maskedUntilCrafted && recipe.crafted) return true;
+      if (!recipe.maskedUntilCrafted) return true;
+      return false;
+    };
+    return unlocked.filter(isAvailable);
+  }
 };
 
 /**

@@ -363,7 +363,7 @@
  * @type string
  * @text Main MenuText
  * @desc The text that shows up in the JABS quickmenu for the "main menu" command.
- * @default Main Menu
+ * @default Full Menu
  * 
  * @param cancelText
  * @parent quickmenuConfigs

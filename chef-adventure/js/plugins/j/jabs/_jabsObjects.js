@@ -458,15 +458,15 @@ Game_Actor.prototype.refreshBonusHits = function() {
 
   equips.forEach(equip => {
     if (!equip) return;
-    bonusHits += equip._j.bonusHits();
+    bonusHits += equip._j.bonusHits;
   });
 
   states.forEach(state => {
-    bonusHits += state._j.bonusHits();
+    bonusHits += state._j.bonusHits;
   });
 
   skills.forEach(skill => {
-    bonusHits += skill._j.bonusHits();
+    bonusHits += skill._j.bonusHits;
   });
 
   this._j._bonusHits = bonusHits;
@@ -931,20 +931,14 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker) {
 Game_Battler.prototype.addJabsState = function(stateId, attacker) {
   const state = $dataStates[stateId];
   let duration = state.stepsToRemove;
-  if (this.isActor()) {
-    const boost = this.getStateDurationBoost(duration, attacker);
-    console.log(`before: ${duration}`);
-    duration += boost;
-    console.log(`after: ${duration}`);
-
-    if (state._j.negative) {
-      // negative state
-      console.log(`stateId [${state.id}] is negative.`);
-    } else {
-      // positive state
-      console.log(`stateId [${state.id}] is not negative.`);
-    }
+  if (this.isActor() && !state._j.negative) {
+    // extend our incoming positive states!
+    duration += this.getStateDurationBoost(duration, attacker);
+  } else if (this.isEnemy() && attacker && attacker.isActor() && state._j.negative) {
+    // extend our outgoing negative states!
+    duration += attacker.getStateDurationBoost(duration, this);
   }
+
   const stateTracker = new JABS_TrackedState({
     battler: this,
     stateId: stateId,
@@ -3550,7 +3544,7 @@ class Game_BattleMap {
    * @param {number} gold The amount of gold gained.
    */
   configureGoldPop(gold) {
-    const iconId = 314;
+    const iconId = 2048;
     const textColor = 14;
     return new JABS_TextPop(
         null,
@@ -3655,7 +3649,7 @@ class Game_BattleMap {
    */
   createLevelUpPop(character) {
     const text = "LEVEL UP";
-    const iconId = 249;
+    const iconId = 86;
     const textColor = 24;
     const popup = new JABS_TextPop(
       null,

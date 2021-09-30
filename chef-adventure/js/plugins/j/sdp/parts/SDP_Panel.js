@@ -34,8 +34,9 @@ StatDistributionPanel.prototype.constructor = StatDistributionPanel;
  * @param {string} topFlavorText The flavor text for this panel, if any.
  * @param {PanelRankupReward[]} panelRewards All rewards associated with this panel.
  * @param {PanelParameter[]} panelParameters All parameters this panel affects.
+ * @param {number} rarity The color index representing this panel's rarity.
  */
-StatDistributionPanel.prototype.initialize = function(
+StatDistributionPanel.prototype.initialize = function({
   name,
   key, 
   iconIndex,
@@ -47,7 +48,9 @@ StatDistributionPanel.prototype.initialize = function(
   multGrowthCost,
   topFlavorText,
   panelRewards,
-  panelParameters) {
+  panelParameters,
+  rarity,
+}) {
   /**
    * Gets the friendly name for this SDP.
    * @type {string}
@@ -65,6 +68,12 @@ StatDistributionPanel.prototype.initialize = function(
    * @type {number}
    */
   this.iconIndex = iconIndex;
+
+  /**
+   * Gets the color index representing this SDP's rarity.
+   * @type {number}
+   */
+  this.rarity = rarity;
 
   /**
    * Gets whether or not this SDP is unlocked.

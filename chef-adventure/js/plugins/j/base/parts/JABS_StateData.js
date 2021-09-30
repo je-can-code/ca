@@ -29,13 +29,14 @@ class JABS_StateData {
   constructor(notes, meta) {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
+    this.bonusHits = this.getBonusHits();
   };
 
   /**
    * Gets the number of bonus hits this skill grants.
    * @returns {number} The number of bonus hits.
    */
-  bonusHits() {
+  getBonusHits() {
     let bonusHits = 0;
     if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
       bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
