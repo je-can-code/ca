@@ -1999,9 +1999,10 @@ class Game_BattleMap {
    * @returns {JABS_TrackedState}
    */
   findStateTrackerByBattlerAndState(battler, stateId) {
-    return this
-      .getStateTrackerByBattler(battler)
-      .find(trackedState => trackedState.battler === battler && trackedState.stateId === stateId);
+    return this.getStateTrackerByBattler(battler)
+      .find(trackedState =>
+        trackedState.battler === battler &&
+        trackedState.stateId === stateId);
   };
   //#endregion state tracking
 
