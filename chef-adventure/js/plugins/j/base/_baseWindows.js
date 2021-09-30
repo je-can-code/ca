@@ -17,11 +17,18 @@
 
 //#region Window_Command
 /**
- * Draws the icon along with the item itself in the command window.
+ * OVERWRITE Draws the color and icon along with the item itself in the command window.
  */
 J.BASE.Aliased.Window_Command.drawItem = Window_Command.prototype.drawItem;
 Window_Command.prototype.drawItem = function(index) {
-  J.BASE.Aliased.Window_Command.drawItem.call(this, index);
+  // J.BASE.Aliased.Window_Command.drawItem.call(this, index);
+  const rect = this.itemLineRect(index);
+  this.resetTextColor();
+  this.changePaintOpacity(this.isCommandEnabled(index));
+  const commandColor = this.commandColor(index);
+  const commandName = `\\C[${commandColor}]${this.commandName(index)}\\C[0]`;
+  this.drawTextEx(commandName, rect.x+4, rect.y, rect.width);
+
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
     const rect = this.itemLineRect(index);
@@ -56,6 +63,15 @@ Window_Command.prototype.commandIcon = function(index) {
 };
 
 /**
+ * Retrieves the color for the given command in the window if it exists.
+ * @param {number} index the index of the command.
+ * @returns {number} The color index for the command, or 0 if it doesn't exist.
+ */
+Window_Command.prototype.commandColor = function(index) {
+  return this._list[index].color;
+};
+
+/**
  * An overload for the `addCommand()` function that allows adding an icon to a command.
  * @param {string} name The visible name of this command.
  * @param {string} symbol The symbol for this command.
@@ -63,8 +79,15 @@ Window_Command.prototype.commandIcon = function(index) {
  * @param {object} ext The extra data for this command.
  * @param {number} icon The icon index for this command.
  */
-Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext = null, icon = 0) {
-  this._list.push({ name, symbol, enabled, ext, icon });
+Window_Command.prototype.addCommand = function(
+  name,
+  symbol,
+  enabled = true,
+  ext = null,
+  icon = 0,
+  color = 0,
+) {
+  this._list.push({ name, symbol, enabled, ext, icon, color });
 };
 //#endregion Window_Command
 //ENDFILE

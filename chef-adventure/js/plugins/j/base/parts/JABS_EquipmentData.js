@@ -31,6 +31,7 @@ class JABS_EquipmentData {
     this._meta = meta;
     this.skillId = this.skillId();
     this.speedBoost = this.speedBoost();
+    this.bonusHits = this.getBonusHits();
   }
 
   /**
@@ -77,7 +78,7 @@ class JABS_EquipmentData {
    * Gets the number of bonus hits this skill grants.
    * @returns {number} The number of bonus hits.
    */
-  bonusHits() {
+  getBonusHits() {
     let bonusHits = 0;
     if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
       bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);

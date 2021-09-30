@@ -247,6 +247,17 @@ J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety']
 J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
 J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
 
+J.ALLYAI.MenuCommand = (isEnabled) => {
+  return {
+    name: J.ALLYAI.Metadata.AllyAiCommandName,
+    symbol: 'ally-ai',
+    enabled: isEnabled,
+    ext: null,
+    icon: J.ALLYAI.Metadata.AllyAiCommandIconIndex,
+    color: 3,
+  };
+};
+
 /**
  * A collection of all aliased methods for this plugin.
  */
@@ -1857,13 +1868,7 @@ Window_AbsMenu.prototype.makeCommandList = function() {
 
   // if followers aren't being used, then this command will be disabled.
   const enabled = $gamePlayer.followers().isVisible();
-  const newCommand = {
-    name: J.ALLYAI.Metadata.AllyAiCommandName,
-    symbol: 'ally-ai',
-    enabled: enabled,
-    ext: null,
-    icon: J.ALLYAI.Metadata.AllyAiCommandIconIndex
-  };
+  const newCommand = J.ALLYAI.MenuCommand(enabled);
   this._list.splice(this._list.length-2, 0, newCommand);
 };
 //#endregion Window_AbsMenu

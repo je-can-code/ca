@@ -27,7 +27,12 @@ PanelParameter.prototype.constructor = PanelParameter;
  * @param {number} perRank The amount per rank this parameter gives.
  * @param {boolean} isFlat True if it is flat growth, false if it is percent growth.
  */
-PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
+PanelParameter.prototype.initialize = function({
+  parameterId,
+  perRank,
+  isFlat = false,
+  isCore = false,
+}) {
   /**
    * The id of the parameter this class represents.
    * @type {number}
@@ -45,5 +50,12 @@ PanelParameter.prototype.initialize = function(parameterId, perRank, isFlat) {
    * @type {boolean} True if it is flat growth, false if it is percent growth.
    */
   this.isFlat = isFlat;
+
+  /**
+   * Whether or not this is a core parameter.
+   * Core parameters are emphasized on the SDP scene.
+   * @type {boolean} True if it is a core parameter, false otherwise.
+   */
+  this.isCore = isCore;
 };
 //ENDFILE
