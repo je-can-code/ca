@@ -43,13 +43,13 @@ Scene_Map.prototype.initialize = function() {
   this.initJabsMembers();
 };
 
+
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
 J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function() {
   if ($gameBattleMap.absEnabled) {
-    $gameBattleMap.initialize();
     $gameBattleMap.initializePlayerBattler();
   }
 

@@ -136,7 +136,6 @@ Scene_Status.prototype.statusParamsWindowRect = function() {
 
 //#region Window objects
 //#region Window_Status
-
 Window_Status.prototype.drawBlock1 = function() {
   const y = this.block1Y();
   this.drawActorName(this._actor, 0, y, 168);
@@ -270,7 +269,7 @@ class Window_StatusParameters extends Window_Base {
   };
 
   /**
-   * Draws all the elemental rates for the actor.
+   * Draws the elemental rates section.
    * @param {number} x The `x` coordinate.
    * @param {number} y The `y` coordinate.
    * @param {number} limit The endpoint if applicable of elements to pull.
@@ -282,37 +281,73 @@ class Window_StatusParameters extends Window_Base {
     elements.forEach((name, index) => {
       const modY = y + ((index+1) * this.lineHeight()) + 8;
       let rate = ((this.actor.traitsPi(11, index)) * 100);
-      const iconIndex = IconManager.elementIcon(index);
+      let colorIndex = 0;
+      if (rate > 100) {
+        colorIndex = 10; // red
+      } else if (rate < 100) {
+        colorIndex = 3; // green
+      }
+      const iconIndex = IconManager.element(index);
       name = (name === "") ? "Neutral" : name;
-      this.drawParameter(`${name}`, `${rate}%`, iconIndex, x+40, modY);
+      this.drawParameter(`${name}`, `${rate}%`, iconIndex, x+40, modY, colorIndex);
     });
   };
 
+  /**
+   * Draws the state rates section.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   */
   drawStateRates(x, y) {
     this.drawTitle("Ailments", x, y-10, 18, 1);
 
-    const states = $dataStates.slice(4, 11);
+    const states = $dataStates.slice(4, 12);
     states.forEach((state, index) => {
       if (!state) return;
 
       const modY = y + ((index+1) * this.lineHeight()) + 8;
       let rate = ((this.actor.traitsPi(13, index+4)) * 100);
+      let colorIndex = 0;
+      if (rate > 100) {
+        colorIndex = 10; // red
+      } else if (rate < 100) {
+        colorIndex = 3; // green
+      }
       const iconIndex = state.iconIndex;
-      this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x+40, modY);
+      this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x+40, modY, colorIndex);
     });
   };
 
-  drawParameter(name, value, iconIndex, x, y) {
-    const modifiedX = x + 36
+  /**
+   * Draws the given data as "a parameter".
+   * @param {string} name The name of the parameter.
+   * @param {number} value The value of the parameter.
+   * @param {number} iconIndex The icon index for this parameter.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   * @param {number} colorIndex The color index for this parameter.
+   */
+  drawParameter(name, value, iconIndex, x, y, colorIndex = 0) {
+    const modifiedX = x + 36;
     this.drawIcon(iconIndex, x, y);
     this.drawTextEx(`${name}`, modifiedX, y, 200);
-    this.drawText(value, modifiedX, y, 250, "right");
+    this.drawTextEx(`\\C[${colorIndex}]${value}\\C[0]`, modifiedX+200, y, 250, "right");
   };
 
+  /**
+   * Draws the title of one of the sections for parameters.
+   * @param {string} text The text to write as the title.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   * @param {number} iconIndex The icon index for this parameter.
+   * @param {number} colorIndex The color index for the title.
+   */
   drawTitle(text, x, y, iconIndex = 0, colorIndex = 1) {
     this.drawIcon(iconIndex, x, y+16);
     this.drawTextEx(`\\{\\C[${colorIndex}]${text}\\C[0]\\}`, x+32, y+8, 350);
   };
-}
+};
 //#endregion Window_StatusParameters
 //#endregion Window objects
+
+//ENDFILE

@@ -41735,13 +41735,22 @@ declare class Window_Command extends Window_Selectable {
 	/**
 	 * Adds commands to the window list with the specified
 	 * parameters. The actual command can be found as an object.
-	 * @param {String} name
-	 * @param {String} symbol
-	 * @param {boolean} enabled
-	 * @param {(any | object)} [ext]
+	 * @param {String} name The text of this command.
+	 * @param {String} symbol The stringified symbol of this command.
+	 * @param {boolean} enabled Whether or not this command is enabled.
+	 * @param {any?} ext Optional. Any additional contextual data for this command.
+     * @param {number?} iconIndex Optional. Prepends the given icon to this command.
+     * @param {number?} colorIndex Optional. Draws the command in this color.
 	 * @memberof Window_Command
 	 */
-	addCommand(name: string, symbol: string, enabled: boolean, ext?: any): void;
+	addCommand(
+        name: string,
+        symbol: string,
+        enabled: boolean,
+        ext?: any,
+        iconIndex?: number,
+        colorIndex?: number,
+    ): void;
 	/**
 	 * Returns the command name given an index.
 	 *

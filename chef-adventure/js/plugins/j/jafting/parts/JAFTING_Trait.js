@@ -40,7 +40,7 @@ JAFTING_Trait.prototype.initialize = function(code, dataId, value) {
  * @returns {rm.types.Trait}
  */
 JAFTING_Trait.divider = function() {
-  return { code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1 };s
+  return { code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1 };
 };
 
 /**
@@ -97,7 +97,7 @@ Object.defineProperty(JAFTING_Trait.prototype, "name", {
       case 62: return `${this.translateSpecialFlag()}`;
       case 64: return `${this.translatePartyAbility()}`;
 
-      case 63: throw new Error("Remove any additional 'Collapse Effect' dividers on this equip after the first.");
+      case 63: return `TRANSFERABLE TRAITS`;
       default: return "All traits were implemented,";
     }
   },
@@ -159,8 +159,7 @@ Object.defineProperty(JAFTING_Trait.prototype, "value", {
       case 62: return ``;
       case 64: return ``;
 
-      // there should only be 1 instance of the "collapse effect" trait on equipment!
-      case 63: throw new Error("Remove any additional 'Collapse Effect' dividers on this equip after the first.");
+      case 63: ``;
       default: return "is this a custom trait?";
     }
   },

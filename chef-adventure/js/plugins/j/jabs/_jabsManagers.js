@@ -43,7 +43,6 @@ DataManager.createGameObjects = function() {
   J.ABS.Aliased.DataManager.createGameObjects.call(this);
 
   DataManager.getSkillMasterMap();
-
   $gameBattleMap = new Game_BattleMap();
   $gameEnemies = new Game_Enemies();
 };

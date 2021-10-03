@@ -793,18 +793,6 @@ JABS_Battler.prototype.shouldEngage = function(target, distance) {
 };
 
 /**
- * Updates all regenerations and ticks four times per second.
- */
-JABS_Battler.prototype.updateRG = function() {
-  if (this.isRegenReady() && !this.getBattler().isDead()) {
-    this.slipHp();
-    this.slipMp();
-    this.slipTp();
-    this.setRegenCounter(15);
-  }
-};
-
-/**
  * Updates the dodge skill.
  * Currently only used by the player.
  */
@@ -853,6 +841,8 @@ JABS_Battler.prototype.updateDeathHandling = function() {
 //#endregion updates
 
 //#region update helpers
+
+//#region timers
 /**
  * Set whether or not the battler is strafing.
  * Only applicable to the player.
@@ -984,6 +974,7 @@ JABS_Battler.prototype.clearAlert = function() {
     this.showBalloon(J.ABS.Balloons.Silence);
   }
 };
+//#endregion timers
 
 //#region dodging
 /**
@@ -1077,6 +1068,16 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType) {
 };
 //#endregion dodging
 
+//#region regeneration
+/**
+ * Updates all regenerations and ticks four times per second.
+ */
+JABS_Battler.prototype.updateRG = function() {
+  if (this.isRegenReady() && !this.getBattler().isDead()) {
+    this.performRegeneration();
+    this.setRegenCounter(15);
+  }
+};
 /**
  * Whether or not the regen tick is ready.
  * @returns {boolean} True if its time for a regen tick, false otherwise.
@@ -1108,239 +1109,304 @@ JABS_Battler.prototype.setRegenCounter = function(count) {
 };
 
 /**
- * Manages hp regeneration/poison from a battler's HRG and current states.
+ * Performs the full suite of possible regenerations handled by JABS.
+ * 
+ * This includes both natural and tag/state-driven regenerations.
  */
-JABS_Battler.prototype.slipHp = function() {
+JABS_Battler.prototype.performRegeneration = function() {
+  // if we have no battler, don't bother.
   const battler = this.getBattler();
-  const hrg = battler.hrg * 100;
-  let hp5 = hrg / 4 / 5; // regen 4x per second, for 5 seconds == rg.
-  let hp5mod = 0;
-  let needPop = false;
-  const states = battler.states();
-  if (states.length) {
-    states.forEach(state => {
-      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
-      if (!trackedState) {
-        // when loading a file that was saved with a state, we encounter a weird issue
-        // where the state is still on the battler but not in temporary memory as a
-        // JABS tracked state. In this case, we remove it.
-        battler.removeState(state.id);
-        return;
-      }
+  if (!battler) return;
 
-      if (state.meta) {
-        const { slipHpFlat, slipHpPerc, slipHpFormula } = state._j;
-        if (slipHpFlat) {
-          hp5mod += slipHpFlat;
-          needPop = true;
-        }
-        
-        if (slipHpPerc) {
-          const factor = battler.mhp * (slipHpPerc / 100);
-          hp5mod += factor;
-          needPop = true;
-        }
+  // handle our natural rgs since we have a battler.
+  this.processNaturalRegens();
 
-        if (slipHpFormula) {
-          const a = trackedState.source;  // the one who applied the state.
-          const b = trackedState.battler; // this battler, afflicted by the state.
-          const v = $gameVariables._data; // access to variables if you need it.
-          const result = Math.round(eval(slipHpFormula) * -1);
-          if (Number.isFinite(result)) {
-            hp5mod += result;
-            needPop = true;
-          } else {
-            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
-            console.warn(`formula parsed: ${slipHpFormula}`);
-            console.warn(`result produced: ${result}`);
-          }
-        }
-      }
-    });
-  }
+  // if we have no states, don't bother.
+  let states = battler.states();
+  if (!states.length) return;
 
-  hp5mod /= 4; // 4x per second
-  hp5mod /= 5; // "per 5" seconds
-  if (hp5mod > 0) {
-    hp5mod *= battler.rec;
-  }
+  // clean-up all the states that are somehow applied but not tracked.
+  states = states.filter(this.shouldProcessState, this);
 
-  hp5 += hp5mod;
-  battler.gainHp(hp5);
-
-  if (needPop) {
-    const character = this.getCharacter();
-    const textColor = (hp5 > 0) ? 21 : 0;
-    const iconId = 0;
-    const actionResult = null;
-    const directValue = Math.ceil(hp5);
-    const popup = new JABS_TextPop(
-      actionResult,
-      iconId,
-      textColor,
-      false,
-      false,
-      "damage",
-      directValue);
-    character.addTextPop(popup);
-    character.setRequestTextPop();
-  }
+  // handle all the tag-specific hp/mp/tp regenerations.
+  this.processStateRegens(states);
 };
 
 /**
- * Manages mp regeneration/poison from a battler's MRG and current states.
+ * Processes the natural regeneration of this battler.
+ * 
+ * This includes all HRG/MRG/TRG derived from any extraneous source.
  */
-JABS_Battler.prototype.slipMp = function() {
-  const battler = this.getBattler();
-  const mrg = battler.mrg * 100;
-  let mp5 = mrg / 4 / 5; // regen 4x per second, for 5 seconds == rg.
-  let mp5mod = 0;
-  let needPop = false;
-  const states = battler.states();
-  if (states.length) {
-    states.forEach(state => {
-      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
-      if (!trackedState) {
-        // when loading a file that was saved with a state, we encounter a weird issue
-        // where the state is still on the battler but not in temporary memory as a
-        // JABS tracked state. In this case, we remove it.
-        battler.removeState(state.id);
-        return;
-      }
-
-      if (state.meta) {
-        const { slipMpFlat, slipMpPerc, slipMpFormula } = state._j;
-        if (slipMpFlat) {
-          mp5mod += slipMpFlat;
-        }
-        
-        if (slipMpPerc) {
-          const factor = battler.mmp * (slipMpPerc / 100);
-          mp5mod += factor;
-        }
-
-        if (slipMpFormula) {
-          const a = trackedState.source;  // the one who applied the state.
-          const b = trackedState.battler; // this battler, afflicted by the state.
-          const v = $gameVariables._data; // access to variables if you need it.
-          const result = Math.round(eval(slipMpFormula) * -1);
-          if (Number.isFinite(result)) {
-            mp5mod += result;
-            needPop = true;
-          } else {
-            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
-            console.warn(`formula parsed: ${slipMpFormula}`);
-            console.warn(`result produced: ${result}`);
-          }
-        }
-      }
-    });
-  }
-
-  mp5mod /= 4;
-  mp5mod /= 5;
-  if (mp5mod > 0) {
-    mp5mod *= battler.rec;
-  }
-  mp5 += mp5mod;
-  battler.gainMp(mp5);
-
-  if (needPop) {
-    const character = this.getCharacter();
-    const textColor = (mp5 > 0) ? 23 : 0;
-    const iconId = 0;
-    const actionResult = null;
-    const directValue = Math.ceil(mp5);
-    const popup = new JABS_TextPop(
-      actionResult,
-      iconId,
-      textColor,
-      false,
-      false,
-      "damage",
-      directValue);
-    character.addTextPop(popup);
-    character.setRequestTextPop();
-  }
+JABS_Battler.prototype.processNaturalRegens = function() {
+  this.processNaturalHpRegen();
+  this.processNaturalMpRegen();
+  this.processNaturalTpRegen();
 };
 
 /**
- * Manages tp regeneration/poison from a battler's TRG and current states.
+ * Processes the natural HRG for this battler.
  */
-JABS_Battler.prototype.slipTp = function() {
+JABS_Battler.prototype.processNaturalHpRegen = function() {
   const battler = this.getBattler();
-  const trg = battler.trg * 100;
-  let tp5 = trg / 4 / 5; // regen 4x per second, for 5 seconds == rg.
-  let tp5mod = 0;
-  let needPop = false;
-  const states = battler.states();
-  if (states.length) {
-    states.forEach(state => {
-      const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
-      if (!trackedState) {
-        // when loading a file that was saved with a state, we encounter a weird issue
-        // where the state is still on the battler but not in temporary memory as a
-        // JABS tracked state. In this case, we remove it.
-        battler.removeState(state.id);
-        return;
-      }
+  const { hrg, rec } = battler;
+  const naturalHp5 = ((hrg * 100) * 0.05) * rec;
+  battler.gainHp(naturalHp5);
+};
 
-      if (state.meta) {
-        const { slipTpFlat, slipTpPerc, slipTpFormula } = state._j;
-        if (slipTpFlat) {
-          tp5mod += slipTpFlat;
-        }
-        
-        if (slipTpPerc) {
-          const factor = battler.maxTp() * (slipTpPerc / 100);
-          tp5mod += factor;
-        }
+/**
+ * Processes the natural MRG for this battler.
+ */
+JABS_Battler.prototype.processNaturalMpRegen = function() {
+  const battler = this.getBattler();
+  const { mrg, rec } = battler;
+  const naturalMp5 = ((mrg * 100) * 0.05) * rec;
+  battler.gainMp(naturalMp5);
+};
 
-        if (slipTpFormula) {
-          const a = trackedState.source;  // the one who applied the state.
-          const b = trackedState.battler; // this battler, afflicted by the state.
-          const v = $gameVariables._data; // access to variables if you need it.
-          const result = Math.round(eval(slipTpFormula) * -1);
-          if (Number.isFinite(result)) {
-            tp5mod += result;
-            needPop = true;
-          } else {
-            console.warn(`The state of ${state.id} has a formula producing a result that isn't valid.`);
-            console.warn(`formula parsed: ${slipTpFormula}`);
-            console.warn(`result produced: ${result}`);
-          }
-        }
-      }
-    });
+/**
+ * Processes the natural TRG for this battler.
+ */
+JABS_Battler.prototype.processNaturalTpRegen = function() {
+  const battler = this.getBattler();
+  const { trg, rec } = battler;
+  const naturalTp5 = ((trg * 100) * 0.05) * rec;
+  battler.gainTp(naturalTp5);
+};
+
+/**
+ * Processes all regenerations derived from state tags.
+ * @param {rm.types.State[]} states The filtered list of states to parse.
+ */
+JABS_Battler.prototype.processStateRegens = function(states) {
+  const battler = this.getBattler();
+
+  // default the regenerations to the battler's innate regens.
+  const { rec } = battler;
+  const regens = [0, 0, 0];
+
+  // process each state for slip actions.
+  for (const state of states) {
+    regens[0] += this.stateSlipHp(state);
+    regens[1] += this.stateSlipMp(state);
+    regens[2] += this.stateSlipTp(state);
   }
 
-  tp5mod /= 4;
-  tp5mod /= 5;
-  if (tp5mod > 0) {
-    tp5mod *= battler.rec;
+  regens.forEach((regen, index) => {
+    // if it wasn't modified, don't worry about it.
+    if (!regen) {
+      return;
+    }
+
+    // apply REC effects.
+    if (regen > 0) {
+      regen *= rec;
+    }
+
+    // apply "per5" rate- 4 times per second, for 5 seconds.
+    regen *= 0.05;
+
+    // if we have a non-zero amount, generate the popup.
+    if (regen) {
+      this.applySlipEffect(regen, index);
+      this.createSlipPop(regen, index);
+    }
+  });
+};
+
+/**
+ * Determines if a state should be processed or not for slip effects.
+ * @param {rm.types.State} state The state to check if needing processing.
+ * @returns {boolean} True if we should process this state, false otherwise.
+ */
+JABS_Battler.prototype.shouldProcessState = function(state) {
+  const battler = this.getBattler();
+  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  if (!trackedState) {
+    // when loading a file that was saved with a state, we encounter a weird issue
+    // where the state is still on the battler but not in temporary memory as a
+    // JABS tracked state. In this case, we remove it.
+    battler.removeState(state.id);
+    return false;
+  }
+
+  // don't process states if they have no metadata.
+  // the RG from states is a part of the base, now.
+  if (!state.meta) return false;
+
+  return true;
+};
+
+/**
+ * Processes a single state and returns its tag-based hp regen value.
+ * @param {rm.types.State} state The state to process.
+ * @returns {number} The hp regen from this state.
+ */
+JABS_Battler.prototype.stateSlipHp = function(state) {
+  const battler = this.getBattler();
+  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const { slipHpFlat, slipHpPerc, slipHpFormula } = state._j;
+  let tagHp5 = 0;
+
+  // if the flat tag exists, use it.
+  if (slipHpFlat) {
+    tagHp5 += slipHpFlat;
   }
   
-  tp5 += tp5mod;
-  battler.gainTp(tp5);
+  // if the percent tag exists, use it.
+  if (slipHpPerc) {
+    const factor = battler.mhp * (slipHpPerc / 100);
+    tagHp5 += factor;
+  }
 
-  if (needPop) {
-    const character = this.getCharacter();
-    const textColor = (tp5 > 0) ? 29 : 0;
-    const iconId = 0;
-    const actionResult = null;
-    const directValue = Math.ceil(tp5);
-    const popup = new JABS_TextPop(
-      actionResult,
-      iconId,
-      textColor,
-      false,
-      false,
-      "damage",
-      directValue);
-    character.addTextPop(popup);
-    character.setRequestTextPop();
+  // if the formula tag exists, use it.
+  if (slipHpFormula) {
+    const a = trackedState.source;  // the one who applied the state.
+    const b = trackedState.battler; // this battler, afflicted by the state.
+    const v = $gameVariables._data; // access to variables if you need it.
+    const s = state;                // access to the state itself if you need it.
+    const result = Math.round(eval(slipHpFormula) * -1);
+    if (Number.isFinite(result)) {
+      tagHp5 += result;
+    } else {
+      console.warn(`The state of ${state.id} has an hp formula producing a result that isn't valid.`);
+      console.warn(`formula parsed: ${slipHpFormula}`);
+      console.warn(`result produced: ${result}`);
+    }
+  }
+
+  return tagHp5;
+};
+
+/**
+ * Processes a single state and returns its tag-based mp regen value.
+ * @param {rm.types.State} state The state to process.
+ * @returns {number} The mp regen from this state.
+ */
+JABS_Battler.prototype.stateSlipMp = function(state) {
+  const battler = this.getBattler();
+  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const { slipMpFlat, slipMpPerc, slipMpFormula } = state._j;
+  let tagMp5 = 0;
+
+  // if the flat tag exists, use it.
+  if (slipMpFlat) {
+    tagMp5 += slipMpFlat;
+  }
+  
+  // if the percent tag exists, use it.
+  if (slipMpPerc) {
+    const factor = battler.mmp * (slipMpPerc / 100);
+    tagMp5 += factor;
+  }
+
+  // if the formula tag exists, use it.
+  if (slipMpFormula) {
+    const a = trackedState.source;  // the one who applied the state.
+    const b = trackedState.battler; // this battler, afflicted by the state.
+    const v = $gameVariables._data; // access to variables if you need it.
+    const s = state;                // access to the state itself if you need it.
+    const result = Math.round(eval(slipMpFormula) * -1);
+    if (Number.isFinite(result)) {
+      tagMp5 += result;
+    } else {
+      console.warn(`The state of ${state.id} has an mp formula producing a result that isn't valid.`);
+      console.warn(`formula parsed: ${slipMpFormula}`);
+      console.warn(`result produced: ${result}`);
+    }
+  }
+
+  return tagMp5;
+};
+
+/**
+ * Processes a single state and returns its tag-based mp regen value.
+ * @param {rm.types.State} state The state to process.
+ * @returns {number} The mp regen from this state.
+ */
+JABS_Battler.prototype.stateSlipTp = function(state) {
+  const battler = this.getBattler();
+  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const { slipTpFlat, slipTpPerc, slipTpFormula } = state._j;
+
+  let tagTp5 = 0;
+
+  if (slipTpFlat) {
+    tagTp5 += slipTpFlat;
+  }
+  
+  if (slipTpPerc) {
+    const factor = battler.maxTp() * (slipTpPerc / 100);
+    tagTp5 += factor;
+  }
+
+  if (slipTpFormula) {
+    const a = trackedState.source;  // the one who applied the state.
+    const b = trackedState.battler; // this battler, afflicted by the state.
+    const v = $gameVariables._data; // access to variables if you need it.
+    const s = state;                // access to the state itself if you need it.
+    const result = Math.round(eval(slipTpFormula) * -1);
+    if (Number.isFinite(result)) {
+      tagTp5 += result;
+    } else {
+      console.warn(`The state of ${state.id} has a tp formula producing a result that isn't valid.`);
+      console.warn(`formula parsed: ${slipTpFormula}`);
+      console.warn(`result produced: ${result}`);
+    }
+  }
+
+  return tagTp5;
+};
+
+/**
+ * Creates the slip popup on this battler.
+ * @param {number} amount The slip pop amount.
+ * @param {number} type The slip pop type- identified by index.
+ */
+JABS_Battler.prototype.createSlipPop = function(amount, type) {
+  const popup = JABS_TextPop.create({
+    textColorIndex: this.determineSlipPopColor(amount, type),
+    popupType: JABS_TextPop.Types.Damage,
+    directValue: Math.ceil(amount),
+  });
+  const character = this.getCharacter();
+  character.addTextPop(popup);
+  character.setRequestTextPop();
+};
+
+/**
+ * Applies the regeneration amount to the appropriate parameter.
+ * @param {number} amount The regen amount.
+ * @param {number} type The regen type- identified by index.
+ */
+JABS_Battler.prototype.applySlipEffect = function(amount, type) {
+  const battler = this.getBattler();
+  switch (type) {
+    case 0:
+      battler.gainHp(amount);
+      break;
+    case 1:
+      battler.gainMp(amount);
+      break;
+    case 2:
+      battler.gainTp(amount);
+      break;
   }
 };
+
+/**
+ * Determines the text color id of the slip popup.
+ * @param {number} amount The amount of damage for this slip popup.
+ * @param {string} type The type of slip popup this is.
+ * @returns {number} The text color id.
+ */
+JABS_Battler.prototype.determineSlipPopColor = function(amount, type) {
+  switch (type) {
+    case 0: return (amount > 0) ? 21 : 0;
+    case 1: return (amount > 0) ? 23 : 0;
+    case 2: return (amount > 0) ? 29 : 0;
+  }
+};
+//#endregion regeneration
 
 /**
  * Determines the closest enemy target.
@@ -3164,12 +3230,13 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
   const caster = this;
   projectileDirections.forEach(direction => {
     const mapAction = new JABS_Action({
-      baseSkill: skill,          // the skill data
-      teamId: caster.getTeam(), // the caster's team id
-      gameAction: action,         // the Game_Action itself
-      caster: caster,           // the JABS_Battler caster
-      isRetaliation: isRetaliation,  // whether or not this is a retaliation
-      direction: direction,      // the direction this action is initially facing
+      uuid: J.BASE.Helpers.generateUuid(),
+      baseSkill: skill,
+      teamId: caster.getTeam(),
+      gameAction: action,
+      caster: caster,
+      isRetaliation: isRetaliation,
+      direction: direction,
       cooldownKey,
     });
 

@@ -906,19 +906,16 @@ if (J.ABS) {
   
   /**
     * Creates the text pop of the SDP points gained.
-    * @param {number} exp The amount of experience gained.
+    * @param {number} sdpPoints The amount of experience gained.
     */
   Game_BattleMap.prototype.configureSdpPop = function(sdpPoints) {
-    const iconId = 306;
-    const textColor = 17;
-    const popup = new JABS_TextPop(
-      null,
-      iconId,
-      textColor,
-      null,
-      null,
-      "sdp",
-      sdpPoints);
+    const popup = JABS_TextPop.create({
+      iconIndex: 306,
+      textColorIndex: 17,
+      popupType: JABS_TextPop.Types.Sdp,
+      directValue: sdpPoints,
+    });
+    
     return popup;
   };
   
@@ -1691,7 +1688,7 @@ class Window_SDP_Details extends Window_Base {
     const { name, value, iconIndex, smallerIsBetter, isPercentValue } = this.translateParameter(parameterId);
     const ox = 20;
     const rw = 200;
-    const isPositive = perRank >= 0 ? '+' : '';
+    const isPositive = perRank >= 0 ? '+' : String.empty;
     const currentValue = parseFloat(value);
     let potentialValue = isFlat
       ? (currentValue + perRank).toFixed(2)
@@ -1737,7 +1734,7 @@ class Window_SDP_Details extends Window_Base {
     }
 
     // parameter current value.
-    const needPercentSymbol = (isPercVal) => isPercVal ? '%' : '';
+    const needPercentSymbol = (isPercVal) => isPercVal ? '%' : String.empty;
     const basePercentSymbol = needPercentSymbol(isPercentValue);
     this.drawText(`${currentValue}${basePercentSymbol}`, ox+rw*1+100, y, 100, "center");
 
@@ -1764,7 +1761,7 @@ class Window_SDP_Details extends Window_Base {
   translateParameter(paramId) {
     const smallerIsBetter = this.isNegativeGood(paramId);
     const isPercentValue = this.isPercentParameter(paramId);
-    let name = '';
+    let name = String.empty;
     let value = 0;
     let iconIndex = 0;
     switch (paramId) {

@@ -787,50 +787,61 @@ Sprite_Character.prototype.configurePopup = function(popup) {
 
   let sprite = new Sprite_Damage();
 
-  if (popup.getIcon() > -1) {
-    sprite.addIcon(popup.getIcon());
+  if (popup.iconIndex > -1) {
+    sprite.addIcon(popup.iconIndex);
   }
 
-  switch (popup.getType()) {
-    case "damage":
+  switch (popup.popupType) {
+    case JABS_TextPop.Types.Damage:
       sprite._xVariance = getRandomNumber(-30, 30);
       sprite._yVariance = getRandomNumber(-30, 30);
       this.buildDamagePopSprite(sprite, popup);
       break;
-    case "exp":
+    case JABS_TextPop.Types.Slip:
+      sprite._xVariance = getRandomNumber(-30, 30);
+      sprite._yVariance = getRandomNumber(-10, 50);
+      this.buildDamagePopSprite(sprite, popup);
+      break;
+    case JABS_TextPop.Types.Experience:
       sprite._xVariance = -40;
       sprite._yVariance = 20;
       sprite._duration += 180;
       this.buildBasicPopSprite(sprite, popup);
       break;
-    case "gold":
+    case JABS_TextPop.Types.Gold:
       sprite._xVariance = -40;
       sprite._yVariance = 40;
       sprite._duration += 180;
       this.buildBasicPopSprite(sprite, popup);
       break;
-    case "sdp":
+    case JABS_TextPop.Types.Sdp:
       sprite._xVariance = -40;
       sprite._yVariance = 60;
       sprite._duration += 180;
       this.buildBasicPopSprite(sprite, popup);
       break;
-    case "item":
+    case JABS_TextPop.Types.Item:
       sprite._xVariance = 60;
       sprite._yVariance = getRandomNumber(-30, 30);
       sprite._duration += 60;
       this.buildBasicPopSprite(sprite, popup);
       break;
-    case "levelup":
+    case JABS_TextPop.Types.Learn:
       sprite._xVariance = 0;
       sprite._yVariance = getRandomNumber(-30, 30);
       sprite._duration += 120;
       this.buildBasicPopSprite(sprite, popup);
       break;
-    case "skillLearn":
+    case JABS_TextPop.Types.Levelup:
       sprite._xVariance = 0;
       sprite._yVariance = getRandomNumber(-30, 30);
       sprite._duration += 210;
+      this.buildBasicPopSprite(sprite, popup);
+      break;
+    default:
+      console.warn(`unsupported popup type of [${popup.popupType}] found.`);
+      sprite._xVariance = getRandomNumber(-30, 30);
+      sprite._yVariance = getRandomNumber(-30, 30);
       this.buildBasicPopSprite(sprite, popup);
       break;
   }
@@ -849,13 +860,15 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
   let damageValue;
 
   // handle damage pop based on Game_ActionResult from the target.
-  const result = popup.getBaseActionResult();
+  const result = popup.actionResult;
   if (result) {
     // if we have an action result to work with, then use it.
     if (result.evaded) {
-      // if they evaded because high evasion, then say so.
       sprite._colorType = 7;
       sprite.createValue("Evade!");
+      console.warn('this popup resulted in an evasion somehow');
+      console.warn('evasions are not supported by JABS');
+      console.error(popup);
       return;  
     } else if (result.parried) {
       sprite._flashColor = [96, 96, 255, 192];
@@ -893,8 +906,8 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
       sprite._duration += 60;
     }
   } else {
-    damageValue = popup.getDirectValue();
-    sprite._colorType = popup.getTextColor() || 0;
+    damageValue = popup.directValue;
+    sprite._colorType = popup.textColorIndex;
   }
 
   // stringify the damage and if its `undefined`, just clean that up.
@@ -909,9 +922,9 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
   }
 
   // handle visual alterations if elementally strong/weak.
-  if (popup.getIsStrength()) {
+  if (popup.isStrength) {
     damageValue = `${damageValue}!!!`;
-  } else if (popup.getIsWeakness()) {
+  } else if (popup.isWeakness) {
     damageValue = `${damageValue}...`;
   }
 
@@ -924,8 +937,8 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
  * @param {JABS_TextPop} popup The data for this pop.
  */
 Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
-  const value = popup.getDirectValue();
-  sprite._colorType = popup.getTextColor();
+  const value = popup.directValue;
+  sprite._colorType = popup.textColorIndex;
   sprite.createValue(`${value}`);
 };
 //#endregion popups

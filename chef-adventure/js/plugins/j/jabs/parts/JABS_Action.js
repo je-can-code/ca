@@ -30,6 +30,7 @@ class JABS_Action {
 
   /**
    * @constructor
+   * @param {string} uuid This action's unique identifier.
    * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`. 
    * @param {number} teamId A shorthand for the team id this skill belongs to.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
@@ -38,7 +39,14 @@ class JABS_Action {
    * @param {number} direction The direction this action will face initially.
    * @param {string?} cooldownKey Whether or not this is a direct action.
    */
-  constructor({ baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey }) {
+  constructor({ uuid, baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey }) {
+    /**
+     * The unique identifier for this action.
+     * 
+     * All actions that are bound to an event have this.
+     * @type {string}
+     */
+    this._uuid = uuid;
     /**
      * The base skill object, in case needed for something.
      * @type {rm.types.Skill}
@@ -145,6 +153,16 @@ class JABS_Action {
      * @type {number}
      */
     this._currentPierceDelay = 0;
+  };
+
+  /**
+   * Gets the `uuid` of this action.
+   * 
+   * If one is not returned, then it is probably a direct action with no event representing it.
+   * @returns {string?}
+   */
+  getUuid() {
+    return this._uuid;
   };
 
   /**
