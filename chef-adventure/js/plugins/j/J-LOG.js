@@ -683,12 +683,12 @@ Map_TextLog.prototype.initialize = function(text, iconIndex) {
   /**
    * The message for this text log.
    */
-  this._text = null;
+  this._text = text;
 
   /**
    * The base icon index for this text log.
    */
-  this._iconIndex = null;
+  this._iconIndex = iconIndex;
 
   /**
    * The unique identifier for this text log.
@@ -700,9 +700,10 @@ Map_TextLog.prototype.initialize = function(text, iconIndex) {
 /**
  * Initializes all properties for this class.
  */
-Map_TextLog.prototype.initMembers = function(text, iconIndex) {
-  this._text = text;
-  this._iconIndex = iconIndex;
+Map_TextLog.prototype.initMembers = function() {
+  /**
+   * The `uuid` of this log entry.
+   */
   this._uuid = J.BASE.Helpers.generateUuid();
 };
 

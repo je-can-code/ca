@@ -285,7 +285,7 @@ class IconManager {
    * @param {number} paramId The id of the element.
    * @returns {number}
    */
-  static elementIcon(elementId) {
+  static element(elementId) {
     switch(elementId) {
       case 0: return 127;
       case 1: return 912;
@@ -299,7 +299,175 @@ class IconManager {
       case 9: return 920;
     }
   };
+
+  /**
+   * Gets the icon for the skill type.
+   * @param {number} skillTypeId The id of the skill type.
+   * @returns {number} The corresponding icon index.
+   */
+  static skillType(skillTypeId) {
+    switch (skillTypeId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for the weapon type.
+   * @param {number} weaponTypeId The id of the weapon type.
+   * @returns {number} The corresponding icon index.
+   */
+  static weaponType(weaponTypeId) {
+    switch (weaponTypeId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for the armor type.
+   * @param {number} armorTypeId The id of the armor type.
+   * @returns {number} The corresponding icon index.
+   */
+  static armorType(armorTypeId) {
+    switch (armorTypeId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for the equip type.
+   * @param {number} equipTypeId The id of the equip type.
+   * @returns {number} The corresponding icon index.
+   */
+  static equipType(equipTypeId) {
+    switch (equipTypeId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for the special flag of a trait.
+   * @param {number} flagId The id of the special flag.
+   * @returns {number} The corresponding icon index.
+   */
+  static specialFlag(flagId) {
+    switch (flagId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for the party ability of a trait.
+   * @param {number} partyAbilityId The id of the party ability.
+   * @returns {number} The corresponding icon index.
+   */
+  static partyAbility(partyAbilityId) {
+    switch (partyAbilityId) {
+      case 1: return 1;
+      default: return 1;
+    }
+  };
+
+  /**
+   * Gets the icon for a trait.
+   * @param {JAFTING_Trait} trait The target trait.
+   * @returns 
+   */
+  static trait(trait) {
+    switch (trait._code) {
+      case 11: // elemental damage rate - stackable.
+        return this.element(trait._dataId);
+      case 12: // debuff rate - stackable.
+        return this.param(trait._dataId);
+      case 13: // state rate - stackable.
+      case 14: // state immunity - don't add the same twice.
+        return $dataStates[trait._dataId].iconIndex;
+      case 21: // base parameter rate - stackable.
+        return this.param(trait._dataId);
+      case 22: // ex-parameter rate - stackable.
+        return this.xparam(trait._dataId);
+      case 23: // sp-parameter rate - stackable.
+        return this.sparam(trait._dataId);
+      case 31: // attack element - uniquely stackable.
+        return this.element(trait._dataId);
+      case 32: // apply state chance - stackable.
+        return $dataStates[trait._dataId].iconIndex;
+      case 33: // skill speed - stackable.
+        return 79;
+      case 34: // repeat times - stackable.
+        return 399;
+      case 35: // change basic attack skill - overwrite.
+        return $dataSkills[trait._value].iconIndex;
+      case 41: // unlock skill type - one or the other or none.
+        return this.skillType(trait._dataId);
+      case 42: // lock skill type - one or the other or none.
+        return this.skillType(trait._dataId);
+      case 43: // learn skill while equipped - one or the other or none.
+        return $dataSkills[trait._value].iconIndex;
+      case 44: // unlearn skill while equipped - one or the other or none.
+        return $dataSkills[trait._value].iconIndex;
+      case 51: // can use new weapon type - don't add the same twice.
+        return this.weaponType(trait._dataId);
+      case 52: // can use new armor type - don't add the same twice.
+        return this.armorType(trait._dataId);
+      case 53: // (lock)cannot change equipment from slot.
+        return this.equipType(trait._dataId);
+      case 54: // (seal) slot is not equippable while equipped.
+        return this.equipType(trait._dataId);
+      case 55: // enable/disable dual-wielding - overwrite.
+        return 462;
+      case 61: // action times percent boost - stackable.
+        return 76;
+      case 63: // the collase, also known as the divider between transferable traits.
+        return 25;
+      case 62: // special flag - don't add the same twice.
+        return this.specialFlag(trait._dataId);
+      case 64: // party ability - don't add the same twice.
+        return this.partyAbility(trait._dataId);
   
+      default:
+        console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
+        return false;
+    }
+  };
+
+  static JABS_PARAMETER = {
+    BONUS_HITS: "bonus-hits",
+    ATTACK_SKILL: "attack-skill",
+    SPEED_BOOST: "speed-boost",
+  };
+
+  static jabsParameterIcon(type) {
+    switch (type) {
+      case this.JABS_PARAMETER.BONUS_HITS: return 399;
+      case this.JABS_PARAMETER.SPEED_BOOST: return 82;
+      case this.JABS_PARAMETER.ATTACK_SKILL: return 76;
+    }
+  };
+
+  static JAFTING_PARAMETER = {
+    MAX_REFINE: "max-refine-count",
+    MAX_TRAITS: "max-trait-count",
+    NOT_BASE: "not-refinement-base",
+    NOT_MATERIAL: "not-refinement-material",
+    TIMES_REFINED: "refined-count",
+    UNREFINABLE: "unrefinable"
+  };
+
+  static jaftingParameterIcon(type) {
+    switch (type) {
+      case this.JAFTING_PARAMETER.MAX_REFINE: return 86;
+      case this.JAFTING_PARAMETER.MAX_TRAITS: return 86;
+      case this.JAFTING_PARAMETER.NOT_BASE: return 90;
+      case this.JAFTING_PARAMETER.NOT_MATERIAL: return 90;
+      case this.JAFTING_PARAMETER.TIMES_REFINED: return 223;
+      case this.JAFTING_PARAMETER.UNREFINABLE: return 90;
+    }
+  };  
 };
 //#endregion IconManager
 //ENDFILE

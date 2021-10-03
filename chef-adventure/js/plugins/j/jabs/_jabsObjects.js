@@ -924,6 +924,19 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker) {
 };
 
 /**
+ * 
+ * @param {number} stateId 
+ */
+J.ABS.Aliased.Game_Battler.removeState = Game_Battler.prototype.removeState;
+Game_Battler.prototype.removeState = function (stateId) {
+  J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
+  const stateTracker = $gameBattleMap.findStateTrackerByBattlerAndState(this, stateId);
+  if (stateTracker) {
+    stateTracker.expired = true;
+  }
+};
+
+/**
  * Adds a particular state to become tracked by the tracker for this battler.
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
@@ -1040,7 +1053,7 @@ class Game_BattleMap {
   /**
    * Creates all members available in this class.
    */
-  initialize() {
+  initialize(isMapTransfer = true) {
     /**
      * The `JABS_Battler` representing the player.
      * @type {JABS_Battler}
@@ -1094,6 +1107,12 @@ class Game_BattleMap {
      * @type {JABS_Action[]}
      */
     this._actionEvents = [];
+
+    /**
+     * A collection of all action-type events.
+     * @type {Game_Event[]}
+     */
+    this._activeActions = isMapTransfer ? [] : this._activeActions ?? [];
 
     /**
      * True if we want to call the ABS-specific menu, false otherwise.
@@ -1220,9 +1239,43 @@ class Game_BattleMap {
   /**
    * Adds a new `JABS_Action` to this battle map for tracking.
    * @param {JABS_Action} actionEvent The `JABS_Action` to add.
+   * @param {rm.types.Event?} actionEventData The event metadata, if anything.
    */
-  addActionEvent(actionEvent) {
+  addActionEvent(actionEvent, actionEventData) {
     this._actionEvents.push(actionEvent);
+    if (actionEventData) {
+      this._activeActions.push(actionEventData);
+    }
+  };
+
+  /**
+   * Finds the metadata associated with 
+   * @param {string} uuid The `uuid` to find.
+   */
+  event(uuid) {
+    const results = this._activeActions.filter(eventData => eventData.uniqueId === uuid);
+    return results[0];
+  }
+
+  /**
+   * Removes the temporary metadata from our store.
+   * @param {JABS_Action} actionEvent The action event data.
+   */
+  removeActionEvent(actionEvent) {
+    // find all the actions that are the same as this one.
+    const sameAction = this._actionEvents
+      .filter(action => action.getUuid() === actionEvent.getUuid());
+    if (!sameAction || !sameAction.length) {
+      // if for some reason we don't have any matching actions, then we're done.
+      return;
+    }
+
+    const uniqueId = sameAction[0].getUuid();
+
+    // filter out all those same actions.
+    const updatedActiveActions = this._activeActions
+      .filter(active => !(active.uniqueId === uniqueId));
+    this._activeActions = updatedActiveActions;
   };
 
   /**
@@ -1231,9 +1284,7 @@ class Game_BattleMap {
    */
   clearActionEvents() {
     const actionEvents = this._actionEvents;
-    const updatedActionEvents = actionEvents.filter(action => {
-      return !action.getNeedsRemoval();
-    });
+    const updatedActionEvents = actionEvents.filter(action => !action.getNeedsRemoval());
 
     if (actionEvents.length !== updatedActionEvents.length) {
       this.requestClearMap = true;
@@ -1858,8 +1909,12 @@ class Game_BattleMap {
    */
   updateNonPlayerBattlers() {
     const player = $gameBattleMap.getPlayerMapBattler();
+    /** @type {JABS_Battler[]} */
     const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15, false);
 
+    visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
+    
+    /*
     visibleBattlers.forEach(battler => {
       battler.update();
       if (battler.getBattler().isDead() && !battler.isDying()) {
@@ -1867,9 +1922,28 @@ class Game_BattleMap {
         this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
       }
     });
+    */
+  };
+
+  /**
+   * Performs the update against this non-player battler.
+   * @param {JABS_Battler} battler 
+   */
+  performNonPlayerBattlerUpdate(battler) {
+    const isDead = battler.getBattler().isDead();
+    const isntStillDying = !battler.isDying();
+    const isntErased = battler.isEnemy()
+      ? !battler.getCharacter()._erased
+      : true;
+    battler.update();
+    if (isDead && isntStillDying && isntErased) {
+      battler.setInvincible();
+      this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
+    }
   };
 
   //#endregion player input and handling
+  
   /**
    * Updates all `JABS_Action`s currently on the battle map. This includes checking for collision,
    * checking piercing information, and applying effects against the map.
@@ -1936,6 +2010,7 @@ class Game_BattleMap {
   cleanupAction(action) {
     if (action.getDuration() >= JABS_Action.getMinimumDuration()) {
       action.setNeedsRemoval();
+      this.removeActionEvent(action);
       this.clearActionEvents();
     }
   };
@@ -2097,25 +2172,26 @@ class Game_BattleMap {
 
     // perform self-animation and pose.
     caster.performActionPose(baseSkill);
-    if (casterAnimation) {// && !character.isAnimationPlaying()) { // remove limiter.
+    if (casterAnimation) {
       character.requestAnimation(casterAnimation);
     }
 
-    if (action.isDirectAction()) {
-      // if the skill is actually a direct action, then perform that logic instead.
-      this.addActionEvent(action);
-    } else {
-      // actually perform the event creation for spawning a new action on the map.
+    let actionEventData = null;
+
+    // actually perform the event creation for spawning a new action on the map.
+    if (!action.isDirectAction()) {
       const eventId = action.getActionId();
-      const actionEventData = JsonEx.makeDeepCopy($actionMap.events[eventId]);
+      actionEventData = JsonEx.makeDeepCopy($actionMap.events[eventId]);
       actionEventData.x = targetX ?? caster.getX();
       actionEventData.y = targetY ?? caster.getY();
       actionEventData.isAction = true;
       actionEventData.id += 1000;
-
+      actionEventData.uniqueId = action.getUuid();
+      actionEventData.actionDeleted = false;
       this.addMapActionToMap(actionEventData, action);
-      this.addActionEvent(action);
     }
+
+    this.addActionEvent(action, actionEventData);
   };
 
   /**
@@ -2360,7 +2436,7 @@ class Game_BattleMap {
 
   /**
    * Creates a new `JABS_Action` and adds it to the map and tracking.
-   * @param {object} actionEventData An object representing the data of a `Game_Event`.
+   * @param {rm.types.Event} actionEventData An object representing the data of a `Game_Event`.
    * @param {JABS_Action} action An object representing the data of a `Game_Event`.
    */
   addMapActionToMap(actionEventData, action) {
@@ -3039,17 +3115,19 @@ class Game_BattleMap {
     const actionResult = targetBattler.result();
     const elementalRate = gameAction.calcElementRate(targetBattler);
     const elementalIcon = this.determineElementalIcon(skill, caster);
-    const iconId = actionResult.parried
+    const iconIndex = actionResult.parried
       ? 128
       : elementalIcon;
     const textColor = 0;
-    return new JABS_TextPop(
-        actionResult,
-        iconId,
-        textColor,
-        elementalRate < 1,
-        elementalRate > 1,
-        "damage");
+    return JABS_TextPop.create({
+      actionResult: actionResult,
+      iconIndex: iconIndex,
+      textColorIndex: textColor,
+      isWeakness: elementalRate < 1,
+      isStrength: elementalRate > 1,
+      popupType: JABS_TextPop.Types.Damage,
+      directValue: null,
+    });
   };
 
   /**
@@ -3513,16 +3591,12 @@ class Game_BattleMap {
    * @param {number} exp The amount of experience gained.
    */
   configureExperiencePop(exp) {
-    const iconId = 125;
-    const textColor = 6;
-    return new JABS_TextPop(
-        null,
-        iconId,
-        textColor,
-        false,
-        false,
-        "exp",
-        Math.round(exp));
+    return JABS_TextPop.create({
+      iconIndex: 125,
+      textColorIndex: 6,
+      popupType: JABS_TextPop.Types.Experience,
+      directValue: Math.round(exp),
+    });
   };
 
   /**
@@ -3545,16 +3619,12 @@ class Game_BattleMap {
    * @param {number} gold The amount of gold gained.
    */
   configureGoldPop(gold) {
-    const iconId = 2048;
-    const textColor = 14;
-    return new JABS_TextPop(
-        null,
-        iconId,
-        textColor,
-        false,
-        false,
-        "gold",
-        gold);
+    return JABS_TextPop.create({
+      iconIndex: 2048,
+      textColorIndex: 14,
+      popupType: JABS_TextPop.Types.Gold,
+      directValue: Math.round(gold),
+    });
   };
 
   /**
@@ -3615,17 +3685,12 @@ class Game_BattleMap {
    * @param {object} item The reference data for the item loot that was picked up.
    */
   configureItemPop(item) {
-    const name = item.name;
-    const iconId = item.iconIndex;
-    const textColor = 1;
-    return new JABS_TextPop(
-        null,
-        iconId,
-        textColor,
-        false,
-        false,
-        "item",
-        name);
+    return JABS_TextPop.create({
+      iconIndex: item.iconIndex,
+      textColorIndex: 1,
+      popupType: JABS_TextPop.Types.Item,
+      directValue: item.name,
+    });
   };
 
   /**
@@ -3649,17 +3714,12 @@ class Game_BattleMap {
    * @param {Game_Character} character The character to show the popup on.
    */
   createLevelUpPop(character) {
-    const text = "LEVEL UP";
-    const iconId = 86;
-    const textColor = 24;
-    const popup = new JABS_TextPop(
-      null,
-      iconId,
-      textColor,
-      false,
-      false,
-      "levelup",
-      text);
+    const popup = JABS_TextPop.create({
+      iconIndex: 86,
+      textColorIndex: 24,
+      popupType: JABS_TextPop.Types.Levelup,
+      directValue: "LEVEL UP",
+    });
     character.addTextPop(popup);
     character.setRequestTextPop();
   };
@@ -3710,17 +3770,12 @@ class Game_BattleMap {
    * @param {Game_Character} character The player's character.
    */
   createSkillLearnPop(skill, character) {
-    const text = `${skill.name} learned!`;
-    const iconId = skill.iconIndex;
-    const textColor = 27;
-    const popup = new JABS_TextPop(
-      null,
-      iconId,
-      textColor,
-      false,
-      false,
-      "skillLearn",
-      text);
+    const popup = JABS_TextPop.create({
+      iconIndex: skill.iconIndex,
+      textColorIndex: 27,
+      popupType: JABS_TextPop.Types.Learn,
+      directValue: `${skill.name} learned!`,
+    });
     character.addTextPop(popup);
     character.setRequestTextPop();
   };
@@ -3741,7 +3796,8 @@ class Game_BattleMap {
     $gameTextLog.addLog(skillLearnLog);
   };
 //#endregion defeated target aftermath
-}
+
+};
 
 //#endregion Game_BattleMap
 
@@ -3766,7 +3822,7 @@ Game_Character.prototype.initActionSpriteProperties = function() {
     needsAdding: false,
     needsRemoving: false,
     requestDamagePop: false,
-    battlerUuid: '',
+    battlerUuid: String.empty,
     damagePops: [],
   }
 };
@@ -3866,6 +3922,40 @@ Game_Character.prototype.isAction = function() {
 };
 
 /**
+ * If the event has a `JABS_Action` associated with it, return that.
+ * @returns {JABS_Action}
+ */
+Game_Character.prototype.getMapActionData = function() {
+  const actionSpriteProperties = this.getActionSpriteProperties();
+  if (actionSpriteProperties.actionData) {
+    return actionSpriteProperties.actionData;
+  } else {
+    return null;
+  }
+};
+
+/**
+ * Gets the `uuid` of this event's underlying action, if it exists.
+ * @returns {string}
+ */
+Game_Character.prototype.getMapActionUuid = function() {
+  const actionData = this.getMapActionData();
+  if (actionData) {
+    return actionData.getUuid();
+  } else {
+    return null;
+  }
+};
+
+/**
+ * Gets the `uuid` of this `JABS_Battler`.
+ */
+Game_Character.prototype.getActionUuid = function() {
+  const asp = this.getActionSpriteProperties();
+  return asp.battlerUuid;
+};
+
+/**
  * Gets the `JABS_Battler` associated with this character.
  * @returns {JABS_Battler}
  */
@@ -3894,7 +3984,7 @@ Game_Character.prototype.setMapBattler = function(uuid) {
 
 Game_Character.prototype.clearMapBattler = function() {
   const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.battlerUuid = '';
+  actionSpriteProperties.battlerUuid = String.empty;
 };
 
 /**
@@ -3988,19 +4078,6 @@ Game_Character.prototype.addTextPop = function(damage) {
 Game_Character.prototype.removeDamagePop = function() {
   const actionSpriteProperties = this.getActionSpriteProperties();
   actionSpriteProperties.damagePops.shift();
-};
-
-/**
- * If the event has a `JABS_Action` associated with it, return that.
- * @returns {JABS_Action}
- */
-Game_Character.prototype.getMapActionData = function() {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  if (actionSpriteProperties.actionData) {
-    return actionSpriteProperties.actionData;
-  } else {
-    return null;
-  }
 };
 
 /**
@@ -4824,6 +4901,13 @@ Game_Event.prototype.getCastedDirection = function() {
  */
 J.ABS.Aliased.Game_Event.event = Game_Event.prototype.event;
 Game_Event.prototype.event = function() {
+  if (this.isAction()) {
+    const found = $gameBattleMap.event(this.getMapActionUuid());
+    return found;
+  }
+
+  return J.ABS.Aliased.Game_Event.event.call(this);
+  /*
   const base = J.ABS.Aliased.Game_Event.event.call(this);
   if (!!base) {
     // its a regular event or battler.
@@ -4840,6 +4924,7 @@ Game_Event.prototype.event = function() {
 
     return eventDatas.find(ev => id === ev.id);
   }
+  */
 };
 
 /**
@@ -5323,7 +5408,11 @@ Game_Map.prototype.update = function(sceneActive) {
 Game_Map.prototype.getBattlers = function() {
   if (this._j._allBattlers === null) return [];
 
-  return this._j._allBattlers.filter(battler => !!battler);
+  return this._j._allBattlers.filter(battler => {
+    const exists = !!battler;
+    const notErased = exists && !battler.getCharacter()._erased;
+    return notErased;
+  });
 };
 
 /**
@@ -5557,8 +5646,6 @@ Game_Map.prototype.destroyBattler = function(targetBattler, holdEvent = false) {
     if (!holdEvent) {
       this._j._allBattlers[targetIndex].getCharacter().erase();
     }
-
-    this._j._allBattlers.splice(targetIndex, 1);
   }
 };
 
@@ -5585,7 +5672,9 @@ Game_Map.prototype.removeEvent = function(event) {
   if (index > -1) {
     // if the index is found, remove the event.
     event.erase();
-    this._events.splice(index, 1);
+    if (event.isAction) {
+      this._events.splice(index, 1);
+    }
   }
 };
 
@@ -5596,11 +5685,17 @@ Game_Map.prototype.clearStaleMapActions = function() {
   const eventSprites = this.events();
 
   // get all the game_event sprites that need removing.
-  eventSprites.forEach(event => {
-    if (event.getActionSpriteNeedsRemoving()) {
-      this.removeEvent(event);
-    }
-  });
+  eventSprites.forEach(this.clearMapAction, this);
+};
+
+/**
+ * Clears a particular action event from the map.
+ * @param {Game_Event} event The action event to clear.
+ */
+Game_Map.prototype.clearMapAction = function(event) {
+  if (event.getActionSpriteNeedsRemoving()) {
+    this.removeEvent(event);
+  }
 };
 
 /**

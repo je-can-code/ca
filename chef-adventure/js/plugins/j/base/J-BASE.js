@@ -258,6 +258,7 @@ J.BASE.Aliased = {
   DataManager: {},
   Game_Character: {},
   Window_Command: {},
+  Window_Selectable: {},
 };
 
 //#region Helpers
@@ -386,4 +387,10 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure) {
 };
 //#endregion Helpers
 //#endregion Introduction
+
+// implements a constant reference to "String.empty".
+/**
+ * An empty static constant string variable.
+ */
+String.empty = '';
 //ENDFILE
