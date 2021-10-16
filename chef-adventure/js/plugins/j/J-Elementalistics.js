@@ -22,6 +22,10 @@
  * None of the note tags below support negative numbers and are white-space
  * sensitive. Follow the examples closely to achieve your desired effects.
  * 
+ * NOTE:
+ * Combining multiple elements together is done multiplicatively for all
+ * the various operations below.
+ * 
  * ============================================================================
  * ADDITIONAL ELEMENTS:
  * Have you ever wanted a skill to be both fire and ice typed? Well now you
@@ -100,6 +104,11 @@
  * 
  *  <absorbElements:[10,18]>
  * This battler now absorbs elements 10 and 18.
+ * 
+ *  <absorbElements:[3,7]> on battler (either actor or enemy)
+ *  <absorbElements:[4,7,9,12]> on armor (only applicable to actors)
+ *  <absorbElements:[10]> on state
+ * This actor now absorbs elements 3, 4, 7, 9, 10, and 12.
  * ============================================================================
  * STRICT ELEMENTS:
  * Have you ever wanted a battler to be completely immunte to all elemental
@@ -134,6 +143,10 @@
  * TAG EXAMPLES:
  *  <strictElements:[8]>
  * This battler now can only receive damage from skills with element id of 8.
+ * 
+ *  <strictElements:[3,5,6]>
+ * This battler now can only receive damage from skills that include the
+ * element id of 3, 5, or 6.
  * 
  *  <strictElements:[1,2,3,4,5,6]> on state applied to battler.
  *  <strictElements:[1,8]> on battler (either actor or enemy).
@@ -203,7 +216,6 @@ Game_Action.prototype.calcElementRate = function(target) {
 
   // check if the target's strict elements contain the attack elements.
   const targetStrictElements = target.strictElements();
-  console.log(targetStrictElements);
 
   // filter the action's elements down by what is available according to the strict elements.
   const attackElements = elements.filter(elementId => targetStrictElements.includes(elementId));
@@ -213,17 +225,14 @@ Game_Action.prototype.calcElementRate = function(target) {
     // if we have no elements left, then the elemental calculation is 0.
     case 0:
       factor = 0;
-      console.log(factor);
       break;
     // if we still only have the one element, then just use that.
     case 1:
       factor = target.elementRate(attackElements[0]);
-      console.log(factor);
       break;
     // if we have more than 1 element, then handle it accordingly.
     default:
       factor = this.multipleElementalRates(target, attackElements);
-      console.log(factor);
       break;
   }
 
