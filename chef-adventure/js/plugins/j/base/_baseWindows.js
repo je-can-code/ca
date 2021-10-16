@@ -33,6 +33,55 @@ Window_Base.prototype.resetFontFormatting = function() {
   this.contents.fontBold = false;
 };
 
+J.BASE.Aliased.Window_Base.convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
+Window_Base.prototype.convertEscapeCharacters = function(text) {
+  // convert the slashes and stuff to the normal escape characters.
+
+  // handle weapon string replacements.
+  text = text.replace(/\\weapon\[(\d+)\]/gi, (_, p1) => {
+    const weaponColor = 4;
+    const weapon = $dataWeapons[parseInt(p1)];
+    return `\\I[${weapon.iconIndex}]\\C[${weaponColor}]${weapon.name}\\C[0]`;
+  });
+
+  // handle armor string replacements.
+  text = text.replace(/\\armor\[(\d+)\]/gi, (_, p1) => {
+    const armorColor = 5;
+    const armor = $dataArmors[parseInt(p1)];
+    return `\\I[${armor.iconIndex}]\\C[${armorColor}]${armor.name}\\C[0]`;
+  });
+
+  // handle item string replacements.
+  text = text.replace(/\\item\[(\d+)\]/gi, (_, p1) => {
+    const itemColor = 3;
+    const item = $dataItems[parseInt(p1)];
+    return `\\I[${item.iconIndex}]\\C[${itemColor}]${item.name}\\C[0]`;
+  });
+
+  // handle state string replacements.
+  text = text.replace(/\\state\[(\d+)\]/gi, (_, p1) => {
+    const stateColor = 6;
+    const state = $dataStates[parseInt(p1)];
+    return `\\I[${state.iconIndex}]\\C[${stateColor}]${state.name}\\C[0]`;
+  });
+
+  // handle skill string replacements.
+  text = text.replace(/\\skill\[(\d+)\]/gi, (_, p1) => {
+    const skillColor = 1;
+    const skill = $dataSkills[parseInt(p1)];
+    return `\\I[${skill.iconIndex}]\\C[${skillColor}]${skill.name}\\C[0]`;
+  });
+
+  // handle enemy string replacements.
+  text = text.replace(/\\enemy\[(\d+)\]/gi, (_, p1) => {
+    const enemyColor = 2;
+    const enemy = $dataEnemies[parseInt(p1)];
+    return `\\C[${enemyColor}]${enemy.name}\\C[0]`;
+  });
+
+  return J.BASE.Aliased.Window_Base.convertEscapeCharacters.call(this, text);
+};
+
 /**
  * Extends text analysis to check for our custom escape codes, too. 
  */
@@ -42,7 +91,7 @@ Window_Base.prototype.obtainEscapeCode = function(textState) {
   if (!originalEscape) {
     return this.customEscapeCodes();
   } else {
-    return String.empty;
+    return originalEscape;
   }
 };
 
@@ -60,7 +109,7 @@ Window_Base.prototype.customEscapeCodes = function(textState) {
       textState.index += arr[0].length;
       return arr[0].toUpperCase();
   } else {
-      return "";
+      return String.empty;
   }
 };
 
