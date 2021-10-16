@@ -453,16 +453,19 @@ Game_Actor.prototype.refreshBonusHits = function() {
   const equips = this.equips(); // while equipped
   const states = this.states(); // temporary states
   const skills = this.skills(); // passive skills
-
   let bonusHits = 0;
 
+  const reducer = (previousValue, currentValue) => previousValue + currentValue.value;
+  const isHitsTrait = trait => trait.code === J.BASE.Traits.ATTACK_REPEATS;
   equips.forEach(equip => {
     if (!equip) return;
     bonusHits += equip._j.bonusHits;
+    bonusHits += equip.traits.filter(isHitsTrait).reduce(reducer, 0);
   });
 
   states.forEach(state => {
     bonusHits += state._j.bonusHits;
+    bonusHits += state.traits.filter(isHitsTrait).reduce(reducer, 0);
   });
 
   skills.forEach(skill => {

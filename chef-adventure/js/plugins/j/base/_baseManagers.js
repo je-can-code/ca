@@ -130,7 +130,7 @@ DataManager.addExtraStateData = function() {
  * @param {number} sParamId The id of the sp-param to get a name for.
  * @returns {string} The name of the parameter.
  */
-TextManager.sparam = function (sParamId) {
+TextManager.sparam = function(sParamId) {
   switch (sParamId) {
     case 0: return "Aggro";// J.Param.TGR_text;
     case 1: return "Parry";//J.Param.GRD_text;
@@ -150,7 +150,7 @@ TextManager.sparam = function (sParamId) {
  * @param {number} xParamId The id of the ex-param to get a name for.
  * @returns {string} The name of the parameter.
  */
-TextManager.xparam = function (xParamId) {
+TextManager.xparam = function(xParamId) {
   switch (xParamId) {
     case 0: return "Accuracy";// J.Param.HIT_text;
     case 1: return "Parry Extend";//J.Param.EVA_text;
@@ -162,6 +162,49 @@ TextManager.xparam = function (xParamId) {
     case 7: return "HP Regen"; //J.Param.HRG_text;
     case 8: return "MP Regen"; //J.Param.MRG_text;
     case 9: return "TP Regen"; //J.Param.TRG_text;
+  }
+};
+/**
+* Gets the `parameter name` based on the "long" parameter id.
+* 
+* "Long" parameter ids are used in the context of 0-27, rather than
+* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
+* @param {number} paramId The "long" parameter id.
+* @returns {number} The `iconIndex`.
+*/
+TextManager.longParam = function(paramId) {
+  switch (paramId) {
+    case  0: return   this.param(paramId); // mhp
+    case  1: return   this.param(paramId); // mmp
+    case  2: return   this.param(paramId); // atk
+    case  3: return   this.param(paramId); // def
+    case  4: return   this.param(paramId); // mat
+    case  5: return   this.param(paramId); // mdf
+    case  6: return   this.param(paramId); // agi
+    case  7: return   this.param(paramId); // luk
+    case  8: return  this.xparam(paramId-8); // hit
+    case  9: return  this.xparam(paramId-8); // eva (parry boost)
+    case 10: return  this.xparam(paramId-8); // cri
+    case 11: return  this.xparam(paramId-8); // cev
+    case 12: return  this.xparam(paramId-8); // mev (unused)
+    case 13: return  this.xparam(paramId-8); // mrf 
+    case 14: return  this.xparam(paramId-8); // cnt (autocounter)
+    case 15: return  this.xparam(paramId-8); // hrg
+    case 16: return  this.xparam(paramId-8); // mrg
+    case 17: return  this.xparam(paramId-8); // trg
+    case 18: return  this.sparam(paramId-18); // trg (aggro)
+    case 19: return  this.sparam(paramId-18); // grd (parry)
+    case 20: return  this.sparam(paramId-18); // rec
+    case 21: return  this.sparam(paramId-18); // pha
+    case 22: return  this.sparam(paramId-18); // mcr (mp cost)
+    case 23: return  this.sparam(paramId-18); // tcr (tp cost)
+    case 24: return  this.sparam(paramId-18); // pdr
+    case 25: return  this.sparam(paramId-18); // mdr
+    case 26: return  this.sparam(paramId-18); // fdr
+    case 27: return  this.sparam(paramId-18); // exr
+    default:
+      console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
+      return 0;
   }
 };
 //#endregion TextManager
@@ -246,34 +289,34 @@ class IconManager {
    */
   static longParam(paramId) {
     switch (paramId) {
-      case  0: return  247; // mhp
-      case  1: return  248; // mmp
-      case  2: return  2755; // atk
-      case  3: return  251; // def
-      case  4: return  252; // mat
-      case  5: return  253; // mdf
-      case  6: return  254; // agi
-      case  7: return  255; // luk
-      case  8: return  102; // hit
-      case  9: return   82; // eva (parry boost)
-      case 10: return  127; // cri
-      case 11: return   81; // cev
-      case 12: return   71; // mev (unused)
-      case 13: return  222; // mrf 
-      case 14: return   15; // cnt (autocounter)
-      case 15: return 2153; // hrg
-      case 16: return 2245; // mrg
-      case 17: return   13; // trg
-      case 18: return   14; // trg (aggro)
-      case 19: return  128; // grd (parry)
-      case 20: return   84; // rec
-      case 21: return  209; // pha
-      case 22: return  189; // mcr (mp cost)
-      case 23: return  126; // tcr (tp cost)
-      case 24: return  129; // pdr
-      case 25: return  147; // mdr
-      case 26: return  141; // fdr
-      case 27: return  156; // exr
+      case  0: return  this.param(paramId); // mhp
+      case  1: return  this.param(paramId); // mmp
+      case  2: return  this.param(paramId); // atk
+      case  3: return  this.param(paramId); // def
+      case  4: return  this.param(paramId); // mat
+      case  5: return  this.param(paramId); // mdf
+      case  6: return  this.param(paramId); // agi
+      case  7: return  this.param(paramId); // luk
+      case  8: return  this.xparam(paramId-8); // hit
+      case  9: return  this.xparam(paramId-8); // eva (parry boost)
+      case 10: return  this.xparam(paramId-8); // cri
+      case 11: return  this.xparam(paramId-8); // cev
+      case 12: return  this.xparam(paramId-8); // mev (unused)
+      case 13: return  this.xparam(paramId-8); // mrf 
+      case 14: return  this.xparam(paramId-8); // cnt (autocounter)
+      case 15: return  this.xparam(paramId-8); // hrg
+      case 16: return  this.xparam(paramId-8); // mrg
+      case 17: return  this.xparam(paramId-8); // trg
+      case 18: return  this.sparam(paramId-18); // trg (aggro)
+      case 19: return  this.sparam(paramId-18); // grd (parry)
+      case 20: return  this.sparam(paramId-18); // rec
+      case 21: return  this.sparam(paramId-18); // pha
+      case 22: return  this.sparam(paramId-18); // mcr (mp cost)
+      case 23: return  this.sparam(paramId-18); // tcr (tp cost)
+      case 24: return  this.sparam(paramId-18); // pdr
+      case 25: return  this.sparam(paramId-18); // mdr
+      case 26: return  this.sparam(paramId-18); // fdr
+      case 27: return  this.sparam(paramId-18); // exr
       default:
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
@@ -287,8 +330,9 @@ class IconManager {
    */
   static element(elementId) {
     switch(elementId) {
-      case 0: return 127;
-      case 1: return 912;
+      case -1: return 1;  // inherits element from parent.
+      case 0: return 127; // no type.
+      case 1: return 912; // 
       case 2: return 913;
       case 3: return 914;
       case 4: return 915;
@@ -307,8 +351,17 @@ class IconManager {
    */
   static skillType(skillTypeId) {
     switch (skillTypeId) {
-      case 1: return 1;
-      default: return 1;
+      case  1: return 82;
+      case  2: return 2592;
+      case  3: return 76;
+      case  4: return 79;
+      case  5: return 188;
+      case  6: return 227;
+      case  7: return 68;
+      case  8: return 69;
+      case  9: return 64;
+      case 10: return 67;
+      default: return 0;
     }
   };
 
@@ -319,8 +372,8 @@ class IconManager {
    */
   static weaponType(weaponTypeId) {
     switch (weaponTypeId) {
-      case 1: return 1;
-      default: return 1;
+      case 1: return 16;
+      default: return 16;
     }
   };
 
@@ -331,8 +384,8 @@ class IconManager {
    */
   static armorType(armorTypeId) {
     switch (armorTypeId) {
-      case 1: return 1;
-      default: return 1;
+      case 1: return 16;
+      default: return 16;
     }
   };
 
@@ -343,8 +396,8 @@ class IconManager {
    */
   static equipType(equipTypeId) {
     switch (equipTypeId) {
-      case 1: return 1;
-      default: return 1;
+      case 1: return 16;
+      default: return 16;
     }
   };
 
@@ -355,8 +408,8 @@ class IconManager {
    */
   static specialFlag(flagId) {
     switch (flagId) {
-      case 1: return 1;
-      default: return 1;
+      case 1: return 16;
+      default: return 16;
     }
   };
 
@@ -367,15 +420,15 @@ class IconManager {
    */
   static partyAbility(partyAbilityId) {
     switch (partyAbilityId) {
-      case 1: return 1;
-      default: return 1;
+      case 1: return 16;
+      default: return 16;
     }
   };
 
   /**
    * Gets the icon for a trait.
    * @param {JAFTING_Trait} trait The target trait.
-   * @returns 
+   * @returns {number} The corresponding icon index.
    */
   static trait(trait) {
     switch (trait._code) {
@@ -435,12 +488,20 @@ class IconManager {
     }
   };
 
+  /**
+   * A tag for correlating a JABS parameter to an icon.
+   */
   static JABS_PARAMETER = {
     BONUS_HITS: "bonus-hits",
     ATTACK_SKILL: "attack-skill",
     SPEED_BOOST: "speed-boost",
   };
 
+  /**
+   * Gets the JABS-related icon based on parameter type.
+   * @param {string} type The type of JABS parameter.
+   * @returns {number} The corresponding icon index.
+   */
   static jabsParameterIcon(type) {
     switch (type) {
       case this.JABS_PARAMETER.BONUS_HITS: return 399;
@@ -449,6 +510,9 @@ class IconManager {
     }
   };
 
+  /**
+   * A tag for correlating a JAFTING parameter to an icon.
+   */
   static JAFTING_PARAMETER = {
     MAX_REFINE: "max-refine-count",
     MAX_TRAITS: "max-trait-count",
@@ -458,6 +522,11 @@ class IconManager {
     UNREFINABLE: "unrefinable"
   };
 
+  /**
+   * Gets the JAFTING-related icon based on parameter type.
+   * @param {string} type The type of JAFTING parameter.
+   * @returns {number} The corresponding icon index.
+   */
   static jaftingParameterIcon(type) {
     switch (type) {
       case this.JAFTING_PARAMETER.MAX_REFINE: return 86;

@@ -15,23 +15,118 @@
  * ============================================================================
  */
 
+//#region Window_Base
+/**
+ * Extends the font settings reset to include bold and italics removal.
+ */
+J.BASE.Aliased.Window_Base.resetFontSettings = Window_Base.prototype.resetFontSettings;
+Window_Base.prototype.resetFontSettings = function() {
+  J.BASE.Aliased.Window_Base.resetFontSettings.call(this);
+  this.resetFontFormatting();
+};
+
+/**
+ * Resets bold and italics for this bitmap.
+ */
+Window_Base.prototype.resetFontFormatting = function() {
+  this.contents.fontItalic = false;
+  this.contents.fontBold = false;
+};
+
+/**
+ * Extends text analysis to check for our custom escape codes, too. 
+ */
+J.BASE.Aliased.Window_Base.obtainEscapeCode = Window_Base.prototype.obtainEscapeCode;
+Window_Base.prototype.obtainEscapeCode = function(textState) {
+  const originalEscape = J.BASE.Aliased.Window_Base.obtainEscapeCode.call(this, textState);
+  if (!originalEscape) {
+    return this.customEscapeCodes();
+  } else {
+    return String.empty;
+  }
+};
+
+/**
+ * Retrieves additional escape codes that are our custom creation.
+ * @param {any} textState The rolling text state.
+ * @returns {string} The found escape code, if any.
+ */
+Window_Base.prototype.customEscapeCodes = function(textState) {
+  if (!textState) return;
+
+  const regExp = this.escapeCodes();
+  const arr = regExp.exec(textState.text.slice(textState.index));
+  if (arr) {
+      textState.index += arr[0].length;
+      return arr[0].toUpperCase();
+  } else {
+      return "";
+  }
+};
+
+/**
+ * Gets the regex escape code structure.
+ * 
+ * This includes our added custom escape code symbols to look for.
+ * @returns {RegExp}
+ */
+Window_Base.prototype.escapeCodes = function() {
+  return /^[$.|^!><{}*_\\]|^[A-Z]+/i;
+};
+
+/**
+ * Extends the processing of escape codes to include our custom ones.
+ * 
+ * This adds italics and bold to the possible list of escape codes.
+ */
+J.BASE.Aliased.Window_Base.processEscapeCharacter = Window_Base.prototype.processEscapeCharacter;
+Window_Base.prototype.processEscapeCharacter = function(code, textState) {
+  J.BASE.Aliased.Window_Base.processEscapeCharacter.call(this, code, textState);
+  switch (code) {
+    case "_":
+      this.toggleItalics();
+      break;
+    case "*":
+      this.toggleBold();
+      break;
+  }
+};
+
+/**
+ * Toggles the italics for the rolling text state.
+ * @param {boolean} force Optional. If provided, will force one way or the other.
+ */
+Window_Base.prototype.toggleItalics = function(force) {
+  this.contents.fontItalic = force ?? !this.contents.fontItalic;
+};
+
+/**
+ * Toggles the bold for the rolling text state.
+ * @param {boolean} force Optional. If provided, will force one way or the other.
+ */
+Window_Base.prototype.toggleBold = function(force) {
+  this.contents.fontBold = force ?? !this.contents.fontBold;
+};
+//#endregion Window_Base
+
 //#region Window_Command
 /**
  * OVERWRITE Draws the color and icon along with the item itself in the command window.
  */
-J.BASE.Aliased.Window_Command.drawItem = Window_Command.prototype.drawItem;
 Window_Command.prototype.drawItem = function(index) {
-  // J.BASE.Aliased.Window_Command.drawItem.call(this, index);
   const rect = this.itemLineRect(index);
   this.resetTextColor();
   this.changePaintOpacity(this.isCommandEnabled(index));
   const commandColor = this.commandColor(index);
-  const commandName = `\\C[${commandColor}]${this.commandName(index)}\\C[0]`;
-  this.drawTextEx(commandName, rect.x+4, rect.y, rect.width);
+  if (commandColor) {
+    this.changeTextColor(ColorManager.textColor(commandColor));
+  }
+
+  const commandName = `${this.commandName(index)}`;
+  this.drawText(commandName, rect.x+4, rect.y, rect.width);
 
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
-    const rect = this.itemLineRect(index);
     this.drawIcon(commandIcon, rect.x-32, rect.y+2)
   }
 };
@@ -72,7 +167,7 @@ Window_Command.prototype.commandColor = function(index) {
 };
 
 /**
- * An overload for the `addCommand()` function that allows adding an icon to a command.
+ * An overload for the `addCommand()` function that adds additional metadata to a command.
  * @param {string} name The visible name of this command.
  * @param {string} symbol The symbol for this command.
  * @param {boolean} enabled Whether or not this command is enabled.
@@ -322,48 +417,14 @@ Window_Selectable.prototype.callMoreHandler = function() {
 };
 
 /**
- * OVERWRITE Adds in the part where possibly you might want to execute some
- * logic on-index-change.
+ * Extends the `.select()` to include a hook for executing logic onIndexChange.
  */
-Window_Selectable.prototype.processCursorMove = function() {
-  if (this.isCursorMovable()) {
-    const lastIndex = this.index();
-
-    // handle d-down input.
-    if (Input.isRepeated("down")) {
-      this.cursorDown(Input.isTriggered("down"));
-    }
-
-    // handle d-up input.
-    if (Input.isRepeated("up")) {
-      this.cursorUp(Input.isTriggered("up"));
-    }
-
-    // handle d-right input.
-    if (Input.isRepeated("right")) {
-      this.cursorRight(Input.isTriggered("right"));
-    }
-
-    // handle d-left input.
-    if (Input.isRepeated("left")) {
-      this.cursorLeft(Input.isTriggered("left"));
-    }
-
-    // handle L1 input.
-    if (!this.isHandled("pagedown") && Input.isTriggered("pagedown")) {
-      this.cursorPagedown();
-    }
-
-    // handle R1 input.
-    if (!this.isHandled("pageup") && Input.isTriggered("pageup")) {
-      this.cursorPageup();
-    }
-
-    // if the index changes, then play some sound and perform the onchange().
-    if (this.index() !== lastIndex) {
-      this.onIndexChange();
-      this.playCursorSound();
-    }
+J.BASE.Aliased.Window_Selectable.select = Window_Selectable.prototype.select;
+Window_Selectable.prototype.select = function(index) {
+  const previousIndex = this._index;
+  J.BASE.Aliased.Window_Selectable.select.call(this, index);
+  if (previousIndex !== this._index) {
+    this.onIndexChange();
   }
 };
 

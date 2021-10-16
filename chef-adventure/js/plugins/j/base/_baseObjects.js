@@ -107,6 +107,20 @@ Game_Actor.prototype.getEverythingWithNotes = function() {
 };
 
 /**
+ * Gets all things except skills that can possibly have notes on it at the
+ * present moment. Skills are omitted on purpose.
+ * @returns {rm.types.BaseItem[]}
+ */
+Game_Actor.prototype.getCurrentWithNotes = function() {
+  const objectsWithNotes = [];
+  objectsWithNotes.push(this.actor());
+  objectsWithNotes.push(this.currentClass());
+  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+  objectsWithNotes.push(...this.states());
+  return objectsWithNotes;
+};
+
+/**
  * Gets how much bonus HIT this actor has based on level.
  * @returns {number} The amount of growth in HIT for this actor.
  */
@@ -427,9 +441,26 @@ Game_Actor.prototype.retaliationSkills = function() {
 
   return skills;
 };
+
+/**
+ * The underlying database data for this actor.
+ * @returns {Game_Battler}
+ */
+Game_Actor.prototype.databaseData = function() {
+  return this.actor();
+};
 //#endregion Game_Actor
 
 //#region Game_Battler
+/**
+ * The underlying database data for this battler.
+ * 
+ * This allows operations to be performed against both actor and enemy indifferently.
+ * @returns {Game_Battler}
+ */
+Game_Battler.prototype.databaseData = function() {
+  return null;
+};
 /**
  * All battlers have a prepare time.
  * At this level, returns default 180 frames.
@@ -1074,6 +1105,17 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
 };
 
 /**
+ * Converts all "actions" from an enemy into their collection of known skills.
+ * @returns {rm.types.Skill[]}
+ */
+Game_Enemy.prototype.skills = function() {
+  const actions = this.enemy().actions;
+  return actions.length
+    ? actions.map(action => $dataSkills[action.skillId])
+    : [];
+};
+
+/**
  * Gets all objects with notes available to enemies.
  * @returns {rm.types.BaseItem[]}
  */
@@ -1083,6 +1125,14 @@ Game_Enemy.prototype.getEverythingWithNotes = function() {
   objectsWithNotes.push(...this.skills());
   objectsWithNotes.push(...this.states());
   return objectsWithNotes;
+};
+
+/**
+ * The underlying database data for this enemy.
+ * @returns {Game_Battler}
+ */
+ Game_Enemy.prototype.databaseData = function() {
+  return this.enemy();
 };
 //#endregion Game_Enemy
 

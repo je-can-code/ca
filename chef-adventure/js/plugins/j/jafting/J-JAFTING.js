@@ -106,7 +106,7 @@
  * @param output
  * @type struct<ComponentStruct>[]
  * @text Output
- * @desc Upon JAFTING this recipe, these items are given to the created.
+ * @desc Upon JAFTING this recipe, these items are given to the player.
  * @default []
  * 
  * @param maskedUntilCrafted

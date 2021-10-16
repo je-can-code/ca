@@ -80,6 +80,7 @@ J.CAMods.Tracking = {
  * A collection of all aliased methods for this plugin.
  */
 J.CAMods.Aliased = {
+  Game_Action: {},
   Game_Actor: {},
   Game_BattlerBase: {},
   Game_BattleMap: {},
@@ -92,6 +93,11 @@ J.CAMods.Aliased = {
 //#endregion Initialization
 
 //#region Game objects
+J.CAMods.Aliased.Game_Action.getAntiNullElementIds = Game_Action.prototype.getAntiNullElementIds;
+Game_Action.prototype.getAntiNullElementIds = function() {
+  // elements that should bypass and count despite being 
+  return [25, 26, 27];
+};
 //#region Game_Actor
 /**
  * Extends the base slots provided to have a duplicate of the 5th type (accessory).

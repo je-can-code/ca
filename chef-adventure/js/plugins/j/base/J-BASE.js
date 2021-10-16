@@ -237,6 +237,15 @@ J.BASE.Traits = {
   ATTACK_SPEED: 33,
 
   /**
+   * Defines the number of times an action will repeat.
+   * Caps at +/- 9 in the editor.
+   * 
+   * In the context of JABS, this adds onto the number of bonus hits an
+   * actor will have globally.
+   */
+  ATTACK_REPEATS: 34,
+
+  /**
    * Defines the skill id.
    * For weapons and enemies, this represents the skill used for attacking.
    * For armor, this does nothing directly- but when used in the context of
@@ -257,6 +266,7 @@ J.BASE.Traits = {
 J.BASE.Aliased = {
   DataManager: {},
   Game_Character: {},
+  Window_Base: {},
   Window_Command: {},
   Window_Selectable: {},
 };

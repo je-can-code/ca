@@ -2919,6 +2919,9 @@ JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack) {
   if (isBasicAttack) {
     // TODO: split "basic attack" bonus hits from "skill" and "all" bonus hits.
     bonusHits += battler.getBonusHits();
+    if (skill.repeats > 1) {
+      bonusHits += skill.repeats - 1;
+    }
   } else {
     // check for skills that may have non-pierce-related bonus hits?
   }
