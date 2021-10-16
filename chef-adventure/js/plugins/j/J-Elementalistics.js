@@ -5,8 +5,6 @@
  * [v1.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @orderAfter J-BASE
  * @help
  * ============================================================================
  * This plugin enables the ability to modify skills with note tags to to
@@ -91,6 +89,7 @@
  * - Enemies
  * - Weapons
  * - Armors
+ * - Skills
  * - States
  * - Classes
  * 
@@ -127,6 +126,10 @@
  * 
  * NOTE:
  * Defining the same element on two different sources does nothing extra.
+ * Additionally, this effect could also be done without this plugin by just
+ * adding a 0%-rate for all elements except the one you want, but if you
+ * have a ton of elements, that might get unwieldly, which is the exact
+ * reason I created this functionality.
  * 
  * TAG USAGE:
  * - Actors
@@ -199,7 +202,9 @@ Game_Action.prototype.calcElementRate = function(target) {
   const baseElement = action.damage.elementId;
 
   // non-elemental skills perform no elemental calculations.
-  if (baseElement === 0) return 1.0;
+  if (baseElement === 0) {
+    return 1.0;
+  }
 
   // initialize elements collection for this action.
   const elements = [baseElement];
@@ -212,6 +217,11 @@ Game_Action.prototype.calcElementRate = function(target) {
   const caster = this.subject();
   if (baseElement === -1) {
     elements.push(...caster.attackElements());
+  }
+
+  // if the "none" element was added, then it will become non-elemental and avoid calculation.
+  if (elements.some(elementId => elementId === 0)) {
+    return 1.0;
   }
 
   // check if the target's strict elements contain the attack elements.
