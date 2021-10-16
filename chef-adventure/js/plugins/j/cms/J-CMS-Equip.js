@@ -46,6 +46,7 @@ J.CMS_E.Metadata.Version = '1.0.0';
 
 J.CMS_E.Aliased = {
   Scene_Equip: {},
+  Window_EquipItem: {},
   Window_EquipSlot: {},
 };
 //#endregion Introduction
@@ -91,7 +92,7 @@ Scene_Equip.prototype.buttonAreaHeight = () => 0;
 /**
  * OVERWRITE Modifies the width of the equip status window.
  */
-Scene_Equip.prototype.statusWidth = () => 900;
+Scene_Equip.prototype.statusWidth = () => 1024;
 
 /**
  * OVERWRITE Modifies the size of the equip slots window.
@@ -120,6 +121,7 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
   if (this._j.moreVisible) {
     this._slotWindow.refreshMoreData();
     this._slotWindow.deactivate();
+    this._moreDataWindow.setHandler("cancel", this.backToSlotsList.bind(this));
     this._moreDataWindow.show();
     this._moreDataWindow.activate();
     this._moreDataWindow.select(0);
@@ -128,6 +130,26 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
     this._moreDataWindow.deactivate();
     this._moreDataWindow.deselect();
     this._slotWindow.activate();
+  }
+};
+
+/**
+ * Toggles the visibility of the "more" window.
+ */
+Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
+  this._j.moreVisible = !this._j.moreVisible;
+  if (this._j.moreVisible) {
+    this._itemWindow.refreshMoreData();
+    this._itemWindow.deactivate();
+    this._moreDataWindow.setHandler("cancel", this.backToItemsList.bind(this));
+    this._moreDataWindow.show();
+    this._moreDataWindow.activate();
+    this._moreDataWindow.select(0);
+  } else {
+    this._moreDataWindow.hide();
+    this._moreDataWindow.deactivate();
+    this._moreDataWindow.deselect();
+    this._itemWindow.activate();
   }
 };
 
@@ -151,9 +173,13 @@ Scene_Equip.prototype.createItemWindow = function() {
   this._itemWindow = new Window_EquipItem(rect);
   this._itemWindow.setHelpWindow(this._helpWindow);
   this._itemWindow.setStatusWindow(this._statusWindow);
+  this._itemWindow.setHandler("more", this.switchToMoreDataFromEquipItems.bind(this));
   this._itemWindow.setHandler("ok", this.onItemOk.bind(this));
   this._itemWindow.setHandler("cancel", this.onItemCancel.bind(this));
+  this._itemWindow.setMoreDataWindow(this._moreDataWindow);
+
   this._slotWindow.setItemWindow(this._itemWindow);
+
   this.addWindow(this._itemWindow);
 };
 
@@ -167,7 +193,6 @@ Scene_Equip.prototype.createMoreDataWindow = function() {
   this._moreDataWindow.deactivate();
   this._moreDataWindow.deselect();
   this._moreDataWindow.opacity = 255;
-  this._moreDataWindow.setHandler("cancel", this.backToList.bind(this));
   this.addWindow(this._moreDataWindow);
 };
 
@@ -180,8 +205,12 @@ Scene_Equip.prototype.moreDataRect = function() {
   return new Rectangle(wx, wy, ww, wh);
 };
 
-Scene_Equip.prototype.backToList = function() {
+Scene_Equip.prototype.backToSlotsList = function() {
   this.switchToMoreDataFromEquipSlots();
+};
+
+Scene_Equip.prototype.backToItemsList = function() {
+  this.switchToMoreDataFromEquipItems();
 };
 
 /**
@@ -250,23 +279,30 @@ class Window_MoreEquipData extends Window_MoreData {
     super(rect);
   };
 
+  /**
+   * Compiles the "more data" for the currently selected equipment.
+   */
   makeCommandList() {
     super.makeCommandList();
-    if (!this.item) return;
+    if (!this.item) {
+      this.adjustWindowHeight();
+      return;
+    }
 
+    // add all the various additional data from equipment.
     this.addJaftingRefinementData();
-    this.addSharedCommands();
+    this.addBaseParameterData();
     this.addJabsEquipmentData();
-    this.addEquipmentTraits();
-    
-    this.addWeaponCommands();
-    this.addArmorCommands();
+    this.addEquipmentTraitData();
 
     // always adjust after determining the commands.
     this.adjustWindowHeight();
   };
 
-  addSharedCommands() {
+  /**
+   * Add any applicable base parameter commands from the equipment.
+   */
+  addBaseParameterData() {
     this.item.params.forEach((value, index) => {
       if (!value) return;
 
@@ -275,11 +311,13 @@ class Window_MoreEquipData extends Window_MoreData {
   };
 
   /**
-   * Adds all commands exclusive to showing the more data of a weapon.
+   * Adds a command to the list based on the base parameter matching the given id.
+   * @param {number} paramId The id of the base parameter.
    */
-  addWeaponCommands() {
-    if (!this.weaponSelected()) return;
-    console.log(this.item);
+  addBaseParameterCommand(paramId) {
+    const baseValue = this.item.params[paramId];
+    const commandName = `${TextManager.param(paramId)}: ${baseValue}`;
+    this.addCommand(commandName, null, true, null, IconManager.param(paramId), 0);
   };
 
   /**
@@ -288,29 +326,61 @@ class Window_MoreEquipData extends Window_MoreData {
   addJabsEquipmentData() {
     if (!this.item._j) return;
 
-    const { bonusHits, skillId, speedBoost } = this.item._j;
+    this.addHitsCommand();
+    this.addSkillCommands();
+    this.addSpeedBoostCommand();
+  };
 
-    const hitBonusCommand = `Hit Count: x${bonusHits+1}`;
-    const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
-    this.addCommand(hitBonusCommand, null, true, null, hitBonusIcon, 0);  
+  /**
+   * Add the "bonus hits" command. Usually goes on weapons, but if bonus hits exist on other 
+   * types of equipment, then we'll report those, too.
+   */
+  addHitsCommand() {
+    const { bonusHits } = this.item._j;
+    const isWeapon = this.item.etypeId === 1;
+    if (bonusHits || isWeapon) {
+      const bonus = isWeapon ? 1 : 0;
+      const command = isWeapon ? `Hit Count` : `Bonus Hits`;
+      const hitBonusCommand = `${command}: x${bonusHits+bonus}`;
+      const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
+      this.addCommand(hitBonusCommand, null, true, null, hitBonusIcon, 0);  
+    }
+  };
 
+  /**
+   * Add the the appropriate skill and combo commands as-needed.
+   */
+  addSkillCommands() {
+    const { skillId } = this.item._j;
+    if (skillId) {
+      const baseAttackskill = $dataSkills[skillId];
+      const comboSkillList = this.recursivelyFindAllComboSkillIds(skillId);
+      let baseAttackSkillCommand = (this.item.etypeId === 2) ? `Offhand Skill` : `Attack Skill`;
+      if (comboSkillList.length) {
+        baseAttackSkillCommand = `Combo Starter`;
+      }
+  
+      const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${baseAttackskill.name}\\C[0]`;
+      this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex, 0);
+      if (comboSkillList.length) {
+        comboSkillList.forEach((skillId, index) => {
+          const skill = $dataSkills[skillId];
+          const commandName = `Combo Skill ${index+1}: \\C[2]${skill.name}\\C[0]`;
+          this.addCommand(commandName, null, true, null, skill.iconIndex, 0);
+        });
+      }
+    }
+  };
+
+  /**
+   * Add any speed boost adjustments from the equipment.
+   */
+  addSpeedBoostCommand() {
+    const { speedBoost } = this.item._j;
     if (speedBoost) {
       const speedBoostCommand = `Speed Boost: ${speedBoost}`;
       const speedBoostIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.SPEED_BOOST)
       this.addCommand(speedBoostCommand, null, true, null, speedBoostIcon, 0);
-    }
-
-    const baseAttackskill = $dataSkills[skillId];
-    const comboSkillList = this.recursivelyFindAllComboSkillIds(skillId);
-    const baseAttackSkillCommand = comboSkillList.length ? `Combo Starter` : `Attack Skill`;
-    const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${baseAttackskill.name}\\C[0]`;
-    this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex, 0);
-    if (comboSkillList.length) {
-      comboSkillList.forEach((skillId, index) => {
-        const skill = $dataSkills[skillId];
-        const commandName = `Combo Skill ${index+1}: \\C[2]${skill.name}\\C[0]`;
-        this.addCommand(commandName, null, true, null, skill.iconIndex, 0);
-      });
     }
   };
 
@@ -324,14 +394,15 @@ class Window_MoreEquipData extends Window_MoreData {
   recursivelyFindAllComboSkillIds(skillId, list = []) {
     const skillIdList = list;
     const skill = $dataSkills[skillId];
-    if (skill._j.combo && !skill._j.freeCombo) {
+    const shouldRecurse = (s) => (s && s._j && s._j.combo && !s._j.freeCombo);
+    if (shouldRecurse(skill)) {
       const foundComboSkill = skill._j.combo[0];
       skillIdList.push(foundComboSkill);
       return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
     } else {
       return skillIdList;
     }
-  }
+  };
 
   /**
    * Adds all commands related to JAFTING on the equipment.
@@ -392,21 +463,14 @@ class Window_MoreEquipData extends Window_MoreData {
   };
 
   /**
-   * Adds a command to the list based on the base parameter matching the given id.
-   * @param {number} paramId The id of the base parameter.
+   * Adds all trait commands on the equipment.
    */
-  addBaseParameterCommand(paramId) {
-    const baseValue = this.item.params[paramId];
-    const commandName = `${TextManager.param(paramId)}: ${baseValue}`;
-    this.addCommand(commandName, null, true, null, IconManager.param(paramId), 0);
-  };
-
-  addEquipmentTraits() {
+  addEquipmentTraitData() {
     // we have no traits.
     const allTraits = this.item.traits;
     if (!allTraits.length) return;
 
-    const xparamNoPercents = [0, 2, 8]; // code 22
+    const xparamNoPercents = [0, 2, 7, 8, 9]; // code 22
     const sparamNoPercents = [1]; // code 23
     const dividerIndex = allTraits.findIndex(trait => trait.code === J.BASE.Traits.NO_DISAPPEAR);
     const hasDivider = dividerIndex !== -1;
@@ -450,33 +514,45 @@ class Window_MoreEquipData extends Window_MoreData {
       this.addCommand(commandName, null, true, null, commandIcon, commandColor);
     });
   };
-
-  /**
-   * 
-   * @param {number} paramId The id of the base parameter.
-   */
-  addBaseParameterTraitCommand(paramId) {
-    let commandName = `${TextManager.param(paramId)}: `;
-    const traitBonus = this.item.traits
-      .filter(trait => trait.code === J.BASE.Traits.B_PARAMETER && trait.dataId === paramId)
-      .reduce((r, trait) => r * trait.value, 1);
-    if (traitBonus && traitBonus !== 1) {
-      const sign = traitBonus > 1 ? '+' : '-';
-      const value = ((traitBonus - 1) * 100).toFixed(0);
-      commandName += ` ${sign}${value}%`;
-      this.addCommand(commandName, null, true, null, IconManager.param(paramId), 0);
-    }
-  };
-
-  /**
-   * Adds all commands exclusive to showing the more data of a armor.
-   */
-  addArmorCommands() {
-    if (!this.armorSelected()) return;
-    console.log(this.item);
-  };
 };
 //#endregion Window_MoreEquipData
+
+//#region Window_EquipItem
+/**
+ * Extends the `.initialize()` to include tracking for the more equip data window.
+ */
+J.CMS_E.Aliased.Window_EquipItem.initialize = Window_EquipItem.prototype.initialize;
+Window_EquipItem.prototype.initialize = function(rect) {
+  J.CMS_E.Aliased.Window_EquipItem.initialize.call(this, rect);
+  /**
+   * The more data window to manipulate.
+   * @type {Window_MoreEquipData}
+   */
+  this._moreDataWindow = null;
+};
+
+/**
+ * Refreshes the more data window.
+ */
+Window_EquipItem.prototype.refreshMoreData = function() {
+  this.onIndexChange();
+};
+
+/**
+ * Updates the "more" window to point to the new index's item.
+ */
+Window_EquipItem.prototype.onIndexChange = function() {
+  this._moreDataWindow.setItem(this.item());
+};
+
+/**
+ * Associates the more equip data window to this one for observation.
+ * @param {Window_MoreEquipData} moreDataWindow The window to attach to this.
+ */
+Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
+  this._moreDataWindow = moreDataWindow;
+};
+//#endregion Window_EquipItem
 
 //#region Window_EquipSlot
 /**
@@ -514,5 +590,261 @@ Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow) {
   this._moreDataWindow = moreDataWindow;
 };
 //#endregion Window_EquipSlot
+
+//#region Window_EquipStatus
+/**
+ * Gets the parameter bitmap width.
+ * @returns {number} The parameter bitmap width.
+ */
+Window_EquipStatus.prototype.paramWidth = () => 64;
+
+/**
+ * Draws all parameters.
+ */
+Window_EquipStatus.prototype.drawAllParams = function() {
+  this.drawAllBParams(0, 192);
+  this.drawAllXParams(360, 0);
+  this.drawAllSParams(360, 380);
+};
+
+//#region b-parameters
+/**
+ * Draws all b-parameters and their changed values.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawAllBParams = function(ox, oy) {
+  const params = [0, 1, 2, 3, 4, 5, 6, 7];
+  params.forEach((_, paramId) => {
+    this.drawBParamName(paramId, ox, oy);
+    this.drawCurrentBParam(paramId, ox, oy);
+    this.drawNextBParam(paramId, ox, oy);
+  });
+};
+
+/**
+ * Draws the name of the parameter.
+ * @param {number} paramId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = paramId;
+  const rowY = (this.lineHeight() * row) + oy;
+  const paramIcon = IconManager.param(paramId);
+  const paramName = TextManager.param(paramId);
+  this.drawIcon(paramIcon, ox, rowY);
+  this.resetTextColor();
+  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+};
+
+/**
+ * Draws the current value that the parameter is now.
+ * @param {number} paramId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawCurrentBParam = function(paramId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = paramId;
+  const rowX = ox + 100 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+  this.resetTextColor();
+  const current = this._actor.param(paramId);
+  this.drawText(current, rowX, rowY, paramWidth, "right");
+};
+
+/**
+ * Draws the projected value that the parameter will be if equipped.
+ * @param {number} paramId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy) {
+  if (!this._tempActor) return;
+
+  const paramWidth = this.paramWidth();
+  const row = paramId;
+  const rowX = ox + 160 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+
+  // determine difference to draw arrow correctly.
+  const newValue = this._tempActor.param(paramId);
+  const diffValue = newValue - this._actor.param(paramId);
+  this.drawModifierArrow(rowX+16, rowY, diffValue);
+
+  // draw the new value.
+  this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
+  this.drawText(newValue, rowX+56, rowY, paramWidth, "left");
+};
+//#endregion b-parameters
+
+//#region x-parameters
+/**
+ * Draws all x-params.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawAllXParams = function(ox, oy) {
+  const xparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  xparams.forEach((_, xparamId) => {
+    this.drawXParamName(xparamId, ox, oy);
+    this.drawCurrentXParam(xparamId, ox, oy);
+    this.drawNextXParam(xparamId, ox, oy);
+  });
+};
+
+/**
+ * Draws the name of the parameter.
+ * @param {number} xparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = xparamId;
+  const rowY = (this.lineHeight() * row) + oy;
+  const paramIcon = IconManager.xparam(xparamId);
+  const paramName = TextManager.xparam(xparamId);
+  this.drawIcon(paramIcon, ox, rowY);
+  this.resetTextColor();
+  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+};
+
+/**
+ * Draws the current value that the parameter is now.
+ * @param {number} xparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawCurrentXParam = function(xparamId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = xparamId;
+  const rowX = ox + 100 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+  this.resetTextColor();
+  const current = (this._actor.xparam(xparamId) * 100).toFixed(0);
+  this.drawText(current, rowX, rowY, paramWidth, "right");
+};
+
+/**
+ * Draws the projected value that the parameter will be if equipped.
+ * @param {number} xparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy) {
+  if (!this._tempActor) return;
+
+  const paramWidth = this.paramWidth();
+  const row = xparamId;
+  const rowX = ox + 160 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+
+  // determine difference to draw arrow correctly.
+  const newValue = this._tempActor.xparam(xparamId);
+  const displayedNewValue = (newValue * 100).toFixed(0);
+  const diffValue = newValue - this._actor.xparam(xparamId);
+  this.drawModifierArrow(rowX+16, rowY, diffValue);
+
+  // draw the new value.
+  this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
+  this.drawText(displayedNewValue, rowX+56, rowY, paramWidth, "left");
+};
+//#endregion x-parameters
+
+//#region s-parameters
+/**
+ * Draws all s-params.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawAllSParams = function(ox, oy) {
+  const sparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  sparams.forEach((_, xparamId) => {
+    this.drawSParamName(xparamId, ox, oy);
+    this.drawCurrentSParam(xparamId, ox, oy);
+    this.drawNextSParam(xparamId, ox, oy);
+  });
+};
+
+/**
+ * Draws the name of the parameter.
+ * @param {number} sparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = sparamId;
+  const rowY = (this.lineHeight() * row) + oy;
+  const paramIcon = IconManager.sparam(sparamId);
+  const paramName = TextManager.sparam(sparamId);
+  this.drawIcon(paramIcon, ox, rowY);
+  this.resetTextColor();
+  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+};
+
+/**
+ * Draws the current value that the parameter is now.
+ * @param {number} sparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawCurrentSParam = function(sparamId, ox, oy) {
+  const paramWidth = this.paramWidth();
+  const row = sparamId;
+  const rowX = ox + 100 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+  this.resetTextColor();
+  const current = (this._actor.sparam(sparamId) * 100 - 100).toFixed(0);
+  this.drawText(current, rowX, rowY, paramWidth, "right");
+};
+
+/**
+ * Draws the projected value that the parameter will be if equipped.
+ * @param {number} sparamId The parameter id.
+ * @param {number} ox The origin x.
+ * @param {number} oy The origin y.
+ */
+Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy) {
+  if (!this._tempActor) return;
+
+  const paramWidth = this.paramWidth();
+  const row = sparamId;
+  const rowX = ox + 160 + paramWidth;
+  const rowY = (this.lineHeight() * row) + oy;
+
+  // determine difference to draw arrow correctly.
+  const newValue = this._tempActor.sparam(sparamId);
+  const displayedNewValue = (newValue * 100 - 100).toFixed(0);
+  const diffValue = newValue - this._actor.sparam(sparamId);
+  this.drawModifierArrow(rowX+16, rowY, diffValue);
+
+  // draw the new value.
+  this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
+  this.drawText(displayedNewValue, rowX+56, rowY, paramWidth, "left");
+};
+//#endregion s-parameters
+
+Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue) {
+  const rightArrowWidth = this.rightArrowWidth();
+  this.changeTextColor(ColorManager.systemColor());
+  const character = this.arrowCharacter(diffValue);
+  this.drawText(character, x, y, rightArrowWidth, "center");
+};
+
+Window_EquipStatus.prototype.arrowCharacter = function(diffValue) {
+  if (diffValue > 0) {
+    return "↗️";
+  } else if (diffValue < 0) {
+    return "↘️";
+  } else {
+    return "\u2192";
+  }
+};
+//#endregion Window_EquipStatus
+
 //#endregion Window objects
 //ENDFILE

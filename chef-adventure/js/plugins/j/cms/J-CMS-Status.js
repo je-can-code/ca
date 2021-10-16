@@ -164,7 +164,7 @@ class Window_StatusParameters extends Window_Base {
    */
   constructor(rect) {
     super(rect);
-    this.initialize(rect);
+    super.initialize(rect);
     this.initMembers();
   };
 
@@ -328,10 +328,12 @@ class Window_StatusParameters extends Window_Base {
    * @param {number} colorIndex The color index for this parameter.
    */
   drawParameter(name, value, iconIndex, x, y, colorIndex = 0) {
+    this.resetTextColor();
     const modifiedX = x + 36;
     this.drawIcon(iconIndex, x, y);
-    this.drawTextEx(`${name}`, modifiedX, y, 200);
-    this.drawTextEx(`\\C[${colorIndex}]${value}\\C[0]`, modifiedX+200, y, 250, "right");
+    this.drawText(`${name}`, modifiedX, y, 200);
+    this.changeTextColor(ColorManager.textColor(colorIndex));
+    this.drawText(`${value}`, modifiedX+200, y, 250);
   };
 
   /**
@@ -343,8 +345,12 @@ class Window_StatusParameters extends Window_Base {
    * @param {number} colorIndex The color index for the title.
    */
   drawTitle(text, x, y, iconIndex = 0, colorIndex = 1) {
+    this.resetTextColor();
     this.drawIcon(iconIndex, x, y+16);
-    this.drawTextEx(`\\{\\C[${colorIndex}]${text}\\C[0]\\}`, x+32, y+8, 350);
+    this.changeTextColor(ColorManager.textColor(colorIndex));
+    this.contents.fontSize += 12;
+    this.drawText(text, x+32, y+16, 350);
+    this.contents.fontSize -= 12;
   };
 };
 //#endregion Window_StatusParameters

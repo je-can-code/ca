@@ -294,9 +294,6 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
     text = text.replace(/\x1bV\[(\d+)\]/gi, (_, p1) =>
         $gameVariables.value(parseInt(p1))
     );
-    text = text.replace(/\x1bV\[(\d+)\]/gi, (_, p1) =>
-        $gameVariables.value(parseInt(p1))
-    );
     text = text.replace(/\x1bN\[(\d+)\]/gi, (_, p1) =>
         this.actorName(parseInt(p1))
     );
