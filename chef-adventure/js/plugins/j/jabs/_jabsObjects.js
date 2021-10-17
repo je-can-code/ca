@@ -3490,7 +3490,7 @@ class Game_BattleMap {
    * Handles the defeat of the battler the player is currently controlling.
    */
   handleDefeatedPlayer() {
-    // TODO: gameover calls this like 100 times, make it stop.
+    //? TODO: gameover calls this like 100 times, make it stop.
     this.rotatePartyMembers();
   };
 
@@ -4910,24 +4910,6 @@ Game_Event.prototype.event = function() {
   }
 
   return J.ABS.Aliased.Game_Event.event.call(this);
-  /*
-  const base = J.ABS.Aliased.Game_Event.event.call(this);
-  if (!!base) {
-    // its a regular event or battler.
-    return base;
-  }
-  else {
-    // it's not a regular event on the map, it's an action!
-    const id = this._eventId;
-    const eventDatas = $dataMap.events.filter(event => {
-      const isNotNull = !!event;
-      const isAction = isNotNull && event.isAction;
-      return (isNotNull && isAction);
-    });
-
-    return eventDatas.find(ev => id === ev.id);
-  }
-  */
 };
 
 /**
@@ -4940,10 +4922,6 @@ Game_Event.prototype.findProperPageIndex = function() {
     const test = J.ABS.Aliased.Game_Event.findProperPageIndex.call(this);
     if (Number.isInteger(test)) return test;
   } catch (err) {
-    console.log($dataMap.events);
-    console.log($gameMap._events);
-    console.error(this);
-    console.error("something went wrong", err);
     return -1;
   }
 };
@@ -4967,6 +4945,27 @@ Game_Event.prototype.refresh = function() {
   } else {
     J.ABS.Aliased.Game_Event.refresh.call(this);
   }
+};
+
+/**
+ * Extends this method to accommodate for the possibility of that one
+ * error propping up where an attempt to update an event that is no longer
+ * available for updating causing the game to crash.
+ */
+J.ABS.Aliased.Game_Event.page = Game_Event.prototype.page;
+Game_Event.prototype.page = function() {
+  if (this.event()) {
+    return J.ABS.Aliased.Game_Event.page.call(this);
+  }
+
+  //! TODO: look into this, ya lazy bum!
+  /*
+  console.log($dataMap.events);
+  console.log($gameMap._events);
+  console.warn(this);
+  console.warn('that thing happened again, you should probably look into this.');
+  */
+  return null;
 };
 
 /**

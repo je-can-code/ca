@@ -239,7 +239,7 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const itemId = parseInt(parsedTool.itemId);
       const weaponId = parseInt(parsedTool.weaponId);
       const armorId = parseInt(parsedTool.armorId);
-      const quantity = parseInt(parsedTool.quantity);
+      const quantity = parseInt(parsedTool.num);
       if (itemId) {
         const newItemTool = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedTools.push(newItemTool);
@@ -262,7 +262,7 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
       const itemId = parseInt(parsedOutput.itemId);
       const weaponId = parseInt(parsedOutput.weaponId);
       const armorId = parseInt(parsedOutput.armorId);
-      const quantity = parseInt(parsedOutput.quantity);
+      const quantity = parseInt(parsedOutput.num);
       if (itemId) {
         const newItemOutput = new JAFTING_Component(itemId, `i`, quantity, false);
         parsedOutputs.push(newItemOutput);

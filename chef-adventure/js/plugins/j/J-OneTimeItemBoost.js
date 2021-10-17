@@ -7,6 +7,7 @@
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
  * @orderAfter J-BASE
+ * @orderAfter J-TpGrowth
  * @help
  * ============================================================================
  * This plugin allows items to grant a permanent one time bonus when used.
@@ -20,41 +21,28 @@
  * parsed will be used.
  * ============================================================================
  * 
- * @param OTIBConfigs
- * @text OneTimeItemBoost SETUP
- * 
  * @param OTIBs
  * @text Item Boost List
- * @parent OTIBConfigs
  * @type struct<OneTimeItemBoostStruct>[]
  * @desc A collection of all items that have these one time item boosts on them.
  * @default []
  * 
 */
 /*~struct~OneTimeItemBoostStruct:
- * @param overview
- * @text MAIN DATA
- * 
  * @param itemId
- * @parent overview
  * @type item
  * @text Item
  * @desc The item being consumed that will grant these permanent one time boosts.
  * @default 1
  * 
  * @param boosts
- * @parent overview
  * @type struct<OneTimeItemBoostParamStruct>[]
  * @text Parameter Boosts
  * @desc The collection of all boosts that this item grants once.
  * @default []
  */
 /*~struct~OneTimeItemBoostParamStruct:
- * @param overview
- * @text PARAM DATA
- * 
  * @param parameterId
- * @parent overview
  * @text Parameter Id
  * @desc 0-7 are core parameters, 8-17 are ex-parameters, 18-27 are sp-parameters.
  * @type number
@@ -63,6 +51,8 @@
  * @value 0
  * @option Max MP
  * @value 1
+ * @option Max TP
+ * @value 28
  * @option Power
  * @value 2
  * @option Endurance
@@ -118,7 +108,6 @@
  * @default 0
  * 
  * @param boost
- * @parent overview
  * @type number
  * @min -9999999
  * @text Boost Value
@@ -127,7 +116,6 @@
  * @default 0
  * 
  * @param isPercent
- * @parent overview
  * @type boolean
  * @text Is Percent Boost
  * @desc If this is true, then the boost will be percent.
@@ -250,7 +238,6 @@ DataManager.extractSaveContents = function(contents) {
         foundBoost.parameterData = otib.parameterData;
       } else {
         actor._j._otibs.push(otib);
-        actor._j._otibs.sort();
       }
     });
 
@@ -264,6 +251,9 @@ DataManager.extractSaveContents = function(contents) {
         actor._j._otibs.splice(stillExists, 1);
       }
     });
+
+    // sort when we're all done because we like to keep porganized.
+    actor._j._otibs.sort();
   });
 
   J.OTIB.Aliased.DataManager.extractSaveContents.call(this, contents);
@@ -407,6 +397,40 @@ Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, basePar
 };
 
 /**
+ * Calculates the value of the bonus stats for this actor's max TP.
+ * @returns {number}
+ */
+Game_Actor.prototype.getOtibBonusForMaxTp = function() {
+  // if we have no boosts, then don't process.
+  /** @type {OneTimeItemBoost[]} */
+  let otibs = this.getAllOtibs();
+  if (!otibs.length) return 0;
+
+  // filter to only the unlocked boosts.
+  otibs = otibs.filter(otib => otib.isUnlocked());
+  if (!otibs.length) return 0;
+
+  let otibsModifications = 0;
+  otibs.forEach(otib => {
+    otib.parameterData.forEach(otibParam => {
+      // don't process this boost param.
+      if (!(otibParam.paramId === 28)) return;
+
+      const boost = otibParam.boost;
+      if (otibParam.isPercent) {
+        // if it is a percent, then multiply and divide
+        otibsModifications += Math.floor(baseParam * (boost / 100));
+      } else {
+        // otherwise it is a flat boost.
+        otibsModifications += boost;
+      }
+    });
+  });
+
+  return otibsModifications;
+};
+
+/**
  * Extends the base parameters with the OTIB bonuses.
  */
 J.OTIB.Aliased.Game_Actor.param = Game_Actor.prototype.param;
@@ -437,6 +461,16 @@ Game_Actor.prototype.sparam = function(sparamId) {
   const otibModifications = this.getOtibBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + otibModifications;
   return result;
+};
+
+/**
+ * Extends the max TP to include any bonuses for that, too.
+ */
+J.OTIB.Aliased.Game_Actor.maxTp = Game_Actor.prototype.maxTp;
+Game_Actor.prototype.maxTp = function() {
+  const baseMaxTp = J.OTIB.Aliased.Game_Actor.maxTp.call(this);
+  const otibModifications = this.getOtibBonusForMaxTp();
+  return baseMaxTp + otibModifications;
 };
 //#endregion Game_Actor
 

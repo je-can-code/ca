@@ -330,17 +330,36 @@ class IconManager {
    */
   static element(elementId) {
     switch(elementId) {
-      case -1: return 1;  // inherits element from parent.
-      case 0: return 127; // no type.
-      case 1: return 912; // 
-      case 2: return 913;
-      case 3: return 914;
-      case 4: return 915;
-      case 5: return 916;
-      case 6: return 917;
-      case 7: return 918;
-      case 8: return 919;
-      case 9: return 920;
+      case -1: return 1;   // inherits element from parent.
+      case  0: return 70;  // true
+      case  1: return 912; // cut
+      case  2: return 913; // poke
+      case  3: return 914; // blunt
+      case  4: return 915; // heat
+      case  5: return 916; // liquid
+      case  6: return 917; // air
+      case  7: return 918; // ground
+      case  8: return 919; // energy
+      case  9: return 920; // void
+      case 10: return 127; // typeless
+      case 11: return 302; // vs undead
+      case 12: return 321; // vs reptile
+      case 13: return 345; // vs aquatic
+      case 14: return 342; // vs slime
+      case 15: return 184; // vs plants
+      case 16: return 2112;// vs beast
+      case 17: return 348; // vs insect
+      case 18: return 82;  // vs humanoid
+      case 19: return 83;  // vs construct
+      case 20: return 2192;// vs deity
+      case 21: return 403; // x weaponry
+      case 22: return 364; // x flying
+      case 23: return 453; // x shields
+      case 24: return 72;  // x aura
+      case 25: return 200; // tool shatter
+      case 26: return 218; // tool crush
+      case 27: return 1904;// tool ignite
+      default: return 93;  // a question mark for the unknown.
     }
   };
 

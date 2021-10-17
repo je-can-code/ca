@@ -713,7 +713,7 @@ Game_Actor.prototype.addNewPanelRanking = function(key) {
     return;
   }
 
-  const panelRanking = new PanelRanking(key);
+  const panelRanking = new PanelRanking(key, this.actorId());
   this._j._sdp._ranks.push(panelRanking);
 };
 
@@ -1176,6 +1176,12 @@ class Scene_SDP extends Scene_MenuBase {
        * @type {Game_Actor}
        */
       _currentActor: null,
+
+      /**
+       * Whether or not this scene has been initialized.
+       * @type {boolean}
+       */
+      _initialized: false,
     };
   };
 
@@ -1259,7 +1265,7 @@ class Scene_SDP extends Scene_MenuBase {
     this._j._sdpListWindow.setHandler('ok', this.onSelectPanel.bind(this));
     this._j._sdpListWindow.setHandler('pagedown', this.cycleMembers.bind(this, true));
     this._j._sdpListWindow.setHandler('pageup', this.cycleMembers.bind(this, false));
-    this._j._sdpListWindow.setActor($gameParty.leader());
+    this._j._sdpListWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpListWindow);
   };
 
@@ -1273,7 +1279,7 @@ class Scene_SDP extends Scene_MenuBase {
     const y = 0;
     const rect = new Rectangle(x, y, width, height);
     this._j._sdpDetailsWindow = new Window_SDP_Details(rect);
-    this._j._sdpDetailsWindow.setActor($gameParty.leader());
+    this._j._sdpDetailsWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpDetailsWindow);
   };
 
@@ -1300,7 +1306,7 @@ class Scene_SDP extends Scene_MenuBase {
     const y = 0;
     const rect = new Rectangle(x, y, width, height);
     this._j._sdpPointsWindow = new Window_SDP_Points(rect);
-    this._j._sdpPointsWindow.setActor($gameParty.leader());
+    this._j._sdpPointsWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpPointsWindow);
   };
 

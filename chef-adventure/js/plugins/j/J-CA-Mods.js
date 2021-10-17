@@ -93,11 +93,14 @@ J.CAMods.Aliased = {
 //#endregion Initialization
 
 //#region Game objects
+//#region Game_Action
 J.CAMods.Aliased.Game_Action.getAntiNullElementIds = Game_Action.prototype.getAntiNullElementIds;
 Game_Action.prototype.getAntiNullElementIds = function() {
   // elements that should bypass and count despite being 
   return [25, 26, 27];
 };
+//#endregion Game_Action
+
 //#region Game_Actor
 /**
  * Extends the base slots provided to have a duplicate of the 5th type (accessory).
@@ -346,11 +349,16 @@ Game_Player.prototype.distancePerFrame = function() {
 //#endregion Game objects
 
 //#region Scene objects
+Scene_Base.prototype.buttonAreaHeight = function() {
+  return 0;
+};
+Scene_Base.prototype.createButtons = function() { };
+
 //#region Scene_Map
 /**
  * OVERWRITE Removes the buttons on the map/screen.
  */
-Scene_Map.prototype.createButtons = function() { return; };
+Scene_Map.prototype.createButtons = function() { };
 //#endregion Scene_Map
 //#endregion Scene objects
 
