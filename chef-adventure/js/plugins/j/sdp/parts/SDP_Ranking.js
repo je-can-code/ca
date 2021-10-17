@@ -25,11 +25,18 @@ PanelRanking.prototype.constructor = PanelRanking;
  * Initializes a single panel ranking for tracking on a given actor.
  * @param {string} key The unique key for the panel to be tracked.
  */
-PanelRanking.prototype.initialize = function(key) {
+PanelRanking.prototype.initialize = function(key, actorId) {
   /**
    * The key for this panel ranking.
+   * @type {string}
    */
   this.key = key;
+
+  /**
+   * The id of the actor that owns this ranking.
+   * @type {number}
+   */
+  this.actorId = actorId;
   this.initMembers();
 };
 
@@ -82,7 +89,7 @@ PanelRanking.prototype.isPanelMaxed = function() {
  * @param {number} newRank The rank to inspect and execute effects for.
  */
 PanelRanking.prototype.performRankupEffects = function(newRank) {
-  const a = $gameParty.leader();
+  const a = $gameActors.actor(this.actorId);
   const rewardEffects = $gameSystem
     .getSdp(this.key)
     .getPanelRewardsByRank(newRank);

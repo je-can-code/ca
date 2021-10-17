@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 TPGROW] Allows TP max to grow like other params.
+ * [v1.0 TPGROW] Allows TP max to be dynamic rather than static 100.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help

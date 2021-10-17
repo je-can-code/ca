@@ -336,7 +336,7 @@ Game_Action.prototype.calculateAntiNullElementalRate = function(target, attackEl
   const nonNullRate = filteredElements.reduce(reducer, 1);
 
   // and return the "factor form" of the non-nullable elemental product.
-  return nonNullRate / 100;
+  return nonNullRate;
 };
 
 /**
@@ -349,38 +349,11 @@ Game_Action.prototype.calculateAntiNullElementalRate = function(target, attackEl
  * @returns {number} The "factor form" of the rate.
  */
 Game_Action.prototype.calculateMultipleElementalRate = function(target, attackElements) {
-  // calculate the rates for all the incoming attack elements.
-  const rates = attackElements.map(elementId => target.elementRate(elementId));
-
-  // get all the resistance and weakness rates together into separate arrays.
-  const resistElementRates = rates.filter(rate => rate < 100);
-  const weaknessElementRates = rates.filter(rate => rate > 100);
-
-  // if we don't have any elements to work with that are non-100, then return factor from of 1.
-  if (!resistElementRates.length && !weaknessElementRates.length) {
-    return 1;
-  }
-
-  // the reducer for multiplying together all the rates.
-  const reducer = (previousRate, currentRate) => previousRate * currentRate;
-
-  // multiply together all things it is strong to.
-  let resistRate = 1;
-  if (resistElementRates.length) {
-    resistRate = resistElementRates.reduce(reducer, 1);
-  }
-  
-  // multiply together all things it is weak to.
-  let weaknessRate = 1;
-  if (weaknessElementRates.length) {
-    weaknessRate = weaknessElementRates.reduce(reducer, 1);
-  }
-
-  // multiply these two rates together.
-  const elementalRate = resistRate * weaknessRate;
-
-  // and return the "factor form" of the elemental product.
-  return elementalRate / 100;
+  return attackElements
+    // calculate the rates for all the incoming attack elements.
+    .map(elementId => target.elementRate(elementId))
+    // multiply all rates together to get the "factor form".
+    .reduce((previousRate, currentRate) => previousRate * currentRate, 1);
 };
 
 /**
@@ -403,7 +376,7 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements) {
   const absorbRate = absorbRates.reduce(reducer, 1);
 
   // return the product divided by 100 to get into "factor form".
-  return absorbRate / 100;
+  return absorbRate;
 };
 
 /**
