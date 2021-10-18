@@ -415,6 +415,10 @@ Game_Action.prototype.evalDamageFormula = function(target) {
   const a = this.subject();
   const b = target;
   const v = $gameVariables._data;
+  let p = 0;
+  if (J.PROF) {
+    p = this.skillProficiency();
+  }
 
   // whether or not the damage should be multiplied by -1.
   const sign = this.healingFactor(targetAbsorbs);
@@ -432,6 +436,7 @@ Game_Action.prototype.evalDamageFormula = function(target) {
     return isNaN(value) ? 0 : value;
   } catch (e) {
     console.warn(`Error with the damage formula for item/skill id: ${item.id}.`);
+    console.warn(item);
     console.error(e);
     return 0;
   }
