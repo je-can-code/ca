@@ -701,6 +701,10 @@ J.TIME.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContent
 DataManager.extractSaveContents = function(contents) {
   J.TIME.Aliased.DataManager.extractSaveContents2.call(this, contents);
   $gameTime = contents.time;
+  if (!$gameTime) {
+    $gameTime = new Game_Time();
+    console.info('J-Time did not exist in the loaded save file- creating anew.');
+  }
 };
 //#endregion DataManager
 //#endregion Static objects
