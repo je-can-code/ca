@@ -33,7 +33,7 @@ JABS_Battler.prototype.constructor = JABS_Battler;
 /**
  * Initializes this JABS battler.
  * @param {Game_Event} event The event the battler is bound to.
- * @param {Game_Battler} battler The battler data itself.
+ * @param {Game_Actor|Game_Enemy} battler The battler data itself.
  * @param {JABS_BattlerCoreData} battlerCoreData The core data for the battler.
  */
 JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData) {
@@ -45,7 +45,7 @@ JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData) {
 
   /**
    * The battler data that represents this battler's stats and information.
-   * @type {Game_Battler}
+   * @type {Game_Actor|Game_Enemy}
    */
   this._battler = battler;
 
@@ -625,7 +625,8 @@ JABS_Battler.isFar = function(distance) {
  * Determines whether or not the skill id is a guard-type skill or not.
  * @returns {boolean} True if it is a guard skill, false otherwise.
  */
-JABS_Battler.isGuardSkillById = function(id) {
+JABS_Battler.isGuardSkillById = function(id)
+{
   if (!id) return false;
 
   return $dataSkills[id].stypeId === J.ABS.DefaultValues.GuardSkillTypeId;
@@ -635,10 +636,65 @@ JABS_Battler.isGuardSkillById = function(id) {
  * Determines whether or not the skill id is a dodge-type skill or not.
  * @returns {boolean} True if it is a dodge skill, false otherwise.
  */
-JABS_Battler.isDodgeSkillById = function(id) {
+JABS_Battler.isDodgeSkillById = function(id)
+{
   if (!id) return false;
 
   return $dataSkills[id].stypeId === J.ABS.DefaultValues.DodgeSkillTypeId;
+};
+
+/**
+ * Determines whether or not a skill should be visible
+ * in the jabs combat skill assignment menu.
+ * @param skill {rm.types.Skill} The skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
+{
+  const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
+  const isGuardSkillType = JABS_Battler.isGuardSkillById(skill.id);
+  const isWeaponSkillType = JABS_Battler.isWeaponSkillById(skill.id);
+  const needsHiding = skill.meta && skill.meta["hideFromJabsMenu"]; // one-off hiding.
+  return !isDodgeSkillType && !isGuardSkillType && !isWeaponSkillType && !needsHiding;
+};
+
+/**
+ * Determines whether or not a skill should be visible
+ * in the jabs dodge skill assignment menu.
+ * @param skill {rm.types.Skill} The skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
+{
+  const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
+  const needsHiding = skill.meta && skill.meta["hideFromJabsMenu"]; // one-off hiding.
+  return isDodgeSkillType && !needsHiding;
+};
+
+/**
+ * Determines whether or not an item should be visible
+ * in the jabs tool assignment menu.
+ * @param item {rm.types.Item}
+ * @returns {boolean}
+ */
+JABS_Battler.isItemVisibleInToolMenu = function(item)
+{
+  const isItem = DataManager.isItem(item) && item.itypeId === 1;
+  const isUsable = isItem && (item.occasion === 0);
+  const needsHiding = item.meta && item.meta["hideFromJabsMenu"]; // one-off hiding.
+  return isItem && isUsable && !needsHiding;
+};
+
+/**
+ * Determines whether or not the skill id is a weapon-type skill or not.
+ * @param id {number} The id of the skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isWeaponSkillById = function(id)
+{
+  if (!id) return false;
+
+  return $dataSkills[id].stypeId === J.ABS.DefaultValues.WeaponSkillTypeId;
 };
 
 /**
@@ -2066,7 +2122,7 @@ JABS_Battler.prototype.getCharacter = function() {
  * Returns the `Game_Battler` that this `JABS_Battler` represents. 
  * 
  * This may be either a `Game_Actor`, or `Game_Enemy`.
- * @returns {Game_Battler} The `Game_Battler` this battler represents.
+ * @returns {Game_Actor|Game_Enemy} The `Game_Battler` this battler represents.
  */
 JABS_Battler.prototype.getBattler = function() {
   return this._battler;
@@ -3251,31 +3307,65 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
 
 /**
  * Constructs the attack data from this battler's skill slot.
- * @param {string} cooldownKey The key to build the combat action from.
- * @returns {JABS_Action[]} The constructed `JABS_Action`.
+ * @param {string} cooldownKey The cooldown key.
+ * @returns {JABS_Action[]} The constructed `JABS_Action`s.
  */
 JABS_Battler.prototype.getAttackData = function(cooldownKey) {
-  const battler = this.getBattler()
-  const id = battler.getEquippedSkill(cooldownKey);
-  if (!id) return null;
+  const battler = this.getBattler();
 
-  const canUse = battler.canUse($dataSkills[id]);
-  if (!canUse) {
-    return null;
+  // get the skill equipped in the designated slot.
+  let skillId = battler.getEquippedSkill(cooldownKey);
+
+  // if there isn't one, then we don't do anything.
+  if (!skillId) return [];
+
+  // check to make sure we can actually use the skill.
+  const canUse = battler.canUse($dataSkills[skillId]);
+
+  // check to make sure we actually know the skill, too.
+  const hasSkill = battler.hasSkill(skillId);
+
+  // if we don't know the skill or can't use it, then don't do anything.
+  if (!canUse || !hasSkill) return null;
+
+  // if we have combo action data, use that.
+  const comboAction = this.getComboData(cooldownKey);
+  if (comboAction === null) {
+    // do nothing, the combo isn't ready.
+  } else if (comboAction.length) {
+    return comboAction;
   }
 
+  // otherwise, use the skill from the slot to build an action.
+  return this.createMapActionFromSkill(skillId, false, cooldownKey);
+};
+
+/**
+ * Gets the combo data for a particular slot.
+ * @param {string} cooldownKey The cooldown key.
+ * @returns {JABS_Action[]|null} The constructed `JABS_Action`s.
+ */
+JABS_Battler.prototype.getComboData = function(cooldownKey) {
+  const battler = this.getBattler();
+
+  // check the slot for a combo action.
   const comboActionId = this.getComboNextActionId(cooldownKey);
   this.resetComboData(cooldownKey);
   if (comboActionId !== 0) {
+    // check to make sure we can actually use the skill.
     const canUseCombo = battler.canUse($dataSkills[comboActionId]);
-    if (!canUseCombo) {
-      return null;
-    }
+    if (!canUseCombo) return null;
 
+    // check to make sure we actually know the skill, too.
+    const hasSkill = battler.hasSkill(comboActionId);
+    if (!hasSkill) return null;
+
+    // we know and can use the skill, so lets combo it up!
     return this.createMapActionFromSkill(comboActionId, false, cooldownKey);
   }
 
-  return this.createMapActionFromSkill(id, false, cooldownKey);
+  // we came up empty for combos.
+  return null;
 };
 
 /**
@@ -3287,7 +3377,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
   const item = $dataItems[toolId];
   const playerBattler = this.getBattler();
   playerBattler.consumeItem(item);
-  const gameAction = new Game_Action(playerBattler);
+  const gameAction = new Game_Action(playerBattler, false);
   gameAction.setItem(toolId);
 
   // handle scopes of the tool.

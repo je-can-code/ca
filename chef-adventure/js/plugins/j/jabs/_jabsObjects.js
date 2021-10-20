@@ -747,7 +747,7 @@ Game_Action.prototype.itemHit = function() {
 /**
  * OVERWRITE Alters this functionality to be determined by attacker's hit vs target's evade.
  * @param {Game_Battler} target The target of this action.
- * @returns {boolean}
+ * @returns {number}
  */
 Game_Action.prototype.itemEva = function(target) {
   switch (true) {
@@ -1774,15 +1774,15 @@ class Game_BattleMap {
    * Executes an action on the map based on the mainhand skill slot.
    */
   performMainhandAction() {
-    const battler = this.getPlayerMapBattler();
-    if (!this.isMainhandActionReady() || !battler.canBattlerUseAttacks()) {
-      return;
-    }
-    const actions = battler.getAttackData(Game_Actor.JABS_MAINHAND);
-    if (!actions || !actions.length) return;
+    const jabsBattler = this.getPlayerMapBattler();
+    const canUseMainhand = this.isMainhandActionReady() && jabsBattler.canBattlerUseAttacks();
+    if (!canUseMainhand) return;
+
+    const actions = jabsBattler.getAttackData(Game_Actor.JABS_MAINHAND);
+    if (!actions.length) return;
 
     actions.forEach(action => action.setCooldownType(Game_Actor.JABS_MAINHAND));
-    this.executeMapActions(battler, actions);
+    this.executeMapActions(jabsBattler, actions);
   };
 
   /**
@@ -1790,14 +1790,13 @@ class Game_BattleMap {
    */
   performOffhandAction() {
     const battler = this.getPlayerMapBattler();
-    if (!battler.hasOffhandSkill() ||
-      !this.isOffhandActionReady() ||
-      !battler.canBattlerUseAttacks()) {
-      return;
-    }
+    const canPerformOffhand = battler.hasOffhandSkill() &&
+      this.isOffhandActionReady() &&
+      battler.canBattlerUseAttacks();
+    if (!canPerformOffhand) return;
 
     const actions = battler.getAttackData(Game_Actor.JABS_OFFHAND);
-    if (!actions || !actions.length) return;
+    if (!actions.length) return;
 
     actions.forEach(action => action.setCooldownType(Game_Actor.JABS_OFFHAND));
     this.executeMapActions(battler, actions);
@@ -2134,8 +2133,8 @@ class Game_BattleMap {
    * Iterates over all actions provided and executes them.
    * @param {JABS_Battler} battler The battler executing the action.
    * @param {JABS_Action[]} actions All actions to perform.
-   * @param {number?} targetX The target's `x` coordinate, if applicable.
-   * @param {number?} targetY The target's `y` coordinate, if applicable.
+   * @param {number|null} targetX The target's `x` coordinate, if applicable.
+   * @param {number|null} targetY The target's `y` coordinate, if applicable.
    */
   executeMapActions(battler, actions, targetX = null, targetY = null) {
     // if no actions, then don't actually do anything.
@@ -2783,13 +2782,19 @@ class Game_BattleMap {
   checkComboSequence(caster, action) {
     const combo = action.getBaseSkill()._j.combo;
     if (combo) {
-      const cooldownKey = action.getCooldownType();
-      if (!(caster.getComboNextActionId(cooldownKey) === combo[0])) {
-        caster.modCooldownCounter(cooldownKey, combo[1]);
+      const battler = caster.getBattler();
+      const [skillId, comboDelay] = combo;
+      if (!battler.hasSkill(skillId)) {
+        return;
       }
 
-      caster.setComboFrames(cooldownKey, combo[1]);
-      caster.setComboNextActionId(cooldownKey, combo[0]);
+      const cooldownKey = action.getCooldownType();
+      if (!(caster.getComboNextActionId(cooldownKey) === skillId)) {
+        caster.modCooldownCounter(cooldownKey, comboDelay);
+      }
+
+      caster.setComboFrames(cooldownKey, comboDelay);
+      caster.setComboNextActionId(cooldownKey, skillId);
     }
   };
 
@@ -2958,8 +2963,6 @@ class Game_BattleMap {
    * If the counter rate is sufficient, then automatically perform your counterskills on any
    * incoming passive parry!
    * @param {JABS_Battler} battler The battler performing the counter.
-   * @param {number} counterGuard The skill id for the counterguard skill.
-   * @param {number} counterParry The skill id for the counterparry skill.
    */
   handleAutoCounter(battler) {
     // if we don't have anything to auto-counter with, skip it.
@@ -4677,7 +4680,7 @@ Game_Enemy.prototype.ai = function() {
 /**
  * Gets whether or not an enemy can idle about from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.canIdle = function() {
   let val = J.ABS.Metadata.DefaultEnemyCanIdle;
@@ -4702,7 +4705,7 @@ Game_Enemy.prototype.canIdle = function() {
 /**
  * Gets whether or not an enemy has a visible hp bar from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.showHpBar = function() {
   let val = J.ABS.Metadata.DefaultEnemyShowHpBar;
@@ -4727,7 +4730,7 @@ Game_Enemy.prototype.showHpBar = function() {
 /**
  * Gets whether or not an enemy has a visible danger indicator from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.showDangerIndicator = function() {
   let val = J.ABS.Metadata.DefaultEnemyShowDangerIndicator;
@@ -4752,7 +4755,7 @@ Game_Enemy.prototype.showDangerIndicator = function() {
 /**
  * Gets whether or not an enemy has a visible battler name from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.showBattlerName = function() {
   let val = J.ABS.Metadata.DefaultEnemyShowBattlerName;
@@ -4777,7 +4780,7 @@ Game_Enemy.prototype.showBattlerName = function() {
 /**
  * Gets whether or not an enemy is invincible from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.isInvincible = function() {
   let val = J.ABS.Metadata.DefaultEnemyIsInvincible;
@@ -4802,7 +4805,7 @@ Game_Enemy.prototype.isInvincible = function() {
 /**
  * Gets whether or not an enemy is invincible from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {number}
+ * @returns {boolean}
  */
 Game_Enemy.prototype.isInanimate = function() {
   let val = J.ABS.Metadata.DefaultEnemyIsInanimate;

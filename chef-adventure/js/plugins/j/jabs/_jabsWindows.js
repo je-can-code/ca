@@ -129,18 +129,7 @@ class Window_AbsMenuSelect extends Window_Command {
    */
   makeSkillList() {
     const actor = $gameParty.leader();
-    const skills = actor.skills().filter(skill => {
-      const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
-      const isGuardSkillType = JABS_Battler.isGuardSkillById(skill.id);
-      let needsHiding = false;
-      // supports yanfly's skill core functionality and hides from the menu where applicable.
-      if (skill.meta && skill.meta["Hide if learned Skill"]) {
-        const nextSkillId = parseInt(skill.meta["Hide if learned Skill"]);
-        needsHiding = actor.isLearnedSkill(nextSkillId);
-      }
-
-      return !isDodgeSkillType && !isGuardSkillType && !needsHiding;
-    });
+    const skills = actor.skills().filter(JABS_Battler.isSkillVisibleInCombatMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "skill", true, 0, 16);
     skills.forEach(skill => {
@@ -152,11 +141,7 @@ class Window_AbsMenuSelect extends Window_Command {
    * Fills the list with items in the player's possession to assign.
    */
   makeToolList() {
-    const items = $gameParty.allItems().filter(item => {
-      const isItem = DataManager.isItem(item) && item.itypeId === 1;
-      const isUsable = isItem && (item.occasion === 0);
-      return isItem && isUsable;
-    });
+    const items = $gameParty.allItems().filter(JABS_Battler.isItemVisibleInToolMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "tool", true, 0, 16);
     items.forEach(item => {
@@ -169,11 +154,8 @@ class Window_AbsMenuSelect extends Window_Command {
    * Fills the list with the currently assigned dodge.
    */
   makeDodgeList() {
-    const actor = $gameParty.leader();
-    const skills = actor.skills();
-    const dodgeSkills = skills.filter(skill => {
-      return skill.stypeId === 1;
-    });
+    const skills = $gameParty.leader().skills();
+    const dodgeSkills = skills.filter(JABS_Battler.isSkillVisibleInDodgeMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "dodge", true, 0, 16);
     dodgeSkills.forEach(dodge => {

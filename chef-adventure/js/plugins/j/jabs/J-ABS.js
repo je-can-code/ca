@@ -50,6 +50,13 @@
  * @text Guard Skill Type Id
  * @desc The default id of the skill type that acts as a classification for guard skills.
  * @default 2
+ *
+ * @param weaponSkillTypeId
+ * @parent baseConfigs
+ * @type number
+ * @text Weapon Skill Type Id
+ * @desc The default id of the skill type that acts as a classification for weapon skills.
+ * @default 7
  * 
  * @param enemyDefaultConfigs
  * @text ENEMY BATTLER DEFAULTS
@@ -635,6 +642,7 @@ J.ABS.Metadata.MaxAiUpdateRange = Number(J.ABS.PluginParameters['maxAiUpdateRang
 J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
 J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
 J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['guardSkillTypeId']);
+J.ABS.Metadata.DefaultWeaponSkillTypeId = Number(J.ABS.PluginParameters['weaponSkillTypeId']);
 J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
 J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
 J.ABS.Metadata.DefaultLootExpiration = Number(J.ABS.PluginParameters['defaultLootExpiration']);
@@ -743,32 +751,44 @@ J.ABS.DangerIndicatorIcons = {
 J.ABS.DefaultValues = {
   /**
    * When an enemy JABS battler has no "prepare" defined.
+   * @type {number}
    */
   EnemyNoPrepare: J.ABS.Metadata.DefaultEnemyPrepareTime,
 
   /**
    * The ID of the map that will contain the actions for replication.
+   * @type {number}
    */
   ActionMap: J.ABS.Metadata.DefaultActionMapId,
 
   /**
    * The default animation id for skills when it is set to "normal attack".
    * Typically used for enemies or weaponless battlers.
+   * @type {number}
    */
   AttackAnimationId: J.ABS.Metadata.DefaultAttackAnimationId,
 
   /**
    * The skill category that governs skills that are identified as "dodge" skills.
+   * @type {number}
    */
   DodgeSkillTypeId: J.ABS.Metadata.DefaultDodgeSkillTypeId,
 
   /**
    * The skill category that governs skills that are identified as "guard" skills.
+   * @type {number}
    */
   GuardSkillTypeId: J.ABS.Metadata.DefaultGuardSkillTypeId,
 
   /**
+   * The skill category that governs skills that are identified as "weapon" skills.
+   * @type {number}
+   */
+  WeaponSkillTypeId: J.ABS.Metadata.DefaultWeaponSkillTypeId,
+
+  /**
    * When an item has no cooldown defined.
+   * @type {number}
    */
   CooldownlessItems: J.ABS.Metadata.DefaultToolCooldownTime,
 };

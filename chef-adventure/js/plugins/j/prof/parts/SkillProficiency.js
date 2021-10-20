@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0.0 PROF] Data structure of a skill proficiency.
+ * [v1.0.0 PROF] Data structure of a skill prof.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-Proficiency
@@ -15,7 +15,7 @@
  * A class representing a single trait on a piece of equipment that can be potentially
  * transferred by means of JAFTING's refinement mode. 
  */
-function SkillProficiency() { this.initialize(...arguments); };
+function SkillProficiency() { this.initialize(...arguments); }
 SkillProficiency.prototype = {};
 SkillProficiency.prototype.constructor = SkillProficiency;
 
@@ -27,20 +27,20 @@ SkillProficiency.prototype.initialize = function(
   initialProficiency = 0
 ) {
   /**
-   * The skill id of the skill for this proficiency.
+   * The skill id of the skill for this prof.
    * @type {number}
    */
   this.skillId = skillId;
 
   /**
-   * The proficiency the owning battler bears with this skill.
+   * The prof the owning battler bears with this skill.
    * @type {number}
    */
   this.proficiency = initialProficiency;
 };
 
 /**
- * Gets the underlying skill of this proficiency.
+ * Gets the underlying skill of this prof.
  * @returns {rm.types.Skill}
  */
 SkillProficiency.prototype.skill = function() {
@@ -48,8 +48,8 @@ SkillProficiency.prototype.skill = function() {
 };
 
 /**
- * Adds a given amount of proficiency to the skill's current proficiency.
- * @param {number} value The amount of proficiency to add.
+ * Adds a given amount of prof to the skill's current prof.
+ * @param {number} value The amount of prof to add.
  */
 SkillProficiency.prototype.improve = function(value) {
   this.proficiency += value;
