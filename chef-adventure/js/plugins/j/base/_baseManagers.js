@@ -325,7 +325,7 @@ class IconManager {
 
   /**
    * Gets the corresponding `iconIndex` for the element based on their id.
-   * @param {number} paramId The id of the element.
+   * @param {number} elementId The id of the element.
    * @returns {number}
    */
   static element(elementId) {
@@ -370,16 +370,17 @@ class IconManager {
    */
   static skillType(skillTypeId) {
     switch (skillTypeId) {
-      case  1: return 82;
-      case  2: return 2592;
-      case  3: return 76;
-      case  4: return 79;
-      case  5: return 188;
-      case  6: return 227;
-      case  7: return 68;
-      case  8: return 69;
-      case  9: return 64;
-      case 10: return 67;
+      case  1: return 82;   // dodging skills
+      case  2: return 2592; // guarding skills
+      case  3: return 77;   // techniques (jerald)
+      case  4: return 79;   // magecraft (rupert)
+      case  5: return 188;  // panelogy
+      case  6: return 227;  // tool skills
+      case  7: return 76;   // weapon skills
+      case  8: return 68;   // geology (earthie)
+      case  9: return 69;   // nephology (skye)
+      case 10: return 64;   // magmology (cynder)
+      case 11: return 67;   // hydrology (aqualocke)
       default: return 0;
     }
   };

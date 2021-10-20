@@ -140,7 +140,8 @@ class JABS_Action {
     this._pierceTimesLeft =
       this._jabsData.piercing[0] + this._caster.getAdditionalHits(
         this._baseSkill,
-        this._actionCooldownType === Game_Actor.JABS_MAINHAND || this._actionCooldownType === Game_Actor.JABS_OFFHAND);
+        this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
+        this._actionCooldownType === Game_Actor.JABS_OFFHAND);
 
     /**
      * The base pierce delay in frames.
@@ -159,7 +160,7 @@ class JABS_Action {
    * Gets the `uuid` of this action.
    * 
    * If one is not returned, then it is probably a direct action with no event representing it.
-   * @returns {string?}
+   * @returns {string|null}
    */
   getUuid() {
     return this._uuid;
