@@ -2204,7 +2204,6 @@ class Game_BattleMap {
    * @returns {number[]} The collection of directions to fire projectiles off in.
    */
   determineActionDirections(facing, projectile) {
-    console.log(projectile);
     const directions = [];
     switch (projectile) {
       case 1:
@@ -2547,7 +2546,7 @@ class Game_BattleMap {
       targetSprite.requestAnimation(this.getAnimationId(skill, casterMapBattler), result.parried);
 
       // if freecombo-ing, then we already checked for combo when executing the action.
-      if (!skill._j.freeCombo) {
+      if (!skill._j.freeCombo()) {
         this.checkComboSequence(casterMapBattler, action);
       }
 
@@ -2782,7 +2781,7 @@ class Game_BattleMap {
    * @param {JABS_Action} action The action that contains the skill to check for combos.
    */
   checkComboSequence(caster, action) {
-    const combo = action.getBaseSkill()._j.combo;
+    const combo = action.getBaseSkill()._j.combo();
     if (combo) {
       const battler = caster.getBattler();
       const [skillId, comboDelay] = combo;

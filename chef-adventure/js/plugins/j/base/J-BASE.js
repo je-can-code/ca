@@ -363,7 +363,7 @@ J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
  * Parses out a skill chance based on the regex from the reference data.
  * @param {RegExp} structure The RegExp expression to match.
  * @param {rm.types.BaseItem} referenceData The reference data to parse.
- * @returns {JABS_SkillChance}
+ * @returns {JABS_SkillChance[]}
  */
 J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
   // if for some reason there is no note, then don't try to parse it.

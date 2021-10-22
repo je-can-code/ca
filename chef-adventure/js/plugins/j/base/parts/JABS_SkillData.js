@@ -390,7 +390,7 @@ JABS_SkillData.prototype.projectile = function()
 JABS_SkillData.prototype.piercing = function()
 {
   let piercing = [1, 0];
-  const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+])>/i;
   this._notes.forEach(note => {
     if (note.match(structure)) {
       piercing = JSON.parse(RegExp.$1);

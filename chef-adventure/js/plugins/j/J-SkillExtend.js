@@ -58,6 +58,107 @@ Game_Action.prototype.setSkill = function(skillId)
   const skillToSet = OverlayManager.getExtendedSkill(this.subject(), skillId);
   this._item.setObject(skillToSet);
 };
+
+/**
+ * Extends the action application to include applying states to one-self.
+ */
+J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
+Game_Action.prototype.apply = function(target) {
+  J.EXTEND.Aliased.Game_Action.get('apply').call(this, target);
+  this.applyOnHitSelfStates();
+};
+
+/**
+ * Applies all applicable on-hit self states.
+ */
+Game_Action.prototype.applyOnHitSelfStates = function()
+{
+  const caster = this.subject();
+  if (!caster)
+  {
+    // if we don't have a caster, then do nothing.
+    return;
+  }
+
+  // check for all self-inflictable states on this skill.
+  const selfStates = this.onHitSelfStates();
+  this.applyStates(caster, selfStates);
+};
+
+/**
+ * Applies all applicable on-cast self states.
+ */
+Game_Action.prototype.applyOnCastSelfStates = function()
+{
+  const caster = this.subject();
+  if (!caster)
+  {
+    // if we don't have a caster, then do nothing.
+    return;
+  }
+
+  // check for all self-inflictable states on this skill.
+  const selfStates = this.onCastSelfStates();
+  this.applyStates(caster, selfStates);
+};
+
+/**
+ * Gets all possible states that could be self-inflicted
+ * when this skill hits a target.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Action.prototype.onHitSelfStates = function() {
+  // get the skill and its overlays.
+  const skill = this.item();
+  const structure = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const stateChances = [];
+
+  // get all "skill chances" aka "chance to inflict a state" on oneself.
+  const chances = J.BASE.Helpers.parseSkillChance(structure, skill);
+  stateChances.push(...chances);
+
+  return stateChances;
+};
+
+/**
+ * Gets all possible states that could be self-inflicted
+ * when casting this skill.
+ * @returns {JABS_SkillChance[]}
+ */
+Game_Action.prototype.onCastSelfStates = function()
+{
+  // get the skill and its overlays.
+  const skill = this.item();
+  const structure = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const stateChances = [];
+
+  // get all "skill chances" aka "chance to inflict a state" on oneself.
+  const chances = J.BASE.Helpers.parseSkillChance(structure, skill);
+  stateChances.push(...chances);
+
+  return stateChances;
+};
+
+/**
+ * Applies the given states to the target.
+ * @param target {Game_Actor|Game_Enemy} The targe to apply states to.
+ * @param stateChances {JABS_SkillChance[]} The various states to potentially apply.
+ */
+Game_Action.prototype.applyStates = function(target, stateChances)
+{
+  if (stateChances.length)
+  {
+    // iterate over each of them and see if we should apply them.
+    stateChances.forEach(stateChance => {
+      // if the RNG favors this caster...
+      if (stateChance.shouldTrigger())
+      {
+        // ...then we apply the given state.
+        target.addState(stateChance.skillId);
+      }
+    });
+  }
+};
 //#endregion Game_Action
 
 //#region Game_Item
@@ -135,6 +236,7 @@ class OverlayManager {
       console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.`);
       return $dataSkills[skillId];
     }
+
     const baseSkill = JsonEx.makeDeepCopy($dataSkills[skillId]);
     const skillExtendFilter = (skill) => {
       // if the skill isn't an extension skill, skip it.
@@ -147,10 +249,9 @@ class OverlayManager {
 
     // get all skills we can extend this skillId with.
     const filteredSkills = caster
-    .skills()
-    .filter(skillExtendFilter);
+      .skills()
+      .filter(skillExtendFilter);
     const skillExtendSkills = [...filteredSkills];
-    console.log(skillExtendSkills)
 
     // based on the number of skill extend skills we have...
     switch (skillExtendSkills.length)
