@@ -3277,18 +3277,34 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
   cooldownKey = null
 ) {
   const battler = this.getBattler();
-  const skill = OverlayManager.getExtendedSkill(this.getBattler(), skillId);
   const action = new Game_Action(battler, false);
 
+  // set the skill which also applies all applicable overlays.
   action.setSkill(skillId);
 
-  const actions = [];
+  // apply all on-cast self states.
+  action.applyOnCastSelfStates();
+
+  let skill = null;
+  if (J.EXTEND)
+  {
+    // if using the skill extension plugin, then get the extended skill.
+    skill = OverlayManager.getExtendedSkill(this.getBattler(), skillId);
+  }
+  else
+  {
+    // otherwise get the regular skill.
+    skill = $dataSkills[skillId];
+  }
+
+  // calculate the projectile count and directions.
   const projectileCount = skill._j.projectile();
-  console.log(projectileCount);
   const projectileDirections = $gameBattleMap.determineActionDirections(
     this.getCharacter().direction(),
     projectileCount);
 
+  // calculate how many actions will be generated to accommodate the directions.
+  const actions = [];
   projectileDirections.forEach(direction => {
     const mapAction = new JABS_Action({
       uuid: J.BASE.Helpers.generateUuid(),
