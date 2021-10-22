@@ -394,9 +394,9 @@ class Window_MoreEquipData extends Window_MoreData {
   recursivelyFindAllComboSkillIds(skillId, list = []) {
     const skillIdList = list;
     const skill = $dataSkills[skillId];
-    const shouldRecurse = (s) => (s && s._j && s._j.combo && !s._j.freeCombo);
+    const shouldRecurse = (s) => (s && s._j && s._j.combo() && !s._j.freeCombo());
     if (shouldRecurse(skill)) {
-      const foundComboSkill = skill._j.combo[0];
+      const foundComboSkill = skill._j.combo()[0];
       skillIdList.push(foundComboSkill);
       return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
     } else {

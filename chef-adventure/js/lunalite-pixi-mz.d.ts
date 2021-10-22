@@ -29196,7 +29196,7 @@ declare class Game_Action {
 	setItem(itemId: number): void;
 	setItemObject(object: rm.types.UsableItem): void;
 	setTarget(targetIndex: number): void;
-	item(): rm.types.UsableItem;
+	item(): rm.types.UsableItem | rm.types.Skill;
 	isSkill(): boolean;
 	isItem(): boolean;
 	numRepeats(): number;
@@ -29331,6 +29331,10 @@ declare namespace rm.types {
 	 * The data class for state.
 	 */
 	export type State = {
+        /**
+         * The source of all JABS-related data for this state.
+         */
+        _j: JABS_StateData;
 		/**
 		 * The timing of automatic state removal.
 		 *
@@ -29634,6 +29638,10 @@ declare namespace rm.types {
 		 * The number of TP gained.
 		 */
 		tpGain: number;
+        /**
+         * The various JABS-related data points.
+         */
+        _j: JABS_SkillData;
 	}
 }
 
@@ -33041,7 +33049,6 @@ declare namespace rm.types {
 		 * The file name of the enemy's battler graphic.
 		 */
 		battlerName: string;
-		doc: string;
 		/**
 		 * The items the enemy drops. An RPG.Enemy.DropItem array.
 		 */
@@ -33061,8 +33068,16 @@ declare namespace rm.types {
 		 * @memberof Enemy
 		 */
 		id: number;
-		internal: boolean;
-		links: string[];
+        /**
+         * The level of this enemy; added by the `J-BASE` plugin.
+         * @type {number}
+         */
+        level: number;
+        /**
+         * The traits defined for this enemy in the database.
+         * @type {rm.types.Trait[]}
+         */
+        traits: rm.types.Trait[];
 		/**
 		 * The name of the enemy in the database.
 		 *
@@ -33070,7 +33085,6 @@ declare namespace rm.types {
 		 * @memberof Enemy
 		 */
 		name: string;
-		parameters: string[];
 		/**
 		 * Parameters. An array of integers using the following IDs as subscripts:
 		 *
@@ -33084,8 +33098,6 @@ declare namespace rm.types {
 		 * 7: Luck
 		 */
 		params: number[];
-		platforms: haxe.display.Platform[];
-		targets: haxe.display.MetadataTarget[];
 	}
 }
 
@@ -34416,10 +34428,10 @@ declare class Game_Item {
 	/**
 	 * Sets the current item of the current Game_Item object.
 	 *
-	 * @param {RPG.BaseItem} item
+	 * @param {rm.types.UsableItem|rm.types.EquipItem} item
 	 * @memberof Game_Item
 	 */
-	setObject(item: rm.types.BaseItem): void;
+	setObject(item: rm.types.UsableItem | rm.types.EquipItem): void;
 	setEquip(isWeapon: boolean, itemId: number): void;
 }
 

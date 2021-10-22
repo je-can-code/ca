@@ -398,6 +398,15 @@ class Window_SkillDetail extends Window_Base {
     const a = actor;
     const b = $gameEnemies.enemy(1);
     const v = $gameVariables._data;
+    let p = 0;
+    if (J.PROF)
+    {
+      const skillProficiency = actor.skillProficiencyBySkillId(skill.id);
+      if (skillProficiency)
+      {
+        p = skillProficiency.proficiency;
+      }
+    }
     const sign = [3, 4].includes(skill.damage.type) ? -1 : 1;
     const value = Math.max(eval(skill.damage.formula), 0);
     const potential = isNaN(value) ? 0 : value;
@@ -409,7 +418,6 @@ class Window_SkillDetail extends Window_Base {
     const skill = this.skill();
     const actor = this._actor;
     const params = [];
-
   };
 
   /**

@@ -51,7 +51,7 @@ class JABS_Action {
      * The base skill object, in case needed for something.
      * @type {rm.types.Skill}
      */
-    this._baseSkill = baseSkill;
+    this._baseSkill = gameAction.item();
 
     /**
      * The team the owner of this skill is a part of.
@@ -125,29 +125,25 @@ class JABS_Action {
      * The duration remaining before this will action will autotrigger.
      * @type {number}
      */
-     this._delayDuration = this._jabsData.delay.duration;
+     this._delayDuration = this._jabsData.delay().duration;
 
      /**
       * Whether or not this action will trigger when an enemy touches it.
       * @type {boolean}
       */
-     this._triggerOnTouch = this._jabsData.delay.touchToTrigger;
+     this._triggerOnTouch = this._jabsData.delay().touchToTrigger;
 
     /**
      * The remaining number of times this action can pierce a target.
      * @type {number}
      */
-    this._pierceTimesLeft =
-      this._jabsData.piercing[0] + this._caster.getAdditionalHits(
-        this._baseSkill,
-        this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
-        this._actionCooldownType === Game_Actor.JABS_OFFHAND);
+    this._pierceTimesLeft = this.makePiercingCount();
 
     /**
      * The base pierce delay in frames.
      * @type {number}
      */
-    this._basePierceDelay = this._jabsData.piercing[1];
+    this._basePierceDelay = this._jabsData.piercing()[1];
 
     /**
      * The current pierce delay in frames.
@@ -155,6 +151,28 @@ class JABS_Action {
      */
     this._currentPierceDelay = 0;
   };
+
+  /**
+   * Combines from all available sources the bonus hits for this action.
+   * @returns {number}
+   */
+   makePiercingCount()
+   {
+     let pierceCount = this._jabsData.piercing()[0];
+
+     // handle skill extension bonuses.
+     pierceCount += this._gameAction._item
+       ? this._gameAction._item._item.repeats-1
+       : 0;
+
+     // handle other bonus hits for basic attacks.
+     pierceCount += this._caster.getAdditionalHits(
+       this._baseSkill,
+       this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
+       this._actionCooldownType === Game_Actor.JABS_OFFHAND)
+
+     return pierceCount;
+   };
 
   /**
    * Gets the `uuid` of this action.
@@ -251,8 +269,8 @@ class JABS_Action {
    * @returns {number} The max duration in frames (min 8).
    */
   getMaxDuration() {
-    if (this.getJabsData().duration >= JABS_Action.getMinimumDuration()) {
-      return this.getJabsData().duration;
+    if (this.getJabsData().duration() >= JABS_Action.getMinimumDuration()) {
+      return this.getJabsData().duration();
     }
 
     return JABS_Action.getMinimumDuration();
@@ -408,7 +426,7 @@ class JABS_Action {
    * @returns {boolean}
    */
   isDirectAction() {
-    return this.getJabsData().direct ?? false;
+    return this.getJabsData().direct() ?? false;
   };
 
   /**
@@ -424,7 +442,7 @@ class JABS_Action {
    * @returns {number} The cooldown frames of this `JABS_Action`.
    */
   getCooldown() {
-    return this.getJabsData().cooldown ?? 0;
+    return this.getJabsData().cooldown() ?? 0;
   };
 
   /**
@@ -433,7 +451,7 @@ class JABS_Action {
    * @returns {number}
    */
   getAiCooldown() {
-    return this.getJabsData().aiCooldown ?? 0;
+    return this.getJabsData().aiCooldown() ?? 0;
   };
 
   /**
@@ -442,7 +460,7 @@ class JABS_Action {
    */
   getCastTime() {
     // TODO: add a cast time modifier based on actor "all notes" collection.
-    return this.getJabsData().castTime;
+    return this.getJabsData().castTime();
   };
 
   /**
@@ -451,7 +469,7 @@ class JABS_Action {
    */
   getRange() {
     // TODO: add ability to increase this (and duration).
-    return this.getJabsData().range;
+    return this.getJabsData().range();
   };
 
   /**
@@ -459,7 +477,7 @@ class JABS_Action {
    * @returns {number} The proximity required for this action.
    */
   getProximity() {
-    return this.getJabsData().proximity;
+    return this.getJabsData().proximity();
   };
 
   /**
@@ -467,7 +485,7 @@ class JABS_Action {
    * @returns {string} The designated shape of the action.
    */
   getShape() {
-    return this.getJabsData().shape;
+    return this.getJabsData().shape();
   };
 
   /**
@@ -475,7 +493,7 @@ class JABS_Action {
    * @returns {number} The event id for this `JABS_Action`.
    */
   getActionId() {
-    return this.getJabsData().actionId;
+    return this.getJabsData().actionId();
   };
 
   /**
@@ -483,7 +501,7 @@ class JABS_Action {
    * @returns {number}
    */
   bonusAggro() {
-    return this.getJabsData().bonusAggro;
+    return this.getJabsData().bonusAggro();
   };
 
   /**
@@ -491,7 +509,7 @@ class JABS_Action {
    * @returns {number}
    */
   aggroMultiplier() {
-    return this.getJabsData().aggroMultiplier;
+    return this.getJabsData().aggroMultiplier();
   };
 }
 //ENDFILE

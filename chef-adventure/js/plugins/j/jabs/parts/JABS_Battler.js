@@ -1060,7 +1060,7 @@ JABS_Battler.prototype.tryDodgeSkill = function() {
 
   const skill = $dataSkills[skillId];
   const canPay = battler.canPaySkillCost(skill);
-  if (canPay && skill._j.moveType) {
+  if (canPay && skill._j.moveType()) {
     this.executeDodgeSkill(skill);
   }
 };
@@ -3277,23 +3277,25 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
   cooldownKey = null
 ) {
   const battler = this.getBattler();
-  const skill = $dataSkills[skillId];
+  const skill = OverlayManager.getExtendedSkill(this.getBattler(), skillId);
   const action = new Game_Action(battler, false);
+
   action.setSkill(skillId);
 
   const actions = [];
+  const projectileCount = skill._j.projectile();
+  console.log(projectileCount);
   const projectileDirections = $gameBattleMap.determineActionDirections(
-    this.getCharacter().direction(), 
-    skill._j.projectile);
-  
-  const caster = this;
+    this.getCharacter().direction(),
+    projectileCount);
+
   projectileDirections.forEach(direction => {
     const mapAction = new JABS_Action({
       uuid: J.BASE.Helpers.generateUuid(),
-      baseSkill: skill,
-      teamId: caster.getTeam(),
+      baseSkill: action.item(),
+      teamId: this.getTeam(),
       gameAction: action,
-      caster: caster,
+      caster: this,
       isRetaliation: isRetaliation,
       direction: direction,
       cooldownKey,
@@ -3744,7 +3746,10 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey) {
   }
 
   const skill = $dataSkills[id];
-  const { guard, parry, counterGuard, counterParry } = skill._j;
+  const guard = skill._j.guard();
+  const parry = skill._j.parry();
+  const counterParry = skill._j.counterParry();
+  const counterGuard = skill._j.counterGuard();
   return new JABS_GuardData(guard[0], guard[1], counterGuard, counterParry, parry);
 };
 
@@ -3837,8 +3842,8 @@ JABS_Battler.prototype.performActionPose = function(skill) {
   let suffix = "";
   let index = this.getCharacterSpriteIndex();
   let duration = 0;
-  if (skill._j.poseSuffix) {
-    const notedata = skill._j.poseSuffix;
+  if (skill._j.poseSuffix()) {
+    const notedata = skill._j.poseSuffix();
     suffix = notedata[0];
     index = notedata[1];
     duration = notedata[2];

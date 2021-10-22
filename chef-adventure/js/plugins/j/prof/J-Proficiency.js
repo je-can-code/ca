@@ -321,7 +321,7 @@ Game_Actor.prototype.executeSkillRewards = function(conditional)
   if (!skillRewards.length) return;
 
   // teach all skills in the list to this actor from this conditional.
-  skillRewards.forEach(this.learnSkill);
+  skillRewards.forEach(this.learnSkill, this);
 };
 
 /**
@@ -395,9 +395,9 @@ Game_Actor.prototype.addSkillProficiency = function(skillId, initialProficiency 
 J.PROF.Aliased.Game_Actor.set("learnSkill", Game_Actor.prototype.learnSkill);
 Game_Actor.prototype.learnSkill = function(skillId)
 {
-  const beforeSkillCount = this._skills.length;
+  const beforeSkillCount = this.skills().length;
   J.PROF.Aliased.Game_Actor.get("learnSkill").call(this, skillId);
-  const afterSkillCount = this._skills.length;
+  const afterSkillCount = this.skills().length;
   if (beforeSkillCount !== afterSkillCount) {
     this.addSkillProficiency(skillId);
   }

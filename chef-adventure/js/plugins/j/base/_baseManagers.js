@@ -170,7 +170,7 @@ TextManager.xparam = function(xParamId) {
 * "Long" parameter ids are used in the context of 0-27, rather than
 * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
 * @param {number} paramId The "long" parameter id.
-* @returns {number} The `iconIndex`.
+* @returns {string} The `name`.
 */
 TextManager.longParam = function(paramId) {
   switch (paramId) {
@@ -204,7 +204,7 @@ TextManager.longParam = function(paramId) {
     case 27: return  this.sparam(paramId-18); // exr
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-      return 0;
+      return '';
   }
 };
 //#endregion TextManager
