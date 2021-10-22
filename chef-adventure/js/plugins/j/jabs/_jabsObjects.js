@@ -469,7 +469,7 @@ Game_Actor.prototype.refreshBonusHits = function() {
   });
 
   skills.forEach(skill => {
-    bonusHits += skill._j.bonusHits;
+    bonusHits += skill._j.getBonusHits();
   });
 
   this._j._bonusHits = bonusHits;
@@ -1779,7 +1779,7 @@ class Game_BattleMap {
     if (!canUseMainhand) return;
 
     const actions = jabsBattler.getAttackData(Game_Actor.JABS_MAINHAND);
-    if (!actions.length) return;
+    if (!actions || !actions.length) return;
 
     actions.forEach(action => action.setCooldownType(Game_Actor.JABS_MAINHAND));
     this.executeMapActions(jabsBattler, actions);
@@ -1796,7 +1796,7 @@ class Game_BattleMap {
     if (!canPerformOffhand) return;
 
     const actions = battler.getAttackData(Game_Actor.JABS_OFFHAND);
-    if (!actions.length) return;
+    if (!actions || !actions.length) return;
 
     actions.forEach(action => action.setCooldownType(Game_Actor.JABS_OFFHAND));
     this.executeMapActions(battler, actions);
@@ -2165,7 +2165,8 @@ class Game_BattleMap {
   executeMapAction(caster, action, targetX, targetY) {
     const character = caster.getCharacter();
     const baseSkill = action.getBaseSkill();
-    const { casterAnimation, freeCombo } = baseSkill._j;
+    const casterAnimation = baseSkill._j.casterAnimation();
+    const freeCombo = baseSkill._j.freeCombo();
 
     // if there is no connect requirement for combos, then allow checking for input.
     if (freeCombo) {
@@ -2203,6 +2204,7 @@ class Game_BattleMap {
    * @returns {number[]} The collection of directions to fire projectiles off in.
    */
   determineActionDirections(facing, projectile) {
+    console.log(projectile);
     const directions = [];
     switch (projectile) {
       case 1:
@@ -2380,7 +2382,7 @@ class Game_BattleMap {
 
     // if the skill has a unique cooldown functionality,
     // then each slot will have an independent cooldown.
-    if (skill._j.uniqueCooldown || this.isBasicAttack(cooldownType)) {
+    if (skill._j.uniqueCooldown() || this.isBasicAttack(cooldownType)) {
       // if the skill is unique, only apply the cooldown to the slot assigned.
       caster.setCooldownCounter(cooldownType, cooldownValue);
       return;
@@ -2582,7 +2584,7 @@ class Game_BattleMap {
   executeSkillEffects(action, target) {
     const caster = action.getCaster();
     const targetBattler = target.getBattler();
-    const unparryable = (action.getBaseSkill()._j.ignoreParry === -1);
+    const unparryable = (action.getBaseSkill()._j.ignoreParry() === -1);
     const isParried = unparryable
       ? false // parry is cancelled because the skill ignores it.
       : this.checkParry(caster, target);
@@ -2704,7 +2706,7 @@ class Game_BattleMap {
 
     // get the knockback value from the skill if applicable.
     const skill = action.getBaseSkill();
-    let knockback = skill._j.knockback;
+    let knockback = skill._j.knockback();
     if (knockback == null)
       return;
     knockback *= knockbackResist;

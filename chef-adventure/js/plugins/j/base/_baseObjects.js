@@ -21,7 +21,7 @@
  * @returns {JABS_SkillChance[]}
  */
 Game_Actor.prototype.onOwnDefeatSkillIds = function() {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getCurrentWithNotes();
   const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const skills = [];
   objectsToCheck.forEach(obj => {
@@ -37,7 +37,7 @@ Game_Actor.prototype.onOwnDefeatSkillIds = function() {
  * @returns {JABS_SkillChance[]}
  */
 Game_Actor.prototype.onTargetDefeatSkillIds = function() {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getCurrentWithNotes();
   const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const skills = [];
   objectsToCheck.forEach(obj => {
@@ -1088,7 +1088,7 @@ Game_Enemy.prototype.sdpPoints = function() {
 
 /**
  * Gets all skills that are executed by this enemy when it is defeated.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_SkillChance}
  */
 Game_Enemy.prototype.onOwnDefeatSkillIds = function() {
   const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
@@ -1097,7 +1097,7 @@ Game_Enemy.prototype.onOwnDefeatSkillIds = function() {
 
 /**
  * Gets all skills that are executed by this enemy when it defeats its target.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_SkillChance}
  */
 Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
   const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
@@ -1109,10 +1109,23 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
  * @returns {rm.types.Skill[]}
  */
 Game_Enemy.prototype.skills = function() {
-  const actions = this.enemy().actions;
-  return actions.length
-    ? actions.map(action => $dataSkills[action.skillId])
-    : [];
+  const actions = this.enemy().actions
+    .map(action => $dataSkills[action.skillId]);
+  const skillTraits = this.enemy().traits
+    .filter(trait => trait.code === 35)
+    .map(skillTrait => $dataSkills[skillTrait.dataId]);
+  return actions
+    .concat(skillTraits)
+    .sort();
+};
+
+/**
+ * Checks whether or not this enemy knows this skill.
+ * @param skillId The id of the skill to check for.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.hasSkill = function(skillId) {
+  return this.skills().includes($dataSkills[skillId]);
 };
 
 /**

@@ -645,7 +645,7 @@ Game_Map.prototype.removeBattlers = function(battlers) {
  */
 Game_Map.prototype.parseAllyBattlers = function() {
   const followers = this.getActiveFollowers();
-  return followers.map(this.convertOneFollower);
+  return followers.map(this.convertOneFollower, this);
 };
 
 /**
