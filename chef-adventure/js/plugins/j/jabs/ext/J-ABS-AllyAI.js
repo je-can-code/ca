@@ -382,6 +382,9 @@ Game_BattleMap.prototype.performPartyCycling = function() {
   // when cycling, jump all followers to the player.
   $gamePlayer.jumpFollowersToMe();
 
+  // grab the current data for removing after to prevent duplicate players.
+  const previousUuid = $gameParty.leader().getUuid();
+
   // take a snapshot of the next battler for the player to control.
   const nextUuid = $gameParty.members()[nextLivingAllyIndex].getUuid();
   const nextJabsBattler = $gameMap.getBattlerByUuid(nextUuid);
@@ -402,6 +405,11 @@ Game_BattleMap.prototype.performPartyCycling = function() {
   newPlayer.setMapBattler(this._playerBattler.getUuid());
   newPlayer.setThrough(false);
 
+  // assign
+  const oldPlayerIndex = $gamePlayer.followers()._data
+    .findIndex(follower => follower.actor().getUuid() === previousUuid);
+  $gamePlayer.followers().follower(oldPlayerIndex).setMapBattler(previousUuid);
+
   // request the scene overlord to take notice and react accordingly (refresh hud etc).
   this.requestPartyRotation = true;
   if (J.LOG && J.LOG.Metadata.Enabled) {
@@ -410,8 +418,32 @@ Game_BattleMap.prototype.performPartyCycling = function() {
     $gameTextLog.addLog(log);
   }
 
+
   // refresh all battlers on the map.
   $gameMap.updateAllies();
+
+  // remove all followers that existed as a player at some point.
+  $gamePlayer.followers()._data.forEach(follower => {
+    if (!follower || !follower.actor()) return;
+
+    // find the index of the old player of all available battlers.
+    const oldIndex = $gameMap._j._allBattlers.findIndex(battler => {
+      // skip enemies- we only care about actors.
+      if (battler.isEnemy()) return false;
+
+      // if the actor id matches the follower and the character is a player,
+      // we have a match and need to nuke it.
+      return battler.getBattler().actorId() === follower.actor().actorId() &&
+        battler._event instanceof Game_Player;
+    });
+
+    // if we have a match, nuke it.
+    if (oldIndex > -1)
+    {
+      console.log($gameMap._j._allBattlers[oldIndex]);
+      $gameMap._j._allBattlers.splice(oldIndex, 1);
+    }
+  });
 };
 //#endregion Game_BattleMap
 
@@ -632,11 +664,21 @@ Game_Map.prototype.addBattlers = function(battlers) {
 Game_Map.prototype.removeBattlers = function(battlers) {
   // disengage and destroy all battlers.
   battlers.forEach(battler => {
-    // disengage before destroying.
-    battler.disengageTarget();
-    // but do hold onto the event/sprite, because its a follower.
-    $gameMap.destroyBattler(battler, true);
+    this.removeBattler(battler, true);
   });
+};
+
+/**
+ * Purges a single battler from tracking.
+ * @param battler {JABS_Battler} The battler to be removed.
+ * @param hold {boolean} Whether or not to hold the sprite.
+ */
+Game_Map.prototype.removeBattler = function(battler, hold = false)
+{
+  // disengage before destroying.
+  battler.disengageTarget();
+  // but do hold onto the event/sprite, because its a follower.
+  $gameMap.destroyBattler(battler, hold);
 };
 
 /**
@@ -650,7 +692,7 @@ Game_Map.prototype.parseAllyBattlers = function() {
 
 /**
  * Gets all followers that are active.
- * @returns {Game_Actor[]}
+ * @returns {Game_Follower[]}
  */
 Game_Map.prototype.getActiveFollowers = function() {
   const followers = $gamePlayer.followers().data();
@@ -1756,7 +1798,6 @@ Scene_Map.prototype.createAllyAiEquipWindow = function() {
  */
 Scene_Map.prototype.commandManagePartyAi = function() {
   this._j._absMenu._windowFocus = "ai-party-list";
-  return;
 };
 
 /**
@@ -1768,7 +1809,6 @@ Scene_Map.prototype.commandSelectMemberAi = function() {
   this.setAllyAiActorId(actorId);
   this._j._absMenu._allyAiEquipWindow.setActorId(actorId);
   this._j._absMenu._allyAiEquipWindow.refresh();
-  return;
 };
 
 /**

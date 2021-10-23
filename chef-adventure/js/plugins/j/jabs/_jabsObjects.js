@@ -1737,6 +1737,8 @@ class Game_BattleMap {
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
+
+    // if the log is present, then do log things.
     if (J.LOG && J.LOG.Metadata.Enabled) {
       const battlerName = this.getPlayerMapBattler().battlerName();
       const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
@@ -1789,6 +1791,7 @@ class Game_BattleMap {
    * Executes an action on the map based on the offhand skill slot.
    */
   performOffhandAction() {
+    console.log('performing offhand');
     const battler = this.getPlayerMapBattler();
     const canPerformOffhand = battler.hasOffhandSkill() &&
       this.isOffhandActionReady() &&
@@ -1868,7 +1871,8 @@ class Game_BattleMap {
   /**
    * Calls the Abs menu.
    */
-  performMenuAction() {
+  performMenuAction()
+  {
     this.absPause = true;
     this.requestAbsMenu = true;
   };
@@ -1876,7 +1880,8 @@ class Game_BattleMap {
   /**
    * Locks the player's facing direction while allowing movement.
    */
-  performStrafe(strafing) {
+  performStrafe(strafing)
+  {
     const player = this.getPlayerMapBattler().getCharacter();
     player.setDirectionFix(strafing);
   };
@@ -1886,7 +1891,8 @@ class Game_BattleMap {
    * If the player has a guard skill for their offhand, then also perform a guard.
    * @param {boolean} rotating True if the player is rotating, false otherwise.
    */
-  performRotate(rotating) {
+  performRotate(rotating)
+  {
     const player = this.getPlayerMapBattler();
     player.setMovementLock(rotating);
 
@@ -1915,29 +1921,26 @@ class Game_BattleMap {
     const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15, false);
 
     visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
-    
-    /*
-    visibleBattlers.forEach(battler => {
-      battler.update();
-      if (battler.getBattler().isDead() && !battler.isDying()) {
-        battler.setInvincible();
-        this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
-      }
-    });
-    */
   };
 
   /**
    * Performs the update against this non-player battler.
+   *
+   * NOTE: The player's battler gets duplicated once into the "all battlers"
+   * collection after the first party cycle. The initial check prevents updating
+   * the player battler twice if they are in that collection.
    * @param {JABS_Battler} battler 
    */
   performNonPlayerBattlerUpdate(battler) {
+    if (battler === $gameBattleMap.getPlayerMapBattler()) return;
+
+    battler.update();
+
     const isDead = battler.getBattler().isDead();
     const isntStillDying = !battler.isDying();
     const isntErased = battler.isEnemy()
       ? !battler.getCharacter()._erased
       : true;
-    battler.update();
     if (isDead && isntStillDying && isntErased) {
       battler.setInvincible();
       this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
