@@ -31273,7 +31273,6 @@ declare namespace rm.types {
 		 * The actor's class ID.
 		 */
 		classId: number;
-		doc: string;
 		/**
 		 * The actor's initial equipment. An array of weapon IDs or armor IDs with the following subscripts:
 		 */
@@ -31294,8 +31293,6 @@ declare namespace rm.types {
 		 * The actor's initial level.
 		 */
 		initialLevel: number;
-		internal: boolean;
-		links: string[];
 		/**
 		 * The actor's max level
 		 */
@@ -31308,13 +31305,14 @@ declare namespace rm.types {
 		 * The actor's nickname.
 		 */
 		nickname: string;
-		parameters: string[];
-		platforms: haxe.display.Platform[];
+        /**
+         * The note on this actor.
+         */
+        note: string;
 		/**
 		 * The profile.
 		 */
 		profile: string;
-		targets: haxe.display.MetadataTarget[];
 		/**
 		 * The array of Trait data.
 		 */
@@ -31358,17 +31356,27 @@ declare namespace rm.types {
 		 * The item name.
 		 */
 		name: string;
+        /**
+         * The note of this weapon.
+         */
 		note: string;
 		/**
 		 * The amount of parameter change. An array of integers using the following IDs as subscripts:
 		 *
 		 * 0: Maximum hit points
+         *
 		 * 1: Maximum magic points
+         *
 		 * 2: Attack power
+ *
 		 * 3: Defense power
+		 *
 		 * 4: Magic attack power
+		 *
 		 * 5: Magic defense power
+		 *
 		 * 6: Agility
+ *
 		 * 7: Luck
 		 */
 		params: number[];
@@ -31404,9 +31412,13 @@ declare namespace rm.types {
 		 * The type of weapon or armor.
 		 *
 		 * 0: Weapon
+         *
 		 * 1: Shield
+         *
 		 * 2: Head
+         *
 		 * 3: Body
+         *
 		 * 4: Accessory
 		 */
 		etypeId: number;
@@ -31423,6 +31435,9 @@ declare namespace rm.types {
 		 * The item name.
 		 */
 		name: string;
+        /**
+         * The note of this armor.
+         */
 		note: string;
 		/**
 		 * The amount of parameter change. An array of integers using the following IDs as subscripts:
@@ -31453,21 +31468,18 @@ declare namespace rm.types {
 	 * The data class for a class's [Skills to Learn].
 	 */
 	export type ClassLearning = {
-		doc: string;
-		internal: boolean;
 		/**
 		 * The data class for a class's [Skills to Learn].
 		 */
 		level: number;
-		links: string[];
-		name: string;
-		parameters: string[];
-		platforms: haxe.display.Platform[];
 		/**
 		 * The ID of the skill to learn.
 		 */
 		skillId: number;
-		targets: haxe.display.MetadataTarget[];
+        /**
+         * The note on this skill learning.
+         */
+        note: string;
 	}
 }
 
@@ -31476,7 +31488,6 @@ declare namespace rm.types {
 	 * The data class for class.
 	 */
 	export type RPGClass = {
-		doc: string;
 		/**
 		 * An array of values that decides the experience curve. The subscripts are as follows:
 		 *
@@ -31490,17 +31501,14 @@ declare namespace rm.types {
 		 * The ID.
 		 */
 		id: number;
-		internal: boolean;
 		/**
 		 * The skills to learn. An array of RPG.Class.Learning.
 		 */
 		learnings: rm.types.ClassLearning[];
-		links: string[];
 		/**
 		 * The name.
 		 */
 		name: string;
-		parameters: string[];
 		/**
 		 * The parameter development curve. A 2-dimensional array containing ordinary parameters according to level (Table).
 		 *
@@ -31523,8 +31531,6 @@ declare namespace rm.types {
          * 7: Luck
 		 */
 		params: number[][];
-		platforms: haxe.display.Platform[];
-		targets: haxe.display.MetadataTarget[];
 		/**
 		 * The array of Trait data.
 		 */
@@ -32593,7 +32599,7 @@ declare class Game_CharacterBase {
 	/**
 	 * Returns true if the character is set to pass through.
 	 *
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof Game_CharacterBase
 	 */
 	isThrough(): boolean;
@@ -32602,7 +32608,7 @@ declare class Game_CharacterBase {
 	/**
 	 * Returns the bush depth around the character.
 	 *
-	 * @returns {Int}
+	 * @returns {number}
 	 * @memberof Game_CharacterBase
 	 */
 	bushDepth(): number;
@@ -32610,14 +32616,16 @@ declare class Game_CharacterBase {
 	/**
 	 * Requests an animation given the animation id.
 	 *
-	 * @param {Int} animationId
+     * @param {number} animationId
+     * @param {number} parried
+     * @param {number} preciseParried
 	 * @memberof Game_CharacterBase
 	 */
-	requestAnimation(animationId: number): void;
+	requestAnimation(animationId: number, parried: boolean = false, preciseParried: boolean = false): void;
 	/**
 	 * Requests the balloon animation given the balloon id.
 	 *
-	 * @param {Int} balloonId
+	 * @param {number} balloonId
 	 * @memberof Game_CharacterBase
 	 */
 	requestBalloon(balloonId: number): void;

@@ -39,7 +39,7 @@ JABS_Battler.prototype.constructor = JABS_Battler;
 JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData) {
   /**
    * The character/sprite that represents this battler on the map.
-   * @type {Game_Character}
+   * @type {Game_Event|Game_Player|Game_Follower}
    */
   this._event = event;
 
@@ -570,6 +570,8 @@ JABS_Battler.prototype.initCooldowns = function() {
 //#region statics
 /**
  * Generates the player character.
+ *
+ * It does so blindly, with no regard for existing player battlers.
  */
 JABS_Battler.createPlayer = function() {
   const battler = $gameParty.leader();
@@ -781,6 +783,10 @@ JABS_Battler.prototype.updateCooldowns = function() {
     .forEach(key => {
       this._cooldowns[key].update();
   });
+  if (this.isPlayer())
+  {
+    // console.log('updating cooldowns.');
+  }
 
   if (this.isWaiting()) {
     this.countdownWait();
@@ -1595,7 +1601,7 @@ JABS_Battler.prototype.setBaseSpriteIndex = function(index) {
 //#region reference helpers
 /**
  * Reassigns the character to something else.
- * @param {Game_Character} newCharacter The new character to assign.
+ * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
  */
 JABS_Battler.prototype.setCharacter = function(newCharacter) {
   this._event = newCharacter;
@@ -1902,14 +1908,22 @@ JABS_Battler.prototype.hasFollowers = function() {
 
 /**
  * Gets the database data for this battler.
- * @returns {(Game_Actor|Game_Enemy)} The battler data.
+ * @returns {rm.types.Actor|rm.types.Enemy} The battler data.
  */
-JABS_Battler.prototype.getReferenceData = function() {
+JABS_Battler.prototype.getReferenceData = function()
+{
+  // if somehow we don't have a battler, return an empty object.
   if (!this.getBattler()) return {};
 
-  if (this.isActor()) {
+  // if it is an actor, return the actor database data.
+  if (this.isActor())
+  {
     return this.getBattler().actor();
-  } else if (this.getBattler().isEnemy()) {
+  }
+
+  // if it is an enemy, return the enemy database data.
+  if (this.getBattler().isEnemy())
+  {
     return this.getBattler().enemy();
   }
 };
@@ -1940,7 +1954,8 @@ JABS_Battler.prototype.isFacingTarget = function(target) {
  * Whether or not this battler is actually the `Game_Player`.
  * @returns {boolean}
  */
-JABS_Battler.prototype.isPlayer = function() {
+JABS_Battler.prototype.isPlayer = function()
+{
   return (this.getCharacter() instanceof Game_Player);
 };
 
@@ -1949,7 +1964,8 @@ JABS_Battler.prototype.isPlayer = function() {
  * The player counts as a `Game_Actor`, too.
  * @returns {boolean}
  */
-JABS_Battler.prototype.isActor = function() {
+JABS_Battler.prototype.isActor = function()
+{
   return (this.isPlayer() || this.getBattler() instanceof Game_Actor)
 };
 
@@ -1957,7 +1973,8 @@ JABS_Battler.prototype.isActor = function() {
  * Whether or not this battler is a `Game_Enemy`.
  * @returns {boolean}
  */
-JABS_Battler.prototype.isEnemy = function() {
+JABS_Battler.prototype.isEnemy = function()
+{
   return (this.getBattler() instanceof Game_Enemy);
 };
 
@@ -2112,7 +2129,7 @@ JABS_Battler.prototype.resetIdleAction = function() {
 /**
  * Returns the `Game_Character` that this `JABS_Battler` is bound to.
  * For the player, it'll return a subclass instead: `Game_Player`.
- * @returns {Game_Character} The event this `JABS_Battler` is bound to.
+ * @returns {Game_Event|Game_Player|Game_Follower} The event this `JABS_Battler` is bound to.
  */
 JABS_Battler.prototype.getCharacter = function() {
   return this._event;
@@ -3804,7 +3821,7 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot) {
 
   // if not guarding, wasn't guarding before, but want to guard, then let's guard!
   const guardData = this.getGuardData(skillSlot);
-  
+
   // if we cannot guard, then don't try.
   if (!guardData.canGuard()) return;
 

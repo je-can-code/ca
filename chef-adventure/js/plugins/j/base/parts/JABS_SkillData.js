@@ -167,7 +167,7 @@ JABS_SkillData.prototype.ignoreParry = function()
 JABS_SkillData.prototype.guard = function()
 {
   let guard = [0, false];
-  const structure = /<guard:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const structure = /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/i;
   this._notes.forEach(note => {
     if (note.match(structure)) {
       guard = JSON.parse(RegExp.$1);
