@@ -358,7 +358,9 @@ Game_Actor.prototype.skillProficiencies = function()
 };
 
 /**
- * Gets a skill prof by its skill id.
+ * Gets a skill proficiency by its skill id.
+ *
+ * This will add non-existing proficiencies for tracking purposes.
  * @param {number} skillId The skill id.
  * @returns {SkillProficiency|null}
  */
@@ -367,6 +369,23 @@ Game_Actor.prototype.skillProficiencyBySkillId = function(skillId)
   return this
     .skillProficiencies()
     .find(prof => prof.skillId === skillId);
+};
+
+Game_Actor.prototype.tryGetSkillProficiencyBySkillId = function(skillId)
+{
+  // look up the proficiency; this could be undefined
+  // if we didn't learn it directly via .learnSkill() somehow.
+  const exists = this.skillProficiencyBySkillId(skillId);
+  if (exists)
+  {
+    // if we did find it, then return it.
+    return exists;
+  }
+  else
+  {
+    // if we didn't find the proficiency, just add it.
+    return this.addSkillProficiency(skillId);
+  }
 };
 
 /**
@@ -378,7 +397,8 @@ Game_Actor.prototype.skillProficiencyBySkillId = function(skillId)
 Game_Actor.prototype.addSkillProficiency = function(skillId, initialProficiency = 0)
 {
   const exists = this.skillProficiencyBySkillId(skillId);
-  if (exists) {
+  if (exists)
+  {
     console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
     return exists;
   }

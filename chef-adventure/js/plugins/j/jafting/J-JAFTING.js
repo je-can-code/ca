@@ -304,7 +304,7 @@ J.JAFTING.Helpers.translateRecipes = rawRecipeBlobs => {
 
 /**
  * Translates the plugin settings from JSON to JAFTING categories.
- * @param {JSON} rawRecipeBlobs The raw JSON data representing the categories.
+ * @param {string} rawCategoryBlobs The raw JSON data representing the categories.
  * @returns {JAFTING_Category[]}
  */
 J.JAFTING.Helpers.translateCategories = rawCategoryBlobs => {
@@ -606,7 +606,7 @@ Game_System.prototype.isJafting = function() {
 /**
  * Gets the category of crafting by key.
  * @param {string} key The unique identifier of a category of crafting.
- * @returns {JAFTING_Category?}
+ * @returns {JAFTING_Category|null}
  */
 Game_System.prototype.getCategoryByKey = function(key) {
   const result = this._j._jafting._categories.find(category => category.key === key);

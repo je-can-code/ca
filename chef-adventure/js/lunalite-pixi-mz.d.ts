@@ -29391,12 +29391,15 @@ declare namespace rm.types {
 		 * The name.
 		 */
 		name: string;
+        /**
+         * The notes of this state.
+         */
+        note: string;
 		/**
 		 * The side-view overlay.
 		 */
 		overlay: number;
 		parameters: string[];
-		platforms: haxe.display.Platform[];
 		/**
 		 * The state priority (0..100).
 		 */
@@ -29432,7 +29435,6 @@ declare namespace rm.types {
 		 * Number of steps until state is removed.
 		 */
 		stepToRemove: number;
-		targets: haxe.display.MetadataTarget[];
 		/**
 		 * The array of Trait data.
 		 */
@@ -29780,6 +29782,10 @@ declare namespace rm.types {
 		 * The item name.
 		 */
 		name: string;
+        /**
+         * The note of the equipment.
+         * @type {string}
+         */
 		note: string;
 		/**
 		 * The amount of parameter change. An array of integers using the following IDs as subscripts:
@@ -29809,6 +29815,11 @@ declare namespace rm.types {
 		 * The array of Trait data.
 		 */
 		traits: rm.types.Trait[];
+
+        /**
+         * Contains additional JABS-related info about this equip.
+         */
+        _j: JABS_EquipmentData;
 	}
 }
 

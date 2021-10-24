@@ -116,6 +116,13 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args => {
 //#endregion
 
 //#region DataManager
+
+ /**
+  * The global text logger.
+  * @type {Game_TextLog}
+  */
+ var $gameTextLog = null;
+
 /**
  * Hooks into `DataManager` to create the game objects.
  */
@@ -133,10 +140,7 @@ DataManager.createGameObjects = function() {
 J.LOG.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
 Scene_Map.prototype.initialize = function() {
   J.LOG.Aliased.Scene_Map.initialize.call(this);
-  if (!this._j) {
-    this._j = this._j || {};
-  }
-
+  this._j ||= {};
   this._j._mapTextLog = null;
 };
 
@@ -158,7 +162,7 @@ Scene_Map.prototype.createJabsTextLog = function() {
   const x = 0;
   const y = Graphics.boxHeight - height;
   const rect = new Rectangle(x, y, width, height);
-  this._j._mapTextLog = this._j._mapTextLog || new Window_TextLog(rect);
+  this._j._mapTextLog = new Window_TextLog(rect);
   this.addWindow(this._j._mapTextLog);
 };
 
@@ -177,7 +181,7 @@ Scene_Map.prototype.toggleLog = function(toggle = true) {
 /**
  * The manager that handles all logs in the `Window_TextLog`.
  */
-function Game_TextLog() { this.initialize(...arguments); };
+function Game_TextLog() { this.initialize(...arguments); }
 Game_TextLog.prototype = {};
 Game_TextLog.prototype.constructor = Game_TextLog;
 
@@ -327,6 +331,8 @@ Window_TextLog.prototype.initMembers = function() {
    * Whether or not the log should be visible.
    */
   this._enabled = true;
+
+  this._toggled = false;
 };
 
 /**
@@ -337,9 +343,30 @@ Window_TextLog.prototype.update = function() {
   if (this.canUpdate()) {
     this.drawLogs();
   } else {
+    this.manageVisibility();
     this.refresh();
   }
 };
+
+ /**
+  * Handles visibility for the text log.
+  */
+ Window_TextLog.prototype.manageVisibility = function()
+ {
+   if ($gameMessage.isBusy()) {
+     this.opacity = 0;
+     this.close();
+     this.hide();
+   }
+   else
+   {
+     this.show();
+     this.open();
+   }
+
+   this._toggled = false;
+ };
+
 
 /**
  * Toggles whether or not this hud is enabled.
@@ -347,9 +374,8 @@ Window_TextLog.prototype.update = function() {
  */
 Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
   this._enabled = toggle;
-  if (!this._enabled) {
-    this.opacity = 0;
-  }
+  this._toggled = false;
+  this.manageVisibility();
 };
 
 /**
@@ -357,12 +383,22 @@ Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
  * @returns {boolean} True if the log can be updated, false otherwise.
  */
 Window_TextLog.prototype.canUpdate = function() {
-  if (!this.contents || (!this._enabled || 
-    !J.LOG.Metadata.Active || $gameMessage.isBusy())) {
-      return false;
+  // the base conditions of the window and system.
+  const baseConditions = (this.contents && this._enabled && J.LOG.Metadata.Active);
+
+  // the message window isn't up.
+  const messageNotBusy = !$gameMessage.isBusy();
+
+  // if JAFTING is a thing...
+  let notJafting = true;
+  if (J.JAFTING)
+  {
+    // consider it when displaying windows.
+    notJafting = !$gameSystem.isJafting();
   }
 
-  return true;
+  // all must be true to be displayed.
+  return baseConditions && messageNotBusy && notJafting;
 };
 
 /**

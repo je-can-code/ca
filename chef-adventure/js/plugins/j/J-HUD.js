@@ -199,17 +199,12 @@ Scene_Map.prototype.createHud = function() {
 /**
  * If the HUD is in use, move the map name over a bit.
  */
-J.HUD.Aliased.mapNameWindowRect = Scene_Map.prototype.mapNameWindowRect;
 Scene_Map.prototype.mapNameWindowRect = function() {
-  if (J.HUD.Metadata.Enabled) {
-    const wx = this._j._hud.width;
-    const wy = 0;
-    const ww = 360;
-    const wh = this.calcWindowHeight(1, false);
-    return new Rectangle(wx, wy, ww, wh);
-  } else {
-    return J.HUD.Aliased.mapNameWindowRect.call(this);
-  }
+  const wx = 400;
+  const wy = 0;
+  const ww = 360;
+  const wh = this.calcWindowHeight(1, false);
+  return new Rectangle(wx, wy, ww, wh);
 };
 
 /**
@@ -287,8 +282,26 @@ Window_Hud.prototype.update = function() {
   if (this.canUpdate()) {
     this.drawHud();
   } else {
+    this.manageVisibility();
     this.refresh();
   }
+};
+
+/**
+ * Handles visibility for the HUD.
+ */
+Window_Hud.prototype.manageVisibility = function()
+{
+  if ($gameMessage.isBusy()) {
+    this.opacity = 0;
+    this.close();
+  }
+  else
+  {
+    this.open();
+  }
+
+  this._toggled = false;
 };
 
 /**
@@ -297,6 +310,7 @@ Window_Hud.prototype.update = function() {
  */
 Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
   this._enabled = toggle;
+  this.manageVisibility();
 };
 
 /**

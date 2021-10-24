@@ -978,11 +978,11 @@ JABS_Battler.prototype.performCastAnimation = function() {
   // if we don't have a decided action somehow, then don't do cast animation things.
   if (!this.getDecidedAction()) return;
 
-  const { casterAnimation } = this.getDecidedAction()[0].getBaseSkill()._j;
-  if (!casterAnimation) return;
+  const animationId = this.getDecidedAction()[0].getBaseSkill()._j.casterAnimation();
+  if (!animationId) return;
 
   if (!this.getCharacter().isAnimationPlaying()) {
-    this.showAnimation(casterAnimation);
+    this.showAnimation(animationId);
   }
 };
 
@@ -3356,6 +3356,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey) {
 
   // check to make sure we can actually use the skill.
   const canUse = battler.canUse($dataSkills[skillId]);
+  console.log(canUse);
 
   // check to make sure we actually know the skill, too.
   const hasSkill = battler.hasSkill(skillId);

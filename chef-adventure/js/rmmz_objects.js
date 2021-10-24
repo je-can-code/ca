@@ -3234,6 +3234,7 @@ Game_BattlerBase.prototype.meetsItemConditions = function(item) {
 };
 
 Game_BattlerBase.prototype.canUse = function(item) {
+    console.log(item);
     if (!item) {
         return false;
     } else if (DataManager.isSkill(item)) {

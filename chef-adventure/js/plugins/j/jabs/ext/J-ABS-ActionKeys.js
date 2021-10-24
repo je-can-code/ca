@@ -202,16 +202,35 @@ Window_ActionKeys.prototype.update = function() {
   if (this.canUpdate()) {
     this.drawActionKeys();
   } else {
+    this.manageVisibility();
     this.refresh();
   }
 };
+
+ /**
+  * Handles visibility for the action keys.
+  */
+ Window_ActionKeys.prototype.manageVisibility = function()
+ {
+   if ($gameMessage.isBusy()) {
+     this.opacity = 0;
+     this.close();
+   }
+   else
+   {
+     this.open();
+   }
+
+   this._toggled = false;
+ };
 
 /**
  * Toggles visibility of the action keys on the screen.
  * @param {boolean} toggle True if showing the action keys, false otherwise. 
  */
-Window_ActionKeys.prototype.toggle = function(toggle = true) {
+Window_ActionKeys.prototype.toggle = function(toggle = !this._enabled) {
   this._enabled = toggle;
+  this.manageVisibility();
 };
 
 /**

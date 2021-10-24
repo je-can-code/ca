@@ -301,13 +301,75 @@ Game_Actor.prototype.unlockAllSlots = function() {
 Game_Actor.prototype.updateEquipmentSkills = function() {
   this.releaseUnequippableSkills();
 
-  const equips = this.equips();
-  const mainhandSkill = equips[0] ? parseInt(equips[0]._j.skillId) : 0;
-  const offhandSkill = equips[1] ? parseInt(equips[1]._j.skillId) : 0;
+  const mainhandSkill = this.getMainhandSkill();
+  const offhandSkill = this.getOffhandSkill();
 
   this.setEquippedSkill(Game_Actor.JABS_MAINHAND, mainhandSkill);
   this.setEquippedSkill(Game_Actor.JABS_OFFHAND, offhandSkill);
+};
 
+/**
+ * Gets the mainhand skill for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getMainhandSkill = function()
+{
+  const equips = this.equips();
+  let mainhandSkill = 0;
+  if (equips[0])
+  {
+    mainhandSkill = parseInt(equips[0]._j.skillId);
+  }
+
+  return mainhandSkill
+};
+
+/**
+ * Gets the offhand skill for this actor.
+ *
+ * Takes into consideration the possibility of an offhand override
+ * from the mainhand or some states.
+ * @returns {number} The offhand skill id.
+ */
+Game_Actor.prototype.getOffhandSkill = function()
+{
+  const offhandOverride = this.offhandSkillOverride();
+  if (offhandOverride)
+  {
+    return offhandOverride;
+  }
+
+  const equips = this.equips();
+  let offhandSkill = 0;
+  if (equips[1])
+  {
+    offhandSkill = parseInt(equips[1]._j.skillId);
+  }
+
+  return offhandSkill;
+};
+
+Game_Actor.prototype.offhandSkillOverride = function()
+{
+  let overrideSkillId = 0;
+  let objectsToCheck = [...this.states()];
+  const weapon = this.equips()[0];
+  if (weapon)
+  {
+    objectsToCheck.unshift(weapon);
+  }
+
+  const structure = /<offhandSkill:(\d+)>/i;
+  objectsToCheck.forEach(obj => {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line => {
+      if (line.match(structure)) {
+        overrideSkillId = parseInt(RegExp.$1);
+      }
+    });
+  });
+
+  return overrideSkillId;
 };
 
 /**
@@ -1778,6 +1840,7 @@ class Game_BattleMap {
   performMainhandAction() {
     const jabsBattler = this.getPlayerMapBattler();
     const canUseMainhand = this.isMainhandActionReady() && jabsBattler.canBattlerUseAttacks();
+
     if (!canUseMainhand) return;
 
     const actions = jabsBattler.getAttackData(Game_Actor.JABS_MAINHAND);
@@ -3027,7 +3090,7 @@ class Game_BattleMap {
     const newMemory = new JABS_BattleMemory(
       target.getBattlerId(),
       action.getBaseSkill().id,
-      action.getAction().calcElementRate(target.getBattler()),
+      action.getAction().calculateRawElementRate(target.getBattler()),
       result.hpDamage);
     target.applyBattleMemories(newMemory);
   };
@@ -3116,14 +3179,14 @@ class Game_BattleMap {
   /**
    * Configures this damage popup based on the action result against the target.
    * @param {Game_Action} gameAction The action this popup is based on.
-   * @param {object} skill The skill reference data itself.
+   * @param {rm.types.Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler who casted this skill.
    * @param {JABS_Battler} target The target battler the popup is placed on.
    */
   configureDamagePop(gameAction, skill, caster, target) {
     const targetBattler = target.getBattler();
     const actionResult = targetBattler.result();
-    const elementalRate = gameAction.calcElementRate(targetBattler);
+    const elementalRate = gameAction.calculateRawElementRate(targetBattler);
     const elementalIcon = this.determineElementalIcon(skill, caster);
     const iconIndex = actionResult.parried
       ? 128
@@ -3142,7 +3205,7 @@ class Game_BattleMap {
 
   /**
    * Translates a skill's elemental affiliation into the icon id representing it.
-   * @param {number} skill The skill possessing the elemental affiliation.
+   * @param {rm.types.Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler performing the action.
    * @returns {number} The icon index to use for this popup.
    */
