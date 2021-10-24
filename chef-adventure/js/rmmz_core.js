@@ -4204,6 +4204,7 @@ WindowLayer.prototype.constructor = WindowLayer;
 
 WindowLayer.prototype.initialize = function() {
     PIXI.Container.call(this);
+
 };
 
 /**

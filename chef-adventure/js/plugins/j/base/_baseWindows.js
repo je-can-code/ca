@@ -15,6 +15,66 @@
  * ============================================================================
  */
 
+//#region WindowLayer
+/**
+ * OVERWRITE Renders windows, but WITH the ability to overlay.
+ *
+ * @param {PIXI.Renderer} renderer - The renderer.
+ */
+WindowLayer.prototype.render = function(renderer)
+{
+  if (!this.visible)
+  {
+    return;
+  }
+
+  const graphics = new PIXI.Graphics()
+    , gl = renderer.gl
+    , children = this.children.clone();
+
+  renderer.framebuffer.forceStencil();
+  graphics.transform = this.transform;
+  renderer.batch.flush();
+  gl.enable(gl.STENCIL_TEST);
+
+  while (children.length > 0)
+  {
+    // draw from front to back instead of in reverse.
+    const win = children.shift();
+    if (win._isWindow && win.visible && win.openness > 0)
+    {
+      gl.stencilFunc(gl.EQUAL, 0, ~0);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+      win.render(renderer);
+      renderer.batch.flush();
+      graphics.clear();
+      // no "win.drawShape(graphics)" anymore.
+      gl.stencilFunc(gl.ALWAYS, 1, ~0);
+      gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
+      gl.blendFunc(gl.ZERO, gl.ONE);
+      graphics.render(renderer);
+      renderer.batch.flush();
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+  }
+
+  gl.disable(gl.STENCIL_TEST);
+  gl.clear(gl.STENCIL_BUFFER_BIT);
+  gl.clearStencil(0);
+  renderer.batch.flush();
+
+  for (const child of this.children)
+  {
+    if (!child._isWindow && child.visible)
+    {
+      child.render(renderer);
+    }
+  }
+
+  renderer.batch.flush();
+}
+//#endregion WindowLayer
+
 //#region Window_Base
 /**
  * Extends the font settings reset to include bold and italics removal.
@@ -38,42 +98,42 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
   // convert the slashes and stuff to the normal escape characters.
 
   // handle weapon string replacements.
-  text = text.replace(/\\weapon\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\weapon\[(\d+)]/gi, (_, p1) => {
     const weaponColor = 4;
     const weapon = $dataWeapons[parseInt(p1)];
     return `\\I[${weapon.iconIndex}]\\C[${weaponColor}]${weapon.name}\\C[0]`;
   });
 
   // handle armor string replacements.
-  text = text.replace(/\\armor\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\armor\[(\d+)]/gi, (_, p1) => {
     const armorColor = 5;
     const armor = $dataArmors[parseInt(p1)];
     return `\\I[${armor.iconIndex}]\\C[${armorColor}]${armor.name}\\C[0]`;
   });
 
   // handle item string replacements.
-  text = text.replace(/\\item\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\item\[(\d+)]/gi, (_, p1) => {
     const itemColor = 3;
     const item = $dataItems[parseInt(p1)];
     return `\\I[${item.iconIndex}]\\C[${itemColor}]${item.name}\\C[0]`;
   });
 
   // handle state string replacements.
-  text = text.replace(/\\state\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\state\[(\d+)]/gi, (_, p1) => {
     const stateColor = 6;
     const state = $dataStates[parseInt(p1)];
     return `\\I[${state.iconIndex}]\\C[${stateColor}]${state.name}\\C[0]`;
   });
 
   // handle skill string replacements.
-  text = text.replace(/\\skill\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\skill\[(\d+)]/gi, (_, p1) => {
     const skillColor = 1;
     const skill = $dataSkills[parseInt(p1)];
     return `\\I[${skill.iconIndex}]\\C[${skillColor}]${skill.name}\\C[0]`;
   });
 
   // handle enemy string replacements.
-  text = text.replace(/\\enemy\[(\d+)\]/gi, (_, p1) => {
+  text = text.replace(/\\enemy\[(\d+)]/gi, (_, p1) => {
     const enemyColor = 2;
     const enemy = $dataEnemies[parseInt(p1)];
     return `\\C[${enemyColor}]${enemy.name}\\C[0]`;
