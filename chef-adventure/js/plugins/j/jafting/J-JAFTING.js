@@ -962,7 +962,6 @@ Scene_Map.prototype.chooseJaftingCraftRecipe = function() {
 
   this.setWindowFocus("craft-recipes-list");
   this._j._jaftingMenu._recipeListWindow.currentCategory = category;
-  return;
 };
 
 /**
@@ -1001,7 +1000,6 @@ Scene_Map.prototype.update = function() {
   if ($gameSystem.isJafting()) {
     this.manageJaftingMenu();
     this.hideNonJaftingWindows();
-    return;
   } else {
     this.hideAllJaftingWindows();
     this.showNonJaftingWindows();

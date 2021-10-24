@@ -62,7 +62,7 @@ JABS_SkillData.prototype.toJSON = function()
 JABS_SkillData.prototype.delay = function()
 {
   let temp = [0, false];
-  const structure = /<delay:[ ]?(\[-?\d+,[ ]?(true|false))\]>/i;
+  const structure = /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/i;
   this._notes.forEach(note => {
     if (note.match(structure)) {
       temp = JSON.parse(RegExp.$1);
