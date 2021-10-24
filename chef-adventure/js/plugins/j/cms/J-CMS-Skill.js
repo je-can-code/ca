@@ -231,6 +231,13 @@ class Window_SkillDetail extends Window_Base {
     if (!this._skillId) {
       return null;
     } else {
+      // if we're using the skill extension plugin, then grab the extended version.
+      if (J.EXTEND && this._actor)
+      {
+        return OverlayManager.getExtendedSkill(this._actor, this._skillId);
+      }
+
+      // otherwise, return the base skill.
       return $dataSkills[this._skillId];
     }
   };
@@ -411,13 +418,49 @@ class Window_SkillDetail extends Window_Base {
     const value = Math.max(eval(skill.damage.formula), 0);
     const potential = isNaN(value) ? 0 : value;
     const color = sign > 0 ? ColorManager.textColor(10) : ColorManager.textColor(24);
-    return new JCMS_ParameterKvp('Potential Damage', potential, color )
+    return new JCMS_ParameterKvp('Potential Damage', potential, color)
   };
 
   drawRightColumn() {
     const skill = this.skill();
     const actor = this._actor;
     const params = [];
+
+    // add the skill proficiency of this skill.
+    if (actor && skill)
+    {
+      params.push(this.makeSkillProficiency(actor, skill));
+    }
+    else
+    {
+      console.warn(actor);
+      console.warn(skill);
+      return;
+    }
+
+    const ox = 800;
+    const oy = 0;
+    const lh = this.lineHeight();
+    params.forEach((param, index) => {
+      this.resetTextColor();
+      this.changeTextColor(param.color());
+      this.drawText(`${param.name()}`, ox, oy+(lh*index), 250, 'left');
+      if (param.value() !== null) {
+        this.drawText(`${param.value()}`, ox, oy+(lh*index), 250, 'right');
+      }
+    });
+  };
+
+  /**
+   * Makes a parameter that displays this actor's proficiency with this skill.
+   * @param {Game_Actor} actor The actor.
+   * @param {rm.types.Skill} skill The skill.
+   * @returns {JCMS_ParameterKvp}
+   */
+  makeSkillProficiency(actor, skill)
+  {
+    const skillProficiency = actor.tryGetSkillProficiencyBySkillId(skill.id);
+    return new JCMS_ParameterKvp('Proficiency:', skillProficiency.proficiency);
   };
 
   /**

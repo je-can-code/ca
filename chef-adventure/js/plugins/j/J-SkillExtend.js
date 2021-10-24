@@ -426,7 +426,7 @@ class OverlayManager {
     if (baseSkill.tpGain !== skillOverlay.tpGain)
     {
       // overwrite the old one with the new one.
-      baseSkill.tpGain = skillOverlay.tpGain;
+      baseSkill.tpGain += skillOverlay.tpGain;
     }
 
     /*

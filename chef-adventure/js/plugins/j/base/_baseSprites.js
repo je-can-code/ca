@@ -382,5 +382,12 @@ Sprite_Text.prototype.textColor = function() {
 Sprite_Text.prototype.textAlignment = function() {
   return this._j._alignment;
 };
-//#endregion
+//#endregion Sprite_Text
+
+//#region TileMap
+/**
+ * OVERWRITE Fuck those autoshadows.
+ */
+Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) { };
+//#endregion TileMap
 //ENDFILE

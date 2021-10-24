@@ -1141,6 +1141,17 @@ Game_Enemy.prototype.getEverythingWithNotes = function() {
 };
 
 /**
+ * Gets all objects with notes available to enemies.
+ * @returns {rm.types.BaseItem[]}
+ */
+Game_Enemy.prototype.getCurrentWithNotes = function() {
+  const objectsWithNotes = [];
+  objectsWithNotes.push(this.enemy());
+  objectsWithNotes.push(...this.states());
+  return objectsWithNotes;
+};
+
+/**
  * The underlying database data for this enemy.
  * @returns {Game_Battler}
  */

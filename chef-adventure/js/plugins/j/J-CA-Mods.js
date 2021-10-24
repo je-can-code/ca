@@ -89,6 +89,7 @@ J.CAMods.Aliased = {
   Game_Party: {},
   Game_Player: {},
   JABS_Battler: {},
+  Scene_Boot: new Map(),
 };
 //#endregion Initialization
 
@@ -349,9 +350,19 @@ Game_Player.prototype.distancePerFrame = function() {
 //#endregion Game objects
 
 //#region Scene objects
+/**
+ * Extends the start of everything by turning on dev tools.
+ */
+J.CAMods.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
+Scene_Boot.prototype.start = function() {
+  J.CAMods.Aliased.Scene_Boot.get('start').call(this);
+  SceneManager.showDevTools();
+};
+
 Scene_Base.prototype.buttonAreaHeight = function() {
   return 0;
 };
+
 Scene_Base.prototype.createButtons = function() { };
 
 //#region Scene_Map

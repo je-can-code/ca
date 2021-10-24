@@ -1763,7 +1763,7 @@ Scene_Map.prototype.createAllyAiPartyWindow = function() {
   const w = 400;
   const h = 250;
   const x = Graphics.boxWidth - w;
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const aiPartyMenu = new Window_AbsMenuSelect(rect, "ai-party-list");
   aiPartyMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "ai-party-list"));
@@ -1782,7 +1782,7 @@ Scene_Map.prototype.createAllyAiEquipWindow = function() {
   const w = 400;
   const h = 250;
   const x = Graphics.boxWidth - w;
-  const y = 100;
+  const y = 200;
   const rect = new Rectangle(x, y, w, h);
   const aiMemberMenu = new Window_AbsMenuSelect(rect, "select-ai");
   aiMemberMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "select-ai"));
