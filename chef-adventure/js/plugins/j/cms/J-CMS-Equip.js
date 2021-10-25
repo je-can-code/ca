@@ -352,8 +352,9 @@ class Window_MoreEquipData extends Window_MoreData {
    */
   addSkillCommands() {
     const { skillId } = this.item._j;
+    const actor = this.actor;
     if (skillId) {
-      const baseAttackskill = $dataSkills[skillId];
+      const baseAttackskill = OverlayManager.getExtendedSkill(actor, skillId);
       const comboSkillList = this.recursivelyFindAllComboSkillIds(skillId);
       let baseAttackSkillCommand = (this.item.etypeId === 2) ? `Offhand Skill` : `Attack Skill`;
       if (comboSkillList.length) {

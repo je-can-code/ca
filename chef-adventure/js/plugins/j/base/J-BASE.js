@@ -205,6 +205,9 @@ J.BASE.Shapes = {
   Cross: "cross"
 };
 
+/**
+ * The various traits captured here by id with a more meaningful descriptor.
+ */
 J.BASE.Traits = {
   /**
    * Defines a modification to one of the base parameters.
@@ -266,6 +269,7 @@ J.BASE.Traits = {
 J.BASE.Aliased = {
   DataManager: {},
   Game_Character: {},
+  Scene_Base: new Map(),
   Window_Base: {},
   Window_Command: {},
   Window_Selectable: {},
