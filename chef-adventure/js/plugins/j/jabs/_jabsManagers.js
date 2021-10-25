@@ -126,8 +126,8 @@ J.ABS.Input.Select = "select";  // new!
 J.ABS.Input.Cheat = "cheat"     // new!
 
 /**
- * Rewrites gamepad button input to instead perform the various actions that
- * are expected in this ABS.
+ * OVERWRITE Defines gamepad button input to instead perform the various
+ * actions that are expected in this ABS.
  * 
  * This includes:
  * - D-Pad up, down, left, right

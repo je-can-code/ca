@@ -29379,6 +29379,10 @@ declare namespace rm.types {
 		 * The message when the state is removed.
 		 */
 		message4: number;
+        /**
+         * The metadata autoparsed from RMMZ.
+         */
+         meta: Map<string, any>;
 		/**
 		 * The minimum turns of the duration.
 		 */
@@ -29399,7 +29403,6 @@ declare namespace rm.types {
 		 * The side-view overlay.
 		 */
 		overlay: number;
-		parameters: string[];
 		/**
 		 * The state priority (0..100).
 		 */
@@ -38389,7 +38392,7 @@ declare class Scene_Map extends Scene_Base {
 	 * @returns {boolean}
 	 * @memberof Scene_Map
 	 */
-	isDebugCalled(): void;
+	isDebugCalled(): boolean;
 	fadeInForTransfer(): void;
 	fadeOutForTransfer(): void;
 	/**
