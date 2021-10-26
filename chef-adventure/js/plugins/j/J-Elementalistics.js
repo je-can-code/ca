@@ -267,16 +267,16 @@ Game_Action.prototype.calculateRawElementRate = function(target)
 Game_Action.prototype.getApplicableElements = function(target)
 {
   // the skill itself (or usable item).
-  const action = this.item();
+  const skillOrItem = this.item();
 
   // the core element of the action.
-  const baseElement = action.damage.elementId;
+  const baseElement = skillOrItem.damage.elementId;
 
   // initialize elements collection for this action.
   const elements = [baseElement];
 
   // add any extra elements the action has.
-  const addedElements = this.extractElementsFromAction(action);
+  const addedElements = Game_Action.extractElementsFromAction(skillOrItem);
   elements.push(...addedElements);
 
   // if the base element is -1 on the skill, then also add all the attacker's elements.
@@ -306,7 +306,7 @@ Game_Action.prototype.getApplicableElements = function(target)
  * @param {rm.types.UsableItem} referenceData The database object of this action.
  * @returns {number[]} The additional attack elements.
  */
-Game_Action.prototype.extractElementsFromAction = function(referenceData) {
+Game_Action.extractElementsFromAction = function(referenceData) {
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return [];
 
@@ -511,7 +511,7 @@ Game_Action.prototype.getAntiNullElementIds = function()
 Game_Action.prototype.evalDamageFormula = function(target)
 {
   const item = this.item();
-  const attackElements = this.extractElementsFromAction(item);
+  const attackElements = Game_Action.extractElementsFromAction(item);
   const absorbedElements = target.elementsAbsorbed();
   const targetAbsorbs = attackElements.some(elementId => absorbedElements.includes(elementId));
 

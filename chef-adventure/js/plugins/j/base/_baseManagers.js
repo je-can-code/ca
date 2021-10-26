@@ -330,7 +330,7 @@ class IconManager {
    */
   static element(elementId) {
     switch(elementId) {
-      case -1: return 1;   // inherits element from parent.
+      case -1: return 76;  // inherits element from parent.
       case  0: return 70;  // true
       case  1: return 912; // cut
       case  2: return 913; // poke
