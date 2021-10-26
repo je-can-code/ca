@@ -121,8 +121,16 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
   // handle state string replacements.
   text = text.replace(/\\state\[(\d+)]/gi, (_, p1) => {
     const stateColor = 6;
-    const state = $dataStates[parseInt(p1)];
-    return `\\I[${state.iconIndex}]\\C[${stateColor}]${state.name}\\C[0]`;
+    const stateId = parseInt(p1);
+    let name = '(Basic Attack)';
+    let iconIndex = 76;
+    if (stateId > 0)
+    {
+      const state = $dataStates[parseInt(p1)];
+      name = state.name;
+      iconIndex = state.iconIndex;
+    }
+    return `\\I[${iconIndex}]\\C[${stateColor}]${name}\\C[0]`;
   });
 
   // handle skill string replacements.
@@ -222,22 +230,52 @@ Window_Base.prototype.toggleBold = function(force) {
 /**
  * OVERWRITE Draws the color and icon along with the item itself in the command window.
  */
-Window_Command.prototype.drawItem = function(index) {
+Window_Command.prototype.drawItem = function(index)
+{
   const rect = this.itemLineRect(index);
   this.resetTextColor();
   this.changePaintOpacity(this.isCommandEnabled(index));
+  let commandName = `${this.commandName(index)}`;
+  commandName = this.handleColor(commandName, index);
+  commandName = this.handleIcon(commandName, index);
+
+  this.drawTextEx(commandName, rect.x+4, rect.y, rect.width);
+
+  // this.drawText(commandName, rect.x+4, rect.y, rect.width);
+};
+
+/**
+ * Wraps the command in color if a color index is provided.
+ * @param {string} command The comman as raw text.
+ * @param {number} index The index of this command in the window.
+ * @returns {string}
+ */
+Window_Command.prototype.handleColor = function(command, index)
+{
   const commandColor = this.commandColor(index);
-  if (commandColor) {
-    this.changeTextColor(ColorManager.textColor(commandColor));
+  if (commandColor)
+  {
+    command = `\\C[${commandColor}]${command}\\C[0]`;
   }
 
-  const commandName = `${this.commandName(index)}`;
-  this.drawText(commandName, rect.x+4, rect.y, rect.width);
+  return command;
+};
 
+/**
+ * Prepends the icon for this command if applicable.
+ * @param {string} command The comman as raw text.
+ * @param {number} index The index of this command in the window.
+ * @returns {string}
+ */
+Window_Command.prototype.handleIcon = function(command, index)
+{
   const commandIcon = this.commandIcon(index);
-  if (commandIcon) {
-    this.drawIcon(commandIcon, rect.x-32, rect.y+2)
+  if (commandIcon)
+  {
+    command = `\\I[${commandIcon}]${command}`;
   }
+
+  return command;
 };
 
 /**
@@ -250,7 +288,7 @@ Window_Command.prototype.itemLineRect = function(index) {
   const commandIcon = this.commandIcon(index);
   if (commandIcon) {
     let baseRect = J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
-    baseRect.x += 32;
+    //baseRect.x += 32;
     return baseRect;
   } else {
     return J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
@@ -282,6 +320,7 @@ Window_Command.prototype.commandColor = function(index) {
  * @param {boolean} enabled Whether or not this command is enabled.
  * @param {object} ext The extra data for this command.
  * @param {number} icon The icon index for this command.
+ * @param {number} color The color index for this command.
  */
 Window_Command.prototype.addCommand = function(
   name,
@@ -301,7 +340,7 @@ Window_Command.prototype.addCommand = function(
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
- class Window_MoreData extends Window_Command {
+class Window_MoreData extends Window_Command {
    /**
     * The various types supported by "more data" functionality.
     */

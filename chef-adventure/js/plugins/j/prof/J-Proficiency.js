@@ -275,6 +275,37 @@ Game_Actor.prototype.updateOwnConditionals = function() {
 };
 
 /**
+ * Gets all of this actor's skill proficiency conditionals, locked and unlocked.
+ * @returns {ProficiencyConditional[]}
+ */
+Game_Actor.prototype.proficiencyConditionals = function()
+{
+  return this._j._ownConditionals;
+};
+
+/**
+ * Gets all of this actor's skill proficiency conditionals
+ * that include a requirement of the provided skillId.
+ * @param {number} skillId The skill id to find conditionals for.
+ * @returns {ProficiencyConditional[]}
+ */
+Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
+{
+  const filtering = (conditional) => conditional.requirements.some(requirement => requirement.skillId === skillId);
+  return this._j._ownConditionals.filter(filtering);
+};
+
+/**
+ * Checks whether or not a conditional has been unlocked by its key.
+ * @param key {string} The key of the conditional.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isConditionalLocked = function(key)
+{
+  return this._j._unlockedConditionals.includes(key);
+};
+
+/**
  * Gets all currently locked skill proficiency conditionals.
  * @returns {ProficiencyConditional[]}
  */
@@ -360,7 +391,8 @@ Game_Actor.prototype.skillProficiencies = function()
 /**
  * Gets a skill proficiency by its skill id.
  *
- * This will add non-existing proficiencies for tracking purposes.
+ * This will return `undefined` if the skill proficiency
+ * has not yet been generated.
  * @param {number} skillId The skill id.
  * @returns {SkillProficiency|null}
  */
@@ -371,6 +403,12 @@ Game_Actor.prototype.skillProficiencyBySkillId = function(skillId)
     .find(prof => prof.skillId === skillId);
 };
 
+/**
+ * A safe means of attempting to retrieve a skill proficiency. If the proficiency
+ * does not exist, then it will be created.
+ * @param skillId
+ * @returns {SkillProficiency}
+ */
 Game_Actor.prototype.tryGetSkillProficiencyBySkillId = function(skillId)
 {
   // look up the proficiency; this could be undefined
@@ -479,8 +517,7 @@ Game_Actor.prototype.checkProficiencyConditionals = function()
 };
 
 /**
- * Gets whether or not there are notes that indicate skills should be autoassigned
- * when leveling up.
+ * Calculates total amount of bonus proficiency gain when gaining skill proficiency.
  * @returns {number}
  */
 Game_Actor.prototype.bonusSkillProficiencyGains = function()

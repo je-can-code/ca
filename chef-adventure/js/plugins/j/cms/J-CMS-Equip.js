@@ -362,12 +362,12 @@ class Window_MoreEquipData extends Window_MoreData {
       }
   
       const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${baseAttackskill.name}\\C[0]`;
-      this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex, 0);
+      this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex);
       if (comboSkillList.length) {
         comboSkillList.forEach((skillId, index) => {
           const skill = $dataSkills[skillId];
           const commandName = `Combo Skill ${index+1}: \\C[2]${skill.name}\\C[0]`;
-          this.addCommand(commandName, null, true, null, skill.iconIndex, 0);
+          this.addCommand(commandName, null, true, null, skill.iconIndex);
         });
       }
     }
