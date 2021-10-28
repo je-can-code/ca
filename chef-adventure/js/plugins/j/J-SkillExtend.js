@@ -265,8 +265,7 @@ class OverlayManager {
       // there are many skills to extend with sequentially.
       default:
         const reducer = (skillPreviously, skillOverlay) => this.extendSkill(skillPreviously, skillOverlay);
-        const extendedSkill = skillExtendSkills.reduce(reducer, baseSkill);
-        return extendedSkill;
+        return skillExtendSkills.reduce(reducer, baseSkill);
     }
   };
 
@@ -357,24 +356,33 @@ class OverlayManager {
         baseSkill.damage.critical = skillOverlay.damage.critical;
       }
 
-      // if the base element doesn't match...
+      // overwrite the base element.
       if (baseSkill.damage.elementId !== skillOverlay.damage.elementId)
       {
-        // overwrite the element.
         baseSkill.damage.elementId = skillOverlay.damage.elementId;
       }
 
-      // if the damage type doesn't match...
+      // overwrite damage type.
       if (baseSkill.damage.type !== skillOverlay.damage.type)
       {
-        // overwrite the damage type.
-        baseSkill.damage.type = skillOverlay.damage.type;
+        // allow upgrading hp-damage >> hp-drain.
+        if (baseSkill.damage.type === 1 && skillOverlay.damage.type === 5)
+        {
+          baseSkill.damage.type = 5;
+        }
+        // allow upgrading mp-damage >> mp-drain.
+        else if (baseSkill.damage.type === 2 && skillOverlay.damage.type === 6)
+        {
+          baseSkill.damage.type = 5;
+        }
+
+        // otherwise, overwrite damage type.
+        // TODO: when stacking damage types, update here.
       }
 
-      // if the variance doesn't match...
+      // overwrite the variance.
       if (baseSkill.damage.variance !== skillOverlay.damage.variance)
       {
-        // overwrite the variance.
         baseSkill.damage.variance = skillOverlay.damage.variance;
       }
 
@@ -389,44 +397,44 @@ class OverlayManager {
     // combine the effects.
     baseSkill.effects = baseSkill.effects.concat(skillOverlay.effects);
 
-    // and then combine the meta together.
+    // combine the meta together.
     baseSkill.meta = {
       ...baseSkill.meta,
       ...skillOverlay.meta,
     }
 
-    // and then append the notes.
+    // append the notes.
     baseSkill.note += skillOverlay.note;
 
-    // combine the repeats.
+    // combine repeats.
     baseSkill.repeats += (skillOverlay.repeats - 1);
 
-    // if the scopes don't match...
+    // overwrite scope.
     if (baseSkill.scope !== skillOverlay.scope)
     {
-      // overwrite the old one with the new one.
+      //! TODO: extend, don't overwrite!
       baseSkill.scope = skillOverlay.scope;
     }
 
-    // if the mp costs don't match...
+    // overwrite mp costs.
     if (baseSkill.mpCost !== skillOverlay.mpCost)
     {
-      // overwrite the old one with the new one.
       baseSkill.mpCost = skillOverlay.mpCost;
     }
 
-    // if the tp costs don't match...
+    // overwrite tp costs.
     if (baseSkill.tpCost !== skillOverlay.tpCost)
     {
-      // overwrite the old one with the new one.
       baseSkill.tpCost = skillOverlay.tpCost;
     }
 
-    // if the tp costs don't match...
-    if (baseSkill.tpGain !== skillOverlay.tpGain)
+    // combine the tp gains.
+    baseSkill.tpGain += skillOverlay.tpGain;
+
+    // if both hit types are NOT "certain hit", then overwrite them.
+    if (baseSkill.hitType && skillOverlay.hitType)
     {
-      // overwrite the old one with the new one.
-      baseSkill.tpGain += skillOverlay.tpGain;
+      baseSkill.hitType = skillOverlay.hitType;
     }
 
     /*

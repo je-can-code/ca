@@ -2955,15 +2955,16 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function() {
   const battler = this.getBattler();
-  const battlerData = $dataEnemies[battler.enemyId()];
-  if (battlerData.actions.length > 0) {
-    return battlerData.actions.map(action => {
-      //return [action.skillId, action.rating];
-      return action.skillId;
-    });
-  } else {
-    return [];
-  }
+  let battlerData = $dataEnemies[battler.enemyId()];
+
+  // filter out any "extend" skills as far as this collection is concerned.
+  return battlerData.actions
+      .filter(action => {
+        const skill = $dataSkills[action.skillId];
+        const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+        return !isExtendSkill;
+      })
+      .map(action => action.skillId);
 };
 
 /**
@@ -2984,9 +2985,6 @@ JABS_Battler.prototype.getEnemyBasicAttack = function() {
  * @returns {number} The number of bonus hits per attack.
  */
 JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack) {
-  // TODO: enemies don't get bonus hits (yet).
-  if (this.isEnemy()) return 0;
-
   let bonusHits = 0;
   const battler = this.getBattler();
   if (isBasicAttack) {

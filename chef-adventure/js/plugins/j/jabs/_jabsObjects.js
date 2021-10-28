@@ -562,8 +562,7 @@ Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker) {
     formulaDurationBoost += this.getStateDurationFormulaPlus(obj, baseDuration, attacker);
   });
 
-  const totalDurationBoost = Math.round(flatDurationBoost + multiplierDurationBoost + formulaDurationBoost);
-  return totalDurationBoost;
+  return Math.round(flatDurationBoost + multiplierDurationBoost + formulaDurationBoost);
 };
 
 /**
@@ -607,7 +606,9 @@ Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuratio
 
 /**
  * Gets the combined amount of formula-based state duration boosts from all sources.
- * @param {rm.types.BaseItem}
+ * @param {} noteObject
+ * @param baseDuration
+ * @param attacker
  * @returns {number}
  */
 Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDuration, attacker) {
@@ -1081,7 +1082,8 @@ Game_Battler.prototype.getSpeedBoosts = function() {
  * At the Game_Battler level will always return an empty object.
  * @returns {object}
  */
-Game_Battler.prototype.getAllEquippedSkills = function() {
+Game_Battler.prototype.getAllEquippedSkills = function()
+{
   return [];
 };
 
@@ -1090,7 +1092,8 @@ Game_Battler.prototype.getAllEquippedSkills = function() {
  * At the Game_Battler level will always return 0.
  * @returns {number}
  */
-Game_Battler.prototype.getEquippedSkill = function(slot) {
+Game_Battler.prototype.getEquippedSkill = function(slot)
+{
   return 0;
 };
 
@@ -1098,8 +1101,14 @@ Game_Battler.prototype.getEquippedSkill = function(slot) {
  * Gets the current health percent of this battler.
  * @returns {number}
  */
-Game_Battler.prototype.currentHpPercent = function() {
+Game_Battler.prototype.currentHpPercent = function()
+{
   return parseFloat((this.hp / this.mhp).toFixed(2));
+};
+
+Game_Battler.prototype.extractBonusHits = function(notedata)
+{
+
 };
 //#endregion Game_Battler
 
@@ -2638,6 +2647,16 @@ class Game_BattleMap {
     const damagePop = this.configureDamagePop(action.getAction(), skill, casterMapBattler, target);
     targetSprite.addTextPop(damagePop);
     targetSprite.setRequestTextPop();
+
+    // assuming the caster isn't an inanimate object or something...
+    if (!casterMapBattler.isInanimate())
+    {
+      // generate the text popup for this skill usage.
+      const casterSprite = casterMapBattler.getCharacter();
+      const selfDamagePop = this.configureSkillUsedPop(skill);
+      casterSprite.addTextPop(selfDamagePop);
+      casterSprite.setRequestTextPop();
+    }
   };
 
   /**
@@ -3174,6 +3193,27 @@ class Game_BattleMap {
         $gameTextLog.addLog(log);
       });
     }
+  };
+
+  /**
+   * Configures this skill used popup based on the skill itself.
+   * @param {rm.types.Skill} skill
+   * @returns {JABS_TextPop}
+   */
+  configureSkillUsedPop(skill)
+  {
+    const name = skill.name;
+    const skillIcon = skill.iconIndex;
+    const textColor = 0;
+    return JABS_TextPop.create({
+      actionResult: null,
+      iconIndex: skillIcon,
+      textColorIndex: textColor,
+      isWeakness: false,
+      isStrength: false,
+      popupType: JABS_TextPop.Types.Item,
+      directValue: name,
+    });
   };
 
   /**
@@ -3869,9 +3909,7 @@ class Game_BattleMap {
     $gameTextLog.addLog(skillLearnLog);
   };
 //#endregion defeated target aftermath
-
-};
-
+}
 //#endregion Game_BattleMap
 
 //#region Game_Character
@@ -4469,6 +4507,26 @@ Game_Enemies.prototype.enemy = function(enemyId) {
 //#endregion
 
 //#region Game_Enemy
+/**
+ * Gets the current number of bonus hits for this actor.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBonusHits = function() {
+  let bonusHits = 0;
+  const structure = /<bonusHits:[ ]?(\d+)>/i;
+  const objectsToCheck = this.getEverythingWithNotes();
+  objectsToCheck.forEach(obj => {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(note => {
+      if (note.match(structure)) {
+        bonusHits = parseInt(RegExp.$1);
+      }
+    });
+  });
+
+  return bonusHits;
+};
+
 /**
  * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.

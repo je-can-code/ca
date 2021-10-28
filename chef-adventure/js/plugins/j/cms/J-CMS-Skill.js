@@ -485,7 +485,7 @@ class Window_SkillDetail extends Window_Base {
     const attackStateParams = [];
     attackStateParams.push(new JCMS_ParameterKvp(`\\C[17]Applies States\\C[0]`, `\\C[1]\\}CHANCE\\{\\C[0]`));
     stateEffects.forEach(effect => {
-      const name = `\\State[${effect.dataId}]`
+      const name = `\\State[${effect.dataId}]`;
       const chance = `${Math.round(effect.value1 * 100)}%`;
       attackStateParams.push(new JCMS_ParameterKvp(name, chance));
     });

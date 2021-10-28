@@ -444,7 +444,7 @@ Game_Actor.prototype.retaliationSkills = function() {
 
 /**
  * The underlying database data for this actor.
- * @returns {Game_Battler}
+ * @returns {rm.types.Actor}
  */
 Game_Actor.prototype.databaseData = function() {
   return this.actor();
@@ -456,7 +456,7 @@ Game_Actor.prototype.databaseData = function() {
  * The underlying database data for this battler.
  * 
  * This allows operations to be performed against both actor and enemy indifferently.
- * @returns {Game_Battler}
+ * @returns {rm.types.Enemy|rm.types.Actor}
  */
 Game_Battler.prototype.databaseData = function() {
   return null;
@@ -1153,7 +1153,7 @@ Game_Enemy.prototype.getCurrentWithNotes = function() {
 
 /**
  * The underlying database data for this enemy.
- * @returns {Game_Battler}
+ * @returns {rm.types.Enemy}
  */
  Game_Enemy.prototype.databaseData = function() {
   return this.enemy();
