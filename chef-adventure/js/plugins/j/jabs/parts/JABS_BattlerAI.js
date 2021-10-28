@@ -37,66 +37,67 @@ class JABS_BattlerAI {
     reckless = false, 
     healer = false, 
     follower = false, 
-    leader = false) {
-      /**
-       * The most basic of AI: just move and take action. 
-       * 
-       * `10000000`, first bit.
-       */
-      this.basic = basic;
+    leader = false
+  ) {
+    /**
+     * The most basic of AI: just move and take action.
+     *
+     * `10000000`, first bit.
+     */
+    this.basic = basic;
 
-      /**
-       * Adds an additional skillset; enabling intelligent pursuit among other things.
-       * 
-       * `01000000`, second bit.
-       */
-      this.smart = smart;
+    /**
+     * Adds an additional skillset; enabling intelligent pursuit among other things.
+     *
+     * `01000000`, second bit.
+     */
+    this.smart = smart;
 
-      /**
-       * Adds an additional skillset; targeting a foe's weakspots if available.
-       * 
-       * `00100000`, third bit.
-       */
-      this.executor = executor;
+    /**
+     * Adds an additional skillset; targeting a foe's weakspots if available.
+     *
+     * `00100000`, third bit.
+     */
+    this.executor = executor;
 
-      /**
-       * Adds an additional skillset; allowing defending in place of action
-       * and supporting allies with buff skills.
-       * 
-       * `00010000`, fourth bit.
-       */
-      this.defensive = defensive;
-      
-      /**
-       * Adds an additional skillset; forcing skills whenever available.
-       * 
-       * `00001000`, fifth bit.
-       */
-      this.reckless = reckless;
+    /**
+     * Adds an additional skillset; allowing defending in place of action
+     * and supporting allies with buff skills.
+     *
+     * `00010000`, fourth bit.
+     */
+    this.defensive = defensive;
 
-      /**
-       * Adds an additional skillset; prioritizing healing skills when either
-       * oneself' or allies' current health reach below 66% of max health.
-       * 
-       * `00000100`, sixth bit.
-       */
-      this.healer = healer;
+    /**
+     * Adds an additional skillset; forcing skills whenever available.
+     *
+     * `00001000`, fifth bit.
+     */
+    this.reckless = reckless;
 
-      /**
-       * Adds an additional skillset; performs only basic attacks when
-       * engaged. If a leader is nearby, a leader will encourage actually
-       * available skills intelligently based on the target.
-       * 
-       * `00000010`, seventh bit.
-       */
-      this.follower = follower;
+    /**
+     * Adds an additional skillset; prioritizing healing skills when either
+     * oneself' or allies' current health reach below 66% of max health.
+     *
+     * `00000100`, sixth bit.
+     */
+    this.healer = healer;
 
-      /**
-       * Adds an additional skillset; enables ally coordination.
-       * 
-       * `00000001`, eighth bit.
-       */
-      this.leader = leader;
+    /**
+     * Adds an additional skillset; performs only basic attacks when
+     * engaged. If a leader is nearby, a leader will encourage actually
+     * available skills intelligently based on the target.
+     *
+     * `00000010`, seventh bit.
+     */
+    this.follower = follower;
+
+    /**
+     * Adds an additional skillset; enables ally coordination.
+     *
+     * `00000001`, eighth bit.
+     */
+    this.leader = leader;
   };
 
   /**
@@ -180,7 +181,7 @@ class JABS_BattlerAI {
   /**
    * Decides an attack-oriented action to perform.
    * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
+   * @param {number[]} skillsToUse The available skills to use.
    */
   decideAttackAction(user, skillsToUse) {
     // don't do things if we have no skills to work with.
@@ -205,9 +206,8 @@ class JABS_BattlerAI {
   /**
    * Decides an action from an array of skill objects based on the target.
    * Will purge all elementally ineffective skills from the collection.
-   * @param {object[]} skillsToUse The current collection of skills available.
+   * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler} target The battler to decide the action about.
-   * @returns {[skillId: number, weight: number][]}
    */
   filterElementallyIneffectiveSkills(skillsToUse, target) {
     if (skillsToUse.length > 1) {
@@ -225,9 +225,9 @@ class JABS_BattlerAI {
   /**
    * Decides an action from an array of skill objects based on the target.
    * Will choose the skill that has the highest elemental effectiveness.
-   * @param {object[]} skillsToUse The current collection of skills available.
+   * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler} target The battler to decide the action about.
-   * @returns {[skillId: number, rate: number]} The `[skillId, elementalRate]`.
+   * @param {number[]} skillsToUse The available skills to use.
    */
   findMostElementallyEffectiveSkill(skillsToUse, target) {
     // if we have no skills to work with, then don't process.
@@ -259,7 +259,7 @@ class JABS_BattlerAI {
   /**
    * Filters skills by a defensive priority.
    * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
+   * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler[]} allies 
    * @returns 
    */
@@ -270,7 +270,7 @@ class JABS_BattlerAI {
   /**
    * Filters skills by a healing priority.
    * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {[skillId: number, weight: number][]} skillsToUse The available skills to use.
+   * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler[]} allies 
    * @returns 
    */
