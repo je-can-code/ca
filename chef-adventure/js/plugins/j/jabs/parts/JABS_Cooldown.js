@@ -78,6 +78,7 @@ class JABS_Cooldown {
     }
 
     if (this.frames <= 0) {
+      this.resetCombo();
       this.enableBase();
     }
   };
