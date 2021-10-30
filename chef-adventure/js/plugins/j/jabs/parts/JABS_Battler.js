@@ -3354,7 +3354,6 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey) {
 
   // check to make sure we can actually use the skill.
   const canUse = battler.canUse($dataSkills[skillId]);
-  console.log(canUse);
 
   // check to make sure we actually know the skill, too.
   const hasSkill = battler.hasSkill(skillId);
@@ -3886,12 +3885,8 @@ JABS_Battler.prototype.performActionPose = function(skill) {
     return;
   }
 
-  const exists = J.BASE.Helpers.checkFile(`img/characters/${newCharacterSprite}.png`);
-  if (exists) {
-    character.setImage(newCharacterSprite, index);
-  } else {
-    //console.info(`Character image: [${newCharacterSprite}] w/ suffix of [${suffix}] is missing.`); 
-  }
+  ImageManager.loadCharacter(newCharacterSprite);
+  character.setImage(newCharacterSprite, index);
 };
 
 /**

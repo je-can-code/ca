@@ -2692,7 +2692,7 @@ class Game_BattleMap {
    * @param {JABS_Battler} target The target having the action applied against.
    */
   applyAggroEffects(gameActionResult, action, attacker, target) {
-    // don't aggro your allies against you! Thats dumb.
+    // don't aggro your allies against you! That's dumb.
     if (attacker.isSameTeam(target.getTeam())) return;
 
     let aggro = J.ABS.Metadata.BaseAggro;
@@ -3211,7 +3211,7 @@ class Game_BattleMap {
       textColorIndex: textColor,
       isWeakness: false,
       isStrength: false,
-      popupType: JABS_TextPop.Types.Item,
+      popupType: JABS_TextPop.Types.SkillUsage,
       directValue: name,
     });
   };

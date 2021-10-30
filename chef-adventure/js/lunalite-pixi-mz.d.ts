@@ -24294,7 +24294,14 @@ declare class Bitmap {
 	 * @property fontItalic
 	 * @type Boolean
 	 */
-	fontItalic: number;
+	fontItalic: boolean;
+    /**
+     * Whether the font is bold.
+     *
+     * @property fontBold
+     * @type Boolean
+     */
+    fontBold: boolean;
 	/**
 	 * The color of the text in CSS format.
 	 *

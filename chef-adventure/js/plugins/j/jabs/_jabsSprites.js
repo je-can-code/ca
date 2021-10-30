@@ -838,6 +838,12 @@ Sprite_Character.prototype.configurePopup = function(popup) {
       sprite._duration += 210;
       this.buildBasicPopSprite(sprite, popup);
       break;
+    case JABS_TextPop.Types.SkillUsage:
+      sprite._xVariance = 60;
+      sprite._yVariance = getRandomNumber(-10, 50);
+      sprite._duration += 0;
+      this.buildSkillUsageSprite(sprite, popup);
+      break;
     default:
       console.warn(`unsupported popup type of [${popup.popupType}] found.`);
       sprite._xVariance = getRandomNumber(-30, 30);
@@ -941,6 +947,17 @@ Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
   sprite._colorType = popup.textColorIndex;
   sprite.createValue(`${value}`);
 };
+
+/**
+ * Configures the values for a basic text popup.
+ * @param {Sprite_Damage} sprite The sprite to configure for this experience pop.
+ * @param {JABS_TextPop} popup The data for this pop.
+ */
+Sprite_Character.prototype.buildSkillUsageSprite = function(sprite, popup)
+{
+  sprite._colorType = popup.textColorIndex;
+  sprite.createCustomValue(`${popup.directValue}`);
+};
 //#endregion popups
 //#endregion Sprite_Character
 
@@ -960,10 +977,27 @@ Sprite_Damage.prototype.initialize = function() {
 };
 
 /**
+ * Assigns the custom formatted value to be the text of this popup.
+ * @param {string} value The value to display in the popup.
+ */
+Sprite_Damage.prototype.createCustomValue = function(value)
+{
+  const h = this.fontSize();
+  const w = 400;
+  const sprite = this.createChildSprite(w, h);
+  sprite.bitmap.fontSize = 14;
+  sprite.bitmap.fontItalic = true;
+  sprite.bitmap.paintOpacity = 128;
+  sprite.bitmap.drawText(value, 32, 0, w, h, "left");
+  sprite.dy = 0;
+};
+
+/**
  * Assigns the provided value to be the text of this popup.
  * @param {string} value The value to display in the popup. 
  */
-Sprite_Damage.prototype.createValue = function(value) {
+Sprite_Damage.prototype.createValue = function(value)
+{
   const h = this.fontSize();
   const w = 400;
   const sprite = this.createChildSprite(w, h);
@@ -979,7 +1013,7 @@ Sprite_Damage.prototype.createValue = function(value) {
   sprite.bitmap.fontSize = fontSize;
   sprite.bitmap.drawText(value, 32, 0, w, h, "left");
   sprite.dy = 0;
-}
+};
 
 /**
  * Adds an icon to the damage sprite.

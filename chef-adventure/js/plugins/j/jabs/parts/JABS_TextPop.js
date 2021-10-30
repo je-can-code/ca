@@ -62,6 +62,11 @@ JABS_TextPop.Types = {
    * The popup type of "sdp", for displaying SDP points earned after defeating foes.
    */
   Sdp: 'sdp',
+
+  /**
+   * The popup type of "skillUsage", for displaying used skills as popups off the battlers on the map.
+   */
+  SkillUsage: 'skillUsage',
 };
 
 /**
