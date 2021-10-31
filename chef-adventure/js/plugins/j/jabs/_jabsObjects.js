@@ -753,19 +753,43 @@ Game_Action.prototype.itemEffectAddState = function(target, effect) {
  * @param {JABS_Battler} player The player's `JABS_Battler`.
  * @returns {number} The amount of damage after damage reductions from guarding.
  */
-Game_Action.prototype.handleGuardEffects = function(damage, player) {
-  if (player.parrying()) {
-    const result = player.getBattler().result();
-    result.parried = true; // make sure the engine knows its parried.
+Game_Action.prototype.handleGuardEffects = function(damage, player)
+{
+  // if the player is parrying...
+  if (player.parrying())
+  {
+    const playerBattler = player.getBattler();
+    const result = playerBattler.result();
+
+    // nullify the result via parry.
+    result.parried = true;
     result.preciseParried = true;
     damage = 0;
-    player.setParryWindow(0);
     player.getCharacter().requestAnimation(0, true, true);
-  } else {
-    if (player.guarding()) {
-      damage = this.percDamageReduction(damage, player);
-      damage = this.flatDamageReduction(damage, player);
+
+    // handle tp generation from precise-parrying.
+    const skillId = player.getGuardSkillId();
+    if (skillId)
+    {
+      const skill = OverlayManager.getExtendedSkill(playerBattler, skillId);
+      console.log(skillId);
+      const tpGain = skill.tpGain;
+      const name = skill.name;
+      console.log(`gaining ${tpGain} TP from casting ${name}.`);
+      playerBattler.gainTp(tpGain);
     }
+
+    // reset the player's guarding.
+    player.setParryWindow(0);
+    player.setGuardSkillId(0);
+  }
+
+  // if the player is guarding...
+  else if (player.guarding())
+  {
+    // reduce the damage accordingly per the guard data.
+    damage = this.percDamageReduction(damage, player);
+    damage = this.flatDamageReduction(damage, player);
   }
 
   return damage;
