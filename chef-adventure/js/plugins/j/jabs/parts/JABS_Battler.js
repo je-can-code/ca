@@ -342,7 +342,7 @@ JABS_Battler.prototype.initBattleInfo = function() {
 
   /**
    * A queue of actions pending execution from a designated leader.
-   * @type {number}
+   * @type {number|null}
    */
   this._leaderDecidedAction = null;
 
@@ -351,7 +351,7 @@ JABS_Battler.prototype.initBattleInfo = function() {
    * This is only used for followers to prevent multiple leaders for commanding them.
    * @type {string}
    */
-  this._leaderUuid = "";
+  this._leaderUuid = String.empty;
 
   /**
    * A collection of `uuid`s from all follower battlers this battler is leading.
@@ -434,6 +434,12 @@ JABS_Battler.prototype.initBattleInfo = function() {
    * @type {number}
    */
   this._counterGuardId = 0;
+
+  /**
+   * The id of the skill associated with the guard data.
+   * @type {number}
+   */
+  this._guardSkillId = 0;
 
   /**
    * Whether or not this battler is in a state of dying.
@@ -3687,7 +3693,8 @@ JABS_Battler.prototype.flatGuardReduction = function() {
  * Sets the battler's flat reduction when guarding.
  * @param {number} flatReduction The flat amount to reduce when guarding.
  */
-JABS_Battler.prototype.setFlatGuardReduction = function(flatReduction) {
+JABS_Battler.prototype.setFlatGuardReduction = function(flatReduction)
+{
   this._guardFlatReduction = flatReduction;
 };
 
@@ -3695,7 +3702,8 @@ JABS_Battler.prototype.setFlatGuardReduction = function(flatReduction) {
  * The percent amount to reduce damage by when guarding.
  * @returns {number}
  */
-JABS_Battler.prototype.percGuardReduction = function() {
+JABS_Battler.prototype.percGuardReduction = function()
+{
   if (!this.guarding()) return 0;
 
   return this._guardPercReduction;
@@ -3705,7 +3713,8 @@ JABS_Battler.prototype.percGuardReduction = function() {
  * Sets the battler's percent reduction when guarding.
  * @param {number} percReduction The percent amount to reduce when guarding.
  */
-JABS_Battler.prototype.setPercGuardReduction = function(percReduction) {
+JABS_Battler.prototype.setPercGuardReduction = function(percReduction)
+{
   this._guardPercReduction = percReduction;
 };
 
@@ -3713,7 +3722,8 @@ JABS_Battler.prototype.setPercGuardReduction = function(percReduction) {
  * Checks to see if retrieving the counter-guard skill id is appropriate.
  * @returns {number}
  */
-JABS_Battler.prototype.counterGuard = function() {
+JABS_Battler.prototype.counterGuard = function()
+{
   return this.guarding()
     ? this.counterGuardId()
     : 0;
@@ -3723,7 +3733,8 @@ JABS_Battler.prototype.counterGuard = function() {
  * Gets the id of the skill for counter-guarding.
  * @returns {number}
  */
-JABS_Battler.prototype.counterGuardId = function() {
+JABS_Battler.prototype.counterGuardId = function()
+{
   return this._counterGuardId;
 };
 
@@ -3731,7 +3742,8 @@ JABS_Battler.prototype.counterGuardId = function() {
  * Sets the battler's retaliation id for guarding.
  * @param {number} counterGuardSkillId The skill id to counter with while guarding.
  */
-JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillId) {
+JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillId)
+{
   this._counterGuardId = counterGuardSkillId;
 };
 
@@ -3739,7 +3751,8 @@ JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillId) {
  * Checks to see if retrieving the counter-parry skill id is appropriate.
  * @returns {number}
  */
-JABS_Battler.prototype.counterParry = function() {
+JABS_Battler.prototype.counterParry = function()
+{
   return this.guarding()
     ? this.counterParryId()
     : 0;
@@ -3749,7 +3762,8 @@ JABS_Battler.prototype.counterParry = function() {
  * Gets the id of the skill for counter-parrying.
  * @returns {number}
  */
-JABS_Battler.prototype.counterParryId = function() {
+JABS_Battler.prototype.counterParryId = function()
+{
   return this._counterParryId;
 };
 
@@ -3758,30 +3772,52 @@ JABS_Battler.prototype.counterParryId = function() {
  * @param {number} counterParrySkillId The skill id of the counter-parry skill.
  * @returns {number}
  */
-JABS_Battler.prototype.setCounterParry = function(counterParrySkillId) {
+JABS_Battler.prototype.setCounterParry = function(counterParrySkillId)
+{
   this._counterParryId = counterParrySkillId;
 };
 
 /**
- * Gets all data associated with guarding for this battler.
- * @returns {JABS_GuardData}
+ * Gets the guard skill id most recently assigned.
+ * @returns {number}
  */
-JABS_Battler.prototype.getGuardData = function(cooldownKey) {
-  const battler = this.getBattler()
-  const id = battler.getEquippedSkill(cooldownKey);
-  if (!id) return null;
+JABS_Battler.prototype.getGuardSkillId = function()
+{
+  return this._guardSkillId;
+};
 
-  const canUse = battler.canUse($dataSkills[id]);
+/**
+ * Sets the guard skill id to a designated skill id.
+ *
+ * This gets removed when guarding/parrying.
+ * @param guardSkillId
+ */
+JABS_Battler.prototype.setGuardSkillId = function(guardSkillId)
+{
+  this._guardSkillId = guardSkillId;
+};
+
+/**
+ * Gets all data associated with guarding for this battler.
+ * @returns {JABS_GuardData|null}
+ */
+JABS_Battler.prototype.getGuardData = function(cooldownKey)
+{
+  const battler = this.getBattler()
+  const skillId = battler.getEquippedSkill(cooldownKey);
+  if (!skillId) return null;
+
+  const canUse = battler.canUse($dataSkills[skillId]);
   if (!canUse) {
     return null;
   }
 
-  const skill = $dataSkills[id];
-  const guard = skill._j.guard();
+  const skill = OverlayManager.getExtendedSkill(battler, skillId);
+  const [flat, percent] = skill._j.guard();
   const parry = skill._j.parry();
   const counterParry = skill._j.counterParry();
   const counterGuard = skill._j.counterGuard();
-  return new JABS_GuardData(guard[0], guard[1], counterGuard, counterParry, parry);
+  return new JABS_GuardData(skillId, flat, percent, counterGuard, counterParry, parry);
 };
 
 /**
@@ -3789,7 +3825,8 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey) {
  * @param {string} cooldownKey The key to determine if its a guard skill or not.
   * @returns {boolean} True if it is a guard skill, false otherwise.
  */
-JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey) {
+JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
+{
   const battler = this.getBattler();
   const id = battler.getEquippedSkill(cooldownKey);
   if (!id) return false;
@@ -3802,7 +3839,8 @@ JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey) {
  * @param {boolean} guarding True if the battler is guarding, false otherwise.
  * @param {string} skillSlot The skill slot to build guard data from.
  */
-JABS_Battler.prototype.executeGuard = function(guarding, skillSlot) {
+JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
+{
   // if we're still guarding, and already in a guard state, don't reset.
   if (guarding && this.guarding()) return;
 
@@ -3829,18 +3867,30 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot) {
   this.setPercGuardReduction(guardData.percGuardReduction);
   this.setCounterGuard(guardData.counterGuardId);
   this.setCounterParry(guardData.counterParryId);
+  this.setGuardSkillId(guardData.skillId);
+  console.log(guardData);
 
   // calculate parry frames, include eva bonus to parry.
-  const gameBattler = this.getBattler();
-  const bonusParryFrames = Math.floor((gameBattler.eva) * guardData.parryDuration);
-  const totalParryFrames = bonusParryFrames + guardData.parryDuration;
+  const totalParryFrames = this.getBonusParryFrames(guardData) + guardData.parryDuration;
 
   // if the guarding skill has a parry window, apply those frames once.
   if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 
   // set the pose!
-  const skill = $dataSkills[gameBattler.getEquippedSkill(skillSlot)];
+  const battler = this.getBattler();
+  const skillId = battler.getEquippedSkill(skillSlot);
+  const skill = OverlayManager.getExtendedSkill(battler, skillId);
   this.performActionPose(skill);
+};
+
+/**
+ * Abstraction of the definition of how to determine what the bonus to parry frames is.
+ * @param {JABS_GuardData} guardData The guard data.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getBonusParryFrames = function(guardData)
+{
+  return Math.floor((this.getBattler().eva) * guardData.parryDuration);
 };
 
 /**

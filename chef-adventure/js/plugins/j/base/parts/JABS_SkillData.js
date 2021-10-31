@@ -162,7 +162,7 @@ JABS_SkillData.prototype.ignoreParry = function()
 
 /**
  * Gets the amount of damage being reduced by guarding.
- * @returns {[number, boolean]} [damage reduction, true if reduction is %-based, false otherwise].
+ * @returns {[number, number]} `[flat, percent]`.
  */
 JABS_SkillData.prototype.guard = function()
 {
