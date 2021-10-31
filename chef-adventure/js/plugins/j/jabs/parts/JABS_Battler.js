@@ -3868,7 +3868,6 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   this.setCounterGuard(guardData.counterGuardId);
   this.setCounterParry(guardData.counterParryId);
   this.setGuardSkillId(guardData.skillId);
-  console.log(guardData);
 
   // calculate parry frames, include eva bonus to parry.
   const totalParryFrames = this.getBonusParryFrames(guardData) + guardData.parryDuration;
