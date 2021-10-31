@@ -772,11 +772,7 @@ Game_Action.prototype.handleGuardEffects = function(damage, player)
     if (skillId)
     {
       const skill = OverlayManager.getExtendedSkill(playerBattler, skillId);
-      console.log(skillId);
-      const tpGain = skill.tpGain;
-      const name = skill.name;
-      console.log(`gaining ${tpGain} TP from casting ${name}.`);
-      playerBattler.gainTp(tpGain);
+      playerBattler.gainTp(skill.tpGain);
     }
 
     // reset the player's guarding.
@@ -5827,7 +5823,7 @@ Game_Map.prototype.removeEvent = function(event) {
     // if the index is found, remove the event.
     event.erase();
     if (event.isAction) {
-      this._events.splice(index, 1);
+      // this._events.splice(index, 1);
     }
   }
 };
@@ -6100,6 +6096,9 @@ Game_Player.prototype.checkForLoot = function() {
   const lootDrops = $gameMap.getLootDrops();
   if (lootDrops.length) {
     lootDrops.forEach(lootDrop => {
+      // don't pickup stuff that is gone.
+      if (lootDrop._erased) return;
+
       if (this.isTouchingLoot(lootDrop)) {
         this.pickupLoot(lootDrop);
         this.removeLoot(lootDrop);
