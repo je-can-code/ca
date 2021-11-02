@@ -892,7 +892,7 @@ JABS_Battler.prototype.updateDodging = function() {
 };
 
 /**
- * Handles when this battler is dying.
+ * Handles when this enemy battler is dying.
  */
 JABS_Battler.prototype.updateDeathHandling = function() {
   // don't do this for actors/players.
@@ -900,6 +900,9 @@ JABS_Battler.prototype.updateDeathHandling = function() {
 
   // do nothing if we are waiting.
   if (this.isWaiting()) return;
+
+  // if the event is erased officially, ignore it.
+  if (this.getCharacter()._erased) return;
 
   // if we are dying, self-destruct.
   if (this.isDying() && !$gameMap._interpreter.isRunning()) {

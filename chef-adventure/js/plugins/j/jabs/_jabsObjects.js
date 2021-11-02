@@ -2050,10 +2050,12 @@ class Game_BattleMap {
     if (!actionEvents.length) return;
 
     actionEvents.forEach(action => {
-      // decrement the delay timer prior to action countdown.
-      action.countdownDelay();
-      if (!action.triggerOnTouch() && !action.isDelayCompleted()) {
-        // if we aren't done delaying and not triggering by touch,
+      // if we're still delaying and not triggering by touch...
+      if (!action.triggerOnTouch() && !action.isDelayCompleted())
+      {
+        // decrement the delay timer prior to action countdown.
+        action.countdownDelay();
+
         // then stop processing this action.
         return;
       }
@@ -5509,36 +5511,36 @@ Game_Map.prototype.refreshAllBattlers = function() {
  * @param {Game_Event} event The event to refresh.
  */
 Game_Map.prototype.refreshOneBattler = function(event) {
-  let targetIndex = -1;
-
   // get the index of the battler by uuid, assuming they exist in the collection.
-  const found = this._j._allBattlers.find((battler, index) => {
-    if (battler.getUuid() === event.getMapBattlerUuid()) {
-      targetIndex = index;
-      return true;
-    } else {
-      return false;
-    }
-  });
+  const [battler, targetIndex] = this.findBattlerByUuid(event.getMapBattlerUuid());
 
   // if we found a match, it is update/delete.
   const newBattler = this.convertOneToEnemy(event);
-  if (found) {
+  if (battler)
+  {
     // check to see if the new page is an enemy.
-    if (newBattler === null) {
+    if (newBattler === null)
+    {
       // if not an enemy, delete it from the battler tracking.
-      this.destroyBattler(found, true);
-    } else {
+      this.destroyBattler(battler, true);
+    }
+    else
+    {
       // if it is an enemy, update the old enemy with the new one.
       this._j._allBattlers[targetIndex] = newBattler;
     }
+  }
+
   // if we didn't find a match, then its create or do nothing.
-  } else {
+  else
+  {
     // the next page is an enemy, create a new one and add to the list.
-    if (!(newBattler === null)) {
+    if (!(newBattler === null))
+    {
       this._j._allBattlers.push(newBattler);
+    }
     // the next page is not an enemy, do nothing.
-    } else { }
+    else { }
   }
 };
 
@@ -5560,8 +5562,7 @@ Game_Map.prototype.getBattlers = function() {
 
   return this._j._allBattlers.filter(battler => {
     const exists = !!battler;
-    const notErased = exists && !battler.getCharacter()._erased;
-    return notErased;
+    return exists && !battler.getCharacter()._erased;
   });
 };
 
@@ -5773,29 +5774,60 @@ Game_Map.prototype.convertOneToEnemy = function(event) {
 };
 
 /**
- * Deletes and removes a `JABS_Battler` from this map's tracking.
- * @param {JABS_Battler} targetBattler The map battler to destroy.
- * @param {boolean} holdEvent The map battler to destroy.
+ * Finds the battler and its index in the collection by its `uuid`.
+ *
+ * The result of this is intended to be destructured from the array.
+ * @param {string} uuid The `uuid` of the battler to find.
+ * @returns {[JABS_Battler, number]}
  */
-Game_Map.prototype.destroyBattler = function(targetBattler, holdEvent = false) {
-  const uuid = targetBattler.getUuid();
+Game_Map.prototype.findBattlerByUuid = function(uuid)
+{
   let targetIndex = -1;
-  this._j._allBattlers.find((battler, index) => {
+  const battler = this._j._allBattlers.find((battler, index) => {
     const result = battler.getUuid() === uuid;
     if (result) targetIndex = index;
     return result;
   });
 
-  // if not holding the event's character, remove it.
-  if (!holdEvent) {
-    targetBattler.getCharacter().setActionSpriteNeedsRemoving();
-  }
+  return [battler, targetIndex];
+};
 
-  if (targetIndex > -1) {
-    // if not holding the event, remove it.
-    if (!holdEvent) {
-      this._j._allBattlers[targetIndex].getCharacter().erase();
+/**
+ * Removes a battler from tracking by its index in the master tracking list.
+ * @param {number} index The index to splice away.
+ */
+Game_Map.prototype.deleteBattlerByIndex = function(index)
+{
+  this._j._allBattlers.splice(index, 1);
+};
+
+/**
+ * Deletes and removes a `JABS_Battler` from this map's tracking.
+ * @param {JABS_Battler} targetBattler The map battler to destroy.
+ * @param {boolean} holdSprite Whether or not to actually destroy the sprite of the battler.
+ */
+Game_Map.prototype.destroyBattler = function(targetBattler, holdSprite = false)
+{
+  const uuid = targetBattler.getUuid();
+  const targetIndex = this._j._allBattlers.findIndex(battler => battler.getUuid() === uuid);
+
+  // if the battler exists, then lets handle it.
+  if (targetIndex > -1)
+  {
+    // shorthand reference to the event/sprite of the battler.
+    const event = targetBattler.getCharacter();
+
+    if (!holdSprite)
+    {
+      // if we're not holding the sprite, then erase it.
+      event.erase();
+
+      // set the visual component to be removed, too.
+      event.setActionSpriteNeedsRemoving();
     }
+
+    // we always remove the battler from tracking when destroying.
+    this.deleteBattlerByIndex(targetIndex);
   }
 };
 
