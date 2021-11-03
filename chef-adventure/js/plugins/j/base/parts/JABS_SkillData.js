@@ -540,4 +540,25 @@ JABS_SkillData.prototype.poseSuffix = function()
 
   return actionPoseData;
 };
+
+/**
+ * Gets the animation id to execute on oneself instead of on the target.
+ *
+ * This doubles as both an indicator, and also retrieves the animation id.
+ * @returns {number}
+ */
+JABS_SkillData.prototype.selfAnimationId = function()
+{
+  let selfAnimationId = 0;
+  const structure = /<animationOnSelf:([ ]?\d+)?>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      selfAnimationId = parseInt(RegExp.$1);
+    }
+  });
+
+  return selfAnimationId;
+};
 //ENDFILE
