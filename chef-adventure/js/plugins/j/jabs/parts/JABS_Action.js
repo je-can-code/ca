@@ -17,14 +17,16 @@
 /**
  * An object that binds a `Game_Action` to a `Game_Event` on the map.
  */
-class JABS_Action {
+class JABS_Action
+{
   /**
    * The minimum duration a `JABS_Action` must exist visually before cleaning it up.
    * 
    * All actions should exist visually for at least 8 frames.
    * @returns {8} The minimum number of frames, 8.
    */
-  static getMinimumDuration() {
+  static getMinimumDuration()
+  {
     return 8;
   };
 
@@ -95,7 +97,8 @@ class JABS_Action {
   /**
    * Initializes all properties on this class.
    */
-   initMembers() {
+  initMembers()
+  {
     /**
      * The JABS metadata associated with the base skill.
      * Almost all custom feature flags live inside this object.
@@ -156,8 +159,8 @@ class JABS_Action {
    * Combines from all available sources the bonus hits for this action.
    * @returns {number}
    */
-   makePiercingCount()
-   {
+  makePiercingCount()
+  {
      let pierceCount = this._jabsData.piercing()[0];
 
      // handle skill extension bonuses.
@@ -175,12 +178,27 @@ class JABS_Action {
    };
 
   /**
+   * Executes additional logic before this action is disposed.
+   */
+  preCleanupHook()
+  {
+    // handle self-targeted animations on cleanup.
+    const event = this.getActionSprite();
+    if (this._jabsData.selfAnimationId())
+    {
+      const animationId = this._jabsData.selfAnimationId();
+      event.requestAnimation(animationId);
+    }
+  };
+
+  /**
    * Gets the `uuid` of this action.
    * 
    * If one is not returned, then it is probably a direct action with no event representing it.
    * @returns {string|null}
    */
-  getUuid() {
+  getUuid()
+  {
     return this._uuid;
   };
 
@@ -188,7 +206,8 @@ class JABS_Action {
    * Gets the base skill this `JABS_Action` is based on.
    * @returns {rm.types.Skill} The base skill of this `JABS_Action`.
    */
-  getBaseSkill() {
+  getBaseSkill()
+  {
     return this._baseSkill;
   };
 
@@ -196,7 +215,8 @@ class JABS_Action {
    * Gets the JABS-specific skill data associated with this action.
    * @returns {JABS_SkillData} This action's JABS skill data object.
    */
-  getJabsData() {
+  getJabsData()
+  {
     return this._jabsData;
   };
 
@@ -204,7 +224,8 @@ class JABS_Action {
    * Gets the team id of the caster of this action.
    * @returns {number} The team id of the caster of this `JABS_Action`.
    */
-  getTeamId() {
+  getTeamId()
+  {
     return this.getCaster().getTeam();
   };
 
@@ -212,7 +233,8 @@ class JABS_Action {
    * The base game action this `JABS_Action` is based on.
    * @returns {Game_Action} The base game action for this action.
    */
-  getAction() {
+  getAction()
+  {
     return this._gameAction;
   };
 
@@ -220,7 +242,8 @@ class JABS_Action {
    * Gets the `JABS_Battler` that created this `JABS_Action`.
    * @returns {JABS_Battler} The caster of this `JABS_Action`.
    */
-  getCaster() {
+  getCaster()
+  {
     return this._caster;
   };
 
@@ -228,7 +251,8 @@ class JABS_Action {
    * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
    * @returns {boolean} True if it is a retaliation, false otherwise.
    */
-  isRetaliation() {
+  isRetaliation()
+  {
     return this._isRetaliation;
   };
 
@@ -236,7 +260,8 @@ class JABS_Action {
    * Gets the direction this action is facing.
    * @returns {2|4|6|8|1|3|7|9}
    */
-  direction() {
+  direction()
+  {
     return this._facing || this.getActionSprite().direction();
   };
 
@@ -244,7 +269,8 @@ class JABS_Action {
    * Gets the name of the cooldown for this action.
    * @returns {string} The cooldown key for this action.
    */
-  getCooldownType() {
+  getCooldownType()
+  {
     return this._actionCooldownType;
   };
 
@@ -252,14 +278,16 @@ class JABS_Action {
    * Sets the name of the cooldown for tracking on the caster.
    * @param {string} type The name of the cooldown that this leverages.
    */
-  setCooldownType(type) {
+  setCooldownType(type)
+  {
     this._actionCooldownType = type;
   };
 
   /**
    * Gets the durations remaining on this `JABS_Action`.
    */
-  getDuration() {
+  getDuration()
+  {
     return this._currentDuration;
   };
 
@@ -268,8 +296,10 @@ class JABS_Action {
    * If the duration was unset, or is set but less than the minimum, it will be the minimum.
    * @returns {number} The max duration in frames (min 8).
    */
-  getMaxDuration() {
-    if (this.getJabsData().duration() >= JABS_Action.getMinimumDuration()) {
+  getMaxDuration()
+  {
+    if (this.getJabsData().duration() >= JABS_Action.getMinimumDuration())
+    {
       return this.getJabsData().duration();
     }
 
@@ -280,9 +310,11 @@ class JABS_Action {
    * Increments the duration for this `JABS_Action`. If the duration drops
    * to or below 0, then it will also flag this `JABS_Action` for removal.
    */
-  countdownDuration() {
+  countdownDuration()
+  {
     this._currentDuration++;
-    if (this.getMaxDuration() <= this._currentDuration) {
+    if (this.getMaxDuration() <= this._currentDuration)
+    {
       this.setNeedsRemoval();
     }
   };
@@ -291,7 +323,8 @@ class JABS_Action {
    * Gets whether or not this action is expired and should be removed.
    * @returns {boolean} True if expired and past the minimum count, false otherwise.
    */
-  isActionExpired() {
+  isActionExpired()
+  {
     const isExpired = this.getMaxDuration() <= this._currentDuration;
     const minDurationElapsed = this._currentDuration > JABS_Action.getMinimumDuration();
     return (isExpired && minDurationElapsed);
@@ -301,7 +334,8 @@ class JABS_Action {
    * Gets whether or not this `JABS_Action` needs removing.
    * @returns {boolean} Whether or not this action needs removing.
    */
-  getNeedsRemoval() {
+  getNeedsRemoval()
+  {
     return this._needsRemoval;
   };
 
@@ -309,7 +343,8 @@ class JABS_Action {
    * Sets whether or not this `JABS_Action` needs removing.
    * @param {boolean} remove Whether or not to remove this `JABS_Action`.
    */
-  setNeedsRemoval(remove = true) {
+  setNeedsRemoval(remove = true)
+  {
     this._needsRemoval = remove;
   };
 
@@ -318,7 +353,8 @@ class JABS_Action {
    * The `Game_Event` represents the visual aspect of this action.
    * @returns {Game_Event}
    */
-  getActionSprite() {
+  getActionSprite()
+  {
     return this._actionSprite;
   }
 
@@ -326,7 +362,8 @@ class JABS_Action {
    * Binds this `JABS_Action` to a provided `Game_Event`.
    * @param {Game_Event} actionSprite The `Game_Event` to bind to this `JABS_Action`.
    */
-  setActionSprite(actionSprite) {
+  setActionSprite(actionSprite)
+  {
     this._actionSprite = actionSprite;
   };
 
@@ -334,7 +371,8 @@ class JABS_Action {
    * Decrements the pre-countdown delay timer for this action. If the action does not
    * have `touchOnTrigger`, then the action will not affect anyone until the timer expires. 
    */
-  countdownDelay() {
+  countdownDelay()
+  {
     if (this._delayDuration > 0) {
       this._delayDuration--;
     }
@@ -346,14 +384,16 @@ class JABS_Action {
    * This also includes if an action never had a delay to begin with.
    * @returns {boolean}
    */
-  isDelayCompleted() {
+  isDelayCompleted()
+  {
     return this._delayDuration <= 0 && !this.isEndlessDelay();
   };
 
   /**
    * Automatically finishes the delay regardless of its current status.
    */
-  endDelay() {
+  endDelay()
+  {
     this._delayDuration = 0;
   };
 
@@ -361,7 +401,8 @@ class JABS_Action {
    * Gets whether or not this action will be delayed until triggered.
    * @returns {boolean}
    */
-  isEndlessDelay() {
+  isEndlessDelay()
+  {
     return this._delayDuration === -1;
   };
 
@@ -373,7 +414,8 @@ class JABS_Action {
    * trigger by touch regardless of configuration.
    * @returns {boolean}
    */
-  triggerOnTouch() {
+  triggerOnTouch()
+  {
     return this._triggerOnTouch || this.isEndlessDelay();
   };
 
@@ -381,7 +423,8 @@ class JABS_Action {
    * Gets the number of times this action can potentially hit a target.
    * @returns {number} The number of times remaining that this action can hit a target.
    */
-  getPiercingTimes() {
+  getPiercingTimes()
+  {
     return this._pierceTimesLeft;
   };
 
@@ -390,9 +433,11 @@ class JABS_Action {
    * reaches zero or less times, then it also sets it up for removal.
    * @param {number} decrement The number to decrement the times counter by for this action. 
    */
-  modPiercingTimes(decrement = 1) {
+  modPiercingTimes(decrement = 1)
+  {
     this._pierceTimesLeft -= decrement;
-    if (this._pierceTimesLeft <= 0) {
+    if (this._pierceTimesLeft <= 0)
+    {
       this.setNeedsRemoval();
     }
   };
@@ -401,7 +446,8 @@ class JABS_Action {
    * Gets the delay between hits for this action.
    * @returns {number} The number of frames between repeated hits.
    */
-  getPiercingDelay() {
+  getPiercingDelay()
+  {
     return this._currentPierceDelay;
   };
 
@@ -410,14 +456,16 @@ class JABS_Action {
    * provided, then this will increase the delay by that amount instead.
    * @param {number} decrement The amount to modify the delay by.
    */
-  modPiercingDelay(decrement = 1) {
+  modPiercingDelay(decrement = 1)
+  {
     this._currentPierceDelay -= decrement;
   };
 
   /**
    * Resets the piercing delay of this action back to it's base.
    */
-  resetPiercingDelay() {
+  resetPiercingDelay()
+  {
     this._currentPierceDelay = this._basePierceDelay;
   };
 
@@ -425,7 +473,8 @@ class JABS_Action {
    * Gets whether or not this action is a direct-targeting action.
    * @returns {boolean}
    */
-  isDirectAction() {
+  isDirectAction()
+  {
     return this.getJabsData().direct() ?? false;
   };
 
@@ -433,7 +482,8 @@ class JABS_Action {
    * Gets whether or not this action is a support action.
    * @returns {boolean}
    */
-  isSupportAction() {
+  isSupportAction()
+  {
     return this._gameAction.isForFriend();
   };
 
@@ -441,7 +491,8 @@ class JABS_Action {
    * The number of frames until this action's caster may act again.
    * @returns {number} The cooldown frames of this `JABS_Action`.
    */
-  getCooldown() {
+  getCooldown()
+  {
     return this.getJabsData().cooldown() ?? 0;
   };
 
@@ -450,7 +501,8 @@ class JABS_Action {
    * This is used in place of regular cooldowns for skills when present.
    * @returns {number}
    */
-  getAiCooldown() {
+  getAiCooldown()
+  {
     return this.getJabsData().aiCooldown() ?? 0;
   };
 
@@ -458,7 +510,8 @@ class JABS_Action {
    * Gets the cast time for this skill.
    * @returns {number}
    */
-  getCastTime() {
+  getCastTime()
+  {
     // TODO: add a cast time modifier based on actor "all notes" collection.
     return this.getJabsData().castTime();
   };
@@ -467,7 +520,8 @@ class JABS_Action {
    * Gets the range of which this `JABS_Action` will reach.
    * @returns {number} The range of this action.
    */
-  getRange() {
+  getRange()
+  {
     // TODO: add ability to increase this (and duration).
     return this.getJabsData().range();
   };
@@ -476,7 +530,8 @@ class JABS_Action {
    * Gets the proximity to the target in order to use this `JABS_Action`.
    * @returns {number} The proximity required for this action.
    */
-  getProximity() {
+  getProximity()
+  {
     return this.getJabsData().proximity();
   };
 
@@ -484,7 +539,8 @@ class JABS_Action {
    * Gets the shape of the hitbox for this `JABS_Action`.
    * @returns {string} The designated shape of the action.
    */
-  getShape() {
+  getShape()
+  {
     return this.getJabsData().shape();
   };
 
@@ -492,7 +548,8 @@ class JABS_Action {
    * Gets the event id associated with this `JABS_Action` from the action map.
    * @returns {number} The event id for this `JABS_Action`.
    */
-  getActionId() {
+  getActionId()
+  {
     return this.getJabsData().actionId();
   };
 
@@ -500,7 +557,8 @@ class JABS_Action {
    * Gets any additional aggro this skill generates.
    * @returns {number}
    */
-  bonusAggro() {
+  bonusAggro()
+  {
     return this.getJabsData().bonusAggro();
   };
 
@@ -508,7 +566,8 @@ class JABS_Action {
    * Gets the aggro multiplier from this skill.
    * @returns {number}
    */
-  aggroMultiplier() {
+  aggroMultiplier()
+  {
     return this.getJabsData().aggroMultiplier();
   };
 }

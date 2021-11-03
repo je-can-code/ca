@@ -3298,8 +3298,8 @@ JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne = 
 JABS_Battler.prototype.createMapActionFromSkill = function(
   skillId,
   isRetaliation = false,
-  cooldownKey = null
-) {
+  cooldownKey = null)
+{
   const battler = this.getBattler();
   const action = new Game_Action(battler, false);
 
@@ -3469,24 +3469,16 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false) {
   // it was an item with a skill attached.
   if (itemSkillId) {
     const mapAction = this.createMapActionFromSkill(itemSkillId);
-    if (Array.isArray(mapAction)) {
-      mapAction.forEach(action => {
-        action.setCooldownType(Game_Actor.JABS_TOOLSKILL);
-        $gameBattleMap.executeMapAction(this, action);
-      });
-    } else {
-      mapAction.setCooldownType(Game_Actor.JABS_TOOLSKILL);
-      $gameBattleMap.executeMapAction(this, mapAction);
-    }
+    mapAction.forEach(action => {
+      action.setCooldownType(Game_Actor.JABS_TOOLSKILL);
+      $gameBattleMap.executeMapAction(this, action);
+    });
   }
 
   // it was an item, didn't have a skill attached, and didn't have a cooldown.
-  if (!itemCooldown && !itemSkillId) {
-    if (!isLoot) {
-      this.modCooldownCounter(
-        Game_Actor.JABS_TOOLSKILL, 
-        J.ABS.DefaultValues.CooldownlessItems);
-    }
+  if (!itemCooldown && !itemSkillId && !isLoot)
+  {
+    this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, J.ABS.DefaultValues.CooldownlessItems);
   }
 
   // if the last item was consumed, unequip it.

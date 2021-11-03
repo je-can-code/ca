@@ -1519,7 +1519,7 @@ class Game_BattleMap {
   /**
    * Determines the animation id for this particular attack.
    * -1 as an animation id represents "use normal attack", but enemies don't have that!
-   * So for the case of enemies
+   * So for the case of enemies, it'll instead return the default.
    * @param {object} skill The $dataSkills object for this skill.
    * @param {JABS_Battler} caster The caster of this skill.
    */
@@ -2050,12 +2050,12 @@ class Game_BattleMap {
     if (!actionEvents.length) return;
 
     actionEvents.forEach(action => {
+      // decrement the delay timer prior to action countdown.
+      action.countdownDelay();
+
       // if we're still delaying and not triggering by touch...
       if (!action.triggerOnTouch() && !action.isDelayCompleted())
       {
-        // decrement the delay timer prior to action countdown.
-        action.countdownDelay();
-
         // then stop processing this action.
         return;
       }
@@ -2103,11 +2103,15 @@ class Game_BattleMap {
   };
 
   /**
-   * Cleans up a `JABS_Action` assuming the minimum duration has passed.
+   * Cleans up a `JABS_Action`.
+   *
+   * If the minimum duration has yet to pass, then don't dispose of the action yet.
    * @param {JABS_Action} action The action to be cleaned up.
    */
   cleanupAction(action) {
-    if (action.getDuration() >= JABS_Action.getMinimumDuration()) {
+    if (action.getDuration() >= JABS_Action.getMinimumDuration())
+    {
+      action.preCleanupHook();
       action.setNeedsRemoval();
       this.removeActionEvent(action);
       this.clearActionEvents();
@@ -2253,7 +2257,7 @@ class Game_BattleMap {
   /**
    * Executes the provided `JABS_Action`.
    * It generates a copy of an event from the "ActionMap" and fires it off
-   * based on it's moveroute.
+   * based on it's move route.
    * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
    * @param {JABS_Action} action The `JABS_Action` to execute.
    * @param {number?} targetX The target's `x` coordinate, if applicable.
@@ -2638,20 +2642,34 @@ class Game_BattleMap {
     this.applyAggroEffects(result, action, casterMapBattler, target);
 
     // apply effects that require landing a successful hit.
-    if (result.isHit() || result.parried) {
-      // display the animation if it hit (or was parried).
-      targetSprite.requestAnimation(this.getAnimationId(skill, casterMapBattler), result.parried);
+    if (result.isHit() || result.parried)
+    {
+      // get the animation id associated with this skill.
+      const targetAnimationId = this.getAnimationId(skill, casterMapBattler);
+
+      // if the skill should animate on the target, then animate as normal.
+      targetSprite.requestAnimation(targetAnimationId, result.parried);
+
+      // if there is a self-animation id, apply that to yourself for every hit.
+      if (action.getJabsData().selfAnimationId())
+      {
+        const event = action.getActionSprite();
+        const selfAnimationId = action.getJabsData().selfAnimationId();
+        event.requestAnimation(selfAnimationId);
+      }
 
       // if freecombo-ing, then we already checked for combo when executing the action.
-      if (!skill._j.freeCombo()) {
+      if (!skill._j.freeCombo())
+      {
         this.checkComboSequence(casterMapBattler, action);
       }
 
       this.checkKnockback(action, target);
       this.triggerAlert(casterMapBattler, target);
 
-      // if the attacker and the target are the same, then don't set that as "last hit".
-      if (!(casterMapBattler.isSameTeam(target.getTeam()))) {
+      // if the attacker and the target are the same team, then don't set that as "last hit".
+      if (!(casterMapBattler.isSameTeam(target.getTeam())))
+      {
         casterMapBattler.setBattlerLastHit(target);
       }
     }
