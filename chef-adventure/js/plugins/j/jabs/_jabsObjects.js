@@ -71,6 +71,15 @@ Game_Actor.prototype.setup = function(actorId) {
   this.refreshBonusHits();
 };
 
+J.ABS.Aliased.Game_Actor.performMapDamage = Game_Actor.prototype.performMapDamage;
+Game_Actor.prototype.performMapDamage = function() {
+  if (!$gameBattleMap.absEnabled) {
+    J.ABS.Aliased.Game_Actor.performMapDamage.call(this);
+  } else {
+    $gameScreen.startFlashForDamage();
+  }
+};
+
 /**
  * Disable built-in on-turn-end effects while JABS is active.
  * (built-in effects include regeneration and poison, but those are

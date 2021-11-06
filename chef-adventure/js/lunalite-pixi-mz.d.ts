@@ -26540,7 +26540,7 @@ declare class Sprite extends PIXI.Sprite {
 	 */
 	bitmap: Bitmap;
 	/**
-	 * The width of the sprite without the scale.
+	 * The opacity of the sprite.
 	 *
 	 * @property width
 	 * @type Number
@@ -44282,7 +44282,7 @@ declare var $dataSystem: System;
 declare var $dataMapInfos: Array<MapInfo>;
 
 /** @global Database Map data for the current map. */
-declare var $dataMap: Game_Map;
+declare var $dataMap: Map;
 
 /** @global Database Temporary game data; not saved with the game. */
 declare var $gameTemp: Game_Temp;

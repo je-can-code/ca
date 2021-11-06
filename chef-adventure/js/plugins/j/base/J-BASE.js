@@ -402,9 +402,19 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure) {
 //#endregion Helpers
 //#endregion Introduction
 
-// implements a constant reference to "String.empty".
 /**
  * An empty static constant string variable.
  */
 String.empty = '';
+
+/**
+ * Executes a given function a given number of `times`.
+ * This uses `.forEach()` under the covers, so build your functions accordingly.
+ * @param {number} times
+ * @param {Function} func The function
+ */
+Array.iterate = function(times, func)
+{
+  [...Array(times)].forEach(func);
+};
 //ENDFILE
