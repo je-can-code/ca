@@ -5,6 +5,7 @@
  *
  * @param defaultPlayerLightRadius
  * @type number
+ * @text Default Player Light Radius
  * @desc The default size in pixels of the light globe around the player.
  * @default 250
  *
@@ -19,23 +20,42 @@
  * It goes on events in their tiny notebox.
  * The format looks like this (without the quotes):
  *
- * "TAG LIGHT_RADIUS LIGHT_COLOR"
- *    where TAG is "light" (without quotes; no other tags are supported).
- *    where LIGHT_RADIUS is this event's light globe radius.
- *    where LIGHT_COLOR is a color as a string, in the form of hexcode.
- *
- * EXAMPLE USAGE:
- *  light 250 #ffbb73
- * The above tag would generate a light globe around the target event with
- * a radius of 250 pixels (roughly 5 tiles), of the color #ffbb73.
- *
- * (for reference, #ffbb73 generates a color that looks kinda like an
- * warm light bulb color)
- *
- * Unlike many plugins, this is a three-part tag that expects to be the only
+ * "TAG LIGHT_RADIUS LIGHT_COLOR FLICKER"
+ *    where TAG is "light" (without quotes).
+ *    where LIGHT_RADIUS is this event's light globe radius in pixels.
+ *    where LIGHT_COLOR is a color as a string hexcode (OPTIONAL).
+ *    where FLICKER is "flicker" (without quotes)(OPTIONAL).
+ * ----------------------------------------------------------------------------
+ * Unlike many plugins, this is a four-part tag that expects to be the only
  * tag on an event in the notebox that is separated by a single space. If you
- * add additional spaces, you may get some unintended side effects, and/or this
- * plugin may crash when trying to parse your invalid (or unrelated) notes.
+ * add additional spaces, or switch the order, your game will likely crash when
+ * attempting to parse these incorrectly-ordered or poorly-formed event notes.
+ * ----------------------------------------------------------------------------
+ * EXAMPLE USAGES:
+ * ----------------------------------------------------------------------------
+ *  light 250 #ffbb73
+ * The above tag would generate a light globe around the target event:
+ * - with a radius of 250 pixels (roughly 5 tiles)
+ * - of the color #ffbb73 (overrides default of #ffffff).
+ * - with no flicker (default when unprovided).
+ *
+ *  light 500
+ * The above tag would generate a light globe around the target event:
+ * - with a radius of 500 pixels (roughly 10 tiles).
+ * - of color #ffffff (default when unprovided).
+ * - with no flicker (default when unprovided).
+ *
+ *  light 400 #ff0000 flicker
+ * The above tag would generate a light globe around the target event:
+ * - with a radius of 400 pixels (roughly 8 tiles).
+ * - of color #ff0000 (overrides default of #ffffff).
+ * - with a flicker (overrides default of no flicker).
+ * ----------------------------------------------------------------------------
+ * sample hex code color references:
+ * #ffffff = pure white
+ * #ffbb73 = a warm orange-ish white, like an incandescent light bulb.
+ * #ff0000 = pure red.
+ * ----------------------------------------------------------------------------
  * ============================================================================
  * SCRIPT COMMANDS
  * ----------------------------------------------------------------------------
@@ -83,6 +103,7 @@
  * you're in, such as a dark volcano, or underwater cavern, etc.
  * ============================================================================
  */
+
 var umc = umc || {};
 umc.Lighting = umc.Lighting || {};
 umc.Lighting.version = 1.47;
@@ -106,8 +127,9 @@ umc.Lighting.Meta.set('PlayerRadius', Number(umc.Lighting.parameters['defaultPla
  * @param {string} color1 The first color of the gradient.
  * @param {string} color2 The second color of the gradient.
  * @param {number} brightness The level of brightness.
+ * @param {boolean} flicker Whether or not this is a flickering light globe.
  */
-Bitmap.prototype.radialGradientFillRect = function(x1, y1, r1, r2, color1, color2, brightness)
+Bitmap.prototype.radialGradientFillRect = function(x1, y1, r1, r2, color1, color2, brightness = 0.0, flicker = false)
 {
   let isValidColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color1);
   if (!isValidColor)
@@ -121,16 +143,25 @@ Bitmap.prototype.radialGradientFillRect = function(x1, y1, r1, r2, color1, color
     color2 = '#000000'
   }
 
-
-  if (!brightness) {
-    brightness = 0.0;
+  const wait = Math.floor((Math.random() * 8) + 1);
+  if (flicker && wait === 1)
+  {
+    let flickerradiusshift = 15;
+    let flickercolorshift = 30;
+    let gradrnd = Math.floor((Math.random() * flickerradiusshift) + 1);
+    let colorrnd = Math.floor((Math.random() * flickercolorshift) - (flickercolorshift / 2));
+    let { r, g, b } = this.hexToRgb(color1);
+    g = (g + colorrnd).clamp(0, 255);
+    color1 = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    r2 = r2 - gradrnd;
+    if (r2 < 0) r2 = 0;
   }
 
   x1 += 20;
   const grad = this._context.createRadialGradient(x1, y1, r1, x1, y1, r2);
   if (brightness)
   {
-    grad.addColorStop(0, '#FFFFFF');
+    grad.addColorStop(brightness, '#FFFFFF');
   }
 
   grad.addColorStop(brightness, color1);
@@ -140,6 +171,29 @@ Bitmap.prototype.radialGradientFillRect = function(x1, y1, r1, r2, color1, color
   this._context.fillStyle = grad;
   this._context.fillRect(x1 - r2, y1 - r2, r2 * 2, r2 * 2);
   this._context.restore();
+};
+
+/**
+ * Converts a hexCode to a base16 RGB object.
+ * @param {string} rawHex The hexCode to convert.
+ * @returns {{r: number, b: number, g: number}}
+ */
+Bitmap.prototype.hexToRgb = function(rawHex)
+{
+  const result = { r: 0, g: 0, b: 0};
+  const hexCode = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(rawHex);
+  if (hexCode)
+  {
+    result.r = parseInt(hexCode[1], 16);
+    result.g = parseInt(hexCode[2], 16);
+    result.b = parseInt(hexCode[3], 16);
+  }
+  else
+  {
+    console.warn('invalid hexcode provided:', rawHex);
+  }
+
+  return result;
 };
 
 /**
@@ -533,8 +587,9 @@ Lightmask.prototype.drawEventLightGlobe = function(eventIndex)
   const lightParams = note.split(" ");
 
   // destructure the light parameters to get the values into convenient variables.
-  let [commandName, _lightRadius, hexColor] = lightParams;
+  let [commandName, _lightRadius, hexColor, _flicker] = lightParams;
   const lightRadius = parseInt(_lightRadius);
+  const flicker = !!_flicker;
   if (commandName === "light")
   {
     // the second "note arg" is the light radius of this light event (in pixels).
@@ -551,7 +606,7 @@ Lightmask.prototype.drawEventLightGlobe = function(eventIndex)
         const ly1 = $gameMap.events()[this.event_stacknumber[eventIndex]].screenY() - 24;
 
         // render the light globe around the event.
-        this._maskBitmap.radialGradientFillRect(lx1, ly1, 0, lightRadius, hexColor, '#000000', 0.0);
+        this._maskBitmap.radialGradientFillRect(lx1, ly1, 0, lightRadius, hexColor, '#000000', 0.0, flicker);
       }
       // if we run into issues for some reason, just skip it.
       catch (e)
