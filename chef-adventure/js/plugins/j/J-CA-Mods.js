@@ -81,7 +81,7 @@ J.CAMods.Tracking = {
  */
 J.CAMods.Aliased = {
   Game_Action: {},
-  Game_Actor: {},
+  Game_Actor: new Map(),
   Game_BattlerBase: {},
   Game_BattleMap: {},
   Game_Character: {},
@@ -106,11 +106,29 @@ Game_Action.prototype.getAntiNullElementIds = function() {
 /**
  * Extends the base slots provided to have a duplicate of the 5th type (accessory).
  */
-J.CAMods.Aliased.Game_Actor.equipSlots = Game_Actor.prototype.equipSlots;
+J.CAMods.Aliased.Game_Actor.set("equipSlots", Game_Actor.prototype.equipSlots);
 Game_Actor.prototype.equipSlots = function() {
-  const baseSlots = J.CAMods.Aliased.Game_Actor.equipSlots.call(this);
+  const baseSlots = J.CAMods.Aliased.Game_Actor.get("equipSlots").call(this);
   baseSlots.push(5);
   return baseSlots;
+};
+
+J.CAMods.Aliased.Game_Actor.set("basicFloorDamage", Game_Actor.prototype.basicFloorDamage);
+Game_Actor.prototype.basicFloorDamage = function() {
+  if (!$dataMap || !$dataMap.meta)
+  {
+    return J.CAMods.Aliased.Game_Actor.get("basicFloorDamage").call(this);
+  }
+  else
+  {
+    return this.calculateFloorDamage();
+  }
+  return 10;
+};
+
+Game_Actor.prototype.calculateFloorDamage = function()
+{
+
 };
 //#endregion Game_Actor
 
