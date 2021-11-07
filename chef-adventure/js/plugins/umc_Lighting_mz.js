@@ -581,6 +581,10 @@ Lightmask.prototype.drawEventLightGlobes = function()
  */
 Lightmask.prototype.drawEventLightGlobe = function(eventIndex)
 {
+  // don't draw light globes for erased events.
+  if ($gameMap.events()[this.event_stacknumber[eventIndex]]._erased) return;
+
+  // grab the note!
   const note = this.event_note[eventIndex];
 
   // the "note args" are the trio of data points required in the notebox of the light event.
