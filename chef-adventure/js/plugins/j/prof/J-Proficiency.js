@@ -11,12 +11,63 @@
  * using skills. Additionally, triggers can now be configured to execute
  * against these new proficiencies (and other things).
  * ============================================================================
+ * PLUGIN COMMANDS
+ * ----------------------------------------------------------------------------
+ * COMMAND:
+ * "Modify Actor's Proficiency"
+ * This command will allow you to increase or decrease a single actor's
+ * proficiency for a given skill. You only need choose the actor, skill, and
+ * the amount to increase/decrease by.
+ *
+ * COMMAND:
+ * "Modify Party's Proficiency"
+ * This command will do the same as the single actor's command above, but
+ * instead apply against the whole party.
+ *
+ * NOTES:
+ * - You cannot reduce a skill's proficiency in a skill below 0.
+ * - Increasing the proficiency can trigger any rewards for the skill.
+ * - Decreasing the proficiency will NOT undo any rewards gained.
+ *
  * ============================================================================
  * @param conditionals
  * @type struct<ProficiencyConditionalStruct>[]
  * @text Proficiency Conditionals
  * @desc A set of conditions that when met reward the player.
  * @default []
+ *
+ * @command modifyActorSkillProficiency
+ * @text Modify Actor's Proficiency
+ * @desc Increase/decrease one or more actor's proficiency with one or more skills.
+ * @arg actorIds
+ * @type actor[]
+ * @text Actor Id
+ * @desc Choose one or more actors to modify the proficiency for.
+ * @arg skillIds
+ * @type skill[]
+ * @text Skill Id
+ * @desc Choose one or more skills to modify the proficiency for.
+ * @arg amount
+ * @type number
+ * @text Modifier
+ * @desc This modifier can be negative or positive.
+ * @min -999999
+ * @max 999999
+ *
+ * @command modifyPartySkillProficiency
+ * @text Modify Party's Proficiency
+ * @desc Increase/decrease every member in the current party's proficiency with a particular skill.
+ * @arg skillIds
+ * @type skill[]
+ * @text Skill Id
+ * @desc Choose one or more skills to modify the proficiency for.
+ * @arg amount
+ * @type number
+ * @text Modifier
+ * @desc This modifier can be negative or positive.
+ * @min -999999
+ * @max 999999
+ *
  */
 /*~struct~ProficiencyConditionalStruct:
  * @param key
@@ -121,6 +172,10 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
   return conditionals;
 };
 
+/**
+ * The plugin's parameters extracted from the plugin manager.
+ * @type {string}
+ */
 J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
 J.PROF.Metadata =
 {
@@ -134,6 +189,9 @@ J.PROF.Metadata =
   ProficiencyConditionals: J.PROF.Helpers.TranslateProficiencyRequirements(J.PROF.PluginParameters['conditionals'])
 };
 
+/**
+ * The various aliases associated with this plugin.
+ */
 J.PROF.Aliased =
 {
   DataManager: new Map(),
@@ -146,6 +204,43 @@ J.PROF.Aliased =
 //#endregion Introduction
 
 //#region Static objects
+//#region PluginManager
+/**
+ * Plugin command for modifying proficiency for one or more actors for one or more skills by a given amount.
+ */
+PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
+{
+  let { actorIds, skillIds, amount } = args;
+  const parsedActorIds = JSON.parse(actorIds).map(num => parseInt(num));
+  const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
+  amount = parseInt(amount);
+  parsedSkillIds.forEach(skillId =>
+  {
+    parsedActorIds.forEach(actorId =>
+    {
+      $gameActors.actor(actorId).increaseSkillProficiency(skillId, amount);
+    });
+  });
+});
+
+/**
+ * Plugin command for modifying proficiency of the whole party for one or more skills by a given amount.
+ */
+PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency", args =>
+{
+  let { skillIds, amount } = args;
+  const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
+  amount = parseInt(amount);
+  $gameParty.members().forEach(actor =>
+  {
+    parsedSkillIds.forEach(skillId =>
+    {
+      actor.increaseSkillProficiency(skillId, amount);
+    });
+  });
+});
+//#endregion PluginManager
+
 //#region DataManager
 /**
  * Extends the save content extraction to include updating to the latest plugin metadata.
@@ -292,7 +387,7 @@ Game_Actor.prototype.proficiencyConditionals = function()
 Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
 {
   const filtering = (conditional) => conditional.requirements.some(requirement => requirement.skillId === skillId);
-  return this._j._ownConditionals.filter(filtering);
+  return this.proficiencyConditionals().filter(filtering);
 };
 
 /**

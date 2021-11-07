@@ -1,21 +1,38 @@
-//=============================================================================
-// KMS_AreaEvent.js
-//   Last update: 2019/01/01
-//=============================================================================
-
 /*:
+ * @target MZ
  * @plugindesc
- * [v0.1.0] Expand the trigger area for events on map.
- * 
- * @author Kameo (Kamesoft)
- *
+ * [v0.1 AREA] Expand the trigger area for events on map.
+ * @author Kameo (Kamesoft) Last update: 2019/01/01
  * @help
- * ## Set trigger area
+ * ============================================================================
+ * This plugin enables users to set an event to trigger when entering anywhere
+ * within a given rectangle designated by a comment in the event. This does
+ * not affect events that are autorun/parallel-process.
  *
- *  Add <AreaEvent:WxH> to the comment command which placed top
- *  of the event page, the trigger area is expanded to WxH tiles.
- *  Example: <AreaEvent:3x2>
+ * Easily the most common usage would be creating events that stretch along the
+ * edge of a map that teleport the player to another map. This can effectively
+ * reduce the number of events on a map potentially improving performance.
+ * ============================================================================
+ * TAG FORMAT
+ * This is designed to be entered as a comment into the event you want to allow
+ * interactivity with of a bigger rectangle shape.
  *
+ * <areaEvent:WIDTHxHEIGHT>
+ *  where WIDTH is a number representing the width of the rectangle.
+ *  where HEIGHT is a number representing the height of the rectangle.
+ * ============================================================================
+ * EXAMPLE USAGES
+ *
+ *  <areaEvent:5x2>
+ * The above tag creates a 5 tile wide and 2 tile high trigger range.
+ *
+ *  <areaEvent:1x9>
+ * The above tag creates a 1 tile wide and 9 tile high trigger range.
+ * ============================================================================
+ * NOTE
+ * Creating an area event that is 1x1 is basically what the default RMMZ editor
+ * does when you create events.
+ * ============================================================================
  */
 
 var KMS = KMS || {};
