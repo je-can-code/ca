@@ -2,13 +2,54 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 PASSIVE] Grants skills the ability to provide passive effects.
+ * [v1.0 PASSIVE] Grants skills the ability to provide passive state effects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @help
  * ============================================================================
  * This plugin enables the ability to have a skill provide passive effects just
  * by knowing the skill in the form of states.
+ *
+ * By extending the .traitObjects() function, we have added new functionality:
+ * - Just knowing a skill can grant a passive state effect.
+ *
+ * ============================================================================
+ * PASSIVE SKILL STATES:
+ * Have you ever wanted a battler to be able to have passive skills? Well now
+ * you can! By applying the appropriate tag to the skill(s) in question, you
+ * can add one or more "passive states" just by having the battler know the
+ * skill!
+ *
+ * NOTE:
+ * Under the covers, this plugin scans all skills learned by the battler and
+ * parses any of the listed state ids matching the tag format. Any states that
+ * are added in this manner are tracked as "passive", and thus always active
+ * regardless of duration specifications in the database. These states also
+ * cannot be removed, cannot be applied/re-applied while possessing a
+ * passive state id of the same state, and cannot be stacked.
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <passive:[NUM]>          (for one passive state on this skill)
+ *  <passive:[NUM,NUM,...]>  (for many passive states on this skill)
+ *
+ * TAG EXAMPLES:
+ *  <passive:[10]>
+ * If this battler has learned this skill, then state of id 10 is applied
+ * as a passive state.
+ *
+ *  <passive:[10,11,12]>
+ * If a battler has learned this skill, then they will have states of id
+ * 10, 11, and 12 applied as passive states.
+ *
+ *  <passive:[10]>
+ *  <passive:[10,11,12]>
+ * If a battler had two separate skills learned matching the above two tags,
+ * then the states of id 10, 11, and 12 would be applied as passive states.
+ * The duplicate 10 passive state would be ignored.
+ *
  * ============================================================================
  */
 
@@ -42,6 +83,7 @@ J.PASSIVE.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
+  Game_Enemy: new Map(),
 };
 //#endregion Introduction
 
@@ -98,24 +140,23 @@ Game_Actor.prototype.forgetSkill = function(skillId)
 };
 
 /**
- * Gets the skill associated with the given skill id.
- *
- * TODO: add overlays?
+ * OVERWRITE Gets the skill associated with the given skill id.
+ * By abstracting this, we can modify the underlying skill before it reaches its destination.
  * @param {number} skillId The skill id to get the skill for.
  * @returns {rm.types.Skill}
  */
 Game_Actor.prototype.skill = function(skillId)
 {
-  return $dataSkills[skillId];
+  return OverlayManager.getExtendedSkill(this, skillId);
 };
 //#endregion Game_Actor
 
-//#region Game_BattlerBase
+//#region Game_Battler
 /**
  * Extends `initMembers()` to include initialization of our passives collection.
  */
-J.PASSIVE.Aliased.Game_BattlerBase.set('initMembers', Game_BattlerBase.prototype.initMembers);
-Game_BattlerBase.prototype.initMembers = function()
+J.PASSIVE.Aliased.Game_BattlerBase.set('initMembers', Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function()
 {
   J.PASSIVE.Aliased.Game_BattlerBase.get('initMembers').call(this);
   this.initPassives();
@@ -124,7 +165,7 @@ Game_BattlerBase.prototype.initMembers = function()
 /**
  * Initializes the passives collection
  */
-Game_BattlerBase.prototype.initPassives = function()
+Game_Battler.prototype.initPassives = function()
 {
   /**
    * The overarching _j object, where all my stateful plugin data is stored.
@@ -144,7 +185,7 @@ Game_BattlerBase.prototype.initPassives = function()
  * @param {number} stateId The state id to check.
  * @returns {boolean} True if it is identified as passive, false otherwise.
  */
-Game_BattlerBase.prototype.isPassiveState = function(stateId)
+Game_Battler.prototype.isPassiveState = function(stateId)
 {
   // if we have access to the cached passives collection...
   if (this._j._passiveSkillStateIds !== null)
@@ -159,7 +200,7 @@ Game_BattlerBase.prototype.isPassiveState = function(stateId)
 /**
  * Forces a passive skill refresh on this battler.
  */
-Game_BattlerBase.prototype.forcePassiveSkillRefresh = function()
+Game_Battler.prototype.forcePassiveSkillRefresh = function()
 {
   // only do this if its not already null.
   if (this._j._passiveSkillStateIds !== null)
@@ -171,9 +212,7 @@ Game_BattlerBase.prototype.forcePassiveSkillRefresh = function()
     this._j._passiveSkillStateIds = null;
   }
 };
-//#endregion Game_BattlerBase
 
-//#region Game_Battler
 /**
  * Extends `isStateAddable()` to prevent adding states if they are identified as passive.
  */
@@ -238,18 +277,39 @@ Game_Battler.prototype.passiveSkillStates = function(traitObjects)
 Game_Battler.prototype.skillIdList = function(traitObjects)
 {
   // get the base skills that the actor knows.
-  const baseSkillIds = this._skills;
+  const baseSkillIds = this.skillsIdsFromSelf();
 
   // get any added skills from other traits, like equipment teaching a skill.
-  // this is a literal copy-paste of the four steps it takes to get skills added via traits.
-  const addedSkillIds = traitObjects
-    .reduce((r, obj) => r.concat(obj.traits), [])
-    .reduce((r, trait) => r.concat(trait.dataId), [])
-    .filter(trait => trait.code === Game_BattlerBase.TRAIT_SKILL_ADD)
-    .reduce((r, obj) => r.concat(obj.traits), [])
+  const addedSkillIds = this.skillsIdsFromTraits(traitObjects);
 
   // combine the base skill ids and added skill ids together into a single collection.
   return [...baseSkillIds, ...addedSkillIds];
+};
+
+/**
+ * Gets all skill ids learned from oneself, via normal means.
+ * For actors, this is just whatever their class-learned skill list is.
+ * @returns {number[]}
+ */
+Game_Battler.prototype.skillsIdsFromSelf = function()
+{
+  return this._skills;
+};
+
+/**
+ * A manual concatenation of retrieval of all skill ids from any traits the actor has-
+ * without actually calling any of the trait methods. This is done to avoid the
+ * circular dependency of `.traitObjects()` and this passive skill flow.
+ * @param {rm.types.EquipItem[]} traitObjects The trait objects to parse for added skills.
+ * @returns {number[]} All found added skill ids from the given trait objects.
+ */
+Game_Battler.prototype.skillsIdsFromTraits = function(traitObjects)
+{
+  return traitObjects
+    .reduce((r, obj) => r.concat(obj.traits), [])
+    .reduce((r, trait) => r.concat(trait.dataId), [])
+    .filter(trait => trait.code === Game_BattlerBase.TRAIT_SKILL_ADD)
+    .reduce((r, obj) => r.concat(obj.traits), []);
 };
 
 /**
@@ -268,10 +328,10 @@ Game_Battler.prototype.skillsToPassiveStates = function(skillIds)
   // filter out skills that aren't "passive".
   const passiveSkills = skills.filter(this.isPassiveSkill, this);
 
-  // convert the skills into an array of arrays of state ids associated with the passives.
+  // convert the skills into an array of state ids associated with the passives.
   const passiveStateIds = passiveSkills
     .map(this.extractPassives, this)
-    .flat(); // flatten because we prefer 1-dimensional arrays.
+    .flat(); // because we prefer to work with 1-dimensional arrays.
 
   // filter out passive states that we already have.
   const passiveRelevantStateIds = passiveStateIds.filter(this.isRelevantPassiveState, this);
@@ -323,12 +383,27 @@ Game_Battler.prototype.isRelevantPassiveState = function(stateId)
 
 /**
  * Extracts the passive state ids out of the skill.
- * @param {rm.types.Skill} skill The skill to extract passives from.
- * @returns {number[][]}
+ * This is intended to be used as a map function against a collection of skills
+ * that contain state ids, though it can be used to extract a single skill's passive states.
+ * @param {rm.types.Skill} referenceData The skill to extract passive state ids from.
+ * @returns {number[]}
  */
-Game_Battler.prototype.extractPassives = function(skill)
+Game_Battler.prototype.extractPassives = function(referenceData)
 {
-  return JSON.parse(skill.meta['passive']);
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return [];
+
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  const structure = /<passive:[ ]?(\[[\d, ]+])>/i;
+  const passives = [];
+  notedata.forEach(line => {
+    if (line.match(structure)) {
+      const data = JSON.parse(RegExp.$1);
+      passives.push(...data);
+    }
+  });
+
+  return passives;
 };
 
 /**
@@ -352,5 +427,41 @@ Game_Battler.prototype.state = function(stateId)
   return $dataStates[stateId];
 };
 //#endregion Game_Battler
+
+//#region Game_Enemy
+/**
+ * Gets all skills learned from oneself.
+ * In the case of enemies, this extracts the list of skill ids from the various actions
+ * they can execute from their action list, as well as their "attack skill".
+ * @returns {number[]}
+ */
+Game_Enemy.prototype.skillIdsFromSelf = function()
+{
+  return this.skills().map(skill => skill.id);
+};
+
+// we don't need to force the user to use our BASE plugin if they aren't already using it.
+// define this function if the user is not using the BASE plugin.
+if (!J.BASE)
+{
+  /**
+   * Converts all "actions" from an enemy into their collection of known skills.
+   * This includes both skills listed in their skill list, and any added skills via traits.
+   * @returns {rm.types.Skill[]}
+   */
+  Game_Enemy.prototype.skills = function() {
+    // get actions from their action list.
+    const actionSkillIds = this.enemy().actions
+      .map(action => this.skill(action.skillId));
+
+    // get their "attack skill" trait skill ids.
+    const attackSkillId = this.enemy().traits
+      .filter(trait => trait.code === Game_BattlerBase.TRAIT_ATTACK_SKILL)
+      .map(skillTrait => this.skill(skillTrait.dataId));
+
+    return [...actionSkillIds, ...attackSkillId].sort();
+  };
+}
+//#endregion Game_Enemy
 
 //#endregion Game objects
