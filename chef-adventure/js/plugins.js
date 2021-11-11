@@ -81,6 +81,7 @@ var $plugins =
 {"name":"j/J-Elementalistics","status":true,"description":"[v1.0 ELEM] Enables greater control over elements.","parameters":{}},
 {"name":"j/J-TpGrowth","status":true,"description":"[v1.0 TPGROW] Allows TP max to be dynamic rather than static 100.","parameters":{"actorBaseTp":"0","enemyBaseTp":"100"}},
 {"name":"j/J-OneTimeItemBoost","status":true,"description":"[v1.0 BOOST] Enables items to grant a one time item boost, permanently.","parameters":{"OTIBs":"[\"{\\\"itemId\\\":\\\"151\\\",\\\"boosts\\\":\\\"[\\\\\\\"{\\\\\\\\\\\\\\\"parameterId\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"28\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"boost\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"20\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"isPercent\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"}\\\\\\\"]\\\"}\"]"}},
+{"name":"j/J-PassiveSkills","status":true,"description":"[v1.0 PASSIVE] Grants skills the ability to provide passive effects.","parameters":{}},
 {"name":"j/J-SystemUtilities","status":true,"description":"[v1.0.0 UTIL] Various system utilities.","parameters":{}},
 {"name":"j/J-CA-Mods","status":true,"description":"Mods exclusive to Chef Adventure.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},

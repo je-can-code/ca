@@ -11,9 +11,10 @@
  * further control a skill's elemental properties in the context of battle.
  * 
  * By overwriting the .calcElementRate() function, we have added new
- * functionality to elements:
+ * functionality to elemental processing:
  * - Skills can now possess more than one element.
  * - Elements can now be absorbed.
+ * - Elements can now be boosted.
  * - Actors/Enemies can now whitelist effective elements.
  * 
  * WARNING:
@@ -62,7 +63,7 @@
  * if the incoming skill elements have any overlap with the elements that this
  * battler absorbs. If there are ANY elements absorbed, then all non-absorbed
  * elements will be removed from consideration and all elements being absorbed
- * will have their rates multiplied together.Absorption is prioritized over
+ * will have their rates multiplied together. Absorption is prioritized over
  * handling elements with 0% rate (null elements).
  * 
  * EXAMPLE 1:
@@ -108,6 +109,52 @@
  *  <absorbElements:[4,7,9,12]> on armor (only applicable to actors)
  *  <absorbElements:[10]> on state
  * This actor now absorbs elements 3, 4, 7, 9, 10, and 12.
+ * ============================================================================
+ * BOOST ELEMENTS:
+ * Have you ever wanted a battler to temporarily (or permanently) become more
+ * effective with skills of a particular element? Well now you can! By applying
+ * the appropriate note tag to the various database locations applicable, you
+ * can "boost" one or more elements (more requires multiple tags) by as little
+ * or as much as your heart desires!
+ *
+ * DETAILS:
+ * When a skill's elemental calculation is performed, all relevant notes will
+ * be checked to see if the the caster has any boosts for any of the elements
+ * that a skill possesses. If there are ANY elemental boosts found, it applies
+ * to the total damage that would've been dealt. The general use case for this
+ * tag would be to give an actor/enemy a passive bonus to a particular element
+ * that the actor/enemy would have access to cast in some way.
+ *
+ * NOTE:
+ * Absorb and null and strict rules still apply!
+ *
+ * EXAMPLE 1:
+ * If a skill has element id 1 on it, and the caster has a tag on it that
+ * boosts element 1 by 30%, then that skill would deal 130% of its original
+ * damage.
+ *
+ * EXAMPLE 2:
+ * If a skill has multiple elements 1, 2, and 3 on it, and the caster has a tag
+ * that boosts element 2 by 50% and element 3 by 50%, then the result would be
+ * the product of the two resulting in the skill dealing 225% of its original
+ * damage.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Enemies
+ * - Weapons
+ * - Armors
+ * - Skills
+ * - States
+ * - Classes
+ *
+ * TAG FORMAT:
+ *  <boostElement:[ELEMENT_ID]:[PERCENT_BOOST]>
+ *
+ * TAG EXAMPLE:
+ *  <boostElement:1:50>
+ * This battler has a +50% boost to skills bearing element id 1.
+ *
  * ============================================================================
  * STRICT ELEMENTS:
  * Have you ever wanted a battler to be completely immunte to all elemental
@@ -622,7 +669,7 @@ Game_Actor.prototype.strictElements = function()
  */
 Game_Actor.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getCurrentWithNotes();
+  const objectsToCheck = this.getEverythingWithNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData => {
     const boost = this.extractElementRateBoosts(referenceData);
@@ -631,12 +678,12 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
     boosts.push(...boost);
   });
 
-  const filteredBoosts = boosts.filter(boost => {
+  const filteredBoosts = boosts.filter(boost =>
+  {
     return boost[0] === elementId;
   });
   const factoredBoosts = filteredBoosts.map(boost => boost[1] / 100);
-  const boostAmount = factoredBoosts.reduce((previousAmount, nextAmount) => previousAmount + nextAmount, 1);
-  return boostAmount;
+  return factoredBoosts.reduce((previousAmount, nextAmount) => previousAmount + nextAmount, 1);
 };
 //#endregion Game_Actor
 
