@@ -1106,6 +1106,7 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
 
 /**
  * Converts all "actions" from an enemy into their collection of known skills.
+ * This includes both skills listed in their skill list, and any added skills via traits.
  * @returns {rm.types.Skill[]}
  */
 Game_Enemy.prototype.skills = function() {
