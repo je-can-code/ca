@@ -3904,33 +3904,53 @@ JABS_Battler.prototype.countdownParryWindow = function() {
 //#region actionposes/animations
 /**
  * Executes an action pose.
- * @param {object} skill The skill to pose for.
+ * Will silently fail if the asset is missing.
+ * @param {rm.types.Skill} skill The skill to pose for.
  */
-JABS_Battler.prototype.performActionPose = function(skill) {
-  if (this._animating) {
+JABS_Battler.prototype.performActionPose = function(skill)
+{
+  // if we are still animating from a previous skill, prematurely end it.
+  if (this._animating)
+  {
     this.endAnimation();
   }
 
-  const character = this.getCharacter();
-  const baseSpriteName = this.getCharacterSpriteName();
-  let newCharacterSprite = "";
-  let suffix = "";
-  let index = this.getCharacterSpriteIndex();
-  let duration = 0;
-  if (skill._j.poseSuffix()) {
-    const notedata = skill._j.poseSuffix();
-    suffix = notedata[0];
-    index = notedata[1];
-    duration = notedata[2];
-    newCharacterSprite = `${baseSpriteName}${suffix}`;
-    this.captureBaseSpriteInfo();
-    this.setAnimationCount(duration);
-  } else {
-    return;
+  // if we have a pose suffix for this skill, then try to perform the pose.
+  if (skill._j.poseSuffix())
+  {
+    this.changeCharacterSprite(skill);
   }
+};
 
-  ImageManager.loadCharacter(newCharacterSprite);
-  character.setImage(newCharacterSprite, index);
+/**
+ * Executes the change of character sprite based on the action pose data
+ * from within a skill's notes.
+ * @param {rm.types.Skill} skill The skill to pose for.
+ */
+JABS_Battler.prototype.changeCharacterSprite = function(skill)
+{
+  // get the action pose data from the skill.
+  const notedata = skill._j.poseSuffix();
+  const [suffix, index, duration] = notedata;
+
+  // establish the base sprite data.
+  const baseSpriteName = this.getCharacterSpriteName();
+  this.captureBaseSpriteInfo();
+
+  // define the duration for this pose.
+  this.setAnimationCount(duration);
+
+  // determine the new action pose sprite name.
+  const newCharacterSprite = `${baseSpriteName}${suffix}`;
+
+  // only actually switch to the other character sprite if it exists.
+  ImageManager
+    .probeCharacter(newCharacterSprite)
+    .then(() =>
+    {
+      ImageManager.loadCharacter(newCharacterSprite);
+      this.getCharacter().setImage(newCharacterSprite, index);
+    });
 };
 
 /**
