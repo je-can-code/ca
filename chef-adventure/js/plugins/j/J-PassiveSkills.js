@@ -426,6 +426,29 @@ Game_Battler.prototype.state = function(stateId)
 {
   return $dataStates[stateId];
 };
+
+/**
+ * Extends `states()` to also include retrieval of our passive skill-states.
+ * @returns {rm.types.State[]}
+ */
+J.PASSIVE.Aliased.Game_Battler.set('states', Game_Battler.prototype.states);
+Game_Battler.prototype.states = function()
+{
+  // setup the collection of state objects.
+  const states = [];
+
+  // add the original state objects into the list.
+  states.push(...J.PASSIVE.Aliased.Game_Battler.get('states').call(this));
+
+  // if we have a collection of passive skill states...
+  if (this._j._passiveSkillStateIds !== null)
+  {
+    // then push those objects into the states collection.
+    states.push(...this._j._passiveSkillStateIds.map(this.state));
+  }
+
+  return states;
+};
 //#endregion Game_Battler
 
 //#region Game_Enemy
