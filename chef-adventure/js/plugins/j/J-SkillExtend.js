@@ -8,7 +8,8 @@
  * @help
  * ============================================================================
  * This plugin enables the ability to have a single skill be represented by
- * one or more other skills a given battler has learned.
+ * one or more other skills a given battler has learned. Extended skills are
+ * effectively skills that have the combined effects of multiple skills.
  * ============================================================================
  */
 
@@ -46,10 +47,13 @@ J.EXTEND.Aliased = {
 //#region Game objects
 
 //#region Game_Action
+/**
+ * Basically replaces `setSkill()` with setting the skill to instead set our extended skill.
+ */
 J.EXTEND.Aliased.Game_Action.set('setSkill', Game_Action.prototype.setSkill);
 Game_Action.prototype.setSkill = function(skillId)
 {
-  if (!this.subject() || !this.subject().isActor())
+  if (!this.subject())// || !this.subject().isActor())
   {
     J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
     return;
@@ -60,10 +64,11 @@ Game_Action.prototype.setSkill = function(skillId)
 };
 
 /**
- * Extends the action application to include applying states to one-self.
+ * Extends `apply()` to include applying states to one-self.
  */
 J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
-Game_Action.prototype.apply = function(target) {
+Game_Action.prototype.apply = function(target)
+{
   J.EXTEND.Aliased.Game_Action.get('apply').call(this, target);
   this.applyOnHitSelfStates();
 };
@@ -107,7 +112,8 @@ Game_Action.prototype.applyOnCastSelfStates = function()
  * when this skill hits a target.
  * @returns {JABS_SkillChance[]}
  */
-Game_Action.prototype.onHitSelfStates = function() {
+Game_Action.prototype.onHitSelfStates = function()
+{
   // get the skill and its overlays.
   const skill = this.item();
   const structure = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
@@ -162,6 +168,9 @@ Game_Action.prototype.applyStates = function(target, stateChances)
 //#endregion Game_Action
 
 //#region Game_Item
+/**
+ * Extend `initialize()` to include our update of assigning the item.
+ */
 J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
 Game_Item.prototype.initialize = function(item) {
   J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
@@ -237,7 +246,10 @@ class OverlayManager {
       return $dataSkills[skillId];
     }
 
+    // make a copy of the original skill to be overlayed.
     const baseSkill = JsonEx.makeDeepCopy($dataSkills[skillId]);
+
+    // the filter for filtering whether or not a skill is an extension skill.
     const skillExtendFilter = (skill) => {
       // if the skill isn't an extension skill, skip it.
       const isExtensionSkill = !!(skill.meta && skill.meta['skillExtend']);

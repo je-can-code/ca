@@ -30109,14 +30109,14 @@ declare class Game_BattlerBase {
 	 */
 	allIcons(): number[];
 	/**
-	 * Returns the trait object to the user
+	 * Returns the trait objects of the user.
 	 * @return Array<any>
 	 */
 	traitObjects(): any[];
 	/**
 	 * Returns all the traits of the battler.
 	 *
-	 * @returns {Array<RPG.Trait>}
+	 * @returns {Array<rm.types.Trait[]>}
 	 * @memberof Game_BattlerBase
 	 */
 	allTraits(): rm.types.Trait[];

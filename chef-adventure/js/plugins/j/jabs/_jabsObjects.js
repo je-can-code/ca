@@ -4213,7 +4213,7 @@ Game_Character.prototype.setRequestTextPop = function(damagePopRequest = true) {
 
 /**
  * Gets all current `damagePops` that this character has pending.
- * @returns {number[]} The currently pending `damagePops` for this character.
+ * @returns {JABS_TextPop[]} The currently pending `damagePops` for this character.
  */
 Game_Character.prototype.getDamagePops = function() {
   const actionSpriteProperties = this.getActionSpriteProperties();

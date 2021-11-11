@@ -764,14 +764,16 @@ Sprite_Character.prototype.updateNonDamagePopups = function() {
  */
 Sprite_Character.prototype.buildPopupsIfAny = function() {
   if (this._character.getRequestTextPop()) {
-    do {
+    do
+    {
       const popup = this._character.getDamagePops().shift();
       const sprite = this.configurePopup(popup);
       sprite._isDamage 
         ? this._damages.push(sprite)
         : this._nonDamages.push(sprite);
       this.parent.addChild(sprite);
-    } while (this._character.getDamagePops().length);
+    }
+    while (this._character.getDamagePops().length);
   }
 };
 
