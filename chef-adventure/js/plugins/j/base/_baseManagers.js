@@ -136,6 +136,24 @@ DataManager.addExtraStateData = function()
 };
 //#endregion DataManager
 
+//#region ImageManager
+/**
+ * Checks to see if a character asset is present.
+ * @param characterFileName
+ * @returns {Promise}
+ */
+ImageManager.probeCharacter = function(characterFileName)
+{
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
+    xhr.open("HEAD", characterImageUrl, true);
+    xhr.onload = resolve;
+    xhr.send();
+  });
+};
+//#endregion ImageManager
+
 //#region TextManager
 /**
  * Gets the name of the given sp-parameter.

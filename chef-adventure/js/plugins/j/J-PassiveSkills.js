@@ -348,7 +348,7 @@ Game_Battler.prototype.skillsToPassiveStates = function(skillIds)
 
 /**
  * Gets the skill associated with the given skill id.
- * By abstracting this, we can modify the underlying skill before it reaches its destination.
+ * By default, we simply get the skill from the database with no modifications.
  * @param {number} skillId The skill id to get the skill for.
  * @returns {rm.types.Skill}
  */
@@ -449,7 +449,8 @@ if (!J.BASE)
    * This includes both skills listed in their skill list, and any added skills via traits.
    * @returns {rm.types.Skill[]}
    */
-  Game_Enemy.prototype.skills = function() {
+  Game_Enemy.prototype.skills = function()
+  {
     // get actions from their action list.
     const actionSkillIds = this.enemy().actions
       .map(action => this.skill(action.skillId));
