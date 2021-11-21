@@ -14,10 +14,8 @@
  * 
  * In order to accomplish this, events are tagged with comments that this
  * engine translates into various data points that create battlers on the map.
- * 
- * The sheer number of tags that can be added across the database makes it
- * rather nonsensical to list them here, so I would highly encourage you visit
- * the documentation pages in the github repo linked in the url here.
+ * ============================================================================
+ *
  * ============================================================================
  * @param baseConfigs
  * @text BASE SETUP

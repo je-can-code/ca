@@ -2740,34 +2740,40 @@ class Game_BattleMap {
    * @param {JABS_Battler} attacker The attacker attacking the target.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  applyAggroEffects(gameActionResult, action, attacker, target) {
+  applyAggroEffects(gameActionResult, action, attacker, target)
+  {
     // don't aggro your allies against you! That's dumb.
     if (attacker.isSameTeam(target.getTeam())) return;
 
     let aggro = J.ABS.Metadata.BaseAggro;
 
     // hp damage counts for 1.
-    if (gameActionResult.hpDamage > 0) {
+    if (gameActionResult.hpDamage > 0)
+    {
       aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroPerHp;
     }
 
     // mp damage counts for 2.
-    if (gameActionResult.mpDamage > 0) {
+    if (gameActionResult.mpDamage > 0)
+    {
       aggro += gameActionResult.mpDamage * J.ABS.Metadata.AggroPerMp;
     }
 
     // tp damage counts for 10.
-    if (gameActionResult.tpDamage > 0) {
+    if (gameActionResult.tpDamage > 0)
+    {
       aggro += gameActionResult.tpDamage * J.ABS.Metadata.AggroPerTp;
     }
 
     // if the attacker also healed from it, extra aggro for each point healed!
-    if (gameActionResult.drain) {
+    if (gameActionResult.drain)
+    {
       aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroDrain;
     }
 
     // if the attacker was parried, reduce aggro on this battler...
-    if (gameActionResult.parried) {
+    if (gameActionResult.parried)
+    {
       aggro += J.ABS.Metadata.AggroParryFlatAmount;
       // ...and also increase the aggro of the attacking battler!
       attacker.addUpdateAggro(target.getUuid(), J.ABS.Metadata.AggroParryUserGain);
@@ -2817,35 +2823,37 @@ class Game_BattleMap {
    * @param {JABS_Action} action The action potentially knocking the target back.
    * @param {JABS_Battler} target The map battler to potentially knockback.
    */
-  checkKnockback(action, target) {
+  checkKnockback(action, target)
+  {
     // don't knockback if already being knocked back.
     const targetSprite = target.getCharacter();
-    if (targetSprite.isJumping())
-      return;
+    if (targetSprite.isJumping()) return;
 
     // get the knockback resist for this target.
     const targetReferenceData = target.getReferenceData();
     const targetMeta = targetReferenceData.meta;
     let knockbackResist = 1.00;
-    if (targetMeta && targetMeta[J.ABS.Notetags.KnockbackResist]) {
+    if (targetMeta && targetMeta[J.ABS.Notetags.KnockbackResist])
+    {
       let metaResist = parseInt(targetMeta[J.ABS.Notetags.KnockbackResist]);
       knockbackResist = (100 - metaResist) / 100;
     }
 
     // don't even knock them up or around at all, they are immune to knockback.
-    if (knockbackResist <= 0) {
+    if (knockbackResist <= 0)
+    {
       return;
     }
 
     // get the knockback value from the skill if applicable.
     const skill = action.getBaseSkill();
     let knockback = skill._j.knockback();
-    if (knockback == null)
-      return;
+    if (knockback == null) return;
     knockback *= knockbackResist;
 
     // if the knockback is 0, just hop in place.
-    if (knockback === 0) {
+    if (knockback === 0)
+    {
       targetSprite.jump(0, 0);
       return;
     }
@@ -2855,7 +2863,8 @@ class Game_BattleMap {
     const knockbackDirection = actionSprite.direction();
     let xPlus = 0;
     let yPlus = 0;
-    switch (knockbackDirection) {
+    switch (knockbackDirection)
+    {
       case J.ABS.Directions.UP:
         yPlus -= Math.ceil(knockback);
         break;
@@ -2877,7 +2886,8 @@ class Game_BattleMap {
     let canPass = true;
 
     // dynamically test each square to ensure you don't cross any unpassable tiles.
-    while (canPass && (realX !== maxX || realY !== maxY)) {
+    while (canPass && (realX !== maxX || realY !== maxY))
+    {
       switch (knockbackDirection) {
         case J.ABS.Directions.UP:
           realY--;

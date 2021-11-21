@@ -29252,7 +29252,12 @@ declare class Game_Action {
 	itemHit(target: Game_Battler): number;
 	itemEva(target: Game_Battler): number;
 	itemCri(target: Game_Battler): number;
-	apply(target: Game_Battler): void;
+
+    /**
+     *
+     * @param {Game_Actor|Game_Enemy} target
+     */
+	apply(target: Game_Actor|Game_Enemy): void;
 	makeDamageValue(target: Game_Battler, critical: boolean): number;
 	evalDamageFormula(target: Game_Battler): number;
 	calcElementRate(target: Game_Battler): number;
@@ -35310,10 +35315,10 @@ declare class Game_Unit {
 	/**
 	 * Returns the list of dead battlers.
 	 *
-	 * @returns {Array<Game_Battler>}
+	 * @returns {Game_Actor[]|Game_Enemy[]}
 	 * @memberof Game_Unit
 	 */
-	deadMembers(): Game_Battler[];
+	deadMembers(): Game_Actor[] | Game_Enemy[];
 	/**
 	 * Returns the list of movable members.
 	 *
