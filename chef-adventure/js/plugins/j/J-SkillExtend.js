@@ -53,7 +53,7 @@ J.EXTEND.Aliased = {
 J.EXTEND.Aliased.Game_Action.set('setSkill', Game_Action.prototype.setSkill);
 Game_Action.prototype.setSkill = function(skillId)
 {
-  if (!this.subject())// || !this.subject().isActor())
+  if (!this.subject())
   {
     J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
     return;

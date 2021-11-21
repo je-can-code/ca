@@ -27,16 +27,68 @@
  * - Customizable name/icon/description1/description2.
  * - Rank up rewards for any/every/max rank, which can be most anything.
  * 
- * In order to rank up these SDPs, you'll need to use SDP points (surprise!).
- * These are most commonly acquired from enemies through tags:
- * 
- * <sdp:POINTS>
- * where POINTS is a number representing the amount of points earned.
- * 
- * SDP points can also be acquired by using plugin commands. Typically, when
- * an enemy is defeated, all members of the party will gain the SDP points, but
- * when spending them, it is actor-specific due to panel ranks also being
- * actor-specific (allowing specialization for the player if they want).
+ * In order to rank up these SDPs, you'll need to use SDP points. These can be
+ * acquired by using the tags below, or by using plugin commands.
+ *
+ * NOTES:
+ * - SDP points gained from enemies are earned for all members of the party.
+ * - SDP points are stored and spent on a per-actor basis.
+ * - SDP points for an actor cannot be reduced below 0.
+ * - Stat Distribution Panels are unlocked for all members of the party.
+ * - Stat Distribution Panels being leveled or maxed can unlock other SDPs.
+ * ============================================================================
+ * SDP POINTS:
+ * Ever want enemies to drop SDP Points? Well now they can! By applying the
+ * appropriate tag to the enemy/enemies in question, you can have enemies drop
+ * as little or as much as you want them to.
+ *
+ * TAG USAGE:
+ * - Enemies only.
+ *
+ * TAG FORMAT:
+ *  <sdp:POINTS>
+ *
+ * TAG EXAMPLES:
+ *  <sdp:10>
+ * The party will gain 10 SDP points from defeating this enemy.
+ *
+ *  <sdp:123456>
+ * The party will gain 123456 SDP points from defeating this enemy.
+ * ============================================================================
+ * SDP MULTIPLIERS:
+ * Ever want allies to gain some percentage amount more (or less) of the SDP
+ * points earned from enemies? Well now you can! By applying the appropriate
+ * tag to the various database locations applicable, you can gain a percentage
+ * bonus/penalty amount of SDP points obtained!
+ *
+ * NOTE:
+ * The format implies that you will be providing whole numbers and not actual
+ * multipliers, like 1.3 or something. If multiple tags are present across the
+ * various database locations on a single actor, they will stack additively.
+ * SDP points cannot be reduced below 0 for an actor, but they most certainly
+ * can receive negative amounts if the tags added up like that.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <sdpMultiplier:AMOUNT>    (for positive)
+ *  <sdpMultiplier:-AMOUNT>   (for negative)
+ *
+ * TAG EXAMPLES:
+ *  <sdpMultiplier:25>
+ * An actor with something equipped/applied that has the above tag will now
+ * gain 25% increased SDP points.
+ *
+ *  <sdpMultiplier:80>
+ *  <sdpMultiplier:-30>
+ * An actor with something equipped/applied that has both of the above tags
+ * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * 
  * @param SDPconfigs
@@ -677,12 +729,14 @@ DataManager.extractSaveContents = function(contents) {
  * Adds new properties to the actors that manage the SDP system.
  */
 J.SDP.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
-Game_Actor.prototype.initMembers = function() {
+Game_Actor.prototype.initMembers = function()
+{
   J.SDP.Aliased.Game_Actor.initMembers.call(this);
   /**
    * The J object where all my additional properties live.
    */
   this._j = this._j || {};
+
   /**
    * A grouping of all properties associated with the SDP system.
    */
@@ -704,9 +758,9 @@ Game_Actor.prototype.initMembers = function() {
 /**
  * Adds a new panel ranking for tracking the progress of a given panel.
  * @param {string} key The less-friendly unique key that represents this SDP.
- * @param {number} maxRank The maximum rank that this panel can reach.
  */
-Game_Actor.prototype.addNewPanelRanking = function(key) {
+Game_Actor.prototype.addNewPanelRanking = function(key)
+{
   const ranking = this.getSdpByKey(key);
   if (ranking) {
     console.warn(`panel rankings are already being tracked for key: "${key}".`);
@@ -722,26 +776,28 @@ Game_Actor.prototype.addNewPanelRanking = function(key) {
  * @param {string} key The key of the panel we seek.
  * @returns {PanelRanking} The panel if found, `null` otherwise.
  */
-Game_Actor.prototype.getSdpByKey = function(key) {
+Game_Actor.prototype.getSdpByKey = function(key)
+{
   // don't try to search if there are no rankings at this time.
   if (!this._j._sdp._ranks.length) return null;
 
-  const ranking = this._j._sdp._ranks.find(panelRanking => panelRanking.key === key);
-  return ranking;
+  return this._j._sdp._ranks.find(panelRanking => panelRanking.key === key);
 };
 
 /**
  * Gets all rankings that this actor has.
  * @returns {PanelRanking[]}
  */
-Game_Actor.prototype.getAllSdpRankings = function() {
+Game_Actor.prototype.getAllSdpRankings = function()
+{
   return this._j._sdp._ranks;
 };
 
 /**
  * Gets the amount of SDP points this actor has.
  */
-Game_Actor.prototype.getSdpPoints = function() {
+Game_Actor.prototype.getSdpPoints = function()
+{
   return this._j._sdp._points;
 };
 
@@ -752,19 +808,76 @@ Game_Actor.prototype.getSdpPoints = function() {
  * NOTE: An actor's SDP points cannot be less than 0.
  * @param {number} points The number of points we are adding/removing from this actor.
  */
-Game_Actor.prototype.modSdpPoints = function(points) {
-  this._j._sdp._points += points;
-  if (this._j._sdp._points < 0) {
-    console.warn('SDP points were reduced below zero. Returned to 0.')
+Game_Actor.prototype.modSdpPoints = function(points)
+{
+  let gainedSdpPoints = points;
+
+  // if the modification is a positive amount...
+  if (gainedSdpPoints > 0)
+  {
+    // then add apply the multiplier to the gained points.
+    gainedSdpPoints = Math.round(gainedSdpPoints * this.sdpMultiplier());
+  }
+
+  // add the points onto the actor.
+  this._j._sdp._points += gainedSdpPoints;
+
+  // if the actor's points were reduced below zero...
+  if (this._j._sdp._points < 0)
+  {
+    // return it back to 0.
     this._j._sdp._points = 0;
   }
+};
+
+/**
+ * OVERWRITE Gets the SDP points multiplier for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.sdpMultiplier = function()
+{
+  // initializing with base 100, representing 1x.
+  let multiplier = 100;
+
+  // get all the objects to scan for possible sdp multipliers.
+  const objectsToCheck = this.getEverythingWithNotes();
+
+  // iterate over each of them and add the multiplier up.
+  objectsToCheck.forEach(obj => (multiplier += this.extractSdpMultiplier(obj)), this);
+
+  // return the factor form by now dividing by 100.
+  return (multiplier / 100);
+};
+
+/**
+ * Gets all multipliers that this database object contains.
+ * @param {rm.types.BaseItem} referenceData The database data of the object.
+ * @returns {number}
+ */
+Game_Actor.prototype.extractSdpMultiplier = function(referenceData)
+{
+  if (!referenceData || !referenceData.note) return 0;
+
+  let sdpMultiplier = 0;
+  const structure = /<sdpMultiplier:[ ]?([-.\d]+)>/i;
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
+      sdpMultiplier += parseInt(RegExp.$1);
+    }
+  });
+
+  return sdpMultiplier;
 };
 
 /**
  * Ranks up this actor's panel by key.
  * @param {string} panelKey The key of the panel to rank up.
  */
-Game_Actor.prototype.rankUpPanel = function(panelKey) {
+Game_Actor.prototype.rankUpPanel = function(panelKey)
+{
   this.getSdpByKey(panelKey).rankUp();
 };
 
@@ -774,7 +887,8 @@ Game_Actor.prototype.rankUpPanel = function(panelKey) {
  * @param {number} baseParam The base value of the designated parameter.
  * @returns {number}
  */
-Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam) {
+Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
+{
   const panelRankings = this.getAllSdpRankings();
   if (!panelRankings.length) return 0;
 
@@ -803,12 +917,13 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam) {
 
 /**
  * Calculates the value of the bonus stats for a designated [sp|ex]-parameter.
- * @param {number} paramId The id of the parameter to get the bonus for.
+ * @param {number} sparamId The id of the parameter to get the bonus for.
  * @param {number} baseParam The base value of the designated parameter.
  * @param {number} idExtra The id modifier for s/x params.
  * @returns {number}
  */
-Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, idExtra) {
+Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, idExtra)
+{
   const panelRankings = this.getAllSdpRankings();
   if (!panelRankings.length) return 0;
 
@@ -839,7 +954,8 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
  * Extends the base parameters with the SDP bonuses.
  */
 J.SDP.Aliased.Game_Actor.param = Game_Actor.prototype.param;
-Game_Actor.prototype.param = function(paramId) {
+Game_Actor.prototype.param = function(paramId)
+{
   const baseParam = J.SDP.Aliased.Game_Actor.param.call(this, paramId);
   const panelModifications = this.getSdpBonusForCoreParam(paramId, baseParam);
   const result = baseParam + panelModifications;
@@ -850,7 +966,8 @@ Game_Actor.prototype.param = function(paramId) {
  * Extends the ex-parameters with the SDP bonuses.
  */
 J.SDP.Aliased.Game_Actor.xparam = Game_Actor.prototype.xparam;
-Game_Actor.prototype.xparam = function(xparamId) {
+Game_Actor.prototype.xparam = function(xparamId)
+{
   const baseParam = J.SDP.Aliased.Game_Actor.xparam.call(this, xparamId);
   const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
   const result = baseParam + panelModifications;
@@ -861,7 +978,8 @@ Game_Actor.prototype.xparam = function(xparamId) {
  * Extends the sp-parameters with the SDP bonuses.
  */
 J.SDP.Aliased.Game_Actor.sparam = Game_Actor.prototype.sparam;
-Game_Actor.prototype.sparam = function(sparamId) {
+Game_Actor.prototype.sparam = function(sparamId)
+{
   const baseParam = J.SDP.Aliased.Game_Actor.sparam.call(this, sparamId);
   const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + panelModifications;
@@ -870,36 +988,49 @@ Game_Actor.prototype.sparam = function(sparamId) {
 //#endregion Game_Actor
 
 //#region Game_BattleMap
-if (J.ABS) {
+if (J.ABS)
+{
   /**
    * Extends the basic rewards from defeating an enemy to also include SDP points.
+   * @param {Game_Battler} enemy The target battler that was defeated.
+   * @param {JABS_Battler} actor The map battler that defeated the target.
    */
   J.SDP.Aliased.Game_BattleMap.gainBasicRewards = Game_BattleMap.prototype.gainBasicRewards;
-  Game_BattleMap.prototype.gainBasicRewards = function(enemy, actor) {
+  Game_BattleMap.prototype.gainBasicRewards = function(enemy, actor)
+  {
     J.SDP.Aliased.Game_BattleMap.gainBasicRewards.call(this, enemy, actor);
     let sdpPoints = enemy.sdpPoints();
   
     if (!sdpPoints) return;
   
-    const actorSprite = actor.getCharacter();
     const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
+    const sdpMultiplier = actor.getBattler().sdpMultiplier();
     sdpPoints = Math.ceil(sdpPoints * levelMultiplier);
   
-    this.gainSdpReward(sdpPoints, actorSprite);
+    this.gainSdpReward(sdpPoints, actor);
     this.createSdpLog(sdpPoints, actor);
   };
   
   /**
     * Gains SDP points from battle rewards.
     * @param {number} sdpPoints The SDP points to gain.
-    * @param {Game_Character} actorSprite The sprite that visually represents the actor.
+   * @param {JABS_Battler} actor The map battler that defeated the target.
     */
-  Game_BattleMap.prototype.gainSdpReward = function(sdpPoints, actorSprite) {
+  Game_BattleMap.prototype.gainSdpReward = function(sdpPoints, actor)
+  {
     // don't do anything if the enemy didn't grant any sdp points.
     if (!sdpPoints) return;
-  
+
+    // sdp points are gained by all members in the party.
     $gameParty.members().forEach(member => member.modSdpPoints(sdpPoints));
-    const sdpPop = this.configureSdpPop(sdpPoints);
+
+    // get the true amount gained after multipliers for the leader.
+    const sdpMultiplier = actor.getBattler().sdpMultiplier();
+    const multipliedSdpPoints = Math.round(sdpMultiplier * sdpPoints);
+
+    // build and apply the text pop.
+    const sdpPop = this.configureSdpPop(multipliedSdpPoints);
+    const actorSprite = actor.getCharacter();
     actorSprite.addTextPop(sdpPop);
     actorSprite.setRequestTextPop();
   };
@@ -908,7 +1039,8 @@ if (J.ABS) {
     * Creates the text pop of the SDP points gained.
     * @param {number} sdpPoints The amount of experience gained.
     */
-  Game_BattleMap.prototype.configureSdpPop = function(sdpPoints) {
+  Game_BattleMap.prototype.configureSdpPop = function(sdpPoints)
+  {
     const popup = JABS_TextPop.create({
       iconIndex: 306,
       textColorIndex: 17,
@@ -918,8 +1050,14 @@ if (J.ABS) {
     
     return popup;
   };
-  
-  Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler) {
+
+  /**
+   * Creates the log entry if using the J-LOG.
+   * @param {number} sdpPoints The SDP ponts gained.
+   * @param {JABS_Battler} battler The battler gaining the SDP points.
+   */
+  Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler)
+  {
     if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
   
     const battlerData = battler.getReferenceData();
@@ -929,6 +1067,17 @@ if (J.ABS) {
   };
 }
 //#endregion Game_BattleMap
+
+//#region Game_Battler
+/**
+ * Gets the SDP points multiplier for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.sdpMultiplier = function()
+{
+  return 1.0;
+};
+//#endregion Game_Battler
 
 //#region Game_Switches
 /**
@@ -1083,7 +1232,6 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
  */
 Scene_Map.prototype.commandSdp = function() {
   SceneManager.push(Scene_SDP);
-  return;
 };
 //#endregion Scene_Map
 

@@ -116,7 +116,8 @@ Game_Actor.prototype.traitObjects = function()
   // injects all state objects provided into the list of considered trait objects.
   // this enforces them to be considered permanently, so long as the skill has
   // not been .forgetSkill()-ed.
-  originalObjects.push(...this.passiveSkillStates(originalObjects));
+  const passiveSkillStates = this.passiveSkillStates(originalObjects);
+  originalObjects.push(...passiveSkillStates);
   return originalObjects;
 };
 
@@ -266,6 +267,22 @@ Game_Battler.prototype.passiveSkillStates = function(traitObjects)
   const passiveStates = this.skillsToPassiveStates(skillIds);
 
   return passiveStates;
+};
+
+/**
+ * Gets all the current passive skill states, if any exist.
+ * @returns {rm.types.State[]}
+ */
+Game_Battler.prototype.currentPassiveSkillStates = function()
+{
+  // this array is only null when it hasn't yet been initialized yet or if we're forcing a refresh.
+  if (this._j._passiveSkillStateIds !== null)
+  {
+    // map all the passive state ids into passive states.
+    return this._j._passiveSkillStateIds.map(this.state, this);
+  }
+
+  return [];
 };
 
 /**
@@ -425,29 +442,6 @@ Game_Battler.prototype.hasPassiveState = function(stateId)
 Game_Battler.prototype.state = function(stateId)
 {
   return $dataStates[stateId];
-};
-
-/**
- * Extends `states()` to also include retrieval of our passive skill-states.
- * @returns {rm.types.State[]}
- */
-J.PASSIVE.Aliased.Game_Battler.set('states', Game_Battler.prototype.states);
-Game_Battler.prototype.states = function()
-{
-  // setup the collection of state objects.
-  const states = [];
-
-  // add the original state objects into the list.
-  states.push(...J.PASSIVE.Aliased.Game_Battler.get('states').call(this));
-
-  // if we have a collection of passive skill states...
-  if (this._j._passiveSkillStateIds !== null)
-  {
-    // then push those objects into the states collection.
-    states.push(...this._j._passiveSkillStateIds.map(this.state));
-  }
-
-  return states;
 };
 //#endregion Game_Battler
 

@@ -38,7 +38,7 @@ Game_Actor.prototype.onOwnDefeatSkillIds = function() {
  */
 Game_Actor.prototype.onTargetDefeatSkillIds = function() {
   const objectsToCheck = this.getCurrentWithNotes();
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
   const skills = [];
   objectsToCheck.forEach(obj => {
     const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
@@ -91,18 +91,36 @@ Game_Actor.prototype.autoAssignOnLevelup = function() {
 };
 
 /**
- * Gets all things the things that this actor has that can possibly have
- * notes on it at the present moment. This includes the actor itself, the
- * actor's class, their skills, their equips, and their current states.
+ * Gets all objects with notes on them currently for this actor.
+ * This is very similar to the `traitObjects()` function.
  * @returns {rm.types.BaseItem[]}
  */
 Game_Actor.prototype.getEverythingWithNotes = function() {
   const objectsWithNotes = [];
+
+  // get the actor object.
   objectsWithNotes.push(this.actor());
+
+  // get their current class object.
   objectsWithNotes.push(this.currentClass());
+
+  // get all their skill objects.
   objectsWithNotes.push(...this.skills());
+
+  // get all their non-null equip objects.
   objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+
+  // get any currently applied normal states.
   objectsWithNotes.push(...this.states());
+
+  // if we are using the passive skill-state system...
+  if (J.PASSIVE)
+  {
+    // then add all those currently applied passive skill states, too.
+    objectsWithNotes.push(...this.currentPassiveSkillStates())
+  }
+
+  // return that potentially massive combination.
   return objectsWithNotes;
 };
 
@@ -430,11 +448,13 @@ Game_Actor.prototype.isInanimate = function() {
  * Will retrieve from actor, class, all equipment, and states.
  * @returns {JABS_SkillChance[]}
  */
-Game_Actor.prototype.retaliationSkills = function() {
-  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+\])>/i;
+Game_Actor.prototype.retaliationSkills = function()
+{
+  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
   const objectsToCheck = this.getEverythingWithNotes();
   const skills = [];
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
     skills.push(...innerSkills);
   });
