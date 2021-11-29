@@ -353,15 +353,18 @@ Game_Action.prototype.getApplicableElements = function(target)
  * @param {rm.types.UsableItem} referenceData The database object of this action.
  * @returns {number[]} The additional attack elements.
  */
-Game_Action.extractElementsFromAction = function(referenceData) {
+Game_Action.extractElementsFromAction = function(referenceData)
+{
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return [];
 
   const notedata = referenceData.note.split(/[\r\n]+/);
   const structure = /<attackElements:[ ]?(\[[\d, ]+])>/i;
   const elements = [];
-  notedata.forEach(line => {
-    if (line.match(structure)) {
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
       const data = JSON.parse(RegExp.$1);
       elements.push(...data);
     }

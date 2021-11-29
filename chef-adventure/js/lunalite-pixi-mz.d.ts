@@ -33207,6 +33207,12 @@ declare class Game_Enemy extends Game_Battler {
 	 * @memberof Game_Enemy
 	 */
 	dropItemRate(): number;
+
+    /**
+     * Converts a kind and dataId into an actual database object representing loot.
+     * @param {number} kind The type/category of item the drop is.
+     * @param {number} dataId The id of the object from the database.
+     */
 	itemObject(kind: number, dataId: number): rm.types.BaseItem;
 	/**
 	 * Returns true if the enemy sprite is visible.
@@ -34643,10 +34649,12 @@ declare class Game_Map {
 	 * Returns the name of battle back 2.
 	 *
 	 * @returns {String}
-	 * @memberof Game_Map
 	 */
 	battleback2Name(): string;
-	requestRefresh(mapId: number): void;
+    /**
+     * Requests a map refresh for this map.
+     */
+	requestRefresh(): void;
 	/**
 	 * Returns true if the name display is enabled.
 	 *

@@ -585,6 +585,7 @@ J.SDP.Aliased = {
   DataManager: {},
   Game_Actor: {},
   Game_BattleMap: {},
+  Game_Enemy: new Map(),
   Game_Switches: {},
   Game_System: {},
   Scene_Map: {},
@@ -1079,14 +1080,76 @@ Game_Battler.prototype.sdpMultiplier = function()
 };
 //#endregion Game_Battler
 
+//#region Game_Enemy
+if (J.DROPS)
+{
+  /**
+   * Gets any additional drops from the notes of this particular enemy.
+   * @returns {rm.types.EnemyDropItem[]}
+   */
+  J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);
+  Game_Enemy.prototype.extraDrops = function()
+  {
+    // get the original drop list.
+    const dropList = J.SDP.Aliased.Game_Enemy.get("extraDrops").call(this);
+
+    // if there is a panel that needs to be added to the list, then add it.
+    const sdpDrop = this.needsSdpDrop();
+    if (sdpDrop) dropList.push(sdpDrop);
+
+    return dropList;
+  };
+
+  /**
+   * Determines if there is an SDP to drop, and whether or not to drop it.
+   * @returns {rm.types.EnemyDropItem}
+   */
+  Game_Enemy.prototype.needsSdpDrop = function()
+  {
+    // doesn't matter if we aren't even using the SDP system.
+    if (!J.SDP) return null;
+
+    const referenceData = this.enemy();
+    const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+
+    // get the panel key from this enemy if it exists.
+    let panelKey = "";
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        panelKey = RegExp.$1;
+      }
+    });
+
+    // if we don't have a panel key, then give up.
+    if (!panelKey) return null;
+
+    // if a panel exists to be earned, but we already have it, then give up.
+    const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
+    if (alreadyEarned) return null;
+
+    // create the new drop based on the SDP.
+    return {
+      kind: 1, // all SDP drops are assumed to be "items".
+      dataId: parseInt(RegExp.$2),
+      denominator: parseInt(RegExp.$3)
+    };
+  };
+}
+//#endregion Game_Enemy
+
 //#region Game_Switches
 /**
  * Hooks into the `onChange` function for updating the JABS quick menu when switches change.
  */
 J.SDP.Aliased.Game_Switches.onChange = Game_Switches.prototype.onChange;
-Game_Switches.prototype.onChange = function() {
+Game_Switches.prototype.onChange = function()
+{
   $gameMap.requestRefresh();
-  if (J.ABS) {
+  if (J.ABS)
+  {
     $gameBattleMap.requestJabsMenuRefresh = true;
   }
 };
