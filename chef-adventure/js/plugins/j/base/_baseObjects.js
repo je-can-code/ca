@@ -626,7 +626,7 @@ Game_Battler.prototype.retaliationSkills = function() {
 
 /**
  * All battlers have a default of no on-own-defeat skill ids.
- * @returns {number[]}
+ * @returns {JABS_SkillChance[]}
  */
 Game_Battler.prototype.onOwnDefeatSkillIds = function() {
   return [];
@@ -634,7 +634,7 @@ Game_Battler.prototype.onOwnDefeatSkillIds = function() {
 
 /**
  * All battlers have a default of no on-defeating-a-target skill ids.
- * @returns {number[]}
+ * @returns {JABS_SkillChance[]}
  */
 Game_Battler.prototype.onTargetDefeatSkillIds = function() {
   return [];
@@ -1005,81 +1005,6 @@ Object.defineProperty(Game_Enemy.prototype, "level", {
   },
   configurable: true,
 });
-
-/**
- * Gets any additional drops from the notes of this particular enemy.
- * @returns {[string, number, number][]}
- */
-Game_Enemy.prototype.extraDrops = function() {
-  const referenceData = this.enemy();
-  const dropList = [];
-  const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      let kind = 0;
-      switch (RegExp.$1) {
-        case ("i" || "item"):
-          kind = 1;
-          break;
-        case ("w" || "weapon"):
-          kind = 2;
-          break;
-        case ("a" || "armor"):
-          kind = 3;
-          break;
-      }
-
-      const result = { 
-        kind, 
-        dataId: parseInt(RegExp.$2), 
-        denominator: parseInt(RegExp.$3)
-      };
-      dropList.push(result);
-    }
-  });
-
-  // if there is a panel that needs to be added to the list, then add it.
-  const sdpDrop = this.needsSdpDrop();
-  if (sdpDrop) dropList.push(sdpDrop);
-
-  return dropList;
-};
-
-/**
- * Determines if there is an SDP to drop, and whether or not to drop it.
- * @returns {{kind, dataId, denominator}}
- */
-Game_Enemy.prototype.needsSdpDrop = function() {
-  // doesn't matter if we aren't even using the SDP system.
-  if (!J.SDP) return null;
-
-  const referenceData = this.enemy();
-  const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
-  const notedata = referenceData.note.split(/[\r\n]+/);
-
-  // get the panel key from this enemy if it exists.
-  let panelKey = "";
-  notedata.forEach(note => {
-    if (note.match(structure)) {
-      panelKey = RegExp.$1;
-    }
-  });
-
-  // if we don't have a panel key, then give up.
-  if (!panelKey) return null;
-
-  // if a panel exists to be earned, but we already have it, then give up.
-  const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
-  if (alreadyEarned) return null;
-
-  // create the new drop based on the SDP.
-  return {
-    kind: 1, // all SDP drops are assumed to be "items".
-    dataId: parseInt(RegExp.$2),
-    denominator: parseInt(RegExp.$3)
-  };
-};
 
 /**
  * Gets the amount of sdp points granted by this enemy.
