@@ -1085,6 +1085,7 @@ if (J.DROPS)
 {
   /**
    * Gets any additional drops from the notes of this particular enemy.
+   * This allows for only gaining an SDP from enemies once.
    * @returns {rm.types.EnemyDropItem[]}
    */
   J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);

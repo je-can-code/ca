@@ -24,7 +24,6 @@
  * NOTE:
  * Combining multiple elements together is done multiplicatively for all
  * the various operations below.
- * 
  * ============================================================================
  * ADDITIONAL ELEMENTS:
  * Have you ever wanted a skill to be both fire and ice typed? Well now you
@@ -97,6 +96,7 @@
  * TAG FORMAT:
  *  <absorbElements:[NUM]>          (for one absorbed element)
  *  <absorbElements:[NUM,NUM,...]>  (for many absorbed elements)
+ * Where NUM is the element id from the "types" tab.
  * 
  * TAG EXAMPLES:
  *  <absorbElements:[4]>
