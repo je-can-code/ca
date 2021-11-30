@@ -71,6 +71,7 @@
  *
  * TAG FORMAT:
  *  <cdr:NUM>
+ * Where NUM is the amount of critical hit reduction added.
  *
  * TAG EXAMPLE(S):
  *  <cdr:30>
