@@ -864,7 +864,7 @@ JABS_Battler.prototype.updateEngagement = function()
   const distance = targetResult[1];
   if (this.isEngaged())
   {
-    if (this.shouldDisengage(distance))
+    if (this.shouldDisengage(target, distance))
     {
       this.disengageTarget();
     }
@@ -890,11 +890,13 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 
 /**
  * Determines whether or not this battler should disengage from it's target.
+ * @param {JABS_Battler} target The target to potentially disengage from.
+ * @param {number} distance The distance in number of tiles.
  * @returns {boolean}
  */
-JABS_Battler.prototype.shouldDisengage = function(distance)
+JABS_Battler.prototype.shouldDisengage = function(target, distance)
 {
-  return !this.inPursuitRange(distance);
+  return !this.inPursuitRange(target, distance);
 };
 
 /**
@@ -1876,12 +1878,23 @@ JABS_Battler.prototype.setDying = function(dying)
 
 /**
  * Calculates whether or not this battler should continue fighting it's target.
+ * @param {JABS_Battler} target The target we're trying to see.
  * @param {number} distance The distance from this battler to the target.
  * @returns {boolean}
  */
-JABS_Battler.prototype.inPursuitRange = function(distance)
+JABS_Battler.prototype.inPursuitRange = function(target, distance)
 {
-  return (distance <= this.getPursuitRadius());
+  let pursuitRadius = this.getPursuitRadius();
+
+  // if the target is an actor, they may have pursuit reduction/boost from something.
+  if (target.isActor())
+  {
+    // apply the modification from the actor, if any.
+    const visionMultiplier = target.getBattler().getVisionModifier();
+    pursuitRadius *= visionMultiplier;
+  }
+
+  return (distance <= pursuitRadius);
 };
 
 /**
@@ -1898,8 +1911,8 @@ JABS_Battler.prototype.inSightRange = function(target, distance)
   if (target.isActor())
   {
     // apply the modification from the actor, if any.
-    const sightRadiusMultiplier = target.getBattler().getVisionModifier();
-    sightRadius *= sightRadiusMultiplier;
+    const visionMultiplier = target.getBattler().getVisionModifier();
+    sightRadius *= visionMultiplier;
   }
 
   return (distance <= sightRadius);
