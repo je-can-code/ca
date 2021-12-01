@@ -99,7 +99,7 @@
  * TAG FORMAT:
  * <drops:[TYPE,ID,CHANCE]>
  * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
- * where ID is the id of the drop in the database.
+ * where ID is the id of the drop item in the database.
  * where CHANCE is the percent chance to drop.
  * 
  * TAG EXAMPLES:
@@ -192,6 +192,7 @@ Game_Enemy.prototype.makeDropItems = function()
 {
   // get all potential loot for this enemy.
   const dropList = this.getDropItems();
+  console.log("LIST", dropList);
   
   // no point in iterating over nothing.
   if (!dropList.length) return [];
@@ -210,21 +211,29 @@ Game_Enemy.prototype.makeDropItems = function()
 
     // here we're using the number from the database as a percentage chance instead.
     const rate = drop.denominator * multiplier;
+    console.log(rate);
 
     // if the multiplier was so great that the rate is above 100, we always get it.
     const treasureHunterSkip = rate >= 100;
 
     // roll the dice and see if we get some loot.
     const foundLoot = (Math.random() * 100) < rate;
+    const item = this.itemObject(drop.kind, drop.dataId);
 
     // if we earned the loot...
     if (treasureHunterSkip || foundLoot)
     {
       // ...add it to the list of earned drops from this enemy!
-      const item = this.itemObject(drop.kind, drop.dataId);
+      console.log("GOT", item.name);
       itemsFound.push(item);
     }
+    else
+    {
+      console.log("MISS", item.name);
+    }
   });
+
+  console.log("FOUND", itemsFound);
 
   // return all earned loot!
   return itemsFound;
@@ -236,7 +245,7 @@ Game_Enemy.prototype.makeDropItems = function()
  */
 Game_Enemy.prototype.getDropItems = function()
 {
-  const drops = this.enemy().dropItems;
+  const drops = [...this.enemy().dropItems];
   drops.push(...this.extraDrops());
   return drops;
 };
