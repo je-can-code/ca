@@ -393,9 +393,13 @@ Game_Party.prototype.getDropMultiplier = function()
 Game_Party.prototype.dropMultiplierMembers = function()
 {
   const membersToConsider = [];
-  membersToConsider.push($gameParty.leader());
+  membersToConsider.push(...$gameParty.battleMembers());
 
-  // TODO: make conditional functionality for all battle members, or everyone including reserve members.
+  // if only the leader should influence drop bonuses (for ABS style).
+  // membersToConsider.push($gameParty.leader());
+
+  // or everyone including reserve members (different preferences).
+  // membersToConsider.push(...$gameParty.members());
   return membersToConsider;
 };
 //#endregion Game_Party
