@@ -33184,15 +33184,17 @@ declare class Game_Enemy extends Game_Battler {
 	/**
 	 * Returns the enemy's exp amount.
 	 *
-	 * @memberof Game_Enemy
+     * @returns {number}
+     * @memberof Game_Enemy
 	 */
-	exp(): void;
+	exp(): number;
 	/**
 	 * Returns enemy's given gold.
 	 *
+     * @returns {number}
 	 * @memberof Game_Enemy
 	 */
-	gold(): void;
+	gold(): number;
 	/**
 	 * Creates the drop items for the enemy specified by the database.
 	 *

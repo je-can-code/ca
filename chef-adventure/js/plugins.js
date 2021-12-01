@@ -70,7 +70,7 @@ var $plugins =
 {"name":"j/cms/J-CMS-Skill","status":true,"description":"[v1.0 CMS_K] A redesign of the skill menu.","parameters":{}},
 {"name":"j/J-HUD","status":true,"description":"[v1.0 HUD] A default HUD, designed for JABS.","parameters":{"baseConfigs":"","enabled":"true","hideFollowersHudAlways":"false","externalConfigs":"","hideAllButStates":"false","hudX":"-1","hudY":"-1"}},
 {"name":"j/J-LevelScaling","status":true,"description":"[v1.0 LEVEL] Scales damage and exp/gold rewards from defeated enemies.","parameters":{"Level Scaling":"true"}},
-{"name":"j/J-ControlledDrops","status":true,"description":"[v1.0 DROP] Enables greater control over what and how often loot is dropped.","parameters":{}},
+{"name":"j/J-ControlledDrops","status":true,"description":"[v1.0.0 DROP] Enables greater control over gold and item drops.","parameters":{}},
 {"name":"j/J-EventDescribe","status":true,"description":"[v1.0 DESC] Enables \"describing\" the event with some text and/or an icon.","parameters":{}},
 {"name":"j/J-SkillExtend","status":true,"description":"[v1.0 SKILL] Extends the capabilities of skills.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
