@@ -2,17 +2,24 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 DROP] Enables greater control over what and how often loot is dropped.
+ * [v1.0.0 DROP] Enables greater control over gold and item drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
  * @orderAfter J-BASE
  * @help
  * ============================================================================
- * This plugin rewrites the way item drop rates are calculated and handled.
- * You will now have greater control over the chance of enemies dropping loot,
- * and a means to increase it at will with tags.
+ * This plugin rewrites the way gold and item drops from enemies are handled.
+ * ============================================================================
+ * NEW
+ *  FEATURES:
+ *  - PERCENTAGE DROPS
  *
+ *  TAGS:
+ *  - ADDITIONAL ITEMS
+ *  - DROP MULTIPLIER
+ *  - GOLD MULTIPLIER
+ * ============================================================================
  * WARNING 1:
  * This is likely incompatible with any other plugins that interact with the
  * drops for enemies unless it was specifically written as an extension of
@@ -35,11 +42,6 @@
  * in the database, it will be treated as "a 40/100 chance of acquiring the
  * loot, aka 40% chance".
  *
- * Additionally, you can apply tags to increase this percentage chance
- * multiplicatively! See the tag examples down below for additional details
- * on how the multiplication works and the caveats to consider when adding
- * the tag to things in the database.
- *
  * NOTE 1:
  * By having this plugin enabled, you opt into the PERCENTAGE DROPS feature
  * and cannot disable it. It is required. Sorry.
@@ -47,14 +49,60 @@
  * NOTE 2:
  * If the percentage chance exceeds 100%, the drop item will always drop.
  * This sounds obvious, but remember this when looking at the TAG EXAMPLES.
+ * ============================================================================
+ * ADDITIONAL ITEMS
+ * Have you ever wanted to drop more items than just three per enemy? Well now
+ * you can with the proper tags applied to enemies in the database!
+ *
+ * NOTE 1:
+ * This is additive in the sense that if you specify drop items using the
+ * editor and also have one or more of these tags on an enemy, it will add
+ * all of them together as potential drops, exceeding the limit of 3.
+ *
+ * NOTE 2:
+ * You can have more than one of the same item drop, at the same or different
+ * rates and they will individually be processed.
+ *
+ * NOTE 3:
+ * Drop multipliers apply to items dropped using ADDITIONAL DROP tags, too.
+ *
+ * TAG USAGE:
+ * - Enemies only.
+ *
+ * TAG FORMAT:
+ * <drops:[TYPE,ID,CHANCE]>
+ * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
+ * where ID is the id of the drop item in the database.
+ * where CHANCE is the percent chance to drop.
+ *
+ * TAG EXAMPLES:
+ *  <drops:[i,3,10]>
+ * This enemy has a [10% chance] to drop [an item] of [id 3 in the database].
+ *
+ *  <drops:[w,12,65]>
+ *  <drops:[w,12,15]>
+ *  <drops:[a,5,100]>
+ * This enemy has a [65% chance] to drop [a weapon] of [id 12 in the database].
+ * This enemy has a [15% chance] to drop [a weapon] of [id 12 in the database].
+ * This enemy has a [100% chance] to drop [an armor] of [id 5 in the database].
+ * ============================================================================
+ * DROP MULTIPLIER
+ * Additionally, you can apply tags to increase this percentage chance
+ * multiplicatively! See the tag examples down below for additional details
+ * on how the multiplication works and the caveats to consider when adding
+ * the tag to things in the database.
+ *
+ * NOTE:
+ * The bonuses from all members in the battle party will be considered by
+ * adding them all together to produce a "party drop item rate".
  *
  * TAG USAGE:
  * - Actors
+ * - Classes
+ * - Skills
  * - Weapons
  * - Armors
- * - Skills
  * - States
- * - Classes
  *
  * TAG FORMAT:
  *  <dropMultiplier:NUM>
@@ -77,41 +125,39 @@
  * - If a drop item on an enemy has a 4% chance to drop, with this drop
  * multiplier bonus, it would be increased from 4% >> 14% (250% of 4 is 10)
  * ============================================================================
- * ADDITIONAL ITEMS
- * Have you ever wanted to drop more items than just three per enemy? Well now
- * you can with the proper tags applied to enemies in the database!
+ * GOLD MULTIPLIER
+ * Have you ever wanted to have an actor gain bonus gold for some thiefy
+ * reason or another? Well now you can by applying the proper tags to the
+ * various database locations that are relevant.
  *
  * NOTE 1:
- * This is additive in the sense that if you specify drop items using the
- * editor and also have one or more of these tags on an enemy, it will add
- * all of them together as potential drops, exceeding the limit of 3.
+ * This does not apply to gold earned from other sources,
+ * such as event/script/plugin commands.
  *
  * NOTE 2:
- * You can have more than one of the same item drop, at the same or different
- * rates and they will individually be processed.
- *
- * NOTE 3:
- * Drop multipliers apply to items dropped using these tags, too.
+ * The bonuses from all members in the battle party will be considered by
+ * adding them all together to produce a "party gold rate".
  *
  * TAG USAGE:
- * - Enemies only.
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
  *
  * TAG FORMAT:
- * <drops:[TYPE,ID,CHANCE]>
- * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
- * where ID is the id of the drop item in the database.
- * where CHANCE is the percent chance to drop.
- * 
- * TAG EXAMPLES:
- *  <drops:[i,3,10]>
- * This enemy has a [10% chance] to drop [an item] of [id 3 in the database].
+ *  <goldMultiplier:NUM>
+ * Where NUM is the a positive amount to increase gold earned rate.
  *
- *  <drops:[w,12,65]>
- *  <drops:[w,12,15]>
- *  <drops:[a,5,100]>
- * This enemy has a [65% chance] to drop [a weapon] of [id 12 in the database].
- * This enemy has a [15% chance] to drop [a weapon] of [id 12 in the database].
- * This enemy has a [100% chance] to drop [an armor] of [id 5 in the database].
+ * TAG EXAMPLES:
+ *  <goldMultiplier:50>
+ * The party will now gain +50% gold from defeated enemies.
+ *
+ *  <goldMultiplier:65>
+ *  <goldMultiplier:10>
+ *  <goldMultiplier:100>
+ * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  */
 
@@ -139,6 +185,10 @@ J.DROPS.Metadata = {
    */
   Version: '1.0.0',
 };
+
+J.DROPS.Aliased = {
+  Game_Enemy: new Map(),
+};
 //#endregion Introduction
 
 //#region Game objects
@@ -163,7 +213,7 @@ Game_Actor.prototype.getDropMultiplier = function()
 Game_Actor.prototype.extractDropMultiplier = function(referenceData)
 {
   // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
+  if (!referenceData.note) return 0;
 
   const notedata = referenceData.note.split(/[\r\n]+/);
   const structure = /<dropMultiplier:[ ]?(-?[\d]+)>/i;
@@ -179,9 +229,70 @@ Game_Actor.prototype.extractDropMultiplier = function(referenceData)
 
   return dropMultiplier;
 };
+
+/**
+ * Gets this actor's bonus gold multiplier.
+ * @returns {number}
+ */
+Game_Actor.prototype.getGoldMultiplier = function()
+{
+  let goldMultiplier = 0;
+  const objectsToCheck = this.getEverythingWithNotes();
+  objectsToCheck.forEach(obj => (goldMultiplier += this.extractGoldMultiplier(obj)));
+  return (goldMultiplier / 100);
+};
+
+/**
+ * Gets the bonus gold multiplier from a given database object.
+ * @param {rm.types.BaseItem} referenceData The database object in question.
+ * @returns {number}
+ */
+Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return 0;
+
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  const structure = /<goldMultiplier:[ ]?(-?[\d]+)>/i;
+  let goldMultiplier = 0;
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
+      const multiplier = parseInt(RegExp.$1);
+      goldMultiplier += multiplier;
+    }
+  });
+
+  return goldMultiplier;
+};
 //#endregion Game_Actor
 
 //#region Game_Enemy
+/**
+ * Gets the gold that the enemy dropped.
+ * This includes multipliers from our gold bonuses.
+ * @returns {number} The rounded product of the base gold against the multiplier.
+ */
+J.DROPS.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
+Game_Enemy.prototype.gold = function()
+{
+  const baseGoldRate = this.getBaseGoldRate();
+  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold").call(this) * baseGoldRate);
+  const multiplier = $gameParty.getGoldMultiplier();
+  return Math.round(baseGold * multiplier);
+};
+
+/**
+ * The base gold multiplier of this enemy.
+ * Currently defaults to 1, but open for extension.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBaseGoldRate = function()
+{
+  return 1;
+};
+
 /**
  * OVERWRITE Modifies the drop chance algorithm to treat the number entered in the
  * database as a percent chance instead of some weird fractional shit. Also applies
@@ -192,8 +303,7 @@ Game_Enemy.prototype.makeDropItems = function()
 {
   // get all potential loot for this enemy.
   const dropList = this.getDropItems();
-  console.log("LIST", dropList);
-  
+
   // no point in iterating over nothing.
   if (!dropList.length) return [];
 
@@ -211,7 +321,6 @@ Game_Enemy.prototype.makeDropItems = function()
 
     // here we're using the number from the database as a percentage chance instead.
     const rate = drop.denominator * multiplier;
-    console.log(rate);
 
     // if the multiplier was so great that the rate is above 100, we always get it.
     const treasureHunterSkip = rate >= 100;
@@ -224,16 +333,9 @@ Game_Enemy.prototype.makeDropItems = function()
     if (treasureHunterSkip || foundLoot)
     {
       // ...add it to the list of earned drops from this enemy!
-      console.log("GOT", item.name);
       itemsFound.push(item);
     }
-    else
-    {
-      console.log("MISS", item.name);
-    }
   });
-
-  console.log("FOUND", itemsFound);
 
   // return all earned loot!
   return itemsFound;
@@ -372,9 +474,36 @@ Game_Enemy.prototype.getBaseDropRate = function()
 
 //#region Game_Party
 /**
+ * Gets the collective multiplier for gold drops for the entire party.
+ * @returns {number}
+ */
+Game_Party.prototype.getGoldMultiplier = function()
+{
+  let goldMultiplier = 1;
+  const membersToConsider = this.goldMultiplierMembers();
+  membersToConsider.forEach(actor => goldMultiplier += actor.getGoldMultiplier());
+  return goldMultiplier;
+};
+
+/**
+ * Gets the selection of actors to consider when determining gold bonus multipliers.
+ * @returns {Game_Actor[]}
+ */
+Game_Party.prototype.goldMultiplierMembers = function()
+{
+  const membersToConsider = [];
+  membersToConsider.push(...$gameParty.battleMembers());
+
+  // if only the leader should influence drop bonuses (for ABS style).
+  // membersToConsider.push($gameParty.leader());
+
+  // or everyone including reserve members (different preferences).
+  // membersToConsider.push(...$gameParty.members());
+  return membersToConsider;
+};
+
+/**
  * Gets the collective multiplier for loot drops for the entire party.
- * By default, only extracts the leaders, but can potentially get ALL member's multipliers
- * for that sweet sweet loot dropping goodness.
  * @returns {number}
  */
 Game_Party.prototype.getDropMultiplier = function()
