@@ -123,29 +123,30 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.PROF = {};
-  
+
 /**
  * The `metadata` associated with this plugin, such as version.
  */
 J.PROF.Metadata =
-{
-  /**
-   * The version of this plugin.
-   */
-  Name: `J-Proficiency`,
+  {
+    /**
+     * The version of this plugin.
+     */
+    Name: `J-Proficiency`,
 
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
+    /**
+     * The version of this plugin.
+     */
+    Version: '1.0.0',
+  };
 
 J.PROF.Helpers = new Map();
 J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
 {
   const parsedBlob = JSON.parse(obj);
   const conditionals = [];
-  parsedBlob.forEach(conditionalBlob => {
+  parsedBlob.forEach(conditionalBlob =>
+  {
     const parsedConditional = JSON.parse(conditionalBlob);
 
     const key = parsedConditional.key;
@@ -157,7 +158,8 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
     const requirements = [];
 
     const parsedRequirements = JSON.parse(parsedConditional.requirements);
-    parsedRequirements.forEach(requirementBlob => {
+    parsedRequirements.forEach(requirementBlob =>
+    {
       const parsedRequirement = JSON.parse(requirementBlob);
       const requirement = new ProficiencyRequirement(
         parseInt(parsedRequirement.skillId),
@@ -178,29 +180,29 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
  */
 J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
 J.PROF.Metadata =
-{
-  ...J.PROF.Metadata,
+  {
+    ...J.PROF.Metadata,
 
-  /**
-   * The master collection from the plugin metadata that represents all unlockable
-   * prof requirements.
-   * @type {ProficiencyConditional[]}
-   */
-  ProficiencyConditionals: J.PROF.Helpers.TranslateProficiencyRequirements(J.PROF.PluginParameters['conditionals'])
-};
+    /**
+     * The master collection from the plugin metadata that represents all unlockable
+     * prof requirements.
+     * @type {ProficiencyConditional[]}
+     */
+    ProficiencyConditionals: J.PROF.Helpers.TranslateProficiencyRequirements(J.PROF.PluginParameters['conditionals'])
+  };
 
 /**
  * The various aliases associated with this plugin.
  */
 J.PROF.Aliased =
-{
-  DataManager: new Map(),
-  Game_Actor: new Map(),
-  Game_Action: new Map(),
-  Game_Battler: new Map(),
-  Game_Enemy: new Map(),
-  Game_Party: new Map(),
-};
+  {
+    DataManager: new Map(),
+    Game_Actor: new Map(),
+    Game_Action: new Map(),
+    Game_Battler: new Map(),
+    Game_Enemy: new Map(),
+    Game_Party: new Map(),
+  };
 //#endregion Introduction
 
 //#region Static objects
@@ -210,7 +212,7 @@ J.PROF.Aliased =
  */
 PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
 {
-  let { actorIds, skillIds, amount } = args;
+  let {actorIds, skillIds, amount} = args;
   const parsedActorIds = JSON.parse(actorIds).map(num => parseInt(num));
   const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
   amount = parseInt(amount);
@@ -228,7 +230,7 @@ PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency
  */
 PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency", args =>
 {
-  let { skillIds, amount } = args;
+  let {skillIds, amount} = args;
   const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
   amount = parseInt(amount);
   $gameParty.members().forEach(actor =>
@@ -250,7 +252,8 @@ DataManager.extractSaveContents = function(contents)
 {
   J.PROF.Aliased.DataManager.get("extractSaveContents").call(this, contents);
   $gameParty._j._conditionals = J.PROF.Metadata.ProficiencyConditionals;
-  $gameActors._data.forEach(actor => {
+  $gameActors._data.forEach(actor =>
+  {
     // the first actor in this array is null, just skip it.
     if (!actor) return;
 
@@ -277,7 +280,8 @@ Game_Action.prototype.apply = function(target)
 
   // we only process prof gains for actors- for now.
   const canIncreaseProficiency = result.isHit() && this.isSkill();
-  if (canIncreaseProficiency) {
+  if (canIncreaseProficiency)
+  {
     this.increaseProficiency(result.critical);
   }
 };
@@ -289,7 +293,8 @@ Game_Action.prototype.increaseProficiency = function()
 {
   const caster = this.subject();
   const skill = this.item();
-  if (!caster || !skill) {
+  if (!caster || !skill)
+  {
     console.warn('attempted to improve prof for an invalid caster or skill.');
     return;
   }
@@ -304,10 +309,12 @@ Game_Action.prototype.increaseProficiency = function()
  */
 Game_Action.prototype.skillProficiency = function()
 {
-  if (this.isSkill() && this.subject()) {
+  if (this.isSkill() && this.subject())
+  {
     const skill = this.item();
     const skillProficiency = this.subject().skillProficiencyBySkillId(skill.id);
-    if (skillProficiency) {
+    if (skillProficiency)
+    {
       return skillProficiency.proficiency;
     }
   }
@@ -363,7 +370,8 @@ Game_Actor.prototype.setup = function(actorId)
 /**
  * Updates this actor's own conditionals with the latest ones from the plugin metadata.
  */
-Game_Actor.prototype.updateOwnConditionals = function() {
+Game_Actor.prototype.updateOwnConditionals = function()
+{
   this._j._ownConditionals = $gameParty
     .proficiencyConditionals()
     .filter(conditional => conditional.actorIds.includes(this.actorId()));
@@ -416,7 +424,8 @@ Game_Actor.prototype.lockedConditionals = function()
  */
 Game_Actor.prototype.unlockConditional = function(key)
 {
-  if (this._j._unlockedConditionals.includes(key)) {
+  if (this._j._unlockedConditionals.includes(key))
+  {
     console.warn(`Attempted to unlock conditional: [${key}], but it was already unlocked.`);
     return;
   }
@@ -551,7 +560,8 @@ Game_Actor.prototype.learnSkill = function(skillId)
   const beforeSkillCount = this.skills().length;
   J.PROF.Aliased.Game_Actor.get("learnSkill").call(this, skillId);
   const afterSkillCount = this.skills().length;
-  if (beforeSkillCount !== afterSkillCount) {
+  if (beforeSkillCount !== afterSkillCount)
+  {
     this.addSkillProficiency(skillId);
   }
 };
@@ -566,7 +576,8 @@ Game_Actor.prototype.increaseSkillProficiency = function(skillId, amount = 1)
   let proficiency = this.skillProficiencyBySkillId(skillId);
 
   // if the proficiency doesn't exist, create it first.
-  if (!proficiency) {
+  if (!proficiency)
+  {
     proficiency = this.addSkillProficiency(skillId);
   }
 
@@ -582,29 +593,35 @@ Game_Actor.prototype.checkProficiencyConditionals = function()
   const lockedConditionals = this.lockedConditionals();
 
   // if we don't have any locked conditionals, then don't process.
-  if (!lockedConditionals.length) {
+  if (!lockedConditionals.length)
+  {
     return;
   }
 
   // check each locked conditional to see if we can unlock it.
-  lockedConditionals.forEach(conditional => {
+  lockedConditionals.forEach(conditional =>
+  {
     // check all requirements to see if we met them all.
     const requirementCount = conditional.requirements.length;
     let requirementsMet = 0;
-    for (const requirement of conditional.requirements) {
+    for (const requirement of conditional.requirements)
+    {
       const currentProficiency = this.skillProficiencyBySkillId(requirement.skillId);
-      if (!currentProficiency) {
+      if (!currentProficiency)
+      {
         break;
       }
 
       // check if the proficiency for the skill has reached or exceeded the conditional.
-      if (currentProficiency.proficiency >= requirement.proficiency) {
+      if (currentProficiency.proficiency >= requirement.proficiency)
+      {
         requirementsMet++;
       }
     }
 
     // check if the requirement count equals the requirements now met.
-    if (requirementsMet === requirementCount) {
+    if (requirementsMet === requirementCount)
+    {
       this.unlockConditional(conditional.key);
       this.executeConditionalReward(conditional);
     }
@@ -620,10 +637,13 @@ Game_Actor.prototype.bonusSkillProficiencyGains = function()
   const objectsToCheck = this.getEverythingWithNotes();
   const structure = /<proficiencyBonus:[ ]?([0-9]*)>/i;
   let bonusProficiency = 0;
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line => {
-      if (line.match(structure)) {
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
         bonusProficiency += parseInt(RegExp.$1);
       }
     });
@@ -730,7 +750,8 @@ Game_Enemy.prototype.skillProficiencyBySkillId = function(skillId)
 Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency = 0)
 {
   const exists = this.skillProficiencyBySkillId(skillId);
-  if (exists) {
+  if (exists)
+  {
     console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
     return exists;
   }
@@ -751,7 +772,8 @@ Game_Enemy.prototype.increaseSkillProficiency = function(skillId, amount = 1)
   let proficiency = this.skillProficiencyBySkillId(skillId);
 
   // if the prof doesn't exist, create it first then improve it.
-  if (!proficiency) {
+  if (!proficiency)
+  {
     proficiency = this.addSkillProficiency(skillId);
   }
 
@@ -761,7 +783,8 @@ Game_Enemy.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 
 //#region Game_Party
 J.PROF.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
+Game_Party.prototype.initialize = function()
+{
   J.PROF.Aliased.Game_Party.get("initialize").call(this);
   /**
    * The j object where my extensions live.
@@ -779,7 +802,8 @@ Game_Party.prototype.initialize = function() {
  * Gets all proficiency conditionals available to the party.
  * @returns {ProficiencyConditional[]}
  */
-Game_Party.prototype.proficiencyConditionals = function() {
+Game_Party.prototype.proficiencyConditionals = function()
+{
   return this._j._conditionals;
 };
 //#endregion Game_Party

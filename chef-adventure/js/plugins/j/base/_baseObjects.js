@@ -20,11 +20,13 @@
  * Gets all skills that are executed when this actor is defeated.
  * @returns {JABS_SkillChance[]}
  */
-Game_Actor.prototype.onOwnDefeatSkillIds = function() {
+Game_Actor.prototype.onOwnDefeatSkillIds = function()
+{
   const objectsToCheck = this.getCurrentWithNotes();
   const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const skills = [];
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
     skills.push(...innerSkills);
   });
@@ -36,11 +38,13 @@ Game_Actor.prototype.onOwnDefeatSkillIds = function() {
  * Gets all skills that are executed when this actor defeats a target.
  * @returns {JABS_SkillChance[]}
  */
-Game_Actor.prototype.onTargetDefeatSkillIds = function() {
+Game_Actor.prototype.onTargetDefeatSkillIds = function()
+{
   const objectsToCheck = this.getCurrentWithNotes();
   const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
   const skills = [];
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
     skills.push(...innerSkills);
   });
@@ -53,14 +57,18 @@ Game_Actor.prototype.onTargetDefeatSkillIds = function() {
  * be switched to.
  * @returns {boolean}
  */
-Game_Actor.prototype.switchLocked = function() {
+Game_Actor.prototype.switchLocked = function()
+{
   const objectsToCheck = this.getEverythingWithNotes();
   const structure = /<noSwitch>/i;
   let switchLocked = false;
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line => {
-      if (line.match(structure)) {
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
         switchLocked = true;
       }
     });
@@ -74,14 +82,18 @@ Game_Actor.prototype.switchLocked = function() {
  * when leveling up.
  * @returns {boolean}
  */
-Game_Actor.prototype.autoAssignOnLevelup = function() {
+Game_Actor.prototype.autoAssignOnLevelup = function()
+{
   const objectsToCheck = this.getEverythingWithNotes();
   const structure = /<autoAssignSkills>/i;
   let switchLocked = false;
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line => {
-      if (line.match(structure)) {
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
         switchLocked = true;
       }
     });
@@ -95,7 +107,8 @@ Game_Actor.prototype.autoAssignOnLevelup = function() {
  * This is very similar to the `traitObjects()` function.
  * @returns {rm.types.BaseItem[]}
  */
-Game_Actor.prototype.getEverythingWithNotes = function() {
+Game_Actor.prototype.getEverythingWithNotes = function()
+{
   const objectsWithNotes = [];
 
   // get the actor object.
@@ -117,7 +130,7 @@ Game_Actor.prototype.getEverythingWithNotes = function() {
   if (J.PASSIVE)
   {
     // then add all those currently applied passive skill states, too.
-    objectsWithNotes.push(...this.currentPassiveSkillStates())
+    objectsWithNotes.push(...this.passiveSkillStates())
   }
 
   // return that potentially massive combination.
@@ -129,12 +142,32 @@ Game_Actor.prototype.getEverythingWithNotes = function() {
  * present moment. Skills are omitted on purpose.
  * @returns {rm.types.BaseItem[]}
  */
-Game_Actor.prototype.getCurrentWithNotes = function() {
+Game_Actor.prototype.getCurrentWithNotes = function()
+{
   const objectsWithNotes = [];
+
+  // get the actor object.
   objectsWithNotes.push(this.actor());
+
+  // SKIP SKILLS.
+
+  // get their current class object.
   objectsWithNotes.push(this.currentClass());
+
+  // get all their non-null equip objects.
   objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+
+  // get any currently applied normal states.
   objectsWithNotes.push(...this.states());
+
+  // if we are using the passive skill-state system...
+  if (J.PASSIVE)
+  {
+    // then add all those currently applied passive skill states, too.
+    objectsWithNotes.push(...this.passiveSkillStates())
+  }
+
+  // return that potentially slightly-less massive combination.
   return objectsWithNotes;
 };
 
@@ -142,14 +175,20 @@ Game_Actor.prototype.getCurrentWithNotes = function() {
  * Gets how much bonus HIT this actor has based on level.
  * @returns {number} The amount of growth in HIT for this actor.
  */
-Game_Actor.prototype.hitGrowth = function() {
+Game_Actor.prototype.hitGrowth = function()
+{
   let hitGrowthPerLevel = 0;
-  if (this._meta && this._meta[J.BASE.Notetags.HitGrowth]) {
+  if (this._meta && this._meta[J.BASE.Notetags.HitGrowth])
+  {
     hitGrowthPerLevel = parseFloat(this._meta[J.BASE.Notetags.HitGrowth]);
-  } else {
+  }
+  else
+  {
     const structure = /<hitGrowth:[ ]?([.\d]+)>/i;
-    this.actor().note.split(/[\r\n]+/).forEach(note => {
-      if (note.match(structure)) {
+    this.actor().note.split(/[\r\n]+/).forEach(note =>
+    {
+      if (note.match(structure))
+      {
         hitGrowthPerLevel = parseFloat(RegExp.$1);
       }
     });
@@ -162,14 +201,20 @@ Game_Actor.prototype.hitGrowth = function() {
  * Gets how much bonus GRD this actor has based on level.
  * @returns {number} The amount of growth in GRD for this actor.
  */
-Game_Actor.prototype.grdGrowth = function() {
+Game_Actor.prototype.grdGrowth = function()
+{
   let grdGrowthPerLevel = 0;
-  if (this._meta && this._meta[J.BASE.Notetags.GuardGrowth]) {
+  if (this._meta && this._meta[J.BASE.Notetags.GuardGrowth])
+  {
     grdGrowthPerLevel = parseFloat(this._meta[J.BASE.Notetags.GuardGrowth]);
-  } else {
+  }
+  else
+  {
     const structure = /<grdGrowth:[ ]?([.\d]+)>/i;
-    this.actor().note.split(/[\r\n]+/).forEach(note => {
-      if (note.match(structure)) {
+    this.actor().note.split(/[\r\n]+/).forEach(note =>
+    {
+      if (note.match(structure))
+      {
         grdGrowthPerLevel = parseFloat(RegExp.$1);
       }
     });
@@ -183,7 +228,8 @@ Game_Actor.prototype.grdGrowth = function() {
  * Actors are not gated by prepare times, only by post-action cooldowns.
  * @returns {number}
  */
- Game_Actor.prototype.prepareTime = function() {
+Game_Actor.prototype.prepareTime = function()
+{
   return 1;
 };
 
@@ -192,7 +238,8 @@ Game_Actor.prototype.grdGrowth = function() {
  * Actors don't use this functionality, they have equipped skills instead.
  * @returns {null}
  */
-Game_Actor.prototype.skillId = function() {
+Game_Actor.prototype.skillId = function()
+{
   return null;
 };
 
@@ -202,26 +249,33 @@ Game_Actor.prototype.skillId = function() {
  * If neither are present, then it returns the default.
  * @returns {number}
  */
-Game_Actor.prototype.sightRange = function() {
+Game_Actor.prototype.sightRange = function()
+{
   let val = Game_Battler.prototype.sightRange.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight]) {
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight])
+  {
     return parseInt(referenceDataClass.meta[J.BASE.Notetags.Sight]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
+  {
     // if its in the metadata, then grab it from there.
     return parseInt(referenceData.meta[J.BASE.Notetags.Sight]);
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<s:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         val = parseInt(RegExp.$1);
       }
     })
@@ -236,26 +290,33 @@ Game_Actor.prototype.sightRange = function() {
  * If neither are present, then it returns the default.
  * @returns {number}
  */
-Game_Actor.prototype.alertedSightBoost = function() {
+Game_Actor.prototype.alertedSightBoost = function()
+{
   let val = Game_Battler.prototype.alertedSightBoost.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]) {
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost])
+  {
     return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
+  {
     // if its in the metadata, then grab it from there.
     return parseInt(referenceData.meta[J.BASE.Notetags.AlertSightBoost]);
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<as:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         val = parseInt(RegExp.$1);
       }
     })
@@ -270,26 +331,33 @@ Game_Actor.prototype.alertedSightBoost = function() {
  * If neither are present, then it returns the default.
  * @returns {number}
  */
-Game_Actor.prototype.pursuitRange = function() {
+Game_Actor.prototype.pursuitRange = function()
+{
   let val = Game_Battler.prototype.pursuitRange.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit]) {
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit])
+  {
     return parseInt(referenceDataClass.meta[J.BASE.Notetags.Pursuit]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
+  {
     // if its in the metadata, then grab it from there.
     return parseInt(referenceData.meta[J.BASE.Notetags.Pursuit]);
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<p:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         val = parseInt(RegExp.$1);
       }
     })
@@ -304,26 +372,33 @@ Game_Actor.prototype.pursuitRange = function() {
  * If neither are present, then it returns the default.
  * @returns {number}
  */
-Game_Actor.prototype.alertedPursuitBoost = function() {
+Game_Actor.prototype.alertedPursuitBoost = function()
+{
   let val = Game_Battler.prototype.alertedPursuitBoost.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost])
+  {
     return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
+  {
     // if its in the metadata, then grab it from there.
     return parseInt(referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]);
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<ap:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         val = parseInt(RegExp.$1);
       }
     })
@@ -338,26 +413,33 @@ Game_Actor.prototype.alertedPursuitBoost = function() {
  * If neither are present, then it returns the default.
  * @returns {number}
  */
-Game_Actor.prototype.alertDuration = function() {
+Game_Actor.prototype.alertDuration = function()
+{
   let val = Game_Battler.prototype.alertDuration.call(this);
   const referenceData = this.actor();
 
   // if there is a class prepare tag, we want that first.
   const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration]) {
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration])
+  {
     return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertDuration]);
   }
 
   // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
+  {
     // if its in the metadata, then grab it from there.
     return parseInt(referenceData.meta[J.BASE.Notetags.AlertDuration]);
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<ad:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         val = parseInt(RegExp.$1);
       }
     })
@@ -371,8 +453,10 @@ Game_Actor.prototype.alertDuration = function() {
  * Actors are ALWAYS on team id of 0.
  * @returns {number}
  */
-Game_Actor.prototype.teamId = function() {
-  if (J.ABS) {
+Game_Actor.prototype.teamId = function()
+{
+  if (J.ABS)
+  {
     return JABS_Battler.allyTeamId();
   }
 
@@ -385,7 +469,8 @@ Game_Actor.prototype.teamId = function() {
  * have one effect: how to move around and stuff throughout the phases.
  * @returns {null}
  */
-Game_Actor.prototype.ai = function() {
+Game_Actor.prototype.ai = function()
+{
   return new JABS_BattlerAI(true, true);
 };
 
@@ -394,7 +479,8 @@ Game_Actor.prototype.ai = function() {
  * Actors can never idle.
  * @returns {boolean}
  */
-Game_Actor.prototype.canIdle = function() {
+Game_Actor.prototype.canIdle = function()
+{
   return false;
 };
 
@@ -403,7 +489,8 @@ Game_Actor.prototype.canIdle = function() {
  * Actors never show their hp bar (they use HUDs for that).
  * @returns {boolean}
  */
-Game_Actor.prototype.showHpBar = function() {
+Game_Actor.prototype.showHpBar = function()
+{
   return false;
 };
 
@@ -412,7 +499,8 @@ Game_Actor.prototype.showHpBar = function() {
  * Danger indicator is not applicable to actors (since it is relative to the player).
  * @returns {boolean}
  */
-Game_Actor.prototype.showDangerIndicator = function() {
+Game_Actor.prototype.showDangerIndicator = function()
+{
   return false;
 };
 
@@ -421,7 +509,8 @@ Game_Actor.prototype.showDangerIndicator = function() {
  * Actors never show their name (the use HUDs for that).
  * @returns {boolean}
  */
-Game_Actor.prototype.showBattlerName = function() {
+Game_Actor.prototype.showBattlerName = function()
+{
   return false;
 };
 
@@ -430,7 +519,8 @@ Game_Actor.prototype.showBattlerName = function() {
  * Actors are never invincible by this means.
  * @returns {boolean}
  */
-Game_Actor.prototype.isInvincible = function() {
+Game_Actor.prototype.isInvincible = function()
+{
   return false;
 };
 
@@ -439,7 +529,8 @@ Game_Actor.prototype.isInvincible = function() {
  * Actors are never inanimate (duh).
  * @returns {boolean}
  */
-Game_Actor.prototype.isInanimate = function() {
+Game_Actor.prototype.isInanimate = function()
+{
   return false;
 };
 
@@ -466,7 +557,8 @@ Game_Actor.prototype.retaliationSkills = function()
  * The underlying database data for this actor.
  * @returns {rm.types.Actor}
  */
-Game_Actor.prototype.databaseData = function() {
+Game_Actor.prototype.databaseData = function()
+{
   return this.actor();
 };
 //#endregion Game_Actor
@@ -474,11 +566,12 @@ Game_Actor.prototype.databaseData = function() {
 //#region Game_Battler
 /**
  * The underlying database data for this battler.
- * 
+ *
  * This allows operations to be performed against both actor and enemy indifferently.
  * @returns {rm.types.Enemy|rm.types.Actor}
  */
-Game_Battler.prototype.databaseData = function() {
+Game_Battler.prototype.databaseData = function()
+{
   return null;
 };
 /**
@@ -486,7 +579,8 @@ Game_Battler.prototype.databaseData = function() {
  * At this level, returns default 180 frames.
  * @returns {number}
  */
-Game_Battler.prototype.prepareTime = function() {
+Game_Battler.prototype.prepareTime = function()
+{
   return 180;
 };
 
@@ -495,7 +589,8 @@ Game_Battler.prototype.prepareTime = function() {
  * At this level, returns the default skill id of 1.
  * @returns {number}
  */
-Game_Battler.prototype.skillId = function() {
+Game_Battler.prototype.skillId = function()
+{
   return 1;
 };
 
@@ -503,7 +598,8 @@ Game_Battler.prototype.skillId = function() {
  * All battlers have a default sight range.
  * @returns {number}
  */
-Game_Battler.prototype.sightRange = function() {
+Game_Battler.prototype.sightRange = function()
+{
   return 4;
 };
 
@@ -511,7 +607,8 @@ Game_Battler.prototype.sightRange = function() {
  * All battlers have a default alerted sight boost.
  * @returns {number}
  */
-Game_Battler.prototype.alertedSightBoost = function() {
+Game_Battler.prototype.alertedSightBoost = function()
+{
   return 2;
 };
 
@@ -519,7 +616,8 @@ Game_Battler.prototype.alertedSightBoost = function() {
  * All battlers have a default pursuit range.
  * @returns {number}
  */
-Game_Battler.prototype.pursuitRange = function() {
+Game_Battler.prototype.pursuitRange = function()
+{
   return 6;
 };
 
@@ -527,7 +625,8 @@ Game_Battler.prototype.pursuitRange = function() {
  * All battlers have a default alerted pursuit boost.
  * @returns {number}
  */
-Game_Battler.prototype.alertedPursuitBoost = function() {
+Game_Battler.prototype.alertedPursuitBoost = function()
+{
   return 4;
 };
 
@@ -535,7 +634,8 @@ Game_Battler.prototype.alertedPursuitBoost = function() {
  * All battlers have a default alert duration.
  * @returns {number}
  */
-Game_Battler.prototype.alertDuration = function() {
+Game_Battler.prototype.alertDuration = function()
+{
   return 300;
 };
 
@@ -544,7 +644,8 @@ Game_Battler.prototype.alertDuration = function() {
  * At this level, the default team id is 1 (the default for enemies).
  * @returns {number}
  */
-Game_Battler.prototype.teamId = function() {
+Game_Battler.prototype.teamId = function()
+{
   if (J.ABS) return JABS_Battler.enemyTeamId();
 
   return 1;
@@ -554,7 +655,8 @@ Game_Battler.prototype.teamId = function() {
  * All battlers have a default AI.
  * @returns {JABS_BattlerAI}
  */
-Game_Battler.prototype.ai = function() {
+Game_Battler.prototype.ai = function()
+{
   if (J.ABS) return new JABS_BattlerAI();
 
   return null;
@@ -564,7 +666,8 @@ Game_Battler.prototype.ai = function() {
  * All battlers can idle by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.canIdle = function() {
+Game_Battler.prototype.canIdle = function()
+{
   return true;
 };
 
@@ -572,7 +675,8 @@ Game_Battler.prototype.canIdle = function() {
  * All battlers will show their hp bar by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.showHpBar = function() {
+Game_Battler.prototype.showHpBar = function()
+{
   return true;
 };
 
@@ -580,7 +684,8 @@ Game_Battler.prototype.showHpBar = function() {
  * All battlers will show their danger indicator by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.showDangerIndicator = function() {
+Game_Battler.prototype.showDangerIndicator = function()
+{
   return true;
 };
 
@@ -588,7 +693,8 @@ Game_Battler.prototype.showDangerIndicator = function() {
  * All battlers will show their database name by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.showBattlerName = function() {
+Game_Battler.prototype.showBattlerName = function()
+{
   return true;
 };
 
@@ -596,7 +702,8 @@ Game_Battler.prototype.showBattlerName = function() {
  * All battlers can be invincible, but are not by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.isInvincible = function() {
+Game_Battler.prototype.isInvincible = function()
+{
   return false;
 };
 
@@ -604,7 +711,8 @@ Game_Battler.prototype.isInvincible = function() {
  * All battlers can be inanimate, but are not by default.
  * @returns {boolean}
  */
-Game_Battler.prototype.isInanimate = function() {
+Game_Battler.prototype.isInanimate = function()
+{
   return false;
 };
 
@@ -612,11 +720,13 @@ Game_Battler.prototype.isInanimate = function() {
  * All battlers have a default of no retaliation skills.
  * @returns {JABS_SkillChance[]}
  */
-Game_Battler.prototype.retaliationSkills = function() {
+Game_Battler.prototype.retaliationSkills = function()
+{
   const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+\])>/i;
   const objectsToCheck = this.getEverythingWithNotes();
   const skills = [];
-  objectsToCheck.forEach(obj => {
+  objectsToCheck.forEach(obj =>
+  {
     const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
     skills.push(...innerSkills);
   });
@@ -628,7 +738,8 @@ Game_Battler.prototype.retaliationSkills = function() {
  * All battlers have a default of no on-own-defeat skill ids.
  * @returns {JABS_SkillChance[]}
  */
-Game_Battler.prototype.onOwnDefeatSkillIds = function() {
+Game_Battler.prototype.onOwnDefeatSkillIds = function()
+{
   return [];
 };
 
@@ -636,7 +747,8 @@ Game_Battler.prototype.onOwnDefeatSkillIds = function() {
  * All battlers have a default of no on-defeating-a-target skill ids.
  * @returns {JABS_SkillChance[]}
  */
-Game_Battler.prototype.onTargetDefeatSkillIds = function() {
+Game_Battler.prototype.onTargetDefeatSkillIds = function()
+{
   return [];
 };
 
@@ -644,7 +756,8 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function() {
  * All battlers have this, but actors and enemies perform this function differently.
  * @returns {rm.types.BaseItem[]}
  */
-Game_Battler.prototype.getEverythingWithNotes = function() {
+Game_Battler.prototype.getEverythingWithNotes = function()
+{
   return [];
 };
 
@@ -653,7 +766,8 @@ Game_Battler.prototype.getEverythingWithNotes = function() {
  * Locked aggro means their aggro cannot be modified in any way.
  * @returns {boolean}
  */
-Game_Battler.prototype.isAggroLocked = function() {
+Game_Battler.prototype.isAggroLocked = function()
+{
   return this.states().some(state => state._j.aggroLock);
 };
 
@@ -661,7 +775,8 @@ Game_Battler.prototype.isAggroLocked = function() {
  * Gets the multiplier for received aggro for this battler.
  * @returns {number}
  */
-Game_Battler.prototype.aggroInAmp = function() {
+Game_Battler.prototype.aggroInAmp = function()
+{
   let inAmp = 1.0;
   this.states().forEach(state => inAmp += state._j.aggroInAmp);
   return inAmp;
@@ -671,7 +786,8 @@ Game_Battler.prototype.aggroInAmp = function() {
  * Gets the multiplier for dealt aggro for this battler.
  * @returns {number}
  */
-Game_Battler.prototype.aggroOutAmp = function() {
+Game_Battler.prototype.aggroOutAmp = function()
+{
   let outAmp = 1.0;
   this.states().forEach(state => outAmp += state._j.aggroOutAmp);
   return outAmp;
@@ -684,17 +800,23 @@ Game_Battler.prototype.aggroOutAmp = function() {
  * If no code is specified, return `10000000`.
  * @returns {string}
  */
-Game_Character.prototype.aiCode = function() {
+Game_Character.prototype.aiCode = function()
+{
   let aiCode = "10000000";
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode])
+  {
     aiCode = referenceData.meta[J.BASE.Notetags.AiCode] || aiCode;
-  } else {
+  }
+  else
+  {
     const structure = /<ai:[ ]?([0|1]{8})>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         aiCode = RegExp.$1;
       }
     })
@@ -708,19 +830,25 @@ Game_Character.prototype.aiCode = function() {
  * If no id is specified, return `0`.
  * @returns {number}
  */
-Game_Character.prototype.battlerId = function() {
+Game_Character.prototype.battlerId = function()
+{
   let battlerId = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.BattlerId]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.BattlerId])
+  {
     // if its in the metadata, then grab it from there.
     battlerId = referenceData.meta[J.BASE.Notetags.BattlerId] || battlerId;
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<e:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         battlerId = RegExp.$1;
       }
     });
@@ -734,17 +862,23 @@ Game_Character.prototype.battlerId = function() {
  * If no sight is specified, return `0`.
  * @returns {number}
  */
-Game_Character.prototype.sightRadius = function() {
+Game_Character.prototype.sightRadius = function()
+{
   let sightRadius = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
+  {
     sightRadius = referenceData.meta[J.BASE.Notetags.Sight] || sightRadius;
-  } else {
+  }
+  else
+  {
     const structure = /<s:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         sightRadius = RegExp.$1;
       }
     })
@@ -757,17 +891,23 @@ Game_Character.prototype.sightRadius = function() {
  * Gets the boost to `sightRange` for this character when alerted.
  * @returns {number}
  */
-Game_Character.prototype.alertedSightBoost = function() {
+Game_Character.prototype.alertedSightBoost = function()
+{
   let sightBoost = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
+  {
     sightBoost = referenceData.meta[J.BASE.Notetags.AlertSightBoost] || sightBoost;
-  } else {
+  }
+  else
+  {
     const structure = /<as:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         sightBoost = RegExp.$1;
       }
     })
@@ -781,17 +921,23 @@ Game_Character.prototype.alertedSightBoost = function() {
  * If no pursuit is specified, return `0`.
  * @returns {number}
  */
-Game_Character.prototype.pursuitRadius = function() {
+Game_Character.prototype.pursuitRadius = function()
+{
   let pursuitRadius = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
+  {
     pursuitRadius = referenceData.meta[J.BASE.Notetags.Pursuit] || pursuitRadius;
-  } else {
+  }
+  else
+  {
     const structure = /<p:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         pursuitRadius = RegExp.$1;
       }
     })
@@ -804,17 +950,23 @@ Game_Character.prototype.pursuitRadius = function() {
  * Gets the boost to `pursuitRange` for this character when alerted.
  * @returns {number}
  */
-Game_Character.prototype.alertedPursuitBoost = function() {
+Game_Character.prototype.alertedPursuitBoost = function()
+{
   let pursuitBoost = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
+  {
     pursuitBoost = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost] || pursuitBoost;
-  } else {
+  }
+  else
+  {
     const structure = /<ap:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         pursuitBoost = RegExp.$1;
       }
     })
@@ -827,17 +979,23 @@ Game_Character.prototype.alertedPursuitBoost = function() {
  * Gets the duration of which this battler will spend alerted.
  * @returns {number}
  */
-Game_Character.prototype.alertedDuration = function() {
+Game_Character.prototype.alertedDuration = function()
+{
   let alertDuration = 300;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
+  {
     alertDuration = referenceData.meta[J.BASE.Notetags.AlertDuration] || alertDuration;
-  } else {
+  }
+  else
+  {
     const structure = /<ad:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         alertDuration = RegExp.$1;
       }
     })
@@ -851,17 +1009,23 @@ Game_Character.prototype.alertedDuration = function() {
  * If no pursuit is specified, return `0`.
  * @returns {number}
  */
-Game_Character.prototype.customMoveSpeed = function() {
+Game_Character.prototype.customMoveSpeed = function()
+{
   let customMoveSpeed = 0;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.MoveSpeed]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.MoveSpeed])
+  {
     customMoveSpeed = referenceData.meta[J.BASE.Notetags.MoveSpeed] || customMoveSpeed;
-  } else {
-    const structure =/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
+  }
+  else
+  {
+    const structure = /<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         customMoveSpeed = RegExp.$1;
       }
     })
@@ -875,17 +1039,23 @@ Game_Character.prototype.customMoveSpeed = function() {
  * `True` by default.
  * @returns {boolean}
  */
-Game_Character.prototype.canIdle = function() {
+Game_Character.prototype.canIdle = function()
+{
   let canIdle = true;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle])
+  {
     canIdle = false;
-  } else {
-    const structure =/<noIdle>/i;
+  }
+  else
+  {
+    const structure = /<noIdle>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         canIdle = false;
       }
     })
@@ -900,19 +1070,25 @@ Game_Character.prototype.canIdle = function() {
  * `True` by default.
  * @returns {boolean}
  */
-Game_Character.prototype.showHpBar = function() {
+Game_Character.prototype.showHpBar = function()
+{
   if (!(this instanceof Game_Event)) return false;
 
   let showHpBar = true;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar])
+  {
     showHpBar = false;
-  } else {
-    const structure =/<noHpBar>/i;
+  }
+  else
+  {
+    const structure = /<noHpBar>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         showHpBar = false;
       }
     })
@@ -928,19 +1104,25 @@ Game_Character.prototype.showHpBar = function() {
  * `False` by default.
  * @returns {boolean}
  */
-Game_Character.prototype.isInvincible = function() {
+Game_Character.prototype.isInvincible = function()
+{
   if (!(this instanceof Game_Event)) return;
 
   let invincible = false;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible])
+  {
     invincible = true;
-  } else {
-    const structure =/<invincible>/i;
+  }
+  else
+  {
+    const structure = /<invincible>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         invincible = true;
       }
     })
@@ -956,19 +1138,25 @@ Game_Character.prototype.isInvincible = function() {
  * `False` by default.
  * @returns {boolean}
  */
-Game_Character.prototype.isInanimate = function() {
+Game_Character.prototype.isInanimate = function()
+{
   if (!(this instanceof Game_Event)) return;
 
   let inanimate = false;
   const referenceData = this.event();
 
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate])
+  {
     inanimate = true;
-  } else {
-    const structure =/<inanimate>/i;
+  }
+  else
+  {
+    const structure = /<inanimate>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         inanimate = true;
       }
     })
@@ -985,17 +1173,23 @@ Game_Character.prototype.isInanimate = function() {
  * @returns {number}
  */
 Object.defineProperty(Game_Enemy.prototype, "level", {
-  get() {
+  get()
+  {
     let level = 0;
 
     const referenceData = $dataEnemies[this.enemyId()];
-    if (referenceData.meta && referenceData.meta[J.BASE.Notetags.EnemyLevel]) {
+    if (referenceData.meta && referenceData.meta[J.BASE.Notetags.EnemyLevel])
+    {
       level = parseInt(referenceData.meta[J.BASE.Notetags.EnemyLevel]) || level;
-    } else {
+    }
+    else
+    {
       const structure = /<level:[ ]?([0-9]*)>/i;
       const notedata = referenceData.note.split(/[\r\n]+/);
-      notedata.forEach(note => {
-        if (note.match(structure)) {
+      notedata.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           level = RegExp.$1;
         }
       })
@@ -1010,19 +1204,25 @@ Object.defineProperty(Game_Enemy.prototype, "level", {
  * Gets the amount of sdp points granted by this enemy.
  * @returns {number}
  */
-Game_Enemy.prototype.sdpPoints = function() {
+Game_Enemy.prototype.sdpPoints = function()
+{
   let points = 0;
 
   const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SdpPoints]) {
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SdpPoints])
+  {
     // if its in the metadata, then grab it from there.
     points = referenceData.meta[J.BASE.Notetags.SdpPoints];
-  } else {
+  }
+  else
+  {
     // if its not in the metadata, then check the notes proper.
     const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note => {
-      if (note.match(structure)) {
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         points = RegExp.$1;
       }
     })
@@ -1035,7 +1235,8 @@ Game_Enemy.prototype.sdpPoints = function() {
  * Gets all skills that are executed by this enemy when it is defeated.
  * @returns {JABS_SkillChance}
  */
-Game_Enemy.prototype.onOwnDefeatSkillIds = function() {
+Game_Enemy.prototype.onOwnDefeatSkillIds = function()
+{
   const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
   return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
@@ -1044,7 +1245,8 @@ Game_Enemy.prototype.onOwnDefeatSkillIds = function() {
  * Gets all skills that are executed by this enemy when it defeats its target.
  * @returns {JABS_SkillChance}
  */
-Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
+Game_Enemy.prototype.onTargetDefeatSkillIds = function()
+{
   const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
   return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
@@ -1054,7 +1256,8 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function() {
  * This includes both skills listed in their skill list, and any added skills via traits.
  * @returns {rm.types.Skill[]}
  */
-Game_Enemy.prototype.skills = function() {
+Game_Enemy.prototype.skills = function()
+{
   const actions = this.enemy().actions
     .map(action => $dataSkills[action.skillId]);
   const skillTraits = this.enemy().traits
@@ -1070,7 +1273,8 @@ Game_Enemy.prototype.skills = function() {
  * @param skillId The id of the skill to check for.
  * @returns {boolean}
  */
-Game_Enemy.prototype.hasSkill = function(skillId) {
+Game_Enemy.prototype.hasSkill = function(skillId)
+{
   return this.skills().includes($dataSkills[skillId]);
 };
 
@@ -1078,7 +1282,8 @@ Game_Enemy.prototype.hasSkill = function(skillId) {
  * Gets all objects with notes available to enemies.
  * @returns {rm.types.BaseItem[]}
  */
-Game_Enemy.prototype.getEverythingWithNotes = function() {
+Game_Enemy.prototype.getEverythingWithNotes = function()
+{
   const objectsWithNotes = [];
   objectsWithNotes.push(this.enemy());
   objectsWithNotes.push(...this.skills());
@@ -1090,7 +1295,8 @@ Game_Enemy.prototype.getEverythingWithNotes = function() {
  * Gets all objects with notes available to enemies.
  * @returns {rm.types.BaseItem[]}
  */
-Game_Enemy.prototype.getCurrentWithNotes = function() {
+Game_Enemy.prototype.getCurrentWithNotes = function()
+{
   const objectsWithNotes = [];
   objectsWithNotes.push(this.enemy());
   objectsWithNotes.push(...this.states());
@@ -1101,7 +1307,8 @@ Game_Enemy.prototype.getCurrentWithNotes = function() {
  * The underlying database data for this enemy.
  * @returns {rm.types.Enemy}
  */
- Game_Enemy.prototype.databaseData = function() {
+Game_Enemy.prototype.databaseData = function()
+{
   return this.enemy();
 };
 //#endregion Game_Enemy
@@ -1112,7 +1319,8 @@ Game_Enemy.prototype.getCurrentWithNotes = function() {
  * @param {number} code The code to match.
  * @returns {boolean}
  */
-Game_Event.prototype.matchesControlCode = function(code) {
+Game_Event.prototype.matchesControlCode = function(code)
+{
   return (code === 108 || code === 408);
 };
 //#endregion Game_Event

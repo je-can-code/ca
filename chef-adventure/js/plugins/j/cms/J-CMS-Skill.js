@@ -22,21 +22,23 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '2.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
 //#endregion version check
- 
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.CMS_K = {};
- 
+
 /**
  * The `metadata` associated with this plugin, such as version.
  */
@@ -54,19 +56,22 @@ J.CMS_K.Aliased = {
 //#region Scene objects
 //#region Scene_Skill
 J.CMS_K.Aliased.Scene_Skill.initialize = Scene_Skill.prototype.initialize;
-Scene_Skill.prototype.initialize = function() {
+Scene_Skill.prototype.initialize = function()
+{
   J.CMS_K.Aliased.Scene_Skill.initialize.call(this);
   this._j = this._j || {};
   this._j.moreVisible = false;
 };
 
 J.CMS_K.Aliased.Scene_Skill.create = Scene_Skill.prototype.create;
-Scene_Skill.prototype.create = function() {
+Scene_Skill.prototype.create = function()
+{
   J.CMS_K.Aliased.Scene_Skill.create.call(this);
   this.createSkillDetailWindow();
 };
 
-Scene_Skill.prototype.skillTypeWindowRect = function() {
+Scene_Skill.prototype.skillTypeWindowRect = function()
+{
   const ww = this.mainCommandWidth();
   const wh = this.calcWindowHeight(4, true);
   const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
@@ -74,14 +79,16 @@ Scene_Skill.prototype.skillTypeWindowRect = function() {
   return new Rectangle(wx, wy, ww, wh);
 };
 
-Scene_Skill.prototype.createSkillDetailWindow = function() {
+Scene_Skill.prototype.createSkillDetailWindow = function()
+{
   const rect = this.skillDetailRect();
   this._skillDetailWindow = new Window_SkillDetail(rect);
   this._itemWindow.setSkillDetailWindow(this._skillDetailWindow);
   this.addWindow(this._skillDetailWindow);
 };
 
-Scene_Skill.prototype.skillDetailRect = function() {
+Scene_Skill.prototype.skillDetailRect = function()
+{
   const ww = Graphics.boxWidth - this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height
   const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
@@ -94,7 +101,9 @@ Scene_Skill.prototype.mainCommandWidth = () => 400;
 /**
  * OVERWRITE Removes the buttons because fuck the buttons.
  */
-Scene_Skill.prototype.createButtons = function() {};
+Scene_Skill.prototype.createButtons = function()
+{
+};
 
 /**
  * OVERWRITE Replaces the button area height with 0 because fuck buttons.
@@ -102,7 +111,8 @@ Scene_Skill.prototype.createButtons = function() {};
  */
 Scene_Skill.prototype.buttonAreaHeight = () => 0;
 
-Scene_Skill.prototype.itemWindowRect = function() {
+Scene_Skill.prototype.itemWindowRect = function()
+{
   const ww = this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height;
   const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
@@ -129,7 +139,8 @@ Window_SkillType.prototype.maxCols = function()
  * Extends `.initialize()` to include our skill detail window.
  */
 J.CMS_K.Aliased.Window_SkillList.initialize = Window_SkillList.prototype.initialize;
-Window_SkillList.prototype.initialize = function(rect) {
+Window_SkillList.prototype.initialize = function(rect)
+{
   J.CMS_K.Aliased.Window_SkillList.initialize.call(this, rect);
   /** @type {Window_SkillDetail} */
   this._skillDetailWindow = null;
@@ -139,7 +150,8 @@ Window_SkillList.prototype.initialize = function(rect) {
  * Sets the skill detail window to the provided window.
  * @param {Window_SkillDetail} newWindow The new window.
  */
-Window_SkillList.prototype.setSkillDetailWindow = function(newWindow) {
+Window_SkillList.prototype.setSkillDetailWindow = function(newWindow)
+{
   this._skillDetailWindow = newWindow;
   this.refreshSkillDetailWindow();
 };
@@ -147,12 +159,14 @@ Window_SkillList.prototype.setSkillDetailWindow = function(newWindow) {
 /**
  * Refreshes the skill details window.
  */
-Window_SkillList.prototype.refreshSkillDetailWindow = function() {
+Window_SkillList.prototype.refreshSkillDetailWindow = function()
+{
   if (!this._skillDetailWindow) return;
 
   let id = 0;
   const item = this.item();
-  if (item) {
+  if (item)
+  {
     id = item.id;
   }
   this._skillDetailWindow.setActor(this._actor);
@@ -164,7 +178,8 @@ Window_SkillList.prototype.refreshSkillDetailWindow = function() {
  * @type {Window_SkillList.select}
  */
 J.CMS_K.Aliased.Window_SkillList.select = Window_SkillList.prototype.select;
-Window_SkillList.prototype.select = function(index) {
+Window_SkillList.prototype.select = function(index)
+{
   J.CMS_K.Aliased.Window_SkillList.select.call(this, index);
   this.refreshSkillDetailWindow();
 };
@@ -173,7 +188,8 @@ Window_SkillList.prototype.select = function(index) {
  * OVERWRITE Forces a single column for skills in this window.
  * @returns {number}
  */
-Window_SkillList.prototype.maxCols = function() {
+Window_SkillList.prototype.maxCols = function()
+{
   return 1;
 };
 
@@ -184,14 +200,18 @@ Window_SkillList.prototype.maxCols = function() {
  * @param {number} y The `y` coordinate.
  * @param {number} width The text width.
  */
-Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) { };
+Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width)
+{
+};
 //#endregion Window_SkillList
 
 //#region Window_SkillDetail
 /**
  * A window responsible for showing various datapoints of a skill.
  */
-class Window_SkillDetail extends Window_Base {
+class Window_SkillDetail
+  extends Window_Base
+{
   constructor(rect)
   {
     super(rect);
@@ -228,10 +248,13 @@ class Window_SkillDetail extends Window_Base {
   setSkillId(newSkillId)
   {
     this._skillId = newSkillId;
-    if (this._skillId < 1) {
+    if (this._skillId < 1)
+    {
       this._skillId = 0;
       this.clear();
-    } else {
+    }
+    else
+    {
       this.refresh();
       console.log($dataSkills[this._skillId]);
     }
@@ -243,9 +266,12 @@ class Window_SkillDetail extends Window_Base {
    */
   skill()
   {
-    if (!this._skillId) {
+    if (!this._skillId)
+    {
       return null;
-    } else {
+    }
+    else
+    {
       // if we're using the skill extension plugin, then grab the extended version.
       if (J.EXTEND && this._actor)
       {
@@ -281,7 +307,8 @@ class Window_SkillDetail extends Window_Base {
    */
   clearSkillImages()
   {
-    this._skillSprites.forEach(sprite => {
+    this._skillSprites.forEach(sprite =>
+    {
       sprite.hide();
     });
   };
@@ -351,9 +378,12 @@ class Window_SkillDetail extends Window_Base {
   createIconSprite(key, iconIndex)
   {
     let sprite = this._skillSprites.get(key);
-    if (sprite) {
+    if (sprite)
+    {
       return sprite;
-    } else {
+    }
+    else
+    {
       sprite = new Sprite_Icon(iconIndex);
       sprite.scale.x = 4.0;
       sprite.scale.y = 4.0;
@@ -387,12 +417,14 @@ class Window_SkillDetail extends Window_Base {
     const ox = 16;
     const oy = 60;
     const lh = this.lineHeight();
-    params.forEach((param, index) => {
+    params.forEach((param, index) =>
+    {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawText(`${param.name()}`, ox, oy+(lh*index), 250);
-      if (param.value() !== null) {
-        this.drawText(`${param.value()}`, ox+180, oy+(lh*index), 250);
+      this.drawText(`${param.name()}`, ox, oy + (lh * index), 250);
+      if (param.value() !== null)
+      {
+        this.drawText(`${param.value()}`, ox + 180, oy + (lh * index), 250);
       }
     });
   };
@@ -414,19 +446,21 @@ class Window_SkillDetail extends Window_Base {
     const ox = 316;
     const oy = 60;
     const lh = this.lineHeight();
-    params.forEach((param, index) => {
+    params.forEach((param, index) =>
+    {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawTextEx(`${param.name()}`, ox, oy+(lh*index), 250);
-      if (param.value() !== null) {
-        this.drawTextEx(`${param.value()}`, ox+250, oy+(lh*index), 250);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      if (param.value() !== null)
+      {
+        this.drawTextEx(`${param.value()}`, ox + 250, oy + (lh * index), 250);
       }
     });
   };
 
   /**
    * Calculates the projected damage to build a parameter.
-   * 
+   *
    * If the skill lacks a formula, it won't try to project.
    * @param {rm.types.Skill} skill The skill.
    * @param {Game_Actor} actor The actor.
@@ -435,7 +469,8 @@ class Window_SkillDetail extends Window_Base {
   makeProjectedDamageParam(skill, actor)
   {
     // if its a skill that doesn't have a formula, don't try to parse it.
-    if (skill.damage.type === 0) {
+    if (skill.damage.type === 0)
+    {
       return new JCMS_ParameterKvp(`\\C[8]Raw Damage\\C[0]`, 'n/a');
     }
 
@@ -484,7 +519,8 @@ class Window_SkillDetail extends Window_Base {
 
     const attackStateParams = [];
     attackStateParams.push(new JCMS_ParameterKvp(`\\C[17]Applies States\\C[0]`, `\\C[1]\\}CHANCE\\{\\C[0]`));
-    stateEffects.forEach(effect => {
+    stateEffects.forEach(effect =>
+    {
       const name = `\\State[${effect.dataId}]`;
       const chance = `${Math.round(effect.value1 * 100)}%`;
       attackStateParams.push(new JCMS_ParameterKvp(name, chance));
@@ -514,10 +550,12 @@ class Window_SkillDetail extends Window_Base {
     const ox = 700;
     const oy = 0;
     const lh = this.lineHeight();
-    params.forEach((param, index) => {
-      this.drawTextEx(`${param.name()}`, ox, oy+(lh*index), 250);
-      if (param.value() !== null) {
-        this.drawTextEx(`${param.value()}`, ox+300, oy+(lh*index), 250);
+    params.forEach((param, index) =>
+    {
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      if (param.value() !== null)
+      {
+        this.drawTextEx(`${param.value()}`, ox + 300, oy + (lh * index), 250);
       }
     });
   };
@@ -549,11 +587,13 @@ class Window_SkillDetail extends Window_Base {
   {
     const conditionals = actor.proficiencyConditionalBySkillId(skill.id);
     const params = [];
-    conditionals.forEach(conditional => {
+    conditionals.forEach(conditional =>
+    {
       // if there are no rewards, then don't even draw the "related" section.
       if (!conditional.skillRewards.length) return;
 
-      conditional.skillRewards.forEach(skillRewardId => {
+      conditional.skillRewards.forEach(skillRewardId =>
+      {
         // get the current/required proficiency level for the reward.
         let requiredProficiency = conditional.requirements
           .find(requirement => requirement.skillId === skill.id);
@@ -576,7 +616,6 @@ class Window_SkillDetail extends Window_Base {
     return params;
   };
 
-
   /**
    * Creates a list of all elemenets contained by this skill.
    * @param {rm.types.Skill} skill The skill.
@@ -589,7 +628,8 @@ class Window_SkillDetail extends Window_Base {
     elementParams.push(new JCMS_ParameterKvp(`\\C[17]Elemental Affiliations\\C[0]`));
     const attackElements = [skill.damage.elementId];
     attackElements.push(...Game_Action.extractElementsFromAction(skill));
-    attackElements.forEach(attackElement => {
+    attackElements.forEach(attackElement =>
+    {
       const elementName = $dataSystem.elements[attackElement] ?? `(Basic Attack)`;
       const iconIndex = IconManager.element(attackElement);
       const paramName = `\\I[${iconIndex}]\\C[6]${elementName}\\C[0]`;
@@ -603,7 +643,8 @@ class Window_SkillDetail extends Window_Base {
    * Makes a parameter that is used as a divider between other parameters.
    * @returns {JCMS_ParameterKvp}
    */
-  makeDividerParam() {
+  makeDividerParam()
+  {
     return new JCMS_ParameterKvp("----------------");
   };
 
@@ -611,15 +652,17 @@ class Window_SkillDetail extends Window_Base {
    * Makes the skill type key value parameter.
    * @param {rm.types.Skill} skill The skill object.
    */
-  makeSkillTypeParam(skill) {
+  makeSkillTypeParam(skill)
+  {
     const support = [0];
     const damage = [1, 2];
     const healer = [3, 4];
-    const drain  = [5, 6];
+    const drain = [5, 6];
 
     let name = "";
     let color = ColorManager.normalColor();
-    switch (true) {
+    switch (true)
+    {
       case support.includes(skill.damage.type):
         name = `Support`;
         color = ColorManager.textColor(0);
@@ -628,7 +671,7 @@ class Window_SkillDetail extends Window_Base {
         name = "Offensive";
         color = ColorManager.textColor(2);
         break;
-      case healer.includes(skill.damage.type): 
+      case healer.includes(skill.damage.type):
         name = "Restorative";
         color = ColorManager.textColor(3);
         break;
@@ -646,11 +689,13 @@ class Window_SkillDetail extends Window_Base {
    * @param {rm.types.Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
    */
-  makeMpCostParam(skill, actor) {
+  makeMpCostParam(skill, actor)
+  {
     const mpName = TextManager.longParam(22);
     let mpColor = ColorManager.mpCostColor();
     const mpCost = parseFloat((skill.mpCost * actor.mcr).toFixed(2));
-    if (mpCost === 0) {
+    if (mpCost === 0)
+    {
       mpColor = ColorManager.damageColor();
     }
     return new JCMS_ParameterKvp(mpName, mpCost, mpColor);
@@ -661,11 +706,13 @@ class Window_SkillDetail extends Window_Base {
    * @param {rm.types.Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
    */
-  makeTpCostParam(skill, actor) {
+  makeTpCostParam(skill, actor)
+  {
     const tpName = TextManager.longParam(23);
     let tpColor = ColorManager.tpCostColor();
     const tpCost = parseFloat((skill.tpCost * actor.tcr).toFixed(2));
-    if (tpCost === 0) {
+    if (tpCost === 0)
+    {
       tpColor = ColorManager.damageColor();
     }
 
@@ -675,10 +722,13 @@ class Window_SkillDetail extends Window_Base {
 //#endregion Window_SkillDetail
 
 //#region Window_SkillType
-Window_SkillType.prototype.makeCommandList = function() {
-  if (this._actor) {
+Window_SkillType.prototype.makeCommandList = function()
+{
+  if (this._actor)
+  {
     const skillTypeIds = this._actor.skillTypes();
-    skillTypeIds.forEach(skillTypeId => {
+    skillTypeIds.forEach(skillTypeId =>
+    {
       const name = $dataSystem.skillTypes[skillTypeId];
       const icon = IconManager.skillType(skillTypeId);
       this.addCommand(name, "skill", true, skillTypeId, icon);
@@ -686,7 +736,8 @@ Window_SkillType.prototype.makeCommandList = function() {
   }
 };
 
-Window_SkillType.prototype.maxCols = function() {
+Window_SkillType.prototype.maxCols = function()
+{
   return 1;
 };
 //#endregion Window_SkillType
@@ -697,8 +748,10 @@ Window_SkillType.prototype.maxCols = function() {
  * A class representing a single key-value pair, with an optional long id.
  * This is used for storing table-like data related to actors and skills.
  */
-class JCMS_ParameterKvp {
-  constructor(name, value = null, colorId = 0) {
+class JCMS_ParameterKvp
+{
+  constructor(name, value = null, colorId = 0)
+  {
     /**
      * The name of the parameter.
      * @type {string}
@@ -722,16 +775,18 @@ class JCMS_ParameterKvp {
    * Gets the name of the parameter.
    * @returns {string}
    */
-  name() {
+  name()
+  {
     return this._name;
   };
 
   /**
-   * Gets the value of the parameter associated with this 
+   * Gets the value of the parameter associated with this
    * @param {Game_Actor} actor The actor bearing the parameter.
-   * @returns 
+   * @returns
    */
-  value() {
+  value()
+  {
     return this._value;
   };
 
@@ -739,7 +794,8 @@ class JCMS_ParameterKvp {
    * Gets the provided color of this parameter.
    * @returns {string}
    */
-  color() {
+  color()
+  {
     return this._colorId;
   };
 };

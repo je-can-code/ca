@@ -13,9 +13,13 @@
 
 /**
  * A class representing a single trait on a piece of equipment that can be potentially
- * transferred by means of JAFTING's refinement mode. 
+ * transferred by means of JAFTING's refinement mode.
  */
-function SkillProficiency() { this.initialize(...arguments); }
+function SkillProficiency()
+{
+  this.initialize(...arguments);
+}
+
 SkillProficiency.prototype = {};
 SkillProficiency.prototype.constructor = SkillProficiency;
 
@@ -25,7 +29,8 @@ SkillProficiency.prototype.constructor = SkillProficiency;
 SkillProficiency.prototype.initialize = function(
   skillId,
   initialProficiency = 0
-) {
+)
+{
   /**
    * The skill id of the skill for this prof.
    * @type {number}
@@ -43,7 +48,8 @@ SkillProficiency.prototype.initialize = function(
  * Gets the underlying skill of this prof.
  * @returns {rm.types.Skill}
  */
-SkillProficiency.prototype.skill = function() {
+SkillProficiency.prototype.skill = function()
+{
   return $dataSkills[this.skillId];
 };
 
@@ -51,9 +57,11 @@ SkillProficiency.prototype.skill = function() {
  * Adds a given amount of prof to the skill's current prof.
  * @param {number} value The amount of prof to add.
  */
-SkillProficiency.prototype.improve = function(value) {
+SkillProficiency.prototype.improve = function(value)
+{
   this.proficiency += value;
-  if (this.proficiency < 0) {
+  if (this.proficiency < 0)
+  {
     this.proficiency = 0;
   }
 };

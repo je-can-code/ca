@@ -18,17 +18,22 @@
 /**
  * This class represents a single skill slot handled by the skill slot manager.
  */
-function JABS_SkillSlot() { this.initialize(...arguments); }
+function JABS_SkillSlot()
+{
+  this.initialize(...arguments);
+}
+
 JABS_SkillSlot.prototype = {};
 JABS_SkillSlot.prototype.constructor = JABS_SkillSlot;
 
 /**
  * Initializes this class. Executed when this class is instantiated.
  */
- JABS_SkillSlot.prototype.initialize = function(key, skillId) {
+JABS_SkillSlot.prototype.initialize = function(key, skillId)
+{
   /**
    * The key of this skill slot.
-   * 
+   *
    * Maps 1:1 to one of the possible skill slot button combinations.
    * @type {string}
    */
@@ -36,7 +41,7 @@ JABS_SkillSlot.prototype.constructor = JABS_SkillSlot;
 
   /**
    * The id of the skill.
-   * 
+   *
    * Set to 0 when a skill is not equipped in this slot.
    * @type {number}
    */
@@ -47,10 +52,11 @@ JABS_SkillSlot.prototype.constructor = JABS_SkillSlot;
 /**
  * Initializes all properties on this class.
  */
-JABS_SkillSlot.prototype.initMembers = function() {
+JABS_SkillSlot.prototype.initMembers = function()
+{
   /**
    * Whether or not this skill slot is locked.
-   * 
+   *
    * Locked slots cannot be changed until unlocked.
    * @type {boolean}
    */
@@ -61,7 +67,8 @@ JABS_SkillSlot.prototype.initMembers = function() {
  * Gets whether or not this slot has anything assigned to it.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.isUsable = function() {
+JABS_SkillSlot.prototype.isUsable = function()
+{
   return this.id > 0;
 };
 
@@ -69,7 +76,8 @@ JABS_SkillSlot.prototype.isUsable = function() {
  * Gets whether or not this slot is empty.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.isEmpty = function() {
+JABS_SkillSlot.prototype.isEmpty = function()
+{
   return this.id === 0;
 };
 
@@ -77,7 +85,8 @@ JABS_SkillSlot.prototype.isEmpty = function() {
  * Gets whether or not this slot is locked.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.isLocked = function() {
+JABS_SkillSlot.prototype.isLocked = function()
+{
   return this.locked;
 };
 
@@ -86,7 +95,8 @@ JABS_SkillSlot.prototype.isLocked = function() {
  * that this actor can perform on the field.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.isPrimarySlot = function() {
+JABS_SkillSlot.prototype.isPrimarySlot = function()
+{
   const slots = [
     Game_Actor.JABS_MAINHAND,
     Game_Actor.JABS_OFFHAND,
@@ -102,7 +112,8 @@ JABS_SkillSlot.prototype.isPrimarySlot = function() {
  * flexible functions this actor can perform on the field.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.isSecondarySlot = function() {
+JABS_SkillSlot.prototype.isSecondarySlot = function()
+{
   const slots = [
     Game_Actor.JABS_L1_A_SKILL,
     Game_Actor.JABS_L1_B_SKILL,
@@ -119,13 +130,15 @@ JABS_SkillSlot.prototype.isSecondarySlot = function() {
 
 /**
  * Sets a new skill id to this slot.
- * 
+ *
  * Slot cannot be assigned if it is locked.
  * @param {number} skillId The new skill id to assign to this slot.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.setSkillId = function(skillId) {
-  if (this.isLocked()) {
+JABS_SkillSlot.prototype.setSkillId = function(skillId)
+{
+  if (this.isLocked())
+  {
     console.warn("This slot is currently locked.");
     SoundManager.playBuzzer();
     return;
@@ -140,8 +153,10 @@ JABS_SkillSlot.prototype.setSkillId = function(skillId) {
  * @param {boolean} locked Whether or not this slot is locked.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.setLock = function(locked) {
-  if (!this.canBeLocked()) {
+JABS_SkillSlot.prototype.setLock = function(locked)
+{
+  if (!this.canBeLocked())
+  {
     this.locked = locked;
   }
 
@@ -152,7 +167,8 @@ JABS_SkillSlot.prototype.setLock = function(locked) {
  * Gets whether or not this slot can be locked.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.canBeLocked = function() {
+JABS_SkillSlot.prototype.canBeLocked = function()
+{
   const lockproofSlots = [
     Game_Actor.JABS_MAINHAND,
     Game_Actor.JABS_OFFHAND
@@ -165,7 +181,8 @@ JABS_SkillSlot.prototype.canBeLocked = function() {
  * Locks this slot, preventing changing of skill assignment.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.lock = function() {
+JABS_SkillSlot.prototype.lock = function()
+{
   this.setLock(true);
   return this;
 };
@@ -174,7 +191,8 @@ JABS_SkillSlot.prototype.lock = function() {
  * Unlocks this slot.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.unlock = function() {
+JABS_SkillSlot.prototype.unlock = function()
+{
   this.setLock(false);
   return this;
 };
@@ -183,7 +201,8 @@ JABS_SkillSlot.prototype.unlock = function() {
  * Returns this slot to skill id 0 and unlocks it.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.clear = function() {
+JABS_SkillSlot.prototype.clear = function()
+{
   this.unlock();
   this.setSkillId(0);
   return this;
@@ -195,11 +214,15 @@ JABS_SkillSlot.prototype.clear = function() {
  * Skills that are locked will not be automatically removed.
  * @returns {this} Returns `this` for fluent chaining.
  */
-JABS_SkillSlot.prototype.autoclear = function() {
-  if (!this.canBeAutocleared()) {
+JABS_SkillSlot.prototype.autoclear = function()
+{
+  if (!this.canBeAutocleared())
+  {
     // skip because you can't autoclear these slots.
     return this;
-  } else {
+  }
+  else
+  {
     return this.setSkillId(0);
   }
 };
@@ -209,7 +232,8 @@ JABS_SkillSlot.prototype.autoclear = function() {
  * a skill or something.
  * @returns {boolean}
  */
-JABS_SkillSlot.prototype.canBeAutocleared = function() {
+JABS_SkillSlot.prototype.canBeAutocleared = function()
+{
   const noAutoclearSlots = [
     Game_Actor.JABS_MAINHAND,
     Game_Actor.JABS_OFFHAND,

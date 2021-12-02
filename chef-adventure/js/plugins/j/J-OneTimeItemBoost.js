@@ -144,10 +144,12 @@ J.OTIB.Helpers = {};
  * @param {JSON} rawJson The raw JSON to translate boosts from.
  * @returns {OneTimeItemBoost[]}
  */
-J.OTIB.Helpers.translateOTIBs = rawJson => {
+J.OTIB.Helpers.translateOTIBs = rawJson =>
+{
   const parsedJsonBlob = JSON.parse(rawJson);
   const oneTimeItemBoosts = [];
-  parsedJsonBlob.forEach(rawOneTimeItemBoostBlob => {
+  parsedJsonBlob.forEach(rawOneTimeItemBoostBlob =>
+  {
     const parsedOneTimeItemBoostBlob = JSON.parse(rawOneTimeItemBoostBlob);
     const parsedItemId = parseInt(parsedOneTimeItemBoostBlob.itemId);
 
@@ -157,7 +159,8 @@ J.OTIB.Helpers.translateOTIBs = rawJson => {
     // parse out all boost parameters.
     const parsedBoostsBlob = JSON.parse(parsedOneTimeItemBoostBlob.boosts);
     const parsedBoosts = [];
-    parsedBoostsBlob.forEach(rawBoostBlob => {
+    parsedBoostsBlob.forEach(rawBoostBlob =>
+    {
       const parsedBoostBlob = JSON.parse(rawBoostBlob);
       const boostParam = new OneTimeItemBoostParam(
         parseInt(parsedBoostBlob.parameterId),
@@ -174,17 +177,17 @@ J.OTIB.Helpers.translateOTIBs = rawJson => {
 
   return oneTimeItemBoosts;
 };
- 
+
 /**
  * The `metadata` associated with this plugin, such as version.
  */
 J.OTIB.Metadata = {
   /**
- * The name of this plugin.
- */
+   * The name of this plugin.
+   */
   Name: `J-OneTimeItemBoost`,
 };
- 
+
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
@@ -220,34 +223,43 @@ J.OTIB.Aliased = {
  * Update save data with new plugin metadata.
  */
 J.OTIB.Aliased.DataManager.extractSaveContents = DataManager.extractSaveContents;
-DataManager.extractSaveContents = function(contents) {
-  contents.actors._data.forEach(actor => {
+DataManager.extractSaveContents = function(contents)
+{
+  contents.actors._data.forEach(actor =>
+  {
     // skip if no actor to work with.
     if (!actor) return;
 
     // if there are no boosts saved, but boosts in the plugin settings, then assign them.
-    if (!actor._j._otibs || !actor._j._otibs.length) {
+    if (!actor._j._otibs || !actor._j._otibs.length)
+    {
       actor._j._otibs = J.OTIB.Metadata.OneTimeItemBoosts;
       return;
     }
 
     // update all boosts parameter data with new parameter data.
-    J.OTIB.Metadata.OneTimeItemBoosts.forEach(otib => {
+    J.OTIB.Metadata.OneTimeItemBoosts.forEach(otib =>
+    {
       const foundBoost = actor.getOtibById(otib.itemId);
-      if (foundBoost) {
+      if (foundBoost)
+      {
         foundBoost.parameterData = otib.parameterData;
-      } else {
+      }
+      else
+      {
         actor._j._otibs.push(otib);
       }
     });
 
     // go through each of the actors boosts and check to make sure they are not
     // stale/removed in the plugin settings.
-    actor._j._otibs.forEach(otib => {
+    actor._j._otibs.forEach(otib =>
+    {
       const stillExists = J.OTIB.Metadata.OneTimeItemBoosts
         .findIndex(boost => boost.itemId === otib.itemId);
 
-      if (stillExists === -1) {
+      if (stillExists === -1)
+      {
         actor._j._otibs.splice(stillExists, 1);
       }
     });
@@ -268,7 +280,8 @@ DataManager.extractSaveContents = function(contents) {
  * Adds new properties to the actors that manage the SDP system.
  */
 J.OTIB.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
-Game_Actor.prototype.initMembers = function() {
+Game_Actor.prototype.initMembers = function()
+{
   J.OTIB.Aliased.Game_Actor.initMembers.call(this);
   /**
    * The J object where all my additional properties live.
@@ -285,7 +298,8 @@ Game_Actor.prototype.initMembers = function() {
  * Gets all of this actor's boosts.
  * @returns {OneTimeItemBoost[]}
  */
-Game_Actor.prototype.getAllOtibs = function() {
+Game_Actor.prototype.getAllOtibs = function()
+{
   return this._j._otibs;
 };
 
@@ -294,7 +308,8 @@ Game_Actor.prototype.getAllOtibs = function() {
  * @param {number} itemId The itemId to find the boost for.
  * @returns {OneTimeItemBoost}
  */
-Game_Actor.prototype.getOtibById = function(itemId) {
+Game_Actor.prototype.getOtibById = function(itemId)
+{
   return this.getAllOtibs().find(otib => otib.itemId === itemId);
 };
 
@@ -302,9 +317,10 @@ Game_Actor.prototype.getOtibById = function(itemId) {
  * Gets whether or not the boost associated with the given itemId is unlocked.
  * If the boost doesn't exist, we return true to skip processing.
  * @param {number} itemId The itemId to check if the boost is unlocked for.
- * @returns 
+ * @returns
  */
-Game_Actor.prototype.isOtibUnlocked = function(itemId) {
+Game_Actor.prototype.isOtibUnlocked = function(itemId)
+{
   const otib = this.getOtibById(itemId);
 
   // if there is no boost for this itemId, then return true to take no action.
@@ -317,7 +333,8 @@ Game_Actor.prototype.isOtibUnlocked = function(itemId) {
  * Unlocks a specific boost by it's itemId.
  * @param {number} itemId The itemId of the boost to unlock.
  */
-Game_Actor.prototype.unlockOtib = function(itemId) {
+Game_Actor.prototype.unlockOtib = function(itemId)
+{
   // don't process an already unlocked boost.
   if (this.isOtibUnlocked(itemId)) return;
 
@@ -331,7 +348,8 @@ Game_Actor.prototype.unlockOtib = function(itemId) {
  * @param {number} baseParam The base value of the designated parameter.
  * @returns {number}
  */
-Game_Actor.prototype.getOtibBonusForCoreParam = function(paramId, baseParam) {
+Game_Actor.prototype.getOtibBonusForCoreParam = function(paramId, baseParam)
+{
   // if we have no boosts, then don't process.
   let otibs = this.getAllOtibs();
   if (!otibs.length) return 0;
@@ -341,16 +359,21 @@ Game_Actor.prototype.getOtibBonusForCoreParam = function(paramId, baseParam) {
   if (!otibs.length) return 0;
 
   let otibsModifications = 0;
-  otibs.forEach(otib => {
-    otib.parameterData.forEach(otibParam => {
+  otibs.forEach(otib =>
+  {
+    otib.parameterData.forEach(otibParam =>
+    {
       // don't process this boost param.
       if (!(otibParam.paramId === paramId)) return 0;
 
       const boost = parseFloat(otibParam.boost);
-      if (otibParam.isPercent) {
+      if (otibParam.isPercent)
+      {
         // if it is a percent, then add it as a percent of the base parameter.
         otibsModifications += Math.floor(baseParam * (boost / 100));
-      } else {
+      }
+      else
+      {
         // otherwise it is a flat boost.
         otibsModifications += boost;
       }
@@ -367,7 +390,8 @@ Game_Actor.prototype.getOtibBonusForCoreParam = function(paramId, baseParam) {
  * @param {number} idExtra The id modifier for s/x params.
  * @returns {number}
  */
-Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, baseParam, idExtra) {
+Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, baseParam, idExtra)
+{
   // if we have no boosts, then don't process.
   let otibs = this.getAllOtibs();
   if (!otibs.length) return 0;
@@ -377,16 +401,21 @@ Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, basePar
   if (!otibs.length) return 0;
 
   let otibsModifications = 0;
-  otibs.forEach(otib => {
-    otib.parameterData.forEach(otibParam => {
+  otibs.forEach(otib =>
+  {
+    otib.parameterData.forEach(otibParam =>
+    {
       // don't process this boost param.
       if (!(otibParam.paramId - idExtra === spexParamId)) return 0;
 
       const boost = parseFloat((otibParam.boost / 100).toFixed(2));
-      if (otibParam.isPercent) {
+      if (otibParam.isPercent)
+      {
         // if it is a percent, then multiply and divide
         otibsModifications += Math.floor(baseParam * (boost / 100));
-      } else {
+      }
+      else
+      {
         // otherwise it is a flat boost.
         otibsModifications += boost;
       }
@@ -400,7 +429,8 @@ Game_Actor.prototype.getOtibBonusForNonCoreParam = function(spexParamId, basePar
  * Calculates the value of the bonus stats for this actor's max TP.
  * @returns {number}
  */
-Game_Actor.prototype.getOtibBonusForMaxTp = function() {
+Game_Actor.prototype.getOtibBonusForMaxTp = function()
+{
   // if we have no boosts, then don't process.
   /** @type {OneTimeItemBoost[]} */
   let otibs = this.getAllOtibs();
@@ -411,16 +441,21 @@ Game_Actor.prototype.getOtibBonusForMaxTp = function() {
   if (!otibs.length) return 0;
 
   let otibsModifications = 0;
-  otibs.forEach(otib => {
-    otib.parameterData.forEach(otibParam => {
+  otibs.forEach(otib =>
+  {
+    otib.parameterData.forEach(otibParam =>
+    {
       // don't process this boost param.
       if (!(otibParam.paramId === 28)) return;
 
       const boost = otibParam.boost;
-      if (otibParam.isPercent) {
+      if (otibParam.isPercent)
+      {
         // if it is a percent, then multiply and divide
         otibsModifications += Math.floor(baseParam * (boost / 100));
-      } else {
+      }
+      else
+      {
         // otherwise it is a flat boost.
         otibsModifications += boost;
       }
@@ -434,7 +469,8 @@ Game_Actor.prototype.getOtibBonusForMaxTp = function() {
  * Extends the base parameters with the OTIB bonuses.
  */
 J.OTIB.Aliased.Game_Actor.param = Game_Actor.prototype.param;
-Game_Actor.prototype.param = function(paramId) {
+Game_Actor.prototype.param = function(paramId)
+{
   const baseParam = J.OTIB.Aliased.Game_Actor.param.call(this, paramId);
   const otibModifications = this.getOtibBonusForCoreParam(paramId, baseParam);
   const result = baseParam + otibModifications;
@@ -445,7 +481,8 @@ Game_Actor.prototype.param = function(paramId) {
  * Extends the ex-parameters with the OTIB bonuses.
  */
 J.OTIB.Aliased.Game_Actor.xparam = Game_Actor.prototype.xparam;
-Game_Actor.prototype.xparam = function(xparamId) {
+Game_Actor.prototype.xparam = function(xparamId)
+{
   const baseParam = J.OTIB.Aliased.Game_Actor.xparam.call(this, xparamId);
   const otibModifications = this.getOtibBonusForNonCoreParam(xparamId, baseParam, 8);
   const result = baseParam + otibModifications;
@@ -456,7 +493,8 @@ Game_Actor.prototype.xparam = function(xparamId) {
  * Extends the sp-parameters with the OTIB bonuses.
  */
 J.OTIB.Aliased.Game_Actor.sparam = Game_Actor.prototype.sparam;
-Game_Actor.prototype.sparam = function(sparamId) {
+Game_Actor.prototype.sparam = function(sparamId)
+{
   const baseParam = J.OTIB.Aliased.Game_Actor.sparam.call(this, sparamId);
   const otibModifications = this.getOtibBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + otibModifications;
@@ -467,7 +505,8 @@ Game_Actor.prototype.sparam = function(sparamId) {
  * Extends the max TP to include any bonuses for that, too.
  */
 J.OTIB.Aliased.Game_Actor.maxTp = Game_Actor.prototype.maxTp;
-Game_Actor.prototype.maxTp = function() {
+Game_Actor.prototype.maxTp = function()
+{
   const baseMaxTp = J.OTIB.Aliased.Game_Actor.maxTp.call(this);
   const otibModifications = this.getOtibBonusForMaxTp();
   return baseMaxTp + otibModifications;
@@ -480,10 +519,12 @@ Game_Actor.prototype.maxTp = function() {
  * @param {object} item The item being consumed.
  */
 J.OTIB.Aliased.Game_Actor.consumeItem = Game_Battler.prototype.consumeItem
-Game_Battler.prototype.consumeItem = function(item) {
+Game_Battler.prototype.consumeItem = function(item)
+{
   J.OTIB.Aliased.Game_Actor.consumeItem.call(this, item);
 
-  if (!this.isOtibUnlocked(item.id)) {
+  if (!this.isOtibUnlocked(item.id))
+  {
     this.unlockOtib(item.id);
   }
 };

@@ -502,11 +502,13 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
@@ -573,22 +575,25 @@ J.TIME.Aliased = {
 /**
  * Plugin command for hiding the TIME window on the map.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "hideMapTime", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "hideMapTime", () =>
+{
   $gameTime.hideMapWindow();
 });
 
 /**
  * Plugin command for showing the TIME window on the map.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "showMapTime", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "showMapTime", () =>
+{
   $gameTime.showMapWindow();
 });
 
 /**
  * Plugin command for setting the time to a new point in time.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args => {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args =>
+{
+  const {Second, Minute, Hour, Day, Month, Year} = args;
   $gameTime.setTime(
     parseInt(Second),
     parseInt(Minute),
@@ -602,8 +607,9 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args => {
 /**
  * Plugin command for fast-forwarding time by a designated amount.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args => {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args =>
+{
+  const {Second, Minute, Hour, Day, Month, Year} = args;
   $gameTime.addSeconds(parseInt(Second));
   $gameTime.addMinutes(parseInt(Minute));
   $gameTime.addHours(parseInt(Hour));
@@ -615,8 +621,9 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args => {
 /**
  * Plugin command for rewinding time by a designated amount.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args => {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args =>
+{
+  const {Second, Minute, Hour, Day, Month, Year} = args;
   $gameTime.addSeconds(-parseInt(Second));
   $gameTime.addMinutes(-parseInt(Minute));
   $gameTime.addHours(-parseInt(Hour));
@@ -628,22 +635,25 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args => {
 /**
  * Plugin command for jumping to the next instance of a particular time of day.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "jumpToTimeOfDay", args => {
-  const { TimeOfDay } = args;
+PluginManager.registerCommand(J.TIME.Metadata.Name, "jumpToTimeOfDay", args =>
+{
+  const {TimeOfDay} = args;
   $gameTime.jumpToTimeOfDay(parseInt(TimeOfDay));
 });
 
 /**
  * Plugin command for stopping artificial TIME.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "stopTime", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "stopTime", () =>
+{
   $gameTime.deactivate();
 });
 
 /**
  * Plugin command for resuming artificial TIME.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "startTime", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "startTime", () =>
+{
   $gameTime.activate();
 });
 
@@ -651,14 +661,16 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "startTime", () => {
  * Plugin command for allowing the TIME system to control the screen tone.
  * Does nothing if the plugin parameters are set to disable tone changing.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "unlockTone", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "unlockTone", () =>
+{
   $gameTime.unlockTone();
 });
 
 /**
  * Plugin command for locking the TIME system from controlling screen tone.
  */
-PluginManager.registerCommand(J.TIME.Metadata.Name, "lockTone", () => {
+PluginManager.registerCommand(J.TIME.Metadata.Name, "lockTone", () =>
+{
   $gameTime.lockTone();
 });
 
@@ -676,7 +688,8 @@ var $gameTime = null;
  * Extends the game object creation to include creating the JAFTING manager.
  */
 J.TIME.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
-DataManager.createGameObjects = function() {
+DataManager.createGameObjects = function()
+{
   J.TIME.Aliased.DataManager.createGameObjects.call(this);
   $gameTime = new Game_Time();
 };
@@ -685,23 +698,26 @@ DataManager.createGameObjects = function() {
  * Extends the save content creation to include creating JAFTING data.
  */
 J.TIME.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
-DataManager.makeSaveContents = function() {
+DataManager.makeSaveContents = function()
+{
   const contents = J.TIME.Aliased.DataManager.makeSaveContents.call(this);
   contents.time = $gameTime;
   return contents;
 };
- 
+
 /**
  * Extends the save content extraction to include extracting JAFTING data.
- * 
+ *
  * NOTE: This is the first function encountered where I actually extend it _twice_.
  * As such, we accommodated that by numbering it.
  */
 J.TIME.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
-DataManager.extractSaveContents = function(contents) {
+DataManager.extractSaveContents = function(contents)
+{
   J.TIME.Aliased.DataManager.extractSaveContents2.call(this, contents);
   $gameTime = contents.time;
-  if (!$gameTime) {
+  if (!$gameTime)
+  {
     $gameTime = new Game_Time();
     console.info('J-Time did not exist in the loaded save file- creating anew.');
   }
@@ -715,9 +731,11 @@ DataManager.extractSaveContents = function(contents) {
  * Extend the highest level `Scene_Base.update()` to also update time when applicable.
  */
 J.TIME.Aliased.Scene_Base.update = Scene_Base.prototype.update;
-Scene_Base.prototype.update = function() {
+Scene_Base.prototype.update = function()
+{
   J.TIME.Aliased.Scene_Base.update.call(this);
-  if (this.shouldUpdateTime()) {
+  if (this.shouldUpdateTime())
+  {
     $gameTime.update();
   }
 };
@@ -727,7 +745,8 @@ Scene_Base.prototype.update = function() {
  * current scene.
  * @returns {boolean}
  */
-Scene_Base.prototype.shouldUpdateTime = function() {
+Scene_Base.prototype.shouldUpdateTime = function()
+{
   const noTimeScenes = [Scene_Boot, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover];
   const checkIfNoTimeScene = scene => SceneManager._scene instanceof scene;
   const isNoTimeScene = !noTimeScenes.some(checkIfNoTimeScene);
@@ -743,7 +762,8 @@ Scene_Base.prototype.shouldUpdateTime = function() {
  * Extends `Scene_Map.initialize()` to also initialize the TIME window.
  */
 J.TIME.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
-Scene_Map.prototype.initialize = function() {
+Scene_Map.prototype.initialize = function()
+{
   J.TIME.Aliased.Scene_Map.initialize.call(this);
   this._j = this._j || {};
   this.initTimeWindow();
@@ -752,7 +772,8 @@ Scene_Map.prototype.initialize = function() {
 /**
  * Initializes the property containing the TIME window.
  */
-Scene_Map.prototype.initTimeWindow = function() {
+Scene_Map.prototype.initTimeWindow = function()
+{
   /**
    * The window that displays the current time, real or artificial.
    * @type {Window_Time}
@@ -764,7 +785,8 @@ Scene_Map.prototype.initTimeWindow = function() {
  * Extends `Scene_Map.createAllWindows()` to also create the TIME window.
  */
 J.TIME.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
-Scene_Map.prototype.createAllWindows = function() {
+Scene_Map.prototype.createAllWindows = function()
+{
   J.TIME.Aliased.Scene_Map.createAllWindows.call(this);
   this.createTimeWindow();
 };
@@ -772,7 +794,8 @@ Scene_Map.prototype.createAllWindows = function() {
 /**
  * Creates the TIME window.
  */
-Scene_Map.prototype.createTimeWindow = function() {
+Scene_Map.prototype.createTimeWindow = function()
+{
   const w = 200;
   const h = 180;
   const x = Graphics.boxWidth - w;
@@ -787,10 +810,12 @@ Scene_Map.prototype.createTimeWindow = function() {
  * Extends the `Scene_Map.update()` to also update the TIME window.
  */
 J.TIME.Aliased.Scene_Map.update = Scene_Map.prototype.update;
-Scene_Map.prototype.update = function() {
+Scene_Map.prototype.update = function()
+{
   J.TIME.Aliased.Scene_Map.update.call(this);
 
-  if (this._j._timeWindow) {
+  if (this._j._timeWindow)
+  {
     this._j._timeWindow.update();
     this.manageTimeVisibility();
   }
@@ -799,11 +824,15 @@ Scene_Map.prototype.update = function() {
 /**
  * Manages the visibility of the TIME window.
  */
-Scene_Map.prototype.manageTimeVisibility = function() {
-  if ($gameTime.isMapWindowVisible()) {
+Scene_Map.prototype.manageTimeVisibility = function()
+{
+  if ($gameTime.isMapWindowVisible())
+  {
     this._j._timeWindow.show();
     this._j._timeWindow.open();
-  } else {
+  }
+  else
+  {
     this._j._timeWindow.close();
     this._j._timeWindow.hide();
   }
@@ -813,8 +842,10 @@ Scene_Map.prototype.manageTimeVisibility = function() {
  * Extends the `Scene_Map.onMapLoaded()` function to handle blocking/unblocking by tag.
  */
 J.TIME.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
-Scene_Map.prototype.onMapLoaded = function() {
-  if (this._transfer) {
+Scene_Map.prototype.onMapLoaded = function()
+{
+  if (this._transfer)
+  {
     this.blockIfTagged();
   }
 
@@ -824,11 +855,16 @@ Scene_Map.prototype.onMapLoaded = function() {
 /**
  * Blocks the flow of time if the target map is tagged with the specified tag.
  */
-Scene_Map.prototype.blockIfTagged = function() {
-  if ($dataMap.meta && $dataMap.meta['timeBlock']) {
+Scene_Map.prototype.blockIfTagged = function()
+{
+  if ($dataMap.meta && $dataMap.meta['timeBlock'])
+  {
     $gameTime.block();
-  } else {
-    if ($gameTime.isBlocked()) {
+  }
+  else
+  {
+    if ($gameTime.isBlocked())
+    {
       // console.log('Time is no longer blocked.');
     }
 
@@ -843,7 +879,10 @@ Scene_Map.prototype.blockIfTagged = function() {
 /**
  * A class for controlling time.
  */
-function Game_Time() { this.initialize(...arguments) };
+function Game_Time()
+{
+  this.initialize(...arguments)
+};
 Game_Time.prototype = {};
 Game_Time.prototype.constructor = Game_Time;
 
@@ -864,7 +903,8 @@ Game_Time.toneOfDay = {
 /**
  * Initializes the members of this class.
  */
-Game_Time.prototype.initialize = function() {
+Game_Time.prototype.initialize = function()
+{
   /**
    * The number of frames that must pass before we execute a tick.
    * @type {number}
@@ -999,7 +1039,8 @@ Game_Time.prototype.initialize = function() {
  * Gets the current tick speed.
  * @returns {number}
  */
-Game_Time.prototype.getTickSpeed = function() {
+Game_Time.prototype.getTickSpeed = function()
+{
   return this._tickFrames;
 };
 
@@ -1007,7 +1048,8 @@ Game_Time.prototype.getTickSpeed = function() {
  * Gets whether or not the time window is visibile on the map.
  * @returns {boolean}
  */
-Game_Time.prototype.isMapWindowVisible = function() {
+Game_Time.prototype.isMapWindowVisible = function()
+{
   return this._visible;
 };
 
@@ -1015,21 +1057,24 @@ Game_Time.prototype.isMapWindowVisible = function() {
  * Gets whether or not time is actively flowing right now.
  * @returns {boolean}
  */
-Game_Time.prototype.isActive = function() {
+Game_Time.prototype.isActive = function()
+{
   return this._active;
 };
 
 /**
  * Deactivates TIME. Time will stop flowing if it wasn't already stopped.
  */
-Game_Time.prototype.deactivate = function() {
+Game_Time.prototype.deactivate = function()
+{
   this._active = false;
 };
 
 /**
  * Activates TIME. Time will now start flowing if it wasn't already started.
  */
-Game_Time.prototype.activate = function() {
+Game_Time.prototype.activate = function()
+{
   this._active = true;
 };
 
@@ -1037,21 +1082,24 @@ Game_Time.prototype.activate = function() {
  * Gets whether or not TIME is blocked from flowing.
  * @returns {boolean}
  */
-Game_Time.prototype.isBlocked = function() {
+Game_Time.prototype.isBlocked = function()
+{
   return this._blocked;
 };
 
 /**
  * Blocks time and prevents it from flowing regardless of previous flow.
  */
-Game_Time.prototype.block = function() {
+Game_Time.prototype.block = function()
+{
   this._blocked = true;
 };
 
 /**
  * Unblocks time and allows it to return to it's previous flow.
  */
-Game_Time.prototype.unblock = function() {
+Game_Time.prototype.unblock = function()
+{
   this._blocked = false;
 };
 
@@ -1059,50 +1107,59 @@ Game_Time.prototype.unblock = function() {
  * Gets whether or not the screen tone is currently locked from changing.
  * @returns {boolean}
  */
-Game_Time.prototype.isToneLocked = function() {
+Game_Time.prototype.isToneLocked = function()
+{
   return this._toneLocked;
 };
 
 /**
  * Locks the screen's tone, preventing it from changing by this system.
  */
-Game_Time.prototype.lockTone = function() {
+Game_Time.prototype.lockTone = function()
+{
   this._toneLocked = true;
 };
 
 /**
  * Unlocks the screen's tone, allowing this system to regain control over it.
  */
-Game_Time.prototype.unlockTone = function() {
+Game_Time.prototype.unlockTone = function()
+{
   this._toneLocked = false;
 };
 
 /**
  * Hides the time window on the map.
  */
-Game_Time.prototype.hideMapWindow = function() {
+Game_Time.prototype.hideMapWindow = function()
+{
   this._visible = false;
 };
 
 /**
  * Shows the time window on the map.
  */
-Game_Time.prototype.showMapWindow = function() {
+Game_Time.prototype.showMapWindow = function()
+{
   this._visible = true;
 };
 
 /**
  * Sets the new tick speed to (60 / multiplier) frames per second.
- * 
+ *
  * The threshold for this multiplier is `0.1` to `10.0`.
  * @param {number} flowSpeedMultiplier The new multiplier for how fast a single tick is.
  */
-Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier) {
+Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier)
+{
   // if the user is trying to speed it up to more than 10x, then lock it at 10x.
-  if (flowSpeedMultiplier > 10) {
+  if (flowSpeedMultiplier > 10)
+  {
     flowSpeedMultiplier = 10;
-  // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
-  } else if (flowSpeedMultiplier < 0.1) {
+    // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
+  }
+  else if (flowSpeedMultiplier < 0.1)
+  {
     flowSpeedMultiplier = 0.1;
   }
 
@@ -1113,12 +1170,15 @@ Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier) {
 /**
  * Updates the time when the framecount aligns with the designated tick frame count.
  */
-Game_Time.prototype.update = function() {
-  if (Graphics.frameCount % this._tickFrames === 0) {
+Game_Time.prototype.update = function()
+{
+  if (Graphics.frameCount % this._tickFrames === 0)
+  {
     this.tickTime();
   }
 
-  if (this.getNeedsToneChange()) {
+  if (this.getNeedsToneChange())
+  {
     this.setNeedsToneChange(false);
     this.processToneChange();
   }
@@ -1128,19 +1188,23 @@ Game_Time.prototype.update = function() {
  * Gets whether or not the screen's tone change is needed.
  * @returns {boolean}
  */
-Game_Time.prototype.getNeedsToneChange = function() {
-  if (!J.TIME.Metadata.ChangeToneByTime) {
+Game_Time.prototype.getNeedsToneChange = function()
+{
+  if (!J.TIME.Metadata.ChangeToneByTime)
+  {
     return false;
   }
 
   // if we don't have a map to inspect, don't try to interpret it.
-  if (!$dataMap || !$dataMap.meta) {
+  if (!$dataMap || !$dataMap.meta)
+  {
     console.warn("no datamap to inspect.");
     return false;
   }
 
   // if there is a tag on the map that specifies not to change the tone, then don't.
-  if ($dataMap.meta["noToneChange"]) {
+  if ($dataMap.meta["noToneChange"])
+  {
     return false;
   }
 
@@ -1151,7 +1215,8 @@ Game_Time.prototype.getNeedsToneChange = function() {
  * Sets whether or not the screen's tone change is needed.
  * @param {boolean} need Whether or not a tone change is needed.
  */
-Game_Time.prototype.setNeedsToneChange = function(need = true) {
+Game_Time.prototype.setNeedsToneChange = function(need = true)
+{
   this._needsToneChange = need;
 };
 
@@ -1159,7 +1224,8 @@ Game_Time.prototype.setNeedsToneChange = function(need = true) {
  * Gets the current screen's tone.
  * @returns {[number, number, number, number]}
  */
-Game_Time.prototype.getCurrentTone = function() {
+Game_Time.prototype.getCurrentTone = function()
+{
   return this._currentTone;
 };
 
@@ -1167,19 +1233,22 @@ Game_Time.prototype.getCurrentTone = function() {
  * Sets the current screen's tone.
  * @param {[number, number, number, number]} newTone The new tone to change to.
  */
-Game_Time.prototype.setCurrentTone = function(newTone) {
+Game_Time.prototype.setCurrentTone = function(newTone)
+{
   this._currentTone = newTone;
 };
 
 /**
  * Updates the screen's tone based on the current time.
  */
-Game_Time.prototype.updateCurrentTone = function() {
+Game_Time.prototype.updateCurrentTone = function()
+{
   if (!this.canUpdateTone()) return;
 
   // if we reached this point, then grab the target tone 
   const tone = this.translateHourToTone();
-  if (!this.isSameTone(tone)) {
+  if (!this.isSameTone(tone))
+  {
     this.setCurrentTone(tone.clone());
     this.setNeedsToneChange(true);
   }
@@ -1189,14 +1258,17 @@ Game_Time.prototype.updateCurrentTone = function() {
  * Gets whether or not the screen's tone can be updated.
  * @returns {boolean}
  */
-Game_Time.prototype.canUpdateTone = function() {
+Game_Time.prototype.canUpdateTone = function()
+{
   // if the user decided they never want to update tones, then don't force them.
-  if (!J.TIME.Metadata.ChangeToneByTime) {
+  if (!J.TIME.Metadata.ChangeToneByTime)
+  {
     return false;
   }
 
   // if the tone is locked for control reasons, then don't update it.
-  if (this.isToneLocked()) {
+  if (this.isToneLocked())
+  {
     return false;
   }
 
@@ -1210,12 +1282,14 @@ Game_Time.prototype.canUpdateTone = function() {
  * be between -255 and 255.
  * @returns {[number, number, number, number]}
  */
-Game_Time.prototype.translateHourToTone = function() {
+Game_Time.prototype.translateHourToTone = function()
+{
   const hours = J.TIME.Metadata.UseRealTime
     ? new Date().getHours()
     : this._hours;
   let tone = [0, 0, 0, 0];
-  switch (hours) {
+  switch (hours)
+  {
     case  0: // night
       tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, 0.25);
       break;
@@ -1295,7 +1369,7 @@ Game_Time.prototype.translateHourToTone = function() {
 
 /**
  * Calculates the tone that is a percentage of the way between two tones.
- * 
+ *
  * Order is important here, as we are calculating a percent of the way from
  * the first tone to the second tone.
  * @param {[number, number, number, number]} tone1 The starting tone.
@@ -1303,10 +1377,12 @@ Game_Time.prototype.translateHourToTone = function() {
  * @param {number} rate The decimal rate of which we are transitioning to.
  * @returns {[number, number, number, number]}
  */
-Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate) {
+Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate)
+{
   const diff = (a, b) => a > b ? a - b : b - a;
   const newTone = [];
-  tone1.forEach((color1, index) => {
+  tone1.forEach((color1, index) =>
+  {
     const color2 = tone2[index];
     const diffToNext = diff(color1, color2);
     const partial = Math.round(diffToNext * rate);
@@ -1319,10 +1395,11 @@ Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate) {
 
 /**
  * Compares the current tone with a target tone to see if they are the same.
- * @param {[number, number, number, number]} targetTone 
+ * @param {[number, number, number, number]} targetTone
  * @returns {boolean}
  */
-Game_Time.prototype.isSameTone = function(targetTone) {
+Game_Time.prototype.isSameTone = function(targetTone)
+{
   if (this._currentTone.length < 4) return false;
 
   // individually compare each of the RGBA elements with the new tone's elements.
@@ -1338,10 +1415,14 @@ Game_Time.prototype.isSameTone = function(targetTone) {
  * Processes the screen's tone change.
  * @param {boolean} skip If true, then there will be no transition time. Defaults to false.
  */
-Game_Time.prototype.processToneChange = function(skip = false) {
-  if (skip) {
+Game_Time.prototype.processToneChange = function(skip = false)
+{
+  if (skip)
+  {
     $gameScreen.startTint(this._currentTone, 1);
-  } else {
+  }
+  else
+  {
     $gameScreen.startTint(this._currentTone, 300);
   }
 };
@@ -1350,11 +1431,15 @@ Game_Time.prototype.processToneChange = function(skip = false) {
  * Gets a snapshot of the current time.
  * @returns {Time_Snapshot}
  */
-Game_Time.prototype.currentTime = function() {
+Game_Time.prototype.currentTime = function()
+{
   let timeSnapshot;
-  if (J.TIME.Metadata.UseRealTime) {
+  if (J.TIME.Metadata.UseRealTime)
+  {
     timeSnapshot = this.determineRealTime();
-  } else {
+  }
+  else
+  {
     timeSnapshot = this.determineArtificialTime();
   }
 
@@ -1367,9 +1452,11 @@ Game_Time.prototype.currentTime = function() {
  * Assigns the current time to the designated variables.
  * @param {Time_Snapshot} timeSnapshot The current time to update.
  */
-Game_Time.prototype.updateVariables = function(timeSnapshot) {
+Game_Time.prototype.updateVariables = function(timeSnapshot)
+{
   // if they haven't chosen to use variable assignment, then don't do that.
-  if (!J.TIME.Metadata.UseVariableAssignment) {
+  if (!J.TIME.Metadata.UseVariableAssignment)
+  {
     return;
   }
 
@@ -1390,7 +1477,8 @@ Game_Time.prototype.updateVariables = function(timeSnapshot) {
  * Gets a snapshot of the current time that is artificial.
  * @returns {Time_Snapshot}
  */
-Game_Time.prototype.determineArtificialTime = function() {
+Game_Time.prototype.determineArtificialTime = function()
+{
   const timeOfDayId = this.timeOfDay(this._hours);
   const seasonOfYearId = this.seasonOfYear(this._months);
   return new Time_Snapshot(
@@ -1408,7 +1496,8 @@ Game_Time.prototype.determineArtificialTime = function() {
  * Gets a snapshot of the current time in the real world.
  * @returns {Time_Snapshot}
  */
-Game_Time.prototype.determineRealTime = function() {
+Game_Time.prototype.determineRealTime = function()
+{
   const date = new Date();
   const seconds = date.getSeconds();
   const minutes = date.getMinutes();
@@ -1433,8 +1522,10 @@ Game_Time.prototype.determineRealTime = function() {
  * Translates the current hour into the time of the day id.
  * @returns {number}
  */
-Game_Time.prototype.timeOfDay = function(hours) {
-  switch (true) {
+Game_Time.prototype.timeOfDay = function(hours)
+{
+  switch (true)
+  {
     case (hours <= 3):
       return 0;
     case (hours > 3 && hours <= 7):
@@ -1447,16 +1538,18 @@ Game_Time.prototype.timeOfDay = function(hours) {
       return 4;
     case (hours > 19):
       return 5;
-    default: return -1;
+    default:
+      return -1;
   }
 };
 
 /**
  * Determines when the (hour) start of a given time of day is.
  * @param {number} timeOfDayId The id of the time of day.
- * @returns 
+ * @returns
  */
-Game_Time.prototype.startOfTimeOfDay = function(timeOfDayId) {
+Game_Time.prototype.startOfTimeOfDay = function(timeOfDayId)
+{
   return (timeOfDayId * 4);
 };
 
@@ -1464,12 +1557,14 @@ Game_Time.prototype.startOfTimeOfDay = function(timeOfDayId) {
  * Translates the current month into the season of the year id.
  * @returns {number}
  */
-Game_Time.prototype.seasonOfYear = function(months) {
+Game_Time.prototype.seasonOfYear = function(months)
+{
   const springMonths = [3, 4, 5];
   const summerMonths = [6, 7, 8];
   const autumnMonths = [9, 10, 11];
   const winterMonths = [1, 2, 12];
-  switch (true) {
+  switch (true)
+  {
     case (springMonths.includes(months)):
       return 0;
     case (summerMonths.includes(months)):
@@ -1492,7 +1587,8 @@ Game_Time.prototype.seasonOfYear = function(months) {
  * @param {number} months The new month.
  * @param {number} years The new year.
  */
-Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, years) {
+Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, years)
+{
   // don't actually set time if using real time, it'll just get reset in 0.5 seconds.
   if (J.TIME.Metadata.UseRealTime) return;
 
@@ -1506,20 +1602,24 @@ Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, ye
 
 /**
  * Fast forwards to the next instance of a specific time of day.
- * 
+ *
  * If the current time of day IS the target time of day, it will instead skip
  * to the following day's time of day.
  * @param {number} targetTimeOfDayId The target time of day's id.
  */
-Game_Time.prototype.jumpToTimeOfDay = function(targetTimeOfDayId) {
+Game_Time.prototype.jumpToTimeOfDay = function(targetTimeOfDayId)
+{
   const currentTimeOfDay = this.timeOfDay(this._hours);
   let timeUntilTargetTimeOfDay = 0;
 
-  if (currentTimeOfDay >= targetTimeOfDayId) {
+  if (currentTimeOfDay >= targetTimeOfDayId)
+  {
     const timeToEndOfDay = 24 - this._hours;
     const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
     timeUntilTargetTimeOfDay = timeToEndOfDay + startingHourTargetTimeOfday
-  } else {
+  }
+  else
+  {
     const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
     timeUntilTargetTimeOfDay = startingHourTargetTimeOfday - this._hours;
   }
@@ -1535,7 +1635,8 @@ Game_Time.prototype.jumpToTimeOfDay = function(targetTimeOfDayId) {
  * of the second hand, but if the defaults are changed, it can tick multiple seconds or
  * even multiple minutes per tick.
  */
-Game_Time.prototype.tickTime = function() {
+Game_Time.prototype.tickTime = function()
+{
   this.addSeconds();
 };
 
@@ -1544,22 +1645,27 @@ Game_Time.prototype.tickTime = function() {
  * Ticks the second counter up by a designated amount.
  * @param {number} seconds The number of seconds to tick.
  */
-Game_Time.prototype.addSeconds = function(seconds = this._secondsPerTick) {
+Game_Time.prototype.addSeconds = function(seconds = this._secondsPerTick)
+{
   // check how many seconds we have when adding the tick amount.
   let potentialSeconds = this._seconds + seconds;
 
   // if we have greater than or equal to 60...
-  if (potentialSeconds >= 60) {
+  if (potentialSeconds >= 60)
+  {
     // ...keep adding minutes until we're below 60 seconds.
-    while (potentialSeconds >= 60) {
+    while (potentialSeconds >= 60)
+    {
       this.addMinutes(this._minutesPerTick);
       potentialSeconds -= 60;
     }
 
     // and reassign the seconds.
     this._seconds = potentialSeconds;
-  // if we don't have more than 60, just add the seconds on.
-  } else {
+    // if we don't have more than 60, just add the seconds on.
+  }
+  else
+  {
     this._seconds += seconds;
   }
 };
@@ -1568,16 +1674,21 @@ Game_Time.prototype.addSeconds = function(seconds = this._secondsPerTick) {
  * Ticks the minute counter up by a designated amount.
  * @param {number} minutes The number of minutes to tick.
  */
-Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick) {
+Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick)
+{
   let potentialMinutes = this._minutes + minutes;
-  if (potentialMinutes >= 60) {
-    while (potentialMinutes >= 60) {
+  if (potentialMinutes >= 60)
+  {
+    while (potentialMinutes >= 60)
+    {
       this.addHours(this._hoursPerDay);
       potentialMinutes -= 60;
     }
 
     this._minutes = potentialMinutes;
-  } else {
+  }
+  else
+  {
     this._minutes += minutes;
   }
 };
@@ -1586,17 +1697,22 @@ Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick) {
  * Ticks the hour counter up by a designated amount.
  * @param {number} hours The number of hours to tick.
  */
-Game_Time.prototype.addHours = function(hours = this._hoursPerTick) {
+Game_Time.prototype.addHours = function(hours = this._hoursPerTick)
+{
   this.updateCurrentTone();
   let potentialHours = this._hours + hours;
-  if (potentialHours >= 24) {
-    while (potentialHours >= 24) {
+  if (potentialHours >= 24)
+  {
+    while (potentialHours >= 24)
+    {
       this.addDays(this._daysPerTick);
       potentialHours -= 24;
     }
 
     this._hours = potentialHours;
-  } else {
+  }
+  else
+  {
     this._hours += hours;
   }
 };
@@ -1605,16 +1721,21 @@ Game_Time.prototype.addHours = function(hours = this._hoursPerTick) {
  * Ticks the days counter up by a designated amount.
  * @param {number} days The number of days to tick.
  */
-Game_Time.prototype.addDays = function(days = this._daysPerTick) {
+Game_Time.prototype.addDays = function(days = this._daysPerTick)
+{
   let potentialDays = this._days + days;
-  if (potentialDays > 30) {
-    while (potentialDays > 30) {
+  if (potentialDays > 30)
+  {
+    while (potentialDays > 30)
+    {
       this.addMonths(this._monthsPerTick);
       potentialDays -= 30;
     }
 
     this._days = potentialDays;
-  } else {
+  }
+  else
+  {
     this._days += days;
   }
 };
@@ -1623,16 +1744,21 @@ Game_Time.prototype.addDays = function(days = this._daysPerTick) {
  * Ticks the months counter up by a designated amount.
  * @param {number} months The number of months to tick.
  */
-Game_Time.prototype.addMonths = function(months = this._monthsPerTick) {
+Game_Time.prototype.addMonths = function(months = this._monthsPerTick)
+{
   let potentialMonths = this._months + months;
-  if (potentialMonths > 12) {
-    while (potentialMonths > 12) {
+  if (potentialMonths > 12)
+  {
+    while (potentialMonths > 12)
+    {
       this.addYears(this._yearsPerTick);
       potentialMonths -= 12;
     }
 
     this._months = potentialMonths;
-  } else {
+  }
+  else
+  {
     this._months += months;
   }
 };
@@ -1641,7 +1767,8 @@ Game_Time.prototype.addMonths = function(months = this._monthsPerTick) {
  * Ticks the years counter up by a designated amount.
  * @param {number} years The number of years to tick.
  */
-Game_Time.prototype.addYears = function(years = this._yearsPerTick) {
+Game_Time.prototype.addYears = function(years = this._yearsPerTick)
+{
   this._years += years;
 };
 //#endregion add time
@@ -1654,12 +1781,15 @@ Game_Time.prototype.addYears = function(years = this._yearsPerTick) {
 /**
  * A window class for displaying the time.
  */
-class Window_Time extends Window_Base {
+class Window_Time
+  extends Window_Base
+{
   /**
    * @constructor
    * @param {Rectangle} rect The shape representing this window.
    */
-  constructor(rect) {
+  constructor(rect)
+  {
     super(rect);
     this.opacity = 0;
     this.generateBackground();
@@ -1670,7 +1800,8 @@ class Window_Time extends Window_Base {
    * Replaces the background of the time window with what will look like a standard
    * "dimmed" window gradient.
    */
-  generateBackground() {
+  generateBackground()
+  {
     const c1 = ColorManager.dimColor1();
     const c2 = ColorManager.dimColor2();
     const x = -4;
@@ -1684,7 +1815,8 @@ class Window_Time extends Window_Base {
   /**
    * Initializes all members of this class.
    */
-  initMembers() {
+  initMembers()
+  {
     this.time = null;
     this._frames = 0;
     this._alternating = false;
@@ -1694,18 +1826,21 @@ class Window_Time extends Window_Base {
   /**
    * Updates the frames and refreshes the window's contents once every half second.
    */
-  update() {
+  update()
+  {
     super.update();
 
     // don't actually update rendering the time if time isn't active.
     if (!$gameTime.isActive() || $gameTime.isBlocked()) return;
 
     this._frames++;
-    if (this._frames % $gameTime.getTickSpeed() === 0) {
+    if (this._frames % $gameTime.getTickSpeed() === 0)
+    {
       this.refresh();
     }
 
-    if (this._frames % 60 === 0) {
+    if (this._frames % 60 === 0)
+    {
       this._alternating = !this._alternating;
       this.refresh();
     }
@@ -1714,7 +1849,8 @@ class Window_Time extends Window_Base {
   /**
    * Refreshes the window by clearing it and redrawing everything.
    */
-  refresh() {
+  refresh()
+  {
     this.time = $gameTime.currentTime();
     this.contents.clear();
     this.drawContent();
@@ -1723,7 +1859,8 @@ class Window_Time extends Window_Base {
   /**
    * Draws the contents of the window.
    */
-  drawContent() {
+  drawContent()
+  {
     const colon1 = this._alternating ? ":" : " ";
     const colon2 = this._alternating ? " " : ":";
     const ampm = this.time.hours > 11 ? "PM" : "AM";
@@ -1741,13 +1878,14 @@ class Window_Time extends Window_Base {
     const months = this.time.months.padZero(2);
     const years = this.time.years.padZero(4);
 
-    this.drawTextEx(`\\I[2784]${hours}${colon1}${minutes}${colon2}${seconds} \\}${ampm}`, 0, lh*0, 200);
-    this.drawTextEx(`\\I[${timeOfDayIcon}]${timeOfDayName}`, 0, lh*1, 200);
-    this.drawTextEx(`\\I[${seasonIcon}]${seasonName}`, 0, lh*2, 200);
-    this.drawTextEx(`${years}/${months}/${days}`, 0, lh*3, 200);
+    this.drawTextEx(`\\I[2784]${hours}${colon1}${minutes}${colon2}${seconds} \\}${ampm}`, 0, lh * 0, 200);
+    this.drawTextEx(`\\I[${timeOfDayIcon}]${timeOfDayName}`, 0, lh * 1, 200);
+    this.drawTextEx(`\\I[${seasonIcon}]${seasonName}`, 0, lh * 2, 200);
+    this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
   };
 
 }
+
 //#endregion Window_Time
 //#endregion Window objects
 
@@ -1756,7 +1894,8 @@ class Window_Time extends Window_Base {
 /**
  * A class representing a snapshot in time of a moment.
  */
-class Time_Snapshot {
+class Time_Snapshot
+{
   /**
    * @constructor
    * @param {number} seconds The seconds of the current time.
@@ -1768,7 +1907,8 @@ class Time_Snapshot {
    * @param {number} timeOfDayId The id of the time of day.
    * @param {number} seasonOfYearId The id of the season of the year.
    */
-  constructor(seconds, minutes, hours, days, months, years, timeOfDayId, seasonOfYearId) {
+  constructor(seconds, minutes, hours, days, months, years, timeOfDayId, seasonOfYearId)
+  {
     /**
      * The seconds of the current time.
      * @type {number}
@@ -1824,13 +1964,20 @@ class Time_Snapshot {
    * @param {number} seasonId The numeric representation of the season of the year.
    * @returns {string}
    */
-  static SeasonsName(seasonId) {
-    switch (seasonId) {
-      case 0: return "Spring";
-      case 1: return "Summer";
-      case 2: return "Autumn";
-      case 3: return "Winter";
-      default: return `${seasonId} is not a valid season id.`;
+  static SeasonsName(seasonId)
+  {
+    switch (seasonId)
+    {
+      case 0:
+        return "Spring";
+      case 1:
+        return "Summer";
+      case 2:
+        return "Autumn";
+      case 3:
+        return "Winter";
+      default:
+        return `${seasonId} is not a valid season id.`;
     }
   };
 
@@ -1839,13 +1986,20 @@ class Time_Snapshot {
    * @param {number} seasonId The numeric representation of the season of the year.
    * @returns {string}
    */
-  static SeasonsIconIndex(seasonId) {
-    switch (seasonId) {
-      case 0: return 887;
-      case 1: return 888;
-      case 2: return 889;
-      case 3: return 890;
-      default: return `${seasonId} is not a valid season id.`;
+  static SeasonsIconIndex(seasonId)
+  {
+    switch (seasonId)
+    {
+      case 0:
+        return 887;
+      case 1:
+        return 888;
+      case 2:
+        return 889;
+      case 3:
+        return 890;
+      default:
+        return `${seasonId} is not a valid season id.`;
     }
   };
 
@@ -1854,15 +2008,24 @@ class Time_Snapshot {
    * @param {number} timeOfDayId The numeric representation of the time of the day.
    * @returns {string}
    */
-  static TimesOfDayName(timeOfDayId) {
-    switch (timeOfDayId) {
-      case 0: return "Night";     // midnight-4am
-      case 1: return "Dawn";      // 4am-8am
-      case 2: return "Morning";   // 8am-noon
-      case 3: return "Afternoon"; // noon-4pm
-      case 4: return "Evening";   // 4pm-8pm
-      case 5: return "Twilight";  // 8pm-midnight
-      default: return `${timeOfDayId} is not a valid time of day id.`;
+  static TimesOfDayName(timeOfDayId)
+  {
+    switch (timeOfDayId)
+    {
+      case 0:
+        return "Night";     // midnight-4am
+      case 1:
+        return "Dawn";      // 4am-8am
+      case 2:
+        return "Morning";   // 8am-noon
+      case 3:
+        return "Afternoon"; // noon-4pm
+      case 4:
+        return "Evening";   // 4pm-8pm
+      case 5:
+        return "Twilight";  // 8pm-midnight
+      default:
+        return `${timeOfDayId} is not a valid time of day id.`;
     }
   };
 
@@ -1871,24 +2034,35 @@ class Time_Snapshot {
    * @param {number} timeOfDayId The numeric representation of the time of the day.
    * @returns {string}
    */
-  static TimesOfDayIcon(timeOfDayId) {
-    switch (timeOfDayId) {
-      case 0: return 2256;  // midnight-4am
-      case 1: return 2260;  // 4am-8am
-      case 2: return 2261;  // 8am-noon
-      case 3: return 2261;  // noon-4pm
-      case 4: return 2257;  // 4pm-8pm
-      case 5: return 2256;  // 8pm-midnight
-      default: return `${timeOfDayId} is not a valid time of day id.`;
+  static TimesOfDayIcon(timeOfDayId)
+  {
+    switch (timeOfDayId)
+    {
+      case 0:
+        return 2256;  // midnight-4am
+      case 1:
+        return 2260;  // 4am-8am
+      case 2:
+        return 2261;  // 8am-noon
+      case 3:
+        return 2261;  // noon-4pm
+      case 4:
+        return 2257;  // 4pm-8pm
+      case 5:
+        return 2256;  // 8pm-midnight
+      default:
+        return `${timeOfDayId} is not a valid time of day id.`;
     }
   };
+
   //#endregion statics
 
   /**
    * Gets the name of the current season of the year.
    * @type {string}
    */
-  get seasonOfTheYearName() {
+  get seasonOfTheYearName()
+  {
     return Time_Snapshot.SeasonsName(this._seasonOfYearId);
   };
 
@@ -1896,7 +2070,8 @@ class Time_Snapshot {
    * Gets the icon index of the current season of the year.
    * @type {number}
    */
-  get seasonOfTheYearIcon() {
+  get seasonOfTheYearIcon()
+  {
     return Time_Snapshot.SeasonsIconIndex(this._seasonOfYearId);
   };
 
@@ -1904,7 +2079,8 @@ class Time_Snapshot {
    * Gets the name of the current time of the day.
    * @type {string}
    */
-  get timeOfDayName() {
+  get timeOfDayName()
+  {
     return Time_Snapshot.TimesOfDayName(this._timeOfDayId);
   };
 
@@ -1912,9 +2088,11 @@ class Time_Snapshot {
    * Gets the icon index of the current time of the day.
    * @type {number}
    */
-  get timeOfDayIcon() {
+  get timeOfDayIcon()
+  {
     return Time_Snapshot.TimesOfDayIcon(this._timeOfDayId);
   };
 }
+
 //#endregion Time_Snapshot
 //#endregion Custom classes

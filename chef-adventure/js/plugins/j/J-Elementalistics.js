@@ -86,13 +86,13 @@
  * 
  * TAG USAGE:
  * - Actors
- * - Enemies
+ * - Classes
+ * - Skills
  * - Weapons
  * - Armors
- * - Skills
+ * - Enemies
  * - States
- * - Classes
- * 
+ *
  * TAG FORMAT:
  *  <absorbElements:[NUM]>          (for one absorbed element)
  *  <absorbElements:[NUM,NUM,...]>  (for many absorbed elements)
@@ -258,7 +258,8 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
  * @param {Game_Actor|Game_Enemy} target The target of this action.
  * @returns {number} The multiplier from elemental affiliation.
  */
-Game_Action.prototype.calcElementRate = function(target) {
+Game_Action.prototype.calcElementRate = function(target)
+{
   // initialize elements collection for this action.
   const elements = this.getApplicableElements(target);
 
@@ -276,7 +277,8 @@ Game_Action.prototype.calcElementRate = function(target) {
   //TODO: add "outgoing elemental bonuses" here
 
   let factor;
-  switch (attackElements.length) {
+  switch (attackElements.length)
+  {
     // if we have no elements left, then the elemental calculation is 0.
     case 0:
       factor = 0;
@@ -375,7 +377,7 @@ Game_Action.extractElementsFromAction = function(referenceData)
 
 /**
  * Calculates the elemental rate of this action against a specific target.
- * 
+ *
  * It is important to recognize that we are working with three different number types
  * in here: One is for "rates", which are positive integers that represent the
  * already-calculated elemental rate of the target. The second is "factor form" as
@@ -394,19 +396,22 @@ Game_Action.prototype.multipleElementalRates = function(target, elements)
   const hasAntiNullElementIds = antiNullElementIds.some(elementId => elements.includes(elementId));
 
   // if we have anti-null elements, then strip out the null
-  if (hasAntiNullElementIds) {
+  if (hasAntiNullElementIds)
+  {
     return this.calculateAntiNullElementalRate(target, elements);
   }
 
   // if we have an absorb rate amidst the attack elements that the target absorbs... 
   const hasAbsorbRate = target.elementsAbsorbed().some(absorbed => elements.includes(absorbed));
-  if (hasAbsorbRate) {
+  if (hasAbsorbRate)
+  {
     return this.calculateAbsorbRate(target, elements);
   }
 
   // if we have a null rate amidst the attack elements that the target nullifies...
   const hasNullRate = elements.some(attackElementId => this.calculateBoostRate(attackElementId, target) === 0);
-  if (hasNullRate) {
+  if (hasNullRate)
+  {
     return this.calculateNullRate(target, elements);
   }
 
@@ -416,8 +421,8 @@ Game_Action.prototype.multipleElementalRates = function(target, elements)
 
 /**
  * Calculates the anti-null elemental rate for the target in relation to the set of elements.
- * 
- * If an attack element is present in 
+ *
+ * If an attack element is present in
  * @param {Game_Actor|Game_Enemy} target The target of this action.
  * @param {number[]} attackElements The attacking list of elements.
  * @returns {number} The "factor form" of the rate.
@@ -437,7 +442,7 @@ Game_Action.prototype.calculateAntiNullElementalRate = function(target, attackEl
   const reducer = (value, attackElementId) => (value * this.calculateBoostRate(attackElementId, target));
 
   // multiply together all the null-avoidant rates and return its "factor form".
-  const nonNullRate = filteredElements.reduce(reducer, 1, );
+  const nonNullRate = filteredElements.reduce(reducer, 1,);
 
   // and return the "factor form" of the non-nullable elemental product.
   return nonNullRate;
@@ -445,7 +450,7 @@ Game_Action.prototype.calculateAntiNullElementalRate = function(target, attackEl
 
 /**
  * Calculates the elemental rate for the target in relation to the set of elements.
- * 
+ *
  * Though this implicitly handles 0-rate elements, it does not handle it explicitly,
  * nor does it handle absorbed elements.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -521,7 +526,8 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements)
   const filteredAbsorbedIds = target.elementsAbsorbed().filter(absorbed => attackElements.includes(absorbed));
 
   // translate the ids into rates.
-  const absorbRates = filteredAbsorbedIds.map(attackElementId => this.calculateBoostRate(attackElementId, target), this);
+  const absorbRates = filteredAbsorbedIds.map(attackElementId => this.calculateBoostRate(attackElementId, target),
+    this);
 
   // multiply all the rates together.
   const absorbRate = absorbRates.reduce(reducer, 1);
@@ -556,7 +562,7 @@ Game_Action.prototype.getAntiNullElementIds = function()
  * OVERWRITE Evaluates the damage formula provided by the dev to determine the damage.
  * This now also factors in how to handle elemental absorption.
  * @param {Game_Actor|Game_Enemy} target The `b` of the formula.
- * @returns 
+ * @returns
  */
 Game_Action.prototype.evalDamageFormula = function(target)
 {
@@ -580,18 +586,24 @@ Game_Action.prototype.evalDamageFormula = function(target)
   // whether or not the damage should be multiplied by -1.
   const sign = this.healingFactor(targetAbsorbs);
 
-  try {
+  try
+  {
     let value = 0;
-    if (targetAbsorbs) {
+    if (targetAbsorbs)
+    {
       // if the target absorbs any of the elements being used, then lift the floor.
       value = eval(item.damage.formula) * sign;
-    } else {
+    }
+    else
+    {
       // otherwise, calculate per usual.
       value = Math.max(eval(item.damage.formula), 0) * sign;
     }
 
     return isNaN(value) ? 0 : value;
-  } catch (e) {
+  }
+  catch (e)
+  {
     console.warn(`Error with the damage formula for item/skill id: ${item.id}.`);
     console.warn(item);
     console.error(e);
@@ -602,7 +614,7 @@ Game_Action.prototype.evalDamageFormula = function(target)
 /**
  * Determines the healing factor, and also considers whether or not the target
  * absorbs any of the action's elements (which would otherwise flip the sign).
- * 
+ *
  * If the target absorbs any of the attack elements, then the `-1` is not applied,
  * however, the limit is lifted from formula damage evaluation.
  * @param {boolean} targetAbsorbs Whether or not the target absorbed this element.
@@ -635,7 +647,8 @@ Game_Actor.prototype.elementsAbsorbed = function()
 {
   const objectsToCheck = this.getEverythingWithNotes();
   const absorbed = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const elementsFromObject = this.extractAbsorbedElements(referenceData);
     absorbed.push(...elementsFromObject);
   });
@@ -651,14 +664,16 @@ Game_Actor.prototype.strictElements = function()
 {
   const objectsToCheck = this.getEverythingWithNotes();
   const strict = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const elementsFromObject = this.extractStrictElements(referenceData);
     strict.push(...elementsFromObject);
   });
 
   // if there were no "strict" elements found, then add all elements to
   // pass the "strict" check.
-  if (!strict.length) {
+  if (!strict.length)
+  {
     strict.push(...Game_Battler.prototype.strictElements.call(this));
   }
 
@@ -674,7 +689,8 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
 {
   const objectsToCheck = this.getEverythingWithNotes();
   const boosts = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const boost = this.extractElementRateBoosts(referenceData);
     if (!boost.length) return;
 
@@ -713,7 +729,8 @@ Game_Battler.prototype.isElementStrict = function(elementId)
   const strict = this.strictElements();
 
   // if we don't have any strict elements on this battler
-  if (!strict.length) {
+  if (!strict.length)
+  {
     // then strictness doesn't apply.
     return true;
   }
@@ -733,7 +750,7 @@ Game_Battler.prototype.elementsAbsorbed = function()
 
 /**
  * Gets all absorbed element ids from a given object on this battler.
- * 
+ *
  * @todo Potentially lift this to J.BASE.Helpers
  * @param {rm.types.BaseItem} referenceData The database data object.
  * @returns {number[]}
@@ -746,8 +763,10 @@ Game_Battler.prototype.extractAbsorbedElements = function(referenceData)
   const lines = referenceData.note.split(/[\r\n]+/);
   const structure = /<absorbElements:[ ]?(\[\d+,?[ ]?\d*?])>/i;
   const elements = [];
-  lines.forEach(line => {
-    if (line.match(structure)) {
+  lines.forEach(line =>
+  {
+    if (line.match(structure))
+    {
       const data = JSON.parse(RegExp.$1);
       elements.push(...data);
     }
@@ -759,7 +778,7 @@ Game_Battler.prototype.extractAbsorbedElements = function(referenceData)
 /**
  * Gets the strict elements for this battler, if any.
  * "Strict" elements are the only elements this battler can be affected by.
- * 
+ *
  * If none are found, the default is all elements (to negate this feature).
  * @returns {number[]}
  */
@@ -770,7 +789,7 @@ Game_Battler.prototype.strictElements = function()
 
 /**
  * Gets the strict element ids from a given object on this battler.
- * 
+ *
  * @todo Potentially lift this to J.BASE.Helpers
  * @param {rm.types.BaseItem} referenceData The database data object.
  * @returns {number[]}
@@ -783,8 +802,10 @@ Game_Battler.prototype.extractStrictElements = function(referenceData)
   const lines = referenceData.note.split(/[\r\n]+/);
   const structure = /<strictElements:[ ]?(\[\d+,?[ ]?\d*?])>/i;
   const elements = [];
-  lines.forEach(line => {
-    if (line.match(structure)) {
+  lines.forEach(line =>
+  {
+    if (line.match(structure))
+    {
       const data = JSON.parse(RegExp.$1);
       elements.push(...data);
     }
@@ -817,7 +838,8 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
   const boostedElements = [];
 
   // get all the boosts first.
-  lines.forEach(line => {
+  lines.forEach(line =>
+  {
     if (line.match(structure))
     {
       const id = parseInt(RegExp.$1);
@@ -835,7 +857,8 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
  * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
 J.ELEM.Aliased.Game_Enemy.set("elementRate", Game_Enemy.prototype.elementRate);
-Game_Enemy.prototype.elementRate = function(elementId) {
+Game_Enemy.prototype.elementRate = function(elementId)
+{
   const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate").call(this, elementId);
 
   const isAbsorbed = this.isElementAbsorbed(elementId) ? -1 : 1;
@@ -846,10 +869,12 @@ Game_Enemy.prototype.elementRate = function(elementId) {
  * Gets all elements this enemy absorbs.
  * @returns {number[]}
  */
-Game_Enemy.prototype.elementsAbsorbed = function() {
+Game_Enemy.prototype.elementsAbsorbed = function()
+{
   const objectsToCheck = this.getEverythingWithNotes();
   const absorbed = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const elementsFromObject = this.extractAbsorbedElements(referenceData);
     absorbed.push(...elementsFromObject);
   });
@@ -861,17 +886,20 @@ Game_Enemy.prototype.elementsAbsorbed = function() {
  * Gets the only elements this enemy can be affected by.
  * @returns {number[]}
  */
-Game_Enemy.prototype.strictElements = function() {
+Game_Enemy.prototype.strictElements = function()
+{
   const objectsToCheck = this.getEverythingWithNotes();
   const strict = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const elementsFromObject = this.extractStrictElements(referenceData);
     strict.push(...elementsFromObject);
   });
 
   // if there were no "strict" elements found, then add all elements to
   // pass the "strict" check.
-  if (!strict.length) {
+  if (!strict.length)
+  {
     strict.push(...Game_Battler.prototype.strictElements.call(this));
   }
 
@@ -887,14 +915,16 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
 {
   const objectsToCheck = this.getCurrentWithNotes();
   const boosts = [];
-  objectsToCheck.forEach(referenceData => {
+  objectsToCheck.forEach(referenceData =>
+  {
     const boost = this.extractElementRateBoosts(referenceData);
     if (!boost.length) return;
 
     boosts.push(...boost);
   });
 
-  const filteredBoosts = boosts.filter(boost => {
+  const filteredBoosts = boosts.filter(boost =>
+  {
     return boost[0] === elementId;
   });
   const factoredBoosts = filteredBoosts.map(boost => boost[1] / 100);

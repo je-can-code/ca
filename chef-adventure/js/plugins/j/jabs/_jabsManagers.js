@@ -39,7 +39,8 @@ var $actionMap = null;
  * Hooks into `DataManager` to create the game objects.
  */
 J.ABS.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
-DataManager.createGameObjects = function() {
+DataManager.createGameObjects = function()
+{
   J.ABS.Aliased.DataManager.createGameObjects.call(this);
 
   DataManager.getSkillMasterMap();
@@ -50,12 +51,16 @@ DataManager.createGameObjects = function() {
 /**
  * Executes the retrieval of the skill master map from which we clone all action events.
  */
-DataManager.getSkillMasterMap = function() {
+DataManager.getSkillMasterMap = function()
+{
   const mapId = J.ABS.DefaultValues.ActionMap;
-  if (mapId > 0) {
+  if (mapId > 0)
+  {
     const filename = "Map%1.json".format(mapId.padZero(3));
     this.loadSkillMasterMap("$dataMap", filename);
-  } else {
+  }
+  else
+  {
     throw new Error("Missing skill master map.");
   }
 };
@@ -65,7 +70,8 @@ DataManager.getSkillMasterMap = function() {
  * @param {string} name The name of the file to retrieve.
  * @param {string} src The source.
  */
-DataManager.loadSkillMasterMap = function(name, src) {
+DataManager.loadSkillMasterMap = function(name, src)
+{
   const xhr = new XMLHttpRequest();
   const url = "data/" + src;
   xhr.open("GET", url);
@@ -82,10 +88,14 @@ DataManager.loadSkillMasterMap = function(name, src) {
  * @param {string} src The source.
  * @param {string} url The path of the file to retrieve.
  */
-DataManager.onMapGet = function(xhr, name, src, url) {
-  if (xhr.status < 400) {
+DataManager.onMapGet = function(xhr, name, src, url)
+{
+  if (xhr.status < 400)
+  {
     $actionMap = JSON.parse(xhr.responseText);
-  } else {
+  }
+  else
+  {
     this.gracefulFail(name, src, url);
   }
 };
@@ -96,7 +106,8 @@ DataManager.onMapGet = function(xhr, name, src, url) {
  * @param {string} src The source.
  * @param {string} url The path of the problemed file.
  */
-DataManager.gracefulFail = function(name, src, url) {
+DataManager.gracefulFail = function(name, src, url)
+{
   console.error(name, src, url);
 }
 
@@ -128,7 +139,7 @@ J.ABS.Input.Cheat = "cheat"     // new!
 /**
  * OVERWRITE Defines gamepad button input to instead perform the various
  * actions that are expected in this ABS.
- * 
+ *
  * This includes:
  * - D-Pad up, down, left, right
  * - A/cross, B/circle, X/square, Y/triangle
@@ -179,7 +190,7 @@ Input.keyMapper = {
   81: J.ABS.Input.L1,         // q
   17: J.ABS.Input.L2,         // ctrl
   69: J.ABS.Input.R1,         // e
-  9:  J.ABS.Input.R2,         // tab
+  9: J.ABS.Input.R2,         // tab
   13: J.ABS.Input.Start,      // enter
   46: J.ABS.Input.Select,     // del
 
@@ -199,23 +210,28 @@ Input.keyMapper = {
 
 //#region JABS_AiManager
 /**
- * This static class manages all ai-controlled `JABS_Battler`s. 
- * 
+ * This static class manages all ai-controlled `JABS_Battler`s.
+ *
  * It orchestrates how Battlers interact with one another and the player.
  */
-class JABS_AiManager {
+class JABS_AiManager
+{
   /**
-   * The constructor is not designed to be called. 
+   * The constructor is not designed to be called.
    * This is a static class.
    * @constructor
    */
-  constructor() { throw new Error("The JABS_AiManager is a static class."); };
+  constructor()
+  {
+    throw new Error("The JABS_AiManager is a static class.");
+  };
 
   //#region JABS Ai Update Loop
   /**
    * Handles updating all the logic of the JABS engine.
    */
-  static update() {
+  static update()
+  {
     // if there is a message up, an event running, or the ABS is paused, freeze!
     if (!this.canUpdate()) return;
 
@@ -226,7 +242,8 @@ class JABS_AiManager {
    * Whether or not the battle manager can process an update.
    * @return {boolean} True if the manager can update, false otherwise.
    */
-  static canUpdate() {
+  static canUpdate()
+  {
     const isPaused = $gameBattleMap.absPause;
     const isMessageVisible = $gameMessage.isBusy();
     const isEventRunning = $gameMap.isEventRunning();
@@ -237,14 +254,16 @@ class JABS_AiManager {
   /**
    * Define whether or not the player is engaged in combat with any of the current battlers.
    */
-  static manageAi() {
+  static manageAi()
+  {
     const battlers = $gameMap.getBattlersWithinRange(
       $gameBattleMap.getPlayerMapBattler(),
       J.ABS.Metadata.MaxAiUpdateRange);
     if (!battlers.length) return;
 
     // iterate over each battler available and process it's AI.
-    battlers.forEach(battler => {
+    battlers.forEach(battler =>
+    {
       // no necromancers or ninjas please!
       if (battler.isDead() || battler.isPlayer() || battler.isHidden() || battler.isInanimate()) return;
 
@@ -257,12 +276,14 @@ class JABS_AiManager {
    * Executes the interactions specified by the combination of the AI mode bits.
    * @param {JABS_Battler} battler The battler executing on the AI mode.
    */
-  static executeAi(battler) {
+  static executeAi(battler)
+  {
     // no AI is executed when waiting.
     if (battler.isWaiting()) return;
 
     // if the battler is engaged, then do AI things.
-    if (battler.isEngaged()) {
+    if (battler.isEngaged())
+    {
       // adjust the targets based on aggro and presence.
       battler.adjustTargetByAggro();
 
@@ -274,7 +295,8 @@ class JABS_AiManager {
 
       // determine the phase and perform actions accordingly.
       const phase = battler.getPhase();
-      switch (phase) {
+      switch (phase)
+      {
         case 1:
           this.aiPhase1(battler);
           break;
@@ -288,11 +310,14 @@ class JABS_AiManager {
           this.aiPhase0(battler);
           break;
       }
-    } else {
+    }
+    else
+    {
       // the battler is not engaged, instead just idle about.
       this.aiPhase0(battler);
     }
   };
+
   //#endregion JABS Ai Update Loop
 
   //#region Phase 0 - Idle Phase
@@ -300,22 +325,29 @@ class JABS_AiManager {
    * The zero-th phase, when the battler is not engaged- it's idle action.
    * @param {JABS_Battler} battler The battler executing this phase of the AI.
    */
-  static aiPhase0(battler) {
+  static aiPhase0(battler)
+  {
     if (!battler.canIdle()) return;
-  
+
     const character = battler.getCharacter();
     const isStopped = character.isStopping();
     const isIdle = battler.isIdle();
-  
-    if (isStopped) {
-      if (battler.isAlerted()) {
+
+    if (isStopped)
+    {
+      if (battler.isAlerted())
+      {
         // what was that over there?
         this.seekForAlerter(battler);
         return;
-      } else if (!isIdle && !battler.isHome()) {
+      }
+      else if (!isIdle && !battler.isHome())
+      {
         // im not home, need to go home.
         this.goHome(battler);
-      } else if (isIdle) {
+      }
+      else if (isIdle)
+      {
         // im home, do my idle things.
         this.moveIdly(battler);
       }
@@ -327,7 +359,8 @@ class JABS_AiManager {
    * disturbed their idling.
    * @param {JABS_Battler} battler The battler seeking for the alerter.
    */
-  static seekForAlerter(battler) {
+  static seekForAlerter(battler)
+  {
     const coordinates = battler.getAlertedCoordinates();
     battler.smartMoveTowardCoordinates(coordinates[0], coordinates[1]);
   };
@@ -336,11 +369,13 @@ class JABS_AiManager {
    * Progresses the battler towards their home coordinates.
    * @param {JABS_Battler} battler The battler going home.
    */
-  static goHome(battler) {
+  static goHome(battler)
+  {
     const event = battler.getCharacter();
     const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY());
     event.moveStraight(nextDir);
-    if (battler.isHome()) {
+    if (battler.isHome())
+    {
       battler.setIdle(true);
     }
   };
@@ -349,25 +384,34 @@ class JABS_AiManager {
    * Executes whatever the idle action is for this battler.
    * @param {JABS_Battler} battler The battler moving idly.
    */
-  static moveIdly(battler) {
-    if (battler.isIdleActionReady()) {
+  static moveIdly(battler)
+  {
+    if (battler.isIdleActionReady())
+    {
       const rng = Math.randomInt(4) + 1;
-      if (rng === 1) {
+      if (rng === 1)
+      {
         const distanceToHome = battler.distanceToHome();
         const event = battler.getCharacter();
-        if (JABS_Battler.isClose(distanceToHome)) {
+        if (JABS_Battler.isClose(distanceToHome))
+        {
           event.moveRandom();
-        } else {
+        }
+        else
+        {
           const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY());
           event.moveStraight(nextDir);
         }
-      } else {
+      }
+      else
+      {
         // do nothing;
       }
-  
+
       battler.resetIdleAction();
     }
   };
+
   //#endregion Phase 0 - Idle Phase
 
   //#region Phase 1 - Pre-Action Movement Phase
@@ -377,15 +421,18 @@ class JABS_AiManager {
    * on the AI, maybe doing more.
    * @param {JABS_Battler} battler The battler executing this phase of the AI.
    */
-  static aiPhase1(battler) {
+  static aiPhase1(battler)
+  {
     // hold for prep time OR skip if the battler has a leader and wait for their commands.
-    if (battler.isActionReady()) {
+    if (battler.isActionReady())
+    {
       battler.setPhase(2);
       return;
     }
-  
+
     // AI to decide movement strategy...
-    if (!battler._event.isMoving() && battler.canBattlerMove()) {
+    if (!battler._event.isMoving() && battler.canBattlerMove())
+    {
       this.decideAiPhase1Movement(battler);
       return;
     }
@@ -395,40 +442,50 @@ class JABS_AiManager {
    * Executes a movement based on phase and AI against it's target.
    * @param {JABS_Battler} battler The battler deciding it's phase 1 movement.
    */
-  static decideAiPhase1Movement(battler) {
+  static decideAiPhase1Movement(battler)
+  {
     const distance = battler.distanceToCurrentTarget();
-    if (distance === null || distance > 15) {
+    if (distance === null || distance > 15)
+    {
       // if the battler is beyond a fixed distance, just give up.
       battler.disengageTarget();
-    };
-  
+    }
+    ;
+
     const ai = (battler.getLeaderAiMode() !== null)
       ? battler.getLeaderAiMode()
       : battler.getAiMode();
-  
-    if (ai.basic) {
+
+    if (ai.basic)
+    {
       // basic AI phase 1:
       // just kinda watches the target and doesn't move.
       battler.turnTowardTarget();
-    } 
-    
-    if (ai.smart) {
+    }
+
+    if (ai.smart)
+    {
       // smart AI phase 1:
       // will try to maintain a comfortable distance from the target.
-      if (JABS_Battler.isClose(distance)) {
+      if (JABS_Battler.isClose(distance))
+      {
         battler.moveAwayFromTarget();
-      } else if (JABS_Battler.isFar(distance)) {
+      }
+      else if (JABS_Battler.isFar(distance))
+      {
         battler.smartMoveTowardTarget();
       }
       battler.turnTowardTarget();
     }
-    
-    else if (ai.defensive) {
+
+    else if (ai.defensive)
+    {
       // defensive AI phase 1:
       // will try to maintain a great distance from the target.
       // NOTE: does not combine with smart.
     }
   };
+
   //#endregion Phase 1 - Pre-Action Movement Phase
 
   //#region Phase 2 - Execute Action Phase
@@ -436,25 +493,30 @@ class JABS_AiManager {
    * This is the action-ready phase, when the battler has an action available to use.
    * @param {JABS_Battler} battler The `JABS_Battler`.
    */
-  static aiPhase2(battler) {
+  static aiPhase2(battler)
+  {
     // step 1: decide your action.
-    if (!battler.isActionDecided()) {
+    if (!battler.isActionDecided())
+    {
       this.decideAiPhase2Action(battler);
     }
-  
+
     // step 2: get into position.
-    if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove()) {
+    if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove())
+    {
       this.decideAiPhase2Movement(battler);
     }
 
     // step 3: hold for cast time.
-    if (battler.isCasting()) {
+    if (battler.isCasting())
+    {
       battler.countdownCastTime();
       return;
     }
-  
+
     // step 4: execute your action.
-    if (battler.isInPosition()) {
+    if (battler.isInPosition())
+    {
       const decidedAction = battler.getDecidedAction();
       battler.turnTowardTarget();
       $gameBattleMap.executeMapActions(battler, decidedAction);
@@ -470,7 +532,8 @@ class JABS_AiManager {
    * much more prominent AI traits.
    * @param {JABS_Battler} battler The `JABS_Battler` deciding the actions.
    */
-  static decideAiPhase2Action(battler) {
+  static decideAiPhase2Action(battler)
+  {
     this.decideEnemyAiPhase2Action(battler);
   };
 
@@ -479,7 +542,8 @@ class JABS_AiManager {
    * Based on it's AI traits, it will make a decision on an action to take.
    * @param {JABS_Battler} enemyBattler The enemy battler deciding the action.
    */
-  static decideEnemyAiPhase2Action(enemyBattler) {
+  static decideEnemyAiPhase2Action(enemyBattler)
+  {
     const battler = enemyBattler;
     let ai = battler.getAiMode();
     const basicAttack = battler.getEnemyBasicAttack();
@@ -488,30 +552,38 @@ class JABS_AiManager {
     let skillsToUse = battler.getSkillIdsFromEnemy();
     skillsToUse.sort();
 
-    const { basic, smart, executor, defensive, reckless, healer, follower, leader } = ai;
+    const {basic, smart, executor, defensive, reckless, healer, follower, leader} = ai;
 
     // only basic attacks alone, if controlled by a leader,
     // the follower will be told to execute skills based on
     // the leader's decision.
-    if (follower) {
+    if (follower)
+    {
       shouldUseBasicAttack = true;
       // do nothing while waiting for leader to decide action.
-      if (battler.hasLeader() && battler.getLeaderBattler() && battler.getLeaderBattler().isEngaged()) {
-        if (battler.hasLeaderDecidedActions()) {
+      if (battler.hasLeader() && battler.getLeaderBattler() && battler.getLeaderBattler().isEngaged())
+      {
+        if (battler.hasLeaderDecidedActions())
+        {
           // the leader told me what to do, now do it!
           const nextLeaderDecidedAction = battler.getNextLeaderDecidedAction();
           battler.showBalloon(J.ABS.Balloons.Check);
           chosenSkillId = nextLeaderDecidedAction;
           const canPerformAction = battler.canExecuteSkill(chosenSkillId);
-          if (canPerformAction) {
+          if (canPerformAction)
+          {
             this.setupEnemyActionForNextPhase(battler, nextLeaderDecidedAction);
             return;
-          } else {
+          }
+          else
+          {
             // cannot perform the action due to state restrictions.
             battler.setDecidedAction(null);
             return;
           }
-        } else {
+        }
+        else
+        {
           // hold on the leader's decision.
           battler.setDecidedAction(null);
           return;
@@ -520,38 +592,47 @@ class JABS_AiManager {
     }
 
     // if non-aggressive ai traits, then figure out some healing skills or something to use.
-    if (healer || defensive) {
+    if (healer || defensive)
+    {
       skillsToUse = ai.decideSupportAction(battler, skillsToUse);
 
       // if aggressive ai traits, then figure out the skill to defeat the target with.
-    } else if (smart || executor) {
+    }
+    else if (smart || executor)
+    {
       skillsToUse = ai.decideAttackAction(battler, skillsToUse);
     }
 
     // if basic but not reckless, then 50:50 chance of just basic attacking instead.
-    if (basic && !reckless) {
+    if (basic && !reckless)
+    {
       shouldUseBasicAttack = true;
     }
 
     // rewrite followers' action decisions that meet criteria.
     // acts intelligently in addition to controlling followers
     // into acting intelligently as well.
-    if (leader) {
+    if (leader)
+    {
       const nearbyFollowers = $gameBattleMap.getNearbyFollowers(battler);
-      nearbyFollowers.forEach(follower => {
+      nearbyFollowers.forEach(follower =>
+      {
         // leaders can't control other leaders' followers.
-        if (follower.hasLeader() && follower.getLeader() !== battler.getUuid()) {
+        if (follower.hasLeader() && follower.getLeader() !== battler.getUuid())
+        {
           return;
         }
 
         // assign the follower to this leader.
-        if (!follower.hasLeader()) {
+        if (!follower.hasLeader())
+        {
           follower.setLeader(battler.getUuid());
         }
 
         // decide the action of the follower for them.
         const followerAction = ai.decideActionForFollower(battler, follower);
-        if (followerAction) {
+        if (followerAction)
+        {
           follower.setLeaderDecidedAction(followerAction);
         }
       });
@@ -559,34 +640,46 @@ class JABS_AiManager {
 
     // 50:50 chance of just basic attacking instead.
     let basicAttackInstead = false;
-    if (shouldUseBasicAttack && !battler.hasLeader()) {
+    if (shouldUseBasicAttack && !battler.hasLeader())
+    {
       basicAttackInstead = Math.randomInt(2) === 0;
 
       // followers ALWAYS basic attack instead.
-      if (follower && !battler.hasLeader()) {
+      if (follower && !battler.hasLeader())
+      {
         basicAttackInstead = true;
       }
     }
 
-    if (basicAttackInstead || !skillsToUse || skillsToUse.length === 0) {
+    if (basicAttackInstead || !skillsToUse || skillsToUse.length === 0)
+    {
       // skip the formula, only basic attack.
       chosenSkillId = basicAttack[0];
-    } else {
-      if (Array.isArray(skillsToUse)) {
-        if (skillsToUse.length === 1) {
+    }
+    else
+    {
+      if (Array.isArray(skillsToUse))
+      {
+        if (skillsToUse.length === 1)
+        {
           chosenSkillId = skillsToUse[0];
-        } else {
+        }
+        else
+        {
           const randomId = Math.randomInt(skillsToUse.length);
           chosenSkillId = skillsToUse[randomId];
         }
-      } else {
+      }
+      else
+      {
         // otherwise just set the skill to use to be this.
         chosenSkillId = skillsToUse;
       }
     }
 
     // if the battler cannot perform their decided skill, do nothing.
-    if (!chosenSkillId || !battler.canExecuteSkill(chosenSkillId)) {
+    if (!chosenSkillId || !battler.canExecuteSkill(chosenSkillId))
+    {
       battler.setDecidedAction(null);
       return;
     }
@@ -599,15 +692,19 @@ class JABS_AiManager {
    * @param {JABS_Battler} battler The battler performing the action.
    * @param {number} chosenSkillId The id of the skill to perform the action for.
    */
-  static setupEnemyActionForNextPhase(battler, chosenSkillId) {
+  static setupEnemyActionForNextPhase(battler, chosenSkillId)
+  {
     const mapActions = battler.createMapActionFromSkill(chosenSkillId);
     const primaryMapAction = mapActions[0];
     const cooldownName = `${primaryMapAction.getBaseSkill().name}`;
     mapActions.forEach(action => action.setCooldownType(cooldownName));
     battler.setDecidedAction(mapActions);
-    if (primaryMapAction.isSupportAction()) {
+    if (primaryMapAction.isSupportAction())
+    {
       battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)
-    } else {
+    }
+    else
+    {
       battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
     }
 
@@ -620,25 +717,30 @@ class JABS_AiManager {
    * their decided skill and land a hit.
    * @param {JABS_Battler} battler The battler trying to get into position.
    */
-  static decideAiPhase2Movement(battler) {
+  static decideAiPhase2Movement(battler)
+  {
     const actions = battler.getDecidedAction();
 
     // if for reasons, they have null set as their action, don't do things with it.
     if (!actions || !actions.length) return;
-  
+
     const proximity = actions[0].getProximity();
-    const distanceToTarget = battler.getAllyTarget() 
+    const distanceToTarget = battler.getAllyTarget()
       ? battler.distanceToAllyTarget()
       : battler.distanceToCurrentTarget()
 
-    if (distanceToTarget > proximity) {
+    if (distanceToTarget > proximity)
+    {
       battler.getAllyTarget()
         ? battler.smartMoveTowardAllyTarget()
         : battler.smartMoveTowardTarget();
-    } else {
+    }
+    else
+    {
       battler.setInPosition();
     }
   };
+
   //#endregion Phase 2 - Execute Action Phase
 
   //#region Phase 3 - Post-Action Cooldown Phase
@@ -647,9 +749,12 @@ class JABS_AiManager {
    * yet restarted the cycle.
    * @param {JABS_Battler} battler The battler for this AI.
    */
-  static aiPhase3(battler) {
-    if (!battler.isPostActionCooldownComplete()) {
-      if (!battler._event.isMoving() && battler.canBattlerMove()) {
+  static aiPhase3(battler)
+  {
+    if (!battler.isPostActionCooldownComplete())
+    {
+      if (!battler._event.isMoving() && battler.canBattlerMove())
+      {
         // move around while you're waiting for the cooldown.
         this.decideAiPhase3Movement(battler);
         return;
@@ -657,48 +762,57 @@ class JABS_AiManager {
 
       return;
     }
-  
+
     // done with cooling down, lets start over back to phase 1!
     battler.resetPhases();
   };
 
   /**
    * Decides where to move while waiting for cooldown to complete from the skill.
-   * @param {JABS_Battler} battler The battler in this cooldown phase. 
+   * @param {JABS_Battler} battler The battler in this cooldown phase.
    */
-  static decideAiPhase3Movement(battler) {
+  static decideAiPhase3Movement(battler)
+  {
     const distance = battler.distanceToCurrentTarget();
     if (distance === null) return;
-  
-    const { basic, smart, defensive} = battler.getAiMode();
-  
-    if (basic && !smart) {
+
+    const {basic, smart, defensive} = battler.getAiMode();
+
+    if (basic && !smart)
+    {
       // basic AI phase 3:
       // just kinda watches the target and doesn't move.
-      if (JABS_Battler.isClose(distance) || JABS_Battler.isSafe(distance)) {
+      if (JABS_Battler.isClose(distance) || JABS_Battler.isSafe(distance))
+      {
         battler.moveAwayFromTarget();
       }
-  
+
       battler.turnTowardTarget();
-    } 
-    
-    if (smart) {
+    }
+
+    if (smart)
+    {
       // smart AI phase 1:
       // will try to maintain a comfortable distance from the target.
-      if (JABS_Battler.isClose(distance)) {
+      if (JABS_Battler.isClose(distance))
+      {
         battler.moveAwayFromTarget();
-      } else if (JABS_Battler.isFar(distance)) {
+      }
+      else if (JABS_Battler.isFar(distance))
+      {
         battler.smartMoveTowardTarget();
       }
       battler.turnTowardTarget();
-    } 
-    
-    else if (defensive) {
+    }
+
+    else if (defensive)
+    {
       // defensive AI phase 1:
       // will try to maintain a great distance from the target.
       // NOTE: does not combine with smart.
     }
   };
+
   //#endregion Post-Action Cooldown Phase
 };
 //#endregion JABS_AiManager

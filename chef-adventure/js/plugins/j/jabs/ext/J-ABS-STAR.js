@@ -33,7 +33,8 @@ var J = J || {};
 J.STAR = {};
 /* This was bundled at [8/21/2021, 11:36:38 AM]. */
 
-(function () {
+(function()
+{
   'use strict';
 
   /**
@@ -87,20 +88,22 @@ J.STAR = {};
    * The implementation of the version check for this plugin.
    * Ensures we have the minimum required versions for the dependency plugins.
    */
-  (function versionCheck() {
+  (function versionCheck()
+  {
     // Check to ensure we have the minimum required version of the J-Base plugin.
     var requiredBaseVersion = '1.0.0';
     var hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 
-    if (!hasBaseRequirement) {
+    if (!hasBaseRequirement)
+    {
       throw new Error("Either missing J-Base or has a lower version than the required: ".concat(requiredBaseVersion));
     } // Check to ensure we have the minimum required version of the J-ABS plugin.
-
 
     var requiredJabsVersion = '3.0.0';
     var hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
 
-    if (!hasJabsRequirement) {
+    if (!hasJabsRequirement)
+    {
       throw new Error("Either missing J-ABS or has a lower version than the required: ".concat(requiredJabsVersion));
     }
   })();
@@ -210,7 +213,8 @@ J.STAR = {};
 
   J.STAR.Aliased.BattleManager.initMembers = BattleManager.initMembers;
 
-  BattleManager.initMembers = function () {
+  BattleManager.initMembers = function()
+  {
     J.STAR.Aliased.BattleManager.initMembers.call(this);
     /**
      * The origin location that the player came from.
@@ -220,9 +224,9 @@ J.STAR = {};
 
     this._originLocation = null;
     /**
-    * Whether or not the player is engaged in battle.
-    * @type {boolean}
-    */
+     * Whether or not the player is engaged in battle.
+     * @type {boolean}
+     */
 
     this._inBattle = false;
     /**
@@ -243,20 +247,21 @@ J.STAR = {};
    * @returns {StarPhase}
    */
 
-
-  BattleManager.getStarPhase = function () {
+  BattleManager.getStarPhase = function()
+  {
     var _this$_starPhase;
 
     return (_this$_starPhase = this._starPhase) !== null && _this$_starPhase !== void 0 ? _this$_starPhase : DISENGAGED;
   };
   /**
    * Sets the current phase of star battle to the new one by the phase's key.
-   * @param {number} newPhaseKey 
+   * @param {number} newPhaseKey
    */
 
-
-  BattleManager.setStarPhase = function (newPhaseKey) {
-    switch (newPhaseKey) {
+  BattleManager.setStarPhase = function(newPhaseKey)
+  {
+    switch (newPhaseKey)
+    {
       case DISENGAGED.key:
         this._starPhase = DISENGAGED;
         break;
@@ -286,11 +291,11 @@ J.STAR = {};
    * Sets the wait timer to countdown from a given value.
    *
    * While the wait value is greater than 0, phases will not update.
-   * @param {number} waitFrames The frames to wait for. 
+   * @param {number} waitFrames The frames to wait for.
    */
 
-
-  BattleManager.setWait = function (waitFrames) {
+  BattleManager.setWait = function(waitFrames)
+  {
     this._wait = waitFrames;
   };
   /**
@@ -298,14 +303,16 @@ J.STAR = {};
    * @returns {boolean} Whether or not we are waiting.
    */
 
-
-  BattleManager.waiting = function () {
-    if (this._wait > 0) {
+  BattleManager.waiting = function()
+  {
+    if (this._wait > 0)
+    {
       this._wait--;
       return true;
     }
 
-    if (this._wait === 0) {
+    if (this._wait === 0)
+    {
       return false;
     }
   };
@@ -313,8 +320,8 @@ J.STAR = {};
    * Clears the wait timer.
    */
 
-
-  BattleManager.clearWait = function () {
+  BattleManager.clearWait = function()
+  {
     this._wait = 0;
     console.info('the wait timer has been cleared.');
   };
@@ -323,8 +330,8 @@ J.STAR = {};
    * @param {{mapId: number, x: number, y: number}} originLocation The origin location that the player came from.
    */
 
-
-  BattleManager.setupStarBattle = function (originLocation, battleMapId) {
+  BattleManager.setupStarBattle = function(originLocation, battleMapId)
+  {
     BattleManager.setup($gameTroop.troop().id, true, true);
     $gameSystem.onBattleStart();
     this.engageInBattle();
@@ -336,16 +343,16 @@ J.STAR = {};
    * Marks the player as "in battle".
    */
 
-
-  BattleManager.engageInBattle = function () {
+  BattleManager.engageInBattle = function()
+  {
     this._inBattle = true;
   };
   /**
    * Marks the player as "not in battle".
    */
 
-
-  BattleManager.disengageInBattle = function () {
+  BattleManager.disengageInBattle = function()
+  {
     this._inBattle = false;
   };
   /**
@@ -353,8 +360,8 @@ J.STAR = {};
    * @returns {boolean}
    */
 
-
-  BattleManager.isInBattle = function () {
+  BattleManager.isInBattle = function()
+  {
     return this._inBattle;
   };
   /**
@@ -363,14 +370,15 @@ J.STAR = {};
    * @returns {{mapId: number, x: number, y: number}}
    */
 
-
-  BattleManager.origin = function () {
+  BattleManager.origin = function()
+  {
     return this._originLocation;
   };
 
   J.STAR.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 
-  DataManager.createGameObjects = function () {
+  DataManager.createGameObjects = function()
+  {
     J.STAR.Aliased.DataManager.createGameObjects.call(this);
     DataManager.getEnemyMasterMap();
   };
@@ -378,14 +386,17 @@ J.STAR = {};
    * Executes the retrieval of the enemy master map from which we clone all JABS battlers.
    */
 
-
-  DataManager.getEnemyMasterMap = function () {
+  DataManager.getEnemyMasterMap = function()
+  {
     var mapId = J.STAR.DefaultValues.EnemyMap;
 
-    if (mapId > 0) {
+    if (mapId > 0)
+    {
       var filename = "Map%1.json".format(mapId.padZero(3));
       this.loadEnemyMasterMap("$dataMap", filename);
-    } else {
+    }
+    else
+    {
       throw new Error("Missing enemy master map.");
     }
   };
@@ -395,8 +406,8 @@ J.STAR = {};
    * @param {string} src The source.
    */
 
-
-  DataManager.loadEnemyMasterMap = function (name, src) {
+  DataManager.loadEnemyMasterMap = function(name, src)
+  {
     var _this = this;
 
     var xhr = new XMLHttpRequest();
@@ -404,11 +415,13 @@ J.STAR = {};
     xhr.open("GET", url);
     xhr.overrideMimeType("application/json");
 
-    xhr.onload = function () {
+    xhr.onload = function()
+    {
       return _this.onEnemyMapGet(xhr, name, src, url);
     };
 
-    xhr.onerror = function () {
+    xhr.onerror = function()
+    {
       return _this.gracefulFail(name, src, url);
     };
 
@@ -422,11 +435,14 @@ J.STAR = {};
    * @param {string} url The path of the file to retrieve.
    */
 
-
-  DataManager.onEnemyMapGet = function (xhr, name, src, url) {
-    if (xhr.status < 400) {
+  DataManager.onEnemyMapGet = function(xhr, name, src, url)
+  {
+    if (xhr.status < 400)
+    {
       BattleManager.enemyMap = JSON.parse(xhr.responseText);
-    } else {
+    }
+    else
+    {
       this.gracefulFail(name, src, url);
     }
   };
@@ -434,8 +450,10 @@ J.STAR = {};
   /**
    * OVERWRITE Disables Scene_Map's base encounter scene management.
    */
-  Scene_Map.prototype.updateEncounter = function () {
-    if ($gamePlayer.executeEncounter()) {
+  Scene_Map.prototype.updateEncounter = function()
+  {
+    if ($gamePlayer.executeEncounter())
+    {
       this.startFadeOut();
     }
   };
@@ -443,10 +461,10 @@ J.STAR = {};
    * `updateEncounterEffect` handles the zoom/flashing battle transition.
    */
 
-
   J.STAR.Aliased.Scene_Map.update = Scene_Map.prototype.update;
 
-  Scene_Map.prototype.update = function () {
+  Scene_Map.prototype.update = function()
+  {
     J.STAR.Aliased.Scene_Map.update.call(this); //? TODO: Modify encountereffect here.
   };
 
@@ -456,26 +474,35 @@ J.STAR = {};
    * @param {any} params The parameters from the event command.
    * @returns {boolean}
    */
-  Game_Interpreter.prototype.command301 = function (params) {
+  Game_Interpreter.prototype.command301 = function(params)
+  {
     var _this = this;
 
-    if (!$gameParty.inBattle()) {
+    if (!$gameParty.inBattle())
+    {
       var troopId;
 
-      if (params[0] === 0) {
+      if (params[0] === 0)
+      {
         // Direct designation
         troopId = params[1];
-      } else if (params[0] === 1) {
+      }
+      else if (params[0] === 1)
+      {
         // Designation with a variable
         troopId = $gameVariables.value(params[1]);
-      } else {
+      }
+      else
+      {
         // Same as Random Encounters
         troopId = $gamePlayer.makeEncounterTroopId();
       }
 
-      if ($dataTroops[troopId]) {
+      if ($dataTroops[troopId])
+      {
         BattleManager.setup(troopId, params[2], params[3]);
-        BattleManager.setEventCallback(function (n) {
+        BattleManager.setEventCallback(function(n)
+        {
           _this._branch[_this._indent] = n;
         });
         $gamePlayer.makeEncounterCount(); // SceneManager.push(Scene_Battle);
@@ -493,7 +520,8 @@ J.STAR = {};
 
   J.STAR.Aliased.Game_Map.update = Game_Map.prototype.update;
 
-  Game_Map.prototype.update = function () {
+  Game_Map.prototype.update = function()
+  {
     J.STAR.Aliased.Game_Map.update.call(this);
     this.updateStarBattle();
   };
@@ -501,16 +529,18 @@ J.STAR = {};
    * Manage the flow of star battle.
    */
 
-
-  Game_Map.prototype.updateStarBattle = function () {
-    if (BattleManager.waiting()) {
+  Game_Map.prototype.updateStarBattle = function()
+  {
+    if (BattleManager.waiting())
+    {
       console.log('waiting...');
       return;
     }
 
     var currentPhase = BattleManager.getStarPhase();
 
-    switch (currentPhase) {
+    switch (currentPhase)
+    {
       case DISENGAGED:
         // do nothing while disengaged.
         break;
@@ -534,13 +564,14 @@ J.STAR = {};
    * The transition to the battlemap and generation of the troop onto the field.
    */
 
-
-  Game_Map.prototype.starPhasePrepare = function () {
+  Game_Map.prototype.starPhasePrepare = function()
+  {
     var _battleMapId;
 
     var battleMapId = null;
 
-    if ($dataMap.meta && $dataMap.meta["battleMap"]) {
+    if ($dataMap.meta && $dataMap.meta["battleMap"])
+    {
       battleMapId = $dataMap.meta["battleMap"];
     }
 
@@ -549,31 +580,34 @@ J.STAR = {};
       x: $gamePlayer.x,
       y: $gamePlayer.y
     };
-    BattleManager.setupStarBattle(origin, (_battleMapId = battleMapId) !== null && _battleMapId !== void 0 ? _battleMapId : J.STAR.DefaultValues.EnemyMap);
+    BattleManager.setupStarBattle(origin,
+      (_battleMapId = battleMapId) !== null && _battleMapId !== void 0 ? _battleMapId : J.STAR.DefaultValues.EnemyMap);
     BattleManager.playBattleBgm();
   };
   /**
    * Handles the post-transfer setup for star battle.
    */
 
-
-  Game_Map.prototype.postTransferEnemyParsing = function () {
-    if (BattleManager.getStarPhase() === PREPARING) {
+  Game_Map.prototype.postTransferEnemyParsing = function()
+  {
+    if (BattleManager.getStarPhase() === PREPARING)
+    {
       $gameTroop.members().forEach(this.generateStarEnemy);
       BattleManager.setStarPhase(INBATTLE.key);
     }
   };
   /**
    * Generates an enemy and transplants it in the place of the corresponding index
-   * of the eventId on the battle map. 
+   * of the eventId on the battle map.
    * @param {Game_Enemy} gameEnemy The enemy battler from the troop.
    * @param {number} index The index of the enemy battler in the troop.
    */
 
-
-  Game_Map.prototype.generateStarEnemy = function (gameEnemy, index) {
+  Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
+  {
     // stop generating enemies if we reached the max count.
-    if (index >= J.STAR.DefaultValues.MaxEnemyCount) {
+    if (index >= J.STAR.DefaultValues.MaxEnemyCount)
+    {
       console.warn("Exceeded enemy count limit of ".concat(J.STAR.DefaultValues.MaxEnemyCount, "."));
       return;
     }
@@ -592,12 +626,13 @@ J.STAR = {};
    * Handles the monitoring of battle-ending conditions, such as defeating all enemies.
    */
 
-
-  Game_Map.prototype.starPhaseInBattle = function () {
+  Game_Map.prototype.starPhaseInBattle = function()
+  {
     var enemiesRemaining = $gameTroop.areEnemiesAlive();
     console.log("enemies remaining: ".concat(enemiesRemaining, "."));
 
-    if (enemiesRemaining <= 0) {
+    if (enemiesRemaining <= 0)
+    {
       console.log("victory condition met: all enemies defeated!");
       this.starVictoryConditionMet();
     }
@@ -606,8 +641,8 @@ J.STAR = {};
    * Upon reaching a victory over the enemy troop, transition to the next phase.
    */
 
-
-  Game_Map.prototype.starVictoryConditionMet = function () {
+  Game_Map.prototype.starVictoryConditionMet = function()
+  {
     AudioManager.fadeOutBgm(1);
     BattleManager.playVictoryMe();
     BattleManager.setStarPhase(FINISHED.key);
@@ -619,8 +654,8 @@ J.STAR = {};
    * The conclusion phase of the star battle.
    */
 
-
-  Game_Map.prototype.starPhaseFinished = function () {
+  Game_Map.prototype.starPhaseFinished = function()
+  {
     this.returnPlayerToOrigin();
     AudioManager.stopMe();
     BattleManager.setStarPhase(DISENGAGED.key);
@@ -630,12 +665,12 @@ J.STAR = {};
    * Returns the player from whence they came.
    */
 
-
-  Game_Map.prototype.returnPlayerToOrigin = function () {
+  Game_Map.prototype.returnPlayerToOrigin = function()
+  {
     var _BattleManager$origin = BattleManager.origin(),
-        mapId = _BattleManager$origin.mapId,
-        x = _BattleManager$origin.x,
-        y = _BattleManager$origin.y;
+      mapId = _BattleManager$origin.mapId,
+      x = _BattleManager$origin.x,
+      y = _BattleManager$origin.y;
 
     $gamePlayer.reserveTransfer(mapId, x, y);
   }; //#endregion phase 3 - finished
@@ -651,7 +686,8 @@ J.STAR = {};
 
   J.STAR.Aliased.Game_Player.clearTransferInfo = Game_Player.prototype.clearTransferInfo;
 
-  Game_Player.prototype.clearTransferInfo = function () {
+  Game_Player.prototype.clearTransferInfo = function()
+  {
     J.STAR.Aliased.Game_Player.clearTransferInfo.call(this);
     $gameMap.postTransferEnemyParsing();
   };
@@ -659,13 +695,14 @@ J.STAR = {};
    * Extends `executeEncounter` to include preparing for star battle.
    */
 
-
   J.STAR.Aliased.Game_Player.executeEncounter = Game_Player.prototype.executeEncounter;
 
-  Game_Player.prototype.executeEncounter = function () {
+  Game_Player.prototype.executeEncounter = function()
+  {
     var base = J.STAR.Aliased.Game_Player.executeEncounter.call(this);
 
-    if (base) {
+    if (base)
+    {
       BattleManager.setStarPhase(PREPARING.key);
     }
 
@@ -674,29 +711,32 @@ J.STAR = {};
 
   J.STAR.Aliased.Game_Troop.initialize = Game_Troop.prototype.initialize;
 
-  Game_Troop.prototype.initialize = function () {
+  Game_Troop.prototype.initialize = function()
+  {
     this.initMembers();
     J.STAR.Aliased.Game_Troop.initialize.call(this);
   };
   /**
-  * Initializes other properties for this class.
-  */
+   * Initializes other properties for this class.
+   */
 
-
-  Game_Troop.prototype.initMembers = function () {
+  Game_Troop.prototype.initMembers = function()
+  {
     /**
-    * The number of remaining enemies on the current map.
-    * @type {number}
-    */
+     * The number of remaining enemies on the current map.
+     * @type {number}
+     */
     this._remainingEnemyCount = 0;
   };
 
-  Game_Troop.prototype.updateRemainingEnemyCount = function () {
+  Game_Troop.prototype.updateRemainingEnemyCount = function()
+  {
     this._remainingEnemyCount = $gameMap.getOpposingBattlers($gameBattleMap.getPlayerMapBattler()).length;
     return this._remainingEnemyCount;
   };
 
-  Game_Troop.prototype.areEnemiesAlive = function () {
+  Game_Troop.prototype.areEnemiesAlive = function()
+  {
     return this.updateRemainingEnemyCount();
   };
 

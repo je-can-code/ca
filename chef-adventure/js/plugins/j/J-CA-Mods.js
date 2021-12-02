@@ -85,6 +85,7 @@ J.CAMods.Aliased = {
   Game_BattlerBase: {},
   Game_BattleMap: {},
   Game_Character: {},
+  Game_Enemy: new Map(),
   Game_Map: {},
   Game_Party: {},
   Game_Player: {},
@@ -96,7 +97,8 @@ J.CAMods.Aliased = {
 //#region Game objects
 //#region Game_Action
 J.CAMods.Aliased.Game_Action.getAntiNullElementIds = Game_Action.prototype.getAntiNullElementIds;
-Game_Action.prototype.getAntiNullElementIds = function() {
+Game_Action.prototype.getAntiNullElementIds = function()
+{
   // elements that should bypass and count despite being 
   return [25, 26, 27];
 };
@@ -107,14 +109,16 @@ Game_Action.prototype.getAntiNullElementIds = function() {
  * Extends the base slots provided to have a duplicate of the 5th type (accessory).
  */
 J.CAMods.Aliased.Game_Actor.set("equipSlots", Game_Actor.prototype.equipSlots);
-Game_Actor.prototype.equipSlots = function() {
+Game_Actor.prototype.equipSlots = function()
+{
   const baseSlots = J.CAMods.Aliased.Game_Actor.get("equipSlots").call(this);
   baseSlots.push(5);
   return baseSlots;
 };
 
 J.CAMods.Aliased.Game_Actor.set("basicFloorDamage", Game_Actor.prototype.basicFloorDamage);
-Game_Actor.prototype.basicFloorDamage = function() {
+Game_Actor.prototype.basicFloorDamage = function()
+{
   if (!$dataMap || !$dataMap.meta)
   {
     return J.CAMods.Aliased.Game_Actor.get("basicFloorDamage").call(this);
@@ -123,12 +127,12 @@ Game_Actor.prototype.basicFloorDamage = function() {
   {
     return this.calculateFloorDamage();
   }
-  return 10;
 };
 
 Game_Actor.prototype.calculateFloorDamage = function()
 {
-
+  // TODO: Implement map tags or tile tags for managing this?
+  return 0;
 };
 //#endregion Game_Actor
 
@@ -137,7 +141,8 @@ Game_Actor.prototype.calculateFloorDamage = function()
  * Extends the "recover all" event command to also restore all TP to the battlers.
  */
 J.CAMods.Aliased.Game_BattlerBase.recoverAll = Game_BattlerBase.prototype.recoverAll;
-Game_BattlerBase.prototype.recoverAll = function() {
+Game_BattlerBase.prototype.recoverAll = function()
+{
   J.CAMods.Aliased.Game_BattlerBase.recoverAll.call(this);
   this._tp = this.maxTp();
 };
@@ -151,7 +156,8 @@ Game_BattlerBase.prototype.recoverAll = function() {
  * @param {number} targetY The `y` coordinate where the loot will be dropped/placed.
  */
 J.CAMods.Aliased.Game_BattleMap.addLootDropToMap = Game_BattleMap.prototype.addLootDropToMap;
-Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item) {
+Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item)
+{
   targetY += 1;
   J.CAMods.Aliased.Game_BattleMap.addLootDropToMap.call(this, targetX, targetY, item);
 };
@@ -162,14 +168,18 @@ Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item) {
  * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
  */
 J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy = Game_BattleMap.prototype.handleDefeatedEnemy;
-Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
+Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
+{
   J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy.call(this, defeatedTarget, caster);
 
   // determine whether to add to the destructibles count or regular count.
-  if (defeatedTarget.isInanimate()) {
+  if (defeatedTarget.isInanimate())
+  {
     // add to destructibles destroyed count.
     J.BASE.Helpers.modVariable(J.CAMods.Tracking.DestructiblesDestroyed, 1);
-  } else {
+  }
+  else
+  {
     // add to enemy defeated count.
     J.BASE.Helpers.modVariable(J.CAMods.Tracking.EnemiesDefeated, 1);
   }
@@ -179,7 +189,8 @@ Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) 
  * Extends the handling of defeated players to track data.
  */
 J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer = Game_BattleMap.prototype.handleDefeatedPlayer;
-Game_BattleMap.prototype.handleDefeatedPlayer = function() {
+Game_BattleMap.prototype.handleDefeatedPlayer = function()
+{
   J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
   J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer.call(this);
 };
@@ -190,11 +201,15 @@ Game_BattleMap.prototype.handleDefeatedPlayer = function() {
  * @param {JABS_Battler} target The target to apply skill effects against.
  */
 J.CAMods.Aliased.Game_BattleMap.executeSkillEffects = Game_BattleMap.prototype.executeSkillEffects;
-Game_BattleMap.prototype.executeSkillEffects = function(action, target) {
+Game_BattleMap.prototype.executeSkillEffects = function(action, target)
+{
   const actionResult = J.CAMods.Aliased.Game_BattleMap.executeSkillEffects.call(this, action, target);
-  if (target.isEnemy()) {
+  if (target.isEnemy())
+  {
     this.trackAttackData(actionResult);
-  } else if (target.isPlayer()) {
+  }
+  else if (target.isPlayer())
+  {
     this.trackDefensiveData(actionResult);
   }
 
@@ -205,25 +220,30 @@ Game_BattleMap.prototype.executeSkillEffects = function(action, target) {
  * Tracks various attack-related data points and assigns them to variables.
  * @param {Game_ActionResult} actionResult The action result to analyze the data of.
  */
-Game_BattleMap.prototype.trackAttackData = function(actionResult) {
-  const { hpDamage, critical } = actionResult;
-  if (hpDamage) {
+Game_BattleMap.prototype.trackAttackData = function(actionResult)
+{
+  const {hpDamage, critical} = actionResult;
+  if (hpDamage)
+  {
     // count all damage dealt.
     J.BASE.Helpers.modVariable(J.CAMods.Tracking.TotalDamageDealt, hpDamage);
 
     // track the highest damage dealt in a single hit.
     const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageDealt);
-    if (hpDamage > highestDamage) {
+    if (hpDamage > highestDamage)
+    {
       $gameVariables.setValue(J.CAMods.Tracking.HighestDamageDealt, hpDamage);
     }
 
-    if (critical) {
+    if (critical)
+    {
       // count of landed critical hits.
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsDealt, 1);
 
       // track the biggest critical hit landed.
       const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritDealt);
-      if (hpDamage > biggestCrit) {
+      if (hpDamage > biggestCrit)
+      {
         $gameVariables.setValue(J.CAMods.Tracking.BiggestCritDealt, hpDamage);
       }
     }
@@ -234,34 +254,42 @@ Game_BattleMap.prototype.trackAttackData = function(actionResult) {
  * Tracks various defensive-related data points and assigns them to variables.
  * @param {Game_ActionResult} actionResult The action result to analyze the data of.
  */
-Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
-  const { hpDamage, critical, parried, preciseParried } = actionResult;
-  if (hpDamage) {
+Game_BattleMap.prototype.trackDefensiveData = function(actionResult)
+{
+  const {hpDamage, critical, parried, preciseParried} = actionResult;
+  if (hpDamage)
+  {
     // count all damage received.
     J.BASE.Helpers.modVariable(J.CAMods.Tracking.TotalDamageTaken, hpDamage);
 
     // track the highest damage received in a single hit.
     const highestDamage = $gameVariables.value(J.CAMods.Tracking.HighestDamageTaken);
-    if (hpDamage > highestDamage) {
+    if (hpDamage > highestDamage)
+    {
       $gameVariables.setValue(J.CAMods.Tracking.HighestDamageTaken, hpDamage);
     }
 
-    if (critical) {
+    if (critical)
+    {
       // count of landed critical hits.
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfCritsTaken, 1);
 
       // track the biggest critical hit landed.
       const biggestCrit = $gameVariables.value(J.CAMods.Tracking.BiggestCritTaken);
-      if (hpDamage > biggestCrit) {
+      if (hpDamage > biggestCrit)
+      {
         $gameVariables.setValue(J.CAMods.Tracking.BiggestCritTaken, hpDamage);
       }
     }
 
-  } else if (parried) {
+  }
+  else if (parried)
+  {
     // count of all types of successful parries.
     J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfParries, 1);
 
-    if (preciseParried) {
+    if (preciseParried)
+    {
       // count of all types of successful parries.
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfPreciseParries, 1);
     }
@@ -276,21 +304,25 @@ Game_BattleMap.prototype.trackDefensiveData = function(actionResult) {
  * @param {number?} targetY The target's `y` coordinate, if applicable.
  */
 J.CAMods.Aliased.Game_BattleMap.executeMapAction = Game_BattleMap.prototype.executeMapAction;
-Game_BattleMap.prototype.executeMapAction = function(caster, action, targetX, targetY) {
+Game_BattleMap.prototype.executeMapAction = function(caster, action, targetX, targetY)
+{
   J.CAMods.Aliased.Game_BattleMap.executeMapAction.call(this, caster, action, targetX, targetY);
 
-  if (caster.isPlayer()) {
+  if (caster.isPlayer())
+  {
     this.trackActionData(action);
   }
 };
 
 /**
  * Tracks mainhand/offhand/skill usage data points and assigns them to variables.
- * @param {JABS_Action} action 
+ * @param {JABS_Action} action
  */
-Game_BattleMap.prototype.trackActionData = function(action) {
+Game_BattleMap.prototype.trackActionData = function(action)
+{
   const cooldownType = action.getCooldownType();
-  switch (cooldownType) {
+  switch (cooldownType)
+  {
     case Game_Actor.JABS_MAINHAND:
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.MainhandSkillUsage, 1);
       break;
@@ -305,6 +337,22 @@ Game_BattleMap.prototype.trackActionData = function(action) {
 };
 //#endregion Game_BattleMap
 
+//#region Game_Enemy
+/**
+ * Extends the drop sources to include passive skill states.
+ * This isn't a flavor everyone might like, so this is personal functionality instead.
+ * @returns {rm.types.BaseItem[]}
+ */
+J.CAMods.Aliased.Game_Enemy.set("dropSources", Game_Enemy.prototype.dropSources);
+Game_Enemy.prototype.dropSources = function()
+{
+  const sources = J.CAMods.Aliased.Game_Enemy.get("dropSources").call(this);
+  sources.push(...$gameParty.extraDropSources());
+
+  return sources;
+};
+//#endregion Game_Enemy
+
 //#region Game_Map
 /**
  * OVERWRITE Disables the ability to walk over tiles with the terrain ID of 1.
@@ -315,27 +363,33 @@ Game_BattleMap.prototype.trackActionData = function(action) {
  * @param {number} bit The bitwise operator being checked.
  * @returns {boolean} True if the tile can be walked on, false otherwise.
  */
-Game_Map.prototype.checkPassage = function(x, y, bit) {
+Game_Map.prototype.checkPassage = function(x, y, bit)
+{
   const flags = this.tilesetFlags();
   const tiles = this.allTiles(x, y);
-  for (const tile of tiles) {
-      const flag = flags[tile];
-      if ((flag & 0x10) !== 0) {
-          // [*] No effect on passage
-          continue;
-      }
-      if ((flag >> 12) === 1) { 
-          // [Terrain 1] No effect on passage
-          return false;
-      }
-      if ((flag & bit) === 0) {
-          // [o] Passable
-          return true;
-      }
-      if ((flag & bit) === bit) {
-          // [x] Impassable
-          return false;
-      }
+  for (const tile of tiles)
+  {
+    const flag = flags[tile];
+    if ((flag & 0x10) !== 0)
+    {
+      // [*] No effect on passage
+      continue;
+    }
+    if ((flag >> 12) === 1)
+    {
+      // [Terrain 1] No effect on passage
+      return false;
+    }
+    if ((flag & bit) === 0)
+    {
+      // [o] Passable
+      return true;
+    }
+    if ((flag & bit) === bit)
+    {
+      // [x] Impassable
+      return false;
+    }
   }
   return false;
 };
@@ -345,12 +399,33 @@ Game_Map.prototype.checkPassage = function(x, y, bit) {
  * have a chance of appearing.
  */
 J.CAMods.Aliased.Game_Map.setup = Game_Map.prototype.setup;
-Game_Map.prototype.setup = function(mapId) {
+Game_Map.prototype.setup = function(mapId)
+{
   J.CAMods.Aliased.Game_Map.setup.call(this, mapId);
-  $gameVariables.setValue(13, Math.randomInt(100)+1);
+  $gameVariables.setValue(13, Math.randomInt(100) + 1);
   // console.log(`RNG is [${$gameVariables.value(13)}].`);
 };
 //#endregion Game_Map
+
+//#region Game_Party
+/**
+ * Gets any additional sources to scan for drops when determining a drop item list on
+ * an enemy. In this case, we are including passive skill states to potentially add
+ * new items to every enemy.
+ * @returns {rm.types.BaseItem[]}
+ */
+Game_Party.prototype.extraDropSources = function()
+{
+  const extraSources = [];
+
+  // grab all passive skill states from all the members in the party.
+  $gameParty.battleMembers()
+    .forEach(member => extraSources.push(...member.allStates()));
+
+  console.log(extraSources);
+  return extraSources;
+};
+//#endregion Game_Party
 
 //#region Game_Player
 /**
@@ -359,7 +434,8 @@ Game_Map.prototype.setup = function(mapId) {
  * @return {number} The modified distance per frame to move.
  */
 J.CAMods.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
-Game_Player.prototype.distancePerFrame = function() {
+Game_Player.prototype.distancePerFrame = function()
+{
   const base = J.CAMods.Aliased.Game_Player.distancePerFrame.call(this);
   const caOnlyBonus = 1.12;
   return (base * caOnlyBonus);
@@ -372,22 +448,28 @@ Game_Player.prototype.distancePerFrame = function() {
  * Extends the start of everything by turning on dev tools.
  */
 J.CAMods.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
-Scene_Boot.prototype.start = function() {
+Scene_Boot.prototype.start = function()
+{
   J.CAMods.Aliased.Scene_Boot.get('start').call(this);
   SceneManager.showDevTools();
 };
 
-Scene_Base.prototype.buttonAreaHeight = function() {
+Scene_Base.prototype.buttonAreaHeight = function()
+{
   return 0;
 };
 
-Scene_Base.prototype.createButtons = function() { };
+Scene_Base.prototype.createButtons = function()
+{
+};
 
 //#region Scene_Map
 /**
  * OVERWRITE Removes the buttons on the map/screen.
  */
-Scene_Map.prototype.createButtons = function() { };
+Scene_Map.prototype.createButtons = function()
+{
+};
 //#endregion Scene_Map
 //#endregion Scene objects
 

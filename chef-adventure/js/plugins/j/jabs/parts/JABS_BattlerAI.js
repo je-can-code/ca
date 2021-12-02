@@ -17,7 +17,8 @@
 /**
  * An object representing the structure of the `JABS_Battler` AI.
  */
-class JABS_BattlerAI {
+class JABS_BattlerAI
+{
   /**
    * @constructor
    * @param {boolean} basic Enable the most basic of AI (recommended).
@@ -30,15 +31,16 @@ class JABS_BattlerAI {
    * @param {boolean} leader Enables ally coordination.
    */
   constructor(
-    basic = true, 
-    smart = false, 
-    executor = false, 
-    defensive = false, 
-    reckless = false, 
-    healer = false, 
-    follower = false, 
+    basic = true,
+    smart = false,
+    executor = false,
+    defensive = false,
+    reckless = false,
+    healer = false,
+    follower = false,
     leader = false
-  ) {
+  )
+  {
     /**
      * The most basic of AI: just move and take action.
      *
@@ -106,31 +108,40 @@ class JABS_BattlerAI {
    * @param {JABS_Battler} followerBattler The follower executing the decided action.
    * @returns {number} The skill id of the decided skill for the follower to perform.
    */
-  decideActionForFollower(leaderBattler, followerBattler) {
+  decideActionForFollower(leaderBattler, followerBattler)
+  {
     // all follower actions are decided based on the leader's ai.
-    const { smart, executor, defensive, healer } = this;
+    const {smart, executor, defensive, healer} = this;
     const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
     let skillsToUse = followerBattler.getSkillIdsFromEnemy();
-    if (skillsToUse.length) {
+    if (skillsToUse.length)
+    {
       const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
-      if (healer || defensive) {
+      if (healer || defensive)
+      {
         // get nearby allies with the leader's modified sight range of both battlers.
         const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
-  
+
         // prioritize healing when self or allies are low on hp.
-        if (healer) {
+        if (healer)
+        {
           skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
         }
-  
+
         // find skill that has the most buffs on it.
-        if (defensive) {
+        if (defensive)
+        {
           skillsToUse = this.filterSkillsDefensivePriority(skillsToUse, allies);
         }
-      } else if (smart || executor) {
-        // focus on the leader's target instead of the follower's target.
-        skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);  
       }
-    } else {
+      else if (smart || executor)
+      {
+        // focus on the leader's target instead of the follower's target.
+        skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
+      }
+    }
+    else
+    {
       // if there are no actual skills on this enemy, just use it's basic attack.
       return basicAttackId;
     }
@@ -140,7 +151,8 @@ class JABS_BattlerAI {
       : skillsToUse;
     const followerGameBattler = followerBattler.getBattler();
     const canPayChosenSkillCosts = followerGameBattler.canPaySkillCost($dataSkills[chosenSkillId]);
-    if (!canPayChosenSkillCosts) {
+    if (!canPayChosenSkillCosts)
+    {
       // if they can't pay the cost of the decided skill, check the basic attack.
       chosenSkillId = basicAttackId;
     }
@@ -153,25 +165,29 @@ class JABS_BattlerAI {
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]} skillsToUse The available skills to use.
    */
-  decideSupportAction(user, skillsToUse) {
+  decideSupportAction(user, skillsToUse)
+  {
     // don't do things if we have no skills to work with.
     if (!skillsToUse || !skillsToUse.length) return skillsToUse;
 
-    const { healer, defensive } = this;
+    const {healer, defensive} = this;
     const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
 
     // prioritize healing when self or allies are low on hp.
-    if (healer) {
+    if (healer)
+    {
       skillsToUse = this.filterSkillsHealerPriority(user, skillsToUse, allies);
     }
 
     // find skill that has the most buffs on it.
-    if (defensive) {
+    if (defensive)
+    {
       skillsToUse = this.filterSkillsDefensivePriority(user, skillsToUse, allies);
     }
 
     // if we ended up not picking a skill, then clear any ally targeting.
-    if (!skillsToUse.length) {
+    if (!skillsToUse.length)
+    {
       user.setAllyTarget(null);
     }
 
@@ -183,20 +199,23 @@ class JABS_BattlerAI {
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]} skillsToUse The available skills to use.
    */
-  decideAttackAction(user, skillsToUse) {
+  decideAttackAction(user, skillsToUse)
+  {
     // don't do things if we have no skills to work with.
     if (!skillsToUse || !skillsToUse.length) return skillsToUse;
 
-    const { smart, executor } = this;
+    const {smart, executor} = this;
     const target = user.getTarget();
 
     // filter out skills that are elementally ineffective.
-    if (smart) {
+    if (smart)
+    {
       skillsToUse = this.filterElementallyIneffectiveSkills(skillsToUse, target);
     }
-  
+
     // find most elementally effective skill vs the target.
-    if (executor) {
+    if (executor)
+    {
       skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, target);
     }
 
@@ -209,9 +228,12 @@ class JABS_BattlerAI {
    * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler} target The battler to decide the action about.
    */
-  filterElementallyIneffectiveSkills(skillsToUse, target) {
-    if (skillsToUse.length > 1) {
-      skillsToUse = skillsToUse.filter(skillId => {
+  filterElementallyIneffectiveSkills(skillsToUse, target)
+  {
+    if (skillsToUse.length > 1)
+    {
+      skillsToUse = skillsToUse.filter(skillId =>
+      {
         const testAction = new Game_Action(target.getBattler());
         testAction.setSkill(skillId);
         const rate = testAction.calcElementRate(target.getBattler());
@@ -229,13 +251,16 @@ class JABS_BattlerAI {
    * @param {JABS_Battler} target The battler to decide the action about.
    * @param {number[]} skillsToUse The available skills to use.
    */
-  findMostElementallyEffectiveSkill(skillsToUse, target) {
+  findMostElementallyEffectiveSkill(skillsToUse, target)
+  {
     // if we have no skills to work with, then don't process.
     if (!skillsToUse.length > 1) return skillsToUse;
 
-    if (skillsToUse.length > 1) {
+    if (skillsToUse.length > 1)
+    {
       let elementalSkillCollection = [];
-      skillsToUse.forEach(skillId => {
+      skillsToUse.forEach(skillId =>
+      {
         const testAction = new Game_Action(target.getBattler());
         testAction.setSkill(skillId);
         const rate = testAction.calcElementRate(target.getBattler());
@@ -243,7 +268,8 @@ class JABS_BattlerAI {
       });
 
       // sorts the skills by their elemental effectiveness.
-      elementalSkillCollection.sort((a, b) => {
+      elementalSkillCollection.sort((a, b) =>
+      {
         if (a[1] < b[1]) return -1;
         if (a[1] > b[1]) return 1;
         return 0;
@@ -260,10 +286,11 @@ class JABS_BattlerAI {
    * Filters skills by a defensive priority.
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]} skillsToUse The available skills to use.
-   * @param {JABS_Battler[]} allies 
-   * @returns 
+   * @param {JABS_Battler[]} allies
+   * @returns
    */
-  filterSkillsDefensivePriority(user, skillsToUse, allies) {
+  filterSkillsDefensivePriority(user, skillsToUse, allies)
+  {
     return skillsToUse;
   };
 
@@ -271,15 +298,16 @@ class JABS_BattlerAI {
    * Filters skills by a healing priority.
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]} skillsToUse The available skills to use.
-   * @param {JABS_Battler[]} allies 
-   * @returns 
+   * @param {JABS_Battler[]} allies
+   * @returns
    */
-  filterSkillsHealerPriority(user, skillsToUse, allies) {
+  filterSkillsHealerPriority(user, skillsToUse, allies)
+  {
     // if we have no skills to work with, then don't process.
     if (!skillsToUse.length > 1) return skillsToUse;
 
     // if we have no ai traits that affect skill-decision-making, then don't perform the logic.
-    const { basic, smart, defensive, reckless } = this;
+    const {basic, smart, defensive, reckless} = this;
     if (!basic && !smart && !defensive && !reckless) return skillsToUse;
 
     let mostWoundedAlly = null;
@@ -289,36 +317,41 @@ class JABS_BattlerAI {
     let alliesMissingAnyHp = 0;
 
     // iterate over allies to determine the ally with the lowest hp%
-    allies.forEach(ally => {
+    allies.forEach(ally =>
+    {
       const battler = ally.getBattler();
       const hpRatio = battler.hp / battler.mhp;
-      
+
       // if it is lower than the last-tracked-lowest, then update the lowest.
-      if (lowestHpRatio > hpRatio) {
+      if (lowestHpRatio > hpRatio)
+      {
         lowestHpRatio = hpRatio;
         mostWoundedAlly = ally;
         actualHpDifference = battler.mhp - battler.hp;
 
         // count all allies below the "heal all" threshold.
-        if (hpRatio <= 0.66) {
+        if (hpRatio <= 0.66)
+        {
           alliesBelow66++;
         }
       }
 
       // count all allies missing any amount of hp.
-      if (hpRatio < 1) {
+      if (hpRatio < 1)
+      {
         alliesMissingAnyHp++;
       }
     });
 
     // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
-    if (!alliesMissingAnyHp && !reckless ) return skillsToUse;
+    if (!alliesMissingAnyHp && !reckless) return skillsToUse;
 
     user.setAllyTarget(mostWoundedAlly);
     const mostWoundedAllyBattler = mostWoundedAlly.getBattler();
 
     // filter out the skills that aren't for allies.
-    const healingTypeSkills = skillsToUse.filter(skillId => {
+    const healingTypeSkills = skillsToUse.filter(skillId =>
+    {
       const testAction = new Game_Action(user.getBattler());
       testAction.setSkill(skillId);
       return (testAction.isForAliveFriend() &&  // must target living allies.
@@ -327,7 +360,8 @@ class JABS_BattlerAI {
     });
 
     // if we have 0 or 1 skills left after healing, just return that.
-    if (healingTypeSkills.length < 2) {
+    if (healingTypeSkills.length < 2)
+    {
       return healingTypeSkills;
     }
 
@@ -344,18 +378,21 @@ class JABS_BattlerAI {
     let closestFitHealAllSkill = null;
     let closestFitHealOneSkill = null;
     let firstSkill = false;
-    healingTypeSkills.forEach(skillId => {
+    healingTypeSkills.forEach(skillId =>
+    {
       const skill = $dataSkills[skillId];
       const testAction = new Game_Action(user.getBattler());
       testAction.setItemObject(skill);
       const healAmount = testAction.makeDamageValue(mostWoundedAllyBattler, false);
-      if (Math.abs(runningBiggestHeal) < Math.abs(healAmount)) {
-        biggestHealSkill = skillId;  
+      if (Math.abs(runningBiggestHeal) < Math.abs(healAmount))
+      {
+        biggestHealSkill = skillId;
         runningBiggestHeal = healAmount;
       }
 
       // if this is our first skill in the possible heal skills available, write to all skills.
-      if (!firstSkill) {
+      if (!firstSkill)
+      {
         biggestHealAllSkill = skillId;
         runningBiggestHealAll = healAmount;
         closestFitHealAllSkill = skillId;
@@ -368,9 +405,11 @@ class JABS_BattlerAI {
       }
 
       // analyze the heal all skills for biggest and closest fits.
-      if (testAction.isForAll()) {
+      if (testAction.isForAll())
+      {
         // if this heal amount is bigger than the running biggest heal-all amount, then update.
-        if (runningBiggestHealAll < healAmount) {
+        if (runningBiggestHealAll < healAmount)
+        {
           biggestHealAllSkill = skillId;
           runningBiggestHealAll = healAmount;
         }
@@ -378,16 +417,19 @@ class JABS_BattlerAI {
         // if this difference is smaller than the running closest fit heal-all amount, then update.
         const runningDifference = Math.abs(runningClosestFitHealAll - actualHpDifference);
         const thisDifference = Math.abs(healAmount - actualHpDifference);
-        if (thisDifference < runningDifference) {
+        if (thisDifference < runningDifference)
+        {
           closestFitHealAllSkill = skillId;
           runningClosestFitHealAll = healAmount;
         }
       }
 
       // analyze the heal one skills for biggest and closest fits.
-      if (testAction.isForOne()) {
+      if (testAction.isForOne())
+      {
         // if this heal amount is bigger than the running biggest heal-one amount, then update.
-        if (runningBiggestHealOne < healAmount) {
+        if (runningBiggestHealOne < healAmount)
+        {
           biggestHealOneSkill = skillId;
           runningBiggestHealOne = healAmount;
         }
@@ -395,7 +437,8 @@ class JABS_BattlerAI {
         // if this difference is smaller than the running closest fit heal-one amount, then update.
         const runningDifference = Math.abs(runningClosestFitHealOne - actualHpDifference);
         const thisDifference = Math.abs(healAmount - actualHpDifference);
-        if (thisDifference < runningDifference) {
+        if (thisDifference < runningDifference)
+        {
           closestFitHealOneSkill = skillId;
           runningClosestFitHealOne = healAmount;
         }
@@ -404,47 +447,69 @@ class JABS_BattlerAI {
 
     // basic will just pick a random one from the four skill options.
     // basic will get overwritten if there are additional ai traits.
-    if (basic) {
+    if (basic)
+    {
       const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
       bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
     }
 
     // smart will decide in this order: 
-    if (smart) {
+    if (smart)
+    {
       // - if any below 40%, then prioritize heal-one of most wounded.
-      if (lowestHpRatio <= 0.40) {
+      if (lowestHpRatio <= 0.40)
+      {
         bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
 
-      // - if none below 40% but multiple wounded, prioritize closest-fit heal-all.
-      } else if (alliesMissingAnyHp > 1 && lowestHpRatio < 0.80) {
+        // - if none below 40% but multiple wounded, prioritize closest-fit heal-all.
+      }
+      else if (alliesMissingAnyHp > 1 && lowestHpRatio < 0.80)
+      {
         bestSkillId = defensive ? biggestHealAllSkill : closestFitHealAllSkill;
 
-      // - if only one wounded, then heal them.
-      } else if (alliesMissingAnyHp === 1 && lowestHpRatio < 0.80) {
+        // - if only one wounded, then heal them.
+      }
+      else if (alliesMissingAnyHp === 1 && lowestHpRatio < 0.80)
+      {
         bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
-      // - if none wounded, or none below 80%, then don't heal.
-      } else { }
+        // - if none wounded, or none below 80%, then don't heal.
+      }
+      else
+      {
+      }
     }
 
     // defensive will decide in this order:
-    if (defensive && !smart) {
+    if (defensive && !smart)
+    {
       // - if there is only one wounded ally, prioritize biggest heal-one skill.
-      if (alliesMissingAnyHp === 1) {
+      if (alliesMissingAnyHp === 1)
+      {
         bestSkillId = biggestHealOneSkill;
-      // - if there is more than one wounded ally, prioritize biggest heal-all skill.
-      } else if (alliesMissingAnyHp > 1) {
+        // - if there is more than one wounded ally, prioritize biggest heal-all skill.
+      }
+      else if (alliesMissingAnyHp > 1)
+      {
         bestSkillId = biggestHealAllSkill;
-      // - if none wounded, don't heal.
-      } else { }
+        // - if none wounded, don't heal.
+      }
+      else
+      {
+      }
     }
 
     // reckless will decide in this order:
-    if (reckless) {
+    if (reckless)
+    {
       // - if there are any wounded allies, always use biggest heal skill, for one or all.
-      if (alliesMissingAnyHp > 0) {
+      if (alliesMissingAnyHp > 0)
+      {
         bestSkillId = biggestHealSkill;
-      // - if none wounded, don't heal.
-      } else { }
+        // - if none wounded, don't heal.
+      }
+      else
+      {
+      }
     }
 
     return bestSkillId;

@@ -17,10 +17,15 @@
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
-function OneTimeItemBoost() { this.initialize(...arguments); }
+function OneTimeItemBoost()
+{
+  this.initialize(...arguments);
+}
+
 OneTimeItemBoost.prototype = {};
 OneTimeItemBoost.prototype.constructor = OneTimeItemBoost;
-OneTimeItemBoost.prototype.initialize = function(itemId, parameterData) {
+OneTimeItemBoost.prototype.initialize = function(itemId, parameterData)
+{
   /**
    * The item id this one time item boost represents.
    * @type {number}
@@ -38,7 +43,8 @@ OneTimeItemBoost.prototype.initialize = function(itemId, parameterData) {
 /**
  * Initializes the rest of the members of this class with default parameters.
  */
-OneTimeItemBoost.prototype.initMembers = function() {
+OneTimeItemBoost.prototype.initMembers = function()
+{
   /**
    * Whether or not this boost has been unlocked.
    * @type {boolean}
@@ -50,21 +56,24 @@ OneTimeItemBoost.prototype.initMembers = function() {
  * Gets whether or not this boost is unlocked.
  * @returns {boolean}
  */
-OneTimeItemBoost.prototype.isUnlocked = function() {
+OneTimeItemBoost.prototype.isUnlocked = function()
+{
   return this.unlocked;
 };
 
 /**
  * Unlocks this boost.
  */
-OneTimeItemBoost.prototype.unlock = function() {
+OneTimeItemBoost.prototype.unlock = function()
+{
   this.unlocked = true;
 };
 
 /**
  * Locks this boost.
  */
-OneTimeItemBoost.prototype.lock = function() {
+OneTimeItemBoost.prototype.lock = function()
+{
   this.unlocked = false;
 };
 //ENDFILE

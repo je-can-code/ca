@@ -18,7 +18,11 @@
  * A class containing all the data extracted from the comments of an event's
  * comments and contained with friendly methods to access and manipulate.
  */
-function JABS_BattlerCoreData() { this.initialize(...arguments); }
+function JABS_BattlerCoreData()
+{
+  this.initialize(...arguments);
+}
+
 JABS_BattlerCoreData.prototype = {};
 JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
 
@@ -40,10 +44,22 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
  */
 JABS_BattlerCoreData.prototype.initialize = function({
-  battlerId, teamId, battlerAI, sightRange, alertedSightBoost, pursuitRange, 
-  alertedPursuitBoost, alertDuration, canIdle, showHpBar, showDangerIndicator,
-  showBattlerName, isInvincible, isInanimate
-}) {
+                                                       battlerId,
+                                                       teamId,
+                                                       battlerAI,
+                                                       sightRange,
+                                                       alertedSightBoost,
+                                                       pursuitRange,
+                                                       alertedPursuitBoost,
+                                                       alertDuration,
+                                                       canIdle,
+                                                       showHpBar,
+                                                       showDangerIndicator,
+                                                       showBattlerName,
+                                                       isInvincible,
+                                                       isInanimate
+                                                     })
+{
   /**
    * The id of the enemy that this battler represents.
    * @type {number}
@@ -108,17 +124,17 @@ JABS_BattlerCoreData.prototype.initialize = function({
    * Whether or not this battler's danger indicator will be visible.
    * @type {boolean} True if the battler's danger indicator should show, false otherwise.
    */
-   this._showDangerIndicator = showDangerIndicator;
+  this._showDangerIndicator = showDangerIndicator;
 
   /**
    * Whether or not this battler's name will be visible.
    * @type {boolean} True if the battler's name should show, false otherwise.
    */
-   this._showBattlerName = showBattlerName;
+  this._showBattlerName = showBattlerName;
 
   /**
    * Whether or not this battler is invincible.
-   * 
+   *
    * Invincible is defined as: `actions will not collide with this battler`.
    * @type {boolean} True if the battler is invincible, false otherwise.
    */
@@ -126,7 +142,7 @@ JABS_BattlerCoreData.prototype.initialize = function({
 
   /**
    * Whether or not this battler is inanimate. Inanimate battlers have a few
-   * unique traits, those being: cannot idle, hp bar is hidden, cannot be alerted, 
+   * unique traits, those being: cannot idle, hp bar is hidden, cannot be alerted,
    * does not play deathcry when defeated, and cannot engage in battle.
    * @type {boolean} True if the battler is inanimate, false otherwise.
    */
@@ -137,7 +153,8 @@ JABS_BattlerCoreData.prototype.initialize = function({
  * Gets this battler's enemy id.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.battlerId = function() {
+JABS_BattlerCoreData.prototype.battlerId = function()
+{
   return this._battlerId;
 };
 
@@ -145,7 +162,8 @@ JABS_BattlerCoreData.prototype.battlerId = function() {
  * Gets this battler's team id.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.team = function() {
+JABS_BattlerCoreData.prototype.team = function()
+{
   return this._teamId;
 };
 
@@ -153,7 +171,8 @@ JABS_BattlerCoreData.prototype.team = function() {
  * Gets this battler's AI.
  * @returns {JABS_BattlerAI}
  */
-JABS_BattlerCoreData.prototype.ai = function() {
+JABS_BattlerCoreData.prototype.ai = function()
+{
   return this._battlerAI;
 };
 
@@ -161,7 +180,8 @@ JABS_BattlerCoreData.prototype.ai = function() {
  * Gets the base range that this enemy can engage targets within.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.sightRange = function() {
+JABS_BattlerCoreData.prototype.sightRange = function()
+{
   return this._sightRange;
 };
 
@@ -169,7 +189,8 @@ JABS_BattlerCoreData.prototype.sightRange = function() {
  * Gets the boost to sight range while alerted.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.alertedSightBoost = function() {
+JABS_BattlerCoreData.prototype.alertedSightBoost = function()
+{
   return this._alertedSightBoost;
 };
 
@@ -177,7 +198,8 @@ JABS_BattlerCoreData.prototype.alertedSightBoost = function() {
  * Gets the base range that this enemy will pursue it's engaged target.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.pursuitRange = function() {
+JABS_BattlerCoreData.prototype.pursuitRange = function()
+{
   return this._pursuitRange;
 };
 
@@ -185,7 +207,8 @@ JABS_BattlerCoreData.prototype.pursuitRange = function() {
  * Gets the boost to pursuit range while alerted.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.alertedPursuitBoost = function() {
+JABS_BattlerCoreData.prototype.alertedPursuitBoost = function()
+{
   return this._alertedPursuitBoost;
 };
 
@@ -193,7 +216,8 @@ JABS_BattlerCoreData.prototype.alertedPursuitBoost = function() {
  * Gets the duration in frames for how long this battler remains alerted.
  * @returns {number}
  */
-JABS_BattlerCoreData.prototype.alertDuration = function() {
+JABS_BattlerCoreData.prototype.alertDuration = function()
+{
   return this._alertDuration;
 };
 
@@ -201,7 +225,8 @@ JABS_BattlerCoreData.prototype.alertDuration = function() {
  * Gets whether or not this battler will move around while idle.
  * @returns {boolean}
  */
-JABS_BattlerCoreData.prototype.canIdle = function() {
+JABS_BattlerCoreData.prototype.canIdle = function()
+{
   return this._canIdle;
 };
 
@@ -209,7 +234,8 @@ JABS_BattlerCoreData.prototype.canIdle = function() {
  * Gets whether or not this battler's hp bar will be visible.
  * @returns {boolean}
  */
-JABS_BattlerCoreData.prototype.showHpBar = function() {
+JABS_BattlerCoreData.prototype.showHpBar = function()
+{
   return this._showHpBar;
 };
 
@@ -217,7 +243,8 @@ JABS_BattlerCoreData.prototype.showHpBar = function() {
  * Gets whether or not this battler's danger indicator will be visible.
  * @returns {boolean}
  */
- JABS_BattlerCoreData.prototype.showDangerIndicator = function() {
+JABS_BattlerCoreData.prototype.showDangerIndicator = function()
+{
   return this._showDangerIndicator;
 };
 
@@ -225,7 +252,8 @@ JABS_BattlerCoreData.prototype.showHpBar = function() {
  * Gets whether or not this battler's name will be visible.
  * @returns {boolean}
  */
- JABS_BattlerCoreData.prototype.showBattlerName = function() {
+JABS_BattlerCoreData.prototype.showBattlerName = function()
+{
   return this._showBattlerName;
 };
 
@@ -233,7 +261,8 @@ JABS_BattlerCoreData.prototype.showHpBar = function() {
  * Gets whether or not this battler is `invincible`.
  * @returns {boolean}
  */
-JABS_BattlerCoreData.prototype.isInvincible = function() {
+JABS_BattlerCoreData.prototype.isInvincible = function()
+{
   return this._isInvincible;
 };
 
@@ -241,7 +270,8 @@ JABS_BattlerCoreData.prototype.isInvincible = function() {
  * Gets whether or not this battler is `inanimate`.
  * @returns {boolean}
  */
-JABS_BattlerCoreData.prototype.isInanimate = function() {
+JABS_BattlerCoreData.prototype.isInanimate = function()
+{
   return this._isInanimate;
 };
 //ENDFILE

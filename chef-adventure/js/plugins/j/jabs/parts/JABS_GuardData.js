@@ -15,7 +15,8 @@
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
  */
-class JABS_GuardData {
+class JABS_GuardData
+{
   /**
    * @constructor
    * @param {number} skillId The skill this guard data is associated with.
@@ -41,7 +42,7 @@ class JABS_GuardData {
 
     /**
      * The flat amount of damage reduced when guarding, if any.
-     * @type {number} 
+     * @type {number}
      */
     this.flatGuardReduction = flatGuardReduction;
 
@@ -97,4 +98,5 @@ class JABS_GuardData {
     return !!(this.counterGuardId || this.counterParryId);
   };
 }
+
 //ENDFILE

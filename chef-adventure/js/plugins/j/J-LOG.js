@@ -1,52 +1,52 @@
- /*:
- * @target MZ
- * @plugindesc 
- * [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
- * @author JE
- * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @orderAfter J-BASE
- * @orderAfter J-ABS
- * @orderBefore J-SDP
- * @help
- * ============================================================================
- * This plugin creates a window on the screen that will act as a log of sorts.
- * It was initially designed as a battle log for JABS, but it can do things 
- * without the help of JABS if you really want it to.
- * 
- * If not using this with JABS, then you'll need to leverage the plugin
- * commands to add logs manually where applicable.
- * 
- * Icons were initially a part of the design, but that was never implemented
- * due to lack of popularity of the plugin and never really needing it myself.
- * If this starts to pick up traction and people like it, I'll refactor it to
- * be more feature-complete.
- * ============================================================================
- * @param Enabled
- * @type boolean
- * @text Enable Log?
- * @desc True if you want the log to be enabled, false otherwise.
- * @default true
- * 
- * 
- * @command Enable Text Log
- * @text Enable the Text Log
- * @desc Enables the text log and displays it on the screen.
- * 
- * @command Disable Text Log
- * @text Disable the Text Log
- * @desc Disables the text log and renders it invisible.
- * 
- * @command Add Text Log
- * @text Add a text log
- * @desc Create a new entry and add it to the text log window. 
- * @arg Text
- * @type string
- * @default One potion was found!
- * @arg Icon
- * @type number
- * @default 1
- */
+/*:
+* @target MZ
+* @plugindesc
+* [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
+* @author JE
+* @url https://github.com/je-can-code/rmmz
+* @base J-BASE
+* @orderAfter J-BASE
+* @orderAfter J-ABS
+* @orderBefore J-SDP
+* @help
+* ============================================================================
+* This plugin creates a window on the screen that will act as a log of sorts.
+* It was initially designed as a battle log for JABS, but it can do things
+* without the help of JABS if you really want it to.
+*
+* If not using this with JABS, then you'll need to leverage the plugin
+* commands to add logs manually where applicable.
+*
+* Icons were initially a part of the design, but that was never implemented
+* due to lack of popularity of the plugin and never really needing it myself.
+* If this starts to pick up traction and people like it, I'll refactor it to
+* be more feature-complete.
+* ============================================================================
+* @param Enabled
+* @type boolean
+* @text Enable Log?
+* @desc True if you want the log to be enabled, false otherwise.
+* @default true
+*
+*
+* @command Enable Text Log
+* @text Enable the Text Log
+* @desc Enables the text log and displays it on the screen.
+*
+* @command Disable Text Log
+* @text Disable the Text Log
+* @desc Disables the text log and renders it invisible.
+*
+* @command Add Text Log
+* @text Add a text log
+* @desc Create a new entry and add it to the text log window.
+* @arg Text
+* @type string
+* @default One potion was found!
+* @arg Icon
+* @type number
+* @default 1
+*/
 
 //#region plugin setup and configuration
 /**
@@ -55,11 +55,13 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
@@ -94,22 +96,25 @@ J.LOG.Aliased.Scene_Map = {};
 /**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Enable Text Log", () => {
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Enable Text Log", () =>
+{
   J.LOG.Metadata.Active = true;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Disable Text Log", () => {
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Disable Text Log", () =>
+{
   J.LOG.Metadata.Active = false;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args => {
-  const { Text, Icon } = args;
+PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args =>
+{
+  const {Text, Icon} = args;
   const log = new Map_TextLog(Text, Icon);
   $gameTextLog.addLog(log);
 });
@@ -117,17 +122,18 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args => {
 
 //#region DataManager
 
- /**
-  * The global text logger.
-  * @type {Game_TextLog}
-  */
- var $gameTextLog = null;
+/**
+ * The global text logger.
+ * @type {Game_TextLog}
+ */
+var $gameTextLog = null;
 
 /**
  * Hooks into `DataManager` to create the game objects.
  */
 J.LOG.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
-DataManager.createGameObjects = function() {
+DataManager.createGameObjects = function()
+{
   J.LOG.Aliased.DataManager.createGameObjects.call(this);
   $gameTextLog = new Game_TextLog();
 };
@@ -138,7 +144,8 @@ DataManager.createGameObjects = function() {
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
 J.LOG.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
-Scene_Map.prototype.initialize = function() {
+Scene_Map.prototype.initialize = function()
+{
   J.LOG.Aliased.Scene_Map.initialize.call(this);
   this._j ||= {};
   this._j._mapTextLog = null;
@@ -148,7 +155,8 @@ Scene_Map.prototype.initialize = function() {
  * Once the map is loaded, create the text log.
  */
 J.LOG.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
-Scene_Map.prototype.onMapLoaded = function() {
+Scene_Map.prototype.onMapLoaded = function()
+{
   J.LOG.Aliased.Scene_Map.onMapLoaded.call(this);
   this.createJabsTextLog();
 };
@@ -156,7 +164,8 @@ Scene_Map.prototype.onMapLoaded = function() {
 /**
  * Creates the internal text log for JABS.
  */
-Scene_Map.prototype.createJabsTextLog = function() {
+Scene_Map.prototype.createJabsTextLog = function()
+{
   const width = 768;
   const height = 200;
   const x = 0;
@@ -170,8 +179,10 @@ Scene_Map.prototype.createJabsTextLog = function() {
  * Toggles the visibility and functionality of the externally managed text log.
  * @param {boolean} toggle Whether or not to display the external text log.
  */
-Scene_Map.prototype.toggleLog = function(toggle = true) {
-  if (J.LOG.Metadata.Enabled) {
+Scene_Map.prototype.toggleLog = function(toggle = true)
+{
+  if (J.LOG.Metadata.Enabled)
+  {
     this._j._mapTextLog.toggle(toggle);
   }
 };
@@ -181,14 +192,19 @@ Scene_Map.prototype.toggleLog = function(toggle = true) {
 /**
  * The manager that handles all logs in the `Window_TextLog`.
  */
-function Game_TextLog() { this.initialize(...arguments); }
+function Game_TextLog()
+{
+  this.initialize(...arguments);
+}
+
 Game_TextLog.prototype = {};
 Game_TextLog.prototype.constructor = Game_TextLog;
 
 /**
  * Initializes this class.
  */
-Game_TextLog.prototype.initialize = function() {
+Game_TextLog.prototype.initialize = function()
+{
   /**
    * The logs currently being managed.
    * @type {Map_TextLog[]}
@@ -200,7 +216,8 @@ Game_TextLog.prototype.initialize = function() {
 /**
  * Initializes all properties for this class.
  */
-Game_TextLog.prototype.initMembers = function() {
+Game_TextLog.prototype.initMembers = function()
+{
   this._logs = [];
 };
 
@@ -208,7 +225,8 @@ Game_TextLog.prototype.initMembers = function() {
  * Gets all currently pending logs.
  * @returns {Map_TextLog[]} All logs currently in queue.
  */
-Game_TextLog.prototype.getLogs = function() {
+Game_TextLog.prototype.getLogs = function()
+{
   return this._logs;
 };
 
@@ -216,7 +234,8 @@ Game_TextLog.prototype.getLogs = function() {
  * Adds a new text log to the window.
  * @param {Map_TextLog} log The log to add to the window.
  */
-Game_TextLog.prototype.addLog = function(log) {
+Game_TextLog.prototype.addLog = function(log)
+{
   this._logs.push(log);
 };
 
@@ -224,7 +243,8 @@ Game_TextLog.prototype.addLog = function(log) {
  * Removes the first log and returns it.
  * @returns {Map_TextLog} The first text log in the collection.
  */
-Game_TextLog.prototype.shiftLog = function() {
+Game_TextLog.prototype.shiftLog = function()
+{
   return this._logs.shift();
 };
 
@@ -232,14 +252,16 @@ Game_TextLog.prototype.shiftLog = function() {
  * Removes the last log and returns it.
  * @returns {Map_TextLog} The last text log in the collection.
  */
-Game_TextLog.prototype.popLog = function() {
+Game_TextLog.prototype.popLog = function()
+{
   return this._logs.pop();
 };
 
 /**
  * Empties the currently pending logs.
  */
-Game_TextLog.prototype.clearLogs = function() {
+Game_TextLog.prototype.clearLogs = function()
+{
   this._logs.splice(0, this._logs.length);
 };
 //#endregion
@@ -248,7 +270,11 @@ Game_TextLog.prototype.clearLogs = function() {
 /**
  * A window that displays the rolling text log of various activities.
  */
-function Window_TextLog() { this.initialize(...arguments); }
+function Window_TextLog()
+{
+  this.initialize(...arguments);
+}
+
 Window_TextLog.prototype = Object.create(Window_Base.prototype);
 Window_TextLog.prototype.constructor = Window_TextLog;
 
@@ -256,7 +282,8 @@ Window_TextLog.prototype.constructor = Window_TextLog;
  * Initializes the entire text log.
  * @param {Rectangle} rect The rectangle object that defines the shape of this window.
  */
-Window_TextLog.prototype.initialize = function(rect) {
+Window_TextLog.prototype.initialize = function(rect)
+{
   Window_Base.prototype.initialize.call(this, rect);
   this.openness = 255;
   this.opacity = 0;
@@ -266,7 +293,8 @@ Window_TextLog.prototype.initialize = function(rect) {
 /**
  * Initializes all the various properties of this text log.
  */
-Window_TextLog.prototype.initMembers = function() {
+Window_TextLog.prototype.initMembers = function()
+{
   /**
    * The height of a single line. Determines spacing of the log entries.
    */
@@ -338,41 +366,46 @@ Window_TextLog.prototype.initMembers = function() {
 /**
  * Handles the logical updating for this text log.
  */
-Window_TextLog.prototype.update = function() {
+Window_TextLog.prototype.update = function()
+{
   Window_Base.prototype.update.call(this);
-  if (this.canUpdate()) {
+  if (this.canUpdate())
+  {
     this.drawLogs();
-  } else {
+  }
+  else
+  {
     this.manageVisibility();
     this.refresh();
   }
 };
 
- /**
-  * Handles visibility for the text log.
-  */
- Window_TextLog.prototype.manageVisibility = function()
- {
-   if ($gameMessage.isBusy()) {
-     this.opacity = 0;
-     this.close();
-     this.hide();
-   }
-   else
-   {
-     this.show();
-     this.open();
-   }
+/**
+ * Handles visibility for the text log.
+ */
+Window_TextLog.prototype.manageVisibility = function()
+{
+  if ($gameMessage.isBusy())
+  {
+    this.opacity = 0;
+    this.close();
+    this.hide();
+  }
+  else
+  {
+    this.show();
+    this.open();
+  }
 
-   this._toggled = false;
- };
-
+  this._toggled = false;
+};
 
 /**
  * Toggles whether or not this hud is enabled.
  * @param {boolean} toggle Toggles the hud to be visible and operational.
  */
-Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
+Window_TextLog.prototype.toggle = function(toggle = !this._enabled)
+{
   this._enabled = toggle;
   this._toggled = false;
   this.manageVisibility();
@@ -382,7 +415,8 @@ Window_TextLog.prototype.toggle = function(toggle = !this._enabled) {
  * Whether or not this text log should be updated.
  * @returns {boolean} True if the log can be updated, false otherwise.
  */
-Window_TextLog.prototype.canUpdate = function() {
+Window_TextLog.prototype.canUpdate = function()
+{
   // the base conditions of the window and system.
   const baseConditions = (this.contents && this._enabled && J.LOG.Metadata.Active);
 
@@ -404,10 +438,12 @@ Window_TextLog.prototype.canUpdate = function() {
 /**
  * Refreshes the window and forces a recreation of all sprites.
  */
-Window_TextLog.prototype.refresh = function() {
+Window_TextLog.prototype.refresh = function()
+{
   this.contents.clear();
   const keys = Object.keys(this._messageSprites);
-  keys.forEach(key => {
+  keys.forEach(key =>
+  {
     this._messageSprites[key].destroy();
     delete this._messageSprites[key];
   })
@@ -420,26 +456,30 @@ Window_TextLog.prototype.refresh = function() {
  * Draws all the logs and manages them. If the player is in the way, then
  * pause management and greatly reduce opacity for the text log.
  */
-Window_TextLog.prototype.drawLogs = function() {
-  if (this.playerInterference()) {
+Window_TextLog.prototype.drawLogs = function()
+{
+  if (this.playerInterference())
+  {
     this.interferenceOpacity();
   }
-  
+
   this.writeAllEntries();
   this.handleIncomingLogs();
   this.handleOutgoingLogs();
-  this.fadeWhileInactive();  
+  this.fadeWhileInactive();
 };
 
 /**
  * Determines whether or not the player is in the way (or near it) of this window.
  * @returns {boolean} True if the player is in the way, false otherwise.
  */
-Window_TextLog.prototype.playerInterference = function() {
+Window_TextLog.prototype.playerInterference = function()
+{
   const player = $gamePlayer;
   const playerX = player.screenX();
   const playerY = player.screenY();
-  if (playerX < (this.width + 50) && playerY > (this.y - 50)) {
+  if (playerX < (this.width + 50) && playerY > (this.y - 50))
+  {
     return true;
   }
 
@@ -449,10 +489,12 @@ Window_TextLog.prototype.playerInterference = function() {
 /**
  * Reduces opacity of all sprites when the player is in the way.
  */
-Window_TextLog.prototype.interferenceOpacity = function() {
+Window_TextLog.prototype.interferenceOpacity = function()
+{
   const sprites = this._messageSprites;
   const keys = Object.keys(sprites);
-  keys.forEach(key => {
+  keys.forEach(key =>
+  {
     const sprite = sprites[key];
     if (sprite.opacity > 0) sprite.opacity -= 15;
     if (sprite.opacity < 0) sprite.opacity += 1;
@@ -465,11 +507,13 @@ Window_TextLog.prototype.interferenceOpacity = function() {
 /**
  * Draws all the entries in the log.
  */
-Window_TextLog.prototype.writeAllEntries = function() {
+Window_TextLog.prototype.writeAllEntries = function()
+{
   this.contents.clear();
   if (this._messageTracker.length == 0 || this.isFaded()) return;
 
-  this._messageTracker.forEach((messageSprite, index) => {
+  this._messageTracker.forEach((messageSprite, index) =>
+  {
     messageSprite.y = this._rowOne - (this._lineHeight * index);
     messageSprite.show();
   })
@@ -478,8 +522,10 @@ Window_TextLog.prototype.writeAllEntries = function() {
 /**
  * Extracts the logs and creates sprites representing their data.
  */
-Window_TextLog.prototype.handleIncomingLogs = function() {
-  if ($gameTextLog.getLogs().length > 0) {
+Window_TextLog.prototype.handleIncomingLogs = function()
+{
+  if ($gameTextLog.getLogs().length > 0)
+  {
 
     // get the log from the global log manager.
     const nextLog = $gameTextLog.shiftLog();
@@ -502,8 +548,10 @@ Window_TextLog.prototype.handleIncomingLogs = function() {
 /**
  * After a fixed amount of inactivity, begin destroying logs in order.
  */
-Window_TextLog.prototype.handleOutgoingLogs = function() {
-  if (this.isInactive() && this._messageTracker.length > 0) {
+Window_TextLog.prototype.handleOutgoingLogs = function()
+{
+  if (this.isInactive() && this._messageTracker.length > 0)
+  {
     //this.removeOldestLog();
   }
 };
@@ -512,10 +560,14 @@ Window_TextLog.prototype.handleOutgoingLogs = function() {
  * Controls the opacity of this window. While it is inactive, reduce opacity.
  * Once activity resumes, quickly increase opacity back to max(255).
  */
-Window_TextLog.prototype.fadeWhileInactive = function() {
-  if (this.isInactive()) {
+Window_TextLog.prototype.fadeWhileInactive = function()
+{
+  if (this.isInactive())
+  {
     this.fadeOpacity();
-  } else {
+  }
+  else
+  {
     this.resetOpacity();
   }
 };
@@ -523,15 +575,21 @@ Window_TextLog.prototype.fadeWhileInactive = function() {
 /**
  * While the log window is inactive, reduce opacity of the window and text.
  */
-Window_TextLog.prototype.fadeOpacity = function() {
+Window_TextLog.prototype.fadeOpacity = function()
+{
   //if (this.opacity > this._opacityMinimum) this.opacity -= this._opacityRate;
   //if (this.opacity < this._opacityMinimum) this.opacity = this._opacityMinimum;
 
-  if (this.isFaded()) {
-    Object.values(this._messageSprites).forEach(sprite => {
-      if (sprite.opacity > this._opacityMinimum) {
+  if (this.isFaded())
+  {
+    Object.values(this._messageSprites).forEach(sprite =>
+    {
+      if (sprite.opacity > this._opacityMinimum)
+      {
         sprite.opacity -= this._opacityRate;
-      } else if (sprite.opacity < this._opacityMinimum) {
+      }
+      else if (sprite.opacity < this._opacityMinimum)
+      {
         sprite.opacity = this._opacityMinimum;
       }
     });
@@ -541,12 +599,18 @@ Window_TextLog.prototype.fadeOpacity = function() {
 /**
  * When activity in the text log resumes, quickly increase opacity back to max(255).
  */
-Window_TextLog.prototype.resetOpacity = function() {
+Window_TextLog.prototype.resetOpacity = function()
+{
   //if (this.opacity < 255) this.opacity += this._opacityRate;
   //if (this.opacity > 255) this.opacity = 255;
-  if (this.isFaded()) {
-    Object.values(this._messageSprites).forEach(sprite => {
-      if (sprite.opacity < 255) sprite.opacity += this._opacityRate;
+  if (this.isFaded())
+  {
+    Object.values(this._messageSprites).forEach(sprite =>
+    {
+      if (sprite.opacity < 255)
+      {
+        sprite.opacity += this._opacityRate;
+      }
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
@@ -555,16 +619,22 @@ Window_TextLog.prototype.resetOpacity = function() {
 /**
  * Slides the bottom-most log off the screen and destroys it.
  */
-Window_TextLog.prototype.removeOldestLog = function() {
-  if (this.isFaded()) {
+Window_TextLog.prototype.removeOldestLog = function()
+{
+  if (this.isFaded())
+  {
     const removedSprite = this._messageTracker[0];
-    if (removedSprite != null) {
+    if (removedSprite != null)
+    {
       // slide all logs down one row.
-      if (this._sliding < this._lineHeight) {
+      if (this._sliding < this._lineHeight)
+      {
         this._messageTracker.forEach(messageSprite => messageSprite.y += 2)
         this._sliding += 2;
         return;
-      } else {
+      }
+      else
+      {
         // completely dispose of this sprite now that its off-screen.
         this._messageSprites[removedSprite.getUuid()].destroy();
         delete this._messageSprites[removedSprite.getUuid()];
@@ -583,11 +653,15 @@ Window_TextLog.prototype.removeOldestLog = function() {
  * Creates a sprite for a given text log.
  * @param {Map_TextLog} textLog A log entry to create a sprite for.
  */
-Window_TextLog.prototype.createMessageSprite = function(textLog) {
+Window_TextLog.prototype.createMessageSprite = function(textLog)
+{
   const sprites = this._messageSprites;
-  if (sprites[textLog.getUuid()]) {
+  if (sprites[textLog.getUuid()])
+  {
     return sprites[textLog.getUuid()];
-  } else {
+  }
+  else
+  {
     const sprite = new Sprite_TextLog(textLog);
     sprites[textLog.getUuid()] = sprite;
     this.addInnerChild(sprite);
@@ -599,12 +673,15 @@ Window_TextLog.prototype.createMessageSprite = function(textLog) {
  * Counts down the inactivity clock until 0. Inactivity will cause
  * logs to start to fade away.
  */
-Window_TextLog.prototype.isInactive = function() {
-  if (this._inactive) {
+Window_TextLog.prototype.isInactive = function()
+{
+  if (this._inactive)
+  {
     return true;
   }
 
-  if (this._inactiveCountdown > 0) {
+  if (this._inactiveCountdown > 0)
+  {
     this._inactiveCountdown--;
     return false;
   }
@@ -618,12 +695,15 @@ Window_TextLog.prototype.isInactive = function() {
  * Counts down the inactivity clock until 0. Inactivity will cause
  * logs to start to fade away.
  */
-Window_TextLog.prototype.isFaded = function() {
-  if (this._faded) {
+Window_TextLog.prototype.isFaded = function()
+{
+  if (this._faded)
+  {
     return true;
   }
 
-  if (this._fadingCountdown > 0) {
+  if (this._fadingCountdown > 0)
+  {
     this._fadingCountdown--;
     return false;
   }
@@ -638,7 +718,11 @@ Window_TextLog.prototype.isFaded = function() {
 /**
  * The sprite used for writing into the text log.
  */
-function Sprite_TextLog() { this.initialize(...arguments); }
+function Sprite_TextLog()
+{
+  this.initialize(...arguments);
+}
+
 Sprite_TextLog.prototype = Object.create(Sprite.prototype);
 Sprite_TextLog.prototype.constructor = Sprite_TextLog;
 
@@ -646,7 +730,8 @@ Sprite_TextLog.prototype.constructor = Sprite_TextLog;
  * Initializes the sprite for this entry in the text log.
  * @param {Map_TextLog} textLog The text log object to base this sprite upon.
  */
-Sprite_TextLog.prototype.initialize = function(textLog) {
+Sprite_TextLog.prototype.initialize = function(textLog)
+{
   Sprite.prototype.initialize.call(this);
   this.initMembers(textLog);
   this.bitmap = this.createBitmap();
@@ -656,7 +741,8 @@ Sprite_TextLog.prototype.initialize = function(textLog) {
  * Assigns all properties for this entry in the text log.
  * @param {Map_TextLog} textLog The text log object to base this sprite upon.
  */
-Sprite_TextLog.prototype.initMembers = function(textLog) {
+Sprite_TextLog.prototype.initMembers = function(textLog)
+{
   this._j = {};
   this._j._uuid = textLog.getUuid();
   this._j._text = textLog.getText();
@@ -666,7 +752,8 @@ Sprite_TextLog.prototype.initMembers = function(textLog) {
 /**
  * Creates the bitmap that is the canvas for this sprite.
  */
-Sprite_TextLog.prototype.createBitmap = function() {
+Sprite_TextLog.prototype.createBitmap = function()
+{
   const text = this._j._text;
   const width = (this.fontSize() * text.length) + 32;
   const height = 32;
@@ -684,7 +771,8 @@ Sprite_TextLog.prototype.createBitmap = function() {
  * This overwrites the base sprite class to shrink the font size a bit.
  * @returns {number} The modified smaller font size.
  */
-Sprite_TextLog.prototype.fontSize = function() {
+Sprite_TextLog.prototype.fontSize = function()
+{
   return $gameSystem.mainFontSize() - 8;
 };
 
@@ -692,14 +780,16 @@ Sprite_TextLog.prototype.fontSize = function() {
  * The font size for text written into this sprite.
  * This overwrites the base sprite class to use a monospace font instead.
  */
-Sprite_TextLog.prototype.fontFace = function() {
+Sprite_TextLog.prototype.fontFace = function()
+{
   return $gameSystem.numberFontFace();
 };
 
 /**
  * Retrieves the Uuid associated with this sprite.
  */
-Sprite_TextLog.prototype.getUuid = function() { 
+Sprite_TextLog.prototype.getUuid = function()
+{
   return this._j._uuid;
 };
 //#endregion
@@ -708,14 +798,18 @@ Sprite_TextLog.prototype.getUuid = function() {
 /**
  * The shape of a single line in the text log window.
  */
-function Map_TextLog() { this.initialize(...arguments); };
+function Map_TextLog()
+{
+  this.initialize(...arguments);
+};
 Map_TextLog.prototype = {};
 Map_TextLog.prototype.constructor = Map_TextLog;
 
 /**
  * Initializes this class.
  */
-Map_TextLog.prototype.initialize = function(text, iconIndex) {
+Map_TextLog.prototype.initialize = function(text, iconIndex)
+{
   /**
    * The message for this text log.
    */
@@ -736,7 +830,8 @@ Map_TextLog.prototype.initialize = function(text, iconIndex) {
 /**
  * Initializes all properties for this class.
  */
-Map_TextLog.prototype.initMembers = function() {
+Map_TextLog.prototype.initMembers = function()
+{
   /**
    * The `uuid` of this log entry.
    */
@@ -747,7 +842,8 @@ Map_TextLog.prototype.initMembers = function() {
  * Gets this text log's unique identifier.
  * @returns {string}
  */
-Map_TextLog.prototype.getUuid = function() {
+Map_TextLog.prototype.getUuid = function()
+{
   return this._uuid;
 };
 
@@ -755,7 +851,8 @@ Map_TextLog.prototype.getUuid = function() {
  * Gets this text log's message.
  * @returns {string}
  */
-Map_TextLog.prototype.getText = function() {
+Map_TextLog.prototype.getText = function()
+{
   return this._text;
 };
 
@@ -763,7 +860,8 @@ Map_TextLog.prototype.getText = function() {
  * Gets this text log's base icon index.
  * @returns {number}
  */
-Map_TextLog.prototype.getIconIndex = function() {
+Map_TextLog.prototype.getIconIndex = function()
+{
   return this._iconIndex;
 };
 //#endregion

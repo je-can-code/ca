@@ -17,10 +17,15 @@
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
-function OneTimeItemBoostParam() { this.initialize(...arguments); }
+function OneTimeItemBoostParam()
+{
+  this.initialize(...arguments);
+}
+
 OneTimeItemBoostParam.prototype = {};
 OneTimeItemBoostParam.prototype.constructor = OneTimeItemBoostParam;
-OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent) {
+OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent)
+{
   /**
    * The parameter id this parameter boost represents.
    * @type {number}

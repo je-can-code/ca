@@ -65,11 +65,11 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-   Version: '2.0.0',
+  Version: '2.0.0',
 };
 
 /**
- * A collection of helpful mappings for `notes` that are placed in 
+ * A collection of helpful mappings for `notes` that are placed in
  * various locations, like events on the map, or in a database enemy.
  */
 J.BASE.Notetags = {
@@ -242,7 +242,7 @@ J.BASE.Traits = {
   /**
    * Defines the number of times an action will repeat.
    * Caps at +/- 9 in the editor.
-   * 
+   *
    * In the context of JABS, this adds onto the number of bonus hits an
    * actor will have globally.
    */
@@ -285,9 +285,11 @@ J.BASE.Helpers = {};
  * Generates a `uuid`- a universally unique identifier- for this battler.
  * @returns {string} The `uuid`.
  */
-J.BASE.Helpers.generateUuid = function() {
+J.BASE.Helpers.generateUuid = function()
+{
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-    .replace(/[xy]/g, c => {
+    .replace(/[xy]/g, c =>
+    {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
@@ -298,7 +300,8 @@ J.BASE.Helpers.generateUuid = function() {
  * @param {string} path The path of the file we're checking.
  * @returns {boolean} True if the file exists, false otherwise.
  */
-J.BASE.Helpers.checkFile = function(path) {
+J.BASE.Helpers.checkFile = function(path)
+{
   const fs = require('fs');
   return fs.existsSync(path);
 };
@@ -310,7 +313,8 @@ J.BASE.Helpers.checkFile = function(path) {
  * @param {number} variableId The id of the variable to modify.
  * @param {number} amount The amount to modify the variable by.
  */
-J.BASE.Helpers.modVariable = function(variableId, amount) {
+J.BASE.Helpers.modVariable = function(variableId, amount)
+{
   const oldValue = $gameVariables.value(variableId);
   const newValue = oldValue + amount;
   $gameVariables.setValue(variableId, newValue);
@@ -321,7 +325,8 @@ J.BASE.Helpers.modVariable = function(variableId, amount) {
  * @param {number} min The lower bound for random numbers (inclusive).
  * @param {number} max The upper bound for random numbers (exclusive).
  */
-J.BASE.Helpers.getRandomNumber = function(min, max) {
+J.BASE.Helpers.getRandomNumber = function(min, max)
+{
   return Math.floor(min + Math.random() * (max + 1 - min))
 };
 
@@ -331,8 +336,10 @@ J.BASE.Helpers.getRandomNumber = function(min, max) {
  * @param {string} type An abbreviation for the type of item this is.
  * @returns {object} The `RPG::Item` of the correct id and type.
  */
-J.BASE.Helpers.translateItem = function(id, type) {
-  switch (type) {
+J.BASE.Helpers.translateItem = function(id, type)
+{
+  switch (type)
+  {
     case "i":
       return $dataItems[id];
     case "w":
@@ -350,10 +357,12 @@ J.BASE.Helpers.translateItem = function(id, type) {
  * @param {string} minimumVersion String representation of the minimum required version.
  * @returns {boolean}
  */
-J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
+J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
+{
   const currentVersionParts = currentVersion.split('.');
   const minimumVersionParts = minimumVersion.split('.');
-  for (const i in currentVersionParts) {
+  for (const i in currentVersionParts)
+  {
     const a = ~~currentVersionParts[i];
     const b = ~~minimumVersionParts[i];
     if (a > b) return true;
@@ -369,14 +378,17 @@ J.BASE.Helpers.satisfies = function (currentVersion, minimumVersion) {
  * @param {rm.types.BaseItem} referenceData The reference data to parse.
  * @returns {JABS_SkillChance[]}
  */
-J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
+J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
+{
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return [];
 
   const notedata = referenceData.note.split(/[\r\n]+/);
   const skills = [];
-  notedata.forEach(line => {
-    if (line.match(structure)) {
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
       const data = JSON.parse(RegExp.$1);
       const skillChance = new JABS_SkillChance(
         parseInt(data[0]),
@@ -394,7 +406,8 @@ J.BASE.Helpers.parseSkillChance = function(structure, referenceData) {
  * @param {RegExp} structure The structure of the regular expression.
  * @returns {string}
  */
-J.BASE.Helpers.getKeyFromRegexp = function(structure) {
+J.BASE.Helpers.getKeyFromRegexp = function(structure)
+{
   const stringifiedStructure = structure.toString();
   return stringifiedStructure
     .substring(stringifiedStructure.indexOf('<') + 1, stringifiedStructure.indexOf(':'));

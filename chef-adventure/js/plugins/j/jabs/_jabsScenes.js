@@ -19,14 +19,18 @@
  * properly.
  */
 J.ABS.Aliased.Scene_Load.reloadMapIfUpdated = Scene_Load.prototype.reloadMapIfUpdated;
-Scene_Load.prototype.reloadMapIfUpdated = function() {
-  if ($gameBattleMap.absEnabled) {
+Scene_Load.prototype.reloadMapIfUpdated = function()
+{
+  if ($gameBattleMap.absEnabled)
+  {
     const mapId = $gameMap.mapId();
     const x = $gamePlayer.x;
     const y = $gamePlayer.y;
     $gamePlayer.reserveTransfer(mapId, x, y);
-    $gamePlayer.requestMapReload();  
-  } else {
+    $gamePlayer.requestMapReload();
+  }
+  else
+  {
     J.ABS.Aliased.Scene_Load.reloadMapIfUpdated.call(this);
   }
 };
@@ -37,19 +41,21 @@ Scene_Load.prototype.reloadMapIfUpdated = function() {
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
 J.ABS.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
-Scene_Map.prototype.initialize = function() {
+Scene_Map.prototype.initialize = function()
+{
   J.ABS.Aliased.Scene_Map.initialize.call(this);
   this._j = this._j || {};
   this.initJabsMembers();
 };
 
-
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
 J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
-Scene_Map.prototype.onMapLoaded = function() {
-  if ($gameBattleMap.absEnabled) {
+Scene_Map.prototype.onMapLoaded = function()
+{
+  if ($gameBattleMap.absEnabled)
+  {
     $gameBattleMap.initializePlayerBattler();
   }
 
@@ -59,14 +65,16 @@ Scene_Map.prototype.onMapLoaded = function() {
 /**
  * Initializes all JABS components.
  */
-Scene_Map.prototype.initJabsMembers = function() {
+Scene_Map.prototype.initJabsMembers = function()
+{
   this.initJabsMenu();
 };
 
 /**
  * Initializes the JABS menu.
  */
-Scene_Map.prototype.initJabsMenu = function() {
+Scene_Map.prototype.initJabsMenu = function()
+{
   this._j._absMenu = {};
   this._j._absMenu._windowFocus = null;
   this._j._absMenu._equipType = null;
@@ -83,7 +91,8 @@ Scene_Map.prototype.initJabsMenu = function() {
  * Create the Hud with all the rest of the windows.
  */
 J.ABS.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
-Scene_Map.prototype.createAllWindows = function() {
+Scene_Map.prototype.createAllWindows = function()
+{
   this.createJabsAbsMenu();
   J.ABS.Aliased.Scene_Map.createAllWindows.call(this);
 };
@@ -92,7 +101,8 @@ Scene_Map.prototype.createAllWindows = function() {
  * Update the `JABS_BattlerManager` while updating the regular scene map.
  */
 J.ABS.Aliased.Scene_Map.update = Scene_Map.prototype.update;
-Scene_Map.prototype.update = function() {
+Scene_Map.prototype.update = function()
+{
   J.ABS.Aliased.Scene_Map.update.call(this);
   this.handleJabsWindowsVisibility();
 
@@ -103,19 +113,24 @@ Scene_Map.prototype.update = function() {
   JABS_AiManager.update();
 
   // handle the JABS menu.
-  if ($gameBattleMap.requestAbsMenu) {
+  if ($gameBattleMap.requestAbsMenu)
+  {
     this.manageAbsMenu();
-  } else {
+  }
+  else
+  {
     this.hideAllJabsWindows();
   }
 
   // handle rotation.
-  if ($gameBattleMap.requestPartyRotation) {
+  if ($gameBattleMap.requestPartyRotation)
+  {
     this.handlePartyRotation();
   }
 
   // handle requests for refreshing the JABS quick menu.
-  if ($gameBattleMap.requestJabsMenuRefresh) {
+  if ($gameBattleMap.requestJabsMenuRefresh)
+  {
     this.refreshJabsMenu();
   }
 };
@@ -123,9 +138,11 @@ Scene_Map.prototype.update = function() {
 /**
  * Manages the party rotation.
  */
-Scene_Map.prototype.handlePartyRotation = function() {
+Scene_Map.prototype.handlePartyRotation = function()
+{
   $gameBattleMap.requestPartyRotation = false;
-  if (J.HUD && J.HUD.Metadata.Enabled) {
+  if (J.HUD && J.HUD.Metadata.Enabled)
+  {
     this.refreshHud();
   }
 };
@@ -133,12 +150,16 @@ Scene_Map.prototype.handlePartyRotation = function() {
 /**
  * Manages visibility for all extraneous windows that are used by JABS.
  */
-Scene_Map.prototype.handleJabsWindowsVisibility = function() {
-  if ($gameBattleMap.absEnabled && !$gameMessage.isBusy()) {
+Scene_Map.prototype.handleJabsWindowsVisibility = function()
+{
+  if ($gameBattleMap.absEnabled && !$gameMessage.isBusy())
+  {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
-  } else {
+  }
+  else
+  {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
     if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
@@ -148,7 +169,8 @@ Scene_Map.prototype.handleJabsWindowsVisibility = function() {
 /**
  * Hides all windows of the JABS menu.
  */
-Scene_Map.prototype.hideAllJabsWindows = function() {
+Scene_Map.prototype.hideAllJabsWindows = function()
+{
   this._j._absMenu._mainWindow.hide();
   this._j._absMenu._skillWindow.hide();
   this._j._absMenu._equipSkillWindow.hide();
@@ -163,9 +185,11 @@ Scene_Map.prototype.hideAllJabsWindows = function() {
  * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
 J.ABS.Aliased.Scene_Map.callMenu = Scene_Map.prototype.callMenu;
-Scene_Map.prototype.callMenu = function() {
+Scene_Map.prototype.callMenu = function()
+{
   // if the ABS is disabled, then allow the menu to be called.
-  if (!$gameBattleMap.absEnabled) {
+  if (!$gameBattleMap.absEnabled)
+  {
     J.ABS.Aliased.Scene_Map.callMenu.call(this);
   }
 };
@@ -173,7 +197,8 @@ Scene_Map.prototype.callMenu = function() {
 /**
  * Creates the Jabs quick menu for use.
  */
-Scene_Map.prototype.createJabsAbsMenu = function() {
+Scene_Map.prototype.createJabsAbsMenu = function()
+{
   // the main window that forks into the other three.
   this.createJabsAbsMenuMainWindow();
 
@@ -181,7 +206,7 @@ Scene_Map.prototype.createJabsAbsMenu = function() {
   this.createJabsAbsMenuSkillListWindow();
   this.createJabsAbsMenuToolListWindow();
   this.createJabsAbsMenuDodgeListWindow();
-  
+
   // the assignment of the the windows.
   this.createJabsAbsMenuEquipSkillWindow();
   this.createJabsAbsMenuEquipToolWindow();
@@ -191,7 +216,8 @@ Scene_Map.prototype.createJabsAbsMenu = function() {
 /**
  * Creates the first/main window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
+{
   const w = 400;
   const h = 334;
   const x = Graphics.boxWidth - w;
@@ -212,7 +238,8 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
 /**
  * Creates the skill assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function()
+{
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - (w);
@@ -230,7 +257,8 @@ Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function() {
 /**
  * Creates the skill assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function()
+{
   const w = 400;
   const h = 380;
   const x = Graphics.boxWidth - (w);
@@ -248,7 +276,8 @@ Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function() {
 /**
  * Creates the item assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuToolListWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuToolListWindow = function()
+{
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - w;
@@ -266,7 +295,8 @@ Scene_Map.prototype.createJabsAbsMenuToolListWindow = function() {
 /**
  * Creates the skill assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function()
+{
   const w = 400;
   const h = 70;
   const x = Graphics.boxWidth - (w);
@@ -284,7 +314,8 @@ Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function() {
 /**
  * Creates the dodge assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function()
+{
   const w = 400;
   const h = 300;
   const x = Graphics.boxWidth - w;
@@ -302,7 +333,8 @@ Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function() {
 /**
  * Creates the skill assignment window of the Jabs quick menu.
  */
-Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function() {
+Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function()
+{
   const w = 400;
   const h = 70;
   const x = Graphics.boxWidth - (w);
@@ -320,8 +352,10 @@ Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function() {
 /**
  * Manages the ABS main menu's interactivity.
  */
-Scene_Map.prototype.manageAbsMenu = function() {
-  switch (this._j._absMenu._windowFocus) {
+Scene_Map.prototype.manageAbsMenu = function()
+{
+  switch (this._j._absMenu._windowFocus)
+  {
     case "main":
       this._j._absMenu._mainWindow.show();
       this._j._absMenu._mainWindow.open();
@@ -360,7 +394,8 @@ Scene_Map.prototype.manageAbsMenu = function() {
 /**
  * When the "assign skills" option is chosen, it prioritizes this window.
  */
-Scene_Map.prototype.commandSkill = function() {
+Scene_Map.prototype.commandSkill = function()
+{
   this._j._absMenu._windowFocus = "skill";
   this._j._absMenu._skillWindow.refresh();
   this._j._absMenu._skillWindow.show();
@@ -372,7 +407,8 @@ Scene_Map.prototype.commandSkill = function() {
 /**
  * When the "assign items" option is chosen, it prioritizes this window.
  */
-Scene_Map.prototype.commandItem = function() {
+Scene_Map.prototype.commandItem = function()
+{
   this._j._absMenu._windowFocus = "tool";
   this._j._absMenu._toolWindow.refresh();
   this._j._absMenu._toolWindow.show();
@@ -384,7 +420,8 @@ Scene_Map.prototype.commandItem = function() {
 /**
  * When the "assign dodge" option is chosen, it prioritizes this window.
  */
-Scene_Map.prototype.commandDodge = function() {
+Scene_Map.prototype.commandDodge = function()
+{
   this._j._absMenu._windowFocus = "dodge";
   this._j._absMenu._dodgeWindow.refresh();
   this._j._absMenu._dodgeWindow.show();
@@ -396,11 +433,13 @@ Scene_Map.prototype.commandDodge = function() {
 /**
  * Brings up the main menu.
  */
-Scene_Map.prototype.commandMenu = function() {
+Scene_Map.prototype.commandMenu = function()
+{
   SceneManager.push(Scene_Menu);
 };
 
-Scene_Map.prototype.refreshJabsMenu = function() {
+Scene_Map.prototype.refreshJabsMenu = function()
+{
   $gameBattleMap.requestJabsMenuRefresh = false;
   this._j._absMenu._mainWindow.refresh();
 };
@@ -408,7 +447,8 @@ Scene_Map.prototype.refreshJabsMenu = function() {
 /**
  * When a decision is made in skill assign, prioritize the equip window.
  */
-Scene_Map.prototype.commandEquipSkill = function() {
+Scene_Map.prototype.commandEquipSkill = function()
+{
   this._j._absMenu._windowFocus = "assign";
   this._j._absMenu._skillWindow.close();
   this._j._absMenu._skillWindow.deactivate();
@@ -421,7 +461,8 @@ Scene_Map.prototype.commandEquipSkill = function() {
 /**
  * When a decision is made in tool assign, prioritize the equip window.
  */
-Scene_Map.prototype.commandEquipTool = function() {
+Scene_Map.prototype.commandEquipTool = function()
+{
   this._j._absMenu._windowFocus = "assign";
   this._j._absMenu._toolWindow.close();
   this._j._absMenu._toolWindow.deactivate();
@@ -434,7 +475,8 @@ Scene_Map.prototype.commandEquipTool = function() {
 /**
  * When a decision is made in tool assign, prioritize the equip window.
  */
-Scene_Map.prototype.commandEquipDodge = function() {
+Scene_Map.prototype.commandEquipDodge = function()
+{
   this._j._absMenu._windowFocus = "assign";
   this._j._absMenu._dodgeWindow.close();
   this._j._absMenu._dodgeWindow.deactivate();
@@ -447,11 +489,13 @@ Scene_Map.prototype.commandEquipDodge = function() {
 /**
  * When assigning a slot, determine the last opened window and use that.
  */
-Scene_Map.prototype.commandAssign = function() {
+Scene_Map.prototype.commandAssign = function()
+{
   const actor = $gameParty.leader();
   let nextActionSkill = 0
   let equippedActionSlot = 0;
-  switch (this._j._absMenu._equipType) {
+  switch (this._j._absMenu._equipType)
+  {
     case "skill":
       equippedActionSlot = this._j._absMenu._equipSkillWindow.currentExt();
       nextActionSkill = this._j._absMenu._skillWindow.currentExt();
@@ -469,7 +513,8 @@ Scene_Map.prototype.commandAssign = function() {
   }
 
   actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
-  if (J.KEYS && J.KEYS.Metadata.Enabled) {
+  if (J.KEYS && J.KEYS.Metadata.Enabled)
+  {
     this._j._actionKeys.refresh();
   }
 
@@ -480,8 +525,10 @@ Scene_Map.prototype.commandAssign = function() {
  * Closes a given Abs menu window.
  * @param {string} absWindow The type of abs window being closed.
  */
-Scene_Map.prototype.closeAbsWindow = function(absWindow) {
-  switch (absWindow) {
+Scene_Map.prototype.closeAbsWindow = function(absWindow)
+{
+  switch (absWindow)
+  {
     case "main":
       this._j._absMenu._mainWindow.deactivate();
       this._j._absMenu._mainWindow.close();
@@ -516,8 +563,8 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow) {
       this._j._absMenu._dodgeWindow.deactivate();
       this._j._absMenu._dodgeWindow.close();
       this._j._absMenu._mainWindow.activate();
-      this._j._absMenu._mainWindow.open();      
-      this._j._absMenu._mainWindow.show();      
+      this._j._absMenu._mainWindow.open();
+      this._j._absMenu._mainWindow.show();
       this._j._absMenu._windowFocus = "main"
       break;
   }
@@ -526,7 +573,8 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow) {
 /**
  * Close out from the Abs menu.
  */
-Scene_Map.prototype.closeAbsMenu = function() {
+Scene_Map.prototype.closeAbsMenu = function()
+{
   this._j._absMenu._mainWindow.closeMenu();
 };
 //#endregion JABS Menu

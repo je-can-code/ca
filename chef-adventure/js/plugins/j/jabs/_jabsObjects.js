@@ -452,7 +452,7 @@ Game_Actor.prototype.refresh = function()
 };
 
 /**
- * Overwrites the levelup display on the map to not display a message.
+ * OVERWRITE Replaces the levelup display on the map to not display a message.
  */
 Game_Actor.prototype.shouldDisplayLevelUp = function()
 {
@@ -1325,6 +1325,35 @@ Game_Battler.prototype.currentHpPercent = function()
 Game_Battler.prototype.extractBonusHits = function(notedata)
 {
 
+};
+
+/**
+ * Checks all states to see if we have anything that grants parry ignore.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.ignoreAllParry = function()
+{
+  let ignore = false;
+  const objectsToCheck = this.states();
+  if (J.PASSIVE)
+  {
+    objectsToCheck.push(...this.passiveSkillStates());
+  }
+
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    const structure = /<ignoreParry>/i;
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        ignore = true;
+      }
+    });
+  });
+
+  return ignore;
 };
 //#endregion Game_Battler
 
@@ -3360,6 +3389,9 @@ class Game_BattleMap
     if (targetBattler.grd === 0) return false;
 
     const casterBattler = caster.getBattler();
+
+    // if the attacker has a state that ignores all parry, then skip parrying.
+    if (casterBattler.ignoreAllParry()) return false;
 
     /*
     // WIP formula!

@@ -15,7 +15,11 @@
  * A conditional revolving around skill proficiencies that when met, will
  * execute some kind of logic.
  */
-function ProficiencyConditional() { this.initialize(...arguments); }
+function ProficiencyConditional()
+{
+  this.initialize(...arguments);
+}
+
 ProficiencyConditional.prototype = {};
 ProficiencyConditional.prototype.constructor = ProficiencyConditional;
 
@@ -59,7 +63,11 @@ ProficiencyConditional.prototype.initialize = function(key, actorIds, requiremen
  * A single requirement of a skill prof conditional.
  * @constructor
  */
-function ProficiencyRequirement() { this.initialize(...arguments); }
+function ProficiencyRequirement()
+{
+  this.initialize(...arguments);
+}
+
 ProficiencyRequirement.prototype = {};
 ProficiencyRequirement.prototype.constructor = ProficiencyRequirement;
 

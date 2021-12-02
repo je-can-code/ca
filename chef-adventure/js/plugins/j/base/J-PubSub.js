@@ -1,7 +1,11 @@
 /**
  * A pubsub manager that handles an listening and subscribing to events.
  */
-function Pubsub() { this.initialize(); }
+function Pubsub()
+{
+  this.initialize();
+}
+
 Pubsub.prototype = {}; // Object.create(EventEmitter.prototype); // const EventEmitter = require('events');
 Pubsub.prototype.constructor = Pubsub;
 
@@ -50,7 +54,8 @@ Pubsub.prototype.add = function(label, callback, autoremove = false)
  */
 Pubsub.prototype.emit = function(label)
 {
-  if (!this.listeners.has(label)) {
+  if (!this.listeners.has(label))
+  {
     // we tried to emit something to a label that doesn't exist.
     console.warn(`Attempted to emit a callback from a label: [${label}] that doesn't exist.`);
     return;
@@ -75,7 +80,11 @@ Pubsub.prototype.emit = function(label)
  * A single pubsub event for use with the pubsub event listening service.
  * @constructor
  */
-function PubSubEvent() { this.initialize(...arguments); }
+function PubSubEvent()
+{
+  this.initialize(...arguments);
+}
+
 PubSubEvent.prototype = {};
 PubSubEvent.prototype.constructor = PubSubEvent;
 

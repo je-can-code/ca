@@ -18,7 +18,8 @@
  * Hooks into the `update` function to also update any active action sprites.
  */
 J.ABS.Aliased.Spriteset_Map.spritesetUpdate = Spriteset_Map.prototype.update;
-Spriteset_Map.prototype.update = function() {
+Spriteset_Map.prototype.update = function()
+{
   J.ABS.Aliased.Spriteset_Map.spritesetUpdate.call(this);
   this.updateJabsSprites();
 };
@@ -26,24 +27,30 @@ Spriteset_Map.prototype.update = function() {
 /**
  * Updates all existing actionSprites on the map.
  */
-Spriteset_Map.prototype.updateJabsSprites = function() {
-  if ($gameBattleMap.requestActionRendering) {
+Spriteset_Map.prototype.updateJabsSprites = function()
+{
+  if ($gameBattleMap.requestActionRendering)
+  {
     this.addActionSprites();
   }
 
-  if ($gameBattleMap.requestLootRendering) {
+  if ($gameBattleMap.requestLootRendering)
+  {
     this.addLootSprites();
   }
 
-  if ($gameBattleMap.requestClearMap) {
+  if ($gameBattleMap.requestClearMap)
+  {
     this.removeActionSprites();
   }
 
-  if ($gameBattleMap.requestClearLoot) {
+  if ($gameBattleMap.requestClearLoot)
+  {
     this.removeLootSprites();
   }
 
-  if ($gameBattleMap.requestSpriteRefresh) {
+  if ($gameBattleMap.requestSpriteRefresh)
+  {
     this.refreshAllCharacterSprites();
   }
 };
@@ -51,12 +58,15 @@ Spriteset_Map.prototype.updateJabsSprites = function() {
 /**
  * Adds all needing-to-be-added action sprites to the map and renders.
  */
-Spriteset_Map.prototype.addActionSprites = function() {
+Spriteset_Map.prototype.addActionSprites = function()
+{
   $gameBattleMap.requestActionRendering = false;
   const events = $gameMap.events();
-  events.forEach(event => {
+  events.forEach(event =>
+  {
     const shouldAddActionSprite = event.getActionSpriteNeedsAdding();
-    if (shouldAddActionSprite) {
+    if (shouldAddActionSprite)
+    {
       event.setActionSpriteNeedsAdding(false);
       const actionSprite = event.getMapActionData().getActionSprite();
       const sprite = new Sprite_Character(actionSprite);
@@ -69,12 +79,15 @@ Spriteset_Map.prototype.addActionSprites = function() {
 /**
  * Adds all needing-to-be-added loot sprites to the map and renders.
  */
-Spriteset_Map.prototype.addLootSprites = function() {
+Spriteset_Map.prototype.addLootSprites = function()
+{
   $gameBattleMap.requestLootRendering = false;
   const events = $gameMap.events();
-  events.forEach(event => {
+  events.forEach(event =>
+  {
     const shouldAddLootSprite = event.getLootNeedsAdding();
-    if (shouldAddLootSprite) {
+    if (shouldAddLootSprite)
+    {
       event.setLootNeedsAdding(false);
       const sprite = new Sprite_Character(event);
       this._characterSprites.push(sprite);
@@ -86,21 +99,26 @@ Spriteset_Map.prototype.addLootSprites = function() {
 /**
  * Removes all needing-to-be-removed action sprites from the map.
  */
-Spriteset_Map.prototype.removeActionSprites = function() {
+Spriteset_Map.prototype.removeActionSprites = function()
+{
   const events = $gameMap.events();
-  events.forEach(event => {
+  events.forEach(event =>
+  {
     // if they aren't an action, this function doesn't care.
     const isAction = event.isAction();
     if (!isAction) return;
 
     const actionEvent = event.getMapActionData();
     const shouldRemoveActionEvent = !!actionEvent && actionEvent.getNeedsRemoval()
-    if (shouldRemoveActionEvent) {
+    if (shouldRemoveActionEvent)
+    {
       event.setActionSpriteNeedsRemoving();
-      this._characterSprites.forEach((sprite, index) => {
+      this._characterSprites.forEach((sprite, index) =>
+      {
         const actionSprite = sprite._character;
         const needsRemoval = actionSprite.getActionSpriteNeedsRemoving();
-        if (needsRemoval) {
+        if (needsRemoval)
+        {
           this._characterSprites.splice(index, 1);
           actionSprite.erase();
         }
@@ -115,19 +133,24 @@ Spriteset_Map.prototype.removeActionSprites = function() {
 /**
  * Removes all needing-to-be-removed loot sprites from the map.
  */
-Spriteset_Map.prototype.removeLootSprites = function() {
+Spriteset_Map.prototype.removeLootSprites = function()
+{
   const events = $gameMap.events();
-  events.forEach(event => {
+  events.forEach(event =>
+  {
     // if they aren't loot, this function doesn't care.
     const isLoot = event.isLoot();
     if (!isLoot) return;
 
     const shouldRemoveLoot = event.getLootNeedsRemoving();
-    if (shouldRemoveLoot) {
-      this._characterSprites.forEach((sprite, index) => {
+    if (shouldRemoveLoot)
+    {
+      this._characterSprites.forEach((sprite, index) =>
+      {
         const lootSprite = sprite._character;
         const needsRemoval = lootSprite.getLootNeedsRemoving();
-        if (needsRemoval) {
+        if (needsRemoval)
+        {
           sprite.deleteLootSprite();
           this._characterSprites.splice(index, 1);
           lootSprite.erase();
@@ -142,11 +165,14 @@ Spriteset_Map.prototype.removeLootSprites = function() {
 };
 
 /**
- * Refreshes all character 
+ * Refreshes all character
  */
-Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
-  this._characterSprites.forEach(sprite => {
-    if (sprite.isJabsBattler()) {
+Spriteset_Map.prototype.refreshAllCharacterSprites = function()
+{
+  this._characterSprites.forEach(sprite =>
+  {
+    if (sprite.isJabsBattler())
+    {
       sprite.setupDangerIndicator();
     }
   });
@@ -160,7 +186,8 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
 J.ABS.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMembers;
-Sprite_Character.prototype.initMembers = function() {
+Sprite_Character.prototype.initMembers = function()
+{
   this._damages = [];
   this._nonDamages = [];
   this._stateOverlaySprite = null;
@@ -180,18 +207,23 @@ Sprite_Character.prototype.initMembers = function() {
  * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
 J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
-Sprite_Character.prototype.update = function() {
+Sprite_Character.prototype.update = function()
+{
   J.ABS.Aliased.Sprite_Character.update.call(this);
-  if (this.getBattler()) {
+  if (this.getBattler())
+  {
     this.updateStateOverlay();
     this.updateMapPopups();
     this.updateGauges();
     this.updateDangerIndicator();
     this.updateBattlerName();
-  } else {
+  }
+  else
+  {
     // if the conditions changed for an event that used to have an hp gauge
     // now hide the gauge.
-    if (this._hpGauge) {
+    if (this._hpGauge)
+    {
       this.hideHpGauge();
     }
   }
@@ -201,14 +233,21 @@ Sprite_Character.prototype.update = function() {
  * Returns the `Game_Battler` associated with the current sprite.
  * @returns {Game_Battler} The battler this sprite is bound to.
  */
-Sprite_Character.prototype.getBattler = function() {
+Sprite_Character.prototype.getBattler = function()
+{
   if (!this._character ||
-    this._character instanceof Game_Vehicle) {
+    this._character instanceof Game_Vehicle)
+  {
     return null;
-  } else {
-    if (this.isJabsBattler()) {
+  }
+  else
+  {
+    if (this.isJabsBattler())
+    {
       return this._character.getMapBattler().getBattler();
-    } else {
+    }
+    else
+    {
       return null;
     }
   }
@@ -218,7 +257,8 @@ Sprite_Character.prototype.getBattler = function() {
  * Gets whether or not this sprite belongs to a battler.
  * @returns {boolean} True if this sprite belongs to a battler, false otherwise.
  */
-Sprite_Character.prototype.isJabsBattler = function() {
+Sprite_Character.prototype.isJabsBattler = function()
+{
   return !!this._character.hasJabsBattler();
 };
 
@@ -226,7 +266,8 @@ Sprite_Character.prototype.isJabsBattler = function() {
  * Whether or not we should be executing JABS-related updates for this sprite.
  * @returns {boolean} True if updating is available, false otherwise.
  */
-Sprite_Character.prototype.canUpdate = function() {
+Sprite_Character.prototype.canUpdate = function()
+{
   return $gameBattleMap.absEnabled;
 };
 
@@ -234,15 +275,18 @@ Sprite_Character.prototype.canUpdate = function() {
  * Hooks into the `Sprite_Character.setCharacter` and sets up the battler sprite.
  */
 J.ABS.Aliased.Sprite_Character.setCharacter = Sprite_Character.prototype.setCharacter;
-Sprite_Character.prototype.setCharacter = function(character) {
+Sprite_Character.prototype.setCharacter = function(character)
+{
   J.ABS.Aliased.Sprite_Character.setCharacter.call(this, character);
   // if this is a battler, configure the visual components of the battler.
-  if (this._character.hasJabsBattler()) {
+  if (this._character.hasJabsBattler())
+  {
     this.setupMapSprite();
   }
 
   // if this is just loot, then setup the visual components of the loot.
-  if (this.isLoot()) {
+  if (this.isLoot())
+  {
     this.setupLootSprite();
   }
 };
@@ -250,7 +294,8 @@ Sprite_Character.prototype.setCharacter = function(character) {
 /**
  * Sets up this character's sprite for activities on the map.
  */
-Sprite_Character.prototype.setupMapSprite = function() {
+Sprite_Character.prototype.setupMapSprite = function()
+{
   this.setupStateOverlay();
   this.setupHpGauge();
   this.setupDangerIndicator();
@@ -262,10 +307,12 @@ Sprite_Character.prototype.setupMapSprite = function() {
 /**
  * Sets up this character's state overlay, to show things like poison or paralysis.
  */
-Sprite_Character.prototype.setupStateOverlay = function() {
+Sprite_Character.prototype.setupStateOverlay = function()
+{
   const battler = this.getBattler();
   this._stateOverlaySprite = this.createStateOverlaySprite();
-  if (battler) {
+  if (battler)
+  {
     this._stateOverlaySprite.setup(battler);
   }
 
@@ -276,24 +323,31 @@ Sprite_Character.prototype.setupStateOverlay = function() {
  * Creates the sprite representing the overlay of the state on the field.
  * @returns {Sprite_StateOverlay} The state overlay for this character.
  */
-Sprite_Character.prototype.createStateOverlaySprite = function() {
+Sprite_Character.prototype.createStateOverlaySprite = function()
+{
   return new Sprite_StateOverlay();
 };
 
 /**
  * Updates the battler's overlay for states (if applicable).
  */
-Sprite_Character.prototype.updateStateOverlay = function() {
+Sprite_Character.prototype.updateStateOverlay = function()
+{
   const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate()) {
-      if (!this._stateOverlaySprite) {
+  if (mapBattler)
+  {
+    if (this.canUpdate())
+    {
+      if (!this._stateOverlaySprite)
+      {
         this.setupMapSprite();
       }
 
       this._stateOverlaySprite.update();
       this.showStateOverlay();
-    } else {
+    }
+    else
+    {
       this.hideStateOverlay();
     }
   }
@@ -302,8 +356,10 @@ Sprite_Character.prototype.updateStateOverlay = function() {
 /**
  * Shows the state overlay if it exists.
  */
-Sprite_Character.prototype.showStateOverlay = function() {
-  if (this._stateOverlaySprite) {
+Sprite_Character.prototype.showStateOverlay = function()
+{
+  if (this._stateOverlaySprite)
+  {
     this._stateOverlaySprite.opacity = 255;
   }
 };
@@ -311,8 +367,10 @@ Sprite_Character.prototype.showStateOverlay = function() {
 /**
  * Hides the state overlay if it exists.
  */
-Sprite_Character.prototype.hideStateOverlay = function() {
-  if (this._stateOverlaySprite) {
+Sprite_Character.prototype.hideStateOverlay = function()
+{
+  if (this._stateOverlaySprite)
+  {
     this._stateOverlaySprite.opacity = 0;
   }
 };
@@ -322,10 +380,12 @@ Sprite_Character.prototype.hideStateOverlay = function() {
 /**
  * Sets up this character's hp gauge, to show the hp bar as-needed.
  */
-Sprite_Character.prototype.setupHpGauge = function() {
+Sprite_Character.prototype.setupHpGauge = function()
+{
   const battler = this.getBattler();
   this._hpGauge = this.createGenericSpriteGauge();
-  if (battler) {
+  if (battler)
+  {
     this._hpGauge.setup(battler, "hp");
   }
 
@@ -335,7 +395,8 @@ Sprite_Character.prototype.setupHpGauge = function() {
 /**
  * Creates an on-the-map HP gauge for this battler.
  */
- Sprite_Character.prototype.createGenericSpriteGauge = function() {
+Sprite_Character.prototype.createGenericSpriteGauge = function()
+{
   const sprite = new Sprite_MapGauge();
   const x = this.x - (sprite.width / 1.5);
   const y = this.y - 12;
@@ -346,18 +407,24 @@ Sprite_Character.prototype.setupHpGauge = function() {
 /**
  * Updates the all gauges associated with this battler
  */
-Sprite_Character.prototype.updateGauges = function() {
+Sprite_Character.prototype.updateGauges = function()
+{
   const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showHpBar()) {
-      if (!this._hpGauge) {
+  if (mapBattler)
+  {
+    if (this.canUpdate() && mapBattler.showHpBar())
+    {
+      if (!this._hpGauge)
+      {
         this.setupMapSprite();
         this._hpGauge.move(0 - (this._hpGauge.width / 1.5), 0 - 12);
       }
       this._hpGauge._battler = this.getBattler();
       this._hpGauge.update();
       this.showHpGauge();
-    } else {
+    }
+    else
+    {
       this.hideHpGauge();
     }
   }
@@ -366,8 +433,10 @@ Sprite_Character.prototype.updateGauges = function() {
 /**
  * Shows the hp gauge if it exists.
  */
-Sprite_Character.prototype.showHpGauge = function() {
-  if (this._hpGauge) {
+Sprite_Character.prototype.showHpGauge = function()
+{
+  if (this._hpGauge)
+  {
     this._hpGauge.opacity = 255;
   }
 };
@@ -375,8 +444,10 @@ Sprite_Character.prototype.showHpGauge = function() {
 /**
  * Hides the hp gauge if it exists.
  */
-Sprite_Character.prototype.hideHpGauge = function() {
-  if (this._hpGauge) {
+Sprite_Character.prototype.hideHpGauge = function()
+{
+  if (this._hpGauge)
+  {
     this._hpGauge.opacity = 0;
   }
 };
@@ -386,7 +457,8 @@ Sprite_Character.prototype.hideHpGauge = function() {
 /**
  * Sets up the danger indicator sprite for this battler.
  */
-Sprite_Character.prototype.setupDangerIndicator = function() {
+Sprite_Character.prototype.setupDangerIndicator = function()
+{
   this._dangerIndicator = this.createDangerIndicatorSprite();
   this.addChild(this._dangerIndicator);
 };
@@ -395,7 +467,8 @@ Sprite_Character.prototype.setupDangerIndicator = function() {
  * Creates the danger indicator sprite for this battler.
  * @returns {Sprite_Icon} The icon representing this danger indicator.
  */
-Sprite_Character.prototype.createDangerIndicatorSprite = function() {
+Sprite_Character.prototype.createDangerIndicatorSprite = function()
+{
   const dangerIndicatorIcon = this.getDangerIndicatorIcon();
   const sprite = new Sprite_Icon(dangerIndicatorIcon);
   sprite.scale.x = 0.5;
@@ -408,7 +481,8 @@ Sprite_Character.prototype.createDangerIndicatorSprite = function() {
  * Determines the iconIndex that indicates the danger level relative to the player and enemy.
  * @returns The icon index of the danger indicator icon.
  */
-Sprite_Character.prototype.getDangerIndicatorIcon = function() {
+Sprite_Character.prototype.getDangerIndicatorIcon = function()
+{
   // if we aren't using them, don't give an icon.
   if (!J.ABS.Metadata.UseDangerIndicatorIcons) return -1;
 
@@ -424,20 +498,21 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function() {
   const bpl = battler.getPowerLevel();
   const ppl = player.getPowerLevel();
 
-  switch (true) {
-    case (bpl < ppl*0.5):
+  switch (true)
+  {
+    case (bpl < ppl * 0.5):
       return J.ABS.DangerIndicatorIcons.Worthless;
-    case (bpl >= ppl*0.5 && bpl < ppl*0.7):
+    case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
       return J.ABS.DangerIndicatorIcons.Simple;
-    case (bpl >= ppl*0.7 && bpl < ppl*0.9):
+    case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
       return J.ABS.DangerIndicatorIcons.Easy;
-    case (bpl >= ppl*0.9 && bpl < ppl*1.1):
+    case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
       return J.ABS.DangerIndicatorIcons.Average;
-    case (bpl >= ppl*1.1 && bpl < ppl*1.3):
+    case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
       return J.ABS.DangerIndicatorIcons.Hard;
-    case (bpl >= ppl*1.3 && bpl <= ppl*1.5):
+    case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
       return J.ABS.DangerIndicatorIcons.Grueling;
-    case (bpl > ppl*1.5):
+    case (bpl > ppl * 1.5):
       return J.ABS.DangerIndicatorIcons.Deadly;
     default:
       console.error(bpl);
@@ -448,16 +523,22 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function() {
 /**
  * Updates the danger indicator associated with this battler
  */
-Sprite_Character.prototype.updateDangerIndicator = function() {
+Sprite_Character.prototype.updateDangerIndicator = function()
+{
   const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showDangerIndicator()) {
-      if (!this._dangerIndicator) {
+  if (mapBattler)
+  {
+    if (this.canUpdate() && mapBattler.showDangerIndicator())
+    {
+      if (!this._dangerIndicator)
+      {
         this.setupMapSprite();
       }
 
       this.showDangerIndicator();
-    } else {
+    }
+    else
+    {
       this.hideDangerIndicator();
     }
   }
@@ -466,8 +547,10 @@ Sprite_Character.prototype.updateDangerIndicator = function() {
 /**
  * Shows the danger indicator if it exists.
  */
-Sprite_Character.prototype.showDangerIndicator = function() {
-  if (this._dangerIndicator) {
+Sprite_Character.prototype.showDangerIndicator = function()
+{
+  if (this._dangerIndicator)
+  {
     this._dangerIndicator.opacity = 255;
   }
 };
@@ -475,8 +558,10 @@ Sprite_Character.prototype.showDangerIndicator = function() {
 /**
  * Hides the danger indicator if it exists.
  */
-Sprite_Character.prototype.hideDangerIndicator = function() {
-  if (this._dangerIndicator) {
+Sprite_Character.prototype.hideDangerIndicator = function()
+{
+  if (this._dangerIndicator)
+  {
     this._dangerIndicator.opacity = 0;
   }
 };
@@ -486,7 +571,8 @@ Sprite_Character.prototype.hideDangerIndicator = function() {
 /**
  * Sets up this battler's name as a sprite below the character.
  */
-Sprite_Character.prototype.setupBattlerName = function() {
+Sprite_Character.prototype.setupBattlerName = function()
+{
   this._battlerName = this.createBattlerNameSprite();
   this.addChild(this._battlerName);
 };
@@ -495,7 +581,8 @@ Sprite_Character.prototype.setupBattlerName = function() {
  * Creates the sprite that contains this battler's name.
  * @returns {Sprite_Text} The battlers name, as a sprite.
  */
- Sprite_Character.prototype.createBattlerNameSprite = function() {
+Sprite_Character.prototype.createBattlerNameSprite = function()
+{
   const battlerName = this.getBattlerName();
   const sprite = new Sprite_Text(battlerName, null, -12, "left");
   sprite.move(-30, 8);
@@ -503,10 +590,11 @@ Sprite_Character.prototype.setupBattlerName = function() {
 };
 
 /**
- * 
+ *
  * @returns {string} The battlers name.
  */
-Sprite_Character.prototype.getBattlerName = function() {
+Sprite_Character.prototype.getBattlerName = function()
+{
   const battler = this.getBattler();
   if (!battler) return "";
 
@@ -518,16 +606,22 @@ Sprite_Character.prototype.getBattlerName = function() {
 /**
  * Updates this battler's name.
  */
-Sprite_Character.prototype.updateBattlerName = function() {
+Sprite_Character.prototype.updateBattlerName = function()
+{
   const mapBattler = this._character.getMapBattler();
-  if (mapBattler) {
-    if (this.canUpdate() && mapBattler.showBattlerName()) {
-      if (!this._battlerName) {
+  if (mapBattler)
+  {
+    if (this.canUpdate() && mapBattler.showBattlerName())
+    {
+      if (!this._battlerName)
+      {
         this.setupMapSprite();
       }
 
       this.showBattlerName();
-    } else {
+    }
+    else
+    {
       this.hideBattlerName();
     }
   }
@@ -536,8 +630,10 @@ Sprite_Character.prototype.updateBattlerName = function() {
 /**
  * Shows the battler's name if it exists.
  */
-Sprite_Character.prototype.showBattlerName = function() {
-  if (this._battlerName) {
+Sprite_Character.prototype.showBattlerName = function()
+{
+  if (this._battlerName)
+  {
     this._battlerName.opacity = 255;
   }
 };
@@ -545,8 +641,10 @@ Sprite_Character.prototype.showBattlerName = function() {
 /**
  * Hides the battler's name if it exists.
  */
-Sprite_Character.prototype.hideBattlerName = function() {
-  if (this._battlerName) {
+Sprite_Character.prototype.hideBattlerName = function()
+{
+  if (this._battlerName)
+  {
     this._battlerName.opacity = 0;
   }
 };
@@ -559,10 +657,14 @@ Sprite_Character.prototype.hideBattlerName = function() {
  * @returns {boolean} True if the character should be drawn, false otherwise.
  */
 J.ABS.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
-Sprite_Character.prototype.isEmptyCharacter = function() {
-  if (this.isLoot()) {
+Sprite_Character.prototype.isEmptyCharacter = function()
+{
+  if (this.isLoot())
+  {
     return false;
-  } else {
+  }
+  else
+  {
     return J.ABS.Aliased.Sprite_Character.isEmptyCharacter.call(this);
   }
 };
@@ -571,9 +673,12 @@ Sprite_Character.prototype.isEmptyCharacter = function() {
  * If this is loot, then treat it as loot instead of a regular character.
  */
 J.ABS.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
-Sprite_Character.prototype.setCharacterBitmap = function() {
-  if (this.isLoot()) {
-    if (!this.children.length) {
+Sprite_Character.prototype.setCharacterBitmap = function()
+{
+  if (this.isLoot())
+  {
+    if (!this.children.length)
+    {
       // if there are no sprites currently drawn for the loot, then draw them.
       this.setupLootSprite();
     }
@@ -588,9 +693,12 @@ Sprite_Character.prototype.setCharacterBitmap = function() {
  * If this is loot, then treat it as loot instead of a tilemap.
  */
 J.ABS.Aliased.Sprite_Character.setTileBitmap = Sprite_Character.prototype.setTileBitmap;
-Sprite_Character.prototype.setTileBitmap = function() {
-  if (this.isLoot()) {
-    if (!this.children.length) {
+Sprite_Character.prototype.setTileBitmap = function()
+{
+  if (this.isLoot())
+  {
+    if (!this.children.length)
+    {
       // if there are no sprites currently drawn for the loot, then draw them.
       this.setupLootSprite();
     }
@@ -604,7 +712,8 @@ Sprite_Character.prototype.setTileBitmap = function() {
 /**
  * Sets up this character's sprite for activities on the map.
  */
-Sprite_Character.prototype.setupLootSprite = function() {
+Sprite_Character.prototype.setupLootSprite = function()
+{
   if (this._loot._img) return;
 
   this._character._through = true;
@@ -615,7 +724,8 @@ Sprite_Character.prototype.setupLootSprite = function() {
 /**
  * Creates the loot sprite based on the loot the enemy drop.
  */
-Sprite_Character.prototype.createLootSprite = function() {
+Sprite_Character.prototype.createLootSprite = function()
+{
   const lootData = this.getLootData();
   const iconIndex = lootData.lootIcon;
   const lootSprite = new Sprite_Icon(iconIndex);
@@ -628,8 +738,10 @@ Sprite_Character.prototype.createLootSprite = function() {
 /**
  * Deletes a loot sprite from the screen.
  */
-Sprite_Character.prototype.deleteLootSprite = function() {
-  if (this.children.length > 0) {
+Sprite_Character.prototype.deleteLootSprite = function()
+{
+  if (this.children.length > 0)
+  {
     this.children.splice(0, this.children.length);
   }
 };
@@ -638,7 +750,8 @@ Sprite_Character.prototype.deleteLootSprite = function() {
  * Gets whether or not this sprite is actually just some loot to be gathered.
  * @returns {boolean} True if this sprite represents a loot object, false otherwise.
  */
- Sprite_Character.prototype.isLoot = function() {
+Sprite_Character.prototype.isLoot = function()
+{
   return this._character.isLoot();
 };
 
@@ -646,7 +759,8 @@ Sprite_Character.prototype.deleteLootSprite = function() {
  * Gets the loot data associated with this sprite.
  * @returns {JABS_LootDrop}
  */
-Sprite_Character.prototype.getLootData = function() {
+Sprite_Character.prototype.getLootData = function()
+{
   return this._character.getLootData();
 };
 
@@ -655,8 +769,10 @@ Sprite_Character.prototype.getLootData = function() {
  * make the loot look like its floating in-place.
  */
 J.ABS.Aliased.Sprite_Character.updateFrame = Sprite_Character.prototype.updateFrame;
-Sprite_Character.prototype.updateFrame = function() {
-  if (this.isLoot()) {
+Sprite_Character.prototype.updateFrame = function()
+{
+  if (this.isLoot())
+  {
     this.updateLootFloat();
     return;
   }
@@ -667,12 +783,14 @@ Sprite_Character.prototype.updateFrame = function() {
 /**
  * Updates the loot to give the effect that it is floating in place.
  */
-Sprite_Character.prototype.updateLootFloat = function() {
+Sprite_Character.prototype.updateLootFloat = function()
+{
   const lootData = this.getLootData();
   lootData.countdownDuration();
 
   // if the loot is expired, remove it.
-  if (lootData.expired) {
+  if (lootData.expired)
+  {
     // don't reset the removal if its already set.
     if (this._character.getLootNeedsRemoving()) return;
 
@@ -682,7 +800,7 @@ Sprite_Character.prototype.updateLootFloat = function() {
     return;
   }
 
-  const { _img: lootSprite, _swing: swingDown } = this._loot;
+  const {_img: lootSprite, _swing: swingDown} = this._loot;
 
   swingDown
     ? this.lootFloatDown(lootSprite)
@@ -693,7 +811,8 @@ Sprite_Character.prototype.updateLootFloat = function() {
  * The downswing of a loot sprite while floating.
  * @param {Sprite} lootSprite The sprite to give a float effect.
  */
-Sprite_Character.prototype.lootFloatDown = function(lootSprite) {
+Sprite_Character.prototype.lootFloatDown = function(lootSprite)
+{
   this._loot._oy += 0.3;
   lootSprite.y += 0.3;
   if (this._loot._oy > 5) this._loot._swing = false;
@@ -703,7 +822,8 @@ Sprite_Character.prototype.lootFloatDown = function(lootSprite) {
  * The upswing of a loot sprite while floating.
  * @param {Sprite} lootSprite The sprite give a float effect.
  */
-Sprite_Character.prototype.lootFloatUp = function(lootSprite) {
+Sprite_Character.prototype.lootFloatUp = function(lootSprite)
+{
   this._loot._oy -= 0.3;
   lootSprite.y -= 0.3;
   if (this._loot._oy < -5) this._loot._swing = true;
@@ -714,7 +834,8 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite) {
 /**
  * Updates the sprites for all current damage popups.
  */
-Sprite_Character.prototype.updateMapPopups = function() {
+Sprite_Character.prototype.updateMapPopups = function()
+{
   this.buildPopupsIfAny();
   this.updateDamagePopups();
   this.updateNonDamagePopups();
@@ -724,15 +845,19 @@ Sprite_Character.prototype.updateMapPopups = function() {
 /**
  * Updates all damage popup sprites on this character.
  */
-Sprite_Character.prototype.updateDamagePopups = function() {
-  if (this._damages.length > 0) {
-    this._damages.forEach(damage => {
+Sprite_Character.prototype.updateDamagePopups = function()
+{
+  if (this._damages.length > 0)
+  {
+    this._damages.forEach(damage =>
+    {
       damage.update();
       damage.x = this.x + 150 + damage._xVariance;
       damage.y = this.y + damage._yVariance;
     })
 
-    if (!this._damages[0].isPlaying()) {
+    if (!this._damages[0].isPlaying())
+    {
       this.parent.removeChild(this._damages[0]);
       this._damages[0].destroy();
       this._damages.shift();
@@ -743,15 +868,19 @@ Sprite_Character.prototype.updateDamagePopups = function() {
 /**
  * Updates all non-damage popup sprites on this character.
  */
-Sprite_Character.prototype.updateNonDamagePopups = function() {
-  if (this._nonDamages.length > 0) {
-    this._nonDamages.forEach(nonDamage => {
+Sprite_Character.prototype.updateNonDamagePopups = function()
+{
+  if (this._nonDamages.length > 0)
+  {
+    this._nonDamages.forEach(nonDamage =>
+    {
       nonDamage.update();
       nonDamage.x = this.x + 150 + nonDamage._xVariance;
       nonDamage.y = this.y + nonDamage._yVariance;
     })
 
-    if (!this._nonDamages[0].isPlaying()) {
+    if (!this._nonDamages[0].isPlaying())
+    {
       this.parent.removeChild(this._nonDamages[0]);
       this._nonDamages[0].destroy();
       this._nonDamages.shift();
@@ -762,13 +891,15 @@ Sprite_Character.prototype.updateNonDamagePopups = function() {
 /**
  * Constructs a damage popup if one is requested.
  */
-Sprite_Character.prototype.buildPopupsIfAny = function() {
-  if (this._character.getRequestTextPop()) {
+Sprite_Character.prototype.buildPopupsIfAny = function()
+{
+  if (this._character.getRequestTextPop())
+  {
     do
     {
       const popup = this._character.getDamagePops().shift();
       const sprite = this.configurePopup(popup);
-      sprite._isDamage 
+      sprite._isDamage
         ? this._damages.push(sprite)
         : this._nonDamages.push(sprite);
       this.parent.addChild(sprite);
@@ -782,18 +913,22 @@ Sprite_Character.prototype.buildPopupsIfAny = function() {
  * @param {JABS_TextPop} popup The popup details.
  * @returns {Sprite_Damage} The completely configured sprite of the popup.
  */
-Sprite_Character.prototype.configurePopup = function(popup) {
-  const getRandomNumber = (min, max) => {
+Sprite_Character.prototype.configurePopup = function(popup)
+{
+  const getRandomNumber = (min, max) =>
+  {
     return Math.floor(min + Math.random() * (max + 1 - min))
   }
 
   let sprite = new Sprite_Damage();
 
-  if (popup.iconIndex > -1) {
+  if (popup.iconIndex > -1)
+  {
     sprite.addIcon(popup.iconIndex);
   }
 
-  switch (popup.popupType) {
+  switch (popup.popupType)
+  {
     case JABS_TextPop.Types.Damage:
       sprite._xVariance = getRandomNumber(-30, 30);
       sprite._yVariance = getRandomNumber(-30, 30);
@@ -862,77 +997,95 @@ Sprite_Character.prototype.configurePopup = function(popup) {
  * @param {Sprite_Damage} sprite The sprite to configure for this damage pop.
  * @param {JABS_TextPop} popup The popup details.
  */
-Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
+Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup)
+{
   sprite._isDamage = true;
   sprite._duration = 120;
   let damageValue;
 
   // handle damage pop based on Game_ActionResult from the target.
   const result = popup.actionResult;
-  if (result) {
+  if (result)
+  {
     // if we have an action result to work with, then use it.
-    if (result.evaded) {
+    if (result.evaded)
+    {
       sprite._colorType = 7;
       sprite.createValue("Evade!");
       console.warn('this popup resulted in an evasion somehow');
       console.warn('evasions are not supported by JABS');
       console.error(popup);
-      return;  
-    } else if (result.parried) {
+      return;
+    }
+    else if (result.parried)
+    {
       sprite._flashColor = [96, 96, 255, 192];
       sprite._flashDuration = 60;
       sprite._colorType = 8;
       sprite.createValue("Parry!");
       return;
     }
-  
-    if (result.hpAffected) {
+
+    if (result.hpAffected)
+    {
       // if hp-centric.
-      sprite._colorType = result.hpDamage >= 0 
+      sprite._colorType = result.hpDamage >= 0
         ? 0 // hp damage
         : 3;// hp healing
       damageValue = Math.round(result.hpDamage).toString();
-    } else if (result.mpDamage !== 0) {
+    }
+    else if (result.mpDamage !== 0)
+    {
       // if mp-centric.
-      sprite._colorType = result.mpDamage >= 0 
+      sprite._colorType = result.mpDamage >= 0
         ? 5 // mp damage
         : 4;// mp healing
       damageValue = Math.round(result.mpDamage).toString();
-    } else if (result.tpDamage !== 0) {
+    }
+    else if (result.tpDamage !== 0)
+    {
       // if tp-centric.
-      sprite._colorType = result.tpDamage >= 0 
+      sprite._colorType = result.tpDamage >= 0
         ? 19 // tp damage
         : 18;// tp healing
       damageValue = Math.round(result.tpDamage).toString();
     }
 
     // handle visual alterations if critical.
-    if (result.critical) {
+    if (result.critical)
+    {
       sprite._flashColor = [255, 0, 0, 240];
       sprite._flashDuration = 100;
       sprite._isCritical = true;
       sprite._duration += 60;
     }
-  } else {
+  }
+  else
+  {
     damageValue = popup.directValue;
     sprite._colorType = popup.textColorIndex;
   }
 
   // stringify the damage and if its `undefined`, just clean that up.
   damageValue = `${damageValue}`;
-  if (damageValue.includes(`undefined`)) {
+  if (damageValue.includes(`undefined`))
+  {
     damageValue = ``;
   }
 
   // remove the `-` from healing popups.
-  if (damageValue.indexOf(`-`) !== -1) {
+  if (damageValue.indexOf(`-`) !== -1)
+  {
     damageValue = damageValue.substring(damageValue.indexOf(`-`) + 1);
   }
 
   // handle visual alterations if elementally strong/weak.
-  if (popup.isStrength) {
+  if (popup.isStrength)
+  {
     damageValue = `${damageValue}!!!`;
-  } else if (popup.isWeakness) {
+  }
+  else if (popup.isWeakness)
+  {
     damageValue = `${damageValue}...`;
   }
 
@@ -944,7 +1097,8 @@ Sprite_Character.prototype.buildDamagePopSprite = function(sprite, popup) {
  * @param {Sprite_Damage} sprite The sprite to configure for this experience pop.
  * @param {JABS_TextPop} popup The data for this pop.
  */
-Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup) {
+Sprite_Character.prototype.buildBasicPopSprite = function(sprite, popup)
+{
   const value = popup.directValue;
   sprite._colorType = popup.textColorIndex;
   sprite.createValue(`${value}`);
@@ -968,7 +1122,8 @@ Sprite_Character.prototype.buildSkillUsageSprite = function(sprite, popup)
  * Extends this `.initialize()` function to include our parameters for all damage sprites.
  */
 J.ABS.Aliased.Sprite_Damage.initialize = Sprite_Damage.prototype.initialize;
-Sprite_Damage.prototype.initialize = function() {
+Sprite_Damage.prototype.initialize = function()
+{
   J.ABS.Aliased.Sprite_Damage.initialize.call(this);
   this._xVariance = 0;
   this._yVariance = 0;
@@ -996,7 +1151,7 @@ Sprite_Damage.prototype.createCustomValue = function(value)
 
 /**
  * Assigns the provided value to be the text of this popup.
- * @param {string} value The value to display in the popup. 
+ * @param {string} value The value to display in the popup.
  */
 Sprite_Damage.prototype.createValue = function(value)
 {
@@ -1004,10 +1159,13 @@ Sprite_Damage.prototype.createValue = function(value)
   const w = 400;
   const sprite = this.createChildSprite(w, h);
   let fontSize = 20;
-  if (this._isCritical) {
+  if (this._isCritical)
+  {
     fontSize += 12;
     sprite.bitmap.fontBold = true;
-  } else if (value.includes("Missed") || value.includes("Evaded") || value.includes("Parry")) {
+  }
+  else if (value.includes("Missed") || value.includes("Evaded") || value.includes("Parry"))
+  {
     fontSize -= 6;
     sprite.bitmap.fontItalic = true;
   }
@@ -1021,7 +1179,8 @@ Sprite_Damage.prototype.createValue = function(value)
  * Adds an icon to the damage sprite.
  * @param {number} iconIndex The id/index of the icon on the iconset.
  */
-Sprite_Damage.prototype.addIcon = function(iconIndex) {
+Sprite_Damage.prototype.addIcon = function(iconIndex)
+{
   const sprite = this.createChildSprite(32, 32);
   const bitmap = ImageManager.loadSystem("IconSet");
   const pw = ImageManager.iconWidth;
@@ -1038,11 +1197,13 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
 
 /**
  * OVERWRITE
- * 
+ *
  * Updates the duration to start fading later, and for longer.
  */
-Sprite_Damage.prototype.updateOpacity = function() {
-  if (this._duration < 60 && this._persist === false) {
+Sprite_Damage.prototype.updateOpacity = function()
+{
+  if (this._duration < 60 && this._persist === false)
+  {
     this.opacity = (255 * this._duration) / 60;
   }
 }
@@ -1050,7 +1211,8 @@ Sprite_Damage.prototype.updateOpacity = function() {
 /**
  * OVERWRITE Updates the damage color to be any color on the system palette.
  */
-Sprite_Damage.prototype.damageColor = function() {
+Sprite_Damage.prototype.damageColor = function()
+{
   return ColorManager.textColor(this._colorType);
 }
 //#endregion Sprite_Damage
@@ -1061,9 +1223,11 @@ Sprite_Damage.prototype.damageColor = function() {
  * This rounds up the values for the sprite gauge if they are a number.
  */
 J.ABS.Aliased.Sprite_Gauge.currentValue = Sprite_Gauge.prototype.currentValue;
-Sprite_Gauge.prototype.currentValue = function() {
+Sprite_Gauge.prototype.currentValue = function()
+{
   let base = J.ABS.Aliased.Sprite_Gauge.currentValue.call(this);
-  if (base !== NaN) {
+  if (base !== NaN)
+  {
     base = Math.ceil(base);
   }
 

@@ -101,26 +101,26 @@ J.CRIT = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.CRIT.Metadata =
-{
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-CriticalFactors`,
+  {
+    /**
+     * The name of this plugin.
+     */
+    Name: `J-CriticalFactors`,
 
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
+    /**
+     * The version of this plugin.
+     */
+    Version: '1.0.0',
+  };
 
 J.CRIT.Aliased =
-{
-  Game_Action: new Map(),
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_BattlerBase: new Map(),
-  Game_Enemy: new Map(),
-};
+  {
+    Game_Action: new Map(),
+    Game_Actor: new Map(),
+    Game_Battler: new Map(),
+    Game_BattlerBase: new Map(),
+    Game_Enemy: new Map(),
+  };
 //#endregion Introduction
 
 //#region Game objects
@@ -252,13 +252,13 @@ Object.defineProperties(
      * @type {number}
      */
     cdm:
-    {
-      get: function()
       {
-        return this.criticalDamageMultiplier();
+        get: function()
+        {
+          return this.criticalDamageMultiplier();
+        },
+        configurable: true
       },
-      configurable: true
-    },
 
     /**
      * The battler's critical damage reduction.
@@ -266,14 +266,14 @@ Object.defineProperties(
      * @type {number}
      */
     cdr:
-    {
-      get: function()
       {
-        return this.criticalDamageReduction();
+        get: function()
+        {
+          return this.criticalDamageReduction();
+        },
+        configurable: true
       },
-      configurable: true
-    },
-});
+  });
 
 /**
  * The base critical damage multiplier.
@@ -377,7 +377,6 @@ Game_Battler.prototype.extractCritDamageReductions = function(referenceData)
   return criticalDamageReduction;
 };
 //#endregion Game_Battler
-
 
 //#endregion Game objects
 

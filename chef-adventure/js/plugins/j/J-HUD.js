@@ -102,11 +102,13 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
@@ -144,14 +146,16 @@ J.HUD.Aliased = {
 /**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.HUD.Metadata.Name, "Show Hud", () => {
+PluginManager.registerCommand(J.HUD.Metadata.Name, "Show Hud", () =>
+{
   J.HUD.Metadata.Enabled = true;
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.HUD.Metadata.Name, "Hide Hud", () => {
+PluginManager.registerCommand(J.HUD.Metadata.Name, "Hide Hud", () =>
+{
   J.HUD.Metadata.Enabled = false;
 });
 //#endregion introduction
@@ -162,7 +166,8 @@ PluginManager.registerCommand(J.HUD.Metadata.Name, "Hide Hud", () => {
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
 J.HUD.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
-Scene_Map.prototype.initialize = function() {
+Scene_Map.prototype.initialize = function()
+{
   J.HUD.Aliased.Scene_Map.initialize.call(this);
   this._j = this._j || {};
   this._j._hud = null;
@@ -172,7 +177,8 @@ Scene_Map.prototype.initialize = function() {
  * Create the Hud with all the rest of the windows.
  */
 J.HUD.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
-Scene_Map.prototype.createAllWindows = function() {
+Scene_Map.prototype.createAllWindows = function()
+{
   this.createHud();
   J.HUD.Aliased.Scene_Map.createAllWindows.call(this);
 };
@@ -180,7 +186,8 @@ Scene_Map.prototype.createAllWindows = function() {
 /**
  * Creates the default HUD for JABS.
  */
-Scene_Map.prototype.createHud = function() {
+Scene_Map.prototype.createHud = function()
+{
   const ww = 400;
   const wh = 300;
   // if we have coordinates from the plugin parameters, use those instead.
@@ -191,7 +198,7 @@ Scene_Map.prototype.createHud = function() {
     ? parseInt(J.HUD.Metadata.Ycoordinate)
     : -((Graphics.height - Graphics.boxHeight) / 2);
 
-  const rect = new Rectangle(wx-8, wy-8, ww, wh);
+  const rect = new Rectangle(wx - 8, wy - 8, ww, wh);
   this._j._hud = new Window_Hud(rect);
   this.addWindow(this._j._hud);
 };
@@ -199,7 +206,8 @@ Scene_Map.prototype.createHud = function() {
 /**
  * If the HUD is in use, move the map name over a bit.
  */
-Scene_Map.prototype.mapNameWindowRect = function() {
+Scene_Map.prototype.mapNameWindowRect = function()
+{
   const wx = 400;
   const wy = 0;
   const ww = 360;
@@ -211,8 +219,10 @@ Scene_Map.prototype.mapNameWindowRect = function() {
  * Toggles the visibility and functionality of the built-in JABS hud.
  * @param {boolean} toggle Whether or not to display the default hud.
  */
-Scene_Map.prototype.toggleHud = function(toggle = true) {
-  if (J.HUD.Metadata.Enabled) {
+Scene_Map.prototype.toggleHud = function(toggle = true)
+{
+  if (J.HUD.Metadata.Enabled)
+  {
     this._j._hud.toggle(toggle);
   }
 };
@@ -220,7 +230,8 @@ Scene_Map.prototype.toggleHud = function(toggle = true) {
 /**
  * Refreshes the hud on-command.
  */
-Scene_Map.prototype.refreshHud = function() {
+Scene_Map.prototype.refreshHud = function()
+{
   this._j._hud.refresh();
 };
 //#endregion Scene_Map
@@ -231,7 +242,11 @@ Scene_Map.prototype.refreshHud = function() {
 /**
  * The built-in Hud window that contains all of the leader's info in realtime.
  */
-function Window_Hud() { this.initialize(...arguments); }
+function Window_Hud()
+{
+  this.initialize(...arguments);
+}
+
 Window_Hud.prototype = Object.create(Window_Base.prototype);
 Window_Hud.prototype.constructor = Window_Hud;
 
@@ -239,7 +254,8 @@ Window_Hud.prototype.constructor = Window_Hud;
  * Initializes the entire Hud.
  * @param {Rectangle} rect The rectangle object that defines the shape of this HUD.
  */
-Window_Hud.prototype.initialize = function(rect) {
+Window_Hud.prototype.initialize = function(rect)
+{
   Window_Base.prototype.initialize.call(this, rect);
   this.opacity = 0;
   this.initMembers();
@@ -248,7 +264,8 @@ Window_Hud.prototype.initialize = function(rect) {
 /**
  * Initializes the various variables required for the HUD.
  */
-Window_Hud.prototype.initMembers = function() {
+Window_Hud.prototype.initMembers = function()
+{
   /**
    * The cache of sprites used within this HUD window.
    */
@@ -263,10 +280,12 @@ Window_Hud.prototype.initMembers = function() {
 /**
  * Refreshes the hud and forces a recreation of all sprites.
  */
-Window_Hud.prototype.refresh = function() {
+Window_Hud.prototype.refresh = function()
+{
   this.contents.clear();
   const keys = Object.keys(this._hudSprites);
-  keys.forEach(key => {
+  keys.forEach(key =>
+  {
     this._hudSprites[key].destroy();
     delete this._hudSprites[key];
   });
@@ -277,11 +296,15 @@ Window_Hud.prototype.refresh = function() {
 /**
  * The update cycle. Refreshes values as-needed and handles all the drawing.
  */
-Window_Hud.prototype.update = function() {
+Window_Hud.prototype.update = function()
+{
   Window_Base.prototype.update.call(this);
-  if (this.canUpdate()) {
+  if (this.canUpdate())
+  {
     this.drawHud();
-  } else {
+  }
+  else
+  {
     this.manageVisibility();
     this.refresh();
   }
@@ -292,7 +315,8 @@ Window_Hud.prototype.update = function() {
  */
 Window_Hud.prototype.manageVisibility = function()
 {
-  if ($gameMessage.isBusy()) {
+  if ($gameMessage.isBusy())
+  {
     this.opacity = 0;
     this.close();
   }
@@ -308,7 +332,8 @@ Window_Hud.prototype.manageVisibility = function()
  * Toggles whether or not this hud is enabled.
  * @param {boolean} toggle Toggles the hud to be visible and operational.
  */
-Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
+Window_Hud.prototype.toggle = function(toggle = !this._enabled)
+{
   this._enabled = toggle;
   this.manageVisibility();
 };
@@ -317,7 +342,8 @@ Window_Hud.prototype.toggle = function(toggle = !this._enabled) {
  * Whether or not the hud actually has an actor to display data for.
  * @returns {boolean} True if there is an actor to update, false otherwise.
  */
-Window_Hud.prototype.canUpdate = function() {
+Window_Hud.prototype.canUpdate = function()
+{
   return !(!$gameParty || !$gameParty.leader() || !this.contents ||
     !this._enabled || $gameMessage.isBusy());
 };
@@ -325,15 +351,20 @@ Window_Hud.prototype.canUpdate = function() {
 /**
  * Draws the contents of the HUD.
  */
-Window_Hud.prototype.drawHud = function() {
+Window_Hud.prototype.drawHud = function()
+{
   this.drawLeaderHud();
-  if (!J.HUD.Metadata.HideFollowersHudAlways) {
+  if (!J.HUD.Metadata.HideFollowersHudAlways)
+  {
     this.drawOtherMembersHuds();
   }
 
-  if (this.playerInterference()) {
+  if (this.playerInterference())
+  {
     this.interferenceOpacity();
-  } else {
+  }
+  else
+  {
     this.refreshOpacity();
   }
 };
@@ -342,11 +373,13 @@ Window_Hud.prototype.drawHud = function() {
  * Draws all leader data for the HUD.
  * Leader data includes face/HP/MP/TP/experience/level.
  */
-Window_Hud.prototype.drawLeaderHud = function() {
-  if (!J.HUD.Metadata.HideAllButStates) {
+Window_Hud.prototype.drawLeaderHud = function()
+{
+  if (!J.HUD.Metadata.HideAllButStates)
+  {
     this.drawLeaderFace();
     this.drawLeaderGauges();
-    this.drawLeaderNumbers();  
+    this.drawLeaderNumbers();
   }
 
   this.drawStates();
@@ -355,7 +388,8 @@ Window_Hud.prototype.drawLeaderHud = function() {
 /**
  * Draws the leader's face sprite.
  */
-Window_Hud.prototype.drawLeaderFace = function() {
+Window_Hud.prototype.drawLeaderFace = function()
+{
   const leader = $gameParty.leader();
   this.placeFaceSprite(leader.actorId(), leader.faceName(), leader.faceIndex(), true, 0, 0);
 };
@@ -363,23 +397,25 @@ Window_Hud.prototype.drawLeaderFace = function() {
 /**
  * Draws all the gauge sprites for the leader's data.
  */
- Window_Hud.prototype.drawLeaderGauges = function() {
+Window_Hud.prototype.drawLeaderGauges = function()
+{
   const leader = $gameParty.leader();
-  this.placeGaugeSprite("hp",   leader, 100, 0, 200, 24, 14);
-  this.placeGaugeSprite("mp",   leader, 100, 25, 200, 24, 14);
-  this.placeGaugeSprite("tp",   leader, 100, 44, 200, 20, 8);
+  this.placeGaugeSprite("hp", leader, 100, 0, 200, 24, 14);
+  this.placeGaugeSprite("mp", leader, 100, 25, 200, 24, 14);
+  this.placeGaugeSprite("tp", leader, 100, 44, 200, 20, 8);
   this.placeGaugeSprite("time", leader, 130, 72, 170, 20, 10); // xp
 };
 
 /**
  * Draws all the number sprites for the leader's data.
  */
-Window_Hud.prototype.drawLeaderNumbers = function() {
+Window_Hud.prototype.drawLeaderNumbers = function()
+{
   const leader = $gameParty.leader();
-  this.placeNumberSprite("hp",  leader, 302, 6, -10);
-  this.placeNumberSprite("mp",  leader, 302, 31, -10);
-  this.placeNumberSprite("tp",  leader, 302, 53, -16);
-  this.placeNumberSprite("xp",  leader, 302, 78, -12);
+  this.placeNumberSprite("hp", leader, 302, 6, -10);
+  this.placeNumberSprite("mp", leader, 302, 31, -10);
+  this.placeNumberSprite("tp", leader, 302, 53, -16);
+  this.placeNumberSprite("xp", leader, 302, 78, -12);
   this.placeNumberSprite("lvl", leader, 90, 78, -6);
 };
 
@@ -387,14 +423,16 @@ Window_Hud.prototype.drawLeaderNumbers = function() {
  * Draws all the non-leader data for the HUD.
  * Does not draw them if the followers are not identified as battlers.
  */
-Window_Hud.prototype.drawOtherMembersHuds = function() {
+Window_Hud.prototype.drawOtherMembersHuds = function()
+{
   // don't draw ally members if they don't exist.
   if ($gameParty._actors.length === 1) return;
 
   // if the followers aren't visible, then don't show their HUD sprites.
   if (!$gamePlayer.followers().isVisible()) return;
 
-  $gameParty._actors.forEach((actorId, index) => {
+  $gameParty._actors.forEach((actorId, index) =>
+  {
     // don't draw the leader's data, they already are being drawn.
     if (index === 0) return;
 
@@ -412,17 +450,19 @@ Window_Hud.prototype.drawOtherMembersHuds = function() {
  * @param {number} x The `x` coordinate to draw data at.
  * @param {number} y The `y` coordinate to draw data at.
  */
-Window_Hud.prototype.drawOtherMemberHud = function(follower, x, y) {
-  this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), false, x-35, y);
+Window_Hud.prototype.drawOtherMemberHud = function(follower, x, y)
+{
+  this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), false, x - 35, y);
   this.placeGaugeSprite("hp", follower, x, y, 100, 24, 8);
-  this.placeGaugeSprite("mp", follower, x, y+5, 100, 24, 6);
+  this.placeGaugeSprite("mp", follower, x, y + 5, 100, 24, 6);
 };
 
 /**
  * Determines whether or not the player is in the way (or near it) of this window.
  * @returns {boolean} True if the player is in the way, false otherwise.
  */
-Window_Hud.prototype.playerInterference = function() {
+Window_Hud.prototype.playerInterference = function()
+{
   const player = $gamePlayer;
   const playerX = player.screenX();
   const playerY = player.screenY();
@@ -432,10 +472,12 @@ Window_Hud.prototype.playerInterference = function() {
 /**
  * Reduces opacity of all sprites when the player is in the way.
  */
-Window_Hud.prototype.interferenceOpacity = function() {
+Window_Hud.prototype.interferenceOpacity = function()
+{
   const sprites = this._hudSprites;
   const keys = Object.keys(sprites);
-  keys.forEach(key => {
+  keys.forEach(key =>
+  {
     const sprite = sprites[key];
     if (sprite.opacity > 64) sprite.opacity -= 15;
     if (sprite.opacity < 64) sprite.opacity += 1;
@@ -445,10 +487,12 @@ Window_Hud.prototype.interferenceOpacity = function() {
 /**
  * Reverts the opacity to normal when the player is no longer in the way.
  */
-Window_Hud.prototype.refreshOpacity = function() {
+Window_Hud.prototype.refreshOpacity = function()
+{
   const sprites = this._hudSprites;
   const keys = Object.keys(sprites);
-  keys.forEach(key => {
+  keys.forEach(key =>
+  {
     const sprite = sprites[key];
     if (sprite.opacity < 255) sprite.opacity += 15;
     if (sprite.opacity > 255) sprite.opacity = 255;
@@ -459,20 +503,24 @@ Window_Hud.prototype.refreshOpacity = function() {
 /**
  * Draws all state-related data for the hud.
  */
-Window_Hud.prototype.drawStates = function() {
+Window_Hud.prototype.drawStates = function()
+{
   this.hideExpiredStates();
   if (!$gameParty.leader().states().length) return;
 
   const iconWidth = ImageManager.iconWidth + 8;
 
-  if (J.ABS) {
+  if (J.ABS)
+  {
     const player = $gameBattleMap.getPlayerMapBattler();
     const playerBattler = player.getBattler();
     const trackedStates = $gameBattleMap.getStateTrackerByBattler(playerBattler);
     const actorId = $gameParty.leader().actorId();
-    trackedStates.forEach((trackedState, i) => {
-      if (!trackedState.isExpired() && (trackedState.stateId !== playerBattler.deathStateId())) {
-        this.drawState(trackedState, actorId, 128 + i*iconWidth, 100);
+    trackedStates.forEach((trackedState, i) =>
+    {
+      if (!trackedState.isExpired() && (trackedState.stateId !== playerBattler.deathStateId()))
+      {
+        this.drawState(trackedState, actorId, 128 + i * iconWidth, 100);
       }
     });
   }
@@ -481,13 +529,18 @@ Window_Hud.prototype.drawStates = function() {
 /**
  * Hides the sprites associated with a given state id.
  */
-Window_Hud.prototype.hideExpiredStates = function() {
-  if (J.ABS) {
+Window_Hud.prototype.hideExpiredStates = function()
+{
+  if (J.ABS)
+  {
     const trackedStates = $gameBattleMap.getStateTrackerByBattler($gameParty.leader());
-    trackedStates.forEach(state => {
-      Object.keys(this._hudSprites).forEach(spriteKey => {
+    trackedStates.forEach(state =>
+    {
+      Object.keys(this._hudSprites).forEach(spriteKey =>
+      {
         const match = `state${state.stateId}`;
-        if (spriteKey.contains(match) && state.isExpired()) {
+        if (spriteKey.contains(match) && state.isExpired())
+        {
           this._hudSprites[spriteKey].hide()
         }
       });
@@ -502,7 +555,8 @@ Window_Hud.prototype.hideExpiredStates = function() {
  * @param {number} x The `x` coordinate to draw this state at.
  * @param {number} y The `y` coordinate to draw this state at.
  */
-Window_Hud.prototype.drawState = function(state, actorId, x, y) {
+Window_Hud.prototype.drawState = function(state, actorId, x, y)
+{
   this.placeStateIconSprite(state.stateId, state.iconIndex, actorId, x, y);
   this.placeStateTimerSprite(state.stateId, state, actorId, x, y);
 };
@@ -515,7 +569,8 @@ Window_Hud.prototype.drawState = function(state, actorId, x, y) {
  * @param {number} x The `x` coordinate to draw this state at.
  * @param {number} y The `y` coordinate to draw this state at.
  */
-Window_Hud.prototype.placeStateIconSprite = function(stateId, iconIndex, actorId, x, y) {
+Window_Hud.prototype.placeStateIconSprite = function(stateId, iconIndex, actorId, x, y)
+{
   const key = `actor${actorId}-state${stateId}-icon`;
   const key2 = "actor%1-state-%2-icon".format(actorId, stateId);
   const sprite = this.createStateIconSprite(key, iconIndex);
@@ -531,7 +586,8 @@ Window_Hud.prototype.placeStateIconSprite = function(stateId, iconIndex, actorId
  * @param {number} x The `x` coordinate to draw this state at.
  * @param {number} y The `y` coordinate to draw this state at.
  */
-Window_Hud.prototype.placeStateTimerSprite = function(stateId, stateData, actorId, x, y) {
+Window_Hud.prototype.placeStateTimerSprite = function(stateId, stateData, actorId, x, y)
+{
   const key = `actor${actorId}-state${stateId}-timer`;
   const sprite = this.createStateTimerSprite(key, stateData);
   sprite.move(x, y);
@@ -543,11 +599,15 @@ Window_Hud.prototype.placeStateTimerSprite = function(stateId, stateData, actorI
  * @param {string} key The key of this sprite.
  * @param {number} iconIndex The icon index of this sprite.
  */
-Window_Hud.prototype.createStateIconSprite = function(key, iconIndex) {
+Window_Hud.prototype.createStateIconSprite = function(key, iconIndex)
+{
   const sprites = this._hudSprites;
-  if (sprites[key]) {
+  if (sprites[key])
+  {
     return sprites[key];
-  } else {
+  }
+  else
+  {
     const sprite = new Sprite_Icon(iconIndex);
     sprites[key] = sprite;
     this.addInnerChild(sprite);
@@ -560,11 +620,15 @@ Window_Hud.prototype.createStateIconSprite = function(key, iconIndex) {
  * @param {string} key The key of this sprite.
  * @param {number} stateData The state data associated with this state.
  */
-Window_Hud.prototype.createStateTimerSprite = function(key, stateData) {
+Window_Hud.prototype.createStateTimerSprite = function(key, stateData)
+{
   const sprites = this._hudSprites;
-  if (sprites[key]) {
+  if (sprites[key])
+  {
     return sprites[key];
-  } else {
+  }
+  else
+  {
     const sprite = new Sprite_StateTimer(stateData);
     sprites[key] = sprite;
     this.addInnerChild(sprite);
@@ -582,7 +646,8 @@ Window_Hud.prototype.createStateTimerSprite = function(key, stateData) {
  * @param {number} x The `x` coordinate to draw data at.
  * @param {number} y The `y` coordinate to draw data at.
  */
-Window_Hud.prototype.placeFaceSprite = function(actorId, faceName, faceIndex, isLeader, x, y) {
+Window_Hud.prototype.placeFaceSprite = function(actorId, faceName, faceIndex, isLeader, x, y)
+{
   const key = `actor${actorId}-face-${faceName}-index${faceIndex}`;
   const sprite = this.createFaceSprite(key, faceName, faceIndex, isLeader);
   sprite.move(x, y);
@@ -597,11 +662,15 @@ Window_Hud.prototype.placeFaceSprite = function(actorId, faceName, faceIndex, is
  * @param {boolean} isLeader Whether or not this is the leader.
  * @returns {Sprite_Face}
  */
-Window_Hud.prototype.createFaceSprite = function(key, faceName, faceIndex, isLeader) {
+Window_Hud.prototype.createFaceSprite = function(key, faceName, faceIndex, isLeader)
+{
   const sprites = this._hudSprites;
-  if (sprites[key]) {
+  if (sprites[key])
+  {
     return sprites[key];
-  } else {
+  }
+  else
+  {
     const sprite = new Sprite_Face(faceName, faceIndex);
     const scale = isLeader ? 0.8 : 0.3;
     sprite.scale.x = scale;
@@ -620,7 +689,8 @@ Window_Hud.prototype.createFaceSprite = function(key, faceName, faceIndex, isLea
  * @param {number} y The origin `y` coordinate.
  * @param {number} fontSizeMod The variance of font size for this value.
  */
-Window_Hud.prototype.placeNumberSprite = function(type, actor, x, y, fontSizeMod) {
+Window_Hud.prototype.placeNumberSprite = function(type, actor, x, y, fontSizeMod)
+{
   const key = `actor${actor.actorId()}-number-${type}`;
   const sprite = this.createNumberSprite(key, type, actor, fontSizeMod);
   sprite.move(x, y);
@@ -634,11 +704,15 @@ Window_Hud.prototype.placeNumberSprite = function(type, actor, x, y, fontSizeMod
  * @param {Game_Actor} actor The actor that this number sprite belongs to.
  * @param {number} fontSizeMod The variance of font size for this value.
  */
-Window_Hud.prototype.createNumberSprite = function(key, type, actor, fontSizeMod) {
+Window_Hud.prototype.createNumberSprite = function(key, type, actor, fontSizeMod)
+{
   const sprites = this._hudSprites;
-  if (sprites[key]) {
+  if (sprites[key])
+  {
     return sprites[key];
-  } else {
+  }
+  else
+  {
     const sprite = new Sprite_ActorValue(actor, type, fontSizeMod);
     sprites[key] = sprite;
     this.addInnerChild(sprite);
@@ -656,7 +730,8 @@ Window_Hud.prototype.createNumberSprite = function(key, type, actor, fontSizeMod
  * @param {number} bh The height of the bitmap for the gauge.
  * @param {number} gh The height of the gauge itself.
  */
-Window_Hud.prototype.placeGaugeSprite = function(type, actor, x, y, bw, bh, gh) {
+Window_Hud.prototype.placeGaugeSprite = function(type, actor, x, y, bw, bh, gh)
+{
   const key = `actor${actor.actorId()}-gauge-${type}`;
   const sprite = this.createGaugeSprite(key, bw, bh, gh);
   sprite.setup(actor, type);
@@ -671,17 +746,21 @@ Window_Hud.prototype.placeGaugeSprite = function(type, actor, x, y, bw, bh, gh) 
  * @param {number} bh The height of the bitmap for this graphic.
  * @param {number} gh The height of the gauge of this graphic.
  */
-Window_Hud.prototype.createGaugeSprite = function(key, bw, bh, gh) {
+Window_Hud.prototype.createGaugeSprite = function(key, bw, bh, gh)
+{
   const sprites = this._hudSprites;
-  if (sprites[key]) {
-      return sprites[key];
-  } else {
-      const sprite = new Sprite_MapGauge(bw, bh, gh);
-      sprite.scale.x = 1.0; // change to match the window size?
-      sprite.scale.y = 1.0;
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
+  if (sprites[key])
+  {
+    return sprites[key];
+  }
+  else
+  {
+    const sprite = new Sprite_MapGauge(bw, bh, gh);
+    sprite.scale.x = 1.0; // change to match the window size?
+    sprite.scale.y = 1.0;
+    sprites[key] = sprite;
+    this.addInnerChild(sprite);
+    return sprite;
   }
 };
 
@@ -693,10 +772,15 @@ Window_Hud.prototype.createGaugeSprite = function(key, bw, bh, gh) {
 /**
  * A sprite that displays some static text.
  */
-function Sprite_StateTimer() { this.initialize(...arguments); }
+function Sprite_StateTimer()
+{
+  this.initialize(...arguments);
+}
+
 Sprite_StateTimer.prototype = Object.create(Sprite.prototype);
 Sprite_StateTimer.prototype.constructor = Sprite_StateTimer;
-Sprite_StateTimer.prototype.initialize = function(stateData) {
+Sprite_StateTimer.prototype.initialize = function(stateData)
+{
   Sprite.prototype.initialize.call(this);
   this.initMembers(stateData);
   this.loadBitmap();
@@ -706,7 +790,8 @@ Sprite_StateTimer.prototype.initialize = function(stateData) {
  * Initializes the properties associated with this sprite.
  * @param {object} stateData The state data associated with this sprite.
  */
-Sprite_StateTimer.prototype.initMembers = function(stateData) {
+Sprite_StateTimer.prototype.initMembers = function(stateData)
+{
   this._j = {};
   this._j._stateData = stateData;
 };
@@ -714,58 +799,65 @@ Sprite_StateTimer.prototype.initMembers = function(stateData) {
 /**
  * Loads the bitmap into the sprite.
  */
-Sprite_StateTimer.prototype.loadBitmap = function() {
+Sprite_StateTimer.prototype.loadBitmap = function()
+{
   this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
   this.bitmap.fontFace = this.fontFace();
   this.bitmap.fontSize = this.fontSize();
   this.bitmap.drawText(
-    this._j._text, 
-    0, 0, 
-    this.bitmapWidth(), this.bitmapHeight(), 
+    this._j._text,
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
     "center");
-  }
+}
 
-  Sprite_StateTimer.prototype.update = function() {
+Sprite_StateTimer.prototype.update = function()
+{
   Sprite.prototype.update.call(this);
   this.updateCooldownText();
 };
 
-Sprite_StateTimer.prototype.updateCooldownText = function() {
+Sprite_StateTimer.prototype.updateCooldownText = function()
+{
   this.bitmap.clear();
   const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
 
   this.bitmap.drawText(
-    durationRemaining.toString(), 
-    0, 0, 
-    this.bitmapWidth(), this.bitmapHeight(), 
+    durationRemaining.toString(),
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
     "center");
 };
 
 /**
  * Determines the width of the bitmap accordingly to the length of the string.
  */
-Sprite_StateTimer.prototype.bitmapWidth = function() {
+Sprite_StateTimer.prototype.bitmapWidth = function()
+{
   return 40;
 };
 
 /**
  * Determines the width of the bitmap accordingly to the length of the string.
  */
-Sprite_StateTimer.prototype.bitmapHeight = function() {
+Sprite_StateTimer.prototype.bitmapHeight = function()
+{
   return this.fontSize() * 3;
 };
 
 /**
  * Determines the font size for text in this sprite.
  */
-Sprite_StateTimer.prototype.fontSize = function() {
+Sprite_StateTimer.prototype.fontSize = function()
+{
   return $gameSystem.mainFontSize() - 10;
 };
 
 /**
  * determines the font face for text in this sprite.
  */
-Sprite_StateTimer.prototype.fontFace = function() {
+Sprite_StateTimer.prototype.fontFace = function()
+{
   return $gameSystem.numberFontFace();
 };
 //#endregion
@@ -774,10 +866,15 @@ Sprite_StateTimer.prototype.fontFace = function() {
 /**
  * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
  */
-function Sprite_ActorValue() { this.initialize(...arguments); }
+function Sprite_ActorValue()
+{
+  this.initialize(...arguments);
+}
+
 Sprite_ActorValue.prototype = Object.create(Sprite.prototype);
 Sprite_ActorValue.prototype.constructor = Sprite_ActorValue;
-Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0) {
+Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0)
+{
   this._j = {};
   Sprite.prototype.initialize.call(this);
   this.initMembers(actor, parameter, fontSizeMod);
@@ -790,7 +887,8 @@ Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod 
  * @param {string} parameter The parameter to track of "hp"/"mp"/"tp"/"xp".
  * @param {number} fontSizeMod The modification of the font size for this value.
  */
-Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod) {
+Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod)
+{
   this._j._parameter = parameter;
   this._j._actor = actor;
   this._j._fontSizeMod = fontSizeMod;
@@ -806,9 +904,11 @@ Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod
 /**
  * Updates the bitmap if it needs updating.
  */
-Sprite_ActorValue.prototype.update = function() {
+Sprite_ActorValue.prototype.update = function()
+{
   Sprite.prototype.update.call(this);
-  if (this.hasParameterChanged()) {
+  if (this.hasParameterChanged())
+  {
     this.refresh();
   }
 
@@ -819,8 +919,10 @@ Sprite_ActorValue.prototype.update = function() {
  * Automatically refreshes the value being represented by this sprite
  * after a fixed amount of time.
  */
-Sprite_ActorValue.prototype.autoRefresh = function() {
-  if (this._j._autoCounter <= 0) {
+Sprite_ActorValue.prototype.autoRefresh = function()
+{
+  if (this._j._autoCounter <= 0)
+  {
     this.refresh();
     this._j._autoCounter = 60;
   }
@@ -831,29 +933,32 @@ Sprite_ActorValue.prototype.autoRefresh = function() {
 /**
  * Refreshes the value being represented by this sprite.
  */
-Sprite_ActorValue.prototype.refresh = function() {
+Sprite_ActorValue.prototype.refresh = function()
+{
   this.bitmap = this.createBitmap();
 };
 
 /**
  * Checks whether or not a given parameter has changed.
  */
-Sprite_ActorValue.prototype.hasParameterChanged = function() {
+Sprite_ActorValue.prototype.hasParameterChanged = function()
+{
   let changed = true;
-  switch (this._j._parameter) {
-    case "hp": 
+  switch (this._j._parameter)
+  {
+    case "hp":
       changed = this._j._actor.hp != this._j._last._hp;
       if (changed) this._j._last._hp = this._j._actor.hp;
       return changed;
-    case "mp": 
+    case "mp":
       changed = this._j._actor.mp != this._j._last._mp;
       if (changed) this._j._last._mp = this._j._actor.mp;
       return changed;
-    case "tp": 
+    case "tp":
       changed = this._j._actor.tp != this._j._last._tp;
       if (changed) this._j._last.tp = this._j._actor.tp;
       return changed;
-    case "xp": 
+    case "xp":
       changed = this._j._actor.currentExp() != this._j._last._xp;
       if (changed) this._j._last._xp = this._j._actor.currentExp();
       return changed;
@@ -867,25 +972,27 @@ Sprite_ActorValue.prototype.hasParameterChanged = function() {
 /**
  * Creates a bitmap to attach to this sprite that shows the value.
  */
-Sprite_ActorValue.prototype.createBitmap = function() {
+Sprite_ActorValue.prototype.createBitmap = function()
+{
   let value = 0;
   const width = this.bitmapWidth();
   const height = this.fontSize() + 4;
   const bitmap = new Bitmap(width, height);
   bitmap.fontFace = this.fontFace();
   bitmap.fontSize = this.fontSize();
-  switch (this._j._parameter) {
-    case "hp": 
+  switch (this._j._parameter)
+  {
+    case "hp":
       bitmap.outlineWidth = 4;
       bitmap.outlineColor = "rgba(128, 24, 24, 1.0)";
       value = Math.floor(this._j._actor.hp);
       break;
-    case "mp": 
+    case "mp":
       bitmap.outlineWidth = 4;
       bitmap.outlineColor = "rgba(24, 24, 192, 1.0)";
       value = Math.floor(this._j._actor.mp);
       break;
-    case "tp": 
+    case "tp":
       bitmap.outlineWidth = 2;
       bitmap.outlineColor = "rgba(64, 128, 64, 1.0)";
       value = Math.floor(this._j._actor.tp);
@@ -903,7 +1010,7 @@ Sprite_ActorValue.prototype.createBitmap = function() {
       value = this._j._actor.level.padZero(3);
       break;
   }
-  
+
   bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
   return bitmap;
 };
@@ -911,21 +1018,24 @@ Sprite_ActorValue.prototype.createBitmap = function() {
 /**
  * Defaults the bitmap width to be a fixed 200 pixels.
  */
-Sprite_ActorValue.prototype.bitmapWidth = function() {
+Sprite_ActorValue.prototype.bitmapWidth = function()
+{
   return 200;
 };
 
 /**
  * Defaults the font size to be an adjusted amount from the base font size.
  */
-Sprite_ActorValue.prototype.fontSize = function() {
+Sprite_ActorValue.prototype.fontSize = function()
+{
   return $gameSystem.mainFontSize() + this._j._fontSizeMod;
 };
 
 /**
  * Defaults the font face to be the number font.
  */
-Sprite_ActorValue.prototype.fontFace = function() {
+Sprite_ActorValue.prototype.fontFace = function()
+{
   return $gameSystem.numberFontFace();
 };
 //#endregion
