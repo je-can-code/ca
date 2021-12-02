@@ -22,21 +22,23 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '2.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
 //#endregion version check
- 
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.CMS_E = {};
- 
+
 /**
  * The `metadata` associated with this plugin, such as version.
  */
@@ -56,7 +58,8 @@ J.CMS_E.Aliased = {
 /**
  * Initializes this scene.
  */
-Scene_Equip.prototype.initialize = function() {
+Scene_Equip.prototype.initialize = function()
+{
   Scene_MenuBase.prototype.initialize.call(this);
   this._j = this._j || {};
   this._j.moreVisible = false;
@@ -65,16 +68,19 @@ Scene_Equip.prototype.initialize = function() {
 /**
  * OVERWRITE Removes the buttons because fuck the buttons.
  */
-Scene_Equip.prototype.createButtons = function() {};
+Scene_Equip.prototype.createButtons = function()
+{
+};
 
 /**
  * OVERWRITE Removes the command window, because who even uses optimize?
  */
-Scene_Equip.prototype.create = function() {
+Scene_Equip.prototype.create = function()
+{
   Scene_MenuBase.prototype.create.call(this);
   this.createHelpWindow();
   this.createStatusWindow();
-  this.createMoreDataWindow();  
+  this.createMoreDataWindow();
   this.createSlotWindow();
   this.createItemWindow();
   this.refreshActor();
@@ -98,7 +104,8 @@ Scene_Equip.prototype.statusWidth = () => 1024;
  * OVERWRITE Modifies the size of the equip slots window.
  * @returns {Rectangle}
  */
-Scene_Equip.prototype.slotWindowRect = function() {
+Scene_Equip.prototype.slotWindowRect = function()
+{
   const wx = this.statusWidth();
   const wy = this.mainAreaTop();
   const ww = Graphics.boxWidth - this.statusWidth();
@@ -108,7 +115,7 @@ Scene_Equip.prototype.slotWindowRect = function() {
 
 /**
  * Calculates the slot window height based on slot count.
- * @param {number} equipSlotCount The number of slots. 
+ * @param {number} equipSlotCount The number of slots.
  * @returns {number} The calculated height for the slot window.
  */
 Scene_Equip.prototype.slotWindowHeight = equipSlotCount => 48 * equipSlotCount;
@@ -116,16 +123,20 @@ Scene_Equip.prototype.slotWindowHeight = equipSlotCount => 48 * equipSlotCount;
 /**
  * Toggles the visibility of the "more" window.
  */
-Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
+Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function()
+{
   this._j.moreVisible = !this._j.moreVisible;
-  if (this._j.moreVisible) {
+  if (this._j.moreVisible)
+  {
     this._slotWindow.refreshMoreData();
     this._slotWindow.deactivate();
     this._moreDataWindow.setHandler("cancel", this.backToSlotsList.bind(this));
     this._moreDataWindow.show();
     this._moreDataWindow.activate();
     this._moreDataWindow.select(0);
-  } else {
+  }
+  else
+  {
     this._moreDataWindow.hide();
     this._moreDataWindow.deactivate();
     this._moreDataWindow.deselect();
@@ -136,16 +147,20 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
 /**
  * Toggles the visibility of the "more" window.
  */
-Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
+Scene_Equip.prototype.switchToMoreDataFromEquipItems = function()
+{
   this._j.moreVisible = !this._j.moreVisible;
-  if (this._j.moreVisible) {
+  if (this._j.moreVisible)
+  {
     this._itemWindow.refreshMoreData();
     this._itemWindow.deactivate();
     this._moreDataWindow.setHandler("cancel", this.backToItemsList.bind(this));
     this._moreDataWindow.show();
     this._moreDataWindow.activate();
     this._moreDataWindow.select(0);
-  } else {
+  }
+  else
+  {
     this._moreDataWindow.hide();
     this._moreDataWindow.deactivate();
     this._moreDataWindow.deselect();
@@ -157,7 +172,8 @@ Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
  * Extends the slot window to include our additional actions.
  */
 J.CMS_E.Aliased.Scene_Equip.createSlotWindow = Scene_Equip.prototype.createSlotWindow;
-Scene_Equip.prototype.createSlotWindow = function() {
+Scene_Equip.prototype.createSlotWindow = function()
+{
   J.CMS_E.Aliased.Scene_Equip.createSlotWindow.call(this);
   this._slotWindow.setHandler("more", this.switchToMoreDataFromEquipSlots.bind(this));
   this._slotWindow.setHandler("pagedown", this.nextActor.bind(this));
@@ -168,7 +184,8 @@ Scene_Equip.prototype.createSlotWindow = function() {
 /**
  * OVERWRITE Prevents hiding the item window.
  */
-Scene_Equip.prototype.createItemWindow = function() {
+Scene_Equip.prototype.createItemWindow = function()
+{
   const rect = this.itemWindowRect();
   this._itemWindow = new Window_EquipItem(rect);
   this._itemWindow.setHelpWindow(this._helpWindow);
@@ -186,7 +203,8 @@ Scene_Equip.prototype.createItemWindow = function() {
 /**
  * Creates the more data window.
  */
-Scene_Equip.prototype.createMoreDataWindow = function() {
+Scene_Equip.prototype.createMoreDataWindow = function()
+{
   const rect = this.moreDataRect();
   this._moreDataWindow = new Window_MoreEquipData(rect);
   this._moreDataWindow.hide();
@@ -196,7 +214,8 @@ Scene_Equip.prototype.createMoreDataWindow = function() {
   this.addWindow(this._moreDataWindow);
 };
 
-Scene_Equip.prototype.moreDataRect = function() {
+Scene_Equip.prototype.moreDataRect = function()
+{
   const width = 500;
   const wx = this.statusWidth() - width - 12;
   const wy = this.slotWindowRect().y - 12;
@@ -205,11 +224,13 @@ Scene_Equip.prototype.moreDataRect = function() {
   return new Rectangle(wx, wy, ww, wh);
 };
 
-Scene_Equip.prototype.backToSlotsList = function() {
+Scene_Equip.prototype.backToSlotsList = function()
+{
   this.switchToMoreDataFromEquipSlots();
 };
 
-Scene_Equip.prototype.backToItemsList = function() {
+Scene_Equip.prototype.backToItemsList = function()
+{
   this.switchToMoreDataFromEquipItems();
 };
 
@@ -217,7 +238,8 @@ Scene_Equip.prototype.backToItemsList = function() {
  * Gets the rectangle that defines the shape of this window.
  * @returns {Rectangle}
  */
-Scene_Equip.prototype.itemWindowRect = function() {
+Scene_Equip.prototype.itemWindowRect = function()
+{
   const wx = this.statusWidth();
   const wy = this.mainAreaTop() + this._slotWindow.height;
   const ww = Graphics.boxWidth - this.statusWidth();
@@ -228,7 +250,8 @@ Scene_Equip.prototype.itemWindowRect = function() {
 /**
  * OVERWRITE Prevents hiding the equip window.
  */
-Scene_Equip.prototype.onSlotOk = function() {
+Scene_Equip.prototype.onSlotOk = function()
+{
   this._itemWindow.activate();
   this._itemWindow.select(0);
 };
@@ -236,14 +259,16 @@ Scene_Equip.prototype.onSlotOk = function() {
 /**
  * OVERWRITE Replaces the slot cancel functionality with the end of the scene.
  */
-Scene_Equip.prototype.onSlotCancel = function() {
+Scene_Equip.prototype.onSlotCancel = function()
+{
   this.popScene();
 };
 
 /**
  * OVERWRITE Prevents hiding the item window.
  */
-Scene_Equip.prototype.hideItemWindow = function() {
+Scene_Equip.prototype.hideItemWindow = function()
+{
   this._slotWindow.activate();
   this._itemWindow.deselect();
 };
@@ -251,7 +276,8 @@ Scene_Equip.prototype.hideItemWindow = function() {
 /**
  * OVERWRITE Prevents trying to activate a window that was removed from the scene.
  */
-Scene_Equip.prototype.onActorChange = function() {
+Scene_Equip.prototype.onActorChange = function()
+{
   Scene_MenuBase.prototype.onActorChange.call(this);
   this.refreshActor();
   this.hideItemWindow();
@@ -261,7 +287,8 @@ Scene_Equip.prototype.onActorChange = function() {
  * Extends the actor refresh to include the more data window.
  */
 J.CMS_E.Aliased.Scene_Equip.refreshActor = Scene_Equip.prototype.refreshActor;
-Scene_Equip.prototype.refreshActor = function() {
+Scene_Equip.prototype.refreshActor = function()
+{
   J.CMS_E.Aliased.Scene_Equip.refreshActor.call(this);
   const actor = this.actor();
   this._moreDataWindow.setActor(actor);
@@ -274,17 +301,22 @@ Scene_Equip.prototype.refreshActor = function() {
 /**
  * A window designed to display "more" data associated with the equipment.
  */
-class Window_MoreEquipData extends Window_MoreData {
-  constructor(rect) {
+class Window_MoreEquipData
+  extends Window_MoreData
+{
+  constructor(rect)
+  {
     super(rect);
   };
 
   /**
    * Compiles the "more data" for the currently selected equipment.
    */
-  makeCommandList() {
+  makeCommandList()
+  {
     super.makeCommandList();
-    if (!this.item) {
+    if (!this.item)
+    {
       this.adjustWindowHeight();
       return;
     }
@@ -302,8 +334,10 @@ class Window_MoreEquipData extends Window_MoreData {
   /**
    * Add any applicable base parameter commands from the equipment.
    */
-  addBaseParameterData() {
-    this.item.params.forEach((value, index) => {
+  addBaseParameterData()
+  {
+    this.item.params.forEach((value, index) =>
+    {
       if (!value) return;
 
       this.addBaseParameterCommand(index);
@@ -314,7 +348,8 @@ class Window_MoreEquipData extends Window_MoreData {
    * Adds a command to the list based on the base parameter matching the given id.
    * @param {number} paramId The id of the base parameter.
    */
-  addBaseParameterCommand(paramId) {
+  addBaseParameterCommand(paramId)
+  {
     const baseValue = this.item.params[paramId];
     const commandName = `${TextManager.param(paramId)}: ${baseValue}`;
     this.addCommand(commandName, null, true, null, IconManager.param(paramId), 0);
@@ -323,7 +358,8 @@ class Window_MoreEquipData extends Window_MoreData {
   /**
    * Adds all commands related to JABS on the equipment.
    */
-  addJabsEquipmentData() {
+  addJabsEquipmentData()
+  {
     if (!this.item._j) return;
 
     this.addHitsCommand();
@@ -332,41 +368,48 @@ class Window_MoreEquipData extends Window_MoreData {
   };
 
   /**
-   * Add the "bonus hits" command. Usually goes on weapons, but if bonus hits exist on other 
+   * Add the "bonus hits" command. Usually goes on weapons, but if bonus hits exist on other
    * types of equipment, then we'll report those, too.
    */
-  addHitsCommand() {
-    const { bonusHits } = this.item._j;
+  addHitsCommand()
+  {
+    const {bonusHits} = this.item._j;
     const isWeapon = this.item.etypeId === 1;
-    if (bonusHits || isWeapon) {
+    if (bonusHits || isWeapon)
+    {
       const bonus = isWeapon ? 1 : 0;
       const command = isWeapon ? `Hit Count` : `Bonus Hits`;
-      const hitBonusCommand = `${command}: x${bonusHits+bonus}`;
+      const hitBonusCommand = `${command}: x${bonusHits + bonus}`;
       const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
-      this.addCommand(hitBonusCommand, null, true, null, hitBonusIcon, 0);  
+      this.addCommand(hitBonusCommand, null, true, null, hitBonusIcon, 0);
     }
   };
 
   /**
    * Add the the appropriate skill and combo commands as-needed.
    */
-  addSkillCommands() {
-    const { skillId } = this.item._j;
+  addSkillCommands()
+  {
+    const {skillId} = this.item._j;
     const actor = this.actor;
-    if (skillId) {
+    if (skillId)
+    {
       const baseAttackskill = OverlayManager.getExtendedSkill(actor, skillId);
       const comboSkillList = this.recursivelyFindAllComboSkillIds(skillId);
       let baseAttackSkillCommand = (this.item.etypeId === 2) ? `Offhand Skill` : `Attack Skill`;
-      if (comboSkillList.length) {
+      if (comboSkillList.length)
+      {
         baseAttackSkillCommand = `Combo Starter`;
       }
-  
+
       const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${baseAttackskill.name}\\C[0]`;
       this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex);
-      if (comboSkillList.length) {
-        comboSkillList.forEach((skillId, index) => {
+      if (comboSkillList.length)
+      {
+        comboSkillList.forEach((skillId, index) =>
+        {
           const skill = $dataSkills[skillId];
-          const commandName = `Combo Skill ${index+1}: \\C[2]${skill.name}\\C[0]`;
+          const commandName = `Combo Skill ${index + 1}: \\C[2]${skill.name}\\C[0]`;
           this.addCommand(commandName, null, true, null, skill.iconIndex);
         });
       }
@@ -376,9 +419,11 @@ class Window_MoreEquipData extends Window_MoreData {
   /**
    * Add any speed boost adjustments from the equipment.
    */
-  addSpeedBoostCommand() {
-    const { speedBoost } = this.item._j;
-    if (speedBoost) {
+  addSpeedBoostCommand()
+  {
+    const {speedBoost} = this.item._j;
+    if (speedBoost)
+    {
       const speedBoostCommand = `Speed Boost: ${speedBoost}`;
       const speedBoostIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.SPEED_BOOST)
       this.addCommand(speedBoostCommand, null, true, null, speedBoostIcon, 0);
@@ -392,15 +437,19 @@ class Window_MoreEquipData extends Window_MoreData {
    * @param {number[]} list The running list of combo skill ids.
    * @returns {number[]} The full combo of the starting skill id.
    */
-  recursivelyFindAllComboSkillIds(skillId, list = []) {
+  recursivelyFindAllComboSkillIds(skillId, list = [])
+  {
     const skillIdList = list;
     const skill = $dataSkills[skillId];
     const shouldRecurse = (s) => (s && s._j && s._j.combo() && !s._j.freeCombo());
-    if (shouldRecurse(skill)) {
+    if (shouldRecurse(skill))
+    {
       const foundComboSkill = skill._j.combo()[0];
       skillIdList.push(foundComboSkill);
       return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
-    } else {
+    }
+    else
+    {
       return skillIdList;
     }
   };
@@ -408,7 +457,8 @@ class Window_MoreEquipData extends Window_MoreData {
   /**
    * Adds all commands related to JAFTING on the equipment.
    */
-  addJaftingRefinementData() {
+  addJaftingRefinementData()
+  {
     if (!this.item._jafting) return;
 
     const {
@@ -420,7 +470,8 @@ class Window_MoreEquipData extends Window_MoreData {
       unrefinable
     } = this.item._jafting;
 
-    if (unrefinable) {
+    if (unrefinable)
+    {
       const unrefinableCommand = `Unrefinable`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.UNREFINABLE);
       const unrefinableColor = 2;
@@ -428,14 +479,16 @@ class Window_MoreEquipData extends Window_MoreData {
       return;
     }
 
-    if (notRefinementBase) {
+    if (notRefinementBase)
+    {
       const unrefinableCommand = `Only Refine as Material`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.NOT_BASE);
       const unrefinableColor = 2;
       this.addCommand(unrefinableCommand, null, true, null, unrefinableIcon, unrefinableColor);
     }
 
-    if (notRefinementMaterial) {
+    if (notRefinementMaterial)
+    {
       const unrefinableCommand = `Only Refine as Base`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.NOT_MATERIAL);
       const unrefinableColor = 2;
@@ -444,9 +497,11 @@ class Window_MoreEquipData extends Window_MoreData {
 
     let maxRefineIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.TIMES_REFINED);
     let maxRefineCommand = `Refinement: ${refinedCount}`;
-    if (maxRefineCount) {
+    if (maxRefineCount)
+    {
       maxRefineCommand += ` / ${maxRefineCount}`;
-      if (maxRefineCount === refinedCount) {
+      if (maxRefineCount === refinedCount)
+      {
         maxRefineIcon = 91;
       }
     }
@@ -456,7 +511,8 @@ class Window_MoreEquipData extends Window_MoreData {
     let maxTraitIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.MAX_TRAITS);
     const currentTraitCount = $gameJAFTING.parseTraits(this.item).length;
     let maxTraitCommand = `Transferable Traits: ${currentTraitCount}`;
-    if (maxTraitCount) {
+    if (maxTraitCount)
+    {
       maxTraitCommand += ` / ${maxTraitCount}`;
     }
 
@@ -466,7 +522,8 @@ class Window_MoreEquipData extends Window_MoreData {
   /**
    * Adds all trait commands on the equipment.
    */
-  addEquipmentTraitData() {
+  addEquipmentTraitData()
+  {
     // we have no traits.
     const allTraits = this.item.traits;
     if (!allTraits.length) return;
@@ -475,32 +532,37 @@ class Window_MoreEquipData extends Window_MoreData {
     const sparamNoPercents = [1]; // code 23
     const dividerIndex = allTraits.findIndex(trait => trait.code === J.BASE.Traits.NO_DISAPPEAR);
     const hasDivider = dividerIndex !== -1;
-    if (hasDivider) {
+    if (hasDivider)
+    {
       this.addCommand(`BASE TRAITS`, null, true, null, 16, 30);
     }
 
-    allTraits.forEach(t => {
+    allTraits.forEach(t =>
+    {
       const convertedTrait = new JAFTING_Trait(t.code, t.dataId, t.value);
       let commandName = convertedTrait.nameAndValue;
       let commandColor = 0;
-      switch (convertedTrait._code) {
+      switch (convertedTrait._code)
+      {
         case 21:
           const paramId = convertedTrait._dataId;
           const paramBase = this.actor.paramBase(paramId);
-          const bonus = paramBase * (convertedTrait._value-1);
+          const bonus = paramBase * (convertedTrait._value - 1);
           const sign = bonus >= 0 ? '+' : '-';
           commandName += ` \\C[6](${sign}${bonus.toFixed(2)})\\C[0]`;
           break;
         case 22:
           const xparamId = convertedTrait._dataId;
-          if (xparamNoPercents.includes(xparamId)) {
+          if (xparamNoPercents.includes(xparamId))
+          {
             commandName = commandName.replace("%", String.empty);
           }
-          
+
           break;
         case 23:
           const sparamId = convertedTrait._dataId;
-          if (sparamNoPercents.includes(sparamId)) {
+          if (sparamNoPercents.includes(sparamId))
+          {
             commandName = commandName.replace("%", String.empty);
           }
 
@@ -523,7 +585,8 @@ class Window_MoreEquipData extends Window_MoreData {
  * Extends the `.initialize()` to include tracking for the more equip data window.
  */
 J.CMS_E.Aliased.Window_EquipItem.initialize = Window_EquipItem.prototype.initialize;
-Window_EquipItem.prototype.initialize = function(rect) {
+Window_EquipItem.prototype.initialize = function(rect)
+{
   J.CMS_E.Aliased.Window_EquipItem.initialize.call(this, rect);
   /**
    * The more data window to manipulate.
@@ -535,14 +598,16 @@ Window_EquipItem.prototype.initialize = function(rect) {
 /**
  * Refreshes the more data window.
  */
-Window_EquipItem.prototype.refreshMoreData = function() {
+Window_EquipItem.prototype.refreshMoreData = function()
+{
   this.onIndexChange();
 };
 
 /**
  * Updates the "more" window to point to the new index's item.
  */
-Window_EquipItem.prototype.onIndexChange = function() {
+Window_EquipItem.prototype.onIndexChange = function()
+{
   this._moreDataWindow.setItem(this.item());
 };
 
@@ -550,7 +615,8 @@ Window_EquipItem.prototype.onIndexChange = function() {
  * Associates the more equip data window to this one for observation.
  * @param {Window_MoreEquipData} moreDataWindow The window to attach to this.
  */
-Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
+Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow)
+{
   this._moreDataWindow = moreDataWindow;
 };
 //#endregion Window_EquipItem
@@ -560,7 +626,8 @@ Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
  * Extends the `.initialize()` to include tracking for the more equip data window.
  */
 J.CMS_E.Aliased.Window_EquipSlot.initialize = Window_EquipSlot.prototype.initialize;
-Window_EquipSlot.prototype.initialize = function(rect) {
+Window_EquipSlot.prototype.initialize = function(rect)
+{
   J.CMS_E.Aliased.Window_EquipSlot.initialize.call(this, rect);
   /**
    * The more data window to manipulate.
@@ -572,14 +639,16 @@ Window_EquipSlot.prototype.initialize = function(rect) {
 /**
  * Refreshes the more data window.
  */
-Window_EquipSlot.prototype.refreshMoreData = function() {
+Window_EquipSlot.prototype.refreshMoreData = function()
+{
   this.onIndexChange();
 };
 
 /**
  * Updates the "more" window to point to the new index's item.
  */
-Window_EquipSlot.prototype.onIndexChange = function() {
+Window_EquipSlot.prototype.onIndexChange = function()
+{
   this._moreDataWindow.setItem(this.item());
 };
 
@@ -587,7 +656,8 @@ Window_EquipSlot.prototype.onIndexChange = function() {
  * Associates the more equip data window to this one for observation.
  * @param {Window_MoreEquipData} moreDataWindow The window to attach to this.
  */
-Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow) {
+Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow)
+{
   this._moreDataWindow = moreDataWindow;
 };
 //#endregion Window_EquipSlot
@@ -602,7 +672,8 @@ Window_EquipStatus.prototype.paramWidth = () => 64;
 /**
  * Draws all parameters.
  */
-Window_EquipStatus.prototype.drawAllParams = function() {
+Window_EquipStatus.prototype.drawAllParams = function()
+{
   this.drawAllBParams(0, 192);
   this.drawAllXParams(360, 0);
   this.drawAllSParams(360, 380);
@@ -614,9 +685,11 @@ Window_EquipStatus.prototype.drawAllParams = function() {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawAllBParams = function(ox, oy) {
+Window_EquipStatus.prototype.drawAllBParams = function(ox, oy)
+{
   const params = [0, 1, 2, 3, 4, 5, 6, 7];
-  params.forEach((_, paramId) => {
+  params.forEach((_, paramId) =>
+  {
     this.drawBParamName(paramId, ox, oy);
     this.drawCurrentBParam(paramId, ox, oy);
     this.drawNextBParam(paramId, ox, oy);
@@ -629,7 +702,8 @@ Window_EquipStatus.prototype.drawAllBParams = function(ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy) {
+Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = paramId;
   const rowY = (this.lineHeight() * row) + oy;
@@ -637,7 +711,7 @@ Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy) {
   const paramName = TextManager.param(paramId);
   this.drawIcon(paramIcon, ox, rowY);
   this.resetTextColor();
-  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+  this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
 };
 
 /**
@@ -646,7 +720,8 @@ Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawCurrentBParam = function(paramId, ox, oy) {
+Window_EquipStatus.prototype.drawCurrentBParam = function(paramId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = paramId;
   const rowX = ox + 100 + paramWidth;
@@ -662,7 +737,8 @@ Window_EquipStatus.prototype.drawCurrentBParam = function(paramId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy) {
+Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy)
+{
   if (!this._tempActor) return;
 
   const paramWidth = this.paramWidth();
@@ -673,11 +749,11 @@ Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy) {
   // determine difference to draw arrow correctly.
   const newValue = this._tempActor.param(paramId);
   const diffValue = newValue - this._actor.param(paramId);
-  this.drawModifierArrow(rowX+16, rowY, diffValue);
+  this.drawModifierArrow(rowX + 16, rowY, diffValue);
 
   // draw the new value.
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-  this.drawText(newValue, rowX+56, rowY, paramWidth, "left");
+  this.drawText(newValue, rowX + 56, rowY, paramWidth, "left");
 };
 //#endregion b-parameters
 
@@ -687,9 +763,11 @@ Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawAllXParams = function(ox, oy) {
+Window_EquipStatus.prototype.drawAllXParams = function(ox, oy)
+{
   const xparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  xparams.forEach((_, xparamId) => {
+  xparams.forEach((_, xparamId) =>
+  {
     this.drawXParamName(xparamId, ox, oy);
     this.drawCurrentXParam(xparamId, ox, oy);
     this.drawNextXParam(xparamId, ox, oy);
@@ -702,7 +780,8 @@ Window_EquipStatus.prototype.drawAllXParams = function(ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy) {
+Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = xparamId;
   const rowY = (this.lineHeight() * row) + oy;
@@ -710,7 +789,7 @@ Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy) {
   const paramName = TextManager.xparam(xparamId);
   this.drawIcon(paramIcon, ox, rowY);
   this.resetTextColor();
-  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+  this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
 };
 
 /**
@@ -719,7 +798,8 @@ Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawCurrentXParam = function(xparamId, ox, oy) {
+Window_EquipStatus.prototype.drawCurrentXParam = function(xparamId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = xparamId;
   const rowX = ox + 100 + paramWidth;
@@ -735,7 +815,8 @@ Window_EquipStatus.prototype.drawCurrentXParam = function(xparamId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy) {
+Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy)
+{
   if (!this._tempActor) return;
 
   const paramWidth = this.paramWidth();
@@ -747,11 +828,11 @@ Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy) {
   const newValue = this._tempActor.xparam(xparamId);
   const displayedNewValue = (newValue * 100).toFixed(0);
   const diffValue = newValue - this._actor.xparam(xparamId);
-  this.drawModifierArrow(rowX+16, rowY, diffValue);
+  this.drawModifierArrow(rowX + 16, rowY, diffValue);
 
   // draw the new value.
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-  this.drawText(displayedNewValue, rowX+56, rowY, paramWidth, "left");
+  this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
 //#endregion x-parameters
 
@@ -761,9 +842,11 @@ Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawAllSParams = function(ox, oy) {
+Window_EquipStatus.prototype.drawAllSParams = function(ox, oy)
+{
   const sparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  sparams.forEach((_, xparamId) => {
+  sparams.forEach((_, xparamId) =>
+  {
     this.drawSParamName(xparamId, ox, oy);
     this.drawCurrentSParam(xparamId, ox, oy);
     this.drawNextSParam(xparamId, ox, oy);
@@ -776,7 +859,8 @@ Window_EquipStatus.prototype.drawAllSParams = function(ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy) {
+Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = sparamId;
   const rowY = (this.lineHeight() * row) + oy;
@@ -784,7 +868,7 @@ Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy) {
   const paramName = TextManager.sparam(sparamId);
   this.drawIcon(paramIcon, ox, rowY);
   this.resetTextColor();
-  this.drawText(paramName, ox+32, rowY, paramWidth*2, "left");
+  this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
 };
 
 /**
@@ -793,7 +877,8 @@ Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawCurrentSParam = function(sparamId, ox, oy) {
+Window_EquipStatus.prototype.drawCurrentSParam = function(sparamId, ox, oy)
+{
   const paramWidth = this.paramWidth();
   const row = sparamId;
   const rowX = ox + 100 + paramWidth;
@@ -809,7 +894,8 @@ Window_EquipStatus.prototype.drawCurrentSParam = function(sparamId, ox, oy) {
  * @param {number} ox The origin x.
  * @param {number} oy The origin y.
  */
-Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy) {
+Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy)
+{
   if (!this._tempActor) return;
 
   const paramWidth = this.paramWidth();
@@ -821,27 +907,34 @@ Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy) {
   const newValue = this._tempActor.sparam(sparamId);
   const displayedNewValue = (newValue * 100 - 100).toFixed(0);
   const diffValue = newValue - this._actor.sparam(sparamId);
-  this.drawModifierArrow(rowX+16, rowY, diffValue);
+  this.drawModifierArrow(rowX + 16, rowY, diffValue);
 
   // draw the new value.
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-  this.drawText(displayedNewValue, rowX+56, rowY, paramWidth, "left");
+  this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
 //#endregion s-parameters
 
-Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue) {
+Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue)
+{
   const rightArrowWidth = this.rightArrowWidth();
   this.changeTextColor(ColorManager.systemColor());
   const character = this.arrowCharacter(diffValue);
   this.drawText(character, x, y, rightArrowWidth, "center");
 };
 
-Window_EquipStatus.prototype.arrowCharacter = function(diffValue) {
-  if (diffValue > 0) {
+Window_EquipStatus.prototype.arrowCharacter = function(diffValue)
+{
+  if (diffValue > 0)
+  {
     return "↗️";
-  } else if (diffValue < 0) {
+  }
+  else if (diffValue < 0)
+  {
     return "↘️";
-  } else {
+  }
+  else
+  {
     return "\u2192";
   }
 };

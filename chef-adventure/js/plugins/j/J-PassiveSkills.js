@@ -116,7 +116,7 @@ Game_Actor.prototype.traitObjects = function()
   // injects all state objects provided into the list of considered trait objects.
   // this enforces them to be considered permanently, so long as the skill has
   // not been .forgetSkill()-ed.
-  const passiveSkillStates = this.passiveSkillStates(originalObjects);
+  const passiveSkillStates = this.sourcesToPassiveSkillStates(originalObjects);
   originalObjects.push(...passiveSkillStates);
   return originalObjects;
 };
@@ -125,7 +125,8 @@ Game_Actor.prototype.traitObjects = function()
  * Extends `learnSkill()` to also empty the passive skill collection forcing a refresh.
  */
 J.PASSIVE.Aliased.Game_Actor.set('learnSkill', Game_Actor.prototype.learnSkill);
-Game_Actor.prototype.learnSkill = function(skillId) {
+Game_Actor.prototype.learnSkill = function(skillId)
+{
   J.PASSIVE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
   this.forcePassiveSkillRefresh();
 };
@@ -248,7 +249,7 @@ Game_Battler.prototype.removeState = function(stateId)
  * @param {rm.types.EquipItem[]} traitObjects
  * @returns {rm.types.State[]}
  */
-Game_Battler.prototype.passiveSkillStates = function(traitObjects)
+Game_Battler.prototype.sourcesToPassiveSkillStates = function(traitObjects)
 {
   // this array is only null when it hasn't yet been initialized yet or if we're forcing a refresh.
   if (this._j._passiveSkillStateIds !== null)
@@ -273,7 +274,7 @@ Game_Battler.prototype.passiveSkillStates = function(traitObjects)
  * Gets all the current passive skill states, if any exist.
  * @returns {rm.types.State[]}
  */
-Game_Battler.prototype.currentPassiveSkillStates = function()
+Game_Battler.prototype.passiveSkillStates = function()
 {
   // this array is only null when it hasn't yet been initialized yet or if we're forcing a refresh.
   if (this._j._passiveSkillStateIds !== null)
@@ -283,6 +284,24 @@ Game_Battler.prototype.currentPassiveSkillStates = function()
   }
 
   return [];
+};
+
+/**
+ * Gets all states on the battler, including passive skill states.
+ * @returns {rm.types.State[]}
+ */
+Game_Battler.prototype.allStates = function()
+{
+  const states = [];
+
+  // add in all base states.
+  states.push(...this.states());
+
+  // add in all passive skill states.
+  states.push(...this.passiveSkillStates());
+
+  // return that combined collection.
+  return states;
 };
 
 /**
@@ -413,8 +432,10 @@ Game_Battler.prototype.extractPassives = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
   const structure = /<passive:[ ]?(\[[\d, ]+])>/i;
   const passives = [];
-  notedata.forEach(line => {
-    if (line.match(structure)) {
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
       const data = JSON.parse(RegExp.$1);
       passives.push(...data);
     }

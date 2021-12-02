@@ -59,11 +59,13 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '1.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
@@ -106,54 +108,80 @@ J.LEVEL.Utilities = {};
 
 /**
  * Determines the scaling multiplier.
- * 
+ *
  * Based on the difference between user's level and target's level.
  * @param {number} targetLevel The level of the target.
  * @param {number} user The level of the user.
  * @returns A decimal representing the multiplier for the damage scaling.
  */
-J.LEVEL.Utilities.determineScalingMultiplier = function(targetLevel, userLevel) {
+J.LEVEL.Utilities.determineScalingMultiplier = function(targetLevel, userLevel)
+{
   // if user or target doesn't have a level, return default multiplier.
   if (!userLevel || !targetLevel || userLevel == 0 || targetLevel == 0) return 1.0;
-  
+
   const compared = targetLevel - userLevel;
-  if (compared < -9) return 2.0;     // 10 or more levels higher than the target.
+  if (compared < -9)
+  {
+    return 2.0;
+  }// 10 or more levels higher than the target.
   else if (compared > 9) return 0.1; // 10 or more levels lower than the target.
-  
-  switch (compared) {
-    case -9: return 1.8;  // nine levels above the target.
-    case -8: return 1.6;
-    case -7: return 1.5;
-    case -6: return 1.4;
-    case -5: return 1.3;  // five levels above the target.
-    case -4: return 1.2;
-    case -3: return 1.1;
-    case -2: return 1.0;
-    case -1: return 1.0;
-    case 0: return 1.0;   // same level as the target.
-    case 1: return 1.0;
-    case 2: return 0.9;
-    case 3: return 0.8;
-    case 4: return 0.7;
-    case 5: return 0.6;   // five levels below the target.
-    case 6: return 0.5;
-    case 7: return 0.4;
-    case 8: return 0.3;
-    case 9: return 0.2;   // nine levels below the target.
+
+  switch (compared)
+  {
+    case -9:
+      return 1.8;  // nine levels above the target.
+    case -8:
+      return 1.6;
+    case -7:
+      return 1.5;
+    case -6:
+      return 1.4;
+    case -5:
+      return 1.3;  // five levels above the target.
+    case -4:
+      return 1.2;
+    case -3:
+      return 1.1;
+    case -2:
+      return 1.0;
+    case -1:
+      return 1.0;
+    case 0:
+      return 1.0;   // same level as the target.
+    case 1:
+      return 1.0;
+    case 2:
+      return 0.9;
+    case 3:
+      return 0.8;
+    case 4:
+      return 0.7;
+    case 5:
+      return 0.6;   // five levels below the target.
+    case 6:
+      return 0.5;
+    case 7:
+      return 0.4;
+    case 8:
+      return 0.3;
+    case 9:
+      return 0.2;   // nine levels below the target.
   }
 };
 //#region Plugin Command Registration
 /**
  * Plugin command for enabling the scaling functionality.
  */
-PluginManager.registerCommand(J.LEVEL.Metadata.Name, "enableScaling", () => {
+PluginManager.registerCommand(J.LEVEL.Metadata.Name, "enableScaling", () =>
+{
   J.LEVEL.Metadata.Enabled = true;
 });
 
 /**
  * Plugin command for disabling the scaling functionality.
  */
-PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () => {
+PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () =>
+{
   J.LEVEL.Metadata.Enabled = false;
 });
 //#endregion Plugin Command Registration
@@ -164,18 +192,20 @@ PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () => {
  * Scales damaged dealt and received to be based on level differences.
  */
 J.LEVEL.Aliased.Game_Action.BaseDamage = Game_Action.prototype.makeDamageValue;
-Game_Action.prototype.makeDamageValue = function(target, critical) {
+Game_Action.prototype.makeDamageValue = function(target, critical)
+{
   // if this functionality is disabled, then return the default.
-  if (!J.LEVEL.Metadata.Enabled) {
+  if (!J.LEVEL.Metadata.Enabled)
+  {
     return J.LEVEL.Aliased.Game_Action.BaseDamage.call(this, target, critical);
   }
 
   // otherwise perform the calculations between level and factor in the multiplier.
   const baseDamage = J.LEVEL.Aliased.Game_Action.BaseDamage.call(this, target, critical);
   const multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
-    target.level, 
+    target.level,
     this.subject().level);
-  
+
   const result = baseDamage * multiplier;
   return result;
 }
@@ -187,10 +217,14 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
  * average actor level vs each of the enemies.
  */
 J.LEVEL.Aliased.Game_Troop.expTotal = Game_Action.prototype.expTotal;
-Game_Troop.prototype.expTotal = function() {
-  if (J.LEVEL.Metadata.Enabled) {
+Game_Troop.prototype.expTotal = function()
+{
+  if (J.LEVEL.Metadata.Enabled)
+  {
     return this.getScaledExpResult();
-  } else {
+  }
+  else
+  {
     return J.LEVEL.Aliased.Game_Troop.expTotal.call(this);
   }
 }
@@ -198,15 +232,17 @@ Game_Troop.prototype.expTotal = function() {
 /**
  * Determines the amount of experience gained based on the average battle party compared to
  * each defeated enemy.
- * 
+ *
  * This method is used in place of the current `.reduce()` to find total experience.
  * @returns {number} The scaled amount of EXP this enemy troop yielded.
  */
-Game_Troop.prototype.getScaledExpResult = function() {
+Game_Troop.prototype.getScaledExpResult = function()
+{
   var expTotal = 0;
   var deadEnemies = this.deadMembers();
   const averageActorLevel = $gameParty.averageActorLevel()
-  deadEnemies.forEach(enemy => {
+  deadEnemies.forEach(enemy =>
+  {
     const expFactor = J.LEVEL.Utilities.determineScalingMultiplier(averageActorLevel, enemy.level);
     const total = Math.round(expFactor * enemy.exp())
     expTotal += total;
@@ -220,10 +256,12 @@ Game_Troop.prototype.getScaledExpResult = function() {
  * Checks the current battle party and averages all levels.
  * @returns {number} The average battle party level (rounded).
  */
-Game_Party.prototype.averageActorLevel = function() {
+Game_Party.prototype.averageActorLevel = function()
+{
   let lvlTotal = 0;
   const allies = this.battleMembers();
-  allies.forEach(actor => {
+  allies.forEach(actor =>
+  {
     lvlTotal += actor.level;
   });
 

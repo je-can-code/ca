@@ -16,10 +16,15 @@
  * Represents the category details for this recipe.
  * A single recipe can live in multiple categories.
  */
-function JAFTING_Category() { this.initialize(...arguments); }
+function JAFTING_Category()
+{
+  this.initialize(...arguments);
+}
+
 JAFTING_Category.prototype = {};
 JAFTING_Category.prototype.constructor = JAFTING_Category;
-JAFTING_Category.prototype.initialize = function(name, key, iconIndex, description) {
+JAFTING_Category.prototype.initialize = function(name, key, iconIndex, description)
+{
   /**
    * The name of this crafting category.
    * @type {string}
@@ -49,7 +54,8 @@ JAFTING_Category.prototype.initialize = function(name, key, iconIndex, descripti
 /**
  * Initializes all members in this class with defaults.
  */
-JAFTING_Category.prototype.initMembers = function() {
+JAFTING_Category.prototype.initMembers = function()
+{
   /**
    * Whether or not this category is unlocked.
    * @type {boolean}
@@ -61,21 +67,24 @@ JAFTING_Category.prototype.initMembers = function() {
  * Gets whether or not this JAFTING category is unlocked.
  * @returns {boolean}
  */
-JAFTING_Category.prototype.isUnlocked = function() {
+JAFTING_Category.prototype.isUnlocked = function()
+{
   return this.unlocked;
 };
 
 /**
  * Locks this JAFTING category.
  */
-JAFTING_Category.prototype.lock = function() {
+JAFTING_Category.prototype.lock = function()
+{
   this.unlocked = false;
 };
 
 /**
  * Unlocks this JAFTING category.
  */
-JAFTING_Category.prototype.unlock = function() {
+JAFTING_Category.prototype.unlock = function()
+{
   this.unlocked = true;
 };
 //ENDFILE

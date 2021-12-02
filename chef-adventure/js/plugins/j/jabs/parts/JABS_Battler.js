@@ -4054,7 +4054,6 @@ JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
   battlerSprite.setRequestTextPop();
 };
 
-
 /**
  * Applies the effects of the tool against all opponents on the map.
  * @param {number} toolId The id of the tool/item being used.

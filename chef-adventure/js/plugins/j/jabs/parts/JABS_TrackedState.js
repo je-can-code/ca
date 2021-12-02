@@ -16,7 +16,10 @@
 /**
  * A class containing the tracked data for a particular state and battler.
  */
-function JABS_TrackedState() { this.initialize(...arguments); };
+function JABS_TrackedState()
+{
+  this.initialize(...arguments);
+}
 JABS_TrackedState.prototype = {};
 JABS_TrackedState.prototype.constructor = JABS_TrackedState;
 
@@ -28,7 +31,8 @@ JABS_TrackedState.prototype.constructor = JABS_TrackedState;
  * @param {number} duration The duration of the state being tracked.
  * @param {Game_Battler} source The origin that applied this state to the battler.
  */
-JABS_TrackedState.prototype.initialize = function({ battler, stateId, iconIndex, duration, source }) {
+JABS_TrackedState.prototype.initialize = function({battler, stateId, iconIndex, duration, source})
+{
   /**
    * The battler being afflicted with this state.
    * @type {Game_Battler}
@@ -73,10 +77,14 @@ JABS_TrackedState.prototype.initialize = function({ battler, stateId, iconIndex,
  * Updates this tracked state over time. If the duration reaches 0, then the state
  * is removed and this tracked state becomes `expired`.
  */
-JABS_TrackedState.prototype.update = function() {
-  if (this.duration > 0) {
+JABS_TrackedState.prototype.update = function()
+{
+  if (this.duration > 0)
+  {
     this.duration--;
-  } else if (this.duration === 0 && this.stateId !== this.battler.deathStateId()) {
+  }
+  else if (this.duration === 0 && this.stateId !== this.battler.deathStateId())
+  {
     this.removeStateFromBattler();
   }
 };
@@ -84,11 +92,13 @@ JABS_TrackedState.prototype.update = function() {
 /**
  * Performs the removal of the state from the battler and sets the `expired` to true.
  */
-JABS_TrackedState.prototype.removeStateFromBattler = function() {
+JABS_TrackedState.prototype.removeStateFromBattler = function()
+{
   const index = this.battler
     .states()
     .findIndex(state => state.id === this.stateId);
-  if (index > -1) {
+  if (index > -1)
+  {
     this.battler.removeState(this.stateId);
     this.expired = true;
   }
@@ -98,7 +108,8 @@ JABS_TrackedState.prototype.removeStateFromBattler = function() {
  * Gets whether or not this tracked state is `expired`.
  * @returns {boolean}
  */
-JABS_TrackedState.prototype.isExpired = function() {
+JABS_TrackedState.prototype.isExpired = function()
+{
   return this.expired;
 };
 
@@ -106,7 +117,8 @@ JABS_TrackedState.prototype.isExpired = function() {
  * Gets whether or not this tracked state is about to 'expire'.
  * @returns {boolean}
  */
-JABS_TrackedState.prototype.isAboutToExpire = function() {
+JABS_TrackedState.prototype.isAboutToExpire = function()
+{
   return this.duration <= 90;
 };
 //ENDFILE

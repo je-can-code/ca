@@ -21,7 +21,7 @@ class JABS_Action
 {
   /**
    * The minimum duration a `JABS_Action` must exist visually before cleaning it up.
-   * 
+   *
    * All actions should exist visually for at least 8 frames.
    * @returns {8} The minimum number of frames, 8.
    */
@@ -33,7 +33,7 @@ class JABS_Action
   /**
    * @constructor
    * @param {string} uuid This action's unique identifier.
-   * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`. 
+   * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`.
    * @param {number} teamId A shorthand for the team id this skill belongs to.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
    * @param {JABS_Battler} caster The `JABS_Battler` who created this `JABS_Action`.
@@ -41,10 +41,11 @@ class JABS_Action
    * @param {number} direction The direction this action will face initially.
    * @param {string?} cooldownKey Whether or not this is a direct action.
    */
-  constructor({ uuid, baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey }) {
+  constructor({uuid, baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey})
+  {
     /**
      * The unique identifier for this action.
-     * 
+     *
      * All actions that are bound to an event have this.
      * @type {string}
      */
@@ -68,7 +69,7 @@ class JABS_Action
     this._gameAction = gameAction;
 
     /**
-     * The `JABS_Battler` that used created this `JABS_Action`. 
+     * The `JABS_Battler` that used created this `JABS_Action`.
      * @type {JABS_Battler}
      */
     this._caster = caster;
@@ -111,7 +112,7 @@ class JABS_Action
      * @type {number}
      */
     this._currentDuration = 0;
-    
+
     /**
      * Whether or not the visual of this map action needs removing.
      * @type {boolean}
@@ -128,13 +129,13 @@ class JABS_Action
      * The duration remaining before this will action will autotrigger.
      * @type {number}
      */
-     this._delayDuration = this._jabsData.delay().duration;
+    this._delayDuration = this._jabsData.delay().duration;
 
-     /**
-      * Whether or not this action will trigger when an enemy touches it.
-      * @type {boolean}
-      */
-     this._triggerOnTouch = this._jabsData.delay().touchToTrigger;
+    /**
+     * Whether or not this action will trigger when an enemy touches it.
+     * @type {boolean}
+     */
+    this._triggerOnTouch = this._jabsData.delay().touchToTrigger;
 
     /**
      * The remaining number of times this action can pierce a target.
@@ -161,21 +162,21 @@ class JABS_Action
    */
   makePiercingCount()
   {
-     let pierceCount = this._jabsData.piercing()[0];
+    let pierceCount = this._jabsData.piercing()[0];
 
-     // handle skill extension bonuses.
-     pierceCount += this._gameAction._item
-       ? this._gameAction._item._item.repeats-1
-       : 0;
+    // handle skill extension bonuses.
+    pierceCount += this._gameAction._item
+      ? this._gameAction._item._item.repeats - 1
+      : 0;
 
-     // handle other bonus hits for basic attacks.
-     pierceCount += this._caster.getAdditionalHits(
-       this._baseSkill,
-       this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
-       this._actionCooldownType === Game_Actor.JABS_OFFHAND)
+    // handle other bonus hits for basic attacks.
+    pierceCount += this._caster.getAdditionalHits(
+      this._baseSkill,
+      this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
+      this._actionCooldownType === Game_Actor.JABS_OFFHAND)
 
-     return pierceCount;
-   };
+    return pierceCount;
+  };
 
   /**
    * Executes additional logic before this action is disposed.
@@ -193,7 +194,7 @@ class JABS_Action
 
   /**
    * Gets the `uuid` of this action.
-   * 
+   *
    * If one is not returned, then it is probably a direct action with no event representing it.
    * @returns {string|null}
    */
@@ -369,18 +370,19 @@ class JABS_Action
 
   /**
    * Decrements the pre-countdown delay timer for this action. If the action does not
-   * have `touchOnTrigger`, then the action will not affect anyone until the timer expires. 
+   * have `touchOnTrigger`, then the action will not affect anyone until the timer expires.
    */
   countdownDelay()
   {
-    if (this._delayDuration > 0) {
+    if (this._delayDuration > 0)
+    {
       this._delayDuration--;
     }
   };
 
   /**
    * Gets whether or not the delay on this action has completed.
-   * 
+   *
    * This also includes if an action never had a delay to begin with.
    * @returns {boolean}
    */
@@ -408,8 +410,8 @@ class JABS_Action
 
   /**
    * Gets whether or not this action will be triggered by touch, regardless of its
-   * delay counter. 
-   * 
+   * delay counter.
+   *
    * If `isEndlessDelay()` applies to this action, then it will automatically
    * trigger by touch regardless of configuration.
    * @returns {boolean}
@@ -431,7 +433,7 @@ class JABS_Action
   /**
    * Modifies the piercing times counter of this action by an amount (default = 1). If an action
    * reaches zero or less times, then it also sets it up for removal.
-   * @param {number} decrement The number to decrement the times counter by for this action. 
+   * @param {number} decrement The number to decrement the times counter by for this action.
    */
   modPiercingTimes(decrement = 1)
   {
@@ -571,4 +573,5 @@ class JABS_Action
     return this.getJabsData().aggroMultiplier();
   };
 }
+
 //ENDFILE

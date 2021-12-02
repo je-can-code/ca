@@ -17,13 +17,15 @@
 /**
  * A class containing all the various data points extracted from notes.
  */
-class JAFTING_RefinementData {
+class JAFTING_RefinementData
+{
   /**
    * @constructor
    * @param {string} notes The raw note box as a string.
    * @param {any} meta The `meta` object containing prebuilt note metadata.
    */
-  constructor(notes, meta) {
+  constructor(notes, meta)
+  {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
     this.refinedCount = 0;
@@ -38,14 +40,20 @@ class JAFTING_RefinementData {
    * The number of times this piece of equipment can be refined.
    * @returns {number}
    */
-  getMaxRefineCount() {
+  getMaxRefineCount()
+  {
     let count = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineCount]) {
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineCount])
+    {
       count = parseInt(this._meta[J.BASE.Notetags.MaxRefineCount]) || count;
-    } else {
+    }
+    else
+    {
       const structure = /<maxRefine:[ ]?(\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           count = parseInt(RegExp.$1);
         }
       })
@@ -58,14 +66,20 @@ class JAFTING_RefinementData {
    * The number of transferable traits that this piece of equipment can have at any one time.
    * @returns {number}
    */
-   getMaxTraitCount() {
+  getMaxTraitCount()
+  {
     let count = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineTraits]) {
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineTraits])
+    {
       count = parseInt(this._meta[J.BASE.Notetags.MaxRefineTraits]) || count;
-    } else {
+    }
+    else
+    {
       const structure = /<maxRefinedTraits:[ ]?(\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           count = parseInt(RegExp.$1);
         }
       })
@@ -78,14 +92,20 @@ class JAFTING_RefinementData {
    * Gets whether or not this piece of equipment can be used in refinement as a material.
    * @returns {boolean}
    */
-  isNotMaterial() {
+  isNotMaterial()
+  {
     let notMaterial = false;
-    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementMaterial]) {
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementMaterial])
+    {
       notMaterial = true;
-    } else {
+    }
+    else
+    {
       const structure = /<notRefinementMaterial>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           notMaterial = true;
         }
       })
@@ -98,14 +118,20 @@ class JAFTING_RefinementData {
    * Gets whether or not this piece of equipment can be used in refinement as a base.
    * @returns {boolean}
    */
-  isNotBase() {
+  isNotBase()
+  {
     let notBase = false;
-    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementBase]) {
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementBase])
+    {
       notBase = true;
-    } else {
+    }
+    else
+    {
       const structure = /<notRefinementBase>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           notBase = true;
         }
       })
@@ -117,16 +143,22 @@ class JAFTING_RefinementData {
   /**
    * Gets whether or not this piece of equipment can be used in refinement.
    * If this is true, this will mean this cannot be used in refinement as base or material.
-   * @returns 
+   * @returns
    */
-  isNotRefinable() {
+  isNotRefinable()
+  {
     let noRefine = false;
-    if (this._meta && this._meta[J.BASE.Notetags.NoRefinement]) {
+    if (this._meta && this._meta[J.BASE.Notetags.NoRefinement])
+    {
       noRefine = true;
-    } else {
+    }
+    else
+    {
       const structure = /<noRefine>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           noRefine = true;
         }
       })

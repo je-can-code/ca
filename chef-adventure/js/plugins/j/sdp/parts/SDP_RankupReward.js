@@ -14,11 +14,14 @@
  * ============================================================================
  */
 
-
 /**
  * A class that represents a single reward for achieving a particular rank in a panel.
  */
-function PanelRankupReward() { this.initialize(...arguments); }
+function PanelRankupReward()
+{
+  this.initialize(...arguments);
+}
+
 PanelRankupReward.prototype = {};
 PanelRankupReward.prototype.constructor = PanelRankupReward;
 
@@ -27,7 +30,8 @@ PanelRankupReward.prototype.constructor = PanelRankupReward;
  * @param {number} rankRequired The rank required.
  * @param {string} effect The effect to execute.
  */
-PanelRankupReward.prototype.initialize = function(rankRequired, effect) {
+PanelRankupReward.prototype.initialize = function(rankRequired, effect)
+{
   /**
    * The rank required for this panel rankup reward to be executed.
    * @type {number}

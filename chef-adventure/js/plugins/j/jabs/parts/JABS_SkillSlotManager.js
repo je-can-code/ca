@@ -20,24 +20,30 @@
 /**
  * A class responsible for managing the skill slots on an actor.
  */
-function JABS_SkillSlotManager() { this.initialize(...arguments); }
+function JABS_SkillSlotManager()
+{
+  this.initialize(...arguments);
+}
+
 JABS_SkillSlotManager.prototype = {};
 JABS_SkillSlotManager.prototype.constructor = JABS_SkillSlotManager;
 
 /**
  * Initializes this class. Executed when this class is instantiated.
  */
-JABS_SkillSlotManager.prototype.initialize = function() {
+JABS_SkillSlotManager.prototype.initialize = function()
+{
   this.initMembers();
 };
 
 /**
  * Initializes all properties on this class.
  */
-JABS_SkillSlotManager.prototype.initMembers = function() {
+JABS_SkillSlotManager.prototype.initMembers = function()
+{
   /**
    * All skill slots that a player possesses.
-   * 
+   *
    * These are in a fixed order.
    * @type {JABS_SkillSlot[]}
    */
@@ -64,7 +70,8 @@ JABS_SkillSlotManager.prototype.initMembers = function() {
  * Gets all skill slots, regardless of whether or not their are assigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getAllSlots = function() {
+JABS_SkillSlotManager.prototype.getAllSlots = function()
+{
   return this._slots;
 };
 
@@ -72,7 +79,8 @@ JABS_SkillSlotManager.prototype.getAllSlots = function() {
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getAllPrimarySlots = function() {
+JABS_SkillSlotManager.prototype.getAllPrimarySlots = function()
+{
   return this.getAllSlots()
     .filter(slot => slot.isPrimarySlot());
 };
@@ -81,7 +89,8 @@ JABS_SkillSlotManager.prototype.getAllPrimarySlots = function() {
  * Gets all skill slots identified as "secondary".
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getAllSecondarySlots = function() {
+JABS_SkillSlotManager.prototype.getAllSecondarySlots = function()
+{
   return this.getAllSlots()
     .filter(slot => slot.isSecondarySlot());
 };
@@ -90,7 +99,8 @@ JABS_SkillSlotManager.prototype.getAllSecondarySlots = function() {
  * Gets the skill dedicated to the tool slot.
  * @returns {JABS_SkillSlot}
  */
-JABS_SkillSlotManager.prototype.getToolSlot = function() {
+JABS_SkillSlotManager.prototype.getToolSlot = function()
+{
   return this.getSkillBySlot(Game_Actor.JABS_TOOLSKILL);
 };
 
@@ -98,7 +108,8 @@ JABS_SkillSlotManager.prototype.getToolSlot = function() {
  * Gets the skill dedicated to the dodge slot.
  * @returns {JABS_SkillSlot}
  */
-JABS_SkillSlotManager.prototype.getDodgeSlot = function() {
+JABS_SkillSlotManager.prototype.getDodgeSlot = function()
+{
   return this.getSkillBySlot(Game_Actor.JABS_DODGESKILL);
 };
 
@@ -106,7 +117,8 @@ JABS_SkillSlotManager.prototype.getDodgeSlot = function() {
  * Gets all skill slots that have a skill assigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getEquippedSlots = function() {
+JABS_SkillSlotManager.prototype.getEquippedSlots = function()
+{
   return this.getAllSlots().filter(skillSlot => skillSlot.isUsable());
 };
 
@@ -114,7 +126,8 @@ JABS_SkillSlotManager.prototype.getEquippedSlots = function() {
  * Gets all secondary skill slots that are unassigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function() {
+JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
+{
   return this.getAllSecondarySlots().filter(skillSlot => skillSlot.isEmpty());
 };
 
@@ -122,7 +135,8 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function() {
  * Gets all skill slots that have a skill assigned.
  * @returns {JABS_SkillSlot[]}
  */
-JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
+JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
+{
   return this.getEquippedSlots()
     .filter(skillSlot => skillSlot.key !== Game_Actor.JABS_TOOLSKILL);
 };
@@ -132,7 +146,8 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
  * @param {string} key The key to find the matching slot for.
  * @returns {JABS_SkillSlot}
  */
-JABS_SkillSlotManager.prototype.getSkillBySlot = function(key) {
+JABS_SkillSlotManager.prototype.getSkillBySlot = function(key)
+{
   return this.getAllSlots()
     .find(skillSlot => skillSlot.key === key);
 };
@@ -142,7 +157,8 @@ JABS_SkillSlotManager.prototype.getSkillBySlot = function(key) {
  * @param {number} skillIdToFind The skill id to find.
  * @returns {JABS_SkillSlot}
  */
-JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind) {
+JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind)
+{
   return this.getEquippedSlots()
     .find(skillSlot => skillSlot.id === skillIdToFind);
 };
@@ -153,7 +169,8 @@ JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind) {
  * @param {number} skillId The id of the skill to assign to the slot.
  * @param {boolean} locked Whether or not the slot should be locked.
  */
-JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked) {
+JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked)
+{
   this.getSkillBySlot(key)
     .setSkillId(skillId)
     .setLock(locked);
@@ -163,13 +180,15 @@ JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked) {
  * Clears and unlocks a skill slot by its key.
  * @param {string} key The key of the slot to clear.
  */
-JABS_SkillSlotManager.prototype.clearSlot = function(key) {
+JABS_SkillSlotManager.prototype.clearSlot = function(key)
+{
   this.getSkillBySlot(key).clear();
 };
 
 /**
  * Unlocks all slots owned by this actor.
  */
-JABS_SkillSlotManager.prototype.unlockAllSlots = function(key) {
+JABS_SkillSlotManager.prototype.unlockAllSlots = function(key)
+{
   this.getAllSlots().forEach(slot => slot.unlock());
 };

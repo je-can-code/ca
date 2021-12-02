@@ -114,14 +114,25 @@ Game_Action.prototype.applyOnCastSelfStates = function()
  */
 Game_Action.prototype.onHitSelfStates = function()
 {
+  const sources = [];
+
   // get the skill and its overlays.
-  const skill = this.item();
+  sources.push(this.item());
+
+  if (J.PASSIVE)
+  {
+    sources.push(...this.subject().allStates());
+  }
+
   const structure = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
   const stateChances = [];
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  const chances = J.BASE.Helpers.parseSkillChance(structure, skill);
-  stateChances.push(...chances);
+  sources.forEach(obj =>
+  {
+    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
+    stateChances.push(...chances);
+  });
 
   return stateChances;
 };
@@ -133,14 +144,25 @@ Game_Action.prototype.onHitSelfStates = function()
  */
 Game_Action.prototype.onCastSelfStates = function()
 {
+  const sources = [];
+
   // get the skill and its overlays.
-  const skill = this.item();
+  sources.push(this.item());
+
+  if (J.PASSIVE)
+  {
+    sources.push(...this.subject().allStates());
+  }
+
   const structure = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
   const stateChances = [];
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  const chances = J.BASE.Helpers.parseSkillChance(structure, skill);
-  stateChances.push(...chances);
+  sources.forEach(obj =>
+  {
+    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
+    stateChances.push(...chances);
+  });
 
   return stateChances;
 };
@@ -155,7 +177,8 @@ Game_Action.prototype.applyStates = function(target, stateChances)
   if (stateChances.length)
   {
     // iterate over each of them and see if we should apply them.
-    stateChances.forEach(stateChance => {
+    stateChances.forEach(stateChance =>
+    {
       // if the RNG favors this caster...
       if (stateChance.shouldTrigger())
       {
@@ -172,7 +195,8 @@ Game_Action.prototype.applyStates = function(target, stateChances)
  * Extend `initialize()` to include our update of assigning the item.
  */
 J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
-Game_Item.prototype.initialize = function(item) {
+Game_Item.prototype.initialize = function(item)
+{
   J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
   /**
    * The underlying object associated with this item.
@@ -209,7 +233,8 @@ Game_Item.prototype.setObject = function(item)
  * if it was assigned.
  */
 J.EXTEND.Aliased.Game_Item.set('object', Game_Item.prototype.object);
-Game_Item.prototype.object = function() {
+Game_Item.prototype.object = function()
+{
   // if we have a custom object to return, return that.
   if (this._item)
   {
@@ -219,6 +244,48 @@ Game_Item.prototype.object = function() {
   return J.EXTEND.Aliased.Game_Item.get('object').call(this);
 };
 //#endregion Game_Item
+
+//#region Game_Party
+Game_Party.prototype.extraOnHitSelfStateSources = function()
+{
+  const extraSources = [];
+
+  // if we're using passive skill states...
+  if (J.PASSIVE)
+  {
+    // get all the members of the battle party.
+    const members = $gameParty.battleMembers();
+    members.forEach(member =>
+    {
+      // and shove their current array of states into the sources to check.
+      extraSources.push(...member.allStates());
+    });
+  }
+
+  // return all found sources.
+  return extraSources;
+};
+
+Game_Party.prototype.extraOnCastSelfStateSources = function()
+{
+  const extraSources = [];
+
+  // if we're using passive skill states...
+  if (J.PASSIVE)
+  {
+    // get all the members of the battle party.
+    const members = $gameParty.battleMembers();
+    members.forEach(member =>
+    {
+      // and shove their current array of states into the sources to check.
+      extraSources.push(...member.allStates());
+    });
+  }
+
+  // return all found sources.
+  return extraSources;
+};
+//#endregion Game_Party
 //#endregion Game objects
 
 //#region Custom objects
@@ -228,8 +295,12 @@ Game_Item.prototype.object = function() {
  * A static class for managing the overlaying of one skill onto another.
  * The methods are divided by the attribute they overlay.
  */
-class OverlayManager {
-  constructor() { throw new Error('The OverlayManager is a static class.'); }
+class OverlayManager
+{
+  constructor()
+  {
+    throw new Error('The OverlayManager is a static class.');
+  }
 
   /**
    * Gets the extended skill based on the caster's learned skills.
@@ -250,7 +321,8 @@ class OverlayManager {
     const baseSkill = JsonEx.makeDeepCopy($dataSkills[skillId]);
 
     // the filter for filtering whether or not a skill is an extension skill.
-    const skillExtendFilter = (skill) => {
+    const skillExtendFilter = (skill) =>
+    {
       // if the skill isn't an extension skill, skip it.
       const isExtensionSkill = !!(skill.meta && skill.meta['skillExtend']);
       if (!isExtensionSkill) return false;
@@ -269,10 +341,12 @@ class OverlayManager {
     switch (skillExtendSkills.length)
     {
       // there was no skills to extend with.
-      case 0: return baseSkill;
+      case 0:
+        return baseSkill;
 
       // we found one skill to extend with.
-      case 1: return this.extendSkill(baseSkill, skillExtendSkills[0]);
+      case 1:
+        return this.extendSkill(baseSkill, skillExtendSkills[0]);
 
       // there are many skills to extend with sequentially.
       default:
@@ -1126,8 +1200,10 @@ class OverlayManager {
 
     return baseSkill;
   };
+
 //#endregion overwrites
 }
+
 //#endregion OverlayManager
 
 //#endregion Custom objects

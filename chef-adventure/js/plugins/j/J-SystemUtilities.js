@@ -49,13 +49,13 @@ J.UTIL.Aliased = {
  * Extends the existing mapper to track additional inputs.
  */
 Input.keyMapper =
-{
-  // ... the rest of the input keys.
-  ...Input.keyMapper,
+  {
+    // ... the rest of the input keys.
+    ...Input.keyMapper,
 
-  // F6, the volume toggle key.
-  117: 'volumeToggle',
-};
+    // F6, the volume toggle key.
+    117: 'volumeToggle',
+  };
 //#endregion Input
 
 //#region Scene objects
@@ -90,7 +90,7 @@ Scene_Base.prototype.isVolumeToggling = function()
  */
 Scene_Base.prototype.toggleVolume = function()
 {
-  const { bgmVolume, bgsVolume, meVolume, seVolume } = ConfigManager;
+  const {bgmVolume, bgsVolume, meVolume, seVolume} = ConfigManager;
   const isMuted = !bgmVolume || !bgsVolume || !meVolume || !seVolume;
   if (isMuted)
   {

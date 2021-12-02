@@ -15,7 +15,10 @@
 /**
  * A class representing a single popup on the map.
  */
-function JABS_TextPop() { this.initialize(...arguments); };
+function JABS_TextPop()
+{
+  this.initialize(...arguments);
+}
 JABS_TextPop.prototype = {};
 JABS_TextPop.prototype.constructor = JABS_TextPop;
 
@@ -71,17 +74,18 @@ JABS_TextPop.Types = {
 
 /**
  * Creates a popup based on the provided info.
- * @returns 
+ * @returns
  */
 JABS_TextPop.create = function({
-  actionResult,
-  iconIndex,
-  textColorIndex,
-  isWeakness,
-  isStrength,
-  popupType,
-  directValue
-}) {
+                                 actionResult,
+                                 iconIndex,
+                                 textColorIndex,
+                                 isWeakness,
+                                 isStrength,
+                                 popupType,
+                                 directValue
+                               })
+{
   return new JABS_TextPop({
     actionResult: actionResult ?? null,
     iconIndex: iconIndex ?? 0,
@@ -97,41 +101,42 @@ JABS_TextPop.create = function({
  * Builds the text pop based on the given parameters.
  */
 JABS_TextPop.prototype.initialize = function({
-  actionResult,
-  iconIndex,
-  textColorIndex,
-  isWeakness,
-  isStrength,
-  popupType,
-  directValue,
-}) {
+                                               actionResult,
+                                               iconIndex,
+                                               textColorIndex,
+                                               isWeakness,
+                                               isStrength,
+                                               popupType,
+                                               directValue,
+                                             })
+{
   /**
    * The base `Game_ActionResult` for this `JABS_TextPop`.
-   * @type {Game_ActionResult} 
+   * @type {Game_ActionResult}
    */
   this.actionResult = actionResult;
 
   /**
    * The id of the icon to display alongside this `JABS_TextPop`.
-   * @type {number} 
+   * @type {number}
    */
   this.iconIndex = iconIndex;
 
   /**
    * The color index for the text color.
-   * @type {number} 
+   * @type {number}
    */
   this.textColorIndex = textColorIndex;
 
   /**
    * Whether or not this popup was multiplied by elemental weaknesses.
-   * @type {boolean} 
+   * @type {boolean}
    */
   this.isWeakness = isWeakness;
 
   /**
    * Whether or not this popup was reduced by elemental strengths.
-   * @type {boolean} 
+   * @type {boolean}
    */
   this.isStrength = isStrength;
 

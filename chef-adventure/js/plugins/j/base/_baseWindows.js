@@ -80,7 +80,8 @@ WindowLayer.prototype.render = function(renderer)
  * Extends the font settings reset to include bold and italics removal.
  */
 J.BASE.Aliased.Window_Base.resetFontSettings = Window_Base.prototype.resetFontSettings;
-Window_Base.prototype.resetFontSettings = function() {
+Window_Base.prototype.resetFontSettings = function()
+{
   J.BASE.Aliased.Window_Base.resetFontSettings.call(this);
   this.resetFontFormatting();
 };
@@ -88,38 +89,44 @@ Window_Base.prototype.resetFontSettings = function() {
 /**
  * Resets bold and italics for this bitmap.
  */
-Window_Base.prototype.resetFontFormatting = function() {
+Window_Base.prototype.resetFontFormatting = function()
+{
   this.contents.fontItalic = false;
   this.contents.fontBold = false;
 };
 
 J.BASE.Aliased.Window_Base.convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
-Window_Base.prototype.convertEscapeCharacters = function(text) {
+Window_Base.prototype.convertEscapeCharacters = function(text)
+{
   // convert the slashes and stuff to the normal escape characters.
 
   // handle weapon string replacements.
-  text = text.replace(/\\weapon\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\weapon\[(\d+)]/gi, (_, p1) =>
+  {
     const weaponColor = 4;
     const weapon = $dataWeapons[parseInt(p1)];
     return `\\I[${weapon.iconIndex}]\\C[${weaponColor}]${weapon.name}\\C[0]`;
   });
 
   // handle armor string replacements.
-  text = text.replace(/\\armor\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\armor\[(\d+)]/gi, (_, p1) =>
+  {
     const armorColor = 5;
     const armor = $dataArmors[parseInt(p1)];
     return `\\I[${armor.iconIndex}]\\C[${armorColor}]${armor.name}\\C[0]`;
   });
 
   // handle item string replacements.
-  text = text.replace(/\\item\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\item\[(\d+)]/gi, (_, p1) =>
+  {
     const itemColor = 3;
     const item = $dataItems[parseInt(p1)];
     return `\\I[${item.iconIndex}]\\C[${itemColor}]${item.name}\\C[0]`;
   });
 
   // handle state string replacements.
-  text = text.replace(/\\state\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\state\[(\d+)]/gi, (_, p1) =>
+  {
     const stateColor = 6;
     const stateId = parseInt(p1);
     let name = '(Basic Attack)';
@@ -134,14 +141,16 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
   });
 
   // handle skill string replacements.
-  text = text.replace(/\\skill\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\skill\[(\d+)]/gi, (_, p1) =>
+  {
     const skillColor = 1;
     const skill = $dataSkills[parseInt(p1)];
     return `\\I[${skill.iconIndex}]\\C[${skillColor}]${skill.name}\\C[0]`;
   });
 
   // handle enemy string replacements.
-  text = text.replace(/\\enemy\[(\d+)]/gi, (_, p1) => {
+  text = text.replace(/\\enemy\[(\d+)]/gi, (_, p1) =>
+  {
     const enemyColor = 2;
     const enemy = $dataEnemies[parseInt(p1)];
     return `\\C[${enemyColor}]${enemy.name}\\C[0]`;
@@ -151,14 +160,18 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
 };
 
 /**
- * Extends text analysis to check for our custom escape codes, too. 
+ * Extends text analysis to check for our custom escape codes, too.
  */
 J.BASE.Aliased.Window_Base.obtainEscapeCode = Window_Base.prototype.obtainEscapeCode;
-Window_Base.prototype.obtainEscapeCode = function(textState) {
+Window_Base.prototype.obtainEscapeCode = function(textState)
+{
   const originalEscape = J.BASE.Aliased.Window_Base.obtainEscapeCode.call(this, textState);
-  if (!originalEscape) {
+  if (!originalEscape)
+  {
     return this.customEscapeCodes();
-  } else {
+  }
+  else
+  {
     return originalEscape;
   }
 };
@@ -168,38 +181,45 @@ Window_Base.prototype.obtainEscapeCode = function(textState) {
  * @param {any} textState The rolling text state.
  * @returns {string} The found escape code, if any.
  */
-Window_Base.prototype.customEscapeCodes = function(textState) {
+Window_Base.prototype.customEscapeCodes = function(textState)
+{
   if (!textState) return;
 
   const regExp = this.escapeCodes();
   const arr = regExp.exec(textState.text.slice(textState.index));
-  if (arr) {
-      textState.index += arr[0].length;
-      return arr[0].toUpperCase();
-  } else {
-      return String.empty;
+  if (arr)
+  {
+    textState.index += arr[0].length;
+    return arr[0].toUpperCase();
+  }
+  else
+  {
+    return String.empty;
   }
 };
 
 /**
  * Gets the regex escape code structure.
- * 
+ *
  * This includes our added custom escape code symbols to look for.
  * @returns {RegExp}
  */
-Window_Base.prototype.escapeCodes = function() {
+Window_Base.prototype.escapeCodes = function()
+{
   return /^[$.|^!><{}*_\\]|^[A-Z]+/i;
 };
 
 /**
  * Extends the processing of escape codes to include our custom ones.
- * 
+ *
  * This adds italics and bold to the possible list of escape codes.
  */
 J.BASE.Aliased.Window_Base.processEscapeCharacter = Window_Base.prototype.processEscapeCharacter;
-Window_Base.prototype.processEscapeCharacter = function(code, textState) {
+Window_Base.prototype.processEscapeCharacter = function(code, textState)
+{
   J.BASE.Aliased.Window_Base.processEscapeCharacter.call(this, code, textState);
-  switch (code) {
+  switch (code)
+  {
     case "_":
       this.toggleItalics();
       break;
@@ -213,7 +233,8 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
  * Toggles the italics for the rolling text state.
  * @param {boolean} force Optional. If provided, will force one way or the other.
  */
-Window_Base.prototype.toggleItalics = function(force) {
+Window_Base.prototype.toggleItalics = function(force)
+{
   this.contents.fontItalic = force ?? !this.contents.fontItalic;
 };
 
@@ -221,7 +242,8 @@ Window_Base.prototype.toggleItalics = function(force) {
  * Toggles the bold for the rolling text state.
  * @param {boolean} force Optional. If provided, will force one way or the other.
  */
-Window_Base.prototype.toggleBold = function(force) {
+Window_Base.prototype.toggleBold = function(force)
+{
   this.contents.fontBold = force ?? !this.contents.fontBold;
 };
 //#endregion Window_Base
@@ -239,7 +261,7 @@ Window_Command.prototype.drawItem = function(index)
   commandName = this.handleColor(commandName, index);
   commandName = this.handleIcon(commandName, index);
 
-  this.drawTextEx(commandName, rect.x+4, rect.y, rect.width);
+  this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
 
   // this.drawText(commandName, rect.x+4, rect.y, rect.width);
 };
@@ -284,13 +306,17 @@ Window_Command.prototype.handleIcon = function(command, index)
  * @returns {Rectangle}
  */
 J.BASE.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
-Window_Command.prototype.itemLineRect = function(index) {
+Window_Command.prototype.itemLineRect = function(index)
+{
   const commandIcon = this.commandIcon(index);
-  if (commandIcon) {
+  if (commandIcon)
+  {
     let baseRect = J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
     //baseRect.x += 32;
     return baseRect;
-  } else {
+  }
+  else
+  {
     return J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
   }
 };
@@ -300,7 +326,8 @@ Window_Command.prototype.itemLineRect = function(index) {
  * @param {number} index the index of the command.
  * @returns {number} The icon index for the command, or 0 if it doesn't exist.
  */
-Window_Command.prototype.commandIcon = function(index) {
+Window_Command.prototype.commandIcon = function(index)
+{
   return this._list[index].icon;
 };
 
@@ -309,7 +336,8 @@ Window_Command.prototype.commandIcon = function(index) {
  * @param {number} index the index of the command.
  * @returns {number} The color index for the command, or 0 if it doesn't exist.
  */
-Window_Command.prototype.commandColor = function(index) {
+Window_Command.prototype.commandColor = function(index)
+{
   return this._list[index].color;
 };
 
@@ -329,8 +357,9 @@ Window_Command.prototype.addCommand = function(
   ext = null,
   icon = 0,
   color = 0,
-) {
-  this._list.push({ name, symbol, enabled, ext, icon, color });
+)
+{
+  this._list.push({name, symbol, enabled, ext, icon, color});
 };
 //#endregion Window_Command
 
@@ -340,10 +369,12 @@ Window_Command.prototype.addCommand = function(
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
-class Window_MoreData extends Window_Command {
-   /**
-    * The various types supported by "more data" functionality.
-    */
+class Window_MoreData
+  extends Window_Command
+{
+  /**
+   * The various types supported by "more data" functionality.
+   */
   static Types = {
     /** The weapon type. */
     Weapon: "Weapon",
@@ -365,7 +396,8 @@ class Window_MoreData extends Window_Command {
    * @constructor
    * @param {Rectangle} rect A rectangle that represents the shape of this window.
    */
-  constructor(rect) {
+  constructor(rect)
+  {
     super(rect);
     this.initialize(rect);
     this.initMembers();
@@ -375,7 +407,8 @@ class Window_MoreData extends Window_Command {
   /**
    * Initializes all properties of this method.
    */
-  initMembers() {
+  initMembers()
+  {
     /**
      * The item we're displaying more data for.
      */
@@ -398,7 +431,8 @@ class Window_MoreData extends Window_Command {
    * Sets an item to this window to display more data for.
    * @param {rm.types.BaseItem} newItem The item to set for this window.
    */
-  setItem(newItem) {
+  setItem(newItem)
+  {
     this.item = newItem;
     this.refresh();
   };
@@ -407,7 +441,8 @@ class Window_MoreData extends Window_Command {
    * Sets the actor of this window for performing parameter calculations against.
    * @param {Game_Actor} newActor The new actor.
    */
-  setActor(newActor) {
+  setActor(newActor)
+  {
     this.actor = newActor;
     this.refresh();
   };
@@ -415,9 +450,11 @@ class Window_MoreData extends Window_Command {
   /**
    * Refreshes this window by clearing it and redrawing all its contents.
    */
-  refresh() {
+  refresh()
+  {
     super.refresh();
-    if (this.item) {
+    if (this.item)
+    {
       this.determineItemType();
     }
   };
@@ -425,8 +462,10 @@ class Window_MoreData extends Window_Command {
   /**
    * Updates the type of item this is.
    */
-  determineItemType() {
-    switch (true) {
+  determineItemType()
+  {
+    switch (true)
+    {
       case DataManager.isItem(this.item):
         this.type = Window_MoreData.Types.Item;
         break;
@@ -450,7 +489,8 @@ class Window_MoreData extends Window_Command {
    * Determines whether or not the selected row is a weapon or not.
    * @returns {boolean}  True if this is a weapon, false otherwise.
    */
-  weaponSelected() {
+  weaponSelected()
+  {
     return this.type === Window_MoreData.Types.Weapon;
   };
 
@@ -458,7 +498,8 @@ class Window_MoreData extends Window_Command {
    * Determines whether or not the selected row is an armor or not.
    * @returns {boolean}  True if this is an armor, false otherwise.
    */
-  armorSelected() {
+  armorSelected()
+  {
     return this.type === Window_MoreData.Types.Armor;
   };
 
@@ -466,7 +507,8 @@ class Window_MoreData extends Window_Command {
    * Determines whether or not the selected row is an item or not.
    * @returns {boolean}  True if this is an item, false otherwise.
    */
-  itemSelected() {
+  itemSelected()
+  {
     return this.type === Window_MoreData.Types.Item;
   };
 
@@ -474,15 +516,18 @@ class Window_MoreData extends Window_Command {
    * Determines whether or not the selected row is a skill or not.
    * @returns {boolean}  True if this is a skill, false otherwise.
    */
-  skillSelected() {
+  skillSelected()
+  {
     return this.type === Window_MoreData.Types.Skill;
   };
 
   /**
    * Creates a command list for this menu.
    */
-  makeCommandList() {
-    if (this.item) {
+  makeCommandList()
+  {
+    if (this.item)
+    {
       // this.addCommand(`More ${this.type} Data`, null, true, null, 2568, 1);
       // this.addCommand(`${this.item.name}`, null, true, null, this.item.iconIndex, 0);
       this.adjustWindowHeight();
@@ -492,12 +537,16 @@ class Window_MoreData extends Window_Command {
   /**
    * Readjusts the height of the command window to match the number of commands.
    */
-  adjustWindowHeight() {
+  adjustWindowHeight()
+  {
     const magicHeight = 800;
     const calculatedHeight = (this._list.length + 1) * (this.lineHeight() + 8) - 16;
-    if (calculatedHeight >= magicHeight) {
+    if (calculatedHeight >= magicHeight)
+    {
       this.height = magicHeight;
-    } else {
+    }
+    else
+    {
       this.height = calculatedHeight;
     }
   };
@@ -507,24 +556,28 @@ class Window_MoreData extends Window_Command {
 //#region Window_Selectable
 /**
  * Weaves in the "more data window" at the highest level of selectable.
- * 
+ *
  * It can be added to any window that extends this or its subclasses.
  */
 J.BASE.Aliased.Window_Selectable.initialize = Window_Selectable.prototype.initialize;
-Window_Selectable.prototype.initialize = function(rect) {
+Window_Selectable.prototype.initialize = function(rect)
+{
   J.BASE.Aliased.Window_Selectable.initialize.call(this, rect);
   /**
    * The "more data" window. Used for further elaborating on a particular selection.
-   * 
+   *
    * @type {Window_MoreData}
    */
   this._moreDataWindow = null;
 };
 
 J.BASE.Aliased.Window_Selectable.processHandling = Window_Selectable.prototype.processHandling;
-Window_Selectable.prototype.processHandling = function() {
-  if (this.isOpenAndActive()) {
-    if (this.isMoreEnabled() && this.isMoreTriggered()) {
+Window_Selectable.prototype.processHandling = function()
+{
+  if (this.isOpenAndActive())
+  {
+    if (this.isMoreEnabled() && this.isMoreTriggered())
+    {
       return this.processMore();
     }
   }
@@ -536,7 +589,8 @@ Window_Selectable.prototype.processHandling = function() {
  * Gets whether or not "more" data has been provided.
  * @returns {boolean}  True if "more" is handled, false otherwise.
  */
-Window_Selectable.prototype.isMoreEnabled = function() {
+Window_Selectable.prototype.isMoreEnabled = function()
+{
   return this.isHandled("more");
 };
 
@@ -544,14 +598,16 @@ Window_Selectable.prototype.isMoreEnabled = function() {
  * Gets whether or not the "more" button is pressed/held.
  * @returns {boolean} True if the "more" button is pressed/held, false otherwise.
  */
-Window_Selectable.prototype.isMoreTriggered = function() {
+Window_Selectable.prototype.isMoreTriggered = function()
+{
   return this._canRepeat ? Input.isRepeated("shift") : Input.isTriggered("shift");
 };
 
 /**
  * Processes the "more" functionality.
  */
-Window_Selectable.prototype.processMore = function() {
+Window_Selectable.prototype.processMore = function()
+{
   this.playCursorSound();
   this.updateInputData();
   this.callMoreHandler();
@@ -560,7 +616,8 @@ Window_Selectable.prototype.processMore = function() {
 /**
  * Calls the given handler provided by the "more" symbol.
  */
-Window_Selectable.prototype.callMoreHandler = function() {
+Window_Selectable.prototype.callMoreHandler = function()
+{
   this.callHandler("more");
 };
 
@@ -568,10 +625,12 @@ Window_Selectable.prototype.callMoreHandler = function() {
  * Extends the `.select()` to include a hook for executing logic onIndexChange.
  */
 J.BASE.Aliased.Window_Selectable.select = Window_Selectable.prototype.select;
-Window_Selectable.prototype.select = function(index) {
+Window_Selectable.prototype.select = function(index)
+{
   const previousIndex = this._index;
   J.BASE.Aliased.Window_Selectable.select.call(this, index);
-  if (previousIndex !== this._index) {
+  if (previousIndex !== this._index)
+  {
     this.onIndexChange();
   }
 };
@@ -579,6 +638,8 @@ Window_Selectable.prototype.select = function(index) {
 /**
  * Designed for overriding to weave in functionality on-change of the index.
  */
-Window_Selectable.prototype.onIndexChange = function() { };
+Window_Selectable.prototype.onIndexChange = function()
+{
+};
 //#endregion Window_Selectable
 //ENDFILE

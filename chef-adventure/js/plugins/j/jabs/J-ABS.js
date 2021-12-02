@@ -544,11 +544,13 @@
 var J = J || {};
 
 //#region version checks
-(() => {
+(() =>
+{
   // Check to ensure we have the minimum required version of the J-Base plugin.
   const requiredBaseVersion = '2.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement) {
+  if (!hasBaseRequirement)
+  {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
@@ -575,18 +577,30 @@ J.ABS.Helpers.PluginManager = {};
  * @param {string} slot The slot from the plugin command to translate.
  * @returns {string} The translated slot.
  */
-J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot => {
-  switch (slot) {
-    case "Tool": return Game_Actor.JABS_TOOLSKILL;
-    case "Dodge": return Game_Actor.JABS_DODGESKILL;
-    case "R1A": return Game_Actor.JABS_R1_A_SKILL;
-    case "R1B": return Game_Actor.JABS_R1_B_SKILL;
-    case "R1X": return Game_Actor.JABS_R1_X_SKILL;
-    case "R1Y": return Game_Actor.JABS_R1_Y_SKILL;
-    case "L1A": return Game_Actor.JABS_L1_A_SKILL;
-    case "L1B": return Game_Actor.JABS_L1_B_SKILL;
-    case "L1X": return Game_Actor.JABS_L1_X_SKILL;
-    case "L1Y": return Game_Actor.JABS_L1_Y_SKILL;
+J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
+{
+  switch (slot)
+  {
+    case "Tool":
+      return Game_Actor.JABS_TOOLSKILL;
+    case "Dodge":
+      return Game_Actor.JABS_DODGESKILL;
+    case "R1A":
+      return Game_Actor.JABS_R1_A_SKILL;
+    case "R1B":
+      return Game_Actor.JABS_R1_B_SKILL;
+    case "R1X":
+      return Game_Actor.JABS_R1_X_SKILL;
+    case "R1Y":
+      return Game_Actor.JABS_R1_Y_SKILL;
+    case "L1A":
+      return Game_Actor.JABS_L1_A_SKILL;
+    case "L1B":
+      return Game_Actor.JABS_L1_B_SKILL;
+    case "L1X":
+      return Game_Actor.JABS_L1_X_SKILL;
+    case "L1Y":
+      return Game_Actor.JABS_L1_Y_SKILL;
   }
 };
 
@@ -595,26 +609,30 @@ J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot => {
  * @param {string} obj The raw JSON.
  * @returns {{element: number, icon: number}[]} The translated elemental icon objects.
  */
-J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj => {
+J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
+{
   // no element icons identified.
   if (!obj) return [];
 
   const arr = JSON.parse(obj);
   if (!arr.length) return [];
-  return arr.map(el => {
+  return arr.map(el =>
+  {
     const kvp = JSON.parse(el);
     const {elementId, iconIndex} = kvp;
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
 
-J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj => {
+J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
+{
   // no danger indicator icons identified.
   if (!obj) return {};
 
   // parse the JSON and update the values to be actual numbers.
   const raw = JSON.parse(obj);
-  Object.keys(raw).forEach(key => {
+  Object.keys(raw).forEach(key =>
+  {
     raw[key] = parseInt(raw[key]);
   });
 
@@ -853,7 +871,7 @@ J.ABS.Balloons = {
 };
 
 /**
- * A collection of helpful mappings for `Game_Character` directions 
+ * A collection of helpful mappings for `Game_Character` directions
  * to their numeric ID.
  */
 J.ABS.Directions = {
@@ -900,7 +918,7 @@ J.ABS.Directions = {
 };
 
 /**
- * A collection of helpful mappings for `notes` that are placed in 
+ * A collection of helpful mappings for `notes` that are placed in
  * various locations, like events on the map, or in a database enemy.
  */
 J.ABS.Notetags = {
@@ -946,22 +964,25 @@ J.ABS.Aliased = {
 /**
  * Plugin command for enabling JABS.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable JABS", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable JABS", () =>
+{
   $gameBattleMap.absEnabled = true;
 });
 
 /**
  * Plugin command for disabling JABS.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
+{
   $gameBattleMap.absEnabled = false;
 });
 
 /**
  * Plugin command for assigning and locking a skill to a designated slot.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args => {
-  const { actorId, skillId, slot, locked } = args;
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
+{
+  const {actorId, skillId, slot, locked} = args;
   const actor = $gameActors.actor(parseInt(actorId));
   const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
   actor.setEquippedSkill(
@@ -973,14 +994,16 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args => {
 /**
  * Plugin command for unlocking a specific JABS skill slot.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", args => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", args =>
+{
   const leader = $gameParty.leader();
-  if (!leader) {
+  if (!leader)
+  {
     console.warn("There is no leader to manage skills for.");
     return;
   }
 
-  const { Slot } = args;
+  const {Slot} = args;
   const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
   leader.unlockSlot(translation);
 });
@@ -988,9 +1011,11 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", arg
 /**
  * Plugin command for unlocking all JABS skill slots.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots", () =>
+{
   const leader = $gameParty.leader();
-  if (!leader) {
+  if (!leader)
+  {
     console.warn("There is no leader to manage skills for.");
     return;
   }
@@ -1001,28 +1026,32 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots"
 /**
  * Plugin command for cycling through party members forcefully.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Rotate Party Members", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Rotate Party Members", () =>
+{
   $gameBattleMap.rotatePartyMembers(true);
 });
 
 /**
  * Plugin command for disabling the ability to rotate party members.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable Party Rotation", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable Party Rotation", () =>
+{
   $gameParty.disablePartyCycling();
 });
 
 /**
  * Plugin command for enabling the ability to rotate party members.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable Party Rotation", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable Party Rotation", () =>
+{
   $gameParty.enablePartyCycling();
 });
 
 /**
  * Plugin command for updating the JABS menu.
  */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () => {
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
+{
   $gameBattleMap.requestJabsMenuRefresh = true;
 });
 //#endregion Plugin Command Registration

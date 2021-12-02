@@ -16,11 +16,15 @@
 
 /**
  * A class that contains all custom feature flags for JABS skills.
- * 
+ *
  * This class was created because skills do not inherently have a class to hook into
  * for extensions, like `Game_Actor` or `Game_Map`.
  */
-function JABS_SkillData() { this.initialize(...arguments); }
+function JABS_SkillData()
+{
+  this.initialize(...arguments);
+}
+
 JABS_SkillData.prototype = {};
 JABS_SkillData.prototype.constructor = JABS_SkillData;
 
@@ -43,10 +47,12 @@ JABS_SkillData.prototype.toJSON = function()
 {
   const jsonObj = Object.assign({}, this);
   const proto = Object.getPrototypeOf(this);
-  for (const key of Object.getOwnPropertyNames(proto)) {
+  for (const key of Object.getOwnPropertyNames(proto))
+  {
     const desc = Object.getOwnPropertyDescriptor(proto, key);
     const hasGetter = desc && typeof desc.get === 'function';
-    if (hasGetter) {
+    if (hasGetter)
+    {
       jsonObj[key] = this[key];
     }
   }
@@ -63,13 +69,15 @@ JABS_SkillData.prototype.delay = function()
 {
   let temp = [0, false];
   const structure = /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       temp = JSON.parse(RegExp.$1);
     }
   });
 
-  return { duration: parseInt(temp[0]) ?? 0, touchToTrigger: temp[1] };
+  return {duration: parseInt(temp[0]) ?? 0, touchToTrigger: temp[1]};
 };
 
 /**
@@ -80,8 +88,10 @@ JABS_SkillData.prototype.bonusAggro = function()
 {
   let aggro = 0;
   const structure = /<aggro:[ ]?(-?\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       aggro += parseInt(RegExp.$1);
     }
   })
@@ -98,8 +108,10 @@ JABS_SkillData.prototype.aggroMultiplier = function()
 {
   let multiplier = 1.0;
   const structure = /<aggroMultiply:[ ]?(\d+[.]?\d+)?>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       multiplier += parseFloat(RegExp.$1);
     }
   });
@@ -115,8 +127,10 @@ JABS_SkillData.prototype.direct = function()
 {
   let isDirect = false;
   const structure = /<direct>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       isDirect = true;
     }
   });
@@ -132,8 +146,10 @@ JABS_SkillData.prototype.getBonusHits = function()
 {
   let bonusHits = 0;
   const structure = /<bonusHits:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       bonusHits = parseInt(RegExp.$1);
     }
   });
@@ -143,14 +159,16 @@ JABS_SkillData.prototype.getBonusHits = function()
 
 /**
  * Gets the amount of parry to ignore.
- * @type {number} The amount of parry to ignore; will be `-1` if should always ignores.
+ * @type {number} The amount of parry to ignore; will be `-1` if should always ignore.
  */
 JABS_SkillData.prototype.ignoreParry = function()
 {
   let ignore = 0;
   const structure = /<ignoreParry([:]?[ ]?((\d+)[%])?)?>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       ignore = !RegExp.$1
         ? -1                    // if parameter left out, then always ignore parry.
         : parseInt(RegExp.$3);  // if parameter exists, use the number.
@@ -168,8 +186,10 @@ JABS_SkillData.prototype.guard = function()
 {
   let guard = [0, false];
   const structure = /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       guard = JSON.parse(RegExp.$1);
     }
   });
@@ -185,8 +205,10 @@ JABS_SkillData.prototype.parry = function()
 {
   let parry = 0;
   const structure = /<parry:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       parry = parseInt(RegExp.$1);
     }
   });
@@ -202,8 +224,10 @@ JABS_SkillData.prototype.counterParry = function()
 {
   let id = 0;
   const structure = /<counterParry:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       id = parseInt(RegExp.$1);
     }
   });
@@ -219,8 +243,10 @@ JABS_SkillData.prototype.counterGuard = function()
 {
   let id = 0;
   const structure = /<counterGuard:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       id = parseInt(RegExp.$1);
     }
   });
@@ -236,8 +262,10 @@ JABS_SkillData.prototype.casterAnimation = function()
 {
   let animationId = 0;
   const structure = /<castAnimation:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       animationId = parseInt(RegExp.$1);
     }
   });
@@ -253,8 +281,10 @@ JABS_SkillData.prototype.castTime = function()
 {
   let castTime = 1;
   const structure = /<castTime:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       castTime = parseInt(RegExp.$1);
     }
   });
@@ -270,8 +300,10 @@ JABS_SkillData.prototype.cooldown = function()
 {
   let cooldown = 0;
   const structure = /<cooldown:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       cooldown = parseInt(RegExp.$1);
     }
   });
@@ -289,8 +321,10 @@ JABS_SkillData.prototype.aiCooldown = function()
 {
   let aiCooldown = -1;
   const structure = /<aiCooldown:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       aiCooldown = parseInt(RegExp.$1);
     }
   });
@@ -306,8 +340,10 @@ JABS_SkillData.prototype.range = function()
 {
   let range = 0;
   const structure = /<range:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       range = parseInt(RegExp.$1);
     }
   });
@@ -323,8 +359,10 @@ JABS_SkillData.prototype.actionId = function()
 {
   let actionId = 1;
   const structure = /<actionId:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       actionId = parseInt(RegExp.$1);
     }
   });
@@ -340,8 +378,10 @@ JABS_SkillData.prototype.duration = function()
 {
   let duration = 0;
   const structure = /<duration:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       duration = parseInt(RegExp.$1);
     }
   });
@@ -357,8 +397,10 @@ JABS_SkillData.prototype.shape = function()
 {
   let shape = 'rhombus';
   const structure = /<shape:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       shape = RegExp.$1.toLowerCase();
     }
   });
@@ -374,8 +416,10 @@ JABS_SkillData.prototype.projectile = function()
 {
   let projectile = 1;
   const structure = /<projectile:[ ]?([12348])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       projectile = parseInt(RegExp.$1);
     }
   });
@@ -391,8 +435,10 @@ JABS_SkillData.prototype.piercing = function()
 {
   let piercing = [1, 0];
   const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       piercing = JSON.parse(RegExp.$1);
     }
   });
@@ -408,8 +454,10 @@ JABS_SkillData.prototype.combo = function()
 {
   let combo = null;
   const structure = /<combo:[ ]?(\[\d+,[ ]?\d+])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       combo = JSON.parse(RegExp.$1);
     }
   });
@@ -426,8 +474,10 @@ JABS_SkillData.prototype.freeCombo = function()
 {
   let freeCombo = false;
   const structure = /<freeCombo>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       freeCombo = true;
     }
   });
@@ -443,8 +493,10 @@ JABS_SkillData.prototype.proximity = function()
 {
   let proximity = 1;
   const structure = /<proximity:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       proximity = parseInt(RegExp.$1);
     }
   });
@@ -462,8 +514,10 @@ JABS_SkillData.prototype.knockback = function()
 {
   let knockback = null;
   const structure = /<knockback:[ ]?(\d+)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       knockback = parseInt(RegExp.$1);
     }
   });
@@ -479,8 +533,10 @@ JABS_SkillData.prototype.invincible = function()
 {
   let invincible = false;
   const structure = /<invincible>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       invincible = true;
     }
   });
@@ -498,8 +554,10 @@ JABS_SkillData.prototype.uniqueCooldown = function()
 {
   let uniqueCooldown = false;
   const structure = /<unique>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       uniqueCooldown = true;
     }
   });
@@ -515,8 +573,10 @@ JABS_SkillData.prototype.moveType = function()
 {
   let moveType = "forward";
   const structure = /<moveType:[ ]?(forward|backward|directional)>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       moveType = RegExp.$1;
     }
   });
@@ -532,8 +592,10 @@ JABS_SkillData.prototype.poseSuffix = function()
 {
   let actionPoseData = null;
   const structure = /<poseSuffix:[ ]?(\["[-_]?\w+",[ ]?\d+,[ ]?\d+])>/i;
-  this._notes.forEach(note => {
-    if (note.match(structure)) {
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
       actionPoseData = JSON.parse(RegExp.$1);
     }
   });

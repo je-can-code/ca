@@ -17,21 +17,25 @@
 /**
  * The window representing what is called and manages the player's assigned skill slots.
  */
- class Window_AbsMenu extends Window_Command {
+class Window_AbsMenu
+  extends Window_Command
+{
   /**
    * @constructor
    * @param {Rectangle} rect The shape of the window.
    */
-  constructor(rect) { 
+  constructor(rect)
+  {
     super(rect);
     this.initialize(rect);
   };
-  
+
   /**
    * Initializes this window.
    * @param {Rectangle} rect The shape of the window.
    */
-  initialize(rect) {
+  initialize(rect)
+  {
     super.initialize(rect);
     this.refresh();
     this.select(0);
@@ -41,7 +45,8 @@
   /**
    * Generates the command list for the JABS menu.
    */
-  makeCommandList() {
+  makeCommandList()
+  {
     // to adjust the icons, change the number that is the last parameter of these commands.
     this.addCommand(J.ABS.Metadata.EquipCombatSkillsText, "skill-assign", true, null, 77);
     this.addCommand(J.ABS.Metadata.EquipDodgeSkillsText, "dodge-assign", true, null, 82);
@@ -53,8 +58,10 @@
   /**
    * Closes the Abs menu.
    */
-  closeMenu() {
-    if (!this.isClosed()) {
+  closeMenu()
+  {
+    if (!this.isClosed())
+    {
       this.close();
       $gameBattleMap.absPause = false;
       $gameBattleMap.requestAbsMenu = false;
@@ -67,13 +74,16 @@
 /**
  * A window that is reused to draw all the subwindows of the JABS menu.
  */
-class Window_AbsMenuSelect extends Window_Command {
+class Window_AbsMenuSelect
+  extends Window_Command
+{
   /**
    * @constructor
    * @param {Rectangle} rect The shape of the window.
    * @param {string} type The type of window this is, such as "dodge" or "skill".
    */
-  constructor(rect, type) {
+  constructor(rect, type)
+  {
     super(rect);
     this.initialize(rect, type);
   };
@@ -83,7 +93,8 @@ class Window_AbsMenuSelect extends Window_Command {
    * @param {Rectangle} rect The window dimensions.
    * @param {string} type The type of abs menu selection this is.
    */
-  initialize(rect, type) {
+  initialize(rect, type)
+  {
     this._j = {};
     this._j._menuType = type;
     super.initialize(rect);
@@ -95,8 +106,10 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Draws all commands of this select window.
    */
-  makeCommandList() {
-    switch (this._j._menuType) {
+  makeCommandList()
+  {
+    switch (this._j._menuType)
+    {
       case "skill":
         // the list of all equippable combat skills this actor knows.
         this.makeSkillList();
@@ -127,12 +140,14 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with learned skills to assign.
    */
-  makeSkillList() {
+  makeSkillList()
+  {
     const actor = $gameParty.leader();
     const skills = actor.skills().filter(JABS_Battler.isSkillVisibleInCombatMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "skill", true, 0, 16);
-    skills.forEach(skill => {
+    skills.forEach(skill =>
+    {
       this.addCommand(skill.name, "skill", true, skill.id, skill.iconIndex);
     });
   };
@@ -140,11 +155,13 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with items in the player's possession to assign.
    */
-  makeToolList() {
+  makeToolList()
+  {
     const items = $gameParty.allItems().filter(JABS_Battler.isItemVisibleInToolMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "tool", true, 0, 16);
-    items.forEach(item => {
+    items.forEach(item =>
+    {
       const name = `${item.name}: ${$gameParty.numItems(item)}`;
       this.addCommand(name, "tool", true, item.id, item.iconIndex);
     });
@@ -153,12 +170,14 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with the currently assigned dodge.
    */
-  makeDodgeList() {
+  makeDodgeList()
+  {
     const skills = $gameParty.leader().skills();
     const dodgeSkills = skills.filter(JABS_Battler.isSkillVisibleInDodgeMenu);
 
     this.addCommand(J.ABS.Metadata.ClearSlotText, "dodge", true, 0, 16);
-    dodgeSkills.forEach(dodge => {
+    dodgeSkills.forEach(dodge =>
+    {
       this.addCommand(dodge.name, "dodge", true, dodge.id, dodge.iconIndex);
     });
   };
@@ -166,13 +185,16 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with the currently assigned items.
    */
-  makeEquippedSkillList() {
+  makeEquippedSkillList()
+  {
     $gameParty.leader()
       .getAllSecondarySkills()
-      .forEach(skillSlot => {
+      .forEach(skillSlot =>
+      {
         let name = `${skillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
         let iconIndex = 0;
-        if (skillSlot.isUsable()) {
+        if (skillSlot.isUsable())
+        {
           const equippedSkill = $dataSkills[skillSlot.id];
           name = `${equippedSkill.name}`;
           iconIndex = equippedSkill.iconIndex;
@@ -185,11 +207,13 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with the currently assigned items.
    */
-  makeEquippedToolList() {
+  makeEquippedToolList()
+  {
     const toolSkill = $gameParty.leader().getToolSkill();
     let name = `${toolSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
     let iconIndex = 0;
-    if (toolSkill.isUsable()) {
+    if (toolSkill.isUsable())
+    {
       const equippedTool = $dataItems[toolSkill.id];
       name = `${equippedTool.name}: ${$gameParty.numItems(equippedTool)}`;
       iconIndex = equippedTool.iconIndex;
@@ -201,11 +225,13 @@ class Window_AbsMenuSelect extends Window_Command {
   /**
    * Fills the list with the currently assigned items.
    */
-  makeEquippedDodgeList() {
+  makeEquippedDodgeList()
+  {
     const dodgeSkill = $gameParty.leader().getDodgeSkill();
     let name = `${dodgeSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
     let iconIndex = 0;
-    if (dodgeSkill.isUsable()) {
+    if (dodgeSkill.isUsable())
+    {
       const equippedDodgeSkill = $dataSkills[dodgeSkill.id];
       name = `${equippedDodgeSkill.name}`;
       iconIndex = equippedDodgeSkill.iconIndex;
@@ -214,5 +240,6 @@ class Window_AbsMenuSelect extends Window_Command {
     this.addCommand(name, "slot", true, dodgeSkill.key, iconIndex);
   };
 }
+
 //#endregion Window_AbsMenuSelect
 //ENDFILE

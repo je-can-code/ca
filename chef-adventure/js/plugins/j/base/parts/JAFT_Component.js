@@ -17,10 +17,15 @@
  * A single instance of a particular crafting component, such as an ingredient/tool/output,
  * for use in JAFTING.
  */
-function JAFTING_Component() { this.initialize(...arguments); }
+function JAFTING_Component()
+{
+  this.initialize(...arguments);
+}
+
 JAFTING_Component.prototype = {};
 JAFTING_Component.prototype.constructor = JAFTING_Component;
-JAFTING_Component.prototype.initialize = function(id, type, count, isTool) {
+JAFTING_Component.prototype.initialize = function(id, type, count, isTool)
+{
   /**
    * The id of the underlying component.
    * @type {number}
@@ -50,8 +55,10 @@ JAFTING_Component.prototype.initialize = function(id, type, count, isTool) {
 /**
  * Gets the underlying RPG:Item that this component represents.
  */
-JAFTING_Component.prototype.getItem = function() {
-  switch (this.type) {
+JAFTING_Component.prototype.getItem = function()
+{
+  switch (this.type)
+  {
     case `i`:
       return $dataItems[this.id];
     case `w`:
@@ -68,14 +75,16 @@ JAFTING_Component.prototype.getItem = function() {
 /**
  * Crafts this particular component based on it's type.
  */
-JAFTING_Component.prototype.craft = function() {
+JAFTING_Component.prototype.craft = function()
+{
   $gameParty.gainItem(this.getItem(), this.count);
 };
 
 /**
  * Consumes this particular component based on it's type.
  */
-JAFTING_Component.prototype.consume = function() {
+JAFTING_Component.prototype.consume = function()
+{
   $gameParty.loseItem(this.getItem(), this.count);
 };
 //ENDFILE

@@ -15,18 +15,20 @@
  */
 
 /**
-* A class that contains all custom data for JABS states.
-* 
-* This class was created because states do not inherently have a class to hook into
-* for extensions, like `Game_Actor` or `Game_Map`.
-*/
-class JABS_StateData {
+ * A class that contains all custom data for JABS states.
+ *
+ * This class was created because states do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
+class JABS_StateData
+{
   /**
    * @constructor
    * @param {string} notes The raw note box as a string.
    * @param {any} meta The `meta` object containing prebuilt note metadata.
    */
-  constructor(notes, meta) {
+  constructor(notes, meta)
+  {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
     this.bonusHits = this.getBonusHits();
@@ -36,14 +38,20 @@ class JABS_StateData {
    * Gets the number of bonus hits this skill grants.
    * @returns {number} The number of bonus hits.
    */
-  getBonusHits() {
+  getBonusHits()
+  {
     let bonusHits = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.BonusHits]) {
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits])
+    {
       bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
-    } else {
+    }
+    else
+    {
       const structure = /<bonusHits:[ ]?(\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           bonusHits = parseInt(RegExp.$1);
         }
       });
@@ -56,14 +64,20 @@ class JABS_StateData {
    * Gets whether or not this state is identified as a "negative" state.
    * @returns {boolean}
    */
-  get negative() {
+  get negative()
+  {
     let negative = false;
-    if (this._meta && this._meta[J.BASE.Notetags.NegativeState]) {
+    if (this._meta && this._meta[J.BASE.Notetags.NegativeState])
+    {
       negative = true;
-    } else {
+    }
+    else
+    {
       const structure = /<negative>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           negative = true;
         }
       })
@@ -76,14 +90,20 @@ class JABS_StateData {
    * Gets whether or not this state locks aggro modification.
    * @returns {boolean}
    */
-  get aggroLock() {
+  get aggroLock()
+  {
     let aggroLocked = false;
-    if (this._meta && this._meta[J.BASE.Notetags.AggroLock]) {
+    if (this._meta && this._meta[J.BASE.Notetags.AggroLock])
+    {
       aggroLocked = true;
-    } else {
+    }
+    else
+    {
       const structure = /<aggroLock>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           aggroLocked = true;
         }
       })
@@ -96,14 +116,20 @@ class JABS_StateData {
    * Gets the aggro dealt amp multiplier bonus for this state.
    * @returns {number}
    */
-  get aggroOutAmp() {
+  get aggroOutAmp()
+  {
     let aggroOutAmp = 1.0;
-    if (this._meta && this._meta[J.BASE.Notetags.AggroOutAmp]) {
+    if (this._meta && this._meta[J.BASE.Notetags.AggroOutAmp])
+    {
       aggroOutAmp = parseFloat(this._meta[J.BASE.Notetags.AggroOutAmp]);
-    } else {
+    }
+    else
+    {
       const structure = /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           aggroOutAmp = parseFloat(RegExp.$1);
         }
       })
@@ -116,14 +142,20 @@ class JABS_StateData {
    * Gets the aggro received amp multiplier bonus for this state.
    * @returns {number}
    */
-  get aggroInAmp() {
+  get aggroInAmp()
+  {
     let aggroInAmp = 1.0;
-    if (this._meta && this._meta[J.BASE.Notetags.AggroInAmp]) {
+    if (this._meta && this._meta[J.BASE.Notetags.AggroInAmp])
+    {
       aggroInAmp = parseFloat(this._meta[J.BASE.Notetags.AggroInAmp]);
-    } else {
+    }
+    else
+    {
       const structure = /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           aggroInAmp = parseFloat(RegExp.$1);
         }
       })
@@ -136,14 +168,20 @@ class JABS_StateData {
    * Gets whether or not this state inflicts JABS paralysis.
    * @returns {boolean} True if it inflicts JABS paralysis, false otherwise.
    */
-  get paralyzed() {
+  get paralyzed()
+  {
     let paralyzed = false;
-    if (this._meta && this._meta[J.BASE.Notetags.Paralyzed]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Paralyzed])
+    {
       paralyzed = true;
-    } else {
+    }
+    else
+    {
       const structure = /<paralyzed>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           paralyzed = true;
         }
       })
@@ -156,14 +194,20 @@ class JABS_StateData {
    * Gets whether or not this state inflicts JABS root.
    * @returns {boolean} True if it inflicts JABS root, false otherwise.
    */
-  get rooted() {
+  get rooted()
+  {
     let rooted = false;
-    if (this._meta && this._meta[J.BASE.Notetags.Rooted]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Rooted])
+    {
       rooted = true;
-    } else {
+    }
+    else
+    {
       const structure = /<rooted>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           rooted = true;
         }
       })
@@ -176,14 +220,20 @@ class JABS_StateData {
    * Gets whether or not this state inflicts JABS mute.
    * @returns {boolean} True if it inflicts JABS mute, false otherwise.
    */
-  get muted() {
+  get muted()
+  {
     let muted = false;
-    if (this._meta && this._meta[J.BASE.Notetags.Muted]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Muted])
+    {
       muted = true;
-    } else {
+    }
+    else
+    {
       const structure = /<muted>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           muted = true;
         }
       })
@@ -196,14 +246,20 @@ class JABS_StateData {
    * Gets whether or not this state inflicts JABS disable.
    * @returns {boolean} True if it inflicts JABS disable, false otherwise.
    */
-  get disabled() {
+  get disabled()
+  {
     let disabled = false;
-    if (this._meta && this._meta[J.BASE.Notetags.Disabled]) {
+    if (this._meta && this._meta[J.BASE.Notetags.Disabled])
+    {
       disabled = true;
-    } else {
+    }
+    else
+    {
       const structure = /<disabled>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           disabled = true;
         }
       })
@@ -214,16 +270,19 @@ class JABS_StateData {
 
   /**
    * Gets the formula for hp5 of this state.
-   * 
+   *
    * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
    * use with the utmost caution (as with any eval).
    * @returns {string} the formula to be dynamically executed.
    */
-  get slipHpFormula() {
+  get slipHpFormula()
+  {
     let formula = "";
     const structure = /<slip:hp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         formula = RegExp.$1;
       }
     });
@@ -235,14 +294,20 @@ class JABS_StateData {
    * Gets the flat hp5 for this state.
    * @returns {number} The flat hp5.
    */
-  get slipHpFlat() {
+  get slipHpFlat()
+  {
     let hpFlat = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.HpFlat]) {
+    if (this._meta && this._meta[J.BASE.Notetags.HpFlat])
+    {
       hpFlat = parseInt(this._meta[J.BASE.Notetags.HpFlat]);
-    } else {
+    }
+    else
+    {
       const structure = /<hpFlat:[ ]?([-]?\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           hpFlat = parseInt(RegExp.$1);
         }
       });
@@ -255,14 +320,20 @@ class JABS_StateData {
    * Gets the percentage hp5 for this state.
    * @returns {number} The percentage hp5.
    */
-  get slipHpPerc() {
+  get slipHpPerc()
+  {
     let hpPerc = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.HpPerc]) {
+    if (this._meta && this._meta[J.BASE.Notetags.HpPerc])
+    {
       hpPerc = parseFloat(this._meta[J.BASE.Notetags.HpPerc]);
-    } else {
+    }
+    else
+    {
       const structure = /<hpPerc:[ ]?([-]?\d+)[%]?>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           hpPerc = parseFloat(RegExp.$1);
         }
       });
@@ -273,16 +344,19 @@ class JABS_StateData {
 
   /**
    * Gets the formula for mp5 of this state.
-   * 
+   *
    * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
    * use with the utmost caution (as with any eval).
    * @returns {string} the formula to be dynamically executed.
    */
-  get slipMpFormula() {
+  get slipMpFormula()
+  {
     let formula = "";
     const structure = /<slip:mp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         formula = RegExp.$1;
       }
     });
@@ -294,14 +368,20 @@ class JABS_StateData {
    * Gets the flat mp5 for this state.
    * @returns {number} The flat mp5.
    */
-  get slipMpFlat() {
+  get slipMpFlat()
+  {
     let mpFlat = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.MpFlat]) {
+    if (this._meta && this._meta[J.BASE.Notetags.MpFlat])
+    {
       mpFlat = parseInt(this._meta[J.BASE.Notetags.MpFlat]);
-    } else {
+    }
+    else
+    {
       const structure = /<mpFlat:[ ]?([-]?\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           mpFlat = parseInt(RegExp.$1);
         }
       });
@@ -314,14 +394,20 @@ class JABS_StateData {
    * Gets the percentage mp5 for this state.
    * @returns {number} The percentage mp5.
    */
-  get slipMpPerc() {
+  get slipMpPerc()
+  {
     let mpPerc = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.MpPerc]) {
+    if (this._meta && this._meta[J.BASE.Notetags.MpPerc])
+    {
       mpPerc = parseFloat(this._meta[J.BASE.Notetags.MpPerc]);
-    } else {
+    }
+    else
+    {
       const structure = /<mpPerc:[ ]?([-]?\d+)[%]?>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           mpPerc = parseFloat(RegExp.$1);
         }
       });
@@ -332,16 +418,19 @@ class JABS_StateData {
 
   /**
    * Gets the formula for mp5 of this state.
-   * 
+   *
    * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
    * use with the utmost caution (as with any eval).
    * @returns {string} the formula to be dynamically executed.
    */
-  get slipTpFormula() {
+  get slipTpFormula()
+  {
     let formula = "";
     const structure = /<slip:tp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
-    this._notes.forEach(note => {
-      if (note.match(structure)) {
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
         formula = RegExp.$1;
       }
     });
@@ -353,14 +442,20 @@ class JABS_StateData {
    * Gets the flat tp5 for this state.
    * @returns {number} The flat tp5.
    */
-  get slipTpFlat() {
+  get slipTpFlat()
+  {
     let tpFlat = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.TpFlat]) {
+    if (this._meta && this._meta[J.BASE.Notetags.TpFlat])
+    {
       tpFlat = parseInt(this._meta[J.BASE.Notetags.TpFlat]);
-    } else {
+    }
+    else
+    {
       const structure = /<tpFlat:[ ]?([-]?\d+)>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           tpFlat = parseInt(RegExp.$1);
         }
       });
@@ -373,14 +468,20 @@ class JABS_StateData {
    * Gets the percentage tp5 for this state.
    * @returns {number} The percentage tp5.
    */
-  get slipTpPerc() {
+  get slipTpPerc()
+  {
     let tpPerc = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.TpPerc]) {
+    if (this._meta && this._meta[J.BASE.Notetags.TpPerc])
+    {
       tpPerc = parseFloat(this._meta[J.BASE.Notetags.TpPerc]);
-    } else {
+    }
+    else
+    {
       const structure = /<tpPerc:[ ]?([-]?\d+)[%]?>/i;
-      this._notes.forEach(note => {
-        if (note.match(structure)) {
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
           tpPerc = parseFloat(RegExp.$1);
         }
       });

@@ -17,8 +17,10 @@
 /**
  * A class defining the structure of an on-death skill, either for ally or enemy.
  */
- class JABS_SkillChance {
-  constructor(skillId, chance, key) {
+class JABS_SkillChance
+{
+  constructor(skillId, chance, key)
+  {
     this.skillId = skillId;
     this.chance = chance;
     this.key = key;
@@ -28,7 +30,8 @@
    * Gets the underlying skill.
    * @returns {rm.types.Skill}
    */
-  baseSkill() {
+  baseSkill()
+  {
     return $dataSkills[this.skillId];
   };
 
@@ -37,7 +40,8 @@
    * target instead of the user.
    * @returns {boolean}
    */
-  appearOnTarget() {
+  appearOnTarget()
+  {
     const skill = this.baseSkill();
     return !!skill.meta["onDefeatedTarget"];
   };
@@ -46,7 +50,8 @@
    * Rolls for whether or not this skill should proc.
    * @returns {boolean}
    */
-  shouldTrigger() {
+  shouldTrigger()
+  {
     const chance = Math.randomInt(100) + 1;
     return chance <= this.chance;
   };

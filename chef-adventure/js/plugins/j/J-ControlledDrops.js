@@ -161,7 +161,7 @@
  * ============================================================================
  */
 
- /**
+/**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
@@ -268,6 +268,83 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
 };
 //#endregion Game_Actor
 
+//#region Game_Battler
+/**
+ * Parses the given reference data to extract any extra drops that may be present.
+ * @param {rm.types.BaseItem} referenceData The database object to parse.
+ * @returns {rm.types.EnemyDropItem[]}
+ */
+Game_Battler.prototype.extractExtraDrops = function(referenceData)
+{
+  // initialize the extra drops collection.
+  const extraDrops = [];
+
+  // get the note data associated with the database object.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // iterate over each line of the note and check if we have extra drops.
+  notedata.forEach(line =>
+  {
+    // extract the relevant drop from this line.
+    const extraDrop = this.extractExtraDrop(line);
+
+    // if there was a drop found on this line...
+    if (extraDrop)
+    {
+      // ...then add it to the running collection.
+      extraDrops.push(extraDrop);
+    }
+  }, this);
+
+  // return the found extra drops.
+  return extraDrops;
+};
+
+/**
+ * Extracts the extra drop from a single note line, if one is present.
+ * @param {string} line The line from a note to extract from.
+ * @returns {rm.types.EnemyDropItem|null}
+ */
+Game_Battler.prototype.extractExtraDrop = function(line)
+{
+  // the regex structure for extra drops.
+  const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i;
+
+  // if we have a relevant note tag...
+  if (line.match(structure))
+  {
+    // ...identify the categorical "kind" of drop it is...
+    let kind = 0;
+    switch (RegExp.$1)
+    {
+      case ("i" || "item"):
+        kind = 1;
+        break;
+      case ("w" || "weapon"):
+        kind = 2;
+        break;
+      case ("a" || "armor"):
+        kind = 3;
+        break;
+    }
+
+    // ...and build the drop result based on the note data.
+    const result =
+      {
+        kind,
+        dataId: parseInt(RegExp.$2),
+        denominator: parseInt(RegExp.$3)
+      };
+
+    // return the built drop result.
+    return result;
+  }
+
+  // if we didn't find anything on this line, then return a null.
+  return null;
+};
+//#endregion Game_Battler
+
 //#region Game_Enemy
 /**
  * Gets the gold that the enemy dropped.
@@ -360,82 +437,28 @@ Game_Enemy.prototype.getDropItems = function()
  */
 Game_Enemy.prototype.extraDrops = function()
 {
-  const referenceData = this.enemy();
-  return [...this.extractExtraDrops(referenceData)];
-};
-
-/**
- * Parses the given reference data to extract any extra drops that may be present.
- * @param {rm.types.Enemy} referenceData The database object to parse.
- * @returns {rm.types.EnemyDropItem[]}
- */
-Game_Enemy.prototype.extractExtraDrops = function(referenceData)
-{
-  // initialize the extra drops collection.
   const extraDrops = [];
+  const objectsToCheck = this.dropSources();
+  objectsToCheck.forEach(obj =>
+  {
+    const drops = this.extractExtraDrops(obj);
+    extraDrops.push(...drops);
+  });
 
-  // get the note data associated with the database object.
-  const notedata = referenceData.note.split(/[\r\n]+/);
-
-  // iterate over each line of the note and check if we have extra drops.
-  notedata.forEach(line => {
-    // extract the relevant drop from this line.
-    const extraDrop = this.extractExtraDrop(line);
-
-    // if there was a drop found on this line...
-    if (extraDrop)
-    {
-      // ...then add it to the running collection.
-      extraDrops.push(extraDrop);
-    }
-  }, this);
-
-  // return the found extra drops.
   return extraDrops;
 };
 
 /**
- * Extracts the extra drop from a single note line, if one is present.
- * @param {string} line The line from a note to extract from.
- * @returns {rm.types.EnemyDropItem|null}
+ * A collection of all sources of which loot may be acquired from.
+ * Typically, this will only be the enemy itself, but is open for extension.
+ * @returns {rm.types.BaseItem[]}
  */
-Game_Enemy.prototype.extractExtraDrop = function(line)
+Game_Enemy.prototype.dropSources = function()
 {
-  // the regex structure for extra drops.
-  const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i;
+  const sources = [];
+  sources.push(this.enemy());
 
-  // if we have a relevant note tag...
-  if (line.match(structure))
-  {
-    // ...identify the categorical "kind" of drop it is...
-    let kind = 0;
-    switch (RegExp.$1)
-    {
-      case ("i" || "item"):
-        kind = 1;
-        break;
-      case ("w" || "weapon"):
-        kind = 2;
-        break;
-      case ("a" || "armor"):
-        kind = 3;
-        break;
-    }
-
-    // ...and build the drop result based on the note data.
-    const result =
-    {
-      kind,
-      dataId: parseInt(RegExp.$2),
-      denominator: parseInt(RegExp.$3)
-    };
-
-    // return the built drop result.
-    return result;
-  }
-
-  // if we didn't find anything on this line, then return a null.
-  return null;
+  return sources;
 };
 
 /**
@@ -513,7 +536,6 @@ Game_Party.prototype.getDropMultiplier = function()
   membersToConsider.forEach(actor => dropMultiplier += actor.getDropMultiplier());
   return dropMultiplier;
 };
-
 
 /**
  * Gets the selection of actors to consider when determining bonus drop multipliers.
