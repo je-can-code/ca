@@ -6918,6 +6918,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
       for (const event of $gameMap.eventsXy(x, y))
       {
         if (
+          !event._erased &&
           event.isTriggerIn(triggers) &&
           event.isNormalPriority() === normal &&
           !event.getMapBattler()

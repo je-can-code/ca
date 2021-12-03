@@ -918,7 +918,7 @@ class OverlayManager
    */
   static castTime(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.castTime())
+    if (skillOverlay._j.castTime() > -1)
     {
       const parameterName = J.BASE.Notetags.CastTime;
       const parameterValue = `<${parameterName}:${skillOverlay._j.castTime()}>`;

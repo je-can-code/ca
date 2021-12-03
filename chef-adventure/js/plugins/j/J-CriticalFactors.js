@@ -184,8 +184,6 @@ Game_Action.prototype.apply = function(target)
  */
 Game_Action.prototype.applyCritical = function(baseDamage)
 {
-  console.log(`applying critical to ${baseDamage} damage!`);
-
   // get the actual amount of bonus critical damage to add to the base damage.
   const criticalBonusDamage = this.applyCriticalDamageMultiplier(baseDamage);
 
@@ -226,6 +224,9 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
 {
   // get the target for this action.
   const defender = this.targetBattler();
+
+  // if somehow we don't have a defender/target, then just return the base damage.
+  if (!defender) return criticalDamage;
 
   // this gives us a multiplier representing how reduced the crit damage is.
   const baseCriticalReductionRate = (1 - defender.cdr)

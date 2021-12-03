@@ -1137,7 +1137,10 @@ if (J.DROPS)
 
     // if there is a panel that needs to be added to the list, then add it.
     const sdpDrop = this.needsSdpDrop();
-    if (sdpDrop) dropList.push(sdpDrop);
+    if (sdpDrop)
+    {
+      dropList.push(sdpDrop);
+    }
 
     return dropList;
   };
@@ -1148,9 +1151,6 @@ if (J.DROPS)
    */
   Game_Enemy.prototype.needsSdpDrop = function()
   {
-    // doesn't matter if we aren't even using the SDP system.
-    if (!J.SDP) return null;
-
     const referenceData = this.enemy();
     const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
     const notedata = referenceData.note.split(/[\r\n]+/);
