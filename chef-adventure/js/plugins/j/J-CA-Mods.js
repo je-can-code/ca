@@ -351,6 +351,19 @@ Game_Enemy.prototype.dropSources = function()
 
   return sources;
 };
+
+J.CAMods.Aliased.Game_Enemy.set("makeDropItems", Game_Enemy.prototype.makeDropItems);
+Game_Enemy.prototype.makeDropItems = function()
+{
+  if (this.enemy().meta && this.enemy().meta["noDrops"])
+  {
+    return [];
+  }
+  else
+  {
+    return J.CAMods.Aliased.Game_Enemy.get("makeDropItems").call(this);
+  }
+};
 //#endregion Game_Enemy
 
 //#region Game_Map
@@ -403,7 +416,6 @@ Game_Map.prototype.setup = function(mapId)
 {
   J.CAMods.Aliased.Game_Map.setup.call(this, mapId);
   $gameVariables.setValue(13, Math.randomInt(100) + 1);
-  // console.log(`RNG is [${$gameVariables.value(13)}].`);
 };
 //#endregion Game_Map
 
@@ -422,7 +434,6 @@ Game_Party.prototype.extraDropSources = function()
   $gameParty.battleMembers()
     .forEach(member => extraSources.push(...member.allStates()));
 
-  console.log(extraSources);
   return extraSources;
 };
 //#endregion Game_Party

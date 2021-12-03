@@ -279,7 +279,7 @@ JABS_SkillData.prototype.casterAnimation = function()
  */
 JABS_SkillData.prototype.castTime = function()
 {
-  let castTime = 1;
+  let castTime = -1;
   const structure = /<castTime:[ ]?(\d+)>/i;
   this._notes.forEach(note =>
   {

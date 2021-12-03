@@ -1156,8 +1156,8 @@ Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier)
   if (flowSpeedMultiplier > 10)
   {
     flowSpeedMultiplier = 10;
-    // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
   }
+  // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
   else if (flowSpeedMultiplier < 0.1)
   {
     flowSpeedMultiplier = 0.1;
@@ -1676,6 +1676,7 @@ Game_Time.prototype.addSeconds = function(seconds = this._secondsPerTick)
  */
 Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick)
 {
+  this.updateCurrentTone();
   let potentialMinutes = this._minutes + minutes;
   if (potentialMinutes >= 60)
   {
@@ -1699,7 +1700,6 @@ Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick)
  */
 Game_Time.prototype.addHours = function(hours = this._hoursPerTick)
 {
-  this.updateCurrentTone();
   let potentialHours = this._hours + hours;
   if (potentialHours >= 24)
   {

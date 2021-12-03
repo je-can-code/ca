@@ -515,7 +515,16 @@ class JABS_Action
   getCastTime()
   {
     // TODO: add a cast time modifier based on actor "all notes" collection.
-    return this.getJabsData().castTime();
+    const castTime = this.getJabsData().castTime();
+
+    // the unspecified cast time is -1.
+    if (castTime < 0)
+    {
+      return 0;
+    }
+
+    // return the total cast time.
+    return castTime;
   };
 
   /**

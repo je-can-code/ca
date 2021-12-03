@@ -432,7 +432,6 @@ Game_Enemy.prototype.getDropItems = function()
 /**
  * Gets any additional drops from the notes of this particular enemy.
  *
- * TODO: add a feature for having states maybe add additional drops to enemies?
  * @returns {rm.types.EnemyDropItem[]}
  */
 Game_Enemy.prototype.extraDrops = function()
