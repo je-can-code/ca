@@ -3769,12 +3769,12 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
   // set the skill which also applies all applicable overlays.
   action.setSkill(skillId);
 
-  // apply all on-cast self states.
-  action.applyOnCastSelfStates();
-
   let skill = null;
   if (J.EXTEND)
   {
+    // apply all on-cast self states.
+    action.applyOnCastSelfStates();
+
     // if using the skill extension plugin, then get the extended skill.
     skill = OverlayManager.getExtendedSkill(this.getBattler(), skillId);
   }

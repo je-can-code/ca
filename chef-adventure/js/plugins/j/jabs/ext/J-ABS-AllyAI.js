@@ -1336,7 +1336,7 @@ JABS_AllyAI.prototype.determineStrongestSkill = function(availableSkills, attack
     const skill = $dataSkills[skillId];
 
     // setup a game action for testing damage.
-    const testAction = new Game_Action(attacker.getBattler());
+    const testAction = new Game_Action(attacker.getBattler(), false);
     testAction.setItemObject(skill);
 
     // test the base and crit damage values for this skill against the target.

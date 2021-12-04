@@ -36,7 +36,7 @@ var $gameEnemies = null;
 var $actionMap = null;
 
 /**
- * Hooks into `DataManager` to create the game objects.
+ * Hooks into `1taManager` to create the game objects.
  */
 J.ABS.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function()
@@ -109,8 +109,7 @@ DataManager.onMapGet = function(xhr, name, src, url)
 DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
-}
-
+};
 //#endregion
 
 //#region Input

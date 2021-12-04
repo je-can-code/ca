@@ -204,13 +204,20 @@ J.CAMods.Aliased.Game_BattleMap.executeSkillEffects = Game_BattleMap.prototype.e
 Game_BattleMap.prototype.executeSkillEffects = function(action, target)
 {
   const actionResult = J.CAMods.Aliased.Game_BattleMap.executeSkillEffects.call(this, action, target);
-  if (target.isEnemy())
+
+  // don't track these data points if its a tool.
+  if (action.getCooldownType() !== "Tool")
   {
-    this.trackAttackData(actionResult);
-  }
-  else if (target.isPlayer())
-  {
-    this.trackDefensiveData(actionResult);
+    // if the target is an enemy, track it as attack data.
+    if (target.isEnemy())
+    {
+      this.trackAttackData(actionResult);
+    }
+    // if the target is an actor, track it as defensive data.
+    else if (target.isActor())
+    {
+      this.trackDefensiveData(actionResult);
+    }
   }
 
   return actionResult;

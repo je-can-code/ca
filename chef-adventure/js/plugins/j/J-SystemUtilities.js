@@ -44,6 +44,10 @@ J.UTIL.Aliased = {
   Scene_Base: new Map(),
 };
 
+J.UTIL.Helpers = {};
+J.UTIL.Helpers.depth = (o) =>
+  Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTIL.Helpers.depth)) : 0;
+
 //#region Input
 /**
  * Extends the existing mapper to track additional inputs.
