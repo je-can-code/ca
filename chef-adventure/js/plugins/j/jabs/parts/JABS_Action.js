@@ -50,6 +50,7 @@ class JABS_Action
      * @type {string}
      */
     this._uuid = uuid;
+
     /**
      * The base skill object, in case needed for something.
      * @type {rm.types.Skill}
@@ -165,9 +166,12 @@ class JABS_Action
     let pierceCount = this._jabsData.piercing()[0];
 
     // handle skill extension bonuses.
-    pierceCount += this._gameAction._item
-      ? this._gameAction._item._item.repeats - 1
-      : 0;
+    if (J.EXTEND)
+    {
+      pierceCount += this._gameAction._item
+        ? this._gameAction._item._item.repeats - 1
+        : 0;
+    }
 
     // handle other bonus hits for basic attacks.
     pierceCount += this._caster.getAdditionalHits(

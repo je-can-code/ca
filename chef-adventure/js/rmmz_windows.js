@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_windows.js v1.3.2
+// rmmz_windows.js v1.3.3
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -291,6 +291,9 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
     /* eslint no-control-regex: 0 */
     text = text.replace(/\\/g, "\x1b");
     text = text.replace(/\x1b\x1b/g, "\\");
+    text = text.replace(/\x1bV\[(\d+)\]/gi, (_, p1) =>
+        $gameVariables.value(parseInt(p1))
+    );
     text = text.replace(/\x1bV\[(\d+)\]/gi, (_, p1) =>
         $gameVariables.value(parseInt(p1))
     );

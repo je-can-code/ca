@@ -149,7 +149,9 @@ Game_Actor.prototype.forgetSkill = function(skillId)
  */
 Game_Actor.prototype.skill = function(skillId)
 {
-  return OverlayManager.getExtendedSkill(this, skillId);
+  return J.EXTEND
+    ? OverlayManager.getExtendedSkill(this, skillId)
+    : $dataSkills[skillId];
 };
 //#endregion Game_Actor
 

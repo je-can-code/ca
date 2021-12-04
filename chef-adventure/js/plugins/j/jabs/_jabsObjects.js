@@ -2963,6 +2963,11 @@ class Game_BattleMap
       J.ABS.DefaultValues.ActionMap,
       newIndex);
 
+    // give it a name.
+    const skillName = action.getBaseSkill().name;
+    const casterName = action.getCaster().battlerName();
+    actionEventSprite.__actionName = `_${casterName}-${skillName}`;
+
     // on rare occasions, the timing of adding an action to the map coincides
     // with the removal of the caster which breaks the ordering of the events.
     // the result will throw an error and break. This should catch that, and if
@@ -3768,7 +3773,9 @@ class Game_BattleMap
   {
     const targetBattler = target.getBattler();
     const actionResult = targetBattler.result();
-    const elementalRate = gameAction.calculateRawElementRate(targetBattler);
+    const elementalRate = J.ELEM
+      ? gameAction.calculateRawElementRate(targetBattler)
+      : gameAction.calcElementRate(targetBattler);
     const elementalIcon = this.determineElementalIcon(skill, caster);
     const iconIndex = actionResult.parried
       ? 128
@@ -6786,7 +6793,7 @@ Game_Map.prototype.removeEvent = function(event)
     event.erase();
     if (event.isAction)
     {
-      // this._events.splice(index, 1);
+      this._events.splice(index, 1);
     }
   }
 };

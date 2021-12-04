@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_core.js v1.3.2
+// rmmz_core.js v1.3.3
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ Utils.RPGMAKER_NAME = "MZ";
  * @type string
  * @constant
  */
-Utils.RPGMAKER_VERSION = "1.3.2";
+Utils.RPGMAKER_VERSION = "1.3.3";
 
 /**
  * Checks whether the current RPG Maker version is greater than or equal to
@@ -4204,7 +4204,6 @@ WindowLayer.prototype.constructor = WindowLayer;
 
 WindowLayer.prototype.initialize = function() {
     PIXI.Container.call(this);
-
 };
 
 /**
