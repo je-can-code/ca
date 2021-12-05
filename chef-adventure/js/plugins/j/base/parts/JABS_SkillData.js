@@ -487,11 +487,11 @@ JABS_SkillData.prototype.freeCombo = function()
 
 /**
  * Gets the proximity required for this skill.
- * @returns {number} The proximity (default = 1).
+ * @returns {number} The proximity.
  */
 JABS_SkillData.prototype.proximity = function()
 {
-  let proximity = 1;
+  let proximity = 0;
   const structure = /<proximity:[ ]?(\d+)>/i;
   this._notes.forEach(note =>
   {
