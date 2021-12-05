@@ -116,6 +116,20 @@ Game_Actor.prototype.equipSlots = function()
   return baseSlots;
 };
 
+/**
+ * OVERWRITE Forces the map damage flash to always happen because JABS is always in-battle.
+ * Also shows an animation on the player when they take damage.
+ */
+Game_Actor.prototype.performMapDamage = function()
+{
+  // always flash the screen if taking damage.
+  $gameScreen.startFlashForDamage();
+
+  // always show an animation if taking damage.
+  // TODO: add a tag for this when you need non-poison floors, ex: lava.
+  $gamePlayer.requestAnimation(59, false);
+};
+
 J.CAMods.Aliased.Game_Actor.set("basicFloorDamage", Game_Actor.prototype.basicFloorDamage);
 Game_Actor.prototype.basicFloorDamage = function()
 {
@@ -129,10 +143,62 @@ Game_Actor.prototype.basicFloorDamage = function()
   }
 };
 
+/**
+ * Gets the amount of damage this actor can potentially take from damage floors on this map.
+ * @returns {number}
+ */
 Game_Actor.prototype.calculateFloorDamage = function()
 {
-  // TODO: Implement map tags or tile tags for managing this?
-  return 0;
+  let damage = 0;
+  const objectsToCheck = this.floorDamageSources();
+  objectsToCheck.forEach(obj => damage += this.extractFloorDamageRate(obj));
+  return damage;
+};
+
+/**
+ * Extracts the damage this object yields for floor damage.
+ * @param {rm.types.BaseItem} referenceData The database object to extract from.
+ * @returns {number}
+ */
+Game_Actor.prototype.extractFloorDamageRate = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return 0;
+
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  const structure1 = /<damageFlat:[ ]?([\d]+)>/i;
+  const structure2 = /<damagePerc:[ ]?([\d]+)>/i;
+  let damage = 0;
+  notedata.forEach(line =>
+  {
+    // if we have flat damage, add that to the mix.
+    if (line.match(structure1))
+    {
+      const flatDamage = parseInt(RegExp.$1);
+      damage += flatDamage;
+    }
+
+    // if we have percent damage, calculate it and add it to the mix.
+    if (line.match(structure2))
+    {
+      const percentDamage = (parseInt(RegExp.$1) / 100) * this.mhp;
+      damage += percentDamage;
+    }
+  });
+
+  return damage;
+};
+
+/**
+ * Gets all sources that can possibly yield damage by stepping.
+ * Open for extension.
+ * @returns {*[]}
+ */
+Game_Actor.prototype.floorDamageSources = function()
+{
+  const sources = [];
+  sources.push($dataMap);
+  return sources;
 };
 //#endregion Game_Actor
 
