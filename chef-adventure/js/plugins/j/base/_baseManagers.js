@@ -581,6 +581,8 @@ class IconManager
         return 64;   // magmology (cynder)
       case 11:
         return 67;   // hydrology (aqualocke)
+      case 12:
+        return 2192; // superlatives
       default:
         return 0;
     }
