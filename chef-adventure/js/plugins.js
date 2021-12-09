@@ -98,5 +98,6 @@ var $plugins =
 {"name":"kame/KMS_AreaEvent","status":true,"description":"[v0.1.0] Expand the trigger area for events on map.","parameters":{}},
 {"name":"hudell/Cyclone-Map-Editor","status":false,"description":"Live Map Editor - v1.12.01\n\n<pluginName:CycloneMapEditor>","parameters":{"regionIcons":"","Status Bar":"","showMapId":"true","showTilesetId":"true","showPosition":"true","showCellTiles":"true","showRegionId":"true","showTag":"true","showCollision":"true","showLadder":"true","showBush":"true","showCounter":"true","showDamageFloor":"true","collisionStepCount":"1"}},
 {"name":"umc_Lighting_mz","status":true,"description":"v1.47 Basic-but-optimized lighting plugin.","parameters":{"defaultPlayerLightRadius":"250"}},
-{"name":"SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}}
+{"name":"SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}},
+{"name":"ShopScene_Extension","status":true,"description":"Shop screen expansion v1.0.4","parameters":{"ActorCharacterSpace":"24","ActorCharacterBeginOfs":"32","MaxVisibleActors":"2","EnableActorArrow":"true","VisibleEquipMode":"2","StatusWidth":"352"}}
 ];

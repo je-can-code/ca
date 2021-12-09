@@ -141,6 +141,7 @@ Sprite_MapGauge.prototype.initialize = function(
  */
 Sprite_MapGauge.prototype.update = function()
 {
+  this.redraw();
   Sprite_Gauge.prototype.update.call(this);
   //this.manageGaugeVisibility();
 };

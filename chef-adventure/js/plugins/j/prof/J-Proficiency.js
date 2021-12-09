@@ -220,7 +220,9 @@ PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency
   {
     parsedActorIds.forEach(actorId =>
     {
-      $gameActors.actor(actorId).increaseSkillProficiency(skillId, amount);
+      $gameActors
+        .actor(actorId)
+        .increaseSkillProficiency(skillId, amount);
     });
   });
 });

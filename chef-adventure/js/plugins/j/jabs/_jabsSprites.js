@@ -382,6 +382,11 @@ Sprite_Character.prototype.hideStateOverlay = function()
  */
 Sprite_Character.prototype.setupHpGauge = function()
 {
+  if (this._hpGauge)
+  {
+    this._hpGauge.destroy();
+  }
+
   const battler = this.getBattler();
   this._hpGauge = this.createGenericSpriteGauge();
   if (battler)
@@ -394,6 +399,7 @@ Sprite_Character.prototype.setupHpGauge = function()
 
 /**
  * Creates an on-the-map HP gauge for this battler.
+ * @returns {Sprite_MapGauge}
  */
 Sprite_Character.prototype.createGenericSpriteGauge = function()
 {
@@ -414,20 +420,38 @@ Sprite_Character.prototype.updateGauges = function()
   {
     if (this.canUpdate() && mapBattler.showHpBar())
     {
-      if (!this._hpGauge)
-      {
-        this.setupMapSprite();
-        this._hpGauge.move(0 - (this._hpGauge.width / 1.5), 0 - 12);
-      }
-      this._hpGauge._battler = this.getBattler();
-      this._hpGauge.update();
-      this.showHpGauge();
+      this.updateHpGauge();
     }
     else
     {
       this.hideHpGauge();
     }
   }
+};
+
+/**
+ * Updates the hp gauge sprite.
+ */
+Sprite_Character.prototype.updateHpGauge = function()
+{
+  // if the gauge is not created, then create it.
+  if (!this._hpGauge)
+  {
+    this.setupMapSprite();
+  }
+
+  // update gauge location; relative to this Sprite_Character, not to the map!
+  // (x,y) 0,0 translates to wherever the actual character is that this gauge belongs to.
+  const xMod = -(this._hpGauge.bitmapWidth() / 1.5);
+  const yMod = -12;
+  this._hpGauge.move(xMod, yMod);
+  this.showHpGauge();
+
+  // ensure the battler for the gauge is assigned to this battler.
+  this._hpGauge._battler = this.getBattler();
+
+  // actually execute the update of the gauge.
+  this._hpGauge.update();
 };
 
 /**
@@ -459,6 +483,11 @@ Sprite_Character.prototype.hideHpGauge = function()
  */
 Sprite_Character.prototype.setupDangerIndicator = function()
 {
+  if (this._dangerIndicator)
+  {
+    this._dangerIndicator.destroy();
+  }
+
   this._dangerIndicator = this.createDangerIndicatorSprite();
   this.addChild(this._dangerIndicator);
 };

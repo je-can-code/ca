@@ -1005,8 +1005,8 @@ Game_Character.prototype.alertedDuration = function()
 };
 
 /**
- * Gets the `pursuitRange` for this character.
- * If no pursuit is specified, return `0`.
+ * Gets the custom move speed for this battler.
+ * If no move speed is specified, return `0`, which will default to the event's movespeed.
  * @returns {number}
  */
 Game_Character.prototype.customMoveSpeed = function()
