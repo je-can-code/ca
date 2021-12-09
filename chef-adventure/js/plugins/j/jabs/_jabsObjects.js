@@ -2364,7 +2364,7 @@ class Game_BattleMap
   {
     const player = $gameBattleMap.getPlayerMapBattler();
     /** @type {JABS_Battler[]} */
-    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 15, false);
+    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 30, false);
 
     visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
   };
@@ -6178,7 +6178,8 @@ Game_Interpreter.prototype.character = function(param)
     }
     else if (this.isOnCurrentMap())
     {
-      return $gameMap.event(param > 0 ? param : this._eventId);
+      const id = param > 0 ? param : this._eventId;
+      return $gameMap.event(id);
     }
     else
     {
