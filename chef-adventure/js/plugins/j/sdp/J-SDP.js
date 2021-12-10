@@ -1250,6 +1250,15 @@ Game_System.prototype.getUnlockedSdps = function()
 };
 
 /**
+ * Gets the number of panels currently unlocked for the party.
+ * @returns {number}
+ */
+Game_System.prototype.getUnlockedSdpsCount = function()
+{
+  return this._j._sdp._panels.length;
+};
+
+/**
  * Unlocks a SDP by its key.
  * @param {string} key The key of the SDP to unlock.
  */
