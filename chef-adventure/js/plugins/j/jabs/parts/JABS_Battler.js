@@ -918,10 +918,12 @@ JABS_Battler.prototype.updateDodging = function()
 {
   if (!this.isPlayer()) return;
 
+  console.log(this._dodgeSteps);
+
   // cancel the dodge if we got locked down.
   if (!this.canBattlerMove())
   {
-    this._dodging = false;
+    this.setDodging(false);
     this._dodgeSteps = 0;
   }
 
@@ -939,7 +941,7 @@ JABS_Battler.prototype.updateDodging = function()
   // if the dodge is over, end the dodging.
   if (this._dodgeSteps <= 0 && !player.isMoving())
   {
-    this._dodging = false;
+    this.setDodging(false);
     this._dodgeSteps = 0;
     this.setInvincible(false);
   }
@@ -1167,26 +1169,39 @@ JABS_Battler.prototype.tryDodgeSkill = function()
 
 /**
  * Executes the provided dodge skill.
- * @param {object} skill The RPG item representing the dodge skill.
+ * @param {rm.types.Skill} skill The RPG item representing the dodge skill.
  */
 JABS_Battler.prototype.executeDodgeSkill = function(skill)
 {
-  const {moveType, range, cooldown, invincible} = skill._j;
-  const player = this.getCharacter();
-
-  this.setInvincible(invincible);
+  // change over to the action pose for the skill.
   this.performActionPose(skill);
+
+  // trigger invincibility for dodging if applicable.
+  const invincible = skill._j.invincible();
+  this.setInvincible(invincible);
+
+  // increase the move speed while dodging to give the illusion of "dodge-rolling".
   const dodgeSpeed = 2;
-  const direction = this.determineDodgeDirection(moveType);
-  player.setDodgeBoost(dodgeSpeed);
+  this.getCharacter().setDodgeBoost(dodgeSpeed);
 
+  // set the number of steps this dodge will roll you.
+  const range = skill._j.range();
   this._dodgeSteps = range;
-  this._dodgeDirection = direction;
-  this.setDodging();
 
-  const battler = this.getBattler();
-  battler.paySkillCost(skill);
+  // set the direction to be dodging in (front/back/specified).
+  const moveType = skill._j.moveType();
+  const direction = this.determineDodgeDirection(moveType);
+  this._dodgeDirection = direction;
+
+  // pay whatever costs are associated with the skill.
+  this.getBattler().paySkillCost(skill);
+
+  // apply the cooldowns for the dodge.
+  const cooldown = skill._j.cooldown();
   this.modCooldownCounter(Game_Actor.JABS_DODGESKILL, cooldown);
+
+  // trigger the dodge!
+  this.setDodging();
 };
 
 /**
