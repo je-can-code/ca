@@ -2363,7 +2363,6 @@ class Game_BattleMap
   updateNonPlayerBattlers()
   {
     const player = $gameBattleMap.getPlayerMapBattler();
-    /** @type {JABS_Battler[]} */
     const visibleBattlers = $gameMap.getBattlersWithinRange(player, 30, false);
 
     visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
@@ -5124,6 +5123,12 @@ J.ABS.Aliased.Game_CharacterBase.initMembers = Game_CharacterBase.prototype.init
 Game_CharacterBase.prototype.initMembers = function()
 {
   J.ABS.Aliased.Game_CharacterBase.initMembers.call(this);
+
+  /**
+   * The real
+   * @type {number}
+   * @private
+   */
   this._realMoveSpeed = 4;
   this._wasDodging = false;
   this._dodgeBoost = 0;
@@ -5195,17 +5200,41 @@ Game_CharacterBase.prototype.isDodging = function()
  */
 Game_CharacterBase.prototype.updateDodging = function()
 {
+  // get the current state of the player's dodge.
   const isDodging = this.isDodging();
+
+  this.handleDodgeStart(isDodging);
+  this.handleDodgeEnd(isDodging);
+
+  this._wasDodging = isDodging;
+};
+
+/**
+ * Handles the start of dodging, if necessary.
+ * If the player's current dodge state is active, then modify the move speed accordingly.
+ * @param {boolean} isDodging True if the player is dodging right now, false otherwise.
+ */
+Game_CharacterBase.prototype.handleDodgeStart = function(isDodging)
+{
+  // if are currently dodging, update our move speed to the dodge speed instead.
   if (!this._wasDodging && isDodging)
   {
     this.setMoveSpeed(this._moveSpeed + this._dodgeBoost);
   }
+};
 
+/**
+ * Handles the end of dodging, if necessary.
+ * If the player's current dodge state is inactive, then return the move speed to normal.
+ * @param {boolean} isDodging True if the player is dodging right now, false otherwise.
+ */
+Game_CharacterBase.prototype.handleDodgeEnd = function(isDodging)
+{
+  // if we are no longer doding, but were before, reduce the move speed back to normal.
   if (this._wasDodging && !isDodging)
   {
     this.setMoveSpeed(this._moveSpeed - this._dodgeBoost);
   }
-  this._wasDodging = isDodging;
 };
 //#endregion
 
@@ -5239,6 +5268,7 @@ Game_Enemies.prototype.enemy = function(enemyId)
     {
       this._data[enemyId] = new Game_Enemy(enemyId, null, null);
     }
+
     return this._data[enemyId];
   }
   return null;
