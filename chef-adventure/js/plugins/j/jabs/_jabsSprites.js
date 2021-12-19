@@ -213,7 +213,6 @@ Sprite_Character.prototype.update = function()
   if (this.getBattler())
   {
     this.updateStateOverlay();
-    this.updateMapPopups();
     this.updateGauges();
     this.updateDangerIndicator();
     this.updateBattlerName();
@@ -235,21 +234,15 @@ Sprite_Character.prototype.update = function()
  */
 Sprite_Character.prototype.getBattler = function()
 {
-  if (!this._character ||
-    this._character instanceof Game_Vehicle)
+  if (this.isJabsBattler())
   {
-    return null;
+    return this._character
+      .getMapBattler()
+      .getBattler();
   }
   else
   {
-    if (this.isJabsBattler())
-    {
-      return this._character.getMapBattler().getBattler();
-    }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 };
 
@@ -259,6 +252,10 @@ Sprite_Character.prototype.getBattler = function()
  */
 Sprite_Character.prototype.isJabsBattler = function()
 {
+  // if the character doesn't exist, or they are a vehicle, they aren't a battler.
+  if (!this._character || this._character instanceof Game_Vehicle) return false;
+
+  // return whether or not this has a battler attached to it.
   return !!this._character.hasJabsBattler();
 };
 
@@ -861,83 +858,6 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite)
 
 //#region popups
 /**
- * Updates the sprites for all current damage popups.
- */
-Sprite_Character.prototype.updateMapPopups = function()
-{
-  this.buildPopupsIfAny();
-  this.updateDamagePopups();
-  this.updateNonDamagePopups();
-  this._character.setRequestTextPop(false);
-};
-
-/**
- * Updates all damage popup sprites on this character.
- */
-Sprite_Character.prototype.updateDamagePopups = function()
-{
-  if (this._damages.length > 0)
-  {
-    this._damages.forEach(damage =>
-    {
-      damage.update();
-      damage.x = this.x + 150 + damage._xVariance;
-      damage.y = this.y + damage._yVariance;
-    })
-
-    if (!this._damages[0].isPlaying())
-    {
-      this.parent.removeChild(this._damages[0]);
-      this._damages[0].destroy();
-      this._damages.shift();
-    }
-  }
-};
-
-/**
- * Updates all non-damage popup sprites on this character.
- */
-Sprite_Character.prototype.updateNonDamagePopups = function()
-{
-  if (this._nonDamages.length > 0)
-  {
-    this._nonDamages.forEach(nonDamage =>
-    {
-      nonDamage.update();
-      nonDamage.x = this.x + 150 + nonDamage._xVariance;
-      nonDamage.y = this.y + nonDamage._yVariance;
-    })
-
-    if (!this._nonDamages[0].isPlaying())
-    {
-      this.parent.removeChild(this._nonDamages[0]);
-      this._nonDamages[0].destroy();
-      this._nonDamages.shift();
-    }
-  }
-};
-
-/**
- * Constructs a damage popup if one is requested.
- */
-Sprite_Character.prototype.buildPopupsIfAny = function()
-{
-  if (this._character.getRequestTextPop())
-  {
-    do
-    {
-      const popup = this._character.getDamagePops().shift();
-      const sprite = this.configurePopup(popup);
-      sprite._isDamage
-        ? this._damages.push(sprite)
-        : this._nonDamages.push(sprite);
-      this.parent.addChild(sprite);
-    }
-    while (this._character.getDamagePops().length);
-  }
-};
-
-/**
  * Configures a text popup based on it's type.
  * @param {JABS_TextPop} popup The popup details.
  * @returns {Sprite_Damage} The completely configured sprite of the popup.
@@ -946,7 +866,7 @@ Sprite_Character.prototype.configurePopup = function(popup)
 {
   const getRandomNumber = (min, max) =>
   {
-    return Math.floor(min + Math.random() * (max + 1 - min))
+    return Math.floor(min + Math.random() * (max + 1 - min));
   }
 
   let sprite = new Sprite_Damage();
@@ -958,7 +878,7 @@ Sprite_Character.prototype.configurePopup = function(popup)
 
   switch (popup.popupType)
   {
-    case JABS_TextPop.Types.Damage:
+    case JABS_TextPop.Types.HpDamage:
       sprite._xVariance = getRandomNumber(-30, 30);
       sprite._yVariance = getRandomNumber(-30, 30);
       this.buildDamagePopSprite(sprite, popup);
@@ -1147,103 +1067,7 @@ Sprite_Character.prototype.buildSkillUsageSprite = function(sprite, popup)
 //#endregion Sprite_Character
 
 //#region Sprite_Damage
-/**
- * Extends this `.initialize()` function to include our parameters for all damage sprites.
- */
-J.ABS.Aliased.Sprite_Damage.initialize = Sprite_Damage.prototype.initialize;
-Sprite_Damage.prototype.initialize = function()
-{
-  J.ABS.Aliased.Sprite_Damage.initialize.call(this);
-  this._xVariance = 0;
-  this._yVariance = 0;
-  this._isCritical = false;
-  this._isDamage = false;
-  this._icon = null;
-  this._persist = false;
-};
 
-/**
- * Assigns the custom formatted value to be the text of this popup.
- * @param {string} value The value to display in the popup.
- */
-Sprite_Damage.prototype.createCustomValue = function(value)
-{
-  const h = this.fontSize();
-  const w = 400;
-  const sprite = this.createChildSprite(w, h);
-  sprite.bitmap.fontSize = 14;
-  sprite.bitmap.fontItalic = true;
-  sprite.bitmap.paintOpacity = 128;
-  sprite.bitmap.drawText(value, 32, 0, w, h, "left");
-  sprite.dy = 0;
-};
-
-/**
- * Assigns the provided value to be the text of this popup.
- * @param {string} value The value to display in the popup.
- */
-Sprite_Damage.prototype.createValue = function(value)
-{
-  const h = this.fontSize();
-  const w = 400;
-  const sprite = this.createChildSprite(w, h);
-  let fontSize = 20;
-  if (this._isCritical)
-  {
-    fontSize += 12;
-    sprite.bitmap.fontBold = true;
-  }
-  else if (value.includes("Missed") || value.includes("Evaded") || value.includes("Parry"))
-  {
-    fontSize -= 6;
-    sprite.bitmap.fontItalic = true;
-  }
-
-  sprite.bitmap.fontSize = fontSize;
-  sprite.bitmap.drawText(value, 32, 0, w, h, "left");
-  sprite.dy = 0;
-};
-
-/**
- * Adds an icon to the damage sprite.
- * @param {number} iconIndex The id/index of the icon on the iconset.
- */
-Sprite_Damage.prototype.addIcon = function(iconIndex)
-{
-  const sprite = this.createChildSprite(32, 32);
-  const bitmap = ImageManager.loadSystem("IconSet");
-  const pw = ImageManager.iconWidth;
-  const ph = ImageManager.iconHeight;
-  const sx = (iconIndex % 16) * pw;
-  const sy = Math.floor(iconIndex / 16) * ph;
-  sprite.bitmap.blt(bitmap, sx, sy, pw, ph, 0, 0);
-  sprite.scale.x = 0.75;
-  sprite.scale.y = 0.75;
-  sprite.x -= 180;
-  sprite.y += 15;
-  sprite.dy = 0;
-}
-
-/**
- * OVERWRITE
- *
- * Updates the duration to start fading later, and for longer.
- */
-Sprite_Damage.prototype.updateOpacity = function()
-{
-  if (this._duration < 60 && this._persist === false)
-  {
-    this.opacity = (255 * this._duration) / 60;
-  }
-}
-
-/**
- * OVERWRITE Updates the damage color to be any color on the system palette.
- */
-Sprite_Damage.prototype.damageColor = function()
-{
-  return ColorManager.textColor(this._colorType);
-}
 //#endregion Sprite_Damage
 
 //#region Sprite_Gauge

@@ -27,9 +27,30 @@ JABS_TextPop.prototype.constructor = JABS_TextPop;
  */
 JABS_TextPop.Types = {
   /**
-   * The popup type of "damage", for displaying negative or positive damage pops.
+   * The popup type of "hp-damage", for displaying hp damage pops.
    */
-  Damage: 'damage',
+  HpDamage: 'hp-damage',
+
+  /**
+   * The popup type of "mp-damage", for displaying mp damage pops.
+   */
+  MpDamage: 'mp-damage',
+
+  /**
+   * The popup type of "tp-damage", for displaying tp damage pops.
+   */
+  TpDamage: 'tp-damage',
+
+  /**
+   * The popup type of "evade", for evasion pops.
+   * Though, these aren't officially supported by JABS.
+   */
+  Evade: 'evade',
+
+  /**
+   * The popup type of "parry", for when a skill was used, but also parried.
+   */
+  Parry: 'parry',
 
   /**
    * The popup type of "experience", for displaying gained experience pops.
@@ -73,49 +94,17 @@ JABS_TextPop.Types = {
 };
 
 /**
- * Creates a popup based on the provided info.
- * @returns
- */
-JABS_TextPop.create = function({
-                                 actionResult,
-                                 iconIndex,
-                                 textColorIndex,
-                                 isWeakness,
-                                 isStrength,
-                                 popupType,
-                                 directValue
-                               })
-{
-  return new JABS_TextPop({
-    actionResult: actionResult ?? null,
-    iconIndex: iconIndex ?? 0,
-    textColorIndex: textColorIndex ?? 0,
-    isWeakness: isWeakness ?? false,
-    isStrength: isStrength ?? false,
-    popupType: popupType ?? JABS_TextPop.Types.Damage,
-    directValue: directValue ?? String.empty,
-  });
-};
-
-/**
  * Builds the text pop based on the given parameters.
  */
 JABS_TextPop.prototype.initialize = function({
-                                               actionResult,
-                                               iconIndex,
-                                               textColorIndex,
-                                               isWeakness,
-                                               isStrength,
-                                               popupType,
-                                               directValue,
-                                             })
-{
-  /**
-   * The base `Game_ActionResult` for this `JABS_TextPop`.
-   * @type {Game_ActionResult}
-   */
-  this.actionResult = actionResult;
-
+  iconIndex,
+  textColorIndex,
+  popupType,
+  value,
+  critical,
+  coordinateVariance,
+  healing,
+}) {
   /**
    * The id of the icon to display alongside this `JABS_TextPop`.
    * @type {number}
@@ -129,27 +118,35 @@ JABS_TextPop.prototype.initialize = function({
   this.textColorIndex = textColorIndex;
 
   /**
-   * Whether or not this popup was multiplied by elemental weaknesses.
-   * @type {boolean}
-   */
-  this.isWeakness = isWeakness;
-
-  /**
-   * Whether or not this popup was reduced by elemental strengths.
-   * @type {boolean}
-   */
-  this.isStrength = isStrength;
-
-  /**
    * The type of popup this is, such as damage, experience, loot, etc.
-   * @type {string}
+   * @type {JABS_TextPop.Types}
    */
   this.popupType = popupType;
 
   /**
-   * The direct value to display if not calculated from the actionresult.
+   * The value to display on the sprite for this popup.
    * @type {string}
    */
-  this.directValue = directValue;
+  this.value = value || String.empty;
+
+  /**
+   * Whether or not this popup is critical.
+   * For non-damage popups, this is always false.
+   * @type {boolean}
+   */
+  this.critical = critical || false;
+
+  /**
+   * The x and y coordinate variances into a single `[x,y]` array.
+   * @type {[number, number]}
+   */
+  this.coordinateVariance = coordinateVariance;
+
+  /**
+   * Whether or not this popup is healing.
+   * Healing popups' motion is handled a bit differently.
+   * @type {boolean}
+   */
+  this.healing = healing;
 };
 //ENDFILE

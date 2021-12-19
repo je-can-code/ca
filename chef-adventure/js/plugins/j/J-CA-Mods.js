@@ -535,7 +535,12 @@ J.CAMods.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
 Scene_Boot.prototype.start = function()
 {
   J.CAMods.Aliased.Scene_Boot.get('start').call(this);
+
+  // show the dev tools automatically.
   SceneManager.showDevTools();
+
+  // set a timer for after the devtools has loaded to focus the game window.
+  setTimeout(() => nw.Window.get().focus(), 500);
 };
 
 Scene_Base.prototype.buttonAreaHeight = function()

@@ -1046,7 +1046,6 @@ if (J.ABS)
     if (!sdpPoints) return;
 
     const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
-    const sdpMultiplier = actor.getBattler().sdpMultiplier();
     sdpPoints = Math.ceil(sdpPoints * levelMultiplier);
 
     this.gainSdpReward(sdpPoints, actor);
@@ -1083,14 +1082,9 @@ if (J.ABS)
    */
   Game_BattleMap.prototype.configureSdpPop = function(sdpPoints)
   {
-    const popup = JABS_TextPop.create({
-      iconIndex: 306,
-      textColorIndex: 17,
-      popupType: JABS_TextPop.Types.Sdp,
-      directValue: sdpPoints,
-    });
-
-    return popup;
+    return new TextPopBuilder(sdpPoints)
+      .isSdpPoints()
+      .build();
   };
 
   /**

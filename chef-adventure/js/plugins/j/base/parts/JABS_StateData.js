@@ -278,7 +278,7 @@ class JABS_StateData
   get slipHpFormula()
   {
     let formula = "";
-    const structure = /<slip:hp:\[([\+\-\*\/ \(\)\.\w]+)\]>/gmi;
+    const structure = /<slip:hp:\[([+\-*\/ ().\w]+)]>/gmi;
     this._notes.forEach(note =>
     {
       if (note.match(structure))
