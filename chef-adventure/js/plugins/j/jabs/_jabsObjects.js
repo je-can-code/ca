@@ -3742,23 +3742,14 @@ class Game_BattleMap
 
   /**
    * Configures this skill used popup based on the skill itself.
-   * @param {rm.types.Skill} skill
+   * @param {rm.types.Skill} skill The skill that was used.
    * @returns {JABS_TextPop}
    */
   configureSkillUsedPop(skill)
   {
-    const name = skill.name;
-    const skillIcon = skill.iconIndex;
-    const textColor = 0;
-    return JABS_TextPop.create({
-      actionResult: null,
-      iconIndex: skillIcon,
-      textColorIndex: textColor,
-      isWeakness: false,
-      isStrength: false,
-      popupType: JABS_TextPop.Types.SkillUsage,
-      directValue: name,
-    });
+    return new TextPopBuilder(skill.name)
+      .isSkillUsed(skill.iconIndex)
+      .build();
   };
 
   /**
@@ -3770,25 +3761,60 @@ class Game_BattleMap
    */
   configureDamagePop(gameAction, skill, caster, target)
   {
+    // get the underlying battler associated with the popup.
     const targetBattler = target.getBattler();
+
+    // get the underlying actionresult from the skill execution.
     const actionResult = targetBattler.result();
+
+    // determine the elemental factor.
     const elementalRate = J.ELEM
       ? gameAction.calculateRawElementRate(targetBattler)
       : gameAction.calcElementRate(targetBattler);
+
+    // translate the skill into it's relevant iconIndex, or 0 if not applicable.
     const elementalIcon = this.determineElementalIcon(skill, caster);
+
+    // if the skill execution was parried, then use that icon instead.
     const iconIndex = actionResult.parried
       ? 128
       : elementalIcon;
-    const textColor = 0;
-    return JABS_TextPop.create({
-      actionResult: actionResult,
-      iconIndex: iconIndex,
-      textColorIndex: textColor,
-      isWeakness: elementalRate < 1,
-      isStrength: elementalRate > 1,
-      popupType: JABS_TextPop.Types.Damage,
-      directValue: null,
-    });
+
+    const textPopBuilder = new TextPopBuilder(0);
+
+    // if we were parried, sorry about your luck.
+    if (actionResult.parried)
+    {
+      textPopBuilder.setValue(`PARRY!`);
+    }
+    // if the result is tp damage, treat it as such.
+    else if (actionResult.hpDamage)
+    {
+      textPopBuilder
+        .isHpDamage()
+        .setValue(actionResult.hpDamage);
+    }
+    // if the result is tp damage, treat it as such.
+    else if (actionResult.mpDamage)
+    {
+      textPopBuilder
+        .isMpDamage()
+        .setValue(actionResult.mpDamage);
+    }
+    // if the result is tp damage, treat it as such.
+    else if (actionResult.tpDamage)
+    {
+      textPopBuilder
+        .isTpDamage()
+        .setValue(actionResult.mpDamage);
+    }
+
+    // if we somehow used this without a proper damage type, then just build a default.
+    return textPopBuilder
+      .setIconIndex(iconIndex)
+      .isElemental(elementalRate)
+      .setCritical(actionResult.critical)
+      .build();
   };
 
   /**
@@ -4302,15 +4328,17 @@ class Game_BattleMap
   /**
    * Creates the text pop of the experienced gained.
    * @param {number} exp The amount of experience gained.
+   * @returns {JABS_TextPop}
    */
   configureExperiencePop(exp)
   {
-    return JABS_TextPop.create({
-      iconIndex: 125,
-      textColorIndex: 6,
-      popupType: JABS_TextPop.Types.Experience,
-      directValue: Math.round(exp),
-    });
+    // round the experience we've acquired if it is a decimal.
+    const experienceGained = Math.round(exp);
+
+    // build the popup.
+    return new TextPopBuilder(experienceGained)
+      .isExperience()
+      .build();
   };
 
   /**
@@ -4335,12 +4363,13 @@ class Game_BattleMap
    */
   configureGoldPop(gold)
   {
-    return JABS_TextPop.create({
-      iconIndex: 2048,
-      textColorIndex: 14,
-      popupType: JABS_TextPop.Types.Gold,
-      directValue: Math.round(gold),
-    });
+    // round the gold we've acquired if it is a decimal.
+    const goldGained = Math.round(gold);
+
+    // build the popup.
+    return new TextPopBuilder(goldGained)
+      .isGold()
+      .build();
   };
 
   /**
@@ -4380,7 +4409,8 @@ class Game_BattleMap
     if (target.isActor()) return;
 
     // if we have no drops, don't bother.
-    const items = target.getBattler()
+    const items = target
+      .getBattler()
       .makeDropItems();
     if (items.length === 0) return;
 
@@ -4409,12 +4439,11 @@ class Game_BattleMap
    */
   configureItemPop(item)
   {
-    return JABS_TextPop.create({
-      iconIndex: item.iconIndex,
-      textColorIndex: 1,
-      popupType: JABS_TextPop.Types.Item,
-      directValue: item.name,
-    });
+    // build the popup.
+    return new TextPopBuilder(item.name)
+      .isLoot()
+      .setIconIndex(item.iconIndex)
+      .build();
   };
 
   /**
@@ -4431,10 +4460,6 @@ class Game_BattleMap
       this.createLevelUpPop(character);
       this.createLevelUpLog(battler);
     }
-    else
-    {
-      // console.warn(`There was an issue getting the battler for uuid: [${uuid}].`);
-    }
   };
 
   /**
@@ -4443,14 +4468,21 @@ class Game_BattleMap
    */
   createLevelUpPop(character)
   {
-    const popup = JABS_TextPop.create({
-      iconIndex: 86,
-      textColorIndex: 24,
-      popupType: JABS_TextPop.Types.Levelup,
-      directValue: "LEVEL UP",
-    });
+    const popup = this.configureLevelUpPop();
     character.addTextPop(popup);
     character.setRequestTextPop();
+  };
+
+  /**
+   * Configures the level up text pop.
+   * @returns {JABS_TextPop}
+   */
+  configureLevelUpPop()
+  {
+    // build the popup.
+    return new TextPopBuilder(`LEVEL UP`)
+      .isLevelUp()
+      .build();
   };
 
   /**
@@ -4493,10 +4525,6 @@ class Game_BattleMap
       this.createSkillLearnPop(skill, character);
       this.createSkillLearnLog(skill, battler);
     }
-    else
-    {
-      // console.warn(`There was an issue getting the battler for uuid: [${uuid}].`);
-    }
   };
 
   /**
@@ -4506,14 +4534,21 @@ class Game_BattleMap
    */
   createSkillLearnPop(skill, character)
   {
-    const popup = JABS_TextPop.create({
-      iconIndex: skill.iconIndex,
-      textColorIndex: 27,
-      popupType: JABS_TextPop.Types.Learn,
-      directValue: `${skill.name} learned!`,
-    });
+    const popup = this.configureSkillLearnPop(skill);
     character.addTextPop(popup);
     character.setRequestTextPop();
+  };
+
+  /**
+   * Configures the popup for a skill learned.
+   * @param {rm.types.Skill} skill The skill learned.
+   * @returns {JABS_TextPop}
+   */
+  configureSkillLearnPop(skill)
+  {
+    return new TextPopBuilder(skill.name)
+      .isSkillLearned(skill.iconIndex)
+      .build();
   };
 
   /**
@@ -4829,6 +4864,15 @@ Game_Character.prototype.getDamagePops = function()
 {
   const actionSpriteProperties = this.getActionSpriteProperties();
   return actionSpriteProperties.damagePops;
+};
+
+Game_Character.prototype.emptyDamagePops = function()
+{
+  // grab the properties associated with this action sprite.
+  const actionSpriteProperties = this.getActionSpriteProperties();
+
+  // empty the contents of the array for all references to see.
+  actionSpriteProperties.damagePops.splice(0, actionSpriteProperties.damagePops.length);
 };
 
 /**

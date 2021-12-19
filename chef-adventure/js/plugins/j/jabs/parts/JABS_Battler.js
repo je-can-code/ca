@@ -918,8 +918,6 @@ JABS_Battler.prototype.updateDodging = function()
 {
   if (!this.isPlayer()) return;
 
-  console.log(this._dodgeSteps);
-
   // cancel the dodge if we got locked down.
   if (!this.canBattlerMove())
   {
@@ -1411,6 +1409,10 @@ JABS_Battler.prototype.processStateRegens = function(states)
     if (regen)
     {
       this.applySlipEffect(regen, index);
+
+      // flip the sign for the regen for properly creating pops.
+      regen *= -1;
+
       this.createSlipPop(regen, index);
     }
   });
@@ -1586,18 +1588,43 @@ JABS_Battler.prototype.stateSlipTp = function(state)
 /**
  * Creates the slip popup on this battler.
  * @param {number} amount The slip pop amount.
- * @param {number} type The slip pop type- identified by index.
+ * @param {number} type The slip parameter: 0=hp, 1=mp, 2=tp.
  */
 JABS_Battler.prototype.createSlipPop = function(amount, type)
 {
-  const popup = JABS_TextPop.create({
-    textColorIndex: this.determineSlipPopColor(amount, type),
-    popupType: JABS_TextPop.Types.Damage,
-    directValue: Math.ceil(amount),
-  });
+  const popup = this.configureSlipPop(amount, type);
   const character = this.getCharacter();
   character.addTextPop(popup);
   character.setRequestTextPop();
+};
+
+/**
+ * Configures a popup based on the slip damage type and amount.
+ * @param {number} amount The amount of the slip.
+ * @param {0|1|2} type The slip parameter: 0=hp, 1=mp, 2=tp.
+ * @returns {JABS_TextPop}
+ */
+JABS_Battler.prototype.configureSlipPop = function(amount, type)
+{
+  // lets take our time with this text pop building.
+  const textPopBuilder = new TextPopBuilder(amount);
+
+  // based on the hp/mp/tp type, we apply different visual effects.
+  switch (type)
+  {
+    case 0: // hp
+      textPopBuilder.isHpDamage();
+      break;
+    case 1: // mp
+      textPopBuilder.isMpDamage();
+      break;
+    case 2: // tp
+      textPopBuilder.isTpDamage();
+      break;
+  }
+
+  // build and return the popup.
+  return textPopBuilder.build();
 };
 
 /**
@@ -1619,25 +1646,6 @@ JABS_Battler.prototype.applySlipEffect = function(amount, type)
     case 2:
       battler.gainTp(amount);
       break;
-  }
-};
-
-/**
- * Determines the text color id of the slip popup.
- * @param {number} amount The amount of damage for this slip popup.
- * @param {string} type The type of slip popup this is.
- * @returns {number} The text color id.
- */
-JABS_Battler.prototype.determineSlipPopColor = function(amount, type)
-{
-  switch (type)
-  {
-    case 0:
-      return (amount > 0) ? 21 : 0;
-    case 1:
-      return (amount > 0) ? 23 : 0;
-    case 2:
-      return (amount > 0) ? 29 : 0;
   }
 };
 //#endregion regeneration

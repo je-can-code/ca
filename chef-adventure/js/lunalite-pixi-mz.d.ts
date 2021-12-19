@@ -39730,10 +39730,12 @@ declare class Sprite_Damage extends Sprite {
 	/**
 	 * Creates the child sprite of the damage sprite for displaying damage.
 	 *
+     * @param {number} width The width of the sprite to add.
+     * @param {number} height The height of the sprite to add.
 	 * @returns {Sprite}
 	 * @memberof Sprite_Damage
 	 */
-	createChildSprite(): Sprite;
+	createChildSprite(width, height): Sprite;
 	updateChild(sprite: Sprite): void;
 	/**
 	 * Updates the flash of the damage sprite.
