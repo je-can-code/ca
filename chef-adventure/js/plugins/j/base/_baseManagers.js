@@ -152,6 +152,9 @@ ImageManager.probeCharacter = function(characterFileName)
     const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
     xhr.open("HEAD", characterImageUrl, true);
     xhr.onload = resolve;
+
+    // we have nothing to do with a failure, so we do not process it.
+    // xhr.onerror = reject;
     xhr.send();
   });
 };

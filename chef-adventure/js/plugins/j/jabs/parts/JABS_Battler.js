@@ -4502,7 +4502,7 @@ JABS_Battler.prototype.changeCharacterSprite = function(skill)
       ImageManager.loadCharacter(newCharacterSprite);
       this.getCharacter()
         .setImage(newCharacterSprite, index);
-    });
+    })
 };
 
 /**
