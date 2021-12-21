@@ -220,6 +220,11 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage)
   return criticalDamage;
 };
 
+/**
+ * Calculates the amount of critical damage that will be removed from the bonus crit damage.
+ * @param {number} criticalDamage The critical damage to be added.
+ * @returns {number} The amount of critical damage after mitigations.
+ */
 Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
 {
   // get the target for this action.
