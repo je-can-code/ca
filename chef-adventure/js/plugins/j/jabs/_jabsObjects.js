@@ -3046,79 +3046,25 @@ class Game_BattleMap
 
   /**
    * Applies an action against a designated target battler.
+   *
+   * This is the orchestration method that manages the execution of an action against
+   * a given target.
    * @param {JABS_Action} action The `JABS_Action` containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
   applyPrimaryBattleEffects(action, target)
   {
-    const targetSprite = target.getCharacter();
-    const skill = action.getBaseSkill();
-    const casterMapBattler = action.getCaster();
-
-    // manually perform this application.
-    const result = this.executeSkillEffects(action, target);
-
-    // apply aggro regardless of successful hit.
-    this.applyAggroEffects(result, action, casterMapBattler, target);
+    // execute the action against the target.
+    this.executeSkillEffects(action, target);
 
     // apply effects that require landing a successful hit.
-    if (result.isHit() || result.parried)
-    {
-      // get the animation id associated with this skill.
-      const targetAnimationId = this.getAnimationId(skill, casterMapBattler);
+    this.applyOnHitEffects(action, target);
 
-      // if the skill should animate on the target, then animate as normal.
-      targetSprite.requestAnimation(targetAnimationId, result.parried);
+    // applies additional effects that come after the skill execution.
+    this.continuedPrimaryBattleEffects(action, target);
 
-      // if there is a self-animation id, apply that to yourself for every hit.
-      if (action.getJabsData()
-        .selfAnimationId())
-      {
-        const event = action.getActionSprite();
-        const selfAnimationId = action.getJabsData()
-          .selfAnimationId();
-        event.requestAnimation(selfAnimationId);
-      }
-
-      // if freecombo-ing, then we already checked for combo when executing the action.
-      if (!skill._j.freeCombo())
-      {
-        this.checkComboSequence(casterMapBattler, action);
-      }
-
-      this.checkKnockback(action, target);
-      this.triggerAlert(casterMapBattler, target);
-
-      // if the attacker and the target are the same team, then don't set that as "last hit".
-      if (!(casterMapBattler.isSameTeam(target.getTeam())))
-      {
-        casterMapBattler.setBattlerLastHit(target);
-      }
-    }
-
-    // checks for retaliation from the target.
-    this.checkRetaliate(action, target);
-
-    // apply the battle memories to the target.
-    this.applyBattleMemories(result, action, target);
-
-    // generate log for this action.
-    this.createAttackLog(action, skill, result, casterMapBattler, target);
-
-    // generate the text popup for this action.
-    const damagePop = this.configureDamagePop(action.getAction(), skill, casterMapBattler, target);
-    targetSprite.addTextPop(damagePop);
-    targetSprite.setRequestTextPop();
-
-    // assuming the caster isn't an inanimate object or something...
-    if (!casterMapBattler.isInanimate())
-    {
-      // generate the text popup for this skill usage.
-      const casterSprite = casterMapBattler.getCharacter();
-      const selfDamagePop = this.configureSkillUsedPop(skill);
-      casterSprite.addTextPop(selfDamagePop);
-      casterSprite.setRequestTextPop();
-    }
+    // run any additional functionality that we needed to run after a skill is executed.
+    this.postPrimaryBattleEffects(action, target);
   };
 
   /**
@@ -3129,67 +3075,104 @@ class Game_BattleMap
    */
   executeSkillEffects(action, target)
   {
+    // handle any pre-execution effects.
+    this.preExecuteSkillEffects(action, target);
+
+    // get whether or not this action was unparryable.
+    const isUnparryable = (action.getBaseSkill()._j.ignoreParry() === -1);
+
+    // check whether or not this action was parried.
     const caster = action.getCaster();
-    const targetBattler = target.getBattler();
-    const unparryable = (action.getBaseSkill()
-      ._j
-      .ignoreParry() === -1);
-    const isParried = unparryable
+    const isParried = isUnparryable
       ? false // parry is cancelled because the skill ignores it.
       : this.checkParry(caster, target);
-    if (!unparryable && isParried)
+
+    // check if the action was parried instead.
+    const targetBattler = target.getBattler();
+    if (!isUnparryable && isParried)
     {
+      // grab the result, clear it, and set the parry flag to true.
       const result = targetBattler.result();
       result.clear();
       result.parried = true;
-      return result;
     }
 
+    // apply the action to the target.
     const gameAction = action.getAction();
     gameAction.apply(targetBattler);
-    return targetBattler.result();
+
+    // handle any post-execution effects.
+    this.postExecuteSkillEffects(action, target);
+  };
+
+  /**
+   * Execute any pre-execution effects.
+   * This occurs before the actual skill is applied against the target battler to get the
+   * `Game_ActionResult` that is then used throughout the function.
+   * @param {JABS_Action} action The `JABS_Action` containing the action data.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  preExecuteSkillEffects(action, target)
+  {
+  };
+
+  /**
+   * Execute any post-execution effects.
+   * This occurs after the actual skill is executed against the target battler.
+   * @param {JABS_Action} action The action being executed.
+   * @param {JABS_Battler} target The target to apply skill effects against.
+   */
+  postExecuteSkillEffects(action, target)
+  {
+    // apply aggro regardless of successful hit.
+    this.applyAggroEffects(action, target);
   };
 
   /**
    * Applies all aggro effects against the target.
-   * @param {Game_ActionResult} gameActionResult The `Game_ActionResult` being applied.
    * @param {JABS_Action} action The `JABS_Action` containing the action data.
-   * @param {JABS_Battler} attacker The attacker attacking the target.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  applyAggroEffects(gameActionResult, action, attacker, target)
+  applyAggroEffects(action, target)
   {
+    // grab the attacker.
+    const attacker = action.getCaster();
+
     // don't aggro your allies against you! That's dumb.
     if (attacker.isSameTeam(target.getTeam())) return;
 
+    // grab the result on the target, from the action executed.
+    const result = target.getBattler().result();
+
+    // the default/base aggro.
     let aggro = J.ABS.Metadata.BaseAggro;
 
     // hp damage counts for 1.
-    if (gameActionResult.hpDamage > 0)
+    if (result.hpDamage > 0)
     {
-      aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroPerHp;
+      aggro += result.hpDamage * J.ABS.Metadata.AggroPerHp;
     }
 
     // mp damage counts for 2.
-    if (gameActionResult.mpDamage > 0)
+    if (result.mpDamage > 0)
     {
-      aggro += gameActionResult.mpDamage * J.ABS.Metadata.AggroPerMp;
+      aggro += result.mpDamage * J.ABS.Metadata.AggroPerMp;
     }
 
     // tp damage counts for 10.
-    if (gameActionResult.tpDamage > 0)
+    if (result.tpDamage > 0)
     {
-      aggro += gameActionResult.tpDamage * J.ABS.Metadata.AggroPerTp;
+      aggro += result.tpDamage * J.ABS.Metadata.AggroPerTp;
     }
 
     // if the attacker also healed from it, extra aggro for each point healed!
-    if (gameActionResult.drain)
+    if (result.drain)
     {
-      aggro += gameActionResult.hpDamage * J.ABS.Metadata.AggroDrain;
+      aggro += result.hpDamage * J.ABS.Metadata.AggroDrain;
     }
 
     // if the attacker was parried, reduce aggro on this battler...
-    if (gameActionResult.parried)
+    if (result.parried)
     {
       aggro += J.ABS.Metadata.AggroParryFlatAmount;
       // ...and also increase the aggro of the attacking battler!
@@ -3203,8 +3186,7 @@ class Game_BattleMap
     aggro *= action.aggroMultiplier();
 
     // apply any aggro amplification from states.
-    const attackerStates = attacker.getBattler()
-      .states();
+    const attackerStates = attacker.getBattler().states();
     if (attackerStates.length > 0)
     {
       attackerStates.forEach(state =>
@@ -3217,8 +3199,7 @@ class Game_BattleMap
     }
 
     // apply any aggro reduction from states.
-    const targetStates = target.getBattler()
-      .states();
+    const targetStates = target.getBattler().states();
     if (targetStates.length > 0)
     {
       targetStates.forEach(state =>
@@ -3242,6 +3223,52 @@ class Game_BattleMap
 
     // apply the aggro to the target.
     target.addUpdateAggro(attacker.getUuid(), aggro);
+  };
+
+  /**
+   * Applies on-hit effects against the target.
+   * @param {JABS_Action} action The `JABS_Action` containing the action data.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  applyOnHitEffects(action, target)
+  {
+    // if the result isn't a hit or a parry, then we don't process on-hit effects.
+    const result = target.getBattler().result();
+    if (!result.isHit() && !result.parried) return;
+
+    // grab some shorthand variables for local use.
+    const caster = action.getCaster();
+    const targetCharacter = target.getCharacter();
+    const skill = action.getBaseSkill();
+
+    // get the animation id associated with this skill.
+    const targetAnimationId = this.getAnimationId(skill, caster);
+
+    // if the skill should animate on the target, then animate as normal.
+    targetCharacter.requestAnimation(targetAnimationId, result.parried);
+
+    // if there is a self-animation id, apply that to yourself for every hit.
+    if (action.getJabsData().selfAnimationId())
+    {
+      const event = action.getActionSprite();
+      const selfAnimationId = action.getJabsData().selfAnimationId();
+      event.requestAnimation(selfAnimationId);
+    }
+
+    // if freecombo-ing, then we already checked for combo when executing the action.
+    if (!skill._j.freeCombo())
+    {
+      this.checkComboSequence(caster, action);
+    }
+
+    this.checkKnockback(action, target);
+    this.triggerAlert(caster, target);
+
+    // if the attacker and the target are the same team, then don't set that as "last hit".
+    if (!(caster.isSameTeam(target.getTeam())))
+    {
+      caster.setBattlerLastHit(target);
+    }
   };
 
   /**
@@ -3488,6 +3515,21 @@ class Game_BattleMap
   };
 
   /**
+   * Applies all effects to the target that occur after the skill execution is complete.
+   * @param {JABS_Action} action The `JABS_Action` containing the action data.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  continuedPrimaryBattleEffects(action, target)
+  {
+    // checks for retaliation from the target.
+    this.checkRetaliate(action, target);
+
+    // apply the battle memories to the target.
+    const result = target.getBattler().result();
+    this.applyBattleMemories(result, action, target);
+  };
+
+  /**
    * Executes a retalation if necessary on receiving a hit.
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} targetBattler The target having the action applied against.
@@ -3639,6 +3681,40 @@ class Game_BattleMap
         .calculateRawElementRate(target.getBattler()),
       result.hpDamage);
     target.applyBattleMemories(newMemory);
+  };
+
+  /**
+   * Executes a retalation if necessary on receiving a hit.
+   * @param {JABS_Action} action The action affecting the target.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  postPrimaryBattleEffects(action, target)
+  {
+    // gather shorthand variables for use.
+    const targetSprite = target.getCharacter();
+    const skill = action.getBaseSkill();
+    const casterMapBattler = action.getCaster();
+
+    // get the result after execution.
+    const result = target.getBattler().result();
+
+    // generate log for this action.
+    this.createAttackLog(action, skill, result, casterMapBattler, target);
+
+    // generate the text popup for this action.
+    const damagePop = this.configureDamagePop(action.getAction(), skill, casterMapBattler, target);
+    targetSprite.addTextPop(damagePop);
+    targetSprite.setRequestTextPop();
+
+    // assuming the caster isn't an inanimate object or something...
+    if (!casterMapBattler.isInanimate())
+    {
+      // generate the text popup for this skill usage.
+      const casterSprite = casterMapBattler.getCharacter();
+      const selfDamagePop = this.configureSkillUsedPop(skill);
+      casterSprite.addTextPop(selfDamagePop);
+      casterSprite.setRequestTextPop();
+    }
   };
 
   /**

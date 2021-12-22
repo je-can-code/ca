@@ -262,14 +262,15 @@ Game_BattleMap.prototype.handleDefeatedPlayer = function()
 };
 
 /**
- * Extends the handling of skill execution to track data.
+ * Extends the post skill execution function to also track our data in variables.
  * @param {JABS_Action} action The action being executed.
  * @param {JABS_Battler} target The target to apply skill effects against.
  */
-J.CAMods.Aliased.Game_BattleMap.executeSkillEffects = Game_BattleMap.prototype.executeSkillEffects;
-Game_BattleMap.prototype.executeSkillEffects = function(action, target)
+J.CAMods.Aliased.Game_BattleMap.postExecuteSkillEffects = Game_BattleMap.prototype.postExecuteSkillEffects;
+Game_BattleMap.prototype.postExecuteSkillEffects = function(action, target)
 {
-  const actionResult = J.CAMods.Aliased.Game_BattleMap.executeSkillEffects.call(this, action, target);
+  // execute the original method so the result is on the target.
+  J.CAMods.Aliased.Game_BattleMap.postExecuteSkillEffects.call(this, action, target);
 
   // don't track these data points if its a tool.
   if (action.getCooldownType() !== "Tool")
@@ -277,25 +278,23 @@ Game_BattleMap.prototype.executeSkillEffects = function(action, target)
     // if the target is an enemy, track it as attack data.
     if (target.isEnemy())
     {
-      this.trackAttackData(actionResult);
+      this.trackAttackData(target);
     }
     // if the target is an actor, track it as defensive data.
     else if (target.isActor())
     {
-      this.trackDefensiveData(actionResult);
+      this.trackDefensiveData(target);
     }
   }
-
-  return actionResult;
 };
 
 /**
  * Tracks various attack-related data points and assigns them to variables.
- * @param {Game_ActionResult} actionResult The action result to analyze the data of.
+ * @param {JABS_Battler} target The target to analyze.
  */
-Game_BattleMap.prototype.trackAttackData = function(actionResult)
+Game_BattleMap.prototype.trackAttackData = function(target)
 {
-  const {hpDamage, critical} = actionResult;
+  const {hpDamage, critical} = target.getBattler().result();
   if (hpDamage)
   {
     // count all damage dealt.
@@ -325,11 +324,11 @@ Game_BattleMap.prototype.trackAttackData = function(actionResult)
 
 /**
  * Tracks various defensive-related data points and assigns them to variables.
- * @param {Game_ActionResult} actionResult The action result to analyze the data of.
+ * @param {JABS_Battler} target The target to analyze.
  */
-Game_BattleMap.prototype.trackDefensiveData = function(actionResult)
+Game_BattleMap.prototype.trackDefensiveData = function(target)
 {
-  const {hpDamage, critical, parried, preciseParried} = actionResult;
+  const {hpDamage, critical, parried, preciseParried} = target.getBattler().result();
   if (hpDamage)
   {
     // count all damage received.
