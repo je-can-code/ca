@@ -3690,46 +3690,79 @@ class Game_BattleMap
    */
   postPrimaryBattleEffects(action, target)
   {
-    // gather shorthand variables for use.
-    const targetSprite = target.getCharacter();
-    const skill = action.getBaseSkill();
-    const casterMapBattler = action.getCaster();
-
-    // get the result after execution.
-    const result = target.getBattler().result();
-
     // generate log for this action.
-    this.createAttackLog(action, skill, result, casterMapBattler, target);
+    this.createAttackLog(action, target);
 
     // generate the text popup for this action.
-    const damagePop = this.configureDamagePop(action.getAction(), skill, casterMapBattler, target);
-    targetSprite.addTextPop(damagePop);
-    targetSprite.setRequestTextPop();
+    this.generatePopAttack(action, target);
 
-    // assuming the caster isn't an inanimate object or something...
-    if (!casterMapBattler.isInanimate())
-    {
-      // generate the text popup for this skill usage.
-      const casterSprite = casterMapBattler.getCharacter();
-      const selfDamagePop = this.configureSkillUsedPop(skill);
-      casterSprite.addTextPop(selfDamagePop);
-      casterSprite.setRequestTextPop();
-    }
+    // generate the text popup for the skill usage on the caster.
+    this.generatePopSkillUsage(action, target);
+  };
+
+  /**
+   * Generates a popup based on the action executed and its result.
+   * @param {JABS_Action} action The action affecting the target.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  generatePopAttack(action, target)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // gather shorthand variables for use.
+    const skill = action.getBaseSkill();
+    const caster = action.getCaster();
+    const character = caster.getCharacter();
+
+    // generate the textpop.
+    const damagePop = this.configureDamagePop(action.getAction(), skill, caster, target);
+
+    // add the pop to the target's tracking.
+    character.addTextPop(damagePop);
+    character.setRequestTextPop();
+  };
+
+  /**
+   * Generates a popup on the caster based on the skill used.
+   * @param {JABS_Action} action The action affecting the target.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  generatePopSkillUsage(action, target)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // inanimate objects do not have skill usage pops.
+    if (action.getCaster().isInanimate()) return;
+
+    // gather shorthand variables for use.
+    const skill = action.getBaseSkill();
+    const character = action.getCaster().getCharacter();
+
+    // generate the textpop.
+    const skillUsagePop = this.configureSkillUsedPop(skill);
+
+    // add the pop to the caster's tracking.
+    character.addTextPop(skillUsagePop);
+    character.setRequestTextPop();
   };
 
   /**
    * Generates a log in the `Map_TextLog` if applicable.
    * It is important to note that only HP damage is published to the log.
    * @param {JABS_Action} action The action affecting the target.
-   * @param {object} skill The database object of the skill executed.
-   * @param {Game_ActionResult} result The result of the executed action.
-   * @param {JABS_Battler} caster The `JABS_Battler` who used the action.
    * @param {JABS_Battler} target The `JABS_Battler` who was the target of the action.
    */
-  createAttackLog(action, skill, result, caster, target)
+  createAttackLog(action, target)
   {
     // if not enabled, skip this.
     if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+
+    // gather shorthand variables for use.
+    const result = target.getBattler().result();
+    const caster = action.getCaster();
+    const skill = action.getBaseSkill();
 
     const skillName = skill.name;
     const casterName = caster.getReferenceData().name;
@@ -3797,15 +3830,13 @@ class Game_BattleMap
       result.addedStates.forEach(stateId =>
       {
         // show a custom line when an enemy is defeated.
-        if (stateId === target.getBattler()
-          .deathStateId())
+        if (stateId === target.getBattler().deathStateId())
         {
           const message = `${targetName} was defeated.`;
           const log = new Map_TextLog(message, -1);
           $gameTextLog.addLog(log);
           return;
         }
-        ;
 
         // show all the rest of the non-death states.
         const state = $dataStates[stateId];
@@ -3830,6 +3861,7 @@ class Game_BattleMap
 
   /**
    * Configures this damage popup based on the action result against the target.
+   * TODO: reduce incoming parameters to only "action" and "target"- extract as-needed.
    * @param {Game_Action} gameAction The action this popup is based on.
    * @param {rm.types.Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler who casted this skill.
@@ -4300,8 +4332,7 @@ class Game_BattleMap
    */
   handleDefeatedAlly(defeatedAlly)
   {
-    console.log(`${defeatedAlly.getBattler()
-      .name()} has died.`);
+    console.log(`${defeatedAlly.getBattler().name()} has died.`);
   };
 
   /**
@@ -4349,14 +4380,14 @@ class Game_BattleMap
   {
     let experience = enemy.exp();
     let gold = enemy.gold();
-    const userSprite = actor.getCharacter();
+    const actorCharacter = actor.getCharacter();
 
     const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
     experience = Math.ceil(experience * levelMultiplier);
     gold = Math.ceil(gold * levelMultiplier);
 
-    this.gainExperienceReward(experience, userSprite);
-    this.gainGoldReward(gold, userSprite);
+    this.gainExperienceReward(experience, actorCharacter);
+    this.gainGoldReward(gold, actorCharacter);
     this.createRewardsLog(experience, gold, actor);
   };
 
@@ -4383,9 +4414,9 @@ class Game_BattleMap
   /**
    * Gains experience from battle rewards.
    * @param {number} experience The experience to be gained as a reward.
-   * @param {Game_Character} casterSprite The character who defeated the target.
+   * @param {Game_Character} casterCharacter The character who defeated the target.
    */
-  gainExperienceReward(experience, casterSprite)
+  gainExperienceReward(experience, casterCharacter)
   {
     // don't do anything if the enemy didn't grant any experience.
     if (!experience) return;
@@ -4396,9 +4427,27 @@ class Game_BattleMap
       const gainedExperience = experience *= member.exr;
       member.gainExp(gainedExperience);
     });
-    const expPop = this.configureExperiencePop(experience);
-    casterSprite.addTextPop(expPop);
-    casterSprite.setRequestTextPop();
+
+    // generate the text popup for the experience earned.
+    this.generatePopExperience(experience, casterCharacter);
+  };
+
+  /**
+   * Generates a popup for experience earned.
+   * @param {number} amount The amount in the popup.
+   * @param {Game_Character} character The character the popup is on.
+   */
+  generatePopExperience(amount, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const expPop = this.configureExperiencePop(amount);
+
+    // add the pop to the target's tracking.
+    character.addTextPop(expPop);
+    character.setRequestTextPop();
   };
 
   /**
@@ -4420,17 +4469,36 @@ class Game_BattleMap
   /**
    * Gains gold from battle rewards.
    * @param {number} gold The gold to be gained as a reward.
-   * @param {Game_Character} casterSprite The character who defeated the target.
+   * @param {Game_Character} character The character who defeated the target.
    */
-  gainGoldReward(gold, casterSprite)
+  gainGoldReward(gold, character)
   {
     // don't do anything if the enemy didn't grant any gold.
     if (!gold) return;
 
+    // actually gain the gold.
     $gameParty.gainGold(gold);
-    const goldPop = this.configureGoldPop(gold);
-    casterSprite.addTextPop(goldPop);
-    casterSprite.setRequestTextPop();
+
+    // generate the text popup for the gold found.
+    this.generatePopGold(gold, character);
+  };
+
+  /**
+   * Generates a popup for gold found.
+   * @param {number} amount The amount in the popup.
+   * @param {Game_Character} character The character the popup is on.
+   */
+  generatePopGold(amount, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const goldPop = this.configureGoldPop(amount);
+
+    // add the pop to the target's tracking.
+    character.addTextPop(goldPop);
+    character.setRequestTextPop();
   };
 
   /**
@@ -4510,15 +4578,34 @@ class Game_BattleMap
   };
 
   /**
-   * Creates the text pop of the gold gained.
-   * @param {object} item The reference data for the item loot that was picked up.
+   * Generates a popup for an acquired item.
+   * @param {rm.types.BaseItem} itemData The item's database object.
+   * @param {Game_Character} character The character displaying the popup.
    */
-  configureItemPop(item)
+  generatePopItem(itemData, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const lootPop = this.configureItemPop(itemData);
+
+    // add the pop to the target's tracking.
+    character.addTextPop(lootPop);
+    character.setRequestTextPop();
+
+  };
+
+  /**
+   * Creates the text pop of the acquired item.
+   * @param {rm.types.BaseItem} itemData The item's database object.
+   */
+  configureItemPop(itemData)
   {
     // build the popup.
-    return new TextPopBuilder(item.name)
+    return new TextPopBuilder(itemData.name)
       .isLoot()
-      .setIconIndex(item.iconIndex)
+      .setIconIndex(itemData.iconIndex)
       .build();
   };
 
@@ -4533,7 +4620,7 @@ class Game_BattleMap
     {
       const character = battler.getCharacter();
       this.playLevelUpAnimation(character);
-      this.createLevelUpPop(character);
+      this.generatePopLevelUp(character);
       this.createLevelUpLog(battler);
     }
   };
@@ -4542,10 +4629,16 @@ class Game_BattleMap
    * Creates a text pop of the level up.
    * @param {Game_Character} character The character to show the popup on.
    */
-  createLevelUpPop(character)
+  generatePopLevelUp(character)
   {
-    const popup = this.configureLevelUpPop();
-    character.addTextPop(popup);
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const levelUpPop = this.configureLevelUpPop();
+
+    // add the pop to the target's tracking.
+    character.addTextPop(levelUpPop);
     character.setRequestTextPop();
   };
 
@@ -4598,7 +4691,7 @@ class Game_BattleMap
     if (battler)
     {
       const character = battler.getCharacter();
-      this.createSkillLearnPop(skill, character);
+      this.generatePopSkillLearn(skill, character);
       this.createSkillLearnLog(skill, battler);
     }
   };
@@ -4606,12 +4699,18 @@ class Game_BattleMap
   /**
    * Creates a text pop of the skill being learned.
    * @param {rm.types.Skill} skill The skill being learned.
-   * @param {Game_Character} character The player's character.
+   * @param {Game_Character} character The character to show the popup on.
    */
-  createSkillLearnPop(skill, character)
+  generatePopSkillLearn(skill, character)
   {
-    const popup = this.configureSkillLearnPop(skill);
-    character.addTextPop(popup);
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const skillLearnPop = this.configureSkillLearnPop(skill);
+
+    // add the pop to the target's tracking.
+    character.addTextPop(skillLearnPop);
     character.setRequestTextPop();
   };
 
@@ -7310,7 +7409,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 
 /**
  * Uses the loot as soon as it is collected.
- * @param {object} lootData An object representing the loot.
+ * @param {rm.types.BaseItem} lootData An object representing the loot.
  */
 Game_Player.prototype.useOnPickup = function(lootData)
 {
@@ -7320,7 +7419,7 @@ Game_Player.prototype.useOnPickup = function(lootData)
 
 /**
  * Picks up the loot and stores it in the player's inventory.
- * @param {object} lootData An object representing the loot.
+ * @param {rm.types.BaseItem} lootData An object representing the loot.
  */
 Game_Player.prototype.storeOnPickup = function(lootData)
 {
@@ -7328,13 +7427,11 @@ Game_Player.prototype.storeOnPickup = function(lootData)
   $gameParty.gainItem(lootData, 1, true);
   SoundManager.playUseItem();
 
-  // generate a log entry for the loot collected.
+  // generate a log for the loot collected.
   $gameBattleMap.createLootLog(lootData);
 
   // generate a popup for the loot collected.
-  const itemPop = $gameBattleMap.configureItemPop(lootData);
-  this.addTextPop(itemPop);
-  this.setRequestTextPop();
+  $gameBattleMap.generatePopItem(lootData, this);
 };
 
 /**
