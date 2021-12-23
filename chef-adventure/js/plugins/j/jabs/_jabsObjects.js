@@ -4967,8 +4967,12 @@ Game_Character.prototype.hasJabsBattler = function()
 {
   const asp = this.getActionSpriteProperties();
   const uuid = asp.battlerUuid;
+  if (!uuid) return false;
+
   const battler = $gameMap.getBattlerByUuid(uuid);
-  return !!(uuid && battler);
+  if (!battler) return false;
+
+  return true;
 };
 
 /**
@@ -5007,60 +5011,6 @@ Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = 
 {
   const actionSpriteProperties = this.getActionSpriteProperties();
   return actionSpriteProperties.needsRemoving = removeSprite;
-};
-
-/**
- * Gets the `requestDamagePop` property from the `actionSpriteProperties` for this event.
- */
-Game_Character.prototype.getRequestTextPop = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.requestDamagePop;
-};
-
-/**
- * Sets the `requestDamagePop` property from the `actionSpriteProperties` for this event.
- * @param {boolean} damagePopRequest True to trigger damage pops, false otherwise (default: true).
- */
-Game_Character.prototype.setRequestTextPop = function(damagePopRequest = true)
-{
-  // don't do this if popups are disabled.
-  if (J.ABS.Metadata.DisableTextPops) return;
-
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.requestDamagePop = damagePopRequest;
-};
-
-/**
- * Gets all current `damagePops` that this character has pending.
- * @returns {JABS_TextPop[]} The currently pending `damagePops` for this character.
- */
-Game_Character.prototype.getDamagePops = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.damagePops;
-};
-
-Game_Character.prototype.emptyDamagePops = function()
-{
-  // grab the properties associated with this action sprite.
-  const actionSpriteProperties = this.getActionSpriteProperties();
-
-  // empty the contents of the array for all references to see.
-  actionSpriteProperties.damagePops.splice(0, actionSpriteProperties.damagePops.length);
-};
-
-/**
- * Adds a damage pop to the pending `damagePops` array for this character.
- * @param {JABS_TextPop} damage A number representing the damage to pop.
- */
-Game_Character.prototype.addTextPop = function(damage)
-{
-  // don't do this if popups are disabled.
-  if (J.ABS.Metadata.DisableTextPops) return;
-
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.damagePops.push(damage);
 };
 
 /**

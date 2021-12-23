@@ -209,8 +209,7 @@ Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width)
 /**
  * A window responsible for showing various datapoints of a skill.
  */
-class Window_SkillDetail
-  extends Window_Base
+class Window_SkillDetail extends Window_Base
 {
   constructor(rect)
   {
