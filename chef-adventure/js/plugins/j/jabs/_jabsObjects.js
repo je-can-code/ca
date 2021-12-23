@@ -5064,15 +5064,6 @@ Game_Character.prototype.addTextPop = function(damage)
 };
 
 /**
- * Removes the current damage pop from the `damagePops` array.
- */
-Game_Character.prototype.removeDamagePop = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.damagePops.shift();
-};
-
-/**
  * Execute an animation of a provided id upon this character.
  * @param {number} animationId The animation id to execute on this character.
  * @param {boolean} parried Whether or not the animation being requested was parried.
