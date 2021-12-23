@@ -5,6 +5,7 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-ABS
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * A component of JABS.

@@ -1,3 +1,6 @@
+// to ye who find this "plugin", this was an effort at building a pub/sub system to optimize other
+// functionalities across my various plugins. This was never completed or implemented.
+
 /**
  * A pubsub manager that handles an listening and subscribing to events.
  */
