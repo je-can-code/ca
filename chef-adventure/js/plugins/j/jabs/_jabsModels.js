@@ -1,26 +1,696 @@
 /*:
  * @target MZ
- * @plugindesc 
- * [v3.0 JABS] Data structure of a JABS_Battler.
+ * @plugindesc
+ * [v3.0 JABS] The various custom models created for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-ABS
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * A component of JABS.
- * This class represents the binding of a actor/enemy battler to an event.
- * This is the biggest and probably most complex class, as this owns a
- * majority of the responsibility for updating and maintaining itself and how
- * it interacts with others based on a variety of conditions ranging from
- * battler condition, battler AI, battler cooldowns, and so on.
- * 
- * Plugin Developer Notes:
- * It is worth noting that this initially was an ES5 class proper at one
- * point, but later was converted to this strange function/prototype model
- * later for common extensibility purposes.
+ * This is a cluster of all models that honestly deserved their own file, but
+ * that is mighty inconvenient for plugin consumers, so now its all in one.
  * ============================================================================
  */
 
+//#region JABS_Action
+/**
+ * An object that binds a `Game_Action` to a `Game_Event` on the map.
+ */
+class JABS_Action
+{
+  /**
+   * The minimum duration a `JABS_Action` must exist visually before cleaning it up.
+   *
+   * All actions should exist visually for at least 8 frames.
+   * @returns {8} The minimum number of frames, 8.
+   */
+  static getMinimumDuration()
+  {
+    return 8;
+  };
+
+  /**
+   * @constructor
+   * @param {string} uuid This action's unique identifier.
+   * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`.
+   * @param {number} teamId A shorthand for the team id this skill belongs to.
+   * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
+   * @param {JABS_Battler} caster The `JABS_Battler` who created this `JABS_Action`.
+   * @param {boolean} isRetaliation Whether or not this is a retaliation action.
+   * @param {number} direction The direction this action will face initially.
+   * @param {string?} cooldownKey Whether or not this is a direct action.
+   */
+  constructor({uuid, baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey})
+  {
+    /**
+     * The unique identifier for this action.
+     *
+     * All actions that are bound to an event have this.
+     * @type {string}
+     */
+    this._uuid = uuid;
+
+    /**
+     * The base skill object, in case needed for something.
+     * @type {rm.types.Skill}
+     */
+    this._baseSkill = gameAction.item();
+
+    /**
+     * The team the owner of this skill is a part of.
+     * @type {number}
+     */
+    this._teamId = teamId;
+
+    /**
+     * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
+     * @type {Game_Action}
+     */
+    this._gameAction = gameAction;
+
+    /**
+     * The `JABS_Battler` that used created this `JABS_Action`.
+     * @type {JABS_Battler}
+     */
+    this._caster = caster;
+
+    /**
+     * Whether or not this action was generated as a retaliation to another battler's action.
+     * @type {boolean}
+     */
+    this._isRetaliation = isRetaliation;
+
+    /**
+     * The direction this projectile will initially face and move.
+     * @type {number}
+     */
+    this._facing = direction;
+
+    /**
+     * The type of action this is. Used for mapping cooldowns to the appropriate slot on the caster.
+     * @type {string}
+     */
+    this._actionCooldownType = cooldownKey ?? "global";
+
+    this.initMembers();
+  }
+
+  /**
+   * Initializes all properties on this class.
+   */
+  initMembers()
+  {
+    /**
+     * The JABS metadata associated with the base skill.
+     * Almost all custom feature flags live inside this object.
+     * @type {JABS_SkillData}
+     */
+    this._jabsData = this._baseSkill._j;
+
+    /**
+     * The current timer on this particular action.
+     * @type {number}
+     */
+    this._currentDuration = 0;
+
+    /**
+     * Whether or not the visual of this map action needs removing.
+     * @type {boolean}
+     */
+    this._needsRemoval = false;
+
+    /**
+     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
+     * @type {Game_Event}
+     */
+    this._actionSprite = null;
+
+    /**
+     * The duration remaining before this will action will autotrigger.
+     * @type {number}
+     */
+    this._delayDuration = this._jabsData.delay().duration;
+
+    /**
+     * Whether or not this action will trigger when an enemy touches it.
+     * @type {boolean}
+     */
+    this._triggerOnTouch = this._jabsData.delay().touchToTrigger;
+
+    /**
+     * The remaining number of times this action can pierce a target.
+     * @type {number}
+     */
+    this._pierceTimesLeft = this.makePiercingCount();
+
+    /**
+     * The base pierce delay in frames.
+     * @type {number}
+     */
+    this._basePierceDelay = this._jabsData.piercing()[1];
+
+    /**
+     * The current pierce delay in frames.
+     * @type {number}
+     */
+    this._currentPierceDelay = 0;
+  };
+
+  /**
+   * Combines from all available sources the bonus hits for this action.
+   * @returns {number}
+   */
+  makePiercingCount()
+  {
+    let pierceCount = this._jabsData.piercing()[0];
+
+    // handle skill extension bonuses.
+    if (J.EXTEND)
+    {
+      pierceCount += this._gameAction._item
+        ? this._gameAction._item._item.repeats - 1
+        : 0;
+    }
+
+    // handle other bonus hits for basic attacks.
+    pierceCount += this._caster.getAdditionalHits(
+      this._baseSkill,
+      this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
+      this._actionCooldownType === Game_Actor.JABS_OFFHAND)
+
+    return pierceCount;
+  };
+
+  /**
+   * Executes additional logic before this action is disposed.
+   */
+  preCleanupHook()
+  {
+    // handle self-targeted animations on cleanup.
+    const event = this.getActionSprite();
+    if (this._jabsData.selfAnimationId())
+    {
+      const animationId = this._jabsData.selfAnimationId();
+      event.requestAnimation(animationId);
+    }
+  };
+
+  /**
+   * Gets the `uuid` of this action.
+   *
+   * If one is not returned, then it is probably a direct action with no event representing it.
+   * @returns {string|null}
+   */
+  getUuid()
+  {
+    return this._uuid;
+  };
+
+  /**
+   * Gets the base skill this `JABS_Action` is based on.
+   * @returns {rm.types.Skill} The base skill of this `JABS_Action`.
+   */
+  getBaseSkill()
+  {
+    return this._baseSkill;
+  };
+
+  /**
+   * Gets the JABS-specific skill data associated with this action.
+   * @returns {JABS_SkillData} This action's JABS skill data object.
+   */
+  getJabsData()
+  {
+    return this._jabsData;
+  };
+
+  /**
+   * Gets the team id of the caster of this action.
+   * @returns {number} The team id of the caster of this `JABS_Action`.
+   */
+  getTeamId()
+  {
+    return this.getCaster().getTeam();
+  };
+
+  /**
+   * The base game action this `JABS_Action` is based on.
+   * @returns {Game_Action} The base game action for this action.
+   */
+  getAction()
+  {
+    return this._gameAction;
+  };
+
+  /**
+   * Gets the `JABS_Battler` that created this `JABS_Action`.
+   * @returns {JABS_Battler} The caster of this `JABS_Action`.
+   */
+  getCaster()
+  {
+    return this._caster;
+  };
+
+  /**
+   * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
+   * @returns {boolean} True if it is a retaliation, false otherwise.
+   */
+  isRetaliation()
+  {
+    return this._isRetaliation;
+  };
+
+  /**
+   * Gets the direction this action is facing.
+   * @returns {2|4|6|8|1|3|7|9}
+   */
+  direction()
+  {
+    return this._facing || this.getActionSprite().direction();
+  };
+
+  /**
+   * Gets the name of the cooldown for this action.
+   * @returns {string} The cooldown key for this action.
+   */
+  getCooldownType()
+  {
+    return this._actionCooldownType;
+  };
+
+  /**
+   * Sets the name of the cooldown for tracking on the caster.
+   * @param {string} type The name of the cooldown that this leverages.
+   */
+  setCooldownType(type)
+  {
+    this._actionCooldownType = type;
+  };
+
+  /**
+   * Gets the durations remaining on this `JABS_Action`.
+   */
+  getDuration()
+  {
+    return this._currentDuration;
+  };
+
+  /**
+   * Gets the max duration in frames that this action will exist on the map.
+   * If the duration was unset, or is set but less than the minimum, it will be the minimum.
+   * @returns {number} The max duration in frames (min 8).
+   */
+  getMaxDuration()
+  {
+    if (this.getJabsData().duration() >= JABS_Action.getMinimumDuration())
+    {
+      return this.getJabsData().duration();
+    }
+
+    return JABS_Action.getMinimumDuration();
+  };
+
+  /**
+   * Increments the duration for this `JABS_Action`. If the duration drops
+   * to or below 0, then it will also flag this `JABS_Action` for removal.
+   */
+  countdownDuration()
+  {
+    this._currentDuration++;
+    if (this.getMaxDuration() <= this._currentDuration)
+    {
+      this.setNeedsRemoval();
+    }
+  };
+
+  /**
+   * Gets whether or not this action is expired and should be removed.
+   * @returns {boolean} True if expired and past the minimum count, false otherwise.
+   */
+  isActionExpired()
+  {
+    const isExpired = this.getMaxDuration() <= this._currentDuration;
+    const minDurationElapsed = this._currentDuration > JABS_Action.getMinimumDuration();
+    return (isExpired && minDurationElapsed);
+  };
+
+  /**
+   * Gets whether or not this `JABS_Action` needs removing.
+   * @returns {boolean} Whether or not this action needs removing.
+   */
+  getNeedsRemoval()
+  {
+    return this._needsRemoval;
+  };
+
+  /**
+   * Sets whether or not this `JABS_Action` needs removing.
+   * @param {boolean} remove Whether or not to remove this `JABS_Action`.
+   */
+  setNeedsRemoval(remove = true)
+  {
+    this._needsRemoval = remove;
+  };
+
+  /**
+   * Gets the `Game_Event` this `JABS_Action` is bound to.
+   * The `Game_Event` represents the visual aspect of this action.
+   * @returns {Game_Event}
+   */
+  getActionSprite()
+  {
+    return this._actionSprite;
+  }
+
+  /**
+   * Binds this `JABS_Action` to a provided `Game_Event`.
+   * @param {Game_Event} actionSprite The `Game_Event` to bind to this `JABS_Action`.
+   */
+  setActionSprite(actionSprite)
+  {
+    this._actionSprite = actionSprite;
+  };
+
+  /**
+   * Decrements the pre-countdown delay timer for this action. If the action does not
+   * have `touchOnTrigger`, then the action will not affect anyone until the timer expires.
+   */
+  countdownDelay()
+  {
+    if (this._delayDuration > 0)
+    {
+      this._delayDuration--;
+    }
+  };
+
+  /**
+   * Gets whether or not the delay on this action has completed.
+   *
+   * This also includes if an action never had a delay to begin with.
+   * @returns {boolean}
+   */
+  isDelayCompleted()
+  {
+    return this._delayDuration <= 0 && !this.isEndlessDelay();
+  };
+
+  /**
+   * Automatically finishes the delay regardless of its current status.
+   */
+  endDelay()
+  {
+    this._delayDuration = 0;
+  };
+
+  /**
+   * Gets whether or not this action will be delayed until triggered.
+   * @returns {boolean}
+   */
+  isEndlessDelay()
+  {
+    return this._delayDuration === -1;
+  };
+
+  /**
+   * Gets whether or not this action will be triggered by touch, regardless of its
+   * delay counter.
+   *
+   * If `isEndlessDelay()` applies to this action, then it will automatically
+   * trigger by touch regardless of configuration.
+   * @returns {boolean}
+   */
+  triggerOnTouch()
+  {
+    return this._triggerOnTouch || this.isEndlessDelay();
+  };
+
+  /**
+   * Gets the number of times this action can potentially hit a target.
+   * @returns {number} The number of times remaining that this action can hit a target.
+   */
+  getPiercingTimes()
+  {
+    return this._pierceTimesLeft;
+  };
+
+  /**
+   * Modifies the piercing times counter of this action by an amount (default = 1). If an action
+   * reaches zero or less times, then it also sets it up for removal.
+   * @param {number} decrement The number to decrement the times counter by for this action.
+   */
+  modPiercingTimes(decrement = 1)
+  {
+    this._pierceTimesLeft -= decrement;
+    if (this._pierceTimesLeft <= 0)
+    {
+      this.setNeedsRemoval();
+    }
+  };
+
+  /**
+   * Gets the delay between hits for this action.
+   * @returns {number} The number of frames between repeated hits.
+   */
+  getPiercingDelay()
+  {
+    return this._currentPierceDelay;
+  };
+
+  /**
+   * Modifies the piercing delay by this amount (default = 1). If a negative number is
+   * provided, then this will increase the delay by that amount instead.
+   * @param {number} decrement The amount to modify the delay by.
+   */
+  modPiercingDelay(decrement = 1)
+  {
+    this._currentPierceDelay -= decrement;
+  };
+
+  /**
+   * Resets the piercing delay of this action back to it's base.
+   */
+  resetPiercingDelay()
+  {
+    this._currentPierceDelay = this._basePierceDelay;
+  };
+
+  /**
+   * Gets whether or not this action is a direct-targeting action.
+   * @returns {boolean}
+   */
+  isDirectAction()
+  {
+    return this.getJabsData().direct() ?? false;
+  };
+
+  /**
+   * Gets whether or not this action is a support action.
+   * @returns {boolean}
+   */
+  isSupportAction()
+  {
+    return this._gameAction.isForFriend();
+  };
+
+  /**
+   * The number of frames until this action's caster may act again.
+   * @returns {number} The cooldown frames of this `JABS_Action`.
+   */
+  getCooldown()
+  {
+    return this.getJabsData().cooldown() ?? 0;
+  };
+
+  /**
+   * Gets the ai-specific cooldown for this skill.
+   * This is used in place of regular cooldowns for skills when present.
+   * @returns {number}
+   */
+  getAiCooldown()
+  {
+    return this.getJabsData().aiCooldown() ?? 0;
+  };
+
+  /**
+   * Gets the cast time for this skill.
+   * @returns {number}
+   */
+  getCastTime()
+  {
+    // TODO: add a cast time modifier based on actor "all notes" collection.
+    const castTime = this.getJabsData().castTime();
+
+    // the unspecified cast time is -1.
+    if (castTime < 0)
+    {
+      return 0;
+    }
+
+    // return the total cast time.
+    return castTime;
+  };
+
+  /**
+   * Gets the range of which this `JABS_Action` will reach.
+   * @returns {number} The range of this action.
+   */
+  getRange()
+  {
+    // TODO: add ability to increase this (and duration).
+    return this.getJabsData().range();
+  };
+
+  /**
+   * Gets the proximity to the target in order to use this `JABS_Action`.
+   * @returns {number} The proximity required for this action.
+   */
+  getProximity()
+  {
+    return this.getJabsData().proximity();
+  };
+
+  /**
+   * Gets the shape of the hitbox for this `JABS_Action`.
+   * @returns {string} The designated shape of the action.
+   */
+  getShape()
+  {
+    return this.getJabsData().shape();
+  };
+
+  /**
+   * Gets the event id associated with this `JABS_Action` from the action map.
+   * @returns {number} The event id for this `JABS_Action`.
+   */
+  getActionId()
+  {
+    return this.getJabsData().actionId();
+  };
+
+  /**
+   * Gets any additional aggro this skill generates.
+   * @returns {number}
+   */
+  bonusAggro()
+  {
+    return this.getJabsData().bonusAggro();
+  };
+
+  /**
+   * Gets the aggro multiplier from this skill.
+   * @returns {number}
+   */
+  aggroMultiplier()
+  {
+    return this.getJabsData().aggroMultiplier();
+  };
+}
+//#endregion JABS_Action
+
+//#region JABS_Aggro
+/**
+ * A tracker for managing the aggro for this particular battler and its owner.
+ */
+function JABS_Aggro()
+{
+  this.initialize(...arguments);
+}
+
+JABS_Aggro.prototype = {};
+JABS_Aggro.prototype.constructor = JABS_Aggro;
+
+/**
+ * Initializes this class and it's members.
+ * @param {string} uuid The uuid of the battler.
+ */
+JABS_Aggro.prototype.initialize = function(uuid)
+{
+  /**
+   * The unique identifier of the battler this aggro is tracked for.
+   * @type {string}
+   */
+  this.battlerUuid = uuid;
+
+  /**
+   * The numeric measurement of aggro from this battler.
+   * @type {number}
+   */
+  this.aggro = 0;
+
+  /**
+   * Whether or not the aggro is locked at it's current value.
+   * @type {boolean}
+   */
+  this.locked = false;
+};
+
+/**
+ * Gets the `uuid` of the battler this aggro is associated with.
+ * @returns {string}
+ */
+JABS_Aggro.prototype.uuid = function()
+{
+  return this.battlerUuid;
+};
+
+/**
+ * Sets a lock on this aggro to prevent any modification of the aggro
+ * regarding this battler.
+ */
+JABS_Aggro.prototype.lock = function()
+{
+  this.locked = true;
+};
+
+/**
+ * Removes the lock on this aggro to allow modification of the aggro
+ * regarding this battler.
+ */
+JABS_Aggro.prototype.unlock = function()
+{
+  this.locked = false;
+};
+
+/**
+ * Resets the aggro back to 0.
+ * Will do nothing if aggro is locked unless forced.
+ */
+JABS_Aggro.prototype.resetAggro = function(forced = false)
+{
+  if (this.locked && !forced) return;
+  this.aggro = 0;
+};
+
+/**
+ * Sets the aggro to a specific value.
+ * Will do nothing if aggro is locked unless forced.
+ */
+JABS_Aggro.prototype.setAggro = function(newAggro, forced = false)
+{
+  if (this.locked && !forced) return;
+
+  this.aggro = newAggro;
+};
+
+/**
+ * Modifies the aggro by a given amount.
+ * Can be negative.
+ * Will do nothing if aggro is locked unless forced.
+ * @param {number} modAggro The amount to modify.
+ * @param {boolean} forced Forced aggro modifications override "aggro lock".
+ */
+JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
+{
+  if (this.locked && !forced) return;
+
+  this.aggro += modAggro;
+  if (this.aggro < 0) this.aggro = 0;
+};
+//#endregion JABS_Aggro
+
+//#region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
  * This can be for either the player, an ally, or an enemy.
@@ -4639,4 +5309,1768 @@ JABS_Battler.prototype.showAnimation = function(animationId)
   this.getCharacter().requestAnimation(animationId);
 };
 //#endregion utility helpers
-//ENDFILE
+//#endregion JABS_Battler
+
+//#region JABS_BattlerAI
+/**
+ * An object representing the structure of the `JABS_Battler` AI.
+ */
+class JABS_BattlerAI
+{
+  /**
+   * @constructor
+   * @param {boolean} basic Enable the most basic of AI (recommended).
+   * @param {boolean} smart Add pathfinding pursuit and more.
+   * @param {boolean} executor Add weakpoint targeting.
+   * @param {boolean} defensive Add defending and support skills for allies.
+   * @param {boolean} reckless Add skill spamming over attacking.
+   * @param {boolean} healer Prioritize healing if health is low.
+   * @param {boolean} follower Only attacks alone, obeys leaders.
+   * @param {boolean} leader Enables ally coordination.
+   */
+  constructor(
+    basic = true,
+    smart = false,
+    executor = false,
+    defensive = false,
+    reckless = false,
+    healer = false,
+    follower = false,
+    leader = false
+  )
+  {
+    /**
+     * The most basic of AI: just move and take action.
+     *
+     * `10000000`, first bit.
+     */
+    this.basic = basic;
+
+    /**
+     * Adds an additional skillset; enabling intelligent pursuit among other things.
+     *
+     * `01000000`, second bit.
+     */
+    this.smart = smart;
+
+    /**
+     * Adds an additional skillset; targeting a foe's weakspots if available.
+     *
+     * `00100000`, third bit.
+     */
+    this.executor = executor;
+
+    /**
+     * Adds an additional skillset; allowing defending in place of action
+     * and supporting allies with buff skills.
+     *
+     * `00010000`, fourth bit.
+     */
+    this.defensive = defensive;
+
+    /**
+     * Adds an additional skillset; forcing skills whenever available.
+     *
+     * `00001000`, fifth bit.
+     */
+    this.reckless = reckless;
+
+    /**
+     * Adds an additional skillset; prioritizing healing skills when either
+     * oneself' or allies' current health reach below 66% of max health.
+     *
+     * `00000100`, sixth bit.
+     */
+    this.healer = healer;
+
+    /**
+     * Adds an additional skillset; performs only basic attacks when
+     * engaged. If a leader is nearby, a leader will encourage actually
+     * available skills intelligently based on the target.
+     *
+     * `00000010`, seventh bit.
+     */
+    this.follower = follower;
+
+    /**
+     * Adds an additional skillset; enables ally coordination.
+     *
+     * `00000001`, eighth bit.
+     */
+    this.leader = leader;
+  };
+
+  /**
+   * Decides an action for the designated follower based on the leader's ai.
+   * @param {JABS_Battler} leaderBattler The leader deciding the action.
+   * @param {JABS_Battler} followerBattler The follower executing the decided action.
+   * @returns {number} The skill id of the decided skill for the follower to perform.
+   */
+  decideActionForFollower(leaderBattler, followerBattler)
+  {
+    // all follower actions are decided based on the leader's ai.
+    const {smart, executor, defensive, healer} = this;
+    const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
+    let skillsToUse = followerBattler.getSkillIdsFromEnemy();
+    if (skillsToUse.length)
+    {
+      const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
+      if (healer || defensive)
+      {
+        // get nearby allies with the leader's modified sight range of both battlers.
+        const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
+
+        // prioritize healing when self or allies are low on hp.
+        if (healer)
+        {
+          skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
+        }
+
+        // find skill that has the most buffs on it.
+        if (defensive)
+        {
+          skillsToUse = this.filterSkillsDefensivePriority(skillsToUse, allies);
+        }
+      }
+      else if (smart || executor)
+      {
+        // focus on the leader's target instead of the follower's target.
+        skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
+      }
+    }
+    else
+    {
+      // if there are no actual skills on this enemy, just use it's basic attack.
+      return basicAttackId;
+    }
+
+    let chosenSkillId = Array.isArray(skillsToUse)
+      ? skillsToUse[0]
+      : skillsToUse;
+    const followerGameBattler = followerBattler.getBattler();
+    const canPayChosenSkillCosts = followerGameBattler.canPaySkillCost($dataSkills[chosenSkillId]);
+    if (!canPayChosenSkillCosts)
+    {
+      // if they can't pay the cost of the decided skill, check the basic attack.
+      chosenSkillId = basicAttackId;
+    }
+
+    return chosenSkillId;
+  };
+
+  /**
+   * Decides a support-oriented action to perform.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   */
+  decideSupportAction(user, skillsToUse)
+  {
+    // don't do things if we have no skills to work with.
+    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+
+    const {healer, defensive} = this;
+    const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
+
+    // prioritize healing when self or allies are low on hp.
+    if (healer)
+    {
+      skillsToUse = this.filterSkillsHealerPriority(user, skillsToUse, allies);
+    }
+
+    // find skill that has the most buffs on it.
+    if (defensive)
+    {
+      skillsToUse = this.filterSkillsDefensivePriority(user, skillsToUse, allies);
+    }
+
+    // if we ended up not picking a skill, then clear any ally targeting.
+    if (!skillsToUse.length)
+    {
+      user.setAllyTarget(null);
+    }
+
+    return skillsToUse;
+  }
+
+  /**
+   * Decides an attack-oriented action to perform.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   */
+  decideAttackAction(user, skillsToUse)
+  {
+    // don't do things if we have no skills to work with.
+    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+
+    const {smart, executor} = this;
+    const target = user.getTarget();
+
+    // filter out skills that are elementally ineffective.
+    if (smart)
+    {
+      skillsToUse = this.filterElementallyIneffectiveSkills(skillsToUse, target);
+    }
+
+    // find most elementally effective skill vs the target.
+    if (executor)
+    {
+      skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, target);
+    }
+
+    return skillsToUse;
+  };
+
+  /**
+   * Decides an action from an array of skill objects based on the target.
+   * Will purge all elementally ineffective skills from the collection.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler} target The battler to decide the action about.
+   */
+  filterElementallyIneffectiveSkills(skillsToUse, target)
+  {
+    if (skillsToUse.length > 1)
+    {
+      skillsToUse = skillsToUse.filter(skillId =>
+      {
+        const testAction = new Game_Action(target.getBattler());
+        testAction.setSkill(skillId);
+        const rate = testAction.calcElementRate(target.getBattler());
+        return rate >= 1
+      });
+    }
+
+    return skillsToUse;
+  };
+
+  /**
+   * Decides an action from an array of skill objects based on the target.
+   * Will choose the skill that has the highest elemental effectiveness.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler} target The battler to decide the action about.
+   * @param {number[]} skillsToUse The available skills to use.
+   */
+  findMostElementallyEffectiveSkill(skillsToUse, target)
+  {
+    // if we have no skills to work with, then don't process.
+    if (!skillsToUse.length > 1) return skillsToUse;
+
+    if (skillsToUse.length > 1)
+    {
+      let elementalSkillCollection = [];
+      skillsToUse.forEach(skillId =>
+      {
+        const testAction = new Game_Action(target.getBattler());
+        testAction.setSkill(skillId);
+        const rate = testAction.calcElementRate(target.getBattler());
+        elementalSkillCollection.push([skillId, rate]);
+      });
+
+      // sorts the skills by their elemental effectiveness.
+      elementalSkillCollection.sort((a, b) =>
+      {
+        if (a[1] < b[1]) return -1;
+        if (a[1] > b[1]) return 1;
+        return 0;
+      });
+
+      // only use the highest elementally effective skill.
+      skillsToUse = elementalSkillCollection[0][0];
+    }
+
+    return skillsToUse;
+  };
+
+  /**
+   * Filters skills by a defensive priority.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler[]} allies
+   * @returns
+   */
+  filterSkillsDefensivePriority(user, skillsToUse, allies)
+  {
+    return skillsToUse;
+  };
+
+  /**
+   * Filters skills by a healing priority.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler[]} allies
+   * @returns
+   */
+  filterSkillsHealerPriority(user, skillsToUse, allies)
+  {
+    // if we have no skills to work with, then don't process.
+    if (!skillsToUse.length > 1) return skillsToUse;
+
+    // if we have no ai traits that affect skill-decision-making, then don't perform the logic.
+    const {basic, smart, defensive, reckless} = this;
+    if (!basic && !smart && !defensive && !reckless) return skillsToUse;
+
+    let mostWoundedAlly = null;
+    let lowestHpRatio = 1.01;
+    let actualHpDifference = 0;
+    let alliesBelow66 = 0;
+    let alliesMissingAnyHp = 0;
+
+    // iterate over allies to determine the ally with the lowest hp%
+    allies.forEach(ally =>
+    {
+      const battler = ally.getBattler();
+      const hpRatio = battler.hp / battler.mhp;
+
+      // if it is lower than the last-tracked-lowest, then update the lowest.
+      if (lowestHpRatio > hpRatio)
+      {
+        lowestHpRatio = hpRatio;
+        mostWoundedAlly = ally;
+        actualHpDifference = battler.mhp - battler.hp;
+
+        // count all allies below the "heal all" threshold.
+        if (hpRatio <= 0.66)
+        {
+          alliesBelow66++;
+        }
+      }
+
+      // count all allies missing any amount of hp.
+      if (hpRatio < 1)
+      {
+        alliesMissingAnyHp++;
+      }
+    });
+
+    // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
+    if (!alliesMissingAnyHp && !reckless) return skillsToUse;
+
+    user.setAllyTarget(mostWoundedAlly);
+    const mostWoundedAllyBattler = mostWoundedAlly.getBattler();
+
+    // filter out the skills that aren't for allies.
+    const healingTypeSkills = skillsToUse.filter(skillId =>
+    {
+      const testAction = new Game_Action(user.getBattler());
+      testAction.setSkill(skillId);
+      return (testAction.isForAliveFriend() &&  // must target living allies.
+        testAction.isRecover() &&               // must recover something.
+        testAction.isHpEffect());               // must affect hp.
+    });
+
+    // if we have 0 or 1 skills left after healing, just return that.
+    if (healingTypeSkills.length < 2)
+    {
+      return healingTypeSkills;
+    }
+
+    // determine the best skill based on AI traits.
+    let bestSkillId = null;
+    let runningBiggestHealAll = 0;
+    let runningBiggestHealOne = 0;
+    let runningClosestFitHealAll = 0;
+    let runningClosestFitHealOne = 0;
+    let runningBiggestHeal = 0;
+    let biggestHealSkill = null;
+    let biggestHealAllSkill = null;
+    let biggestHealOneSkill = null;
+    let closestFitHealAllSkill = null;
+    let closestFitHealOneSkill = null;
+    let firstSkill = false;
+    healingTypeSkills.forEach(skillId =>
+    {
+      const skill = $dataSkills[skillId];
+      const testAction = new Game_Action(user.getBattler());
+      testAction.setItemObject(skill);
+      const healAmount = testAction.makeDamageValue(mostWoundedAllyBattler, false);
+      if (Math.abs(runningBiggestHeal) < Math.abs(healAmount))
+      {
+        biggestHealSkill = skillId;
+        runningBiggestHeal = healAmount;
+      }
+
+      // if this is our first skill in the possible heal skills available, write to all skills.
+      if (!firstSkill)
+      {
+        biggestHealAllSkill = skillId;
+        runningBiggestHealAll = healAmount;
+        closestFitHealAllSkill = skillId;
+        runningClosestFitHealAll = healAmount;
+        biggestHealOneSkill = skillId;
+        runningBiggestHealOne = healAmount;
+        closestFitHealOneSkill = skillId;
+        runningClosestFitHealOne = healAmount;
+        firstSkill = true;
+      }
+
+      // analyze the heal all skills for biggest and closest fits.
+      if (testAction.isForAll())
+      {
+        // if this heal amount is bigger than the running biggest heal-all amount, then update.
+        if (runningBiggestHealAll < healAmount)
+        {
+          biggestHealAllSkill = skillId;
+          runningBiggestHealAll = healAmount;
+        }
+
+        // if this difference is smaller than the running closest fit heal-all amount, then update.
+        const runningDifference = Math.abs(runningClosestFitHealAll - actualHpDifference);
+        const thisDifference = Math.abs(healAmount - actualHpDifference);
+        if (thisDifference < runningDifference)
+        {
+          closestFitHealAllSkill = skillId;
+          runningClosestFitHealAll = healAmount;
+        }
+      }
+
+      // analyze the heal one skills for biggest and closest fits.
+      if (testAction.isForOne())
+      {
+        // if this heal amount is bigger than the running biggest heal-one amount, then update.
+        if (runningBiggestHealOne < healAmount)
+        {
+          biggestHealOneSkill = skillId;
+          runningBiggestHealOne = healAmount;
+        }
+
+        // if this difference is smaller than the running closest fit heal-one amount, then update.
+        const runningDifference = Math.abs(runningClosestFitHealOne - actualHpDifference);
+        const thisDifference = Math.abs(healAmount - actualHpDifference);
+        if (thisDifference < runningDifference)
+        {
+          closestFitHealOneSkill = skillId;
+          runningClosestFitHealOne = healAmount;
+        }
+      }
+    });
+
+    // basic will just pick a random one from the four skill options.
+    // basic will get overwritten if there are additional ai traits.
+    if (basic)
+    {
+      const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
+      bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
+    }
+
+    // smart will decide in this order:
+    if (smart)
+    {
+      // - if any below 40%, then prioritize heal-one of most wounded.
+      if (lowestHpRatio <= 0.40)
+      {
+        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
+
+        // - if none below 40% but multiple wounded, prioritize closest-fit heal-all.
+      }
+      else if (alliesMissingAnyHp > 1 && lowestHpRatio < 0.80)
+      {
+        bestSkillId = defensive ? biggestHealAllSkill : closestFitHealAllSkill;
+
+        // - if only one wounded, then heal them.
+      }
+      else if (alliesMissingAnyHp === 1 && lowestHpRatio < 0.80)
+      {
+        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
+        // - if none wounded, or none below 80%, then don't heal.
+      }
+      else
+      {
+      }
+    }
+
+    // defensive will decide in this order:
+    if (defensive && !smart)
+    {
+      // - if there is only one wounded ally, prioritize biggest heal-one skill.
+      if (alliesMissingAnyHp === 1)
+      {
+        bestSkillId = biggestHealOneSkill;
+        // - if there is more than one wounded ally, prioritize biggest heal-all skill.
+      }
+      else if (alliesMissingAnyHp > 1)
+      {
+        bestSkillId = biggestHealAllSkill;
+        // - if none wounded, don't heal.
+      }
+      else
+      {
+      }
+    }
+
+    // reckless will decide in this order:
+    if (reckless)
+    {
+      // - if there are any wounded allies, always use biggest heal skill, for one or all.
+      if (alliesMissingAnyHp > 0)
+      {
+        bestSkillId = biggestHealSkill;
+        // - if none wounded, don't heal.
+      }
+      else
+      {
+      }
+    }
+
+    return bestSkillId;
+  };
+}
+//#endregion JABS_BattlerAI
+
+//#region JABS_BattlerCoreData
+/**
+ * A class containing all the data extracted from the comments of an event's
+ * comments and contained with friendly methods to access and manipulate.
+ */
+function JABS_BattlerCoreData()
+{
+  this.initialize(...arguments);
+}
+
+JABS_BattlerCoreData.prototype = {};
+JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
+
+/**
+ * Initializes this battler data object.
+ * @param {number} battlerId This enemy id.
+ * @param {number} teamId This battler's team id.
+ * @param {JABS_BattlerAI} battlerAI This battler's converted AI.
+ * @param {number} sightRange The sight range.
+ * @param {number} alertedSightBoost The boost to sight range while alerted.
+ * @param {number} pursuitRange The pursuit range.
+ * @param {number} alertedPursuitBoost The boost to pursuit range while alerted.
+ * @param {number} alertDuration The duration in frames of how long to remain alerted.
+ * @param {boolean} canIdle Whether or not this battler can idle.
+ * @param {boolean} showHpBar Whether or not to show the hp bar.
+ * @param {boolean} showDangerIndicator Whether or not to show the danger indiciator.
+ * @param {boolean} showBattlerName Whether or not to show the battler's name.
+ * @param {boolean} isInvincible Whether or not this battler is invincible.
+ * @param {boolean} isInanimate Whether or not this battler is inanimate.
+ */
+JABS_BattlerCoreData.prototype.initialize = function({
+  battlerId,
+  teamId,
+  battlerAI,
+  sightRange,
+  alertedSightBoost,
+  pursuitRange,
+  alertedPursuitBoost,
+  alertDuration,
+  canIdle,
+  showHpBar,
+  showDangerIndicator,
+  showBattlerName,
+  isInvincible,
+  isInanimate
+})
+{
+  /**
+   * The id of the enemy that this battler represents.
+   * @type {number}
+   */
+  this._battlerId = battlerId;
+
+  /**
+   * The id of the team this battler belongs to.
+   * @type {number}
+   */
+  this._teamId = teamId;
+
+  /**
+   * The converted-from-binary AI of this battler.
+   * @type {JABS_BattlerAI}
+   */
+  this._battlerAI = battlerAI;
+
+  /**
+   * The base range that this enemy can and engage targets within.
+   * @type {number}
+   */
+  this._sightRange = sightRange;
+
+  /**
+   * The boost to sight range this enemy gains while alerted.
+   * @type {number}
+   */
+  this._alertedSightBoost = alertedSightBoost;
+
+  /**
+   * The base range that this enemy will pursue it's engaged target.
+   * @type {number}
+   */
+  this._pursuitRange = pursuitRange;
+
+  /**
+   * The boost to pursuit range this enemy gains while alerted.
+   * @type {number}
+   */
+  this._alertedPursuitBoost = alertedPursuitBoost;
+
+  /**
+   * The duration in frames that this enemy will remain alerted.
+   * @type {number}
+   */
+  this._alertDuration = alertDuration;
+
+  /**
+   * Whether or not this battler will move around while idle.
+   * @type {boolean} True if the battler can move while idle, false otherwise.
+   */
+  this._canIdle = canIdle;
+
+  /**
+   * Whether or not this battler's hp bar will be visible.
+   * @type {boolean} True if the battler's hp bar should show, false otherwise.
+   */
+  this._showHpBar = showHpBar;
+
+  /**
+   * Whether or not this battler's danger indicator will be visible.
+   * @type {boolean} True if the battler's danger indicator should show, false otherwise.
+   */
+  this._showDangerIndicator = showDangerIndicator;
+
+  /**
+   * Whether or not this battler's name will be visible.
+   * @type {boolean} True if the battler's name should show, false otherwise.
+   */
+  this._showBattlerName = showBattlerName;
+
+  /**
+   * Whether or not this battler is invincible.
+   *
+   * Invincible is defined as: `actions will not collide with this battler`.
+   * @type {boolean} True if the battler is invincible, false otherwise.
+   */
+  this._isInvincible = isInvincible;
+
+  /**
+   * Whether or not this battler is inanimate. Inanimate battlers have a few
+   * unique traits, those being: cannot idle, hp bar is hidden, cannot be alerted,
+   * does not play deathcry when defeated, and cannot engage in battle.
+   * @type {boolean} True if the battler is inanimate, false otherwise.
+   */
+  this._isInanimate = isInanimate;
+};
+
+/**
+ * Gets this battler's enemy id.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.battlerId = function()
+{
+  return this._battlerId;
+};
+
+/**
+ * Gets this battler's team id.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.team = function()
+{
+  return this._teamId;
+};
+
+/**
+ * Gets this battler's AI.
+ * @returns {JABS_BattlerAI}
+ */
+JABS_BattlerCoreData.prototype.ai = function()
+{
+  return this._battlerAI;
+};
+
+/**
+ * Gets the base range that this enemy can engage targets within.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.sightRange = function()
+{
+  return this._sightRange;
+};
+
+/**
+ * Gets the boost to sight range while alerted.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.alertedSightBoost = function()
+{
+  return this._alertedSightBoost;
+};
+
+/**
+ * Gets the base range that this enemy will pursue it's engaged target.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.pursuitRange = function()
+{
+  return this._pursuitRange;
+};
+
+/**
+ * Gets the boost to pursuit range while alerted.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.alertedPursuitBoost = function()
+{
+  return this._alertedPursuitBoost;
+};
+
+/**
+ * Gets the duration in frames for how long this battler remains alerted.
+ * @returns {number}
+ */
+JABS_BattlerCoreData.prototype.alertDuration = function()
+{
+  return this._alertDuration;
+};
+
+/**
+ * Gets whether or not this battler will move around while idle.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.canIdle = function()
+{
+  return this._canIdle;
+};
+
+/**
+ * Gets whether or not this battler's hp bar will be visible.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.showHpBar = function()
+{
+  return this._showHpBar;
+};
+
+/**
+ * Gets whether or not this battler's danger indicator will be visible.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.showDangerIndicator = function()
+{
+  return this._showDangerIndicator;
+};
+
+/**
+ * Gets whether or not this battler's name will be visible.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.showBattlerName = function()
+{
+  return this._showBattlerName;
+};
+
+/**
+ * Gets whether or not this battler is `invincible`.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.isInvincible = function()
+{
+  return this._isInvincible;
+};
+
+/**
+ * Gets whether or not this battler is `inanimate`.
+ * @returns {boolean}
+ */
+JABS_BattlerCoreData.prototype.isInanimate = function()
+{
+  return this._isInanimate;
+};
+//#endregion JABS_BattlerCoreData
+
+//#region JABS_Cooldown
+/**
+ * A class representing a skill or item's cooldown data.
+ */
+class JABS_Cooldown
+{
+  //#region initialize
+  /**
+   * @constructor
+   * @param {string} key The key identifying this cooldown.
+   */
+  constructor(key)
+  {
+    this.key = key;
+    this.initMembers();
+  }
+
+  /**
+   * Initializes all members of this class.
+   */
+  initMembers()
+  {
+    this.frames = 0;
+    this.ready = false;
+    this.comboFrames = 0;
+    this.comboReady = false;
+    this.comboNextActionId = 0;
+    this.locked = false;
+  };
+
+  //#endregion initialize
+
+  /**
+   * Gets whether or not if either of the components of the cooldown are ready.
+   * @returns {boolean}
+   */
+  isAnyReady()
+  {
+    return this.ready || this.comboReady;
+  };
+
+  /**
+   * Manages the update cycle for this cooldown.
+   */
+  update()
+  {
+    // don't update the cooldown for this skill while locked.
+    if (this.isLocked())
+    {
+      return;
+    }
+
+    this.updateBaseCooldown();
+    this.updateComboCooldown();
+  };
+
+  //#region base cooldown
+  /**
+   * Updates the base skill data for this cooldown.
+   */
+  updateBaseCooldown()
+  {
+    if (this.ready)
+    {
+      return;
+    }
+
+    if (this.frames > 0)
+    {
+      this.tickBase()
+      return;
+    }
+
+    if (this.frames <= 0)
+    {
+      this.resetCombo();
+      this.enableBase();
+    }
+  };
+
+  /**
+   * Decrements the base cooldown gauge 1 frame at a time.
+   */
+  tickBase()
+  {
+    this.frames--;
+  };
+
+  /**
+   * Enables the flag to indicate the base skill is ready for this cooldown.
+   */
+  enableBase()
+  {
+    this.ready = true;
+    this.frames = 0;
+  };
+
+  /**
+   * Gets whether or not the base skill is off cooldown.
+   * @returns {boolean}
+   */
+  isBaseReady()
+  {
+    return this.ready;
+  };
+
+  /**
+   * Sets a new value for the base cooldown to countdown from.
+   * @param {number} frames The value to countdown from.
+   */
+  setFrames(frames)
+  {
+    this.frames = frames;
+    if (this.frames <= 0)
+    {
+      this.ready = true;
+      this.frames = 0;
+    }
+
+    if (this.frames > 0)
+    {
+      this.ready = false;
+    }
+  };
+
+  /**
+   * Adds a value to the combo frames to extend the combo countdown.
+   * @param {number} frames The value to add to the countdown.
+   */
+  modBaseFrames(frames)
+  {
+    this.frames += frames;
+    if (this.frames <= 0)
+    {
+      this.ready = true;
+      this.frames = 0;
+    }
+
+    if (this.frames > 0)
+    {
+      this.ready = false;
+    }
+  };
+
+  //#endregion base cooldown
+
+  //#region combo cooldown
+  /**
+   * Updates the combo data for this cooldown.
+   */
+  updateComboCooldown()
+  {
+    if (this.comboReady)
+    {
+      return;
+    }
+
+    if (this.comboFrames > 0)
+    {
+      this.tickCombo();
+      return;
+    }
+
+    if (this.comboFrames <= 0)
+    {
+      this.enableCombo();
+    }
+  };
+
+  /**
+   * Decrements the combo gauge 1 frame at a time.
+   */
+  tickCombo()
+  {
+    this.comboFrames--;
+  };
+
+  /**
+   * Enables the flag to indicate a combo is ready for this cooldown.
+   */
+  enableCombo()
+  {
+    this.comboFrames = 0;
+    if (this.comboNextActionId)
+    {
+      this.comboReady = true;
+    }
+  };
+
+  /**
+   * Sets the combo frames to countdown from this value.
+   * @param {number} frames The value to countdown from.
+   */
+  setComboFrames(frames)
+  {
+    this.comboFrames = frames;
+    if (this.comboFrames <= 0)
+    {
+      this.comboReady = true;
+      this.comboFrames = 0;
+    }
+
+    if (this.comboFrames > 0)
+    {
+      this.comboReady = false;
+    }
+  };
+
+  /**
+   * Adds a value to the combo frames to extend the combo countdown.
+   * @param {number} frames The value to add to the countdown.
+   */
+  modComboFrames(frames)
+  {
+    this.comboFrames += frames;
+    if (this.comboFrames <= 0)
+    {
+      this.comboReady = true;
+      this.comboFrames = 0;
+    }
+
+    if (this.comboFrames > 0)
+    {
+      this.comboReady = false;
+    }
+  };
+
+  /**
+   * Resets the combo data associated with this cooldown.
+   */
+  resetCombo()
+  {
+    this.comboFrames = 0;
+    this.comboNextActionId = 0;
+    this.comboReady = false;
+  };
+
+  /**
+   * Gets whether or not the combo cooldown is ready.
+   * @returns {boolean}
+   */
+  isComboReady()
+  {
+    return this.comboReady;
+  }
+
+  //#endregion combo cooldown
+
+  //#region locking
+  /**
+   * Gets whether or not this cooldown is locked.
+   * @returns {boolean}
+   */
+  isLocked()
+  {
+    return this.locked;
+  };
+
+  /**
+   * Locks this cooldown to prevent it from cooling down.
+   */
+  lock()
+  {
+    this.locked = true;
+  }
+
+  /**
+   * Unlocks this cooldown to allow it to finish cooling down.
+   */
+  unlock()
+  {
+    this.locked = false;
+  };
+
+  //#endregion locking
+}
+//#endregion JABS_Cooldown
+
+//#region JABS_GuardData
+/**
+ * A class responsible for managing the data revolving around guarding and parrying.
+ */
+class JABS_GuardData
+{
+  /**
+   * @constructor
+   * @param {number} skillId The skill this guard data is associated with.
+   * @param {number} flatGuardReduction The flat amount of damage reduced when guarding, if any.
+   * @param {number} percGuardReduction The percent amount of damage mitigated when guarding, if any.
+   * @param {number} counterGuardId The skill id to counter with when guarding, if any.
+   * @param {number} counterParryId The skill id to counter with when precise-parrying, if any.
+   * @param {number} parryDuration The duration of which a precise-parry is available, if any.
+   */
+  constructor(
+    skillId,
+    flatGuardReduction,
+    percGuardReduction,
+    counterGuardId,
+    counterParryId,
+    parryDuration)
+  {
+    /**
+     * The skill this guard data is associated with.
+     * @type {number}
+     */
+    this.skillId = skillId;
+
+    /**
+     * The flat amount of damage reduced when guarding, if any.
+     * @type {number}
+     */
+    this.flatGuardReduction = flatGuardReduction;
+
+    /**
+     * The percent amount of damage mitigated when guarding, if any.
+     * @type {number}
+     */
+    this.percGuardReduction = percGuardReduction;
+
+    /**
+     * The skill id to counter with when guarding, if any.
+     * @type {number}
+     */
+    this.counterGuardId = counterGuardId;
+
+    /**
+     * The skill id to counter with when precise-parrying, if any.
+     * @type {number}
+     */
+    this.counterParryId = counterParryId;
+
+    /**
+     * The duration of which a precise-parry is available, if any.
+     * @type {number}
+     */
+    this.parryDuration = parryDuration;
+  };
+
+  /**
+   * Gets whether or not this guard data includes the ability to guard at all.
+   * @returns {boolean}
+   */
+  canGuard()
+  {
+    return !!(this.flatGuardReduction || this.percGuardReduction);
+  };
+
+  /**
+   * Gets whether or not this guard data includes the ability to precise-parry.
+   * @returns {boolean}
+   */
+  canParry()
+  {
+    return this.parryDuration > 0;
+  };
+
+  /**
+   * Gets whether or not this guard data enables countering of any kind.
+   * @returns {boolean}
+   */
+  canCounter()
+  {
+    return !!(this.counterGuardId || this.counterParryId);
+  };
+}
+//#endregion JABS_GuardData
+
+//#region JABS_LootDrop
+/**
+ * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
+ */
+class JABS_LootDrop
+{
+  constructor(object)
+  {
+    this._lootObject = object;
+    this.initMembers();
+  };
+
+  /**
+   * Initializes properties of this object that don't require parameters.
+   */
+  initMembers()
+  {
+    /**
+     * The duration that this loot drop will exist on the map.
+     * @type {number}
+     */
+    this._duration = 900;
+
+    /**
+     * Whether or not this loot drop can expire.
+     * @type {boolean}
+     */
+    this._canExpire = true;
+
+    /**
+     * The universally unique identifier for this loot drop.
+     * @type {string}
+     */
+    this._uuid = J.BASE.Helpers.generateUuid();
+  };
+
+  /**
+   * Gets the duration remaining on this loot drop.
+   * @returns {number}
+   */
+  get duration()
+  {
+    return this._duration;
+  };
+
+  /**
+   * Sets the duration for this loot drop.
+   */
+  set duration(newDuration)
+  {
+    if (newDuration === -1)
+    {
+      this._canExpire = false;
+    }
+
+    this._duration = newDuration;
+  };
+
+  /**
+   * Whether or not this loot drop's duration is expired.
+   * If the loot cannot expire, this will always return false, regardless of duration.
+   * @returns {boolean}
+   */
+  get expired()
+  {
+    if (!this._canExpire) return false;
+
+    return this._duration <= 0;
+  };
+
+  /**
+   * Counts down the duration for this loot drop.
+   */
+  countdownDuration()
+  {
+    if (!this._canExpire || this._duration <= 0) return;
+
+    this._duration--;
+  };
+
+  /**
+   * Gets the underlying loot object.
+   * @returns {object}
+   */
+  get lootData()
+  {
+    return this._lootObject;
+  };
+
+  /**
+   * Gets the `iconIndex` for the underlying loot object.
+   * @returns {number}
+   */
+  get lootIcon()
+  {
+    return this._lootObject.iconIndex;
+  };
+
+  /**
+   * Gets whether or not this loot should be automatically consumed on pickup.
+   * @returns {boolean}
+   */
+  get useOnPickup()
+  {
+    return this._lootObject._j.useOnPickup;
+  };
+}
+//#endregion JABS_LootDrop
+
+//#region JABS_SkillSlot
+/**
+ * This class represents a single skill slot handled by the skill slot manager.
+ */
+function JABS_SkillSlot()
+{
+  this.initialize(...arguments);
+}
+
+JABS_SkillSlot.prototype = {};
+JABS_SkillSlot.prototype.constructor = JABS_SkillSlot;
+
+/**
+ * Initializes this class. Executed when this class is instantiated.
+ */
+JABS_SkillSlot.prototype.initialize = function(key, skillId)
+{
+  /**
+   * The key of this skill slot.
+   *
+   * Maps 1:1 to one of the possible skill slot button combinations.
+   * @type {string}
+   */
+  this.key = key;
+
+  /**
+   * The id of the skill.
+   *
+   * Set to 0 when a skill is not equipped in this slot.
+   * @type {number}
+   */
+  this.id = skillId;
+  this.initMembers();
+};
+
+/**
+ * Initializes all properties on this class.
+ */
+JABS_SkillSlot.prototype.initMembers = function()
+{
+  /**
+   * Whether or not this skill slot is locked.
+   *
+   * Locked slots cannot be changed until unlocked.
+   * @type {boolean}
+   */
+  this.locked = false;
+};
+
+/**
+ * Gets whether or not this slot has anything assigned to it.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isUsable = function()
+{
+  return this.id > 0;
+};
+
+/**
+ * Gets whether or not this slot is empty.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isEmpty = function()
+{
+  return this.id === 0;
+};
+
+/**
+ * Gets whether or not this slot is locked.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isLocked = function()
+{
+  return this.locked;
+};
+
+/**
+ * Checks whether or not this is a "primary" slot making up the base functions
+ * that this actor can perform on the field.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isPrimarySlot = function()
+{
+  const slots = [
+    Game_Actor.JABS_MAINHAND,
+    Game_Actor.JABS_OFFHAND,
+    Game_Actor.JABS_TOOLSKILL,
+    Game_Actor.JABS_DODGESKILL
+  ];
+
+  return slots.includes(this.key);
+};
+
+/**
+ * Checks whether or not this is a "secondary" slot making up the optional and
+ * flexible functions this actor can perform on the field.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isSecondarySlot = function()
+{
+  const slots = [
+    Game_Actor.JABS_L1_A_SKILL,
+    Game_Actor.JABS_L1_B_SKILL,
+    Game_Actor.JABS_L1_X_SKILL,
+    Game_Actor.JABS_L1_Y_SKILL,
+    Game_Actor.JABS_R1_A_SKILL,
+    Game_Actor.JABS_R1_B_SKILL,
+    Game_Actor.JABS_R1_X_SKILL,
+    Game_Actor.JABS_R1_Y_SKILL
+  ];
+
+  return slots.includes(this.key);
+};
+
+/**
+ * Sets a new skill id to this slot.
+ *
+ * Slot cannot be assigned if it is locked.
+ * @param {number} skillId The new skill id to assign to this slot.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.setSkillId = function(skillId)
+{
+  if (this.isLocked())
+  {
+    console.warn("This slot is currently locked.");
+    SoundManager.playBuzzer();
+    return;
+  }
+
+  this.id = skillId;
+  return this;
+};
+
+/**
+ * Sets whether or not this slot is locked.
+ * @param {boolean} locked Whether or not this slot is locked.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.setLock = function(locked)
+{
+  if (!this.canBeLocked())
+  {
+    this.locked = locked;
+  }
+
+  return this;
+};
+
+/**
+ * Gets whether or not this slot can be locked.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.canBeLocked = function()
+{
+  const lockproofSlots = [
+    Game_Actor.JABS_MAINHAND,
+    Game_Actor.JABS_OFFHAND
+  ];
+
+  return !lockproofSlots.includes(this.key);
+};
+
+/**
+ * Locks this slot, preventing changing of skill assignment.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.lock = function()
+{
+  this.setLock(true);
+  return this;
+};
+
+/**
+ * Unlocks this slot.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.unlock = function()
+{
+  this.setLock(false);
+  return this;
+};
+
+/**
+ * Returns this slot to skill id 0 and unlocks it.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.clear = function()
+{
+  this.unlock();
+  this.setSkillId(0);
+  return this;
+};
+
+/**
+ * Clears this slot in the context of "releasing unequippable skills".
+ * Skills that are mainhand/offhand/tool will not be automatically removed.
+ * Skills that are locked will not be automatically removed.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.autoclear = function()
+{
+  if (!this.canBeAutocleared())
+  {
+    // skip because you can't autoclear these slots.
+    return this;
+  }
+  else
+  {
+    return this.setSkillId(0);
+  }
+};
+
+/**
+ * Gets whether or not this slot can be autocleared, such as from auto-upgrading
+ * a skill or something.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.canBeAutocleared = function()
+{
+  const noAutoclearSlots = [
+    Game_Actor.JABS_MAINHAND,
+    Game_Actor.JABS_OFFHAND,
+    Game_Actor.JABS_TOOLSKILL
+  ];
+
+  return !noAutoclearSlots.includes(this.key);
+};
+//#endregion JABS_SkillSlot
+
+//#region JABS_SkillSlotManager
+/**
+ * A class responsible for managing the skill slots on an actor.
+ */
+function JABS_SkillSlotManager()
+{
+  this.initialize(...arguments);
+}
+
+JABS_SkillSlotManager.prototype = {};
+JABS_SkillSlotManager.prototype.constructor = JABS_SkillSlotManager;
+
+/**
+ * Initializes this class. Executed when this class is instantiated.
+ */
+JABS_SkillSlotManager.prototype.initialize = function()
+{
+  this.initMembers();
+};
+
+/**
+ * Initializes all properties on this class.
+ */
+JABS_SkillSlotManager.prototype.initMembers = function()
+{
+  /**
+   * All skill slots that a player possesses.
+   *
+   * These are in a fixed order.
+   * @type {JABS_SkillSlot[]}
+   */
+  this._slots = [
+    new JABS_SkillSlot("Global", 0),
+
+    new JABS_SkillSlot(Game_Actor.JABS_MAINHAND, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_OFFHAND, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_TOOLSKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_DODGESKILL, 0),
+
+    new JABS_SkillSlot(Game_Actor.JABS_L1_A_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_L1_B_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_L1_X_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_L1_Y_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_R1_A_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_R1_B_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_R1_X_SKILL, 0),
+    new JABS_SkillSlot(Game_Actor.JABS_R1_Y_SKILL, 0)
+  ];
+};
+
+/**
+ * Gets all skill slots, regardless of whether or not their are assigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getAllSlots = function()
+{
+  return this._slots;
+};
+
+/**
+ * Gets all skill slots identified as "primary".
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getAllPrimarySlots = function()
+{
+  return this.getAllSlots()
+    .filter(slot => slot.isPrimarySlot());
+};
+
+/**
+ * Gets all skill slots identified as "secondary".
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getAllSecondarySlots = function()
+{
+  return this.getAllSlots()
+    .filter(slot => slot.isSecondarySlot());
+};
+
+/**
+ * Gets the skill dedicated to the tool slot.
+ * @returns {JABS_SkillSlot}
+ */
+JABS_SkillSlotManager.prototype.getToolSlot = function()
+{
+  return this.getSkillBySlot(Game_Actor.JABS_TOOLSKILL);
+};
+
+/**
+ * Gets the skill dedicated to the dodge slot.
+ * @returns {JABS_SkillSlot}
+ */
+JABS_SkillSlotManager.prototype.getDodgeSlot = function()
+{
+  return this.getSkillBySlot(Game_Actor.JABS_DODGESKILL);
+};
+
+/**
+ * Gets all skill slots that have a skill assigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getEquippedSlots = function()
+{
+  return this.getAllSlots().filter(skillSlot => skillSlot.isUsable());
+};
+
+/**
+ * Gets all secondary skill slots that are unassigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
+{
+  return this.getAllSecondarySlots().filter(skillSlot => skillSlot.isEmpty());
+};
+
+/**
+ * Gets all skill slots that have a skill assigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
+{
+  return this.getEquippedSlots()
+    .filter(skillSlot => skillSlot.key !== Game_Actor.JABS_TOOLSKILL);
+};
+
+/**
+ * Gets a skill slot by its key.
+ * @param {string} key The key to find the matching slot for.
+ * @returns {JABS_SkillSlot}
+ */
+JABS_SkillSlotManager.prototype.getSkillBySlot = function(key)
+{
+  return this.getAllSlots()
+    .find(skillSlot => skillSlot.key === key);
+};
+
+/**
+ * Gets the entire skill slot of the slot containing the skill id.
+ * @param {number} skillIdToFind The skill id to find.
+ * @returns {JABS_SkillSlot}
+ */
+JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind)
+{
+  return this.getEquippedSlots()
+    .find(skillSlot => skillSlot.id === skillIdToFind);
+};
+
+/**
+ * Sets a new skill to a designated slot.
+ * @param {string} key The key of the slot to set.
+ * @param {number} skillId The id of the skill to assign to the slot.
+ * @param {boolean} locked Whether or not the slot should be locked.
+ */
+JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked)
+{
+  this.getSkillBySlot(key)
+    .setSkillId(skillId)
+    .setLock(locked);
+};
+
+/**
+ * Clears and unlocks a skill slot by its key.
+ * @param {string} key The key of the slot to clear.
+ */
+JABS_SkillSlotManager.prototype.clearSlot = function(key)
+{
+  this.getSkillBySlot(key).clear();
+};
+
+/**
+ * Unlocks all slots owned by this actor.
+ */
+JABS_SkillSlotManager.prototype.unlockAllSlots = function(key)
+{
+  this.getAllSlots().forEach(slot => slot.unlock());
+};
+//#endregion JABS_SkillSlotManager
+
+//#region JABS_TrackedState
+/**
+ * A class containing the tracked data for a particular state and battler.
+ */
+function JABS_TrackedState()
+{
+  this.initialize(...arguments);
+}
+JABS_TrackedState.prototype = {};
+JABS_TrackedState.prototype.constructor = JABS_TrackedState;
+
+/**
+ * @constructor
+ * @param {Game_Battler} battler The battler afflicted with this state.
+ * @param {number} stateId The id of the state being tracked.
+ * @param {number} iconIndex The icon index of the state being tracked.
+ * @param {number} duration The duration of the state being tracked.
+ * @param {Game_Battler} source The origin that applied this state to the battler.
+ */
+JABS_TrackedState.prototype.initialize = function({battler, stateId, iconIndex, duration, source})
+{
+  /**
+   * The battler being afflicted with this state.
+   * @type {Game_Battler}
+   */
+  this.battler = battler;
+
+  /**
+   * The id of the state being tracked.
+   * @type {number}
+   */
+  this.stateId = stateId;
+
+  /**
+   * The icon index of the state being tracked (for visual purposes).
+   * @type {number}
+   */
+  this.iconIndex = iconIndex;
+
+  /**
+   * The current duration of the state being tracked. Decrements over time.
+   * @type {number}
+   */
+  this.duration = duration;
+
+  /**
+   * Whether or not this tracked state is identified as `expired`.
+   * Expired states do not apply to the battler, but are kept in the tracking collection
+   * to grant the ability to refresh the state duration or whatever we choose to do.
+   * @type {boolean}
+   */
+  this.expired = false;
+
+  /**
+   * The source that caused this state. Usually this is an opposing battler. If no source is specified,
+   * then the afflicted battler is the source.
+   * @type {Game_Battler}
+   */
+  this.source = source ?? battler;
+};
+
+/**
+ * Updates this tracked state over time. If the duration reaches 0, then the state
+ * is removed and this tracked state becomes `expired`.
+ */
+JABS_TrackedState.prototype.update = function()
+{
+  if (this.duration > 0)
+  {
+    this.duration--;
+  }
+  else if (this.duration === 0 && this.stateId !== this.battler.deathStateId())
+  {
+    this.removeStateFromBattler();
+  }
+};
+
+/**
+ * Performs the removal of the state from the battler and sets the `expired` to true.
+ */
+JABS_TrackedState.prototype.removeStateFromBattler = function()
+{
+  const index = this.battler
+    .states()
+    .findIndex(state => state.id === this.stateId);
+  if (index > -1)
+  {
+    this.battler.removeState(this.stateId);
+    this.expired = true;
+  }
+};
+
+/**
+ * Gets whether or not this tracked state is `expired`.
+ * @returns {boolean}
+ */
+JABS_TrackedState.prototype.isExpired = function()
+{
+  return this.expired;
+};
+
+/**
+ * Gets whether or not this tracked state is about to 'expire'.
+ * @returns {boolean}
+ */
+JABS_TrackedState.prototype.isAboutToExpire = function()
+{
+  return this.duration <= 90;
+};
+//#endregion JABS_TrackedState
+
+//ENDOFFILE

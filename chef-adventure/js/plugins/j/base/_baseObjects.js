@@ -1168,39 +1168,6 @@ Game_Character.prototype.isInanimate = function()
 
 //#region Game_Enemy
 /**
- * Gets the enemy's level.
- * If no level is specified, return `0`.
- * @returns {number}
- */
-Object.defineProperty(Game_Enemy.prototype, "level", {
-  get()
-  {
-    let level = 0;
-
-    const referenceData = $dataEnemies[this.enemyId()];
-    if (referenceData.meta && referenceData.meta[J.BASE.Notetags.EnemyLevel])
-    {
-      level = parseInt(referenceData.meta[J.BASE.Notetags.EnemyLevel]) || level;
-    }
-    else
-    {
-      const structure = /<level:[ ]?([0-9]*)>/i;
-      const notedata = referenceData.note.split(/[\r\n]+/);
-      notedata.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          level = RegExp.$1;
-        }
-      })
-    }
-
-    return parseInt(level);
-  },
-  configurable: true,
-});
-
-/**
  * Gets the amount of sdp points granted by this enemy.
  * @returns {number}
  */

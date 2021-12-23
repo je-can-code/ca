@@ -5,6 +5,7 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-ABS
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * A component of JABS.
@@ -3441,9 +3442,7 @@ class Game_BattleMap
     // determine the difference and apply the multiplier if applicable.
     let difference = attackerHit - defenderGrd;
     if (J.LEVEL && J.LEVEL.Metadata.Enabled) {
-      const multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
-        targetBattler.level,
-        casterBattler.level);
+      const multiplier = LevelScaling.multiplier(targetBattler.level, casterBattler.level);
       difference *= multiplier;
     }
 
@@ -4373,6 +4372,7 @@ class Game_BattleMap
 
   /**
    * Grants experience/gold/loot rewards to the battler that defeated the target.
+   * If the level scaling plugin is available, both experience and gold are scaled.
    * @param {Game_Enemy} enemy The target battler that was defeated.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
@@ -4403,9 +4403,7 @@ class Game_BattleMap
     let multiplier = 1.0;
     if (J.LEVEL && J.LEVEL.Metadata.Enabled)
     {
-      multiplier = J.LEVEL.Utilities.determineScalingMultiplier(
-        actor.getBattler().level,
-        enemy.level);
+      multiplier = LevelScaling.multiplier(actor.getBattler().level, enemy.level);
     }
 
     return multiplier;

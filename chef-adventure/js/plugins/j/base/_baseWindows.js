@@ -39,7 +39,7 @@ WindowLayer.prototype.render = function(renderer)
 
   while (children.length > 0)
   {
-    // draw from front to back instead of in reverse.
+    // draw from front to back instead of back to front.
     const win = children.shift();
     if (win._isWindow && win.visible && win.openness > 0)
     {
@@ -75,179 +75,6 @@ WindowLayer.prototype.render = function(renderer)
 }
 //#endregion WindowLayer
 
-//#region Window_Base
-/**
- * Extends the font settings reset to include bold and italics removal.
- */
-J.BASE.Aliased.Window_Base.resetFontSettings = Window_Base.prototype.resetFontSettings;
-Window_Base.prototype.resetFontSettings = function()
-{
-  J.BASE.Aliased.Window_Base.resetFontSettings.call(this);
-  this.resetFontFormatting();
-};
-
-/**
- * Resets bold and italics for this bitmap.
- */
-Window_Base.prototype.resetFontFormatting = function()
-{
-  this.contents.fontItalic = false;
-  this.contents.fontBold = false;
-};
-
-J.BASE.Aliased.Window_Base.convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
-Window_Base.prototype.convertEscapeCharacters = function(text)
-{
-  // convert the slashes and stuff to the normal escape characters.
-
-  // handle weapon string replacements.
-  text = text.replace(/\\weapon\[(\d+)]/gi, (_, p1) =>
-  {
-    const weaponColor = 4;
-    const weapon = $dataWeapons[parseInt(p1)];
-    return `\\I[${weapon.iconIndex}]\\C[${weaponColor}]${weapon.name}\\C[0]`;
-  });
-
-  // handle armor string replacements.
-  text = text.replace(/\\armor\[(\d+)]/gi, (_, p1) =>
-  {
-    const armorColor = 5;
-    const armor = $dataArmors[parseInt(p1)];
-    return `\\I[${armor.iconIndex}]\\C[${armorColor}]${armor.name}\\C[0]`;
-  });
-
-  // handle item string replacements.
-  text = text.replace(/\\item\[(\d+)]/gi, (_, p1) =>
-  {
-    const itemColor = 3;
-    const item = $dataItems[parseInt(p1)];
-    return `\\I[${item.iconIndex}]\\C[${itemColor}]${item.name}\\C[0]`;
-  });
-
-  // handle state string replacements.
-  text = text.replace(/\\state\[(\d+)]/gi, (_, p1) =>
-  {
-    const stateColor = 6;
-    const stateId = parseInt(p1);
-    let name = '(Basic Attack)';
-    let iconIndex = 76;
-    if (stateId > 0)
-    {
-      const state = $dataStates[parseInt(p1)];
-      name = state.name;
-      iconIndex = state.iconIndex;
-    }
-    return `\\I[${iconIndex}]\\C[${stateColor}]${name}\\C[0]`;
-  });
-
-  // handle skill string replacements.
-  text = text.replace(/\\skill\[(\d+)]/gi, (_, p1) =>
-  {
-    const skillColor = 1;
-    const skill = $dataSkills[parseInt(p1)];
-    return `\\I[${skill.iconIndex}]\\C[${skillColor}]${skill.name}\\C[0]`;
-  });
-
-  // handle enemy string replacements.
-  text = text.replace(/\\enemy\[(\d+)]/gi, (_, p1) =>
-  {
-    const enemyColor = 2;
-    const enemy = $dataEnemies[parseInt(p1)];
-    return `\\C[${enemyColor}]${enemy.name}\\C[0]`;
-  });
-
-  return J.BASE.Aliased.Window_Base.convertEscapeCharacters.call(this, text);
-};
-
-/**
- * Extends text analysis to check for our custom escape codes, too.
- */
-J.BASE.Aliased.Window_Base.obtainEscapeCode = Window_Base.prototype.obtainEscapeCode;
-Window_Base.prototype.obtainEscapeCode = function(textState)
-{
-  const originalEscape = J.BASE.Aliased.Window_Base.obtainEscapeCode.call(this, textState);
-  if (!originalEscape)
-  {
-    return this.customEscapeCodes();
-  }
-  else
-  {
-    return originalEscape;
-  }
-};
-
-/**
- * Retrieves additional escape codes that are our custom creation.
- * @param {any} textState The rolling text state.
- * @returns {string} The found escape code, if any.
- */
-Window_Base.prototype.customEscapeCodes = function(textState)
-{
-  if (!textState) return;
-
-  const regExp = this.escapeCodes();
-  const arr = regExp.exec(textState.text.slice(textState.index));
-  if (arr)
-  {
-    textState.index += arr[0].length;
-    return arr[0].toUpperCase();
-  }
-  else
-  {
-    return String.empty;
-  }
-};
-
-/**
- * Gets the regex escape code structure.
- *
- * This includes our added custom escape code symbols to look for.
- * @returns {RegExp}
- */
-Window_Base.prototype.escapeCodes = function()
-{
-  return /^[$.|^!><{}*_\\]|^[A-Z]+/i;
-};
-
-/**
- * Extends the processing of escape codes to include our custom ones.
- *
- * This adds italics and bold to the possible list of escape codes.
- */
-J.BASE.Aliased.Window_Base.processEscapeCharacter = Window_Base.prototype.processEscapeCharacter;
-Window_Base.prototype.processEscapeCharacter = function(code, textState)
-{
-  J.BASE.Aliased.Window_Base.processEscapeCharacter.call(this, code, textState);
-  switch (code)
-  {
-    case "_":
-      this.toggleItalics();
-      break;
-    case "*":
-      this.toggleBold();
-      break;
-  }
-};
-
-/**
- * Toggles the italics for the rolling text state.
- * @param {boolean} force Optional. If provided, will force one way or the other.
- */
-Window_Base.prototype.toggleItalics = function(force)
-{
-  this.contents.fontItalic = force ?? !this.contents.fontItalic;
-};
-
-/**
- * Toggles the bold for the rolling text state.
- * @param {boolean} force Optional. If provided, will force one way or the other.
- */
-Window_Base.prototype.toggleBold = function(force)
-{
-  this.contents.fontBold = force ?? !this.contents.fontBold;
-};
-//#endregion Window_Base
-
 //#region Window_Command
 /**
  * OVERWRITE Draws the color and icon along with the item itself in the command window.
@@ -262,8 +89,6 @@ Window_Command.prototype.drawItem = function(index)
   commandName = this.handleIcon(commandName, index);
 
   this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
-
-  // this.drawText(commandName, rect.x+4, rect.y, rect.width);
 };
 
 /**
