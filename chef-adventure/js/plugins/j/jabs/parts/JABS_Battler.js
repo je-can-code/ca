@@ -4017,16 +4017,16 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
 JABS_Battler.prototype.applyToolToPlayer = function(toolId)
 {
   // apply tool effects against player.
-  const playerBattler = this.getBattler();
-  const playerGameAction = new Game_Action(playerBattler, false);
-  playerGameAction.setItem(toolId);
-  playerGameAction.apply(playerBattler);
+  const battler = this.getBattler();
+  const gameAction = new Game_Action(battler, false);
+  gameAction.setItem(toolId);
+  gameAction.apply(battler);
 
   // display popup from item.
-  this.generatePopItem(playerGameAction, toolId);
+  this.generatePopItem(gameAction, toolId);
 
   // show tool animation.
-  this.showAnimation(tool.animationId);
+  this.showAnimation($dataItems[toolId].animationId);
 };
 
 /**
