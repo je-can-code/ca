@@ -1413,7 +1413,8 @@ JABS_Battler.prototype.processStateRegens = function(states)
       // flip the sign for the regen for properly creating pops.
       regen *= -1;
 
-      this.createSlipPop(regen, index);
+      // generate the textpop.
+      this.generatePopSlip(regen, index);
     }
   });
 };
@@ -1590,11 +1591,19 @@ JABS_Battler.prototype.stateSlipTp = function(state)
  * @param {number} amount The slip pop amount.
  * @param {number} type The slip parameter: 0=hp, 1=mp, 2=tp.
  */
-JABS_Battler.prototype.createSlipPop = function(amount, type)
+JABS_Battler.prototype.generatePopSlip = function(amount, type)
 {
-  const popup = this.configureSlipPop(amount, type);
+  // if we are not using popups, then don't do this.
+  if (!J.POPUPS) return;
+
+  // gather shorthand variables for use.
   const character = this.getCharacter();
-  character.addTextPop(popup);
+
+  // generate the textpop.
+  const slipPop = this.configureSlipPop(amount, type);
+
+  // add the pop to the target's tracking.
+  character.addTextPop(slipPop);
   character.setRequestTextPop();
 };
 
@@ -3810,8 +3819,7 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
   // calculate the projectile count and directions.
   const projectileCount = skill._j.projectile();
   const projectileDirections = $gameBattleMap.determineActionDirections(
-    this.getCharacter()
-      .direction(),
+    this.getCharacter().direction(),
     projectileCount);
 
   // calculate how many actions will be generated to accommodate the directions.
@@ -3993,8 +4001,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   }
 
   // if the last item was consumed, unequip it.
-  if (!isLoot && !$gameParty.items()
-    .includes(item))
+  if (!isLoot && !$gameParty.items().includes(item))
   {
     playerBattler.setEquippedSkill(Game_Actor.JABS_TOOLSKILL, 0);
     const lastItemMessage = `The last ${item.name} was consumed and unequipped.`;
@@ -4016,14 +4023,33 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
   playerGameAction.apply(playerBattler);
 
   // display popup from item.
-  const tool = $dataItems[toolId];
-  const playerCharacter = this.getCharacter();
-  const popup = $gameBattleMap.configureDamagePop(playerGameAction, tool, this, this);
-  playerCharacter.addTextPop(popup);
-  playerCharacter.setRequestTextPop();
+  this.generatePopItem(playerGameAction, toolId);
 
   // show tool animation.
-  playerCharacter.requestAnimation(tool.animationId, false);
+  this.showAnimation(tool.animationId);
+};
+
+/**
+ * Generates a popup based on the item used on oneself.
+ * @param {Game_Action} gameAction The action describing the tool's effect.
+ * @param {number} itemId The target having the action applied against.
+ * @param {JABS_Battler} target The target for calculating damage; defaults to self.
+ */
+JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = this)
+{
+  // if we are not using popups, then don't do this.
+  if (!J.POPUPS) return;
+
+  // grab some shorthand variables for local use.
+  const character = this.getCharacter();
+  const toolData = $dataItems[itemId];
+
+  // generate the textpop.
+  const itemPop = $gameBattleMap.configureDamagePop(gameAction, toolData, this, target);
+
+  // add the pop to the target's tracking.
+  character.addTextPop(itemPop);
+  character.setRequestTextPop();
 };
 
 /**
@@ -4068,13 +4094,17 @@ JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
     return;
   }
 
+  // grab the battler being affected by this item.
   const battler = jabsBattler.getBattler();
+
+  // create the game action based on the data.
   const gameAction = new Game_Action(battler, false);
+
+  // apply the effects against the battler.
   gameAction.apply(battler);
-  const battlerSprite = jabsBattler.getCharacter();
-  const popup = $gameBattleMap.configureDamagePop(gameAction, item, this, jabsBattler);
-  battlerSprite.addTextPop(popup);
-  battlerSprite.setRequestTextPop();
+
+  // generate the text popup for the item usage on the target.
+  this.generatePopItem(gameAction, toolId, jabsBattler);
 };
 
 /**
@@ -4083,18 +4113,21 @@ JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
  */
 JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 {
-  const item = $dataItems[toolId];
   const battlers = $gameMap.getEnemyBattlers();
   battlers.forEach(jabsBattler =>
   {
+    // grab the battler being affected by this item.
     const battler = jabsBattler.getBattler();
+
+    // create the game action based on the data.
     const gameAction = new Game_Action(battler, false);
+
+    // apply the effects against the battler.
     gameAction.apply(battler);
-    const battlerSprite = jabsBattler.getCharacter();
-    const popup = $gameBattleMap.configureDamagePop(gameAction, item, this, jabsBattler);
-    battlerSprite.addTextPop(popup);
-    battlerSprite.setRequestTextPop();
-  });
+
+    // generate the text popup for the item usage on the target.
+    this.generatePopItem(gameAction, toolId);
+  }, this);
 };
 
 /**
@@ -4603,8 +4636,7 @@ JABS_Battler.prototype.showBalloon = function(balloonId)
  */
 JABS_Battler.prototype.showAnimation = function(animationId)
 {
-  this.getCharacter()
-    .requestAnimation(animationId);
+  this.getCharacter().requestAnimation(animationId);
 };
 //#endregion utility helpers
 //ENDFILE

@@ -1062,18 +1062,40 @@ if (J.ABS)
     // don't do anything if the enemy didn't grant any sdp points.
     if (!sdpPoints) return;
 
-    // sdp points are gained by all members in the party.
-    $gameParty.members().forEach(member => member.modSdpPoints(sdpPoints));
+    // sdp points are obtained by all members in the party.
+    $gameParty.members().forEach((member, index) =>
+    {
+      // don't double-obtain the leader's points!
+      if (index === 0) return;
 
-    // get the true amount gained after multipliers for the leader.
+      // obtain the points for the member.
+      member.modSdpPoints(sdpPoints);
+    });
+
+    // get the true amount obtained after multipliers for the leader.
     const sdpMultiplier = actor.getBattler().sdpMultiplier();
     const multipliedSdpPoints = Math.round(sdpMultiplier * sdpPoints);
 
-    // build and apply the text pop.
-    const sdpPop = this.configureSdpPop(multipliedSdpPoints);
-    const actorSprite = actor.getCharacter();
-    actorSprite.addTextPop(sdpPop);
-    actorSprite.setRequestTextPop();
+    // generate the text popup for the obtained sdp points.
+    this.generatePopSdpPoints(multipliedSdpPoints, actor.getCharacter());
+  };
+
+  /**
+   * Generates a popup for the SDP points obtained.
+   * @param {number} amount The amount to display.
+   * @param {Game_Character} character The character to show the popup on.
+   */
+  Game_BattleMap.prototype.generatePopSdpPoints = function(amount, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // generate the textpop.
+    const sdpPop = this.configureSdpPop(amount);
+
+    // add the pop to the caster's tracking.
+    character.addTextPop(sdpPop);
+    character.setRequestTextPop();
   };
 
   /**

@@ -188,8 +188,6 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 J.ABS.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMembers;
 Sprite_Character.prototype.initMembers = function()
 {
-  this._damages = [];
-  this._nonDamages = [];
   this._stateOverlaySprite = null;
   this._hpGauge = null;
   this._dangerIndicator = null;
@@ -210,7 +208,7 @@ J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
 Sprite_Character.prototype.update = function()
 {
   J.ABS.Aliased.Sprite_Character.update.call(this);
-  if (this.getBattler())
+  if (this.isJabsBattler())
   {
     this.updateStateOverlay();
     this.updateGauges();
