@@ -17,8 +17,7 @@
 /**
  * The window representing what is called and manages the player's assigned skill slots.
  */
-class Window_AbsMenu
-  extends Window_Command
+class Window_AbsMenu extends Window_Command
 {
   /**
    * @constructor

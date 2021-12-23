@@ -359,8 +359,6 @@ Window_TextLog.prototype.initMembers = function()
    * Whether or not the log should be visible.
    */
   this._enabled = true;
-
-  this._toggled = false;
 };
 
 /**
@@ -396,8 +394,6 @@ Window_TextLog.prototype.manageVisibility = function()
     this.show();
     this.open();
   }
-
-  this._toggled = false;
 };
 
 /**
@@ -407,7 +403,6 @@ Window_TextLog.prototype.manageVisibility = function()
 Window_TextLog.prototype.toggle = function(toggle = !this._enabled)
 {
   this._enabled = toggle;
-  this._toggled = false;
   this.manageVisibility();
 };
 
@@ -499,9 +494,6 @@ Window_TextLog.prototype.interferenceOpacity = function()
     if (sprite.opacity > 0) sprite.opacity -= 15;
     if (sprite.opacity < 0) sprite.opacity += 1;
   });
-
-  //if (this.opacity > 0) this.opacity -= 15;
-  //if (this.opacity < 0) this.opacity += 1;
 };
 
 /**
@@ -510,7 +502,7 @@ Window_TextLog.prototype.interferenceOpacity = function()
 Window_TextLog.prototype.writeAllEntries = function()
 {
   this.contents.clear();
-  if (this._messageTracker.length == 0 || this.isFaded()) return;
+  if (this._messageTracker.length === 0 || this.isFaded()) return;
 
   this._messageTracker.forEach((messageSprite, index) =>
   {
@@ -526,7 +518,6 @@ Window_TextLog.prototype.handleIncomingLogs = function()
 {
   if ($gameTextLog.getLogs().length > 0)
   {
-
     // get the log from the global log manager.
     const nextLog = $gameTextLog.shiftLog();
 
