@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v.1.0 DIAG] Fixes diagonal movement for projectiles and characters.
+ * [v1.0 DIAG] Fixes diagonal movement for projectiles and characters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE

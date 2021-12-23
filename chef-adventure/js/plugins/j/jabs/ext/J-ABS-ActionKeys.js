@@ -1,3 +1,4 @@
+//#region initialization
 /*:
 * @target MZ
 * @plugindesc
@@ -39,7 +40,6 @@
 * @desc Hides the action keys. Actions still exist, but the visual component is hidden.
 */
 
-//#region plugin setup and configuration
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -75,7 +75,7 @@ J.KEYS = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.KEYS.Metadata = {};
-J.KEYS.Metadata.Version = 1.00;
+J.KEYS.Metadata.Version = '1.0.0';
 J.KEYS.Metadata.Name = `J-ABS-ActionKeys`;
 
 /**
@@ -88,9 +88,12 @@ J.KEYS.Metadata.Enabled = true;
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.KEYS.Aliased = {};
-J.KEYS.Aliased.Scene_Map = {};
+J.KEYS.Aliased =
+  {
+    Scene_Map: new Map(),
+  };
 
+//#region plugin commands
 /**
  * Plugin command for enabling the text log and showing it.
  */
@@ -106,37 +109,40 @@ PluginManager.registerCommand(J.KEYS.Metadata.Name, "Hide Action Keys", () =>
 {
   J.KEYS.Metadata.Active = false;
 });
-//#endregion plugin setup and configuration
+//#endregion plugin commands
+//#endregion initialization
 
 //#region Scene objects
 //#region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
-J.KEYS.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.KEYS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
-  J.KEYS.Aliased.Scene_Map.initialize.call(this);
-  if (!J.ABS || !J.ABS.Metadata || !J.ABS.Metadata.Version || J.ABS.Metadata.Version < 1.00)
-  {
-    let msg = "The JABS Action Keys plugin was designed for and requires JABS.";
-    msg += " Please add the JABS plugin above this plugin.";
-    throw new Error(msg);
-  }
-  else
-  {
-    this._j._actionKeys = null;
-  }
+  J.KEYS.Aliased.Scene_Map.get('initialize').call(this);
+
+  /**
+   * The master reference to the `_j` object containing all plugin properties.
+   * @type {{}}
+   */
+  this._j ||= {};
+
+  /**
+   * The action keys window.
+   * @type {Window_ActionKeys|null}
+   */
+  this._j._actionKeysWindow = null;
 };
 
 /**
  * Once the map is loaded, hook in and create the `JABS_BattlerManager` for managing
  * the JABS.
  */
-J.KEYS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.KEYS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
 {
-  J.KEYS.Aliased.Scene_Map.onMapLoaded.call(this);
+  J.KEYS.Aliased.Scene_Map.get('onMapLoaded').call(this);
   this.createJabsActionKeys();
 };
 
@@ -150,8 +156,8 @@ Scene_Map.prototype.createJabsActionKeys = function()
   const wx = (Graphics.width - ww - (Graphics.width - Graphics.boxWidth) / 2);
   const wy = (Graphics.height - wh - (Graphics.height - Graphics.boxHeight) / 2);
   const rect = new Rectangle(wx, wy, ww, wh);
-  this._j._actionKeys = new Window_ActionKeys(rect);
-  this.addWindow(this._j._actionKeys);
+  this._j._actionKeysWindow = new Window_ActionKeys(rect);
+  this.addWindow(this._j._actionKeysWindow);
 };
 
 /**
@@ -162,7 +168,7 @@ Scene_Map.prototype.toggleKeys = function(toggle = true)
 {
   if (J.KEYS.Metadata.Enabled)
   {
-    this._j._actionKeys.toggle(toggle);
+    this._j._actionKeysWindow.toggle(toggle);
   }
 };
 //#endregion Scene_Map
@@ -244,8 +250,6 @@ Window_ActionKeys.prototype.manageVisibility = function()
   {
     this.open();
   }
-
-  this._toggled = false;
 };
 
 /**

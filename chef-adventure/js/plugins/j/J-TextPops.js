@@ -1,18 +1,73 @@
 //#region Introduction
-/*
+/*:
  * @target MZ
  * @plugindesc
- * [v1.0 POPUPS] Enable text pops for JABS.
+ * [v1.0 POPUPS] Enable text pops on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @base J-ABS
- * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * This plugin extends JABS and enables text pops for various things around
- * the map, such as damage pops or experience gain pops.
+ * This plugin enables the ability to display text popups on the map.
+ *
+ * The text pops themselves were designed for use within JABS, but the
+ * functionality was abstracted out and no longer relies on JABS to operate.
+ * ============================================================================
+ * BASIC USAGE:
+ * If you are using JABS, then JABS already knows what to do to make use of
+ * this functionality. Just add this plugin after/below JABS, and it'll work
+ * with no additional adjustments.
+ * ============================================================================
+ * PLUGIN DEVELOPER USAGE:
+ * If you want to leverage these text popups on the map to display your own
+ * custom popup, either in an event or in your plugin, then the below steps
+ * will help you accomplish that.
+ *
+ * Step 1) Get the Game_Character or subclass of Game_Character.
+ * The character is the focal point of where a popup is displayed on the map.
+ *
+ * Step 1a) Getting the character inside an event command.
+ * If you're in an event using the event command "Script", then you can use
+ * this line:
+ *    const character = $gameMap.event(this._eventId);
+ * to retrieve the character for reference. "this._eventId" references the
+ * executing event. If you wanted it to be on some other particular event, you
+ * can swap in another event id instead.
+ *
+ * Step 1b) Getting the character inside a plugin.
+ * If you're in a plugin, I'm afraid you'll need to sort out how to gain access
+ * to the character you want yourself. You can peek into JABS code to see some
+ * examples of how I fetched characters for display.
+ *
+ * Step 2) Building the popup.
+ * Building the popup is fairly straight forward. You can use the
+ * "TextPopBuilder" class to "build" a popup. It uses the builder pattern for
+ * piecing together the relevant parts of the popup in a way that makes sense.
+ * It also has some convenience presets for more commonly used popups, like
+ * hp damage. A basic example of the textpopbuilder in-use would look like:
+ *    const customPop = new TextPopBuilder("hello")
+ *      .setIconIndex(87)
+ *      .setTextColorIndex(27)
+ *      .build();
+ * which would result in the "customPop" variable to now contain a built
+ * popup with the value of "hello", an icon to the left of index 87, and a
+ * text color of 27 (see your message window for text color indices).
+ *
+ * Step 3) Add the pop and flag the character.
+ * Once you have the character and built the text pop, you only need to add it
+ * to the character and flag them for processing. Going with the above
+ * examples, an end result from start to finish could look something like this:
+ *
+ *    const character = $gameMap.event(this._eventId);
+ *    const customPop = new TextPopBuilder("hello")
+ *      .setIconIndex(87)
+ *      .setTextColorIndex(27)
+ *      .build();
+ *    character.addTextPop(customPop);
+ *    character.setRequestTextPop();
+ *
+ * Or if you're in a plugin, the only real difference would be how the
+ * character is retrieved, with the rest being the same.
  * ============================================================================
  */
 
@@ -62,10 +117,21 @@ Game_Character.prototype.initMembers = function()
    * @type {{}}
    */
   this._j ||= {};
-  J.POPUPS.Aliased.Game_Character.get('initMembers').call(this);
 
-  this.initActionSpriteProperties();
-  this.initLootSpriteProperties();
+  /**
+   * The text pops that are pending processing.
+   * @type {JABS_TextPop[]}
+   */
+  this._j._textPops = [];
+
+  /**
+   * Whether or not this character has a request for generating damage pops.
+   * @type {boolean}
+   */
+  this._j._textPopRequest = false;
+
+  // run the rest of the original logic.
+  J.POPUPS.Aliased.Game_Character.get('initMembers').call(this);
 };
 
 /**
@@ -73,23 +139,55 @@ Game_Character.prototype.initMembers = function()
  */
 Game_Character.prototype.getRequestTextPop = function()
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.requestDamagePop;
+  // don't do this if popups are disabled by JABS.
+  if (J.ABS && J.ABS.Metadata.DisableTextPops) return false;
+
+  return this._j._textPopRequest;
 };
 
 /**
- * Sets the `requestDamagePop` property from the `actionSpriteProperties` for this event.
- * @param {boolean} damagePopRequest True to trigger damage pops, false otherwise (default: true).
+ * Flags this character for requiring a text pop.
+ * @param {boolean} textPopRequest True to process all current text pops on this character, false otherwise.
  */
-Game_Character.prototype.setRequestTextPop = function(damagePopRequest = true)
+Game_Character.prototype.setRequestTextPop = function(textPopRequest = true)
 {
-  // don't do this if popups are disabled.
-  if (J.ABS.Metadata.DisableTextPops) return;
+  // don't do this if popups are disabled by JABS.
+  if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
 
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.requestDamagePop = damagePopRequest;
+  // assign the request.
+  this._j._textPopRequest = textPopRequest;
 };
 
+/**
+ * Adds a text pop to this character.
+ * @param {JABS_TextPop} textPop A text pop that will be displayed on the map.
+ */
+Game_Character.prototype.addTextPop = function(textPop)
+{
+  // don't do this if popups are disabled by JABS.
+  if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
+
+  // add the text pop to the tracking.
+  this._j._textPops.push(textPop);
+};
+
+/**
+ * Gets all currently waiting-to-be-processed text pops.
+ * @returns {JABS_TextPop[]}
+ */
+Game_Character.prototype.getTextPops = function()
+{
+  return this._j._textPops;
+};
+
+/**
+ * Remove all text pops from the collection.
+ */
+Game_Character.prototype.emptyDamagePops = function()
+{
+  // empty the contents of the array for all references to see.
+  this._j._textPops.splice(0, this._j._textPops.length);
+};
 //#endregion Game_Character
 
 //#region Sprite_Character
@@ -196,15 +294,11 @@ Sprite_Character.prototype.update = function()
   // execute original update processing.
   J.POPUPS.Aliased.Sprite_Character.get('update').call(this);
 
-  // check if this is even a jabs battler that can have text pops.
-  if (this.isJabsBattler())
-  {
-    // effectively a subscription for creating new text pops on this character.
-    this.processIncomingTextPops();
+  // effectively a subscription for creating new text pops on this character.
+  this.processIncomingTextPops();
 
-    // and perform the update for popups if it is.
-    this.updateTextPops();
-  }
+  // and perform the update for popups if it is.
+  this.updateTextPops();
 };
 
 //#region incoming subscription
@@ -236,7 +330,7 @@ Sprite_Character.prototype.createIncomingTextPops = function()
   const character = this.character();
 
   // get all the popups to create.
-  const newPopups = character.getDamagePops();
+  const newPopups = character.getTextPops();
 
   // assuming we actually have popups to create, create them.
   if (newPopups.length)
@@ -1396,7 +1490,6 @@ class TextPopBuilder
      * @returns {number}
      */
     tpHealing: 29,
-
   };
 
   /**
@@ -1683,5 +1776,145 @@ class TextPopBuilder
   //#endregion presents
 }
 //#endregion TextPopBuilder
+
+//#region JABS_TextPop
+/**
+ * A class representing a single popup on the map.
+ */
+function JABS_TextPop()
+{
+  this.initialize(...arguments);
+}
+JABS_TextPop.prototype = {};
+JABS_TextPop.prototype.constructor = JABS_TextPop;
+
+/**
+ * A static collection of all types associated with text pops.
+ */
+JABS_TextPop.Types = {
+  /**
+   * The popup type of "hp-damage", for displaying hp damage pops.
+   */
+  HpDamage: 'hp-damage',
+
+  /**
+   * The popup type of "mp-damage", for displaying mp damage pops.
+   */
+  MpDamage: 'mp-damage',
+
+  /**
+   * The popup type of "tp-damage", for displaying tp damage pops.
+   */
+  TpDamage: 'tp-damage',
+
+  /**
+   * The popup type of "evade", for evasion pops.
+   * Though, these aren't officially supported by JABS.
+   */
+  Evade: 'evade',
+
+  /**
+   * The popup type of "parry", for when a skill was used, but also parried.
+   */
+  Parry: 'parry',
+
+  /**
+   * The popup type of "experience", for displaying gained experience pops.
+   */
+  Experience: 'exp',
+
+  /**
+   * The popup type of "gold", for displaying earned gold pops.
+   */
+  Gold: 'gold',
+
+  /**
+   * The popup type of "levelup", for displaying levelups pops.
+   */
+  Levelup: 'levelup',
+
+  /**
+   * The popup type of "item", for displaying loot pops.
+   */
+  Item: 'item',
+
+  /**
+   * The popup type of "slip", for displaying pops generated by slip damage/healing.
+   */
+  Slip: 'slip',
+
+  /**
+   * The popup type of "skillLearn", for displaying skills learned as a pop.
+   */
+  Learn: 'skillLearn',
+
+  /**
+   * The popup type of "sdp", for displaying SDP points earned after defeating foes.
+   */
+  Sdp: 'sdp',
+
+  /**
+   * The popup type of "skillUsage", for displaying used skills as popups off the battlers on the map.
+   */
+  SkillUsage: 'skillUsage',
+};
+
+/**
+ * Builds the text pop based on the given parameters.
+ */
+JABS_TextPop.prototype.initialize = function({
+  iconIndex,
+  textColorIndex,
+  popupType,
+  value,
+  critical,
+  coordinateVariance,
+  healing,
+}) {
+  /**
+   * The id of the icon to display alongside this `JABS_TextPop`.
+   * @type {number}
+   */
+  this.iconIndex = iconIndex;
+
+  /**
+   * The color index for the text color.
+   * @type {number}
+   */
+  this.textColorIndex = textColorIndex;
+
+  /**
+   * The type of popup this is, such as damage, experience, loot, etc.
+   * @type {JABS_TextPop.Types}
+   */
+  this.popupType = popupType;
+
+  /**
+   * The value to display on the sprite for this popup.
+   * @type {string}
+   */
+  this.value = value || String.empty;
+
+  /**
+   * Whether or not this popup is critical.
+   * For non-damage popups, this is always false.
+   * @type {boolean}
+   */
+  this.critical = critical || false;
+
+  /**
+   * The x and y coordinate variances into a single `[x,y]` array.
+   * @type {[number, number]}
+   */
+  this.coordinateVariance = coordinateVariance;
+
+  /**
+   * Whether or not this popup is healing.
+   * Healing popups' motion is handled a bit differently.
+   * @type {boolean}
+   */
+  this.healing = healing;
+};
+//#endregion JABS_TextPop
 
 //ENDOFFILE
