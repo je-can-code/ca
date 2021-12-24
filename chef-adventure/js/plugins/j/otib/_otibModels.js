@@ -1,19 +1,19 @@
 /*:
  * @target MZ
- * @plugindesc 
- * [v2.0.0 BASE] OTIB core part.
+ * @plugindesc
+ * [v3.0 OTIB] The various custom models created for OTIB.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
+ * @orderBefore J-OneTimeItemBoost
  * @help
  * ============================================================================
- * A component of OTIB.
- * This class represents the metadata used by OTIB that is parsed and
- * managed by the BASE plugin. The core object that manages whether or not
- * the parameters should be added to the player's stats is found here.
+ * A component of OTIB (one time item boost).
+ * This is a cluster of all models that honestly deserved their own file, but
+ * that is mighty inconvenient for plugin consumers, so now its all in one.
  * ============================================================================
  */
 
+//#region OneTimeItemBoost
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
@@ -76,4 +76,38 @@ OneTimeItemBoost.prototype.lock = function()
 {
   this.unlocked = false;
 };
-//ENDFILE
+//#endregion OneTimeItemBoost
+
+//#region OneTimeItemBoostParam
+/**
+ * A class representing the permanent data of a one time boost from a single item.
+ */
+function OneTimeItemBoostParam()
+{
+  this.initialize(...arguments);
+}
+
+OneTimeItemBoostParam.prototype = {};
+OneTimeItemBoostParam.prototype.constructor = OneTimeItemBoostParam;
+OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent)
+{
+  /**
+   * The parameter id this parameter boost represents.
+   * @type {number}
+   */
+  this.paramId = paramId;
+
+  /**
+   * The value of the parameter boost.
+   * @type {number}
+   */
+  this.boost = boost;
+
+  /**
+   * Whether or not this boost is a multiplicative parameter boost or not.
+   * @type {boolean}
+   */
+  this.isPercent = isPercent;
+};
+//#endregion OneTimeItemBoostParam
+//ENDOFFILE
