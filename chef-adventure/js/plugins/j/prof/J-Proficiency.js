@@ -11,6 +11,71 @@
  * using skills. Additionally, triggers can now be configured to execute
  * against these new proficiencies (and other things).
  * ============================================================================
+ * PROFICIENCY BONUSES:
+ * Have you ever wanted a battler to be able to gain some bonus proficiency by
+ * means of something from the database? Well now you can! By applying the
+ * appropriate tag to the various database locations, you too can have your
+ * battlers gain bonus proficiency!
+ *
+ * NOTE:
+ * Bonuses are flat bonuses that get added to the base amount, not percentage.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <proficiencyBonus:NUM>
+ *
+ * TAG EXAMPLES:
+ *  <proficiencyBonus:3>
+ * The attacker now gains +3 bonus proficiency for any skill used.
+ *
+ *  <proficiencyBonus:50>
+ * The attacker now gains +50 bonus proficiency for any skill used.
+ * ============================================================================
+ * PROFICIENCY BLOCKING:
+ * Have you ever wanted a battler to NOT be able to gain proficiency? Well now
+ * you can! By applying the appropriate tags to the various database locations,
+ * you too can block any battler from giving or gaining proficiency!
+ *
+ * NOTE:
+ * It is important to recognize that there are two tags that both block the
+ * gain of proficiency in different ways. One tag is designed to prevent the
+ * GIVING of proficiency, for most commonly being placed on enemies or states
+ * that enemies can be placed in. The second tag is designed to prevent the
+ * GAINING of proficiency, most commonly being placed on actors or states that
+ * actors can be placed in... though either tag can go on anything as long as
+ * you understand what you're doing.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <proficiencyGivingBlock>
+ * or
+ *  <proficiencyGainingBlock>
+ *
+ * TAG EXAMPLES:
+ *  <proficiencyGivingBlock>
+ * The battler that has this tag will not GIVE proficiency to any opposing
+ * battlers that hit this battler with skills.
+ *
+ *  <proficiencyGainingBlock>
+ * The battler that has this tag will not be able to GAIN proficiency from any
+ * battlers that this battler uses skills against.
+ * ============================================================================
  * PLUGIN COMMANDS
  * ----------------------------------------------------------------------------
  * COMMAND:
@@ -26,8 +91,8 @@
  *
  * NOTES:
  * - You cannot reduce a skill's proficiency in a skill below 0.
- * - Increasing the proficiency can trigger any rewards for the skill.
- * - Decreasing the proficiency will NOT undo any rewards gained.
+ * - Increasing the proficiency can trigger rewards for the skill.
+ * - Decreasing the proficiency will NOT undo rewards gained.
  *
  * ============================================================================
  * @param conditionals
@@ -281,11 +346,38 @@ Game_Action.prototype.apply = function(target)
   const result = target.result();
 
   // we only process prof gains for actors- for now.
-  const canIncreaseProficiency = result.isHit() && this.isSkill();
-  if (canIncreaseProficiency)
+  if (this.canIncreaseProficiency(target))
   {
     this.increaseProficiency(result.critical);
   }
+};
+
+/**
+ * Whether or not increasing the attacker's proficiency is a valid course of action
+ * based on various requirements.
+ * @param {Game_Battler} target The result of the action.
+ * @returns {boolean}
+ */
+Game_Action.prototype.canIncreaseProficiency = function(target)
+{
+  // only gain proficiency if this is a skill, not an item or something.
+  const isSkill = this.isSkill();
+  if (!isSkill) return false;
+
+  // only gain proficiency if we hit the target.
+  const isHit = target.result().isHit();
+  if (!isHit) return false;
+
+  // only gain proficiency if the target allows it.
+  const canGiveProficiency = target.canGiveProficiency();
+  if (!canGiveProficiency) return false;
+
+  // only gain proficiency if the attacker allows it.
+  const canGainProficiency = this.subject().canGainProficiency();
+  if (!canGainProficiency) return false;
+
+  // if we made it this far, then we can gain proficiency!
+  return true;
 };
 
 /**
@@ -667,7 +759,7 @@ Game_Battler.prototype.skillProficiencies = function()
 
 /**
  * Gets the prof of one particular skill for this battler.
- * @returns {null}
+ * @returns {number}
  */
 Game_Battler.prototype.skillProficiencyBySkillId = function(skillId)
 {
@@ -701,6 +793,80 @@ Game_Battler.prototype.baseSkillProficiencyAmount = function()
 Game_Battler.prototype.bonusSkillProficiencyGains = function()
 {
   return 0;
+};
+
+/**
+ * Whether or not a battler can gain proficiency by using skills against this battler.
+ * @returns {boolean} True if the battler can give proficiency, false otherwise.
+ */
+Game_Battler.prototype.canGiveProficiency = function()
+{
+  // get whether or not they are blocked from giving proficiency.
+  const canGiveProficiency = this.extractProficiencyGivingBlock();
+
+  // return the outcome.
+  return canGiveProficiency;
+};
+
+/**
+ * Determines whether or not this battler can give proficiency gains.
+ * @returns {number}
+ */
+Game_Battler.prototype.extractProficiencyGivingBlock = function()
+{
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<proficiencyGivingBlock>/i;
+  let canGiveProficiency = true;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        canGiveProficiency = false;
+      }
+    });
+  });
+
+  return canGiveProficiency;
+};
+
+/**
+ * Whether or not this battler can gain proficiency from using skills.
+ * @returns {boolean} True if the battler can gain proficiency, false otherwise.
+ */
+Game_Battler.prototype.canGainProficiency = function()
+{
+  // get whether or not they are blocked from gaining proficiency.
+  const canGainProficiency = this.extractProficiencyGainingBlock();
+
+  // return the outcome.
+  return canGainProficiency;
+};
+
+/**
+ * Determines whether or not this battler can gain proficiency.
+ * @returns {number}
+ */
+Game_Battler.prototype.extractProficiencyGainingBlock = function()
+{
+  const objectsToCheck = this.getEverythingWithNotes();
+  const structure = /<proficiencyGainingBlock>/i;
+  let canGainProficiency = true;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        canGainProficiency = false;
+      }
+    });
+  });
+
+  return canGainProficiency;
 };
 //#endregion Game_Battler
 
