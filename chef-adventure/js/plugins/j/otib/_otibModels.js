@@ -1,9 +1,10 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0 OTIB] The various custom models created for OTIB.
+ * [v1.0 OTIB] The various custom models created for OTIB.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
+ * @base J-OneTimeItemBoost
  * @orderBefore J-OneTimeItemBoost
  * @help
  * ============================================================================

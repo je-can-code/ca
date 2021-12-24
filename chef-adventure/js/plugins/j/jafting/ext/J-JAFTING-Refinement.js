@@ -237,7 +237,7 @@ J.JAFTING.Aliased = {
  * @global
  * @type {Game_JAFTING}
  */
-$gameJAFTING = null;
+var $gameJAFTING = null;
 
 /**
  * Plugin command for hiding the refinement option in the JAFTING mode selection window.
@@ -274,6 +274,18 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJa
 
 //#region Static objects
 //#region DataManager
+
+/**
+ * Whether or not the extra data was loaded into the multiple databases.
+ */
+DataManager._j ||= {
+  /**
+   * Whether or not the refinement data from the database has been loaded yet.
+   * @type {boolean}
+   */
+  _refinementDataLoaded: false,
+};
+//#region save/load data
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
@@ -309,6 +321,78 @@ DataManager.extractSaveContents = function(contents)
   $gameJAFTING.updateDataWeapons();
   $gameJAFTING.updateDataArmors();
 };
+//#endregion save/load data
+
+/**
+ * Hooks into the database loading and loads our extra data from notes and such.
+ */
+J.JAFTING.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function()
+{
+  // check if the database is loaded.
+  const result = J.JAFTING.Aliased.DataManager.isDatabaseLoaded.call(this);
+  if (result)
+  {
+    // if it is, then load our refinement data from it.
+    this.loadRefinementData();
+  }
+
+  // continue with the loading.
+  return result;
+};
+
+/**
+ * Loads the additional required refinement data onto the database objects.
+ */
+DataManager.loadRefinementData = function()
+{
+  // check if we have already loaded the refinment data.
+  if (!DataManager._j._refinementDataLoaded)
+  {
+    // load up the weapons and armors refinement data.
+    this.loadWeaponRefinementData();
+    this.loadArmorRefinementData();
+
+    // set the flag to true so we only do this once.
+    this._j._refinementDataLoaded = true;
+  }
+};
+
+/**
+ * Loads the refinement data from the notes of weapons.
+ */
+DataManager.loadWeaponRefinementData = function()
+{
+  // iterate over every weapon and process their refinement data.
+  $dataWeapons.forEach(DataManager.processEquipForRefinement);
+};
+
+/**
+ * Loads the refinement data from the notes of armors.
+ */
+DataManager.loadArmorRefinementData = function()
+{
+  $dataArmors.forEach(DataManager.processEquipForRefinement);
+};
+
+/**
+ * The processing of adding the refinement data onto the equip.
+ * This works for both weapons and armor.
+ * @param {rm.types.EquipItem} equip The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.processEquipForRefinement = function(equip, index)
+{
+  // the first equip is always null.
+  if (!equip) return;
+
+  // add the JAFTING data onto it.
+  equip._jafting = new JAFTING_RefinementData(equip.note, equip.meta);
+
+  // assign the index for refinement reasons.
+  equip.index = index;
+};
+
 //#endregion DataManager
 //#endregion Static objects
 

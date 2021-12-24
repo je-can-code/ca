@@ -539,7 +539,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: 1.0,
+  Version: '1.1.0',
 
   /**
    * The translated SDPs from the plugin parameters.

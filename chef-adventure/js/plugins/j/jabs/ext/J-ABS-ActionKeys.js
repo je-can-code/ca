@@ -171,6 +171,14 @@ Scene_Map.prototype.toggleKeys = function(toggle = true)
     this._j._actionKeysWindow.toggle(toggle);
   }
 };
+
+J.KEYS.Aliased.Scene_Map.set('commandAssign', Scene_Map.prototype.commandAssign);
+Scene_Map.prototype.commandAssign = function()
+{
+  // execute the original logic.
+  J.KEYS.Aliased.Scene_Map.get('commandAssign').call(this);
+  this._j._actionKeysWindow.refresh();
+};
 //#endregion Scene_Map
 //#endregion Scene objects
 
@@ -415,7 +423,6 @@ Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = f
   this.placeActionKeyComboGauge(skillType, cooldownData, x, y + 70)
   this.placeActionKeyCooldownTimer(skillType, cooldownData, x, y + 40, isItem);
   this.placeActionKeyAbilityCosts(skillType, referenceData, x - 84, y + 40);
-  return;
 }
 
 /**
@@ -445,6 +452,7 @@ Window_ActionKeys.prototype.hideUnusedActionKeys = function(skillType)
 /**
  * Places an action key icon at a designated location.
  * @param {number} iconIndex The index of the icon on the iconsheet.
+ * @param {string} skillType The type of skill being placed.
  * @param {number} x The origin `x` coordinate.
  * @param {number} y The origin `y` coordinate.
  */

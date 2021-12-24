@@ -6356,6 +6356,109 @@ class JABS_Cooldown
 }
 //#endregion JABS_Cooldown
 
+//#region JABS_EquipmentData
+/**
+ * A class that contains all custom data for JABS equipment.
+ *
+ * This class was created because equipment does not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
+class JABS_EquipmentData
+{
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta)
+  {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
+    this.skillId = this.skillId();
+    this.speedBoost = this.speedBoost();
+    this.bonusHits = this.getBonusHits();
+  }
+
+  /**
+   * Gets the skill id associated with this piece of equipment.
+   * @returns {number} The skill id.
+   */
+  skillId()
+  {
+    let skillId = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SkillId])
+    {
+      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
+    }
+    else
+    {
+      const structure = /<skillId:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          skillId = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return skillId;
+  };
+
+  /**
+   * Gets the speed boost value associated with this piece of equipment.
+   * @returns {number} The speed boost value.
+   */
+  speedBoost()
+  {
+    let speedBoost = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SpeedBoost])
+    {
+      speedBoost = parseInt(this._meta[J.BASE.Notetags.SpeedBoost]) || 0;
+    }
+    else
+    {
+      const structure = /<speedBoost:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          speedBoost = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return speedBoost;
+  };
+
+  /**
+   * Gets the number of bonus hits this skill grants.
+   * @returns {number} The number of bonus hits.
+   */
+  getBonusHits()
+  {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits])
+    {
+      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
+    }
+    else
+    {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return bonusHits;
+  };
+}
+//#endregion JABS_EquipmentData
+
 //#region JABS_GuardData
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
@@ -6444,6 +6547,133 @@ class JABS_GuardData
   };
 }
 //#endregion JABS_GuardData
+
+//#region JABS_ItemData
+/**
+ * A class that contains all custom data for JABS items.
+ *
+ * This class was created because items do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
+class JABS_ItemData
+{
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta)
+  {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
+  };
+
+  /**
+   * Gets the skill id associated with this item/tool.
+   * @returns {number} The skill id, or `0` if none is present.
+   */
+  get skillId()
+  {
+    let skillId = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.SkillId])
+    {
+      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
+    }
+    else
+    {
+      const structure = /<skillId:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          skillId = parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return skillId;
+  };
+
+  /**
+   * Gets the cooldown for this item.
+   * @returns {number} The cooldown in frames (default = 0).
+   */
+  get cooldown()
+  {
+    let cooldown = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.Cooldown])
+    {
+      cooldown = parseInt(this._meta[J.BASE.Notetags.Cooldown]);
+    }
+    else
+    {
+      const structure = /<cooldown:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          cooldown = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return cooldown;
+  };
+
+  /**
+   * Gets whether or not this item will be used instantly on-pickup.
+   * @returns {boolean} True if this is an instant-use item, false otherwise.
+   */
+  get useOnPickup()
+  {
+    let useOnPickup = false;
+    if (this._meta && this._meta[J.BASE.Notetags.UseOnPickup])
+    {
+      useOnPickup = true;
+    }
+    else
+    {
+      const structure = /<useOnPickup>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          useOnPickup = true;
+        }
+      });
+    }
+
+    return useOnPickup;
+  };
+
+  /**
+   * Gets the duration in frames of how long this loot will persist on the map.
+   * If none is specified, the default will be used.
+   * @returns {number}
+   */
+  get expires()
+  {
+    let expires = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.LootExpiration])
+    {
+      expires = parseInt(this._meta[J.BASE.Notetags.LootExpiration]);
+    }
+    else
+    {
+      const structure = /<expires:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          expires = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return expires;
+  };
+}
+//#endregion JABS_ItemData
 
 //#region JABS_LootDrop
 /**
@@ -6553,6 +6783,663 @@ class JABS_LootDrop
   };
 }
 //#endregion JABS_LootDrop
+
+//#region JABS_SkillChance
+/**
+ * A class defining the structure of an on-death skill, either for ally or enemy.
+ */
+class JABS_SkillChance
+{
+  constructor(skillId, chance, key)
+  {
+    this.skillId = skillId;
+    this.chance = chance;
+    this.key = key;
+  }
+
+  /**
+   * Gets the underlying skill.
+   * @returns {rm.types.Skill}
+   */
+  baseSkill()
+  {
+    return $dataSkills[this.skillId];
+  };
+
+  /**
+   * Gets whether or not the skill this chance is associated with should cast from the
+   * target instead of the user.
+   * @returns {boolean}
+   */
+  appearOnTarget()
+  {
+    const skill = this.baseSkill();
+    return !!skill.meta["onDefeatedTarget"];
+  };
+
+  /**
+   * Rolls for whether or not this skill should proc.
+   * @returns {boolean}
+   */
+  shouldTrigger()
+  {
+    const chance = Math.randomInt(100) + 1;
+    return chance <= this.chance;
+  };
+}
+//#endregion JABS_SkillChance
+
+//#region JABS_SkillData
+/**
+ * A class that contains all custom feature flags for JABS skills.
+ *
+ * This class was created because skills do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
+function JABS_SkillData()
+{
+  this.initialize(...arguments);
+}
+
+JABS_SkillData.prototype = {};
+JABS_SkillData.prototype.constructor = JABS_SkillData;
+
+/**
+ * @constructor
+ * @param {string} notes The raw note box as a string.
+ * @param {any} meta The `meta` object containing prebuilt note metadata.
+ */
+JABS_SkillData.prototype.initialize = function(notes, meta)
+{
+  this._notes = notes.split(/[\r\n]+/);
+  this._meta = meta;
+};
+
+/**
+ * OVERWRITE Rewrites the way this object is deserialized when being stringified.
+ * @returns {JABS_SkillData}
+ */
+JABS_SkillData.prototype.toJSON = function()
+{
+  const jsonObj = Object.assign({}, this);
+  const proto = Object.getPrototypeOf(this);
+  for (const key of Object.getOwnPropertyNames(proto))
+  {
+    const desc = Object.getOwnPropertyDescriptor(proto, key);
+    const hasGetter = desc && typeof desc.get === 'function';
+    if (hasGetter)
+    {
+      jsonObj[key] = this[key];
+    }
+  }
+
+  return jsonObj;
+};
+
+/**
+ * Gets the duration of the delay for this action and whether or not it can be triggered
+ * by colliding with it.
+ * @returns {{duration: number, touchToTrigger: boolean}}
+ */
+JABS_SkillData.prototype.delay = function()
+{
+  let temp = [0, false];
+  const structure = /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      temp = JSON.parse(RegExp.$1);
+    }
+  });
+
+  return {duration: parseInt(temp[0]) ?? 0, touchToTrigger: temp[1]};
+};
+
+/**
+ * Gets the bonus aggro this skill generates.
+ * @returns {number}
+ */
+JABS_SkillData.prototype.bonusAggro = function()
+{
+  let aggro = 0;
+  const structure = /<aggro:[ ]?(-?\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      aggro += parseInt(RegExp.$1);
+    }
+  })
+
+  return aggro;
+};
+
+/**
+ * Gets the aggro multiplier that this skill performs.
+ * Used for skills specifically that increase/decrease by a percent (or reset).
+ * @returns {number}
+ */
+JABS_SkillData.prototype.aggroMultiplier = function()
+{
+  let multiplier = 1.0;
+  const structure = /<aggroMultiply:[ ]?(\d+[.]?\d+)?>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      multiplier += parseFloat(RegExp.$1);
+    }
+  });
+
+  return multiplier;
+};
+
+/**
+ * Gets whether or not this skill is a direct-targeting skill.
+ * @returns {boolean} True if it is a direct-targeting skill, false otherwise.
+ */
+JABS_SkillData.prototype.direct = function()
+{
+  let isDirect = false;
+  const structure = /<direct>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      isDirect = true;
+    }
+  });
+
+  return isDirect;
+};
+
+/**
+ * Gets the number of bonus hits this skill grants.
+ * @returns {number} The number of bonus hits.
+ */
+JABS_SkillData.prototype.getBonusHits = function()
+{
+  let bonusHits = 0;
+  const structure = /<bonusHits:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      bonusHits = parseInt(RegExp.$1);
+    }
+  });
+
+  return bonusHits;
+};
+
+/**
+ * Gets the amount of parry to ignore.
+ * @type {number} The amount of parry to ignore; will be `-1` if should always ignore.
+ */
+JABS_SkillData.prototype.ignoreParry = function()
+{
+  let ignore = 0;
+  const structure = /<ignoreParry([:]?[ ]?((\d+)[%])?)?>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      ignore = !RegExp.$1
+        ? -1                    // if parameter left out, then always ignore parry.
+        : parseInt(RegExp.$3);  // if parameter exists, use the number.
+    }
+  });
+
+  return ignore;
+};
+
+/**
+ * Gets the amount of damage being reduced by guarding.
+ * @returns {[number, number]} `[flat, percent]`.
+ */
+JABS_SkillData.prototype.guard = function()
+{
+  let guard = [0, false];
+  const structure = /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      guard = JSON.parse(RegExp.$1);
+    }
+  });
+
+  return guard;
+};
+
+/**
+ * Gets the number of frames that a precise-guard is available for.
+ * @returns {number} The number of frames for precise-guard.
+ */
+JABS_SkillData.prototype.parry = function()
+{
+  let parry = 0;
+  const structure = /<parry:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      parry = parseInt(RegExp.$1);
+    }
+  });
+
+  return parry;
+};
+
+/**
+ * Gets the id of the skill to retaliate with when executing a precise-parry.
+ * @returns {number} The skill id.
+ */
+JABS_SkillData.prototype.counterParry = function()
+{
+  let id = 0;
+  const structure = /<counterParry:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      id = parseInt(RegExp.$1);
+    }
+  });
+
+  return id;
+};
+
+/**
+ * Gets the id of the skill to retaliate with when guarding.
+ * @returns {number} The skill id.
+ */
+JABS_SkillData.prototype.counterGuard = function()
+{
+  let id = 0;
+  const structure = /<counterGuard:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      id = parseInt(RegExp.$1);
+    }
+  });
+
+  return id;
+};
+
+/**
+ * Gets the animation id to show when executing a skill.
+ * @returns {number} The animation id for casting (default = 1)
+ */
+JABS_SkillData.prototype.casterAnimation = function()
+{
+  let animationId = 0;
+  const structure = /<castAnimation:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      animationId = parseInt(RegExp.$1);
+    }
+  });
+
+  return animationId;
+};
+
+/**
+ * Gets the cast time for this skill.
+ * @returns {number} The cast time in frames (default = 0).
+ */
+JABS_SkillData.prototype.castTime = function()
+{
+  let castTime = -1;
+  const structure = /<castTime:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      castTime = parseInt(RegExp.$1);
+    }
+  });
+
+  return castTime;
+};
+
+/**
+ * Gets the cooldown for this skill.
+ * @returns {number} The cooldown in frames (default = 0).
+ */
+JABS_SkillData.prototype.cooldown = function()
+{
+  let cooldown = 0;
+  const structure = /<cooldown:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      cooldown = parseInt(RegExp.$1);
+    }
+  });
+
+  return cooldown;
+};
+
+/**
+ * Gets the cooldown for this skill when performed by AI.
+ * If this is also an actor using the skill, the base cooldown will
+ * still be applied to the cooldown slot.
+ * @returns {number} The cooldown in frames (default = 0).
+ */
+JABS_SkillData.prototype.aiCooldown = function()
+{
+  let aiCooldown = -1;
+  const structure = /<aiCooldown:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      aiCooldown = parseInt(RegExp.$1);
+    }
+  });
+
+  return aiCooldown;
+};
+
+/**
+ * Gets the range for this skill.
+ * @returns {number} The range in tiles/spaces/squares (default = 0).
+ */
+JABS_SkillData.prototype.range = function()
+{
+  let range = 0;
+  const structure = /<range:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      range = parseInt(RegExp.$1);
+    }
+  });
+
+  return range;
+};
+
+/**
+ * Gets the action id for this skill.
+ * @returns {number} The action id (default = 1).
+ */
+JABS_SkillData.prototype.actionId = function()
+{
+  let actionId = 1;
+  const structure = /<actionId:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      actionId = parseInt(RegExp.$1);
+    }
+  });
+
+  return actionId;
+};
+
+/**
+ * Gets the duration this skill persists on the map.
+ * @returns {number} The duration in frames (default = 60).
+ */
+JABS_SkillData.prototype.duration = function()
+{
+  let duration = 0;
+  const structure = /<duration:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      duration = parseInt(RegExp.$1);
+    }
+  });
+
+  return duration;
+};
+
+/**
+ * Gets the hitbox shape for this skill.
+ * @returns {string} The hitbox shape (default = rhombus).
+ */
+JABS_SkillData.prototype.shape = function()
+{
+  let shape = 'rhombus';
+  const structure = /<shape:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      shape = RegExp.$1.toLowerCase();
+    }
+  });
+
+  return shape;
+};
+
+/**
+ * Gets the number of projectiles for this skill.
+ * @returns {number}
+ */
+JABS_SkillData.prototype.projectile = function()
+{
+  let projectile = 1;
+  const structure = /<projectile:[ ]?([12348])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      projectile = parseInt(RegExp.$1);
+    }
+  });
+
+  return projectile;
+};
+
+/**
+ * Gets the piercing data for this skill.
+ * @returns {[number, number]} The piercing data (default = [1, 0]).
+ */
+JABS_SkillData.prototype.piercing = function()
+{
+  let piercing = [1, 0];
+  const structure = /<pierce:[ ]?(\[\d+,[ ]?\d+])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      piercing = JSON.parse(RegExp.$1);
+    }
+  });
+
+  return piercing;
+};
+
+/**
+ * Gets the combo data for this skill.
+ * @returns {[number, number]} The combo data (default = null).
+ */
+JABS_SkillData.prototype.combo = function()
+{
+  let combo = null;
+  const structure = /<combo:[ ]?(\[\d+,[ ]?\d+])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      combo = JSON.parse(RegExp.$1);
+    }
+  });
+
+  return combo;
+};
+
+/**
+ * Gets the free combo boolean for this skill. "Free Combo" skills do not
+ * require the hit to land to continue combo-ing.
+ * @returns {boolean} True if free combo, false otherwise.
+ */
+JABS_SkillData.prototype.freeCombo = function()
+{
+  let freeCombo = false;
+  const structure = /<freeCombo>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      freeCombo = true;
+    }
+  });
+
+  return freeCombo;
+};
+
+/**
+ * Gets the proximity required for this skill.
+ * @returns {number} The proximity.
+ */
+JABS_SkillData.prototype.proximity = function()
+{
+  let proximity = 0;
+  const structure = /<proximity:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      proximity = parseInt(RegExp.$1);
+    }
+  });
+
+  return proximity;
+};
+
+/**
+ * Gets the knockback for this skill. Unlike many other numeric parameters,
+ * if there is no knockback, the default is `null` instead of `0` because `0`
+ * knockback will still knock up the battler.
+ * @returns {number} The knockback (default = null).
+ */
+JABS_SkillData.prototype.knockback = function()
+{
+  let knockback = null;
+  const structure = /<knockback:[ ]?(\d+)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      knockback = parseInt(RegExp.$1);
+    }
+  });
+
+  return knockback;
+};
+
+/**
+ * Gets whether or not this battler is invincible due to this skill.
+ * @returns {boolean}
+ */
+JABS_SkillData.prototype.invincible = function()
+{
+  let invincible = false;
+  const structure = /<invincible>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      invincible = true;
+    }
+  });
+
+  return invincible;
+};
+
+/**
+ * Gets the unique cooldown boolean. Unique cooldown means that the skill
+ * can be assigned to multiple slots and cooldowns are impacted independently
+ * of one another.
+ * @returns {boolean} True if this skill is unique, false otherwise.
+ */
+JABS_SkillData.prototype.uniqueCooldown = function()
+{
+  let uniqueCooldown = false;
+  const structure = /<unique>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      uniqueCooldown = true;
+    }
+  });
+
+  return uniqueCooldown;
+};
+
+/**
+ * Gets the type of movement this skill executes (for dodge skills).
+ * @returns {string}
+ */
+JABS_SkillData.prototype.moveType = function()
+{
+  let moveType = "forward";
+  const structure = /<moveType:[ ]?(forward|backward|directional)>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      moveType = RegExp.$1;
+    }
+  });
+
+  return moveType;
+};
+
+/**
+ * Gets the action pose data for this skill.
+ * @returns {[string, number, number]} The action pose data (default = null).
+ */
+JABS_SkillData.prototype.poseSuffix = function()
+{
+  let actionPoseData = null;
+  const structure = /<poseSuffix:[ ]?(\["[-_]?\w+",[ ]?\d+,[ ]?\d+])>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      actionPoseData = JSON.parse(RegExp.$1);
+    }
+  });
+
+  return actionPoseData;
+};
+
+/**
+ * Gets the animation id to execute on oneself instead of on the target.
+ *
+ * This doubles as both an indicator, and also retrieves the animation id.
+ * @returns {number}
+ */
+JABS_SkillData.prototype.selfAnimationId = function()
+{
+  let selfAnimationId = 0;
+  const structure = /<animationOnSelf:([ ]?\d+)?>/i;
+  this._notes.forEach(note =>
+  {
+    if (note.match(structure))
+    {
+      selfAnimationId = parseInt(RegExp.$1);
+    }
+  });
+
+  return selfAnimationId;
+};
+//#endregion JABS_SkillData
 
 //#region JABS_SkillSlot
 /**
@@ -6961,6 +7848,485 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function(key)
   this.getAllSlots().forEach(slot => slot.unlock());
 };
 //#endregion JABS_SkillSlotManager
+
+//#region JABS_StateData
+/**
+ * A class that contains all custom data for JABS states.
+ *
+ * This class was created because states do not inherently have a class to hook into
+ * for extensions, like `Game_Actor` or `Game_Map`.
+ */
+class JABS_StateData
+{
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta)
+  {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
+    this.bonusHits = this.getBonusHits();
+  };
+
+  /**
+   * Gets the number of bonus hits this skill grants.
+   * @returns {number} The number of bonus hits.
+   */
+  getBonusHits()
+  {
+    let bonusHits = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.BonusHits])
+    {
+      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
+    }
+    else
+    {
+      const structure = /<bonusHits:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          bonusHits = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return bonusHits;
+  };
+
+  /**
+   * Gets whether or not this state is identified as a "negative" state.
+   * @returns {boolean}
+   */
+  get negative()
+  {
+    let negative = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NegativeState])
+    {
+      negative = true;
+    }
+    else
+    {
+      const structure = /<negative>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          negative = true;
+        }
+      })
+    }
+
+    return negative;
+  };
+
+  /**
+   * Gets whether or not this state locks aggro modification.
+   * @returns {boolean}
+   */
+  get aggroLock()
+  {
+    let aggroLocked = false;
+    if (this._meta && this._meta[J.BASE.Notetags.AggroLock])
+    {
+      aggroLocked = true;
+    }
+    else
+    {
+      const structure = /<aggroLock>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          aggroLocked = true;
+        }
+      })
+    }
+
+    return aggroLocked;
+  };
+
+  /**
+   * Gets the aggro dealt amp multiplier bonus for this state.
+   * @returns {number}
+   */
+  get aggroOutAmp()
+  {
+    let aggroOutAmp = 1.0;
+    if (this._meta && this._meta[J.BASE.Notetags.AggroOutAmp])
+    {
+      aggroOutAmp = parseFloat(this._meta[J.BASE.Notetags.AggroOutAmp]);
+    }
+    else
+    {
+      const structure = /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          aggroOutAmp = parseFloat(RegExp.$1);
+        }
+      })
+    }
+
+    return aggroOutAmp;
+  };
+
+  /**
+   * Gets the aggro received amp multiplier bonus for this state.
+   * @returns {number}
+   */
+  get aggroInAmp()
+  {
+    let aggroInAmp = 1.0;
+    if (this._meta && this._meta[J.BASE.Notetags.AggroInAmp])
+    {
+      aggroInAmp = parseFloat(this._meta[J.BASE.Notetags.AggroInAmp]);
+    }
+    else
+    {
+      const structure = /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          aggroInAmp = parseFloat(RegExp.$1);
+        }
+      })
+    }
+
+    return aggroInAmp;
+  };
+
+  /**
+   * Gets whether or not this state inflicts JABS paralysis.
+   * @returns {boolean} True if it inflicts JABS paralysis, false otherwise.
+   */
+  get paralyzed()
+  {
+    let paralyzed = false;
+    if (this._meta && this._meta[J.BASE.Notetags.Paralyzed])
+    {
+      paralyzed = true;
+    }
+    else
+    {
+      const structure = /<paralyzed>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          paralyzed = true;
+        }
+      })
+    }
+
+    return paralyzed;
+  };
+
+  /**
+   * Gets whether or not this state inflicts JABS root.
+   * @returns {boolean} True if it inflicts JABS root, false otherwise.
+   */
+  get rooted()
+  {
+    let rooted = false;
+    if (this._meta && this._meta[J.BASE.Notetags.Rooted])
+    {
+      rooted = true;
+    }
+    else
+    {
+      const structure = /<rooted>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          rooted = true;
+        }
+      })
+    }
+
+    return rooted;
+  };
+
+  /**
+   * Gets whether or not this state inflicts JABS mute.
+   * @returns {boolean} True if it inflicts JABS mute, false otherwise.
+   */
+  get muted()
+  {
+    let muted = false;
+    if (this._meta && this._meta[J.BASE.Notetags.Muted])
+    {
+      muted = true;
+    }
+    else
+    {
+      const structure = /<muted>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          muted = true;
+        }
+      })
+    }
+
+    return muted;
+  };
+
+  /**
+   * Gets whether or not this state inflicts JABS disable.
+   * @returns {boolean} True if it inflicts JABS disable, false otherwise.
+   */
+  get disabled()
+  {
+    let disabled = false;
+    if (this._meta && this._meta[J.BASE.Notetags.Disabled])
+    {
+      disabled = true;
+    }
+    else
+    {
+      const structure = /<disabled>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          disabled = true;
+        }
+      })
+    }
+
+    return disabled;
+  };
+
+  /**
+   * Gets the formula for hp5 of this state.
+   *
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipHpFormula()
+  {
+    let formula = "";
+    const structure = /<slip:hp:\[([+\-*\/ ().\w]+)]>/gmi;
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
+  };
+
+  /**
+   * Gets the flat hp5 for this state.
+   * @returns {number} The flat hp5.
+   */
+  get slipHpFlat()
+  {
+    let hpFlat = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.HpFlat])
+    {
+      hpFlat = parseInt(this._meta[J.BASE.Notetags.HpFlat]);
+    }
+    else
+    {
+      const structure = /<hpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          hpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return hpFlat;
+  };
+
+  /**
+   * Gets the percentage hp5 for this state.
+   * @returns {number} The percentage hp5.
+   */
+  get slipHpPerc()
+  {
+    let hpPerc = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.HpPerc])
+    {
+      hpPerc = parseFloat(this._meta[J.BASE.Notetags.HpPerc]);
+    }
+    else
+    {
+      const structure = /<hpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          hpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
+
+    return hpPerc;
+  };
+
+  /**
+   * Gets the formula for mp5 of this state.
+   *
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipMpFormula()
+  {
+    let formula = "";
+    const structure = /<slip:mp:\[([+\-*\/ ().\w]+)]>/gmi;
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
+  };
+
+  /**
+   * Gets the flat mp5 for this state.
+   * @returns {number} The flat mp5.
+   */
+  get slipMpFlat()
+  {
+    let mpFlat = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MpFlat])
+    {
+      mpFlat = parseInt(this._meta[J.BASE.Notetags.MpFlat]);
+    }
+    else
+    {
+      const structure = /<mpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          mpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return mpFlat;
+  };
+
+  /**
+   * Gets the percentage mp5 for this state.
+   * @returns {number} The percentage mp5.
+   */
+  get slipMpPerc()
+  {
+    let mpPerc = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MpPerc])
+    {
+      mpPerc = parseFloat(this._meta[J.BASE.Notetags.MpPerc]);
+    }
+    else
+    {
+      const structure = /<mpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          mpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
+
+    return mpPerc;
+  };
+
+  /**
+   * Gets the formula for mp5 of this state.
+   *
+   * This formula is a string, intended to be `eval`-ed, which is absolutely unsafe, so
+   * use with the utmost caution (as with any eval).
+   * @returns {string} the formula to be dynamically executed.
+   */
+  get slipTpFormula()
+  {
+    let formula = "";
+    const structure = /<slip:tp:\[([+\-*\/ ().\w]+)]>/gmi;
+    this._notes.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        formula = RegExp.$1;
+      }
+    });
+
+    return formula;
+  };
+
+  /**
+   * Gets the flat tp5 for this state.
+   * @returns {number} The flat tp5.
+   */
+  get slipTpFlat()
+  {
+    let tpFlat = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.TpFlat])
+    {
+      tpFlat = parseInt(this._meta[J.BASE.Notetags.TpFlat]);
+    }
+    else
+    {
+      const structure = /<tpFlat:[ ]?([-]?\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          tpFlat = parseInt(RegExp.$1);
+        }
+      });
+    }
+
+    return tpFlat;
+  };
+
+  /**
+   * Gets the percentage tp5 for this state.
+   * @returns {number} The percentage tp5.
+   */
+  get slipTpPerc()
+  {
+    let tpPerc = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.TpPerc])
+    {
+      tpPerc = parseFloat(this._meta[J.BASE.Notetags.TpPerc]);
+    }
+    else
+    {
+      const structure = /<tpPerc:[ ]?([-]?\d+)[%]?>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          tpPerc = parseFloat(RegExp.$1);
+        }
+      });
+    }
+
+    return tpPerc;
+  };
+}
+//#endregion JABS_StateData
 
 //#region JABS_TrackedState
 /**
