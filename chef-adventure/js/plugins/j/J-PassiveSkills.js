@@ -49,7 +49,6 @@
  * If a battler had two separate skills learned matching the above two tags,
  * then the states of id 10, 11, and 12 would be applied as passive states.
  * The duplicate 10 passive state would be ignored.
- *
  * ============================================================================
  */
 
