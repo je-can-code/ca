@@ -514,11 +514,6 @@ Scene_Map.prototype.commandAssign = function()
   }
 
   actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
-  if (J.KEYS && J.KEYS.Metadata.Enabled)
-  {
-    this._j._actionKeys.refresh();
-  }
-
   this.closeAbsWindow("assign");
 };
 

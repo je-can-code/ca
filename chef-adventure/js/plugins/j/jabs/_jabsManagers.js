@@ -111,6 +111,127 @@ DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
 };
+
+/**
+ * Whether or not the extra data was loaded into the multiple databases.
+ */
+DataManager._j ||= {
+  /**
+   * Whether or not the jabs data from the database has been loaded yet.
+   * @type {boolean}
+   */
+  _jabsDataLoaded: false
+};
+
+/**
+ * Hooks into the database loading and loads our extra data from notes and such.
+ */
+J.ABS.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function()
+{
+  const result = J.ABS.Aliased.DataManager.isDatabaseLoaded.call(this);
+  if (result)
+  {
+    this.loadExtraData();
+  }
+
+  return result;
+};
+
+/**
+ * Loads all extra data from notes and such into the various database objects.
+ */
+DataManager.loadExtraData = function()
+{
+  if (!DataManager._j._jabsDataLoaded)
+  {
+    this.addJabsSkillData();
+    this.addJabsWeaponData();
+    this.addJabsArmorData();
+    this.addJabsItemData();
+    this.addJabsStateData();
+    this._j._jabsDataLoaded = true;
+  }
+};
+
+/**
+ * Loads all extra data from the notes of skills.
+ */
+DataManager.addJabsSkillData = function()
+{
+  $dataSkills.forEach((skill, index) =>
+  {
+    if (!skill) return;
+    skill._j = new JABS_SkillData(skill.note, skill.meta);
+    skill.index = index;
+  });
+};
+
+/**
+ * Loads all extra data from the notes of weapons.
+ */
+DataManager.addJabsWeaponData = function()
+{
+  $dataWeapons.forEach(DataManager.parseWeaponData);
+};
+
+/**
+ * The action to perform on each weapon.
+ * This was separated out for extensibility if desired.
+ * @param {rm.types.EquipItem} weapon The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.parseWeaponData = function(weapon, index)
+{
+  if (!weapon) return;
+  weapon._j = new JABS_EquipmentData(weapon.note, weapon.meta);
+};
+
+/**
+ * Loads all extra data from the notes of armors.
+ */
+DataManager.addJabsArmorData = function()
+{
+  $dataArmors.forEach(DataManager.parseArmorData);
+};
+
+/**
+ * The action to perform on each armor.
+ * This was separated out for extensibility if desired.
+ * @param {rm.types.EquipItem} armor The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.parseArmorData = function(armor, index)
+{
+  if (!armor) return;
+  armor._j = new JABS_EquipmentData(armor.note, armor.meta);
+};
+
+/**
+ * Loads all extra data from the notes of items.
+ */
+DataManager.addJabsItemData = function()
+{
+  $dataItems.forEach((item, index) =>
+  {
+    if (!item) return;
+    item._j = new JABS_ItemData(item.note, item.meta);
+    item.index = index;
+  });
+};
+
+/**
+ * Loads all extra data from the notes of states.
+ */
+DataManager.addJabsStateData = function()
+{
+  $dataStates.forEach((state, index) =>
+  {
+    if (!state) return;
+    state._j = new JABS_StateData(state.note, state.meta);
+    state.index = index;
+  });
+};
 //#endregion
 
 //#region Input

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0.0 JAFT] Enables a new jafting menu that allows item creation by recipe.
+ * [v1.0.0 JAFT] Enables the ability to craft items from recipes.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE

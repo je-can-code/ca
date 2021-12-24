@@ -3712,7 +3712,7 @@ class Game_BattleMap
     // gather shorthand variables for use.
     const skill = action.getBaseSkill();
     const caster = action.getCaster();
-    const character = caster.getCharacter();
+    const character = target.getCharacter();
 
     // generate the textpop.
     const damagePop = this.configureDamagePop(action.getAction(), skill, caster, target);
