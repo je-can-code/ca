@@ -270,7 +270,7 @@ class LevelScaling
    * @type {number}
    * @private
    */
-  #defaultScalingMultiplier = 1.0;
+  static #defaultScalingMultiplier = 1.0;
 
   /**
    * Constructor; however, this is a static class designed to have its methods used
