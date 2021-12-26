@@ -4674,8 +4674,9 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   if (!isLoot && !$gameParty.items().includes(item))
   {
     playerBattler.setEquippedSkill(Game_Actor.JABS_TOOLSKILL, 0);
-    const lastItemMessage = `The last ${item.name} was consumed and unequipped.`;
-    const log = new Map_TextLog(lastItemMessage, -1);
+    const log = new MapLogBuilder()
+      .setupUsedLastItem(item.id)
+      .build();
     $gameTextLog.addLog(log);
   }
 };
@@ -4808,8 +4809,9 @@ JABS_Battler.prototype.createToolLog = function(item)
   // if not enabled, skip this.
   if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
-  const battleMessage = `${this.getReferenceData().name} used the ${item.name}.`;
-  const log = new Map_TextLog(battleMessage, -1);
+  const log = new MapLogBuilder()
+    .setupUsedItem(this.getReferenceData().name, item.id)
+    .build();
   $gameTextLog.addLog(log);
 };
 

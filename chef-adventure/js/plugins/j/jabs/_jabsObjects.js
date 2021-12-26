@@ -2155,8 +2155,7 @@ class Game_BattleMap
 
     // recreate the JABS player battler and set it to the player character.
     this._playerBattler = JABS_Battler.createPlayer();
-    const newPlayer = this.getPlayerMapBattler()
-      .getCharacter();
+    const newPlayer = this.getPlayerMapBattler().getCharacter();
     newPlayer.setMapBattler(this._playerBattler.getUuid());
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
@@ -2165,9 +2164,9 @@ class Game_BattleMap
     // if the log is present, then do log things.
     if (J.LOG && J.LOG.Metadata.Enabled)
     {
-      const battlerName = this.getPlayerMapBattler()
-        .battlerName();
-      const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
+      const log = new MapLogBuilder()
+        .setupPartyCycle(this.getPlayerMapBattler().battlerName())
+        .build();
       $gameTextLog.addLog(log);
     }
   };
@@ -3763,28 +3762,52 @@ class Game_BattleMap
     const caster = action.getCaster();
     const skill = action.getBaseSkill();
 
-    const skillName = skill.name;
     const casterName = caster.getReferenceData().name;
     const targetName = target.getReferenceData().name;
 
-    let message;
+    // create parry logs if it was parried.
     if (result.parried)
     {
-      const preciseParriedPrefix = result.preciseParried ? "precise-" : "";
-      const preciseParriedSuffix = result.preciseParried ? " with finesse!" : ".";
-      message = `${targetName} ${preciseParriedPrefix}parried ${casterName}'s ${skillName}${preciseParriedSuffix}`;
+      const parryLog = new MapLogBuilder()
+        .setupParry(targetName, casterName, skill.id, result.preciseParried)
+        .build();
+      $gameTextLog.addLog(parryLog);
+      return;
     }
+    // create evasion logs if it was evaded.
     else if (result.evaded)
     {
-      message = `${targetName} dodged ${casterName}'s ${skillName}.`;
+      const dodgeLog = new MapLogBuilder()
+        .setupDodge(targetName, casterName, skill.id)
+        .build();
+      $gameTextLog.addLog(dodgeLog);
+      return;
     }
+    // create retaliation logs if it was a retaliation.
+    else if (action.isRetaliation())
+    {
+      const retaliationLog = new MapLogBuilder()
+        .setupRetaliation(casterName)
+        .build();
+      $gameTextLog.addLog(retaliationLog);
+      return;
+    }
+    // if no damage of any kind was dealt, and no states were applied, then you get a special message!
+    else if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length)
+    {
+      const log = new MapLogBuilder()
+        .setupUndamaged(targetName, casterName, skill.id)
+        .build();
+      $gameTextLog.addLog(log);
+      return;
+    }
+    // otherwise, it must be a regular damage type log.
     else
     {
       // get the base damage dealt and clean that up.
       let roundedDamage = Math.round(result.hpDamage);
       const isNotHeal = roundedDamage > 0;
-      roundedDamage = roundedDamage >= 0 ? roundedDamage : roundedDamage.toString()
-        .replace("-", "");
+      roundedDamage = roundedDamage >= 0 ? roundedDamage : roundedDamage.toString().replace("-", "");
       const damageReduction = Math.round(result.reduced);
       let reducedAmount = "";
       if (damageReduction)
@@ -3792,36 +3815,12 @@ class Game_BattleMap
         reducedAmount = `(${parseInt(damageReduction)})`;
       }
 
-      if (result.critical)
-      {
-        // if critical, write the log accordingly.
-        const hitOrHeal = isNotHeal ? "landed a critical" : "critically healed";
-        message = `${casterName} ${hitOrHeal} ${skillName} on ${targetName} for ${roundedDamage}${reducedAmount}!`;
-      }
-      else
-      {
-        // if the log was not critical, say so.
-        const hitOrHeal = isNotHeal ? "hit" : "healed";
-        message = `${casterName} ${hitOrHeal} ${targetName} with ${skillName} for ${roundedDamage}${reducedAmount}.`;
-      }
+      const log = new MapLogBuilder()
+        .setupExecution(targetName, casterName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical)
+        .build();
+      $gameTextLog.addLog(log);
+      // fall through in case there were states that were also applied, such as defeating the target.
     }
-
-    // if the action is a retaliation, then log that.
-    if (action.isRetaliation())
-    {
-      const retaliationLog = new Map_TextLog(`${casterName} retaliated!`, -1);
-      $gameTextLog.addLog(retaliationLog);
-    }
-
-    // if no damage of any kind was dealt, and no states were applied, then you get a special message!
-    if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length)
-    {
-      message = `${casterName} used ${skillName} on ${targetName}, but it dealt no damage.`;
-    }
-
-    // publish the attack log.
-    const log = new Map_TextLog(message, -1);
-    $gameTextLog.addLog(log);
 
     // also publish any logs regarding application of states against the target.
     if (result.addedStates.length)
@@ -3831,16 +3830,17 @@ class Game_BattleMap
         // show a custom line when an enemy is defeated.
         if (stateId === target.getBattler().deathStateId())
         {
-          const message = `${targetName} was defeated.`;
-          const log = new Map_TextLog(message, -1);
+          const log = new MapLogBuilder()
+            .setupTargetDefeated(targetName)
+            .build();
           $gameTextLog.addLog(log);
           return;
         }
 
         // show all the rest of the non-death states.
-        const state = $dataStates[stateId];
-        const message = `${targetName} became afflicted with ${state.name}.`;
-        const log = new Map_TextLog(message, -1);
+        const log = new MapLogBuilder()
+          .setupStateAfflicted(targetName, stateId)
+          .build();
         $gameTextLog.addLog(log);
       });
     }
@@ -4526,16 +4526,17 @@ class Game_BattleMap
 
     if (experience !== 0)
     {
-      const casterData = caster.getReferenceData();
-      const expMessage = `${casterData.name} gained ${experience} experience.`;
-      const expLog = new Map_TextLog(expMessage, -1);
+      const expLog = new MapLogBuilder()
+        .setupExperienceGained(caster.getReferenceData().name, experience)
+        .build();
       $gameTextLog.addLog(expLog);
     }
 
     if (gold !== 0)
     {
-      const goldMessage = `The party gained ${gold} G.`;
-      const goldLog = new Map_TextLog(goldMessage, -1);
+      const goldLog = new MapLogBuilder()
+        .setupGoldFound(gold)
+        .build();
       $gameTextLog.addLog(goldLog);
     }
   };
@@ -4567,11 +4568,24 @@ class Game_BattleMap
   {
     if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
+    let lootType = String.empty;
+    if (item.atypeId)
+    {
+      lootType = "armor";
+    }
+    else if (item.wtypeId)
+    {
+      lootType = "weapon";
+    }
+    else if (item.itypeId)
+    {
+      lootType = "item";
+    }
+
     // the player is always going to be the one collecting the loot- for now.
-    const casterName = this.getPlayerMapBattler()
-      .getReferenceData().name;
-    const lootMessage = `${casterName} picked up the ${item.name}.`;
-    const lootLog = new Map_TextLog(lootMessage, -1);
+    const lootLog = new MapLogBuilder()
+      .setupLootObtained(this.getPlayerMapBattler().getReferenceData().name, lootType, item.id)
+      .build();
     $gameTextLog.addLog(lootLog);
   };
 
@@ -4654,19 +4668,28 @@ class Game_BattleMap
 
   /**
    * Creates a level up log for the given battler.
-   * @param {JABS_Battler} battler The given battler.
+   * @param {JABS_Battler} jabsBattler The given JABS battler.
    */
-  createLevelUpLog(battler)
+  createLevelUpLog(jabsBattler)
   {
     if (!J.LOG || !J.LOG.Metadata.Enabled) return;
 
-    const leaderData = battler.getReferenceData();
-    const leaderName = leaderData.name;
-    const leaderBattler = battler.getBattler();
-    const leaderLevel = leaderBattler.level;
-    const levelupMessage = `${leaderName} has reached level ${leaderLevel}!`;
-    const levelupLog = new Map_TextLog(levelupMessage, -1);
-    $gameTextLog.addLog(levelupLog);
+    const battler = jabsBattler.getBattler();
+    const log = this.configureLevelUpLog(battler.name(), battler.level);
+    $gameTextLog.addLog(log);
+  };
+
+  /**
+   * Configures the log for the actor reaching a new level.
+   * @param {string} targetName The name of the battler leveling up.
+   * @param {number} newLevel The level being reached.
+   * @returns {Map_Log}
+   */
+  configureLevelUpLog(targetName, newLevel)
+  {
+    return new MapLogBuilder()
+      .setupLevelUp(targetName, newLevel)
+      .build();
   };
 
   /**
@@ -4733,12 +4756,21 @@ class Game_BattleMap
   {
     if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
 
-    const leaderData = player.getReferenceData();
-    const leaderName = leaderData.name;
-    const skillName = skill.name;
-    const skillLearnedMessage = `${leaderName} learned the skill [${skillName}]!`;
-    const skillLearnLog = new Map_TextLog(skillLearnedMessage, -1);
-    $gameTextLog.addLog(skillLearnLog);
+    const log = this.configureSkillLearnLog(player.getReferenceData().name, skill.id);
+    $gameTextLog.addLog(log);
+  };
+
+  /**
+   * Configures the log for the skill learned.
+   * @param {string} targetName The name of the target learning the skill.
+   * @param {number} learnedSkillId The id of the skill learned.
+   * @returns {Map_Log}
+   */
+  configureSkillLearnLog(targetName, learnedSkillId)
+  {
+    return new MapLogBuilder()
+      .setupSkillLearn(targetName, learnedSkillId)
+      .build();
   };
 
 //#endregion defeated target aftermath

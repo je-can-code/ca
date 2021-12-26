@@ -440,9 +440,9 @@ Game_BattleMap.prototype.performPartyCycling = function()
   this.requestPartyRotation = true;
   if (J.LOG && J.LOG.Metadata.Enabled)
   {
-    const battlerName = this.getPlayerMapBattler()
-      .battlerName();
-    const log = new Map_TextLog(`Party cycled to ${battlerName}.`, -1);
+    const log = new MapLogBuilder()
+      .setupPartyCycle(this.getPlayerMapBattler().battlerName())
+      .build();
     $gameTextLog.addLog(log);
   }
 
