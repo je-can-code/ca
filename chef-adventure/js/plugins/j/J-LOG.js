@@ -5,8 +5,10 @@
 * @author JE
 * @url https://github.com/je-can-code/rmmz
 * @base J-BASE
+* @base J-MessageTextCodes
 * @orderAfter J-BASE
 * @orderAfter J-ABS
+* @orderAfter J-MessageTextCodes
 * @orderBefore J-SDP
 * @help
 * ============================================================================
@@ -115,7 +117,9 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "Disable Text Log", () =>
 PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args =>
 {
   const {Text, Icon} = args;
-  const log = new Map_TextLog(Text, Icon);
+  const log = new MapLogBuilder()
+    .setMessage(Text)
+    .build();
   $gameTextLog.addLog(log);
 });
 //#endregion
@@ -149,6 +153,13 @@ Scene_Map.prototype.initialize = function()
   J.LOG.Aliased.Scene_Map.initialize.call(this);
   this._j ||= {};
   this._j._mapTextLog = null;
+
+  /**
+   * The log window on the map.
+   * @type {Window_Log}
+   * @private
+   */
+  this._j._log = null;
 };
 
 /**
@@ -158,21 +169,24 @@ J.LOG.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function()
 {
   J.LOG.Aliased.Scene_Map.onMapLoaded.call(this);
-  this.createJabsTextLog();
+  this.createTextLog();
 };
 
 /**
- * Creates the internal text log for JABS.
+ * Creates the log window and adds it to tracking.
  */
-Scene_Map.prototype.createJabsTextLog = function()
+Scene_Map.prototype.createTextLog = function()
 {
   const width = 768;
-  const height = 200;
+  const rows = 10;
+  const height = (32 * rows) - 8;
   const x = 0;
   const y = Graphics.boxHeight - height;
   const rect = new Rectangle(x, y, width, height);
-  this._j._mapTextLog = new Window_TextLog(rect);
-  this.addWindow(this._j._mapTextLog);
+  this._j._log = new Window_Log(rect);
+  this._j._log.deselect();
+  this._j._log.deactivate();
+  this.addWindow(this._j._log);
 };
 
 /**
@@ -183,7 +197,7 @@ Scene_Map.prototype.toggleLog = function(toggle = true)
 {
   if (J.LOG.Metadata.Enabled)
   {
-    this._j._mapTextLog.toggle(toggle);
+    // this._j._mapTextLog.toggle(toggle);
   }
 };
 //#endregion Scene_Map
@@ -207,10 +221,51 @@ Game_TextLog.prototype.initialize = function()
 {
   /**
    * The logs currently being managed.
-   * @type {Map_TextLog[]}
+   * @type {Map_Log[]}
    */
-  this._logs = null;
+  this._logs = [];
+
+  /**
+   * Whether or not we have an unattended log.
+   * @type {boolean}
+   */
+  this._hasNewLog = false;
   this.initMembers();
+};
+
+/**
+ * Gets whether or not we are tracking any logs.
+ * @returns {boolean} True if we are, false otherwise.
+ */
+Game_TextLog.prototype.hasLogs = function()
+{
+  return this._logs.length > 0;
+};
+
+/**
+ * Gets whether or not we have an unattended log.
+ * @returns {boolean} True if we have unattended logs, false otherwise.
+ */
+Game_TextLog.prototype.hasNewLog = function()
+{
+  return this._hasNewLog;
+};
+
+/**
+ * Sets whether or not we have an unattended log.
+ * @param {boolean} hasNewLog True if we need to handle a new log, false otherwise.
+ */
+Game_TextLog.prototype.setHasNewLog = function(hasNewLog = true)
+{
+  this._hasNewLog = hasNewLog;
+};
+
+/**
+ * Untoggles the flag and acknowledges the newly received log.
+ */
+Game_TextLog.prototype.acknowledgeNewLog = function()
+{
+  this._hasNewLog = false;
 };
 
 /**
@@ -223,7 +278,7 @@ Game_TextLog.prototype.initMembers = function()
 
 /**
  * Gets all currently pending logs.
- * @returns {Map_TextLog[]} All logs currently in queue.
+ * @returns {Map_Log[]} All logs currently in queue.
  */
 Game_TextLog.prototype.getLogs = function()
 {
@@ -232,29 +287,15 @@ Game_TextLog.prototype.getLogs = function()
 
 /**
  * Adds a new text log to the window.
- * @param {Map_TextLog} log The log to add to the window.
+ * @param {Map_Log} log The log to add to the window.
  */
 Game_TextLog.prototype.addLog = function(log)
 {
+  // add a log to the collection.
   this._logs.push(log);
-};
 
-/**
- * Removes the first log and returns it.
- * @returns {Map_TextLog} The first text log in the collection.
- */
-Game_TextLog.prototype.shiftLog = function()
-{
-  return this._logs.shift();
-};
-
-/**
- * Removes the last log and returns it.
- * @returns {Map_TextLog} The last text log in the collection.
- */
-Game_TextLog.prototype.popLog = function()
-{
-  return this._logs.pop();
+  // alert any listeners that we have a new log.
+  this.setHasNewLog();
 };
 
 /**
@@ -266,593 +307,672 @@ Game_TextLog.prototype.clearLogs = function()
 };
 //#endregion
 
-//#region Window_TextLog
+//#region Window_Log
 /**
- * A window that displays the rolling text log of various activities.
+ * A window containing the logs.
  */
-function Window_TextLog()
-{
-  this.initialize(...arguments);
-}
-
-Window_TextLog.prototype = Object.create(Window_Base.prototype);
-Window_TextLog.prototype.constructor = Window_TextLog;
-
-/**
- * Initializes the entire text log.
- * @param {Rectangle} rect The rectangle object that defines the shape of this window.
- */
-Window_TextLog.prototype.initialize = function(rect)
-{
-  Window_Base.prototype.initialize.call(this, rect);
-  this.openness = 255;
-  this.opacity = 0;
-  this.initMembers();
-};
-
-/**
- * Initializes all the various properties of this text log.
- */
-Window_TextLog.prototype.initMembers = function()
+class Window_Log extends Window_Command
 {
   /**
-   * The height of a single line. Determines spacing of the log entries.
+   * The in-window tracking of the logs.
+   * @type {Map_Log[]}
    */
-  this._lineHeight = 20;
+  logs = [];
 
   /**
-   * How long before the activity is considered "inactive".
+   * Constructor.
+   * @param {Rectangle} rect The rectangle that represents this window.
    */
-  this._inactiveCountdown = 120;
+  constructor(rect)
+  {
+    super(rect);
+  };
+
+  initialize(rect)
+  {
+    // initialize our class members.
+    this.initMembers();
+
+    // run our parent class's initialize.
+    super.initialize(rect);
+
+    // run our one-time setup and configuration.
+    this.configure();
+
+    // TODO: update the background opacity for the individual rows?
+    // TODO: make a map_log builder class.
+    // TODO: reduce font size and change font for text.
+  };
 
   /**
-   * Whether or not this window is inactive.
+   * Initializes all properties of this class.
    */
-  this._inactive = false;
+  initMembers()
+  {
+    this.logs = [];
+  };
 
   /**
-   * The number of frames until it starts tracking the "faded".
+   * Performs the one-time setup and configuration per instantiation.
    */
-  this._fadingCountdown = 60;
+  configure()
+  {
+    // make the window's background opacity transparent.
+    this.opacity = 0;
+  };
 
   /**
-   * Whether or not this window is considered "faded".
+   * Make our rows narrow-er.
+   * @returns {number} The height of each row.
    */
-  this._faded = false;
+  itemHeight()
+  {
+    return 24; // 36 default;
+  };
 
   /**
-   * The `y` coordinate of the first row (bottom-most).
+   * OVERWRITE Removes the drawing of the background-per-row.
+   * @param {Rectangle} rect The rectangle to draw the background for.
    */
-  this._rowOne = this.height - 50;
+  drawBackgroundRect(rect)
+  {
+    // nothing.
+  };
 
   /**
-   * Whether or not a given log entry is sliding out of visibility.
+   * OVERWRITE Reduces the size of the icons being drawn in the log window.
+   * @param iconIndex
+   * @param x
+   * @param y
    */
-  this._slidingDown = false;
+  drawIcon(iconIndex, x, y)
+  {
+    const bitmap = ImageManager.loadSystem("IconSet");
+    const pw = ImageManager.iconWidth;
+    const ph = ImageManager.iconHeight;
+    const sx = (iconIndex % 16) * pw;
+    const sy = Math.floor(iconIndex / 16) * ph;
+    this.contents.blt(bitmap, sx, sy, pw, ph, x+4, y+4, 24, 24);
+  };
+
+  update()
+  {
+    // process original update logic.
+    super.update();
+
+    // update our log data.
+    this.updateMapLog();
+  };
 
   /**
-   * The duration of sliding.
+   * Perform the update logic that maintains this window.
    */
-  this._sliding = 0;
+  updateMapLog()
+  {
+    // check if we have a need to update.
+    if (this.shouldUpdate())
+    {
+      // process the logs.
+      this.processNewLogs();
+
+      // acknowledge the new logs.
+      $gameTextLog.acknowledgeNewLog();
+    }
+  };
 
   /**
-   * The sprites which represent the visual of the logs.
+   * Determines whether or not this window should update.
+   * @returns {boolean} True if we need to redraw the contents, false otherwise.
    */
-  this._messageSprites = this._messageSprites || {};
+  shouldUpdate()
+  {
+    // check if we have a new log.
+    return $gameTextLog.hasNewLog();
+  };
 
   /**
-   * The tracker which manages messages in this log.
+   * Process all new logs.
    */
-  this._messageTracker = this._messageTracker || [];
+  processNewLogs()
+  {
+    // perform any logic for when a new log is added.
+    this.onLogChange();
+
+    // refreshing will redraw based on the updated list.
+    this.refresh();
+  };
 
   /**
-   * The minimum opacity possible for sprites and the window.
+   * Processes effects whenever a change in the logs occurs.
+   * Occurs before the window is refreshed.
+   * Open for extension.
    */
-  this._opacityMinimum = 0;
+  onLogChange()
+  {
+    console.log(`log window updated.`);
+  };
 
   /**
-   * The rate at which opacity increases/decreases.
+   * Draws all items in the log.
    */
-  this._opacityRate = 15;
-
-  /**
-   * Whether or not the log should be visible.
-   */
-  this._enabled = true;
-};
-
-/**
- * Handles the logical updating for this text log.
- */
-Window_TextLog.prototype.update = function()
-{
-  Window_Base.prototype.update.call(this);
-  if (this.canUpdate())
+  makeCommandList()
   {
     this.drawLogs();
-  }
-  else
+  };
+
+  /**
+   * Draws all items from the log tracker into our command window.
+   */
+  drawLogs()
   {
-    this.manageVisibility();
-    this.refresh();
-  }
-};
-
-/**
- * Handles visibility for the text log.
- */
-Window_TextLog.prototype.manageVisibility = function()
-{
-  if ($gameMessage.isBusy())
-  {
-    this.opacity = 0;
-    this.close();
-    this.hide();
-  }
-  else
-  {
-    this.show();
-    this.open();
-  }
-};
-
-/**
- * Toggles whether or not this hud is enabled.
- * @param {boolean} toggle Toggles the hud to be visible and operational.
- */
-Window_TextLog.prototype.toggle = function(toggle = !this._enabled)
-{
-  this._enabled = toggle;
-  this.manageVisibility();
-};
-
-/**
- * Whether or not this text log should be updated.
- * @returns {boolean} True if the log can be updated, false otherwise.
- */
-Window_TextLog.prototype.canUpdate = function()
-{
-  // the base conditions of the window and system.
-  const baseConditions = (this.contents && this._enabled && J.LOG.Metadata.Active);
-
-  // the message window isn't up.
-  const messageNotBusy = !$gameMessage.isBusy();
-
-  // if JAFTING is a thing...
-  let notJafting = true;
-  if (J.JAFTING)
-  {
-    // consider it when displaying windows.
-    notJafting = !$gameSystem.isJafting();
-  }
-
-  // all must be true to be displayed.
-  return baseConditions && messageNotBusy && notJafting;
-};
-
-/**
- * Refreshes the window and forces a recreation of all sprites.
- */
-Window_TextLog.prototype.refresh = function()
-{
-  this.contents.clear();
-  const keys = Object.keys(this._messageSprites);
-  keys.forEach(key =>
-  {
-    this._messageSprites[key].destroy();
-    delete this._messageSprites[key];
-  })
-
-  this._messageSprites = {};
-  this._messageTracker = [];
-};
-
-/**
- * Draws all the logs and manages them. If the player is in the way, then
- * pause management and greatly reduce opacity for the text log.
- */
-Window_TextLog.prototype.drawLogs = function()
-{
-  if (this.playerInterference())
-  {
-    this.interferenceOpacity();
-  }
-
-  this.writeAllEntries();
-  this.handleIncomingLogs();
-  this.handleOutgoingLogs();
-  this.fadeWhileInactive();
-};
-
-/**
- * Determines whether or not the player is in the way (or near it) of this window.
- * @returns {boolean} True if the player is in the way, false otherwise.
- */
-Window_TextLog.prototype.playerInterference = function()
-{
-  const player = $gamePlayer;
-  const playerX = player.screenX();
-  const playerY = player.screenY();
-  if (playerX < (this.width + 50) && playerY > (this.y - 50))
-  {
-    return true;
-  }
-
-  return false;
-};
-
-/**
- * Reduces opacity of all sprites when the player is in the way.
- */
-Window_TextLog.prototype.interferenceOpacity = function()
-{
-  const sprites = this._messageSprites;
-  const keys = Object.keys(sprites);
-  keys.forEach(key =>
-  {
-    const sprite = sprites[key];
-    if (sprite.opacity > 0) sprite.opacity -= 15;
-    if (sprite.opacity < 0) sprite.opacity += 1;
-  });
-};
-
-/**
- * Draws all the entries in the log.
- */
-Window_TextLog.prototype.writeAllEntries = function()
-{
-  this.contents.clear();
-  if (this._messageTracker.length === 0 || this.isFaded()) return;
-
-  this._messageTracker.forEach((messageSprite, index) =>
-  {
-    messageSprite.y = this._rowOne - (this._lineHeight * index);
-    messageSprite.show();
-  })
-};
-
-/**
- * Extracts the logs and creates sprites representing their data.
- */
-Window_TextLog.prototype.handleIncomingLogs = function()
-{
-  if ($gameTextLog.getLogs().length > 0)
-  {
-    // get the log from the global log manager.
-    const nextLog = $gameTextLog.shiftLog();
-
-    // create the sprite based on the data and hide it for now.
-    const sprite = this.createMessageSprite(nextLog);
-    sprite.hide();
-
-    // add the latest log to the beginning.
-    this._messageTracker.unshift(sprite);
-
-    // the log isn't inactive if we're adding to it!
-    this._inactive = false;
-    this._inactiveCountdown = 300;
-    this._faded = false;
-    this._fadingCountdown = 60;
-  }
-};
-
-/**
- * After a fixed amount of inactivity, begin destroying logs in order.
- */
-Window_TextLog.prototype.handleOutgoingLogs = function()
-{
-  if (this.isInactive() && this._messageTracker.length > 0)
-  {
-    //this.removeOldestLog();
-  }
-};
-
-/**
- * Controls the opacity of this window. While it is inactive, reduce opacity.
- * Once activity resumes, quickly increase opacity back to max(255).
- */
-Window_TextLog.prototype.fadeWhileInactive = function()
-{
-  if (this.isInactive())
-  {
-    this.fadeOpacity();
-  }
-  else
-  {
-    this.resetOpacity();
-  }
-};
-
-/**
- * While the log window is inactive, reduce opacity of the window and text.
- */
-Window_TextLog.prototype.fadeOpacity = function()
-{
-  //if (this.opacity > this._opacityMinimum) this.opacity -= this._opacityRate;
-  //if (this.opacity < this._opacityMinimum) this.opacity = this._opacityMinimum;
-
-  if (this.isFaded())
-  {
-    Object.values(this._messageSprites).forEach(sprite =>
+    const logs = $gameTextLog.getLogs();
+    logs.forEach((log, index) =>
     {
-      if (sprite.opacity > this._opacityMinimum)
-      {
-        sprite.opacity -= this._opacityRate;
-      }
-      else if (sprite.opacity < this._opacityMinimum)
-      {
-        sprite.opacity = this._opacityMinimum;
-      }
+      const message = log.message();
+      this.addCommand(`\\FS[20]${message}`, `log-${index}`, true, null, null, 0);
     });
-  }
-};
 
-/**
- * When activity in the text log resumes, quickly increase opacity back to max(255).
- */
-Window_TextLog.prototype.resetOpacity = function()
+    this.smoothScrollDown(this._list.length);
+  };
+}
+//#endregion Window_Log
+
+//#region Map_Log
+class Map_Log
 {
-  //if (this.opacity < 255) this.opacity += this._opacityRate;
-  //if (this.opacity > 255) this.opacity = 255;
-  if (this.isFaded())
-  {
-    Object.values(this._messageSprites).forEach(sprite =>
-    {
-      if (sprite.opacity < 255)
-      {
-        sprite.opacity += this._opacityRate;
-      }
-      else if (sprite.opacity > 255) sprite.opacity = 255;
-    });
-  }
-};
+  /**
+   * The message of this log.
+   * @type {string}
+   * @private
+   */
+  #message = String.empty;
 
+  /**
+   * Constructor.
+   * @param {string} message The message of this log.
+   */
+  constructor(message)
+  {
+    this.#setMessage(message);
+  };
+
+  /**
+   * Sets the message for this log.
+   * @param {string} message The message to set.
+   * @private
+   */
+  #setMessage(message)
+  {
+    this.#message = message;
+  };
+
+  /**
+   * Gets the message for this log.
+   * @returns {string}
+   */
+  message()
+  {
+    return this.#message;
+  };
+}
+//#endregion Map_Log
+
+//#region MapLogBuilder
 /**
- * Slides the bottom-most log off the screen and destroys it.
+ * A fluent-builder for the logger on the map.
  */
-Window_TextLog.prototype.removeOldestLog = function()
+class MapLogBuilder
 {
-  if (this.isFaded())
-  {
-    const removedSprite = this._messageTracker[0];
-    if (removedSprite != null)
-    {
-      // slide all logs down one row.
-      if (this._sliding < this._lineHeight)
-      {
-        this._messageTracker.forEach(messageSprite => messageSprite.y += 2)
-        this._sliding += 2;
-        return;
-      }
-      else
-      {
-        // completely dispose of this sprite now that its off-screen.
-        this._messageSprites[removedSprite.getUuid()].destroy();
-        delete this._messageSprites[removedSprite.getUuid()];
-        this._messageTracker.shift();
+  /**
+   * The current message that this log contains.
+   * @type {string}
+   */
+  #message = "message-unset";
 
-        // reset the sliding and fading.
-        this._sliding = 0;
-        this._faded = false;
-        this._fadingCountdown = 15;
-      }
+  /**
+   * Builds the log based on the currently provided info.
+   * @returns {Map_Log} The built log.
+   */
+  build()
+  {
+    // instantiate the log.
+    const log = new Map_Log(this.#message);
+
+    // clear this builder of its instance data.
+    this.#clear();
+
+    // return the log.
+    return log;
+  };
+
+  /**
+   * Clears the current parameters for this log.<br/>
+   * This automatically runs after `build()` is run.
+   */
+  #clear()
+  {
+    this.#message = String.empty;
+  };
+
+  /**
+   * Sets the message of this log.
+   * @param {string} message The message to set for this log to display.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setMessage(message)
+  {
+    this.#message = message;
+    return this;
+  };
+
+  /**
+   * Wraps a name within a text coded color.
+   * @param {string} name The name to wrap.
+   * @param {number} textColorIndex The text color index to wrap the name in.
+   * @returns {string} The wrapped name with the text coded color.
+   */
+  #wrapName(name, textColorIndex)
+  {
+    return `\\C[${textColorIndex}]${name}\\C[0]`;
+  };
+
+  /**
+   * Sets up a message based on the context of a target battler being hit by a caster's skill.
+   * @param {string} targetName The name of the target battler hit by the skill.
+   * @param {string} casterName The name of the battler who casted the skill.
+   * @param {number} skillId The id of the skill the target was hit by.
+   * @param {string} amount The amount of damage (as string) the target battler was hit for.
+   * @param {string} reduction The amount of damage (as string) the target battler mitigated.
+   * @param {boolean} isHealing True if this is healing, false otherwise.
+   * @param {boolean} isCritical True if this is critical, false otherwise.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupExecution(targetName, casterName, skillId, amount, reduction, isHealing, isCritical)
+  {
+    // the caster's name, wrapped in an aggressive color.
+    const aggressor = this.#wrapName(casterName, 2);
+
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // determine the type of execution this is, hurting or healing.
+    let hurtOrHeal;
+    if (isCritical)
+    {
+      hurtOrHeal = isHealing ? "critically healed" : "landed a critical";
     }
-  }
-};
+    else
+    {
+      hurtOrHeal = isHealing ? "healed" : "hit";
+    }
 
-/**
- * Creates a sprite for a given text log.
- * @param {Map_TextLog} textLog A log entry to create a sprite for.
- */
-Window_TextLog.prototype.createMessageSprite = function(textLog)
-{
-  const sprites = this._messageSprites;
-  if (sprites[textLog.getUuid()])
+    // the text color index is based on whether or not its flagged as healing.
+    const color = isHealing ? 29 : 10;
+
+    // construct the message.
+    const message = `${aggressor} ${hurtOrHeal} ${defender} with \\Skill[${skillId}] for \\C[${color}]${amount}\\C[0]${reduction}!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler being defeated.
+   * @param {string} targetName The name of the battler defeated.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupTargetDefeated(targetName)
   {
-    return sprites[textLog.getUuid()];
-  }
-  else
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} was defeated.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of an actor learning a skill.
+   * @param {string} targetName The name of the actor learning the skill.
+   * @param {number} skillIdLearned The id of the skill being learned.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupSkillLearn(targetName, skillIdLearned)
   {
-    const sprite = new Sprite_TextLog(textLog);
-    sprites[textLog.getUuid()] = sprite;
-    this.addInnerChild(sprite);
-    return sprite;
-  }
-};
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
 
-/**
- * Counts down the inactivity clock until 0. Inactivity will cause
- * logs to start to fade away.
- */
-Window_TextLog.prototype.isInactive = function()
-{
-  if (this._inactive)
+    // construct the message.
+    const message = `${defender} learned \\Skill[${skillIdLearned}]!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of an actor leveling up.
+   * @param {string} targetName The name of the actor reaching a new level.
+   * @param {number} levelReached The level newly reached.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupLevelUp(targetName, levelReached)
   {
-    return true;
-  }
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
 
-  if (this._inactiveCountdown > 0)
+    // construct the message.
+    const message = `${defender} has reached level \\*${levelReached}\\*!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler becoming afflicted with a state.
+   * @param {string} targetName The name of the battler becoming afflicted.
+   * @param {number} stateId The state id of the state being afflicted.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupStateAfflicted(targetName, stateId)
   {
-    this._inactiveCountdown--;
-    return false;
-  }
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
 
-  this._inactive = true;
-  this._inactiveCountdown = 0;
-  return true;
-};
+    // construct the message.
+    const message = `${defender} became afflicted with \\State[${stateId}].`;
 
-/**
- * Counts down the inactivity clock until 0. Inactivity will cause
- * logs to start to fade away.
- */
-Window_TextLog.prototype.isFaded = function()
-{
-  if (this._faded)
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler retaliating.
+   * @param {string} targetName The name of the battler retaliating.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupRetaliation(targetName)
   {
-    return true;
-  }
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
 
-  if (this._fadingCountdown > 0)
+    // construct the message.
+    const message = `${defender} retaliated!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler parrying a caster's skill.
+   * @param {string} targetName The name of the battler parrying.
+   * @param {string} casterName The name of the battler being parried.
+   * @param {number} skillId The id of the skill being parried.
+   * @param {boolean} isPreciseParry True if the parry is a precise parry, false otherwise.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupParry(targetName, casterName, skillId, isPreciseParry)
   {
-    this._fadingCountdown--;
-    return false;
-  }
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
 
-  this._faded = true;
-  this._fadingCountdown = 0;
-  return true;
-};
-//#endregion
+    // construct the message.
+    const prefix = isPreciseParry ? "precise-" : "";
+    const suffix = isPreciseParry ? " with finesse!" : ".";
+    const message = `${defender} ${prefix}parried ${casterName}'s \\Skill[${skillId}]${suffix}`;
 
-//#region Sprite_TextLog
-/**
- * The sprite used for writing into the text log.
- */
-function Sprite_TextLog()
-{
-  this.initialize(...arguments);
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler dodging the caster's skill.
+   * @param {string} targetName The name of the battler dodging.
+   * @param {string} casterName The name of the battler being dodged.
+   * @param {number} skillId The id of the skill being dodged.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupDodge(targetName, casterName, skillId)
+  {
+    // the caster's name, wrapped in an aggressive color.
+    const aggressor = this.#wrapName(casterName, 2);
+
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} dodged ${aggressor}'s \\Skill[${skillId}].`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler landing a skill on another battler,
+   * but the spell did no damage and applied no states.
+   * @param {string} targetName The name of the battler dodging.
+   * @param {string} casterName The name of the battler being dodged.
+   * @param {number} skillId The id of the skill being dodged.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupUndamaged(targetName, casterName, skillId)
+  {
+    // construct the message.
+    const message = `\\C[16]${casterName}\\C[0] used \\Skill[${skillId}], but it had no effect on \\C[2]${targetName}\\C[0].`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of party cycling to a given battler.
+   * @param {string} targetName The name of the battler being party cycled to.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupPartyCycle(targetName)
+  {
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `Party cycled to ${defender}.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of a battler using an item.
+   * @param {string} targetName The name of the battler being party cycled to.
+   * @param {number} itemId The id of the item we're using the last of.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupUsedItem(targetName, itemId)
+  {
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} used the \\Item[${itemId}].`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of using the last item/tool and unequipping it.
+   * @param {number} itemId The id of the item we're using the last of.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupUsedLastItem(itemId)
+  {
+    // construct the message.
+    const message = `The last \\Item[${itemId}] was consumed and unequipped.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on teh context of a battler earning experience.
+   * @param {string} targetName The name of the battler earning experience.
+   * @param {number} expGained The amount of experience earned by the battler.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupExperienceGained(targetName, expGained)
+  {
+    // wrap the amount in the appropriate color.
+    const exp = this.#translateReward("exp", expGained);
+
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} gained \\*${exp}\\* experience.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Sets up a message based on the context of the party finding gold.
+   * @param {number} goldFound The amount of gold found by the party.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupGoldFound(goldFound)
+  {
+    // wrap the amount in the appropriate color.
+    const gold = this.#translateReward("gold", goldFound);
+
+    // construct the message.
+    const message = `The party found \\*${gold}\\* gold.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  #translateReward(rewardType, amount)
+  {
+    switch (rewardType)
+    {
+      case "exp":
+        return `\\C[6]${amount}\\C[0]`;
+      case "gold":
+        return `\\C[14]${amount}\\C[0]`;
+      default:
+        return amount;
+    }
+  };
+
+  /**
+   * Sets up a message based on the context of the player picking up loot.
+   * @param {string} targetName The name of the player.
+   * @param {"armor"|"weapon"|"item"} lootType One of "armor", "weapon", or "item".
+   * @param {number} lootId The id of the loot from the database.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupLootObtained(targetName, lootType, lootId)
+  {
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // translate the loot based on type and id.
+    const loot = this.#translateLoot(lootType, lootId);
+
+    // construct the message.
+    const message = `${defender} obtained the \\*${loot}\\*.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
+
+  /**
+   * Translates into the proper text code based on loot type and id.
+   * @param {"armor"|"weapon"|"item"} lootType One of "armor", "weapon", or "item".
+   * @param {number} lootId The id of the loot from the database.
+   * @returns {string} The compiled wrapped text code of the loot.
+   */
+  #translateLoot(lootType, lootId)
+  {
+    switch (lootType)
+    {
+      case "armor":
+        return `\\Armor[${lootId}]`;
+      case "weapon":
+        return `\\Weapon[${lootId}]`;
+      case "item":
+        return `\\Item[${lootId}]`;
+      default:
+        return String.empty;
+    }
+  };
+
+  /**
+   * Sets up a message based on the context of a battler earning SDP points.
+   * @param {string} targetName The name of the battler earning points.
+   * @param {number} amount The amount of SDP points earned.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupSdpAcquired(targetName, amount)
+  {
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} acquired \\*${amount}\\* SDP points.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  };
 }
-
-Sprite_TextLog.prototype = Object.create(Sprite.prototype);
-Sprite_TextLog.prototype.constructor = Sprite_TextLog;
-
-/**
- * Initializes the sprite for this entry in the text log.
- * @param {Map_TextLog} textLog The text log object to base this sprite upon.
- */
-Sprite_TextLog.prototype.initialize = function(textLog)
-{
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(textLog);
-  this.bitmap = this.createBitmap();
-};
-
-/**
- * Assigns all properties for this entry in the text log.
- * @param {Map_TextLog} textLog The text log object to base this sprite upon.
- */
-Sprite_TextLog.prototype.initMembers = function(textLog)
-{
-  this._j = {};
-  this._j._uuid = textLog.getUuid();
-  this._j._text = textLog.getText();
-  this._j._baseIconIndex = textLog.getIconIndex();
-};
-
-/**
- * Creates the bitmap that is the canvas for this sprite.
- */
-Sprite_TextLog.prototype.createBitmap = function()
-{
-  const text = this._j._text;
-  const width = (this.fontSize() * text.length) + 32;
-  const height = 32;
-  const bitmap = new Bitmap(width, height);
-  bitmap.fontFace = this.fontFace();
-  bitmap.fontSize = this.fontSize();
-  bitmap.outlineWidth = 3;
-  bitmap.outlineColor = "rgba(0, 0, 0, 1.0)";
-  bitmap.drawText(text, 0, 0, bitmap.width, bitmap.height, "left");
-  return bitmap;
-};
-
-/**
- * The font size for text written into this sprite.
- * This overwrites the base sprite class to shrink the font size a bit.
- * @returns {number} The modified smaller font size.
- */
-Sprite_TextLog.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() - 8;
-};
-
-/**
- * The font size for text written into this sprite.
- * This overwrites the base sprite class to use a monospace font instead.
- */
-Sprite_TextLog.prototype.fontFace = function()
-{
-  return $gameSystem.numberFontFace();
-};
-
-/**
- * Retrieves the Uuid associated with this sprite.
- */
-Sprite_TextLog.prototype.getUuid = function()
-{
-  return this._j._uuid;
-};
-//#endregion
-
-//#region Map_TextLog
-/**
- * The shape of a single line in the text log window.
- */
-function Map_TextLog()
-{
-  this.initialize(...arguments);
-};
-Map_TextLog.prototype = {};
-Map_TextLog.prototype.constructor = Map_TextLog;
-
-/**
- * Initializes this class.
- */
-Map_TextLog.prototype.initialize = function(text, iconIndex)
-{
-  /**
-   * The message for this text log.
-   */
-  this._text = text;
-
-  /**
-   * The base icon index for this text log.
-   */
-  this._iconIndex = iconIndex;
-
-  /**
-   * The unique identifier for this text log.
-   */
-  this._uuid = null;
-  this.initMembers(text, iconIndex);
-}
-
-/**
- * Initializes all properties for this class.
- */
-Map_TextLog.prototype.initMembers = function()
-{
-  /**
-   * The `uuid` of this log entry.
-   */
-  this._uuid = J.BASE.Helpers.generateUuid();
-};
-
-/**
- * Gets this text log's unique identifier.
- * @returns {string}
- */
-Map_TextLog.prototype.getUuid = function()
-{
-  return this._uuid;
-};
-
-/**
- * Gets this text log's message.
- * @returns {string}
- */
-Map_TextLog.prototype.getText = function()
-{
-  return this._text;
-};
-
-/**
- * Gets this text log's base icon index.
- * @returns {number}
- */
-Map_TextLog.prototype.getIconIndex = function()
-{
-  return this._iconIndex;
-};
-//#endregion
+//#endregion MapLogBuilder
+//ENDOFFILE

@@ -2928,27 +2928,6 @@ Window_Command.prototype.handleIcon = function(command, index)
 };
 
 /**
- * Overwrites the `itemLineRect` (x starting coordinate for drawing) if there
- * is an icon to draw at the start of a command.
- * @returns {Rectangle}
- */
-J.BASE.Aliased.Window_Command.itemLineRect = Window_Command.prototype.itemLineRect;
-Window_Command.prototype.itemLineRect = function(index)
-{
-  const commandIcon = this.commandIcon(index);
-  if (commandIcon)
-  {
-    let baseRect = J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
-    //baseRect.x += 32;
-    return baseRect;
-  }
-  else
-  {
-    return J.BASE.Aliased.Window_Command.itemLineRect.call(this, index);
-  }
-};
-
-/**
  * Retrieves the icon for the given command in the window if it exists.
  * @param {number} index the index of the command.
  * @returns {number} The icon index for the command, or 0 if it doesn't exist.

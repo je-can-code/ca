@@ -1118,9 +1118,9 @@ if (J.ABS)
   {
     if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
 
-    const battlerData = battler.getReferenceData();
-    const sdpMessage = `${battlerData.name} earned ${sdpPoints} SDP points.`;
-    const sdpLog = new Map_TextLog(sdpMessage, -1);
+    const sdpLog = new MapLogBuilder()
+      .setupSdpAcquired(battler.battlerName(), sdpPoints)
+      .build();
     $gameTextLog.addLog(sdpLog);
   };
 }
@@ -1776,8 +1776,7 @@ Window_MenuCommand.prototype.makeCommandList = function()
 /**
  * The SDP window containing the list of all earned SDPs.
  */
-class Window_SDP_List
-  extends Window_Command
+class Window_SDP_List extends Window_Command
 {
   /**
    * @constructor
@@ -1786,7 +1785,6 @@ class Window_SDP_List
   constructor(rect)
   {
     super(rect);
-    this.initialize(rect);
     this.initMembers();
   };
 
@@ -1866,7 +1864,6 @@ class Window_SDP_Details
   constructor(rect)
   {
     super(rect);
-    this.initialize(rect);
     this.initMembers();
     this.refresh();
   };
@@ -1895,7 +1892,7 @@ class Window_SDP_Details
   refresh()
   {
     // don't refresh if there is no panel to refresh the contents of.
-    if (!this.currentPanel && !this.currentActor) return;
+    if (!this.currentPanel || !this.currentActor) return;
 
     this.contents.clear();
     this.drawPanelInfo();
