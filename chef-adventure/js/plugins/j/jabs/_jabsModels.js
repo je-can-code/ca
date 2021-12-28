@@ -4794,7 +4794,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 JABS_Battler.prototype.createToolLog = function(item)
 {
   // if not enabled, skip this.
-  if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+  if (!J.LOG) return;
 
   const log = new MapLogBuilder()
     .setupUsedItem(this.getReferenceData().name, item.id)

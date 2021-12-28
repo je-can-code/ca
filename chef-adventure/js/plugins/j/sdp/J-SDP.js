@@ -1116,7 +1116,7 @@ if (J.ABS)
    */
   Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler)
   {
-    if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
+    if (!J.LOG) return;
 
     const sdpLog = new MapLogBuilder()
       .setupSdpAcquired(battler.battlerName(), sdpPoints)

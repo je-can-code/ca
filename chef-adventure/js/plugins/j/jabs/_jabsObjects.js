@@ -2214,7 +2214,7 @@ class Game_BattleMap
     this.requestPartyRotation = true;
 
     // if the log is present, then do log things.
-    if (J.LOG && J.LOG.Metadata.Enabled)
+    if (J.LOG)
     {
       const log = new MapLogBuilder()
         .setupPartyCycle(this.getPlayerMapBattler().battlerName())
@@ -3807,7 +3807,7 @@ class Game_BattleMap
   createAttackLog(action, target)
   {
     // if not enabled, skip this.
-    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+    if (!J.LOG) return;
 
     // gather shorthand variables for use.
     const result = target.getBattler().result();
@@ -3970,7 +3970,6 @@ class Game_BattleMap
     // if the result is tp damage, treat it as such.
     else if (actionResult.hpDamage)
     {
-      console.log(actionResult.hpDamage);
       textPopBuilder
         .setValue(actionResult.hpDamage)
         .isHpDamage();
@@ -4596,7 +4595,7 @@ class Game_BattleMap
    */
   createRewardsLog(experience, gold, caster)
   {
-    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+    if (!J.LOG) return;
 
     if (experience !== 0)
     {
@@ -4640,7 +4639,7 @@ class Game_BattleMap
    */
   createLootLog(item)
   {
-    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+    if (!J.LOG) return;
 
     let lootType = String.empty;
     if (item.atypeId)
@@ -4746,7 +4745,7 @@ class Game_BattleMap
    */
   createLevelUpLog(jabsBattler)
   {
-    if (!J.LOG || !J.LOG.Metadata.Enabled) return;
+    if (!J.LOG) return;
 
     const battler = jabsBattler.getBattler();
     const log = this.configureLevelUpLog(battler.name(), battler.level);
@@ -4828,7 +4827,7 @@ class Game_BattleMap
    */
   createSkillLearnLog(skill, player)
   {
-    if (!J.LOG.Metadata.Enabled || !J.LOG.Metadata.Active) return;
+    if (!J.LOG) return;
 
     const log = this.configureSkillLearnLog(player.getReferenceData().name, skill.id);
     $gameTextLog.addLog(log);

@@ -1,7 +1,8 @@
+//#region introduction
 /*:
 * @target MZ
 * @plugindesc
-* [v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).
+* [v1.0 LOG] A log window for viewing on the map.
 * @author JE
 * @url https://github.com/je-can-code/rmmz
 * @base J-BASE
@@ -9,48 +10,51 @@
 * @orderAfter J-BASE
 * @orderAfter J-ABS
 * @orderAfter J-MessageTextCodes
-* @orderBefore J-SDP
 * @help
 * ============================================================================
-* This plugin creates a window on the screen that will act as a log of sorts.
-* It was initially designed as a battle log for JABS, but it can do things
-* without the help of JABS if you really want it to.
+* This plugin enables the ability to add and view logs in a window while on
+* the map. By itself, this plugin only creates the log window and gives access
+* to a couple utilities to build logs and add them to the window.
 *
-* If not using this with JABS, then you'll need to leverage the plugin
-* commands to add logs manually where applicable.
+* This plugin was designed for JABS, but doesn't require it.
+* If added while using JABS, the log window will automatically register all
+* actions taken, damage/healing dealth, and various other details that one
+* might expect to find in this sort of window.
 *
-* Icons were initially a part of the design, but that was never implemented
-* due to lack of popularity of the plugin and never really needing it myself.
-* If this starts to pick up traction and people like it, I'll refactor it to
-* be more feature-complete.
+* Additionally, the log window is a command window under the covers, so it
+* also supports scrolling via mouse or touch.
+*
+* Controller/keyboard support for the log window is not supported.
+*
+* This plugin has two dependencies that all must be present to work:
+* - J-BASE (used for drawing the logs properly onto the window)
+* - J-MessageTextCodes (used for translating text codes in logging)
+* The MZ editor will inform you where this plugin needs to be relative to the
+* other plugins (above/below/etc).
 * ============================================================================
-* @param Enabled
-* @type boolean
-* @text Enable Log?
-* @desc True if you want the log to be enabled, false otherwise.
-* @default true
+* @param defaultInactivityTime
+* @type number
+* @text Inactivity Timer Duration
+* @desc The duration in frames of how long before the window autohides itself.
+* @default 300
 *
 *
-* @command Enable Text Log
-* @text Enable the Text Log
-* @desc Enables the text log and displays it on the screen.
+* @command showLog
+* @text Show Log Window
+* @desc Turns the log window visible to allow logs to be displayed.
 *
-* @command Disable Text Log
-* @text Disable the Text Log
-* @desc Disables the text log and renders it invisible.
+* @command hideLog
+* @text Hide Log Window
+* @desc Turns the log window invisible. Logs still get logged, but can't be seen.
 *
-* @command Add Text Log
-* @text Add a text log
-* @desc Create a new entry and add it to the text log window.
-* @arg Text
+* @command addLog
+* @text Add Log
+* @desc Arbitrarily create a log for the log window. Respects text codes.
+* @arg text
 * @type string
 * @default One potion was found!
-* @arg Icon
-* @type number
-* @default 1
 */
 
-//#region plugin setup and configuration
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -85,47 +89,45 @@ J.LOG.Metadata.Version = 1.00;
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.LOG.PluginParameters = PluginManager.parameters(J.LOG.Metadata.Name);
-J.LOG.Metadata.Active = Boolean(J.LOG.PluginParameters['Enabled']);
-J.LOG.Metadata.Enabled = true;
+J.LOG.Metadata.InactivityTimerDuration = Number(J.LOG.PluginParameters['defaultInactivityTime']);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.LOG.Aliased = {};
-J.LOG.Aliased.DataManager = {};
-J.LOG.Aliased.Scene_Map = {};
+J.LOG.Aliased.DataManager = new Map();
+J.LOG.Aliased.Scene_Map = new Map();
 
 /**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Enable Text Log", () =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "showLog", () =>
 {
-  J.LOG.Metadata.Active = true;
+  $gameTextLog.setLogVisibility(true);
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Disable Text Log", () =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "hideLog", () =>
 {
-  J.LOG.Metadata.Active = false;
+  $gameTextLog.setLogVisibility(false);
 });
 
 /**
- * Plugin command for disabling the text log and hiding it.
+ * Plugin command for adding an arbitrary log to the log window.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "Add Text Log", args =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "addLog", args =>
 {
-  const {Text, Icon} = args;
+  const { text } = args;
   const log = new MapLogBuilder()
-    .setMessage(Text)
+    .setMessage(text)
     .build();
   $gameTextLog.addLog(log);
 });
-//#endregion
+//#endregion introduction
 
 //#region DataManager
-
 /**
  * The global text logger.
  * @type {Game_TextLog}
@@ -135,10 +137,10 @@ var $gameTextLog = null;
 /**
  * Hooks into `DataManager` to create the game objects.
  */
-J.LOG.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.LOG.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
-  J.LOG.Aliased.DataManager.createGameObjects.call(this);
+  J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
   $gameTextLog = new Game_TextLog();
 };
 //#endregion DataManager
@@ -156,7 +158,7 @@ Scene_Map.prototype.initialize = function()
 
   /**
    * The log window on the map.
-   * @type {Window_Log}
+   * @type {Window_MapLog}
    * @private
    */
   this._j._log = null;
@@ -177,28 +179,18 @@ Scene_Map.prototype.onMapLoaded = function()
  */
 Scene_Map.prototype.createTextLog = function()
 {
+  // an arbitrary number of rows.
+  const rows = 16;
+
   const width = 768;
-  const rows = 10;
-  const height = (32 * rows) - 8;
+  const height = (Window_MapLog.rowHeight * rows) - 8;
   const x = 0;
   const y = Graphics.boxHeight - height;
   const rect = new Rectangle(x, y, width, height);
-  this._j._log = new Window_Log(rect);
+  this._j._log = new Window_MapLog(rect);
   this._j._log.deselect();
   this._j._log.deactivate();
   this.addWindow(this._j._log);
-};
-
-/**
- * Toggles the visibility and functionality of the externally managed text log.
- * @param {boolean} toggle Whether or not to display the external text log.
- */
-Scene_Map.prototype.toggleLog = function(toggle = true)
-{
-  if (J.LOG.Metadata.Enabled)
-  {
-    // this._j._mapTextLog.toggle(toggle);
-  }
 };
 //#endregion Scene_Map
 
@@ -220,6 +212,30 @@ Game_TextLog.prototype.constructor = Game_TextLog;
 Game_TextLog.prototype.initialize = function()
 {
   this.initMembers();
+};
+
+/**
+ * Initializes all properties for this class.
+ */
+Game_TextLog.prototype.initMembers = function()
+{
+  /**
+   * The logs currently being managed.
+   * @type {Map_Log[]}
+   */
+  this._logs = [];
+
+  /**
+   * Whether or not we have an unattended log.
+   * @type {boolean}
+   */
+  this._hasNewLog = false;
+
+  /**
+   * Whether or not the log window should be visible.
+   * @type {boolean}
+   */
+  this._isVisible = true;
 };
 
 /**
@@ -258,30 +274,6 @@ Game_TextLog.prototype.acknowledgeNewLog = function()
 };
 
 /**
- * Initializes all properties for this class.
- */
-Game_TextLog.prototype.initMembers = function()
-{
-  /**
-   * The logs currently being managed.
-   * @type {Map_Log[]}
-   */
-  this._logs = [];
-
-  /**
-   * Whether or not we have an unattended log.
-   * @type {boolean}
-   */
-  this._hasNewLog = false;
-
-  /**
-   * Whether or not the log window should be visible.
-   * @type {boolean}
-   */
-  this._isVisible = true;
-};
-
-/**
  * Gets all currently pending logs.
  * @returns {Map_Log[]} All logs currently in queue.
  */
@@ -311,26 +303,38 @@ Game_TextLog.prototype.clearLogs = function()
   this._logs.splice(0, this._logs.length);
 };
 
+/**
+ * Gets whether or not the log window should be visible.
+ * @returns {boolean}
+ */
 Game_TextLog.prototype.isVisible = function()
 {
   return this._isVisible;
 };
 
+/**
+ * Sets the log window's visibility.
+ * @param {boolean} visible Whether or not the log window should be visible.
+ */
 Game_TextLog.prototype.setLogVisibility = function(visible)
 {
   this._isVisible = visible;
-  return visible
-    ? "Window_Log is now visible."
-    : "Window_Log is now hidden."
 };
-//#endregion
+//#endregion Game_TextLog
 
-//#region Window_Log
+//#region Window_MapLog
 /**
  * A window containing the logs.
  */
-class Window_Log extends Window_Command
+class Window_MapLog extends Window_Command
 {
+  /**
+   * The height of one row.
+   * @type {number}
+   * @static
+   */
+  static rowHeight = 16;
+
   /**
    * The in-window tracking of how long before we reduce opacity for inactivity.
    * @type {number}
@@ -341,13 +345,7 @@ class Window_Log extends Window_Command
    * The duration of which the inactivity timer will be refreshed to.
    * @type {number}
    */
-  defaultInactivityDuration = 300;
-
-  /**
-   *
-   * @type {boolean}
-   */
-  forceHide = false;
+  defaultInactivityDuration = J.LOG.Metadata.InactivityTimerDuration;
 
   /**
    * Constructor.
@@ -366,15 +364,6 @@ class Window_Log extends Window_Command
   setDefaultInactivityDuration(duration)
   {
     this.defaultInactivityDuration = duration;
-  };
-
-  /**
-   * Sets whether or not this window should be forcefully hidden, regardless of logging.
-   * @param {boolean} forceHide True if this window should be hidden, false otherwise.
-   */
-  setForceHide(forceHide)
-  {
-    this.forceHide = forceHide;
   };
 
   /**
@@ -397,16 +386,35 @@ class Window_Log extends Window_Command
   {
     // make the window's background opacity transparent.
     this.opacity = 0;
+    this.downArrowVisible = false;
+    this.upArrowVisible = false;
   };
 
   //#region overwrites
+  isScrollEnabled()
+  {
+    if (!$gameTextLog.isVisible()) return false;
+
+    return true;
+  };
   /**
    * OVERWRITE Forces the arrows that appear in scrollable windows to not be visible.
    */
-  updateArrows()
+  updateArrows() { };
+
+  /**
+   * Extends the scroll functionality to also refresh the timer to prevent this window
+   * from going invisible while perusing the logs.
+   * @param {number} x The x coordinate to scroll to.
+   * @param {number} y The y coordinate to scroll to.
+   */
+  smoothScrollTo(x, y)
   {
-    this.downArrowVisible = false;
-    this.upArrowVisible = false;
+    // perform original logic.
+    super.smoothScrollTo(x, y);
+
+    // forces the window to show if scrolling through it.
+    this.showWindow();
   };
 
   /**
@@ -415,7 +423,7 @@ class Window_Log extends Window_Command
    */
   itemHeight()
   {
-    return 16;
+    return Window_MapLog.rowHeight;
   };
 
   /**
@@ -575,7 +583,7 @@ class Window_Log extends Window_Command
   updateVisibility()
   {
     // if the text log is flagged as hidden, then don't show it.
-    if (!$gameTextLog.isVisible())
+    if (!$gameTextLog.isVisible() || $gameMessage.isBusy())
     {
       this.hideWindow();
       return;
@@ -659,7 +667,7 @@ class Window_Log extends Window_Command
   };
   //#endregion update visibility
 }
-//#endregion Window_Log
+//#endregion Window_MapLog
 
 //#region Map_Log
 /**

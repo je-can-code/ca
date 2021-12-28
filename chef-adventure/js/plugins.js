@@ -25,7 +25,7 @@ var $plugins =
 {"name":"j/jabs/ext/J-ABS-Diagonals","status":true,"description":"[v1.0 DIAG] Fixes diagonal movement for projectiles and characters.","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-STAR","status":false,"description":"Test Bundling","parameters":{"hello":""}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
-{"name":"j/J-LOG","status":true,"description":"[v1.0 LOG] A non-battle-reliant text log (designed for JABS, though).","parameters":{"Enabled":"true"}},
+{"name":"j/J-LOG","status":true,"description":"[v1.0 LOG] A log window for viewing on the map.","parameters":{"defaultInactivityTime":"300"}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
 {"name":"j/J-ControlledDrops","status":true,"description":"[v1.0.0 DROP] Enables greater control over gold and item drops.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},

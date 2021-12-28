@@ -156,13 +156,11 @@ Scene_Map.prototype.handleJabsWindowsVisibility = function()
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy())
   {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
-    if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
   }
   else
   {
     if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
-    if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
   }
 };
