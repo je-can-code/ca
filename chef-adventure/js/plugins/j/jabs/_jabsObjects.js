@@ -74,6 +74,49 @@ Game_Actor.prototype.setup = function(actorId)
   this.refreshBonusHits();
 };
 
+/**
+ * Gets the battler id of this actor from the database.
+ * @returns {number}
+ */
+Game_Actor.prototype.battlerId = function()
+{
+  return this.actorId();
+};
+
+/**
+ * The team id of this actor.
+ * Defaults to the default ally team id.
+ * @returns {number}
+ */
+Game_Actor.prototype.teamId = function()
+{
+  let val = JABS_Battler.allyTeamId();
+
+  const referenceData = this.actor();
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
+  {
+    // if its in the metadata, then grab it from there.
+    val = referenceData.meta[J.BASE.Notetags.Team];
+  }
+  else
+  {
+    const structure = /<team:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = RegExp.$1;
+      }
+    });
+  }
+
+  return parseInt(val);
+};
+
+/**
+ * Replaces the map damage with JABS' version of the map damage.
+ */
 J.ABS.Aliased.Game_Actor.performMapDamage = Game_Actor.prototype.performMapDamage;
 Game_Actor.prototype.performMapDamage = function()
 {
@@ -1140,6 +1183,15 @@ Game_Battler.prototype.getUuid = function()
 Game_Battler.prototype.setUuid = function(uuid)
 {
   this._j._uuid = uuid;
+};
+
+/**
+ * Gets the underlying id of the battler from the database.
+ * @returns {number}
+ */
+Game_Battler.prototype.battlerId = function()
+{
+  return 0;
 };
 
 /**
@@ -3790,7 +3842,6 @@ class Game_BattleMap
         .setupRetaliation(casterName)
         .build();
       $gameTextLog.addLog(retaliationLog);
-      return;
     }
     // if no damage of any kind was dealt, and no states were applied, then you get a special message!
     else if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length)
@@ -3801,9 +3852,9 @@ class Game_BattleMap
       $gameTextLog.addLog(log);
       return;
     }
-    // otherwise, it must be a regular damage type log.
-    else
+    if (result.hpDamage)
     {
+      // otherwise, it must be a regular damage type log.
       // get the base damage dealt and clean that up.
       let roundedDamage = Math.round(result.hpDamage);
       const isNotHeal = roundedDamage > 0;
@@ -5490,6 +5541,15 @@ Game_Enemies.prototype.enemy = function(enemyId)
 
 //#region Game_Enemy
 /**
+ * Gets the battler id of this enemy from the database.
+ * @returns {number}
+ */
+Game_Enemy.prototype.battlerId = function()
+{
+  return this.enemyId();
+};
+
+/**
  * Gets the current number of bonus hits for this actor.
  * @returns {number}
  */
@@ -6327,22 +6387,21 @@ Game_Event.prototype.parseEnemyComments = function()
   if (battlerId > 0)
   {
     const enemyBattler = $gameEnemies.enemy(battlerId);
-    battlerCoreData = new JABS_BattlerCoreData({
-      battlerId: battlerId,
-      teamId: teamId ?? enemyBattler.teamId(),
-      battlerAI: ai ?? enemyBattler.ai(),
-      sightRange: sightRange ?? enemyBattler.sightRange(),
-      alertedSightBoost: alertedSightBoost ?? enemyBattler.alertedSightBoost(),
-      pursuitRange: pursuitRange ?? enemyBattler.pursuitRange(),
-      alertedPursuitBoost: alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost(),
-      alertDuration: alertDuration ?? enemyBattler.alertDuration(),
-      canIdle: canIdle ?? enemyBattler.canIdle(),
-      showHpBar: showHpBar ?? enemyBattler.showHpBar(),
-      showDangerIndicator: showDangerIndicator ?? enemyBattler.showDangerIndicator(),
-      showBattlerName: showBattlerName ?? enemyBattler.showBattlerName(),
-      isInvincible: isInvincible ?? enemyBattler.isInvincible(),
-      isInanimate: isInanimate ?? enemyBattler.isInanimate()
-    });
+    battlerCoreData = new JABS_CoreDataBuilder(battlerId)
+      .setTeamId(teamId ?? enemyBattler.teamId())
+      .setBattlerAi(ai ?? enemyBattler.ai())
+      .setSightRange(sightRange ?? enemyBattler.sightRange())
+      .setAlertedSightBoost(alertedSightBoost ?? enemyBattler.alertedSightBoost())
+      .setPursuitRange(pursuitRange ?? enemyBattler.pursuitRange())
+      .setAlertedPursuitBoost(alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost())
+      .setAlertDuration(alertDuration ?? enemyBattler.alertDuration())
+      .setCanIdle(canIdle ?? enemyBattler.canIdle())
+      .setShowHpBar(showHpBar ?? enemyBattler.showHpBar())
+      .setShowDangerIndicator(showDangerIndicator ?? enemyBattler.showDangerIndicator())
+      .setShowBattlerName(showBattlerName ?? enemyBattler.showBattlerName())
+      .setIsInvincible(isInvincible ?? enemyBattler.isInvincible())
+      .setIsInanimate(isInanimate ?? enemyBattler.isInanimate())
+      .build();
   }
 
   this.initializeCoreData(battlerCoreData);

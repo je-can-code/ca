@@ -539,7 +539,7 @@ Scene_Boot.prototype.start = function()
   SceneManager.showDevTools();
 
   // set a timer for after the devtools has loaded to focus the game window.
-  setTimeout(() => nw.Window.get().focus(), 500);
+  setTimeout(() => nw.Window.get().focus(), 750);
 };
 
 Scene_Base.prototype.buttonAreaHeight = function()

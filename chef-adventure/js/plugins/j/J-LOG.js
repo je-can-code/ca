@@ -219,17 +219,6 @@ Game_TextLog.prototype.constructor = Game_TextLog;
  */
 Game_TextLog.prototype.initialize = function()
 {
-  /**
-   * The logs currently being managed.
-   * @type {Map_Log[]}
-   */
-  this._logs = [];
-
-  /**
-   * Whether or not we have an unattended log.
-   * @type {boolean}
-   */
-  this._hasNewLog = false;
   this.initMembers();
 };
 
@@ -273,7 +262,23 @@ Game_TextLog.prototype.acknowledgeNewLog = function()
  */
 Game_TextLog.prototype.initMembers = function()
 {
+  /**
+   * The logs currently being managed.
+   * @type {Map_Log[]}
+   */
   this._logs = [];
+
+  /**
+   * Whether or not we have an unattended log.
+   * @type {boolean}
+   */
+  this._hasNewLog = false;
+
+  /**
+   * Whether or not the log window should be visible.
+   * @type {boolean}
+   */
+  this._isVisible = true;
 };
 
 /**
@@ -305,6 +310,19 @@ Game_TextLog.prototype.clearLogs = function()
 {
   this._logs.splice(0, this._logs.length);
 };
+
+Game_TextLog.prototype.isVisible = function()
+{
+  return this._isVisible;
+};
+
+Game_TextLog.prototype.setLogVisibility = function(visible)
+{
+  this._isVisible = visible;
+  return visible
+    ? "Window_Log is now visible."
+    : "Window_Log is now hidden."
+};
 //#endregion
 
 //#region Window_Log
@@ -314,10 +332,22 @@ Game_TextLog.prototype.clearLogs = function()
 class Window_Log extends Window_Command
 {
   /**
-   * The in-window tracking of the logs.
-   * @type {Map_Log[]}
+   * The in-window tracking of how long before we reduce opacity for inactivity.
+   * @type {number}
    */
-  logs = [];
+  inactivityTimer = 300;
+
+  /**
+   * The duration of which the inactivity timer will be refreshed to.
+   * @type {number}
+   */
+  defaultInactivityDuration = 300;
+
+  /**
+   *
+   * @type {boolean}
+   */
+  forceHide = false;
 
   /**
    * Constructor.
@@ -328,28 +358,36 @@ class Window_Log extends Window_Command
     super(rect);
   };
 
+  /**
+   * Sets the default inactivity max duration. Changing this will change how long
+   * the logs remain visible.
+   * @param {number} duration The new duration for how long logs remain visible.
+   */
+  setDefaultInactivityDuration(duration)
+  {
+    this.defaultInactivityDuration = duration;
+  };
+
+  /**
+   * Sets whether or not this window should be forcefully hidden, regardless of logging.
+   * @param {boolean} forceHide True if this window should be hidden, false otherwise.
+   */
+  setForceHide(forceHide)
+  {
+    this.forceHide = forceHide;
+  };
+
+  /**
+   * OVERWRITE Initialize this class, but with our things, too.
+   * @param {Rectangle} rect The rectangle representing the shape of this window.
+   */
   initialize(rect)
   {
-    // initialize our class members.
-    this.initMembers();
-
     // run our parent class's initialize.
     super.initialize(rect);
 
     // run our one-time setup and configuration.
     this.configure();
-
-    // TODO: update the background opacity for the individual rows?
-    // TODO: make a map_log builder class.
-    // TODO: reduce font size and change font for text.
-  };
-
-  /**
-   * Initializes all properties of this class.
-   */
-  initMembers()
-  {
-    this.logs = [];
   };
 
   /**
@@ -361,40 +399,76 @@ class Window_Log extends Window_Command
     this.opacity = 0;
   };
 
+  //#region overwrites
   /**
-   * Make our rows narrow-er.
+   * OVERWRITE Forces the arrows that appear in scrollable windows to not be visible.
+   */
+  updateArrows()
+  {
+    this.downArrowVisible = false;
+    this.upArrowVisible = false;
+  };
+
+  /**
+   * OVERWRITE Make our rows narrow-er.
    * @returns {number} The height of each row.
    */
   itemHeight()
   {
-    return 24; // 36 default;
+    return 16;
   };
 
   /**
    * OVERWRITE Removes the drawing of the background-per-row.
    * @param {Rectangle} rect The rectangle to draw the background for.
    */
-  drawBackgroundRect(rect)
-  {
-    // nothing.
-  };
+  drawBackgroundRect(rect) { };
 
   /**
    * OVERWRITE Reduces the size of the icons being drawn in the log window.
-   * @param iconIndex
-   * @param x
-   * @param y
+   * @param {number} iconIndex The index of the icon to draw.
+   * @param {number} x The x coordinate to draw the icon at.
+   * @param {number} y The y coordinate to draw the icon at.
    */
   drawIcon(iconIndex, x, y)
   {
+    // just copy-paste of the icon drawing variable math.
     const bitmap = ImageManager.loadSystem("IconSet");
     const pw = ImageManager.iconWidth;
     const ph = ImageManager.iconHeight;
     const sx = (iconIndex % 16) * pw;
     const sy = Math.floor(iconIndex / 16) * ph;
-    this.contents.blt(bitmap, sx, sy, pw, ph, x+4, y+4, 24, 24);
+
+    // the last two parameters reduce the size of the icon to a smaller size.
+    // this allows the icons to not look so clumsy in the log.
+    this.contents.blt(bitmap, sx, sy, pw, ph, x, y, 16, 16);
   };
 
+  /**
+   * Extends the draw-icon processing for this window to slightly adjust how
+   * icons are drawn since we're also drawing em good and smol.
+   * @param {number} iconIndex The index of the icon to draw.
+   * @param {rm.types.TextState} textState The rolling state of the text being drawn.
+   */
+  processDrawIcon(iconIndex, textState)
+  {
+    // before drawing the icon, draw it a bit lower since its smaller.
+    textState.y += 8;
+
+    // draw the icon.
+    super.processDrawIcon(iconIndex, textState);
+
+    // move the text state back up to where it was before.
+    textState.y -= 8;
+
+    // because we didn't draw a full-sized icon, we move the textState.x back a bit.
+    textState.x -= 16;
+  };
+  //#endregion overwrites
+
+  /**
+   * Update this window's drawing and the like.
+   */
   update()
   {
     // process original update logic.
@@ -408,6 +482,21 @@ class Window_Log extends Window_Command
    * Perform the update logic that maintains this window.
    */
   updateMapLog()
+  {
+    // manage the incoming logging.
+    this.updateLogging();
+
+    // manage the visibility of this window.
+    this.updateVisibility();
+  };
+
+  //#region update logging
+  /**
+   * The update of the logging.
+   * The processing of incoming messages, and updating the contents of this window
+   * occur thanks to this function.
+   */
+  updateLogging()
   {
     // check if we have a need to update.
     if (this.shouldUpdate())
@@ -449,7 +538,7 @@ class Window_Log extends Window_Command
    */
   onLogChange()
   {
-    console.log(`log window updated.`);
+    this.showWindow();
   };
 
   /**
@@ -465,19 +554,117 @@ class Window_Log extends Window_Command
    */
   drawLogs()
   {
-    const logs = $gameTextLog.getLogs();
-    logs.forEach((log, index) =>
+    // iterate over each log.
+    $gameTextLog.getLogs().forEach((log, index) =>
     {
-      const message = log.message();
-      this.addCommand(`\\FS[20]${message}`, `log-${index}`, true, null, null, 0);
+      // add the message as a "command" into the log window.
+      this.addCommand(`\\FS[14]${log.message()}`, `log-${index}`, true, null, null, 0);
     });
 
+    // after drawing all the logs, scroll to the bottom.
     this.smoothScrollDown(this._list.length);
   };
+  //#endregion update logging
+
+  //#region update visibility
+  /**
+   * Updates the visibility of the window.
+   * Uses an inactivity timer to countdown and eventually reduce opacity once
+   * a certain threshold is reached.
+   */
+  updateVisibility()
+  {
+    // if the text log is flagged as hidden, then don't show it.
+    if (!$gameTextLog.isVisible())
+    {
+      this.hideWindow();
+      return;
+    }
+
+    // decrement the timer.
+    this.decrementInactivityTimer();
+
+    // if the timer is at or below 100, then
+    if (this.inactivityTimer <= 60)
+    {
+      // fade the window accordingly.
+      this.fadeWindow();
+    }
+  };
+
+  /**
+   * Decrements the inactivity timer, by 1 by default.
+   */
+  decrementInactivityTimer(amount = 1)
+  {
+    // decrement the timer.
+    this.inactivityTimer -= amount;
+  };
+
+  /**
+   * Sets the duration of the inactivity timer.
+   * @param {number} duration The duration to set the inactivity timer to; 300 by default.
+   */
+  setInactivityTimer(duration = this.defaultInactivityDuration)
+  {
+    this.inactivityTimer = duration;
+  };
+
+  /**
+   * Fades this window out based on the inactivity timer.
+   */
+  fadeWindow()
+  {
+    // check if this is the "other" of every other frame.
+    if (this.inactivityTimer % 2 === 0)
+    {
+      // reduce opacity if it is.
+      this.contentsOpacity -= 12;
+    }
+    // otherwise, check if the timer is simply 0.
+    else if (this.inactivityTimer === 0)
+    {
+      // and hide the window if it is.
+      this.hideWindow();
+    }
+  };
+
+  /**
+   * Hides this window entirely.
+   */
+  hideWindow()
+  {
+    // force the timer to 0.
+    this.setInactivityTimer(0);
+
+    // hide the contents.
+    this.contentsOpacity = 0;
+  };
+
+  /**
+   * Shows this window.
+   * Refreshes the inactivity timer to 5 seconds.
+   * Typically used after the log window was hidden.
+   */
+  showWindow()
+  {
+    // if the text log is flagged as hidden
+    if (!$gameTextLog.isVisible()) return;
+
+    // refresh the timer back to 5 seconds.
+    this.setInactivityTimer(this.defaultInactivityDuration);
+
+    // refresh the opacity so the logs can be seen again.
+    this.contentsOpacity = 255;
+  };
+  //#endregion update visibility
 }
 //#endregion Window_Log
 
 //#region Map_Log
+/**
+ * A model representing a single log in the log window.
+ */
 class Map_Log
 {
   /**

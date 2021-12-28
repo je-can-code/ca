@@ -39018,7 +39018,7 @@ declare class Sprite_Base extends Sprite {
 	 */
 	show(): void;
 	/**
-	 * Updadtes the visibility of the sprite based
+	 * Updates the visibility of the sprite based
 	 * on the _hiding property.
 	 * @memberof Sprite_Base
 	 */
