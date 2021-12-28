@@ -310,8 +310,8 @@ Game_Action.prototype.calculateRawElementRate = function(target)
 
 /**
  * Gets all applicable element ids that this action could have against this target.
- * @param target
- * @returns {number[]}
+ * @param {Game_Battler} target The target battler to check elemental applicability.
+ * @returns {number[]} The list of element ids that this action has that are valid against the target.
  */
 Game_Action.prototype.getApplicableElements = function(target)
 {

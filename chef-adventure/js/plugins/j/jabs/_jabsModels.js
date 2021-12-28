@@ -2281,7 +2281,7 @@ JABS_Battler.prototype.generatePopSlip = function(amount, type)
  * Configures a popup based on the slip damage type and amount.
  * @param {number} amount The amount of the slip.
  * @param {0|1|2} type The slip parameter: 0=hp, 1=mp, 2=tp.
- * @returns {JABS_TextPop}
+ * @returns {Map_TextPop}
  */
 JABS_Battler.prototype.configureSlipPop = function(amount, type)
 {
@@ -4596,6 +4596,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   gameAction.setItem(toolId);
 
   // handle scopes of the tool.
+  const scopeNone = gameAction.item().scope === 0;
   const scopeSelf = gameAction.isForUser();
   const scopeAlly = gameAction.isForFriend();
   const scopeOpponent = gameAction.isForOpponent();
@@ -4630,7 +4631,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   {
     this.applyToolForAllOpponents(toolId);
   }
-  else if (gameAction.item().scope === 0)
+  else if (scopeNone)
   {
     // do nothing, the item has no scope and must be relying purely on the skillId.
   }
@@ -4645,7 +4646,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // create the log for the tool use.
   this.createToolLog(item);
 
-  const {cooldown: itemCooldown, skillId: itemSkillId} = item._j;
+  const { cooldown: itemCooldown, skillId: itemSkillId } = item._j;
 
   // it is an item with a custom cooldown.
   if (itemCooldown)
@@ -4701,7 +4702,7 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
 };
 
 /**
- * Generates a popup based on the item used on oneself.
+ * Generates a popup based on the item used.
  * @param {Game_Action} gameAction The action describing the tool's effect.
  * @param {number} itemId The target having the action applied against.
  * @param {JABS_Battler} target The target for calculating damage; defaults to self.

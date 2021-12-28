@@ -3849,7 +3849,7 @@ class Game_BattleMap
   /**
    * Configures this skill used popup based on the skill itself.
    * @param {rm.types.Skill} skill The skill that was used.
-   * @returns {JABS_TextPop}
+   * @returns {Map_TextPop}
    */
   configureSkillUsedPop(skill)
   {
@@ -3874,10 +3874,26 @@ class Game_BattleMap
     // get the underlying actionresult from the skill execution.
     const actionResult = targetBattler.result();
 
+    // initialize this to false.
+    let targetElementallyImmune = false;
+
     // determine the elemental factor.
-    const elementalRate = J.ELEM
-      ? gameAction.calculateRawElementRate(targetBattler)
-      : gameAction.calcElementRate(targetBattler);
+    let elementalRate;
+
+    // check if using the J-Elementalistics plugin.
+    if (J.ELEM)
+    {
+      // leverage the new elemental algorithm for elemental rates.
+      elementalRate = gameAction.calculateRawElementRate(targetBattler);
+
+      // check to ensure we have any amount of applicable elements.
+      targetElementallyImmune = (gameAction.getApplicableElements(targetBattler)).length === 0;
+    }
+    else
+    {
+      // leverage the default method for obtaining elemental rate.
+      elementalRate = gameAction.calcElementRate(targetBattler);
+    }
 
     // translate the skill into it's relevant iconIndex, or 0 if not applicable.
     const elementalIcon = this.determineElementalIcon(skill, caster);
@@ -3887,33 +3903,40 @@ class Game_BattleMap
       ? 128
       : elementalIcon;
 
+    // instantiate the builder for piece-mealing the popup together.
     const textPopBuilder = new TextPopBuilder(0);
 
-    // if we were parried, sorry about your luck.
-    if (actionResult.parried)
+    // if the target was completely immune to what you had, then say so.
+    if (targetElementallyImmune)
+    {
+      textPopBuilder.setValue(`IMMUNE`);
+    }
+    // if you were parried, sorry about your luck.
+    else if (actionResult.parried)
     {
       textPopBuilder.setValue(`PARRY!`);
     }
     // if the result is tp damage, treat it as such.
     else if (actionResult.hpDamage)
     {
+      console.log(actionResult.hpDamage);
       textPopBuilder
-        .isHpDamage()
-        .setValue(actionResult.hpDamage);
+        .setValue(actionResult.hpDamage)
+        .isHpDamage();
     }
     // if the result is tp damage, treat it as such.
     else if (actionResult.mpDamage)
     {
       textPopBuilder
-        .isMpDamage()
-        .setValue(actionResult.mpDamage);
+        .setValue(actionResult.mpDamage)
+        .isMpDamage();
     }
     // if the result is tp damage, treat it as such.
     else if (actionResult.tpDamage)
     {
       textPopBuilder
-        .isTpDamage()
-        .setValue(actionResult.mpDamage);
+        .setValue(actionResult.mpDamage)
+        .isTpDamage();
     }
 
     // if we somehow used this without a proper damage type, then just build a default.
@@ -4451,7 +4474,7 @@ class Game_BattleMap
   /**
    * Creates the text pop of the experienced gained.
    * @param {number} exp The amount of experience gained.
-   * @returns {JABS_TextPop}
+   * @returns {Map_TextPop}
    */
   configureExperiencePop(exp)
   {
@@ -4656,7 +4679,7 @@ class Game_BattleMap
 
   /**
    * Configures the level up text pop.
-   * @returns {JABS_TextPop}
+   * @returns {Map_TextPop}
    */
   configureLevelUpPop()
   {
@@ -4738,7 +4761,7 @@ class Game_BattleMap
   /**
    * Configures the popup for a skill learned.
    * @param {rm.types.Skill} skill The skill learned.
-   * @returns {JABS_TextPop}
+   * @returns {Map_TextPop}
    */
   configureSkillLearnPop(skill)
   {

@@ -120,7 +120,7 @@ Game_Character.prototype.initMembers = function()
 
   /**
    * The text pops that are pending processing.
-   * @type {JABS_TextPop[]}
+   * @type {Map_TextPop[]}
    */
   this._j._textPops = [];
 
@@ -160,7 +160,7 @@ Game_Character.prototype.setRequestTextPop = function(textPopRequest = true)
 
 /**
  * Adds a text pop to this character.
- * @param {JABS_TextPop} textPop A text pop that will be displayed on the map.
+ * @param {Map_TextPop} textPop A text pop that will be displayed on the map.
  */
 Game_Character.prototype.addTextPop = function(textPop)
 {
@@ -173,7 +173,7 @@ Game_Character.prototype.addTextPop = function(textPop)
 
 /**
  * Gets all currently waiting-to-be-processed text pops.
- * @returns {JABS_TextPop[]}
+ * @returns {Map_TextPop[]}
  */
 Game_Character.prototype.getTextPops = function()
 {
@@ -345,12 +345,11 @@ Sprite_Character.prototype.createIncomingTextPops = function()
 
 /**
  * Creates a single incoming text pop.
- * @param {JABS_TextPop} popup The popup data.
+ * @param {Map_TextPop} popup The popup data.
  */
 Sprite_Character.prototype.createIncomingTextPop = function(popup)
 {
   // configure the sprite associated with the popup.
-  // const sprite = this.configurePopup(popup);
   const sprite = TextPopSpriteManager.convert(popup);
 
   // add the sprites to their corresponding collections for tracking.
@@ -981,8 +980,8 @@ class TextPopSpriteManager
   };
 
   /**
-   * Converts a `JABS_TextPop` into a `Sprite_Damage`.
-   * @param {JABS_TextPop} popup The popup to convert.
+   * Converts a `Map_TextPop` into a `Sprite_Damage`.
+   * @param {Map_TextPop} popup The popup to convert.
    * @returns {Sprite_Damage} The converted sprite.
    */
   static convert(popup)
@@ -991,7 +990,7 @@ class TextPopSpriteManager
     const sprite = new Sprite_Damage();
 
     // add the x variance to the x coordinate for the base sprite.
-    sprite.setXVariance(popup.coordinateVariance[0])
+    sprite.setXVariance(popup.coordinateVariance[0]);
 
     // add the y variance to the y coordinate for the base sprite.
     sprite.setYVariance(popup.coordinateVariance[1]);
@@ -1031,29 +1030,29 @@ class TextPopSpriteManager
 
   /**
    * Gets the bonus duration based on the type of popup this is.
-   * @param {JABS_TextPop.Types} popupType The type of popup this is.
+   * @param {Map_TextPop.Types} popupType The type of popup this is.
    * @returns {number} The bonus duration for this type.
    */
   static #getDurationByPopupType(popupType)
   {
     switch (popupType)
     {
-      case JABS_TextPop.Types.HpDamage:
-      case JABS_TextPop.Types.MpDamage:
-      case JABS_TextPop.Types.TpDamage:
+      case Map_TextPop.Types.HpDamage:
+      case Map_TextPop.Types.MpDamage:
+      case Map_TextPop.Types.TpDamage:
         return 60;
-      case JABS_TextPop.Types.Experience:
-      case JABS_TextPop.Types.Gold:
-      case JABS_TextPop.Types.Sdp:
-      case JABS_TextPop.Types.Item:
+      case Map_TextPop.Types.Experience:
+      case Map_TextPop.Types.Gold:
+      case Map_TextPop.Types.Sdp:
+      case Map_TextPop.Types.Item:
         return 120;
-      case JABS_TextPop.Types.Learn:
+      case Map_TextPop.Types.Learn:
         return 120;
-      case JABS_TextPop.Types.Levelup:
+      case Map_TextPop.Types.Levelup:
         return 180;
-      case JABS_TextPop.Types.Parry:
-      case JABS_TextPop.Types.SkillUsage:
-      case JABS_TextPop.Types.Slip:
+      case Map_TextPop.Types.Parry:
+      case Map_TextPop.Types.SkillUsage:
+      case Map_TextPop.Types.Slip:
         return 0;
       default:
         console.warn(`unsupported popup type of [${popupType}] found.`);
@@ -1063,16 +1062,16 @@ class TextPopSpriteManager
 
   /**
    * Checks whether or not the popup type is damage.
-   * @param {JABS_TextPop.Types} popupType The type of popup this is.
+   * @param {Map_TextPop.Types} popupType The type of popup this is.
    * @returns {boolean} True if it is damage, false otherwise.
    */
   static #isDamageFlagByPopupType(popupType)
   {
     switch (popupType)
     {
-      case JABS_TextPop.Types.HpDamage:
-      case JABS_TextPop.Types.MpDamage:
-      case JABS_TextPop.Types.TpDamage:
+      case Map_TextPop.Types.HpDamage:
+      case Map_TextPop.Types.MpDamage:
+      case Map_TextPop.Types.TpDamage:
         return true;
       default:
         return false;
@@ -1121,10 +1120,10 @@ class TextPopBuilder
 
   /**
    * The type of popup this is.
-   * @type {JABS_TextPop.Types}
+   * @type {Map_TextPop.Types}
    * @private
    */
-  #popupType = JABS_TextPop.Types.HpDamage;
+  #popupType = Map_TextPop.Types.HpDamage;
 
   /**
    * This text will be prepended to the "value" portion of the popup.
@@ -1183,12 +1182,12 @@ class TextPopBuilder
 
   /**
    * Builds the popup based on the currently provided info.
-   * @returns {JABS_TextPop}
+   * @returns {Map_TextPop}
    */
   build()
   {
     // actually construct the popup with whatever the current values are.
-    const popup = new JABS_TextPop({
+    const popup = new Map_TextPop({
       iconIndex: this.#iconIndex,
       textColorIndex: this.#textColorIndex,
       popupType: this.#popupType,
@@ -1215,7 +1214,7 @@ class TextPopBuilder
     this.#isCritical = false;
     this.#iconIndex = 0;
     this.#textColorIndex = 0;
-    this.#popupType = JABS_TextPop.Types.HpDamage;
+    this.#popupType = Map_TextPop.Types.HpDamage;
     this.#prefix = String.empty;
     this.#value = String.empty;
     this.#suffix = String.empty;
@@ -1285,6 +1284,9 @@ class TextPopBuilder
 
     // track the primary text value as a string.
     this.#value = underlyingValue.toString();
+
+    // return this builder for fluent construction of pops.
+    return this;
   };
 
   /**
@@ -1357,7 +1359,7 @@ class TextPopBuilder
 
   /**
    * Sets the popup type of the popup to the provided type.
-   * @param {JABS_TextPop.Types} popupType The type of popup this is.
+   * @param {Map_TextPop.Types} popupType The type of popup this is.
    * @returns {TextPopBuilder}
    */
   setPopupType(popupType)
@@ -1499,7 +1501,7 @@ class TextPopBuilder
   isHpDamage()
   {
     // set the popup type to be hp damage.
-    this.setPopupType(JABS_TextPop.Types.HpDamage);
+    this.setPopupType(Map_TextPop.Types.HpDamage);
 
     // check if the underlying value is negative or positive to determine color.
     if (this.#baseValue !== 0)
@@ -1538,7 +1540,7 @@ class TextPopBuilder
   isMpDamage()
   {
     // set the popup type to be mp damage.
-    this.setPopupType(JABS_TextPop.Types.MpDamage);
+    this.setPopupType(Map_TextPop.Types.MpDamage);
 
     // check if the underlying value is negative or positive to determine color.
     if (this.#baseValue !== 0)
@@ -1577,7 +1579,7 @@ class TextPopBuilder
   isTpDamage()
   {
     // set the popup type to be tp damage.
-    this.setPopupType(JABS_TextPop.Types.TpDamage);
+    this.setPopupType(Map_TextPop.Types.TpDamage);
 
     // check if the underlying value is negative or positive to determine color.
     if (this.#baseValue !== 0)
@@ -1616,7 +1618,7 @@ class TextPopBuilder
   isExperience()
   {
     // set the popup type to be experience.
-    this.setPopupType(JABS_TextPop.Types.Experience);
+    this.setPopupType(Map_TextPop.Types.Experience);
 
     // set the text color to be a light-yellow.
     this.setTextColorIndex(6);
@@ -1641,7 +1643,7 @@ class TextPopBuilder
   isGold()
   {
     // set the popup type to be experience.
-    this.setPopupType(JABS_TextPop.Types.Gold);
+    this.setPopupType(Map_TextPop.Types.Gold);
 
     // set the text color to be a dark-yellow.
     this.setTextColorIndex(14);
@@ -1666,7 +1668,7 @@ class TextPopBuilder
   isSdpPoints()
   {
     // set the popup type to be an SDP point acquisition.
-    this.setPopupType(JABS_TextPop.Types.Sdp);
+    this.setPopupType(Map_TextPop.Types.Sdp);
 
     // set the text color to be lovely pink.
     this.setTextColorIndex(17);
@@ -1691,7 +1693,7 @@ class TextPopBuilder
   isLoot()
   {
     // set the popup type to be experience.
-    this.setPopupType(JABS_TextPop.Types.Item);
+    this.setPopupType(Map_TextPop.Types.Item);
 
     // set the text color to be system blue.
     this.setTextColorIndex(1);
@@ -1713,7 +1715,7 @@ class TextPopBuilder
   isLevelUp()
   {
     // set the popup type to be a level up.
-    this.setPopupType(JABS_TextPop.Types.Levelup);
+    this.setPopupType(Map_TextPop.Types.Levelup);
 
     // set the text color to be mint green.
     this.setTextColorIndex(24);
@@ -1733,7 +1735,7 @@ class TextPopBuilder
   isSkillUsed(skillIconIndex)
   {
     // set the popup type to be a skill used.
-    this.setPopupType(JABS_TextPop.Types.SkillUsage);
+    this.setPopupType(Map_TextPop.Types.SkillUsage);
 
     // set the text color to be dark-grey.
     this.setTextColorIndex(7);
@@ -1756,7 +1758,7 @@ class TextPopBuilder
   isSkillLearned(skillIconIndex)
   {
     // set the popup type to be a skill learned.
-    this.setPopupType(JABS_TextPop.Types.Learn);
+    this.setPopupType(Map_TextPop.Types.Learn);
 
     // set the text color to be lovely pink.
     this.setTextColorIndex(27);
@@ -1777,21 +1779,21 @@ class TextPopBuilder
 }
 //#endregion TextPopBuilder
 
-//#region JABS_TextPop
+//#region Map_TextPop
 /**
  * A class representing a single popup on the map.
  */
-function JABS_TextPop()
+function Map_TextPop()
 {
   this.initialize(...arguments);
 }
-JABS_TextPop.prototype = {};
-JABS_TextPop.prototype.constructor = JABS_TextPop;
+Map_TextPop.prototype = {};
+Map_TextPop.prototype.constructor = Map_TextPop;
 
 /**
  * A static collection of all types associated with text pops.
  */
-JABS_TextPop.Types = {
+Map_TextPop.Types = {
   /**
    * The popup type of "hp-damage", for displaying hp damage pops.
    */
@@ -1862,7 +1864,7 @@ JABS_TextPop.Types = {
 /**
  * Builds the text pop based on the given parameters.
  */
-JABS_TextPop.prototype.initialize = function({
+Map_TextPop.prototype.initialize = function({
   iconIndex,
   textColorIndex,
   popupType,
@@ -1872,7 +1874,7 @@ JABS_TextPop.prototype.initialize = function({
   healing,
 }) {
   /**
-   * The id of the icon to display alongside this `JABS_TextPop`.
+   * The id of the icon to display alongside this `Map_TextPop`.
    * @type {number}
    */
   this.iconIndex = iconIndex;
@@ -1885,7 +1887,7 @@ JABS_TextPop.prototype.initialize = function({
 
   /**
    * The type of popup this is, such as damage, experience, loot, etc.
-   * @type {JABS_TextPop.Types}
+   * @type {Map_TextPop.Types}
    */
   this.popupType = popupType;
 
@@ -1915,6 +1917,6 @@ JABS_TextPop.prototype.initialize = function({
    */
   this.healing = healing;
 };
-//#endregion JABS_TextPop
+//#endregion Map_TextPop
 
 //ENDOFFILE

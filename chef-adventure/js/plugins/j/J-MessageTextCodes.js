@@ -44,6 +44,26 @@
  * - the icon of the skill matching id 101 in the database.
  * - the name of the skill matching id 101 in the database.
  * ============================================================================
+ * NEW TEXT STYLES:
+ * Have you ever wanted to be able to style your already amazing comic sans ms
+ * font with italics or bold? Well now you can! By adding the correct text
+ * codes into your message windows (or in your plugins using .drawTextEx()),
+ * you too can flourish with italics and/or stand stoic with bold!
+ *
+ * NOTE:
+ * The following styles act as 'toggles', in the sense that all characters that
+ * are surrounded by the text codes of \_ or \* would be of their corresponding
+ * style- italics or bold respectively. See the examples for clarity.
+ *
+ * NEW TEXT STYLES AVAILABLE:
+ *  \_      (italics)
+ *  \*      (bold)
+ *
+ * NEW TEXT STYLES EXAMPLES:
+ *  "so it is \*gilbert\*. We finally meet \_at last\_."
+ * In the passage above, the word "gilbert" would be bolded.
+ * In the passage above, the words "at least" would be italicized.
+ * ============================================================================
  */
 
 /**
