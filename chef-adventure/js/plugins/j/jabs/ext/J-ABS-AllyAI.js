@@ -438,7 +438,7 @@ Game_BattleMap.prototype.performPartyCycling = function()
 
   // request the scene overlord to take notice and react accordingly (refresh hud etc).
   this.requestPartyRotation = true;
-  if (J.LOG && J.LOG.Metadata.Enabled)
+  if (J.LOG)
   {
     const log = new MapLogBuilder()
       .setupPartyCycle(this.getPlayerMapBattler().battlerName())

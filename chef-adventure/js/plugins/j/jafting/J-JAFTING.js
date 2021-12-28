@@ -1168,8 +1168,8 @@ Scene_Map.prototype.getCurrentCategory = function()
 };
 
 /**
- * Sets the category currently recipe.
- * @param {string} category The currently selected recipe.
+ * Sets the currently selected recipe.
+ * @param {string} recipe The currently selected recipe.
  */
 Scene_Map.prototype.setCurrentRecipe = function(recipe)
 {
@@ -1191,7 +1191,6 @@ Scene_Map.prototype.getCurrentRecipe = function()
 Scene_Map.prototype.hideNonJaftingWindows = function()
 {
   if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
-  if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(false);
   if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
 };
 
@@ -1201,7 +1200,6 @@ Scene_Map.prototype.hideNonJaftingWindows = function()
 Scene_Map.prototype.showNonJaftingWindows = function()
 {
   if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
-  if (J.LOG && J.LOG.Metadata.Enabled) this.toggleLog(true);
   if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
 };
 
