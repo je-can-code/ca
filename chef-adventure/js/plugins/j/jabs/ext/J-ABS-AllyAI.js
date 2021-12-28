@@ -760,8 +760,7 @@ Game_Map.prototype.parseAllyBattlers = function()
  */
 Game_Map.prototype.getActiveFollowers = function()
 {
-  const followers = $gamePlayer.followers()
-    .data();
+  const followers = $gamePlayer.followers().data();
   return followers.filter(follower => follower.isVisible());
 };
 
@@ -773,23 +772,10 @@ Game_Map.prototype.getActiveFollowers = function()
 Game_Map.prototype.convertOneFollower = function(follower)
 {
   const battler = follower.actor();
-  const coreBattlerData = new JABS_BattlerCoreData({
-    battlerId: battler.actorId(),
-    teamId: JABS_Battler.allyTeamId(),
-    battlerAI: battler.ai(),
-    sightRange: battler.sightRange(),
-    alertedSightBoost: battler.alertedSightBoost(),
-    pursuitRange: battler.pursuitRange(),
-    alertedPursuitBoost: battler.alertedPursuitBoost(),
-    alertDuration: battler.alertDuration(),
-    canIdle: battler.canIdle(),
-    showHpBar: battler.showHpBar(),
-    showDangerIndicator: battler.showDangerIndicator(),
-    showBattlerName: battler.showBattlerName(),
-    isInvincible: battler.isInvincible(),
-    isInanimate: battler.isInanimate()
-  });
-  const mapBattler = new JABS_Battler(follower, battler, coreBattlerData);
+  const coreData = new JABS_CoreDataBuilder(0)
+    .setBattler(battler)
+    .build();
+  const mapBattler = new JABS_Battler(follower, battler, coreData);
   follower.setMapBattler(mapBattler.getUuid());
   return mapBattler;
 };
