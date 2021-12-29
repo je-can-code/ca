@@ -109,7 +109,7 @@ Game_Character.prototype.hasDescribeData = function()
 /**
  * Creates the method for overwriting by subclasses.
  * At this level, it will return null for non-events.
- * @returns {boolean?}
+ * @returns {boolean}
  */
 Game_Character.prototype.getDescribeData = function()
 {
