@@ -147,19 +147,24 @@ DataManager.createGameObjects = function()
 
 //#region Scene_Map
 /**
- * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
+ * Hooks into `initialize` to add our log.
  */
 J.LOG.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
 Scene_Map.prototype.initialize = function()
 {
+  // perform original logic.
   J.LOG.Aliased.Scene_Map.initialize.call(this);
+
+  /**
+   * All encompassing _j object for storing this plugin's properties.
+   * @type {{}}
+   * @private
+   */
   this._j ||= {};
-  this._j._mapTextLog = null;
 
   /**
    * The log window on the map.
    * @type {Window_MapLog}
-   * @private
    */
   this._j._log = null;
 };
@@ -170,7 +175,10 @@ Scene_Map.prototype.initialize = function()
 J.LOG.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function()
 {
+  // perform original logic.
   J.LOG.Aliased.Scene_Map.onMapLoaded.call(this);
+
+  // create the log.
   this.createTextLog();
 };
 
@@ -372,7 +380,7 @@ class Window_MapLog extends Window_Command
    */
   initialize(rect)
   {
-    // run our parent class's initialize.
+    // perform original logic.
     super.initialize(rect);
 
     // run our one-time setup and configuration.
@@ -386,6 +394,8 @@ class Window_MapLog extends Window_Command
   {
     // make the window's background opacity transparent.
     this.opacity = 0;
+
+    // fix the arrows presence to be false by default.
     this.downArrowVisible = false;
     this.upArrowVisible = false;
   };
