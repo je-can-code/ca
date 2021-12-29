@@ -238,21 +238,6 @@ J.ELEM.Aliased = {
 //#endregion Introduction
 
 //#region Game objects
-//#region Game_Action
-J.ELEM.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
-Game_Action.prototype.makeDamageValue = function(target, critical)
-{
-  let base = J.ELEM.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
-
-  const subject = this.subject();
-  if (subject)
-  {
-    // get filtered attack elements
-    // multiply base by each one
-  }
-  return base;
-};
-
 /**
  * OVERWRITE Calculates the elemental rates of this action against the designated target.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -274,7 +259,6 @@ Game_Action.prototype.calcElementRate = function(target)
 
   // filter the action's elements down by what is available according to the strict elements.
   const attackElements = elements.filter(elementId => targetStrictElements.includes(elementId));
-  //TODO: add "outgoing elemental bonuses" here
 
   let factor;
   switch (attackElements.length)

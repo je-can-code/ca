@@ -864,7 +864,6 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
     base = this.handleGuardEffects(base, player);
   }
 
-  base = Math.round(base);
   return base;
 };
 
