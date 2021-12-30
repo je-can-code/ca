@@ -187,18 +187,34 @@ Scene_Map.prototype.onMapLoaded = function()
  */
 Scene_Map.prototype.createTextLog = function()
 {
-  // an arbitrary number of rows.
-  const rows = 16;
+  // create the rectangle of the window.
+  const rect = this.textLogWindowRect();
 
-  const width = 768;
+  // assign the window to our reference.
+  this._j._log = new Window_MapLog(rect);
+
+  // deselect/deactivate the window so we don't have it look interactable.
+  this._j._log.deselect();
+  this._j._log.deactivate();
+
+  // add window to tracking.
+  this.addWindow(this._j._log);
+};
+
+/**
+ * Creates the rectangle representing the window for the log.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.textLogWindowRect = function()
+{
+  // an arbitrary number of rows.
+  const rows = 12;
+
+  const width = 600;
   const height = (Window_MapLog.rowHeight * rows) - 8;
   const x = 0;
   const y = Graphics.boxHeight - height;
-  const rect = new Rectangle(x, y, width, height);
-  this._j._log = new Window_MapLog(rect);
-  this._j._log.deselect();
-  this._j._log.deactivate();
-  this.addWindow(this._j._log);
+  return new Rectangle(x, y, width, height);
 };
 //#endregion Scene_Map
 
@@ -299,8 +315,33 @@ Game_TextLog.prototype.addLog = function(log)
   // add a log to the collection.
   this._logs.push(log);
 
+  // make sure we don't have too many logs to work with.
+  this.handleLogCount();
+
   // alert any listeners that we have a new log.
   this.setHasNewLog();
+};
+
+/**
+ * Manages the logs in our local store to ensure we don't have too many.
+ */
+Game_TextLog.prototype.handleLogCount = function()
+{
+  // check if we have too many logs.
+  while (this.hasTooManyLogs())
+  {
+    // remove from the front until we are within the threshold.
+    this._logs.shift();
+  }
+};
+
+/**
+ * Determines whether or not we have too many logs in our local store.
+ * @returns {boolean} True if we have too many, false otherwise.
+ */
+Game_TextLog.prototype.hasTooManyLogs = function()
+{
+  return (this._logs.length > 100);
 };
 
 /**
@@ -337,7 +378,7 @@ Game_TextLog.prototype.setLogVisibility = function(visible)
 class Window_MapLog extends Window_Command
 {
   /**
-   * The height of one row.
+   * The height of one row; 16.
    * @type {number}
    * @static
    */
@@ -441,6 +482,19 @@ class Window_MapLog extends Window_Command
    * @param {Rectangle} rect The rectangle to draw the background for.
    */
   drawBackgroundRect(rect) { };
+
+  /**
+   * Extends the `itemRectWithPadding()` function to move the rect a little
+   * to the left to look a bit cleaner.
+   * @param {number} index The index of the item in the window.
+   * @returns {Rectangle}
+   */
+  itemRectWithPadding(index)
+  {
+    const rect = super.itemRectWithPadding(index);
+    rect.x -= 16;
+    return rect;
+  }
 
   /**
    * OVERWRITE Reduces the size of the icons being drawn in the log window.
@@ -638,6 +692,7 @@ class Window_MapLog extends Window_Command
     {
       // reduce opacity if it is.
       this.contentsOpacity -= 12;
+      this.opacity -= 8;
     }
     // otherwise, check if the timer is simply 0.
     else if (this.inactivityTimer === 0)
@@ -657,6 +712,7 @@ class Window_MapLog extends Window_Command
 
     // hide the contents.
     this.contentsOpacity = 0;
+    this.opacity = 0;
   };
 
   /**
@@ -674,6 +730,7 @@ class Window_MapLog extends Window_Command
 
     // refresh the opacity so the logs can be seen again.
     this.contentsOpacity = 255;
+    this.opacity = 128;
   };
   //#endregion update visibility
 }

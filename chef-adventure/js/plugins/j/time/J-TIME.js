@@ -1883,9 +1883,7 @@ class Window_Time
     this.drawTextEx(`\\I[${seasonIcon}]${seasonName}`, 0, lh * 2, 200);
     this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
   };
-
 }
-
 //#endregion Window_Time
 //#endregion Window objects
 

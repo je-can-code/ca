@@ -139,10 +139,10 @@ Scene_Map.prototype.initialize = function()
  * Once the map is loaded, hook in and create the `JABS_BattlerManager` for managing
  * the JABS.
  */
-J.KEYS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
-Scene_Map.prototype.onMapLoaded = function()
+J.KEYS.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+Scene_Map.prototype.createAllWindows = function()
 {
-  J.KEYS.Aliased.Scene_Map.get('onMapLoaded').call(this);
+  J.KEYS.Aliased.Scene_Map.get('createAllWindows').call(this);
   this.createJabsActionKeys();
 };
 
@@ -151,13 +151,22 @@ Scene_Map.prototype.onMapLoaded = function()
  */
 Scene_Map.prototype.createJabsActionKeys = function()
 {
-  const ww = Graphics.width / 2 - 50;
-  const wh = Graphics.height / 4 + 10;
-  const wx = (Graphics.width - ww - (Graphics.width - Graphics.boxWidth) / 2);
-  const wy = (Graphics.height - wh - (Graphics.height - Graphics.boxHeight) / 2);
-  const rect = new Rectangle(wx, wy, ww, wh);
+  const rect = this.actionKeysWindowRect();
   this._j._actionKeysWindow = new Window_ActionKeys(rect);
   this.addWindow(this._j._actionKeysWindow);
+};
+
+/**
+ * Creates the rectangle representing the window for the action keys.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.actionKeysWindowRect = function()
+{
+  const width = 600;
+  const height = 184;
+  const x = Graphics.boxWidth - width;
+  const y = Graphics.boxHeight - height;
+  return new Rectangle(x, y, width, height);
 };
 
 /**
@@ -310,8 +319,8 @@ Window_ActionKeys.prototype.drawActionKeys = function()
   this._actor = $gameParty.leader();
   const akh = 46;
   const cw = 52;
-  const middleY = Math.round(this.height / 2 - akh);
-  const bottomY = (Math.round(middleY / 2)) + akh + 12;
+  const middleY = Math.round((this.height) / 2 - akh);
+  const bottomY = (Math.round(middleY / 2)) + akh + 10;
   const topY = (Math.round(middleY / 2)) - (akh / 2);
 
   this.drawActionKey(Game_Actor.JABS_MAINHAND, cw * 0, middleY);
