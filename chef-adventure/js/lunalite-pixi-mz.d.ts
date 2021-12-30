@@ -40554,14 +40554,6 @@ declare class Window_Base extends Window {
 	 */
 	textPadding(): number;
 	/**
-	 * Returns the standard back opacity of the window; this is the
-	 * opacity of the area behind the window's text content.
-	 * Default is 192.
-	 * @returns {number}
-	 * @memberof Window_Base
-	 */
-	standardBackOpacity(): number;
-	/**
 	 * Loads the window skin from the img/system directory.
 	 *
 	 * @memberof Window_Base

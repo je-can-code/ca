@@ -2481,9 +2481,13 @@ function Sprite_MapGauge()
 Sprite_MapGauge.prototype = Object.create(Sprite_Gauge.prototype);
 Sprite_MapGauge.prototype.constructor = Sprite_MapGauge;
 Sprite_MapGauge.prototype.initialize = function(
-  bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6,
-  label = "", value = null, iconIndex = -1)
-{
+  bitmapWidth = 96,
+  bitmapHeight = 24,
+  gaugeHeight = 6,
+  label = String.empty,
+  value = null,
+  iconIndex = -1
+) {
   this._duration = 0;
   this._gauge = {};
   this._gauge._bitmapWidth = bitmapWidth;
@@ -2493,9 +2497,19 @@ Sprite_MapGauge.prototype.initialize = function(
   this._gauge._value = value;
   this._gauge._iconIndex = iconIndex;
 
+  this._gauge._activated = true;
+
   Sprite_Gauge.prototype.initialize.call(this);
-  this.initMembers();
-  this.createBitmap();
+};
+
+Sprite_MapGauge.prototype.activateGauge = function()
+{
+  this._gauge._activated = true;
+};
+
+Sprite_MapGauge.prototype.deactivateGauge = function()
+{
+  this._gauge._activated = false;
 };
 
 /**
@@ -2503,6 +2517,9 @@ Sprite_MapGauge.prototype.initialize = function(
  */
 Sprite_MapGauge.prototype.update = function()
 {
+  // don't update if its not activated.
+  if (!this._gauge._activated) return;
+
   this.redraw();
   Sprite_Gauge.prototype.update.call(this);
   //this.manageGaugeVisibility();
@@ -2522,6 +2539,24 @@ Sprite_MapGauge.prototype.manageGaugeVisibility = function()
   {
     this.opacity -= 4.25;
   }
+};
+
+Sprite_MapGauge.prototype.updateGaugeAnimation = function() {
+  if (this._value !== this._targetValue || this._maxValue !== this._targetMaxValue)
+  {
+    this._value = this._targetValue;
+    this._maxValue = this._targetMaxValue;
+    this.redraw();
+  }
+  /*
+  if (this._duration > 0) {
+    const d = this._duration;
+    this._value = (this._value * (d - 1) + this._targetValue) / d;
+    this._maxValue = (this._maxValue * (d - 1) + this._targetMaxValue) / d;
+    this._duration--;
+    this.redraw();
+  }
+  */
 };
 
 /**
