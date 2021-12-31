@@ -1,7 +1,7 @@
 //#region introduction
 /*:
  * @target MZ
- * @plugindesc 
+ * @plugindesc
  * [v1.0 HUD] A default HUD, designed for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
@@ -9,91 +9,29 @@
  * @orderAfter J-BASE
  * @help
  * ============================================================================
- * This is a simple HUD plugin that shows some of the key data points that the
- * player may want to see while on the map. This primarily was designed for use
- * with JABS, but does not require it.
- * 
- * This was designed to be uncustomizable from a regular RM dev perspective,
- * however the code is more than clear enough to go in and tweak as you need in
- * order to move the HUD itself or any of it's components around.
- * 
- * There is a single plugin command for toggling the HUD itself.
- * 
- * If you have followers, but maybe aren't using JABS, or aren't using the ally
- * AI plugin to turn your followers into battlers as well, or just don't like
- * showing the the follower's information, there is a plugin parameter to
- * toggle other member's HUD visibility.
- * 
- * If you decide that the HUD isn't the greatest so you want to use another
- * HUD (like moghunter's or something). However, you're using JABS, and want to
- * be able to view the state data (which is custom-managed by JABS)... then
- * there is another plugin parameter for you! "Hide All but States?" toggle
- * will force the HUD to skip drawing all but the states functionality.
- * 
- * Additionally, to compliment the desire to only draw states, there are plugin
- * parameters for adjusting the X/Y coordinates of the HUD, which will allow
- * you to move where the states are displayed. Alternatively, you are free to
- * lift the code within the "//#region states" block and place it in another
- * plugin and adjust it as-needed to add the state functionality into another
- * HUD instead. You probably will need some degree of RM plugin development
- * experience to accomplish this effort.
- * ============================================================================
- * 
- * @param baseConfigs
- * @text BASE SETUP
- * 
- * @param enabled
- * @parent baseConfigs
- * @type boolean
- * @text Enable HUD?
- * @desc If this is set to true, then the HUD will show up. False will hide it.
- * @default true
- * 
- * @param hideFollowersHudAlways
- * @parent baseConfigs
- * @type boolean
- * @text Hide Followers HUD?
- * @desc If followers are enabled, by default their HUD will show.
- * This hides the follower's HUD components no matter what.
- * @default false
- * 
- * @param externalConfigs
- * @text EXTERNAL COMPATIBILITY
- *  
- * @param hideAllButStates
- * @parent externalConfigs
- * @type boolean
- * @text Hide all but States?
- * @desc If using another HUD, you may want to only show states.
- * This will hide all components of the HUD except states.
- * @default false
- * 
- * @param hudX
- * @parent externalConfigs
- * @type number
- * @min -1
- * @text HUD X coordinate
- * @desc Sets the X coordinate of the HUD window to this value.
- * If this is -1, it will use the default coordinates.
- * @default -1
- * 
- * @param hudY
- * @parent externalConfigs
- * @type number
- * @min -1
- * @text HUD Y coordinate
- * @desc Sets the Y coordinate of the HUD window to this value.
- * If this is -1, it will use the default coordinates.
- * @default -1
- * 
- * 
- * @command Show HUD
- * @text Show HUD
- * @desc Shows the HUD on the map.
- * 
- * @command Hide HUD
+ * @command hideHud
  * @text Hide HUD
  * @desc Hides the HUD on the map.
+ *
+ * @command showHud
+ * @text Show HUD
+ * @desc Shows the HUD on the map.
+ *
+ * @command hideAllies
+ * @text Hide Allies
+ * @desc Hides the display of allies in the hud.
+ *
+ * @command showAllies
+ * @text Show Allies
+ * @desc Shows allies' data in the hud.
+ *
+ * @command refreshHud
+ * @text Refresh HUD
+ * @desc Forcefully refreshes the hud.
+ *
+ * @command refreshImageCache
+ * @text Refresh HUD Image Cache
+ * @desc Forcefully refreshes the image cache of the hud. Use when you change face assets for actors.
  */
 
 /**
@@ -114,6 +52,7 @@ var J = J || {};
 })();
 //#endregion version check
 
+//#region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -124,87 +63,242 @@ J.HUD = {};
  */
 J.HUD.Metadata = {};
 J.HUD.Metadata.Version = '1.0.0';
-J.HUD.Metadata.Name = `J-Hud`;
+J.HUD.Metadata.Name = `J-HUD`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.HUD.PluginParameters = PluginManager.parameters(`J-HUD`);
-J.HUD.Metadata.Enabled = J.HUD.PluginParameters['enabled'] === "true";
-J.HUD.Metadata.HideFollowersHudAlways = J.HUD.PluginParameters['hideFollowersHudAlways'] === "true";
-J.HUD.Metadata.HideAllButStates = J.HUD.PluginParameters['hideAllButStates'] === "true";
-J.HUD.Metadata.Xcoordinate = Number(J.HUD.PluginParameters['hudX']);
-J.HUD.Metadata.Ycoordinate = Number(J.HUD.PluginParameters['hudY']);
+J.HUD.PluginParameters = PluginManager.parameters(`J-HUD2`);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.HUD.Aliased = {
-  Scene_Map: {},
+  Game_System: new Map(),
+  Scene_Map: new Map(),
+  DataManager: new Map(),
+};
+//#endregion metadata
+
+//#endregion introduction
+
+//#region plugin commands
+/**
+ * Plugin command for hiding the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideHud", () =>
+{
+  $hudManager.requestHideHud();
+});
+
+/**
+ * Plugin command for showing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showHud", () =>
+{
+  $hudManager.requestShowHud();
+});
+
+/**
+ * Plugin command for hiding allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideAllies", () =>
+{
+  $hudManager.requestHideAllies();
+});
+
+/**
+ * Plugin command for showing allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showAllies", () =>
+{
+  $hudManager.requestShowAllies();
+});
+
+/**
+ * Plugin command for refreshing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshHud", () =>
+{
+  $hudManager.requestRefreshHud();
+});
+
+/**
+ * Plugin command for refreshing the hud's image cache.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshImageCache", () =>
+{
+  $hudManager.requestRefreshImageCache();
+});
+//#endregion plugin commands
+
+/**
+ * A global object for managing the hud.
+ * @global
+ * @type {Hud_Manager}
+ */
+var $hudManager = null;
+
+//#region Static objects
+//#region DataManager
+/**
+ * Instantiates the hud manager after the rest of the objects are created.
+ */
+J.HUD.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+DataManager.createGameObjects = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('createGameObjects').call(this);
+
+  // create the global hud manager object.
+  $hudManager = new Hud_Manager();
+};
+
+J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
+DataManager.extractSaveContents = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this);
+
+  // setup the hud now that we know we have the save contents available.
+  $hudManager.setup();
+};
+
+J.HUD.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
+DataManager.setupNewGame = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('setupNewGame').call(this);
+
+  // setup the hud now that we know we have the save contents available.
+  $hudManager.setup();
+};
+//#endregion DataManager
+//#endregion Static objects
+
+//#region Game objects
+//#region Game_System
+/**
+ * Extends the `initialize()` to include our hud data for remembering.
+ */
+J.HUD.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
+Game_System.prototype.initialize = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.Game_System.get('initialize').call(this);
+  this._j ||= {};
+  this._j._hud ||= {
+    _hudVisible: true,
+    _alliesVisible: true,
+  };
 };
 
 /**
- * Plugin command for enabling the text log and showing it.
+ * Remembers the setting of hud visibility.
+ * @param {boolean} visible True if the hud is visible, false otherwise.
  */
-PluginManager.registerCommand(J.HUD.Metadata.Name, "Show Hud", () =>
+Game_System.prototype.setHudVisible = function(visible)
 {
-  J.HUD.Metadata.Enabled = true;
-});
+  this._j._hud._hudVisible = visible;
+};
 
 /**
- * Plugin command for disabling the text log and hiding it.
+ * Gets whether or not the hud was last identified as visible.
+ * @returns {boolean} True if it was visible, false otherwise.
  */
-PluginManager.registerCommand(J.HUD.Metadata.Name, "Hide Hud", () =>
+Game_System.prototype.getHudVisible = function()
 {
-  J.HUD.Metadata.Enabled = false;
-});
-//#endregion introduction
+  return this._j._hud._hudVisible;
+};
+
+/**
+ * Remembers the setting of the hud's allies' visibility.
+ * @param {boolean} visible True if the hud's allies' are visible, false otherwise.
+ */
+Game_System.prototype.setHudAlliesVisible = function(visible)
+{
+  this._j._hud._alliesVisible = visible;
+};
+
+/**
+ * Gets whether or not the hud's allies were last identified as visible.
+ * @returns {boolean} True if they were visible, false otherwise.
+ */
+Game_System.prototype.getHudAlliesVisible = function()
+{
+  return this._j._hud._alliesVisible;
+};
+//#endregion Game_System
+//#endregion Game objects
 
 //#region Scene objects
 //#region Scene_Map
 /**
- * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
+ * Hooks into `initialize` to add our hud.
  */
-J.HUD.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.HUD.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
-  J.HUD.Aliased.Scene_Map.initialize.call(this);
-  this._j = this._j || {};
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('initialize').call(this);
+
+  /**
+   * All encompassing _j object for storing this plugin's properties.
+   * @type {{}}
+   * @private
+   */
+  this._j ||= {};
+
+  /**
+   * The log window on the map.
+   * @type {Window_Hud}
+   */
   this._j._hud = null;
 };
 
 /**
- * Create the Hud with all the rest of the windows.
+ * Once the map is loaded, create the text log.
  */
-J.HUD.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
+J.HUD.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
-  this.createHud();
-  J.HUD.Aliased.Scene_Map.createAllWindows.call(this);
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('createAllWindows').call(this);
+
+  // create the log.
+  this.createMapHud();
 };
 
 /**
- * Creates the default HUD for JABS.
+ * Creates the log window and adds it to tracking.
  */
-Scene_Map.prototype.createHud = function()
+Scene_Map.prototype.createMapHud = function()
 {
-  const ww = 400;
-  const wh = 300;
-  // if we have coordinates from the plugin parameters, use those instead.
-  const wx = (J.HUD.Metadata.Xcoordinate > -1)
-    ? parseInt(J.HUD.Metadata.Xcoordinate)
-    : -((Graphics.width - Graphics.boxWidth) / 2);
-  const wy = (J.HUD.Metadata.Ycoordinate > -1)
-    ? parseInt(J.HUD.Metadata.Ycoordinate)
-    : -((Graphics.height - Graphics.boxHeight) / 2);
+  // create the rectangle of the window.
+  const rect = this.mapHudWindowRect();
 
-  const rect = new Rectangle(wx - 8, wy - 8, ww, wh);
+  // assign the window to our reference.
   this._j._hud = new Window_Hud(rect);
+
+  // add window to tracking.
   this.addWindow(this._j._hud);
 };
 
 /**
- * If the HUD is in use, move the map name over a bit.
+ * Creates the rectangle representing the window for the map hud.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.mapHudWindowRect = function()
+{
+  const width = 320;
+  const height = 290;
+  const x = 0;
+  const y = 0;
+  return new Rectangle(x, y, width, height);
+};
+
+/**
+ * OVERWRITE Relocates the map display name window to not overlap the hud.
  */
 Scene_Map.prototype.mapNameWindowRect = function()
 {
@@ -216,23 +310,74 @@ Scene_Map.prototype.mapNameWindowRect = function()
 };
 
 /**
- * Toggles the visibility and functionality of the built-in JABS hud.
- * @param {boolean} toggle Whether or not to display the default hud.
- */
-Scene_Map.prototype.toggleHud = function(toggle = true)
-{
-  if (J.HUD.Metadata.Enabled)
-  {
-    this._j._hud.toggle(toggle);
-  }
-};
-
-/**
  * Refreshes the hud on-command.
  */
 Scene_Map.prototype.refreshHud = function()
 {
   this._j._hud.refresh();
+};
+
+/**
+ * Extends the `update()` function to also monitor updates for the hud.
+ */
+J.HUD.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
+Scene_Map.prototype.update = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('update').call(this);
+
+  // listen for changes to the hud display.
+  this.updateHud();
+};
+
+/**
+ * The update loop for the hud manager.
+ */
+Scene_Map.prototype.updateHud = function()
+{
+  // the update loop for the hud manager.
+  $hudManager.update();
+
+  // manages hud refreshes.
+  this.handleRefreshHud();
+
+  // manages hud image cache refreshes.
+  this.handleRefreshHudImageCache();
+};
+
+/**
+ * Handles incoming requests to refresh the hud.
+ */
+Scene_Map.prototype.handleRefreshHud = function()
+{
+  // handles incoming requests to refresh the hud.
+  if ($hudManager.hasRequestRefreshHud())
+  {
+    // refresh the hud.
+    this._j._hud.refresh();
+
+    // let the hud manager know we've done the deed.
+    $hudManager.acknowledgeRefreshHud();
+  }
+};
+
+/**
+ * Handles incoming requests to refresh the hud's image cache.
+ */
+Scene_Map.prototype.handleRefreshHudImageCache = function()
+{
+  // handles incoming requests to refresh the hud.
+  if ($hudManager.hasRequestRefreshImageCache())
+  {
+    // refresh the hud's image cache.
+    this._j._hud.refreshCache();
+
+    // and then refresh the hud with the new refreshed assets.
+    this._j._hud.refresh();
+
+    // let the hud manager know we've done the deed.
+    $hudManager.acknowledgeRefreshImageCache();
+  }
 };
 //#endregion Scene_Map
 //#endregion Scene objects
@@ -245,13 +390,55 @@ Scene_Map.prototype.refreshHud = function()
 class Window_Hud extends Window_Base
 {
   /**
+   * The static collection of gauge types supported.
+   * @type {{MP: string, HP: string, TP: string, XP: string}}
+   */
+  static gaugeTypes = {
+    /**
+     * The type of gauge for hp.
+     */
+    HP: "hp",
+
+    /**
+     * The type of gauge for mp.
+     */
+    MP: "mp",
+
+    /**
+     * The type of gauge for tp.
+     */
+    TP: "tp",
+
+    /**
+     * The type of gauge for xp.
+     * We borrow the "time" gauge for this, though.
+     */
+    XP: "time",
+
+    /**
+     * Not actually a gauge, but does have an actorvalue representing
+     * the actor's level.
+     */
+    Level: "lvl"
+  };
+
+  /**
+   * Whether or not the player is in the way of the hud.
+   * While the player is in the way, the opacity is reduced.
+   * @type {boolean}
+   * @private
+   */
+  #playerInterference = false;
+
+  /**
    * Constructor.
    * @param {Rectangle} rect The shape representing this window.
    */
   constructor(rect)
   {
+    // required when extending a base class.
     super(rect);
-  }
+  };
 
   /**
    * Initializes this class.
@@ -259,206 +446,634 @@ class Window_Hud extends Window_Base
    */
   initialize(rect)
   {
+    // perform original logic.
     super.initialize(rect);
-    this.opacity = 0;
+
+    // initialize our properties.
     this.initMembers();
-  }
+
+    // run our one-time setup and configuration.
+    this.configure();
+
+    // refresh the window for the first time.
+    this.refresh();
+  };
 
   /**
-   * Initializes the various variables required for the HUD.
+   * Initialize all properties of this class.
    */
   initMembers()
   {
     /**
-     * The cache of sprites used within this HUD window.
+     * The cached collection of hud sprites.
+     * @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon>}
      */
-    this._hudSprites = {};
-
-    /**
-     * Whether or not the hud should be visible.
-     */
-    this._enabled = true;
-  }
+    this._hudSprites = new Map();
+  };
 
   /**
-   * Refreshes the hud and forces a recreation of all sprites.
+   * Performs the one-time setup and configuration per instantiation.
+   */
+  configure()
+  {
+    // make the window's background opacity transparent.
+    this.opacity = 0;
+
+    // initialize the cache.
+    this.refreshCache();
+  };
+
+  /**
+   * Redraw all contents of the window.
    */
   refresh()
   {
+    // clear the contents of the hud.
     this.contents.clear();
-    const keys = Object.keys(this._hudSprites);
-    keys.forEach(key =>
-    {
-      this._hudSprites[key].destroy();
-      delete this._hudSprites[key];
-    });
 
-    this._hudSprites = {};
-  }
+    // hide all the sprites.
+    this.hideSprites();
+
+    // draw the hud anew.
+    this.drawHud();
+  };
 
   /**
-   * The update cycle. Refreshes values as-needed and handles all the drawing.
+   * Hide all sprites for the hud.
+   */
+  hideSprites()
+  {
+    // hide all the sprites.
+    this._hudSprites.forEach((sprite, _) =>
+    {
+      // when refreshing, always hide all the sprites.
+      sprite.hide();
+
+      // check if the sprite is a gauge.
+      if (sprite instanceof Sprite_MapGauge)
+      {
+        // deactivate the gauge.
+        sprite.deactivateGauge();
+      }
+    });
+  };
+
+  //#region caching
+  /**
+   * Empties and recreates the entire cache of sprites.
+   */
+  refreshCache()
+  {
+    // destroy and empty all sprites within the cache.
+    this.emptyCache();
+
+    // recreate all sprites for the cache.
+    this.createCache();
+  };
+
+  /**
+   * Empties the cache of all sprites.
+   */
+  emptyCache()
+  {
+    // iterate over each sprite and destroy it properly.
+    this._hudSprites.forEach((value, _) => value.destroy());
+
+    // empty the collection of all references.
+    this._hudSprites.clear();
+  };
+
+  /**
+   * Recreates any missing sprites in the cache.
+   */
+  createCache()
+  {
+    // establish the gauge types we will create.
+    const gaugeTypes = this.gaugeTypes();
+
+    // iterate over each of the battle members in the party.
+    $gameParty.battleMembers().forEach(actor =>
+    {
+      // cache the full-sized face images for each actor.
+      this.getOrCreateFullSizeFaceSprite(actor);
+
+      // cache the mini-sized face images for each actor.
+      this.getOrCreateMiniSizeFaceSprite(actor);
+
+      // for this actor, create all the gauges, too.
+      gaugeTypes.forEach(gaugeType =>
+      {
+        // create the full-sized gauge sprite for this type.
+        this.getOrCreateFullSizeGaugeSprite(actor, gaugeType);
+
+        // create the mini-sized gauge sprite for this type.
+        this.getOrCreateMiniSizeGaugeSprite(actor, gaugeType);
+
+        // create the corresponding actor value sprite for this gauge.
+        this.getOrCreateActorValueSprite(actor, gaugeType);
+      });
+    });
+  };
+
+  /**
+   * Creates the key for an actor's face sprite based on the parameters.
+   * @param {Game_Actor} actor The actor to create a key for.
+   * @param {boolean} isFull Whether or not this is for a full-sized sprite.
+   */
+  makeFaceSpriteKey(actor, isFull)
+  {
+    return isFull
+      ? `face-full-${actor.name()}-${actor.actorId()}`
+      : `face-mini-${actor.name()}-${actor.actorId()}`;
+  };
+
+  /**
+   * Creates a full-sized face sprite for the given actor and caches it.
+   * @param {Game_Actor} actor The actor to draw a full face sprite for.
+   * @returns {Sprite_Face} The full face sprite of the actor.
+   */
+  getOrCreateFullSizeFaceSprite(actor)
+  {
+    // the key for this actor's full face sprite.
+    const key = this.makeFaceSpriteKey(actor, true);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // create a new full-sized face sprite of the actor.
+    const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
+
+    // set the scale to a fixed 80%.
+    sprite.scale.x = 0.8;
+    sprite.scale.y = 0.8;
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created full sprite.
+    return sprite;
+  };
+
+  /**
+   * Creates a mini-sized face sprite for the given actor and caches it.
+   * @param {Game_Actor} actor The actor to draw a mini face sprite for.
+   * @returns {Sprite_Face} The mini face sprite of the actor.
+   */
+  getOrCreateMiniSizeFaceSprite(actor)
+  {
+    // the key for this actor's full face sprite.
+    const key = this.makeFaceSpriteKey(actor, false);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // create a new full-sized face sprite of the actor.
+    const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
+
+    // set the scale to a fixed 80%.
+    sprite.scale.x = 0.3;
+    sprite.scale.y = 0.3;
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created mini sprite.
+    return sprite;
+  };
+
+  /**
+   * An array of all gauge types; for convenience.
+   * @returns {string[]} The gauge types in a given order.
+   */
+  gaugeTypes()
+  {
+    return [
+      Window_Hud.gaugeTypes.HP,
+      Window_Hud.gaugeTypes.MP,
+      Window_Hud.gaugeTypes.TP,
+      Window_Hud.gaugeTypes.XP
+    ];
+  };
+
+  /**
+   * Creates the key for an actor's gauge sprite based on the parameters.
+   * @param {Game_Actor} actor The actor to draw a full gauge sprite for.
+   * @param {boolean} isFull Whether or not this is for a full-sized sprite.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge this is.
+   * @returns {string} The key for this gauge sprite.
+   */
+  makeGaugeSpriteKey(actor, isFull, gaugeType)
+  {
+    const gaugeSize = isFull ? `full` : `mini`;
+    return `gauge-${gaugeType}-${gaugeSize}-${actor.name()}-${actor.actorId()}`;
+  };
+
+  /**
+   * Determines the gauge height based on the gauge type.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge we need height for.
+   * @returns {number}
+   */
+  fullGaugeHeight(gaugeType)
+  {
+    switch (gaugeType)
+    {
+      case Window_Hud.gaugeTypes.HP:
+        return 18;
+      case Window_Hud.gaugeTypes.MP:
+        return 14;
+      case Window_Hud.gaugeTypes.TP:
+        return 10;
+      case Window_Hud.gaugeTypes.XP:
+        return 8;
+      default:
+        throw new Error(`Please use a valid gauge type from the list.`);
+    }
+  };
+
+  /**
+   * Creates a full-sized gauge sprite for the given actor and caches it.
+   * @param {Game_Actor} actor The actor to draw a gauge sprite for.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge this is.
+   * @returns {Sprite_MapGauge} The gauge sprite.
+   */
+  getOrCreateFullSizeGaugeSprite(actor, gaugeType)
+  {
+    // the key for this actor's full gauge sprite.
+    const key = this.makeGaugeSpriteKey(actor, true, gaugeType);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // gets the full-sized gauge height for this gauge type.
+    const gaugeHeight = this.fullGaugeHeight(gaugeType);
+
+    // determine gauge width based on gauge type.
+    const gaugeWidth = gaugeType === Window_Hud.gaugeTypes.XP ? 114 : 144;
+
+    // create a new full-sized gauge sprite of the actor.
+    const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 32);
+
+    // setup the gauge sprite to point to the actor.
+    sprite.setup(actor, gaugeType);
+
+    // deactivate the gauge to prevent updating until its necessary.
+    sprite.deactivateGauge();
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  };
+
+  /**
+   * Determines the gauge height based on the gauge type.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge we need height for.
+   * @returns {number}
+   */
+  miniGaugeHeight(gaugeType)
+  {
+    switch (gaugeType)
+    {
+      case Window_Hud.gaugeTypes.HP:
+        return 10;
+      case Window_Hud.gaugeTypes.MP:
+        return 10;
+      case Window_Hud.gaugeTypes.TP:
+        return 10;
+      case Window_Hud.gaugeTypes.XP:
+        return 4;
+      default:
+        throw new Error(`Please use a valid gauge type from the list.`);
+    }
+  };
+
+  /**
+   * Creates a mini-sized gauge sprite for the given actor and caches it.
+   * @param {Game_Actor} actor The actor to draw a gauge sprite for.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge this is.
+   * @returns {Sprite_MapGauge} The gauge sprite.
+   */
+  getOrCreateMiniSizeGaugeSprite(actor, gaugeType)
+  {
+    // the key for this actor's full gauge sprite.
+    const key = this.makeGaugeSpriteKey(actor, false, gaugeType);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // gets the mini-sized gauge height for this gauge type.
+    const gaugeHeight = this.miniGaugeHeight(gaugeType);
+
+    // determine gauge width based on gauge type.
+    const gaugeWidth = gaugeType === Window_Hud.gaugeTypes.XP ? 42 : 96;
+
+    // create a new mini-sized gauge sprite of the actor.
+    const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 24);
+
+    // setup the gauge sprite to point to the actor.
+    sprite.setup(actor, gaugeType);
+
+    // deactivate the gauge to prevent updating until its necessary.
+    sprite.deactivateGauge();
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  };
+
+  /**
+   * Creates the key for an actor's gauge value sprite based on the parameters.
+   * @param {Game_Actor} actor The actor to draw a actor value sprite for.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of actor value this is.
+   * @returns {string} The key for this actor value sprite.
+   */
+  makeValueSpriteKey(actor, gaugeType)
+  {
+    return `value-${gaugeType}-${actor.name()}-${actor.actorId()}`;
+  };
+
+  /**
+   * Creates a actor value sprite for the given actor's gauge and caches it.
+   *
+   * It is important to note that there is no "mini" size of actor values!
+   * Allies simply will not display the values, only gauges.
+   * @param {Game_Actor} actor The actor to draw a gauge sprite for.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of gauge this is.
+   * @returns {Sprite_MapGauge} The gauge sprite.
+   */
+  getOrCreateActorValueSprite(actor, gaugeType)
+  {
+    // the key for this actor's full face sprite.
+    const key = this.makeValueSpriteKey(actor, gaugeType);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // determine the font size based on the gauget ype.
+    const valueFontSize = this.actorValueFontSize(gaugeType);
+
+    // create a new full-sized face sprite of the actor.
+    const sprite = new Sprite_ActorValue(actor, gaugeType, valueFontSize);
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  };
+
+  /**
+   * Determines the font size for the actor value based on the gauge type.
+   * @param {Window_Hud.gaugeTypes} gaugeType The type of actor value this is.
+   * @returns {number}
+   */
+  actorValueFontSize(gaugeType)
+  {
+    switch (gaugeType)
+    {
+      case Window_Hud.gaugeTypes.HP:
+        return -10;
+      case Window_Hud.gaugeTypes.MP:
+        return -12;
+      case Window_Hud.gaugeTypes.TP:
+        return -14;
+      case Window_Hud.gaugeTypes.XP:
+        return -12;
+      case Window_Hud.gaugeTypes.Level:
+        return -6;
+      default:
+        throw new Error(`Please use a valid gauge type from the list.`);
+    }
+  };
+
+  /**
+   * Creates the key for an actor's state affliction.
+   * @param {Game_Actor} actor The actor to draw a actor value sprite for.
+   * @param {number} stateId The id of the state to generate a key for.
+   * @returns {string} The key for this actor value sprite.
+   */
+  makeStateIconSpriteKey(actor, stateId)
+  {
+    return `state-${stateId}-${actor.name()}-${actor.actorId()}`;
+  };
+
+  /**
+   * Creates an icon sprite for a given state.
+   * @param {Game_Actor} actor The actor to draw a actor value sprite for.
+   * @param {number} stateId The id of the state to generate a key for.
+   * @returns {Sprite_Icon} The state icon sprite.
+   */
+  getOrCreateStateIcon(actor, stateId)
+  {
+    // the key for this actor's full face sprite.
+    const key = this.makeStateIconSpriteKey(actor, stateId);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // determine the font size based on the gauget ype.
+    const stateIconIndex = actor.state(stateId).iconIndex;
+
+    // create a new full-sized face sprite of the actor.
+    const sprite = new Sprite_Icon(stateIconIndex);
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  };
+
+  /**
+   * Creates the key for an actor's state affliction.
+   * @param {Game_Actor} actor The actor to draw a actor value sprite for.
+   * @param {number} stateId The id of the state to generate a key for.
+   * @returns {string} The key for this actor value sprite.
+   */
+  makeStateTimerSpriteKey(actor, stateId)
+  {
+    return `timer-${stateId}-${actor.name()}-${actor.actorId()}`;
+  };
+
+  /**
+   * Creates the timer sprite for a given state.
+   * @param {Game_Actor} actor The actor to draw the state data for.
+   * @param {JABS_TrackedState} trackedState The tracked state data for this state.
+   * @returns {Sprite_StateTimer} The state timer sprite.
+   */
+  getOrCreateStateTimer(actor, trackedState)
+  {
+    // the key for the sprite.
+    const key = this.makeStateTimerSpriteKey(actor, trackedState.stateId);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // create a new full-sized face sprite of the actor.
+    const sprite = new Sprite_StateTimer(trackedState);
+
+    // cache the sprite.
+    this._hudSprites.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  };
+  //#endregion caching
+
+  /**
+   * The per-frame update of this window.
    */
   update()
   {
+    // perform original logic.
     super.update();
-    if (this.canUpdate())
-    {
-      this.drawHud();
-    }
-    else
-    {
-      this.manageVisibility();
-      this.refresh();
-    }
-  }
 
-  /**
-   * Handles visibility for the HUD.
-   */
-  manageVisibility()
-  {
-    if ($gameMessage.isBusy())
-    {
-      this.opacity = 0;
-      this.close();
-    }
-    else
-    {
-      this.open();
-    }
-
-    this._toggled = false;
-  }
-
-  /**
-   * Toggles whether or not this hud is enabled.
-   * @param {boolean} toggle Toggles the hud to be visible and operational.
-   */
-  toggle(toggle = !this._enabled)
-  {
-    this._enabled = toggle;
-    this.manageVisibility();
-  }
-
-  /**
-   * Whether or not the hud actually has an actor to display data for.
-   * @returns {boolean} True if there is an actor to update, false otherwise.
-   */
-  canUpdate()
-  {
-    return !(!$gameParty || !$gameParty.leader() || !this.contents ||
-      !this._enabled || $gameMessage.isBusy());
-  }
+    // update our stuff.
+    this.drawHud();
+  };
 
   /**
    * Draws the contents of the HUD.
    */
   drawHud()
   {
-    this.drawLeaderHud();
-    if (!J.HUD.Metadata.HideFollowersHudAlways)
-    {
-      this.drawOtherMembersHuds();
-    }
+    // if we cannot draw the hud, then do not.
+    if (!$hudManager.canShowHud()) return;
 
+    // handle the visibility of the hud for dynamic interferences.
+    this.manageVisibility();
+
+    // draw the leader data.
+    this.drawLeader(8, 8);
+
+    // if we cannot draw your allies, then do not.
+    if (!$hudManager.canShowAllies()) return;
+
+    // draw all allies' data.
+    this.drawAllies(136, 8);
+  };
+
+  //#region visibility
+  /**
+   * Manages visibility for the hud.
+   */
+  manageVisibility()
+  {
+    // handle interference from the message window popping up.
+    this.handleMessageWindowInterference();
+
+    // check if the player is interfering with visibility.
     if (this.playerInterference())
     {
-      this.interferenceOpacity();
+      // if so, adjust opacity accordingly.
+      this.handlePlayerInterference();
     }
+    // the player isn't interfering.
     else
     {
-      this.refreshOpacity();
+      // undo the opacity changes.
+      this.revertInterferenceOpacity();
     }
-  }
+  };
 
   /**
-   * Draws all leader data for the HUD.
-   * Leader data includes face/HP/MP/TP/experience/level.
+   * Close and open the window based on whether or not the message window is up.
    */
-  drawLeaderHud()
+  handleMessageWindowInterference()
   {
-    if (!J.HUD.Metadata.HideAllButStates)
+    // check if the message window is up.
+    if ($gameMessage.isBusy())
     {
-      this.drawLeaderFace();
-      this.drawLeaderGauges();
-      this.drawLeaderNumbers();
+      // check to make sure we haven't closed this window yet.
+      if (!this.isClosed())
+      {
+        // hide all the sprites.
+        this.hideSprites();
+      }
+
+      // and close the window.
+      this.close();
     }
-
-    this.drawStates();
-  }
-
-  /**
-   * Draws the leader's face sprite.
-   */
-  drawLeaderFace()
-  {
-    const leader = $gameParty.leader();
-    this.placeFaceSprite(leader.actorId(), leader.faceName(), leader.faceIndex(), true, 0, 0);
-  }
-
-  /**
-   * Draws all the gauge sprites for the leader's data.
-   */
-  drawLeaderGauges()
-  {
-    const leader = $gameParty.leader();
-    this.placeGaugeSprite("hp", leader, 100, 0, 200, 24, 14);
-    this.placeGaugeSprite("mp", leader, 100, 25, 200, 24, 14);
-    this.placeGaugeSprite("tp", leader, 100, 44, 200, 20, 8);
-    this.placeGaugeSprite("time", leader, 130, 72, 170, 20, 10); // xp
-  }
-
-  /**
-   * Draws all the number sprites for the leader's data.
-   */
-  drawLeaderNumbers()
-  {
-    const leader = $gameParty.leader();
-    this.placeNumberSprite("hp", leader, 302, 6, -10);
-    this.placeNumberSprite("mp", leader, 302, 31, -10);
-    this.placeNumberSprite("tp", leader, 302, 53, -16);
-    this.placeNumberSprite("xp", leader, 302, 78, -12);
-    this.placeNumberSprite("lvl", leader, 90, 78, -6);
-  }
-
-  /**
-   * Draws all the non-leader data for the HUD.
-   * Does not draw them if the followers are not identified as battlers.
-   */
-  drawOtherMembersHuds()
-  {
-    // don't draw ally members if they don't exist.
-    if ($gameParty._actors.length === 1) return;
-
-    // if the followers aren't visible, then don't show their HUD sprites.
-    if (!$gamePlayer.followers().isVisible()) return;
-
-    $gameParty._actors.forEach((actorId, index) =>
+    // otherwise, the message window isn't there.
+    else
     {
-      // don't draw the leader's data, they already are being drawn.
-      if (index === 0) return;
-
-      // draw the extra actor hud data.
-      const follower = $gameActors.actor(actorId);
-      const y = 70 + (index * 45);
-      this.drawOtherMemberHud(follower, 35, y);
-    });
-  }
-
-  /**
-   * Draws all the HUD data for a non-leader member.
-   * Non-leader data includes only the face, hp, and mp gauges.
-   * @param {Game_Actor} follower The follower actor to draw hud data for.
-   * @param {number} x The `x` coordinate to draw data at.
-   * @param {number} y The `y` coordinate to draw data at.
-   */
-  drawOtherMemberHud(follower, x, y)
-  {
-    this.placeFaceSprite(follower.actorId(), follower.faceName(), follower.faceIndex(), false, x - 35, y);
-    this.placeGaugeSprite("hp", follower, x, y, 100, 24, 8);
-    this.placeGaugeSprite("mp", follower, x, y + 5, 100, 24, 6);
-  }
+      // just open the window.
+      this.open();
+    }
+  };
 
   /**
    * Determines whether or not the player is in the way (or near it) of this window.
@@ -466,585 +1081,782 @@ class Window_Hud extends Window_Base
    */
   playerInterference()
   {
-    const player = $gamePlayer;
-    const playerX = player.screenX();
-    const playerY = player.screenY();
-    return playerX < this.width && playerY < this.height;
-  }
+    const playerX = $gamePlayer.screenX();
+    const playerY = $gamePlayer.screenY();
+    return (playerX < this.width+100) && (playerY < this.height+100);
+  };
 
   /**
-   * Reduces opacity of all sprites when the player is in the way.
+   * Manages opacity for all sprites while the player is interfering with the visibility.
    */
-  interferenceOpacity()
+  handlePlayerInterference()
   {
-    const sprites = this._hudSprites;
-    const keys = Object.keys(sprites);
-    keys.forEach(key =>
+    this._hudSprites.forEach((sprite, _) =>
     {
-      const sprite = sprites[key];
+      // if we are above 64, rapidly decrement by -15 until we get below 64.
       if (sprite.opacity > 64) sprite.opacity -= 15;
-      if (sprite.opacity < 64) sprite.opacity += 1;
+      // if we are below 64, increment by +1 until we get to 64.
+      else if (sprite.opacity < 64) sprite.opacity += 1;
     });
-  }
+  };
 
   /**
-   * Reverts the opacity to normal when the player is no longer in the way.
+   * Reverts the opacity changes associated with the player getting in the wya.
    */
-  refreshOpacity()
+  revertInterferenceOpacity()
   {
-    const sprites = this._hudSprites;
-    const keys = Object.keys(sprites);
-    keys.forEach(key =>
+    this._hudSprites.forEach((sprite, _) =>
     {
-      const sprite = sprites[key];
+      // if we are below 255, rapidly increment by +15 until we get to 255.
       if (sprite.opacity < 255) sprite.opacity += 15;
-      if (sprite.opacity > 255) sprite.opacity = 255;
+      // if we are above 255, set to 255.
+      else if (sprite.opacity > 255) sprite.opacity = 255;
     });
-  }
+  };
+  //#endregion visibility
 
   /**
-   * Draws all state-related data for the hud.
+   * Draw the leader's data for the HUD.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawLeader(x, y)
+  {
+    // if we don't have a leader, don't try to draw it!
+    if (!$gameParty.leader()) return;
+
+    // draw the face for the leader.
+    this.drawLeaderFace(x, y);
+
+    // draw the gauges for the leader.
+    this.drawLeaderGauges(x, y+120);
+
+    // draw states for the leader.
+    this.drawStates();
+  };
+
+  /**
+   * Draw the leader's face.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawLeaderFace(x, y)
+  {
+    // grab the leader of the party.
+    const leader = $gameParty.leader();
+
+    // grab and locate the sprite.
+    const sprite = this.getOrCreateFullSizeFaceSprite(leader);
+    sprite.move(x, y);
+    sprite.show();
+  };
+
+  /**
+   * Draws all gauges for the leader into the hud.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
+  drawLeaderGauges(x, oy)
+  {
+    // grab the leader of the party.
+    const leader = $gameParty.leader();
+
+    // shorthand the line height variable.
+    const lh = this.lineHeight();
+
+    // locate the hp gauge.
+    const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_Hud.gaugeTypes.HP);
+    hpGauge.activateGauge();
+    hpGauge.move(x-24, oy);
+    hpGauge.show();
+
+    // locate the hp numbers.
+    const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_Hud.gaugeTypes.HP);
+    hpNumbers.move(x, oy);
+    hpNumbers.show();
+
+    // grab and locate the sprite.
+    const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_Hud.gaugeTypes.MP);
+    mpGauge.activateGauge();
+    mpGauge.move(x-24, oy + lh-2 - mpGauge.bitmapHeight());
+    mpGauge.show();
+
+    // locate the mp numbers.
+    const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_Hud.gaugeTypes.MP);
+    mpNumbers.move(x, oy+19);
+    mpNumbers.show();
+
+    // grab and locate the sprite.
+    const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_Hud.gaugeTypes.TP);
+    tpGauge.activateGauge();
+    tpGauge.move(x-24, oy+46-tpGauge.bitmapHeight());
+    tpGauge.show();
+
+    // locate the tp numbers.
+    const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_Hud.gaugeTypes.TP);
+    tpNumbers.move(x, oy+33);
+    tpNumbers.show();
+
+    // grab and locate the xp gauge.
+    const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_Hud.gaugeTypes.XP);
+    xpGauge.activateGauge();
+    xpGauge.move(x+5, 8);
+    xpGauge.show();
+
+    // locate the xp numbers.
+    const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_Hud.gaugeTypes.XP);
+    xpNumbers.move(x, 8);
+    xpNumbers.show();
+
+    // locate the level numbers.
+    const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_Hud.gaugeTypes.Level);
+    levelNumbers.move(x+84, oy-24);
+    levelNumbers.show();
+  };
+
+  /**
+   * Draw all states for the leader of the party.
    */
   drawStates()
   {
-    this.hideExpiredStates();
-    if (!$gameParty.leader().states().length) return;
+    // grab the leader.
+    const leader = $gameParty.leader();
 
-    const iconWidth = ImageManager.iconWidth + 8;
+    // hide the expired states.
+    this.hideExpiredStates(leader);
 
+    // if we have no states, don't try to render them.
+    if (!leader.states().length) return;
+
+    // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      const player = $gameBattleMap.getPlayerMapBattler();
-      const playerBattler = player.getBattler();
-      const trackedStates = $gameBattleMap.getStateTrackerByBattler(playerBattler);
-      const actorId = $gameParty.leader().actorId();
-      trackedStates.forEach((trackedState, i) =>
+      // grab all the states and sort them into negative/positive buckets.
+      const trackedStates = $gameBattleMap.getStateTrackerByBattler(leader);
+      const positiveStates = trackedStates.filter(this.#filterPositiveStates);
+      const negativeStates = trackedStates.filter(this.#filterNegativeStates);
+
+      // iterate over all the negative states and draw them.
+      negativeStates.forEach((negativeTrackedState, index) =>
       {
-        if (!trackedState.isExpired() && (trackedState.stateId !== playerBattler.deathStateId()))
-        {
-          this.drawState(trackedState, actorId, 128 + i * iconWidth, 100);
-        }
+        // draw the negative state onto the hud.
+        const x = 8 + (index * (ImageManager.iconWidth + 2));
+        const y = 180;
+        this.drawState(leader, negativeTrackedState, x, y);
+      });
+
+      // iterate over all the positive states and draw them.
+      positiveStates.forEach((positiveTrackedState, index) =>
+      {
+        // draw the positive state onto the hud.
+        const x = 8 + (index * (ImageManager.iconWidth + 2));
+        const y = 230;
+        this.drawState(leader, positiveTrackedState, x, y);
       });
     }
-  }
+  };
 
   /**
-   * Hides the sprites associated with a given state id.
+   * Hides all expired states on the leader.
+   * @param {Game_Actor} leader The actor to hide states for.
    */
-  hideExpiredStates()
+  hideExpiredStates(leader)
   {
+    // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      const trackedStates = $gameBattleMap.getStateTrackerByBattler($gameParty.leader());
-      trackedStates.forEach(state =>
+      const trackedStates = $gameBattleMap.getStateTrackerByBattler(leader);
+      trackedStates.forEach(trackedState =>
       {
-        Object.keys(this._hudSprites).forEach(spriteKey =>
-        {
-          const match = `state${state.stateId}`;
-          if (spriteKey.contains(match) && state.isExpired())
-          {
-            this._hudSprites[spriteKey].hide()
-          }
-        });
+        // if the tracked state isn't expired, don't bother.
+        if (!trackedState.isExpired()) return;
+
+        // make the keys for the sprites in question.
+        const iconKey = this.makeStateIconSpriteKey(leader, trackedState.stateId);
+        const timerKey = this.makeStateTimerSpriteKey(leader, trackedState.stateId);
+
+        // get the sprites in question.
+        const iconSprite = this._hudSprites.get(iconKey);
+        const timerSprite = this._hudSprites.get(timerKey);
+
+        // hide the sprites.
+        iconSprite.hide();
+        timerSprite.hide();
       });
     }
-  }
+  };
 
   /**
-   * Draws a single state icon and it's duration timer.
-   * @param {JABS_TrackedState} state The state afflicted on the character to draw.
-   * @param {number} actorId The actor id of the actor with the state.
-   * @param {number} x The `x` coordinate to draw this state at.
-   * @param {number} y The `y` coordinate to draw this state at.
+   * The filter function for determining positive states.
+   * @param {JABS_TrackedState} trackedState The state to categorize.
+   * @returns {boolean} True if it is positive, false otherwise.
    */
-  drawState(state, actorId, x, y)
+  #filterPositiveStates(trackedState)
   {
-    this.placeStateIconSprite(state.stateId, state.iconIndex, actorId, x, y);
-    this.placeStateTimerSprite(state.stateId, state, actorId, x, y);
-  }
+    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
+
+    const state = $dataStates[trackedState.stateId];
+    if (state._j && state._j.negative)
+    {
+      return false
+    }
+
+    return true;
+  };
 
   /**
-   * Places the state icon at the designated location.
-   * @param {number} stateId The id of the state.
-   * @param {number} iconIndex The index of the icon associated with this state.
-   * @param {number} actorId The actor id of the actor with the state.
-   * @param {number} x The `x` coordinate to draw this state at.
-   * @param {number} y The `y` coordinate to draw this state at.
+   * The filter function for determining negative states.
+   * @param {JABS_TrackedState} trackedState The state to categorize.
+   * @returns {boolean} True if it is negative, false otherwise.
    */
-  placeStateIconSprite(stateId, iconIndex, actorId, x, y)
+  #filterNegativeStates(trackedState)
   {
-    const key = `actor${actorId}-state${stateId}-icon`;
-    const key2 = "actor%1-state-%2-icon".format(actorId, stateId);
-    const sprite = this.createStateIconSprite(key, iconIndex);
+    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
+
+    const state = $dataStates[trackedState.stateId];
+    if (state._j && state._j.negative)
+    {
+      return true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Draws a single state onto the hud.
+   * @param {Game_Actor} actor The actor to draw the state for.
+   * @param {JABS_TrackedState} trackedState The state afflicted on the character to draw.
+   * @param {number} ox The origin x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawState(actor, trackedState, ox, y)
+  {
+    const iconSprite = this.getOrCreateStateIcon(actor, trackedState.stateId);
+    iconSprite.move(ox, y);
+    iconSprite.show();
+
+    const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
+    timerSprite.move(ox-4, y+20);
+    timerSprite.show();
+  };
+
+  /**
+   * Draw all allies data for the hud.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
+  drawAllies(x, oy)
+  {
+    // grab the line height for re-use.
+    const lh = this.lineHeight() + 26;
+
+    // iterate over each ally.
+    $gameParty.battleMembers().forEach((ally, index) =>
+    {
+      // the leader is always index 0, and they are being drawn separately.
+      if (index === 0) return;
+
+      // draw the ally at the designated coordinates.
+      const y = oy + lh*(index-1);
+      this.drawAlly(ally, x, y);
+    });
+  };
+
+  /**
+   * Draws a single ally's data for the hud.
+   * @param {Game_Actor} ally The ally to draw.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
+  drawAlly(ally, x, oy)
+  {
+    // draw the ally's mini face.
+    this.drawAllyFace(ally, x, oy);
+
+    // draw the ally's mini gauges.
+    this.drawAllyGauges(ally, x+40, oy+6);
+  };
+
+  /**
+   * Draws a single ally's mini face for the hud.
+   * @param {Game_Actor} ally The ally to draw the face of.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawAllyFace(ally, x, y)
+  {
+    // grab and locate the sprite.
+    const sprite = this.getOrCreateMiniSizeFaceSprite(ally);
     sprite.move(x, y);
     sprite.show();
-  }
+  };
 
   /**
-   * Places the timer sprite at a designated location.
-   * @param {number} stateId The id of the state.
-   * @param {object} stateData The data of the state.
-   * @param {number} actorId The actor id of the actor with the state.
-   * @param {number} x The `x` coordinate to draw this state at.
-   * @param {number} y The `y` coordinate to draw this state at.
+   * Draws a single ally's mini gauges.
+   * @param {Game_Actor} ally The ally to draw the gauges for.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The original y coordinate.
    */
-  placeStateTimerSprite(stateId, stateData, actorId, x, y)
+  drawAllyGauges(ally, x, oy)
   {
-    const key = `actor${actorId}-state${stateId}-timer`;
-    const sprite = this.createStateTimerSprite(key, stateData);
-    sprite.move(x, y);
-    sprite.show();
-  }
+    // shorthand the line height variable.
+    const lh = 12;
 
-  /**
-   * Generates the state icon sprite representing an afflicted state.
-   * @param {string} key The key of this sprite.
-   * @param {number} iconIndex The icon index of this sprite.
-   */
-  createStateIconSprite(key, iconIndex)
-  {
-    const sprites = this._hudSprites;
-    if (sprites[key])
-    {
-      return sprites[key];
-    }
-    else
-    {
-      const sprite = new Sprite_Icon(iconIndex);
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
-    }
-  }
+    // locate the hp gauge.
+    const hpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_Hud.gaugeTypes.HP);
+    hpGauge.activateGauge();
+    hpGauge.move(x-24, oy + lh*0);
+    hpGauge.show();
 
-  /**
-   * Generates the state icon sprite representing an afflicted state.
-   * @param {string} key The key of this sprite.
-   * @param {number} stateData The state data associated with this state.
-   */
-  createStateTimerSprite(key, stateData)
-  {
-    const sprites = this._hudSprites;
-    if (sprites[key])
-    {
-      return sprites[key];
-    }
-    else
-    {
-      const sprite = new Sprite_StateTimer(stateData);
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
-    }
-  }
+    // grab and locate the sprite.
+    const mpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_Hud.gaugeTypes.MP);
+    mpGauge.activateGauge();
+    mpGauge.move(x-24, oy + lh*1);
+    mpGauge.show();
 
-  /**
-   * Draws an actor's face.
-   * @param {number} actorId The id of the actor.
-   * @param {string} faceName The name of the facesheet.
-   * @param {number} faceIndex The index of the face on the facesheet.
-   * @param {boolean} isLeader Whether or not this is the leader.
-   * @param {number} x The `x` coordinate to draw data at.
-   * @param {number} y The `y` coordinate to draw data at.
-   */
-  placeFaceSprite(actorId, faceName, faceIndex, isLeader, x, y)
-  {
-    const key = `actor${actorId}-face-${faceName}-index${faceIndex}`;
-    const sprite = this.createFaceSprite(key, faceName, faceIndex, isLeader);
-    sprite.move(x, y);
-    sprite.show();
-  }
-
-  /**
-   * Creates the face sprite, or pulls it from cache if it was already created.
-   * @param {string} key The name of this face sprite.
-   * @param {string} faceName The name of the facesheet.
-   * @param {number} faceIndex The index of the face on the facesheet.
-   * @param {boolean} isLeader Whether or not this is the leader.
-   * @returns {Sprite_Face}
-   */
-  createFaceSprite(key, faceName, faceIndex, isLeader)
-  {
-    const sprites = this._hudSprites;
-    if (sprites[key])
-    {
-      return sprites[key];
-    }
-    else
-    {
-      const sprite = new Sprite_Face(faceName, faceIndex);
-      const scale = isLeader ? 0.8 : 0.3;
-      sprite.scale.x = scale;
-      sprite.scale.y = scale;
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
-    }
-  }
-
-  /**
-   * Places an actor value at a designated location with the given parameters.
-   * @param {string} type One of: "hp"/"mp"/"tp".
-   * @param {Game_Actor} actor The actor that this number sprite belongs to.
-   * @param {number} x The origin `x` coordinate.
-   * @param {number} y The origin `y` coordinate.
-   * @param {number} fontSizeMod The variance of font size for this value.
-   */
-  placeNumberSprite(type, actor, x, y, fontSizeMod)
-  {
-    const key = `actor${actor.actorId()}-number-${type}`;
-    const sprite = this.createNumberSprite(key, type, actor, fontSizeMod);
-    sprite.move(x, y);
-    sprite.show();
-  }
-
-  /**
-   * Generates the number sprite that keeps in sync with an actor's value.
-   * @param {string} key The name of this number sprite.
-   * @param {string} type One of: "hp"/"mp"/"tp".
-   * @param {Game_Actor} actor The actor that this number sprite belongs to.
-   * @param {number} fontSizeMod The variance of font size for this value.
-   */
-  createNumberSprite(key, type, actor, fontSizeMod)
-  {
-    const sprites = this._hudSprites;
-    if (sprites[key])
-    {
-      return sprites[key];
-    }
-    else
-    {
-      const sprite = new Sprite_ActorValue(actor, type, fontSizeMod);
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
-    }
-  }
-
-  /**
-   * Places a gauge at a designated location with the given parameters.
-   * @param {string} type One of: "hp"/"mp"/"tp". Determines color and value.
-   * @param {Game_Actor} actor The actor that this gauge belongs to.
-   * @param {number} x The origin `x` coordinate.
-   * @param {number} y The origin `y` coordinate.
-   * @param {number} bw The width of the bitmap for the gauge- also the width of the gauge.
-   * @param {number} bh The height of the bitmap for the gauge.
-   * @param {number} gh The height of the gauge itself.
-   */
-  placeGaugeSprite(type, actor, x, y, bw, bh, gh)
-  {
-    const key = `actor${actor.actorId()}-gauge-${type}`;
-    const sprite = this.createGaugeSprite(key, bw, bh, gh);
-    sprite.setup(actor, type);
-    sprite.move(x, y);
-    sprite.show();
-  }
-
-  /**
-   * Creates and handles the sprite for this gauge.
-   * @param {string} key The name of this gauge graphic.
-   * @param {number} bw The width of the bitmap for this graphic.
-   * @param {number} bh The height of the bitmap for this graphic.
-   * @param {number} gh The height of the gauge of this graphic.
-   */
-  createGaugeSprite(key, bw, bh, gh)
-  {
-    const sprites = this._hudSprites;
-    if (sprites[key])
-    {
-      return sprites[key];
-    }
-    else
-    {
-      const sprite = new Sprite_MapGauge(bw, bh, gh);
-      sprite.scale.x = 1.0; // change to match the window size?
-      sprite.scale.y = 1.0;
-      sprites[key] = sprite;
-      this.addInnerChild(sprite);
-      return sprite;
-    }
-  }
+    // grab and locate the sprite.
+    const tpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_Hud.gaugeTypes.TP);
+    tpGauge.activateGauge();
+    tpGauge.move(x-24, oy + lh*2);
+    tpGauge.show();
+  };
 }
-
-Window_Hud.prototype = Object.create(Window_Base.prototype);
-
-//#region states
-
-//#endregion states
-
-//#endregion
+//#endregion Window_Hud
 //#endregion Window objects
 
+if (!J.HUD)
+{
 //#region Sprite objects
-//#region Sprite_StateTimer
-/**
- * A sprite that displays some static text.
- */
-function Sprite_StateTimer()
-{
-  this.initialize(...arguments);
-}
 
-Sprite_StateTimer.prototype = Object.create(Sprite.prototype);
-Sprite_StateTimer.prototype.constructor = Sprite_StateTimer;
-Sprite_StateTimer.prototype.initialize = function(stateData)
-{
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(stateData);
-  this.loadBitmap();
-}
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {object} stateData The state data associated with this sprite.
- */
-Sprite_StateTimer.prototype.initMembers = function(stateData)
-{
-  this._j = {};
-  this._j._stateData = stateData;
-};
-
-/**
- * Loads the bitmap into the sprite.
- */
-Sprite_StateTimer.prototype.loadBitmap = function()
-{
-  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
-  this.bitmap.fontFace = this.fontFace();
-  this.bitmap.fontSize = this.fontSize();
-  this.bitmap.drawText(
-    this._j._text,
-    0, 0,
-    this.bitmapWidth(), this.bitmapHeight(),
-    "center");
-}
-
-Sprite_StateTimer.prototype.update = function()
-{
-  Sprite.prototype.update.call(this);
-  this.updateCooldownText();
-};
-
-Sprite_StateTimer.prototype.updateCooldownText = function()
-{
-  this.bitmap.clear();
-  const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
-
-  this.bitmap.drawText(
-    durationRemaining.toString(),
-    0, 0,
-    this.bitmapWidth(), this.bitmapHeight(),
-    "center");
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_StateTimer.prototype.bitmapWidth = function()
-{
-  return 40;
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_StateTimer.prototype.bitmapHeight = function()
-{
-  return this.fontSize() * 3;
-};
-
-/**
- * Determines the font size for text in this sprite.
- */
-Sprite_StateTimer.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() - 10;
-};
-
-/**
- * determines the font face for text in this sprite.
- */
-Sprite_StateTimer.prototype.fontFace = function()
-{
-  return $gameSystem.numberFontFace();
-};
-//#endregion Sprite_StateTimer
-
-//#region Sprite_ActorValue
-/**
- * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
- */
-function Sprite_ActorValue()
-{
-  this.initialize(...arguments);
-}
-
-Sprite_ActorValue.prototype = Object.create(Sprite.prototype);
-Sprite_ActorValue.prototype.constructor = Sprite_ActorValue;
-Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0)
-{
-  this._j = {};
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(actor, parameter, fontSizeMod);
-  this.bitmap = this.createBitmap();
-};
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {object} actor The actor to track the value of.
- * @param {string} parameter The parameter to track of "hp"/"mp"/"tp"/"time".
- * @param {number} fontSizeMod The modification of the font size for this value.
- */
-Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod)
-{
-  this._j._parameter = parameter;
-  this._j._actor = actor;
-  this._j._fontSizeMod = fontSizeMod;
-  this._j._last = {};
-  this._j._last._hp = actor.hp;
-  this._j._last._mp = actor.mp;
-  this._j._last._tp = actor.tp;
-  this._j._last._xp = actor.currentExp();
-  this._j._last._lvl = actor.level;
-  this._j._autoCounter = 60;
-};
-
-/**
- * Updates the bitmap if it needs updating.
- */
-Sprite_ActorValue.prototype.update = function()
-{
-  Sprite.prototype.update.call(this);
-  if (this.hasParameterChanged())
-  {
-    this.refresh();
-  }
-
-  this.autoRefresh();
-};
-
-/**
- * Automatically refreshes the value being represented by this sprite
- * after a fixed amount of time.
- */
-Sprite_ActorValue.prototype.autoRefresh = function()
-{
-  if (this._j._autoCounter <= 0)
-  {
-    this.refresh();
-    this._j._autoCounter = 60;
-  }
-
-  this._j._autoCounter--;
-};
-
-/**
- * Refreshes the value being represented by this sprite.
- */
-Sprite_ActorValue.prototype.refresh = function()
-{
-  this.bitmap = this.createBitmap();
-};
-
-/**
- * Checks whether or not a given parameter has changed.
- */
-Sprite_ActorValue.prototype.hasParameterChanged = function()
-{
-  let changed = true;
-  switch (this._j._parameter)
-  {
-    case "hp":
-      changed = this._j._actor.hp !== this._j._last._hp;
-      if (changed) this._j._last._hp = this._j._actor.hp;
-      return changed;
-    case "mp":
-      changed = this._j._actor.mp !== this._j._last._mp;
-      if (changed) this._j._last._mp = this._j._actor.mp;
-      return changed;
-    case "tp":
-      changed = this._j._actor.tp !== this._j._last._tp;
-      if (changed) this._j._last.tp = this._j._actor.tp;
-      return changed;
-    case "time":
-      changed = this._j._actor.currentExp() !== this._j._last._xp;
-      if (changed) this._j._last._xp = this._j._actor.currentExp();
-      return changed;
-    case "lvl":
-      changed = this._j._actor.level !== this._j._last._lvl;
-      if (changed) this._j._last._lvl = this._j._actor.level;
-      return changed;
-  }
-};
-
-/**
- * Creates a bitmap to attach to this sprite that shows the value.
- */
-Sprite_ActorValue.prototype.createBitmap = function()
-{
-  let value = 0;
-  const width = this.bitmapWidth();
-  const height = this.fontSize() + 4;
-  const bitmap = new Bitmap(width, height);
-  bitmap.fontFace = this.fontFace();
-  bitmap.fontSize = this.fontSize();
-  switch (this._j._parameter)
-  {
-    case "hp":
-      bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(128, 24, 24, 1.0)";
-      value = Math.floor(this._j._actor.hp);
-      break;
-    case "mp":
-      bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(24, 24, 192, 1.0)";
-      value = Math.floor(this._j._actor.mp);
-      break;
-    case "tp":
-      bitmap.outlineWidth = 2;
-      bitmap.outlineColor = "rgba(64, 128, 64, 1.0)";
-      value = Math.floor(this._j._actor.tp);
-      break;
-    case "time":
-      bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
-      const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
-      const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
-      value = curExp - nextLv;
-      break;
-    case "lvl":
-      bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
-      value = this._j._actor.level.padZero(3);
-      break;
-  }
-
-  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
-  return bitmap;
-};
-
-/**
- * Defaults the bitmap width to be a fixed 200 pixels.
- */
-Sprite_ActorValue.prototype.bitmapWidth = function()
-{
-  return 200;
-};
-
-/**
- * Defaults the font size to be an adjusted amount from the base font size.
- */
-Sprite_ActorValue.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
-};
-
-/**
- * Defaults the font face to be the number font.
- */
-Sprite_ActorValue.prototype.fontFace = function()
-{
-  return $gameSystem.numberFontFace();
-};
-//#endregion Sprite_ActorValue
 //#endregion Sprite objects
+}
+
+//#region Custom objects
+//#region Hud_Manager
+/**
+ * A manager class for the hud.
+ * Use this class to issue requests to show/hide the hud.
+ */
+class Hud_Manager
+{
+  //#region properties
+  /**
+   * Whether or not the allies are currently being displayed in the hud.
+   * @type {boolean}
+   * @private
+   */
+  #alliesVisible = true;
+
+  /**
+   * Whether or not we have a request to show allies in the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestShowAllies = false;
+
+  /**
+   * Whether or not we have a request to hide allies in the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestHideAllies = false;
+
+  /**
+   * Whether or not the hud is visible.
+   * @type {boolean}
+   * @private
+   */
+  #hudVisible = true;
+
+  /**
+   * Whether or not we have a request to show the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestShowHud = false;
+
+  /**
+   * Whether or not we have a request to hide the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestHideHud = false;
+
+  /**
+   * Whether or not we have a request to refresh the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestRefresh = false;
+
+  /**
+   * Whether or not we have a request to refresh the image cache of the hud.
+   * @type {boolean}
+   * @private
+   */
+  #requestRefreshImageCache = false;
+
+  /**
+   * Whether or not the hud manager is ready to do things.
+   * @type {boolean}
+   * @private
+   */
+  #ready = false;
+  //#endregion properties
+
+  /**
+   * Sets up this hud based on info from the saved data if available.
+   */
+  setup()
+  {
+    // if we're already setup, then don't do it again.
+    if (this.#isReady()) return;
+
+    // configure the hud based on what we remember from settings.
+    this.#setHudVisible($gameSystem.getHudVisible() ?? true);
+    this.#setShowAllies($gameSystem.getHudAlliesVisible() ?? true);
+
+    // flag this as ready for processing.
+    this.#setReady(true);
+  };
+
+  /**
+   * The update loop for the manager.
+   * Handles incoming requests to manage visibility for the hud.
+   */
+  update()
+  {
+    // if we are not ready for processing, then don't process.
+    if (!this.#canUpdate()) return;
+
+    // handle incoming requests to manage visibility.
+    if (this.#hasRequestShowHud())
+    {
+      this.#showHud();
+      this.requestRefreshHud();
+    }
+    else if (this.#hasRequestHideHud())
+    {
+      this.#hideHud();
+      this.requestRefreshHud();
+    }
+    else if (this.#hasRequestShowAllies())
+    {
+      this.#showAllies();
+      this.requestRefreshHud();
+    }
+    else if (this.#hasRequestHideAllies())
+    {
+      this.#hideAllies();
+      this.requestRefreshHud();
+    }
+  };
+
+  /**
+   * Whether or not this hud can update its incoming request processing.
+   * @returns {boolean} True if the manager is ready, false otherwise.
+   */
+  #canUpdate()
+  {
+    // if we aren't ready for processing, then don't update.
+    if (!this.#isReady()) return false;
+
+    // we are ready for processing.
+    return true;
+  };
+
+  /**
+   * Whether or not we can show the hud.
+   * @returns {boolean} True if we can show the hud, false otherwise.
+   */
+  canShowHud()
+  {
+    return this.#hudVisible;
+  };
+
+  /**
+   * Whether or not we can show allies.
+   * @returns {boolean} True if we can show allies, false otherwise.
+   */
+  canShowAllies()
+  {
+    return this.#alliesVisible;
+  };
+
+  /**
+   * Issue a request to the hud to show allies in the hud.
+   */
+  requestShowAllies()
+  {
+    this.#setRequestShowAllies(true);
+  };
+
+  /**
+   * Issue a request to the hud to hide the allies from view.
+   */
+  requestHideAllies()
+  {
+    this.#setRequestHideAllies(true);
+  };
+
+  /**
+   * Issue a request to show the hud.
+   */
+  requestShowHud()
+  {
+    this.#setRequestShowHud(true);
+  };
+
+  /**
+   * Issue a request to hide the hud.
+   */
+  requestHideHud()
+  {
+    this.#setRequestHideHud(true);
+  };
+
+  /**
+   * Issue a request to refresh the hud.
+   */
+  requestRefreshHud()
+  {
+    this.#setRequestRefreshHud(true);
+  };
+
+  /**
+   * Checks whether or not we have a request to refresh the hud.
+   * @returns {boolean} True if we have a request, false otherwise.
+   */
+  hasRequestRefreshHud()
+  {
+    return this.#requestRefresh;
+  };
+
+  /**
+   * Acknowledge the request to refresh the hud.
+   */
+  acknowledgeRefreshHud()
+  {
+    this.#setRequestRefreshHud(false);
+  };
+
+  /**
+   * Issue a request to refresh the image cache of the hud.
+   */
+  requestRefreshImageCache()
+  {
+    this.#setRequestRefreshImageCache(true);
+  };
+
+  /**
+   * Whether or not we have a request to refresh the hud's image cache.
+   * @returns {boolean} True if we have a request, false otherwise.
+   */
+  hasRequestRefreshImageCache()
+  {
+    return this.#requestRefreshImageCache;
+  };
+
+  /**
+   * Acknowledge the request to refresh the hud's image cache.
+   */
+  acknowledgeRefreshImageCache()
+  {
+    this.#setRequestRefreshImageCache(false);
+  };
+
+  //#region private functions
+  /**
+   * Whether or not the hud manager is ready to get started.
+   * @returns {boolean} True if it is ready, false otherwise.
+   * @private
+   */
+  #isReady()
+  {
+    return this.#ready;
+  };
+
+  /**
+   * Sets whether or not the hud's image cache needs refreshing.
+   * @param {boolean} request True if refresh is required, false otherwise.
+   * @private
+   */
+  #setRequestRefreshImageCache(request)
+  {
+    this.#requestRefreshImageCache = request;
+  };
+
+  /**
+   * Sets whether or not the hud requires a refresh.
+   * @param {boolean} request True if refresh is required, false otherwise.
+   * @private
+   */
+  #setRequestRefreshHud(request)
+  {
+    this.#requestRefresh = request;
+  };
+
+  /**
+   * Sets whether or not this hud manager is ready to go.
+   * @param {boolean} ready True if ready, false otherwise.
+   * @private
+   */
+  #setReady(ready)
+  {
+    this.#ready = ready;
+  };
+
+  /**
+   * Sets the request to show allies to the given value.
+   * @param {boolean} request True to issue the request to show allies, false otherwise.
+   * @private
+   */
+  #setRequestShowAllies(request)
+  {
+    this.#requestShowAllies = request;
+  };
+
+  /**
+   * Sets the showing of allies.
+   * @param {boolean} showAllies True to show allies, false otherwise.
+   * @private
+   */
+  #setShowAllies(showAllies)
+  {
+    this.#alliesVisible = showAllies;
+  };
+
+  /**
+   * Whether or not we have a request to show allies in the hud.
+   * @returns {boolean} True if we need to show allies, false otherwise.
+   */
+  #hasRequestShowAllies()
+  {
+    return this.#requestShowAllies;
+  };
+
+  /**
+   * Shows all allies.
+   * This is not designed to be used directly.
+   * Please use the `requestShowAllies(true)` for that.
+   */
+  #showAllies()
+  {
+    this.#setShowAllies(true);
+    this.#setRequestShowAllies(false);
+
+    // update the gameSystem for remembering.
+    $gameSystem.setHudAlliesVisible(true);
+  };
+
+  /**
+   * Sets the request to hide allies to the given value.
+   * @param {boolean} request True to issue the request to hide allies, false otherwise.
+   * @private
+   */
+  #setRequestHideAllies(request)
+  {
+    this.#requestHideAllies = request;
+  };
+
+  /**
+   * Whether or not we have a request to hide allies in the hud.
+   * @returns {boolean} True if we need to hide allies, false otherwise.
+   */
+  #hasRequestHideAllies()
+  {
+    return this.#requestHideAllies;
+  };
+
+  /**
+   * Disables the showing of your allies in the hud.
+   */
+  #hideAllies()
+  {
+    this.#setShowAllies(false);
+    this.#setRequestHideAllies(false);
+
+    // update the gameSystem for remembering.
+    $gameSystem.setHudAlliesVisible(false);
+  };
+
+  /**
+   * Sets whether or not the hud is visible.
+   * @param {boolean} hudVisible True if the hud is visible, false otherwise.
+   * @private
+   */
+  #setHudVisible(hudVisible)
+  {
+    this.#hudVisible = hudVisible;
+  };
+
+  /**
+   * Shows the hud.
+   * This is not designed to be used directly.
+   * Please use the `setRequestShowHud(true)` for that.
+   */
+  #showHud()
+  {
+    this.#setHudVisible(true);
+    this.#setRequestShowHud(false);
+
+    // update the gameSystem for remembering.
+    $gameSystem.setHudVisible(true);
+  };
+
+  /**
+   * Hides the hud.
+   * This is not designed to be used directly.
+   * Please use the `setRequestHideHud(true)` for that.
+   */
+  #hideHud()
+  {
+    this.#setHudVisible(false);
+    this.#setRequestHideHud(false);
+
+    // update the gameSystem for remembering.
+    $gameSystem.setHudVisible(false);
+  };
+
+  /**
+   * Whether or not we have a request to show the hud.
+   * @returns {boolean} True if we need to show the hud, false otherwise.
+   */
+  #hasRequestShowHud()
+  {
+    return this.#requestShowHud;
+  };
+
+  /**
+   * Whether or not we have a request to hide the hud.
+   * @returns {boolean} True if we need to hide the hud, false otherwise.
+   */
+  #hasRequestHideHud()
+  {
+    return this.#requestHideHud;
+  };
+
+  /**
+   * Sets the request to show the hud to the given value.
+   * @param {boolean} request True to issue the request to show the hud, false otherwise.
+   * @private
+   */
+  #setRequestShowHud(request)
+  {
+    this.#requestShowHud = request;
+  };
+
+  /**
+   * Sets the request to hide the hud to the given value.
+   * @param {boolean} request True to issue the request to hide the hud, false otherwise.
+   * @private
+   */
+  #setRequestHideHud(request)
+  {
+    this.#requestHideHud = request;
+  };
+  //#endregion private functions
+}
+//#endregion Hud_Manager
+//#endregion Custom objects
+//ENDOFFILE

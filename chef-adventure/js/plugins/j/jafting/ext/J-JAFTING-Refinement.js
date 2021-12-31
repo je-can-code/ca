@@ -392,7 +392,6 @@ DataManager.processEquipForRefinement = function(equip, index)
   // assign the index for refinement reasons.
   equip.index = index;
 };
-
 //#endregion DataManager
 //#endregion Static objects
 
