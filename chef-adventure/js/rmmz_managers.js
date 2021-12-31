@@ -355,7 +355,8 @@ DataManager.loadGame = function(savefileId) {
         this.extractSaveContents(contents);
         this.correctDataErrors();
         return 0;
-    });
+    })
+      .catch(err => console.log(err));
 };
 
 DataManager.makeSavename = function(savefileId) {

@@ -499,8 +499,7 @@ DataManager.extractSaveContents = function(contents)
 
   // update the save file data with the modified plugin settings JAFTING data.
   contents.system._j._jafting = fromPluginSettingsJafting;
-  const extracted = J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
-  return extracted;
+  J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
 //#endregion DataManager
 

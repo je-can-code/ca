@@ -153,10 +153,10 @@ DataManager.createGameObjects = function()
 };
 
 J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
-DataManager.extractSaveContents = function()
+DataManager.extractSaveContents = function(contents)
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this);
+  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this, contents);
 
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
@@ -1231,8 +1231,8 @@ class Window_Hud extends Window_Base
     {
       // grab all the states and sort them into negative/positive buckets.
       const trackedStates = $gameBattleMap.getStateTrackerByBattler(leader);
-      const positiveStates = trackedStates.filter(this.#filterPositiveStates);
-      const negativeStates = trackedStates.filter(this.#filterNegativeStates);
+      const positiveStates = trackedStates.filter(this.filterPositiveStates);
+      const negativeStates = trackedStates.filter(this.filterNegativeStates);
 
       // iterate over all the negative states and draw them.
       negativeStates.forEach((negativeTrackedState, index) =>
@@ -1292,7 +1292,7 @@ class Window_Hud extends Window_Base
    * @param {JABS_TrackedState} trackedState The state to categorize.
    * @returns {boolean} True if it is positive, false otherwise.
    */
-  #filterPositiveStates(trackedState)
+  filterPositiveStates(trackedState)
   {
     if (trackedState.isExpired() || trackedState.stateId === 1) return false;
 
@@ -1310,7 +1310,7 @@ class Window_Hud extends Window_Base
    * @param {JABS_TrackedState} trackedState The state to categorize.
    * @returns {boolean} True if it is negative, false otherwise.
    */
-  #filterNegativeStates(trackedState)
+  filterNegativeStates(trackedState)
   {
     if (trackedState.isExpired() || trackedState.stateId === 1) return false;
 
