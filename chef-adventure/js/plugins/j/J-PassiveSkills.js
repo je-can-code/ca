@@ -454,17 +454,6 @@ Game_Battler.prototype.hasPassiveState = function(stateId)
 {
   return this._j._passiveSkillStateIds.includes(stateId);
 };
-
-/**
- * Gets the state associated with the given state id.
- * By abstracting this, we can modify the underlying state before it reaches its destination.
- * @param {number} stateId
- * @returns {rm.types.State}
- */
-Game_Battler.prototype.state = function(stateId)
-{
-  return $dataStates[stateId];
-};
 //#endregion Game_Battler
 
 //#region Game_Enemy

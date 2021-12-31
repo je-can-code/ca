@@ -1648,6 +1648,17 @@ Game_Actor.prototype.databaseData = function()
 
 //#region Game_Battler
 /**
+ * Gets the state associated with the given state id.
+ * By abstracting this, we can modify the underlying state before it reaches its destination.
+ * @param {number} stateId The state id to get data for.
+ * @returns {rm.types.State}
+ */
+Game_Battler.prototype.state = function(stateId)
+{
+  return $dataStates[stateId];
+};
+
+/**
  * The underlying database data for this battler.
  *
  * This allows operations to be performed against both actor and enemy indifferently.
@@ -2377,48 +2388,183 @@ Game_Event.prototype.matchesControlCode = function(code)
 //#endregion Game objects
 
 //#region Sprite objects
-//#region Sprite_Icon
+//#region Sprite_ActorValue
 /**
- * A sprite that displays a single icon.
+ * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
  */
-function Sprite_Icon()
+function Sprite_ActorValue()
 {
   this.initialize(...arguments);
 }
 
-Sprite_Icon.prototype = Object.create(Sprite.prototype);
-Sprite_Icon.prototype.constructor = Sprite_Icon;
-Sprite_Icon.prototype.initialize = function(iconIndex)
+Sprite_ActorValue.prototype = Object.create(Sprite.prototype);
+Sprite_ActorValue.prototype.constructor = Sprite_ActorValue;
+Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0)
 {
+  this._j = {};
   Sprite.prototype.initialize.call(this);
-  this.initMembers(iconIndex);
-  this.loadBitmap();
+  this.initMembers(actor, parameter, fontSizeMod);
+  this.bitmap = this.createBitmap();
 };
 
 /**
  * Initializes the properties associated with this sprite.
- * @param {Bitmap} iconIndex The index of the icon this sprite represents.
+ * @param {object} actor The actor to track the value of.
+ * @param {string} parameter The parameter to track of "hp"/"mp"/"tp"/"time".
+ * @param {number} fontSizeMod The modification of the font size for this value.
  */
-Sprite_Icon.prototype.initMembers = function(iconIndex)
+Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod)
 {
-  this._j = {
-    _iconIndex: iconIndex,
-  };
+  this._j._parameter = parameter;
+  this._j._actor = actor;
+  this._j._fontSizeMod = fontSizeMod;
+  this._j._last = {};
+  this._j._last._hp = actor.hp;
+  this._j._last._mp = actor.mp;
+  this._j._last._tp = actor.tp;
+  this._j._last._xp = actor.currentExp();
+  this._j._last._lvl = actor.level;
+  this._j._autoCounter = 60;
 };
 
 /**
- * Loads the bitmap into the sprite.
+ * Updates the bitmap if it needs updating.
  */
-Sprite_Icon.prototype.loadBitmap = function()
+Sprite_ActorValue.prototype.update = function()
 {
-  this.bitmap = ImageManager.loadSystem("IconSet");
-  const pw = ImageManager.iconWidth;
-  const ph = ImageManager.iconHeight;
-  const sx = (this._j._iconIndex % 16) * pw;
-  const sy = Math.floor(this._j._iconIndex / 16) * ph;
-  this.setFrame(sx, sy, pw, ph);
+  Sprite.prototype.update.call(this);
+  if (this.hasParameterChanged())
+  {
+    this.refresh();
+  }
+
+  this.autoRefresh();
 };
-//#endregion Sprite_Icon
+
+/**
+ * Automatically refreshes the value being represented by this sprite
+ * after a fixed amount of time.
+ */
+Sprite_ActorValue.prototype.autoRefresh = function()
+{
+  if (this._j._autoCounter <= 0)
+  {
+    this.refresh();
+    this._j._autoCounter = 60;
+  }
+
+  this._j._autoCounter--;
+};
+
+/**
+ * Refreshes the value being represented by this sprite.
+ */
+Sprite_ActorValue.prototype.refresh = function()
+{
+  this.bitmap = this.createBitmap();
+};
+
+/**
+ * Checks whether or not a given parameter has changed.
+ */
+Sprite_ActorValue.prototype.hasParameterChanged = function()
+{
+  let changed = true;
+  switch (this._j._parameter)
+  {
+    case "hp":
+      changed = this._j._actor.hp !== this._j._last._hp;
+      if (changed) this._j._last._hp = this._j._actor.hp;
+      return changed;
+    case "mp":
+      changed = this._j._actor.mp !== this._j._last._mp;
+      if (changed) this._j._last._mp = this._j._actor.mp;
+      return changed;
+    case "tp":
+      changed = this._j._actor.tp !== this._j._last._tp;
+      if (changed) this._j._last.tp = this._j._actor.tp;
+      return changed;
+    case "time":
+      changed = this._j._actor.currentExp() !== this._j._last._xp;
+      if (changed) this._j._last._xp = this._j._actor.currentExp();
+      return changed;
+    case "lvl":
+      changed = this._j._actor.level !== this._j._last._lvl;
+      if (changed) this._j._last._lvl = this._j._actor.level;
+      return changed;
+  }
+};
+
+/**
+ * Creates a bitmap to attach to this sprite that shows the value.
+ */
+Sprite_ActorValue.prototype.createBitmap = function()
+{
+  let value = 0;
+  const width = this.bitmapWidth();
+  const height = this.fontSize() + 4;
+  const bitmap = new Bitmap(width, height);
+  bitmap.fontFace = this.fontFace();
+  bitmap.fontSize = this.fontSize();
+  switch (this._j._parameter)
+  {
+    case "hp":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(128, 24, 24, 1.0)";
+      value = Math.floor(this._j._actor.hp);
+      break;
+    case "mp":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(24, 24, 192, 1.0)";
+      value = Math.floor(this._j._actor.mp);
+      break;
+    case "tp":
+      bitmap.outlineWidth = 2;
+      bitmap.outlineColor = "rgba(64, 128, 64, 1.0)";
+      value = Math.floor(this._j._actor.tp);
+      break;
+    case "time":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+      const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
+      const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
+      value = curExp - nextLv;
+      break;
+    case "lvl":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+      value = this._j._actor.level.padZero(3);
+      break;
+  }
+
+  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
+  return bitmap;
+};
+
+/**
+ * Defaults the bitmap width to be a fixed 200 pixels.
+ */
+Sprite_ActorValue.prototype.bitmapWidth = function()
+{
+  return 200;
+};
+
+/**
+ * Defaults the font size to be an adjusted amount from the base font size.
+ */
+Sprite_ActorValue.prototype.fontSize = function()
+{
+  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
+};
+
+/**
+ * Defaults the font face to be the number font.
+ */
+Sprite_ActorValue.prototype.fontFace = function()
+{
+  return $gameSystem.numberFontFace();
+};
+//#endregion Sprite_ActorValue
 
 //#region Sprite_Face
 /**
@@ -2468,6 +2614,49 @@ Sprite_Face.prototype.loadBitmap = function()
   this.setFrame(sx, sy, pw, ph);
 };
 //#endregion Sprite_Face
+
+//#region Sprite_Icon
+/**
+ * A sprite that displays a single icon.
+ */
+function Sprite_Icon()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_Icon.prototype = Object.create(Sprite.prototype);
+Sprite_Icon.prototype.constructor = Sprite_Icon;
+Sprite_Icon.prototype.initialize = function(iconIndex)
+{
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(iconIndex);
+  this.loadBitmap();
+};
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {Bitmap} iconIndex The index of the icon this sprite represents.
+ */
+Sprite_Icon.prototype.initMembers = function(iconIndex)
+{
+  this._j = {
+    _iconIndex: iconIndex,
+  };
+};
+
+/**
+ * Loads the bitmap into the sprite.
+ */
+Sprite_Icon.prototype.loadBitmap = function()
+{
+  this.bitmap = ImageManager.loadSystem("IconSet");
+  const pw = ImageManager.iconWidth;
+  const ph = ImageManager.iconHeight;
+  const sx = (this._j._iconIndex % 16) * pw;
+  const sy = Math.floor(this._j._iconIndex / 16) * ph;
+  this.setFrame(sx, sy, pw, ph);
+};
+//#endregion Sprite_Icon
 
 //#region Sprite_MapGauge
 /**
@@ -2719,6 +2908,100 @@ Sprite_MapGauge.prototype.currentMaxValue = function()
 };
 //#endregion Sprite_MapGauge
 
+//#region Sprite_StateTimer
+/**
+ * A sprite that displays some static text.
+ */
+function Sprite_StateTimer()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_StateTimer.prototype = Object.create(Sprite.prototype);
+Sprite_StateTimer.prototype.constructor = Sprite_StateTimer;
+Sprite_StateTimer.prototype.initialize = function(stateData)
+{
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(stateData);
+  this.loadBitmap();
+}
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {object} stateData The state data associated with this sprite.
+ */
+Sprite_StateTimer.prototype.initMembers = function(stateData)
+{
+  this._j = {};
+  this._j._stateData = stateData;
+};
+
+/**
+ * Loads the bitmap into the sprite.
+ */
+Sprite_StateTimer.prototype.loadBitmap = function()
+{
+  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+  this.bitmap.fontFace = this.fontFace();
+  this.bitmap.fontSize = this.fontSize();
+  this.bitmap.drawText(
+    this._j._text,
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+}
+
+Sprite_StateTimer.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+  this.updateCooldownText();
+};
+
+Sprite_StateTimer.prototype.updateCooldownText = function()
+{
+  this.bitmap.clear();
+  const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
+
+  this.bitmap.drawText(
+    durationRemaining.toString(),
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+};
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_StateTimer.prototype.bitmapWidth = function()
+{
+  return 40;
+};
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_StateTimer.prototype.bitmapHeight = function()
+{
+  return this.fontSize() * 3;
+};
+
+/**
+ * Determines the font size for text in this sprite.
+ */
+Sprite_StateTimer.prototype.fontSize = function()
+{
+  return $gameSystem.mainFontSize() - 10;
+};
+
+/**
+ * determines the font face for text in this sprite.
+ */
+Sprite_StateTimer.prototype.fontFace = function()
+{
+  return $gameSystem.numberFontFace();
+};
+//#endregion Sprite_StateTimer
+
 //#region Sprite_Text
 /**
  * A sprite that displays some static text.
@@ -2839,7 +3122,6 @@ Sprite_Text.prototype.textAlignment = function()
   return this._j._alignment;
 };
 //#endregion Sprite_Text
-
 //#endregion Sprite objects
 
 //#region TileMap

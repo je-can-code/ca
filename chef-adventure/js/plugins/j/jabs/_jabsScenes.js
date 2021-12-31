@@ -142,7 +142,7 @@ Scene_Map.prototype.update = function()
 Scene_Map.prototype.handlePartyRotation = function()
 {
   $gameBattleMap.requestPartyRotation = false;
-  if (J.HUD && J.HUD.Metadata.Enabled)
+  if (J.HUD)
   {
     this.refreshHud();
   }
@@ -155,12 +155,10 @@ Scene_Map.prototype.handleJabsWindowsVisibility = function()
 {
   if ($gameBattleMap.absEnabled && !$gameMessage.isBusy())
   {
-    if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(true);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
   }
   else
   {
-    if (J.HUD && J.HUD.Metadata.Enabled) this.toggleHud(false);
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
   }
 };
