@@ -2,13 +2,11 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 HUD] A default HUD, designed for JABS.
+ * [v2.0 HUD] A generic hud for the map; designed for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
  * @orderAfter J-BASE
- * @help
- * ============================================================================
  * @command hideHud
  * @text Hide HUD
  * @desc Hides the HUD on the map.
@@ -62,7 +60,7 @@ J.HUD = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.HUD.Metadata = {};
-J.HUD.Metadata.Version = '1.0.0';
+J.HUD.Metadata.Version = '2.0.0';
 J.HUD.Metadata.Name = `J-HUD`;
 
 /**
@@ -1101,7 +1099,7 @@ class Window_Hud extends Window_Base
   };
 
   /**
-   * Reverts the opacity changes associated with the player getting in the wya.
+   * Reverts the opacity changes associated with the player getting in the way.
    */
   revertInterferenceOpacity()
   {
@@ -1274,6 +1272,9 @@ class Window_Hud extends Window_Base
         // make the keys for the sprites in question.
         const iconKey = this.makeStateIconSpriteKey(leader, trackedState.stateId);
         const timerKey = this.makeStateTimerSpriteKey(leader, trackedState.stateId);
+
+        // skip trying if they don't exist.
+        if (!this._hudSprites.has(iconKey) || !this._hudSprites.has(timerKey)) return;
 
         // get the sprites in question.
         const iconSprite = this._hudSprites.get(iconKey);
