@@ -241,7 +241,17 @@ class Window_Hud2 extends Window_Base
     this.contents.clear();
 
     // hide all the sprites.
-    this._hudSprites.forEach((sprite, _) => sprite.hide());
+    this._hudSprites.forEach((sprite, _) =>
+    {
+      sprite.hide();
+
+      // check if the sprite is a gauge.
+      if (sprite instanceof Sprite_MapGauge)
+      {
+        // deactivate it if it is a gauge.
+        sprite.deactivateGauge();
+      }
+    });
 
     // draw the hud anew.
     this.drawHud();
@@ -681,6 +691,11 @@ class Window_Hud2 extends Window_Base
     sprite.show();
   };
 
+  /**
+   * Draws all gauges for the leader into the hud.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
   drawLeaderGauges(x, oy)
   {
     // grab the leader of the party.
@@ -739,6 +754,11 @@ class Window_Hud2 extends Window_Base
     levelNumbers.show();
   };
 
+  /**
+   * Draw all allies data for the hud.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
   drawAllies(x, oy)
   {
     // grab the line height for re-use.
@@ -756,13 +776,27 @@ class Window_Hud2 extends Window_Base
     });
   };
 
+  /**
+   * Draws a single ally's data for the hud.
+   * @param {Game_Actor} ally The ally to draw.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The origin y coordinate.
+   */
   drawAlly(ally, x, oy)
   {
+    // draw the ally's mini face.
     this.drawAllyFace(ally, x, oy);
 
+    // draw the ally's mini gauges.
     this.drawAllyGauges(ally, x+40, oy+6);
   };
 
+  /**
+   * Draws a single ally's mini face for the hud.
+   * @param {Game_Actor} ally The ally to draw the face of.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
   drawAllyFace(ally, x, y)
   {
     // grab and locate the sprite.
@@ -771,6 +805,12 @@ class Window_Hud2 extends Window_Base
     sprite.show();
   };
 
+  /**
+   * Draws a single ally's mini gauges.
+   * @param {Game_Actor} ally The ally to draw the gauges for.
+   * @param {number} x The x coordinate.
+   * @param {number} oy The original y coordinate.
+   */
   drawAllyGauges(ally, x, oy)
   {
     // shorthand the line height variable.

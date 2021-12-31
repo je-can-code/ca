@@ -385,8 +385,7 @@ J.ALLYAI.Aliased.Game_BattleMap.performPartyCycling = Game_BattleMap.prototype.p
 Game_BattleMap.prototype.performPartyCycling = function()
 {
   // if followers aren't enabled, then do it like normal.
-  if (!$gamePlayer.followers()
-    .isVisible())
+  if (!$gamePlayer.followers().isVisible())
   {
     J.ALLYAI.Aliased.Game_BattleMap.performPartyCycling.call(this);
     return;
