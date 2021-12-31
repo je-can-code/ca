@@ -2,7 +2,7 @@
 /*:
 * @target MZ
 * @plugindesc
-* [v1.0 LOG] A log window for viewing on the map.
+* [v2.0 LOG] A log window for viewing on the map.
 * @author JE
 * @url https://github.com/je-can-code/rmmz
 * @base J-BASE
@@ -83,7 +83,7 @@ J.LOG = {};
  */
 J.LOG.Metadata = {};
 J.LOG.Metadata.Name = `J-LOG`;
-J.LOG.Metadata.Version = 1.00;
+J.LOG.Metadata.Version = `2.0.0`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -662,6 +662,52 @@ class Window_MapLog extends Window_Command
       // fade the window accordingly.
       this.fadeWindow();
     }
+    else if (this.playerInterference())
+    {
+      this.handlePlayerInterference();
+    }
+    else
+    {
+      this.revertInterferenceOpacity(this.inactivityTimer);
+    }
+  };
+
+  /**
+   * Determines whether or not the player is in the way (or near it) of this window.
+   * @returns {boolean} True if the player is in the way, false otherwise.
+   */
+  playerInterference()
+  {
+    const playerX = $gamePlayer.screenX();
+    const playerY = $gamePlayer.screenY();
+    return (playerX < this.width) && (playerY > this.y);
+  };
+
+  /**
+   * Manages opacity for the window while the player is interfering with the visibility.
+   */
+  handlePlayerInterference()
+  {
+    // if we are above 64, rapidly decrement by -15 until we get below 64.
+    if (this.opacity > 32) this.opacity -= 15;
+    // if we are below 64, increment by +1 until we get to 64.
+    else if (this.opacity < 32) this.opacity += 1;
+
+    // if we are above 64, rapidly decrement by -15 until we get below 64.
+    if (this.contentsOpacity > 64) this.contentsOpacity -= 15;
+    // if we are below 64, increment by +1 until we get to 64.
+    else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
+  };
+
+  /**
+   * Reverts the opacity changes associated with the player getting in the way.
+   */
+  revertInterferenceOpacity(currentDuration)
+  {
+    const num = currentDuration;
+    this.showWindow();
+
+    this.setInactivityTimer(num);
   };
 
   /**
