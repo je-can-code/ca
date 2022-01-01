@@ -212,7 +212,7 @@ Sprite_Character.prototype.update = function()
   if (this.isJabsBattler())
   {
     this.updateStateOverlay();
-    //this.updateGauges();
+    this.updateGauges();
     this.updateDangerIndicator();
     this.updateBattlerName();
   }
@@ -293,7 +293,7 @@ Sprite_Character.prototype.setCharacter = function(character)
 Sprite_Character.prototype.setupMapSprite = function()
 {
   this.setupStateOverlay();
-  //this.setupHpGauge();
+  this.setupHpGauge();
   this.setupDangerIndicator();
   this.setupBattlerName();
 };
@@ -383,26 +383,42 @@ Sprite_Character.prototype.setupHpGauge = function()
     this._hpGauge.destroy();
   }
 
-  const battler = this.getBattler();
+  // initialize the hp gauge as a generic map gauge.
   this._hpGauge = this.createGenericSpriteGauge();
+
+  // locate the gauge below the character.
+  this._hpGauge.move(
+    -(this._hpGauge.bitmapWidth() / 1.5),
+    -12);
+
+  // if we have a battler, set it up and activate it.
+  const battler = this.getBattler();
   if (battler)
   {
     this._hpGauge.setup(battler, "hp");
+    this._hpGauge.activateGauge();
   }
 
+  // add the sprite to tracking.
   this.addChild(this._hpGauge);
 };
 
 /**
- * Creates an on-the-map HP gauge for this battler.
+ * Creates a deactivated `Sprite_MapGauge` sprite yet to be setup.
  * @returns {Sprite_MapGauge}
  */
 Sprite_Character.prototype.createGenericSpriteGauge = function()
 {
+  // generate a deactivated gauge.
   const sprite = new Sprite_MapGauge();
+  sprite.deactivateGauge();
+
+  // relocate the gauge.
   const x = this.x - (sprite.width / 1.5);
   const y = this.y - 12;
   sprite.move(x, y);
+
+  // return the generic sprite centered on the character.
   return sprite;
 };
 
@@ -433,21 +449,14 @@ Sprite_Character.prototype.updateHpGauge = function()
   // if the gauge is not created, then create it.
   if (!this._hpGauge)
   {
-    this.setupMapSprite();
+    this.setupHpGauge();
   }
 
-  // update gauge location; relative to this Sprite_Character, not to the map!
-  // (x,y) 0,0 translates to wherever the actual character is that this gauge belongs to.
-  const xMod = -(this._hpGauge.bitmapWidth() / 1.5);
-  const yMod = -12;
-  this._hpGauge.move(xMod, yMod);
+  // ensure the hp gauge is visible.
   this.showHpGauge();
 
   // ensure the battler for the gauge is assigned to this battler.
   this._hpGauge._battler = this.getBattler();
-
-  // actually execute the update of the gauge.
-  this._hpGauge.update();
 };
 
 /**
@@ -455,10 +464,7 @@ Sprite_Character.prototype.updateHpGauge = function()
  */
 Sprite_Character.prototype.showHpGauge = function()
 {
-  if (this._hpGauge)
-  {
-    this._hpGauge.opacity = 255;
-  }
+  this._hpGauge.opacity = 255;
 };
 
 /**
@@ -466,10 +472,7 @@ Sprite_Character.prototype.showHpGauge = function()
  */
 Sprite_Character.prototype.hideHpGauge = function()
 {
-  if (this._hpGauge)
-  {
-    this._hpGauge.opacity = 0;
-  }
+  this._hpGauge.opacity = 0;
 };
 //#endregion gauges
 
@@ -856,10 +859,6 @@ Sprite_Character.prototype.lootFloatUp = function(lootSprite)
 //#endregion loot
 //#endregion Sprite_Character
 
-//#region Sprite_Damage
-
-//#endregion Sprite_Damage
-
 //#region Sprite_Gauge
 /**
  * Due to JABS' slip effects, we have fractional hp/mp/tp values.
@@ -869,12 +868,12 @@ J.ABS.Aliased.Sprite_Gauge.currentValue = Sprite_Gauge.prototype.currentValue;
 Sprite_Gauge.prototype.currentValue = function()
 {
   let base = J.ABS.Aliased.Sprite_Gauge.currentValue.call(this);
-  if (base !== NaN)
-  {
-    base = Math.ceil(base);
-  }
 
-  return base;
+  // if we somehow ended up with NaN, then just let them deal with it.
+  if (isNaN(base)) return base;
+
+  // return the rounded-up amount.
+  return Math.ceil(base);
 };
 //#endregion Sprite_Gauge
 //ENDFILE

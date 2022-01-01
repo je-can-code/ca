@@ -2709,7 +2709,6 @@ Sprite_MapGauge.prototype.update = function()
   // don't update if its not activated.
   if (!this._gauge._activated) return;
 
-  this.redraw();
   Sprite_Gauge.prototype.update.call(this);
   //this.manageGaugeVisibility();
 };
@@ -2728,24 +2727,6 @@ Sprite_MapGauge.prototype.manageGaugeVisibility = function()
   {
     this.opacity -= 4.25;
   }
-};
-
-Sprite_MapGauge.prototype.updateGaugeAnimation = function() {
-  if (this._value !== this._targetValue || this._maxValue !== this._targetMaxValue)
-  {
-    this._value = this._targetValue;
-    this._maxValue = this._targetMaxValue;
-    this.redraw();
-  }
-  /*
-  if (this._duration > 0) {
-    const d = this._duration;
-    this._value = (this._value * (d - 1) + this._targetValue) / d;
-    this._maxValue = (this._maxValue * (d - 1) + this._targetMaxValue) / d;
-    this._duration--;
-    this.redraw();
-  }
-  */
 };
 
 /**
@@ -2792,7 +2773,13 @@ Sprite_MapGauge.prototype.drawLabel = function()
     const x = 32;
     const y = 0;
     this.bitmap.fontSize = 12;
-    this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
+    this.bitmap.drawText(
+      this._gauge._label,
+      x,
+      y,
+      this.bitmapWidth(),
+      this.bitmapHeight(),
+      "left");
   }
 };
 

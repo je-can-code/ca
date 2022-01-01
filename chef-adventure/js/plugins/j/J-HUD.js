@@ -1425,13 +1425,6 @@ class Window_Hud extends Window_Base
 //#endregion Window_Hud
 //#endregion Window objects
 
-if (!J.HUD)
-{
-//#region Sprite objects
-
-//#endregion Sprite objects
-}
-
 //#region Custom objects
 //#region Hud_Manager
 /**
