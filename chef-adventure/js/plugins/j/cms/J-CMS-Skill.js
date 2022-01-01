@@ -601,7 +601,7 @@ class Window_SkillDetail extends Window_Base
         const extendedSkill = OverlayManager.getExtendedSkill(actor, skillRewardId);
         const learnedIcon = actorKnowsSkill ? 91 : 90;
         const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
-        const value = actorKnowsSkill ? '' : `${requiredProficiency.proficiency}`;
+        const value = `${requiredProficiency.proficiency}`;
         params.push(new JCMS_ParameterKvp(name, value));
       });
     });

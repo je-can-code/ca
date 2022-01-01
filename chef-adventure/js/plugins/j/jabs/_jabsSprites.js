@@ -180,7 +180,7 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 
   $gameBattleMap.requestSpriteRefresh = false;
 };
-//#endregion
+//#endregion Spriteset_Map
 
 //#region Sprite_Character
 /**
@@ -212,7 +212,7 @@ Sprite_Character.prototype.update = function()
   if (this.isJabsBattler())
   {
     this.updateStateOverlay();
-    this.updateGauges();
+    //this.updateGauges();
     this.updateDangerIndicator();
     this.updateBattlerName();
   }
@@ -293,7 +293,7 @@ Sprite_Character.prototype.setCharacter = function(character)
 Sprite_Character.prototype.setupMapSprite = function()
 {
   this.setupStateOverlay();
-  this.setupHpGauge();
+  //this.setupHpGauge();
   this.setupDangerIndicator();
   this.setupBattlerName();
 };

@@ -9,7 +9,13 @@
  * ============================================================================
  * A small set of system utility functions.
  * - F6 toggles all sound on/off.
+ * - autostart newgame on testplay.
  * ============================================================================
+ * @param autoNewgame
+ * @type boolean
+ * @text Auto-Newgame
+ * @desc Automatically start a new game when playtesting the game.
+ * @default true
  */
 
 /**
@@ -37,11 +43,20 @@ J.UTIL.Metadata = {
   Version: '1.0.0',
 };
 
+J.UTIL.PluginParameters = PluginManager.parameters(J.UTIL.Metadata.Name);
+
+/**
+ * Whether or not to use the "auto-newgame" feature.
+ * @type {boolean}
+ */
+J.UTIL.Metadata.AutoNewgame = J.UTIL.PluginParameters['autoNewgame'] === 'true';
+
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.UTIL.Aliased = {
   Scene_Base: new Map(),
+  Scene_Boot: new Map(),
 };
 
 J.UTIL.Helpers = {};
@@ -114,4 +129,25 @@ Scene_Base.prototype.toggleVolume = function()
   }
 };
 //#endregion Scene_Base
+/**
+ * Extends `startNormalGame()` to accommodate plugin parameters.
+ * If the "auto-newgame" parameter is true, then we skip straight into a new game,
+ * bypassing the title screen altogether.
+ */
+J.UTIL.Aliased.Scene_Boot.set('startNormalGame', Scene_Boot.prototype.startNormalGame);
+Scene_Boot.prototype.startNormalGame = function()
+{
+  // if using the "auto-newgame" feature, then skip straight to a new game.
+  if (J.UTIL.Metadata.AutoNewgame)
+  {
+    this.checkPlayerLocation();
+    DataManager.setupNewGame();
+    SceneManager.goto(Scene_Map);
+  }
+  // otherwise, perform original logic.
+  else
+  {
+    J.UTIL.Aliased.Scene_Boot.get('startNormalGame').call(this);
+  }
+};
 //#endregion Scene objects

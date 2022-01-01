@@ -1063,14 +1063,7 @@ if (J.ABS)
     if (!sdpPoints) return;
 
     // sdp points are obtained by all members in the party.
-    $gameParty.members().forEach((member, index) =>
-    {
-      // don't double-obtain the leader's points!
-      if (index === 0) return;
-
-      // obtain the points for the member.
-      member.modSdpPoints(sdpPoints);
-    });
+    $gameParty.members().forEach(member => member.modSdpPoints(sdpPoints));
 
     // get the true amount obtained after multipliers for the leader.
     const sdpMultiplier = actor.getBattler().sdpMultiplier();
