@@ -5032,8 +5032,7 @@ Game_Character.prototype.getActionUuid = function()
  */
 Game_Character.prototype.getMapBattler = function()
 {
-  const asp = this.getActionSpriteProperties();
-  const uuid = asp.battlerUuid;
+  const uuid = this.getMapBattlerUuid();
   return $gameMap.getBattlerByUuid(uuid);
 };
 
