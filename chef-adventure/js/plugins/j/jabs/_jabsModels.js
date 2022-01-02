@@ -812,15 +812,6 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
     : battlerCoreData.showHpBar();
 
   /**
-   * Whether or not this battler's danger indicator is visible.
-   * Inanimate battlers do not show their danger indicator by default.
-   * @type {boolean}
-   */
-  this._showDangerIndicator = battlerCoreData.isInanimate()
-    ? false // don't show danger indicator if inanimate.
-    : battlerCoreData.showDangerIndicator();
-
-  /**
    * Whether or not this battler's name is visible.
    * Inanimate battlers do not show their name by default.
    * @type {boolean}
@@ -3459,15 +3450,6 @@ JABS_Battler.prototype.showHpBar = function()
 };
 
 /**
- * Gets whether or not this battler should show its danger indicator.
- * @returns {boolean}
- */
-JABS_Battler.prototype.showDangerIndicator = function()
-{
-  return this._showDangerIndicator;
-};
-
-/**
  * Gets whether or not this battler should show its name.
  * @returns {boolean}
  */
@@ -5828,7 +5810,6 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {number} alertDuration The duration in frames of how long to remain alerted.
  * @param {boolean} canIdle Whether or not this battler can idle.
  * @param {boolean} showHpBar Whether or not to show the hp bar.
- * @param {boolean} showDangerIndicator Whether or not to show the danger indiciator.
  * @param {boolean} showBattlerName Whether or not to show the battler's name.
  * @param {boolean} isInvincible Whether or not this battler is invincible.
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
@@ -5844,7 +5825,6 @@ JABS_BattlerCoreData.prototype.initialize = function({
   alertDuration,
   canIdle,
   showHpBar,
-  showDangerIndicator,
   showBattlerName,
   isInvincible,
   isInanimate
@@ -5911,12 +5891,6 @@ JABS_BattlerCoreData.prototype.initialize = function({
   this._showHpBar = showHpBar;
 
   /**
-   * Whether or not this battler's danger indicator will be visible.
-   * @type {boolean} True if the battler's danger indicator should show, false otherwise.
-   */
-  this._showDangerIndicator = showDangerIndicator;
-
-  /**
    * Whether or not this battler's name will be visible.
    * @type {boolean} True if the battler's name should show, false otherwise.
    */
@@ -5937,7 +5911,15 @@ JABS_BattlerCoreData.prototype.initialize = function({
    * @type {boolean} True if the battler is inanimate, false otherwise.
    */
   this._isInanimate = isInanimate;
+
+  this.initMembers()
 };
+
+/**
+ * Initializes all properties of this class.
+ * This is effectively a hook for adding extra properties into this object.
+ */
+JABS_BattlerCoreData.prototype.initMembers = function() { };
 
 /**
  * Gets this battler's enemy id.
@@ -6030,15 +6012,6 @@ JABS_BattlerCoreData.prototype.showHpBar = function()
 };
 
 /**
- * Gets whether or not this battler's danger indicator will be visible.
- * @returns {boolean}
- */
-JABS_BattlerCoreData.prototype.showDangerIndicator = function()
-{
-  return this._showDangerIndicator;
-};
-
-/**
  * Gets whether or not this battler's name will be visible.
  * @returns {boolean}
  */
@@ -6067,6 +6040,9 @@ JABS_BattlerCoreData.prototype.isInanimate = function()
 //#endregion JABS_BattlerCoreData
 
 //#region JABS_CoreDataBuilder
+/**
+ * A builder class for constructing `JABS_BattlerCoreData`.
+ */
 class JABS_CoreDataBuilder
 {
   //#region properties
@@ -6145,7 +6121,7 @@ class JABS_CoreDataBuilder
    * @type {boolean}
    * @private
    */
-  #showDangerIndicator = J.ABS.Metadata.DefaultEnemyShowDangerIndicator;
+  #showDangerIndicator = J.DANGER ? J.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
 
   /**
    * Whether or not this battler's name is visible.
@@ -6184,7 +6160,7 @@ class JABS_CoreDataBuilder
    */
   build()
   {
-    return new JABS_BattlerCoreData({
+    const core = new JABS_BattlerCoreData({
       // configure core battler data.
       battlerId: this.#battlerId,
       teamId: this.#teamId,
@@ -6200,11 +6176,18 @@ class JABS_CoreDataBuilder
       // configure on-the-map settings.
       canIdle: this.#canIdle,
       showHpBar: this.#showHpBar,
-      showDangerIndicator: this.#showDangerIndicator,
       showBattlerName: this.#showBattlerName,
       isInvincible: this.#isInvincible,
       isInanimate: this.#isInanimate
     });
+
+    // if using danger indicators, then set that, too.
+    if (J.DANGER)
+    {
+      core.setDangerIndicator(this.#showDangerIndicator);
+    }
+
+    return core;
   };
 
   //#region setters
@@ -7095,7 +7078,7 @@ class JABS_LootDrop
 
   /**
    * Gets the underlying loot object.
-   * @returns {object}
+   * @returns {rm.types.BaseItem}
    */
   get lootData()
   {

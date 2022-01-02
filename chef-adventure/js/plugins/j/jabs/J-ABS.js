@@ -134,14 +134,7 @@
  * @text Default Enemy Show HP Bar
  * @desc The default for whether or not enemies' HP bars are visible.  
  * @default true
- * 
- * @param defaultEnemyShowDangerIndicator
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Show HP Bar
- * @desc The default for whether or not enemies' danger indicators are visible.
- * @default true
- * 
+ *
  * @param defaultEnemyShowBattlerName
  * @parent enemyDefaultConfigs
  * @type boolean
@@ -204,21 +197,7 @@
  * @text Elemental Icon Data
  * @desc The collection of element ids and their icon indices.
  * @default ["{\"elementId\":\"0\",\"iconIndex\":\"127\"}","{\"elementId\":\"1\",\"iconIndex\":\"97\"}","{\"elementId\":\"2\",\"iconIndex\":\"107\"}","{\"elementId\":\"3\",\"iconIndex\":\"110\"}","{\"elementId\":\"4\",\"iconIndex\":\"64\"}","{\"elementId\":\"5\",\"iconIndex\":\"67\"}","{\"elementId\":\"6\",\"iconIndex\":\"69\"}","{\"elementId\":\"7\",\"iconIndex\":\"68\"}","{\"elementId\":\"8\",\"iconIndex\":\"70\"}","{\"elementId\":\"9\",\"iconIndex\":\"71\"}"]
- * 
- * @param useDangerIndicatorIcons
- * @parent iconConfigs
- * @type boolean
- * @text Use Danger Indicator Icons
- * @desc Enable or disable the display of danger indicator icons beside enemy hp gauges with this option.
- * @default true
  *
- * @param dangerIndicatorIconData
- * @parent iconConfigs
- * @type struct<DangerIconsStruct>
- * @text Danger Indicator Icons Data
- * @desc The collection of icons to represent enemy danger levels beside their hp gauge.
- * @default {"Worthless":"880","Simple":"881","Easy":"882","Average":"883","Hard":"884","Grueling":"885","Deadly":"886"}
- * 
  * @param animationConfigs
  * @text ACTION DECIDED ANIMATIONS
  * 
@@ -493,49 +472,6 @@
  * @desc The index of the icon for this element.
  * @default 64
 */
-/*~struct~DangerIconsStruct:
- * @param Worthless
- * @type number
- * @text Extremely Easy <7
- * @desc When an enemy is more 7+ levels below the player, display this icon.
- * @default 591
- * 
- * @param Simple
- * @type number
- * @text Very Easy <5-6
- * @desc When an enemy is more 5-6 levels below the player, display this icon.
- * @default 583
- * 
- * @param Easy
- * @type number
- * @text Easy <3-4
- * @desc When an enemy is more 3-4 levels below the player, display this icon.
- * @default 581
- * 
- * @param Average
- * @type number
- * @text Normal +/- 2
- * @desc When the player and enemy are within 0-2 levels of eachother, display this icon.
- * @default 579
- * 
- * @param Hard
- * @type number
- * @text Hard >3-4
- * @desc When an player is more 3-4 levels below the enemy, display this icon.
- * @default 578
- * 
- * @param Grueling
- * @type number
- * @text Very Hard >5-6
- * @desc When an player is more 5-6 levels below the enemy, display this icon.
- * @default 577
- * 
- * @param Deadly
- * @type number
- * @text Extremely Hard >7+
- * @desc When an player is more 7+ levels below the enemy, display this icon.
- * @default 588
-*/
 //=================================================================================================
 //#endregion Introduction
 /**
@@ -624,21 +560,6 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
   });
 };
 
-J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
-{
-  // no danger indicator icons identified.
-  if (!obj) return {};
-
-  // parse the JSON and update the values to be actual numbers.
-  const raw = JSON.parse(obj);
-  Object.keys(raw).forEach(key =>
-  {
-    raw[key] = parseInt(raw[key]);
-  });
-
-  return raw;
-};
-
 /**
  * The `metadata` associated with this plugin, such as version.
  */
@@ -674,7 +595,6 @@ J.ABS.Metadata.DefaultEnemyAlertDuration = Number(J.ABS.PluginParameters['defaul
 J.ABS.Metadata.DefaultEnemyAiCode = J.ABS.PluginParameters['defaultEnemyAiCode'];
 J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === "true");
 J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === "true");
-J.ABS.Metadata.DefaultEnemyShowDangerIndicator = Boolean(J.ABS.PluginParameters['defaultEnemyShowDangerIndicator'] === "true");
 J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === "true");
 J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
 J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
@@ -682,8 +602,6 @@ J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['default
 // custom data configurations.
 J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['useElementalIcons'] === "true");
 J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
-J.ABS.Metadata.UseDangerIndicatorIcons = Boolean(J.ABS.PluginParameters['useDangerIndicatorIcons'] === "true");
-J.ABS.Metadata.DangerIndicatorIcons = J.ABS.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.PluginParameters['dangerIndicatorIconData']);
 
 // action decided configurations.
 J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
@@ -713,53 +631,6 @@ J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
 J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
 J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
-
-/**
- * A collection of icons that represent the danger level of a given enemy relative to the player.
- */
-J.ABS.DangerIndicatorIcons = {
-  /**
-   * Worthless enemies are 7+ levels below the player.
-   * @type {number}
-   */
-  Worthless: J.ABS.Metadata.DangerIndicatorIcons.Worthless,
-
-  /**
-   * Simple enemies are 5-6 levels below the player.
-   * @type {number}
-   */
-  Simple: J.ABS.Metadata.DangerIndicatorIcons.Simple,
-
-  /**
-   * Easy enemies are 3-4 levels below the player.
-   * @type {number}
-   */
-  Easy: J.ABS.Metadata.DangerIndicatorIcons.Easy,
-
-  /**
-   * Average enemies are +/- 2 levels of the player.
-   * @type {number}
-   */
-  Average: J.ABS.Metadata.DangerIndicatorIcons.Average,
-
-  /**
-   * Hard enemies are 3-4 levels above the player.
-   * @type {number}
-   */
-  Hard: J.ABS.Metadata.DangerIndicatorIcons.Hard,
-
-  /**
-   * Grueling enemies are 5-6 levels above the player.
-   * @type {number}
-   */
-  Grueling: J.ABS.Metadata.DangerIndicatorIcons.Grueling,
-
-  /**
-   * Deadly enemies are 7+ levels above the player.
-   * @type {number}
-   */
-  Deadly: J.ABS.Metadata.DangerIndicatorIcons.Deadly,
-};
 
 /**
  * The various default values across the engine. Often configurable.

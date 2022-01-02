@@ -166,18 +166,10 @@ Spriteset_Map.prototype.removeLootSprites = function()
 };
 
 /**
- * Refreshes all character
+ * Refreshes all character sprites on the map.
  */
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
-  this._characterSprites.forEach(sprite =>
-  {
-    if (sprite.isJabsBattler())
-    {
-      sprite.setupDangerIndicator();
-    }
-  });
-
   $gameBattleMap.requestSpriteRefresh = false;
 };
 //#endregion Spriteset_Map
@@ -191,7 +183,6 @@ Sprite_Character.prototype.initMembers = function()
 {
   this._stateOverlaySprite = null;
   this._hpGauge = null;
-  this._dangerIndicator = null;
   this._battlerName = null;
   this._loot = {};
   this._loot._img = null;
@@ -213,7 +204,6 @@ Sprite_Character.prototype.update = function()
   {
     this.updateStateOverlay();
     this.updateGauges();
-    this.updateDangerIndicator();
     this.updateBattlerName();
   }
   else
@@ -294,7 +284,6 @@ Sprite_Character.prototype.setupMapSprite = function()
 {
   this.setupStateOverlay();
   this.setupHpGauge();
-  this.setupDangerIndicator();
   this.setupBattlerName();
 };
 //#endregion setup & reference
@@ -475,125 +464,6 @@ Sprite_Character.prototype.hideHpGauge = function()
   this._hpGauge.opacity = 0;
 };
 //#endregion gauges
-
-//#region danger indicator icon
-/**
- * Sets up the danger indicator sprite for this battler.
- */
-Sprite_Character.prototype.setupDangerIndicator = function()
-{
-  if (this._dangerIndicator)
-  {
-    this._dangerIndicator.destroy();
-  }
-
-  this._dangerIndicator = this.createDangerIndicatorSprite();
-  this.addChild(this._dangerIndicator);
-};
-
-/**
- * Creates the danger indicator sprite for this battler.
- * @returns {Sprite_Icon} The icon representing this danger indicator.
- */
-Sprite_Character.prototype.createDangerIndicatorSprite = function()
-{
-  const dangerIndicatorIcon = this.getDangerIndicatorIcon();
-  const sprite = new Sprite_Icon(dangerIndicatorIcon);
-  sprite.scale.x = 0.5;
-  sprite.scale.y = 0.5;
-  sprite.move(-50, 8);
-  return sprite;
-};
-
-/**
- * Determines the iconIndex that indicates the danger level relative to the player and enemy.
- * @returns The icon index of the danger indicator icon.
- */
-Sprite_Character.prototype.getDangerIndicatorIcon = function()
-{
-  // if we aren't using them, don't give an icon.
-  if (!J.ABS.Metadata.UseDangerIndicatorIcons) return -1;
-
-  // if a battler isn't on this sprite, then don't do it.
-  const battler = this.getBattler();
-  if (!battler) return -1;
-
-  // if the sprite belongs to the player, then don't do it.
-  const player = $gameBattleMap.getPlayerMapBattler().getBattler();
-  if (player === battler) return -1;
-
-  // get the corresponding power levels.
-  const bpl = battler.getPowerLevel();
-  const ppl = player.getPowerLevel();
-
-  switch (true)
-  {
-    case (bpl < ppl * 0.5):
-      return J.ABS.DangerIndicatorIcons.Worthless;
-    case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
-      return J.ABS.DangerIndicatorIcons.Simple;
-    case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
-      return J.ABS.DangerIndicatorIcons.Easy;
-    case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
-      return J.ABS.DangerIndicatorIcons.Average;
-    case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
-      return J.ABS.DangerIndicatorIcons.Hard;
-    case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
-      return J.ABS.DangerIndicatorIcons.Grueling;
-    case (bpl > ppl * 1.5):
-      return J.ABS.DangerIndicatorIcons.Deadly;
-    default:
-      console.error(bpl);
-      return -1;
-  }
-};
-
-/**
- * Updates the danger indicator associated with this battler
- */
-Sprite_Character.prototype.updateDangerIndicator = function()
-{
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler)
-  {
-    if (this.canUpdate() && mapBattler.showDangerIndicator())
-    {
-      if (!this._dangerIndicator)
-      {
-        this.setupMapSprite();
-      }
-
-      this.showDangerIndicator();
-    }
-    else
-    {
-      this.hideDangerIndicator();
-    }
-  }
-};
-
-/**
- * Shows the danger indicator if it exists.
- */
-Sprite_Character.prototype.showDangerIndicator = function()
-{
-  if (this._dangerIndicator)
-  {
-    this._dangerIndicator.opacity = 255;
-  }
-};
-
-/**
- * Hides the danger indicator if it exists.
- */
-Sprite_Character.prototype.hideDangerIndicator = function()
-{
-  if (this._dangerIndicator)
-  {
-    this._dangerIndicator.opacity = 0;
-  }
-};
-//#endregion danger indicator icon
 
 //#region battler name
 /**

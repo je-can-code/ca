@@ -475,6 +475,9 @@ Game_BattleMap.prototype.performPartyCycling = function()
         $gameMap._j._allBattlers.splice(oldIndex, 1);
       }
     });
+
+  // request a map-wide sprite refresh on cycling.
+  this.requestSpriteRefresh = true;
 };
 //#endregion Game_BattleMap
 
@@ -769,12 +772,32 @@ Game_Map.prototype.getActiveFollowers = function()
  */
 Game_Map.prototype.convertOneFollower = function(follower)
 {
+  // grab the battler of the follower.
   const battler = follower.actor();
-  const coreData = new JABS_CoreDataBuilder(0)
-    .setBattler(battler)
-    .build();
+
+  // create a builder to step through for this battler.
+  const builder = new JABS_CoreDataBuilder(0);
+
+  // set the battler.
+  builder.setBattler(battler);
+
+  // check if we're using the danger indicators.
+  if (J.DANGER)
+  {
+    // never show the danger indicator for allies.
+    builder.setShowDangerIndicator(false)
+  }
+
+  // build the core data.
+  const coreData = builder.build();
+
+  // instantiate the battler.
   const mapBattler = new JABS_Battler(follower, battler, coreData);
+
+  // assign the map battler to the follower.
   follower.setMapBattler(mapBattler.getUuid());
+
+  // return the built ally map battler.
   return mapBattler;
 };
 //#endregion Game_Map
