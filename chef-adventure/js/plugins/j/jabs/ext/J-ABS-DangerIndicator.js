@@ -15,12 +15,11 @@
  * This plugin requires JABS.
  * This plugin is plug-n-play, with minimal configuration.
  * ============================================================================
- * BASIC USAGE:
+ * USAGE:
  * If you are using JABS, then JABS already knows what to do to make use of
  * this functionality. Just add this plugin after/below JABS, and it'll work
  * with no additional adjustments.
  * ============================================================================
- *
  * @param defaultEnemyShowDangerIndicator
  * @type boolean
  * @text Show Indicator by Default
@@ -103,6 +102,9 @@ J.DANGER.Metadata =
     Version: '1.0.0',
   };
 
+/**
+ * A collection of helper functions for use within this plugin.
+ */
 J.DANGER.Helpers = {};
 
 /**
@@ -185,6 +187,9 @@ J.DANGER.DangerIndicatorIcons =
     Deadly: J.DANGER.Metadata.DangerIndicatorIcons.Deadly,
   };
 
+/**
+ * A collection of all extended classes in this plugin.
+ */
 J.DANGER.Aliased =
   {
     Game_Character: new Map(),
@@ -565,7 +570,6 @@ JABS_BattlerCoreData.prototype.initMembers = function()
    * @type {boolean} True if the battler's danger indicator should show, false otherwise.
    */
   this._showDangerIndicator = J.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
-  console.log(J.DANGER.Metadata.DefaultEnemyShowDangerIndicator);
 };
 /**
  * Sets whether or not to show the danger indicator.
