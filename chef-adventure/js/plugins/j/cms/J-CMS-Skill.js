@@ -255,7 +255,7 @@ class Window_SkillDetail extends Window_Base
     else
     {
       this.refresh();
-      console.log($dataSkills[this._skillId]);
+      //console.log($dataSkills[this._skillId]);
     }
   };
 

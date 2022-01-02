@@ -193,7 +193,6 @@ Game_Actor.prototype.revive = function()
   const jabsBattler = $gameMap.getBattlerByUuid(this.getUuid());
   if (jabsBattler)
   {
-    console.log(`${this.getUuid()} is alive.`);
     jabsBattler.setDying(false);
   }
 };
@@ -2274,7 +2273,6 @@ class Game_BattleMap
    */
   performOffhandAction()
   {
-    console.log('performing offhand');
     const battler = this.getPlayerMapBattler();
     const canPerformOffhand = battler.hasOffhandSkill() &&
       this.isOffhandActionReady() &&
@@ -4403,7 +4401,7 @@ class Game_BattleMap
    */
   handleDefeatedAlly(defeatedAlly)
   {
-    console.log(`${defeatedAlly.getBattler().name()} has died.`);
+    //console.log(`${defeatedAlly.getBattler().name()} has died.`);
   };
 
   /**
