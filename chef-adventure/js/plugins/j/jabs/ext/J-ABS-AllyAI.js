@@ -472,7 +472,6 @@ Game_BattleMap.prototype.performPartyCycling = function()
       // if we have a match, nuke it.
       if (oldIndex > -1)
       {
-        console.log($gameMap._j._allBattlers[oldIndex]);
         $gameMap._j._allBattlers.splice(oldIndex, 1);
       }
     });

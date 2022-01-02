@@ -4835,7 +4835,6 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor)
     .onTargetDefeatSkillIds();
   if (onTargetDefeatSkills.length)
   {
-    console.log(onTargetDefeatSkills);
     onTargetDefeatSkills.forEach(onDefeatSkill =>
     {
       const castFromTarget = onDefeatSkill.appearOnTarget();
