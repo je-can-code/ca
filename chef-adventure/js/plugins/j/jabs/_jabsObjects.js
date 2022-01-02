@@ -2219,6 +2219,9 @@ class Game_BattleMap
         .build();
       $gameTextLog.addLog(log);
     }
+
+    // request a map-wide sprite refresh on cycling.
+    this.requestSpriteRefresh = true;
   };
 
   /**
@@ -4660,33 +4663,58 @@ class Game_BattleMap
   };
 
   /**
+   * Generates popups for a pile of items picked up at the same time.
+   * @param {rm.types.BaseItem[]} itemDataList All items picked up.
+   * @param {Game_Character} character The character displaying the popups.
+   */
+  generatePopItemBulk(itemDataList, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+
+    // iterate over all loot.
+    itemDataList.forEach((itemData, index) =>
+    {
+      // generate a pop that moves based on index.
+      this.generatePopItem(itemData, character, 64+(index*24));
+    }, this);
+
+    // flag the character for processing pops.
+    character.setRequestTextPop();
+  };
+
+  /**
    * Generates a popup for an acquired item.
+   *
+   * NOTE:
+   * This is used from within the `generatePopItemBulk()`!
+   * Use that instead of this!
    * @param {rm.types.BaseItem} itemData The item's database object.
    * @param {Game_Character} character The character displaying the popup.
+   * @param {number} y The y coordiante for this item pop.
    */
-  generatePopItem(itemData, character)
+  generatePopItem(itemData, character, y)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
 
     // generate the textpop.
-    const lootPop = this.configureItemPop(itemData);
+    const lootPop = this.configureItemPop(itemData, y);
 
     // add the pop to the target's tracking.
     character.addTextPop(lootPop);
-    character.setRequestTextPop();
-
   };
 
   /**
    * Creates the text pop of the acquired item.
    * @param {rm.types.BaseItem} itemData The item's database object.
+   * @param {number} y The y coordiante for this item pop.
    */
-  configureItemPop(itemData)
+  configureItemPop(itemData, y)
   {
     // build the popup.
     return new TextPopBuilder(itemData.name)
-      .isLoot()
+      .isLoot(y)
       .setIconIndex(itemData.iconIndex)
       .build();
   };
@@ -4951,6 +4979,15 @@ Game_Character.prototype.getLootData = function()
 {
   const loot = this.getLootSpriteProperties();
   return loot._data;
+};
+
+/**
+ * Gets whether or not this loot data is use-on-pickup or not.
+ * @returns {boolean}
+ */
+Game_Character.prototype.isUseOnPickupLoot = function()
+{
+  return this.getLootData().useOnPickup;
 };
 
 /**
@@ -5966,37 +6003,6 @@ Game_Enemy.prototype.showHpBar = function()
 };
 
 /**
- * Gets whether or not an enemy has a visible danger indicator from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showDangerIndicator = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyShowDangerIndicator;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoDangerIndicator])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noDangerIndicator>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
-
-  return val;
-};
-
-/**
  * Gets whether or not an enemy has a visible battler name from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {boolean}
@@ -6272,18 +6278,34 @@ Game_Event.prototype.transformBattler = function()
 J.ABS.Aliased.Game_Event.setupPageSettings = Game_Event.prototype.setupPageSettings;
 Game_Event.prototype.setupPageSettings = function()
 {
+  // perform original logic.
   J.ABS.Aliased.Game_Event.setupPageSettings.call(this);
+
+  // parse the comments on the event to potentially transform it into a battler.
   this.parseEnemyComments();
 };
 
 /**
  * Parses the comments of this event to extract battler core data if available.
- * If an event has an enemy id but no other tags, it will attempt to then pull it from the
- * database notes. If THOSE are unavailable, it'll instead return the defaults.
+ *
+ * JABS parameters are prioritized in this order:
+ *  1) from the comments on the event page itself.
+ *  2) from the notes of the enemy in the database (requires at least enemy id in comments).
+ *  3) from the defaults of all enemies.
  */
 Game_Event.prototype.parseEnemyComments = function()
 {
-  // the defaults for battler core data.
+  // apply the custom move speeds from this event if any are available.
+  this.applyCustomMoveSpeed();
+
+  // if there is something stopping us from parsing comments, then do not.
+  if (!this.canParseEnemyComments())
+  {
+    this.initializeCoreData(null);
+    return;
+  }
+
+  // setup our variables for assignment.
   let battlerId = 0;
   let teamId = null;
   let ai = null;
@@ -6294,121 +6316,181 @@ Game_Event.prototype.parseEnemyComments = function()
   let alertDuration = null;
   let canIdle = null;
   let showHpBar = null;
-  let showDangerIndicator = null;
   let showBattlerName = null;
   let isInvincible = null;
   let isInanimate = null;
-  let customMoveSpeed = null;
-
-  const currentPageIndex = this.findProperPageIndex();
-  if (currentPageIndex > -1)
-  {
-    // also assign the custom move speed to this event.
-    customMoveSpeed = this.event().pages[currentPageIndex].moveSpeed;
-  }
-  else
-  {
-    // if we have -1 or lower page index somehow, then we aren't even a renderable event.
-    this.setBattlerCoreData(null);
-    return;
-  }
 
   // iterate over all commands to construct the battler core data.
-  this.list()
-    .forEach(command =>
+  this.list().forEach(command =>
+  {
+    // assuming the event command is a comment, assign the values.
+    if (this.matchesControlCode(command.code))
     {
-      // assuming the event command is a comment, assign the values.
-      if (this.matchesControlCode(command.code))
+      const comment = command.parameters[0];
+      if (comment.match(/^<[.\w:-]+>$/i))
       {
-        const comment = command.parameters[0];
-        if (comment.match(/^<[.\w:-]+>$/i))
+        switch (true)
         {
-          switch (true)
-          {
-            case (/<e:[ ]?([0-9]*)>/i.test(comment)): // enemy id
-              battlerId = parseInt(RegExp.$1);
-              break;
-            case (/<team:[ ]?([0-9]*)>/i.test(comment)): // enemy id
-              teamId = parseInt(RegExp.$1);
-              break;
-            case (/<ai:[ ]?([0|1]{8})>/i.test(comment)): // ai code
-              ai = JABS_Battler.translateAiCode(RegExp.$1);
-              break;
-            case (/<s:[ ]?([0-9]*)>/i.test(comment)): // sight range
-              sightRange = parseInt(RegExp.$1);
-              break;
-            case (/<as:[ ]?([0-9]*)>/i.test(comment)): // alerted sight boost
-              alertedSightBoost = parseInt(RegExp.$1);
-              break;
-            case (/<p:[ ]?([0-9]*)>/i.test(comment)): // pursuit range
-              pursuitRange = parseInt(RegExp.$1);
-              break;
-            case (/<ap:[ ]?([0-9]*)>/i.test(comment)): // alerted pursuit boost
-              alertedPursuitBoost = parseInt(RegExp.$1);
-              break;
-            case (/<ad:[ ]?([0-9]*)>/i.test(comment)): // alert duration
-              alertDuration = parseInt(RegExp.$1);
-              break;
-            case (/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i.test(comment)): // custom movespeed
-              customMoveSpeed = parseFloat(RegExp.$1);
-              this.setMoveSpeed(customMoveSpeed);
-              break;
-            case (/<noIdle>/i.test(comment)): // able to idle?
-              canIdle = false;
-              break;
-            case (/<noHpBar>/i.test(comment)): // show hp bar?
-              showHpBar = false;
-              break;
-            case (/<noDangerIndicator>/i.test(comment)): // show danger indicator?
-              showDangerIndicator = false;
-              break;
-            case (/<noName>/i.test(comment)): // show battler name?
-              showBattlerName = false;
-              break;
-            case (/<invincible>/i.test(comment)): // is invincible?
-              isInvincible = true;
-              break;
-            case (/<inanimate>/i.test(comment)): // is inanimate?
-              isInanimate = true;
-              teamId = JABS_Battler.neutralTeamId();
-              break;
-          }
+          case (/<e:[ ]?([0-9]*)>/i.test(comment)): // enemy id
+            battlerId = parseInt(RegExp.$1);
+            break;
+          case (/<team:[ ]?([0-9]*)>/i.test(comment)): // enemy id
+            teamId = parseInt(RegExp.$1);
+            break;
+          case (/<ai:[ ]?([0|1]{8})>/i.test(comment)): // ai code
+            ai = JABS_Battler.translateAiCode(RegExp.$1);
+            break;
+          case (/<s:[ ]?([0-9]*)>/i.test(comment)): // sight range
+            sightRange = parseInt(RegExp.$1);
+            break;
+          case (/<as:[ ]?([0-9]*)>/i.test(comment)): // alerted sight boost
+            alertedSightBoost = parseInt(RegExp.$1);
+            break;
+          case (/<p:[ ]?([0-9]*)>/i.test(comment)): // pursuit range
+            pursuitRange = parseInt(RegExp.$1);
+            break;
+          case (/<ap:[ ]?([0-9]*)>/i.test(comment)): // alerted pursuit boost
+            alertedPursuitBoost = parseInt(RegExp.$1);
+            break;
+          case (/<ad:[ ]?([0-9]*)>/i.test(comment)): // alert duration
+            alertDuration = parseInt(RegExp.$1);
+            break;
+          case (/<noIdle>/i.test(comment)): // able to idle?
+            canIdle = false;
+            break;
+          case (/<noHpBar>/i.test(comment)): // show hp bar?
+            showHpBar = false;
+            break;
+          case (/<noName>/i.test(comment)): // show battler name?
+            showBattlerName = false;
+            break;
+          case (/<invincible>/i.test(comment)): // is invincible?
+            isInvincible = true;
+            break;
+          case (/<inanimate>/i.test(comment)): // is inanimate?
+            isInanimate = true;
+            teamId = JABS_Battler.neutralTeamId();
+            break;
         }
       }
-    });
+    }
+  });
 
-  // if we don't have an enemy id, the rest doesn't even matter.
-  let battlerCoreData = null;
-  if (battlerId > 0)
-  {
-    const enemyBattler = $gameEnemies.enemy(battlerId);
-    battlerCoreData = new JABS_CoreDataBuilder(battlerId)
-      .setTeamId(teamId ?? enemyBattler.teamId())
-      .setBattlerAi(ai ?? enemyBattler.ai())
-      .setSightRange(sightRange ?? enemyBattler.sightRange())
-      .setAlertedSightBoost(alertedSightBoost ?? enemyBattler.alertedSightBoost())
-      .setPursuitRange(pursuitRange ?? enemyBattler.pursuitRange())
-      .setAlertedPursuitBoost(alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost())
-      .setAlertDuration(alertDuration ?? enemyBattler.alertDuration())
-      .setCanIdle(canIdle ?? enemyBattler.canIdle())
-      .setShowHpBar(showHpBar ?? enemyBattler.showHpBar())
-      .setShowDangerIndicator(showDangerIndicator ?? enemyBattler.showDangerIndicator())
-      .setShowBattlerName(showBattlerName ?? enemyBattler.showBattlerName())
-      .setIsInvincible(isInvincible ?? enemyBattler.isInvincible())
-      .setIsInanimate(isInanimate ?? enemyBattler.isInanimate())
-      .build();
-  }
+  // setup the core data and assign it.
+  const enemyBattler = $gameEnemies.enemy(battlerId);
+  const battlerCoreData = new JABS_CoreDataBuilder(battlerId)
+    .setTeamId(teamId ?? enemyBattler.teamId())
+    .setBattlerAi(ai ?? enemyBattler.ai())
+    .setSightRange(sightRange ?? enemyBattler.sightRange())
+    .setAlertedSightBoost(alertedSightBoost ?? enemyBattler.alertedSightBoost())
+    .setPursuitRange(pursuitRange ?? enemyBattler.pursuitRange())
+    .setAlertedPursuitBoost(alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost())
+    .setAlertDuration(alertDuration ?? enemyBattler.alertDuration())
+    .setCanIdle(canIdle ?? enemyBattler.canIdle())
+    .setShowHpBar(showHpBar ?? enemyBattler.showHpBar())
+    .setShowBattlerName(showBattlerName ?? enemyBattler.showBattlerName())
+    .setIsInvincible(isInvincible ?? enemyBattler.isInvincible())
+    .setIsInanimate(isInanimate ?? enemyBattler.isInanimate())
+    .build();
 
   this.initializeCoreData(battlerCoreData);
 };
 
 /**
  * Binds the initial core battler data to the event.
- * @param {JABS_BattlerCoreData} battlerCoreData The core data of this battler.
+ * @param {JABS_BattlerCoreData|null} battlerCoreData The core data of this battler.
  */
 Game_Event.prototype.initializeCoreData = function(battlerCoreData)
 {
   this.setBattlerCoreData(battlerCoreData);
+};
+
+/**
+ * Checks to see if this event [page] can have its comments parsed to
+ * transform it into a `JABS_Battler`.
+ * @returns {boolean} True if the event can be parsed, false otherwise.
+ */
+Game_Event.prototype.canParseEnemyComments = function()
+{
+  // if somehow it is less than -1, then do not. Weird things happen.
+  if (this.findProperPageIndex() < -1) return false;
+
+  // grab the event command list for analysis.
+  const commentCommandList = this.getValidCommentCommands();
+
+  // if we do not have a list of comments to parse, then do not.
+  if (!commentCommandList.length) return false;
+
+  // check all the commands to make sure a battler id is among them.
+  const hasBattlerId = commentCommandList.some(command =>
+  {
+    // if the command isn't a comment, then skip.
+    if (!this.matchesControlCode(command.code)) return false;
+
+    // grab the comment and check to make sure it matches our notetag-like pattern.
+    const comment = command.parameters[0];
+    if (!comment.match(/^<[.\w:-]+>$/i)) return false;
+
+    // check if the comment matches the pattern we expect.
+    return comment.match(/<e:[ ]?([0-9]*)>/i);
+  });
+
+  // if there is no battler id among the comments, then don't parse.
+  if (!hasBattlerId) return false;
+
+  // we are clear to parse out those comments!
+  return true;
+};
+
+/**
+ * Gets all valid JABS-shaped comment event commands.
+ * @returns {rm.types.EventCommand[]}
+ */
+Game_Event.prototype.getValidCommentCommands = function()
+{
+  // don't process if we have no event commands.
+  if (this.list().length === 0) return [];
+
+  // otherwise, return the filtered list.
+  return this.list().filter(command =>
+  {
+    // if it is not a comment, then don't include it.
+    const isComment = this.matchesControlCode(command.code);
+    if (!isComment) return false;
+
+    // make sure it has a valid structure.
+    const comment = command.parameters[0];
+    if (!comment.match(/^<[.\w:-]+>$/i)) return false;
+
+    // it is a valid comment worth parsing!
+    return true;
+  }, this);
+};
+
+/**
+ * Applies the custom move speed if available.
+ */
+Game_Event.prototype.applyCustomMoveSpeed = function()
+{
+  // grab the list of valid comments.
+  const commentCommandList = this.getValidCommentCommands();
+
+  // iterate over the comments.
+  commentCommandList.forEach(command =>
+  {
+    // check if the comment matches our structure.
+    const comment = command.parameters[0];
+    if (comment.match(/<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i))
+    {
+      // apply the custom move speed based on the tag provided.
+      this.setMoveSpeed(parseFloat(RegExp.$1));
+    }
+  });
+};
+
+Game_Event.prototype.getEventCurrentMovespeed = function()
+{
+  return this.event().pages[this.findProperPageIndex()].moveSpeed;
 };
 
 /**
@@ -7414,21 +7496,93 @@ Game_Player.prototype.updateMove = function()
  */
 Game_Player.prototype.checkForLoot = function()
 {
+  // get all the loot drops on the map.
   const lootDrops = $gameMap.getLootDrops();
+
+  // make sure we have any loot to work with before processing.
   if (lootDrops.length)
   {
-    lootDrops.forEach(lootDrop =>
-    {
-      // don't pickup stuff that is gone.
-      if (lootDrop._erased) return;
-
-      if (this.isTouchingLoot(lootDrop))
-      {
-        this.pickupLoot(lootDrop);
-        this.removeLoot(lootDrop);
-      }
-    });
+    // process the loot collection.
+    this.processLootCollection(lootDrops);
   }
+};
+
+/**
+ * Processes a collection of loot to determine what to do with it.
+ * @param {Game_Event[]} lootDrops The list of all loot drops.
+ */
+Game_Player.prototype.processLootCollection = function(lootDrops)
+{
+  // for events picked up and stored all at once.
+  const lootCollected = [];
+
+  // iterate over each of the loots to see what we can do with them.
+  lootDrops.forEach(lootDrop =>
+  {
+    // don't pick it up if we cannot pick it up.
+    if (!this.canCollectLoot(lootDrop)) return;
+
+    // check if the loot is to be used immediately on-pickup.
+    if (lootDrop.isUseOnPickupLoot())
+    {
+      // use and remove it from tracking if it is.
+      this.useOnPickup(lootDrop.getLootData().lootData);
+      this.removeLoot(lootDrop);
+      return;
+    }
+
+    // add it to our group pickup tracker for additional processing.
+    lootCollected.push(lootDrop);
+  });
+
+  // don't try to pick up collections that don't exist.
+  if (!lootCollected.length) return;
+
+  // pick up all the remaining loot.
+  this.pickupLootCollection(lootCollected);
+};
+
+Game_Player.prototype.canCollectLoot = function(lootEvent)
+{
+  // we cannot collect loot events that have already been erased.
+  if (lootEvent._erased) return false;
+
+  // we cannot collect loot that isn't close enough.
+  if (!this.isTouchingLoot(lootEvent)) return false;
+
+  // we can pick it up!
+  return true;
+};
+
+/**
+ * Picks up all loot at the same time that is to be stored.
+ * @param {Game_Event[]} lootCollected The list of loot that was collected.
+ */
+Game_Player.prototype.pickupLootCollection = function(lootCollected)
+{
+  const lootPickedUp = [];
+
+  // iterate over and pickup all loot collected.
+  lootCollected.forEach(loot =>
+  {
+    // get the underlying loot item.
+    const lootData = loot.getLootData().lootData;
+
+    // store the loot on-pickup.
+    this.storeOnPickup(lootData);
+
+    // note that the loot was picked up.
+    lootPickedUp.push(lootData);
+
+    // remove loot now that we're done with it.
+    this.removeLoot(loot);
+  });
+
+  // generate all popups for the loot collected.
+  $gameBattleMap.generatePopItemBulk(lootPickedUp, this);
+
+  // oh yeah, and play a sound because you picked things up.
+  SoundManager.playUseItem();
 };
 
 /**
@@ -7439,11 +7593,12 @@ Game_Player.prototype.checkForLoot = function()
 Game_Player.prototype.isTouchingLoot = function(lootDrop)
 {
   const distance = $gameMap.distance(lootDrop._realX, lootDrop._realY, this._realX, this._realY);
-  return distance < J.ABS.Metadata.LootPickupRange;
+  return distance <= J.ABS.Metadata.LootPickupRange;
 };
 
 /**
  * Collects the loot drop off the ground.
+ * @param {Game_Event} lootEvent The event representing this loot.
  */
 Game_Player.prototype.pickupLoot = function(lootEvent)
 {
@@ -7467,19 +7622,15 @@ Game_Player.prototype.useOnPickup = function(lootData)
 
 /**
  * Picks up the loot and stores it in the player's inventory.
- * @param {rm.types.BaseItem} lootData An object representing the loot.
+ * @param {rm.types.BaseItem} lootData The loot database data itself.
  */
 Game_Player.prototype.storeOnPickup = function(lootData)
 {
   // add the loot to your inventory.
   $gameParty.gainItem(lootData, 1, true);
-  SoundManager.playUseItem();
 
   // generate a log for the loot collected.
   $gameBattleMap.createLootLog(lootData);
-
-  // generate a popup for the loot collected.
-  $gameBattleMap.generatePopItem(lootData, this);
 };
 
 /**

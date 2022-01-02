@@ -1688,9 +1688,10 @@ class TextPopBuilder
 
   /**
    * Add some convenient defaults for configuration collected loot popups.
+   * @param {number} y The y coordinate.
    * @returns {TextPopBuilder} The builder, for fluent chaining.
    */
-  isLoot()
+  isLoot(y = 64)
   {
     // set the popup type to be experience.
     this.setPopupType(Map_TextPop.Types.Item);
@@ -1702,7 +1703,7 @@ class TextPopBuilder
     this.setXVariance(32);
 
     // add some y variance when working with experience.
-    this.setYVariance(64);
+    this.setYVariance(y);
 
     // return the builder for fluent chaining.
     return this;

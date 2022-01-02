@@ -1578,16 +1578,6 @@ Game_Actor.prototype.showHpBar = function()
 };
 
 /**
- * Gets whether or not the actor's danger indicator will show.
- * Danger indicator is not applicable to actors (since it is relative to the player).
- * @returns {boolean}
- */
-Game_Actor.prototype.showDangerIndicator = function()
-{
-  return false;
-};
-
-/**
  * Gets whether or not the actor's name will show below their character.
  * Actors never show their name (the use HUDs for that).
  * @returns {boolean}
@@ -2626,22 +2616,43 @@ function Sprite_Icon()
 
 Sprite_Icon.prototype = Object.create(Sprite.prototype);
 Sprite_Icon.prototype.constructor = Sprite_Icon;
+
+/**
+ * Initializes this class.
+ * @param {number} iconIndex The icon index this sprite should render.
+ */
 Sprite_Icon.prototype.initialize = function(iconIndex)
 {
+  // perform original logic.
   Sprite.prototype.initialize.call(this);
-  this.initMembers(iconIndex);
+
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * The icon index for this `Sprite_Icon` to render.
+   * @type {number}
+   */
+  this._j._iconIndex = iconIndex;
+
+  // load the bitmap.
   this.loadBitmap();
 };
 
 /**
- * Initializes the properties associated with this sprite.
- * @param {Bitmap} iconIndex The index of the icon this sprite represents.
+ * Sets the icon index for this `Sprite_Icon`.
+ * Redraws the sprite with the new index.
+ * @param {number} iconIndex The icon index this sprite should render.
  */
-Sprite_Icon.prototype.initMembers = function(iconIndex)
+Sprite_Icon.prototype.setIconIndex = function(iconIndex)
 {
-  this._j = {
-    _iconIndex: iconIndex,
-  };
+  // reassign the icon index.
+  this._j._iconIndex = iconIndex;
+
+  // loads the bitmap based on the new icon index.
+  this.loadBitmap();
 };
 
 /**
