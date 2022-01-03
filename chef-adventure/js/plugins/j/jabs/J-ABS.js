@@ -825,7 +825,7 @@ J.ABS.Aliased = {
   Scene_Load: {},
   Scene_Map: {},
   Spriteset_Map: {},
-  Sprite_Character: {},
+  Sprite_Character: new Map(),
   Sprite_Damage: {},
   Sprite_Gauge: {},
 };

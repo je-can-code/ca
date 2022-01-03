@@ -39546,7 +39546,7 @@ declare class Sprite_Character extends Sprite_Base {
 	 * @type {Game_Character}
 	 * @memberof Sprite_Character
 	 */
-	_character: Game_Character;
+	_character: Game_Character|Game_Event|Game_Player;
 	_balloonDuration: number;
 	_tilesetId: number;
 	_upperBody: Sprite;

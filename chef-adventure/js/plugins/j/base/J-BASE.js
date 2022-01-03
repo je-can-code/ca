@@ -3043,6 +3043,15 @@ Sprite_Text.prototype.initMembers = function(
   };
 };
 
+Sprite_Text.prototype.setText = function(newText)
+{
+  this.bitmap.clear();
+
+  this._j._text = newText;
+
+  this.loadBitmap();
+};
+
 /**
  * Loads the bitmap into the sprite.
  */

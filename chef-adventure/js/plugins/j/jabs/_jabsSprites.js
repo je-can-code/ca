@@ -63,18 +63,30 @@ Spriteset_Map.prototype.addActionSprites = function()
 {
   $gameBattleMap.requestActionRendering = false;
   const events = $gameMap.events();
-  events.forEach(event =>
-  {
-    const shouldAddActionSprite = event.getActionSpriteNeedsAdding();
-    if (shouldAddActionSprite)
-    {
-      event.setActionSpriteNeedsAdding(false);
-      const actionSprite = event.getMapActionData().getActionSprite();
-      const sprite = new Sprite_Character(actionSprite);
-      this._characterSprites.push(sprite);
-      this._tilemap.addChild(sprite);
-    }
-  }, this);
+  events.forEach(this.addActionSprite, this);
+};
+
+/**
+ * Processes a single event and adds its corresponding action sprite if necessary.
+ * @param {Game_Event} actionEvent The event that may require a new sprite added.
+ */
+Spriteset_Map.prototype.addActionSprite = function(actionEvent)
+{
+  // if we do not need to add the sprite, then do not.
+  if (!actionEvent.getActionSpriteNeedsAdding()) return;
+
+  // get the underlying character associated with this action.
+  const character = actionEvent.getMapActionData().getActionSprite();
+
+  // generate the new sprite based on the action's character.
+  const sprite = new Sprite_Character(character);
+
+  // add the sprite to tracking.
+  this._characterSprites.push(sprite);
+  this._tilemap.addChild(sprite);
+
+  // acknowledge that the sprite was added.
+  actionEvent.setActionSpriteNeedsAdding(false);
 };
 
 /**
@@ -84,17 +96,27 @@ Spriteset_Map.prototype.addLootSprites = function()
 {
   $gameBattleMap.requestLootRendering = false;
   const events = $gameMap.events();
-  events.forEach(event =>
-  {
-    const shouldAddLootSprite = event.getLootNeedsAdding();
-    if (shouldAddLootSprite)
-    {
-      event.setLootNeedsAdding(false);
-      const sprite = new Sprite_Character(event);
-      this._characterSprites.push(sprite);
-      this._tilemap.addChild(sprite);
-    }
-  }, this);
+  events.forEach(this.addLootSprite, this);
+};
+
+/**
+ * Processes a single event and adds its corresponding loot sprite if necessary.
+ * @param {Game_Event} lootEvent The event that may require a new sprite added.
+ */
+Spriteset_Map.prototype.addLootSprite = function(lootEvent)
+{
+  // if we do not need to add the sprite, then do not.
+  if (!lootEvent.getLootNeedsAdding()) return;
+
+  // generate the new sprite based on the loot's character.
+  const sprite = new Sprite_Character(lootEvent);
+
+  // add the sprite to tracking.
+  this._characterSprites.push(sprite);
+  this._tilemap.addChild(sprite);
+
+  // acknowledge that the sprite was added.
+  lootEvent.setLootNeedsAdding(false);
 };
 
 /**
@@ -167,6 +189,7 @@ Spriteset_Map.prototype.removeLootSprites = function()
 
 /**
  * Refreshes all character sprites on the map.
+ * Open for extension.
  */
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
@@ -178,61 +201,132 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 /**
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
-J.ABS.Aliased.Sprite_Character.initMembers = Sprite_Character.prototype.initMembers;
+J.ABS.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.initMembers);
 Sprite_Character.prototype.initMembers = function()
 {
-  this._stateOverlaySprite = null;
-  this._hpGauge = null;
-  this._battlerName = null;
-  this._loot = {};
-  this._loot._img = null;
-  this._loot._swing = false;
-  this._loot._ox = 0;
-  this._loot._oy = 0;
-  J.ABS.Aliased.Sprite_Character.initMembers.call(this);
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * The battle-related sprites and such are maintained within this umbrella.
+   */
+  this._j._abs ||= {};
+  /**
+   * Whether or not the map sprite setup has been completed.
+   * @type {boolean}
+   */
+  this._j._abs._jabsBattlerSetupComplete = false;
+
+  /**
+   * The state overlay sprite associated with this character's battler.
+   * @type {Sprite_StateOverlay|null}
+   */
+  this._j._stateOverlaySprite = null;
+
+  /**
+   * The hp gauge sprite associated with this character's battler.
+   * @type {Sprite_MapGauge|null}
+   */
+  this._j._hpGauge = null;
+
+  /**
+   * The text sprite displaying the name of this character's battler.
+   * @type {Sprite_Text|null}
+   */
+  this._j._battlerName = null;
+
+  /**
+   * The umbrella object for loot information.
+   * @type {{}}
+   */
+  this._j._loot = {};
+
+  /**
+   * The icon sprite that represents this character if it is loot.
+   * @type {Sprite_Icon|null}
+   */
+  this._j._loot._sprite = null;
+
+  /**
+   * Whether this is on the up or the down swing.
+   * @type {boolean} True if on the upswing, false if on the downswing.
+   */
+  this._j._loot._swing = false;
+
+  /**
+   * The modified x coordinate to draw this character as a result of swinging.
+   * @type {number}
+   */
+  this._j._loot._ox = 0;
+
+  /**
+   * The modified y coordinate to draw this character as a result of swinging.
+   * @type {number}
+   */
+  this._j._loot._oy = 0;
+
+  // perform original logic.
+  J.ABS.Aliased.Sprite_Character.get('initMembers').call(this);
 };
 
 //#region setup & reference
 /**
  * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
-J.ABS.Aliased.Sprite_Character.update = Sprite_Character.prototype.update;
+J.ABS.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
 Sprite_Character.prototype.update = function()
 {
-  J.ABS.Aliased.Sprite_Character.update.call(this);
-  if (this.isJabsBattler())
+  // perform original logic.
+  J.ABS.Aliased.Sprite_Character.get('update').call(this);
+
+  // only update the jabs battler components if they have been initialized.
+  if (this.isJabsBattlerReady())
   {
+    // update the state overlay for this battler.
     this.updateStateOverlay();
+
+    // update the gauges, if any, for this battler.
     this.updateGauges();
+
+    // update the battler's name, if any.
     this.updateBattlerName();
-  }
-  else
-  {
-    // if the conditions changed for an event that used to have an hp gauge
-    // now hide the gauge.
-    if (this._hpGauge)
-    {
-      this.hideHpGauge();
-    }
   }
 };
 
 /**
+ * Whether or not this map sprite has been setup with all its sprites yet.
+ * @returns {boolean} True if this jabs battler has been established, false otherwise.
+ */
+Sprite_Character.prototype.isJabsBattlerReady = function()
+{
+  return this._j._abs._jabsBattlerSetupComplete;
+};
+
+/**
+ * Give this map sprite setup a stamp of approval, indicating that it is
+ * ready to be processed by our `update()` siblings/overlords!
+ */
+Sprite_Character.prototype.finalizeJabsBattlerSetup = function()
+{
+  this._j._abs._jabsBattlerSetupComplete = true;
+};
+
+/**
  * Returns the `Game_Battler` associated with the current sprite.
- * @returns {Game_Battler} The battler this sprite is bound to.
+ * @returns {Game_Actor|Game_Enemy} The battler this sprite is bound to.
  */
 Sprite_Character.prototype.getBattler = function()
 {
+  // check to make sure this is a JABS battler.
   if (this.isJabsBattler())
   {
-    return this._character
-      .getMapBattler()
-      .getBattler();
+    // grab the battler associated with this sprite.
+    return this._character.getMapBattler().getBattler();
   }
-  else
-  {
-    return null;
-  }
+  // otherwise, this must be a regular sprite for an event.
+  else return null;
 };
 
 /**
@@ -258,22 +352,83 @@ Sprite_Character.prototype.canUpdate = function()
 };
 
 /**
- * Hooks into the `Sprite_Character.setCharacter` and sets up the battler sprite.
+ * If the "character" is actually a loot drop, don't identify it as empty for the purposes
+ * of drawing the loot icon on the map.
+ * @returns {boolean} True if the character should be drawn, false otherwise.
  */
-J.ABS.Aliased.Sprite_Character.setCharacter = Sprite_Character.prototype.setCharacter;
+J.ABS.Aliased.Sprite_Character.set('isEmptyCharacter', Sprite_Character.prototype.isEmptyCharacter);
+Sprite_Character.prototype.isEmptyCharacter = function()
+{
+  // check if we're loot.
+  return this.isLoot()
+    // intercept for the case of loot, as it actually is a character to be updated!
+    ? false
+    // otherwise, perform original logic.
+    : J.ABS.Aliased.Sprite_Character.get('isEmptyCharacter').call(this)
+};
+
+/**
+ * Hooks into the `Sprite_Character.setCharacter` and sets up the battler sprite.
+ * @param {Game_Character} character The character being assigned to this sprite.
+ */
+J.ABS.Aliased.Sprite_Character.set('setCharacter', Sprite_Character.prototype.setCharacter);
 Sprite_Character.prototype.setCharacter = function(character)
 {
-  J.ABS.Aliased.Sprite_Character.setCharacter.call(this, character);
-  // if this is a battler, configure the visual components of the battler.
-  if (this._character.hasJabsBattler())
-  {
-    this.setupMapSprite();
-  }
+  // perform original logic.
+  J.ABS.Aliased.Sprite_Character.get('setCharacter').call(this, character);
 
-  // if this is just loot, then setup the visual components of the loot.
-  if (this.isLoot())
+  // if the sprite changed, the JABS-related data probably changed, too.
+  this.setupJabsSprite();
+};
+
+/**
+ * Extends `setCharacterBitmap()` to perform on-graphic-change things.
+ */
+J.ABS.Aliased.Sprite_Character.set('setCharacterBitmap', Sprite_Character.prototype.setCharacterBitmap);
+Sprite_Character.prototype.setCharacterBitmap = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Sprite_Character.get('setCharacterBitmap').call(this);
+
+  // if the sprite changed, the JABS-related data probably changed, too.
+  this.setupJabsSprite();
+};
+
+/**
+ * If this is loot, then treat it as loot instead of a tilemap.
+ */
+J.ABS.Aliased.Sprite_Character.set('setTileBitmap', Sprite_Character.prototype.setTileBitmap);
+Sprite_Character.prototype.setTileBitmap = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Sprite_Character.get('setTileBitmap').call(this);
+
+  // this only occurs for loot, so there will be no name or anything for this!
+  this.handleLootSetup();
+};
+
+/**
+ * Setup this `Sprite_Character` with the additional JABS-related functionalities.
+ */
+Sprite_Character.prototype.setupJabsSprite = function()
+{
+  // if this is a battler, configure the visual components of the battler.
+  this.handleBattlerSetup();
+
+  // perform logic when the character's bitmap changes, like when an event page is changed.
+  this.handleLootSetup();
+};
+
+/**
+ * Handle battler setup for JABS-related data points.
+ */
+Sprite_Character.prototype.handleBattlerSetup = function()
+{
+  // check if this is a battler.
+  if (this.isJabsBattler())
   {
-    this.setupLootSprite();
+    // setup the sprite with all the battler-related data points.
+    this.setupMapSprite();
   }
 };
 
@@ -282,9 +437,17 @@ Sprite_Character.prototype.setCharacter = function(character)
  */
 Sprite_Character.prototype.setupMapSprite = function()
 {
+  // setup a state overlay sprite to display the state of a given battler.
   this.setupStateOverlay();
+
+  // setup a gauge sprite to display
   this.setupHpGauge();
+
+  // setup a text sprite to display the name of the battler on the map.
   this.setupBattlerName();
+
+  // flag this character as finalized for the purpose of jabs battler-related updates.
+  this.finalizeJabsBattlerSetup();
 };
 //#endregion setup & reference
 
@@ -294,19 +457,32 @@ Sprite_Character.prototype.setupMapSprite = function()
  */
 Sprite_Character.prototype.setupStateOverlay = function()
 {
+  // grab the battler of this character.
   const battler = this.getBattler();
-  this._stateOverlaySprite = this.createStateOverlaySprite();
-  if (battler)
-  {
-    this._stateOverlaySprite.setup(battler);
-  }
 
-  this.addChild(this._stateOverlaySprite);
+  // check if we already have an overlay sprite available.
+  if (this._j._stateOverlaySprite)
+  {
+    // assign the current battler to the overlay sprite.
+    this._j._stateOverlaySprite.setup(battler);
+  }
+  // if we don't have an overlay, the build it.
+  else
+  {
+    // create and assign the state overlay sprite..
+    this._j._stateOverlaySprite = this.createStateOverlaySprite();
+
+    // assign the current battler to the overlay sprite.
+    this._j._stateOverlaySprite.setup(battler);
+
+    // add it to this sprite's tracking.
+    this.addChild(this._j._stateOverlaySprite);
+  }
 };
 
 /**
- * Creates the sprite representing the overlay of the state on the field.
- * @returns {Sprite_StateOverlay} The state overlay for this character.
+ * Creates the sprite representing the overlay of the state on the map.
+ * @returns {Sprite_StateOverlay} The overlay sprite, governing state for this character.
  */
 Sprite_Character.prototype.createStateOverlaySprite = function()
 {
@@ -318,24 +494,37 @@ Sprite_Character.prototype.createStateOverlaySprite = function()
  */
 Sprite_Character.prototype.updateStateOverlay = function()
 {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler)
+  // check if we can update the state overlay.
+  if (this.canUpdateStateOverlay())
   {
-    if (this.canUpdate())
-    {
-      if (!this._stateOverlaySprite)
-      {
-        this.setupMapSprite();
-      }
-
-      this._stateOverlaySprite.update();
-      this.showStateOverlay();
-    }
-    else
-    {
-      this.hideStateOverlay();
-    }
+    // update it.
+    this.showStateOverlay();
   }
+  // otherwise, if we can't update it...
+  else
+  {
+    // then hide it.
+    this.hideStateOverlay();
+  }
+};
+
+/**
+ * Whether or not we should be executing JABS-related updates for this sprite.
+ * @returns {boolean} True if updating is available, false otherwise.
+ */
+Sprite_Character.prototype.canUpdateStateOverlay = function()
+{
+  // if we're not using JABS, then it shouldn't update.
+  if (!this.canUpdate()) return false;
+
+  // if this sprite doesn't have a battler, then it shouldn't update.
+  if (!this.isJabsBattler()) return false;
+
+  // if this sprite doesn't even exist yet, then it shouldn't update.
+  if (!this._j._stateOverlaySprite) return false;
+
+  // we should update!
+  return true;
 };
 
 /**
@@ -343,10 +532,7 @@ Sprite_Character.prototype.updateStateOverlay = function()
  */
 Sprite_Character.prototype.showStateOverlay = function()
 {
-  if (this._stateOverlaySprite)
-  {
-    this._stateOverlaySprite.opacity = 255;
-  }
+  this._j._stateOverlaySprite.show();
 };
 
 /**
@@ -354,10 +540,7 @@ Sprite_Character.prototype.showStateOverlay = function()
  */
 Sprite_Character.prototype.hideStateOverlay = function()
 {
-  if (this._stateOverlaySprite)
-  {
-    this._stateOverlaySprite.opacity = 0;
-  }
+  this._j._stateOverlaySprite.hide();
 };
 //#endregion state overlay
 
@@ -367,29 +550,27 @@ Sprite_Character.prototype.hideStateOverlay = function()
  */
 Sprite_Character.prototype.setupHpGauge = function()
 {
-  if (this._hpGauge)
+  // check if we already have an hp gauge sprite available.
+  if (!this._j._hpGauge)
   {
-    this._hpGauge.destroy();
+    // initialize the hp gauge as a generic map gauge.
+    this._j._hpGauge = this.createGenericSpriteGauge();
+
+    // add the sprite to tracking.
+    this.addChild(this._j._hpGauge);
   }
 
-  // initialize the hp gauge as a generic map gauge.
-  this._hpGauge = this.createGenericSpriteGauge();
+  // assign the current battler to the hp gauge sprite.
+  this._j._hpGauge.setup(this.getBattler(), "hp");
+
+  // activate it the gauge.
+  this._j._hpGauge.activateGauge();
+
 
   // locate the gauge below the character.
-  this._hpGauge.move(
-    -(this._hpGauge.bitmapWidth() / 1.5),
+  this._j._hpGauge.move(
+    -(this._j._hpGauge.bitmapWidth() / 1.5),
     -12);
-
-  // if we have a battler, set it up and activate it.
-  const battler = this.getBattler();
-  if (battler)
-  {
-    this._hpGauge.setup(battler, "hp");
-    this._hpGauge.activateGauge();
-  }
-
-  // add the sprite to tracking.
-  this.addChild(this._hpGauge);
 };
 
 /**
@@ -416,18 +597,37 @@ Sprite_Character.prototype.createGenericSpriteGauge = function()
  */
 Sprite_Character.prototype.updateGauges = function()
 {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler)
+  // check if we can update the hp gauge.
+  if (this.canUpdateHpGauge())
   {
-    if (this.canUpdate() && mapBattler.showHpBar())
-    {
-      this.updateHpGauge();
-    }
-    else
-    {
-      this.hideHpGauge();
-    }
+    // update it.
+    this.updateHpGauge();
   }
+  // otherwise, if we can't update it...
+  else
+  {
+    // then hide it.
+    this.hideHpGauge();
+  }
+};
+
+/**
+ * Determines whether or not we can update the hp gauge.
+ * @returns {boolean} True if we can update the hp gauge, false otherwise.
+ */
+Sprite_Character.prototype.canUpdateHpGauge = function()
+{
+  // if we're not using JABS, then it shouldn't update.
+  if (!this.canUpdate()) return false;
+
+  // if this sprite doesn't have a battler, then it shouldn't update.
+  if (!this.isJabsBattler()) return false;
+
+  // if we aren't allowed to show the gauge, then it shouldn't update.
+  if (!this._character.getMapBattler().showHpBar()) return false;
+
+  // we should update!
+  return true;
 };
 
 /**
@@ -435,17 +635,11 @@ Sprite_Character.prototype.updateGauges = function()
  */
 Sprite_Character.prototype.updateHpGauge = function()
 {
-  // if the gauge is not created, then create it.
-  if (!this._hpGauge)
-  {
-    this.setupHpGauge();
-  }
-
-  // ensure the hp gauge is visible.
+  // show the hp gauge if we should be showing it.
   this.showHpGauge();
 
-  // ensure the battler for the gauge is assigned to this battler.
-  this._hpGauge._battler = this.getBattler();
+  // ensure the hp gauge matches the current battler.
+  this._j._hpGauge._battler = this.getBattler();
 };
 
 /**
@@ -453,7 +647,7 @@ Sprite_Character.prototype.updateHpGauge = function()
  */
 Sprite_Character.prototype.showHpGauge = function()
 {
-  this._hpGauge.opacity = 255;
+  this._j._hpGauge.show();
 };
 
 /**
@@ -461,7 +655,7 @@ Sprite_Character.prototype.showHpGauge = function()
  */
 Sprite_Character.prototype.hideHpGauge = function()
 {
-  this._hpGauge.opacity = 0;
+  this._j._hpGauge.hide();
 };
 //#endregion gauges
 
@@ -471,8 +665,21 @@ Sprite_Character.prototype.hideHpGauge = function()
  */
 Sprite_Character.prototype.setupBattlerName = function()
 {
-  this._battlerName = this.createBattlerNameSprite();
-  this.addChild(this._battlerName);
+  // check if we already have a battler name present.
+  if (this._j._battlerName)
+  {
+    // redraw the new battler name.
+    this._j._battlerName.setText(this.getBattlerName());
+
+    // if we already have the sprite, no need to recreate it.
+    return;
+  }
+
+  // build and assign the battler name sprite.
+  this._j._battlerName = this.createBattlerNameSprite();
+
+  // add it to this sprite's tracking.
+  this.addChild(this._j._battlerName);
 };
 
 /**
@@ -481,24 +688,37 @@ Sprite_Character.prototype.setupBattlerName = function()
  */
 Sprite_Character.prototype.createBattlerNameSprite = function()
 {
+  // get the name of this battler.
   const battlerName = this.getBattlerName();
+
+  // build the text sprite.
   const sprite = new Sprite_Text(battlerName, null, -12, "left");
+
+  // relocate the sprite to a better position.
   sprite.move(-30, 8);
+
+  // return this created sprite.
   return sprite;
 };
 
 /**
- *
- * @returns {string} The battlers name.
+ * Gets this battler's name.
+ * If there is no battler, this will return an empty string.
+ * @returns {string}
  */
 Sprite_Character.prototype.getBattlerName = function()
 {
+  // get the battler if we have one.
   const battler = this.getBattler();
-  if (!battler) return "";
 
-  return battler.opponentsUnit() === $gameParty
-    ? battler.enemy().name
-    : battler.actor().name;
+  // if we don't, then just return an empty string.
+  if (!battler) return String.empty;
+
+  // pull the name straight from the database actor/enemy tab.
+  const battlerName = battler.databaseData().name;
+
+  // return the battler name.
+  return battlerName;
 };
 
 /**
@@ -506,23 +726,37 @@ Sprite_Character.prototype.getBattlerName = function()
  */
 Sprite_Character.prototype.updateBattlerName = function()
 {
-  const mapBattler = this._character.getMapBattler();
-  if (mapBattler)
+  // check if we can update the battler name.
+  if (this.canUpdateBattlerName())
   {
-    if (this.canUpdate() && mapBattler.showBattlerName())
-    {
-      if (!this._battlerName)
-      {
-        this.setupMapSprite();
-      }
-
-      this.showBattlerName();
-    }
-    else
-    {
-      this.hideBattlerName();
-    }
+    // update it.
+    this.showBattlerName();
   }
+  // otherwise, if we can't update it...
+  else
+  {
+    // then hide it.
+    this.hideBattlerName();
+  }
+};
+
+/**
+ * Determines whether or not we can update the battler name.
+ * @returns {boolean} True if we can update the battler name, false otherwise.
+ */
+Sprite_Character.prototype.canUpdateBattlerName = function()
+{
+  // if we're not using JABS, then it shouldn't update.
+  if (!this.canUpdate()) return false;
+
+  // if this sprite doesn't have a battler, then it shouldn't update.
+  if (!this.isJabsBattler()) return false;
+
+  // if we aren't allowed to show the battler name, then it shouldn't update.
+  if (!this._character.getMapBattler().showBattlerName()) return false;
+
+  // we should update!
+  return true;
 };
 
 /**
@@ -530,10 +764,7 @@ Sprite_Character.prototype.updateBattlerName = function()
  */
 Sprite_Character.prototype.showBattlerName = function()
 {
-  if (this._battlerName)
-  {
-    this._battlerName.opacity = 255;
-  }
+  this._j._battlerName.show();
 };
 
 /**
@@ -541,70 +772,35 @@ Sprite_Character.prototype.showBattlerName = function()
  */
 Sprite_Character.prototype.hideBattlerName = function()
 {
-  if (this._battlerName)
-  {
-    this._battlerName.opacity = 0;
-  }
+  this._j._battlerName.hide();
 };
 //#endregion battler name
 
 //#region loot
 /**
- * If the "character" is actually a loot drop, don't identify it as empty for the purposes
- * of drawing the loot icon on the map.
- * @returns {boolean} True if the character should be drawn, false otherwise.
+ * Handle loot setup for loot that hasn't been drawn yet.
  */
-J.ABS.Aliased.Sprite_Character.isEmptyCharacter = Sprite_Character.prototype.isEmptyCharacter;
-Sprite_Character.prototype.isEmptyCharacter = function()
+Sprite_Character.prototype.handleLootSetup = function()
 {
+  // check if this is loot.
   if (this.isLoot())
   {
-    return false;
-  }
-  else
-  {
-    return J.ABS.Aliased.Sprite_Character.isEmptyCharacter.call(this);
+    // check if we've already drawn the loot.
+    if (!this.hasLootDrawn())
+    {
+      // draw the loot sprite for this character.
+      this.setupLootSprite();
+    }
   }
 };
 
 /**
- * If this is loot, then treat it as loot instead of a regular character.
+ * Whether or not we've drawn the child sprites that make up the loot.
+ * @returns {boolean} True if we've already drawn the loot sprites, false otherwise.
  */
-J.ABS.Aliased.Sprite_Character.setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
-Sprite_Character.prototype.setCharacterBitmap = function()
+Sprite_Character.prototype.hasLootDrawn = function()
 {
-  if (this.isLoot())
-  {
-    if (!this.children.length)
-    {
-      // if there are no sprites currently drawn for the loot, then draw them.
-      this.setupLootSprite();
-    }
-
-    return;
-  }
-
-  J.ABS.Aliased.Sprite_Character.setCharacterBitmap.call(this);
-};
-
-/**
- * If this is loot, then treat it as loot instead of a tilemap.
- */
-J.ABS.Aliased.Sprite_Character.setTileBitmap = Sprite_Character.prototype.setTileBitmap;
-Sprite_Character.prototype.setTileBitmap = function()
-{
-  if (this.isLoot())
-  {
-    if (!this.children.length)
-    {
-      // if there are no sprites currently drawn for the loot, then draw them.
-      this.setupLootSprite();
-    }
-
-    return;
-  }
-
-  J.ABS.Aliased.Sprite_Character.setTileBitmap.call(this);
+  return !this.children.length;
 };
 
 /**
@@ -612,11 +808,14 @@ Sprite_Character.prototype.setTileBitmap = function()
  */
 Sprite_Character.prototype.setupLootSprite = function()
 {
-  if (this._loot._img) return;
-
+  // flag this character is "through", so they don't block movement of others.
   this._character._through = true;
-  this._loot._img = this.createLootSprite();
-  this.addChild(this._loot._img);
+
+  // create and assign the image sprite icon.
+  this._j._loot._sprite = this.createLootSprite();
+
+  // add it to this sprite's tracking.
+  this.addChild(this._j._loot._sprite);
 };
 
 /**
@@ -624,17 +823,55 @@ Sprite_Character.prototype.setupLootSprite = function()
  */
 Sprite_Character.prototype.createLootSprite = function()
 {
-  const lootData = this.getLootData();
-  const iconIndex = lootData.lootIcon;
-  const lootSprite = new Sprite_Icon(iconIndex);
+  // get the loot's icon index.
+  const iconIndex = this.getLootIcon();
+
+  // build the sprite from the icon.
+  const sprite = new Sprite_Icon(iconIndex);
+
+  // relocate the loot a bit randomly.
   const xOffset = J.BASE.Helpers.getRandomNumber(-30, 0);
   const yOffset = J.BASE.Helpers.getRandomNumber(-90, -70);
-  lootSprite.move(xOffset, yOffset);
-  return lootSprite;
+  sprite.move(xOffset, yOffset);
+
+  return sprite;
 };
 
 /**
- * Deletes a loot sprite from the screen.
+ * Gets the loot data associated with this sprite.
+ * @returns {JABS_LootDrop}
+ */
+Sprite_Character.prototype.getLootData = function()
+{
+  return this._character.getLootData();
+};
+
+/**
+ * Gets the loot icon associated with the underlying loot.
+ * @returns {number} The icon index of the loot, or -1 if there is none.
+ */
+Sprite_Character.prototype.getLootIcon = function()
+{
+  return this.getLootData().lootIcon ?? -1;
+};
+
+/**
+ * Gets the loot icon associated with the underlying loot.
+ * @returns {number} The icon index of the loot, or -1 if there is none.
+ */
+Sprite_Character.prototype.getLootExpired = function()
+{
+  return this.getLootData().expired ?? true;
+};
+
+Sprite_Character.prototype.performLootDurationCountdown = function()
+{
+  // execute a countdown on behalf of the loot.
+  this.getLootData().countdownDuration();
+};
+
+/**
+ * Deletes all child loot sprites from the screen.
  */
 Sprite_Character.prototype.deleteLootSprite = function()
 {
@@ -654,19 +891,41 @@ Sprite_Character.prototype.isLoot = function()
 };
 
 /**
- * Gets the loot data associated with this sprite.
- * @returns {JABS_LootDrop}
+ * The current direction of swing.
+ * @returns {boolean} True if we're swinging up, false if we're swinging down.
  */
-Sprite_Character.prototype.getLootData = function()
+Sprite_Character.prototype.lootSwing = function()
 {
-  return this._character.getLootData();
+  return this._j._loot._swing;
+};
+
+/**
+ * Swing the loot up and enforce the direction.
+ * @param {number} amount The amount of the direction.
+ */
+Sprite_Character.prototype.lootSwingUp = function(amount = 0)
+{
+  this._j._loot._swing = true;
+
+  this._j._loot._oy -= amount;
+};
+
+/**
+ * Swing the loot down and enforce the direction.
+ * @param {number} amount The amount of the direction.
+ */
+Sprite_Character.prototype.lootSwingDown = function(amount = 0)
+{
+  this._j._loot._swing = false;
+
+  this._j._loot._oy += amount;
 };
 
 /**
  * Intercepts the update frame for loot and performs the things we need to
  * make the loot look like its floating in-place.
  */
-J.ABS.Aliased.Sprite_Character.updateFrame = Sprite_Character.prototype.updateFrame;
+J.ABS.Aliased.Sprite_Character.set('updateFrame', Sprite_Character.prototype.updateFrame);
 Sprite_Character.prototype.updateFrame = function()
 {
   if (this.isLoot())
@@ -675,7 +934,7 @@ Sprite_Character.prototype.updateFrame = function()
     return;
   }
 
-  J.ABS.Aliased.Sprite_Character.updateFrame.call(this);
+  J.ABS.Aliased.Sprite_Character.get('updateFrame').call(this);
 };
 
 /**
@@ -683,26 +942,87 @@ Sprite_Character.prototype.updateFrame = function()
  */
 Sprite_Character.prototype.updateLootFloat = function()
 {
-  const lootData = this.getLootData();
-  lootData.countdownDuration();
+  // perform the countdown and manage this loot expiration.
+  this.handleLootDuration();
 
-  // if the loot is expired, remove it.
-  if (lootData.expired)
+  // manage the floaty-ness if we float.
+  this.handleLootFloat();
+};
+
+Sprite_Character.prototype.handleLootFloat = function()
+{
+  // check if we can update the loot float.
+  if (this.canUpdateLootFloat())
   {
-    // don't reset the removal if its already set.
-    if (this._character.getLootNeedsRemoving()) return;
-
-    // set the loot to be removed.
-    this._character.setLootNeedsRemoving(true);
-    $gameBattleMap.requestClearLoot = true;
-    return;
+    // float the loot.
+    this.lootFloat();
   }
+};
 
-  const {_img: lootSprite, _swing: swingDown} = this._loot;
+/**
+ * Checks whether or not we can float the loot.
+ * @returns {boolean} True if we can, false if we cannot.
+ */
+Sprite_Character.prototype.canUpdateLootFloat = function()
+{
+  // if we have no sprite, we can't update it.
+  if (!this._j._loot._sprite) return false;
 
-  swingDown
-    ? this.lootFloatDown(lootSprite)
-    : this.lootFloatUp(lootSprite);
+  // if the loot is expired, we can't update it.
+  if (this.getLootExpired()) return false;
+
+  // we can update!
+  return true;
+};
+
+/**
+ * A basic slow swing up and down a bit for the loot drops.
+ */
+Sprite_Character.prototype.lootFloat = function()
+{
+  // grab the sprite for floaty goodness- if we have one.
+  const lootSprite = this._j._loot._sprite;
+
+  // Lets swing up and down a bit.
+  if (this.lootSwing())
+  {
+    // ~swing up!
+    this.lootFloatUp(lootSprite);
+  }
+  else
+  {
+    // !swing down~
+    this.lootFloatDown(lootSprite);
+  }
+};
+
+/**
+ * Handles loot duration and expiration for this sprite.
+ */
+Sprite_Character.prototype.handleLootDuration = function()
+{
+  // tick tock the duration countdown of the loot if it has an expiration.
+  this.performLootDurationCountdown();
+
+  // check if the loot is now expired.
+  if (this.getLootExpired())
+  {
+    // expire it if it is.
+    this.expireLoot();
+  }
+};
+
+/**
+ * Perform all steps to have this loot expired and removed.
+ */
+Sprite_Character.prototype.expireLoot = function()
+{
+  // don't reset the removal if its already set.
+  if (this._character.getLootNeedsRemoving()) return;
+
+  // set the loot to be removed.
+  this._character.setLootNeedsRemoving(true);
+  $gameBattleMap.requestClearLoot = true;
 };
 
 /**
@@ -711,9 +1031,25 @@ Sprite_Character.prototype.updateLootFloat = function()
  */
 Sprite_Character.prototype.lootFloatDown = function(lootSprite)
 {
-  this._loot._oy += 0.3;
+  // swing the loot down.
+  this.lootSwingDown(0.3);
   lootSprite.y += 0.3;
-  if (this._loot._oy > 5) this._loot._swing = false;
+
+  // check if we should swing back up.
+  if (this.shouldSwingUp())
+  {
+    // if so, swing up.
+    this.lootSwingUp();
+  }
+};
+
+/**
+ * Determines whether or not we should reverse the swing back upwards.
+ * @returns {boolean}
+ */
+Sprite_Character.prototype.shouldSwingUp = function()
+{
+  return this._j._loot._oy > 5;
 };
 
 /**
@@ -722,9 +1058,25 @@ Sprite_Character.prototype.lootFloatDown = function(lootSprite)
  */
 Sprite_Character.prototype.lootFloatUp = function(lootSprite)
 {
-  this._loot._oy -= 0.3;
+  // swing the loot up.
+  this.lootSwingUp(0.3);
   lootSprite.y -= 0.3;
-  if (this._loot._oy < -5) this._loot._swing = true;
+
+  // check if we've swung too far down.
+  if (this.shouldSwingDown())
+  {
+    // if so, swing up.
+    this.lootSwingDown();
+  }
+};
+
+/**
+ * Determines whether or not we should reverse the swing back upwards.
+ * @returns {boolean}
+ */
+Sprite_Character.prototype.shouldSwingDown = function()
+{
+  return this._j._loot._oy < -5;
 };
 //#endregion loot
 //#endregion Sprite_Character
