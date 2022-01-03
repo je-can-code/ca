@@ -339,12 +339,6 @@ Sprite_Character.prototype.initMembers = function()
   this._j ||= {};
 
   /**
-   * Tracking for various sprites on this battler.
-   * @type {Map<string, Sprite_Icon|Sprite_MapGauge|Sprite_Text>}
-   */
-  this._j._spriteTracker ||= new Map();
-
-  /**
    * The danger indicator sprite for this character.
    * @type {Sprite_Icon}
    */
@@ -355,32 +349,16 @@ Sprite_Character.prototype.initMembers = function()
 };
 
 /**
- * Extends `setCharacter()` to setup the danger indicator.
- *
- * NOTE: This is run once during intialization.
- * @param {Game_Character} character The character being assigned to this sprite.
+ * Setup this `Sprite_Character` with the additional JABS-related functionalities.
  */
-J.DANGER.Aliased.Sprite_Character.set('setCharacter', Sprite_Character.prototype.setCharacter);
-Sprite_Character.prototype.setCharacter = function(character)
+J.DANGER.Aliased.Sprite_Character.set('setupJabsSprite', Sprite_Character.prototype.setupJabsSprite);
+Sprite_Character.prototype.setupJabsSprite = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('setCharacter').call(this, character);
+  J.DANGER.Aliased.Sprite_Character.get('setupJabsSprite').call(this);
 
-  // setup the danger indicator.
-  this.setupDangerIndicator();
-};
-
-/**
- * Extends `setCharacterBitmap()` to setup the danger indicator.
- *
- * NOTE: This is run every time events change their character sprites.
- * @param {Game_Character} character The character being assigned to this sprite.
- */
-J.DANGER.Aliased.Sprite_Character.set('setCharacterBitmap', Sprite_Character.prototype.setCharacterBitmap);
-Sprite_Character.prototype.setCharacterBitmap = function()
-{
-  // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('setCharacterBitmap').call(this);
+  // if this is a battler, configure the visual components of the battler.
+  this.handleBattlerSetup();
 
   // setup the danger indicator.
   this.setupDangerIndicator();
@@ -473,7 +451,7 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
 };
 
 /**
- * Hooks into the `Sprite_Character.update` and adds our ABS updates.
+ * Extends `update()` to update the danger indicator.
  */
 J.DANGER.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
 Sprite_Character.prototype.update = function()
@@ -481,13 +459,16 @@ Sprite_Character.prototype.update = function()
   // perform original logic.
   J.DANGER.Aliased.Sprite_Character.get('update').call(this);
 
+  // check if we can update the indicator.
   if (this.canUpdateDangerIndicator())
   {
+    // update it.
     this.updateDangerIndicator();
   }
+  // otherwise, if we can't update it...
   else
   {
-    // hide it when there is no battler.
+    // hide it.
     this.hideDangerIndicator();
   }
 };
@@ -504,6 +485,9 @@ Sprite_Character.prototype.canUpdateDangerIndicator = function()
   // if this sprite doesn't have a battler, then it shouldn't update.
   if (!this.isJabsBattler()) return false;
 
+  // if we aren't allowed to show the indicator, then it shouldn't update.
+  if (!this._character.getMapBattler().showDangerIndicator()) return false;
+
   // we should update!
   return true;
 };
@@ -513,12 +497,8 @@ Sprite_Character.prototype.canUpdateDangerIndicator = function()
  */
 Sprite_Character.prototype.updateDangerIndicator = function()
 {
-  // check if the battler should be showing its danger indicator.
-  if (this._character.getMapBattler().showDangerIndicator())
-  {
-    // show the indicator if we should be showing it.
-    this.showDangerIndicator();
-  }
+  // show the indicator if we should be showing it.
+  this.showDangerIndicator();
 };
 
 /**
