@@ -694,7 +694,7 @@ Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
  */
 Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
 {
-  const structure = /<stateDurationFlat:[ ]?([\-\+]?\d+)>/i;
+  const structure = /<stateDurationFlat:[ ]?([\-+]?\d+)>/i;
   const notedata = noteObject.note.split(/[\r\n]+/);
   let flatDurationBoost = 0;
   notedata.forEach(line =>
@@ -743,7 +743,7 @@ Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDura
   const b = attacker; // this battler, afflicted by the state.
   const v = $gameVariables._data; // access to variables if you need it.
   const d = baseDuration;
-  const structure = /<(?:stateDurationFormula|stateDurationForm){1}:[ ]?\[([+\-*\/ ().\w]+)]>/i;
+  const structure = /<(?:stateDurationFormula|stateDurationForm):[ ]?\[([+\-*\/ ().\w]+)]>/i;
   const notedata = noteObject.note.split(/[\r\n]+/);
   let formulaDurationBoost = 0;
   notedata.forEach(line =>
@@ -796,7 +796,7 @@ Game_Actor.prototype.extractVisionModifiers = function(referenceData)
 
   return visionMultiplier;
 };
-//#endregion
+//#endregion Game_Actor
 
 //#region Game_Action
 /**
@@ -822,7 +822,7 @@ Game_Action.prototype.subject = function()
  * OVERWRITE In the context of this `Game_Action`, overwrites the function for
  * setting the subject to reference the $dataEnemies, a new global object reference
  * for the database tab of enemies instead of referencing the troop.
- * @param {Game_Battler} subject The subject to work with.
+ * @param {Game_Actor|Game_Enemy} subject The subject to work with.
  */
 Game_Action.prototype.setSubject = function(subject)
 {
@@ -1107,7 +1107,7 @@ Game_Action.prototype.calculateHitSuccess = function(target)
   const success = (hitRate - evadeRate) > 0;
   return success;
 };
-//#endregion
+//#endregion Game_Action
 
 //#region Game_ActionResult
 /**
@@ -1141,7 +1141,7 @@ Game_ActionResult.prototype.isHit = function()
 {
   return this.used && !this.parried && !this.evaded && !this.preciseParried;
 };
-//#endregion
+//#endregion Game_ActionResult
 
 //#region Game_Battler
 /**
@@ -1666,8 +1666,8 @@ class Game_BattleMap
     this._actionEvents = [];
 
     /**
-     * A collection of all action-type events.
-     * @type {Game_Event[]}
+     * A collection of the metadata of all action-type events.
+     * @type {rm.types.Event[]}
      */
     this._activeActions = isMapTransfer ? [] : this._activeActions ?? [];
 
@@ -1714,7 +1714,7 @@ class Game_BattleMap
   /**
    * Adds a new `JABS_Action` to this battle map for tracking.
    * @param {JABS_Action} actionEvent The `JABS_Action` to add.
-   * @param {rm.types.Event?} actionEventData The event metadata, if anything.
+   * @param {rm.types.Event} actionEventData The event metadata, if anything.
    */
   addActionEvent(actionEvent, actionEventData)
   {
@@ -1726,14 +1726,20 @@ class Game_BattleMap
   };
 
   /**
-   * Finds the metadata associated with
+   * Finds the event metadata associated with the given `uuid`.
    * @param {string} uuid The `uuid` to find.
+   * @returns {rm.types.Event} The event associated with the `uuid`.
    */
   event(uuid)
   {
     const results = this._activeActions.filter(eventData => eventData.uniqueId === uuid);
     return results[0];
-  }
+  };
+
+  loot(uuid)
+  {
+
+  };
 
   /**
    * Removes the temporary metadata from our store.
@@ -1753,7 +1759,8 @@ class Game_BattleMap
     const uniqueId = sameAction[0].getUuid();
 
     // filter out all those same actions.
-    const updatedActiveActions = this._activeActions
+    const updatedActiveActions = this.
+      _activeActions
       .filter(active => !(active.uniqueId === uniqueId));
     this._activeActions = updatedActiveActions;
   };
@@ -2530,7 +2537,7 @@ class Game_BattleMap
     {
       action.preCleanupHook();
       action.setNeedsRemoval();
-      this.removeActionEvent(action);
+      //this.removeActionEvent(action);
       this.clearActionEvents();
     }
   };
@@ -3008,6 +3015,10 @@ class Game_BattleMap
     // add the data to the $datamap.events.
     $dataMap.events[$dataMap.events.length] = actionEventData;
     const newIndex = $dataMap.events.length - 1;
+    actionEventData.actionIndex = newIndex;
+
+    // assign this so it exists, but isn't valid.
+    actionEventData.lootIndex = 0;
 
     // create the event by hand with this new data
     const actionEventSprite = new Game_Event(
@@ -3032,34 +3043,26 @@ class Game_BattleMap
     const pageIndex = actionEventSprite.findProperPageIndex();
     const {characterIndex, characterName} = actionEventData.pages[pageIndex].image;
 
-    try
-    {
-      actionEventSprite.setActionSpriteNeedsAdding();
-      actionEventSprite._eventId = actionEventData.id;
-      actionEventSprite._characterName = characterName;
-      actionEventSprite._characterIndex = characterIndex;
-      const pageData = actionEventData.pages[pageIndex];
-      actionEventSprite.setMoveFrequency(pageData.moveFrequency);
-      actionEventSprite.setMoveRoute(pageData.moveRoute);
-      actionEventSprite.setDirection(action.direction());
-      actionEventSprite.setCustomDirection(action.direction());
-      actionEventSprite.setCastedDirection($gamePlayer.direction());
-      actionEventSprite.setMapActionData(action);
+    actionEventSprite.setActionSpriteNeedsAdding();
+    actionEventSprite._eventId = actionEventData.id;
+    actionEventSprite._characterName = characterName;
+    actionEventSprite._characterIndex = characterIndex;
+    const pageData = actionEventData.pages[pageIndex];
+    actionEventSprite.setMoveFrequency(pageData.moveFrequency);
+    actionEventSprite.setMoveRoute(pageData.moveRoute);
+    actionEventSprite.setDirection(action.direction());
+    actionEventSprite.setCustomDirection(action.direction());
+    actionEventSprite.setCastedDirection($gamePlayer.direction());
+    actionEventSprite.setMapActionData(action);
 
-      // overwrites the "start" of the event for this event to be nothing.
-      // this prevents the player from accidentally interacting with the
-      // sword swing or whatever is generated by the action.
-      actionEventSprite.start = () => false;
+    // overwrites the "start" of the event for this event to be nothing.
+    // this prevents the player from accidentally interacting with the
+    // sword swing or whatever is generated by the action.
+    actionEventSprite.start = () => false;
 
-      action.setActionSprite(actionEventSprite);
-      $gameMap.addEvent(actionEventSprite);
-      this.requestActionRendering = true;
-    }
-    catch (err)
-    {
-      console.error(err);
-      console.error("The action event sprite: ", actionEventSprite);
-    }
+    action.setActionSprite(actionEventSprite);
+    $gameMap.addEvent(actionEventSprite);
+    this.requestActionRendering = true;
   };
 
   /**
@@ -3077,9 +3080,13 @@ class Game_BattleMap
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;
+    const newIndex = $dataMap.events.length - 1;
+    lootEventData.lootIndex = newIndex;
 
     // create the loot event by hand with this new data.
     const jabsLootData = new JABS_LootDrop(item);
+    lootEventData.uuid = jabsLootData.uuid;
+    console.log(lootEventData.uuid);
 
     // set the duration of this loot drop
     // if a custom time is available, then use that, otherwise use the default.
@@ -4894,13 +4901,11 @@ Game_Character.prototype.initMembers = function()
  */
 Game_Character.prototype.initActionSpriteProperties = function()
 {
-  this._j._actionSpriteProperties = {
+  this._j._action = {
     actionData: null,
     needsAdding: false,
     needsRemoving: false,
-    requestDamagePop: false,
     battlerUuid: String.empty,
-    damagePops: [],
   }
 };
 
@@ -4974,6 +4979,7 @@ Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
 
 /**
  * Gets the loot data for this character/event.
+ * @returns {JABS_LootDrop}
  */
 Game_Character.prototype.getLootData = function()
 {
@@ -5005,7 +5011,7 @@ Game_Character.prototype.setLootData = function(data)
  */
 Game_Character.prototype.getActionSpriteProperties = function()
 {
-  return this._j._actionSpriteProperties;
+  return this._j._action;
 };
 
 /**
@@ -5014,8 +5020,7 @@ Game_Character.prototype.getActionSpriteProperties = function()
  */
 Game_Character.prototype.isAction = function()
 {
-  const isAction = this.getMapActionData();
-  return !!isAction;
+  return !!this.getMapActionData();
 };
 
 /**
@@ -5033,6 +5038,19 @@ Game_Character.prototype.getMapActionData = function()
   {
     return null;
   }
+};
+
+/**
+ * Gets whether or not the underlying `JABS_Action` requires removal from the map.
+ * @returns {boolean} True if removal is required, false otherwise.
+ */
+Game_Character.prototype.getJabsActionNeedsRemoving = function()
+{
+  // if it is not an action, don't remove whatever it is.
+  if (!this.isAction()) return false;
+
+  // return whether or not the removal is needed.
+  return this.getMapActionData().getNeedsRemoval();
 };
 
 /**
@@ -5057,8 +5075,8 @@ Game_Character.prototype.getMapActionUuid = function()
  */
 Game_Character.prototype.getActionUuid = function()
 {
-  const asp = this.getActionSpriteProperties();
-  return asp.battlerUuid;
+  const jabsAction = this.getMapActionData();
+  return jabsAction.getUuid();
 };
 
 /**
@@ -5409,7 +5427,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 };
-//#endregion
+//#endregion Game_Character
 
 //#region Game_CharacterBase
 /**
@@ -5532,7 +5550,7 @@ Game_CharacterBase.prototype.handleDodgeEnd = function(isDodging)
     this.setMoveSpeed(this._moveSpeed - this._dodgeBoost);
   }
 };
-//#endregion
+//#endregion Game_CharacterBase
 
 //#region Game_Enemies
 /**
@@ -5569,7 +5587,7 @@ Game_Enemies.prototype.enemy = function(enemyId)
   }
   return null;
 };
-//#endregion
+//#endregion Game_Enemies
 
 //#region Game_Enemy
 /**
@@ -6130,7 +6148,7 @@ Game_Event.prototype.initMembers = function()
  */
 Game_Event.prototype.setMapActionData = function(action)
 {
-  this._j._actionSpriteProperties.actionData = action;
+  this._j._action.actionData = action;
 };
 
 /**
@@ -6184,8 +6202,7 @@ Game_Event.prototype.event = function()
 {
   if (this.isAction())
   {
-    const found = $gameBattleMap.event(this.getMapActionUuid());
-    return found;
+    return $gameBattleMap.event(this.getMapActionUuid());
   }
 
   return J.ABS.Aliased.Game_Event.event.call(this);
@@ -6248,7 +6265,6 @@ Game_Event.prototype.page = function()
     return J.ABS.Aliased.Game_Event.page.call(this);
   }
 
-  //! TODO: look into this, ya lazy bum!
   /*
   console.log($dataMap.events);
   console.log($gameMap._events);
@@ -6730,28 +6746,41 @@ Game_Interpreter.prototype.command301 = function(params)
     return J.ABS.Aliased.Game_Interpreter.command301.call(this, params);
   }
 };
-//#endregion
+//#endregion Game_Interpreter
 
 //#region Game_Map
 /**
  * Hooks into `Game_Map.initialize()` to add the JABS object for tracking
  * all things related to the ABS system.
  */
-J.ABS.Aliased.Game_Map.initialize = Game_Map.prototype.initialize;
+J.ABS.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
 Game_Map.prototype.initialize = function()
 {
-  J.ABS.Aliased.Game_Map.initialize.call(this);
-  this._j = this._j || {};
+  // perform original logic.
+  J.ABS.Aliased.Game_Map.get('initialize').call(this);
+
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A tracking list of all current battlers on this map.
+   * @type {JABS_Battler[]}
+   */
   this._j._allBattlers = [];
 };
 
 /**
  * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
  */
-J.ABS.Aliased.Game_Map.setup = Game_Map.prototype.setup;
+J.ABS.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
 Game_Map.prototype.setup = function(mapId)
 {
-  J.ABS.Aliased.Game_Map.setup.call(this, mapId);
+  // perform original logic.
+  J.ABS.Aliased.Game_Map.get('setup').call(this, mapId);
+
+  // initialize all JABS-related data.
   this.jabsInitialization();
 };
 
@@ -6763,7 +6792,10 @@ Game_Map.prototype.jabsInitialization = function()
   // don't do things if we aren't using JABS.
   if (!$gameBattleMap.absEnabled) return;
 
+  // initialize the battle map for this map.
   $gameBattleMap.initialize();
+
+  // refresh all the battlers on this map.
   this.refreshAllBattlers();
 };
 
@@ -6817,20 +6849,190 @@ Game_Map.prototype.refreshOneBattler = function(event)
       this._j._allBattlers.push(newBattler);
     }
     // the next page is not an enemy, do nothing.
-    else
-    {
-    }
+    else { }
   }
 };
 
 /**
  * Hooks into `Game_Map.update()` to add the battle map's update.
  */
-J.ABS.Aliased.Game_Map.update = Game_Map.prototype.update;
+J.ABS.Aliased.Game_Map.set('update', Game_Map.prototype.update);
 Game_Map.prototype.update = function(sceneActive)
 {
-  J.ABS.Aliased.Game_Map.update.call(this, sceneActive);
+  // perform original logic.
+  J.ABS.Aliased.Game_Map.get('update').call(this, sceneActive);
+
+  // update JABS.
   $gameBattleMap.update();
+};
+
+/**
+ * Gets all action events that have yet to have a `Sprite_Character` generated for them.
+ * @returns {Game_Event[]} A list of all newly added action events.
+ */
+Game_Map.prototype.newActionEvents = function()
+{
+  // the filter function for only retrieving newly-added action events.
+  const filtering = event =>
+  {
+    // we only care about actions that also need adding.
+    if (event.getActionSpriteNeedsAdding()) return true;
+
+    // it must have already had a sprite created for this action.
+    return false;
+  };
+
+  // return the new-action-filtered event list.
+  return this.actionEvents().filter(filtering);
+};
+
+/**
+ * Gets all action events that have reached their expiration and need removal.
+ * @returns {Game_Event[]} A list of all expired action events.
+ */
+Game_Map.prototype.expiredActionEvents = function()
+{
+  // the filter function for only retrieving expired action events.
+  const filtering = event =>
+  {
+    // we only care about actions that are past their prime.
+    if (event.getJabsActionNeedsRemoving()) return true;
+
+    // the action must still be valid.
+    return false;
+  };
+
+  // return the expired-action-filtered event list.
+  return this.actionEvents().filter(filtering);
+};
+
+/**
+ * Gets all action events that have reached their expiration and need removal.
+ * @returns {rm.types.Event[]} All relevant action metadatas.
+ */
+Game_Map.prototype.actionEventsFromDataMapByUuid = function(uuid)
+{
+  // the filter function for retrieving action metadatas from the datamap.
+  /** @param {rm.types.Event} metadata */
+  const filtering = metadata =>
+  {
+    // don't include invalid or non-action event metadatas.
+    if (!metadata || !metadata.actionIndex) return false;
+
+    // don't include actions metadatas that aren't related to the removed one.
+    const actionMetadata = $gameBattleMap.event(uuid);
+    if (metadata.actionIndex !== actionMetadata.actionIndex) return false;
+
+    // we want this metadata!
+    return true;
+  };
+
+  // return the action-metadata-filtered event list.
+  return $dataMap.events.filter(filtering);
+};
+
+/**
+ * Gets all events that have a `JABS_Action` associated with them on the current map.
+ * @returns {Game_Event[]} A list of events that have a `JABS_Action`.
+ */
+Game_Map.prototype.actionEvents = function()
+{
+  // the filter function for only retrieving action events.
+  const filtering = event =>
+  {
+    // the only thing that matters is if we explicitly flagged it as an action.
+    if (event.isAction) return true;
+
+    // it must not be a real action.
+    return false;
+  };
+
+  // return the action-filtered event list.
+  return this.events().filter(filtering);
+};
+
+/**
+ * Gets all loot events that have yet to have a `Sprite_Character` generated for them.
+ * @returns {Game_Event[]} A list of all newly added loot events.
+ */
+Game_Map.prototype.newLootEvents = function()
+{
+  // the filter function for only retrieving newly-added loot events.
+  const filtering = event =>
+  {
+    // we only care about loot that also needs adding.
+    if (event.getLootNeedsAdding()) return true;
+
+    // it must have already had a sprite created for this loot.
+    return false;
+  };
+
+  // return the new-loot-filtered event list.
+  return this.lootEvents().filter(filtering);
+};
+
+/**
+ * Gets all loot events that have reached their expiration and need removal.
+ * @returns {Game_Event[]} A list of all expired loot events.
+ */
+Game_Map.prototype.expiredLootEvents = function()
+{
+  // the filter function for only retrieving newly-added loot events.
+  const filtering = event =>
+  {
+    // we only care about loot that is past its prime.
+    if (event.getLootNeedsRemoving()) return true;
+
+    // the loot must still be valid.
+    return false;
+  };
+
+  // return the expired-loot-filtered event list.
+  return this.lootEvents().filter(filtering);
+};
+
+/**
+ * Gets all loot event metadatas that bear the same `uuid` as requested.
+ * @returns {rm.types.Event[]} All relevant loot metadatas.
+ */
+Game_Map.prototype.lootEventsFromDataMapByUuid = function(uuid)
+{
+  // the filter function for retrieving loot metadatas from the datamap.
+  /** @param {rm.types.Event} metadata */
+  const filtering = metadata =>
+  {
+    // don't include invalid or non-action event metadatas.
+    if (!metadata || !metadata.uuid) return false;
+
+    // don't include loot metadatas that aren't related to the removed one.
+    if (metadata.uuid !== uuid) return false;
+
+    // we want this metadata!
+    return true;
+  };
+
+  // return the action-metadata-filtered event list.
+  return $dataMap.events.filter(filtering);
+};
+
+/**
+ * Gets all events that have a `JABS_LootDrop` associated with them on the current map.
+ * @returns {Game_Event[]} A list of events that have a `JABS_LootDrop`.
+ */
+Game_Map.prototype.lootEvents = function()
+{
+  // the filter function for only retrieving action events.
+  const filtering = event =>
+  {
+    // only check if they are loot.
+    if (event.isLoot()) return true;
+
+    // it must not be loot.
+    return false;
+  };
+
+  // return the loot-filtered event list.
+  return this.events().filter(filtering);
 };
 
 /**
@@ -7154,68 +7356,116 @@ Game_Map.prototype.addEvent = function(event)
 
 /**
  * Removes a provided event from the current map's event list.
- * @param {Game_Event} event The `Game_Event` to remove from this map.
+ * @param {Game_Event} eventToRemove The `Game_Event` to remove from this map.
  */
-Game_Map.prototype.removeEvent = function(event)
+Game_Map.prototype.removeEvent = function(eventToRemove)
 {
-  let index = -1;
-  this._events.forEach((ev, i) =>
-  {
-    if (ev === event)
-    {
-      index = i;
-    }
-  });
+  // find the index of the event we're trying to remove.
+  const eventIndex = this._events.findIndex(event => event === eventToRemove);
 
-  if (index > -1)
+  // confirm we found the event to remove.
+  if (eventIndex > -1)
   {
-    // if the index is found, remove the event.
-    event.erase();
-    if (event.isAction)
-    {
-      this._events.splice(index, 1);
-    }
+    // remove it if it's an action event.
+    this.handleActionEventRemoval(eventToRemove);
+
+    // remove it if it's a loot event.
+    this.handleLootEventRemoval(eventToRemove);
+
+    // delete the event from tracking.
+    delete this._events[eventIndex];
   }
+};
+
+/**
+ * Handles the removal of events with an underlying `JABS_Action` from the map.
+ * @param {Game_Event} actionToRemove The `Game_Event` to remove from this map.
+ */
+Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
+{
+  // don't process if this event isn't an action.
+  if (!actionToRemove.isAction()) return;
+
+  // get the relevant metadatas for the action.
+  const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getActionUuid());
+
+  // all removed events get erased.
+  actionToRemove.erase();
+
+  // command the battle map to cleanup the jabs action.
+  $gameBattleMap.cleanupAction(actionToRemove.getMapActionData());
+
+  // and also to cleanup the current list of active jabs action events.
+  $gameBattleMap.clearActionEvents();
+
+  // iterate over each of the metadatas for deletion.
+  actionMetadatas.forEach(actionMetadata =>
+  {
+    // purge the action metadata from the datamap.
+    delete $dataMap.events[actionMetadata.actionIndex];
+  });
+};
+
+/**
+ * Handles the removal of events with an underlying `JABS_LootDrop` from the map.
+ * @param {Game_Event} lootToRemove The `Game_Event` to remove from this map.
+ */
+Game_Map.prototype.handleLootEventRemoval = function(lootToRemove)
+{
+  // don't process if this event isn't an action.
+  if (!lootToRemove.isLoot()) return;
+
+  // get the relevant metadatas for the loot.
+  const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getLootData().uuid);
+
+  // iterate over each of the metadatas for deletion.
+  lootMetadatas.forEach(lootMetadata =>
+  {
+    // purge the loot metadata from the datamap.
+    delete $dataMap.events[lootMetadata.lootIndex];
+  });
 };
 
 /**
  * Removes all actions on the map that have been flagged for removal.
  */
-Game_Map.prototype.clearStaleMapActions = function()
+Game_Map.prototype.clearExpiredJabsActionEvents = function()
 {
-  const eventSprites = this.events();
+  // grab the list of expired action events.
+  const expiredActionEvents = this.expiredActionEvents();
 
   // get all the game_event sprites that need removing.
-  eventSprites.forEach(this.clearMapAction, this);
+  expiredActionEvents.forEach(this.clearExpiredJabsActionEvent, this);
 };
 
 /**
  * Clears a particular action event from the map.
  * @param {Game_Event} event The action event to clear.
  */
-Game_Map.prototype.clearMapAction = function(event)
+Game_Map.prototype.clearExpiredJabsActionEvent = function(event)
 {
-  if (event.getActionSpriteNeedsRemoving())
-  {
-    this.removeEvent(event);
-  }
+  this.removeEvent(event);
 };
 
 /**
  * Removes all loot on the map that has been flagged for removal.
  */
-Game_Map.prototype.clearStaleLootDrops = function()
+Game_Map.prototype.clearExpiredLootEvents = function()
 {
-  const eventSprites = this.events();
+  // grab the list of expired loot events.
+  const expiredLootEvents = this.expiredLootEvents();
 
   // get all the game_event sprites that need removing.
-  eventSprites.forEach(event =>
-  {
-    if (event.getLootNeedsRemoving())
-    {
-      this.removeEvent(event);
-    }
-  });
+  expiredLootEvents.forEach(this.clearExpiredLootEvent, this);
+};
+
+/**
+ * Clears a particular loot event from the map.
+ * @param {Game_Event} lootEvent The loot event to clear.
+ */
+Game_Map.prototype.clearExpiredLootEvent = function(lootEvent)
+{
+  this.removeEvent(lootEvent);
 };
 //#endregion
 

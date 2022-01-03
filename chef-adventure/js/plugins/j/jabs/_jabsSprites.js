@@ -21,7 +21,10 @@
 J.ABS.Aliased.Spriteset_Map.spritesetUpdate = Spriteset_Map.prototype.update;
 Spriteset_Map.prototype.update = function()
 {
+  // perform original logic.
   J.ABS.Aliased.Spriteset_Map.spritesetUpdate.call(this);
+
+  // perform jabs-related sprite updates.
   this.updateJabsSprites();
 };
 
@@ -30,28 +33,65 @@ Spriteset_Map.prototype.update = function()
  */
 Spriteset_Map.prototype.updateJabsSprites = function()
 {
+  // manage action sprites.
+  this.handleActionSprites();
+
+  // manage loot sprites.
+  this.handleLootSprites();
+
+  // manage full-screen sprite refreshes.
+  this.handleSpriteRefresh();
+};
+
+/**
+ * Processes incoming requests to add/remove action sprites.
+ */
+Spriteset_Map.prototype.handleActionSprites = function()
+{
+  // check if we have incoming requests to add new action sprites.
   if ($gameBattleMap.requestActionRendering)
   {
+    // add the new action sprites.
     this.addActionSprites();
   }
 
+  // check if we have incoming requests to remove old action sprites.
+  if ($gameBattleMap.requestClearMap)
+  {
+    // remove the old action sprites.
+    this.removeActionSprites();
+  }
+};
+
+/**
+ * Processes incoming requests to add/remove loot sprites.
+ */
+Spriteset_Map.prototype.handleLootSprites = function()
+{
+  // check if we have incoming requests to add new loot sprites.
   if ($gameBattleMap.requestLootRendering)
   {
+    // add the new loot sprites.
     this.addLootSprites();
   }
 
-  if ($gameBattleMap.requestClearMap)
-  {
-    this.removeActionSprites();
-  }
-
+  // check if we have incoming requests to remove old loot sprites.
   if ($gameBattleMap.requestClearLoot)
   {
+    // remove the old loot sprites.
     this.removeLootSprites();
   }
+};
 
+/**
+ * Processes incoming requests to add/remove loot sprites.
+ */
+Spriteset_Map.prototype.handleSpriteRefresh = function()
+{
+  // check if we have incoming requests to do a sprite refresh.
   if ($gameBattleMap.requestSpriteRefresh)
   {
+    // refresh all character sprites.
     this.refreshAllCharacterSprites();
   }
 };
@@ -61,9 +101,14 @@ Spriteset_Map.prototype.updateJabsSprites = function()
  */
 Spriteset_Map.prototype.addActionSprites = function()
 {
+  // grab all the newly-added action events.
+  const newActionEvents = $gameMap.newActionEvents();
+
+  // scan each of them and add new action sprites as-needed.
+  newActionEvents.forEach(this.addActionSprite, this);
+
+  // acknowledge that action sprites were added.
   $gameBattleMap.requestActionRendering = false;
-  const events = $gameMap.events();
-  events.forEach(this.addActionSprite, this);
 };
 
 /**
@@ -72,9 +117,6 @@ Spriteset_Map.prototype.addActionSprites = function()
  */
 Spriteset_Map.prototype.addActionSprite = function(actionEvent)
 {
-  // if we do not need to add the sprite, then do not.
-  if (!actionEvent.getActionSpriteNeedsAdding()) return;
-
   // get the underlying character associated with this action.
   const character = actionEvent.getMapActionData().getActionSprite();
 
@@ -90,13 +132,18 @@ Spriteset_Map.prototype.addActionSprite = function(actionEvent)
 };
 
 /**
- * Adds all needing-to-be-added loot sprites to the map and renders.
+ * Scans all events on the map and adds new loot sprites accordingly.
  */
 Spriteset_Map.prototype.addLootSprites = function()
 {
-  $gameBattleMap.requestLootRendering = false;
-  const events = $gameMap.events();
+  // grab all the newly-added loot events.
+  const events = $gameMap.newLootEvents();
+
+  // scan each of them and add new loot sprites.
   events.forEach(this.addLootSprite, this);
+
+  // acknowledge that loot sprites were added.
+  $gameBattleMap.requestLootRendering = false;
 };
 
 /**
@@ -105,9 +152,6 @@ Spriteset_Map.prototype.addLootSprites = function()
  */
 Spriteset_Map.prototype.addLootSprite = function(lootEvent)
 {
-  // if we do not need to add the sprite, then do not.
-  if (!lootEvent.getLootNeedsAdding()) return;
-
   // generate the new sprite based on the loot's character.
   const sprite = new Sprite_Character(lootEvent);
 
@@ -120,37 +164,48 @@ Spriteset_Map.prototype.addLootSprite = function(lootEvent)
 };
 
 /**
- * Removes all needing-to-be-removed action sprites from the map.
+ * Removes all expired action sprites from the map.
  */
 Spriteset_Map.prototype.removeActionSprites = function()
 {
-  const events = $gameMap.events();
-  events.forEach(event =>
-  {
-    // if they aren't an action, this function doesn't care.
-    const isAction = event.isAction();
-    if (!isAction) return;
+  // grab all expired action events.
+  const events = $gameMap.expiredActionEvents();
 
-    const actionEvent = event.getMapActionData();
-    const shouldRemoveActionEvent = !!actionEvent && actionEvent.getNeedsRemoval()
-    if (shouldRemoveActionEvent)
-    {
-      event.setActionSpriteNeedsRemoving();
-      this._characterSprites.forEach((sprite, index) =>
-      {
-        const actionSprite = sprite._character;
-        const needsRemoval = actionSprite.getActionSpriteNeedsRemoving();
-        if (needsRemoval)
-        {
-          this._characterSprites.splice(index, 1);
-          actionSprite.erase();
-        }
-      });
-      $gameMap.clearStaleMapActions();
-    }
+  // remove them.
+  events.forEach(this.removeActionSprite, this);
+
+  // acknowledge that expired action sprites were cleared.
+  $gameBattleMap.requestClearMap = false;
+};
+
+/**
+ * Processes a single action event and removes its corresponding sprite(s).
+ * @param {Game_Event} actionEvent The action event that requires removal.
+ */
+Spriteset_Map.prototype.removeActionSprite = function(actionEvent)
+{
+  // get the sprite index for the action event.
+  const spriteIndex = this._characterSprites.findIndex(sprite =>
+  {
+    // if the character doesn't match the event, then keep looking.
+    if (sprite._character !== actionEvent) return false;
+
+    // we found a match!
+    return true;
   });
 
-  $gameBattleMap.requestClearMap = false;
+  // confirm we did indeed find the sprite's index for removal.
+  if (spriteIndex !== -1)
+  {
+    // purge the sprite from tracking.
+    this._characterSprites.splice(spriteIndex, 1);
+  }
+
+  // flag the Game_Event for removal from Game_Map's tracking.
+  actionEvent.setActionSpriteNeedsRemoving();
+
+  // delete the now-removed sprite for this action.
+  $gameMap.clearExpiredJabsActionEvents();
 };
 
 /**
@@ -158,38 +213,48 @@ Spriteset_Map.prototype.removeActionSprites = function()
  */
 Spriteset_Map.prototype.removeLootSprites = function()
 {
-  const events = $gameMap.events();
-  events.forEach(event =>
-  {
-    // if they aren't loot, this function doesn't care.
-    const isLoot = event.isLoot();
-    if (!isLoot) return;
+  // grab all expired loot events.
+  const events = $gameMap.expiredLootEvents();
 
-    const shouldRemoveLoot = event.getLootNeedsRemoving();
-    if (shouldRemoveLoot)
-    {
-      this._characterSprites.forEach((sprite, index) =>
-      {
-        const lootSprite = sprite._character;
-        const needsRemoval = lootSprite.getLootNeedsRemoving();
-        if (needsRemoval)
-        {
-          sprite.deleteLootSprite();
-          this._characterSprites.splice(index, 1);
-          lootSprite.erase();
-        }
-      });
+  // remove them.
+  events.forEach(this.removeLootSprite, this);
 
-      $gameMap.clearStaleLootDrops();
-    }
-  });
-
+  // acknowledge that expired loot sprites were cleared.
   $gameBattleMap.requestClearLoot = false;
 };
 
 /**
+ * Processes a single loot event and removes its corresponding sprite(s).
+ * @param {Game_Event} lootEvent The loot event that requires removal.
+ */
+Spriteset_Map.prototype.removeLootSprite = function(lootEvent)
+{
+  const spriteIndex = this._characterSprites.findIndex(sprite =>
+  {
+    // if the character doesn't match the event, then keep looking.
+    if (sprite._character !== lootEvent) return false;
+
+    // we found a match!
+    return true;
+  });
+
+  // confirm we did indeed find the sprite's index for removal.
+  if (spriteIndex !== -1)
+  {
+    // delete that sprite's loot.
+    this._characterSprites[spriteIndex].deleteLootSprite();
+
+    // purge the sprite from tracking.
+    this._characterSprites.splice(spriteIndex, 1);
+  }
+
+  // delete the now-removed sprite for this action.
+  $gameMap.clearExpiredLootEvents();
+};
+
+/**
  * Refreshes all character sprites on the map.
- * Open for extension.
+ * Does nothing in this plugin, but leaves open for extension.
  */
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
@@ -213,6 +278,7 @@ Sprite_Character.prototype.initMembers = function()
    * The battle-related sprites and such are maintained within this umbrella.
    */
   this._j._abs ||= {};
+
   /**
    * Whether or not the map sprite setup has been completed.
    * @type {boolean}
@@ -242,6 +308,12 @@ Sprite_Character.prototype.initMembers = function()
    * @type {{}}
    */
   this._j._loot = {};
+
+  /**
+   * Whether or not the loot sprite setup has been completed.
+   * @type {boolean}
+   */
+  this._j._loot._lootSetupComplete = false;
 
   /**
    * The icon sprite that represents this character if it is loot.
@@ -293,6 +365,13 @@ Sprite_Character.prototype.update = function()
     // update the battler's name, if any.
     this.updateBattlerName();
   }
+
+  /// only update the loot components if they have been initialized.
+  if (this.isLootReady())
+  {
+    // update the battler's name, if any.
+    this.updateLootFloat();
+  }
 };
 
 /**
@@ -340,6 +419,24 @@ Sprite_Character.prototype.isJabsBattler = function()
 
   // return whether or not this has a battler attached to it.
   return !!this._character.hasJabsBattler();
+};
+
+/**
+ * Whether or not this loot sprite has been setup with all its sprites yet.
+ * @returns {boolean}  True if this loot has been established, false otherwise.
+ */
+Sprite_Character.prototype.isLootReady = function()
+{
+  return this._j._loot._lootSetupComplete;
+};
+
+/**
+ * Give this loot sprite setup a stamp of approval, indicating that it is
+ * ready to be processed by our `update()` siblings/overlords!
+ */
+Sprite_Character.prototype.finalizeLootSetup = function()
+{
+  this._j._loot._lootSetupComplete = true;
 };
 
 /**
@@ -392,19 +489,6 @@ Sprite_Character.prototype.setCharacterBitmap = function()
 
   // if the sprite changed, the JABS-related data probably changed, too.
   this.setupJabsSprite();
-};
-
-/**
- * If this is loot, then treat it as loot instead of a tilemap.
- */
-J.ABS.Aliased.Sprite_Character.set('setTileBitmap', Sprite_Character.prototype.setTileBitmap);
-Sprite_Character.prototype.setTileBitmap = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Sprite_Character.get('setTileBitmap').call(this);
-
-  // this only occurs for loot, so there will be no name or anything for this!
-  this.handleLootSetup();
 };
 
 /**
@@ -816,6 +900,9 @@ Sprite_Character.prototype.setupLootSprite = function()
 
   // add it to this sprite's tracking.
   this.addChild(this._j._loot._sprite);
+
+  // flag this character as finalized for the purpose of loot-related updates.
+  this.finalizeLootSetup();
 };
 
 /**
@@ -834,6 +921,7 @@ Sprite_Character.prototype.createLootSprite = function()
   const yOffset = J.BASE.Helpers.getRandomNumber(-90, -70);
   sprite.move(xOffset, yOffset);
 
+  // return the built sprite.
   return sprite;
 };
 
@@ -864,6 +952,9 @@ Sprite_Character.prototype.getLootExpired = function()
   return this.getLootData().expired ?? true;
 };
 
+/**
+ * Executes the loot's countdown to expiry.
+ */
 Sprite_Character.prototype.performLootDurationCountdown = function()
 {
   // execute a countdown on behalf of the loot.
@@ -922,22 +1013,6 @@ Sprite_Character.prototype.lootSwingDown = function(amount = 0)
 };
 
 /**
- * Intercepts the update frame for loot and performs the things we need to
- * make the loot look like its floating in-place.
- */
-J.ABS.Aliased.Sprite_Character.set('updateFrame', Sprite_Character.prototype.updateFrame);
-Sprite_Character.prototype.updateFrame = function()
-{
-  if (this.isLoot())
-  {
-    this.updateLootFloat();
-    return;
-  }
-
-  J.ABS.Aliased.Sprite_Character.get('updateFrame').call(this);
-};
-
-/**
  * Updates the loot to give the effect that it is floating in place.
  */
 Sprite_Character.prototype.updateLootFloat = function()
@@ -949,6 +1024,38 @@ Sprite_Character.prototype.updateLootFloat = function()
   this.handleLootFloat();
 };
 
+/**
+ * Handles loot duration and expiration for this sprite.
+ */
+Sprite_Character.prototype.handleLootDuration = function()
+{
+  // tick tock the duration countdown of the loot if it has an expiration.
+  this.performLootDurationCountdown();
+
+  // check if the loot is now expired.
+  if (this.getLootExpired())
+  {
+    // expire it if it is.
+    this.expireLoot();
+  }
+};
+
+/**
+ * Perform all steps to have this loot expired and removed.
+ */
+Sprite_Character.prototype.expireLoot = function()
+{
+  // don't reset the removal if its already set.
+  if (this._character.getLootNeedsRemoving()) return;
+
+  // set the loot to be removed.
+  this._character.setLootNeedsRemoving(true);
+  $gameBattleMap.requestClearLoot = true;
+};
+
+/**
+ *
+ */
 Sprite_Character.prototype.handleLootFloat = function()
 {
   // check if we can update the loot float.
@@ -994,35 +1101,6 @@ Sprite_Character.prototype.lootFloat = function()
     // !swing down~
     this.lootFloatDown(lootSprite);
   }
-};
-
-/**
- * Handles loot duration and expiration for this sprite.
- */
-Sprite_Character.prototype.handleLootDuration = function()
-{
-  // tick tock the duration countdown of the loot if it has an expiration.
-  this.performLootDurationCountdown();
-
-  // check if the loot is now expired.
-  if (this.getLootExpired())
-  {
-    // expire it if it is.
-    this.expireLoot();
-  }
-};
-
-/**
- * Perform all steps to have this loot expired and removed.
- */
-Sprite_Character.prototype.expireLoot = function()
-{
-  // don't reset the removal if its already set.
-  if (this._character.getLootNeedsRemoving()) return;
-
-  // set the loot to be removed.
-  this._character.setLootNeedsRemoving(true);
-  $gameBattleMap.requestClearLoot = true;
 };
 
 /**

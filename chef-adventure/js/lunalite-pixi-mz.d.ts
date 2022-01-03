@@ -33470,6 +33470,16 @@ declare namespace rm.types {
 		 * The event's y-coordinate on the map.
 		 */
 		y: number;
+
+        // extra JABS-related stuff.
+        /**
+         * The index of this jabs-action event, assigned on creation.
+         */
+        actionIndex: number;
+        /**
+         * The index of this jabs-loot event, assigned on creation.
+         */
+        lootIndex: number;
 	}
 }
 
@@ -44018,7 +44028,7 @@ interface TestBattler {
     /**
      * The array of RPG.Event data.
      */
-    events: Array<Event>;
+    events: rm.types.Event[];
 }
 
 interface System {

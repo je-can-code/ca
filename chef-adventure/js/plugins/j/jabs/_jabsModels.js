@@ -7033,6 +7033,25 @@ class JABS_LootDrop
   };
 
   /**
+   * Gets the `uuid` of this loot drop.
+   * @returns {string}
+   */
+  get uuid()
+  {
+    return this._uuid;
+  };
+
+  /**
+   * Sets the `uuid` to the new value.
+   * This overwrites the default-generated `uuid`.
+   * @param {string} newUuid The new `uuid`.
+   */
+  set uuid(newUuid)
+  {
+    this._uuid = newUuid;
+  };
+
+  /**
    * Gets the duration remaining on this loot drop.
    * @returns {number}
    */
