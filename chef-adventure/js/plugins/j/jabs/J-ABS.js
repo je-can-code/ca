@@ -818,7 +818,7 @@ J.ABS.Aliased = {
   Game_Follower: {},
   Game_Followers: {},
   Game_Interpreter: {},
-  Game_Map: {},
+  Game_Map: new Map(),
   Game_Party: {},
   Game_Player: {},
   Game_Unit: {},
