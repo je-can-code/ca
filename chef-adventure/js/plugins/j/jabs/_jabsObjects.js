@@ -3086,7 +3086,6 @@ class Game_BattleMap
     // create the loot event by hand with this new data.
     const jabsLootData = new JABS_LootDrop(item);
     lootEventData.uuid = jabsLootData.uuid;
-    console.log(lootEventData.uuid);
 
     // set the duration of this loot drop
     // if a custom time is available, then use that, otherwise use the default.
@@ -6476,7 +6475,7 @@ Game_Event.prototype.getValidCommentCommands = function()
 
     // make sure it has a valid structure.
     const comment = command.parameters[0];
-    if (!comment.match(/^<[.\w:-]+>$/i)) return false;
+    if (!comment.match(/^<[\w :"'.!+\-*\/\\]+>$/i)) return false;
 
     // it is a valid comment worth parsing!
     return true;

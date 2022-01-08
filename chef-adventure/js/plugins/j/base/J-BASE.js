@@ -417,6 +417,7 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure)
  * An empty static constant string variable.
  */
 String.empty = '';
+Object.defineProperty(String, "empty", { writable: false });
 
 /**
  * Executes a given function a given number of `times`.
@@ -1093,6 +1094,24 @@ class IconManager
         return 90;
     }
   };
+
+  /**
+   * Gets the icon representing the team id provided.
+   * @param {string} teamId The team id.
+   * @returns {number} The corresponding icon index.
+   */
+  static team(teamId)
+  {
+    switch (teamId)
+    {
+      case 0: // ally
+        return 38;
+      case 1: // enemy
+        return 21;
+      case 2: // neutral
+        return 91;
+    }
+  };
 }
 //#endregion IconManager
 //#endregion Static objects
@@ -1658,6 +1677,7 @@ Game_Battler.prototype.databaseData = function()
 {
   return null;
 };
+
 /**
  * All battlers have a prepare time.
  * At this level, returns default 180 frames.
@@ -2671,7 +2691,7 @@ Sprite_Icon.prototype.loadBitmap = function()
 
 //#region Sprite_MapGauge
 /**
- * The sprite for displaying an hp gauge over a character's sprite.
+ * The sprite for displaying a gauge over a character's sprite.
  */
 function Sprite_MapGauge()
 {

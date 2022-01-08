@@ -235,16 +235,31 @@ class CyclonePatcher {
     return anyOverride;
   }
 
+  /**
+   * This method appears to be patching a class with all the various methods of another.
+   * @param baseClass The class being overwritten.
+   * @param patchFn
+   */
   static patchClass(baseClass, patchFn) {
+
+    // creates a parent-class object.
     const $super = this.superClasses[baseClass.name] || {};
+
+    // instantiates an empty prototype variable.
     const $prototype = {};
+
+    // ?? ??
     const $dynamicSuper = {};
+
+    // patches the class with the provided function.
     const patchClass = patchFn($dynamicSuper, $prototype);
 
+    // if the end result is that the patch job is a function, we failed.
     if (typeof patchClass !== 'function') {
       throw new Error(`Invalid class patch for ${ baseClass.name }`); //`
     }
 
+    // these are special names that we don't want to do things with.
     const ignoredStaticNames = Object.getOwnPropertyNames(class Test{});
     const ignoredNames = Object.getOwnPropertyNames((class Test{}).prototype);
     const anyStaticOverride = this._applyPatch(baseClass, patchClass, $super, ignoredStaticNames);
