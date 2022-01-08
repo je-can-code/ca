@@ -15,17 +15,6 @@
 * equipped in the context of JABS. It will also show cooldowns and costs.
 * ============================================================================
 *
-* @param BreakHead
-* @text --------------------------
-* @default ----------------------------------
-*
-* @param Extensions
-* @default Modify Below
-*
-* @param BreakSettings
-* @text --------------------------
-* @default ----------------------------------
-*
 * @param Enabled
 * @type boolean
 * @desc Use Action Keys display?

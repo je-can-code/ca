@@ -66,7 +66,7 @@ J.HUD.Metadata.Name = `J-HUD`;
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.HUD.PluginParameters = PluginManager.parameters(`J-HUD2`);
+J.HUD.PluginParameters = PluginManager.parameters(J.HUD.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -248,7 +248,7 @@ Scene_Map.prototype.initialize = function()
   this._j ||= {};
 
   /**
-   * The log window on the map.
+   * The hud window on the map.
    * @type {Window_Hud}
    */
   this._j._hud = null;
@@ -263,7 +263,7 @@ Scene_Map.prototype.createAllWindows = function()
   // perform original logic.
   J.HUD.Aliased.Scene_Map.get('createAllWindows').call(this);
 
-  // create the log.
+  // create the hud.
   this.createMapHud();
 };
 
@@ -542,7 +542,7 @@ class Window_Hud extends Window_Base
   };
 
   /**
-   * Recreates any missing sprites in the cache.
+   * Creates all sprites for this hud and caches them.
    */
   createCache()
   {
@@ -1491,6 +1491,18 @@ class Hud_Manager
   #requestRefreshImageCache = false;
 
   /**
+   * The current target being tracked.
+   * @type {FramedTarget|null}
+   */
+  #newTarget = null;
+
+  /**
+   * Whether or not we have a request to refresh the inactivity timer of the target frame.
+   * @type {boolean}
+   */
+  #requestTargetFrameRefreshInactivity = false;
+
+  /**
    * Whether or not the hud manager is ready to do things.
    * @type {boolean}
    * @private
@@ -1659,6 +1671,67 @@ class Hud_Manager
     this.#setRequestRefreshImageCache(false);
   };
 
+  /**
+   * Whether or not we have a request to assign a new target to the target frame.
+   * @returns {boolean} True if we have a request, false otherwise.
+   */
+  hasRequestAssignTarget()
+  {
+    return this.#newTarget !== null;
+  };
+
+  /**
+   * Gets the currently tracked target.
+   * @returns {FramedTarget|null}
+   */
+  getNewTarget()
+  {
+    return this.#newTarget;
+  };
+
+  /**
+   * Sets the provided target to the tracker.
+   * @param {FramedTarget|null} newTarget The target to track.
+   */
+  setNewTarget(newTarget)
+  {
+    this.#newTarget = newTarget;
+  };
+
+  /**
+   * Requests the target frame to refresh its inactivity timer.
+   */
+  requestTargetFrameRefresh()
+  {
+    this.#setRequestTargetFrameRefreshInactivity(true);
+  };
+
+  /**
+   * Gets whether or not we have a request to refresh the target frame's
+   * inactivity timer.
+   * @returns {boolean}
+   */
+  hasRequestTargetFrameRefreshInactivityTimer()
+  {
+    return this.#requestTargetFrameRefreshInactivity;
+  };
+
+  /**
+   * Acknowledges the request to refresh the target frame's inactivity timer.
+   */
+  acknowledgeTargetFrameInactivityTimerRefresh()
+  {
+    this.#setRequestTargetFrameRefreshInactivity(false);
+  };
+
+  /**
+   * Acknowledges the request to assign a new target to the target frame.
+   */
+  acknowledgeAssignedTarget()
+  {
+    this.setNewTarget(null);
+  };
+
   //#region private functions
   /**
    * Whether or not the hud manager is ready to get started.
@@ -1668,6 +1741,15 @@ class Hud_Manager
   #isReady()
   {
     return this.#ready;
+  };
+
+  /**
+   * Sets whether or not the target frame window to refresh the timer.
+   * @param request
+   */
+  #setRequestTargetFrameRefreshInactivity(request)
+  {
+    this.#requestTargetFrameRefreshInactivity = request;
   };
 
   /**
