@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 TARGET] Adds a targeting window to the map.
+ * [v1.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-ABS
@@ -35,8 +35,8 @@
  * that is currently set. These gauges are not default window gauges, but
  * images loaded from disk instead. You must add two images matching these file
  * names into a new directory called "hud" inside your images directory:
- *  /img/hud/enemy-gauge-background.png
- *  /img/hud/enemy-gauge-foreground.png
+ *  /img/hud/target-gauge-background.png
+ *  /img/hud/target-gauge-foreground.png
  * ============================================================================
  * ABOUT THE IMAGES:
  * As mentioned above, there are two images required to construct the gauges in
@@ -186,6 +186,13 @@
  * @parent targetFrameGauge
  * @text Background Settings
  *
+ * @param backgroundImageFilename
+ * @parent backgroundGauge
+ * @type file
+ * @text Background Image File
+ * @desc The file that represents the background image; see plugin description for details.
+ * @default img/hud/target-gauge-background
+ *
  * @param backgroundGaugeImageX
  * @parent backgroundGauge
  * @type number
@@ -225,6 +232,13 @@
  * @param foregroundGauge
  * @parent targetFrameGauge
  * @text Foreground Settings
+ *
+ * @param foregroundImageFilename
+ * @parent foregroundGauge
+ * @type file
+ * @text Background Image File
+ * @desc The file that represents the foreground image; see plugin description for details.
+ * @default img/hud/target-gauge-foreground
  *
  * @param foregroundGaugeImageX
  * @parent foregroundGauge
@@ -433,8 +447,8 @@ J.HUD.EXT_TARGET.Metadata =
     MiddlegroundGaugeImageY: Number(J.HUD.EXT_TARGET.PluginParameters['middlegroundGaugeImageY']),
     ForegroundGaugeImageX: Number(J.HUD.EXT_TARGET.PluginParameters['foregroundGaugeImageX']),
     ForegroundGaugeImageY: Number(J.HUD.EXT_TARGET.PluginParameters['foregroundGaugeImageY']),
-    BackgroundFilename: `target-gauge-background`,
-    ForegroundFilename: `target-gauge-foreground`,
+    BackgroundFilename: J.HUD.EXT_TARGET.PluginParameters['backgroundImageFilename'],
+    ForegroundFilename: J.HUD.EXT_TARGET.PluginParameters['foregroundImageFilename'],
     EnableHP: J.HUD.EXT_TARGET.PluginParameters['enableHp'] === "true",
     EnableMP: J.HUD.EXT_TARGET.PluginParameters['enableMp'] === "true",
     EnableTP: J.HUD.EXT_TARGET.PluginParameters['enableTp'] === "true",
@@ -471,6 +485,7 @@ J.HUD.EXT_TARGET.RegExp = {
   HideTargetMP: /<hideTargetMpBar>/i,
   HideTargetTP: /<hideTargetTpBar>/i,
 };
+//#endregion introduction
 
 //#region Static objects
 //#region ImageManager
@@ -1304,7 +1319,8 @@ class Sprite_FlowingGauge extends Sprite
     this.resetValues();
 
     // establish a promise for loading the gauge background into memory.
-    const backgroundPromise = ImageManager.loadHudBitmap(J.HUD.EXT_TARGET.Metadata.BackgroundFilename);
+    const backgroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.BackgroundFilename);
+    const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
     backgroundPromise
@@ -1312,7 +1328,8 @@ class Sprite_FlowingGauge extends Sprite
       .catch(() => { throw new Error('background bitmap failed to load.') });
 
     // establish a promise for loading the gauge foreground into memory.
-    const foregroundPromise = ImageManager.loadHudBitmap(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
+    const foregroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
+    const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
     foregroundPromise
@@ -1323,6 +1340,20 @@ class Sprite_FlowingGauge extends Sprite
     Promise
       .all([backgroundPromise, foregroundPromise])
       .then(() => this.onReady());
+  };
+
+  /**
+   * Extracts the filename out of the extended path.
+   * @param {string} longFileName The filename with the path in it.
+   * @returns {string} Just the filename.
+   */
+  extractFileName(longFileName)
+  {
+    // get the character after the last slash.
+    const lastSlash = longFileName.lastIndexOf('/') + 1;
+
+    // return only the filename.
+    return longFileName.substring(lastSlash);
   };
 
   /**

@@ -218,7 +218,7 @@ Window_ActionKeys.prototype.initMembers = function()
    * The dictionary of sprites for this window, used for action keys.
    */
   this._sprites = {};
-
+  
   /**
    * Whether or not the action keys should be visible.
    */
