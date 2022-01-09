@@ -15,6 +15,20 @@
  * ============================================================================
  * This plugin is an extension of the J-HUD plugin, designed for JABS.
  * It generates a window on the map displaying a given target.
+ *
+ * The following data points are currently supported:
+ * - The enemy battler's name.
+ * - The enemy battler's "text".
+ * - An icon.
+ * - The enemy's HP gauge.
+ * - The enemy's MP gauge.
+ * - The enemy's TP gauge.
+ *
+ * This plugin not only requires two image files for the gauge, but also the
+ * following plugins all above this one:
+ * - J-BASE   v2.0.0+
+ * - J-ABS    v3.0.0+
+ * - J-HUD    v2.0.0+
  * ============================================================================
  * SETUP:
  * This plugin creates a window, which contains gauges representing the target
@@ -24,7 +38,7 @@
  *  /img/hud/enemy-gauge-background.png
  *  /img/hud/enemy-gauge-foreground.png
  * ============================================================================
- * DETAILS:
+ * ABOUT THE IMAGES:
  * As mentioned above, there are two images required to construct the gauges in
  * the target frame.
  *
@@ -102,6 +116,33 @@
  *  <targetFrameIcon:25>
  * When this enemy is struck on the map, the target frame will display an icon
  * that matches the icon index of 25 to the left of the gauges (if applicable).
+ * ============================================================================
+ * HIDING DATA:
+ * Have you ever wanted to hide certain data points for some enemies, but not
+ * ALL enemies? Well now you can! By applying the appropriate tags to either
+ * the enemy or the event that represents an enemy on the map, you too can have
+ * the chosen data points completely absent from the target frame when striking
+ * the tagged enemy!
+ *
+ * DETAILS:
+ * Below you'll find 5 tags for hiding the various data points of the target
+ * frame, with the tag hopefully describing accurately what they accomplish.
+ * Hiding the entire frame will take priority over any of the one elements.
+ * Hiding with these tags via the event will take the highest priority over
+ * showing via tags in the event or the database. Generally speaking, it is
+ * probably recommended to enable and show all data points, and then hide
+ * them selectively with the below tags.
+ *
+ * TAG USAGE:
+ * - Enemies
+ * - Events on the map (only applicable to JABS battlers)
+ *
+ * TAG FORMAT:
+ *  <hideTargetFrame>     Hides the target frame and all text and gauges.
+ *  <hideTargetFrameText> Hides the subtext in the target frame.
+ *  <hideTargetHpBar>     Hides the HP gauge in the target frame.
+ *  <hideTargetMpBar>     Hides the MP gauge in the target frame.
+ *  <hideTargetTpBar>     Hides the TP gauge in the target frame.
  * ============================================================================
  * @param targetFrameData
  * @text Target Frame Window
@@ -424,6 +465,11 @@ J.HUD.EXT_TARGET.Aliased = {
 J.HUD.EXT_TARGET.RegExp = {
   TargetFrameText: /<targetFrameText:([\w :"'.!+\-*\/\\]*)>/i,
   TargetFrameIcon: /<targetFrameIcon:(\d+)>/i,
+  HideTargetFrame: /<hideTargetFrame>/i,
+  HideTargetText: /<hideTargetFrameText>/i,
+  HideTargetHP: /<hideTargetHpBar>/i,
+  HideTargetMP: /<hideTargetMpBar>/i,
+  HideTargetTP: /<hideTargetTpBar>/i,
 };
 
 //#region Static objects
@@ -546,13 +592,253 @@ Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
   // return the found icon if any.
   return targetFrameIcon;
 };
+
+/**
+ * Gets whether or not the battler can show the target frame.
+ * The default is to show.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.showTargetFrame = function()
+{
+  // extract whether or not to show the target HP for this enemy.
+  const showTargetFrame = this.extractShowTargetFrame(this.enemy());
+
+  // return it.
+  return showTargetFrame;
+};
+
+/**
+ * Extracts whether or not to show the target frame for this enemy.
+ * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return true;
+
+  // translate the tags from notes into an array of strings for easy parsing.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+
+  // start with the default of true
+  let showTargetFrame = true;
+
+  // check all the tags from the notes.
+  notedata.forEach(line =>
+  {
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target frame.
+      showTargetFrame = false;
+    }
+  });
+
+  // return the truth.
+  return showTargetFrame;
+};
+
+/**
+ * Gets whether or not the battler can show its mp bar.
+ * The default is to show.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.showTargetHpBar = function()
+{
+  // extract whether or not to show the target HP for this enemy.
+  const showHpBar = this.extractShowHpBar(this.enemy());
+
+  // return it.
+  return showHpBar;
+};
+
+/**
+ * Extracts whether or not to show the hp bar for this target.
+ * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.extractShowHpBar = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return true;
+
+  // translate the tags from notes into an array of strings for easy parsing.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+
+  // start with the default of true
+  let showHpBar = true;
+
+  // check all the tags from the notes.
+  notedata.forEach(line =>
+  {
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target frame.
+      showHpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showHpBar;
+};
+
+/**
+ * Gets whether or not the battler can show its mp bar.
+ * The default is to show.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.showTargetMpBar = function()
+{
+  // extract whether or not to show the target MP for this enemy.
+  const showMpBar = this.extractShowMpBar(this.enemy());
+
+  // return it.
+  return showMpBar;
+};
+
+/**
+ * Extracts whether or not to show the mp bar for this enemy.
+ * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.extractShowMpBar = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return true;
+
+  // translate the tags from notes into an array of strings for easy parsing.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+
+  // start with the default of true
+  let showMpBar = true;
+
+  // check all the tags from the notes.
+  notedata.forEach(line =>
+  {
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target frame.
+      showMpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showMpBar;
+};
+
+/**
+ * Gets whether or not the battler can show its tp bar.
+ * The default is to show.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.showTargetTpBar = function()
+{
+  // extract whether or not to show the target TP for this enemy.
+  const showTpBar = this.extractShowTpBar(this.enemy());
+
+  // return it.
+  return showTpBar;
+};
+
+/**
+ * Extracts whether or not to show the tp bar for this enemy.
+ * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.extractShowTpBar = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return true;
+
+  // translate the tags from notes into an array of strings for easy parsing.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+
+  // start with the default of true
+  let showTpBar = true;
+
+  // check all the tags from the notes.
+  notedata.forEach(line =>
+  {
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target frame.
+      showTpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showTpBar;
+};
+
+/**
+ * Gets whether or not the battler can show its target text.
+ * The default is to show.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.showTargetText = function()
+{
+  // extract whether or not to show the target text from this enemy.
+  const showTargetText = this.extractShowTargetText(this.enemy());
+
+  // return it.
+  return showTargetText;
+};
+
+/**
+ * Extracts whether or not to show the target text for this enemy.
+ * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.extractShowTargetText = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return true;
+
+  // translate the tags from notes into an array of strings for easy parsing.
+  const notedata = referenceData.note.split(/[\r\n]+/);
+
+  // the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+
+  // start with the default of true
+  let showTargetText = true;
+
+  // check all the tags from the notes.
+  notedata.forEach(line =>
+  {
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target text.
+      showTargetText = false;
+    }
+  });
+
+  // return the truth.
+  return showTargetText;
+};
 //#endregion Game_Enemy
 
 //#region Game_Event
 /**
  * Gets the icon index of the target frame icon.
  * If none are present or valid, then the default will be 0 (no icon).
- * @returns {number}
+ * @returns {string|String.empty}
  */
 Game_Event.prototype.getTargetFrameText = function()
 {
@@ -621,6 +907,191 @@ Game_Event.prototype.getTargetFrameIcon = function()
 
   // return the found icon.
   return targetFrameIcon;
+};
+
+/**
+ * Gets whether or not this event is explicitly hiding the target frame.
+ * The default is to show the frame.
+ * @returns {boolean} True if we should show the target frame, false otherwise.
+ */
+Game_Event.prototype.canShowTargetFrame = function()
+{
+  // start with the default of true.
+  let showTargetFrame = true;
+
+  // get the list of valid event commands that are comments.
+  const commentCommands = this.getValidCommentCommands();
+
+  // if there are none, then we show no icon.
+  if (!commentCommands.length) return showTargetFrame;
+
+  // encapsulate the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+
+  // check all the valid event commands to see if we have a reason to hide it.
+  commentCommands.forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const line = command.parameters[0];
+
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide the target frame.
+      showTargetFrame = false;
+    }
+  });
+
+  // return the truth.
+  return showTargetFrame;
+};
+
+/**
+ * Gets whether or not this event is explicitly hiding the hp bar.
+ * The default is to show the bar.
+ * @returns {boolean} True if we should show the bar, false otherwise.
+ */
+Game_Event.prototype.showTargetHpBar = function()
+{
+  // start with the default of true.
+  let showHpBar = J.HUD.EXT_TARGET.Metadata.EnableHP;
+
+  // get the list of valid event commands that are comments.
+  const commentCommands = this.getValidCommentCommands();
+
+  // if there are none, then we show no icon.
+  if (!commentCommands.length) return showHpBar;
+
+  // encapsulate the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+
+  // check all the valid event commands to see if we have a reason to hide it.
+  commentCommands.forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const line = command.parameters[0];
+
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide it.
+      showHpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showHpBar;
+};
+
+/**
+ * Gets whether or not this event is explicitly hiding the mp bar.
+ * The default is to show the bar.
+ * @returns {boolean} True if we should show the bar, false otherwise.
+ */
+Game_Event.prototype.showTargetMpBar = function()
+{
+  // start with the default of true.
+  let showMpBar = J.HUD.EXT_TARGET.Metadata.EnableMP;
+
+  // get the list of valid event commands that are comments.
+  const commentCommands = this.getValidCommentCommands();
+
+  // if there are none, then we show no icon.
+  if (!commentCommands.length) return showMpBar;
+
+  // encapsulate the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+
+  // check all the valid event commands to see if we have a reason to hide it.
+  commentCommands.forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const line = command.parameters[0];
+
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide it.
+      showMpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showMpBar;
+};
+
+/**
+ * Gets whether or not this event is explicitly hiding the tp bar.
+ * The default is to show the bar.
+ * @returns {boolean} True if we should show the bar, false otherwise.
+ */
+Game_Event.prototype.showTargetTpBar = function()
+{
+  // start with the default of true.
+  let showTpBar = J.HUD.EXT_TARGET.Metadata.EnableTP;
+
+  // get the list of valid event commands that are comments.
+  const commentCommands = this.getValidCommentCommands();
+
+  // if there are none, then we show no icon.
+  if (!commentCommands.length) return showTpBar;
+
+  // encapsulate the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+
+  // check all the valid event commands to see if we have a reason to hide it.
+  commentCommands.forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const line = command.parameters[0];
+
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide it.
+      showTpBar = false;
+    }
+  });
+
+  // return the truth.
+  return showTpBar;
+};
+
+/**
+ * Gets whether or not this event is explicitly hiding the target text.
+ * The default is to show the text.
+ * @returns {boolean} True if we should show the text, false otherwise.
+ */
+Game_Event.prototype.showTargetText = function()
+{
+  // start with the default of true.
+  let showText = true;
+
+  // get the list of valid event commands that are comments.
+  const commentCommands = this.getValidCommentCommands();
+
+  // if there are none, then we show no icon.
+  if (!commentCommands.length) return showText;
+
+  // encapsulate the RegExp structure to match.
+  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+
+  // check all the valid event commands to see if we have a reason to hide it.
+  commentCommands.forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const line = command.parameters[0];
+
+    // check if any line matches the structure.
+    if (structure.test(line))
+    {
+      // if this tag exists, then hide it.
+      showText = false;
+    }
+  });
+
+  // return the truth.
+  return showText;
 };
 //#endregion Game_Event
 //#endregion Game objects
@@ -1685,6 +2156,7 @@ class Window_TargetFrame extends Window_Base
     this._j._text = target.text;
     this._j._icon = target.icon;
     this._j._battler = target.battler;
+    this._j._configuration = target.configuration;
 
     // refresh the contents of the window to reflect the changes.
     this.refresh();
@@ -1740,6 +2212,15 @@ class Window_TargetFrame extends Window_Base
   targetIcon()
   {
     return this._j._icon;
+  };
+
+  /**
+   * Gets the configuration of the current target.
+   * @returns {FramedTargetConfiguration|null}
+   */
+  targetConfiguration()
+  {
+    return this._j._configuration;
   };
 
   /**
@@ -2056,6 +2537,7 @@ class Window_TargetFrame extends Window_Base
    */
   drawTargetBattlerGauges(x, y)
   {
+    console.log(this._j._name, this.targetConfiguration());
     // draw all three of the primary gauges.
     this.drawTargetHpGauge(x, y);
     this.drawTargetMpGauge(x, y+22);
@@ -2067,11 +2549,15 @@ class Window_TargetFrame extends Window_Base
    */
   drawTargetHpGauge(x, y)
   {
-    // don't draw the gauge if its disabled.
-    if (!J.HUD.EXT_TARGET.Metadata.EnableHP) return;
-
     // grab the gauge to draw.
     const gauge = this.getOrCreateTargetHpGaugeSprite();
+
+    // don't draw the gauge if its disabled.
+    if (!this.targetConfiguration().showHp)
+    {
+      gauge.hide();
+      return;
+    }
 
     // setup the gauge with the battler.
     gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.HP);
@@ -2085,11 +2571,15 @@ class Window_TargetFrame extends Window_Base
    */
   drawTargetMpGauge(x, y)
   {
-    // don't draw the gauge if its disabled.
-    if (!J.HUD.EXT_TARGET.Metadata.EnableMP) return;
-
     // grab the gauge to draw.
     const gauge = this.getOrCreateTargetMpGaugeSprite();
+
+    // don't draw the gauge if its disabled.
+    if (!this.targetConfiguration().showMp)
+    {
+      gauge.hide();
+      return;
+    }
 
     // setup the gauge with the battler.
     gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.MP);
@@ -2103,11 +2593,15 @@ class Window_TargetFrame extends Window_Base
    */
   drawTargetTpGauge(x, y)
   {
-    // don't draw the gauge if its disabled.
-    if (!J.HUD.EXT_TARGET.Metadata.EnableTP) return;
-
     // grab the gauge to draw.
     const gauge = this.getOrCreateTargetTpGaugeSprite();
+
+    // don't draw the gauge if its disabled.
+    if (!this.targetConfiguration().showTp)
+    {
+      gauge.hide();
+      return;
+    }
 
     // setup the gauge with the battler.
     gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.TP);
@@ -2151,21 +2645,89 @@ class FramedTarget
   battler = null;
 
   /**
+   * The configuration of this target.
+   * @type {FramedTargetConfiguration|null}
+   */
+  configuration = null;
+
+  /**
    * Constructor.
    * @param {string|String.empty} name The name of the target.
    * @param {string|String.empty} text The additional text for the target.
    * @param {number} icon The icon to place on this target.
    * @param {Game_Enemy|null} battler The battler data of the target.
+   * @param {FramedTargetConfiguration|null} configuration The configuration of this target.
    */
-  constructor(name, text = String.empty, icon = 0, battler = null)
+  constructor(name, text = String.empty, icon = 0, battler = null, configuration = null)
   {
     this.name = name;
     this.text = text;
     this.icon = icon;
     this.battler = battler;
+    this.configuration = configuration;
   };
 }
 //#endregion FramedTarget
+
+//#region FramedTargetConfiguration
+/**
+ * A configuration object for whether to show/hide various target data points.
+ */
+class FramedTargetConfiguration
+{
+  /**
+   * Whether or not to show the target's name.
+   * @type {boolean}
+   */
+  showName = true;
+
+  /**
+   * Whether or not to show the target's HP.
+   * @type {boolean}
+   */
+  showHp = true;
+
+  /**
+   * Whether or not to show the target's MP.
+   * @type {boolean}
+   */
+  showMp = true;
+
+  /**
+   * Whether or not to show the target's TP.
+   * @type {boolean}
+   */
+  showTp = true;
+
+  /**
+   * Whether or not to show the target text.
+   * @type {boolean}
+   */
+  showText = true;
+
+  /**
+   * Constructor.
+   * @param {boolean} showName Whether or not to show the name.
+   * @param {boolean} showText Whether or not to show the name.
+   * @param {boolean} showHp Whether or not to show the name.
+   * @param {boolean} showMp Whether or not to show the name.
+   * @param {boolean} showTp Whether or not to show the name.
+   */
+  constructor(
+    showName = true,
+    showText = true,
+    showHp = J.HUD.EXT_TARGET.Metadata.EnableHP,
+    showMp = J.HUD.EXT_TARGET.Metadata.EnableMP,
+    showTp = J.HUD.EXT_TARGET.Metadata.EnableTP)
+  {
+    this.showName = showName;
+    this.showText = showText;
+    this.showHp = showHp;
+    this.showMp = showMp;
+    this.showTp = showTp;
+  };
+}
+//#endregion FramedTargetConfiguration
 
 //#region JABS_Battler
 J.HUD.EXT_TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
@@ -2190,30 +2752,6 @@ JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
 };
 
 /**
- * Checks the last hit battler to build the target frame.
- * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
- * @returns {FramedTarget}
- */
-JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit)
-{
-  // determine the name of the battler.
-  const battlerName = battlerLastHit.battlerName();
-
-  // extract the target frame text.
-  const targetFrameText = battlerLastHit.getTargetFrameText();
-
-  // extract the target frame icon.
-  const targetFrameIcon = battlerLastHit.getTargetFrameIcon();
-
-  // create the new framed target for this battler.
-  return new FramedTarget(
-    battlerName,
-    targetFrameText,
-    targetFrameIcon,
-    battlerLastHit.getBattler());
-};
-
-/**
  * Determines whether or not the target frame should be updated.
  * @param {JABS_Battler} potentialTarget The battler that is being set as last struck.
  * @returns {boolean} True if we should update the target frame, false otherwise.
@@ -2225,6 +2763,9 @@ JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget)
 
   // if the potential target is invalid, do not update the target frame.
   if (!potentialTarget) return false;
+
+  // if this target does not permit showing the target frame, then do not.
+  if (!potentialTarget.canShowTargetFrame()) return false;
 
   // at this point, if we're considering it seriously, refresh the window.
   $hudManager.requestTargetFrameRefresh();
@@ -2242,6 +2783,184 @@ JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget)
   return true;
 };
 
+/**
+ * Checks the last hit battler to build the target frame.
+ * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
+ * @returns {FramedTarget}
+ */
+JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit)
+{
+  // determine the name of the battler.
+  const battlerName = battlerLastHit.battlerName();
+
+  // extract the target frame text.
+  const targetFrameText = battlerLastHit.getTargetFrameText();
+
+  // extract the target frame icon.
+  const targetFrameIcon = battlerLastHit.getTargetFrameIcon();
+
+  // extract the target configuration.
+  const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
+
+  // create the new framed target for this battler.
+  return new FramedTarget(
+    battlerName,
+    targetFrameText,
+    targetFrameIcon,
+    battlerLastHit.getBattler(),
+    targetConfiguration);
+};
+
+/**
+ * Determines whether or not the target frame will show for the given target.
+ * @returns {boolean} True if we should show the target frame, false otherwise.
+ */
+JABS_Battler.prototype.canShowTargetFrame = function()
+{
+  // if this isn't an enemy, then they don't show the target frame.
+  if (!this.isEnemy()) return false;
+
+  // check the event to see if we can show the target frame.
+  let hiddenByEvent = !this.getCharacter().canShowTargetFrame();
+
+  // if the event prevents showing the target frame, then don't show it.
+  if (hiddenByEvent) return false;
+
+  // check the enemy to see if the enemy in the database prevents showing.
+  let hiddenByDatabase = !this.getBattler().showTargetFrame();
+
+  // if one or the other are indicating not to show, then don't.
+  if (hiddenByDatabase) return false;
+
+  // show the target frame!
+  return true;
+};
+
+/**
+ * Builds the configuration for the target frame based on this battler.
+ * @returns {FramedTargetConfiguration}
+ */
+JABS_Battler.prototype.buildFramedTargetConfiguration = function()
+{
+  // showing the target's name reuses existing logic to check.
+  const showName = this.showBattlerName();
+
+  // check to see if we should show the target text.
+  const showText = this.canShowTargetText();
+
+  // check to see if we should show HP.
+  const showHpGauge = this.canShowTargetHp();
+
+  // check to see if we should show MP.
+  const showMpGauge = this.canShowTargetMp();
+
+  // check to see if we should show TP.
+  const showTpGauge = this.canShowTargetTp();
+
+  // return the built configuration.
+  return new FramedTargetConfiguration(
+    showName,
+    showText,
+    showHpGauge,
+    showMpGauge,
+    showTpGauge);
+};
+
+/**
+ * Gets whether or not this battler can show their HP in the target frame window.
+ * @returns {boolean} True if it can show, false otherwise.
+ */
+JABS_Battler.prototype.canShowTargetHp = function()
+{
+  // if the defaults hide the HP, then don't show it.
+  if (!J.HUD.EXT_TARGET.Metadata.EnableHP) return false;
+
+  // we do not show hp bars for non-enemies.
+  if (!this.isEnemy()) return false;
+
+  // if the event says don't show it, then don't show it.
+  if (!this.getCharacter().showTargetHpBar()) return false;
+
+  // if the enemy in the database says don't show it, then don't show it.
+  if (!this.getBattler().showTargetHpBar()) return false;
+
+  // show what the defaults are.
+  return true;
+};
+
+/**
+ * Gets whether or not this battler can show their MP in the target frame window.
+ * @returns {boolean} True if it can show, false otherwise.
+ */
+JABS_Battler.prototype.canShowTargetMp = function()
+{
+  // if the defaults hide the MP, then don't show it.
+  if (!J.HUD.EXT_TARGET.Metadata.EnableMP) return false;
+
+  // we do not show hp bars for non-enemies.
+  if (!this.isEnemy()) return false;
+
+  // if the event says don't show it, then don't show it.
+  if (!this.getCharacter().showTargetMpBar()) return false;
+
+  // if the enemy in the database says don't show it, then don't show it.
+  if (!this.getBattler().showTargetMpBar()) return false;
+
+  // TODO: should we hide the bar if the max value is 0?
+  if (this.getBattler().param(1) === 0) return false;
+
+  // show what the defaults are.
+  return true;
+};
+
+/**
+ * Gets whether or not this battler can show their TP in the target frame window.
+ * @returns {boolean} True if it can show, false otherwise.
+ */
+JABS_Battler.prototype.canShowTargetTp = function()
+{
+  // if the defaults hide the TP, then don't show it.
+  if (!J.HUD.EXT_TARGET.Metadata.EnableTP) return false;
+
+  // we do not show hp bars for non-enemies.
+  if (!this.isEnemy()) return false;
+
+  // if the event says don't show it, then don't show it.
+  if (!this.getCharacter().showTargetTpBar()) return false;
+
+  // if the enemy in the database says don't show it, then don't show it.
+  if (!this.getBattler().showTargetTpBar()) return false;
+
+  // TODO: should we hide the bar if the max value is 0?
+  if (this.getBattler().maxTp() === 0 || this.isInanimate()) return false;
+
+  // show what the defaults are.
+  return true;
+};
+
+/**
+ * Gets whether or not this battler can show extra text in the target frame window.
+ * @returns {boolean} True if it can show, false otherwise.
+ */
+JABS_Battler.prototype.canShowTargetText = function()
+{
+  // we do not show hp bars for non-enemies.
+  if (!this.isEnemy()) return false;
+
+  // if the event says don't show it, then don't show it.
+  if (!this.getCharacter().showTargetText()) return false;
+
+  // if the enemy in the database says don't show it, then don't show it.
+  if (!this.getBattler().showTargetText()) return false;
+
+  // show it.
+  return true;
+};
+
+/**
+ * Gets the target frame text for this enemy.
+ * @returns {string}
+ */
 JABS_Battler.prototype.getTargetFrameText = function()
 {
   // if this isn't an enemy, then they don't get target frame extra text.
