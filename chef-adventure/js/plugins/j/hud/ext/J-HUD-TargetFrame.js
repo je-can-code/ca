@@ -1180,11 +1180,11 @@ Scene_Map.prototype.targetFrameWindowRect = function()
 /**
  * The update loop for the hud manager.
  */
-J.HUD.EXT_TARGET.Aliased.Scene_Map.set('updateHud', Scene_Map.prototype.updateHud);
-Scene_Map.prototype.updateHud = function()
+J.HUD.EXT_TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.Scene_Map.get('updateHud').call(this);
+  J.HUD.EXT_TARGET.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages target frame assignments.
   this.handleAssignTarget();
