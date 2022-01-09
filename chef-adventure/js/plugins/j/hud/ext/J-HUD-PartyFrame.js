@@ -160,9 +160,9 @@ Scene_Map.prototype.initialize = function()
 
   /**
    * The hud window on the map.
-   * @type {Window_PartyHud}
+   * @type {Window_PartyFrame}
    */
-  this._j._partyHud = null;
+  this._j._partyFrame = null;
 };
 
 /**
@@ -175,29 +175,29 @@ Scene_Map.prototype.createAllWindows = function()
   J.HUD.EXT_PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
-  this.createMapHud();
+  this.createHudPartyFrame();
 };
 
 /**
- * Creates the log window and adds it to tracking.
+ * Creates the party frame window and adds it to tracking.
  */
-Scene_Map.prototype.createMapHud = function()
+Scene_Map.prototype.createHudPartyFrame = function()
 {
   // create the rectangle of the window.
-  const rect = this.mapHudWindowRect();
+  const rect = this.hudPartyFrameWindowRect();
 
   // assign the window to our reference.
-  this._j._partyHud = new Window_PartyHud(rect);
+  this._j._partyFrame = new Window_PartyFrame(rect);
 
   // add window to tracking.
-  this.addWindow(this._j._partyHud);
+  this.addWindow(this._j._partyFrame);
 };
 
 /**
  * Creates the rectangle representing the window for the map hud.
  * @returns {Rectangle}
  */
-Scene_Map.prototype.mapHudWindowRect = function()
+Scene_Map.prototype.hudPartyFrameWindowRect = function()
 {
   const width = 320;
   const height = 290;
@@ -223,47 +223,35 @@ Scene_Map.prototype.mapNameWindowRect = function()
  */
 Scene_Map.prototype.refreshHud = function()
 {
-  this._j._partyHud.refresh();
+  this._j._partyFrame.refresh();
 };
 
 /**
- * Extends the `update()` function to also monitor updates for the hud.
+ * Extend the update loop for the party frame.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
-Scene_Map.prototype.update = function()
+J.HUD.EXT_PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('update').call(this);
-
-  // listen for changes to the hud display.
-  this.updateHud();
-};
-
-/**
- * The update loop for the hud manager.
- */
-Scene_Map.prototype.updateHud = function()
-{
-  // the update loop for the hud manager.
-  $hudManager.update();
+  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
-  this.handleRefreshHud();
+  this.handleRefreshPartyFrame();
 
   // manages hud image cache refreshes.
-  this.handleRefreshHudImageCache();
+  this.handleRefreshPartyFrameImageCache();
 };
 
 /**
  * Handles incoming requests to refresh the hud.
  */
-Scene_Map.prototype.handleRefreshHud = function()
+Scene_Map.prototype.handleRefreshPartyFrame = function()
 {
   // handles incoming requests to refresh the hud.
   if ($hudManager.hasRequestRefreshHud())
   {
     // refresh the hud.
-    this._j._partyHud.refresh();
+    this._j._partyFrame.refresh();
 
     // let the hud manager know we've done the deed.
     $hudManager.acknowledgeRefreshHud();
@@ -273,16 +261,16 @@ Scene_Map.prototype.handleRefreshHud = function()
 /**
  * Handles incoming requests to refresh the hud's image cache.
  */
-Scene_Map.prototype.handleRefreshHudImageCache = function()
+Scene_Map.prototype.handleRefreshPartyFrameImageCache = function()
 {
   // handles incoming requests to refresh the hud.
   if ($hudManager.hasRequestRefreshImageCache())
   {
     // refresh the hud's image cache.
-    this._j._partyHud.refreshCache();
+    this._j._partyFrame.refreshCache();
 
     // and then refresh the hud with the new refreshed assets.
-    this._j._partyHud.refresh();
+    this._j._partyFrame.refresh();
 
     // let the hud manager know we've done the deed.
     $hudManager.acknowledgeRefreshImageCache();
@@ -292,11 +280,11 @@ Scene_Map.prototype.handleRefreshHudImageCache = function()
 //#endregion Scene objects
 
 //#region Window objects
-//#region Window_PartyHud
+//#region Window_PartyFrame
 /**
  * A window containing the HUD data for the map.
  */
-class Window_PartyHud extends Window_Base
+class Window_PartyFrame extends Window_Base
 {
   /**
    * The static collection of gauge types supported.
@@ -568,10 +556,10 @@ class Window_PartyHud extends Window_Base
   gaugeTypes()
   {
     return [
-      Window_PartyHud.gaugeTypes.HP,
-      Window_PartyHud.gaugeTypes.MP,
-      Window_PartyHud.gaugeTypes.TP,
-      Window_PartyHud.gaugeTypes.XP
+      Window_PartyFrame.gaugeTypes.HP,
+      Window_PartyFrame.gaugeTypes.MP,
+      Window_PartyFrame.gaugeTypes.TP,
+      Window_PartyFrame.gaugeTypes.XP
     ];
   };
 
@@ -579,7 +567,7 @@ class Window_PartyHud extends Window_Base
    * Creates the key for an actor's gauge sprite based on the parameters.
    * @param {Game_Actor} actor The actor to draw a full gauge sprite for.
    * @param {boolean} isFull Whether or not this is for a full-sized sprite.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
    * @returns {string} The key for this gauge sprite.
    */
   makeGaugeSpriteKey(actor, isFull, gaugeType)
@@ -590,20 +578,20 @@ class Window_PartyHud extends Window_Base
 
   /**
    * Determines the gauge height based on the gauge type.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge we need height for.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge we need height for.
    * @returns {number}
    */
   fullGaugeHeight(gaugeType)
   {
     switch (gaugeType)
     {
-      case Window_PartyHud.gaugeTypes.HP:
+      case Window_PartyFrame.gaugeTypes.HP:
         return 18;
-      case Window_PartyHud.gaugeTypes.MP:
+      case Window_PartyFrame.gaugeTypes.MP:
         return 14;
-      case Window_PartyHud.gaugeTypes.TP:
+      case Window_PartyFrame.gaugeTypes.TP:
         return 10;
-      case Window_PartyHud.gaugeTypes.XP:
+      case Window_PartyFrame.gaugeTypes.XP:
         return 8;
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
@@ -613,7 +601,7 @@ class Window_PartyHud extends Window_Base
   /**
    * Creates a full-sized gauge sprite for the given actor and caches it.
    * @param {Game_Actor} actor The actor to draw a gauge sprite for.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
    * @returns {Sprite_MapGauge} The gauge sprite.
    */
   getOrCreateFullSizeGaugeSprite(actor, gaugeType)
@@ -632,7 +620,7 @@ class Window_PartyHud extends Window_Base
     const gaugeHeight = this.fullGaugeHeight(gaugeType);
 
     // determine gauge width based on gauge type.
-    const gaugeWidth = gaugeType === Window_PartyHud.gaugeTypes.XP ? 114 : 144;
+    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 114 : 144;
 
     // create a new full-sized gauge sprite of the actor.
     const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 32);
@@ -658,20 +646,20 @@ class Window_PartyHud extends Window_Base
 
   /**
    * Determines the gauge height based on the gauge type.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge we need height for.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge we need height for.
    * @returns {number}
    */
   miniGaugeHeight(gaugeType)
   {
     switch (gaugeType)
     {
-      case Window_PartyHud.gaugeTypes.HP:
+      case Window_PartyFrame.gaugeTypes.HP:
         return 10;
-      case Window_PartyHud.gaugeTypes.MP:
+      case Window_PartyFrame.gaugeTypes.MP:
         return 10;
-      case Window_PartyHud.gaugeTypes.TP:
+      case Window_PartyFrame.gaugeTypes.TP:
         return 10;
-      case Window_PartyHud.gaugeTypes.XP:
+      case Window_PartyFrame.gaugeTypes.XP:
         return 4;
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
@@ -681,7 +669,7 @@ class Window_PartyHud extends Window_Base
   /**
    * Creates a mini-sized gauge sprite for the given actor and caches it.
    * @param {Game_Actor} actor The actor to draw a gauge sprite for.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
    * @returns {Sprite_MapGauge} The gauge sprite.
    */
   getOrCreateMiniSizeGaugeSprite(actor, gaugeType)
@@ -700,7 +688,7 @@ class Window_PartyHud extends Window_Base
     const gaugeHeight = this.miniGaugeHeight(gaugeType);
 
     // determine gauge width based on gauge type.
-    const gaugeWidth = gaugeType === Window_PartyHud.gaugeTypes.XP ? 42 : 96;
+    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 42 : 96;
 
     // create a new mini-sized gauge sprite of the actor.
     const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 24);
@@ -727,7 +715,7 @@ class Window_PartyHud extends Window_Base
   /**
    * Creates the key for an actor's gauge value sprite based on the parameters.
    * @param {Game_Actor} actor The actor to draw a actor value sprite for.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of actor value this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of actor value this is.
    * @returns {string} The key for this actor value sprite.
    */
   makeValueSpriteKey(actor, gaugeType)
@@ -741,7 +729,7 @@ class Window_PartyHud extends Window_Base
    * It is important to note that there is no "mini" size of actor values!
    * Allies simply will not display the values, only gauges.
    * @param {Game_Actor} actor The actor to draw a gauge sprite for.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of gauge this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
    * @returns {Sprite_MapGauge} The gauge sprite.
    */
   getOrCreateActorValueSprite(actor, gaugeType)
@@ -777,22 +765,22 @@ class Window_PartyHud extends Window_Base
 
   /**
    * Determines the font size for the actor value based on the gauge type.
-   * @param {Window_PartyHud.gaugeTypes} gaugeType The type of actor value this is.
+   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of actor value this is.
    * @returns {number}
    */
   actorValueFontSize(gaugeType)
   {
     switch (gaugeType)
     {
-      case Window_PartyHud.gaugeTypes.HP:
+      case Window_PartyFrame.gaugeTypes.HP:
         return -10;
-      case Window_PartyHud.gaugeTypes.MP:
+      case Window_PartyFrame.gaugeTypes.MP:
         return -12;
-      case Window_PartyHud.gaugeTypes.TP:
+      case Window_PartyFrame.gaugeTypes.TP:
         return -14;
-      case Window_PartyHud.gaugeTypes.XP:
+      case Window_PartyFrame.gaugeTypes.XP:
         return -12;
-      case Window_PartyHud.gaugeTypes.Level:
+      case Window_PartyFrame.gaugeTypes.Level:
         return -6;
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
@@ -1065,51 +1053,51 @@ class Window_PartyHud extends Window_Base
     const lh = this.lineHeight();
 
     // locate the hp gauge.
-    const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyHud.gaugeTypes.HP);
+    const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
     hpGauge.move(x-24, oy);
     hpGauge.show();
 
     // locate the hp numbers.
-    const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyHud.gaugeTypes.HP);
+    const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpNumbers.move(x, oy);
     hpNumbers.show();
 
     // grab and locate the sprite.
-    const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyHud.gaugeTypes.MP);
+    const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
     mpGauge.move(x-24, oy + lh-2 - mpGauge.bitmapHeight());
     mpGauge.show();
 
     // locate the mp numbers.
-    const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyHud.gaugeTypes.MP);
+    const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpNumbers.move(x, oy+19);
     mpNumbers.show();
 
     // grab and locate the sprite.
-    const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyHud.gaugeTypes.TP);
+    const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
     tpGauge.move(x-24, oy+46-tpGauge.bitmapHeight());
     tpGauge.show();
 
     // locate the tp numbers.
-    const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyHud.gaugeTypes.TP);
+    const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpNumbers.move(x, oy+33);
     tpNumbers.show();
 
     // grab and locate the xp gauge.
-    const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyHud.gaugeTypes.XP);
+    const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
     xpGauge.move(x+5, 8);
     xpGauge.show();
 
     // locate the xp numbers.
-    const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyHud.gaugeTypes.XP);
+    const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpNumbers.move(x, 8);
     xpNumbers.show();
 
     // locate the level numbers.
-    const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyHud.gaugeTypes.Level);
+    const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
     levelNumbers.move(x+84, oy-24);
     levelNumbers.show();
   };
@@ -1306,25 +1294,25 @@ class Window_PartyHud extends Window_Base
     const lh = 12;
 
     // locate the hp gauge.
-    const hpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyHud.gaugeTypes.HP);
+    const hpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
     hpGauge.move(x-24, oy + lh*0);
     hpGauge.show();
 
     // grab and locate the sprite.
-    const mpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyHud.gaugeTypes.MP);
+    const mpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
     mpGauge.move(x-24, oy + lh*1);
     mpGauge.show();
 
     // grab and locate the sprite.
-    const tpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyHud.gaugeTypes.TP);
+    const tpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
     tpGauge.move(x-24, oy + lh*2);
     tpGauge.show();
   };
 }
-//#endregion Window_PartyHud
+//#endregion Window_PartyFrame
 //#endregion Window objects
 
 //#region Custom objects
