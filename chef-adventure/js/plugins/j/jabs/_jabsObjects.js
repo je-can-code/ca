@@ -16,17 +16,17 @@
 
 //#region Game_Actor
 Game_Actor.JABS_MAINHAND = "Main";
-Game_Actor.JABS_OFFHAND = "Off";
+Game_Actor.JABS_OFFHAND = "Offhand";
 Game_Actor.JABS_TOOLSKILL = "Tool";
 Game_Actor.JABS_DODGESKILL = "Dodge";
-Game_Actor.JABS_L1_A_SKILL = "L1 + A";
-Game_Actor.JABS_L1_B_SKILL = "L1 + B";
-Game_Actor.JABS_L1_X_SKILL = "L1 + X";
-Game_Actor.JABS_L1_Y_SKILL = "L1 + Y";
-Game_Actor.JABS_R1_A_SKILL = "R1 + A";
-Game_Actor.JABS_R1_B_SKILL = "R1 + B";
-Game_Actor.JABS_R1_X_SKILL = "R1 + X";
-Game_Actor.JABS_R1_Y_SKILL = "R1 + Y";
+Game_Actor.JABS_L1_A_SKILL = "L1_A";
+Game_Actor.JABS_L1_B_SKILL = "L1_B";
+Game_Actor.JABS_L1_X_SKILL = "L1_X";
+Game_Actor.JABS_L1_Y_SKILL = "L1_Y";
+Game_Actor.JABS_R1_A_SKILL = "R1_A";
+Game_Actor.JABS_R1_B_SKILL = "R1_B";
+Game_Actor.JABS_R1_X_SKILL = "R1_X";
+Game_Actor.JABS_R1_Y_SKILL = "R1_Y";
 
 /**
  * Adds in the jabs tracking object for equipped skills.
@@ -348,7 +348,44 @@ Game_Actor.prototype.getEmptySecondarySkills = function()
  */
 Game_Actor.prototype.setEquippedSkill = function(slot, skillId, locked = false)
 {
-  this._j._equippedSkills.setSlot(slot, skillId, locked);
+  // check if we need to actually update the slot.
+  if (this.needsSlotUpdate(slot, skillId, locked))
+  {
+    // update the slot.
+    this._j._equippedSkills.setSlot(slot, skillId, locked);
+
+    // check if we're using the hud's input frame.
+    if (J.HUD && J.HUD.EXT_INPUT)
+    {
+      // request an update to the input frame.
+      $hudManager.requestRefreshInputFrame();
+    }
+  }
+};
+
+/**
+ * Whether or not this actor requires the given slot to be updated.
+ * @param {string} slot The slot to retrieve an equipped skill for.
+ * @param {number} skillId The skill id to assign to the specified slot.
+ * @param {boolean} locked Whether or not the skill is locked onto this slot.
+ * @returns {boolean} True if this slot needs to be updated, false otherwise.
+ */
+Game_Actor.prototype.needsSlotUpdate = function(slot, skillId, locked)
+{
+  // grab the slot in question.
+  const currentSlot = this.getSkillSlot(slot);
+
+  // if we have no slot currently, we need to update it.
+  if (!currentSlot) return true;
+
+  // if the locked states don't match, we need to update it.
+  if (currentSlot.isLocked() !== locked) return true;
+
+  // if the skill ids don't match, we need to udpate it.
+  if (currentSlot.id !== skillId) return true;
+
+  // guess we didn't need to update it after all.
+  return false;
 };
 
 /**
@@ -1910,8 +1947,7 @@ class Game_BattleMap
   {
     const player = this.getPlayerMapBattler();
     if (player === null) return;
-    if (player.getBattler()
-      .isDead())
+    if (player.getBattler().isDead())
     {
       this.handleDefeatedPlayer();
       return;
@@ -2107,8 +2143,7 @@ class Game_BattleMap
 
     // combat offhand action
     // only able to perform this if the player doesn't have a guard skill in their offhand.
-    if (!this.getPlayerMapBattler()
-        .isGuardSkillByKey(Game_Actor.JABS_OFFHAND) &&
+    if (!this.getPlayerMapBattler().isGuardSkillByKey(Game_Actor.JABS_OFFHAND) &&
       (Input.isTriggered(J.ABS.Input.B) || Input.isTriggered("control")))
     {
       this.performOffhandAction();
@@ -6768,6 +6803,11 @@ Game_Map.prototype.initialize = function()
    * @type {JABS_Battler[]}
    */
   this._j._allBattlers = [];
+
+  if (J.HUD && J.HUD.EXT_INPUT)
+  {
+    this._j._inputManager = new JABS_InputManager();
+  }
 };
 
 /**
@@ -6861,8 +6901,19 @@ Game_Map.prototype.update = function(sceneActive)
   // perform original logic.
   J.ABS.Aliased.Game_Map.get('update').call(this, sceneActive);
 
-  // update JABS.
+  // update JABS-related things.
+  this.updateJabs();
+};
+
+Game_Map.prototype.updateJabs = function()
+{
+  // update JABS battle map.
   $gameBattleMap.update();
+
+  if (J.HUD && J.HUD.EXT_INPUT)
+  {
+    this._j._inputManager.update();
+  }
 };
 
 /**

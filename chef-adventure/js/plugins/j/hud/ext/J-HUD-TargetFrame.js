@@ -437,6 +437,7 @@ J.HUD.EXT_TARGET.Metadata =
     // the previously defined metadata.
     ...J.HUD.EXT_TARGET.Metadata,
 
+    // our configurable data points.
     TargetFrameX: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameX']),
     TargetFrameY: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameY']),
     TargetFrameWidth: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameWidth']),
@@ -498,25 +499,8 @@ J.HUD.EXT_TARGET.RegExp = {
  */
 ImageManager.loadHudBitmap = function(filename)
 {
-  // create a promise for the bitmap.
-  const bitmapPromise = new Promise((resolve, reject) =>
-  {
-    // load the bitmap from our designated location.
-    const bitmap = this.loadBitmap('img/hud/', filename, 0, true);
-
-    // and add a listener to the bitmap to resolve _onLoad.
-    bitmap.addLoadListener(thisBitmap =>
-    {
-      // if everything is clear, resolve with the loaded bitmap.
-      if (thisBitmap.isReady()) resolve(thisBitmap);
-
-      // if there were problems, then reject.
-      else if (thisBitmap.isError()) reject();
-    });
-  });
-
   // return the created promise.
-  return bitmapPromise;
+  return this.loadBitmapPromise(filename, 'img/hud/');
 };
 //#endregion ImageManager
 //#endregion Static objects
@@ -1325,7 +1309,7 @@ class Sprite_FlowingGauge extends Sprite
     // manage the completion and error handling of the bitmap loading.
     backgroundPromise
       .then(bitmap => this.setBackgroundBitmap(bitmap))
-      .catch(() => { throw new Error('background bitmap failed to load.') });
+      .catch(() => { throw new Error('background bitmap failed to load.'); });
 
     // establish a promise for loading the gauge foreground into memory.
     const foregroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
@@ -1334,7 +1318,7 @@ class Sprite_FlowingGauge extends Sprite
     // manage the completion and error handling of the bitmap loading.
     foregroundPromise
       .then(bitmap => this.setForegroundBitmap(bitmap))
-      .catch(() => { throw new Error('background bitmap failed to load.') });
+      .catch(() => { throw new Error('background bitmap failed to load.'); });
 
     // when both back and foreground are done loading, let this gauge know we're ready.
     Promise
@@ -2058,7 +2042,7 @@ class Window_TargetFrame extends Window_Base
   };
 
   /**
-   * Empties and recreates the entire cache of sprites.
+   * Ensures all sprites are created and available for use.
    */
   createCache()
   {
@@ -2568,7 +2552,6 @@ class Window_TargetFrame extends Window_Base
    */
   drawTargetBattlerGauges(x, y)
   {
-    console.log(this._j._name, this.targetConfiguration());
     // draw all three of the primary gauges.
     this.drawTargetHpGauge(x, y);
     this.drawTargetMpGauge(x, y+22);
