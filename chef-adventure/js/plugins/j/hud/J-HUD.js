@@ -154,6 +154,12 @@ class Hud_Manager
   #requestTargetFrameRefreshInactivity = false;
 
   /**
+   * Whether or not we have a request to refresh the input frame.
+   * @type {boolean}
+   */
+  #requestRefreshInputFrame = false;
+
+  /**
    * Whether or not the hud manager is ready to do things.
    * @type {boolean}
    * @private
@@ -383,6 +389,31 @@ class Hud_Manager
     this.setNewTarget(null);
   };
 
+  /**
+   * Issue a request to refresh the input frame.
+   */
+  requestRefreshInputFrame()
+  {
+    this.#setRequestRefreshInputFrame(true);
+  };
+
+  /**
+   * Checks whether or not we have a request to refresh the input frame.
+   * @returns {boolean} True if we have a request, false otherwise.
+   */
+  hasRequestRefreshInputFrame()
+  {
+    return this.#requestRefreshInputFrame;
+  };
+
+  /**
+   * Acknowledge the request to refresh the input frame.
+   */
+  acknowledgeRefreshInputFrame()
+  {
+    this.#setRequestRefreshInputFrame(false);
+  };
+
   //#region private functions
   /**
    * Whether or not the hud manager is ready to get started.
@@ -421,6 +452,16 @@ class Hud_Manager
   #setRequestRefreshHud(request)
   {
     this.#requestRefresh = request;
+  };
+
+  /**
+   * Sets whether or not the input frame requires a refresh.
+   * @param {boolean} request True if refresh is required, false otherwise.
+   * @private
+   */
+  #setRequestRefreshInputFrame(request)
+  {
+    this.#requestRefreshInputFrame = request;
   };
 
   /**
@@ -682,6 +723,8 @@ Game_System.prototype.getHudAlliesVisible = function()
 //#endregion Game_System
 //#endregion Game objects
 
+//#region Scene objects
+//#region Scene_Map
 /**
  * Extends the `update()` function to also monitor updates for the hud.
  */
@@ -703,4 +746,125 @@ Scene_Map.prototype.updateHudFrames = function()
   // the update loop for the hud manager.
   $hudManager.update();
 };
+
+/**
+ * A hook for refreshing all frames of the HUD.
+ */
+Scene_Map.prototype.refreshHud = function() { };
+//#endregion Scene_Map
+//#endregion Scene objects
+
+//#region Window objects
+//#region Window_InputFrame
+/**
+ * A base class with some common sprite-cache-management features.
+ */
+class Window_Frame extends Window_Base
+{
+  /**
+   * Constructor.
+   * @param {Rectangle} rect The shape of this window.
+   */
+  constructor(rect) { super(rect); };
+
+  /**
+   * Initializes the properties of this class.
+   * @param {Rectangle} rect The rectangle representing this window.
+   */
+  initialize(rect)
+  {
+    // perform original logic.
+    super.initialize(rect);
+
+    // add our extra data points to track.
+    this.initMembers();
+
+    // run any one-time configuration changes.
+    this.configure();
+  };
+
+  /**
+   * Initializes all members of this class.
+   */
+  initMembers()
+  {
+    /**
+     * The over-arching object that contains all properties for this plugin.
+     */
+    this._j ||= {};
+
+    /**
+     * The cached collection of sprites.
+     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_AbilityCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     */
+    this._j._spriteCache = new Map();
+  };
+
+  /**
+   * Executes any one-time configuration required for this window.
+   */
+  configure()
+  {
+    // build the image cache for the first time.
+    this.refreshCache();
+  };
+
+  //#region caching
+  /**
+   * Empties and recreates the entire cache of sprites.
+   */
+  refreshCache()
+  {
+    // destroy and empty all sprites within the cache.
+    this.emptyCache();
+
+    // recreate all sprites for the cache.
+    this.createCache();
+  };
+
+  /**
+   * Empties the cache of all sprites.
+   */
+  emptyCache()
+  {
+    // iterate over each sprite and destroy it properly.
+    this._j._spriteCache.forEach((value, _) => value.destroy());
+
+    // empty the collection of all references.
+    this._j._spriteCache.clear();
+  };
+
+  /**
+   * Empties and recreates the entire cache of sprites.
+   */
+  createCache()
+  {
+    // fill with sprite creation methods.
+  };
+  //#endregion caching
+
+  /**
+   * Hooks into the update loop to include updating for this frame.
+   */
+  update()
+  {
+    // perform original logic.
+    super.update();
+
+    // update this frame.
+    this.updateFrame();
+  };
+
+  /**
+   * Updates the logic for this window frame.
+   */
+  updateFrame()
+  {
+    // fill with window frame logic.
+  };
+}
+//#endregion Window_InputFrame
+//#endregion Window objects
+
+
 //ENDOFFILE

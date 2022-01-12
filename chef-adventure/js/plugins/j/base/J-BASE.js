@@ -2625,69 +2625,998 @@ Sprite_Face.prototype.loadBitmap = function()
 };
 //#endregion Sprite_Face
 
+/**
+ * Generates a promise based on the resolution of the bitmap.<br/>
+ * If the promise resolves successfully, it'll contain the bitmap.<br/>
+ * If the promise rejects, then it is up to the handler how to deal with that.<br/>
+ * @param {string} filename The name of the file without the file extension.
+ * @param {string} directory The name of the directory to find the filename in (include trailing slash!).
+ * @returns {Promise}
+ */
+ImageManager.loadBitmapPromise = function(filename, directory)
+{
+  // create a promise for the bitmap.
+  const bitmapPromise = new Promise((resolve, reject) =>
+  {
+    // load the bitmap from our designated location.
+    const bitmap = this.loadBitmap(`${directory}`, filename, 0, true);
+
+    // and add a listener to the bitmap to resolve _onLoad.
+    bitmap.addLoadListener(thisBitmap =>
+    {
+      // if everything is clear, resolve with the loaded bitmap.
+      if (thisBitmap.isReady()) resolve(thisBitmap);
+
+      // if there were problems, then reject.
+      else if (thisBitmap.isError()) reject();
+    });
+  });
+
+  // return the created promise.
+  return bitmapPromise;
+};
+
+ImageManager.iconColumns = 16;
+
 //#region Sprite_Icon
 /**
- * A sprite that displays a single icon.
+ * A customizable sprite that displays a single icon.
+ *
+ * Defaults to regular `ImageManager`'s defaults in size and columns,
+ * but can be modified manually to different iconsets bitmaps and/or
+ * different icon widths and heights.
  */
-function Sprite_Icon()
+class Sprite_Icon extends Sprite
+{
+  /**
+   * Initializes this sprite with the designated icon.
+   * @param {number} iconIndex The icon index of the icon for this sprite.
+   */
+  initialize(iconIndex = 0)
+  {
+    // perform original logic.
+    super.initialize();
+
+    // initialize our properties.
+    this.initMembers();
+
+    // setups up the bitmap with the default iconset via promises.
+    this.setupDefaultIconsetBitmap(iconIndex);
+  };
+
+  /**
+   * Initialize all properties of this class.
+   */
+  initMembers()
+  {
+    /**
+     * All encompassing _j object for storing my custom properties.
+     */
+    this._j ||= {};
+
+    /**
+     * Whether or not the sprite is ready to be drawn yet.
+     * @type {boolean}
+     */
+    this._j._isReady = false;
+
+
+    /**
+     * The icon index that this sprite represents.
+     * @type {number}
+     */
+    this._j._iconIndex = 0;
+
+    /**
+     * The width of our icon. Defaults to the image manager's width,
+     * but it can be set higher or lower for different-sized iconsheets.
+     * @type {number}
+     */
+    this._j._iconWidth = ImageManager.iconWidth;
+
+    /**
+     * The height of our icon. Defaults to the image manager's height,
+     * but it can be set higher or lower for different-sized iconsheets.
+     * @type {number}
+     */
+    this._j._iconHeight = ImageManager.iconHeight;
+
+    /**
+     * The number of columns on the iconset we're using. Defaults to 16,
+     * which was also predefined by this plugin, but is just the number
+     * of columns the default iconset.png file has.
+     * @type {number}
+     */
+    this._j._iconColumns = ImageManager.iconColumns;
+  };
+
+  /**
+   * Sets up the bitmap with the default iconset.
+   * @param {number} iconIndex The icon index of the icon for this sprite.
+   */
+  setupDefaultIconsetBitmap(iconIndex)
+  {
+    // undoes the ready check flag.
+    this.unReady();
+
+    // setup a promise for when the bitmap loads.
+    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
+      .then(bitmap => this.setIconsetBitmap(bitmap))
+      .catch(() => { throw new Error('default iconset bitmap failed to load.'); });
+
+    // upon promise delivery, execute the rendering.
+    Promise.all([bitmapPromise])
+      // execute on-ready logic, such as setting the icon index of this sprite to render.
+      .then(() => this.onReady(iconIndex))
+  };
+
+  /**
+   * Sets the ready flag to false to prevent rendering further
+   */
+  unReady()
+  {
+    this._j._isReady = false;
+  };
+
+  /**
+   * Gets whether or not this icon sprite is ready for rendering.
+   * @returns {boolean}
+   */
+  isReady()
+  {
+    return this._j._isReady;
+  };
+
+  /**
+   * Sets the bitmap to the designated bitmap.
+   * @param {Bitmap} bitmap The base bitmap of this sprite.
+   */
+  setIconsetBitmap(bitmap)
+  {
+    this.bitmap = bitmap;
+  };
+
+  /**
+   * Gets the icon index from the iconset for this sprite.
+   * @returns {number}
+   */
+  iconIndex()
+  {
+    return this._j._iconIndex;
+  };
+
+  /**
+   * Sets the icon index for this sprite.
+   * @param {number} iconIndex The icon index this sprite should render.
+   */
+  setIconIndex(iconIndex)
+  {
+    // reassign the icon index.
+    this._j._iconIndex = iconIndex;
+
+    // if we are not ready to render, then do not.
+    if (!this.isReady()) return;
+
+    // (re)renders the sprite based on the icon index.
+    this.drawIcon();
+  };
+
+  /**
+   * Gets the width of this icon for this sprite.
+   * @returns {number}
+   */
+  iconWidth()
+  {
+    return this._j._iconWidth;
+  };
+
+  /**
+   * Sets the width of this sprite's icon.
+   * @param width
+   */
+  setIconWidth(width)
+  {
+    this._j._iconWidth = width;
+  };
+
+  /**
+   * Gets the height of this icon for this sprite.
+   * @returns {number}
+   */
+  iconHeight()
+  {
+    return this._j._iconHeight;
+  };
+
+  /**
+   * Sets the height of this sprite's icon.
+   * @param height
+   */
+  setIconHeight(height)
+  {
+    this._j._iconHeight = height;
+  };
+
+  /**
+   * Gets the number of columns for this sprite's iconset.
+   * @returns {number}
+   */
+  iconColumns()
+  {
+    return this._j._iconColumns;
+  };
+
+  /**
+   * Sets the number of columns for the sprite's iconset.
+   * @param {number} columns The new number of columns in this sprite's iconset.
+   */
+  setIconColumns(columns)
+  {
+    this._j._iconColumns = columns;
+  };
+
+  /**
+   * Upon becoming ready, execute this logic.
+   * In this sprite's case, we render ourselves.
+   * @param {number} iconIndex The icon index of this sprite.
+   */
+  onReady(iconIndex = 0)
+  {
+    // flag this sprite as being ready for rendering.
+    this._j._isReady = true;
+
+    // and also follow up with rendering an icon.
+    this.setIconIndex(iconIndex);
+  };
+
+  /**
+   * Sets the frame of the bitmap to be the icon we care about.
+   */
+  drawIcon()
+  {
+    // determine the universal shape of the icon and iconset.
+    const iconWidth = this.iconWidth();
+    const iconHeight = this.iconHeight();
+    const iconsetColumns = this.iconColumns();
+    const iconIndex = this.iconIndex();
+
+    // calculate the x:y of the icon's origin based on index.
+    const x = (iconIndex % iconsetColumns) * iconWidth;
+    const y = Math.floor(iconIndex / iconsetColumns) * iconHeight;
+
+    // set the frame of the bitmap to start at the x:y, and be as big as designated.
+    this.setFrame(x, y, iconWidth, iconHeight);
+  };
+}
+//#endregion Sprite_Icon
+
+//#region Sprite_BaseText
+/**
+ * A sprite that displays some text.
+ * This acts as a base class for a number of other text-based sprites.
+ */
+class Sprite_BaseText extends Sprite
+{
+  /**
+   * The available supported text alignments.
+   */
+  static Alignments = {
+    Left: "left",
+    Center: "center",
+    Right: "right",
+  };
+
+  /**
+   * Extend initialization of the sprite to draw the text.
+   * @param {string} text The text content for this sprite.
+   */
+  initialize(text = String.empty)
+  {
+    // perform original logic.
+    super.initialize();
+
+    // initialize our properties.
+    this.initMembers();
+
+    // set the text of the sprite.
+    this.setText(text);
+  };
+
+  /**
+   * Initialize all properties of this class.
+   */
+  initMembers()
+  {
+    /**
+     * All encompassing _j object for storing my custom properties.
+     */
+    this._j ||= {};
+
+    /**
+     * A test bitmap for measuring text width upon.
+     * @type {Bitmap}
+     */
+    this._j._testBitmap = new Bitmap(512, 128);
+
+    /**
+     * The text to render in this sprite.
+     * @type {string}
+     */
+    this._j._text = String.empty;
+
+    /**
+     * The text color index of this sprite.
+     * This should be a hexcode.
+     * @type {string}
+     */
+    this._j._color = "#ffffff";
+
+    /**
+     * The alignment of text in this sprite.
+     * @type {Sprite_BaseText.Alignments}
+     */
+    this._j._alignment = "left";
+
+    /**
+     * Whether or not the text should be italics.
+     * @type {boolean}
+     */
+    this._j._italics = false;
+
+    /**
+     * Whether or not the text should be bolded.
+     * @type {boolean}
+     */
+    this._j._bold = false;
+
+    /**
+     * The font face of the text in this sprite.
+     * @type {string}
+     */
+    this._j._fontFace = $gameSystem.mainFontFace();
+
+    /**
+     * The font size of the text in this sprite.
+     * @type {number}
+     */
+    this._j._fontSize = $gameSystem.mainFontSize();
+  };
+
+  /**
+   * Sets up the bitmap based on the desired text content.
+   */
+  loadBitmap()
+  {
+    // check if a bitmap is already defined.
+    if (this.bitmap)
+    {
+      // clear it if so.
+      this.bitmap.clear();
+    }
+
+    // generate a new bitmap based on width and height.
+    this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+
+    // setup the bitmap with the current configuration.
+    this.configureBitmap();
+  };
+
+  /**
+   * Configures the bitmap with the current settings and configuration.
+   */
+  configureBitmap()
+  {
+    this.bitmap.clear();
+    this.bitmap.fontFace = this.fontFace();
+    this.bitmap.fontSize = this.fontSize();
+    this.bitmap.fontBold = this.isBold();
+    this.bitmap.fontItalic = this.isItalics();
+    this.bitmap.textColor = this.color();
+  };
+
+  /**
+   * Refresh the content of this sprite.
+   * This completely reloads the sprite's bitmap and redraws the text.
+   */
+  refresh()
+  {
+    // check if we are missing a bitmap somehow.
+    if (!this.bitmap)
+    {
+      // load the bitmap if so.
+      this.loadBitmap();
+    }
+    else
+    {
+      // configure the bitmap based on current settings.
+      this.configureBitmap();
+    }
+
+    // render the text onto the bitmap.
+    this.renderText();
+  };
+
+  /**
+   * The width of this bitmap.
+   * Uses the bitmap measuring of text based on the current configuration.
+   * @returns {number}
+   */
+  bitmapWidth()
+  {
+    // setup the test bitmap similar to the real one.
+    this._j._testBitmap.fontFace = this._j._fontFace;
+    this._j._testBitmap.fontSize = this._j._fontSize;
+    this._j._testBitmap.fontItalic = this.isItalics();
+    this._j._testBitmap.fontBold = this.isBold();
+
+    // and return the measured text width.
+    return this._j._testBitmap.measureTextWidth(this._j._text) * 2;
+  };
+
+  /**
+   * The height of this bitmap.
+   * This defaults to roughly 3 pixels per size of font.
+   * @returns {number}
+   */
+  bitmapHeight()
+  {
+    return this._j._fontSize * 3;
+  };
+
+  /**
+   * The text currently assigned to this sprite.
+   * @returns {string|String.empty}
+   */
+  text()
+  {
+    return this._j._text;
+  };
+
+  /**
+   * Assigns text to this sprite.
+   * If the text has changed, it reloads the bitmap.
+   * @param {string} text The text to assign to this sprite.
+   */
+  setText(text)
+  {
+    // check if the text has changed.
+    if (this.text() !== text)
+    {
+      // assign the new text.
+      this._j._text = text;
+
+      // render the text to the bitmap.
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Gets the current color assigned to this sprite's text.
+   * @returns {string|*}
+   */
+  color()
+  {
+    return this._j._color;
+  };
+
+  /**
+   * Sets the color of this sprite's text.
+   * This should be a hexcode.
+   * @param {string} color The hex color for this text.
+   */
+  setColor(color)
+  {
+    // if we do not have a valid hex color, then do not assign it.
+    if (!this.isValidColor(color)) return;
+
+    if (this.color() !== color)
+    {
+      this._j._color = color;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Validates the color to ensure it is a hex color.
+   * @param {string} color The color to validate.
+   * @returns {boolean} True if the hex color is valid, false otherwise.
+   */
+  isValidColor(color)
+  {
+    // use regex to validate the hex color.
+    const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    const isHexColor = structure.test(color);
+
+    // check if we failed the validation.
+    if (!isHexColor)
+    {
+      // and warn the user.
+      console.error(`Attempted to assign ${color} as a hex color to this text sprite:`, this);
+    }
+
+    // return the result.
+    return isHexColor;
+  };
+
+  /**
+   * Gets the text alignment for this text sprite.
+   * @returns {Sprite_BaseText.Alignments}
+   */
+  alignment()
+  {
+    return this._j._alignment;
+  };
+
+  /**
+   * Sets the alignment of this sprite's text.
+   * The alignment set must be one of the three valid options.
+   * @param {Sprite_BaseText.Alignments} alignment The alignment to set.
+   */
+  setAlignment(alignment)
+  {
+    // if we do not have a valid alignment, then do not assign it.
+    if (!this.isValidAlignment(alignment)) return;
+
+    if (this.alignment() !== alignment)
+    {
+      this._j._alignment = alignment;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Validates the alignment to ensure it is a valid alignment.
+   * @param {string} alignment The alignment to validate.
+   * @returns {boolean} True if the alignment is valid, false otherwise.
+   */
+  isValidAlignment(alignment)
+  {
+    const validAlignments = [
+      Sprite_BaseText.Alignments.Left,
+      Sprite_BaseText.Alignments.Center,
+      Sprite_BaseText.Alignments.Right
+    ]
+
+    return validAlignments.includes(alignment);
+  };
+
+  /**
+   * Gets whether or not this sprite's text is bold.
+   * @returns {boolean}
+   */
+  isBold()
+  {
+    return this._j._bold;
+  };
+
+  /**
+   * Sets the bold for this sprite's text.
+   * @param {boolean} bold True if we're using bold, false otherwise.
+   */
+  setBold(bold)
+  {
+    if (this.bold() !== bold)
+    {
+      this._j._bold = bold;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Gets whether or not this sprite's text is italics.
+   * @returns {boolean}
+   */
+  isItalics()
+  {
+    return this._j._italics;
+  };
+
+  /**
+   * Sets the italics for this sprite's text.
+   * @param {boolean} italics True if we're using italics, false otherwise.
+   */
+  setItalics(italics)
+  {
+    if (this.isItalics() !== italics)
+    {
+      this._j._italics = italics;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Gets the current font face name.
+   * @returns {string}
+   */
+  fontFace()
+  {
+    return this._j._fontFace;
+  };
+
+  /**
+   * Sets the font face to the designated font.
+   * This will not work if you set it to a font that you don't have
+   * in the `/font` folder.
+   * @param {string} fontFace The precise name of the font to change the text to.
+   */
+  setFontFace(fontFace)
+  {
+    if (this.fontFace() !== fontFace)
+    {
+      this._j._fontFace = fontFace;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Gets the current font size.
+   * @returns {number}
+   */
+  fontSize()
+  {
+    return this._j._fontSize;
+  };
+
+  /**
+   * Sets the font size to the designated number.
+   * @param {number} fontSize The size of the font.
+   */
+  setFontSize(fontSize)
+  {
+    if (this.fontSize() !== fontSize)
+    {
+      this._j._fontSize = fontSize;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  };
+
+  /**
+   * Renders the text of this sprite.
+   */
+  renderText()
+  {
+    // draw the text with the current settings onto the bitmap.
+    this.bitmap.drawText(
+      this.text(),
+      0,
+      0,
+      this.bitmapWidth(),
+      this.bitmapHeight(),
+      this.alignment());
+  };
+}
+//#endregion Sprite_BaseText
+
+//#region Sprite_ComboGauge
+/**
+ * The gauge sprite for handling combo timing.
+ */
+function Sprite_ComboGauge()
 {
   this.initialize(...arguments);
 }
 
-Sprite_Icon.prototype = Object.create(Sprite.prototype);
-Sprite_Icon.prototype.constructor = Sprite_Icon;
-
-/**
- * Initializes this class.
- * @param {number} iconIndex The icon index this sprite should render.
- */
-Sprite_Icon.prototype.initialize = function(iconIndex)
+Sprite_ComboGauge.prototype = Object.create(Sprite.prototype);
+Sprite_ComboGauge.prototype.constructor = Sprite_ComboGauge;
+Sprite_ComboGauge.prototype.initialize = function(cooldownData)
 {
-  // perform original logic.
+  this._j = {};
+  this._gauge = {};
   Sprite.prototype.initialize.call(this);
-
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * The icon index for this `Sprite_Icon` to render.
-   * @type {number}
-   */
-  this._j._iconIndex = iconIndex;
-
-  // load the bitmap.
-  this.loadBitmap();
-};
+  this.initMembers(cooldownData);
+  this.createBitmap();
+}
 
 /**
- * Sets the icon index for this `Sprite_Icon`.
- * Redraws the sprite with the new index.
- * @param {number} iconIndex The icon index this sprite should render.
+ * Initializes all parameters for this sprite.
+ * @param {object} cooldownData The cooldown data for this combo gauge.
  */
-Sprite_Icon.prototype.setIconIndex = function(iconIndex)
+Sprite_ComboGauge.prototype.initMembers = function(cooldownData)
 {
-  // reassign the icon index.
-  this._j._iconIndex = iconIndex;
+  this._j._maxUnassigned = true;
+  this._j._cooldownData = cooldownData;
+  this._j._cooldownMax = 0;
+  this._gauge._valueCurrent = 0;
+  this._gauge._valueMax = 0;
+}
 
-  // loads the bitmap based on the new icon index.
-  this.loadBitmap();
+/**
+ * Creates the bitmap for this sprite.
+ */
+Sprite_ComboGauge.prototype.createBitmap = function()
+{
+  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+}
+
+/**
+ * Updates this gauge.
+ */
+Sprite_ComboGauge.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+  // don't draw if there isn't a combo available.
+  if (!this._j._cooldownData.comboNextActionId)
+  {
+    this.bitmap.clear();
+    return;
+  }
+
+  // if this gauge is uninitiated or the user is comboing, reset the max.
+  const shouldInitialize = this._j._cooldownData.comboReady && this._j._maxUnassigned;
+  const chainComboing = this._gauge._valueMax < this._j._cooldownData.frames;
+  if (shouldInitialize || chainComboing)
+  {
+    this._j._maxUnassigned = false;
+    this._gauge._valueMax = JsonEx.makeDeepCopy(this._j._cooldownData.frames);
+  }
+
+  // cooldown is ready, combo is no longer available.
+  if (this._j._cooldownData.ready)
+  {
+    this._j._maxUnassigned = true;
+    this._gauge._valueMax = 0;
+  }
+  this.redraw();
+}
+
+/**
+ * The width of the whole bitmap.
+ */
+Sprite_ComboGauge.prototype.bitmapWidth = function()
+{
+  return 32;
+}
+
+/**
+ * The height of the whole bitmap.
+ */
+Sprite_ComboGauge.prototype.bitmapHeight = function()
+{
+  return 20;
+}
+
+/**
+ * The height of this gauge.
+ */
+Sprite_ComboGauge.prototype.gaugeHeight = function()
+{
+  return 10;
+}
+
+/**
+ * The current value for this gauge.
+ */
+Sprite_ComboGauge.prototype.currentValue = function()
+{
+  return this._j._cooldownData.frames;
+}
+
+/**
+ * The max value for this gauge.
+ * @returns {number}
+ */
+Sprite_ComboGauge.prototype.currentMaxValue = function()
+{
+  return this._gauge._valueMax;
+}
+
+/**
+ * OVERWRITE
+ * Rescopes `this` to point to the `Sprite_MapGauge` intead of the base
+ * `Sprite_Gauge`. Otherwise, this is identical to the base `Sprite_Gauge.redraw()`.
+ */
+Sprite_ComboGauge.prototype.redraw = function()
+{
+  this.bitmap.clear();
+  const currentValue = this.currentValue();
+  if (!isNaN(currentValue))
+  {
+    this.drawGauge();
+  }
+}
+
+Sprite_ComboGauge.prototype.gaugeColor1 = function()
+{
+  return "rgba(0, 0, 255, 1)";
 };
+
+Sprite_ComboGauge.prototype.gaugeColor2 = function()
+{
+  return "rgba(0, 255, 0, 1)";
+};
+
+Sprite_ComboGauge.prototype.gaugeBackColor = function()
+{
+  return "rgba(0, 0, 0, 0.5)";
+};
+
+Sprite_ComboGauge.prototype.isValid = function()
+{
+  if (this.currentMaxValue())
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+Sprite_ComboGauge.prototype.drawGauge = function()
+{
+  const gaugeX = 0;
+  const gaugeY = this.bitmapHeight() - this.gaugeHeight();
+  const gaugewidth = this.bitmapWidth() - gaugeX;
+  const gaugeHeight = this.gaugeHeight();
+  this.drawGaugeRect(gaugeX, gaugeY, gaugewidth, gaugeHeight);
+}
+
+Sprite_ComboGauge.prototype.drawGaugeRect = function(x, y, width, height)
+{
+  const rate = this.gaugeRate();
+  const fillW = Math.floor((width - 2) * rate);
+  const fillH = height - 2;
+  this.bitmap.fillRect(x, y, width, height, this.gaugeBackColor());
+  this.bitmap.gradientFillRect(
+    x + 1, y + 1,
+    fillW, fillH,
+    this.gaugeColor1(), this.gaugeColor2());
+}
+
+Sprite_ComboGauge.prototype.gaugeRate = function()
+{
+  if (this.isValid())
+  {
+    const value = this.currentValue();
+    const maxValue = this.currentMaxValue();
+    return maxValue > 0 ? value / maxValue : 0;
+  }
+  else
+  {
+    return 0;
+  }
+}
+//#endregion
+
+//#region Sprite_CooldownTimer
+/**
+ * A sprite that displays a timer representing the cooldown time for a JABS action.
+ */
+function Sprite_CooldownTimer()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_CooldownTimer.prototype = Object.create(Sprite.prototype);
+Sprite_CooldownTimer.prototype.constructor = Sprite_CooldownTimer;
+Sprite_CooldownTimer.prototype.initialize = function(skillType, cooldownData, isItem = false)
+{
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(skillType, cooldownData, isItem);
+  this.loadBitmap();
+}
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {string} skillType The slot that this skill maps to.
+ * @param {object} cooldownData The cooldown data associated with this cooldown sprite.
+ * @param {boolean} isItem Whether or not this cooldown timer is for an item.
+ */
+Sprite_CooldownTimer.prototype.initMembers = function(skillType, cooldownData, isItem)
+{
+  this._j = {};
+  this._j._skillType = skillType;
+  this._j._cooldownData = cooldownData;
+  this._j._isItem = isItem;
+}
 
 /**
  * Loads the bitmap into the sprite.
  */
-Sprite_Icon.prototype.loadBitmap = function()
+Sprite_CooldownTimer.prototype.loadBitmap = function()
 {
-  this.bitmap = ImageManager.loadSystem("IconSet");
-  const pw = ImageManager.iconWidth;
-  const ph = ImageManager.iconHeight;
-  const sx = (this._j._iconIndex % 16) * pw;
-  const sy = Math.floor(this._j._iconIndex / 16) * ph;
-  this.setFrame(sx, sy, pw, ph);
-};
-//#endregion Sprite_Icon
+  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+  this.bitmap.fontFace = this.fontFace();
+  this.bitmap.fontSize = this.fontSize();
+  this.bitmap.drawText(
+    this._j._text,
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+}
+
+Sprite_CooldownTimer.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+  this.updateCooldownText();
+}
+
+Sprite_CooldownTimer.prototype.updateCooldownText = function()
+{
+  this.bitmap.clear();
+  let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
+  if (typeof baseCooldown === 'undefined')
+  {
+    baseCooldown = 0;
+  }
+
+  let cooldownBaseText = baseCooldown > 0
+    ? baseCooldown
+    : "✔";
+  let cooldownComboText = (cooldownBaseText > 0 && this._j._cooldownData.comboNextActionId != 0)
+    ? "COMBO!"
+    : "❌";
+
+  this.bitmap.drawText(
+    cooldownBaseText,
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+  this.bitmap.fontSize = this.fontSize() - 8;
+  this.bitmap.fontItalic = true;
+  this.bitmap.drawText(
+    cooldownComboText,
+    0, this.fontSize(),
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+  this.bitmap.fontSize = this.fontSize();
+  this.bitmap.fontItalic = false;
+
+}
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_CooldownTimer.prototype.bitmapWidth = function()
+{
+  return 40;
+}
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_CooldownTimer.prototype.bitmapHeight = function()
+{
+  return this.fontSize() * 3;
+}
+
+/**
+ * Determines the font size for text in this sprite.
+ */
+Sprite_CooldownTimer.prototype.fontSize = function()
+{
+  return $gameSystem.mainFontSize() - 10;
+}
+
+/**
+ * determines the font face for text in this sprite.
+ */
+Sprite_CooldownTimer.prototype.fontFace = function()
+{
+  return $gameSystem.numberFontFace();
+}
+//#endregion
 
 //#region Sprite_MapGauge
 /**

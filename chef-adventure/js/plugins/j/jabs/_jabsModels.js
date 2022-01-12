@@ -3720,10 +3720,14 @@ JABS_Battler.prototype.getCooldown = function(cooldownKey)
  */
 JABS_Battler.prototype.getActionKeyData = function(key)
 {
+  const cooldown = this.getCooldown(key);
+  const skillslot = this.getBattler().getSkillSlot(key);
+
+  if (!cooldown || !skillslot) return null;
+
   return {
-    cooldown: this.getCooldown(key),
-    skillslot: this.getBattler()
-      .getSkillSlot(key)
+    cooldown,
+    skillslot
   }
 };
 
@@ -6542,7 +6546,6 @@ class JABS_Cooldown
       this.ready = false;
     }
   };
-
   //#endregion base cooldown
 
   //#region combo cooldown
@@ -7846,6 +7849,55 @@ JABS_SkillSlot.prototype.isUsable = function()
 JABS_SkillSlot.prototype.isEmpty = function()
 {
   return this.id === 0;
+};
+
+/**
+ * Gets the underlying data for this slot.
+ * Supports retrieving combo skills via targetId.
+ * Supports skill extended data via J-SkillExtend.
+ * @param {Game_Actor|null} user The user to get extended skill data for.
+ * @param {number|null} targetId The target id to get skill data for.
+ * @returns {rm.types.Item|rm.types.Skill|null}
+ */
+JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
+{
+  // if this slot is empty, then return null.
+  if (this.isEmpty()) return null;
+
+  // check if this slot is an item.
+  if (this.isItem())
+  {
+    // return the corresponding item.
+    return $dataItems[targetId];
+  }
+
+  // check if we're using the skill extension plugin and have a user.
+  if (J.EXTEND && user)
+  {
+    // return the user's extended skill.
+    return user.skill(targetId);
+  }
+
+  // otherwise, just return the database data for the skill.
+  return $dataSkills[targetId];
+};
+
+/**
+ * Gets whether or not this slot belongs to the tool slot.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isItem = function()
+{
+  return this.key === JABS_Button.Tool;
+};
+
+/**
+ * Gets whether or not this slot belongs to a skill slot.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isSkill = function()
+{
+  return this.key !== JABS_Button.Tool;
 };
 
 /**

@@ -2050,7 +2050,7 @@ declare namespace PIXI {
      *   not before the new render pass.
      * @param {number} [options.resolution=1] - The resolution / device pixel ratio of the renderer, retina would be 2
      * @param {boolean} [options.forceCanvas=false] - prevents selection of WebGL renderer, even if such is present, this
-     *   option only is available when using **pixi.js-legacy** or **@pixi/canvas-renderer** modules, otherwise
+     *   option only is available when using **pixi.js.old-legacy** or **@pixi/canvas-renderer** modules, otherwise
      *   it is ignored.
      * @param {boolean} [options.forceFXAA=false] - forces FXAA antialiasing to be used over native.
      *  FXAA is faster, but may not always look as great **webgl only**
@@ -11629,7 +11629,7 @@ declare namespace PIXI {
     }
     /**
      * Application plugin for supporting loader option. Installing the LoaderPlugin
-     * is not necessary if using **pixi.js** or **pixi.js-legacy**.
+     * is not necessary if using **pixi.js.old** or **pixi.js.old-legacy**.
      * @example
      * import {AppLoaderPlugin} from '@pixi/loaders';
      * import {Application} from '@pixi/app';
@@ -24931,7 +24931,7 @@ declare class Graphics {
 	 */
 	static isInsideCanvas(x: number, y: number): boolean;
 	/**
-	 * Calls pixi.js garbage collector
+	 * Calls pixi.js.old garbage collector
 	 */
 	static callGC(): void;
 	static _renderer: PIXI.AbstractRenderer;

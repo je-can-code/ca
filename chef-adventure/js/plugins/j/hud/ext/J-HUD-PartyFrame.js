@@ -221,8 +221,13 @@ Scene_Map.prototype.mapNameWindowRect = function()
 /**
  * Refreshes the hud on-command.
  */
+J.HUD.EXT_PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
+  // perform original logic.
+  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
+
+  // refresh the party frame.
   this._j._partyFrame.refresh();
 };
 
@@ -467,6 +472,7 @@ class Window_PartyFrame extends Window_Base
    * Creates the key for an actor's face sprite based on the parameters.
    * @param {Game_Actor} actor The actor to create a key for.
    * @param {boolean} isFull Whether or not this is for a full-sized sprite.
+   * @returns {string}
    */
   makeFaceSpriteKey(actor, isFull)
   {
