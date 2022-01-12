@@ -1119,6 +1119,17 @@ class IconManager
 //#region Game objects
 //#region Game_Actor
 /**
+ * The underlying database data for this battler.
+ *
+ * This allows operations to be performed against both actor and enemy indifferently.
+ * @returns {number}
+ */
+Game_Actor.prototype.battlerId = function()
+{
+  return this.actorId();
+};
+
+/**
  * Gets all skills that are executed when this actor is defeated.
  * @returns {JABS_SkillChance[]}
  */
@@ -1665,6 +1676,17 @@ Game_Actor.prototype.databaseData = function()
 Game_Battler.prototype.state = function(stateId)
 {
   return $dataStates[stateId];
+};
+
+/**
+ * The underlying database data for this battler.
+ *
+ * This allows operations to be performed against both actor and enemy indifferently.
+ * @returns {number}
+ */
+Game_Battler.prototype.battlerId = function()
+{
+  return 0;
 };
 
 /**
@@ -2271,6 +2293,17 @@ Game_Character.prototype.isInanimate = function()
 //#endregion Game_Character
 
 //#region Game_Enemy
+/**
+ * The underlying database data for this battler.
+ *
+ * This allows operations to be performed against both actor and enemy indifferently.
+ * @returns {number}
+ */
+Game_Enemy.prototype.battlerId = function()
+{
+  return this.enemyId();
+};
+
 /**
  * Gets the amount of sdp points granted by this enemy.
  * @returns {number}
