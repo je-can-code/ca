@@ -376,13 +376,13 @@ Game_Actor.prototype.getDefaultAllyAI = function()
 };
 //#endregion Game_Actor
 
-//#region Game_BattleMap
+//#region JABS_Engine
 /**
  * OVERWRITE Updates the party cycle functionality to cycle to the next follower instead
  * of generating a new player for every party cycle.
  */
-J.ALLYAI.Aliased.Game_BattleMap.performPartyCycling = Game_BattleMap.prototype.performPartyCycling;
-Game_BattleMap.prototype.performPartyCycling = function()
+J.ALLYAI.Aliased.Game_BattleMap.performPartyCycling = JABS_Engine.prototype.performPartyCycling;
+JABS_Engine.prototype.performPartyCycling = function()
 {
   // if followers aren't enabled, then do it like normal.
   if (!$gamePlayer.followers().isVisible())
@@ -479,7 +479,7 @@ Game_BattleMap.prototype.performPartyCycling = function()
   // request a map-wide sprite refresh on cycling.
   this.requestSpriteRefresh = true;
 };
-//#endregion Game_BattleMap
+//#endregion JABS_Engine
 
 //#region Game_Followers
 /**
@@ -491,7 +491,7 @@ Game_Followers.prototype.show = function()
 {
   J.ALLYAI.Aliased.Game_Followers.show.call(this);
   $gameMap.updateAllies();
-  $gameBattleMap.requestJabsMenuRefresh = true;
+  $jabsEngine.requestJabsMenuRefresh = true;
 };
 
 /**
@@ -503,7 +503,7 @@ Game_Followers.prototype.hide = function()
 {
   J.ALLYAI.Aliased.Game_Followers.hide.call(this);
   $gameMap.updateAllies();
-  $gameBattleMap.requestJabsMenuRefresh = true;
+  $jabsEngine.requestJabsMenuRefresh = true;
 };
 
 /**
@@ -880,7 +880,7 @@ J.ALLYAI.Aliased.Game_Switches.onChange = Game_Switches.prototype.onChange;
 Game_Switches.prototype.onChange = function()
 {
   J.ALLYAI.Aliased.Game_Switches.onChange.call(this);
-  $gameBattleMap.requestJabsMenuRefresh = true;
+  $jabsEngine.requestJabsMenuRefresh = true;
 };
 //#endregion Game_Switches
 //#endregion Game objects
@@ -1725,7 +1725,7 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
         {
 
           // see if the state for this ally is expired or about to expire.
-          const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(ally.getBattler(), effect.dataId);
+          const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(ally.getBattler(), effect.dataId);
           if (!trackedState || trackedState.isAboutToExpire())
           {
             ready = true; // stop looking and use the below skill and target ally.
@@ -1891,7 +1891,7 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
 JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
 {
   const isAlerted = this.isAlerted();
-  const playerHitSomething = $gameBattleMap.getPlayerMapBattler()
+  const playerHitSomething = $jabsEngine.getPlayerMapBattler()
     .hasBattlerLastHit();
   const inSight = this.inSightRange(target, distance);
   const targetInanimate = target.isInanimate();

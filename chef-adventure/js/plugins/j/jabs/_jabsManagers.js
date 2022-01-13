@@ -16,14 +16,17 @@
 
 //#region DataManager
 /**
- * The global reference for the `Game_BattleMap` data object.
- * @type {Game_BattleMap}
+ * The global reference for the `JABS_Engine` data object.
+ * @type {JABS_Engine}
  * @global
  */
-var $gameBattleMap = null;
+var $jabsEngine = null;
 
 /**
- * The global reference for the `Game_Enemies` data object.
+ * The global reference for the `Game_Enemies` data object.<br/>
+ *
+ * Unlike `$gameActors`, this is effectively a `Game_Enemy` factory rather than
+ * a getter for `Game_Actor`s.
  * @type {Game_Enemies}
  * @global
  */
@@ -54,7 +57,7 @@ DataManager.createGameObjects = function()
 
   DataManager.getSkillMasterMap();
   $jabsController1 = new JABS_InputManager();
-  $gameBattleMap = new Game_BattleMap();
+  $jabsEngine = new JABS_Engine();
   $gameEnemies = new Game_Enemies();
 };
 
@@ -374,7 +377,7 @@ class JABS_AiManager
    */
   static canUpdate()
   {
-    const isPaused = $gameBattleMap.absPause;
+    const isPaused = $jabsEngine.absPause;
     const isMessageVisible = $gameMessage.isBusy();
     const isEventRunning = $gameMap.isEventRunning();
     const updateBlocked = isPaused || isMessageVisible || isEventRunning;
@@ -387,7 +390,7 @@ class JABS_AiManager
   static manageAi()
   {
     const battlers = $gameMap.getBattlersWithinRange(
-      $gameBattleMap.getPlayerMapBattler(),
+      $jabsEngine.getPlayerMapBattler(),
       J.ABS.Metadata.MaxAiUpdateRange);
     if (!battlers.length) return;
 
@@ -646,9 +649,8 @@ class JABS_AiManager
     // step 4: execute your action.
     if (battler.isInPosition())
     {
-      const decidedAction = battler.getDecidedAction();
       battler.turnTowardTarget();
-      $gameBattleMap.executeMapActions(battler, decidedAction);
+      battler.processQueuedActions();
       battler.setWaitCountdown(20);
       battler.setPhase(3);
     }
@@ -743,7 +745,7 @@ class JABS_AiManager
     // into acting intelligently as well.
     if (leader)
     {
-      const nearbyFollowers = $gameBattleMap.getNearbyFollowers(battler);
+      const nearbyFollowers = $gameMap.getNearbyFollowers(battler);
       nearbyFollowers.forEach(follower =>
       {
         // leaders can't control other leaders' followers.

@@ -63,8 +63,8 @@ class Window_AbsMenu extends Window_Command
     if (!this.isClosed())
     {
       this.close();
-      $gameBattleMap.absPause = false;
-      $gameBattleMap.requestAbsMenu = false;
+      $jabsEngine.absPause = false;
+      $jabsEngine.requestAbsMenu = false;
     }
   };
 };

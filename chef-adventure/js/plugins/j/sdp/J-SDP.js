@@ -1029,7 +1029,7 @@ Game_Actor.prototype.sparam = function(sparamId)
 };
 //#endregion Game_Actor
 
-//#region Game_BattleMap
+//#region JABS_Engine
 if (J.ABS)
 {
   /**
@@ -1037,8 +1037,8 @@ if (J.ABS)
    * @param {Game_Battler} enemy The target battler that was defeated.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
-  J.SDP.Aliased.Game_BattleMap.gainBasicRewards = Game_BattleMap.prototype.gainBasicRewards;
-  Game_BattleMap.prototype.gainBasicRewards = function(enemy, actor)
+  J.SDP.Aliased.Game_BattleMap.gainBasicRewards = JABS_Engine.prototype.gainBasicRewards;
+  JABS_Engine.prototype.gainBasicRewards = function(enemy, actor)
   {
     J.SDP.Aliased.Game_BattleMap.gainBasicRewards.call(this, enemy, actor);
     let sdpPoints = enemy.sdpPoints();
@@ -1057,7 +1057,7 @@ if (J.ABS)
    * @param {number} sdpPoints The SDP points to gain.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
-  Game_BattleMap.prototype.gainSdpReward = function(sdpPoints, actor)
+  JABS_Engine.prototype.gainSdpReward = function(sdpPoints, actor)
   {
     // don't do anything if the enemy didn't grant any sdp points.
     if (!sdpPoints) return;
@@ -1078,7 +1078,7 @@ if (J.ABS)
    * @param {number} amount The amount to display.
    * @param {Game_Character} character The character to show the popup on.
    */
-  Game_BattleMap.prototype.generatePopSdpPoints = function(amount, character)
+  JABS_Engine.prototype.generatePopSdpPoints = function(amount, character)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -1095,7 +1095,7 @@ if (J.ABS)
    * Creates the text pop of the SDP points gained.
    * @param {number} sdpPoints The amount of experience gained.
    */
-  Game_BattleMap.prototype.configureSdpPop = function(sdpPoints)
+  JABS_Engine.prototype.configureSdpPop = function(sdpPoints)
   {
     return new TextPopBuilder(sdpPoints)
       .isSdpPoints()
@@ -1107,7 +1107,7 @@ if (J.ABS)
    * @param {number} sdpPoints The SDP ponts gained.
    * @param {JABS_Battler} battler The battler gaining the SDP points.
    */
-  Game_BattleMap.prototype.createSdpLog = function(sdpPoints, battler)
+  JABS_Engine.prototype.createSdpLog = function(sdpPoints, battler)
   {
     if (!J.LOG) return;
 
@@ -1117,7 +1117,7 @@ if (J.ABS)
     $gameTextLog.addLog(sdpLog);
   };
 }
-//#endregion Game_BattleMap
+//#endregion JABS_Engine
 
 //#region Game_Battler
 /**
@@ -1201,7 +1201,7 @@ Game_Switches.prototype.onChange = function()
   $gameMap.requestRefresh();
   if (J.ABS)
   {
-    $gameBattleMap.requestJabsMenuRefresh = true;
+    $jabsEngine.requestJabsMenuRefresh = true;
   }
 };
 //#endregion Game_Switches

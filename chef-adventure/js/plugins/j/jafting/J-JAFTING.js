@@ -1606,8 +1606,8 @@ class Window_JaftingModeMenu
       this.close();
       if (J.ABS)
       {
-        $gameBattleMap.absPause = false;
-        $gameBattleMap.requestAbsMenu = false;
+        $jabsEngine.absPause = false;
+        $jabsEngine.requestAbsMenu = false;
       }
 
       $gameSystem.endJafting();

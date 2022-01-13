@@ -421,7 +421,7 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
   if (!battler) return -1;
 
   // if the sprite belongs to the player, then don't do it.
-  const player = $gameBattleMap.getPlayerMapBattler().getBattler();
+  const player = $jabsEngine.getPlayerMapBattler().getBattler();
   if (player === battler) return -1;
 
   // get the corresponding power levels.
