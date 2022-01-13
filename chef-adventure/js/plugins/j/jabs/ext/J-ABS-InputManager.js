@@ -12,10 +12,16 @@
  * @orderBefore J-HUD
  * @help
  * ============================================================================
- * This plugin is an extension of the J-ABS system.
- *
- * This plugin oversees and manages the inputs/controls associated with JABS
- * and oversees the J-HUD-InputFrame data as well.
+ * This plugin is a mapping of inputs to controls for JABS.
+ * This plugin governs the mapping of button inputs to JABS functionality.
+ * ============================================================================
+ * DEVELOPER NOTES:
+ * This plugin defines the means of which button inputs are mapped to the
+ * publicly exposed JABS_InputAdapter endpoints. Because the JABS_InputManager
+ * is an instance-type class, additional instances of it can be created and
+ * mapped to different functionality like additional battlers if one wanted.
+ * Alternatively, button input mapping changes would take place here, though
+ * do be sure to review J-ABS's Input keymapper to see what is already there.
  * ============================================================================
  */
 
@@ -245,6 +251,7 @@ class JABS_Input
  */
 class JABS_InputManager
 {
+  //#region properties
   /**
    * The battler that this input manager manages.
    * @type {JABS_Battler|null}
@@ -268,7 +275,9 @@ class JABS_InputManager
   {
     this.battler = battler;
   };
+  //#endregion properties
 
+  //#region update
   /**
    * Updates the input loop for tracking JABS input.
    */
@@ -311,6 +320,7 @@ class JABS_InputManager
     // update!
     return true;
   };
+  //#endregion update
 
   //#region menu action
   /**
