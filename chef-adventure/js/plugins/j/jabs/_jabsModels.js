@@ -1250,9 +1250,8 @@ JABS_Battler.prototype.initCooldowns = function()
 
 //#region statics
 /**
- * Generates the player character.
- *
- * It does so blindly, with no regard for existing player battlers.
+ * Generates a `JABS_Battler` based on the current leader of the party.
+ * Also assigns the controller inputs for the player.
  */
 JABS_Battler.createPlayer = function()
 {
@@ -1265,7 +1264,14 @@ JABS_Battler.createPlayer = function()
     .isPlayer()
     .build();
 
-  return new JABS_Battler($gamePlayer, battler, coreData);
+  // instantiate a player JABS battler.
+  const playerJabsBattler = new JABS_Battler($gamePlayer, battler, coreData);
+
+  // when new players are created, assign them to controller 1.
+  $jabsController1.battler = playerJabsBattler;
+
+  // return the created player.
+  return playerJabsBattler;
 };
 
 /**

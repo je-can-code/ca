@@ -53,9 +53,9 @@ DataManager.createGameObjects = function()
   J.ABS.Aliased.DataManager.createGameObjects.call(this);
 
   DataManager.getSkillMasterMap();
+  $jabsController1 = new JABS_InputManager();
   $gameBattleMap = new Game_BattleMap();
   $gameEnemies = new Game_Enemies();
-  $jabsController1 = new JABS_InputManager();
 };
 
 /**
