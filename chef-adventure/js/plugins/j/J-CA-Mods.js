@@ -214,15 +214,15 @@ Game_BattlerBase.prototype.recoverAll = function()
 };
 //#endregion Game_BattlerBase
 
-//#region Game_BattleMap
+//#region JABS_Engine
 /**
  * Fixes the weird problem where CA uniquely seems to want to move character sprites up
  * by 1 when generating loot.
  * @param {number} targetX The `x` coordiante where the loot will be dropped/placed.
  * @param {number} targetY The `y` coordinate where the loot will be dropped/placed.
  */
-J.CAMods.Aliased.Game_BattleMap.addLootDropToMap = Game_BattleMap.prototype.addLootDropToMap;
-Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item)
+J.CAMods.Aliased.Game_BattleMap.addLootDropToMap = JABS_Engine.prototype.addLootDropToMap;
+JABS_Engine.prototype.addLootDropToMap = function(targetX, targetY, item)
 {
   targetY += 1;
   J.CAMods.Aliased.Game_BattleMap.addLootDropToMap.call(this, targetX, targetY, item);
@@ -233,8 +233,8 @@ Game_BattleMap.prototype.addLootDropToMap = function(targetX, targetY, item)
  * @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
  * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
  */
-J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy = Game_BattleMap.prototype.handleDefeatedEnemy;
-Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
+J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy = JABS_Engine.prototype.handleDefeatedEnemy;
+JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
 {
   J.CAMods.Aliased.Game_BattleMap.handleDefeatedEnemy.call(this, defeatedTarget, caster);
 
@@ -254,8 +254,8 @@ Game_BattleMap.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
 /**
  * Extends the handling of defeated players to track data.
  */
-J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer = Game_BattleMap.prototype.handleDefeatedPlayer;
-Game_BattleMap.prototype.handleDefeatedPlayer = function()
+J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer = JABS_Engine.prototype.handleDefeatedPlayer;
+JABS_Engine.prototype.handleDefeatedPlayer = function()
 {
   J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
   J.CAMods.Aliased.Game_BattleMap.handleDefeatedPlayer.call(this);
@@ -266,8 +266,8 @@ Game_BattleMap.prototype.handleDefeatedPlayer = function()
  * @param {JABS_Action} action The action being executed.
  * @param {JABS_Battler} target The target to apply skill effects against.
  */
-J.CAMods.Aliased.Game_BattleMap.postExecuteSkillEffects = Game_BattleMap.prototype.postExecuteSkillEffects;
-Game_BattleMap.prototype.postExecuteSkillEffects = function(action, target)
+J.CAMods.Aliased.Game_BattleMap.postExecuteSkillEffects = JABS_Engine.prototype.postExecuteSkillEffects;
+JABS_Engine.prototype.postExecuteSkillEffects = function(action, target)
 {
   // execute the original method so the result is on the target.
   J.CAMods.Aliased.Game_BattleMap.postExecuteSkillEffects.call(this, action, target);
@@ -292,7 +292,7 @@ Game_BattleMap.prototype.postExecuteSkillEffects = function(action, target)
  * Tracks various attack-related data points and assigns them to variables.
  * @param {JABS_Battler} target The target to analyze.
  */
-Game_BattleMap.prototype.trackAttackData = function(target)
+JABS_Engine.prototype.trackAttackData = function(target)
 {
   const {hpDamage, critical} = target.getBattler().result();
   if (hpDamage)
@@ -326,7 +326,7 @@ Game_BattleMap.prototype.trackAttackData = function(target)
  * Tracks various defensive-related data points and assigns them to variables.
  * @param {JABS_Battler} target The target to analyze.
  */
-Game_BattleMap.prototype.trackDefensiveData = function(target)
+JABS_Engine.prototype.trackDefensiveData = function(target)
 {
   const {hpDamage, critical, parried, preciseParried} = target.getBattler().result();
   if (hpDamage)
@@ -375,8 +375,8 @@ Game_BattleMap.prototype.trackDefensiveData = function(target)
  * @param {number?} targetX The target's `x` coordinate, if applicable.
  * @param {number?} targetY The target's `y` coordinate, if applicable.
  */
-J.CAMods.Aliased.Game_BattleMap.executeMapAction = Game_BattleMap.prototype.executeMapAction;
-Game_BattleMap.prototype.executeMapAction = function(caster, action, targetX, targetY)
+J.CAMods.Aliased.Game_BattleMap.executeMapAction = JABS_Engine.prototype.executeMapAction;
+JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targetY)
 {
   J.CAMods.Aliased.Game_BattleMap.executeMapAction.call(this, caster, action, targetX, targetY);
 
@@ -390,7 +390,7 @@ Game_BattleMap.prototype.executeMapAction = function(caster, action, targetX, ta
  * Tracks mainhand/offhand/skill usage data points and assigns them to variables.
  * @param {JABS_Action} action
  */
-Game_BattleMap.prototype.trackActionData = function(action)
+JABS_Engine.prototype.trackActionData = function(action)
 {
   const cooldownType = action.getCooldownType();
   switch (cooldownType)
@@ -407,7 +407,7 @@ Game_BattleMap.prototype.trackActionData = function(action)
       break;
   }
 };
-//#endregion Game_BattleMap
+//#endregion JABS_Engine
 
 //#region Game_Enemy
 /**

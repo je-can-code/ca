@@ -49,14 +49,14 @@ Spriteset_Map.prototype.updateJabsSprites = function()
 Spriteset_Map.prototype.handleActionSprites = function()
 {
   // check if we have incoming requests to add new action sprites.
-  if ($gameBattleMap.requestActionRendering)
+  if ($jabsEngine.requestActionRendering)
   {
     // add the new action sprites.
     this.addActionSprites();
   }
 
   // check if we have incoming requests to remove old action sprites.
-  if ($gameBattleMap.requestClearMap)
+  if ($jabsEngine.requestClearMap)
   {
     // remove the old action sprites.
     this.removeActionSprites();
@@ -69,14 +69,14 @@ Spriteset_Map.prototype.handleActionSprites = function()
 Spriteset_Map.prototype.handleLootSprites = function()
 {
   // check if we have incoming requests to add new loot sprites.
-  if ($gameBattleMap.requestLootRendering)
+  if ($jabsEngine.requestLootRendering)
   {
     // add the new loot sprites.
     this.addLootSprites();
   }
 
   // check if we have incoming requests to remove old loot sprites.
-  if ($gameBattleMap.requestClearLoot)
+  if ($jabsEngine.requestClearLoot)
   {
     // remove the old loot sprites.
     this.removeLootSprites();
@@ -89,7 +89,7 @@ Spriteset_Map.prototype.handleLootSprites = function()
 Spriteset_Map.prototype.handleSpriteRefresh = function()
 {
   // check if we have incoming requests to do a sprite refresh.
-  if ($gameBattleMap.requestSpriteRefresh)
+  if ($jabsEngine.requestSpriteRefresh)
   {
     // refresh all character sprites.
     this.refreshAllCharacterSprites();
@@ -108,7 +108,7 @@ Spriteset_Map.prototype.addActionSprites = function()
   newActionEvents.forEach(this.addActionSprite, this);
 
   // acknowledge that action sprites were added.
-  $gameBattleMap.requestActionRendering = false;
+  $jabsEngine.requestActionRendering = false;
 };
 
 /**
@@ -143,7 +143,7 @@ Spriteset_Map.prototype.addLootSprites = function()
   events.forEach(this.addLootSprite, this);
 
   // acknowledge that loot sprites were added.
-  $gameBattleMap.requestLootRendering = false;
+  $jabsEngine.requestLootRendering = false;
 };
 
 /**
@@ -175,7 +175,7 @@ Spriteset_Map.prototype.removeActionSprites = function()
   events.forEach(this.removeActionSprite, this);
 
   // acknowledge that expired action sprites were cleared.
-  $gameBattleMap.requestClearMap = false;
+  $jabsEngine.requestClearMap = false;
 };
 
 /**
@@ -220,7 +220,7 @@ Spriteset_Map.prototype.removeLootSprites = function()
   events.forEach(this.removeLootSprite, this);
 
   // acknowledge that expired loot sprites were cleared.
-  $gameBattleMap.requestClearLoot = false;
+  $jabsEngine.requestClearLoot = false;
 };
 
 /**
@@ -258,7 +258,7 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent)
  */
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
-  $gameBattleMap.requestSpriteRefresh = false;
+  $jabsEngine.requestSpriteRefresh = false;
 };
 //#endregion Spriteset_Map
 
@@ -445,7 +445,7 @@ Sprite_Character.prototype.finalizeLootSetup = function()
  */
 Sprite_Character.prototype.canUpdate = function()
 {
-  return $gameBattleMap.absEnabled;
+  return $jabsEngine.absEnabled;
 };
 
 /**
@@ -1050,7 +1050,7 @@ Sprite_Character.prototype.expireLoot = function()
 
   // set the loot to be removed.
   this._character.setLootNeedsRemoving(true);
-  $gameBattleMap.requestClearLoot = true;
+  $jabsEngine.requestClearLoot = true;
 };
 
 /**

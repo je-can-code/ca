@@ -351,7 +351,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   skillSlotId()
   {
     // grab the cooldown data and the skillslot data from the leader based on the slot.
-    const actionKeyData = $gameBattleMap
+    const actionKeyData = $jabsEngine
       .getPlayerMapBattler()
       .getActionKeyData(this.skillSlotKey());
 
@@ -509,7 +509,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
    */
   targetJabsBattler()
   {
-    return $gameBattleMap.getPlayerMapBattler();
+    return $jabsEngine.getPlayerMapBattler();
   };
 
   /**
@@ -1617,7 +1617,7 @@ class Window_InputFrame extends Window_Frame
     // create a new sprite.
     const sprite = new Sprite_InputKeySlot(
       skillSlot,
-      $gameBattleMap.getPlayerMapBattler());
+      $jabsEngine.getPlayerMapBattler());
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);
@@ -1763,7 +1763,7 @@ class Window_InputFrame extends Window_Frame
   drawInputKey(inputType, x, y)
   {
     // shorthand the player's JABS battler data.
-    const jabsPlayer = $gameBattleMap.getPlayerMapBattler();
+    const jabsPlayer = $jabsEngine.getPlayerMapBattler();
 
     // grab the cooldown data and the skillslot data from the leader based on the slot.
     const actionKeyData = jabsPlayer.getActionKeyData(inputType);

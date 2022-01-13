@@ -394,7 +394,7 @@ Window_ActionKeys.prototype.refreshOpacity = function()
 Window_ActionKeys.prototype.drawActionKey = function(skillType, x, y, isItem = false)
 {
   this.hideUnusedActionKeys(skillType);
-  const mapBattler = $gameBattleMap.getPlayerMapBattler();
+  const mapBattler = $jabsEngine.getPlayerMapBattler();
   const actionKeyData = mapBattler.getActionKeyData(skillType);
   const cooldownData = actionKeyData.cooldown;
   if (!cooldownData)

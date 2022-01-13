@@ -731,7 +731,7 @@ J.STAR = {};
 
   Game_Troop.prototype.updateRemainingEnemyCount = function()
   {
-    this._remainingEnemyCount = $gameMap.getOpposingBattlers($gameBattleMap.getPlayerMapBattler()).length;
+    this._remainingEnemyCount = $gameMap.getOpposingBattlers($jabsEngine.getPlayerMapBattler()).length;
     return this._remainingEnemyCount;
   };
 

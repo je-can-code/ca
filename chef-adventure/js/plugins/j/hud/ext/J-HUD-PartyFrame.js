@@ -1126,7 +1126,7 @@ class Window_PartyFrame extends Window_Base
     if (J.ABS)
     {
       // grab all the states and sort them into negative/positive buckets.
-      const trackedStates = $gameBattleMap.getStateTrackerByBattler(leader);
+      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
       const positiveStates = trackedStates.filter(this.filterPositiveStates);
       const negativeStates = trackedStates.filter(this.filterNegativeStates);
 
@@ -1159,7 +1159,7 @@ class Window_PartyFrame extends Window_Base
     // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      const trackedStates = $gameBattleMap.getStateTrackerByBattler(leader);
+      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
       trackedStates.forEach(trackedState =>
       {
         // if the tracked state isn't expired, don't bother.

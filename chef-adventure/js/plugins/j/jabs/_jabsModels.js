@@ -1440,7 +1440,7 @@ JABS_Battler.allyRubberbandRange = function()
 JABS_Battler.prototype.update = function()
 {
   // don't update map battlers if JABS is disabled.
-  if (!$gameBattleMap.absEnabled) return;
+  if (!$jabsEngine.absEnabled) return;
 
   this.updateAnimations();
   this.updateCooldowns();
@@ -1462,8 +1462,11 @@ JABS_Battler.prototype.processQueuedActions = function()
   // check if we're still casting actions.
   if (this.isCasting()) return;
 
+  // if this isn't the player and we aren't in position, then do not execute.
+  if (!this.isPlayer() && !this.isInPosition()) return;
+
   // execute the action.
-  $gameBattleMap.executeMapActions(this, this.getDecidedAction());
+  $jabsEngine.executeMapActions(this, this.getDecidedAction());
 
   // clear the queued action.
   this.clearDecidedAction();
@@ -1602,7 +1605,7 @@ JABS_Battler.prototype.updateEngagement = function()
  */
 JABS_Battler.prototype.canUpdateEngagement = function()
 {
-  return (!$gameBattleMap.absPause && !this.isPlayer() && !this.isHidden() && !this.isInanimate());
+  return (!$jabsEngine.absPause && !this.isPlayer() && !this.isHidden() && !this.isInanimate());
 };
 
 /**
@@ -2144,7 +2147,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
 JABS_Battler.prototype.shouldProcessState = function(state)
 {
   const battler = this.getBattler();
-  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
   if (!trackedState)
   {
     // when loading a file that was saved with a state, we encounter a weird issue
@@ -2169,7 +2172,7 @@ JABS_Battler.prototype.shouldProcessState = function(state)
 JABS_Battler.prototype.stateSlipHp = function(state)
 {
   const battler = this.getBattler();
-  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
   const {slipHpFlat, slipHpPerc, slipHpFormula} = state._j;
   let tagHp5 = 0;
 
@@ -2217,7 +2220,7 @@ JABS_Battler.prototype.stateSlipHp = function(state)
 JABS_Battler.prototype.stateSlipMp = function(state)
 {
   const battler = this.getBattler();
-  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
   const {slipMpFlat, slipMpPerc, slipMpFormula} = state._j;
   let tagMp5 = 0;
 
@@ -2265,7 +2268,7 @@ JABS_Battler.prototype.stateSlipMp = function(state)
 JABS_Battler.prototype.stateSlipTp = function(state)
 {
   const battler = this.getBattler();
-  const trackedState = $gameBattleMap.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
   const {slipTpFlat, slipTpPerc, slipTpFormula} = state._j;
 
   let tagTp5 = 0;
@@ -2842,7 +2845,7 @@ JABS_Battler.prototype.clearFollowers = function()
   // first de-assign leadership from all followers for this leader...
   this._followers.forEach(followerUuid =>
   {
-    $gameBattleMap.clearLeaderDataByUuid(followerUuid);
+    $gameMap.clearLeaderDataByUuid(followerUuid);
   });
 
   // ...then empty the collection.
@@ -4529,7 +4532,7 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
 
   // calculate the projectile count and directions.
   const projectileCount = skill._j.projectile();
-  const projectileDirections = $gameBattleMap.determineActionDirections(
+  const projectileDirections = $jabsEngine.determineActionDirections(
     this.getCharacter().direction(),
     projectileCount);
 
@@ -4690,7 +4693,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
     mapAction.forEach(action =>
     {
       action.setCooldownType(JABS_Button.Tool);
-      $gameBattleMap.executeMapAction(this, action);
+      $jabsEngine.executeMapAction(this, action);
     });
   }
 
@@ -4746,7 +4749,7 @@ JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = t
   const toolData = $dataItems[itemId];
 
   // generate the textpop.
-  const itemPop = $gameBattleMap.configureDamagePop(gameAction, toolData, this, target);
+  const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
 
   // add the pop to the target's tracking.
   character.addTextPop(itemPop);
@@ -4869,7 +4872,7 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor)
     {
       if (onDefeatSkill.shouldTrigger())
       {
-        $gameBattleMap.forceMapAction(this, onDefeatSkill.skillId, false);
+        $jabsEngine.forceMapAction(this, onDefeatSkill.skillId, false);
       }
     });
   }
@@ -4885,11 +4888,11 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor)
       {
         if (castFromTarget)
         {
-          $gameBattleMap.forceMapAction(victor, onDefeatSkill.skillId, false, this.getX(), this.getY());
+          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false, this.getX(), this.getY());
         }
         else
         {
-          $gameBattleMap.forceMapAction(victor, onDefeatSkill.skillId, false);
+          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false);
         }
       }
     });

@@ -22,7 +22,7 @@
 J.ABS.Aliased.Scene_Load.reloadMapIfUpdated = Scene_Load.prototype.reloadMapIfUpdated;
 Scene_Load.prototype.reloadMapIfUpdated = function()
 {
-  if ($gameBattleMap.absEnabled)
+  if ($jabsEngine.absEnabled)
   {
     const mapId = $gameMap.mapId();
     const x = $gamePlayer.x;
@@ -55,9 +55,9 @@ Scene_Map.prototype.initialize = function()
 J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
 Scene_Map.prototype.onMapLoaded = function()
 {
-  if ($gameBattleMap.absEnabled)
+  if ($jabsEngine.absEnabled)
   {
-    $gameBattleMap.initializePlayerBattler();
+    $jabsEngine.initializePlayerBattler();
   }
 
   J.ABS.Aliased.Scene_Map.onMapLoaded.call(this);
@@ -108,13 +108,13 @@ Scene_Map.prototype.update = function()
   this.handleJabsWindowsVisibility();
 
   // if the ABS is disabled, then don't update it.
-  if (!$gameBattleMap.absEnabled) return;
+  if (!$jabsEngine.absEnabled) return;
 
   // update the JABS engine!
   JABS_AiManager.update();
 
   // handle the JABS menu.
-  if ($gameBattleMap.requestAbsMenu)
+  if ($jabsEngine.requestAbsMenu)
   {
     this.manageAbsMenu();
   }
@@ -124,13 +124,13 @@ Scene_Map.prototype.update = function()
   }
 
   // handle rotation.
-  if ($gameBattleMap.requestPartyRotation)
+  if ($jabsEngine.requestPartyRotation)
   {
     this.handlePartyRotation();
   }
 
   // handle requests for refreshing the JABS quick menu.
-  if ($gameBattleMap.requestJabsMenuRefresh)
+  if ($jabsEngine.requestJabsMenuRefresh)
   {
     this.refreshJabsMenu();
   }
@@ -141,7 +141,7 @@ Scene_Map.prototype.update = function()
  */
 Scene_Map.prototype.handlePartyRotation = function()
 {
-  $gameBattleMap.requestPartyRotation = false;
+  $jabsEngine.requestPartyRotation = false;
   if (J.HUD)
   {
     this.refreshHud();
@@ -153,7 +153,7 @@ Scene_Map.prototype.handlePartyRotation = function()
  */
 Scene_Map.prototype.handleJabsWindowsVisibility = function()
 {
-  if ($gameBattleMap.absEnabled && !$gameMessage.isBusy())
+  if ($jabsEngine.absEnabled && !$gameMessage.isBusy())
   {
     if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
   }
@@ -185,7 +185,7 @@ J.ABS.Aliased.Scene_Map.callMenu = Scene_Map.prototype.callMenu;
 Scene_Map.prototype.callMenu = function()
 {
   // if the ABS is disabled, then allow the menu to be called.
-  if (!$gameBattleMap.absEnabled)
+  if (!$jabsEngine.absEnabled)
   {
     J.ABS.Aliased.Scene_Map.callMenu.call(this);
   }
@@ -437,7 +437,7 @@ Scene_Map.prototype.commandMenu = function()
 
 Scene_Map.prototype.refreshJabsMenu = function()
 {
-  $gameBattleMap.requestJabsMenuRefresh = false;
+  $jabsEngine.requestJabsMenuRefresh = false;
   this._j._absMenu._mainWindow.refresh();
 };
 
