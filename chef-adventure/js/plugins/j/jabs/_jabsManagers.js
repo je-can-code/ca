@@ -17,7 +17,7 @@
 //#region DataManager
 /**
  * The global reference for the `Game_BattleMap` data object.
- * @type Game_BattleMap
+ * @type {Game_BattleMap}
  * @global
  */
 var $gameBattleMap = null;
@@ -31,10 +31,18 @@ var $gameEnemies = null;
 
 /**
  * The global reference for the `$dataMap` data object that contains all the replicable `JABS_Action`s.
- * @type {Object}
+ * @type {Map}
  * @global
  */
 var $actionMap = null;
+
+/**
+ * The global reference for the player's input manager.
+ * This interprets and manages incoming inputs for JABS-related functionality.
+ * @type {JABS_InputManager}
+ * @global
+ */
+var $jabsController1 = null;
 
 /**
  * Hooks into `1taManager` to create the game objects.
@@ -47,6 +55,7 @@ DataManager.createGameObjects = function()
   DataManager.getSkillMasterMap();
   $gameBattleMap = new Game_BattleMap();
   $gameEnemies = new Game_Enemies();
+  $jabsController1 = new JABS_InputManager();
 };
 
 /**
@@ -631,7 +640,6 @@ class JABS_AiManager
     // step 3: hold for cast time.
     if (battler.isCasting())
     {
-      battler.countdownCastTime();
       return;
     }
 

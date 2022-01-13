@@ -15,19 +15,6 @@
  */
 
 //#region Game_Actor
-Game_Actor.JABS_MAINHAND = "Main";
-Game_Actor.JABS_OFFHAND = "Offhand";
-Game_Actor.JABS_TOOLSKILL = "Tool";
-Game_Actor.JABS_DODGESKILL = "Dodge";
-Game_Actor.JABS_L1_A_SKILL = "L1_A";
-Game_Actor.JABS_L1_B_SKILL = "L1_B";
-Game_Actor.JABS_L1_X_SKILL = "L1_X";
-Game_Actor.JABS_L1_Y_SKILL = "L1_Y";
-Game_Actor.JABS_R1_A_SKILL = "R1_A";
-Game_Actor.JABS_R1_B_SKILL = "R1_B";
-Game_Actor.JABS_R1_X_SKILL = "R1_X";
-Game_Actor.JABS_R1_Y_SKILL = "R1_Y";
-
 /**
  * Adds in the jabs tracking object for equipped skills.
  */
@@ -430,8 +417,8 @@ Game_Actor.prototype.updateEquipmentSkills = function()
   const mainhandSkill = this.getMainhandSkill();
   const offhandSkill = this.getOffhandSkill();
 
-  this.setEquippedSkill(Game_Actor.JABS_MAINHAND, mainhandSkill);
-  this.setEquippedSkill(Game_Actor.JABS_OFFHAND, offhandSkill);
+  this.setEquippedSkill(JABS_Button.Main, mainhandSkill);
+  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
 };
 
 /**
@@ -1326,6 +1313,17 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
 };
 
 /**
+ * Determines the various state duration boosts available to this battler.
+ * @param {number} baseDuration The base duration of the state.
+ * @param {Game_Battler} attacker The attacker- for use with formulai.
+ * @returns {number}
+ */
+Game_Battler.prototype.getStateDurationBoost = function(baseDuration, attacker)
+{
+  return 0;
+};
+
+/**
  * Gets the numeric representation of this battler's strength.
  * @returns {number}
  */
@@ -1797,7 +1795,7 @@ class Game_BattleMap
 
     // filter out all those same actions.
     const updatedActiveActions = this.
-      _activeActions
+    _activeActions
       .filter(active => !(active.uniqueId === uniqueId));
     this._activeActions = updatedActiveActions;
   };
@@ -1830,44 +1828,6 @@ class Game_BattleMap
       .getBattlers()
       .find(battler => battler.isEnemy() && !battler.isInanimate());
     return !!anyEnemies;
-  };
-
-  /**
-   * Whether or not the player is ready to attack using the mainhand skill slot.
-   * @returns {boolean} True if the mainhand skill is off cooldown, false otherwise.
-   */
-  isMainhandActionReady()
-  {
-    const player = this.getPlayerMapBattler();
-    return player.isSkillTypeCooldownReady(Game_Actor.JABS_MAINHAND);
-  };
-
-  /**
-   * Whether or not the player is ready to attack using the offhand skill slot.
-   * @returns {boolean} True if the offhand skill is off cooldown, false otherwise.
-   */
-  isOffhandActionReady()
-  {
-    const player = this.getPlayerMapBattler();
-    return player.isSkillTypeCooldownReady(Game_Actor.JABS_OFFHAND);
-  };
-
-  /**
-   * Retrieves the `JABS_Action` associated with the skill type.
-   * If the skill is not off cooldown or simply unassigned, return `null`.
-   * @param {JABS_Battler} battler The battler executing the action.
-   * @param {string} skillType The slot this skill is associated with.
-   * @returns {JABS_Action[]}
-   */
-  getSkillActionData(battler, skillType)
-  {
-    if (!battler.isSkillTypeCooldownReady(skillType)) return null;
-
-    const mapActions = battler.getAttackData(skillType);
-    if (!mapActions || !mapActions.length) return null;
-
-    mapActions.forEach(action => action.setCooldownType(skillType))
-    return mapActions;
   };
 
   /**
@@ -1945,221 +1905,141 @@ class Game_BattleMap
    */
   updatePlayerBattler()
   {
+    // if we cannot update the player, then do not.
+    if (!this.canUpdatePlayer()) return;
+
+    // grab the player.
     const player = this.getPlayerMapBattler();
-    if (player === null) return;
+
+    // if the player is dead, handle player defeat.
     if (player.getBattler().isDead())
     {
       this.handleDefeatedPlayer();
       return;
     }
 
-    this.handleInput();
+    // update the player's battler.
+    player.processQueuedActions();
     player.update();
+
+    // handle player input.
+    this.handleInput();
+  };
+
+  /**
+   * Determines whether or not we can update the player battler.
+   * @returns {boolean}
+   */
+  canUpdatePlayer()
+  {
+    // grab the player.
+    const player = this.getPlayerMapBattler();
+
+    // if we don't have a player, do not update.
+    if (player === null) return false;
+
+    // update!
+    return true;
+  };
+
+  /**
+   * Cycles through and updates all things related to battlers other than the player.
+   */
+  updateNonPlayerBattlers()
+  {
+    // grab all "visible" battlers to the player.
+    const visibleBattlers = $gameMap.getBattlersWithinRange(
+      this.getPlayerMapBattler(),
+      30,
+      false);
+
+    // update each of them.
+    visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
+  };
+
+  /**
+   * Performs the update against this non-player battler.
+   *
+   * NOTE: The player's battler gets duplicated once into the "all battlers"
+   * collection after the first party cycle. The initial check prevents updating
+   * the player battler twice if they are in that collection.
+   * @param {JABS_Battler} battler
+   */
+  performNonPlayerBattlerUpdate(battler)
+  {
+    // if this battler is the player, do not update.
+    if (battler === $gameBattleMap.getPlayerMapBattler()) return;
+
+    // update the battler.
+    battler.update();
+
+    // check if the battler was defeated and needs handling.
+    if (this.shouldHandleDefeatedTarget(battler))
+    {
+      // render battler invincible while processing defeat.
+      battler.setInvincible();
+
+      // process defeat.
+      this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
+    }
+  };
+
+  /**
+   * Determines whether or not a battler should be handled as defeated.
+   * @param {JABS_Battler} target The potentially defeated battler.
+   * @returns {boolean} true if the battler should be handled for defeat, false otherwise.
+   */
+  shouldHandleDefeatedTarget(target)
+  {
+    // target is not considered defeated if not dead.
+    if (!target.getBattler().isDead()) return false;
+
+    // target is not considered defeated while dying.
+    if (target.isDying()) return false;
+
+    // do not re-handle defeated targets.
+    if (target.isEnemy() && target.getCharacter()._erased) return false;
+
+    // target is defeated!
+    return true;
   };
 
   //#region Player input and handling
   /**
-   * Handles the player input if the menu isn't requested.
+   * Handles the player input.
    */
   handleInput()
   {
-    if (this.requestAbsMenu || this.absPause)
-    {
-      return;
-    }
-    else
-    {
-      this.handleAbsInput();
-    }
+    // do not process input if we cannot process it.
+    if (!this.canHandleJabsInput()) return;
+
+    // update the input.
+    $jabsController1.update();
   };
 
   /**
-   * Handles the player input and executes actions on the map.
+   * Determines whether or not to process JABS input.
+   * @returns {boolean}
    */
-  handleAbsInput()
+  canHandleJabsInput()
   {
-    // don't swing all willy nilly while events are executing.
-    if ($gameMap.isEventRunning() || $gameMessage.isBusy()) return;
+    // if an event is executing on the map, do not update.
+    if ($gameMap.isEventRunning()) return false;
 
-    // pull up the jabs quick menu.
-    if (Input.isTriggered(J.ABS.Input.Start) || Input.isTriggered("escape"))
-    {
-      this.performMenuAction();
-    }
+    // if the message window is up, do not update.
+    if ($gameMessage.isBusy()) return false;
 
-    // don't allow for other inputs if the abs is disabled.
-    if (!this.absEnabled) return;
+    // if the jabs menu is up, do not update.
+    if ($gameBattleMap.requestAbsMenu) return false;
 
-    const battler = this.getPlayerMapBattler();
+    // if the JABS engine is paused, do not update.
+    if ($gameBattleMap.absPause) return false;
 
-    // if the player is casting, then countdown and wait for it to finish before
-    // accepting additional input.
-    if (battler.isCasting())
-    {
-      battler.countdownCastTime();
-      return;
-    }
+    // if the JABS engine is disabled, do not update.
+    if (!$gameBattleMap.absEnabled) return false;
 
-    // if skills are queued, execute them.
-    if (battler.isActionDecided() && !battler.isCasting())
-    {
-      this.executeMapActions(battler, battler.getDecidedAction());
-      battler.clearDecidedAction();
-      return;
-    }
-
-    // strafing can be done concurrently to other actions.
-    if (Input.isPressed(J.ABS.Input.L2))
-    {
-      this.performStrafe(true);
-    }
-    else
-    {
-      this.performStrafe(false);
-    }
-
-    // dodge roll
-    if (Input.isTriggered(J.ABS.Input.R2))
-    {
-      this.performDodgeRoll();
-      return;
-    }
-
-    // track for L1 + ABXY
-    if (Input.isPressed(J.ABS.Input.L1))
-    {
-      if (Input.isTriggered(J.ABS.Input.A))
-      {
-        this.performSkillAction(1);
-      }
-      else if (Input.isTriggered(J.ABS.Input.B))
-      {
-        this.performSkillAction(2);
-      }
-      else if (Input.isTriggered(J.ABS.Input.X))
-      {
-        this.performSkillAction(3);
-      }
-      else if (Input.isTriggered(J.ABS.Input.Y))
-      {
-        this.performSkillAction(4);
-      }
-
-      return;
-    }
-
-    // track for R1 + ABXY
-    if (Input.isPressed(J.ABS.Input.R1))
-    {
-      if (Input.isTriggered(J.ABS.Input.A))
-      {
-        this.performSkillAction(5);
-      }
-      else if (Input.isTriggered(J.ABS.Input.B))
-      {
-        this.performSkillAction(6);
-      }
-      else if (Input.isTriggered(J.ABS.Input.X))
-      {
-        this.performSkillAction(7);
-      }
-      else if (Input.isTriggered(J.ABS.Input.Y))
-      {
-        this.performSkillAction(8);
-      }
-      else
-      {
-        // if pressing R1, but not any keys, defend instead.
-        this.performRotate(true);
-      }
-
-      return;
-    }
-    else
-    {
-      // not defending now.
-      this.performRotate(false);
-    }
-
-    // track for keyboard-exclusive input for skills.
-    if (Input.isTriggered("1"))
-    {
-      this.performSkillAction(1);
-      return;
-    }
-    if (Input.isTriggered("2"))
-    {
-      this.performSkillAction(2);
-      return;
-    }
-
-    if (Input.isTriggered("3"))
-    {
-      this.performSkillAction(3);
-      return;
-    }
-
-    if (Input.isTriggered("4"))
-    {
-      this.performSkillAction(4);
-      return;
-    }
-
-    if (Input.isTriggered("5"))
-    {
-      this.performSkillAction(5);
-      return;
-    }
-
-    if (Input.isTriggered("6"))
-    {
-      this.performSkillAction(6);
-      return;
-    }
-
-    if (Input.isTriggered("7"))
-    {
-      this.performSkillAction(7);
-      return;
-    }
-
-    if (Input.isTriggered("8"))
-    {
-      this.performSkillAction(8);
-      return;
-    }
-
-    // mainhand action
-    if (Input.isTriggered(J.ABS.Input.A))
-    {
-      // if we are about to interact with an NPC, don't cut them down pls.
-      if (this.isNonBattlerEventInFrontOfPlayer())
-      {
-        return;
-      }
-
-      this.performMainhandAction();
-    }
-
-    // combat offhand action
-    // only able to perform this if the player doesn't have a guard skill in their offhand.
-    if (!this.getPlayerMapBattler().isGuardSkillByKey(Game_Actor.JABS_OFFHAND) &&
-      (Input.isTriggered(J.ABS.Input.B) || Input.isTriggered("control")))
-    {
-      this.performOffhandAction();
-    }
-
-    // tool action
-    if (Input.isTriggered(J.ABS.Input.Y))
-    {
-      this.performToolAction();
-    }
-
-    // party rotation
-    if (Input.isTriggered(J.ABS.Input.Select))
-    {
-      this.rotatePartyMembers();
-    }
+    // update!
+    return true;
   };
 
   /**
@@ -2170,8 +2050,7 @@ class Game_BattleMap
    */
   isNonBattlerEventInFrontOfPlayer()
   {
-    const player = this.getPlayerMapBattler()
-      .getCharacter();
+    const player = this.getPlayerMapBattler().getCharacter();
     const direction = player.direction();
     const x1 = player.x;
     const y1 = player.y;
@@ -2275,132 +2154,19 @@ class Game_BattleMap
   canCycleToAlly(actorId, partyIndex)
   {
     // ignore switching to self.
-    if (partyIndex === 0)
-    {
-      return false;
-    }
+    if (partyIndex === 0) return false;
+
+    // grab the actor we are attempting to cycle to.
+    const actor = $gameActors.actor(actorId);
 
     // don't switch to a dead member.
-    const actor = $gameActors.actor(actorId);
-    if (actor.isDead())
-    {
-      return false;
-    }
+    if (actor.isDead()) return false;
 
     // don't switch with a member that is locked.
-    if (actor.switchLocked())
-    {
-      return false;
-    }
+    if (actor.switchLocked()) return false;
 
+    // perform!
     return true;
-  };
-
-  /**
-   * Executes an action on the map based on the mainhand skill slot.
-   */
-  performMainhandAction()
-  {
-    const jabsBattler = this.getPlayerMapBattler();
-    const canUseMainhand = this.isMainhandActionReady() && jabsBattler.canBattlerUseAttacks();
-
-    if (!canUseMainhand) return;
-
-    const actions = jabsBattler.getAttackData(Game_Actor.JABS_MAINHAND);
-    if (!actions || !actions.length) return;
-
-    actions.forEach(action => action.setCooldownType(Game_Actor.JABS_MAINHAND));
-    this.executeMapActions(jabsBattler, actions);
-  };
-
-  /**
-   * Executes an action on the map based on the offhand skill slot.
-   */
-  performOffhandAction()
-  {
-    const battler = this.getPlayerMapBattler();
-    const canPerformOffhand = battler.hasOffhandSkill() &&
-      this.isOffhandActionReady() &&
-      battler.canBattlerUseAttacks();
-    if (!canPerformOffhand) return;
-
-    const actions = battler.getAttackData(Game_Actor.JABS_OFFHAND);
-    if (!actions || !actions.length) return;
-
-    actions.forEach(action => action.setCooldownType(Game_Actor.JABS_OFFHAND));
-    this.executeMapActions(battler, actions);
-  };
-
-  /**
-   * Begins the execution of a tool. Depending on the equipped tool,
-   * this can perform a variety of types of actions.
-   */
-  performToolAction()
-  {
-    const battler = this.getPlayerMapBattler();
-    const cooldownReady = battler.isSkillTypeCooldownReady(Game_Actor.JABS_TOOLSKILL);
-    const toolId = battler.getBattler()
-      .getEquippedSkill(Game_Actor.JABS_TOOLSKILL);
-    if (cooldownReady && toolId)
-    {
-      battler.applyToolEffects(toolId);
-    }
-  };
-
-  /**
-   * Begins execution of a skill based on any of the L1/R1 + ABXY skill slots.
-   * @param {number} inputCombo The input combination to execute a skill.
-   */
-  performSkillAction(inputCombo)
-  {
-    const battler = this.getPlayerMapBattler();
-    if (!battler.canBattlerUseSkills())
-    {
-      SoundManager.playCancel();
-      return;
-    }
-
-    let mapActions = [];
-
-    switch (inputCombo)
-    {
-      case 1: // L1 + A
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_L1_A_SKILL);
-        break;
-      case 2: // L1 + B
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_L1_B_SKILL);
-        break;
-      case 3: // L1 + X
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_L1_X_SKILL);
-        break;
-      case 4: // L1 + Y
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_L1_Y_SKILL);
-        break;
-      case 5: // R1 + A
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_R1_A_SKILL);
-        break;
-      case 6: // R1 + B
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_R1_B_SKILL);
-        break;
-      case 7: // R1 + X
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_R1_X_SKILL);
-        break;
-      case 8: // R1 + Y
-        mapActions = this.getSkillActionData(battler, Game_Actor.JABS_R1_Y_SKILL);
-        break;
-    }
-
-    if (mapActions && mapActions.length)
-    {
-      battler.setDecidedAction(mapActions);
-      const primaryMapAction = mapActions[0];
-      battler.setCastCountdown(primaryMapAction.getCastTime());
-    }
-    else
-    {
-      // either no skill equipped in that slot, or its not off cooldown.
-      SoundManager.playCancel();
-    }
   };
 
   /**
@@ -2408,87 +2174,328 @@ class Game_BattleMap
    */
   performMenuAction()
   {
+    // pause JABS.
     this.absPause = true;
+
+    // request the menu.
     this.requestAbsMenu = true;
   };
 
   /**
-   * Locks the player's facing direction while allowing movement.
+   * Executes an action on the map based on the mainhand skill slot.
    */
-  performStrafe(strafing)
+  performMainhandAction()
   {
-    const player = this.getPlayerMapBattler()
-      .getCharacter();
-    player.setDirectionFix(strafing);
+    // if the mainhand action isn't ready, then do not perform.
+    if (!this.canPerformMainhandAction()) return;
+
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // get all actions associated with the mainhand.
+    let actions = jabsBattler.getAttackData(JABS_Button.Main);
+
+    // apply the cooldown type to the appropriate slot.
+    actions.forEach(action => action.setCooldownType(JABS_Button.Main));
+
+    // set the player's pending actions action to this skill.
+    jabsBattler.setDecidedAction(actions);
+
+    // set the cast time for this battler to the primary skill in the list.
+    jabsBattler.setCastCountdown(actions[0].getCastTime());
+
+    // reset the combo data now that we are executing the actions.
+    jabsBattler.resetComboData(JABS_Button.Main);
   };
 
   /**
-   * Locks the player's movement so they may rotate in-place without movement.
-   * If the player has a guard skill for their offhand, then also perform a guard.
+   * Determines whether or not the player can execute the mainhand action.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformMainhandAction()
+  {
+    // do not perform actions if there is pedestrians infront of you!
+    if (this.isNonBattlerEventInFrontOfPlayer()) return false;
+
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // if the battler can't use attacks, then do not perform.
+    if (!jabsBattler.canBattlerUseAttacks()) return false;
+
+    // if the mainhand action isn't ready, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Main)) return false;
+
+    // get all actions associated with the mainhand.
+    const actions = jabsBattler.getAttackData(JABS_Button.Main);
+
+    // if there are none, then do not perform.
+    if (!actions || !actions.length) return false;
+
+    // if the player is casting, then do not perform.
+    if (jabsBattler.isCasting()) return false;
+
+    // perform!
+    return true;
+  };
+
+  /**
+   * Executes an action on the map based on the offhand skill slot.
+   */
+  performOffhandAction()
+  {
+    // if the offhand action isn't ready, then do not perform.
+    if (!this.canPerformOffhandAction()) return;
+
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // get all actions associated with the offhand.
+    const actions = jabsBattler.getAttackData(JABS_Button.Offhand);
+
+    // apply the cooldown type to the appropriate slot.
+    actions.forEach(action => action.setCooldownType(JABS_Button.Offhand));
+
+    // set the player's pending actions action to this skill.
+    jabsBattler.setDecidedAction(actions);
+
+    // set the cast time for this battler to the primary skill in the list.
+    jabsBattler.setCastCountdown(actions[0].getCastTime());
+
+    // reset the combo data now that we are executing the actions.
+    jabsBattler.resetComboData(JABS_Button.Offhand);
+  };
+
+  /**
+   * Determines whether or not the player can execute the offhand action.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformOffhandAction()
+  {
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // if the offhand skill is actually a guard skill, then do not perform.
+    if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
+
+    // do not perform actions if there is pedestrians infront of you!
+    if (this.isNonBattlerEventInFrontOfPlayer()) return false;
+
+    // if the battler can't use attacks, then do not perform.
+    if (!jabsBattler.canBattlerUseAttacks()) return false;
+
+    // if the offhand action isn't ready, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Offhand)) return false;
+
+    // get all actions associated with the offhand.
+    const actions = jabsBattler.getAttackData(JABS_Button.Offhand);
+
+    // if there are none, then do not perform.
+    if (!actions || !actions.length) return false;
+
+    // if the player is casting, then do not perform.
+    if (jabsBattler.isCasting()) return false;
+
+    // perform!
+    return true;
+  };
+
+  /**
+   * Begins the execution of a tool.
+   * Depending on the equipped tool, this can perform a variety of types of actions.
+   */
+  performToolAction()
+  {
+    // if the tool action isn't ready, then do not perform.
+    if (!this.canPerformToolAction()) return;
+
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // grab the tool id currently equipped.
+    const toolId = jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool);
+
+    // perform tool effects!
+    jabsBattler.applyToolEffects(toolId);
+  };
+
+  /**
+   * Determines whether or not the player can execute the offhand action.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformToolAction()
+  {
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // if the tool is not off cooldown, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
+
+    // if there is no tool equipped, then do not perform.
+    if (!jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool)) return false;
+
+    // perform!
+    return true;
+  };
+
+  /**
+   * Begins execution of a skill based on any of the L1 + ABXY skill slots.
+   * @param {number} slot The slot associated with the combat action.
+   */
+  performCombatAction(slot)
+  {
+    // if the offhand action isn't ready, then do not perform.
+    if (!this.canPerformCombatActionBySlot(slot)) return;
+
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // get all actions associated with the offhand.
+    const actions = jabsBattler.getAttackData(slot);
+
+    // set the player's pending actions action to this skill.
+    jabsBattler.setDecidedAction(actions);
+
+    // set the cast time for this battler to the primary skill in the list.
+    jabsBattler.setCastCountdown(actions[0].getCastTime());
+  };
+
+  /**
+   * Determines whether or not the player can execute the combat action.
+   * @param {string} slot The slot to check if is able to be used.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformCombatActionBySlot(slot)
+  {
+    // grab the player battler executing these actions.
+    const jabsBattler = this.getPlayerMapBattler();
+
+    // if the battler can't use attacks, then do not perform.
+    if (!jabsBattler.canBattlerUseSkills()) return false;
+
+    // if the slot is empty, then do not perform.
+    if (jabsBattler.getBattler().getSkillSlot(slot).isEmpty()) return false;
+
+    // if the offhand action isn't ready, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(slot)) return false;
+
+    // if the battler is already casting, then do not perform.
+    if (jabsBattler.isCasting()) return false;
+
+    // if there is no action data for the skill, then do not perform.
+    if (jabsBattler.getAttackData(slot).length === 0) return false;
+
+    // perform!
+    return true;
+  };
+
+  /**
+   * Executes the strafe action.
+   * The player will not change the direction they are facing while strafing is active.
+   */
+  performStrafe(strafing)
+  {
+    // check if we can strafe.
+    if (!this.canPerformStrafe()) return;
+
+    // perform the strafe.
+    this.getPlayerMapBattler().getCharacter().setDirectionFix(strafing);
+  };
+
+  /**
+   * Determines whether or not the player can strafe and hold direction while moving.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformStrafe()
+  {
+    return true;
+  };
+
+  /**
+   * Executes the rotation action.
+   * The player will not change move while rotation is active.
    * @param {boolean} rotating True if the player is rotating, false otherwise.
    */
   performRotate(rotating)
   {
+    // check if we can rotate.
+    if (!this.canPerformRotate()) return;
+
+    // perform the rotation.
+    this.getPlayerMapBattler().setMovementLock(rotating);
+  };
+
+  /**
+   * Determines whether or not the player can rotate in-place without movement.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformRotate()
+  {
+    return true;
+  };
+
+  /**
+   * Executes the guard action.
+   * The player will only perform the guard action if the offhand slot is a guard-ready skill.
+   * @param {boolean} guarding True if the player is guarding, false otherwise.
+   */
+  performGuard(guarding)
+  {
+    // check if we can guard with the offhand slot.
+    if (!this.canPerformGuardBySlot(JABS_Button.Offhand)) return;
+
+    // perform the guard skill in the offhand slot.
+    this.getPlayerMapBattler().executeGuard(guarding, JABS_Button.Offhand);
+  };
+
+  /**
+   * Determines whether or not the player can guard.
+   * @param {string} slot The slot to check if is able to be used.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  canPerformGuardBySlot(slot)
+  {
+    // grab the player to check guarding availability for.
     const player = this.getPlayerMapBattler();
-    player.setMovementLock(rotating);
 
-    // if the player also has a guard skill equipped in their offhand, guard!
-    if (player.isGuardSkillByKey(Game_Actor.JABS_OFFHAND))
-    {
-      player.executeGuard(rotating, Game_Actor.JABS_OFFHAND);
-    }
+    // if the offhand slot is not a guard skill, then do not perform.
+    if (player.isGuardSkillByKey(slot)) return false;
+
+    // perform!
+    return true;
   };
 
   /**
-   * Executes the battler's dodge skill.
+   * Executes the dodge action.
+   * The player will perform some sort of mobility action.
    */
-  performDodgeRoll()
+  performDodgeAction()
   {
-    const player = this.getPlayerMapBattler();
-    if (player.isSkillTypeCooldownReady(Game_Actor.JABS_DODGESKILL) && player.canBattlerMove())
-    {
-      player.tryDodgeSkill();
-    }
+    // check if we can dodge.
+    if (!this.canPerformRotate()) return;
+
+    // perform the dodge skill.
+    this.getPlayerMapBattler().tryDodgeSkill();
   };
 
   /**
-   * Cycles through and updates all things related to battlers other than the player.
+   * Determines whether or not the player can perform a dodge skill.
+   * @returns {boolean} True if they can, false otherwise.
    */
-  updateNonPlayerBattlers()
+  canPerformDodge()
   {
-    const player = $gameBattleMap.getPlayerMapBattler();
-    const visibleBattlers = $gameMap.getBattlersWithinRange(player, 30, false);
+    // grab the player to check dodge availability for.
+    const jabsBattler = this.getPlayerMapBattler();
 
-    visibleBattlers.forEach(this.performNonPlayerBattlerUpdate, this);
+    // if the dodge skill is not off cooldown, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Dodge)) return false;
+
+    // if the player is unable to move for some reason, do not perform.
+    if (!jabsBattler.canBattlerMove()) return false;
+
+    // perform!
+    return true;
   };
-
-  /**
-   * Performs the update against this non-player battler.
-   *
-   * NOTE: The player's battler gets duplicated once into the "all battlers"
-   * collection after the first party cycle. The initial check prevents updating
-   * the player battler twice if they are in that collection.
-   * @param {JABS_Battler} battler
-   */
-  performNonPlayerBattlerUpdate(battler)
-  {
-    if (battler === $gameBattleMap.getPlayerMapBattler()) return;
-
-    battler.update();
-
-    const isDead = battler.getBattler()
-      .isDead();
-    const isntStillDying = !battler.isDying();
-    const isntErased = battler.isEnemy()
-      ? !battler.getCharacter()._erased
-      : true;
-    if (isDead && isntStillDying && isntErased)
-    {
-      battler.setInvincible();
-      this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
-    }
-  };
-
   //#endregion player input and handling
 
   /**
@@ -3023,8 +3030,8 @@ class Game_BattleMap
    */
   isBasicAttack(cooldownKey)
   {
-    const isMainHand = cooldownKey === Game_Actor.JABS_MAINHAND;
-    const isOffHand = cooldownKey === Game_Actor.JABS_OFFHAND;
+    const isMainHand = cooldownKey === JABS_Button.Main;
+    const isOffHand = cooldownKey === JABS_Button.Offhand;
     return (isMainHand || isOffHand);
   };
 
@@ -3473,9 +3480,7 @@ class Game_BattleMap
    */
   checkComboSequence(caster, action)
   {
-    const combo = action.getBaseSkill()
-      ._j
-      .combo();
+    const combo = action.getBaseSkill()._j.combo();
     if (combo)
     {
       const battler = caster.getBattler();
@@ -3702,7 +3707,7 @@ class Game_BattleMap
   handleAutoCounter(battler)
   {
     // if we don't have anything to auto-counter with, skip it.
-    const guardData = battler.getGuardData(Game_Actor.JABS_OFFHAND);
+    const guardData = battler.getGuardData(JABS_Button.Offhand);
     if (!guardData) return;
     if (!guardData.canCounter()) return;
 
@@ -5280,13 +5285,14 @@ Game_Character.prototype.getDiagonalDirections = function(direction)
  */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {
-  var searchLimit = this.searchLimit();
-  var mapWidth = $gameMap.width();
-  var nodeList = [];
-  var openList = [];
-  var closedList = [];
-  var start = {};
-  var best = start
+  let searchLimit = this.searchLimit();
+  let mapWidth = $gameMap.width();
+  let nodeList = [];
+  let openList = [];
+  let closedList = [];
+  let start = {};
+  let best = start;
+  let goaled = false;
 
   if (this.x === goalX && this.y === goalY)
   {
@@ -5312,11 +5318,11 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
       }
     }
 
-    var current = nodeList[bestIndex];
-    var x1 = current.x;
-    var y1 = current.y;
-    var pos1 = y1 * mapWidth + x1;
-    var g1 = current.g;
+    let current = nodeList[bestIndex];
+    let x1 = current.x;
+    let y1 = current.y;
+    let pos1 = y1 * mapWidth + x1;
+    let g1 = current.g;
 
     nodeList.splice(bestIndex, 1);
     openList.splice(openList.indexOf(pos1), 1);
@@ -5349,11 +5355,12 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
       {
         directions = [j, j];
       }
-      var horz = directions[0];
-      var vert = directions[1];
-      var x2 = $gameMap.roundXWithDirection(x1, horz);
-      var y2 = $gameMap.roundYWithDirection(y1, vert);
-      var pos2 = y2 * mapWidth + x2;
+
+      let horz = directions[0];
+      let vert = directions[1];
+      let x2 = $gameMap.roundXWithDirection(x1, horz);
+      let y2 = $gameMap.roundYWithDirection(y1, vert);
+      let pos2 = y2 * mapWidth + x2;
 
       if (closedList.contains(pos2))
       {
@@ -5404,14 +5411,14 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 
-  var node = best;
+  let node = best;
   while (node.parent && node.parent !== start)
   {
     node = node.parent;
   }
 
-  var deltaX1 = $gameMap.deltaX(node.x, start.x);
-  var deltaY1 = $gameMap.deltaY(node.y, start.y);
+  let deltaX1 = $gameMap.deltaX(node.x, start.x);
+  let deltaY1 = $gameMap.deltaY(node.y, start.y);
   if (deltaY1 > 0)
   {
     return deltaX1 === 0 ? 2 : deltaX1 > 0 ? 3 : 1;
@@ -5428,8 +5435,8 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 
-  var deltaX2 = this.deltaXFrom(goalX);
-  var deltaY2 = this.deltaYFrom(goalY);
+  let deltaX2 = this.deltaXFrom(goalX);
+  let deltaY2 = this.deltaYFrom(goalY);
   if (Math.abs(deltaX2) > Math.abs(deltaY2))
   {
     if (deltaX2 > 0)
@@ -6793,6 +6800,12 @@ Game_Map.prototype.initialize = function()
   // perform original logic.
   J.ABS.Aliased.Game_Map.get('initialize').call(this);
 
+
+  this.initJabsMembers();
+};
+
+Game_Map.prototype.initJabsMembers = function()
+{
   /**
    * The over-arching J object to contain all additional plugin parameters.
    */
@@ -6803,11 +6816,6 @@ Game_Map.prototype.initialize = function()
    * @type {JABS_Battler[]}
    */
   this._j._allBattlers = [];
-
-  if (J.HUD && J.HUD.EXT_INPUT)
-  {
-    this._j._inputManager = new JABS_InputManager();
-  }
 };
 
 /**
@@ -6820,13 +6828,13 @@ Game_Map.prototype.setup = function(mapId)
   J.ABS.Aliased.Game_Map.get('setup').call(this, mapId);
 
   // initialize all JABS-related data.
-  this.jabsInitialization();
+  this.initJabsEngine();
 };
 
 /**
  * Initializes all enemies and the battle map for JABS.
  */
-Game_Map.prototype.jabsInitialization = function()
+Game_Map.prototype.initJabsEngine = function()
 {
   // don't do things if we aren't using JABS.
   if (!$gameBattleMap.absEnabled) return;
@@ -6909,11 +6917,6 @@ Game_Map.prototype.updateJabs = function()
 {
   // update JABS battle map.
   $gameBattleMap.update();
-
-  if (J.HUD && J.HUD.EXT_INPUT)
-  {
-    this._j._inputManager.update();
-  }
 };
 
 /**
@@ -7169,6 +7172,7 @@ Game_Map.prototype.battlerExists = function(battlerToCheck)
  * Gets all battlers within a given range of another battler.
  * @param {JABS_Battler} user The user containing the base coordinates.
  * @param {number} maxDistance The maximum distance that we check battlers for.
+ * @param {boolean} includePlayer Whether or not to include the player among battlers within range.
  * @returns {JABS_Battler[]}
  */
 Game_Map.prototype.getBattlersWithinRange = function(user, maxDistance, includePlayer = true)
@@ -7240,7 +7244,7 @@ Game_Map.prototype.getAllyBattlers = function(target)
 
 /**
  * Gets all battlers that share the same team as the target within a given range.
- * @param {JABS_Battler} user The battler to find opponents for.
+ * @param {JABS_Battler} target The battler to find opponents for.
  * @param {number} maxDistance The max range to find opponents within.
  * @returns {JABS_Battler[]}
  */

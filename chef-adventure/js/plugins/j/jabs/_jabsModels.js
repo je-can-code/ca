@@ -177,8 +177,8 @@ class JABS_Action
     // handle other bonus hits for basic attacks.
     pierceCount += this._caster.getAdditionalHits(
       this._baseSkill,
-      this._actionCooldownType === Game_Actor.JABS_MAINHAND ||
-      this._actionCooldownType === Game_Actor.JABS_OFFHAND)
+      this._actionCooldownType === JABS_Button.Main ||
+      this._actionCooldownType === JABS_Button.Offhand)
 
     return pierceCount;
   };
@@ -1236,18 +1236,14 @@ JABS_Battler.prototype.initCooldowns = function()
   else
   {
     // players don't need skills initialized, but they do need cooldown slots.
-    this.initializeCooldown(Game_Actor.JABS_MAINHAND, 0);
-    this.initializeCooldown(Game_Actor.JABS_OFFHAND, 0);
-    this.initializeCooldown(Game_Actor.JABS_TOOLSKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_DODGESKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_L1_A_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_L1_B_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_L1_X_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_L1_Y_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_R1_A_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_R1_B_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_R1_X_SKILL, 0);
-    this.initializeCooldown(Game_Actor.JABS_R1_Y_SKILL, 0);
+    this.initializeCooldown(JABS_Button.Main, 0);
+    this.initializeCooldown(JABS_Button.Offhand, 0);
+    this.initializeCooldown(JABS_Button.Tool, 0);
+    this.initializeCooldown(JABS_Button.Dodge, 0);
+    this.initializeCooldown(JABS_Button.CombatSkill1, 0);
+    this.initializeCooldown(JABS_Button.CombatSkill2, 0);
+    this.initializeCooldown(JABS_Button.CombatSkill3, 0);
+    this.initializeCooldown(JABS_Button.CombatSkill4, 0);
   }
 };
 //#endregion initialize battler
@@ -1442,10 +1438,29 @@ JABS_Battler.prototype.update = function()
 
   this.updateAnimations();
   this.updateCooldowns();
+  this.updateTimers();
   this.updateEngagement();
   this.updateRG();
   this.updateDodging();
   this.updateDeathHandling();
+};
+
+/**
+ * Process any queued actions and execute them.
+ */
+JABS_Battler.prototype.processQueuedActions = function()
+{
+  // check if we have an action decided.
+  if (!this.isActionDecided()) return;
+
+  // check if we're still casting actions.
+  if (this.isCasting()) return;
+
+  // execute the action.
+  $gameBattleMap.executeMapActions(this, this.getDecidedAction());
+
+  // clear the queued action.
+  this.clearDecidedAction();
 };
 
 /**
@@ -1464,38 +1479,87 @@ JABS_Battler.prototype.updateAnimations = function()
  */
 JABS_Battler.prototype.updateCooldowns = function()
 {
-  Object.keys(this._cooldowns)
-    .forEach(key =>
-    {
-      this._cooldowns[key].update();
-    });
-  if (this.isPlayer())
+  // update all skill slot cooldowns.
+  Object.keys(this._cooldowns).forEach(key =>
   {
-    // console.log('updating cooldowns.');
-  }
+    this._cooldowns[key].update();
+  });
+};
 
+//#region update timers
+/**
+ * Updates all timers for this battler.
+ */
+JABS_Battler.prototype.updateTimers = function()
+{
+  this.processWaitTimer();
+  this.processAlertTimer();
+  this.processParryTimer();
+  this.processLastHitTimer();
+  this.processCastingTimer();
+};
+
+/**
+ * Updates the timer for "waiting".
+ */
+JABS_Battler.prototype.processWaitTimer = function()
+{
+  // if waiting, update the wait timer.
   if (this.isWaiting())
   {
     this.countdownWait();
   }
+};
 
+/**
+ * Updates the timer for "alerted".
+ */
+JABS_Battler.prototype.processAlertTimer = function()
+{
+  // if alerted, update the alert timer.
   if (this.isAlerted())
   {
     this.countdownAlert();
   }
+};
 
+/**
+ * Updates the timer for "parrying".
+ */
+JABS_Battler.prototype.processParryTimer = function()
+{
+  // if parrying, update the parry timer.
   if (this.parrying())
   {
-    this.getCharacter()
-      .requestAnimation(131, false);
+    this.getCharacter().requestAnimation(131, false);
     this.countdownParryWindow();
   }
+};
 
+/**
+ * Updates the timer for "last hit".
+ */
+JABS_Battler.prototype.processLastHitTimer = function()
+{
+  // if this battler has a last hit, update the last hit timer.
   if (this.hasBattlerLastHit())
   {
     this.countdownLastHit();
   }
 };
+
+/**
+ * Updates the timer for "casting".
+ */
+JABS_Battler.prototype.processCastingTimer = function()
+{
+  // if casting, update the cast timer.
+  if (this.isCasting())
+  {
+    this.countdownCastTime();
+  }
+};
+//#endregion update timers
 
 /**
  * Monitors all other battlers and determines if they are engaged or not.
@@ -1801,7 +1865,7 @@ JABS_Battler.prototype.setDodging = function(dodging = true)
 JABS_Battler.prototype.tryDodgeSkill = function()
 {
   const battler = this.getBattler();
-  const skillId = battler.getEquippedSkill(Game_Actor.JABS_DODGESKILL);
+  const skillId = battler.getEquippedSkill(JABS_Button.Dodge);
   if (!skillId) return;
 
   const skill = $dataSkills[skillId];
@@ -1843,7 +1907,7 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
 
   // apply the cooldowns for the dodge.
   const cooldown = skill._j.cooldown();
-  this.modCooldownCounter(Game_Actor.JABS_DODGESKILL, cooldown);
+  this.modCooldownCounter(JABS_Button.Dodge, cooldown);
 
   // trigger the dodge!
   this.setDodging();
@@ -3837,7 +3901,6 @@ JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
   }
   catch (ex)
   {
-    console.log(cooldownKey, duration);
     console.warn(ex);
   }
 };
@@ -4492,66 +4555,54 @@ JABS_Battler.prototype.createMapActionFromSkill = function(
  */
 JABS_Battler.prototype.getAttackData = function(cooldownKey)
 {
+  // grab the underlying battler.
   const battler = this.getBattler();
 
   // get the skill equipped in the designated slot.
-  let skillId = battler.getEquippedSkill(cooldownKey);
+  let skillId = this.getSkillIdForAction(cooldownKey);
 
   // if there isn't one, then we don't do anything.
   if (!skillId) return [];
 
   // check to make sure we can actually use the skill.
-  const canUse = battler.canUse($dataSkills[skillId]);
+  if (!battler.canUse($dataSkills[skillId])) return [];
 
   // check to make sure we actually know the skill, too.
-  const hasSkill = battler.hasSkill(skillId);
-
-  // if we don't know the skill or can't use it, then don't do anything.
-  if (!canUse || !hasSkill) return null;
-
-  // if we have combo action data, use that.
-  const comboAction = this.getComboData(cooldownKey);
-  if (comboAction === null)
-  {
-    // do nothing, the combo isn't ready.
-  }
-  else if (comboAction.length)
-  {
-    return comboAction;
-  }
+  if (!battler.hasSkill(skillId)) return [];
 
   // otherwise, use the skill from the slot to build an action.
   return this.createMapActionFromSkill(skillId, false, cooldownKey);
 };
 
 /**
- * Gets the combo data for a particular slot.
- * @param {string} cooldownKey The cooldown key.
- * @returns {JABS_Action[]|null} The constructed `JABS_Action`s.
+ * Gets the next skill id to create an action from for the given slot.
+ * Accommodates combo actions.
+ * @param {string} slot The slot for the skill to check.
+ * @returns {number}
  */
-JABS_Battler.prototype.getComboData = function(cooldownKey)
+JABS_Battler.prototype.getSkillIdForAction = function(slot)
 {
+  // grab the underlying battler.
   const battler = this.getBattler();
 
   // check the slot for a combo action.
-  const comboActionId = this.getComboNextActionId(cooldownKey);
-  this.resetComboData(cooldownKey);
-  if (comboActionId !== 0)
+  let skillId;
+
+  // check if we have a skill id in the next combo action id slot.
+  if (this.getComboNextActionId(slot) !== 0)
   {
-    // check to make sure we can actually use the skill.
-    const canUseCombo = battler.canUse($dataSkills[comboActionId]);
-    if (!canUseCombo) return null;
-
-    // check to make sure we actually know the skill, too.
-    const hasSkill = battler.hasSkill(comboActionId);
-    if (!hasSkill) return null;
-
-    // we know and can use the skill, so lets combo it up!
-    return this.createMapActionFromSkill(comboActionId, false, cooldownKey);
+    // capture the combo action id.
+    skillId = this.getComboNextActionId(slot);
+  }
+  // if no combo...
+  else
+  {
+    // then just grab the skill id in the slot.
+    skillId = battler.getEquippedSkill(slot);
   }
 
-  // we came up empty for combos.
-  return null;
+  // return whichever skill id was found.
+  return skillId;
 };
 
 /**
@@ -4623,7 +4674,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // it is an item with a custom cooldown.
   if (itemCooldown)
   {
-    if (!isLoot) this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, itemCooldown);
+    if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
   }
 
   // it was an item with a skill attached.
@@ -4632,7 +4683,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
     const mapAction = this.createMapActionFromSkill(itemSkillId);
     mapAction.forEach(action =>
     {
-      action.setCooldownType(Game_Actor.JABS_TOOLSKILL);
+      action.setCooldownType(JABS_Button.Tool);
       $gameBattleMap.executeMapAction(this, action);
     });
   }
@@ -4640,13 +4691,13 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // it was an item, didn't have a skill attached, and didn't have a cooldown.
   if (!itemCooldown && !itemSkillId && !isLoot)
   {
-    this.modCooldownCounter(Game_Actor.JABS_TOOLSKILL, J.ABS.DefaultValues.CooldownlessItems);
+    this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
   }
 
   // if the last item was consumed, unequip it.
   if (!isLoot && !$gameParty.items().includes(item))
   {
-    playerBattler.setEquippedSkill(Game_Actor.JABS_TOOLSKILL, 0);
+    playerBattler.setEquippedSkill(JABS_Button.Tool, 0);
     const log = new MapLogBuilder()
       .setupUsedLastItem(item.id)
       .build();
@@ -5819,20 +5870,20 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
  */
 JABS_BattlerCoreData.prototype.initialize = function({
-  battlerId,
-  teamId,
-  battlerAI,
-  sightRange,
-  alertedSightBoost,
-  pursuitRange,
-  alertedPursuitBoost,
-  alertDuration,
-  canIdle,
-  showHpBar,
-  showBattlerName,
-  isInvincible,
-  isInanimate
-})
+                                                       battlerId,
+                                                       teamId,
+                                                       battlerAI,
+                                                       sightRange,
+                                                       alertedSightBoost,
+                                                       pursuitRange,
+                                                       alertedPursuitBoost,
+                                                       alertDuration,
+                                                       canIdle,
+                                                       showHpBar,
+                                                       showBattlerName,
+                                                       isInvincible,
+                                                       isInanimate
+                                                     })
 {
   /**
    * The id of the enemy that this battler represents.
@@ -7917,10 +7968,10 @@ JABS_SkillSlot.prototype.isLocked = function()
 JABS_SkillSlot.prototype.isPrimarySlot = function()
 {
   const slots = [
-    Game_Actor.JABS_MAINHAND,
-    Game_Actor.JABS_OFFHAND,
-    Game_Actor.JABS_TOOLSKILL,
-    Game_Actor.JABS_DODGESKILL
+    JABS_Button.Main,
+    JABS_Button.Offhand,
+    JABS_Button.Tool,
+    JABS_Button.Dodge
   ];
 
   return slots.includes(this.key);
@@ -7934,14 +7985,10 @@ JABS_SkillSlot.prototype.isPrimarySlot = function()
 JABS_SkillSlot.prototype.isSecondarySlot = function()
 {
   const slots = [
-    Game_Actor.JABS_L1_A_SKILL,
-    Game_Actor.JABS_L1_B_SKILL,
-    Game_Actor.JABS_L1_X_SKILL,
-    Game_Actor.JABS_L1_Y_SKILL,
-    Game_Actor.JABS_R1_A_SKILL,
-    Game_Actor.JABS_R1_B_SKILL,
-    Game_Actor.JABS_R1_X_SKILL,
-    Game_Actor.JABS_R1_Y_SKILL
+    JABS_Button.CombatSkill1,
+    JABS_Button.CombatSkill2,
+    JABS_Button.CombatSkill3,
+    JABS_Button.CombatSkill4,
   ];
 
   return slots.includes(this.key);
@@ -7989,8 +8036,8 @@ JABS_SkillSlot.prototype.setLock = function(locked)
 JABS_SkillSlot.prototype.canBeLocked = function()
 {
   const lockproofSlots = [
-    Game_Actor.JABS_MAINHAND,
-    Game_Actor.JABS_OFFHAND
+    JABS_Button.Main,
+    JABS_Button.Offhand
   ];
 
   return !lockproofSlots.includes(this.key);
@@ -8054,9 +8101,9 @@ JABS_SkillSlot.prototype.autoclear = function()
 JABS_SkillSlot.prototype.canBeAutocleared = function()
 {
   const noAutoclearSlots = [
-    Game_Actor.JABS_MAINHAND,
-    Game_Actor.JABS_OFFHAND,
-    Game_Actor.JABS_TOOLSKILL
+    JABS_Button.Main,
+    JABS_Button.Offhand,
+    JABS_Button.Tool
   ];
 
   return !noAutoclearSlots.includes(this.key);
@@ -8097,19 +8144,15 @@ JABS_SkillSlotManager.prototype.initMembers = function()
   this._slots = [
     new JABS_SkillSlot("Global", 0),
 
-    new JABS_SkillSlot(Game_Actor.JABS_MAINHAND, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_OFFHAND, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_TOOLSKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_DODGESKILL, 0),
+    new JABS_SkillSlot(JABS_Button.Main, 0),
+    new JABS_SkillSlot(JABS_Button.Offhand, 0),
+    new JABS_SkillSlot(JABS_Button.Tool, 0),
+    new JABS_SkillSlot(JABS_Button.Dodge, 0),
 
-    new JABS_SkillSlot(Game_Actor.JABS_L1_A_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_L1_B_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_L1_X_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_L1_Y_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_R1_A_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_R1_B_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_R1_X_SKILL, 0),
-    new JABS_SkillSlot(Game_Actor.JABS_R1_Y_SKILL, 0)
+    new JABS_SkillSlot(JABS_Button.CombatSkill1, 0),
+    new JABS_SkillSlot(JABS_Button.CombatSkill2, 0),
+    new JABS_SkillSlot(JABS_Button.CombatSkill3, 0),
+    new JABS_SkillSlot(JABS_Button.CombatSkill4, 0),
   ];
 };
 
@@ -8148,7 +8191,7 @@ JABS_SkillSlotManager.prototype.getAllSecondarySlots = function()
  */
 JABS_SkillSlotManager.prototype.getToolSlot = function()
 {
-  return this.getSkillBySlot(Game_Actor.JABS_TOOLSKILL);
+  return this.getSkillBySlot(JABS_Button.Tool);
 };
 
 /**
@@ -8157,7 +8200,7 @@ JABS_SkillSlotManager.prototype.getToolSlot = function()
  */
 JABS_SkillSlotManager.prototype.getDodgeSlot = function()
 {
-  return this.getSkillBySlot(Game_Actor.JABS_DODGESKILL);
+  return this.getSkillBySlot(JABS_Button.Dodge);
 };
 
 /**
@@ -8185,7 +8228,7 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
 JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
 {
   return this.getEquippedSlots()
-    .filter(skillSlot => skillSlot.key !== Game_Actor.JABS_TOOLSKILL);
+    .filter(skillSlot => skillSlot.key !== JABS_Button.Tool);
 };
 
 /**

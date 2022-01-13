@@ -45,7 +45,7 @@
  * @param guardSkillTypeId
  * @parent baseConfigs
  * @type number
- * @text Guard Skill Type Id
+ * @text Rotate Skill Type Id
  * @desc The default id of the skill type that acts as a classification for guard skills.
  * @default 2
  *
@@ -55,17 +55,17 @@
  * @text Weapon Skill Type Id
  * @desc The default id of the skill type that acts as a classification for weapon skills.
  * @default 7
- * 
+ *
  * @param enemyDefaultConfigs
  * @text ENEMY BATTLER DEFAULTS
- * 
+ *
  * @param defaultEnemyPrepareTime
  * @parent enemyDefaultConfigs
  * @type number
  * @text Default Enemy Prepare Time
  * @desc The default number of frames for "prepare" time.
  * @default 180
- * 
+ *
  * @param defaultEnemyAttackSkillId
  * @parent enemyDefaultConfigs
  * @type number
@@ -73,7 +73,7 @@
  * @text Default Enemy Attack Skill
  * @desc The default skill id used for an enemy basic attack where their animation is "normal attack".
  * @default 1
- * 
+ *
  * @param defaultEnemySightRange
  * @parent enemyDefaultConfigs
  * @type number
@@ -81,7 +81,7 @@
  * @text Default Enemy Sight Range
  * @desc The default range from a battler that they can engage in combat from.
  * @default 4
- * 
+ *
  * @param defaultEnemyPursuitRange
  * @parent enemyDefaultConfigs
  * @type number
@@ -89,7 +89,7 @@
  * @text Default Enemy Pursuit Range
  * @desc The default range from a battler that they can remain in combat within.
  * @default 6
- * 
+ *
  * @param defaultEnemyAlertedSightBoost
  * @parent enemyDefaultConfigs
  * @type number
@@ -97,7 +97,7 @@
  * @text Default Enemy Alerted Sight Boost
  * @desc The default boost to sight an enemy gains while alerted (alerted: hit from out of combat).
  * @default 2
- * 
+ *
  * @param defaultEnemyAlertedPursuitBoost
  * @parent enemyDefaultConfigs
  * @type number
@@ -105,7 +105,7 @@
  * @text Default Enemy Alerted Pursuit Boost
  * @desc The default boost to pursuit an enemy gains while alerted (alerted: hit from out of combat).
  * @default 4
- * 
+ *
  * @param defaultEnemyAlertDuration
  * @parent enemyDefaultConfigs
  * @type number
@@ -113,26 +113,26 @@
  * @text Default Enemy Alert Duration
  * @desc The default number of frames an enemy remains alerted (alerted: hit from out of combat).
  * @default 300
- * 
+ *
  * @param defaultEnemyAiCode
  * @parent enemyDefaultConfigs
  * @type string
  * @text Default Enemy AI Code
  * @desc The default ai code for enemy battlers. Don't change it if you don't understand it!
  * @default 10000000
- * 
+ *
  * @param defaultEnemyCanIdle
  * @parent enemyDefaultConfigs
  * @type boolean
  * @text Default Enemy Can Idle
  * @desc The default for whether or not enemies can idle.
  * @default true
- * 
+ *
  * @param defaultEnemyShowHpBar
  * @parent enemyDefaultConfigs
  * @type boolean
  * @text Default Enemy Show HP Bar
- * @desc The default for whether or not enemies' HP bars are visible.  
+ * @desc The default for whether or not enemies' HP bars are visible.
  * @default true
  *
  * @param defaultEnemyShowBattlerName
@@ -141,31 +141,31 @@
  * @text Default Enemy Show Battler Name
  * @desc The default for whether or not enemies' names are visible.
  * @default true
- * 
+ *
  * @param defaultEnemyIsInvincible
  * @parent enemyDefaultConfigs
  * @type boolean
  * @text Default Enemy Is Invincible
  * @desc Setting this to true will cause all enemies to be invincible by default. USE WITH CAUTION.
  * @default false
- * 
+ *
  * @param defaultEnemyIsInanimate
  * @parent enemyDefaultConfigs
  * @type boolean
  * @text Default Enemy Is Inanimate
  * @desc Setting this to true will cause all enemies to be inanimate by default. USE WITH CAUTION.
  * @default false
- * 
+ *
  * @param defaultConfigs
  * @text WHEN UNASSIGNED
- * 
+ *
  * @param defaultToolCooldownTime
  * @parent defaultConfigs
  * @type number
  * @text Default Tool Cooldown Time
  * @desc The default number of frames for an item's cooldown if one isn't specified.
  * @default 300
- * 
+ *
  * @param defaultLootExpiration
  * @parent defaultConfigs
  * @type number
@@ -173,24 +173,24 @@
  * @text Default Loot Duration
  * @desc The default number of frames before an item expires from the map. Set to -1 for no expiration.
  * @default 900
- * 
+ *
  * @param defaultAttackAnimationId
  * @parent defaultConfigs
  * @type number
  * @text Default Attack Animation Id
  * @desc The default id of the animation for battlers when none is defined.
  * @default 1
- * 
+ *
  * @param iconConfigs
  * @text ICON CONFIGURATIONS
- * 
+ *
  * @param useElementalIcons
  * @parent iconConfigs
  * @type boolean
  * @text Use Elemental Icons
  * @desc Enable or disable the display of elemental icons on damage popups with this option.
  * @default true
- * 
+ *
  * @param elementalIconData
  * @parent iconConfigs
  * @type struct<ElementalIconStruct>[]
@@ -200,59 +200,59 @@
  *
  * @param animationConfigs
  * @text ACTION DECIDED ANIMATIONS
- * 
+ *
  * @param attackDecidedAnimationId
  * @parent animationConfigs
  * @type animation
  * @text Attack Decided Animation Id
  * @desc The animation id that plays on the ai-controlled battler when they decide an attack-action.
  * @default 135
- * 
+ *
  * @param supportDecidedAnimationId
  * @parent animationConfigs
  * @type animation
  * @text Support Decided Animation Id
  * @desc The animation id that plays on the ai-controlled battler when they decide a support-action.
  * @default 136
- * 
+ *
  * @param aggroConfigs
  * @text AGGRO DEFAULTS
- * 
+ *
  * @param baseAggro
  * @parent aggroConfigs
  * @type number
  * @text Base Aggro
  * @desc The base amount of aggro generated by every action, in addition to the rest of the formula.
  * @default 100
- * 
+ *
  * @param aggroPerHp
  * @parent aggroConfigs
  * @type number
  * @text Aggro per HP damage
  * @desc The amount of aggro generated per 1 HP damage dealt to a non-allied target.
  * @default 1
- * 
+ *
  * @param aggroPerMp
  * @parent aggroConfigs
  * @type number
  * @text Aggro per MP damage
  * @desc The amount of aggro generated per 1 MP damage dealt to a non-allied target.
  * @default 2
- * 
+ *
  * @param aggroPerTp
  * @parent aggroConfigs
  * @type number
  * @text Aggro per TP damage
  * @desc The amount of aggro generated per 1 TP damage dealt to a non-allied target.
  * @default 10
- * 
+ *
  * @param aggroDrainMultiplier
  * @parent aggroConfigs
  * @type number
  * @text Aggro Drain Multiplier
  * @desc If the skill was an HP Drain, then generate an additional X aggro per HP drained.
  * @default 4
- * 
+ *
  * @param aggroParryFlatAmount
  * @parent aggroConfigs
  * @type number
@@ -260,14 +260,14 @@
  * @text Aggro Parry Flat Amount
  * @desc If the skill didn't connect because it was parried, add this much instead. Can be negative.
  * @default -50
- * 
+ *
  * @param aggroParryUserGain
  * @parent aggroConfigs
  * @type number
  * @text Aggro Parry User Gain
  * @desc If the skill didn't connect because it was parried, aggro the attacker this much.
  * @default 200
- * 
+ *
  * @param aggroPlayerReduction
  * @parent aggroConfigs
  * @type number
@@ -275,10 +275,10 @@
  * @desc The player can attack much faster than AI, so reducing their aggro output by default is sensible.
  * @decimals 2
  * @default 0.50
- * 
+ *
  * @param miscConfigs
  * @text MISCELLANEOUS SETUP
- * 
+ *
  * @param lootPickupDistance
  * @parent miscConfigs
  * @type number
@@ -286,14 +286,14 @@
  * @desc The distance of which the player must be to collect loot on the ground.
  * @decimals 2
  * @default 1.50
- * 
+ *
  * @param disableTextPops
  * @parent miscConfigs
  * @type boolean
  * @text Disable Text Pops
  * @desc Whether or not to disable the text popups, including: damage, rewards, parry, etc.
  * @default false
- * 
+ *
  * @param lootPickupDistance
  * @parent miscConfigs
  * @type number
@@ -301,7 +301,7 @@
  * @text Loot Pickup Distance
  * @desc The distance of which the player must be to collect loot on the ground.
  * @default 1.50
- * 
+ *
  * @param allyRubberbandAdjustment
  * @parent miscConfigs
  * @type number
@@ -309,7 +309,7 @@
  * @text Ally Rubberband Adjustment
  * @desc A modifier on the ally rubber band range (defaults of 10). This also affects the ally AI plugin if used.
  * @default 2.00
- * 
+ *
  * @param dashSpeedBoost
  * @parent miscConfigs
  * @type number
@@ -317,66 +317,66 @@
  * @text Dash Movespeed Boost
  * @desc The boost to movement speed when dashing. You may need to toy with this a bit to get it right.
  * @default 1.25
- * 
+ *
  * @param quickmenuConfigs
  * @text QUICKMENU SETUP
- * 
+ *
  * @param equipCombatSkillsText
  * @parent quickmenuConfigs
  * @type string
  * @text Equip Combat Skills Text
  * @desc The text that shows up in the JABS quickmenu for the "equip combat skills" command.
  * @default Equip Combat Skills
- * 
+ *
  * @param equipDodgeSkillsText
  * @parent quickmenuConfigs
  * @type string
  * @text Equip Dodge Skills Text
  * @desc The text that shows up in the JABS quickmenu for the "equip dodge skills" command.
  * @default Equip Dodge Skills
- * 
+ *
  * @param equipToolsText
  * @parent quickmenuConfigs
  * @type string
  * @text Equip Tools Text
  * @desc The text that shows up in the JABS quickmenu for the "equip tools" command.
  * @default Equip Tools
- * 
+ *
  * @param mainMenuText
  * @parent quickmenuConfigs
  * @type string
  * @text Main MenuText
  * @desc The text that shows up in the JABS quickmenu for the "main menu" command.
  * @default Full Menu
- * 
+ *
  * @param cancelText
  * @parent quickmenuConfigs
  * @type string
  * @text Cancel Text
  * @desc The text that shows up in the JABS quickmenu for the "cancel" command.
  * @default Cancel
- * 
+ *
  * @param clearSlotText
  * @parent quickmenuConfigs
  * @type string
  * @text Clear Slot Text
  * @desc The text that shows up in the JABS quickmenu for the "clear slot" command.
  * @default Clear Slot...
- * 
+ *
  * @param unassignedText
  * @parent quickmenuConfigs
  * @type string
  * @text UnassignedText
  * @desc The text that shows up in the JABS quickmenu for the "- unassigned -" command.
  * @default - unassigned -
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  * @command Enable JABS
  * @text Enable JABS
  * @desc Enables the JABS engine allowing battles on the map to take place.
- * 
+ *
  * @command Disable JABS
  * @text Disable JABS
  * @desc Disables the JABS engine.
@@ -406,22 +406,18 @@
  * @desc The slot to assign the skill to for this actor.
  * @option Tool
  * @option Dodge
- * @option R1A
- * @option R1B
- * @option R1X
- * @option R1Y
  * @option L1A
  * @option L1B
  * @option L1X
  * @option L1Y
- * @default R1A
+ * @default L1A
  * @arg locked
  * @type boolean
  * @on Lock Skill
  * @off Don't Lock
  * @desc Locked skills cannot be unequipped until unlocked.
  * @default false
- * 
+ *
  * @command Unlock JABS Skill Slot
  * @text Unlock a single JABS skill slot
  * @desc Unlocks a single JABS skill slot for the leader.
@@ -429,33 +425,29 @@
  * @type select
  * @option Tool
  * @option Dodge
- * @option R1A
- * @option R1B
- * @option R1X
- * @option R1Y
  * @option L1A
  * @option L1B
  * @option L1X
  * @option L1Y
- * 
+ *
  * @command Unlock All JABS Skill Slots
  * @text Unlock all JABS skill slots
  * @desc Unlocks all JABS skill slots for the leader.
- * 
+ *
  * @command Rotate Party Members
  * @text Cycle to next leader
  * @desc Cycles the leader to the back and shifts all members forward one slot.
- * 
+ *
  * @command Disable Party Rotation
  * @text Disable Party Rotation
  * @desc Disables the player from being able to rotate the party leader.
  * (This only affects the JABS party rotate functionality.)
- * 
+ *
  * @command Enable Party Rotation
  * @text Enable Party Rotation
  * @desc (Re-)Enables the ability to execute a party rotate.
  * Other conditions still apply (like not rotating to a dead member).
- * 
+ *
  * @command Refresh JABS Menu
  * @text Refresh JABS Menu
  * @desc Refreshes the JABS menu in case there were any adjustments made to it.
@@ -466,7 +458,7 @@
  * @type number
  * @desc The id of the element to match an icon to.
  * @default 0
- * 
+ *
  * @param iconIndex
  * @type number
  * @desc The index of the icon for this element.
@@ -518,25 +510,17 @@ J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
   switch (slot)
   {
     case "Tool":
-      return Game_Actor.JABS_TOOLSKILL;
+      return JABS_Button.Tool;
     case "Dodge":
-      return Game_Actor.JABS_DODGESKILL;
-    case "R1A":
-      return Game_Actor.JABS_R1_A_SKILL;
-    case "R1B":
-      return Game_Actor.JABS_R1_B_SKILL;
-    case "R1X":
-      return Game_Actor.JABS_R1_X_SKILL;
-    case "R1Y":
-      return Game_Actor.JABS_R1_Y_SKILL;
+      return JABS_Button.Dodge;
     case "L1A":
-      return Game_Actor.JABS_L1_A_SKILL;
+      return JABS_Button.CombatSkill1;
     case "L1B":
-      return Game_Actor.JABS_L1_B_SKILL;
+      return JABS_Button.CombatSkill2;
     case "L1X":
-      return Game_Actor.JABS_L1_X_SKILL;
+      return JABS_Button.CombatSkill3;
     case "L1Y":
-      return Game_Actor.JABS_L1_Y_SKILL;
+      return JABS_Button.CombatSkill4;
   }
 };
 

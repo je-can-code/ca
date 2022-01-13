@@ -564,9 +564,11 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
     // see if we should be grabbing the next combo skill, or this skill.
     const hasNextSkill = cooldownData.comboNextActionId > 0;
-    return hasNextSkill
+    const nextSkillId = hasNextSkill
       ? cooldownData.comboNextActionId  // return the next skill in the combo.
       : skillId;                        // return the current skill.
+
+    return nextSkillId;
   };
 
   /**
@@ -796,7 +798,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
   synchronizeCostType()
   {
     // get the cost of the assigned skill as an integer.
-    let skillCost = this.skillCostByType().toFixed(0);
+    let skillCost = this.skillCost().toFixed(0);
 
     // check if the icon index for this icon is up to date.
     if (this.text() !== skillCost)
@@ -1301,13 +1303,14 @@ class Sprite_InputKeySlot extends Sprite
     // if we cannot draw, do not.
     if (!this.canDrawInputKey()) return;
 
+    // our origin is 0:0.
     const x = 0;
     const y = 0;
 
     // draw skill icon.
     this.drawInputKeySkillIcon(x, y);
 
-    if (this.skillSlot().isItem())
+    if (!this.skillSlot().isItem())
     {
       this.drawInputKeyHpCost(x, y);
       this.drawInputKeyMpCost(x, y);
@@ -1745,10 +1748,10 @@ class Window_InputFrame extends Window_Frame
     const baseY = y + 8;
 
     // draw the combat skills equipped for JABS.
-    this.drawInputKey(JABS_Button.L1_X, baseX+ikw*0, baseY+32);
-    this.drawInputKey(JABS_Button.L1_Y, baseX+(ikw*1), baseY);
-    this.drawInputKey(JABS_Button.L1_A, baseX+(ikw*1), baseY+64);
-    this.drawInputKey(JABS_Button.L1_B, baseX+(ikw*2), baseY+32);
+    this.drawInputKey(JABS_Button.CombatSkill3, baseX+ikw*0, baseY+32);
+    this.drawInputKey(JABS_Button.CombatSkill4, baseX+(ikw*1), baseY);
+    this.drawInputKey(JABS_Button.CombatSkill1, baseX+(ikw*1), baseY+64);
+    this.drawInputKey(JABS_Button.CombatSkill2, baseX+(ikw*2), baseY+32);
   };
 
   /**
@@ -1791,219 +1794,4 @@ class Window_InputFrame extends Window_Frame
 }
 //#endregion Window_InputFrame
 //#endregion Window objects
-
-//#region Custom objects
-//#region JABS_InputManager
-/**
- * The class that handles input in the context of JABS.
- */
-class JABS_InputManager
-{
-  /**
-   * The collection of inputs that JABS will take action with.
-   * @type {Map<string, JABS_Input>}
-   */
-  Keys = new Map();
-
-  constructor()
-  {
-    this.createKeys();
-  };
-
-  createKeys()
-  {
-    this.Keys.set(
-      J.ABS.Input.A,
-      new JABS_Input(
-        JABS_Button.Main,
-        () => console.log("hello world")));
-  };
-
-  update()
-  {
-    // don't swing all willy nilly while events are executing.
-    if ($gameMap.isEventRunning() || $gameMessage.isBusy()) return;
-
-    if (Input.isTriggered(J.ABS.Input.A))
-    {
-      this.Keys.get(J.ABS.Input.A).action();
-    }
-  };
-}
-//#endregion JABS_InputManager
-
-//#region JABS_Input
-/**
- * A class representing a key pressed and the functionality that it performs
- * in the context of JABS.
- */
-class JABS_Input
-{
-  /**
-   * The key representing this input.
-   * @returns {string}
-   */
-  key = String.empty;
-
-  /**
-   * The action performed when this key is input.
-   * @returns {any}
-   */
-  action = () => null;
-
-  /**
-   * Constructor.
-   * @param {JABS_Button} key The key representing this input.
-   * @param {function} action The action to execute for this input.
-   */
-  constructor(key, action)
-  {
-    this.key = key;
-    this.action = action;
-  };
-}
-//#endregion JABS_Input
-
-//#region JABS_Button
-/**
- * A static class containing all input keys available for JABS.
- */
-class JABS_Button
-{
-  /**
-   * The "start" key.
-   * Used for bringing up the JABS menu on the map.
-   * @type {string}
-   */
-  static Start = "Start";
-
-  /**
-   * The "select" key.
-   * Used for party-cycling.
-   * @type {string}
-   */
-  static Select = "Select";
-
-  /**
-   * The "main", "A" button, or "Z" key.
-   * Used for executing the mainhand action.
-   * @type {string}
-   */
-  static Main = "Main";
-
-  /**
-   * The "offhand", "B" button, or "X" key.
-   * Used for executing the offhand action.
-   * @type {string}
-   */
-  static Offhand = "Offhand";
-
-  /**
-   * The "tool", "Y" button, or "C" key.
-   * Used for executing the currently selected tool skill.
-   * @type {string}
-   */
-  static Tool = "Tool";
-
-  /**
-   * The "dodge", "R2" button, or "Tab" key.
-   * Used for executing the currently selected dodge skill.
-   * @type {string}
-   */
-  static Dodge = "Dodge";
-
-  /**
-   * The "strafe", "L2" button, or "Left Ctrl" key.
-   * Used for locking the direction faced while the input is held.
-   * @type {string}
-   */
-  static Strafe = "Strafe";
-
-  /**
-   * The "guard", "R1" button, or "W" and "E" key(s).
-   * Used for guarding/parrying while the input is held.
-   * @type {string}
-   */
-  static Guard = "Guard";
-
-  /**
-   * The "L1 + A" or 1 key.
-   * Used for executing the 1st of 8 equippable skills.
-   * @type {string}
-   */
-  static L1_A = "L1_A";
-
-  /**
-   * The "L1 + B" or 2 key.
-   * Used for executing the 2nd of 8 equippable skills.
-   * @type {string}
-   */
-  static L1_B = "L1_B";
-
-  /**
-   * The "L1 + X" or 3 key.
-   * Used for executing the 3rd of 8 equippable skills.
-   * @type {string}
-   */
-  static L1_X = "L1_X";
-
-  /**
-   * The "L1 + Y" or 4 key.
-   * Used for executing the 4th of 8 equippable skills.
-   * @type {string}
-   */
-  static L1_Y = "L1_Y";
-
-  /**
-   * The "R1 + A" or 5 key.
-   * Used for executing the 5th of 8 equippable skills.
-   * @type {string}
-   */
-  static R1_A = "R1_A";
-
-  /**
-   * The "R1 + B" or 6 key.
-   * Used for executing the 6th of 8 equippable skills.
-   * @type {string}
-   */
-  static R1_B = "R1_B";
-
-  /**
-   * The "R1 + X" or 7 key.
-   * Used for executing the 7th of 8 equippable skills.
-   * @type {string}
-   */
-  static R1_X = "R1_X";
-
-  /**
-   * The "R1 + Y" or 8 key.
-   * Used for executing the 8th of 8 equippable skills.
-   * @type {string}
-   */
-  static R1_Y = "R1_Y";
-
-  /**
-   * Gets all inputs that are available for assignment
-   * in one way or another.
-   * @returns {string[]} A collection of JABS-input keys' identifiers.
-   */
-  static assignableInputs()
-  {
-    return [
-      // primary
-      this.Main,
-      this.Offhand,
-      this.Tool,
-      this.Dodge,
-
-      // L1 + buttons
-      this.L1_A,
-      this.L1_B,
-      this.L1_X,
-      this.L1_Y,
-    ];
-  };
-}
-//#endregion JABS_Button
-//#endregion Custom objects
 //ENDOFFILE
