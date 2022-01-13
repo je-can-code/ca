@@ -1968,7 +1968,7 @@ class Game_BattleMap
   performNonPlayerBattlerUpdate(battler)
   {
     // if this battler is the player, do not update.
-    if (battler === $gameBattleMap.getPlayerMapBattler()) return;
+    if (battler === this.getPlayerMapBattler()) return;
 
     // update the battler.
     battler.update();
@@ -2043,14 +2043,27 @@ class Game_BattleMap
   };
 
   /**
+   * Calls the Abs menu.
+   */
+  performMenuAction()
+  {
+    // pause JABS.
+    this.absPause = true;
+
+    // request the menu.
+    this.requestAbsMenu = true;
+  };
+
+  /**
    * Handles event interaction for events in front of the player. If they exist,
    * and the player meets the criteria to interact with the event, then do so.
    * It also prevents the player from swinging their weapon willy nilly at NPCs.
+   * @param {JABS_Battler} jabsBattler The battler to check the fore-facing events of.
    * @returns {boolean} True if there is an event infront of the player, false otherwise.
    */
-  isNonBattlerEventInFrontOfPlayer()
+  isNonBattlerEventInFront(jabsBattler)
   {
-    const player = this.getPlayerMapBattler().getCharacter();
+    const player = jabsBattler.getCharacter();
     const direction = player.direction();
     const x1 = player.x;
     const y1 = player.y;
@@ -2170,27 +2183,13 @@ class Game_BattleMap
   };
 
   /**
-   * Calls the Abs menu.
-   */
-  performMenuAction()
-  {
-    // pause JABS.
-    this.absPause = true;
-
-    // request the menu.
-    this.requestAbsMenu = true;
-  };
-
-  /**
    * Executes an action on the map based on the mainhand skill slot.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performMainhandAction()
+  performMainhandAction(jabsBattler)
   {
     // if the mainhand action isn't ready, then do not perform.
-    if (!this.canPerformMainhandAction()) return;
-
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
+    if (!this.canPerformMainhandAction(jabsBattler)) return;
 
     // get all actions associated with the mainhand.
     let actions = jabsBattler.getAttackData(JABS_Button.Main);
@@ -2210,15 +2209,13 @@ class Game_BattleMap
 
   /**
    * Determines whether or not the player can execute the mainhand action.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformMainhandAction()
+  canPerformMainhandAction(jabsBattler)
   {
     // do not perform actions if there is pedestrians infront of you!
-    if (this.isNonBattlerEventInFrontOfPlayer()) return false;
-
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
+    if (this.isNonBattlerEventInFront(jabsBattler)) return false;
 
     // if the battler can't use attacks, then do not perform.
     if (!jabsBattler.canBattlerUseAttacks()) return false;
@@ -2241,14 +2238,12 @@ class Game_BattleMap
 
   /**
    * Executes an action on the map based on the offhand skill slot.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performOffhandAction()
+  performOffhandAction(jabsBattler)
   {
     // if the offhand action isn't ready, then do not perform.
-    if (!this.canPerformOffhandAction()) return;
-
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
+    if (!this.canPerformOffhandAction(jabsBattler)) return;
 
     // get all actions associated with the offhand.
     const actions = jabsBattler.getAttackData(JABS_Button.Offhand);
@@ -2268,18 +2263,16 @@ class Game_BattleMap
 
   /**
    * Determines whether or not the player can execute the offhand action.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformOffhandAction()
+  canPerformOffhandAction(jabsBattler)
   {
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
-
     // if the offhand skill is actually a guard skill, then do not perform.
     if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
 
     // do not perform actions if there is pedestrians infront of you!
-    if (this.isNonBattlerEventInFrontOfPlayer()) return false;
+    if (this.isNonBattlerEventInFront(jabsBattler)) return false;
 
     // if the battler can't use attacks, then do not perform.
     if (!jabsBattler.canBattlerUseAttacks()) return false;
@@ -2303,14 +2296,12 @@ class Game_BattleMap
   /**
    * Begins the execution of a tool.
    * Depending on the equipped tool, this can perform a variety of types of actions.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performToolAction()
+  performToolAction(jabsBattler)
   {
     // if the tool action isn't ready, then do not perform.
-    if (!this.canPerformToolAction()) return;
-
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
+    if (!this.canPerformToolAction(jabsBattler)) return;
 
     // grab the tool id currently equipped.
     const toolId = jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool);
@@ -2320,14 +2311,12 @@ class Game_BattleMap
   };
 
   /**
-   * Determines whether or not the player can execute the offhand action.
+   * Determines whether or not the player can execute the tool action.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformToolAction()
+  canPerformToolAction(jabsBattler)
   {
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
-
     // if the tool is not off cooldown, then do not perform.
     if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
 
@@ -2341,14 +2330,12 @@ class Game_BattleMap
   /**
    * Begins execution of a skill based on any of the L1 + ABXY skill slots.
    * @param {number} slot The slot associated with the combat action.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performCombatAction(slot)
+  performCombatAction(slot, jabsBattler)
   {
     // if the offhand action isn't ready, then do not perform.
-    if (!this.canPerformCombatActionBySlot(slot)) return;
-
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
+    if (!this.canPerformCombatActionBySlot(slot, jabsBattler)) return;
 
     // get all actions associated with the offhand.
     const actions = jabsBattler.getAttackData(slot);
@@ -2363,13 +2350,11 @@ class Game_BattleMap
   /**
    * Determines whether or not the player can execute the combat action.
    * @param {string} slot The slot to check if is able to be used.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformCombatActionBySlot(slot)
+  canPerformCombatActionBySlot(slot, jabsBattler)
   {
-    // grab the player battler executing these actions.
-    const jabsBattler = this.getPlayerMapBattler();
-
     // if the battler can't use attacks, then do not perform.
     if (!jabsBattler.canBattlerUseSkills()) return false;
 
@@ -2392,11 +2377,13 @@ class Game_BattleMap
   /**
    * Executes the strafe action.
    * The player will not change the direction they are facing while strafing is active.
+   * @param {boolean} strafing True if the player is strafing, false otherwise.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performStrafe(strafing)
+  performStrafe(strafing, jabsBattler)
   {
     // check if we can strafe.
-    if (!this.canPerformStrafe()) return;
+    if (!this.canPerformStrafe(jabsBattler)) return;
 
     // perform the strafe.
     this.getPlayerMapBattler().getCharacter().setDirectionFix(strafing);
@@ -2404,9 +2391,10 @@ class Game_BattleMap
 
   /**
    * Determines whether or not the player can strafe and hold direction while moving.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformStrafe()
+  canPerformStrafe(jabsBattler)
   {
     return true;
   };
@@ -2415,21 +2403,23 @@ class Game_BattleMap
    * Executes the rotation action.
    * The player will not change move while rotation is active.
    * @param {boolean} rotating True if the player is rotating, false otherwise.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performRotate(rotating)
+  performRotate(rotating, jabsBattler)
   {
     // check if we can rotate.
-    if (!this.canPerformRotate()) return;
+    if (!this.canPerformRotate(jabsBattler)) return;
 
     // perform the rotation.
-    this.getPlayerMapBattler().setMovementLock(rotating);
+    jabsBattler.setMovementLock(rotating);
   };
 
   /**
    * Determines whether or not the player can rotate in-place without movement.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformRotate()
+  canPerformRotate(jabsBattler)
   {
     return true;
   };
@@ -2438,28 +2428,27 @@ class Game_BattleMap
    * Executes the guard action.
    * The player will only perform the guard action if the offhand slot is a guard-ready skill.
    * @param {boolean} guarding True if the player is guarding, false otherwise.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    */
-  performGuard(guarding)
+  performGuard(guarding, jabsBattler)
   {
     // check if we can guard with the offhand slot.
-    if (!this.canPerformGuardBySlot(JABS_Button.Offhand)) return;
+    if (!this.canPerformGuardBySlot(JABS_Button.Offhand, jabsBattler)) return;
 
     // perform the guard skill in the offhand slot.
-    this.getPlayerMapBattler().executeGuard(guarding, JABS_Button.Offhand);
+    jabsBattler.executeGuard(guarding, JABS_Button.Offhand);
   };
 
   /**
    * Determines whether or not the player can guard.
    * @param {string} slot The slot to check if is able to be used.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  canPerformGuardBySlot(slot)
+  canPerformGuardBySlot(slot, jabsBattler)
   {
-    // grab the player to check guarding availability for.
-    const player = this.getPlayerMapBattler();
-
     // if the offhand slot is not a guard skill, then do not perform.
-    if (player.isGuardSkillByKey(slot)) return false;
+    if (!jabsBattler.isGuardSkillByKey(slot)) return false;
 
     // perform!
     return true;
