@@ -210,7 +210,7 @@ class JABS_Action
 
   /**
    * Gets the base skill this `JABS_Action` is based on.
-   * @returns {rm.types.Skill} The base skill of this `JABS_Action`.
+   * @returns {RPG_Skill} The base skill of this `JABS_Action`.
    */
   getBaseSkill()
   {
@@ -1211,40 +1211,106 @@ JABS_Battler.prototype.initAnimationInfo = function()
  */
 JABS_Battler.prototype.initCooldowns = function()
 {
-  this.initializeCooldown("global", 0);
-  if (this.isEnemy())
-  {
-    // initialize all the skills assigned from the database.
-    const skills = this.getSkillIdsFromEnemy();
-    if (skills)
-    {
-      skills.forEach(skillIdAndRating =>
-      {
-        const skill = $dataSkills[skillIdAndRating];
-        this.initializeCooldown(skill.name, 0);
-      })
-    }
+  // initializes cooldowns that all battlers have.
+  this.initBattlerCooldowns();
 
-    // initialize the basic attack skill if identified.
-    const basicAttackSkillAndRating = this.getEnemyBasicAttack();
-    if (basicAttackSkillAndRating)
-    {
-      const basicAttack = $dataSkills[basicAttackSkillAndRating[0]];
-      this.initializeCooldown(basicAttack.name, 0);
-    }
-  }
-  else
+  // initialize enemy cooldowns.
+  this.initEnemyCooldowns();
+
+  // initialize actor cooldowns.
+  this.initActorCooldowns();
+};
+
+JABS_Battler.prototype.initBattlerCooldowns = function()
+{
+  // setup a global cooldown for all battlers.
+  this.initializeCooldown("global", 0);
+
+  // setup a basic attack cooldown for all battlers.
+  this.initializeCooldown("attack", 0);
+
+  // setup a skill usage cooldown for all battlers.
+  this.initializeCooldown("skill", 0);
+};
+
+/**
+ * Initializes all enemy cooldowns, including skills and basic attack.
+ */
+JABS_Battler.prototype.initEnemyCooldowns = function()
+{
+  // only enemies can have enemy cooldowns!
+  if (!this.isEnemy()) return;
+
+  // initialize all skill cooldowns.
+  this.initEnemySkillCooldowns();
+
+  // initialize the basic attack cooldown.
+  this.initEnemyAttackCooldowns();
+};
+
+/**
+ * Initialize all enemy skill cooldowns.
+ */
+JABS_Battler.prototype.initEnemySkillCooldowns = function()
+{
+  // grab all skills that this enemy has on it from the database.
+  const skills = this.getSkillIdsFromEnemy();
+
+  // check if we actually have a list of skills.
+  if (skills.length)
   {
-    // players don't need skills initialized, but they do need cooldown slots.
-    this.initializeCooldown(JABS_Button.Main, 0);
-    this.initializeCooldown(JABS_Button.Offhand, 0);
-    this.initializeCooldown(JABS_Button.Tool, 0);
-    this.initializeCooldown(JABS_Button.Dodge, 0);
-    this.initializeCooldown(JABS_Button.CombatSkill1, 0);
-    this.initializeCooldown(JABS_Button.CombatSkill2, 0);
-    this.initializeCooldown(JABS_Button.CombatSkill3, 0);
-    this.initializeCooldown(JABS_Button.CombatSkill4, 0);
+    // iterate over all available skills.
+    skills.forEach(skillId =>
+    {
+      // initialize the cooldown by its skill id.
+      this.initEnemyCooldownBySkill(skillId);
+    })
   }
+};
+
+/**
+ * Initialize the enemy's basic attack cooldown if one is present.
+ */
+JABS_Battler.prototype.initEnemyAttackCooldowns = function()
+{
+  // grab the basic attack skill id.
+  const [skillId] = this.getEnemyBasicAttack();
+
+  // check to make sure we have a valid skillId.
+  if (skillId)
+  {
+    // initialize the cooldown by its skill id.
+    this.initEnemyCooldownBySkill(skillId);
+  }
+};
+
+/**
+ * Initializes a single cooldown of a skill based on its skill id.
+ * @param {number} skillId The id of the skill to initialize.
+ */
+JABS_Battler.prototype.initEnemyCooldownBySkill = function(skillId)
+{
+  // grab the skill data from the database.
+  const skill = $dataSkills[skillId];
+
+  // initailize the cooldown.
+  this.initializeCooldown(`${skill.id}-${skill.name}`, 0);
+};
+
+JABS_Battler.prototype.initActorCooldowns = function()
+{
+  // only actors can have actor cooldowns!
+  if (!this.isActor()) return;
+
+  // players don't need skills initialized, but they do need cooldown slots.
+  this.initializeCooldown(JABS_Button.Main, 0);
+  this.initializeCooldown(JABS_Button.Offhand, 0);
+  this.initializeCooldown(JABS_Button.Tool, 0);
+  this.initializeCooldown(JABS_Button.Dodge, 0);
+  this.initializeCooldown(JABS_Button.CombatSkill1, 0);
+  this.initializeCooldown(JABS_Button.CombatSkill2, 0);
+  this.initializeCooldown(JABS_Button.CombatSkill3, 0);
+  this.initializeCooldown(JABS_Button.CombatSkill4, 0);
 };
 //#endregion initialize battler
 
@@ -1462,7 +1528,8 @@ JABS_Battler.prototype.processQueuedActions = function()
   // check if we're still casting actions.
   if (this.isCasting()) return;
 
-  // if this isn't the player and we aren't in position, then do not execute.
+  // check if we're not a player.
+  // check also if we're not in position.
   if (!this.isPlayer() && !this.isInPosition()) return;
 
   // execute the action.
@@ -1605,7 +1672,7 @@ JABS_Battler.prototype.updateEngagement = function()
  */
 JABS_Battler.prototype.canUpdateEngagement = function()
 {
-  return (!$jabsEngine.absPause && !this.isPlayer() && !this.isHidden() && !this.isInanimate());
+  return (!$jabsEngine.absPause && !this.isPlayer() && !this.isInanimate());
 };
 
 /**
@@ -3119,7 +3186,7 @@ JABS_Battler.prototype.isActionDecided = function()
 
 /**
  * Gets the battler's decided action.
- * @returns {JABS_Action[]}
+ * @returns {JABS_Action[]|null}
  */
 JABS_Battler.prototype.getDecidedAction = function()
 {
@@ -3909,7 +3976,8 @@ JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
   }
   catch (ex)
   {
-    console.warn(ex);
+    console.warn(this._cooldowns, cooldownKey, duration);
+    console.error(ex);
   }
 };
 
@@ -4101,7 +4169,7 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
   const battler = this.getBattler();
-  let battlerData = $dataEnemies[battler.enemyId()];
+  let battlerData = battler.enemy(); //$dataEnemies[battler.enemyId()];
 
   // filter out any "extend" skills as far as this collection is concerned.
   return battlerData.actions
@@ -4415,7 +4483,7 @@ JABS_Battler.prototype.aggroExists = function(uuid)
 JABS_Battler.prototype.canActionConnect = function()
 {
   // this battler is untargetable.
-  if (this.isInvincible() || this.isHidden()) return false;
+  if (this.isInvincible()) return false;
 
   // the player cannot be targeted while holding the DEBUG button.
   if (this.isPlayer() && Input.isPressed(J.ABS.Input.Cheat)) return false;
@@ -4495,7 +4563,7 @@ JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne = 
  * @param {string} cooldownKey The cooldown key associated with this action.
  * @returns {JABS_Action[]} The `JABS_Action` based on the skill id provided.
  */
-JABS_Battler.prototype.createMapActionFromSkill = function(
+JABS_Battler.prototype.createJabsActionFromSkill = function(
   skillId,
   isRetaliation = false,
   cooldownKey = null)
@@ -4571,7 +4639,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   if (!battler.hasSkill(skillId)) return [];
 
   // otherwise, use the skill from the slot to build an action.
-  return this.createMapActionFromSkill(skillId, false, cooldownKey);
+  return this.createJabsActionFromSkill(skillId, false, cooldownKey);
 };
 
 /**
@@ -4680,7 +4748,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // it was an item with a skill attached.
   if (itemSkillId)
   {
-    const mapAction = this.createMapActionFromSkill(itemSkillId);
+    const mapAction = this.createJabsActionFromSkill(itemSkillId);
     mapAction.forEach(action =>
     {
       action.setCooldownType(JABS_Button.Tool);
