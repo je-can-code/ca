@@ -3300,16 +3300,7 @@ JABS_Battler.prototype.unlockEngagement = function()
  */
 JABS_Battler.prototype.getTarget = function()
 {
-  if (this._target !== String.empty)
-  {
-    const targetBattler = $gameMap.getBattlerByUuid()
-    if (targetBattler)
-    {
-      return targetBattler;
-    }
-  }
-
-  return null;
+  return this._target;
 };
 
 /**
@@ -3318,14 +3309,7 @@ JABS_Battler.prototype.getTarget = function()
  */
 JABS_Battler.prototype.setTarget = function(newTarget)
 {
-  if (newTarget)
-  {
-    this._target = newTarget.getUuid();
-  }
-  else
-  {
-    this._target = String.empty;
-  }
+  this._target = newTarget;
 };
 
 /**
@@ -3461,24 +3445,23 @@ JABS_Battler.prototype.setAllyTarget = function(newAlliedTarget)
 
 /**
  * Determines the distance from this battler and the point.
- * @param {number} x2 The x coordinate to check.
- * @param {number} y2 The y coordinate to check.
- * @returns {number} The distance from the battler to the point.
+ * @param {number|null} x2 The x coordinate to check.
+ * @param {number|null} y2 The y coordinate to check.
+ * @returns {number|null} The distance from the battler to the point.
  */
 JABS_Battler.prototype.distanceToPoint = function(x2, y2)
 {
   if ((x2 ?? y2) === null) return null;
   const x1 = this.getX();
   const y1 = this.getY();
-  return parseFloat(Math
-    .hypot(x2 - x1, y2 - y1)
-    .toFixed(2));
+  const distance = Math.hypot(x2 - x1, y2 - y1).toFixed(2);
+  return parseFloat(distance);
 };
 
 /**
  * Determines distance from this battler and the target.
  * @param {JABS_Battler} target The target that this battler is checking distance against.
- * @returns {number} The distance from this battler to the provided target.
+ * @returns {number|null} The distance from this battler to the provided target.
  */
 JABS_Battler.prototype.distanceToDesignatedTarget = function(target)
 {
@@ -3489,7 +3472,7 @@ JABS_Battler.prototype.distanceToDesignatedTarget = function(target)
 
 /**
  * Determines distance from this battler and the current target.
- * @returns {number} The distance.
+ * @returns {number|null} The distance.
  */
 JABS_Battler.prototype.distanceToCurrentTarget = function()
 {
@@ -3501,7 +3484,7 @@ JABS_Battler.prototype.distanceToCurrentTarget = function()
 
 /**
  * Determines distance from this battler and the current ally target.
- * @returns {number} The distance.
+ * @returns {number|null} The distance.
  */
 JABS_Battler.prototype.distanceToAllyTarget = function()
 {
@@ -4193,9 +4176,6 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // don't process aggro for inanimate battlers.
   if (this.isInanimate()) return;
 
-  // don't process aggro for battlers that aren't in combat.
-  if (!this.isEngaged()) return;
-
   if (!this.getTarget())
   {
     const highestAggro = this.getHighestAggro();
@@ -4210,8 +4190,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
 
   // if the target is dead, disengage and end combat.
   // TODO: is this a race condition?
-  this.removeAggroIfTargetDead(this.getTarget()
-    .getUuid());
+  this.removeAggroIfTargetDead(this.getTarget().getUuid());
 
   // if there is no aggros remaining, disengage.
   if (this._aggros.length === 0)
