@@ -343,45 +343,46 @@ Input.keyMapper = {
 
 //#region JABS_AiManager
 /**
- * This static class manages all ai-controlled `JABS_Battler`s.
- *
- * It orchestrates how Battlers interact with one another and the player.
+ * This static class manages all ai-controlled battlers while on the map.
  */
 class JABS_AiManager
 {
   /**
-   * The constructor is not designed to be called.
+   * Constructor.
    * This is a static class.
-   * @constructor
    */
-  constructor()
-  {
-    throw new Error("The JABS_AiManager is a static class.");
-  };
+  constructor() { throw new Error("The JABS_AiManager is a static class."); };
 
-  //#region JABS Ai Update Loop
+  //#region update loop
   /**
    * Handles updating all the logic of the JABS engine.
    */
   static update()
   {
-    // if there is a message up, an event running, or the ABS is paused, freeze!
+    // check if the AI manager can execute.
     if (!this.canUpdate()) return;
 
+    // execute AI management.
     this.manageAi();
   };
 
   /**
-   * Whether or not the battle manager can process an update.
+   * Whether or not the ai manager can process an update.
    * @return {boolean} True if the manager can update, false otherwise.
    */
   static canUpdate()
   {
-    const isPaused = $jabsEngine.absPause;
-    const isMessageVisible = $gameMessage.isBusy();
-    const isEventRunning = $gameMap.isEventRunning();
-    const updateBlocked = isPaused || isMessageVisible || isEventRunning;
-    return !updateBlocked;
+    // do not manage if the engine is paused.
+    if ($jabsEngine.absPause) return false;
+
+    // do not manage if the message window is up.
+    if ($gameMessage.isBusy()) return false;
+
+    // do not manage if the map is handling an event.
+    if ($gameMap.isEventRunning()) return false;
+
+    // update!
+    return true;
   };
 
   /**
@@ -389,20 +390,49 @@ class JABS_AiManager
    */
   static manageAi()
   {
+    // grab all available battlers within a fixed range.
     const battlers = $gameMap.getBattlersWithinRange(
       $jabsEngine.getPlayerJabsBattler(),
       J.ABS.Metadata.MaxAiUpdateRange);
+
+    // if we have no battlers, then do not process AI.
     if (!battlers.length) return;
 
-    // iterate over each battler available and process it's AI.
-    battlers.forEach(battler =>
-    {
-      // no necromancers or ninjas please!
-      if (battler.isDead() || battler.isPlayer() || battler.isHidden() || battler.isInanimate()) return;
+    // iterate over each battler available.
+    battlers.forEach(this.handleBattlerAi, this);
+  };
 
-      // act as though against, default.
-      this.executeAi(battler);
-    });
+  /**
+   * Handles the AI management of this battler.
+   * @param {JABS_Battler} battler The battler to potentially handle AI of.
+   */
+  static handleBattlerAi(battler)
+  {
+    // check if we can manage the AI of this battler.
+    if (!this.canManageAi(battler)) return;
+
+    // execute the AI loop for this battler.
+    this.executeAi(battler);
+  };
+
+  /**
+   * Determines whether or not this battler can have its AI managed.
+   * @param {JABS_Battler} battler The battler to check if AI is manageable.
+   * @returns {boolean} True if the AI should be managed, false otherwise.
+   */
+  static canManageAi(battler)
+  {
+    // do not manage dead battlers.
+    if (battler.isDead()) return false;
+
+    // do not manage the player.
+    if (battler.isPlayer()) return false;
+
+    // do not manage inanimate battlers.
+    if (battler.isInanimate()) return false;
+
+    // manage that AI!
+    return true;
   };
 
   /**
@@ -423,7 +453,7 @@ class JABS_AiManager
       // if we are no longer engaged due to removing dead aggros, then stop.
       if (!battler.isEngaged()) return;
 
-      // don't idle while engaged.
+      // don't try to idle while engaged.
       battler.setIdle(false);
 
       // determine the phase and perform actions accordingly.
@@ -450,8 +480,7 @@ class JABS_AiManager
       this.aiPhase0(battler);
     }
   };
-
-  //#endregion JABS Ai Update Loop
+  //#endregion update loop
 
   //#region Phase 0 - Idle Phase
   /**
@@ -460,28 +489,32 @@ class JABS_AiManager
    */
   static aiPhase0(battler)
   {
+    // if the battler cannot idle, then do not idle.
     if (!battler.canIdle()) return;
 
-    const character = battler.getCharacter();
-    const isStopped = character.isStopping();
+    // grab whether or not the battler is currently idle.
     const isIdle = battler.isIdle();
 
-    if (isStopped)
+    // check if the battler is currently not in-motion.
+    if (battler.getCharacter().isStopping())
     {
+      // check if the battler is alerted.
       if (battler.isAlerted())
       {
-        // what was that over there?
+        // if stopped and alerted, then go try to find the one triggering the alert.
         this.seekForAlerter(battler);
         return;
       }
+      // check if we aren't idle, and also aren't home.
       else if (!isIdle && !battler.isHome())
       {
-        // im not home, need to go home.
+        // try to go back towards the home coordinates.
         this.goHome(battler);
       }
+      // check if we are idle (implicitly also home)
       else if (isIdle)
       {
-        // im home, do my idle things.
+        // move about idly.
         this.moveIdly(battler);
       }
     }
@@ -494,8 +527,11 @@ class JABS_AiManager
    */
   static seekForAlerter(battler)
   {
-    const coordinates = battler.getAlertedCoordinates();
-    battler.smartMoveTowardCoordinates(coordinates[0], coordinates[1]);
+    // grab the x:y coordinates that we last "heard" the one triggering the alert from.
+    const [alertX, alertY] = battler.getAlertedCoordinates();
+
+    // attempt to move intelligently towards those coordiantes.
+    battler.smartMoveTowardCoordinates(alertX, alertY);
   };
 
   /**
@@ -504,11 +540,19 @@ class JABS_AiManager
    */
   static goHome(battler)
   {
-    const event = battler.getCharacter();
-    const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY());
-    event.moveStraight(nextDir);
+    // grab the character of the battler trying to go home.
+    const character = battler.getCharacter();
+
+    // determine the next direction to face when going home.
+    const nextDir = character.findDirectionTo(battler.getHomeX(), battler.getHomeY());
+
+    // take a step in the right direction.
+    character.moveStraight(nextDir);
+
+    // check if we've made it home.
     if (battler.isHome())
     {
+      // flag this battler as being idle.
       battler.setIdle(true);
     }
   };
@@ -519,149 +563,308 @@ class JABS_AiManager
    */
   static moveIdly(battler)
   {
-    if (battler.isIdleActionReady())
-    {
-      const rng = Math.randomInt(4) + 1;
-      if (rng === 1)
-      {
-        const distanceToHome = battler.distanceToHome();
-        const event = battler.getCharacter();
-        if (JABS_Battler.isClose(distanceToHome))
-        {
-          event.moveRandom();
-        }
-        else
-        {
-          const nextDir = event.findDirectionTo(battler.getHomeX(), battler.getHomeY());
-          event.moveStraight(nextDir);
-        }
-      }
-      else
-      {
-        // do nothing;
-      }
+    // if we're not able to move idly, then do not.
+    if (!this.canMoveIdly(battler)) return;
 
-      battler.resetIdleAction();
+    // grab the character of the battler.
+    const character = battler.getCharacter();
+
+    // check if they are "close" to their home point.
+    if (JABS_Battler.isClose(battler.distanceToHome()))
+    {
+      // move randomly.
+      character.moveRandom();
     }
+    // they are not "close" to their home point.
+    else
+    {
+      // determine the direction to face to move towards home.
+      const nextDir = character.findDirectionTo(battler.getHomeX(), battler.getHomeY());
+
+      // move towards home.
+      character.moveStraight(nextDir);
+    }
+
+    // reset the idle action counter.
+    battler.resetIdleAction();
   };
 
+  /**
+   * Determiens whether or not this battler can move idly.
+   * @param {JABS_Battler} battler The battler trying to move idly.
+   * @returns {boolean} True if this battler can movie idly, false otherwise.
+   */
+  static canMoveIdly(battler)
+  {
+    // if we're not able to move idly, then do not.
+    if (!battler.isIdleActionReady()) return false;
+
+    // 1/5 chance to move idly; if we didn't score, then do not.
+    if ((Math.randomInt(4) + 1) !== 1) return false;
+
+    // idle about!
+    return true;
+  };
   //#endregion Phase 0 - Idle Phase
 
   //#region Phase 1 - Pre-Action Movement Phase
   /**
-   * This is the pre-phase, when the battler is waiting for their action
-   * to be ready. This includes charging their `_actionCounter` and depending
-   * on the AI, maybe doing more.
+   * Phase 1 for AI is the phase where the battler will count down its "prepare" timer.
+   * While in this phase, the battler will make an effort to maintain a "safe" distance
+   * from its current target.
    * @param {JABS_Battler} battler The battler executing this phase of the AI.
    */
   static aiPhase1(battler)
   {
-    // hold for prep time OR skip if the battler has a leader and wait for their commands.
-    if (battler.isActionReady())
+    // check if the battler has their prepare timer ready for action.
+    // if this battler is a follower that has a leader, it will automatically proceed.
+    if (this.canTransitionToPhase2(battler))
     {
-      battler.setPhase(2);
+      // move to the next phase of AI.
+      this.transitionToPhase2(battler);
+
+      // stop processing.
       return;
     }
 
-    // AI to decide movement strategy...
-    if (!battler._event.isMoving() && battler.canBattlerMove())
+    // check if the battler is able to move and isn't moving.
+    if (this.canDecidePhase1Movement(battler))
     {
-      this.decideAiPhase1Movement(battler);
+      // move around as-necessary.
+      this.decideAiMovement(battler);
+
+      // stop processing.
       return;
+    }
+
+    // otherwise, we must be processing a movement command from before.
+  };
+
+  /**
+   * Determines whether or not this battler is ready to transition to AI phase 2.
+   * @param {JABS_Battler} battler The battler to transition.
+   * @returns {boolean} True if this battler should transition, false otherwise.
+   */
+  static canTransitionToPhase2(battler)
+  {
+    // check if the battler has decided an action yet.
+    if (!battler.isActionReady()) return false;
+
+    // move to phase 2!
+    return true;
+  };
+
+  /**
+   * Determines whether or not this battler can perform pre-action movement.
+   * @param {JABS_Battler} battler The battler to move.
+   * @returns {boolean} True if this battler should move, false otherwise.
+   */
+  static canDecidePhase1Movement(battler)
+  {
+    // check if the battler is currently moving.
+    if (battler._event.isMoving()) return false;
+
+    // check if the battler is unable to move.
+    if (!battler.canBattlerMove()) return false;
+
+    // move!
+    return true;
+  };
+
+  /**
+   * Transitions this battler to AI phase 2, action decision and repositioning.
+   * @param {JABS_Battler} battler The battler to transition.
+   */
+  static transitionToPhase2(battler)
+  {
+    // move to the next phase of AI.
+    battler.setPhase(2);
+  };
+
+  /**
+   * Moves the battler around in an effort to maintain a "comfortable" distance
+   * away from their current target.
+   * @param {JABS_Battler} battler The battler deciding movement strategy.
+   */
+  static decideAiMovement(battler)
+  {
+    // check if the distance is invalid or too great.
+    if (this.shouldDisengageTarget(battler))
+    {
+      // just give up on this target.
+      battler.disengageTarget();
+
+      // stop processing.
+      return;
+    }
+
+    // check if the battler is "close".
+    this.maintainSafeDistance(battler);
+
+    // check if we should turn towards the target.
+    // NOTE: this prevents 100% always facing the target, preventing perma-parry.
+    if (Math.randomInt(100) < 5)
+    {
+      // turn towards the target.
+      //battler.turnTowardTarget();
     }
   };
 
   /**
-   * Executes a movement based on phase and AI against it's target.
-   * @param {JABS_Battler} battler The battler deciding it's phase 1 movement.
+   * Determines whether or not this battler should disengage from its target
+   * due to distancing concerns.
+   * @param {JABS_Battler} battler The battler to disengage.
+   * @returns {boolean} True if this battler needs to disengage, false otherwise.
    */
-  static decideAiPhase1Movement(battler)
+  static shouldDisengageTarget(battler)
   {
+    // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
-    if (distance === null || distance > 15)
-    {
-      // if the battler is beyond a fixed distance, just give up.
-      battler.disengageTarget();
-    }
-    ;
 
-    const ai = (battler.getLeaderAiMode() !== null)
-      ? battler.getLeaderAiMode()
-      : battler.getAiMode();
+    // check if the distance is invalid.
+    if (distance === null) return true;
 
-    if (ai.basic)
-    {
-      // basic AI phase 1:
-      // just kinda watches the target and doesn't move.
-      battler.turnTowardTarget();
-    }
+    // check if the distance arbitrarily is too great.
+    if (distance > 15) return true;
 
-    if (ai.smart)
-    {
-      // smart AI phase 1:
-      // will try to maintain a comfortable distance from the target.
-      if (JABS_Battler.isClose(distance))
-      {
-        battler.moveAwayFromTarget();
-      }
-      else if (JABS_Battler.isFar(distance))
-      {
-        battler.smartMoveTowardTarget();
-      }
-      battler.turnTowardTarget();
-    }
-
-    else if (ai.defensive)
-    {
-      // defensive AI phase 1:
-      // will try to maintain a great distance from the target.
-      // NOTE: does not combine with smart.
-    }
+    // do not disengage.
+    return false;
   };
 
+  /**
+   * This battler will attempt to keep a "safe" distance of not-too-far and
+   * not-too-close to its target.
+   * @param {JABS_Battler} battler The battler to do the distancing.
+   */
+  static maintainSafeDistance(battler)
+  {
+    // calculate the distance to this battler's current target.
+    const distance = battler.distanceToCurrentTarget();
+
+    // check if the battler is "close".
+    if (JABS_Battler.isClose(distance))
+    {
+      // move away from the target.
+      battler.moveAwayFromTarget();
+    }
+    // check if the battler is "far".
+    else if (JABS_Battler.isFar(distance))
+    {
+      // move intelligently towards the target (uses smart pathfinding).
+      battler.smartMoveTowardTarget();
+    }
+  };
   //#endregion Phase 1 - Pre-Action Movement Phase
 
   //#region Phase 2 - Execute Action Phase
   /**
-   * This is the action-ready phase, when the battler has an action available to use.
+   * Phase 2 for AI is the phase where the battler will decide adn execute its action.
+   * While in this phase, the battler will decide its action, and attempt to move
+   * into the required range to execute the action if necessary and execute it.
    * @param {JABS_Battler} battler The `JABS_Battler`.
    */
   static aiPhase2(battler)
   {
-    // step 1: decide your action.
-    if (!battler.isActionDecided())
+    // check if the battler has decided their action yet.
+    if (this.needsActionDecision(battler))
     {
+      // make a decision about what to do.
       this.decideAiPhase2Action(battler);
-    }
 
-    // step 2: get into position.
-    if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove())
-    {
-      this.decideAiPhase2Movement(battler);
-    }
-
-    // step 3: hold for cast time.
-    if (battler.isCasting())
-    {
+      // stop processing.
       return;
     }
 
-    // step 4: execute your action.
-    if (battler.isInPosition())
+    // check if we need to reposition.
+    if (this.needsRepositioning(battler))
     {
-      battler.turnTowardTarget();
-      battler.processQueuedActions();
-      battler.setWaitCountdown(20);
-      battler.setPhase(3);
+      // move into a better position based on the decided action.
+      this.decideAiPhase2Movement(battler);
+
+      // stop processing.
+      return;
+    }
+
+    // check if we're ready to execute actions.
+    if (this.needsActionExecution(battler))
+    {
+      // execute the decided action.
+      this.executeAiPhase2Action(battler);
     }
   };
 
   /**
+   * Determines whether or not this battler needs to decide an action.
+   * @param {JABS_Battler} battler The battler to decide an action.
+   * @returns {boolean} True if this battler needs to decide, false otherwise.
+   */
+  static needsActionDecision(battler)
+  {
+    // check if the battler has not yet decided an action.
+    if (!battler.isActionDecided()) return true;
+
+    // battler already has already made a decision.
+    return false;
+  };
+
+  /**
+   * Determines whether or not this battler needs to get into position.
+   * @param {JABS_Battler} battler The battler to reposition.
+   * @returns {boolean} True if this battler needs to move, false otherwise.
+   */
+  static needsRepositioning(battler)
+  {
+    // check if the battler isn't moving.
+    // check also if the battler isn't in position.
+    // check also if the battler can move.
+    if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove()) return true;
+
+    // battler is fine where they are at.
+    return false;
+  };
+
+  /**
+   * Determines whether or not this battler needs to execute queued actions.
+   * @param {JABS_Battler} battler The battler to take action.
+   * @returns {boolean} True if this battler needs to take action, false otherwise.
+   */
+  static needsActionExecution(battler)
+  {
+    // check if this battler has decided on an action to take.
+    if (!battler.isActionDecided()) return false;
+
+    // check if this battler is in position.
+    if (!battler.isInPosition()) return false;
+
+    // check if the battler is still casting.
+    if (battler.isCasting()) return false;
+
+    // we need action!
+    return true;
+  };
+
+  /**
+   * Execute the decided queued actions for this battler.
+   * @param {JABS_Battler} battler The battler to take action.
+   */
+  static executeAiPhase2Action(battler)
+  {
+    // face the target to execute the action.
+    battler.turnTowardTarget();
+
+    // execute the queued action.
+    battler.processQueuedActions();
+
+    // force a wait of 1/3 a second.
+    battler.setWaitCountdown(20);
+
+    // switch to cooldown phase.
+    battler.setPhase(3);
+  };
+
+  /**
    * The battler decides what action to execute.
-   * The order of AI here is important, as some earlier and
-   * less-prominent AI traits are overridden by the later
-   * much more prominent AI traits.
-   * @param {JABS_Battler} battler The `JABS_Battler` deciding the actions.
+   * @param {JABS_Battler} battler The battler deciding the actions.
    */
   static decideAiPhase2Action(battler)
   {
@@ -671,11 +874,10 @@ class JABS_AiManager
   /**
    * The enemy battler decides what action to take.
    * Based on it's AI traits, it will make a decision on an action to take.
-   * @param {JABS_Battler} enemyBattler The enemy battler deciding the action.
+   * @param {JABS_Battler} battler The enemy battler deciding the action.
    */
-  static decideEnemyAiPhase2Action(enemyBattler)
+  static decideEnemyAiPhase2Action(battler)
   {
-    const battler = enemyBattler;
     let ai = battler.getAiMode();
     const basicAttack = battler.getEnemyBasicAttack();
     let shouldUseBasicAttack = false;
@@ -825,22 +1027,51 @@ class JABS_AiManager
    */
   static setupEnemyActionForNextPhase(battler, chosenSkillId)
   {
-    const mapActions = battler.createMapActionFromSkill(chosenSkillId);
-    const primaryMapAction = mapActions[0];
-    const cooldownName = `${primaryMapAction.getBaseSkill().name}`;
-    mapActions.forEach(action => action.setCooldownType(cooldownName));
-    battler.setDecidedAction(mapActions);
-    if (primaryMapAction.isSupportAction())
+    // generate the actions based on the given skill id.
+    const actions = battler.createJabsActionFromSkill(chosenSkillId);
+
+    // determine the enemy's cooldown key of "skillId-skillName".
+    const cooldownName = `${actions[0].getBaseSkill().id}-${actions[0].getBaseSkill().name}`;
+
+    // set the cooldown type for all actions.
+    actions.forEach(action => action.setCooldownType(cooldownName));
+
+    // grab the primary action
+    const primaryAction = actions[0];
+
+    // perform the execution animation.
+    this.performExecutionAnimation(battler, primaryAction);
+
+    // set an arbitrary 1/3 second wait after setup.
+    battler.setWaitCountdown(20);
+
+    // set the cast time of this skill.
+    battler.setCastCountdown(primaryAction.getCastTime());
+
+    // set the decided action.
+    battler.setDecidedAction(actions);
+  };
+
+  /**
+   * Performs a brief animation to indicate that the battler has decided an action.
+   * The animation depends on whether or not the action was a support action or not.
+   * @param {JABS_Battler} battler The battler performing the action.
+   * @param {JABS_Action} action The action used to gauge which animation to show.
+   */
+  static performExecutionAnimation(battler, action)
+  {
+    // check if this action is a support action.
+    if (action.isSupportAction())
     {
+      // show the "support decision" animation on the battler.
       battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)
     }
+    // the action is not a support action.
     else
     {
+      // show the "attack decision" animation on the battler.
       battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
     }
-
-    battler.setWaitCountdown(20);
-    battler.setCastCountdown(primaryMapAction.getCastTime());
   };
 
   /**
@@ -850,52 +1081,146 @@ class JABS_AiManager
    */
   static decideAiPhase2Movement(battler)
   {
-    const actions = battler.getDecidedAction();
+    // check if we can actually perform phase 2 movement.
+    if (!this.canPerformPhase2Movement(battler)) return;
 
-    // if for reasons, they have null set as their action, don't do things with it.
-    if (!actions || !actions.length) return;
-
-    const proximity = actions[0].getProximity();
-    const distanceToTarget = battler.getAllyTarget()
-      ? battler.distanceToAllyTarget()
-      : battler.distanceToCurrentTarget()
-
-    if (distanceToTarget > proximity)
+    // check if we need to move closer.
+    if (this.needsToMoveCloser(battler))
     {
-      battler.getAllyTarget()
-        ? battler.smartMoveTowardAllyTarget()
-        : battler.smartMoveTowardTarget();
+      // get closer to the target so we can execute the skill.
+      this.phase2MoveCloser(battler);
     }
+    // the battler is close enough.
     else
     {
+      // flag this battler as in-position to execute.
       battler.setInPosition();
     }
   };
 
+  /**
+   * Determines whether or not this battler can (or needs to) perform ai phase 2 movement.
+   * @param {JABS_Battler} battler The battler to check if movement is needed.
+   * @returns {boolean} True if this battler needs to move closer, false otherwise.
+   */
+  static canPerformPhase2Movement(battler)
+  {
+    // check if this battler has decided on an action yet.
+    if (!battler.isActionDecided()) return false;
+
+    // check if we're already in position.
+    if (battler.isInPosition()) return false;
+
+    // move closer!
+    return true;
+  };
+
+  /**
+   * Determines whether or not to move closer in AI phase 2.
+   * @param {JABS_Battler} battler The battler to check if movement is needed.
+   * @returns {boolean} True if this battler needs to move closer, false otherwise.
+   */
+  static needsToMoveCloser(battler)
+  {
+    // grab the action.
+    const action = battler.getDecidedAction()[0];
+
+    // calculate distance to target to determine if we need to get closer.
+    const distanceToTarget = battler.getAllyTarget()
+      ? battler.distanceToAllyTarget()
+      : battler.distanceToCurrentTarget();
+
+    // check if we are further away than the minimum proximity.
+    if (distanceToTarget > action.getProximity()) return true;
+
+    // no need to move.
+    return false;
+  };
+
+  /**
+   * Moves this battler closer to the relevant target.
+   * @param {JABS_Battler} battler The battler to move.
+   */
+  static phase2MoveCloser(battler)
+  {
+    if (battler.getAllyTarget())
+    {
+      battler.smartMoveTowardAllyTarget();
+    }
+    else
+    {
+      battler.smartMoveTowardTarget();
+    }
+  };
   //#endregion Phase 2 - Execute Action Phase
 
   //#region Phase 3 - Post-Action Cooldown Phase
   /**
-   * This is the post-action phase, when the battler has executed an action but not
-   * yet restarted the cycle.
+   * Phase 3 for AI is the phase where the battler is cooling down from its skill usage.
+   * While in this phase, the battler will attempt to maintain a "safe" distance from
+   * its current target.
    * @param {JABS_Battler} battler The battler for this AI.
    */
   static aiPhase3(battler)
   {
-    if (!battler.isPostActionCooldownComplete())
+    // check if we are ready for a phase reset.
+    if (this.canResetAiPhases(battler))
     {
-      if (!battler._event.isMoving() && battler.canBattlerMove())
+      // AI loop complete, reset back to phase 1.
+      this.resetAiPhases(battler);
+    }
+    // the battler's post-action cooldown is not finished.
+    else
+    {
+      // check if they are able to move while cooling down.
+      if (!this.canPerformPhase3Movement(battler))
       {
         // move around while you're waiting for the cooldown.
         this.decideAiPhase3Movement(battler);
-        return;
       }
-
-      return;
     }
+  };
 
-    // done with cooling down, lets start over back to phase 1!
+  /**
+   * Determines wehther or not this battler is ready to reset its AI phases.
+   * @param {JABS_Battler} battler The battler to reset phases for.
+   * @returns {boolean} True if the battler is ready to reset, false otherwise.
+   */
+  static canResetAiPhases(battler)
+  {
+    // check if the battler's cooldown is complete.
+    if (!battler.isPostActionCooldownComplete()) return false;
+
+    // ready for reset!
+    return true;
+  };
+
+  /**
+   * Resets the phases for this battler back to phase 1.
+   * @param {JABS_Battler} battler The battler to reset phases for.
+   */
+  static resetAiPhases(battler)
+  {
+    // AI loop complete, reset back to phase 1.
     battler.resetPhases();
+  };
+
+  /**
+   * Determines whether or not this battler can move around while waiting for
+   * its AI phase reset.
+   * @param {JABS_Battler} battler The battler to move.
+   * @returns {boolean} True if the battler can move, false otherwise.
+   */
+  static canPerformPhase3Movement(battler)
+  {
+    // check if the battler is able to move.
+    if (!battler.canBattlerMove()) return false;
+
+    // check if the battler is currently moving.
+    if (battler._event.isMoving()) return false;
+
+    // move!
+    return true;
   };
 
   /**
@@ -904,47 +1229,11 @@ class JABS_AiManager
    */
   static decideAiPhase3Movement(battler)
   {
-    const distance = battler.distanceToCurrentTarget();
-    if (distance === null) return;
-
-    const {basic, smart, defensive} = battler.getAiMode();
-
-    if (basic && !smart)
-    {
-      // basic AI phase 3:
-      // just kinda watches the target and doesn't move.
-      if (JABS_Battler.isClose(distance) || JABS_Battler.isSafe(distance))
-      {
-        battler.moveAwayFromTarget();
-      }
-
-      battler.turnTowardTarget();
-    }
-
-    if (smart)
-    {
-      // smart AI phase 1:
-      // will try to maintain a comfortable distance from the target.
-      if (JABS_Battler.isClose(distance))
-      {
-        battler.moveAwayFromTarget();
-      }
-      else if (JABS_Battler.isFar(distance))
-      {
-        battler.smartMoveTowardTarget();
-      }
-      battler.turnTowardTarget();
-    }
-
-    else if (defensive)
-    {
-      // defensive AI phase 1:
-      // will try to maintain a great distance from the target.
-      // NOTE: does not combine with smart.
-    }
+    // move around as-necessary.
+    this.decideAiMovement(battler);
   };
 
-  //#endregion Post-Action Cooldown Phase
+  //#endregion Phase 3 - Post-Action Cooldown Phase
 };
 //#endregion JABS_AiManager
 //ENDFILE

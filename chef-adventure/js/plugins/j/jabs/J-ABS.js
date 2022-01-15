@@ -1908,7 +1908,7 @@ class JABS_Engine
   forceMapAction(caster, skillId, isRetaliation = false, x = null, y = null)
   {
     // generate the forced actions based on the given skill id.
-    const actions = caster.createMapActionFromSkill(skillId, isRetaliation);
+    const actions = caster.createJabsActionFromSkill(skillId, isRetaliation);
 
     // if we cannot execute map actions, then do not.
     if (!this.canExecuteMapActions(caster, actions)) return;

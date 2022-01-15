@@ -276,7 +276,7 @@ J.ALLYAI.Aliased = {
   Game_Party: {},
   Game_Player: {},
   Game_Switches: {},
-  JABS_AiManager: {},
+  JABS_AiManager: new Map(),
   JABS_Battler: {},
   Scene_Map: {},
   Window_AbsMenu: {},
@@ -887,11 +887,11 @@ Game_Switches.prototype.onChange = function()
 
 //#region JABS objects
 //#region JABS_AiManager
-J.ALLYAI.Aliased.JABS_AiManager.aiPhase0 = JABS_AiManager.aiPhase0;
+J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 JABS_AiManager.aiPhase0 = function(battler)
 {
   battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.aiPhase0.call(this, battler)
+    ? J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler)
     : this.allyAiPhase0(battler);
 };
 
@@ -901,8 +901,7 @@ JABS_AiManager.aiPhase0 = function(battler)
  */
 JABS_AiManager.allyAiPhase0 = function(allyBattler)
 {
-  const character = allyBattler.getCharacter();
-  const isStopped = character.isStopping();
+  const isStopped = allyBattler.getCharacter().isStopping();
   const alerted = allyBattler.isAlerted();
   if (isStopped && alerted)
   {
@@ -913,11 +912,11 @@ JABS_AiManager.allyAiPhase0 = function(allyBattler)
 /**
  * Extend the pre-action movement decision phase to also handle ally movement.
  */
-J.ALLYAI.Aliased.JABS_AiManager.decideAiPhase1Movement = JABS_AiManager.decideAiPhase1Movement;
+J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase1Movement', JABS_AiManager.decideAiPhase1Movement);
 JABS_AiManager.decideAiPhase1Movement = function(battler)
 {
   battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.decideAiPhase1Movement.call(this, battler)
+    ? J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase1Movement').call(this, battler)
     : this.decideAllyAiPhase1Movement(battler);
 };
 
@@ -947,11 +946,11 @@ JABS_AiManager.decideAllyAiPhase1Movement = function(battler)
  * Extend the action decision phase to also handle ally decision-making.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
-J.ALLYAI.Aliased.JABS_AiManager.decideAiPhase2Action = JABS_AiManager.decideAiPhase2Action;
+J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
   battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.decideAiPhase2Action.call(this, battler)
+    ? J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler)
     : this.decideAllyAiPhase2Action(battler);
 };
 
@@ -997,7 +996,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler)
  */
 JABS_AiManager.setupAllyActionForNextPhase = function(battler, chosenSkillId, chosenSkillSlot)
 {
-  const mapActions = battler.createMapActionFromSkill(chosenSkillId);
+  const mapActions = battler.createJabsActionFromSkill(chosenSkillId);
   const primaryMapAction = mapActions[0];
   mapActions.forEach(action => action.setCooldownType(chosenSkillSlot.key));
   battler.setDecidedAction(mapActions);
