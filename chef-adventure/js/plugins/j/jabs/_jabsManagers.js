@@ -390,7 +390,7 @@ class JABS_AiManager
   static manageAi()
   {
     const battlers = $gameMap.getBattlersWithinRange(
-      $jabsEngine.getPlayerMapBattler(),
+      $jabsEngine.getPlayerJabsBattler(),
       J.ABS.Metadata.MaxAiUpdateRange);
     if (!battlers.length) return;
 

@@ -536,7 +536,7 @@ class JABS_InputManager
    */
   performToolAction()
   {
-    JABS_InputAdapter.performToolAction($jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performToolAction($jabsEngine.getPlayerJabsBattler());
   };
   //#endregion tool
 
@@ -576,7 +576,7 @@ class JABS_InputManager
    */
   performDodgeAction()
   {
-    JABS_InputAdapter.performDodgeAction($jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performDodgeAction($jabsEngine.getPlayerJabsBattler());
   };
   //#endregion dodge
 
@@ -640,7 +640,7 @@ class JABS_InputManager
   {
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill1,
-      $jabsEngine.getPlayerMapBattler());
+      $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion combat action 1
 
@@ -686,7 +686,7 @@ class JABS_InputManager
   {
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill2,
-      $jabsEngine.getPlayerMapBattler());
+      $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion combat action 2
 
@@ -732,7 +732,7 @@ class JABS_InputManager
   {
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill3,
-      $jabsEngine.getPlayerMapBattler());
+      $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion combat action 3
 
@@ -778,7 +778,7 @@ class JABS_InputManager
   {
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill4,
-      $jabsEngine.getPlayerMapBattler());
+      $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion combat action 4
   //#endregion combat actions
@@ -879,7 +879,7 @@ class JABS_InputManager
    */
   performRotateAction()
   {
-    JABS_InputAdapter.performRotate(true, $jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performRotate(true, $jabsEngine.getPlayerJabsBattler());
   };
 
   /**
@@ -887,7 +887,7 @@ class JABS_InputManager
    */
   performRotateAlterAction()
   {
-    JABS_InputAdapter.performRotate(false, $jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performRotate(false, $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion strafe
 
@@ -933,7 +933,7 @@ class JABS_InputManager
    */
   performGuardAction()
   {
-    JABS_InputAdapter.performGuard(true, $jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performGuard(true, $jabsEngine.getPlayerJabsBattler());
   };
 
   /**
@@ -941,7 +941,7 @@ class JABS_InputManager
    */
   performGuardAlterAction()
   {
-    JABS_InputAdapter.performGuard(false, $jabsEngine.getPlayerMapBattler());
+    JABS_InputAdapter.performGuard(false, $jabsEngine.getPlayerJabsBattler());
   };
   //#endregion guard
 }

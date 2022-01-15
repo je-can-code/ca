@@ -29569,13 +29569,17 @@ declare namespace rm.types {
 		 */
 		id: number;
 		/**
-		 * The use message.
+		 * The use message first line.
 		 */
 		message1: string;
 		/**
-		 * The use message.
+		 * The use message second line.
 		 */
 		message2: string;
+        /**
+         * The type of message this is.
+         */
+        messageType: number;
 		meta: Record<string, any>;
 		/**
 		 * Number of MP consumed.

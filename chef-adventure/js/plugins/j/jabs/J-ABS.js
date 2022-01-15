@@ -9,12 +9,65 @@
  * @orderAfter J-BASE
  * @help
  * ============================================================================
- * This plugin enables battles to carried out on the map, akin to what you'd
- * find in the Zelda franchise or other hack'n'slash games.
- * 
- * In order to accomplish this, events are tagged with comments that this
- * engine translates into various data points that create battlers on the map.
+ * This plugin is JABS: J's Action Battle System.
+ * Using this plugin will enable you to carry out battles directly on the map
+ * in real-time, similar to popular game franchises like Zelda.
+ *
+ * In order to leverage this plugin, all the following plugins must be present
+ * and ideally in this order:
+ * - J-BASE
+ * - J-ABS
+ * - _jabsModels
+ * - _jabsManagers
+ * - _jabsObjects
+ * - _jabsScenes
+ * - _jabsSprites
+ * - _jabsWindows
  * ============================================================================
+ * DEVELOPER NOTES:
+ * This plugin is divided into 7 separate "plugins" that also must be present
+ * in order for this engine to work, and ideally in this order:
+ * - J-ABS (this plugin/file)
+ *    This plugin contains the actual engine that orchestrates the the entirety
+ *    of this action battle system. Additionally, the JABS_InputAdapter lives
+ *    here and handles the translation of input into commands that JABS can
+ *    understand and make use of.
+ *
+ * - _jabsModels
+ *    This contains all the various custom classes that were not overwrites or
+ *    extensions of the core RMMZ scripts. Things such as the JABS_Battler
+ *    class can be found there.
+ *
+ * - _jabsManagers
+ *    This contains all modifications to the core RMMZ scripts that are just
+ *    static classes, such as the DataManager and Input. Additionally, you can
+ *    find the JABS_AiManager there.
+ *
+ * - _jabsObjects
+ *    This contains all modifications to the core RMMZ scripts that are related
+ *    to the various "Game_*" objects, such as Game_Event or Game_Map. I
+ *    Call out Game_Event and Game_Map specifically because they received the
+ *    largest amount of modifications to accommodate EVENTS being able to be
+ *    translated into enemies that reside on the MAP, as this engine demands.
+ *
+ * - _jabsScenes
+ *    This contains all modifications to the core RMMZ scripts that are related
+ *    to the various "Scene_*" objects, such as Scene_Load and Scene_Map. This
+ *    mostly just contains the orchestration for the JABS menu on the map.
+ *
+ * - _jabsSprites
+ *    This contains all modifications to the core RMMZ scripts that are related
+ *    to the various "Sprite_*" and "Spriteset_*" objects, such as
+ *    Sprite_Character and Spriteset_Map. This mostly is where the sprite
+ *    orchestration for adding actions or loot to the map exists.
+ *
+ * - _jabsWindows
+ *    This contains all modifications to the core RMMZ scripts that are related
+ *    to the various "Window_*" objects, such as Window_AbsMenu. Actually, that
+ *    isn't an overwrite, its just new, but it seemed strange to not have a
+ *    windows file after having a file for all the other types of core objects.
+ *
+ *
  *
  * ============================================================================
  * @param baseConfigs
@@ -926,7 +979,7 @@ class JABS_Engine
     this.initialize();
   };
 
-  //#region getters/setters of the battle map
+  //#region properties
   /**
    * Retrieves whether or not the ABS is currently enabled.
    * @returns {boolean} True if enabled, false otherwise.
@@ -1109,6 +1162,7 @@ class JABS_Engine
   {
     this._requestSpriteRefresh = request;
   };
+  //#endregion properties
 
   /**
    * Creates all members available in this class.
@@ -1240,11 +1294,6 @@ class JABS_Engine
     return results[0];
   };
 
-  loot(uuid)
-  {
-
-  };
-
   /**
    * Removes the temporary metadata from our store.
    * @param {JABS_Action} actionEvent The action event data.
@@ -1308,24 +1357,35 @@ class JABS_Engine
    */
   getAnimationId(skill, caster)
   {
+    // grab the animation id from the skill.
     let animationId = skill.animationId;
+
+    // check if the animation id indicates we should look to the weapon.
     if (animationId === -1)
     {
+      // check if the caster is an enemy.
       if (caster.isEnemy())
       {
-        animationId = J.ABS.DefaultValues.AttackAnimationId;
+        // return the default attack animation id.
+        return J.ABS.DefaultValues.AttackAnimationId;
       }
+      // the caster was not an enemy.
       else
       {
-        const weapons = caster.getBattler()
-          .weapons();
+        // grab the weapons of the caster.
+        const weapons = caster.getBattler().weapons();
+
+        // check to make sure we have weapons.
         if (weapons.length > 0)
         {
-          animationId = weapons[0].animationId;
+          // grab the first weapon's attack animation.
+          return weapons[0].animationId;
         }
+        // we are barefisting it.
         else
         {
-          animationId = J.ABS.DefaultValues.AttackAnimationId;
+          // just return the default attack animation id.
+          return J.ABS.DefaultValues.AttackAnimationId;
         }
       }
     }
@@ -1337,12 +1397,10 @@ class JABS_Engine
    * Returns the `JABS_Battler` associated with the player.
    * @returns {JABS_Battler} The battler associated with the player.
    */
-  getPlayerMapBattler()
+  getPlayerJabsBattler()
   {
     return this._playerBattler;
   };
-
-  //#endregion getters/setters of the battle map
 
   /**
    * Initializes the player properties associated with this battle map.
@@ -1357,6 +1415,7 @@ class JABS_Engine
     }
   };
 
+  //#region update
   /**
    * Updates all the battlers on the current map.
    * Also, this includes managing player input and updating active `JABS_Action`s.
@@ -1386,7 +1445,7 @@ class JABS_Engine
     if (!this.canUpdatePlayer()) return;
 
     // grab the player.
-    const player = this.getPlayerMapBattler();
+    const player = this.getPlayerJabsBattler();
 
     // if the player is dead, handle player defeat.
     if (player.getBattler().isDead())
@@ -1410,7 +1469,7 @@ class JABS_Engine
   canUpdatePlayer()
   {
     // grab the player.
-    const player = this.getPlayerMapBattler();
+    const player = this.getPlayerJabsBattler();
 
     // if we don't have a player, do not update.
     if (player === null) return false;
@@ -1492,7 +1551,7 @@ class JABS_Engine
 
     // grab all "visible" battlers to the player.
     const visibleBattlers = $gameMap.getBattlersWithinRange(
-      this.getPlayerMapBattler(),
+      this.getPlayerJabsBattler(),
       30,
       false);
 
@@ -1520,7 +1579,7 @@ class JABS_Engine
   performAiBattlerUpdate(battler)
   {
     // if this battler is the player, do not update.
-    if (battler === this.getPlayerMapBattler()) return;
+    if (battler === this.getPlayerJabsBattler()) return;
 
     // update the battler.
     battler.update();
@@ -1532,7 +1591,7 @@ class JABS_Engine
       battler.setInvincible();
 
       // process defeat.
-      this.handleDefeatedTarget(battler, this.getPlayerMapBattler());
+      this.handleDefeatedTarget(battler, this.getPlayerJabsBattler());
     }
   };
 
@@ -1567,7 +1626,16 @@ class JABS_Engine
     if (!this.canUpdateInput()) return;
 
     // update the input.
-    $jabsController1.update();
+    if (J.ABS.EXT_INPUT)
+    {
+      $jabsController1.update();
+    }
+    // warn if we are missing our own input manager!
+    else
+    {
+      console.warn(`JABS input manager was not detected!`);
+      console.warn(`if you built your own input manager, be sure to remove this block of code!`);
+    }
   };
 
   /**
@@ -1620,7 +1688,7 @@ class JABS_Engine
 
     // recreate the JABS player battler and set it to the player character.
     this._playerBattler = JABS_Battler.createPlayer();
-    const newPlayer = this.getPlayerMapBattler().getCharacter();
+    const newPlayer = this.getPlayerJabsBattler().getCharacter();
     newPlayer.setMapBattler(this._playerBattler.getUuid());
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
@@ -1630,7 +1698,7 @@ class JABS_Engine
     if (J.LOG)
     {
       const log = new MapLogBuilder()
-        .setupPartyCycle(this.getPlayerMapBattler().battlerName())
+        .setupPartyCycle(this.getPlayerJabsBattler().battlerName())
         .build();
       $gameTextLog.addLog(log);
     }
@@ -1823,7 +1891,9 @@ class JABS_Engine
     action.modPiercingTimes();
   };
   //#endregion update actions
+  //#endregion update
 
+  //#region functional
   //#region action execution
   /**
    * Generates a new `JABS_Action` based on a skillId, and executes the skill.
@@ -1959,6 +2029,7 @@ class JABS_Engine
   handleActionCastAnimation(caster, action)
   {
     // check if a cast animation exists.
+    //const casterAnimation = action.getBaseSkill()._j.casterAnimation();
     const casterAnimation = action.getBaseSkill()._j.casterAnimation();
     if (casterAnimation)
     {
@@ -3611,6 +3682,7 @@ class JABS_Engine
   };
 
   //#endregion collision
+  //#endregion functional
 
   //#region defeated target aftermath
   /**
@@ -3926,7 +3998,7 @@ class JABS_Engine
 
     // the player is always going to be the one collecting the loot- for now.
     const lootLog = new MapLogBuilder()
-      .setupLootObtained(this.getPlayerMapBattler().getReferenceData().name, lootType, item.id)
+      .setupLootObtained(this.getPlayerJabsBattler().getReferenceData().name, lootType, item.id)
       .build();
     $gameTextLog.addLog(lootLog);
   };

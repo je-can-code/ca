@@ -79,7 +79,7 @@ J.STAR = {};
     /**
      * The maximum number of enemies that can be generated in a troop.
      * Though the max in the database is higher, this keeps things smooth.
-     * @type {mnumber}
+     * @type {number}
      */
     MaxEnemyCount: 12
   };
@@ -731,7 +731,7 @@ J.STAR = {};
 
   Game_Troop.prototype.updateRemainingEnemyCount = function()
   {
-    this._remainingEnemyCount = $gameMap.getOpposingBattlers($jabsEngine.getPlayerMapBattler()).length;
+    this._remainingEnemyCount = $gameMap.getOpposingBattlers($jabsEngine.getPlayerJabsBattler()).length;
     return this._remainingEnemyCount;
   };
 

@@ -3300,7 +3300,16 @@ JABS_Battler.prototype.unlockEngagement = function()
  */
 JABS_Battler.prototype.getTarget = function()
 {
-  return this._target;
+  if (this._target !== String.empty)
+  {
+    const targetBattler = $gameMap.getBattlerByUuid()
+    if (targetBattler)
+    {
+      return targetBattler;
+    }
+  }
+
+  return null;
 };
 
 /**
@@ -3309,7 +3318,14 @@ JABS_Battler.prototype.getTarget = function()
  */
 JABS_Battler.prototype.setTarget = function(newTarget)
 {
-  this._target = newTarget;
+  if (newTarget)
+  {
+    this._target = newTarget.getUuid();
+  }
+  else
+  {
+    this._target = String.empty;
+  }
 };
 
 /**
@@ -3671,11 +3687,11 @@ JABS_Battler.prototype.getLeaderAiMode = function()
 JABS_Battler.prototype.moveAwayFromTarget = function()
 {
   const battler = this.getCharacter();
-  const target = this.getTarget()
-    .getCharacter();
+  const target = this.getTarget();
   if (!target) return;
+  const character = target.getCharacter();
 
-  battler.moveAwayFromCharacter(target);
+  battler.moveAwayFromCharacter(character);
 };
 
 /**
@@ -4177,6 +4193,9 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // don't process aggro for inanimate battlers.
   if (this.isInanimate()) return;
 
+  // don't process aggro for battlers that aren't in combat.
+  if (!this.isEngaged()) return;
+
   if (!this.getTarget())
   {
     const highestAggro = this.getHighestAggro();
@@ -4209,8 +4228,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
     if (!this.getTarget()) return;
 
     // check to see if the last aggro in the list belongs to the current target.
-    if (!(this.getTarget()
-      .getUuid() === zerothAggroUuid))
+    if (!(this.getTarget().getUuid() === zerothAggroUuid))
     {
       // if it doesn't, then get that battler.
       const newTarget = $gameMap.getBattlerByUuid(zerothAggroUuid);
@@ -4312,19 +4330,13 @@ JABS_Battler.prototype.removeAggro = function(uuid)
   if (indexToRemove > -1)
   {
     // if currently engaged with the dead target, then disengage.
-    if (this.getTarget()
-      .getUuid() === uuid)
+    if (this.getTarget().getUuid() === uuid)
     {
       this.disengageTarget();
     }
 
     // ...and remove it.
     this._aggros.splice(indexToRemove, 1);
-  }
-
-  if (this._aggros.lenghth)
-  {
-
   }
 };
 
@@ -8882,5 +8894,10 @@ JABS_TrackedState.prototype.isAboutToExpire = function()
   return this.duration <= 90;
 };
 //#endregion JABS_TrackedState
+
+RPG_Skill.prototype.test = function()
+{
+  console.log('hello world');
+};
 
 //ENDOFFILE

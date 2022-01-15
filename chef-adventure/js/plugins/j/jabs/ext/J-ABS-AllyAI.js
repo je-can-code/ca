@@ -421,7 +421,7 @@ JABS_Engine.prototype.performPartyCycling = function()
   // recreate the JABS player battler and set it to the player character.
   nextJabsBattler.setCharacter($gamePlayer);
   this._playerBattler = nextJabsBattler;
-  const newPlayer = this.getPlayerMapBattler()
+  const newPlayer = this.getPlayerJabsBattler()
     .getCharacter();
   newPlayer.setMapBattler(this._playerBattler.getUuid());
   newPlayer.setThrough(false);
@@ -440,7 +440,7 @@ JABS_Engine.prototype.performPartyCycling = function()
   if (J.LOG)
   {
     const log = new MapLogBuilder()
-      .setupPartyCycle(this.getPlayerMapBattler().battlerName())
+      .setupPartyCycle(this.getPlayerJabsBattler().battlerName())
       .build();
     $gameTextLog.addLog(log);
   }
@@ -1891,7 +1891,7 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
 JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
 {
   const isAlerted = this.isAlerted();
-  const playerHitSomething = $jabsEngine.getPlayerMapBattler()
+  const playerHitSomething = $jabsEngine.getPlayerJabsBattler()
     .hasBattlerLastHit();
   const inSight = this.inSightRange(target, distance);
   const targetInanimate = target.isInanimate();
