@@ -341,11 +341,16 @@ DataManager.savefileExists = function(savefileId) {
 DataManager.saveGame = function(savefileId) {
     const contents = this.makeSaveContents();
     const saveName = this.makeSavename(savefileId);
-    return StorageManager.saveObject(saveName, contents).then(() => {
+    return StorageManager.saveObject(saveName, contents)
+      .then(() => {
         this._globalInfo[savefileId] = this.makeSavefileInfo();
         this.saveGlobalInfo();
         return 0;
-    });
+    })
+      .catch((ex) =>
+      {
+         console.error(ex);
+      });
 };
 
 DataManager.loadGame = function(savefileId) {

@@ -266,7 +266,7 @@ J.BASE.Traits = {
  * A collection of all aliased methods for this plugin.
  */
 J.BASE.Aliased = {
-  DataManager: {},
+  DataManager: new Map(),
   Game_Character: {},
   Scene_Base: new Map(),
   Window_Base: {},
@@ -432,166 +432,82 @@ Array.iterate = function(times, func)
 //#endregion Helpers
 
 //#region Static objects
-//#region ImageManager
+//#region DataManager
 /**
- * Checks to see if a character asset is present.
- * @param characterFileName
- * @returns {Promise}
+ * Hooks into the database loading and loads our extra data from notes and such.
  */
-ImageManager.probeCharacter = function(characterFileName)
+J.BASE.Aliased.DataManager.set('isDatabaseLoaded', DataManager.isDatabaseLoaded);
+DataManager.isDatabaseLoaded = function()
 {
-  return new Promise(function(resolve, reject)
+  const result = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
+  if (result)
   {
-    var xhr = new XMLHttpRequest();
-    const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
-    xhr.open("HEAD", characterImageUrl, true);
-    xhr.onload = resolve;
+    this.rewriteDatabaseData();
+  }
 
-    // we have nothing to do with a failure, so we do not process it.
-    // xhr.onerror = reject;
-    xhr.send();
+  return result;
+};
+
+/**
+ * Loads all extra data from notes and such into the various database objects.
+ */
+DataManager.rewriteDatabaseData = function()
+{
+  if (!DataManager._j._baseDataProcessed)
+  {
+    this.rewriteSkillData();
+    this._j._baseDataProcessed = true;
+  }
+};
+
+/**
+ * Overwrites all skills used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with skills.
+ */
+DataManager.rewriteSkillData = function()
+{
+  // start up a new collection of skills.
+  const classifiedSkills = [];
+
+  // iterate over each skill from the database.
+  $dataSkills.forEach((skill, index) =>
+  {
+    // check if the skill is null; index 0 always is.
+    if (!skill)
+    {
+      // we should keep the same indexing structure.
+      classifiedSkills.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    //TODO: Test what happens to the _j attached object after save/reload.
+
+    // grab a reference to the class we'll be using to rewrite skills with.
+    // this class should `extend` the `RPG_Skill` class structured below!
+    const skill_class = this.skillRewriteClass();
+
+    // fill out this array like $dataSkills normally is filled out.
+    classifiedSkills.push(new skill_class(skill, index));
   });
-};
-//#endregion ImageManager
 
-//#region TextManager
-/**
- * Gets the name of the given sp-parameter.
- * @param {number} sParamId The id of the sp-param to get a name for.
- * @returns {string} The name of the parameter.
- */
-TextManager.sparam = function(sParamId)
-{
-  switch (sParamId)
-  {
-    case 0:
-      return "Aggro";// J.Param.TGR_text;
-    case 1:
-      return "Parry";//J.Param.GRD_text;
-    case 2:
-      return "Healing Rate"; //J.Param.REC_text;
-    case 3:
-      return "Item Effects"; //J.Param.PHA_text;
-    case 4:
-      return "Magi Cost"; //J.Param.MCR_text;
-    case 5:
-      return "Tech Cost"; //J.Param.TCR_text;
-    case 6:
-      return "Phys Dmg Rate"; //J.Param.PDR_text;
-    case 7:
-      return "Magi Dmg Rate"; //J.Param.MDR_text;
-    case 8:
-      return "Light-footed"; //J.Param.FDR_text;
-    case 9:
-      return "Experience UP"; //J.Param.EXR_text;
-  }
+  // OVERWRITE the $dataSkills object with this new skills array!
+  $dataSkills = classifiedSkills;
 };
 
 /**
- * Gets the name of the given ex-parameter.
- * @param {number} xParamId The id of the ex-param to get a name for.
- * @returns {string} The name of the parameter.
+ * Gets the class reference to use when rewriting skills.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteSkillData()` for an example.
+ * @returns {RPG_Skill} The class reference.
  */
-TextManager.xparam = function(xParamId)
+DataManager.skillRewriteClass = function()
 {
-  switch (xParamId)
-  {
-    case 0:
-      return "Accuracy";// J.Param.HIT_text;
-    case 1:
-      return "Parry Extend";//J.Param.EVA_text;
-    case 2:
-      return "Critical Hit"; //J.Param.CRI_text;
-    case 3:
-      return "Crit Dodge"; //J.Param.CEV_text;
-    case 4:
-      return "Magic Evade"; //J.Param.MEV_text;
-    case 5:
-      return "Magic Reflect"; //J.Param.MRF_text;
-    case 6:
-      return "Autocounter"; //J.Param.CNT_text;
-    case 7:
-      return "HP Regen"; //J.Param.HRG_text;
-    case 8:
-      return "MP Regen"; //J.Param.MRG_text;
-    case 9:
-      return "TP Regen"; //J.Param.TRG_text;
-  }
+  return RPG_Skill;
 };
-/**
- * Gets the `parameter name` based on the "long" parameter id.
- *
- * "Long" parameter ids are used in the context of 0-27, rather than
- * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
- * @param {number} paramId The "long" parameter id.
- * @returns {string} The `name`.
- */
-TextManager.longParam = function(paramId)
-{
-  switch (paramId)
-  {
-    case  0:
-      return this.param(paramId); // mhp
-    case  1:
-      return this.param(paramId); // mmp
-    case  2:
-      return this.param(paramId); // atk
-    case  3:
-      return this.param(paramId); // def
-    case  4:
-      return this.param(paramId); // mat
-    case  5:
-      return this.param(paramId); // mdf
-    case  6:
-      return this.param(paramId); // agi
-    case  7:
-      return this.param(paramId); // luk
-    case  8:
-      return this.xparam(paramId - 8); // hit
-    case  9:
-      return this.xparam(paramId - 8); // eva (parry boost)
-    case 10:
-      return this.xparam(paramId - 8); // cri
-    case 11:
-      return this.xparam(paramId - 8); // cev
-    case 12:
-      return this.xparam(paramId - 8); // mev (unused)
-    case 13:
-      return this.xparam(paramId - 8); // mrf
-    case 14:
-      return this.xparam(paramId - 8); // cnt (autocounter)
-    case 15:
-      return this.xparam(paramId - 8); // hrg
-    case 16:
-      return this.xparam(paramId - 8); // mrg
-    case 17:
-      return this.xparam(paramId - 8); // trg
-    case 18:
-      return this.sparam(paramId - 18); // trg (aggro)
-    case 19:
-      return this.sparam(paramId - 18); // grd (parry)
-    case 20:
-      return this.sparam(paramId - 18); // rec
-    case 21:
-      return this.sparam(paramId - 18); // pha
-    case 22:
-      return this.sparam(paramId - 18); // mcr (mp cost)
-    case 23:
-      return this.sparam(paramId - 18); // tcr (tp cost)
-    case 24:
-      return this.sparam(paramId - 18); // pdr
-    case 25:
-      return this.sparam(paramId - 18); // mdr
-    case 26:
-      return this.sparam(paramId - 18); // fdr
-    case 27:
-      return this.sparam(paramId - 18); // exr
-    default:
-      console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-      return '';
-  }
-};
-//#endregion TextManager
+//#endregion DataManager
 
 //#region IconManager
 /**
@@ -1114,6 +1030,167 @@ class IconManager
   };
 }
 //#endregion IconManager
+
+//#region ImageManager
+/**
+ * Checks to see if a character asset is present.
+ * @param characterFileName
+ * @returns {Promise}
+ */
+ImageManager.probeCharacter = function(characterFileName)
+{
+  return new Promise(function(resolve, reject)
+  {
+    var xhr = new XMLHttpRequest();
+    const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
+    xhr.open("HEAD", characterImageUrl, true);
+    xhr.onload = resolve;
+
+    // we have nothing to do with a failure, so we do not process it.
+    // xhr.onerror = reject;
+    xhr.send();
+  });
+};
+//#endregion ImageManager
+
+//#region TextManager
+/**
+ * Gets the name of the given sp-parameter.
+ * @param {number} sParamId The id of the sp-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
+TextManager.sparam = function(sParamId)
+{
+  switch (sParamId)
+  {
+    case 0:
+      return "Aggro";// J.Param.TGR_text;
+    case 1:
+      return "Parry";//J.Param.GRD_text;
+    case 2:
+      return "Healing Rate"; //J.Param.REC_text;
+    case 3:
+      return "Item Effects"; //J.Param.PHA_text;
+    case 4:
+      return "Magi Cost"; //J.Param.MCR_text;
+    case 5:
+      return "Tech Cost"; //J.Param.TCR_text;
+    case 6:
+      return "Phys Dmg Rate"; //J.Param.PDR_text;
+    case 7:
+      return "Magi Dmg Rate"; //J.Param.MDR_text;
+    case 8:
+      return "Light-footed"; //J.Param.FDR_text;
+    case 9:
+      return "Experience UP"; //J.Param.EXR_text;
+  }
+};
+
+/**
+ * Gets the name of the given ex-parameter.
+ * @param {number} xParamId The id of the ex-param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
+TextManager.xparam = function(xParamId)
+{
+  switch (xParamId)
+  {
+    case 0:
+      return "Accuracy";// J.Param.HIT_text;
+    case 1:
+      return "Parry Extend";//J.Param.EVA_text;
+    case 2:
+      return "Critical Hit"; //J.Param.CRI_text;
+    case 3:
+      return "Crit Dodge"; //J.Param.CEV_text;
+    case 4:
+      return "Magic Evade"; //J.Param.MEV_text;
+    case 5:
+      return "Magic Reflect"; //J.Param.MRF_text;
+    case 6:
+      return "Autocounter"; //J.Param.CNT_text;
+    case 7:
+      return "HP Regen"; //J.Param.HRG_text;
+    case 8:
+      return "MP Regen"; //J.Param.MRG_text;
+    case 9:
+      return "TP Regen"; //J.Param.TRG_text;
+  }
+};
+/**
+ * Gets the `parameter name` based on the "long" parameter id.
+ *
+ * "Long" parameter ids are used in the context of 0-27, rather than
+ * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
+ * @param {number} paramId The "long" parameter id.
+ * @returns {string} The `name`.
+ */
+TextManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0:
+      return this.param(paramId); // mhp
+    case  1:
+      return this.param(paramId); // mmp
+    case  2:
+      return this.param(paramId); // atk
+    case  3:
+      return this.param(paramId); // def
+    case  4:
+      return this.param(paramId); // mat
+    case  5:
+      return this.param(paramId); // mdf
+    case  6:
+      return this.param(paramId); // agi
+    case  7:
+      return this.param(paramId); // luk
+    case  8:
+      return this.xparam(paramId - 8); // hit
+    case  9:
+      return this.xparam(paramId - 8); // eva (parry boost)
+    case 10:
+      return this.xparam(paramId - 8); // cri
+    case 11:
+      return this.xparam(paramId - 8); // cev
+    case 12:
+      return this.xparam(paramId - 8); // mev (unused)
+    case 13:
+      return this.xparam(paramId - 8); // mrf
+    case 14:
+      return this.xparam(paramId - 8); // cnt (autocounter)
+    case 15:
+      return this.xparam(paramId - 8); // hrg
+    case 16:
+      return this.xparam(paramId - 8); // mrg
+    case 17:
+      return this.xparam(paramId - 8); // trg
+    case 18:
+      return this.sparam(paramId - 18); // trg (aggro)
+    case 19:
+      return this.sparam(paramId - 18); // grd (parry)
+    case 20:
+      return this.sparam(paramId - 18); // rec
+    case 21:
+      return this.sparam(paramId - 18); // pha
+    case 22:
+      return this.sparam(paramId - 18); // mcr (mp cost)
+    case 23:
+      return this.sparam(paramId - 18); // tcr (tp cost)
+    case 24:
+      return this.sparam(paramId - 18); // pdr
+    case 25:
+      return this.sparam(paramId - 18); // mdr
+    case 26:
+      return this.sparam(paramId - 18); // fdr
+    case 27:
+      return this.sparam(paramId - 18); // exr
+    default:
+      console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
+      return '';
+  }
+};
+//#endregion TextManager
 //#endregion Static objects
 
 //#region Game objects
@@ -4140,6 +4217,7 @@ WindowLayer.prototype.render = function(renderer)
     , gl = renderer.gl
     , children = this.children.clone();
 
+  // noinspection JSUnresolvedFunction
   renderer.framebuffer.forceStencil();
   graphics.transform = this.transform;
   renderer.batch.flush();
@@ -4556,4 +4634,529 @@ Window_Selectable.prototype.onIndexChange = function()
 //#endregion Window_Selectable
 //#endregion Window objects
 
+//#region RPG objects
+//#region RPG_BaseItem
+
+//#endregion RPG_BaseItem
+/**
+ * A class representing the foundation of all database objects.
+ * In addition to doing all the things that a skill normally does,
+ * there are now some useful helper functions available for meta and note access.
+ */
+class RPG_BaseItem
+{
+  /**
+   * The original object that this data was built from.
+   * @type {rm.types.BaseItem}
+   */
+  #original = null;
+
+  /**
+   * The index of this entry in the database.
+   * @type {number}
+   */
+  #index = 0;
+
+  /**
+   * The description of this entry.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The icon index of this entry.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * The entry's id in the database.
+   */
+  id = 0;
+
+  /**
+   * The `meta` object of this skill, containing a dictionary of
+   * key value pairs translated from this skill's `note` object.
+   * @type {Record<string, any>}
+   */
+  meta = {};
+
+  /**
+   * The entry's name.
+   */
+  name = String.empty;
+
+  /**
+   * The note field of this entry in the database.
+   * @type {string}
+   */
+  note = String.empty;
+
+  /**
+   * Constructor.
+   * Maps the skill's properties into this object.
+   * @param {rm.types.BaseItem} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    this.#original = baseItem;
+    this.#index = index;
+
+    this.description = baseItem.description;
+    this.iconIndex = baseItem.iconIndex;
+    this.id = baseItem.id;
+    this.meta = baseItem.meta;
+    this.name = baseItem.name;
+    this.note = baseItem.note;
+  };
+
+  /**
+   * Retrieves the original underlying data that was passed to this
+   * wrapper from the database.
+   * @returns {rm.types.BaseItem}
+   */
+  _original()
+  {
+    return this.#original;
+  };
+
+  //#region meta
+  /**
+   * Gets the metadata of a given key from this skill as whatever value RMMZ stored it as.
+   * Only returns null if there was no underlying data associated with the provided key.
+   * @param {string} key The key to the metadata.
+   * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
+   */
+  metadata(key)
+  {
+    // pull the metadata of a given key.
+    const result = this.meta[key];
+
+    // check if we have a result.
+    if (result)
+    {
+      // return that result.
+      return result;
+    }
+
+    console.warn(`key yielded no auto-parsed metadata: ${key}`);
+    return null;
+  };
+
+  /**
+   * Gets the metadata of a given key from this skill as a string.
+   * Only returns `null` if there was no underlying data associated with the provided key.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} The value as a string, or null if the value didn't exist.
+   */
+  metaAsString(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.metadata(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // return the stringified value.
+      return fromMeta.toString();
+    }
+
+    console.warn(`key's metadata could not be retrieved: ${key}`);
+    return null;
+  };
+
+  /**
+   * Gets the metadata of a given key from this skill as a number.
+   * Only returns `null` if the underlying data wasn't a number or numeric string.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} The number value, or null if the number wasn't valid.
+   */
+  metaAsNumber(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.metadata(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // return the parsed and possibly floating point value.
+      return parseFloat(fromMeta);
+    }
+
+    console.warn(`key's metadata could not be parseInt()'d: ${key}`);
+    return null;
+  };
+
+  /**
+   * Gets the metadata of a given key from this skill as a boolean.
+   * Only returns `null` if the underlying data wasn't a truth or falsey value.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} True if the value was true, false otherwise; or null if invalid.
+   */
+  metaAsBoolean(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.metadata(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // check if the value was a truthy value.
+      if (fromMeta === true || fromMeta.toLowerCase() === "true")
+      {
+        return true;
+      }
+      // check if the value was a falsey value.
+      else if (fromMeta === false || fromMeta.toLowerCase() === "false")
+      {
+        return false;
+      }
+    }
+
+    console.warn(`key's metadata was neither a truthy or falsey value: ${key}`);
+    return null;
+  };
+
+  /**
+   * Retrieves the metadata for a given key on this skill.
+   * This is mostly designed for providing intellisense.
+   * @param key
+   * @returns {null|*}
+   */
+  metaAsObject(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.metadata(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // parse out the underlying data.
+      return this.#parseObject(fromMeta);
+    }
+
+    console.warn(`key's metadata could not be JSON.parse()'d: ${key}`);
+    return null;
+  };
+
+  /**
+   * Parses a metadata object into whatever its given data type is.
+   * @param {any} obj The unknown object to parse.
+   * @returns {any}
+   */
+  #parseObject(obj)
+  {
+    // check if the object to parse is a string.
+    if (typeof obj === "string")
+    {
+      // check if the string is an unparsed array.
+      if (obj.startsWith("[") && obj.endsWith("]"))
+      {
+        // expose the stringified segments of the array.
+        const exposedArray = obj
+          // peel off the outer brackets.
+          .slice(1, obj.length-1)
+          // split string into an array by comma or space+comma.
+          .split(/, |,/);
+        return this.#parseObject(exposedArray);
+      }
+
+      // no check for special string values.
+      return this.#parseString(obj);
+    }
+
+    // check if the object to parse is a collection.
+    if (Array.isArray(obj))
+    {
+      // iterate over the array and parse each item.
+      return obj.map(this.#parseObject, this);
+    }
+
+    // number, boolean, or otherwise unidentifiable object.
+    return obj;
+  };
+
+  /**
+   * Parses a metadata object from a string into possibly a boolean or number.
+   * If the conversion to those fail, then it'll proceed as a string.
+   * @param {string} str The string object to parse.
+   * @returns {boolean|number|string}
+   */
+  #parseString(str)
+  {
+    // check if its actually boolean true.
+    if (str.toLowerCase() === "true") return true;
+    // check if its actually boolean false.
+    else if (str.toLowerCase() === "false") return false;
+
+    // check if its actually a number.
+    if (!isNaN(parseFloat(str))) return parseFloat(str);
+
+    // it must just be a word or something.
+    return str;
+  };
+  //#endregion meta
+
+  //#region note
+  /**
+   * Gets the note data of this skill split into an array by `\r\n`.
+   * If this skill has no note data, it will return an empty array.
+   * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
+   */
+  notedata()
+  {
+    // pull the note data of this skill.
+    const fromNote = this.#formattedNotedata();
+
+    // checks if we have note data.
+    if (fromNote)
+    {
+      // return the note data as an array of strings.
+      return fromNote;
+    }
+
+    // if we returned no data from this skill, then return an empty array.
+    return [];
+  };
+
+  /**
+   * Returns a formatted array of strings as output from the note data of this skill.
+   * @returns {string[]}
+   */
+  #formattedNotedata()
+  {
+    return this.note.split(/[\r\n]+/);
+  };
+
+  /**
+   * Gets an array of note data that matches a particular regex structure.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @returns {string[]} The note lines that matched the regex, or an empty array.
+   */
+  notedataByRegex(structure)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // check if we have any notes to work with.
+    if (fromNote.length)
+    {
+      // filter those notes by the provided regular expression.
+      return fromNote.filter(note => structure.test(note));
+    }
+
+    // if we have no length, then return an empty array.
+    return [];
+  };
+  //#endregion note
+}
+//#endregion RPG_BaseItem
+
+//#region RPG_Skill
+/**
+ * A class representing a single skill mapped from the database.
+ */
+class RPG_Skill extends RPG_BaseItem
+{
+  //#region properties
+  /**
+   * The animation id to execute for this skill.
+   * @type {number}
+   */
+  animationId = -1;
+
+  /**
+   * The damage data for this skill.
+   * @type {RPG_SkillDamage}
+   */
+  damage = null;
+
+  /**
+   * The various effects of this skill.
+   * @type {rm.types.Effect[]}
+   */
+  effects = [];
+
+  /**
+   * The hit type of this skill.
+   * @type {number}
+   */
+  hitType = 0;
+
+  /**
+   * The first line of the message for this skill.
+   * @type {string}
+   */
+  message1 = String.empty;
+
+  /**
+   * The second line of the message for this skill.
+   * @type {string}
+   */
+  message2 = String.empty;
+
+  /**
+   * The type of message for this skill.
+   * @type {number}
+   */
+  messageType = 0;
+
+  /**
+   * The amount of MP required to execute this skill.
+   * @type {number}
+   */
+  mpCost = 0;
+
+  /**
+   * The occasion type when this skill can be used.
+   * @type {number}
+   */
+  occasion = 0;
+
+  /**
+   * The number of times this skill repeats.
+   * @type {number}
+   */
+  repeats = 1;
+
+  /**
+   * The first of two required weapon types to be equipped to execute this skill.
+   * @type {number}
+   */
+  requiredWtypeId1 = 0;
+
+  /**
+   * The second of two required weapon types to be equipped to execute this skill.
+   * @type {number}
+   */
+  requiredWtypeId2 = 0;
+
+  /**
+   * The scope of this skill.
+   * @type {number}
+   */
+  scope = 0;
+
+  /**
+   * The speed bonus of this skill.
+   * @type {number}
+   */
+  speed = 0;
+
+  /**
+   * The skill type that this skill belongs to.
+   * @type {number}
+   */
+  stypeId = 0;
+
+  /**
+   * The % chance of success for this skill.
+   * @type {number}
+   */
+  successRate = 100;
+
+  /**
+   * The amount of TP required to execute this skill.
+   * @type {number}
+   */
+  tpCost = 0;
+
+  /**
+   * The amount of TP gained from executing this skill.
+   * @type {number}
+   */
+  tpGain = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the skill's properties into this object.
+   * @param {rm.types.Skill} skill The underlying skill object.
+   * @param {number} index The index of the skill in the database.
+   */
+  constructor(skill, index)
+  {
+    // perform original logic.
+    super(skill, index);
+
+    // map the skill's data points 1:1.
+    this.animationId = skill.animationId;
+    this.effects = skill.effects;
+    this.hitType = skill.hitType;
+    this.message1 = skill.message1;
+    this.message2 = skill.message2;
+    this.messageType = skill.messageType;
+    this.mpCost = skill.mpCost;
+    this.occasion = skill.occasion;
+    this.repeats = skill.repeats;
+    this.requiredWtypeId1 = skill.requiredWtypeId1;
+    this.requiredWtypeId2 = skill.requiredWtypeId2;
+    this.scope = skill.scope;
+    this.speed = skill.speed;
+    this.stypeId = skill.stypeId;
+    this.successRate = skill.successRate;
+    this.tpCost = skill.tpCost;
+    this.tpGain = skill.tpGain;
+
+    // map the skill's damage object, which is another custom class.
+    this.damage = new RPG_SkillDamage(skill.damage);
+  };
+}
+//#endregion RPG_Skill
+
+//#region RPG_SkillDamage
+/**
+ * The damage data for the skill, such as the damage formula or associated element.
+ */
+class RPG_SkillDamage
+{
+  //#region properties
+  /**
+   * Whether or not the damage can produce a critical hit.
+   * @type {boolean}
+   */
+  critical = false;
+
+  /**
+   * The element id associated with this damage.
+   * @type {number}
+   */
+  elementId = -1;
+
+  /**
+   * The formula to be evaluated in real time to determine damage.
+   * @type {string}
+   */
+  formula = String.empty;
+
+  /**
+   * The damage type this is, such as HP damage or MP healing.
+   * @type {1|2|3|4|5|6}
+   */
+  type = 1;
+
+  /**
+   * The % of variance this damage can have.
+   * @type {number}
+   */
+  variance = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the skill's damage properties into this object.
+   * @param {rm.types.Damage} damage The original damage object to map.
+   */
+  constructor(damage)
+  {
+    this.critical = damage.critical;
+    this.elementId = damage.elementId;
+    this.formula = damage.formula;
+    this.type = damage.type;
+    this.variance = damage.variance;
+  };
+}
+//#endregion RPG_SkillDamage
+//#endregion RPG objects
 //ENDFILE

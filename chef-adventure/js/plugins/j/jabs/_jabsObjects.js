@@ -879,7 +879,7 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
 {
   let base = J.ABS.Aliased.Game_Action.makeDamageValue.call(this, target, critical);
 
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   const isPlayer = player.getBattler() === target;
   if (isPlayer)
   {
@@ -944,7 +944,7 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
 J.ABS.Aliased.Game_Action.itemEffectAddState = Game_Action.prototype.itemEffectAddState;
 Game_Action.prototype.itemEffectAddState = function(target, effect)
 {
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   const isPlayer = player.getBattler() === target;
   if (isPlayer)
   {
@@ -2067,7 +2067,7 @@ Game_CharacterBase.prototype.update = function()
  */
 Game_CharacterBase.prototype.isDodging = function()
 {
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   return player.isDodging();
 };
 
@@ -3637,7 +3637,7 @@ Game_Map.prototype.getBattlers = function()
 Game_Map.prototype.getAllBattlers = function()
 {
   const battlers = this.getBattlers();
-  battlers.push($jabsEngine.getPlayerMapBattler());
+  battlers.push($jabsEngine.getPlayerJabsBattler());
   return battlers;
 };
 
@@ -3707,7 +3707,7 @@ Game_Map.prototype.getBattlersWithinRange = function(user, maxDistance, includeP
   const battlers = this.getBattlers();
   if (includePlayer)
   {
-    battlers.push($jabsEngine.getPlayerMapBattler());
+    battlers.push($jabsEngine.getPlayerJabsBattler());
   }
 
   return battlers.filter(battler => user.distanceToDesignatedTarget(battler) <= maxDistance);
@@ -3755,7 +3755,7 @@ Game_Map.prototype.clearLeaderDataByUuid = function(followerUuid)
 Game_Map.prototype.getOpposingBattlers = function(user)
 {
   const battlers = this.getBattlers();
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   if (!user.isSameTeam(player.getTeam()))
   {
     battlers.push(player);
@@ -4245,7 +4245,7 @@ Game_Player.prototype.canMove = function()
 {
   const isMenuRequested = $jabsEngine.requestAbsMenu;
   const isAbsPaused = $jabsEngine.absPause;
-  const isPlayerCasting = $jabsEngine.getPlayerMapBattler()
+  const isPlayerCasting = $jabsEngine.getPlayerJabsBattler()
     .isCasting();
   if (isMenuRequested || isAbsPaused || isPlayerCasting)
   {
@@ -4300,7 +4300,7 @@ Game_Player.prototype.distancePerFrame = function()
 Game_Player.prototype.calculateMovespeedMultiplier = function(baseMoveSpeed)
 {
   // if we don't have a player to work with, don't do this.
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   if (!player) return 0;
 
   const scale = player.getSpeedBoosts();
@@ -4530,7 +4530,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
  */
 Game_Player.prototype.useOnPickup = function(lootData)
 {
-  const player = $jabsEngine.getPlayerMapBattler();
+  const player = $jabsEngine.getPlayerJabsBattler();
   player.applyToolEffects(lootData.id, true);
 };
 
