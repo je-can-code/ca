@@ -1173,7 +1173,7 @@ class JABS_Engine
      * The `JABS_Battler` representing the player.
      * @type {JABS_Battler}
      */
-    this._playerBattler = null;
+    this._player1 = null;
 
     /**
      * True if we want to review available events for rendering, false otherwise.
@@ -1262,15 +1262,17 @@ class JABS_Engine
     this._absPause = false;
 
     /**
-     * A collection of all ongoing states.
+     * A collection of all ongoing states in the context of how they
+     * interact with the battlers on the map. This is typically kept in-sync with
+     * the individual battlers.
      * @type {JABS_TrackedState[]}
      */
-    this._stateTracker = this._stateTracker || [];
-    this.initializePlayerBattler();
+    this._jabsStateTracker = this._jabsStateTracker || [];
   };
 
   /**
    * Adds a new `JABS_Action` to this battle map for tracking.
+   * The additional metadata is optional, omitted when executing direct actions.
    * @param {JABS_Action} actionEvent The `JABS_Action` to add.
    * @param {rm.types.Event} actionEventData The event metadata, if anything.
    */
@@ -1397,22 +1399,40 @@ class JABS_Engine
    * Returns the `JABS_Battler` associated with the player.
    * @returns {JABS_Battler} The battler associated with the player.
    */
-  getPlayerJabsBattler()
+  getPlayer1()
   {
-    return this._playerBattler;
+    return this._player1;
   };
 
   /**
    * Initializes the player properties associated with this battle map.
    */
-  initializePlayerBattler()
+  initializePlayer1()
   {
-    if (this._playerBattler == null || !this._playerBattler.getBattlerId())
-    {
-      this._playerBattler = JABS_Battler.createPlayer();
-      const uuid = this._playerBattler.getUuid();
-      $gamePlayer.setMapBattler(uuid);
-    }
+    // check if we can initialize the player.
+    if (!this.canInitializePlayer1()) return;
+
+    // create a new player object.
+    this._player1 = JABS_Battler.createPlayer();
+
+    // assign the uuid to the player.
+    $gamePlayer.setMapBattler(this._player1.getUuid());
+  };
+
+  /**
+   * Determines whether or not the player should be initialized.
+   * @returns {boolean}  True if the player should, false otherwise.
+   */
+  canInitializePlayer1()
+  {
+    // if the player doesn't exist, initialize it.
+    if (this._player1 === null) return true;
+
+    // check if the player is currently assigned a battler.
+    if (!this._player1.getBattlerId()) return true;
+
+    // initialize the player!
+    return false;
   };
 
   //#region update
@@ -1431,6 +1451,9 @@ class JABS_Engine
     // update all active actions on the map.
     this.updateActions();
 
+    // update all JABS states being tracked.
+    this.updateJabsStates();
+
     // handle input from the player(s).
     this.updateInput();
   };
@@ -1445,21 +1468,20 @@ class JABS_Engine
     if (!this.canUpdatePlayer()) return;
 
     // grab the player.
-    const player = this.getPlayerJabsBattler();
+    const player = this.getPlayer1();
 
     // if the player is dead, handle player defeat.
-    if (player.getBattler().isDead())
+    if (player.isDead())
     {
       this.handleDefeatedPlayer();
       return;
     }
 
-    // update the player's battler.
+    // process any queued actions executed in prior frame.
     player.processQueuedActions();
-    player.update();
 
-    // update the player states tracker for managing states across maps.
-    this.updatePlayerStates();
+    // perform all battler updates.
+    player.update();
   };
 
   /**
@@ -1469,7 +1491,7 @@ class JABS_Engine
   canUpdatePlayer()
   {
     // grab the player.
-    const player = this.getPlayerJabsBattler();
+    const player = this.getPlayer1();
 
     // if we don't have a player, do not update.
     if (player === null) return false;
@@ -1479,15 +1501,43 @@ class JABS_Engine
   };
 
   //#region state tracking
+
   /**
-   * Updates all states for all battlers that are afflicted.
+   * Gets the collection of all JABS states that affect battlers on the map.
+   * @returns {JABS_TrackedState[]}
    */
-  updatePlayerStates()
+  getJabsStates()
   {
-    this._stateTracker.forEach(trackedState =>
-    {
-      trackedState.update();
-    });
+    return this._jabsStateTracker;
+  };
+
+  /**
+   * Add a new JABS state to the tracker.
+   * @param {JABS_TrackedState} newJabsState The JABS state to add.
+   */
+  addJabsState(newJabsState)
+  {
+    this._jabsStateTracker.push(newJabsState);
+  };
+
+  /**
+   * Updates all JABS states for all battlers that are afflicted.
+   */
+  updateJabsStates()
+  {
+    // iterate over all JABS-managed states.
+    this.getJabsStates()
+      // execute the update against it.
+      .forEach(this.updateJabsState, this);
+  };
+
+  /**
+   * Updates a single JABS state.
+   * @param {JABS_TrackedState} jabsState The JABS state to update.
+   */
+  updateJabsState(jabsState)
+  {
+    jabsState.update();
   };
 
   /**
@@ -1496,22 +1546,53 @@ class JABS_Engine
    */
   addStateTracker(newTrackedState)
   {
-    const index = this._stateTracker
+    // attempt to reapply the state.
+    const reapplied = this.reapplyState(newTrackedState);
+
+    // if reapplied, do not add another copy of the state... or should we?
+    if (reapplied) return;
+
+    // if not reapplied, then add the state to the tracker.
+    this.addJabsState(newTrackedState);
+  };
+
+  /**
+   * Reapply the state to the same battler afflicted with the same state.
+   * This refreshes the duration only.
+   * @param {JABS_TrackedState} newTrackedState The state tracker to add.
+   * @returns {boolean} True if the state was reapplied, false otherwise.
+   */
+  reapplyState(newTrackedState)
+  {
+    // seek the index of the same state on the same battler.
+    const index = this._jabsStateTracker
       .findIndex(trackedState =>
+        // check if the battlers are the same.
         trackedState.battler === newTrackedState.battler &&
+        // check if the state ids are the same.
         trackedState.stateId === newTrackedState.stateId);
 
-    // if there is already a tracked state for this battler and id, then refresh it instead.
-    // this is where to change reapplication functionality.
+    // track if it was reapplied or not.
+    let reapplied = false;
+
+    // check to make sure we have to consider reapplication.
     if (index > -1)
     {
-      const data = this._stateTracker[index];
+      // grab the data from the state tracker.
+      const data = this._jabsStateTracker[index];
+
+      // refresh the duration to new max.
       data.duration = newTrackedState.duration;
+
+      // undo expiration if it was expired.
       data.expired = false;
-      return;
+
+      // flag that this was reapplied.
+      reapplied = true;
     }
 
-    this._stateTracker.push(newTrackedState);
+    // return the flag.
+    return reapplied;
   };
 
   /**
@@ -1521,7 +1602,7 @@ class JABS_Engine
    */
   getStateTrackerByBattler(battler)
   {
-    return this._stateTracker.filter(trackedState => trackedState.battler === battler);
+    return this._jabsStateTracker.filter(trackedState => trackedState.battler === battler);
   };
 
   /**
@@ -1551,7 +1632,7 @@ class JABS_Engine
 
     // grab all "visible" battlers to the player.
     const visibleBattlers = $gameMap.getBattlersWithinRange(
-      this.getPlayerJabsBattler(),
+      this.getPlayer1(),
       30,
       false);
 
@@ -1579,7 +1660,7 @@ class JABS_Engine
   performAiBattlerUpdate(battler)
   {
     // if this battler is the player, do not update.
-    if (battler === this.getPlayerJabsBattler()) return;
+    if (battler === this.getPlayer1()) return;
 
     // update the battler.
     battler.update();
@@ -1591,7 +1672,7 @@ class JABS_Engine
       battler.setInvincible();
 
       // process defeat.
-      this.handleDefeatedTarget(battler, this.getPlayerJabsBattler());
+      this.handleDefeatedTarget(battler, this.getPlayer1());
     }
   };
 
@@ -1603,7 +1684,7 @@ class JABS_Engine
   shouldHandleDefeatedTarget(target)
   {
     // target is not considered defeated if not dead.
-    if (!target.getBattler().isDead()) return false;
+    if (!target.isDead()) return false;
 
     // target is not considered defeated while dying.
     if (target.isDying()) return false;
@@ -1626,15 +1707,10 @@ class JABS_Engine
     if (!this.canUpdateInput()) return;
 
     // update the input.
-    if (J.ABS.EXT_INPUT)
+    if (!JABS_InputAdapter.hasControllers())
     {
-      $jabsController1.update();
-    }
-    // warn if we are missing our own input manager!
-    else
-    {
-      console.warn(`JABS input manager was not detected!`);
-      console.warn(`if you built your own input manager, be sure to remove this block of code!`);
+      console.warn(`No input managers have been registered with the input adapter!`);
+      console.warn(`if you built your own, be sure to run "JABS_InputAdapter.register(controller)"!`);
     }
   };
 
@@ -1687,9 +1763,9 @@ class JABS_Engine
     $gamePlayer.requestAnimation(40, false);
 
     // recreate the JABS player battler and set it to the player character.
-    this._playerBattler = JABS_Battler.createPlayer();
-    const newPlayer = this.getPlayerJabsBattler().getCharacter();
-    newPlayer.setMapBattler(this._playerBattler.getUuid());
+    this._player1 = JABS_Battler.createPlayer();
+    const newPlayer = this.getPlayer1().getCharacter();
+    newPlayer.setMapBattler(this._player1.getUuid());
 
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
@@ -1698,7 +1774,7 @@ class JABS_Engine
     if (J.LOG)
     {
       const log = new MapLogBuilder()
-        .setupPartyCycle(this.getPlayerJabsBattler().battlerName())
+        .setupPartyCycle(this.getPlayer1().battlerName())
         .build();
       $gameTextLog.addLog(log);
     }
@@ -3998,7 +4074,7 @@ class JABS_Engine
 
     // the player is always going to be the one collecting the loot- for now.
     const lootLog = new MapLogBuilder()
-      .setupLootObtained(this.getPlayerJabsBattler().getReferenceData().name, lootType, item.id)
+      .setupLootObtained(this.getPlayer1().getReferenceData().name, lootType, item.id)
       .build();
     $gameTextLog.addLog(lootLog);
   };
@@ -4219,17 +4295,42 @@ class JABS_Engine
 //#region JABS_InputAdapter
 /**
  * This static class governs the instructions of what to do regarding input.
- * Inputs are received by the JABS_InputManager.
- * Inputs are sent from JABS_InputManager to the JABS_InputAdapter.
+ * Inputs are received by the JABS_InputController.
+ * Inputs are sent from JABS_InputController to the JABS_InputAdapter.
  * The JABS_InputAdapter contains the instructions for what to do with inputs.
  */
 class JABS_InputAdapter
 {
   /**
+   * A collection of registered controllers.
+   * @type {JABS_InputController|any}
+   */
+  static controllers = [];
+
+  /**
    * Constructor.
    * A static class though, so don't try to instantiate this.
    */
   constructor() { throw new Error('JABS_InputAdapter is a static class.')};
+
+  /**
+   * Registers a controller with this input adapter.
+   * @param {JABS_InputController|any} controller The controller to register.
+   */
+  static register(controller)
+  {
+    this.controllers.push(controller);
+  };
+
+  /**
+   * Checks whether or not any controllers have been registered
+   * with this input adapter.
+   * @returns {boolean} True if we have at least one registered controller, false otherwise.
+   */
+  static hasControllers()
+  {
+    return this.controllers.length > 0;
+  };
 
   /**
    * Executes an action on the map based on the mainhand skill slot.

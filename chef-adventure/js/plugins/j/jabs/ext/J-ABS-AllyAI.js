@@ -7,6 +7,7 @@
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
  * @base J-ABS
+ * @orderBefore J-ABS-InputManager
  * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @help
@@ -401,8 +402,7 @@ JABS_Engine.prototype.performPartyCycling = function()
   $gamePlayer.jumpFollowersToMe();
 
   // grab the current data for removing after to prevent duplicate players.
-  const previousUuid = $gameParty.leader()
-    .getUuid();
+  const previousUuid = $gameParty.leader().getUuid();
 
   // take a snapshot of the next battler for the player to control.
   const nextUuid = $gameParty.members()[nextLivingAllyIndex].getUuid();
@@ -420,17 +420,16 @@ JABS_Engine.prototype.performPartyCycling = function()
 
   // recreate the JABS player battler and set it to the player character.
   nextJabsBattler.setCharacter($gamePlayer);
-  this._playerBattler = nextJabsBattler;
-  const newPlayer = this.getPlayerJabsBattler()
-    .getCharacter();
-  newPlayer.setMapBattler(this._playerBattler.getUuid());
+  this._player1 = nextJabsBattler;
+  const newPlayer = this.getPlayer1().getCharacter();
+  newPlayer.setMapBattler(this._player1.getUuid());
   newPlayer.setThrough(false);
 
   // assign
-  const oldPlayerIndex = $gamePlayer.followers()
+  const oldPlayerIndex = $gamePlayer
+    .followers()
     ._data
-    .findIndex(follower => follower.actor()
-      .getUuid() === previousUuid);
+    .findIndex(follower => follower.actor().getUuid() === previousUuid);
   $gamePlayer.followers()
     .follower(oldPlayerIndex)
     .setMapBattler(previousUuid);
@@ -440,7 +439,7 @@ JABS_Engine.prototype.performPartyCycling = function()
   if (J.LOG)
   {
     const log = new MapLogBuilder()
-      .setupPartyCycle(this.getPlayerJabsBattler().battlerName())
+      .setupPartyCycle(this.getPlayer1().battlerName())
       .build();
     $gameTextLog.addLog(log);
   }
@@ -449,10 +448,9 @@ JABS_Engine.prototype.performPartyCycling = function()
   $gameMap.updateAllies();
 
   // remove all followers that existed as a player at some point.
-  $gamePlayer.followers()
-    ._data
-    .forEach(follower =>
+  $gamePlayer.followers()._data.forEach(follower =>
     {
+      // if the follower is invalid, it isn't the player.
       if (!follower || !follower.actor()) return;
 
       // find the index of the old player of all available battlers.
@@ -463,10 +461,11 @@ JABS_Engine.prototype.performPartyCycling = function()
 
         // if the actor id matches the follower and the character is a player,
         // we have a match and need to nuke it.
-        return battler.getBattler()
-            .actorId() === follower.actor()
-            .actorId() &&
-          battler._event instanceof Game_Player;
+        const sameActorId = (battler.getBattler().actorId() === follower.actor().actorId());
+        const isPlayer = (battler._event instanceof Game_Player);
+
+        // return true if this is indeed the same actor id and character.
+        return sameActorId && isPlayer;
       });
 
       // if we have a match, nuke it.
@@ -888,11 +887,24 @@ Game_Switches.prototype.onChange = function()
 //#region JABS objects
 //#region JABS_AiManager
 J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
+/**
+ * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
+ * @param {JABS_Battler} battler The batter to decide for.
+ */
 JABS_AiManager.aiPhase0 = function(battler)
 {
-  battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler)
-    : this.allyAiPhase0(battler);
+  // check if this is an enemy's ai being managed.
+  if (battler.isEnemy())
+  {
+    // perform original logic for enemies.
+    J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
+  }
+  // it must be an ally.
+  else
+  {
+    // process ally idle phase.
+    this.allyAiPhase0(battler);
+  }
 };
 
 /**
@@ -901,12 +913,28 @@ JABS_AiManager.aiPhase0 = function(battler)
  */
 JABS_AiManager.allyAiPhase0 = function(allyBattler)
 {
-  const isStopped = allyBattler.getCharacter().isStopping();
-  const alerted = allyBattler.isAlerted();
-  if (isStopped && alerted)
-  {
-    this.seekForAlerter(allyBattler);
-  }
+  // check if we can perform phase 0 things.
+  if (!this.canPerformAllyPhase0(allyBattler)) return;
+
+  // phase 0 for allies is just seeking for alerters if necessary.
+  this.seekForAlerter(allyBattler);
+};
+
+/**
+ * Determines whether or not the ally can do phase 0 things.
+ * @param {JABS_Battler} allyBattler The ally battler.
+ * @returns {boolean} True if this ally can do phae 0 things, false otherwise.
+ */
+JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
+{
+  // if we are not alerted, do not idle.
+  if (!allyBattler.isAlerted()) return false;
+
+  // if we are in active motion, do not idle.
+  if (!allyBattler.getCharacter().isStopping()) return false;
+
+  // perform!
+  return true;
 };
 
 /**
@@ -1890,7 +1918,7 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
 JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
 {
   const isAlerted = this.isAlerted();
-  const playerHitSomething = $jabsEngine.getPlayerJabsBattler()
+  const playerHitSomething = $jabsEngine.getPlayer1()
     .hasBattlerLastHit();
   const inSight = this.inSightRange(target, distance);
   const targetInanimate = target.isInanimate();

@@ -57,7 +57,7 @@ Scene_Map.prototype.onMapLoaded = function()
 {
   if ($jabsEngine.absEnabled)
   {
-    $jabsEngine.initializePlayerBattler();
+    $jabsEngine.initializePlayer1();
   }
 
   J.ABS.Aliased.Scene_Map.onMapLoaded.call(this);
