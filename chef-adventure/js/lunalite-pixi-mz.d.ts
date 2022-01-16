@@ -29449,7 +29449,7 @@ declare namespace rm.types {
 		/**
 		 * Number of steps until state is removed.
 		 */
-		stepToRemove: number;
+		stepsToRemove: number;
 		/**
 		 * The array of Trait data.
 		 */

@@ -17,7 +17,7 @@ Game_Troop.prototype.initMembers = function() {
 
 Game_Troop.prototype.updateRemainingEnemyCount = function() {
   this._remainingEnemyCount = $gameMap.getOpposingBattlers(
-    $jabsEngine.getPlayerJabsBattler()
+    $jabsEngine.getPlayer1()
   ).length;
   return this._remainingEnemyCount;
 };

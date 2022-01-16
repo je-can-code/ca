@@ -1333,9 +1333,6 @@ JABS_Battler.createPlayer = function()
   // instantiate a player JABS battler.
   const playerJabsBattler = new JABS_Battler($gamePlayer, battler, coreData);
 
-  // when new players are created, assign them to controller 1.
-  $jabsController1.battler = playerJabsBattler;
-
   // return the created player.
   return playerJabsBattler;
 };
@@ -1451,14 +1448,12 @@ JABS_Battler.isWeaponSkillById = function(id)
 JABS_Battler.translateAiCode = function(code)
 {
   return new JABS_BattlerAI(
-    Boolean(parseInt(code[0]) === 1) || false, // basic
-    Boolean(parseInt(code[1]) === 1) || false, // smart
-    Boolean(parseInt(code[2]) === 1) || false, // executor
-    Boolean(parseInt(code[3]) === 1) || false, // defensive
-    Boolean(parseInt(code[4]) === 1) || false, // reckless
-    Boolean(parseInt(code[5]) === 1) || false, // healer
-    Boolean(parseInt(code[6]) === 1) || false, // follower
-    Boolean(parseInt(code[7]) === 1) || false, // leader
+    Boolean(parseInt(code[0]) === 1) || false, // smart
+    Boolean(parseInt(code[1]) === 1) || false, // executor
+    Boolean(parseInt(code[2]) === 1) || false, // reckless
+    Boolean(parseInt(code[3]) === 1) || false, // healer
+    Boolean(parseInt(code[4]) === 1) || false, // follower
+    Boolean(parseInt(code[5]) === 1) || false, // leader
   );
 };
 
@@ -3240,6 +3235,15 @@ JABS_Battler.prototype.getBattler = function()
 };
 
 /**
+ * Gets whether or not the underlying battler is dead.
+ * @returns {boolean} True if they are dead, false otherwise.
+ */
+JABS_Battler.prototype.isDead = function()
+{
+  return this.getBattler().isDead();
+};
+
+/**
  * Whether or not the event is actually loaded and valid.
  * @returns {boolean} True if the event is valid (non-player) and loaded, false otherwise.
  */
@@ -4058,9 +4062,14 @@ JABS_Battler.prototype.getPrepareTime = function()
  */
 JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
 {
+  // if there is no chosen skill, then we obviously cannot execute it.
+  if (!chosenSkillId) return false;
+
+  // check if the battler can use skills.
   const canUseSkills = this.canBattlerUseSkills();
+
+  // check if the battler can use basic attacks.
   const canUseAttacks = this.canBattlerUseAttacks();
-  const basicAttackId = this.getEnemyBasicAttack()[0];
 
   // if can't use basic attacks or skills, then autofail.
   if (!canUseSkills && !canUseAttacks)
@@ -4069,6 +4078,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // if the skill is a basic attack, but the battler can't attack, then fail.
+  const [basicAttackId] = this.getEnemyBasicAttack();
   const isBasicAttack = chosenSkillId === basicAttackId;
   if (!canUseAttacks && isBasicAttack)
   {
@@ -4083,7 +4093,6 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
 
   // if the skill cost is more than the battler has resources for, then fail.
   const battler = this.getBattler();
-  const canPay = battler.canPaySkillCost($dataSkills[chosenSkillId]);
   if (!battler.canPaySkillCost($dataSkills[chosenSkillId]))
   {
     return false;
@@ -4168,17 +4177,25 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
-  const battler = this.getBattler();
-  let battlerData = battler.enemy(); //$dataEnemies[battler.enemyId()];
+  // grab the database data for this enemy.
+  const battlerData = this.getBattler().enemy();
 
   // filter out any "extend" skills as far as this collection is concerned.
+  const filtering = action =>
+  {
+    // grab the skill from the database.
+    const skill = $dataSkills[action.skillId];
+
+    // determine if the skill is an extend skill or not.
+    const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+
+    // filter out the extend skills.
+    return !isExtendSkill;
+  };
+
+  // return the filtered result of skills.
   return battlerData.actions
-    .filter(action =>
-    {
-      const skill = $dataSkills[action.skillId];
-      const isExtendSkill = skill.meta && skill.meta['skillExtend'];
-      return !isExtendSkill;
-    })
+    .filter(filtering)
     .map(action => action.skillId);
 };
 
@@ -5412,20 +5429,16 @@ class JABS_BattlerAI
 {
   /**
    * @constructor
-   * @param {boolean} basic Enable the most basic of AI (recommended).
    * @param {boolean} smart Add pathfinding pursuit and more.
    * @param {boolean} executor Add weakpoint targeting.
-   * @param {boolean} defensive Add defending and support skills for allies.
    * @param {boolean} reckless Add skill spamming over attacking.
    * @param {boolean} healer Prioritize healing if health is low.
    * @param {boolean} follower Only attacks alone, obeys leaders.
    * @param {boolean} leader Enables ally coordination.
    */
   constructor(
-    basic = true,
     smart = false,
     executor = false,
-    defensive = false,
     reckless = false,
     healer = false,
     follower = false,
@@ -5433,46 +5446,23 @@ class JABS_BattlerAI
   )
   {
     /**
-     * The most basic of AI: just move and take action.
-     *
-     * `10000000`, first bit.
-     */
-    this.basic = basic;
-
-    /**
      * Adds an additional skillset; enabling intelligent pursuit among other things.
-     *
-     * `01000000`, second bit.
      */
     this.smart = smart;
 
     /**
      * Adds an additional skillset; targeting a foe's weakspots if available.
-     *
-     * `00100000`, third bit.
      */
     this.executor = executor;
 
     /**
-     * Adds an additional skillset; allowing defending in place of action
-     * and supporting allies with buff skills.
-     *
-     * `00010000`, fourth bit.
-     */
-    this.defensive = defensive;
-
-    /**
      * Adds an additional skillset; forcing skills whenever available.
-     *
-     * `00001000`, fifth bit.
      */
     this.reckless = reckless;
 
     /**
      * Adds an additional skillset; prioritizing healing skills when either
      * oneself' or allies' current health reach below 66% of max health.
-     *
-     * `00000100`, sixth bit.
      */
     this.healer = healer;
 
@@ -5480,17 +5470,28 @@ class JABS_BattlerAI
      * Adds an additional skillset; performs only basic attacks when
      * engaged. If a leader is nearby, a leader will encourage actually
      * available skills intelligently based on the target.
-     *
-     * `00000010`, seventh bit.
      */
     this.follower = follower;
 
     /**
      * Adds an additional skillset; enables ally coordination.
-     *
-     * `00000001`, eighth bit.
      */
     this.leader = leader;
+  };
+
+  /**
+   * Checks whether or not this AI has any bonus ai traits.
+   * @returns {boolean} True if there is at least one bonus trait, false otherwise.
+   */
+  hasBonusAiTraits()
+  {
+    return (
+      this.smart ||
+      this.executor ||
+      this.reckles ||
+      this.healer ||
+      this.follower ||
+      this.leader);
   };
 
   /**
@@ -5508,7 +5509,7 @@ class JABS_BattlerAI
     if (skillsToUse.length)
     {
       const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
-      if (healer || defensive)
+      if (healer)
       {
         // get nearby allies with the leader's modified sight range of both battlers.
         const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
@@ -5561,19 +5562,12 @@ class JABS_BattlerAI
     // don't do things if we have no skills to work with.
     if (!skillsToUse || !skillsToUse.length) return skillsToUse;
 
-    const {healer, defensive} = this;
     const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
 
     // prioritize healing when self or allies are low on hp.
-    if (healer)
+    if (this.healer)
     {
       skillsToUse = this.filterSkillsHealerPriority(user, skillsToUse, allies);
-    }
-
-    // find skill that has the most buffs on it.
-    if (defensive)
-    {
-      skillsToUse = this.filterSkillsDefensivePriority(user, skillsToUse, allies);
     }
 
     // if we ended up not picking a skill, then clear any ally targeting.
@@ -5610,7 +5604,38 @@ class JABS_BattlerAI
       skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, target);
     }
 
-    return skillsToUse;
+    // handle the possibility of none or many skills still remaining.
+    return this.decideFromNoneToManySkills(user, skillsToUse);
+  };
+
+  /**
+   * A protection method for handling none, one, or many skills remaining after
+   * filtering.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]|number|null} skillsToUse The available skills to use.
+   * @returns {*}
+   */
+  decideFromNoneToManySkills(user, skillsToUse)
+  {
+    // assign this locally.
+    let skillId = skillsToUse;
+
+    // check if we still have skills after processing.
+    if (!skillsToUse || !skillsToUse.length)
+    {
+      // if not, just try the basic attack instead.
+      skillId = user.getEnemyBasicAttack()[0];
+    }
+
+    // check if we have many skills after processing.
+    if (skillsToUse.length > 1)
+    {
+      // designate the first in the list as our choice.
+      skillId = skillsToUse[0];
+    }
+
+    // return the chosen skill.
+    return skillId;
   };
 
   /**
@@ -5674,23 +5699,11 @@ class JABS_BattlerAI
   };
 
   /**
-   * Filters skills by a defensive priority.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]} skillsToUse The available skills to use.
-   * @param {JABS_Battler[]} allies
-   * @returns
-   */
-  filterSkillsDefensivePriority(user, skillsToUse, allies)
-  {
-    return skillsToUse;
-  };
-
-  /**
    * Filters skills by a healing priority.
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]} skillsToUse The available skills to use.
    * @param {JABS_Battler[]} allies
-   * @returns
+   * @returns {number} The best skill id for healing according to this battler.
    */
   filterSkillsHealerPriority(user, skillsToUse, allies)
   {
@@ -8834,6 +8847,10 @@ class JABS_StateData
 //#region JABS_TrackedState
 /**
  * A class containing the tracked data for a particular state and battler.
+ *
+ * This class enables JABS to keep tabs on state durations as well as their effects.
+ * Since most effects in-battle aren't directly replicatable on the map as easily,
+ * this acts as an interface between the state and JABS, of which JABS owns.
  */
 function JABS_TrackedState()
 {
@@ -8941,10 +8958,4 @@ JABS_TrackedState.prototype.isAboutToExpire = function()
   return this.duration <= 90;
 };
 //#endregion JABS_TrackedState
-
-RPG_Skill.prototype.test = function()
-{
-  console.log('hello world');
-};
-
 //ENDOFFILE

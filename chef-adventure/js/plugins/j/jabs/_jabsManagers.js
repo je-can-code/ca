@@ -40,24 +40,21 @@ var $gameEnemies = null;
 var $actionMap = null;
 
 /**
- * The global reference for the player's input manager.
- * This interprets and manages incoming inputs for JABS-related functionality.
- * @type {JABS_InputManager}
- * @global
- */
-var $jabsController1 = null;
-
-/**
- * Hooks into `1taManager` to create the game objects.
+ * Extends `createGameObjects()` to include creation of our global game objects
  */
 J.ABS.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function()
 {
+  // perform original logic.
   J.ABS.Aliased.DataManager.createGameObjects.call(this);
 
+  // update the skill master map to have data.
   DataManager.getSkillMasterMap();
-  $jabsController1 = new JABS_InputManager();
+
+  // instantiate the engine itself.
   $jabsEngine = new JABS_Engine();
+
+  // setup the global access to the enemies database data.
   $gameEnemies = new Game_Enemies();
 };
 
@@ -392,7 +389,7 @@ class JABS_AiManager
   {
     // grab all available battlers within a fixed range.
     const battlers = $gameMap.getBattlersWithinRange(
-      $jabsEngine.getPlayerJabsBattler(),
+      $jabsEngine.getPlayer1(),
       J.ABS.Metadata.MaxAiUpdateRange);
 
     // if we have no battlers, then do not process AI.
@@ -706,7 +703,7 @@ class JABS_AiManager
     if (Math.randomInt(100) < 5)
     {
       // turn towards the target.
-      //battler.turnTowardTarget();
+      battler.turnTowardTarget();
     }
   };
 
@@ -878,157 +875,297 @@ class JABS_AiManager
    */
   static decideEnemyAiPhase2Action(battler)
   {
-    let ai = battler.getAiMode();
-    const basicAttack = battler.getEnemyBasicAttack();
-    let shouldUseBasicAttack = false;
-    let chosenSkillId;
-    let skillsToUse = battler.getSkillIdsFromEnemy();
-    skillsToUse.sort();
+    // grab the AI object belonging to this battler.
+    const ai = battler.getAiMode();
 
-    const {basic, smart, executor, defensive, reckless, healer, follower, leader} = ai;
+    // extract the AI from this battler.
+    const {smart, executor, reckless, healer, follower, leader} = ai;
 
-    // only basic attacks alone, if controlled by a leader,
-    // the follower will be told to execute skills based on
-    // the leader's decision.
-    if (follower)
-    {
-      shouldUseBasicAttack = true;
-      // do nothing while waiting for leader to decide action.
-      if (battler.hasLeader() && battler.getLeaderBattler() && battler.getLeaderBattler().isEngaged())
-      {
-        if (battler.hasLeaderDecidedActions())
-        {
-          // the leader told me what to do, now do it!
-          const nextLeaderDecidedAction = battler.getNextLeaderDecidedAction();
-          battler.showBalloon(J.ABS.Balloons.Check);
-          chosenSkillId = nextLeaderDecidedAction;
-          const canPerformAction = battler.canExecuteSkill(chosenSkillId);
-          if (canPerformAction)
-          {
-            this.setupEnemyActionForNextPhase(battler, nextLeaderDecidedAction);
-            return;
-          }
-          else
-          {
-            // cannot perform the action due to state restrictions.
-            battler.setDecidedAction(null);
-            return;
-          }
-        }
-        else
-        {
-          // hold on the leader's decision.
-          battler.setDecidedAction(null);
-          return;
-        }
-      }
-    }
-
-    // if non-aggressive ai traits, then figure out some healing skills or something to use.
-    if (healer || defensive)
-    {
-      skillsToUse = ai.decideSupportAction(battler, skillsToUse);
-
-      // if aggressive ai traits, then figure out the skill to defeat the target with.
-    }
-    else if (smart || executor)
-    {
-      skillsToUse = ai.decideAttackAction(battler, skillsToUse);
-    }
-
-    // if basic but not reckless, then 50:50 chance of just basic attacking instead.
-    if (basic && !reckless)
-    {
-      shouldUseBasicAttack = true;
-    }
-
-    // rewrite followers' action decisions that meet criteria.
-    // acts intelligently in addition to controlling followers
-    // into acting intelligently as well.
+    // check if the battler has the "leader" ai trait.
     if (leader)
     {
-      const nearbyFollowers = $gameMap.getNearbyFollowers(battler);
-      nearbyFollowers.forEach(follower =>
-      {
-        // leaders can't control other leaders' followers.
-        if (follower.hasLeader() && follower.getLeader() !== battler.getUuid())
-        {
-          return;
-        }
-
-        // assign the follower to this leader.
-        if (!follower.hasLeader())
-        {
-          follower.setLeader(battler.getUuid());
-        }
-
-        // decide the action of the follower for them.
-        const followerAction = ai.decideActionForFollower(battler, follower);
-        if (followerAction)
-        {
-          follower.setLeaderDecidedAction(followerAction);
-        }
-      });
+      // decide actions for all nearby followers.
+      this.decideActionsForFollowers(battler);
     }
 
-    // 50:50 chance of just basic attacking instead.
-    let basicAttackInstead = false;
-    if (shouldUseBasicAttack && !battler.hasLeader())
+    // check if the battler has the "follower" ai trait.
+    if (follower)
     {
-      basicAttackInstead = Math.randomInt(2) === 0;
+      // decide the skill and set it up for this follower.
+      this.decideFollowerAi(battler);
 
-      // followers ALWAYS basic attack instead.
-      if (follower && !battler.hasLeader())
-      {
-        basicAttackInstead = true;
-      }
-    }
-
-    if (basicAttackInstead || !skillsToUse || skillsToUse.length === 0)
-    {
-      // skip the formula, only basic attack.
-      chosenSkillId = basicAttack[0];
-    }
-    else
-    {
-      if (Array.isArray(skillsToUse))
-      {
-        if (skillsToUse.length === 1)
-        {
-          chosenSkillId = skillsToUse[0];
-        }
-        else
-        {
-          const randomId = Math.randomInt(skillsToUse.length);
-          chosenSkillId = skillsToUse[randomId];
-        }
-      }
-      else
-      {
-        // otherwise just set the skill to use to be this.
-        chosenSkillId = skillsToUse;
-      }
-    }
-
-    // if the battler cannot perform their decided skill, do nothing.
-    if (!chosenSkillId || !battler.canExecuteSkill(chosenSkillId))
-    {
-      battler.setDecidedAction(null);
+      // stop processing.
       return;
     }
 
-    this.setupEnemyActionForNextPhase(battler, chosenSkillId);
+    // check if the battler has the "healer" ai trait.
+    // battlers with "smart" will leverage that while deciding healing skills.
+    if (healer)
+    {
+      // decide the skill and set it up for this battler.
+      this.decideHealerAi(battler);
+
+      // stop processing.
+      return;
+    }
+
+    // check if the battler has the "smart" or "executor" ai trait.
+    if (smart || executor)
+    {
+      // decide an attack skill from the available skills.
+      this.decideAggressiveAi(battler);
+
+      // stop processing.
+      return;
+    }
+
+    // check if the battler has the "reckless" ai trait.
+    if (reckless)
+    {
+      // decide a random skill from the available skills.
+      this.decideRecklessAi(battler);
+
+      // stop processing.
+      return;
+    }
+
+    // check if the battler does NOT have any other bonus ai traits.
+    if (!ai.hasBonusAiTraits())
+    {
+      // process generic AI decision making.
+      this.decideGenericAi(battler);
+
+      // stop processing.
+      return;
+    }
   };
+
+  //#region ai:leader
+  /**
+   * Decides the next action for all applicable followers.
+   * @param {JABS_Battler} battler The leader to make decisions with.
+   */
+  static decideActionsForFollowers(battler)
+  {
+    // grab all nearby followers.
+    const nearbyFollowers = $gameMap.getNearbyFollowers(battler);
+
+    // iterate over each found follower.
+    nearbyFollowers.forEach(follower => this.decideActionForFollower(battler, follower));
+  };
+
+  /**
+   * Decides the next action for a follower.
+   * @param battler
+   * @param follower
+   */
+  static decideActionForFollower(battler, follower)
+  {
+    // leaders can't control other leaders' followers.
+    if (follower.hasLeader() && follower.getLeader() !== battler.getUuid())
+    {
+      return;
+    }
+
+    // assign the follower to this leader.
+    if (!follower.hasLeader())
+    {
+      follower.setLeader(battler.getUuid());
+    }
+
+    // decide the action of the follower for them.
+    const followerAction = battler.getAiMode().decideActionForFollower(battler, follower);
+
+    // check if we found a valid action for the follower.
+    if (followerAction)
+    {
+      // set it as their next action.
+      follower.setLeaderDecidedAction(followerAction);
+    }
+  };
+  //#endregion ai:leader
+
+  //#region ai:follower
+  /**
+   * Handles how a follower decides its next action to take while engaged.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  static decideFollowerAi(battler)
+  {
+    // check if we have a leader ready to guide us.
+    if (this.hasLeaderReady(battler))
+    {
+      // let the leader decide what this battler should do.
+      this.decideFollowerAiByLeader(battler);
+    }
+    // we have no leader.
+    else
+    {
+      // only basic attacks for this battler.
+      this.decideFollowerAiBySelf(battler);
+    }
+  };
+
+  /**
+   * Determines whether or not this battler has a leader ready to guide them.
+   * @param {JABS_Battler} battler The battler deciding the action.
+   * @returns {boolean} True if this battler has a ready leader, false otherwise.
+   */
+  static hasLeaderReady(battler)
+  {
+    // check if we have a leader.
+    if (!battler.hasLeader()) return false;
+
+    // check to make sure we can actually retrieve the leader.
+    if (!battler.getLeaderBattler()) return false;
+
+    // check to make sure that leader is still engaged in combat.
+    if (!battler.getLeaderBattler().isEngaged()) return false;
+
+    // let the leader decide!
+    return true;
+  };
+
+  /**
+   * Allows the leader to decide this follower's next action to take.
+   * @param {JABS_Battler} battler The follower that is allowing a leader to decide.
+   */
+  static decideFollowerAiByLeader(battler)
+  {
+    // show the balloon that we are processing leader actions instead.
+    battler.showBalloon(J.ABS.Balloons.Check);
+
+    // we have an engaged leader.
+    const nextLeaderDecidedAction = battler.getNextLeaderDecidedAction();
+
+    // ensure this battler can actually execute the skill.
+    if (battler.canExecuteSkill(nextLeaderDecidedAction))
+    {
+      // setup the skill for use.
+      this.setupEnemyActionForNextPhase(battler, nextLeaderDecidedAction);
+    }
+  };
+
+  /**
+   * Allows the follower to decide their own next action to take.
+   * It is always a basic attack.
+   * @param {JABS_Battler} battler The follower that is deciding for themselves.
+   */
+  static decideFollowerAiBySelf(battler)
+  {
+    // only basic attacks for this battler.
+    const [skillId] = battler.getEnemyBasicAttack();
+
+    // setup the skill for use.
+    this.setupEnemyActionForNextPhase(battler, skillId);
+  };
+  //#endregion ai:follower
+
+  //#region ai:healer
+  /**
+   * Handles how a healer decides its next action to take while engaged.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  static decideHealerAi(battler)
+  {
+    // get all skills available to this enemy.
+    const skillsToUse = battler.getSkillIdsFromEnemy();
+
+    // determine the best support action to use.
+    const skillId = battler.getAiMode().decideSupportAction(battler, skillsToUse);
+
+    // setup the skill for use.
+    this.setupEnemyActionForNextPhase(battler, skillId);
+  };
+  //#endregion ai:healer
+
+  //#region ai:smart/executor
+  /**
+   * Handles how a batler decides its next action to take while engaged.
+   * "Smart" battlers will try to use skills that are known to be strong/effective
+   * against their targets.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  static decideAggressiveAi(battler)
+  {
+    // get all skills available to this enemy.
+    const skillsToUse = battler.getSkillIdsFromEnemy();
+
+    // determine the best attack action to use.
+    const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse);
+
+    // setup the skill for use.
+    this.setupEnemyActionForNextPhase(battler, skillId);
+  };
+  //#endregion ai:smart/executor
+
+  //#region ai:reckless
+  /**
+   * Handles how a battler decides its next action while engaged.
+   * "Reckless" battlers will always try to use a skill instead of their basic attack.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  static decideRecklessAi(battler)
+  {
+    // get all skills available to this enemy.
+    const skillsToUse = battler.getSkillIdsFromEnemy();
+
+    // determine the best attack action to use.
+    const skillId = skillsToUse[Math.randomInt(skillsToUse.length)];
+
+    // setup the skill for use.
+    this.setupEnemyActionForNextPhase(battler, skillId);
+  };
+  //#endregion ai:reckless
+
+  //#region ai:unassigned
+  /**
+   * HAndles how a battler decides its next action while engaged.
+   * When a battler has no special ai traits, it'll just pick a random skill
+   * from its list of skills with a 50% chance of instead using its basic attack.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  static decideGenericAi(battler)
+  {
+    // get all skills available to this enemy.
+    const skillsToUse = battler.getSkillIdsFromEnemy();
+
+    // determine the best attack action to use.
+    let skillId = skillsToUse[Math.randomInt(skillsToUse.length)];
+
+    // 50% chance of just using the basic attack instead.
+    if (Math.randomInt(2) === 0)
+    {
+      // grab this enemy's basic attack.
+      const [basicAttackSkillId] = battler.getEnemyBasicAttack();
+
+      // overwrite the random skill with the basic attack.
+      skillId = basicAttackSkillId;
+    }
+
+    // setup the skill for use.
+    this.setupEnemyActionForNextPhase(battler, skillId);
+  };
+  //#endregion ai:unassigned
 
   /**
    * Sets up the battler and the action in preparation for the next phase.
    * @param {JABS_Battler} battler The battler performing the action.
-   * @param {number} chosenSkillId The id of the skill to perform the action for.
+   * @param {number} skillId The id of the skill to perform the action for.
    */
-  static setupEnemyActionForNextPhase(battler, chosenSkillId)
+  static setupEnemyActionForNextPhase(battler, skillId)
   {
+    if (!this.canSetupEnemyActionForNextPhase(battler, skillId))
+    {
+      // cancel the action setup.
+      this.cancelActionSetup(battler);
+
+      // do not process.
+      return;
+    }
+
     // generate the actions based on the given skill id.
-    const actions = battler.createJabsActionFromSkill(chosenSkillId);
+    const actions = battler.createJabsActionFromSkill(skillId);
 
     // determine the enemy's cooldown key of "skillId-skillName".
     const cooldownName = `${actions[0].getBaseSkill().id}-${actions[0].getBaseSkill().name}`;
@@ -1050,6 +1187,38 @@ class JABS_AiManager
 
     // set the decided action.
     battler.setDecidedAction(actions);
+  };
+
+  /**
+   * Determines whether or not the given skill can be transformed into an action
+   * by the given battler.
+   * @param {JABS_Battler} battler The battler performing the action.
+   * @param {number} skillId The id of the skill to perform the action for.
+   * @returns {boolean} True if we can setup an action with this skill id, false otherwise.
+   */
+  static canSetupEnemyActionForNextPhase(battler, skillId)
+  {
+    // check if we even have a skill to setup.
+    if (!skillId || !skillId.length) return false;
+
+    // check if this battler can execute this skill.
+    if (!battler.canExecuteSkill(skillId)) return false;
+
+    // setup the action!
+    return true;
+  };
+
+  /**
+   * Cancel the setup process for this battler.
+   * @param {JABS_Battler} battler The battler canceling the action.
+   */
+  static cancelActionSetup(battler)
+  {
+    // set the decided action to null.
+    battler.setDecidedAction(null);
+
+    // if we can't setup this skill for some reason, then wait before trying again.
+    battler.setWaitCountdown(30);
   };
 
   /**
@@ -1143,12 +1312,16 @@ class JABS_AiManager
    */
   static phase2MoveCloser(battler)
   {
+    // check if this battler has an ally target first.
     if (battler.getAllyTarget())
     {
+      // move towards the ally.
       battler.smartMoveTowardAllyTarget();
     }
+    // this battler does not have an ally target.
     else
     {
+      // move towards the target instead.
       battler.smartMoveTowardTarget();
     }
   };
@@ -1173,7 +1346,7 @@ class JABS_AiManager
     else
     {
       // check if they are able to move while cooling down.
-      if (!this.canPerformPhase3Movement(battler))
+      if (this.canPerformPhase3Movement(battler))
       {
         // move around while you're waiting for the cooldown.
         this.decideAiPhase3Movement(battler);
