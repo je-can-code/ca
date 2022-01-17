@@ -395,10 +395,10 @@ JABS_Engine.prototype.trackActionData = function(action)
   const cooldownType = action.getCooldownType();
   switch (cooldownType)
   {
-    case Game_Actor.JABS_MAINHAND:
+    case JABS_Button.Main:
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.MainhandSkillUsage, 1);
       break;
-    case Game_Actor.JABS_OFFHAND:
+    case JABS_Button.Offhand:
       J.BASE.Helpers.modVariable(J.CAMods.Tracking.OffhandSkillUsage, 1);
       break;
     default:

@@ -2496,7 +2496,7 @@ Game_Enemy.prototype.teamId = function()
  */
 Game_Enemy.prototype.ai = function()
 {
-  let smart = false;
+  let careful = false;
   let executor = false;
   let reckless = false;
   let healer = false;
@@ -2507,11 +2507,11 @@ Game_Enemy.prototype.ai = function()
   const notedata = referenceData.note.split(/[\r\n]+/);
   notedata.forEach(note =>
   {
-    // check if this battler has the "smart" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(smart)>/i.test(note))
+    // check if this battler has the "careful" ai trait.
+    if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(note))
     {
       // parse the value out of the regex capture group.
-      smart = true;
+      careful = true;
     }
 
     // check if this battler has the "executor" ai trait.
@@ -2551,7 +2551,7 @@ Game_Enemy.prototype.ai = function()
   });
 
   // check if we found exactly zero bonus ai traits.
-  if (!smart && !executor && !reckless && !healer && !follower && !leader)
+  if (!careful && !executor && !reckless && !healer && !follower && !leader)
   {
     // if we found none, scan for legacy code format.
     const legacyAi = this.translateLegacyAi();
@@ -2565,7 +2565,7 @@ Game_Enemy.prototype.ai = function()
   }
 
   // return what we found, or didn't find.
-  return new JABS_BattlerAI(smart, executor, reckless, healer, follower, leader);
+  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
 };
 
 /**
@@ -2584,7 +2584,7 @@ Game_Enemy.prototype.translateLegacyAi = function()
   const notedata = referenceData.note.split(/[\r\n]+/);
   notedata.forEach(note =>
   {
-    // check if this battler has the "smart" ai trait.
+    // check if this battler has the "careful" ai trait.
     if (/<ai:[ ]?([0|1]{8})>/i.test(note))
     {
       // parse the value out of the regex capture group.
@@ -2595,7 +2595,7 @@ Game_Enemy.prototype.translateLegacyAi = function()
   // build the new AI based on the old code.
   return new JABS_BattlerAI(
     //Boolean(parseInt(code[0]) === 1) || false, // basic, but no longer a feature.
-    Boolean(parseInt(code[1]) === 1) || false, // smart
+    Boolean(parseInt(code[1]) === 1) || false, // careful
     Boolean(parseInt(code[2]) === 1) || false, // executor
     Boolean(parseInt(code[3]) === 1) || false, // reckless
     //Boolean(parseInt(code[4]) === 1) || false, // defensive, but no longer a feature.
@@ -3080,7 +3080,7 @@ Game_Event.prototype.getTeamIdOverrides = function()
 Game_Event.prototype.getBattlerAiOverrides = function()
 {
   // default to not having any ai traits.
-  let smart = false;
+  let careful = false;
   let executor = false;
   let reckless = false;
   let healer = false;
@@ -3094,11 +3094,11 @@ Game_Event.prototype.getBattlerAiOverrides = function()
       // shorthand the comment into a variable.
       const comment = command.parameters[0];
 
-      // check if this battler has the "smart" ai trait.
-      if (/<(?:ai|aiTrait):[ ]?(smart)>/i.test(comment))
+      // check if this battler has the "careful" ai trait.
+      if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(comment))
       {
         // parse the value out of the regex capture group.
-        smart = true;
+        careful = true;
       }
 
       // check if this battler has the "executor" ai trait.
@@ -3138,7 +3138,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
     });
 
   // check if we found exactly zero bonus ai traits.
-  if (!smart && !executor && !reckless && !healer && !follower && !leader)
+  if (!careful && !executor && !reckless && !healer && !follower && !leader)
   {
     // if we found none, scan for legacy code format.
     const legacyAi = this.getBattlerAiOverridesLegacy();
@@ -3155,7 +3155,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   }
 
   // return the overridden battler ai.
-  return new JABS_BattlerAI(smart, executor, reckless, healer, follower, leader);
+  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
 };
 
 /**
@@ -3176,14 +3176,14 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
       // shorthand the comment into a variable.
       const comment = command.parameters[0];
 
-      // check if this battler has the "smart" ai trait.
+      // check if this battler has the "careful" ai trait.
       if (/<ai:[ ]?([0|1]{8})>/i.test(comment))
       {
         // parse the value out of the regex capture group.
         code = RegExp.$1;
       }
 
-      // check if this battler has the "smart" ai trait.
+      // check if this battler has the "careful" ai trait.
       if (/<ai:[ ]?([0|1]{6})>/i.test(comment))
       {
         // parse the value out of the regex capture group.
@@ -3197,7 +3197,7 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
     // build the new AI based on the old code.
     return new JABS_BattlerAI(
       //Boolean(parseInt(code[0]) === 1) || false, // basic, but no longer a feature.
-      Boolean(parseInt(code[1]) === 1) || false, // smart
+      Boolean(parseInt(code[1]) === 1) || false, // careful
       Boolean(parseInt(code[2]) === 1) || false, // executor
       Boolean(parseInt(code[3]) === 1) || false, // reckless
       //Boolean(parseInt(code[4]) === 1) || false, // defensive, but no longer a feature.

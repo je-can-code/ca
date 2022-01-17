@@ -548,7 +548,20 @@ class JABS_Action
    */
   getProximity()
   {
+    // check if the scope is "user".
+    if (this.isForSelf())
+    {
+      // proximity for usable skills of scope "user" is unlimited.
+      return 9999;
+    }
+
+
     return this.getJabsData().proximity();
+  };
+
+  isForSelf()
+  {
+    return this.getBaseSkill().scope === 11;
   };
 
   /**
@@ -1448,7 +1461,7 @@ JABS_Battler.isWeaponSkillById = function(id)
 JABS_Battler.translateAiCode = function(code)
 {
   return new JABS_BattlerAI(
-    Boolean(parseInt(code[0]) === 1) || false, // smart
+    Boolean(parseInt(code[0]) === 1) || false, // careful
     Boolean(parseInt(code[1]) === 1) || false, // executor
     Boolean(parseInt(code[2]) === 1) || false, // reckless
     Boolean(parseInt(code[3]) === 1) || false, // healer
@@ -4091,14 +4104,49 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
+  // check if this battler can pay the costs for the given skill id.
+  if (!this.canPaySkillCost(chosenSkillId))
+  {
+    // cannot pay the cost.
+    return false;
+  }
+
+  // cast the skill!
+  return true;
+};
+
+/**
+ * Determines whether or not this battler can pay the cost of a given skill id.
+ * Accommodates skill extensions.
+ * @param {number} skillId The skill id to check.
+ * @returns {boolean} True if this battler can pay the cost, false otherwise.
+ */
+JABS_Battler.prototype.canPaySkillCost = function(skillId)
+{
   // if the skill cost is more than the battler has resources for, then fail.
   const battler = this.getBattler();
-  if (!battler.canPaySkillCost($dataSkills[chosenSkillId]))
+  let skill;
+
+  // check if we're using J-SkillExtend.
+  if (J.EXTEND)
+  {
+    // grab the potentially overlayed skill.
+    skill = OverlayManager.getExtendedSkill(battler, skillId);
+  }
+  // not using the skill extend plugin.
+  else
+  {
+    // grab the skill from the database.
+    skill = $dataSkills[skillId];
+  }
+
+  // check if the battler can pay the cost.
+  if (!battler.canPaySkillCost(skill))
   {
     return false;
   }
 
-  // all criteria are met! this skill can be cast 🌞.
+  // we can pay the cost!
   return true;
 };
 //#endregion isReady & cooldowns
@@ -4208,6 +4256,25 @@ JABS_Battler.prototype.getEnemyBasicAttack = function()
   const battler = this.getBattler();
   const basicAttackSkill = battler.skillId();
   return [basicAttackSkill, 5];
+};
+
+/**
+ * Gets all skill ids that this battler has access to, including the basic attack.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
+{
+  // grab all the added skills.
+  const skills = this.getSkillIdsFromEnemy();
+
+  // grab this enemy's basic attack.
+  const [basicAttackSkillId] = this.getEnemyBasicAttack();
+
+  // add the basic attack to the list of skills.
+  skills.push(basicAttackSkillId);
+
+  // return the built list.
+  return skills;
 };
 
 /**
@@ -5429,7 +5496,7 @@ class JABS_BattlerAI
 {
   /**
    * @constructor
-   * @param {boolean} smart Add pathfinding pursuit and more.
+   * @param {boolean} careful Add pathfinding pursuit and more.
    * @param {boolean} executor Add weakpoint targeting.
    * @param {boolean} reckless Add skill spamming over attacking.
    * @param {boolean} healer Prioritize healing if health is low.
@@ -5437,7 +5504,7 @@ class JABS_BattlerAI
    * @param {boolean} leader Enables ally coordination.
    */
   constructor(
-    smart = false,
+    careful = false,
     executor = false,
     reckless = false,
     healer = false,
@@ -5446,35 +5513,41 @@ class JABS_BattlerAI
   )
   {
     /**
-     * Adds an additional skillset; enabling intelligent pursuit among other things.
+     * An ai trait that prevents this user from executing skills that are
+     * elementally ineffective against their target.
      */
-    this.smart = smart;
+    this.careful = careful;
 
     /**
-     * Adds an additional skillset; targeting a foe's weakspots if available.
+     * An ai trait that encourages this user to always use the strongest
+     * available skill.
      */
     this.executor = executor;
 
     /**
-     * Adds an additional skillset; forcing skills whenever available.
+     * An ai trait that forces this user to always use skills if possible.
      */
     this.reckless = reckless;
 
     /**
-     * Adds an additional skillset; prioritizing healing skills when either
-     * oneself' or allies' current health reach below 66% of max health.
+     * An ai trait that prioritizes healing allies.
+     * If combined with smart, the most effective healing skill will be used.
+     * If combined with reckless, the healer will spam healing.
+     * If combined with smart AND reckless, the healer will only use the biggest
+     * healing spells available.
      */
     this.healer = healer;
 
     /**
-     * Adds an additional skillset; performs only basic attacks when
-     * engaged. If a leader is nearby, a leader will encourage actually
-     * available skills intelligently based on the target.
+     * An ai trait that prevents the user from executing anything other than
+     * their basic attack while they lack a leader.
      */
     this.follower = follower;
 
     /**
-     * Adds an additional skillset; enables ally coordination.
+     * An ai trait that gives a battler the ability to use its own ai to
+     * determine skills for a follower. This is usually combined with other
+     * ai traits.
      */
     this.leader = leader;
   };
@@ -5486,7 +5559,7 @@ class JABS_BattlerAI
   hasBonusAiTraits()
   {
     return (
-      this.smart ||
+      this.careful ||
       this.executor ||
       this.reckles ||
       this.healer ||
@@ -5503,7 +5576,7 @@ class JABS_BattlerAI
   decideActionForFollower(leaderBattler, followerBattler)
   {
     // all follower actions are decided based on the leader's ai.
-    const {smart, executor, defensive, healer} = this;
+    const {careful, executor, healer} = this;
     const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
     let skillsToUse = followerBattler.getSkillIdsFromEnemy();
     if (skillsToUse.length)
@@ -5519,14 +5592,8 @@ class JABS_BattlerAI
         {
           skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
         }
-
-        // find skill that has the most buffs on it.
-        if (defensive)
-        {
-          skillsToUse = this.filterSkillsDefensivePriority(skillsToUse, allies);
-        }
       }
-      else if (smart || executor)
+      else if (careful || executor)
       {
         // focus on the leader's target instead of the follower's target.
         skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
@@ -5560,7 +5627,7 @@ class JABS_BattlerAI
   decideSupportAction(user, skillsToUse)
   {
     // don't do things if we have no skills to work with.
-    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+    if (!skillsToUse || !skillsToUse.length) return [];
 
     const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
 
@@ -5576,7 +5643,8 @@ class JABS_BattlerAI
       user.setAllyTarget(null);
     }
 
-    return skillsToUse;
+    // handle the possibility of none or many skills still remaining.
+    return this.decideFromNoneToManySkills(user, skillsToUse);
   }
 
   /**
@@ -5586,14 +5654,17 @@ class JABS_BattlerAI
    */
   decideAttackAction(user, skillsToUse)
   {
-    // don't do things if we have no skills to work with.
-    if (!skillsToUse || !skillsToUse.length) return skillsToUse;
+    // reduce the list to only castable skills.
+    skillsToUse = this.filterUncastableSkills(user, skillsToUse);
 
-    const {smart, executor} = this;
+    // don't do things if we have no skills to work with.
+    if (!skillsToUse || !skillsToUse.length) return [];
+
+    const {careful, executor} = this;
     const target = user.getTarget();
 
     // filter out skills that are elementally ineffective.
-    if (smart)
+    if (careful)
     {
       skillsToUse = this.filterElementallyIneffectiveSkills(skillsToUse, target);
     }
@@ -5601,11 +5672,27 @@ class JABS_BattlerAI
     // find most elementally effective skill vs the target.
     if (executor)
     {
-      skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, target);
+      skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, user, target);
     }
 
     // handle the possibility of none or many skills still remaining.
     return this.decideFromNoneToManySkills(user, skillsToUse);
+  };
+
+  /**
+   * Filters out skills that cannot be executed at this time by the battler.
+   * This prevents the user from continuously picking a skill they cannot execute.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @returns {number[]}
+   */
+  filterUncastableSkills(user, skillsToUse)
+  {
+    // check to make sure we have skills to filter.
+    if (!skillsToUse || !skillsToUse.length) return [];
+
+    // filter the skills by whether or not they can be executed.
+    return skillsToUse.filter(user.canExecuteSkill, user);
   };
 
   /**
@@ -5617,25 +5704,22 @@ class JABS_BattlerAI
    */
   decideFromNoneToManySkills(user, skillsToUse)
   {
-    // assign this locally.
-    let skillId = skillsToUse;
-
-    // check if we still have skills after processing.
-    if (!skillsToUse || !skillsToUse.length)
+    // check if the skill was invalid, or the array of skills was empty.
+    if (!skillsToUse || (Array.isArray(skillsToUse) && !skillsToUse.length))
     {
-      // if not, just try the basic attack instead.
-      skillId = user.getEnemyBasicAttack()[0];
+      // always at least basic attack.
+      return user.getEnemyBasicAttack()[0];
     }
 
-    // check if we have many skills after processing.
-    if (skillsToUse.length > 1)
+    // check if "skills" is actually just one valid skill.
+    if (Number.isInteger(skillsToUse))
     {
-      // designate the first in the list as our choice.
-      skillId = skillsToUse[0];
+      // return that, this is fine.
+      return skillsToUse;
     }
 
-    // return the chosen skill.
-    return skillId;
+    // otherwise, it must be a valid array.
+    return skillsToUse[Math.randomInt(skillsToUse.length)];
   };
 
   /**
@@ -5663,11 +5747,11 @@ class JABS_BattlerAI
   /**
    * Decides an action from an array of skill objects based on the target.
    * Will choose the skill that has the highest elemental effectiveness.
-   * @param {number[]} skillsToUse The available skills to use.
+   * @param {number[]|number} skillsToUse The available skills to use.
+   * @param {JABS_Battler} user The battler to decide the action.
    * @param {JABS_Battler} target The battler to decide the action about.
-   * @param {number[]} skillsToUse The available skills to use.
    */
-  findMostElementallyEffectiveSkill(skillsToUse, target)
+  findMostElementallyEffectiveSkill(skillsToUse, user, target)
   {
     // if we have no skills to work with, then don't process.
     if (!skillsToUse.length > 1) return skillsToUse;
@@ -5677,19 +5761,21 @@ class JABS_BattlerAI
       let elementalSkillCollection = [];
       skillsToUse.forEach(skillId =>
       {
-        const testAction = new Game_Action(target.getBattler());
+        const testAction = new Game_Action(user.getBattler());
         testAction.setSkill(skillId);
-        const rate = testAction.calcElementRate(target.getBattler());
+        let rate = testAction.calcElementRate(target.getBattler());
         elementalSkillCollection.push([skillId, rate]);
       });
 
+      console.log(elementalSkillCollection);
       // sorts the skills by their elemental effectiveness.
       elementalSkillCollection.sort((a, b) =>
       {
-        if (a[1] < b[1]) return -1;
-        if (a[1] > b[1]) return 1;
+        if (a[1] > b[1]) return -1;
+        if (a[1] < b[1]) return 1;
         return 0;
       });
+      console.log(elementalSkillCollection);
 
       // only use the highest elementally effective skill.
       skillsToUse = elementalSkillCollection[0][0];
@@ -5711,8 +5797,8 @@ class JABS_BattlerAI
     if (!skillsToUse.length > 1) return skillsToUse;
 
     // if we have no ai traits that affect skill-decision-making, then don't perform the logic.
-    const {basic, smart, defensive, reckless} = this;
-    if (!basic && !smart && !defensive && !reckless) return skillsToUse;
+    const {careful, reckless} = this;
+    if (!careful && !reckless) return skillsToUse;
 
     let mostWoundedAlly = null;
     let lowestHpRatio = 1.01;
@@ -5746,6 +5832,8 @@ class JABS_BattlerAI
         alliesMissingAnyHp++;
       }
     });
+
+    console.log(alliesMissingAnyHp);
 
     // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
     if (!alliesMissingAnyHp && !reckless) return skillsToUse;
@@ -5857,8 +5945,8 @@ class JABS_BattlerAI
       bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
     }
 
-    // smart will decide in this order:
-    if (smart)
+    // careful will decide in this order:
+    if (careful)
     {
       // - if any below 40%, then prioritize heal-one of most wounded.
       if (lowestHpRatio <= 0.40)
@@ -5878,13 +5966,8 @@ class JABS_BattlerAI
         bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
         // - if none wounded, or none below 80%, then don't heal.
       }
-      else
-      {
-      }
     }
-
-    // defensive will decide in this order:
-    if (defensive && !smart)
+    else
     {
       // - if there is only one wounded ally, prioritize biggest heal-one skill.
       if (alliesMissingAnyHp === 1)
@@ -5897,9 +5980,6 @@ class JABS_BattlerAI
         bestSkillId = biggestHealAllSkill;
         // - if none wounded, don't heal.
       }
-      else
-      {
-      }
     }
 
     // reckless will decide in this order:
@@ -5910,9 +5990,6 @@ class JABS_BattlerAI
       {
         bestSkillId = biggestHealSkill;
         // - if none wounded, don't heal.
-      }
-      else
-      {
       }
     }
 

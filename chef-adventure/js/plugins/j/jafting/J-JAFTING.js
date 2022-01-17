@@ -615,7 +615,7 @@ Game_System.prototype.initJaftingMembers = function()
    * Whether or not the JAFTING flow is executing.
    * @type {boolean}
    */
-  this._j._jafting._callJafting = false;
+  this._j._jafting._isJafting = false;
 
   /**
    * The collection of all jafting recipes extracted from the database.
@@ -641,7 +641,7 @@ Game_System.prototype.initJaftingMembers = function()
  */
 Game_System.prototype.startJafting = function()
 {
-  this._j._jafting._callJafting = true;
+  this._j._jafting._isJafting = true;
 };
 
 /**
@@ -649,7 +649,7 @@ Game_System.prototype.startJafting = function()
  */
 Game_System.prototype.endJafting = function()
 {
-  this._j._jafting._callJafting = false;
+  this._j._jafting._isJafting = false;
 };
 
 /**
@@ -658,7 +658,7 @@ Game_System.prototype.endJafting = function()
  */
 Game_System.prototype.isJafting = function()
 {
-  return this._j._jafting._callJafting;
+  return this._j._jafting._isJafting;
 };
 
 /**
@@ -674,10 +674,7 @@ Game_System.prototype.getCategoryByKey = function(key)
 
 /**
  * Unlocks/adds a new category to the list of available categories.
- * @param {string} name The name that shows up in the category list column.
  * @param {string} key The unique identifier of this category.
- * @param {number} iconIndex The index of the icon that shows up in the category list.
- * @param {string} description The visual description that shows up in the help text box for this category.
  */
 Game_System.prototype.unlockCategory = function(key)
 {
@@ -1107,12 +1104,10 @@ Scene_Map.prototype.update = function()
   if ($gameSystem.isJafting())
   {
     this.manageJaftingMenu();
-    this.hideNonJaftingWindows();
   }
   else
   {
     this.hideAllJaftingWindows();
-    this.showNonJaftingWindows();
   }
 };
 
@@ -1182,30 +1177,6 @@ Scene_Map.prototype.setCurrentRecipe = function(recipe)
 Scene_Map.prototype.getCurrentRecipe = function()
 {
   return this._j._jaftingMenu._currentRecipe;
-};
-
-/**
- * Hides all non-JAFTING windows that may overlap with the JAFTING windows.
- */
-Scene_Map.prototype.hideNonJaftingWindows = function()
-{
-  if (J.HUD)
-  {
-    $hudManager.requestHideHud();
-  }
-  if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(false);
-};
-
-/**
- * Shows the various non-JAFTING hud-type windows.
- */
-Scene_Map.prototype.showNonJaftingWindows = function()
-{
-  if (J.HUD)
-  {
-    $hudManager.requestShowHud();
-  }
-  if (J.KEYS && J.KEYS.Metadata.Enabled) this.toggleKeys(true);
 };
 
 /**

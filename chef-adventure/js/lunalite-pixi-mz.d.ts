@@ -11628,8 +11628,7 @@ declare namespace PIXI {
         contains(x: number, y: number): boolean;
     }
     /**
-     * Application plugin for supporting loader option. Installing the LoaderPlugin
-     * is not necessary if using **pixi.js.old** or **pixi.js.old-legacy**.
+     * Application plugin for supporting loader option.
      * @example
      * import {AppLoaderPlugin} from '@pixi/loaders';
      * import {Application} from '@pixi/app';
@@ -29185,6 +29184,11 @@ declare namespace rm.types {
  * @class Game_Action
  */
 declare class Game_Action {
+    /**
+     *
+     * @param {Game_Actor|Game_Enemy} subject The caster of this action.
+     * @param {boolean} forcing Whether or not this is a forced action.
+     */
 	constructor(subject: Game_Battler, forcing: boolean);
 	_subjectActorId: number;
 	_subjectEnemyIndex: number;
