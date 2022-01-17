@@ -330,7 +330,6 @@ Game_Action.prototype.getApplicableElements = function(target)
 
   // filter the action's elements down by what is available according to the strict elements.
   const restrictedElements = elements.filter(attackElementId => targetStrictElements.includes(attackElementId));
-
   return restrictedElements;
 };
 

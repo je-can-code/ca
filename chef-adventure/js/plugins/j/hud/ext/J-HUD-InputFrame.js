@@ -79,56 +79,6 @@ J.HUD.EXT_INPUT.Aliased = {
   Scene_Map: new Map(),
 };
 //#endregion metadata
-
-//#region plugin commands
-/**
- * Plugin command for hiding the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideHud", () =>
-{
-  $hudManager.requestHideHud();
-});
-
-/**
- * Plugin command for showing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showHud", () =>
-{
-  $hudManager.requestShowHud();
-});
-
-/**
- * Plugin command for hiding allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideAllies", () =>
-{
-  $hudManager.requestHideAllies();
-});
-
-/**
- * Plugin command for showing allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showAllies", () =>
-{
-  $hudManager.requestShowAllies();
-});
-
-/**
- * Plugin command for refreshing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshHud", () =>
-{
-  $hudManager.requestRefreshHud();
-});
-
-/**
- * Plugin command for refreshing the hud's image cache.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshImageCache", () =>
-{
-  $hudManager.requestRefreshImageCache();
-});
-//#endregion plugin commands
 //#endregion introduction
 
 //#region Scene objects
@@ -215,10 +165,13 @@ Scene_Map.prototype.handleInputFrameUpdate = function()
 {
   // handles incoming requests to refresh the input frame.
   this.handleRefreshInputFrame();
+
+  //
+  this.handleVisibilityInputFrame();
 };
 
 /**
- * Processes incoming requests regarding the input frame.
+ * Processes incoming requests regarding refreshing the input frame.
  */
 Scene_Map.prototype.handleRefreshInputFrame = function()
 {
@@ -230,6 +183,25 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
 
     // let the hud manager know we've done the deed.
     $hudManager.acknowledgeRefreshInputFrame();
+  }
+};
+
+/**
+ * Processes incoming requests regarding the input frame.
+ */
+Scene_Map.prototype.handleVisibilityInputFrame = function()
+{
+  // handles incoming requests to refresh the input frame.
+  if ($hudManager.canShowHud())
+  {
+    // hide the input frame.
+    this._j._inputFrame.show();
+  }
+  else
+  {
+    // show the input frame.
+    this._j._inputFrame.hide();
+    this._j._inputFrame.hideSprites();
   }
 };
 
@@ -1646,6 +1618,17 @@ class Window_InputFrame extends Window_Frame
   };
 
   /**
+   * Hide all sprites for the hud.
+   */
+  hideSprites()
+  {
+    // hide all the sprites.
+    this._j._spriteCache.forEach((sprite, _) => sprite.hide());
+
+    this.requestInternalRefresh();
+  };
+
+  /**
    * Updates the logic for this window frame.
    */
   updateFrame()
@@ -1653,9 +1636,102 @@ class Window_InputFrame extends Window_Frame
     // perform original logic.
     super.updateFrame();
 
+    // handle the visibility of the hud for dynamic interferences.
+    this.manageVisibility();
+
+    console.log($hudManager.canShowHud());
     // draw the contents.
     this.drawInputFrame();
   };
+
+  //#region visibility
+  /**
+   * Manages visibility for the hud.
+   */
+  manageVisibility()
+  {
+    // handle interference from the message window popping up.
+    this.handleMessageWindowInterference();
+
+    // check if the player is interfering with visibility.
+    if (this.playerInterference())
+    {
+      // if so, adjust opacity accordingly.
+      this.handlePlayerInterference();
+    }
+    // the player isn't interfering.
+    else
+    {
+      // undo the opacity changes.
+      this.revertInterferenceOpacity();
+    }
+  };
+
+  /**
+   * Close and open the window based on whether or not the message window is up.
+   */
+  handleMessageWindowInterference()
+  {
+    // check if the message window is up.
+    if ($gameMessage.isBusy())
+    {
+      // check to make sure we haven't closed this window yet.
+      if (!this.isClosed())
+      {
+        // hide all the sprites.
+        this.hideSprites();
+
+        // and close the window.
+        this.close();
+      }
+    }
+    // otherwise, the message window isn't there.
+    else
+    {
+      // just open the window.
+      this.open();
+    }
+  };
+
+  /**
+   * Determines whether or not the player is in the way (or near it) of this window.
+   * @returns {boolean} True if the player is in the way, false otherwise.
+   */
+  playerInterference()
+  {
+    const playerX = $gamePlayer.screenX();
+    const playerY = $gamePlayer.screenY();
+    return (playerX < this.width+100) && (playerY < this.height+100);
+  };
+
+  /**
+   * Manages opacity for all sprites while the player is interfering with the visibility.
+   */
+  handlePlayerInterference()
+  {
+    this._j._spriteCache.forEach((sprite, _) =>
+    {
+      // if we are above 64, rapidly decrement by -15 until we get below 64.
+      if (sprite.opacity > 64) sprite.opacity -= 15;
+      // if we are below 64, increment by +1 until we get to 64.
+      else if (sprite.opacity < 64) sprite.opacity += 1;
+    });
+  };
+
+  /**
+   * Reverts the opacity changes associated with the player getting in the way.
+   */
+  revertInterferenceOpacity()
+  {
+    this._j._spriteCache.forEach((sprite, _) =>
+    {
+      // if we are below 255, rapidly increment by +15 until we get to 255.
+      if (sprite.opacity < 255) sprite.opacity += 15;
+      // if we are above 255, set to 255.
+      else if (sprite.opacity > 255) sprite.opacity = 255;
+    });
+  };
+  //#endregion visibility
 
   /**
    * The rough estimate of width for a single input key and all its subsprites.
@@ -1673,6 +1749,8 @@ class Window_InputFrame extends Window_Frame
   {
     // don't draw if we don't need to draw.
     if (!this.canDrawInputFrame()) return;
+
+    console.log('drew input frame');
 
     // wipe the drawn contents.
     this.contents.clear();
@@ -1706,6 +1784,12 @@ class Window_InputFrame extends Window_Frame
   {
     // if the leader is not present or available, we cannot draw.
     if (!$gameParty.leader()) return false;
+
+    // if we cannot draw the hud, we cannot draw.
+    if (!$hudManager.canShowHud()) return false;
+
+    // if we are JAFTING, we cannot draw.
+    if ($gameSystem.isJafting()) return false;
 
     // if we don't need to draw it, we cannot draw.
     if (!this.needsInternalRefresh()) return false;

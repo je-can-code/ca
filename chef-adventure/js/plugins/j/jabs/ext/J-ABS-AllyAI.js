@@ -938,108 +938,64 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
 };
 
 /**
- * Extend the pre-action movement decision phase to also handle ally movement.
- */
-J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase1Movement', JABS_AiManager.decideAiPhase1Movement);
-JABS_AiManager.decideAiPhase1Movement = function(battler)
-{
-  battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase1Movement').call(this, battler)
-    : this.decideAllyAiPhase1Movement(battler);
-};
-
-/**
- * Executes a movement based on phase and ally AI against it's target.
- * @param {JABS_Battler} battler The battler deciding it's phase 1 movement.
- */
-JABS_AiManager.decideAllyAiPhase1Movement = function(battler)
-{
-  const distance = battler.distanceToCurrentTarget();
-  if (distance === null) return;
-
-  // will try to maintain a comfortable distance from the target.
-  if (JABS_Battler.isClose(distance))
-  {
-    battler.moveAwayFromTarget();
-  }
-  else if (JABS_Battler.isFar(distance))
-  {
-    battler.smartMoveTowardTarget();
-  }
-
-  battler.turnTowardTarget();
-};
-
-/**
  * Extend the action decision phase to also handle ally decision-making.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
 J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
-  battler.isEnemy()
-    ? J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler)
-    : this.decideAllyAiPhase2Action(battler);
+  if (battler.isEnemy())
+  {
+    J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
+  }
+  else
+  {
+    this.decideAllyAiPhase2Action(battler);
+  }
 };
 
 /**
  * The ally battler decides what action to take.
  * Based on it's AI traits, it will make a decision on an action to take.
- * @param {JABS_Battler} allyBattler The ally battler deciding the action.
+ * @param {JABS_Battler} jabsBattler The ally battler deciding the action.
  */
-JABS_AiManager.decideAllyAiPhase2Action = function(allyBattler)
+JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
 {
-  const battler = allyBattler.getBattler();
-  const allyAi = allyBattler.getAllyAiMode();
+  // grab the battler as a variable.
+  const battler = jabsBattler.getBattler();
 
   // get all slots that have skills in them.
   const validSkillSlots = battler.getValidSkillSlotsForAlly();
 
   // convert the slots into their respective skill ids.
-  const currentlyEquippedSkillIds = validSkillSlots
-    .map(skillSlot => skillSlot.id);
+  const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
 
   // decide the action based on the ally ai mode currently assigned.
-  const decidedSkillId = allyAi.decideAction(currentlyEquippedSkillIds, allyBattler, allyBattler.getTarget());
-  if (!decidedSkillId || !battler.canPaySkillCost($dataSkills[decidedSkillId]))
+  const decidedSkillId = jabsBattler.getAllyAiMode()
+    .decideAction(
+      currentlyEquippedSkillIds,
+      jabsBattler,
+      jabsBattler.getTarget());
+
+  // check if we have a skill and can pay its cost.
+  if (!decidedSkillId)// || !jabsBattler.canExecuteSkill(decidedSkillId))
   {
     // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
-    allyBattler.resetPhases();
+    jabsBattler.resetPhases();
     return;
   }
 
   // determine the slot to apply the cooldown to.
   const decidedSkillSlot = battler.findSlotForSkillId(decidedSkillId);
 
+  // build the cooldown from the skill.
+  const cooldownKey = decidedSkillSlot.key;
+
   // setup the action for use!
-  this.setupAllyActionForNextPhase(allyBattler, decidedSkillId, decidedSkillSlot);
+  this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
 };
 
-/**
- * Sets up the battler and the action in preparation for the next phase.
- * For allies, this also applies the cooldown as-expected.
- * @param {JABS_Battler} battler The battler performing the action.
- * @param {number} chosenSkillId The id of the skill to perform the action for.
- * @param {string} chosenSkillSlot The slot of the skill to perform the action for.
- */
-JABS_AiManager.setupAllyActionForNextPhase = function(battler, chosenSkillId, chosenSkillSlot)
-{
-  const mapActions = battler.createJabsActionFromSkill(chosenSkillId);
-  const primaryMapAction = mapActions[0];
-  mapActions.forEach(action => action.setCooldownType(chosenSkillSlot.key));
-  battler.setDecidedAction(mapActions);
-  if (primaryMapAction.isSupportAction())
-  {
-    battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)
-  }
-  else
-  {
-    battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
-  }
-
-  battler.setWaitCountdown(20);
-  battler.setCastCountdown(primaryMapAction.getCastTime());
-};
+JABS_AiManager.canSetupActionForNextPhase()
 //#endregion JABS_AiManager
 
 //#region JABS_AllyAI
@@ -1184,7 +1140,9 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
     case JABS_AllyAI.modes.DO_NOTHING.key:
       return this.decideDoNothing(attacker);
     case JABS_AllyAI.modes.BASIC_ATTACK.key:
-      return this.decideBasicAttack(availableSkills, attacker);
+      const result = this.decideBasicAttack(availableSkills, attacker);
+      console.log(result);
+      return result;
     case JABS_AllyAI.modes.VARIETY.key:
       return this.decideVariety(availableSkills, attacker, target);
     case JABS_AllyAI.modes.FULL_FORCE.key:
@@ -1216,7 +1174,7 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
  * Only uses the "mainhand" slotted skill. If no skill is equipped in that slot, then returns nothing.
  * @param {number[]} availableSkills The skill ids available to choose from.
  * @param {JABS_Battler} attacker The battler choosing the skill.
- * @returns {number?}
+ * @returns {number|null}
  */
 JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
 {
@@ -1224,7 +1182,7 @@ JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
   const basicAttackSkillId = availableSkills
     .find(id => attacker
       .getBattler()
-      .findSlotForSkillId(id).key === Game_Actor.JABS_MAINHAND);
+      .findSlotForSkillId(id).key === JABS_Button.Main);
 
   // if the battler doesn't have a mainhand equipped, then do nothing.
   if (!basicAttackSkillId) return null;
@@ -1307,7 +1265,7 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
  */
 JABS_AllyAI.prototype.decideFullForce = function(availableSkills, attacker, target)
 {
-  let chosenSkillId = 0;
+  let chosenSkillId;
   let tempAvailableSkills = availableSkills;
 
   // grab all memories that this battler has of the target.

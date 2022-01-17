@@ -198,17 +198,20 @@ class Hud_Manager
       this.#showHud();
       this.requestRefreshHud();
     }
-    else if (this.#hasRequestHideHud())
+
+    if (this.#hasRequestHideHud())
     {
       this.#hideHud();
       this.requestRefreshHud();
     }
-    else if (this.#hasRequestShowAllies())
+
+    if (this.#hasRequestShowAllies())
     {
       this.#showAllies();
       this.requestRefreshHud();
     }
-    else if (this.#hasRequestHideAllies())
+
+    if (this.#hasRequestHideAllies())
     {
       this.#hideAllies();
       this.requestRefreshHud();
@@ -795,7 +798,7 @@ class Window_Frame extends Window_Base
 
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_AbilityCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
   };
