@@ -438,17 +438,21 @@ DataManager.isDatabaseLoaded = function()
 };
 
 /**
- * Loads all extra data from notes and such into the various database objects.
+ * Rewrites the JSON objects extracted from the database and replaces them
+ * with proper extendable classes.
  */
 DataManager.rewriteDatabaseData = function()
 {
   if (!DataManager._j._baseDataProcessed)
   {
     this.rewriteActorData();
+    this.rewriteArmorData();
     this.rewriteClassData();
     this.rewriteEnemyData();
+    this.rewriteItemData();
     this.rewriteSkillData();
     this.rewriteStateData();
+    this.rewriteWeaponData();
     this._j._baseDataProcessed = true;
   }
 };
@@ -499,6 +503,51 @@ DataManager.actorRewriteClass = function()
 };
 
 /**
+ * Overwrites all armors used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with armors.
+ */
+DataManager.rewriteArmorData = function()
+{
+  // start up a new collection of armors.
+  const classifiedArmors = [];
+
+  // iterate over each armor from the database.
+  $dataArmors.forEach((armor, index) =>
+  {
+    // check if the entry is null; index 0 always is.
+    if (!armor)
+    {
+      // we should keep the same indexing structure.
+      classifiedArmors.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite armors with.
+    const armor_class = this.armorRewriteClass();
+
+    // fill out this array like $dataArmors normally is filled out.
+    classifiedArmors.push(new armor_class(armor, index));
+  });
+
+  // OVERWRITE the $dataArmors object with this new armors array!
+  $dataArmors = classifiedArmors;
+};
+
+/**
+ * Gets the class reference to use when rewriting armors.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteArmorData()` for an example.
+ * @returns {RPG_Armor} The class reference.
+ */
+DataManager.armorRewriteClass = function()
+{
+  return RPG_Armor;
+};
+
+/**
  * Overwrites all class used by JABS and replaces them with extendable classes!
  * These operate exactly as they used to, but now give developers a bit more of
  * an interface to work when coding with classes.
@@ -536,7 +585,7 @@ DataManager.rewriteClassData = function()
  * Gets the class reference to use when rewriting classes.
  * The return value of this class should be stored and re-used with
  * the `new` operator; see `DataManager.rewriteClassData()` for an example.
- * @returns {RPG_Enemy} The class reference.
+ * @returns {RPG_Class} The class reference.
  */
 DataManager.classRewriteClass = function()
 {
@@ -586,6 +635,51 @@ DataManager.rewriteEnemyData = function()
 DataManager.enemyRewriteClass = function()
 {
   return RPG_Enemy;
+};
+
+/**
+ * Overwrites all items used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with items.
+ */
+DataManager.rewriteItemData = function()
+{
+  // start up a new collection of items.
+  const classifiedItems = [];
+
+  // iterate over each item from the database.
+  $dataItems.forEach((item, index) =>
+  {
+    // check if the enemy is null; index 0 always is.
+    if (!item)
+    {
+      // we should keep the same indexing structure.
+      classifiedItems.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite items with.
+    const item_class = this.itemRewriteClass();
+
+    // fill out this array like $dataItems normally is filled out.
+    classifiedItems.push(new item_class(item, index));
+  });
+
+  // OVERWRITE the $dataItems object with this new enemies array!
+  $dataItems = classifiedItems;
+};
+
+/**
+ * Gets the class reference to use when rewriting enemies.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteItemData()` for an example.
+ * @returns {RPG_Item} The class reference.
+ */
+DataManager.itemRewriteClass = function()
+{
+  return RPG_Item;
 };
 
 /**
@@ -676,6 +770,51 @@ DataManager.rewriteStateData = function()
 DataManager.stateRewriteClass = function()
 {
   return RPG_State;
+};
+
+/**
+ * Overwrites all weapons used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with weapons.
+ */
+DataManager.rewriteWeaponData = function()
+{
+  // start up a new collection of weapons.
+  const classifiedWeapons = [];
+
+  // iterate over each weapon from the database.
+  $dataWeapons.forEach((weapon, index) =>
+  {
+    // check if the skill is null; index 0 always is.
+    if (!weapon)
+    {
+      // we should keep the same indexing structure.
+      classifiedWeapons.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite weapons with.
+    const weapon_class = this.weaponRewriteClass();
+
+    // fill out this array like $dataWeapons normally is filled out.
+    classifiedWeapons.push(new weapon_class(weapon, index));
+  });
+
+  // OVERWRITE the $dataWeapons object with this new skills array!
+  $dataWeapons = classifiedWeapons;
+};
+
+/**
+ * Gets the class reference to use when rewriting weapons.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteWeaponData()` for an example.
+ * @returns {RPG_Weapon} The class reference.
+ */
+DataManager.weaponRewriteClass = function()
+{
+  return RPG_Weapon;
 };
 //#endregion DataManager
 
@@ -4805,7 +4944,7 @@ Window_Selectable.prototype.onIndexChange = function()
 //#endregion Window objects
 
 //#region RPG objects
-//#region RPG pieces
+//#region RPG data
 //#region RPG_ClassLearning
 /**
  * A class representing a single learning of a skill for a class from the database.
@@ -5034,9 +5173,56 @@ class RPG_Trait
   };
 }
 //#endregion RPG_Trait
-//#endregion RPG pieces
 
-//#region RPG classes
+//#region RPG_UsableEffect
+/**
+ * A class representing a single effect on an item or skill from the database.
+ */
+class RPG_UsableEffect
+{
+  //#region properties
+  /**
+   * The type of effect this is.
+   * @type {number}
+   */
+  code = 0;
+
+  /**
+   * The dataId further defines what type of effect this is.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The first value parameter of the effect.
+   * @type {number}
+   */
+  value1 = 0;
+
+  /**
+   * The second value parameter of the effect.
+   * @type {number}
+   */
+  value2 = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Effect} effect The effect to parse.
+   */
+  constructor(effect)
+  {
+    // map the data.
+    this.code = effect.code;
+    this.dataId = effect.dataId;
+    this.value1 = effect.value1;
+    this.value2 = effect.value2;
+  };
+}
+//#endregion RPG_UsableEffect
+//#endregion RPG data
+
+//#region RPG base classes
 //#region RPG_Base
 /**
  * A class representing the foundation of all database objects.
@@ -5103,6 +5289,15 @@ class RPG_Base
   };
 
   /**
+   * Retrieves the index of this entry in the database.
+   * @returns {number}
+   */
+  _index()
+  {
+    return this.#index;
+  };
+
+  /**
    * Retrieves the original underlying data that was passed to this
    * wrapper from the database.
    * @returns {any}
@@ -5110,6 +5305,27 @@ class RPG_Base
   _original()
   {
     return this.#original;
+  };
+
+  /**
+   * Creates a new instance of this wrapper class with all the same
+   * database data that this one contains.
+   * @returns {this}
+   */
+  _clone()
+  {
+    // generate a new instance with the same data as the original.
+    const clone = new this.constructor(this._original(), this._index());
+
+    // check if there is an underlying _j data point.
+    if (this._j)
+    {
+      // clone that too if it exists.
+      clone._j = this._j;
+    }
+
+    // return the newly created copy.
+    return clone;
   };
 
   //#region meta
@@ -5421,6 +5637,148 @@ class RPG_TraitItem extends RPG_BaseItem
 }
 //#endregion RPG_TraitItem
 
+//#region RPG_EquipItem
+/**
+ * A base class representing containing common properties found in both
+ * weapons and armors.
+ */
+class RPG_EquipItem extends RPG_TraitItem
+{
+  //#region properties
+  /**
+   * The type of equip this is.
+   * This number is the index that maps to your equip types.
+   * @type {number}
+   */
+  etypeId = 1;
+
+  /**
+   * The core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [1, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The price of this equip.
+   * @type {number}
+   */
+  price = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.EquipItem} equip The equip to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(equip, index)
+  {
+    // supply the base class params.
+    super(equip, index);
+
+    // map the data.
+    this.etypeId = equip.etypeId;
+    this.params = equip.params;
+    this.price = equip.price;
+  };
+}
+//#endregion RPG_EquipItem
+
+//#region RPG_UsableItem
+/**
+ * A class representing the base properties for any usable item or skill
+ * from the database.
+ */
+class RPG_UsableItem extends RPG_BaseItem
+{
+  //#region properties
+  /**
+   * The animation id to execute for this skill.
+   * @type {number}
+   */
+  animationId = -1;
+
+  /**
+   * The damage data for this skill.
+   * @type {RPG_SkillDamage}
+   */
+  damage = null;
+
+  /**
+   * The various effects of this skill.
+   * @type {RPG_UsableEffect[]}
+   */
+  effects = [];
+
+  /**
+   * The hit type of this skill.
+   * @type {number}
+   */
+  hitType = 0;
+
+  /**
+   * The occasion type when this skill can be used.
+   * @type {number}
+   */
+  occasion = 0;
+
+  /**
+   * The number of times this skill repeats.
+   * @type {number}
+   */
+  repeats = 1;
+
+  /**
+   * The scope of this skill.
+   * @type {number}
+   */
+  scope = 0;
+
+  /**
+   * The speed bonus of this skill.
+   * @type {number}
+   */
+  speed = 0;
+
+  /**
+   * The % chance of success for this skill.
+   * @type {number}
+   */
+  successRate = 100;
+
+  /**
+   * The amount of TP gained from executing this skill.
+   * @type {number}
+   */
+  tpGain = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.UsableItem} usableItem The usable item to parse.
+   * @param {number} index The index of the skill in the database.
+   */
+  constructor(usableItem, index)
+  {
+    // supply the base class params.
+    super(usableItem, index);
+
+    // map the data.
+    this.animationId = usableItem.animationId;
+    this.damage = new RPG_SkillDamage(usableItem.damage);
+    this.effects = usableItem.effects.map(effect => new RPG_UsableEffect(effect));
+    this.hitType = usableItem.hitType;
+    this.occasion = usableItem.occasion;
+    this.repeats = usableItem.repeats;
+    this.scope = usableItem.scope;
+    this.speed = usableItem.speed;
+    this.successRate = usableItem.successRate;
+    this.tpGain = usableItem.tpGain;
+  };
+}
+//#endregion RPG_UsableItem
+
 //#region RPG_BaseBattler
 /**
  * A class representing the groundwork for what all battlers
@@ -5458,7 +5816,9 @@ class RPG_BaseBattler extends RPG_Base
   };
 }
 //#endregion RPG_BaseBattler
+//#endregion RPG base classes
 
+//#region RPG implementations
 //#region RPG_Actor
 /**
  * A class representing a single actor battler's data from the database.
@@ -5555,6 +5915,37 @@ class RPG_Actor extends RPG_BaseBattler
   };
 }
 //#endregion RPG_Actor
+
+//#region RPG_Armor
+/**
+ * A class representing a single armor from the database.
+ */
+class RPG_Armor extends RPG_EquipItem
+{
+  //#region properties
+  /**
+   * The type of armor this is.
+   * This number is the index that maps to your armor types.
+   * @type {number}
+   */
+  atypeId = 1;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Armor} armor The armor to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(armor, index)
+  {
+    // supply the base class params.
+    super(armor, index);
+
+    // map the data.
+    this.atypeId = armor.atypeId;
+  };
+}
+//#endregion RPG_Armor
 
 //#region RPG_Class
 /**
@@ -5664,10 +6055,10 @@ class RPG_Enemy extends RPG_BaseBattler
    */
   constructor(enemyBattler, index)
   {
-    // perform original logic.
+    // supply the base class params.
     super(enemyBattler, index);
 
-    // map enemy-specific battler properties.
+    // map the data.
     this.actions = enemyBattler.actions
       .map(enemyAction => new RPG_EnemyAction(enemyAction));
     this.battlerHue = enemyBattler.battlerHue;
@@ -5680,11 +6071,56 @@ class RPG_Enemy extends RPG_BaseBattler
 }
 //#endregion RPG_Enemy
 
+//#region RPG_Item
+/**
+ * A class representing a single item entry from the database.
+ */
+class RPG_Item extends RPG_UsableItem
+{
+  //#region properties
+  /**
+   * Whether or not this item is removed after using it.
+   * @type {boolean}
+   */
+  consumable = true;
+
+  /**
+   * The type of item this is:
+   * 0 for regular item, 1 for key item, 2 for hiddenA, 3 for hiddenB.
+   * @type {number}
+   */
+  itypeId = 1;
+
+  /**
+   * The price of this item.
+   * @type {number}
+   */
+  price = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Item} item The item to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(item, index)
+  {
+    // supply the base class params.
+    super(item, index);
+
+    // map the data.
+    this.consumable = item.consumable;
+    this.itypeId = item.itypeId;
+    this.price = item.price;
+  };
+}
+//#endregion RPG_Item
+
 //#region RPG_Skill
 /**
  * An class representing a single skill from the database.
  */
-class RPG_Skill extends RPG_BaseItem
+class RPG_Skill extends RPG_UsableItem
 {
   //#region properties
   /**
@@ -5804,30 +6240,18 @@ class RPG_Skill extends RPG_BaseItem
    */
   constructor(skill, index)
   {
-    // perform original logic.
+    // supply the base class params.
     super(skill, index);
 
-    // map the skill's data points 1:1.
-    this.animationId = skill.animationId;
-    this.effects = skill.effects;
-    this.hitType = skill.hitType;
+    // map the data.
     this.message1 = skill.message1;
     this.message2 = skill.message2;
     this.messageType = skill.messageType;
     this.mpCost = skill.mpCost;
-    this.occasion = skill.occasion;
-    this.repeats = skill.repeats;
     this.requiredWtypeId1 = skill.requiredWtypeId1;
     this.requiredWtypeId2 = skill.requiredWtypeId2;
-    this.scope = skill.scope;
-    this.speed = skill.speed;
     this.stypeId = skill.stypeId;
-    this.successRate = skill.successRate;
     this.tpCost = skill.tpCost;
-    this.tpGain = skill.tpGain;
-
-    // map the skill's damage object, which is another custom class.
-    this.damage = new RPG_SkillDamage(skill.damage);
   };
 }
 //#endregion RPG_Skill
@@ -6000,6 +6424,44 @@ class RPG_State extends RPG_TraitItem
   };
 }
 //#endregion RPG_State
-//#endregion RPG classes
+
+//#region RPG_Weapon
+/**
+ * A class representing a single weapon from the database.
+ */
+class RPG_Weapon extends RPG_EquipItem
+{
+  //#region properties
+  /**
+   * The animation id for this weapon.
+   * @type {number}
+   */
+  animationId = -1;
+
+  /**
+   * The type of weapon this is.
+   * This number is the index that maps to your weapon types.
+   * @type {number}
+   */
+  wtypeId = 1;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Weapon} weapon The weapon to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(weapon, index)
+  {
+    // supply the base class params.
+    super(weapon, index);
+
+    // map the data.
+    this.animationId = weapon.animationId;
+    this.wtypeId = weapon.wtypeId;
+  };
+}
+//#endregion RPG_Weapon
+//#endregion RPG implementations
 //#endregion RPG objects
 //ENDFILE
