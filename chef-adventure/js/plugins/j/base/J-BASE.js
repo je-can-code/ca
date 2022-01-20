@@ -296,17 +296,6 @@ J.BASE.Helpers.generateUuid = function()
 };
 
 /**
- * Confirms the existence of a given file.
- * @param {string} path The path of the file we're checking.
- * @returns {boolean} True if the file exists, false otherwise.
- */
-J.BASE.Helpers.checkFile = function(path)
-{
-  const fs = require('fs');
-  return fs.existsSync(path);
-};
-
-/**
  * Updates the value of a numeric variable by a given amount.
  *
  * NOTE: This assumes the variable contains only a number.
@@ -455,10 +444,148 @@ DataManager.rewriteDatabaseData = function()
 {
   if (!DataManager._j._baseDataProcessed)
   {
+    this.rewriteActorData();
+    this.rewriteClassData();
+    this.rewriteEnemyData();
     this.rewriteSkillData();
     this.rewriteStateData();
     this._j._baseDataProcessed = true;
   }
+};
+
+/**
+ * Overwrites all actors used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with actors.
+ */
+DataManager.rewriteActorData = function()
+{
+  // start up a new collection of actors.
+  const classifiedActors = [];
+
+  // iterate over each actor from the database.
+  $dataActors.forEach((actor, index) =>
+  {
+    // check if the actor is null; index 0 always is.
+    if (!actor)
+    {
+      // we should keep the same indexing structure.
+      classifiedActors.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite enemies with.
+    const actor_class = this.actorRewriteClass();
+
+    // fill out this array like $dataActors normally is filled out.
+    classifiedActors.push(new actor_class(actor, index));
+  });
+
+  // OVERWRITE the $dataActors object with this new actors array!
+  $dataActors = classifiedActors;
+};
+
+/**
+ * Gets the class reference to use when rewriting actors.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteActorData()` for an example.
+ * @returns {RPG_Enemy} The class reference.
+ */
+DataManager.actorRewriteClass = function()
+{
+  return RPG_Actor;
+};
+
+/**
+ * Overwrites all class used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with classes.
+ */
+DataManager.rewriteClassData = function()
+{
+  // start up a new collection of classes.
+  const classifiedClasses = [];
+
+  // iterate over each class from the database.
+  $dataClasses.forEach((klass, index) =>
+  {
+    // check if the actor is null; index 0 always is.
+    if (!klass)
+    {
+      // we should keep the same indexing structure.
+      classifiedClasses.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite enemies with.
+    const class_class = this.classRewriteClass();
+
+    // fill out this array like $dataClasses normally is filled out.
+    classifiedClasses.push(new class_class(klass, index));
+  });
+
+  // OVERWRITE the $dataClasses object with this new actors array!
+  $dataClasses = classifiedClasses;
+};
+
+/**
+ * Gets the class reference to use when rewriting classes.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteClassData()` for an example.
+ * @returns {RPG_Enemy} The class reference.
+ */
+DataManager.classRewriteClass = function()
+{
+  return RPG_Class;
+};
+
+/**
+ * Overwrites all enemies used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with enemies.
+ */
+DataManager.rewriteEnemyData = function()
+{
+  // start up a new collection of enemies.
+  const classifiedEnemies = [];
+
+  // iterate over each enemy from the database.
+  $dataEnemies.forEach((enemy, index) =>
+  {
+    // check if the enemy is null; index 0 always is.
+    if (!enemy)
+    {
+      // we should keep the same indexing structure.
+      classifiedEnemies.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite enemies with.
+    const enemy_class = this.enemyRewriteClass();
+
+    // fill out this array like $dataEnemies normally is filled out.
+    classifiedEnemies.push(new enemy_class(enemy, index));
+  });
+
+  // OVERWRITE the $dataEnemies object with this new enemies array!
+  $dataEnemies = classifiedEnemies;
+};
+
+/**
+ * Gets the class reference to use when rewriting enemies.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteEnemyData()` for an example.
+ * @returns {RPG_Enemy} The class reference.
+ */
+DataManager.enemyRewriteClass = function()
+{
+  return RPG_Enemy;
 };
 
 /**
@@ -4678,6 +4805,238 @@ Window_Selectable.prototype.onIndexChange = function()
 //#endregion Window objects
 
 //#region RPG objects
+//#region RPG pieces
+//#region RPG_ClassLearning
+/**
+ * A class representing a single learning of a skill for a class from the database.
+ */
+class RPG_ClassLearning
+{
+  //#region properties
+  /**
+   * The level that the owning class will learn the given skill.
+   * @type {number}
+   */
+  level = 0;
+
+  /**
+   * The skill to be learned when the owning class reaches the given level.
+   * @type {number}
+   */
+  skillId = 0;
+
+  /**
+   * The note data for this given learning.
+   * @type {string}
+   */
+  note = String.empty;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.ClassLearning} learning The class learning to parse.
+   */
+  constructor(learning)
+  {
+    // map the database data to this object.
+    this.level = learning.level;
+    this.skillId = learning.skillId;
+    this.note = learning.note;
+  };
+}
+//#endregion RPG_ClassLearning
+
+//#region RPG_DropItem
+/**
+ * A class representing a single drop item of an enemy from the database.
+ */
+class RPG_DropItem
+{
+  //#region properties
+  /**
+   * The id of the underlying item's entry in the database.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The drop chance value numeric field in the database.
+   * @type {number}
+   */
+  denominator = 0;
+
+  /**
+   * The type of drop this is:
+   * 0 being item, 1 being weapon, 2 being armor.
+   * @type {number}
+   */
+  kind = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
+   */
+  constructor(enemyDropItem)
+  {
+    // map the enemy drop to this object.
+    this.dataId = enemyDropItem.dataId;
+    this.denominator = enemyDropItem.denominator;
+    this.kind = enemyDropItem.kind;
+  };
+}
+//#endregion RPG_DropItem
+
+//#region RPG_EnemyAction
+/**
+ * A class representing a single enemy action from the database.
+ */
+class RPG_EnemyAction
+{
+  //#region properties
+  /**
+   * The first parameter of the condition configuration.
+   * @type {number}
+   */
+  conditionParam1 = 0;
+
+  /**
+   * The second parameter of the condition configuration.
+   * @type {number}
+   */
+  conditionParam2 = 0;
+
+  /**
+   * The type of condition it is.
+   * @type {number}
+   */
+  conditionType = 0;
+
+  /**
+   * The weight or rating that this enemy will execute this skill.
+   * @type {number}
+   */
+  rating = 5;
+
+  /**
+   * The skill id associated with the action.
+   * @type {number}
+   */
+  skillId = 1;
+  //endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.EnemyAction} enemyAction The action to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(enemyAction, index)
+  {
+    this.conditionParam1 = enemyAction.conditionParam1;
+    this.conditionParam2 = enemyAction.conditionParam2;
+    this.conditionType = enemyAction.conditionType;
+    this.rating = enemyAction.rating;
+    this.skillId = enemyAction.skillId;
+  };
+}
+//#endregion RPG_EnemyAction
+
+//#region RPG_SkillDamage
+/**
+ * The damage data for the skill, such as the damage formula or associated element.
+ */
+class RPG_SkillDamage
+{
+  //#region properties
+  /**
+   * Whether or not the damage can produce a critical hit.
+   * @type {boolean}
+   */
+  critical = false;
+
+  /**
+   * The element id associated with this damage.
+   * @type {number}
+   */
+  elementId = -1;
+
+  /**
+   * The formula to be evaluated in real time to determine damage.
+   * @type {string}
+   */
+  formula = String.empty;
+
+  /**
+   * The damage type this is, such as HP damage or MP healing.
+   * @type {1|2|3|4|5|6}
+   */
+  type = 1;
+
+  /**
+   * The % of variance this damage can have.
+   * @type {number}
+   */
+  variance = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the skill's damage properties into this object.
+   * @param {rm.types.Damage} damage The original damage object to map.
+   */
+  constructor(damage)
+  {
+    this.critical = damage.critical;
+    this.elementId = damage.elementId;
+    this.formula = damage.formula;
+    this.type = damage.type;
+    this.variance = damage.variance;
+  };
+}
+//#endregion RPG_SkillDamage
+
+//#region RPG_Trait
+/**
+ * A class representing a single trait living on one of the many types
+ * of database classes that leverage traits.
+ */
+class RPG_Trait
+{
+  /**
+   * The code that designates what kind of trait this is.
+   * @type {number}
+   */
+  code = 0;
+
+  /**
+   * The identifier that further defines the trait.
+   * Data type and usage depends on the code.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The value of the trait, for traits that have numeric values.
+   * Often is a floating point number to represent a percent multiplier.
+   * @type {number}
+   */
+  value = 1.00;
+
+  /**
+   * Constructor.
+   * @param {rm.types.Trait} trait The trait to parse.
+   */
+  constructor(trait)
+  {
+    this.code = trait.code;
+    this.dataId = trait.dataId;
+    this.value = trait.value;
+  };
+}
+//#endregion RPG_Trait
+//#endregion RPG pieces
+
+//#region RPG classes
 //#region RPG_Base
 /**
  * A class representing the foundation of all database objects.
@@ -4999,6 +5358,7 @@ class RPG_Base
 }
 //#endregion RPG_Base
 
+//#region RPG_BaseItem
 class RPG_BaseItem extends RPG_Base
 {
   /**
@@ -5029,34 +5389,7 @@ class RPG_BaseItem extends RPG_Base
     this.iconIndex = baseItem.iconIndex;
   };
 }
-
-class RPG_BaseBattler extends RPG_Base
-{
-  battlerName = String.empty;
-
-  /**
-   * Constructor.
-   * Maps the base battler data to the properties on this class.
-   * @param {rm.types.Enemy|rm.types.Actor} battler The battler to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(battler, index)
-  {
-    super(battler, index);
-
-
-  };
-}
-
-class RPG_Actor
-{
-
-}
-
-class RPG_Enemy
-{
-
-}
+//#endregion RPG_BaseItem
 
 //#region RPG_TraitItem
 /**
@@ -5083,59 +5416,269 @@ class RPG_TraitItem extends RPG_BaseItem
 
     // map the base item's traits.
     this.traits = baseItem.traits
-      .map(rawTrait => new RPG_Trait(rawTrait.code, rawTrait.dataId, rawTrait.value));
+      .map(trait => new RPG_Trait(trait));
   };
 }
 //#endregion RPG_TraitItem
 
-//#region RPG_Trait
+//#region RPG_BaseBattler
 /**
- * A class representing a single trait living on one of the many types
- * of database classes that leverage traits.
+ * A class representing the groundwork for what all battlers
+ * database data look like.
  */
-class RPG_Trait
+class RPG_BaseBattler extends RPG_Base
 {
   /**
-   * The code that designates what kind of trait this is.
-   * @type {number}
+   * The name of the battler while in battle.
+   * @type {string}
    */
-  code = 0;
+  battlerName = String.empty;
 
   /**
-   * The identifier that further defines the trait.
-   * Data type and usage depends on the code.
-   * @type {number}
+   * The collection of traits this battler has.
+   * @type {RPG_Trait[]}
    */
-  dataId = 0;
-
-  /**
-   * The value of the trait, for traits that have numeric values.
-   * Often is a floating point number to represent a percent multiplier.
-   * @type {number}
-   */
-  value = 1.00;
-  /**
-   * Constructor.
-   * Maps the state's properties into this object.
-   * @param {rm.types.State} state The underlying state object.
-   * @param {number} index The index of the state in the database.
-   */
+  traits = [];
 
   /**
    * Constructor.
-   * Maps the trait's properties into this object.
-   * @param {number} code The code of this trait.
-   * @param {number} dataId The dataId of this trait.
-   * @param {number} value The value of this trait.
+   * Maps the base battler data to the properties on this class.
+   * @param {rm.types.Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {number} index The index of the entry in the database.
    */
-  constructor(code, dataId, value)
+  constructor(battler, index)
   {
-    this.code = code;
-    this.dataId = dataId;
-    this.value = value;
+    // perform original logic.
+    super(battler, index);
+
+    // map core battler data onto this object.
+    this.battlerName = battler.battlerName;
+    this.traits = battler.traits
+      .map(trait => new RPG_Trait(trait));
   };
 }
-//#endregion RPG_Trait
+//#endregion RPG_BaseBattler
+
+//#region RPG_Actor
+/**
+ * A class representing a single actor battler's data from the database.
+ */
+class RPG_Actor extends RPG_BaseBattler
+{
+  //#region properties
+  /**
+   * The index of the character sprite of the battler
+   * on the spritesheet.
+   * @type {number}
+   */
+  characterIndex = 0;
+
+  /**
+   * The name of the file that the character sprite
+   * resides within.
+   * @type {string}
+   */
+  characterName = String.empty;
+
+  /**
+   * The id of the class that this actor currently is.
+   * @type {number}
+   */
+  classId = 0;
+
+  /**
+   * The ids of the equipment in the core equips slots
+   * of the actors from the database.
+   * @type {number[]}
+   */
+  equips = [0, 0, 0, 0, 0];
+
+  /**
+   * The index of the face sprite of this battler on
+   * the spritesheet.
+   * @type {number}
+   */
+  faceIndex = 0;
+
+  /**
+   * The name of the file that the face sprite resides
+   * within.
+   * @type {string}
+   */
+  faceName = String.empty;
+
+  /**
+   * The starting level for this actor in the database.
+   * @type {number}
+   */
+  initialLevel = 1;
+
+  /**
+   * The maximum level of this actor from the database.
+   * @type {number}
+   */
+  maxLevel = 99;
+
+  /**
+   * The nickname of this actor from the database.
+   * @type {string}
+   */
+  nickName = String.empty;
+
+  /**
+   * The profile multiline text for this actor in the database.
+   * @type {string}
+   */
+  profile = String.empty;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Actor} actorBattler The actor to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(actorBattler, index)
+  {
+    super(actorBattler, index);
+
+    // map actor-specific battler properties.
+    this.characterIndex = actorBattler.characterIndex;
+    this.characterName = actorBattler.characterName;
+    this.classId = actorBattler.classId;
+    this.equips = actorBattler.equips;
+    this.faceIndex = actorBattler.faceIndex;
+    this.faceName = actorBattler.faceName;
+    this.initialLevel = actorBattler.initialLevel;
+    this.maxLevel = actorBattler.maxLevel;
+    this.nickName = actorBattler.nickname;
+    this.profile = actorBattler.profile;
+  };
+}
+//#endregion RPG_Actor
+
+//#region RPG_Class
+/**
+ * A class representing a RPG-relevant class from the database.
+ */
+class RPG_Class extends RPG_Base
+{
+  //#region properties
+  /**
+   * The four data points that comprise the EXP curve for this class.
+   * @type {[number, number, number, number]}
+   */
+  expParams = [0, 0, 0, 0];
+
+  /**
+   * A collection of skill learning data points for this class.
+   * @type {RPG_ClassLearning[]}
+   */
+  learnings = [];
+
+  /**
+   * A multi-dimensional array of the core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order, but for all 100 of the base levels.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [[1], [0], [0], [0], [0], [0], [0], [0]];
+
+  /**
+   * A collection of traits this class has.
+   * @type {RPG_Trait[]}
+   */
+  traits = [];
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.RPGClass} classData The class data to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(classData, index)
+  {
+    // perform original logic.
+    super(classData, index);
+
+    // map the class data to this object.
+    this.expParams = classData.expParams;
+    this.learnings = classData.learnings
+      .map(learning => new RPG_ClassLearning(learning));
+    this.params = classData.params;
+    this.traits = classData.traits
+      .map(trait => new RPG_Trait(trait));
+  };
+}
+//#endregion RPG_Class
+
+//#region RPG_Enemy
+/**
+ * A class representing a single enemy battler's data from the database.
+ */
+class RPG_Enemy extends RPG_BaseBattler
+{
+  //#region properties
+  /**
+   * A collection of all actions that an enemy has assigned from the database.
+   * @type {RPG_EnemyAction[]}
+   */
+  actions = [];
+
+  /**
+   * The -255-0-255 hue of the battler sprite.
+   * @type {number}
+   */
+  battlerHue = 0;
+
+  /**
+   * A collection of all drop items this enemy can drop.
+   * @type {RPG_DropItem[]}
+   */
+  dropItems = [];
+
+  /**
+   * The base amount of experience this enemy grants upon defeat.
+   * @type {number}
+   */
+  exp = 0;
+
+  /**
+   * The base amount of gold this enemy grants upon defeat.
+   * @type {number}
+   */
+  gold = 0;
+
+  /**
+   * The core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Enemy} enemyBattler The enemy to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(enemyBattler, index)
+  {
+    // perform original logic.
+    super(enemyBattler, index);
+
+    // map enemy-specific battler properties.
+    this.actions = enemyBattler.actions
+      .map(enemyAction => new RPG_EnemyAction(enemyAction));
+    this.battlerHue = enemyBattler.battlerHue;
+    this.dropItems = enemyBattler.dropItems
+      .map(dropItem => new RPG_DropItem(dropItem));
+    this.exp = enemyBattler.exp;
+    this.gold = enemyBattler.gold;
+    this.params = enemyBattler.params;
+  };
+}
+//#endregion RPG_Enemy
 
 //#region RPG_Skill
 /**
@@ -5288,60 +5831,6 @@ class RPG_Skill extends RPG_BaseItem
   };
 }
 //#endregion RPG_Skill
-
-//#region RPG_SkillDamage
-/**
- * The damage data for the skill, such as the damage formula or associated element.
- */
-class RPG_SkillDamage
-{
-  //#region properties
-  /**
-   * Whether or not the damage can produce a critical hit.
-   * @type {boolean}
-   */
-  critical = false;
-
-  /**
-   * The element id associated with this damage.
-   * @type {number}
-   */
-  elementId = -1;
-
-  /**
-   * The formula to be evaluated in real time to determine damage.
-   * @type {string}
-   */
-  formula = String.empty;
-
-  /**
-   * The damage type this is, such as HP damage or MP healing.
-   * @type {1|2|3|4|5|6}
-   */
-  type = 1;
-
-  /**
-   * The % of variance this damage can have.
-   * @type {number}
-   */
-  variance = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * Maps the skill's damage properties into this object.
-   * @param {rm.types.Damage} damage The original damage object to map.
-   */
-  constructor(damage)
-  {
-    this.critical = damage.critical;
-    this.elementId = damage.elementId;
-    this.formula = damage.formula;
-    this.type = damage.type;
-    this.variance = damage.variance;
-  };
-}
-//#endregion RPG_SkillDamage
 
 //#region RPG_State
 /**
@@ -5511,5 +6000,6 @@ class RPG_State extends RPG_TraitItem
   };
 }
 //#endregion RPG_State
+//#endregion RPG classes
 //#endregion RPG objects
 //ENDFILE

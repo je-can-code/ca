@@ -209,7 +209,7 @@ Game_Enemy.prototype.getLevelSources = function()
 Game_Enemy.prototype.extractLevel = function(rpgData)
 {
   // extract the level from the notes.
-  return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.EnemyLevel);
+  return 0;//rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.EnemyLevel);
 };
 //#endregion Game_Enemy
 

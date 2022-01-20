@@ -1398,7 +1398,6 @@ Scene_Menu.prototype.createCommandWindow = function()
 Scene_Menu.prototype.commandSdp = function()
 {
   SceneManager.push(Scene_SDP);
-  return;
 };
 //#endregion Scene_Menu
 
