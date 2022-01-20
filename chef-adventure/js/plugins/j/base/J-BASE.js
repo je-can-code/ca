@@ -456,6 +456,7 @@ DataManager.rewriteDatabaseData = function()
   if (!DataManager._j._baseDataProcessed)
   {
     this.rewriteSkillData();
+    this.rewriteStateData();
     this._j._baseDataProcessed = true;
   }
 };
@@ -483,10 +484,7 @@ DataManager.rewriteSkillData = function()
       return;
     }
 
-    //TODO: Test what happens to the _j attached object after save/reload.
-
     // grab a reference to the class we'll be using to rewrite skills with.
-    // this class should `extend` the `RPG_Skill` class structured below!
     const skill_class = this.skillRewriteClass();
 
     // fill out this array like $dataSkills normally is filled out.
@@ -506,6 +504,51 @@ DataManager.rewriteSkillData = function()
 DataManager.skillRewriteClass = function()
 {
   return RPG_Skill;
+};
+
+/**
+ * Overwrites all states used by JABS and replaces them with extendable classes!
+ * These operate exactly as they used to, but now give developers a bit more of
+ * an interface to work when coding with states.
+ */
+DataManager.rewriteStateData = function()
+{
+  // start up a new collection of states.
+  const classifiedStates = [];
+
+  // iterate over each state from the database.
+  $dataStates.forEach((state, index) =>
+  {
+    // check if the state is null; index 0 always is.
+    if (!state)
+    {
+      // we should keep the same indexing structure.
+      classifiedStates.push(null);
+
+      // and stop after this.
+      return;
+    }
+
+    // grab a reference to the class we'll be using to rewrite states with.
+    const state_class = this.stateRewriteClass();
+
+    // fill out this array like $dataStates normally is filled out.
+    classifiedStates.push(new state_class(state, index));
+  });
+
+  // OVERWRITE the $dataStates object with this new states array!
+  $dataStates = classifiedStates;
+};
+
+/**
+ * Gets the class reference to use when rewriting states.
+ * The return value of this class should be stored and re-used with
+ * the `new` operator; see `DataManager.rewriteStateData()` for an example.
+ * @returns {RPG_State} The class reference.
+ */
+DataManager.stateRewriteClass = function()
+{
+  return RPG_State;
 };
 //#endregion DataManager
 
@@ -4635,19 +4678,20 @@ Window_Selectable.prototype.onIndexChange = function()
 //#endregion Window objects
 
 //#region RPG objects
-//#region RPG_BaseItem
-
-//#endregion RPG_BaseItem
+//#region RPG_Base
 /**
  * A class representing the foundation of all database objects.
- * In addition to doing all the things that a skill normally does,
- * there are now some useful helper functions available for meta and note access.
+ * In addition to doing all the things that a database object normally does,
+ * there are now some useful helper functions available for meta and note access,
+ * and additionally a means to access the original database object directly in case
+ * there are other things that aren't supported by this class that need accessing.
  */
-class RPG_BaseItem
+class RPG_Base
 {
+  //#region properties
   /**
    * The original object that this data was built from.
-   * @type {rm.types.BaseItem}
+   * @type {any}
    */
   #original = null;
 
@@ -4658,18 +4702,6 @@ class RPG_BaseItem
   #index = 0;
 
   /**
-   * The description of this entry.
-   * @type {string}
-   */
-  description = String.empty;
-
-  /**
-   * The icon index of this entry.
-   * @type {number}
-   */
-  iconIndex = 0;
-
-  /**
    * The entry's id in the database.
    */
   id = 0;
@@ -4677,7 +4709,7 @@ class RPG_BaseItem
   /**
    * The `meta` object of this skill, containing a dictionary of
    * key value pairs translated from this skill's `note` object.
-   * @type {Record<string, any>}
+   * @type {Record<string, string|number|boolean|any>}
    */
   meta = {};
 
@@ -4691,11 +4723,12 @@ class RPG_BaseItem
    * @type {string}
    */
   note = String.empty;
+  //#endregion properties
 
   /**
    * Constructor.
-   * Maps the skill's properties into this object.
-   * @param {rm.types.BaseItem} baseItem The underlying database object.
+   * Maps the base item's properties into this object.
+   * @param {any} baseItem The underlying database object.
    * @param {number} index The index of the entry in the database.
    */
   constructor(baseItem, index)
@@ -4703,8 +4736,7 @@ class RPG_BaseItem
     this.#original = baseItem;
     this.#index = index;
 
-    this.description = baseItem.description;
-    this.iconIndex = baseItem.iconIndex;
+    // map the core data that all database objects have.
     this.id = baseItem.id;
     this.meta = baseItem.meta;
     this.name = baseItem.name;
@@ -4714,7 +4746,7 @@ class RPG_BaseItem
   /**
    * Retrieves the original underlying data that was passed to this
    * wrapper from the database.
-   * @returns {rm.types.BaseItem}
+   * @returns {any}
    */
   _original()
   {
@@ -4900,13 +4932,13 @@ class RPG_BaseItem
 
   //#region note
   /**
-   * Gets the note data of this skill split into an array by `\r\n`.
-   * If this skill has no note data, it will return an empty array.
+   * Gets the note data of this baseitem split into an array by `\r\n`.
+   * If this baseitem has no note data, it will return an empty array.
    * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
    */
   notedata()
   {
-    // pull the note data of this skill.
+    // pull the note data of this baseitem.
     const fromNote = this.#formattedNotedata();
 
     // checks if we have note data.
@@ -4916,12 +4948,12 @@ class RPG_BaseItem
       return fromNote;
     }
 
-    // if we returned no data from this skill, then return an empty array.
+    // if we returned no data from this baseitem, then return an empty array.
     return [];
   };
 
   /**
-   * Returns a formatted array of strings as output from the note data of this skill.
+   * Returns a formatted array of strings as output from the note data of this baseitem.
    * @returns {string[]}
    */
   #formattedNotedata()
@@ -4930,32 +4962,184 @@ class RPG_BaseItem
   };
 
   /**
-   * Gets an array of note data that matches a particular regex structure.
+   * Gets an accumulated numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an integer value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
    * @param {RegExp} structure The regular expression to filter notes by.
-   * @returns {string[]} The note lines that matched the regex, or an empty array.
+   * @returns {number} The combined value added from the notes of this object; 0 if no notes matched.
    */
-  notedataByRegex(structure)
+  getNumberFromNotesByRegex(structure)
   {
     // get the note data from this skill.
     const fromNote = this.notedata();
 
-    // check if we have any notes to work with.
-    if (fromNote.length)
-    {
-      // filter those notes by the provided regular expression.
-      return fromNote.filter(note => structure.test(note));
-    }
+    // if we have no note data to work with, then return default.
+    if (!fromNote.length) return 0;
 
-    // if we have no length, then return an empty array.
-    return [];
+    // initialize the value.
+    let val = 0;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (structure.test(note))
+      {
+        // parse the value out of the regex capture group.
+        val += parseInt(RegExp.$1);
+      }
+    });
+
+    // return the found value.
+    return val;
   };
   //#endregion note
 }
-//#endregion RPG_BaseItem
+//#endregion RPG_Base
+
+class RPG_BaseItem extends RPG_Base
+{
+  /**
+   * The description of this entry.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The icon index of this entry.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * Constructor.
+   * Maps the base item's properties into this object.
+   * @param {any} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    // perform original logic.
+    super(baseItem, index);
+
+    // map the additional description and iconIndex as well for all base items.
+    this.description = baseItem.description;
+    this.iconIndex = baseItem.iconIndex;
+  };
+}
+
+class RPG_BaseBattler extends RPG_Base
+{
+  battlerName = String.empty;
+
+  /**
+   * Constructor.
+   * Maps the base battler data to the properties on this class.
+   * @param {rm.types.Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(battler, index)
+  {
+    super(battler, index);
+
+
+  };
+}
+
+class RPG_Actor
+{
+
+}
+
+class RPG_Enemy
+{
+
+}
+
+//#region RPG_TraitItem
+/**
+ * A class representing a BaseItem from the database, but with traits.
+ */
+class RPG_TraitItem extends RPG_BaseItem
+{
+  /**
+   * A collection of all traits this item possesses.
+   * @type {RPG_Trait[]}
+   */
+  traits = [];
+
+  /**
+   * Constructor.
+   * Maps the base item's traits into this object.
+   * @param {RPG_BaseItem} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    // perform original logic.
+    super(baseItem, index);
+
+    // map the base item's traits.
+    this.traits = baseItem.traits
+      .map(rawTrait => new RPG_Trait(rawTrait.code, rawTrait.dataId, rawTrait.value));
+  };
+}
+//#endregion RPG_TraitItem
+
+//#region RPG_Trait
+/**
+ * A class representing a single trait living on one of the many types
+ * of database classes that leverage traits.
+ */
+class RPG_Trait
+{
+  /**
+   * The code that designates what kind of trait this is.
+   * @type {number}
+   */
+  code = 0;
+
+  /**
+   * The identifier that further defines the trait.
+   * Data type and usage depends on the code.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The value of the trait, for traits that have numeric values.
+   * Often is a floating point number to represent a percent multiplier.
+   * @type {number}
+   */
+  value = 1.00;
+  /**
+   * Constructor.
+   * Maps the state's properties into this object.
+   * @param {rm.types.State} state The underlying state object.
+   * @param {number} index The index of the state in the database.
+   */
+
+  /**
+   * Constructor.
+   * Maps the trait's properties into this object.
+   * @param {number} code The code of this trait.
+   * @param {number} dataId The dataId of this trait.
+   * @param {number} value The value of this trait.
+   */
+  constructor(code, dataId, value)
+  {
+    this.code = code;
+    this.dataId = dataId;
+    this.value = value;
+  };
+}
+//#endregion RPG_Trait
 
 //#region RPG_Skill
 /**
- * A class representing a single skill mapped from the database.
+ * An class representing a single skill from the database.
  */
 class RPG_Skill extends RPG_BaseItem
 {
@@ -5158,5 +5342,174 @@ class RPG_SkillDamage
   };
 }
 //#endregion RPG_SkillDamage
+
+//#region RPG_State
+/**
+ * An class representing a single state from the database.
+ */
+class RPG_State extends RPG_TraitItem
+{
+  //#region properties
+  /**
+   * The automatic removal timing.
+   * @type {0|1|2}
+   */
+  autoRemovalTiming = 0;
+
+  /**
+   * The percent chance that receiving damage will remove this state.
+   * Requires `removeByDamage` to be true on this state.
+   * @type {number}
+   */
+  chanceByDamage = 100;
+
+  /**
+   * OVERWRITE States do not normally have descriptions.
+   * Rather than leaving it as `undefined`, lets be nice and keep it
+   * an empty string.
+   * @type {String.empty}
+   */
+  description = String.empty;
+
+  /**
+   * The maximum number of turns this state will persist.
+   * Requires `restriction` to not be 0 to be leveraged.
+   * @type {number}
+   */
+  maxTurns = 1;
+
+  /**
+   * "If an actor is inflicted with this state..."
+   * @type {string}
+   */
+  message1 = String.empty;
+
+  /**
+   * "If an enemy is inflicted with this state..."
+   * @type {string}
+   */
+  message2 = String.empty;
+
+  /**
+   * "If the state persists..."
+   * @type {string}
+   */
+  message3 = String.empty;
+
+  /**
+   * "If the state is removed..."
+   * @type {string}
+   */
+  message4 = String.empty;
+
+  /**
+   * The type of message this is.
+   * (unsure)
+   * @type {number}
+   */
+  messageType = 1;
+
+  /**
+   * The minimum number of turns this state will persist.
+   * Requires `restriction` to not be 0 to be leveraged.
+   * @type {number}
+   */
+  minTurns = 1;
+
+  /**
+   * The motion the sideview battler will take while afflicted
+   * with this state.
+   * @type {number}
+   */
+  motion = 0;
+
+  /**
+   * The state overlay id that shows on the battler while
+   * this state is afflicted.
+   * @type {number}
+   */
+  overlay = 0;
+
+  /**
+   * The priority of the skill.
+   * @type {number}
+   */
+  priority = 50;
+
+  /**
+   * Whether or not this state will automatically be removed at
+   * the end of the battle.
+   * @type {boolean}
+   */
+  removeAtBattleEnd = false;
+
+  /**
+   * Whether or not this state can be removed simply by taking damage.
+   * Leverages the `chanceByDamage` percent for whether or not to remove.
+   * @type {boolean}
+   */
+  removeByDamage = false;
+
+  /**
+   * Whether or not this state can be removed by applying a different state
+   * that has a higher `restriction` type.
+   * @type {boolean}
+   */
+  removeByRestriction = false;
+
+  /**
+   * Whether or not this state can be removed by taking the `stepsToRemove` number
+   * of steps on this state.
+   * @type {boolean}
+   */
+  removeByWalking = false;
+
+  /**
+   * The type of restriction this state has.
+   * @type {number}
+   */
+  restriction = 0;
+
+  /**
+   * The number of steps to remove this state.
+   * Requires `removeByWalking` to be true on this state to be leveraged.
+   * @type {number}
+   */
+  stepsToRemove = 100;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the state's properties into this object.
+   * @param {rm.types.State} state The underlying state object.
+   * @param {number} index The index of the state in the database.
+   */
+  constructor(state, index)
+  {
+    // perform original logic.
+    super(state, index);
+
+    // map the states's data points 1:1.
+    this.autoRemovalTiming = state.autoRemovalTiming;
+    this.chanceByDamage = state.chanceByDamage;
+    this.maxTurns = state.maxTurns;
+    this.message1 = state.message1;
+    this.message2 = state.message2;
+    this.message3 = state.message3;
+    this.message4 = state.message4;
+    this.messageType = state.messageType;
+    this.minTurns = state.minTurns;
+    this.motion = state.motion;
+    this.overlay = state.overlay;
+    this.priority = state.priority;
+    this.removeAtBattleEnd = state.removeAtBattleEnd;
+    this.removeByDamage = state.removeByDamage;
+    this.removeByRestriction = state.removeByRestriction;
+    this.removeByWalking = state.removeByWalking;
+    this.restriction = state.restriction;
+    this.stepsToRemove = state.stepsToRemove;
+  };
+}
+//#endregion RPG_State
 //#endregion RPG objects
 //ENDFILE
