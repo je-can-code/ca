@@ -399,7 +399,9 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure)
 {
   const stringifiedStructure = structure.toString();
   return stringifiedStructure
-    .substring(stringifiedStructure.indexOf('<') + 1, stringifiedStructure.indexOf(':'));
+    .substring(
+      stringifiedStructure.indexOf('<') + 1,
+      stringifiedStructure.indexOf(':'));
 };
 
 /**
@@ -443,8 +445,10 @@ DataManager.isDatabaseLoaded = function()
  */
 DataManager.rewriteDatabaseData = function()
 {
+  // check if we've already wrapped all the JSON objects yet.
   if (!DataManager._j._baseDataProcessed)
   {
+    // add all the wrappers around the JSON objects from the database.
     this.rewriteActorData();
     this.rewriteArmorData();
     this.rewriteClassData();
@@ -453,6 +457,8 @@ DataManager.rewriteDatabaseData = function()
     this.rewriteSkillData();
     this.rewriteStateData();
     this.rewriteWeaponData();
+
+    // flip the flag so we don't try to wrap them all again.
     this._j._baseDataProcessed = true;
   }
 };
@@ -6124,30 +6130,6 @@ class RPG_Skill extends RPG_UsableItem
 {
   //#region properties
   /**
-   * The animation id to execute for this skill.
-   * @type {number}
-   */
-  animationId = -1;
-
-  /**
-   * The damage data for this skill.
-   * @type {RPG_SkillDamage}
-   */
-  damage = null;
-
-  /**
-   * The various effects of this skill.
-   * @type {rm.types.Effect[]}
-   */
-  effects = [];
-
-  /**
-   * The hit type of this skill.
-   * @type {number}
-   */
-  hitType = 0;
-
-  /**
    * The first line of the message for this skill.
    * @type {string}
    */
@@ -6172,18 +6154,6 @@ class RPG_Skill extends RPG_UsableItem
   mpCost = 0;
 
   /**
-   * The occasion type when this skill can be used.
-   * @type {number}
-   */
-  occasion = 0;
-
-  /**
-   * The number of times this skill repeats.
-   * @type {number}
-   */
-  repeats = 1;
-
-  /**
    * The first of two required weapon types to be equipped to execute this skill.
    * @type {number}
    */
@@ -6196,40 +6166,16 @@ class RPG_Skill extends RPG_UsableItem
   requiredWtypeId2 = 0;
 
   /**
-   * The scope of this skill.
-   * @type {number}
-   */
-  scope = 0;
-
-  /**
-   * The speed bonus of this skill.
-   * @type {number}
-   */
-  speed = 0;
-
-  /**
    * The skill type that this skill belongs to.
    * @type {number}
    */
   stypeId = 0;
 
   /**
-   * The % chance of success for this skill.
-   * @type {number}
-   */
-  successRate = 100;
-
-  /**
    * The amount of TP required to execute this skill.
    * @type {number}
    */
   tpCost = 0;
-
-  /**
-   * The amount of TP gained from executing this skill.
-   * @type {number}
-   */
-  tpGain = 0;
   //#endregion properties
 
   /**
