@@ -1502,7 +1502,6 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindow)
 Scene_Map.prototype.closeJaftingMenu = function()
 {
   this._j._jaftingMenu._modeWindow.closeMenu();
-  return;
 };
 //#endregion Scene_Map
 
