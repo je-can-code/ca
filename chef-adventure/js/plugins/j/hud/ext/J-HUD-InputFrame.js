@@ -1639,7 +1639,6 @@ class Window_InputFrame extends Window_Frame
     // handle the visibility of the hud for dynamic interferences.
     this.manageVisibility();
 
-    console.log($hudManager.canShowHud());
     // draw the contents.
     this.drawInputFrame();
   };
@@ -1749,8 +1748,6 @@ class Window_InputFrame extends Window_Frame
   {
     // don't draw if we don't need to draw.
     if (!this.canDrawInputFrame()) return;
-
-    console.log('drew input frame');
 
     // wipe the drawn contents.
     this.contents.clear();

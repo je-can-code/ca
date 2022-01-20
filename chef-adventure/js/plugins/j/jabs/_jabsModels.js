@@ -4111,6 +4111,12 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
+  const cooldownKey = this.getBattler().findSlotForSkillId(chosenSkillId).key;
+  if (!this.getCooldown(cooldownKey).isBaseReady())
+  {
+    return false;
+  }
+
   // cast the skill!
   return true;
 };

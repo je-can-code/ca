@@ -661,14 +661,16 @@ Game_Actor.prototype.refreshBonusHits = function()
   {
     if (!equip) return;
     bonusHits += equip._j.bonusHits;
-    bonusHits += equip.traits.filter(isHitsTrait)
+    bonusHits += equip.traits
+      .filter(isHitsTrait)
       .reduce(reducer, 0);
   });
 
   states.forEach(state =>
   {
     bonusHits += state._j.bonusHits;
-    bonusHits += state.traits.filter(isHitsTrait)
+    bonusHits += state.traits
+      .filter(isHitsTrait)
       .reduce(reducer, 0);
   });
 

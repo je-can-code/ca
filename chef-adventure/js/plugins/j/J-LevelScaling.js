@@ -99,14 +99,14 @@ J.LEVEL.Aliased = {
 };
 
 /**
- * All tags used by this plugin.
+ * All regular expressions used by this plugin.
  */
-J.LEVEL.Notetags = {
+J.LEVEL.RegExp = {
   /**
-   * The key name for the meta property of enemies for levels.
-   * @type {string}
+   * The regex for the level tag on various database objects.
+   * @type {RegExp}
    */
-  EnemyLevel: "level",
+  EnemyLevel: /<(?:lv|lvl|level):[ ]?(-?\d+)>/i,
 };
 
 //#region Plugin Command Registration
@@ -158,46 +158,59 @@ Object.defineProperty(
   {
     get()
     {
-      // start level at 0; this is considered "invalid" returning 1x multipliers by default.
-      let level = 0;
-
-      // grab the database information for this enemy.
-      const referenceData = this.enemy();
-
-      // if the meta has a tag for level...
-      if (referenceData.meta && referenceData.meta[J.LEVEL.Notetags.EnemyLevel])
-      {
-        // ...then just parse and use that.
-        return parseInt(referenceData.meta[J.LEVEL.Notetags.EnemyLevel]);
-      }
-      // otherwise, look to the notes if the meta is messed up somehow.
-      else
-      {
-        // the regex structure for the level tag.
-        const structure = /<level:[ ]?([0-9]*)>/i;
-
-        // split up the note data into an array of strings.
-        const notedata = referenceData.note.split(/[\r\n]+/);
-
-        // iterate over each line and check it.
-        notedata.forEach(note =>
-        {
-          // if we have a match...
-          if (note.match(structure))
-          {
-            // ...parse out the level and assign it.
-            level = parseInt(RegExp.$1);
-          }
-        });
-      }
-
-      // return the level found, if any at all.
-      return level;
+      // get the level from this enemy.
+      return this.getLevel();
     },
 
     // sure, lets make this level property configurable.
     configurable: true,
   });
+
+/**
+ * Gets the level for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getLevel = function()
+{
+  // grab all sources that a level can come from.
+  const sources = this.getLevelSources();
+
+  // default level to 0.
+  let level = 0;
+
+  // iterate over each of the source database datas.
+  sources.forEach(rpgData =>
+  {
+    // add the level extracted from the data.
+    level += this.extractLevel(rpgData);
+  });
+
+  // return the new amount.
+  return level;
+};
+
+/**
+ * Gets all database sources we can get levels from.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Enemy.prototype.getLevelSources = function()
+{
+  // our sources of data that a level can be retrieved from.
+  return [
+    this.enemy(),
+    this.states(),
+  ];
+};
+
+/**
+ * Extracts the level from a given source's note data.
+ * @param {RPG_BaseItem} rpgData The database object to extract level from.
+ */
+Game_Enemy.prototype.extractLevel = function(rpgData)
+{
+  // extract the level from the notes.
+  return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.EnemyLevel);
+};
 //#endregion Game_Enemy
 
 //#region Game_Troop
@@ -229,15 +242,34 @@ Game_Troop.prototype.getScaledExpResult = function()
 {
   let expTotal = 0;
   const deadEnemies = this.deadMembers();
-  const averageActorLevel = $gameParty.averageActorLevel()
-  deadEnemies.forEach(enemy =>
+  const averageActorLevel = $gameParty.averageActorLevel();
+
+  /**
+   *
+   * @param {number} accumulativeExpTotal The current running total of experience.
+   * @param {rm.types.Enemy} currentEnemy The dead enemy to calculate experience from.
+   */
+  const reducer = (accumulativeExpTotal, currentEnemy) =>
   {
-    const expFactor = LevelScaling.multiplier(averageActorLevel, enemy.level);
-    const total = Math.round(expFactor * enemy.exp())
+    // determine the experience factor for this defeated enemy level vs the average party level.
+    const expFactor = LevelScaling.multiplier(averageActorLevel, currentEnemy.level);
+
+    // multiply the factor against the experience amount to get the actual amount.
+    const total = Math.round(expFactor * currentEnemy.exp());
+
+    // add it to the running total.
+    return (accumulativeExpTotal + total);
+  };
+
+  const expGained = deadEnemies.reduce(reducer);
+  deadEnemies.forEach(deadEnemy =>
+  {
+    const expFactor = LevelScaling.multiplier(averageActorLevel, deadEnemy.level);
+    const total = Math.round(expFactor * deadEnemy.exp())
     expTotal += total;
   });
 
-  return expTotal;
+  return expGained;
 };
 //#endregion Game_Troop
 
@@ -248,8 +280,17 @@ Game_Troop.prototype.getScaledExpResult = function()
  */
 Game_Party.prototype.averageActorLevel = function()
 {
-  let lvlTotal = 0;
+  // grab all allies.
   const allies = this.battleMembers();
+
+  // if we have no party, then the average is 0.
+  if (!allies.length) return 0;
+
+  // the starting point is 0.
+  let lvlTotal = 0;
+
+  const reducer = (previousValue, currentValue) => previousValue + currentValue;
+
   allies.forEach(actor =>
   {
     lvlTotal += actor.level;
