@@ -4070,7 +4070,7 @@ JABS_Battler.prototype.getPrepareTime = function()
 
 /**
  * Determines whether or not a skill can be executed based on restrictions or not.
- * This is used by enemy AI. The actor party manages their own rules.
+ * This is used by AI.
  * @param {number} chosenSkillId The skill id to be executed.
  * @returns {boolean} True if this skill can be executed, false otherwise.
  */
@@ -4091,11 +4091,8 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
-  // grab the enemy basic attack.
-  const [basicAttackId] = this.getEnemyBasicAttack();
-
   // check if the chosen skill is the enemy's basic attack.
-  const isBasicAttack = chosenSkillId === basicAttackId;
+  const isBasicAttack = this.isSkillIdBasicAttack(chosenSkillId);
 
   // check if basic attacks are blocked plus this being a basic attack.
   if (!canUseAttacks && isBasicAttack)
@@ -4117,27 +4114,21 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
-  // initialize the skill.
-  let skill;
-
-  // check if we're using my passives plugin.
-  if (J.PASSIVE)
-  {
-    // use the battler's version of the skill instead.
-    skill = this.getBattler().skill(chosenSkillId);
-  }
-  // not using the passives plugin.
-  else
-  {
-    // just get it from the database instead.
-    skill = $dataSkills[chosenSkillId];
-  }
-
   // build the cooldown key based on the skill data.
-  const cooldownKey =`${skill.id}-${skill.name}`;
+  const cooldownKey = this.getCooldownKeyBySkillId(chosenSkillId);
+
+  // check to make sure we have a key.
+  if (!cooldownKey)
+  {
+    // if somehow we have no key, then this skill clearly isn't ready.
+    return false;
+  }
+
+  // grab the cooldown itself.
+  const cooldown = this.getCooldown(cooldownKey);
 
   // check if the base is off cooldown yet.
-  if (!this.getCooldown(cooldownKey).isAnyReady())
+  if (!cooldown.isAnyReady())
   {
     // cooldown is not ready yet.
     return false;
@@ -4145,6 +4136,100 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
 
   // cast the skill!
   return true;
+};
+
+JABS_Battler.prototype.getCooldownKeyBySkillId = function(skillId)
+{
+  // handle accordingly for enemies.
+  if (this.isEnemy())
+  {
+    // grab the skill itself.
+    const skill = this.getSkill(skillId);
+
+    // return the arbitrary key.
+    return `${skill.id}-${skill.name}`;
+  }
+  // handle accordingly for actors.
+  else if (this.isActor())
+  {
+    // grab the first slot that the id lives in.
+    const slot = this.getBattler().findSlotForSkillId(skillId);
+
+    // if there is no slot with this skill, then its not a basic attack.
+    if (!slot) return null;
+
+    // return the found key.
+    return slot.key;
+  }
+
+  // if somehow it is neither actor nor enemy, then return global.
+  return "Global";
+};
+
+/**
+ * Determines whether or not the given skill id is actually a basic attack
+ * skill used by this battler. Basic attack includes main and off hands.
+ * @param {number} skillId The skill id to check.
+ * @returns {boolean} True if the skill is a basic attack, false otherwise.
+ */
+JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
+{
+  // handle accordingly if an enemy.
+  if (this.isEnemy())
+  {
+    // grab the enemy basic attack.
+    const [basicAttackId] = this.getEnemyBasicAttack();
+
+    // check if the chosen skill is the enemy's basic attack.
+    return (skillId === basicAttackId);
+  }
+  // handle accordingly if an actor.
+  else if (this.isActor())
+  {
+    // grab the first slot that the id lives in.
+    const slot = this.getBattler().findSlotForSkillId(skillId);
+
+    // if there is no slot with this skill, then its not a basic attack.
+    if (!slot) return false;
+
+    // if the slot key matches our mainhand, then it is a basic attack.
+    return (slot.key === JABS_Button.Main || slot.key === JABS_Button.Offhand);
+  }
+
+  // handle accordingly if not actor or enemy.
+  console.warn(`non-actor/non-enemy checked for basic attack.`, this);
+  return false;
+};
+
+/**
+ * Gets the proper skill based on the skill id.
+ * Accommodates J-SkillExtend and/or J-Passives.
+ * @param {number} skillId The skill id to retrieve.
+ * @returns {RPG_Skill}
+ */
+JABS_Battler.prototype.getSkill = function(skillId)
+{
+  // grab the battler.
+  const battler = this.getBattler();
+
+  // check if we're using skill extend but not the passive skillstates.
+  if (J.EXTEND && !J.PASSIVE)
+  {
+    // use the overlay manager to get the skill.
+    return OverlayManager.getExtendedSkill(battler, skillId);
+  }
+  // check if we're using the passive skillstates.
+  else if (J.PASSIVE)
+  {
+    // return the battler's interpretation of the skill.
+    return battler.skill(skillId);
+  }
+  // not using any of my other plugins.
+  else
+  {
+    // return straight from the database.
+    return $dataSkills[skillId];
+  }
 };
 
 /**
