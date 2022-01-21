@@ -77,7 +77,19 @@
  * @desc The amount of level difference under 0 before scaling takes effect.
  * @default 1
  *
- * 
+ * @param variableActorBalancer
+ * @type variable
+ * @text Actor Balancer
+ * @desc The variable id to act as a constant level modifier in favor of actors.
+ * @default 141
+ *
+ * @param variableEnemyBalancer
+ * @type variable
+ * @text Enemy Balancer
+ * @desc The variable id to act as a constant level modifier in favor of enemies.
+ * @default 142
+ *
+ *
  * @command enableScaling
  * @text Enable Scaling
  * @desc Enables the scaling functionality for damage/rewards.
@@ -131,11 +143,15 @@ J.LEVEL.Metadata.MaximumMultiplier = Number(J.LEVEL.PluginParameters['maxMultipl
 J.LEVEL.Metadata.GrowthMultiplier = Number(J.LEVEL.PluginParameters['growthMultiplier']);
 J.LEVEL.Metadata.InvariantUpperRange = Number(J.LEVEL.PluginParameters['invariantUpperRange']);
 J.LEVEL.Metadata.InvariantLowerRange = Number(J.LEVEL.PluginParameters['invariantLowerRange']);
+J.LEVEL.Metadata.ActorBalanceVariable = Number(J.LEVEL.PluginParameters['variableActorBalancer']);
+J.LEVEL.Metadata.EnemyBalanceVariable = Number(J.LEVEL.PluginParameters['variableEnemyBalancer']);
 
 /**
  * All aliased methods for this plugin.
  */
 J.LEVEL.Aliased = {
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
   Game_Action: new Map(),
   Game_System: new Map(),
   Game_Troop: new Map(),
@@ -149,7 +165,7 @@ J.LEVEL.RegExp = {
    * The regex for the level tag on various database objects.
    * @type {RegExp}
    */
-  EnemyLevel: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
+  BattlerLevel: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
 };
 
 //#region Plugin Command Registration
@@ -191,19 +207,58 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
 }
 //#endregion Game_Action
 
-//#region Game_Enemy
+//#region Game_Actor
 /**
- * Enemies now have a "level" property just like actors do.
- * If no level is specified, return `0`.
+ * The base or default level for this battler.
+ * Actors have a level tracker, so we'll use that for the base.
+ * @returns {number}
+ */
+Game_Actor.prototype.getBattlerBaseLevel = function()
+{
+  return this._level;
+};
+
+/**
+ * Gets all database sources we can get levels from.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Actor.prototype.getLevelSources = function()
+{
+  // our sources of data that a level can be retrieved from.
+  return this.getEverythingWithNotes();
+};
+
+/**
+ * The variable level modifier for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getLevelBalancer = function()
+{
+  // check if we have a variable set for the fixed balancing.
+  if (J.LEVEL.Metadata.ActorBalanceVariable)
+  {
+    // return the adjustment from the variable value instead.
+    return $gameVariables.value(J.LEVEL.Metadata.ActorBalanceVariable);
+  }
+
+  // we don't have any balancing required.
+  return 0;
+};
+//#endregion Game_Actor
+
+//#region Game_Battler
+/**
+ * Generates the "level" property for all battlers, along with
+ * a new function to calculate level retrieval.
  * @returns {number}
  */
 Object.defineProperty(
-  Game_Enemy.prototype,
+  Game_Battler.prototype,
   "level",
   {
     get()
     {
-      // get the level from this enemy.
+      // get the level from this battler.
       return this.getLevel();
     },
 
@@ -212,16 +267,19 @@ Object.defineProperty(
   });
 
 /**
- * Gets the level for this enemy.
+ * Gets the level for this battler.
  * @returns {number}
  */
-Game_Enemy.prototype.getLevel = function()
+Game_Battler.prototype.getLevel = function()
 {
   // grab all sources that a level can come from.
   const sources = this.getLevelSources();
 
-  // default level to 0.
-  let level = 0;
+  // get the default level for this battler.
+  let level = this.getBattlerBaseLevel();
+
+  // get the level balancer for this battler if available.
+  level += this.getLevelBalancer();
 
   // iterate over each of the source database datas.
   sources.forEach(rpgData =>
@@ -238,6 +296,46 @@ Game_Enemy.prototype.getLevel = function()
  * Gets all database sources we can get levels from.
  * @returns {RPG_BaseItem[]}
  */
+Game_Battler.prototype.getLevelSources = function()
+{
+  // our sources of data that a level can be retrieved from.
+  return [];
+};
+
+/**
+ * The base or default level for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBattlerBaseLevel = function()
+{
+  return 0;
+};
+
+/**
+ * The variable level modifier for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.getLevelBalancer = function()
+{
+  return 0;
+};
+
+/**
+ * Extracts the level from a given source's note data.
+ * @param {RPG_BaseItem} rpgData The database object to extract level from.
+ */
+Game_Battler.prototype.extractLevel = function(rpgData)
+{
+  // extract the level from the notes.
+  return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.BattlerLevel);
+};
+//#endregion Game_Battler
+
+//#region Game_Enemy
+/**
+ * Gets all database sources we can get levels from.
+ * @returns {RPG_BaseItem[]}
+ */
 Game_Enemy.prototype.getLevelSources = function()
 {
   // our sources of data that a level can be retrieved from.
@@ -248,13 +346,30 @@ Game_Enemy.prototype.getLevelSources = function()
 };
 
 /**
- * Extracts the level from a given source's note data.
- * @param {RPG_Enemy} rpgData The database object to extract level from.
+ * The base or default level for this battler.
+ * Enemies do not have a base level.
+ * @returns {number}
  */
-Game_Enemy.prototype.extractLevel = function(rpgData)
+Game_Enemy.prototype.getBattlerBaseLevel = function()
 {
-  // extract the level from the notes.
-  return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.EnemyLevel);
+  return 0;
+};
+
+/**
+ * The variable level modifier for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getLevelBalancer = function()
+{
+  // check if we have a variable set for the fixed balancing.
+  if (J.LEVEL.Metadata.EnemyBalanceVariable)
+  {
+    // return the adjustment from the variable value instead.
+    return $gameVariables.value(J.LEVEL.Metadata.EnemyBalanceVariable);
+  }
+
+  // we don't have any balancing required.
+  return 0;
 };
 //#endregion Game_Enemy
 

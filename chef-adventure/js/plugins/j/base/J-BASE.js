@@ -1610,7 +1610,7 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
 /**
  * Gets all objects with notes on them currently for this actor.
  * This is very similar to the `traitObjects()` function.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 Game_Actor.prototype.getEverythingWithNotes = function()
 {
