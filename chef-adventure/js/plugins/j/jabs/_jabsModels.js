@@ -4070,6 +4070,7 @@ JABS_Battler.prototype.getPrepareTime = function()
 
 /**
  * Determines whether or not a skill can be executed based on restrictions or not.
+ * This is used by enemy AI. The actor party manages their own rules.
  * @param {number} chosenSkillId The skill id to be executed.
  * @returns {boolean} True if this skill can be executed, false otherwise.
  */
@@ -4090,11 +4091,16 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
-  // if the skill is a basic attack, but the battler can't attack, then fail.
+  // grab the enemy basic attack.
   const [basicAttackId] = this.getEnemyBasicAttack();
+
+  // check if the chosen skill is the enemy's basic attack.
   const isBasicAttack = chosenSkillId === basicAttackId;
+
+  // check if basic attacks are blocked plus this being a basic attack.
   if (!canUseAttacks && isBasicAttack)
   {
+    // if the skill is a basic attack, but the battler can't attack, then fail.
     return false;
   }
 
@@ -4111,9 +4117,29 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
     return false;
   }
 
-  const cooldownKey = this.getBattler().findSlotForSkillId(chosenSkillId).key;
-  if (!this.getCooldown(cooldownKey).isBaseReady())
+  // initialize the skill.
+  let skill;
+
+  // check if we're using my passives plugin.
+  if (J.PASSIVE)
   {
+    // use the battler's version of the skill instead.
+    skill = this.getBattler().skill(chosenSkillId);
+  }
+  // not using the passives plugin.
+  else
+  {
+    // just get it from the database instead.
+    skill = $dataSkills[chosenSkillId];
+  }
+
+  // build the cooldown key based on the skill data.
+  const cooldownKey =`${skill.id}-${skill.name}`;
+
+  // check if the base is off cooldown yet.
+  if (!this.getCooldown(cooldownKey).isAnyReady())
+  {
+    // cooldown is not ready yet.
     return false;
   }
 
@@ -8289,9 +8315,13 @@ JABS_SkillSlotManager.prototype.constructor = JABS_SkillSlotManager;
 /**
  * Initializes this class. Executed when this class is instantiated.
  */
-JABS_SkillSlotManager.prototype.initialize = function()
+JABS_SkillSlotManager.prototype.initialize = function(battler)
 {
+  // setup the properties of this class.
   this.initMembers();
+
+  // setup the slots based on the battler type this is.
+  this.setupSlots(battler);
 };
 
 /**
@@ -8300,24 +8330,58 @@ JABS_SkillSlotManager.prototype.initialize = function()
 JABS_SkillSlotManager.prototype.initMembers = function()
 {
   /**
-   * All skill slots that a player possesses.
+   * All skill slots that a battler possesses.
    *
    * These are in a fixed order.
    * @type {JABS_SkillSlot[]}
    */
-  this._slots = [
-    new JABS_SkillSlot("Global", 0),
+  this._slots = [];
+};
 
-    new JABS_SkillSlot(JABS_Button.Main, 0),
-    new JABS_SkillSlot(JABS_Button.Offhand, 0),
-    new JABS_SkillSlot(JABS_Button.Tool, 0),
-    new JABS_SkillSlot(JABS_Button.Dodge, 0),
+/**
+ * Sets up the slots for the given battler.
+ * @param {Game_Actor|Game_Enemy} battler The battler to setup slots for.
+ */
+JABS_SkillSlotManager.prototype.setupSlots = function(battler)
+{
+  if (battler.isActor())
+  {
+    this.setupActorSlots();
+  }
 
-    new JABS_SkillSlot(JABS_Button.CombatSkill1, 0),
-    new JABS_SkillSlot(JABS_Button.CombatSkill2, 0),
-    new JABS_SkillSlot(JABS_Button.CombatSkill3, 0),
-    new JABS_SkillSlot(JABS_Button.CombatSkill4, 0),
-  ];
+  if (battler.isEnemy())
+  {
+    this.setupEnemySlots(battler);
+  }
+};
+
+/**
+ * Setup the slots for an actor.
+ * All actors have the same set of slots.
+ */
+JABS_SkillSlotManager.prototype.setupActorSlots = function()
+{
+  this._slots.push(new JABS_SkillSlot("Global", 0));
+
+  this._slots.push(new JABS_SkillSlot(JABS_Button.Main, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.Offhand, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.Tool, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.Dodge, 0));
+
+  this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill1, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill2, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill3, 0));
+  this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill4, 0));
+};
+
+/**
+ * Setup slots for an enemy.
+ * Each enemy can have varying slots.
+ * @param {Game_Enemy} enemy The enemy to setup slots for.
+ */
+JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
+{
+
 };
 
 /**

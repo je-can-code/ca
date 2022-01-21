@@ -31331,6 +31331,10 @@ declare namespace rm.types {
 		 * The actor's max level
 		 */
 		maxLevel: number;
+        /**
+         * The metadata extracted by RMMZ.
+         */
+        meta: {};
 		/**
 		 * The name.
 		 */
