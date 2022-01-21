@@ -22,12 +22,7 @@ J.ABS.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
 Game_Actor.prototype.initMembers = function()
 {
   J.ABS.Aliased.Game_Actor.initMembers.call(this);
-  this._j = this._j || {};
-  /**
-   * All equipped skills on this actor.
-   * @type {JABS_SkillSlotManager}
-   */
-  this._j._equippedSkills = this._j._equippedSkills || new JABS_SkillSlotManager();
+  this._j ||= {};
 
   /**
    * The total speed boosts currently applied to this actor.
@@ -293,7 +288,7 @@ Game_Actor.prototype.getUpgradableSkillSlots = function()
  * @param {number} skillIdToFind The skill id to find amidst all equipped skills.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.findSlotForSkillId = function(skillIdToFind)
+Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
 {
   return this._j._equippedSkills.getSlotBySkillId(skillIdToFind);
 };
@@ -1188,6 +1183,12 @@ Game_Battler.prototype.initMembers = function()
      */
     _uuid: J.BASE.Helpers.generateUuid(),
   };
+
+  /**
+   * All equipped skills on this battler.
+   * @type {JABS_SkillSlotManager}
+   */
+  this._j._equippedSkills ||= new JABS_SkillSlotManager(this);
 };
 
 /**
