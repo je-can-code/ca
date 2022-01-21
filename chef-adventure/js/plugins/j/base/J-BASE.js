@@ -17,7 +17,10 @@
  * Additionally, most of the note-reading and such takes place here as well.
  * ==============================================================================
  * CHANGELOG:
- * - 3.0.0
+ * - 2.1.0
+ *    Added wrapper objects for many database objects to ease plugin dev coding.
+ *    Added "More data" window base class.
+ *
  * 
  * - 2.0.0 (breaking change!)
  *    Broke apart the entire plugin into a collection of pieces, to leverage
@@ -66,7 +69,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.0.0',
+  Version: '2.1.0',
 };
 
 /**
@@ -425,19 +428,49 @@ Array.iterate = function(times, func)
 
 //#region Static objects
 //#region DataManager
+
+/**
+ * The over-arching object containing all of my added parameters.
+ */
+DataManager._j ||= {};
+
+/**
+ * Whether or not the database JSON data has been wrapped yet or not.
+ * @type {boolean}
+ */
+DataManager._j._databaseRewriteProcessed = false;
+
+/**
+ * Determines whether or not the database wrapjob has been processed.
+ * @returns {boolean}
+ */
+DataManager.isRewriteProcessed = function()
+{
+  return this._j._databaseRewriteProcessed;
+};
+
+/**
+ * Flips the flag to indicate that the database wrapper rewrite
+ * has been processed.
+ */
+DataManager.rewriteProcessed = function()
+{
+  this._j._databaseRewriteProcessed = true;
+};
+
 /**
  * Hooks into the database loading and loads our extra data from notes and such.
  */
 J.BASE.Aliased.DataManager.set('isDatabaseLoaded', DataManager.isDatabaseLoaded);
 DataManager.isDatabaseLoaded = function()
 {
-  const result = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
-  if (result)
+  const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
+  if (isLoaded)
   {
     this.rewriteDatabaseData();
   }
 
-  return result;
+  return isLoaded;
 };
 
 /**
@@ -447,7 +480,7 @@ DataManager.isDatabaseLoaded = function()
 DataManager.rewriteDatabaseData = function()
 {
   // check if we've already wrapped all the JSON objects yet.
-  if (!DataManager._j._baseDataProcessed)
+  if (!this.isRewriteProcessed())
   {
     // add all the wrappers around the JSON objects from the database.
     this.rewriteActorData();
@@ -460,7 +493,7 @@ DataManager.rewriteDatabaseData = function()
     this.rewriteWeaponData();
 
     // flip the flag so we don't try to wrap them all again.
-    this._j._baseDataProcessed = true;
+    this.rewriteProcessed();
   }
 };
 
