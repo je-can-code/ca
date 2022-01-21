@@ -45,7 +45,7 @@ var $plugins =
 {"name":"j/cms/J-CMS-Status","status":true,"description":"[v1.0 CMS_S] A redesign of the status menu.","parameters":{}},
 {"name":"j/cms/J-CMS-Skill","status":true,"description":"[v1.0 CMS_K] A redesign of the skill menu.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
-{"name":"j/J-LevelScaling","status":true,"description":"[v1.0 LEVEL] Scales damage and exp/gold from defeated enemies.","parameters":{"useScaling":"true","minMultiplier":"0.10","maxMultiplier":"2.00","growthMultiplier":"0.10","invariantUpperRange":"1","invariantLowerRange":"1"}},
+{"name":"j/J-LevelScaling","status":true,"description":"[v1.0 LEVEL] Scales damage and exp/gold from defeated enemies.","parameters":{"useScaling":"true","minMultiplier":"0.10","maxMultiplier":"2.00","growthMultiplier":"0.10","invariantUpperRange":"1","invariantLowerRange":"1","variableActorBalancer":"141","variableEnemyBalancer":"142"}},
 {"name":"j/J-EventDescribe","status":true,"description":"[v1.0 DESC] Enables \"describing\" the event with some text and/or an icon.","parameters":{}},
 {"name":"j/J-SkillExtend","status":true,"description":"[v1.0 EXTEND] Extends the capabilities of skills/actions.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
