@@ -858,6 +858,9 @@ J.ABS.Aliased = {
   Game_Party: {},
   Game_Player: {},
   Game_Unit: {},
+  RPG_Actor: new Map(),
+  RPG_Enemy: new Map(),
+  RPG_Skill: new Map(),
   Scene_Load: {},
   Scene_Map: {},
   Spriteset_Map: {},
@@ -2357,14 +2360,7 @@ class JABS_Engine
    */
   applyCooldownCounters(caster, action)
   {
-    if (caster.isPlayer())
-    {
-      this.applyPlayerCooldowns(caster, action);
-    }
-    else
-    {
-      this.applyAiCooldowns(caster, action);
-    }
+    this.applyPlayerCooldowns(caster, action);
   };
 
   /**

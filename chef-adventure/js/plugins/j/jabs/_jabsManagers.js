@@ -886,6 +886,8 @@ class JABS_AiManager
     {
       // decide actions for all nearby followers.
       this.decideActionsForFollowers(battler);
+
+      // fall through and continue with your own actions!
     }
 
     // check if the battler has the "follower" ai trait.
@@ -1225,7 +1227,7 @@ class JABS_AiManager
       return;
     }
 
-    // build the cooldown from the skill.
+    // build the cooldown key from the skill.
     const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
 
     // setup the skill for use.
@@ -1246,6 +1248,8 @@ class JABS_AiManager
     {
       // cancel the action setup.
       this.cancelActionSetup(battler);
+
+      console.log('action cancelled!', battler, skillId);
 
       // do not process.
       return;
@@ -1274,7 +1278,7 @@ class JABS_AiManager
   };
 
   /**
-   *
+   * Constructs a cooldown key based on the skill.
    * @param {RPG_Skill} skill The chosen skill to determine a cooldown type for.
    * @returns {string} The cooldown key.
    */

@@ -5378,7 +5378,7 @@ class RPG_Base
   metadata(key)
   {
     // pull the metadata of a given key.
-    const result = this.meta[key];
+    const result = this.#getMeta(key);
 
     // check if we have a result.
     if (result)
@@ -5392,7 +5392,17 @@ class RPG_Base
   };
 
   /**
-   * Gets the metadata of a given key from this skill as a string.
+   * Gets the value of the given key from this entry's meta object.
+   * @param key
+   * @returns {string|number|boolean|*}
+   */
+  #getMeta(key)
+  {
+    return this.meta[key];
+  }
+
+  /**
+   * Gets the metadata of a given key from this entry as a string.
    * Only returns `null` if there was no underlying data associated with the provided key.
    * @param {string} key The key to the metadata.
    * @returns {boolean|null} The value as a string, or null if the value didn't exist.
@@ -5400,7 +5410,7 @@ class RPG_Base
   metaAsString(key)
   {
     // grab the metadata for this skill.
-    const fromMeta = this.metadata(key);
+    const fromMeta = this.#getMeta(key);
 
     // check to make sure we actually got a value.
     if (fromMeta)
@@ -5409,7 +5419,6 @@ class RPG_Base
       return fromMeta.toString();
     }
 
-    console.warn(`key's metadata could not be retrieved: ${key}`);
     return null;
   };
 
@@ -5422,7 +5431,7 @@ class RPG_Base
   metaAsNumber(key)
   {
     // grab the metadata for this skill.
-    const fromMeta = this.metadata(key);
+    const fromMeta = this.#getMeta(key);
 
     // check to make sure we actually got a value.
     if (fromMeta)
@@ -5431,20 +5440,19 @@ class RPG_Base
       return parseFloat(fromMeta);
     }
 
-    console.warn(`key's metadata could not be parseInt()'d: ${key}`);
     return null;
   };
 
   /**
    * Gets the metadata of a given key from this skill as a boolean.
-   * Only returns `null` if the underlying data wasn't a truth or falsey value.
+   * Only returns `null` if the underlying data wasn't a truthy or falsey value.
    * @param {string} key The key to the metadata.
    * @returns {boolean|null} True if the value was true, false otherwise; or null if invalid.
    */
   metaAsBoolean(key)
   {
     // grab the metadata for this skill.
-    const fromMeta = this.metadata(key);
+    const fromMeta = this.#getMeta(key);
 
     // check to make sure we actually got a value.
     if (fromMeta)
@@ -5461,7 +5469,6 @@ class RPG_Base
       }
     }
 
-    console.warn(`key's metadata was neither a truthy or falsey value: ${key}`);
     return null;
   };
 
@@ -5483,7 +5490,6 @@ class RPG_Base
       return this.#parseObject(fromMeta);
     }
 
-    console.warn(`key's metadata could not be JSON.parse()'d: ${key}`);
     return null;
   };
 
@@ -5937,21 +5943,32 @@ class RPG_Actor extends RPG_BaseBattler
    * @param {rm.types.Actor} actorBattler The actor to parse.
    * @param {number} index The index of the entry in the database.
    */
-  constructor(actorBattler, index)
+  constructor(actor, index)
   {
-    super(actorBattler, index);
+    // supply parameters to base class.
+    super(actor, index);
 
+    // map the data.
+    this.initMembers(actor)
+  };
+
+  /**
+   * Maps the data from the JSON to this object.
+   * @param {rm.types.Actor} actorBattler The actor to parse.
+   */
+  initMembers(actor)
+  {
     // map actor-specific battler properties.
-    this.characterIndex = actorBattler.characterIndex;
-    this.characterName = actorBattler.characterName;
-    this.classId = actorBattler.classId;
-    this.equips = actorBattler.equips;
-    this.faceIndex = actorBattler.faceIndex;
-    this.faceName = actorBattler.faceName;
-    this.initialLevel = actorBattler.initialLevel;
-    this.maxLevel = actorBattler.maxLevel;
-    this.nickName = actorBattler.nickname;
-    this.profile = actorBattler.profile;
+    this.characterIndex = actor.characterIndex;
+    this.characterName = actor.characterName;
+    this.classId = actor.classId;
+    this.equips = actor.equips;
+    this.faceIndex = actor.faceIndex;
+    this.faceName = actor.faceName;
+    this.initialLevel = actor.initialLevel;
+    this.maxLevel = actor.maxLevel;
+    this.nickName = actor.nickname;
+    this.profile = actor.profile;
   };
 }
 //#endregion RPG_Actor
@@ -6090,23 +6107,33 @@ class RPG_Enemy extends RPG_BaseBattler
 
   /**
    * Constructor.
-   * @param {rm.types.Enemy} enemyBattler The enemy to parse.
+   * @param {rm.types.Enemy} enemy The enemy to parse.
    * @param {number} index The index of the entry in the database.
    */
-  constructor(enemyBattler, index)
+  constructor(enemy, index)
   {
     // supply the base class params.
-    super(enemyBattler, index);
+    super(enemy, index);
 
     // map the data.
-    this.actions = enemyBattler.actions
+    this.initMembers(enemy);
+  };
+
+  /**
+   * Maps the data from the JSON to this object.
+   * @param {rm.types.Enemy} enemy The enemy to parse.
+   */
+  initMembers(enemy)
+  {
+    // map the data.
+    this.actions = enemy.actions
       .map(enemyAction => new RPG_EnemyAction(enemyAction));
-    this.battlerHue = enemyBattler.battlerHue;
-    this.dropItems = enemyBattler.dropItems
+    this.battlerHue = enemy.battlerHue;
+    this.dropItems = enemy.dropItems
       .map(dropItem => new RPG_DropItem(dropItem));
-    this.exp = enemyBattler.exp;
-    this.gold = enemyBattler.gold;
-    this.params = enemyBattler.params;
+    this.exp = enemy.exp;
+    this.gold = enemy.gold;
+    this.params = enemy.params;
   };
 }
 //#endregion RPG_Enemy
@@ -6223,6 +6250,16 @@ class RPG_Skill extends RPG_UsableItem
     // supply the base class params.
     super(skill, index);
 
+    // map the data.
+    this.initMembers(skill);
+  };
+
+  /**
+   * Maps all the data from the JSON to this object.
+   * @param {rm.types.Skill} skill The underlying skill object.
+   */
+  initMembers(skill)
+  {
     // map the data.
     this.message1 = skill.message1;
     this.message2 = skill.message2;

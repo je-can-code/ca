@@ -897,6 +897,7 @@ JABS_Battler.prototype.initBattleInfo = function()
    */
   this._cooldowns = {};
   this.initCooldowns();
+  this.initEnemySkillManager();
 
   /**
    * The collection of all states for this battler.
@@ -1234,6 +1235,9 @@ JABS_Battler.prototype.initCooldowns = function()
   this.initActorCooldowns();
 };
 
+/**
+ * Initializes commonly used battler cooldowns.
+ */
 JABS_Battler.prototype.initBattlerCooldowns = function()
 {
   // setup a global cooldown for all battlers.
@@ -1310,6 +1314,9 @@ JABS_Battler.prototype.initEnemyCooldownBySkill = function(skillId)
   this.initializeCooldown(`${skill.id}-${skill.name}`, 0);
 };
 
+/**
+ * Initializes all actor cooldowns.
+ */
 JABS_Battler.prototype.initActorCooldowns = function()
 {
   // only actors can have actor cooldowns!
@@ -1324,6 +1331,21 @@ JABS_Battler.prototype.initActorCooldowns = function()
   this.initializeCooldown(JABS_Button.CombatSkill2, 0);
   this.initializeCooldown(JABS_Button.CombatSkill3, 0);
   this.initializeCooldown(JABS_Button.CombatSkill4, 0);
+};
+
+/**
+ * Initializes the skill manager with all of the enemy's skills.
+ */
+JABS_Battler.prototype.initEnemySkillManager = function()
+{
+  // if this is not an enemy, then do not setup enemy skills.
+  if (!this.isEnemy()) return;
+
+  // grab the battler for double use.
+  const battler = this.getBattler();
+
+  // setup the skill slots for the enemy.
+  battler._j._equippedSkills.setupEnemySlots(battler);
 };
 //#endregion initialize battler
 
@@ -1343,11 +1365,8 @@ JABS_Battler.createPlayer = function()
     .isPlayer()
     .build();
 
-  // instantiate a player JABS battler.
-  const playerJabsBattler = new JABS_Battler($gamePlayer, battler, coreData);
-
   // return the created player.
-  return playerJabsBattler;
+  return new JABS_Battler($gamePlayer, battler, coreData);
 };
 
 /**
@@ -1379,66 +1398,36 @@ JABS_Battler.isFar = function(distance)
 
 /**
  * Determines whether or not the skill id is a guard-type skill or not.
+ * @param id {number} The id of the skill to check.
  * @returns {boolean} True if it is a guard skill, false otherwise.
  */
 JABS_Battler.isGuardSkillById = function(id)
 {
+  // if there is no id to check, then it is not a dodge skill.
   if (!id) return false;
 
-  return $dataSkills[id].stypeId === J.ABS.DefaultValues.GuardSkillTypeId;
+  // if the skill type is not "guard skill", then this is not a guard skill.
+  if ($dataSkills[id].stypeId !== J.ABS.DefaultValues.GuardSkillTypeId) return false;
+
+  // its a guard skill!
+  return true;
 };
 
 /**
  * Determines whether or not the skill id is a dodge-type skill or not.
+ * @param id {number} The id of the skill to check.
  * @returns {boolean} True if it is a dodge skill, false otherwise.
  */
 JABS_Battler.isDodgeSkillById = function(id)
 {
+  // if there is no id to check, then it is not a dodge skill.
   if (!id) return false;
 
-  return $dataSkills[id].stypeId === J.ABS.DefaultValues.DodgeSkillTypeId;
-};
+  // if the skill type is not "dodge skill", then this is not a dodge skill.
+  if ($dataSkills[id].stypeId !== J.ABS.DefaultValues.DodgeSkillTypeId) return false;
 
-/**
- * Determines whether or not a skill should be visible
- * in the jabs combat skill assignment menu.
- * @param skill {rm.types.Skill} The skill to check.
- * @returns {boolean}
- */
-JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
-{
-  const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
-  const isGuardSkillType = JABS_Battler.isGuardSkillById(skill.id);
-  const isWeaponSkillType = JABS_Battler.isWeaponSkillById(skill.id);
-  const needsHiding = skill.meta && skill.meta["hideFromJabsMenu"]; // one-off hiding.
-  return !isDodgeSkillType && !isGuardSkillType && !isWeaponSkillType && !needsHiding;
-};
-
-/**
- * Determines whether or not a skill should be visible
- * in the jabs dodge skill assignment menu.
- * @param skill {rm.types.Skill} The skill to check.
- * @returns {boolean}
- */
-JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
-{
-  const isDodgeSkillType = JABS_Battler.isDodgeSkillById(skill.id);
-  const needsHiding = skill.meta && skill.meta["hideFromJabsMenu"]; // one-off hiding.
-  return isDodgeSkillType && !needsHiding;
-};
-
-/**
- * Determines whether or not an item should be visible
- * in the jabs tool assignment menu.
- * @param item {rm.types.Item}
- * @returns {boolean}
- */
-JABS_Battler.isItemVisibleInToolMenu = function(item)
-{
-  const isItem = DataManager.isItem(item) && item.itypeId === 1;
-  const isUsable = isItem && (item.occasion === 0);
-  const needsHiding = item.meta && item.meta["hideFromJabsMenu"]; // one-off hiding.
-  return isItem && isUsable && !needsHiding;
+  // its a dodge skill!
+  return true;
 };
 
 /**
@@ -1448,9 +1437,77 @@ JABS_Battler.isItemVisibleInToolMenu = function(item)
  */
 JABS_Battler.isWeaponSkillById = function(id)
 {
+  // if there is no id to check, then it is not a weapon skill.
   if (!id) return false;
 
-  return $dataSkills[id].stypeId === J.ABS.DefaultValues.WeaponSkillTypeId;
+  // if the skill type is not "weapon skill", then this is not a weapon skill.
+  if ($dataSkills[id].stypeId !== J.ABS.DefaultValues.WeaponSkillTypeId) return false;
+
+  // its a weapon skill!
+  return true;
+};
+
+
+/**
+ * Determines whether or not a skill should be visible
+ * in the jabs combat skill assignment menu.
+ * @param skill {RPG_Skill} The skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
+{
+  // explicitly hidden skills are not visible in the combat menu.
+  if (skill.metaAsBoolean("hideFromJabsMenu")) return false;
+
+  // dodge skills are not visible in the combat skill menu.
+  if (JABS_Battler.isDodgeSkillById(skill.id)) return false;
+
+  // guard skills are not visible in the combat skill menu.
+  if (JABS_Battler.isGuardSkillById(skill.id)) return false;
+
+  // weapon skills are not visible in the combat skill menu.
+  if (JABS_Battler.isWeaponSkillById(skill.id)) return false;
+
+  // show this skill!
+  return true;
+};
+
+/**
+ * Determines whether or not a skill should be visible
+ * in the jabs dodge skill assignment menu.
+ * @param skill {RPG_Skill} The skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
+{
+  // explicitly hidden skills are not visible in the dodge menu.
+  if (skill.metaAsBoolean("hideFromJabsMenu")) return false;
+
+  // non-dodge skills are not visible in the dodge menu.
+  if (!JABS_Battler.isDodgeSkillById(skill.id)) return false;
+
+  // show this skill!
+  return true;
+};
+
+/**
+ * Determines whether or not an item should be visible
+ * in the jabs tool assignment menu.
+ * @param {RPG_Item} item The item to check if should be visible.
+ * @returns {boolean}
+ */
+JABS_Battler.isItemVisibleInToolMenu = function(item)
+{
+  // explicitly hidden skills are not visible in the item menu.
+  if (item.metaAsBoolean("hideFromJabsMenu")) return false;
+
+  // non-items or non-always-occasion items are not visible in the item menu.
+  const isItem = DataManager.isItem(item) && item.itypeId === 1;
+  const isUsable = isItem && (item.occasion === 0);
+  if (!isItem || !isUsable) return false;
+
+  // show this item!
+  return true;
 };
 
 /**
@@ -1962,7 +2019,7 @@ JABS_Battler.prototype.tryDodgeSkill = function()
 
 /**
  * Executes the provided dodge skill.
- * @param {rm.types.Skill} skill The RPG item representing the dodge skill.
+ * @param {RPG_Skill} skill The RPG item representing the dodge skill.
  */
 JABS_Battler.prototype.executeDodgeSkill = function(skill)
 {
@@ -1990,7 +2047,7 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.getBattler().paySkillCost(skill);
 
   // apply the cooldowns for the dodge.
-  const cooldown = skill._j.cooldown();
+  const cooldown = skill.jabsCooldown();
   this.modCooldownCounter(JABS_Button.Dodge, cooldown);
 
   // trigger the dodge!
@@ -4061,11 +4118,7 @@ JABS_Battler.prototype.isActionReady = function()
  */
 JABS_Battler.prototype.getPrepareTime = function()
 {
-  if (!this.isPlayer())
-  {
-    return this.getBattler()
-      .prepareTime();
-  }
+  return this.getBattler().prepareTime();
 };
 
 /**
@@ -4128,7 +4181,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   const cooldown = this.getCooldown(cooldownKey);
 
   // check if the base is off cooldown yet.
-  if (!cooldown.isAnyReady())
+  if (!cooldown.isBaseReady())
   {
     // cooldown is not ready yet.
     return false;
@@ -8466,7 +8519,77 @@ JABS_SkillSlotManager.prototype.setupActorSlots = function()
  */
 JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
 {
+  const battlerData = enemy.enemy();
+  if (!battlerData) return;
 
+  // a short-hand for getting the skill from wherever it might be.
+  const getSkill = skillId =>
+  {
+    let skill;
+    if (J.PASSIVE && !J.EXTEND)
+    {
+      skill = enemy.skill(skillId);
+    }
+    else if (J.EXTEND)
+    {
+      skill = OverlayManager.getExtendedSkill(enemy, skillId);
+    }
+    else
+    {
+      skill = $dataSkills[skillId];
+    }
+
+    return skill;
+  };
+
+  // filter out any "extend" skills as far as this collection is concerned.
+  const filtering = action =>
+  {
+    // grab the skill from the database.
+    const skill = getSkill(action.skillId);
+
+    // determine if the skill is an extend skill or not.
+    const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+
+    // filter out the extend skills.
+    return !isExtendSkill;
+  };
+
+  // filter the skills.
+  const skillIds = battlerData.actions
+    .filter(filtering)
+    .map(action => action.skillId);
+
+  // iterate over each skill.
+  skillIds.forEach(skillId =>
+  {
+    // grab the skill itself.
+    const skill = getSkill(skillId);
+
+    // calculate the cooldown key.
+    const slotKey = JABS_AiManager.buildEnemyCooldownType(skill);
+
+    // add the slot to the manager for this enemy.
+    this.addSlot(slotKey, skillId);
+  }, this);
+};
+
+/**
+ * Adds a slot with the given slot key and skill id.
+ * If a slot with the same key already exists, no action will be taken.
+ * @param {string} key The slot key.
+ * @param {number} initialSkillId The skill id to set to this slot.
+ */
+JABS_SkillSlotManager.prototype.addSlot = function(key, initialSkillId)
+{
+  // check if the slot key already exists on the manager.
+  const exists = this._slots.find(slot => slot.key === key);
+
+  // if it exists, then don't re-add this slot.
+  if (exists) return;
+
+  // add the slot with the designated key and skill id.
+  this._slots.push(new JABS_SkillSlot(key, initialSkillId));
 };
 
 /**

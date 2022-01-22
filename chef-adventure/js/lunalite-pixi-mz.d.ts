@@ -44271,31 +44271,31 @@ interface System {
 declare var $plugins: Array<rm.types.PluginSettings>;
 
 /** @global Database Actor data. */
-declare var $dataActors: Array<rm.types.Actor>;
+declare var $dataActors: Array<RPG_Actor>;
 
 /** @global Database Class data. */
-declare var $dataClasses: Array<rm.types.RPGClass>;
+declare var $dataClasses: Array<RPG_Class>;
 
 /** @global Database Skill data. */
-declare var $dataSkills: Array<rm.types.Skill>;
+declare var $dataSkills: Array<RPG_Skill>;
 
 /** @global Database Item data. */
-declare var $dataItems: Array<rm.types.Item>;
+declare var $dataItems: Array<RPG_Item>;
 
 /** @global Database Weapon data. */
-declare var $dataWeapons: Array<rm.types.Weapon>;
+declare var $dataWeapons: Array<RPG_Weapon>;
 
 /** @global Database Armor data. */
-declare var $dataArmors: Array<rm.types.Armor>;
+declare var $dataArmors: Array<RPG_Armor>;
 
 /** @global Database Enemy data. */
-declare var $dataEnemies: Array<rm.types.Enemy>;
+declare var $dataEnemies: Array<RPG_Enemy>;
 
 /** @global Database Troop data. */
 declare var $dataTroops: Array<rm.types.Troop>;
 
 /** @global Database State data. */
-declare var $dataStates: Array<rm.types.State>;
+declare var $dataStates: Array<RPG_State>;
 
 /** @global Database Animation data. */
 declare var $dataAnimations: Array<rm.types.Animation>;
