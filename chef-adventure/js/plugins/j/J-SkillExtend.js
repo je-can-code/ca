@@ -481,7 +481,7 @@ class OverlayManager
     }
 
     // make a copy of the original skill to be overlayed.
-    const baseSkill = JsonEx.makeDeepCopy($dataSkills[skillId]);
+    const baseSkill = $dataSkills[skillId]._clone(); //JsonEx.makeDeepCopy($dataSkills[skillId]);
 
     // the filter for filtering whether or not a skill is an extension skill.
     const skillExtendFilter = (skill) =>
@@ -1361,13 +1361,22 @@ class OverlayManager
 
   /**
    * Overlays the `cooldown`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static cooldown(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.cooldown())
+    // if the overlay doesn't have a JABS cooldown, then don't process it.
+    if (!skillOverlay.jabsCooldown) return baseSkill;
+
+    const difference = skillOverlay.jabsCooldown - baseSkill.jabsCooldown;
+    console.log(difference, baseSkill);
+    baseSkill.setJabsCooldownModifier(difference);
+    return baseSkill;
+
+    /*
+    if (skillOverlay.jabsCooldown)
     {
       const parameterName = J.BASE.Notetags.Cooldown;
       const parameterValue = `<${parameterName}:${skillOverlay._j.cooldown()}>`;
@@ -1383,6 +1392,7 @@ class OverlayManager
     }
 
     return baseSkill;
+    */
   };
 
 //#endregion overwrites

@@ -14,6 +14,7 @@
  * ============================================================================
  */
 
+//#region Game objects
 //#region Game_Actor
 /**
  * Adds in the jabs tracking object for equipped skills.
@@ -191,7 +192,7 @@ Game_Actor.prototype.initAbsSkills = function()
  * Retrieves all skills that are currently equipped on this actor.
  * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getAllEquippedSkills = function()
+Game_Battler.prototype.getAllEquippedSkills = function()
 {
   return this._j._equippedSkills.getAllSlots();
 };
@@ -1342,17 +1343,17 @@ Game_Battler.prototype.getPowerLevel = function()
   {
     if (bparams.includes(counter))
     {
-      powerLevel += parseFloat(this.param(counter));
+      powerLevel += this.param(counter);
     }
 
     if (xparams.includes(counter))
     {
-      powerLevel += parseFloat(this.xparam(counter - 8) * 100);
+      powerLevel += this.xparam(counter - 8) * 100;
     }
 
     if (sparams.includes(counter))
     {
-      powerLevel += parseFloat(this.sparam(counter - 18) * 100 - 100);
+      powerLevel += (this.sparam(counter - 18) * 100 - 100);
     }
 
     counter++;
@@ -1380,16 +1381,6 @@ Game_Battler.prototype.getBonusHits = function()
 Game_Battler.prototype.getSpeedBoosts = function()
 {
   return 0;
-};
-
-/**
- * Retrieves all skills that are currently equipped on this actor.
- * At the Game_Battler level will always return an empty object.
- * @returns {object}
- */
-Game_Battler.prototype.getAllEquippedSkills = function()
-{
-  return [];
 };
 
 /**
@@ -5137,4 +5128,83 @@ Game_Unit.prototype.inBattle = function()
     : J.ABS.Aliased.Game_Unit.inBattle.call(this);
 }
 //#endregion
+//#endregion Game objects
+
+//#region RPG objects
+/**
+ * A new property for handling this skill's JABS cooldown modifiers.
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsCooldown",
+  {
+    get: function()
+    {
+      return this.getJabsCooldown();
+    },
+    set: function(val)
+    {
+      this.setJabsCooldownModifier(val);
+    },
+  });
+
+J.ABS.Aliased.RPG_Skill.set('initMembers', RPG_Skill.prototype.initMembers);
+/**
+ * Extends property mapping to include the new cooldown modifier.
+ * @param skill
+ */
+RPG_Skill.prototype.initMembers = function(skill)
+{
+  // perform original logic.
+  J.ABS.Aliased.RPG_Skill.get('initMembers').call(this, skill);
+
+  /**
+   * The modifier against the JABS cooldown.
+   * @type {number}
+   */
+  this._jabsCooldownModifier = 0;
+};
+
+/**
+ * Gets the JABS cooldown for this skill.
+ * Accommodates the possibility of a modifier.
+ * Returns a minimum of 0.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsCooldown = function()
+{
+  // gets the cooldown modifier.
+  const modifier = this.getJabsCooldownModifier();
+
+  // gets the cooldown according to the notes.
+  const cooldown = this.getJabsCooldownFromNotes()
+
+  // returns the cooldown combined with the modifier.
+  return Math.max((cooldown + modifier), 0);
+};
+
+/**
+ * Gets the JABS cooldown for this skill from its notes.
+ */
+RPG_Skill.prototype.getJabsCooldownFromNotes = function()
+{
+  return this.getNumberFromNotesByRegex(/<cooldown:[ ]?(\d+)>/i);
+};
+
+/**
+ * Gets the JABS cooldown modifier for this skill.
+ */
+RPG_Skill.prototype.getJabsCooldownModifier = function()
+{
+  return this._jabsCooldownModifier;
+};
+
+/**
+ * Sets the JABS cooldown modifier for this skill.
+ * @param jabsCooldown
+ */
+RPG_Skill.prototype.setJabsCooldownModifier = function(jabsCooldown)
+{
+  this._jabsCooldownModifier = jabsCooldown;
+};
+//#endregion RPG objects
+
 //ENDFILE
