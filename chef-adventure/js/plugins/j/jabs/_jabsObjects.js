@@ -10,7 +10,8 @@
  * ============================================================================
  * A component of JABS.
  * This is a cluster of all changes/overwrites/additions to the objects that
- * would otherwise be found in the rmmz_objects.js, such as Game_Map.
+ * would otherwise be found in the rmmz_objects.js, such as Game_Map. This also
+ * contains updates to the new wrapper objects, such as RPG_Skill.
  * ============================================================================
  */
 
@@ -643,38 +644,32 @@ Game_Actor.prototype.getSpeedBoosts = function()
 
 /**
  * Updates the bonus hit count for this actor based on equipment.
+ *
+ * NOTE:
+ * This is explicitly not using `this.getEverythingWithNotes()` so that we can
+ * also parse out the repeats from all the relevant sources as well.
  */
 Game_Actor.prototype.refreshBonusHits = function()
 {
-  const equips = this.equips(); // while equipped
-  const states = this.states(); // temporary states
-  const skills = this.skills(); // passive skills
+  // default to zero bonus hits.
   let bonusHits = 0;
 
-  const reducer = (previousValue, currentValue) => previousValue + currentValue.value;
-  const isHitsTrait = trait => trait.code === J.BASE.Traits.ATTACK_REPEATS;
-  equips.forEach(equip =>
-  {
-    if (!equip) return;
-    bonusHits += equip._j.bonusHits;
-    bonusHits += equip.traits
-      .filter(isHitsTrait)
-      .reduce(reducer, 0);
-  });
+  // iterate over all equips.
+  bonusHits += this.getBonusHitsFromTraitedSources(this.equips());
 
-  states.forEach(state =>
-  {
-    bonusHits += state._j.bonusHits;
-    bonusHits += state.traits
-      .filter(isHitsTrait)
-      .reduce(reducer, 0);
-  });
+  // iterate over all equips.
+  bonusHits += this.getBonusHitsFromTraitedSources(this.states());
 
-  skills.forEach(skill =>
-  {
-    bonusHits += skill._j.getBonusHits();
-  });
+  // add your own actor data as a source.
+  bonusHits += this.getBonusHitsFromTraitedSources([this.actor()]);
 
+  // add your own class data as a source.
+  bonusHits += this.getBonusHitsFromTraitedSources([this.currentClass()]);
+
+  // iterate over all skills learned; concept as "passive skills", not bonus hits per skill.
+  bonusHits += this.getBonusHitsFromNonTraitedSources(this.skills());
+
+  // set the bonus hits to the total amount found everywhere.
   this._j._bonusHits = bonusHits;
 };
 
@@ -1371,6 +1366,58 @@ Game_Battler.prototype.getPowerLevel = function()
 Game_Battler.prototype.getBonusHits = function()
 {
   return 0;
+};
+
+/**
+ * Extracts all bonus hits from a collection of traited sources.
+ * @param {RPG_TraitItem[]|RPG_BaseBattler[]|RPG_Class[]} sources The collection to iterate over.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBonusHitsFromTraitedSources = function(sources)
+{
+  // set this counter to zero.
+  let bonusHits = 0;
+
+  // build the reducer for adding repeat traits up as bonus hits.
+  const reducer = (previousValue, currentValue) => previousValue + currentValue.value;
+  const isHitsTrait = trait => trait.code === J.BASE.Traits.ATTACK_REPEATS;
+
+  // iterate over all equips.
+  sources.forEach(source =>
+  {
+    // if the slot is empty, don't process it.
+    if (!source) return;
+
+    // grab the bonus hits from
+    bonusHits += source.jabsBonusHits;
+    bonusHits += source.traits
+      .filter(isHitsTrait)
+      .reduce(reducer, 0);
+  });
+
+  // return the bonus hits from some traited sources.
+  return bonusHits;
+};
+
+/**
+ * Extracts all bonus hits from a collection of non-traited sources.
+ * @param {RPG_Skill[]|RPG_Item[]} sources The collection to iterate over.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBonusHitsFromNonTraitedSources = function(sources)
+{
+  // set this counter to zero.
+  let bonusHits = 0;
+
+  // iterate over all non-traited sources.
+  sources.forEach(source =>
+  {
+    // grab the bonus hits from the source.
+    bonusHits += source.jabsBonusHits;
+  });
+
+  // return the bonus hits from non-traited sources.
+  return bonusHits;
 };
 
 /**
@@ -2156,7 +2203,7 @@ Game_Enemy.prototype.battlerId = function()
 };
 
 /**
- * Gets the current number of bonus hits for this actor.
+ * Gets the current number of bonus hits for this enemy.
  * @returns {number}
  */
 Game_Enemy.prototype.getBonusHits = function()
@@ -5131,8 +5178,10 @@ Game_Unit.prototype.inBattle = function()
 //#endregion Game objects
 
 //#region RPG objects
+//#region cooldown
 /**
- * A new property for handling this skill's JABS cooldown modifiers.
+ * A new property for retrieving the JABS cooldown from this skill.
+ * @type {number}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsCooldown",
   {
@@ -5140,71 +5189,825 @@ Object.defineProperty(RPG_Skill.prototype, "jabsCooldown",
     {
       return this.getJabsCooldown();
     },
-    set: function(val)
-    {
-      this.setJabsCooldownModifier(val);
-    },
   });
-
-J.ABS.Aliased.RPG_Skill.set('initMembers', RPG_Skill.prototype.initMembers);
-/**
- * Extends property mapping to include the new cooldown modifier.
- * @param skill
- */
-RPG_Skill.prototype.initMembers = function(skill)
-{
-  // perform original logic.
-  J.ABS.Aliased.RPG_Skill.get('initMembers').call(this, skill);
-
-  /**
-   * The modifier against the JABS cooldown.
-   * @type {number}
-   */
-  this._jabsCooldownModifier = 0;
-};
 
 /**
  * Gets the JABS cooldown for this skill.
- * Accommodates the possibility of a modifier.
- * Returns a minimum of 0.
  * @returns {number}
  */
 RPG_Skill.prototype.getJabsCooldown = function()
 {
-  // gets the cooldown modifier.
-  const modifier = this.getJabsCooldownModifier();
-
-  // gets the cooldown according to the notes.
-  const cooldown = this.getJabsCooldownFromNotes()
-
-  // returns the cooldown combined with the modifier.
-  return Math.max((cooldown + modifier), 0);
+  return this.extractJabsCooldown()
 };
 
 /**
  * Gets the JABS cooldown for this skill from its notes.
  */
-RPG_Skill.prototype.getJabsCooldownFromNotes = function()
+RPG_Skill.prototype.extractJabsCooldown = function()
 {
-  return this.getNumberFromNotesByRegex(/<cooldown:[ ]?(\d+)>/i);
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
+};
+//#endregion cooldown
+
+//#region range
+/**
+ * A new property for retrieving the JABS range from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsRange",
+  {
+    get: function()
+    {
+      return this.getJabsRange();
+    },
+  });
+
+/**
+ * Gets the JABS range for this skill.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsRange = function()
+{
+  return this.extractJabsRange();
 };
 
 /**
- * Gets the JABS cooldown modifier for this skill.
+ * Extracts the JABS range for this skill from its notes.
  */
-RPG_Skill.prototype.getJabsCooldownModifier = function()
+RPG_Skill.prototype.extractJabsRange = function()
 {
-  return this._jabsCooldownModifier;
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Range, true);
+};
+//#endregion range
+
+//#region proximity
+/**
+ * A new property for retrieving the JABS proximity from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsProximity",
+  {
+    get: function()
+    {
+      return this.getJabsProximity();
+    },
+  });
+
+/**
+ * Gets the JABS proximity this skill.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsProximity = function()
+{
+  return this.extractJabsProximity();
 };
 
 /**
- * Sets the JABS cooldown modifier for this skill.
- * @param jabsCooldown
+ * Extracts the JABS proximity for this skill from its notes.
  */
-RPG_Skill.prototype.setJabsCooldownModifier = function(jabsCooldown)
+RPG_Skill.prototype.extractJabsProximity = function()
 {
-  this._jabsCooldownModifier = jabsCooldown;
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Proximity, true);
 };
+//#endregion proximity
+
+//#region actionId
+/**
+ * A new property for retrieving the JABS actionId from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsActionId",
+  {
+    get: function()
+    {
+      return this.getJabsActionId();
+    },
+  });
+
+/**
+ * Gets the JABS actionId this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsActionId = function()
+{
+  return this.extractJabsActionId();
+};
+
+/**
+ * Extracts the JABS actionId for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsActionId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.ActionId, true);
+};
+//#endregion actionId
+
+//#region duration
+/**
+ * A new property for retrieving the JABS duration from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsDuration",
+  {
+    get: function()
+    {
+      return this.getJabsDuration();
+    },
+  });
+
+/**
+ * Gets the JABS duration this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsDuration = function()
+{
+  return this.extractJabsDuration();
+};
+
+/**
+ * Extracts the JABS duration for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsDuration = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Duration, true);
+};
+//#endregion duration
+
+//#region shape
+/**
+ * A new property for retrieving the JABS shape from this skill.
+ * @type {string}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsShape",
+  {
+    get: function()
+    {
+      return this.getJabsShape();
+    },
+  });
+
+/**
+ * Gets the JABS shape this skill.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.getJabsShape = function()
+{
+  return this.extractJabsShape();
+};
+
+/**
+ * Extracts the JABS shape for this skill from its notes.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.extractJabsShape = function()
+{
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.Shape, true);
+};
+//#endregion shape
+
+//#region knockback
+/**
+ * A new property for retrieving the JABS knockback from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsKnockback",
+  {
+    get: function()
+    {
+      return this.getJabsKnockback();
+    },
+  });
+
+/**
+ * Gets the JABS knockback this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsKnockback = function()
+{
+  return this.extractJabsKnockback();
+};
+
+/**
+ * Extracts the JABS knockback for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsKnockback = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Knockback, true);
+};
+//#endregion knockback
+
+//#region castAnimation
+/**
+ * A new property for retrieving the JABS castAnimation id from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsCastAnimation",
+  {
+    get: function()
+    {
+      return this.getJabsCastAnimation();
+    },
+  });
+
+/**
+ * Gets the JABS castAnimation this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsCastAnimation = function()
+{
+  return this.extractJabsCastAnimation();
+};
+
+/**
+ * Extracts the JABS castAnimation for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsCastAnimation = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastAnimation, true);
+};
+//#endregion castAnimation
+
+//#region castTime
+/**
+ * A new property for retrieving the JABS castTime from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsCastTime",
+  {
+    get: function()
+    {
+      return this.getJabsCastTime();
+    },
+  });
+
+/**
+ * Gets the JABS castTime this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsCastTime = function()
+{
+  return this.extractJabsCastTime();
+};
+
+/**
+ * Extracts the JABS castTime for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsCastTime = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastTime, true);
+};
+//#endregion castTime
+
+//#region freeCombo
+/**
+ * A new property for retrieving the JABS freeCombo from this skill.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
+  {
+    get: function()
+    {
+      return this.getJabsFreeCombo();
+    },
+  });
+
+/**
+ * Gets the JABS freeCombo this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsFreeCombo = function()
+{
+  return this.extractJabsFreeCombo();
+};
+
+/**
+ * Extracts the JABS freeCombo for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsFreeCombo = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.FreeCombo, true);
+};
+//#endregion freeCombo
+
+//#region direct
+/**
+ * A new property for retrieving the JABS direct from this skill.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsDirect",
+  {
+    get: function()
+    {
+      return this.getJabsDirect();
+    },
+  });
+
+/**
+ * Gets the JABS direct this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsDirect = function()
+{
+  return this.extractJabsDirect();
+};
+
+/**
+ * Extracts the JABS direct for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsDirect = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Direct, true);
+};
+//#endregion direct
+
+//#region bonusAggro
+/**
+ * A new property for retrieving the JABS bonusAggro from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsBonusAggro",
+  {
+    get: function()
+    {
+      return this.getJabsBonusAggro();
+    },
+  });
+
+/**
+ * Gets the JABS bonusAggro this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsBonusAggro = function()
+{
+  return this.extractJabsBonusAggro();
+};
+
+/**
+ * Extracts the JABS bonusAggro for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsBonusAggro = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusAggro, true);
+};
+//#endregion bonusAggro
+
+//#region aggroMultiplier
+/**
+ * A new property for retrieving the JABS aggroMultiplier from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsAggroMultiplier",
+  {
+    get: function()
+    {
+      return this.getJabsAggroMultiplier();
+    },
+  });
+
+/**
+ * Gets the JABS aggroMultiplier this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsAggroMultiplier = function()
+{
+  return this.extractJabsAggroMultiplier();
+};
+
+/**
+ * Extracts the JABS aggroMultiplier for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsAggroMultiplier = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroMultiplier, true);
+};
+//#endregion aggroMultiplier
+
+//#region bonusHits
+//#region RPG_BaseBattler
+/**
+ * A new property for retrieving the JABS bonusHits from this battler.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonusHits of this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the JABS bonusHits for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion RPG_BaseBattler
+
+//#region RPG_Class
+/**
+ * A new property for retrieving the JABS bonusHits from this class.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Class.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonusHits of this class.
+ * @returns {number|null}
+ */
+RPG_Class.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the JABS bonusHits for this class from its notes.
+ * @returns {number|null}
+ */
+RPG_Class.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion RPG_Class
+
+//#region RPG_TraitItem
+/**
+ * A new property for retrieving the JABS bonusHits from this traited item.
+ * @type {number}
+ */
+Object.defineProperty(RPG_TraitItem.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonusHits of this traited item.
+ * @returns {number|null}
+ */
+RPG_TraitItem.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the JABS bonusHits for this traited item from its notes.
+ * @returns {number|null}
+ */
+RPG_TraitItem.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion RPG_EquipItem
+
+//#region RPG_UsableItem
+/**
+ * A new property for retrieving the JABS bonusHits from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonusHits of this skill.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the JABS bonusHits for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion RPG_UsableItem
+//#endregion bonusHits
+
+//#region guard
+/**
+ * A new property for retrieving the JABS guard from this skill.
+ * @type {[number, number]}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsGuard",
+  {
+    get: function()
+    {
+      return this.getJabsGuard();
+    },
+  });
+
+/**
+ * Gets the JABS guard this skill.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsGuard = function()
+{
+  return this.extractJabsGuard();
+};
+
+/**
+ * Extracts the JABS guard for this skill from its notes.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.extractJabsGuard = function()
+{
+  return this.getArrayFromNotesByRegex(J.ABS.RegExp.Guard);
+};
+//#endregion guard
+
+//#region parry
+/**
+ * A new property for retrieving the JABS parry frames from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsParry",
+  {
+    get: function()
+    {
+      return this.getJabsParryFrames();
+    },
+  });
+
+/**
+ * Gets the JABS parry this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsParryFrames = function()
+{
+  return this.extractJabsParryFrames();
+};
+
+/**
+ * Extracts the JABS parry for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsParryFrames = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Parry, true);
+};
+//#endregion parry
+
+//#region counterParry
+/**
+ * A new property for retrieving the JABS counterParry frames from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsCounterParry",
+  {
+    get: function()
+    {
+      return this.getJabsCounterParry();
+    },
+  });
+
+/**
+ * Gets the JABS counterParry this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsCounterParry = function()
+{
+  return this.extractJabsCounterParry();
+};
+
+/**
+ * Extracts the JABS counterParry for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsCounterParry = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CounterParry, true);
+};
+//#endregion counterParry
+
+//#region counterGuard
+/**
+ * A new property for retrieving the JABS counterGuard frames from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsCounterGuard",
+  {
+    get: function()
+    {
+      return this.getJabsCounterGuard();
+    },
+  });
+
+/**
+ * Gets the JABS counterGuard this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsCounterGuard = function()
+{
+  return this.extractJabsCounterGuard();
+};
+
+/**
+ * Extracts the JABS counterGuard for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsCounterGuard = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CounterGuard, true);
+};
+//#endregion counterGuard
+
+//#region projectile
+/**
+ * A new property for retrieving the JABS projectile frames from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsProjectile",
+  {
+    get: function()
+    {
+      return this.getJabsProjectile();
+    },
+  });
+
+/**
+ * Gets the JABS projectile this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsProjectile = function()
+{
+  return this.extractJabsProjectile();
+};
+
+/**
+ * Extracts the JABS projectile for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsProjectile = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Projectile, true);
+};
+//#endregion projectile
+
+//#region uniqueCooldown
+/**
+ * A new property for retrieving the JABS uniqueCooldown from this skill.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsUniqueCooldown",
+  {
+    get: function()
+    {
+      return this.getJabsUniqueCooldown();
+    },
+  });
+
+/**
+ * Gets the JABS uniqueCooldown this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsUniqueCooldown = function()
+{
+  return this.extractJabsUniqueCooldown();
+};
+
+/**
+ * Extracts the JABS uniqueCooldown for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsUniqueCooldown = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UniqueCooldown, true);
+};
+//#endregion uniqueCooldown
+
+//#region moveType
+/**
+ * A new property for retrieving the JABS moveType from this skill.
+ * @type {string}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsMoveType",
+  {
+    get: function()
+    {
+      return this.getJabsMoveType();
+    },
+  });
+
+/**
+ * Gets the JABS moveType this skill.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.getJabsMoveType = function()
+{
+  return this.extractJabsMoveType();
+};
+
+/**
+ * Extracts the JABS moveType for this skill from its notes.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.extractJabsMoveType = function()
+{
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.MoveType, true);
+};
+//#endregion moveType
+
+//#region invincibleDodge
+/**
+ * A new property for retrieving the JABS invincibleDodge from this skill.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsInvincibleDodge",
+  {
+    get: function()
+    {
+      return this.getJabsInvincibileDodge();
+    },
+  });
+
+/**
+ * Gets the JABS invincibleDodge this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsInvincibileDodge = function()
+{
+  return this.extractJabsInvincibleDodge();
+};
+
+/**
+ * Extracts the JABS invincibleDodge for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsInvincibleDodge = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.InvincibleDodge, true);
+};
+//#endregion invincibleDodge
+
+//#region combo
+/**
+ * A new property for retrieving the JABS combo from this skill.
+ * @type {[number, number]}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsComboAction",
+  {
+    get: function()
+    {
+      return this.getJabsComboAction();
+    },
+  });
+
+/**
+ * Gets the JABS combo this skill.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsComboAction = function()
+{
+  return this.extractJabsComboAction();
+};
+
+/**
+ * Extracts the JABS combo for this skill from its notes.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.extractJabsComboAction = function()
+{
+  return this.getArrayFromNotesByRegex(J.ABS.RegExp.ComboAction);
+};
+//#endregion guard
 //#endregion RPG objects
 
 //ENDFILE

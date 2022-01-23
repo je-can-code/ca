@@ -247,7 +247,7 @@ Game_Battler.prototype.removeState = function(stateId)
  * with any skills learned by the actor.
  *
  * This is an expensive process, and shouldn't be performed on a per-frame basis.
- * @param {rm.types.EquipItem[]} traitObjects
+ * @param {RPG_EquipItem[]} traitObjects
  * @returns {rm.types.State[]}
  */
 Game_Battler.prototype.sourcesToPassiveSkillStates = function(traitObjects)
@@ -308,7 +308,7 @@ Game_Battler.prototype.allStates = function()
 /**
  * Gets a combined list of both base skill ids this battler knows.
  * The list includes skills learned via class/assignation, and also
- * @param {rm.types.EquipItem[]} traitObjects The presumed objects bearing traits.
+ * @param {RPG_EquipItem[]} traitObjects The presumed objects bearing traits.
  * @returns {number[]} The combined list of base skill ids and added-via-traits skill ids.
  */
 Game_Battler.prototype.skillIdList = function(traitObjects)
@@ -337,7 +337,7 @@ Game_Battler.prototype.skillsIdsFromSelf = function()
  * A manual concatenation of retrieval of all skill ids from any traits the actor has-
  * without actually calling any of the trait methods. This is done to avoid the
  * circular dependency of `.traitObjects()` and this passive skill flow.
- * @param {rm.types.EquipItem[]} traitObjects The trait objects to parse for added skills.
+ * @param {RPG_EquipItem[]} traitObjects The trait objects to parse for added skills.
  * @returns {number[]} All found added skill ids from the given trait objects.
  */
 Game_Battler.prototype.skillsIdsFromTraits = function(traitObjects)

@@ -542,6 +542,7 @@ var J = J || {};
  */
 J.ABS = {};
 
+//#region helpers
 /**
  * A collection of helpful functions for use within this plugin.
  */
@@ -595,7 +596,9 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
+//#endregion helpers
 
+//#region metadata
 /**
  * The `metadata` associated with this plugin, such as version.
  */
@@ -667,6 +670,7 @@ J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
 J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
 J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
+//#endregion metadata
 
 /**
  * The various default values across the engine. Often configurable.
@@ -836,6 +840,35 @@ J.ABS.Notetags = {
     Backward: "backward",
     Directional: "directional",
   }
+};
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.ABS.RegExp = {
+  Cooldown: /<cooldown:[ ]?(\d+)>/gi,
+  Range: /<range:[ ]?(\d+)>/gi,
+  Proximity: /<proximity:[ ]?(\d+)>/gi,
+  ActionId: /<actionId:[ ]?(\d+)>/gi,
+  Duration: /<duration:[ ]?(\d+)>/gi,
+  Shape: /<shape:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Knockback: /<knockback:[ ]?(\d+)>/gi,
+  CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
+  CastTime: /<castTime:[ ]?(\d+)>/gi,
+  FreeCombo: /<freeCombo>/gi,
+  Direct: /<direct>/gi,
+  BonusAggro: /<aggro:[ ]?(\d+)>/gi,
+  AggroMultiplier: /<aggroMultiplier:[ ]?(\d+)>/gi,
+  BonusHits: /<bonusHits:[ ]?(\d+)>/gi,
+  Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  Parry: /<parry:[ ]?(\d+)>/gi,
+  CounterParry: /<counterParry:[ ]?(\d+)>/gi,
+  CounterGuard: /<counterGuard:[ ]?(\d+)>/gi,
+  Projectile: /<projectile:[ ]?([12348])>/gi,
+  UniqueCooldown: /<uniqueCooldown>/gi,
+  MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
+  InvincibleDodge: /<invincibleDodge>/gi,
+  ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
 };
 
 /**
@@ -1502,7 +1535,6 @@ class JABS_Engine
     // update!
     return true;
   };
-
   //#region state tracking
 
   /**
@@ -2109,7 +2141,7 @@ class JABS_Engine
   {
     // check if a cast animation exists.
     //const casterAnimation = action.getBaseSkill()._j.casterAnimation();
-    const casterAnimation = action.getBaseSkill()._j.casterAnimation();
+    const casterAnimation = action.getCastAnimation();
     if (casterAnimation)
     {
       // execute the cast animation.
@@ -2376,7 +2408,7 @@ class JABS_Engine
 
     // if the skill has a unique cooldown functionality,
     // then each slot will have an independent cooldown.
-    if (skill._j.uniqueCooldown() || this.isBasicAttack(cooldownType))
+    if (skill.jabsUniqueCooldown || this.isBasicAttack(cooldownType))
     {
       // if the skill is unique, only apply the cooldown to the slot assigned.
       caster.setCooldownCounter(cooldownType, cooldownValue);
@@ -2392,29 +2424,6 @@ class JABS_Engine
         caster.setCooldownCounter(skillSlot.key, cooldownValue);
       }
     });
-  };
-
-  /**
-   * Applies cooldowns in regards to an ai-controlled battler for the casted action.
-   * @param {JABS_Battler} caster The ai-controlled battler, ally or enemy.
-   * @param {JABS_Action} action The `JABS_Action` to execute.
-   */
-  applyAiCooldowns(caster, action)
-  {
-    const cooldownType = action.getCooldownType();
-    const cooldownValue = action.getCooldown();
-    const aiCooldownValue = action.getAiCooldown();
-    caster.modCooldownCounter(cooldownType, cooldownValue);
-
-    // if the caster is any AI-controlled battler, then also trigger the postaction cooldown.
-    if (aiCooldownValue > -1)
-    {
-      caster.startPostActionCooldown(aiCooldownValue);
-    }
-    else
-    {
-      caster.startPostActionCooldown(cooldownValue);
-    }
   };
 
   /**
@@ -2769,15 +2778,21 @@ class JABS_Engine
     }
 
     // get the knockback value from the skill if applicable.
-    const skill = action.getBaseSkill();
-    let knockback = skill._j.knockback();
+    let knockback = action.getKnockback();
+
+    // check to make sure the skill has knockback before processing.
     if (knockback == null) return;
+
+    // multiply the knockback by the resist.
     knockback *= knockbackResist;
 
-    // if the knockback is 0, just hop in place.
-    if (knockback === 0)
+    // check if the knockback is 0, or the action is direct.
+    if (knockback === 0 || action.isDirectAction())
     {
+      // hop in place.
       targetSprite.jump(0, 0);
+
+      // stop processing.
       return;
     }
 

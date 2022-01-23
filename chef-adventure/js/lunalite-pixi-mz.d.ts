@@ -30095,10 +30095,10 @@ declare class Game_BattlerBase {
 	/**
 	 * Returns the states applied to the battler.
 	 *
-	 * @returns {Array<RPG.State>}
+	 * @returns {Array<RPG_State>}
 	 * @memberof Game_BattlerBase
 	 */
-	states(): rm.types.State[];
+	states(): RPG_State[];
 	/**
 	 * Returns the array of state icons attached to the battler;
 	 * this is determined by the active states on the battler.
@@ -31777,24 +31777,24 @@ declare class Game_Actor extends Game_Battler {
 	/**
 	 * Returns the equipment of the actor.
 	 *
-	 * @returns {Array<EquipItem>}
+	 * @returns {Array<RPG_EquipItem>}
 	 * @memberof Game_Actor
 	 */
-	equips(): rm.types.EquipItem[];
+	equips(): RPG_EquipItem[];
 	/**
 	 * Returns the weapon of the actor.
 	 *
-	 * @returns {Array<Weapon>}
+	 * @returns {Array<RPG_Weapon>}
 	 * @memberof Game_Actor
 	 */
-	weapons(): rm.types.Weapon[];
+	weapons(): RPG_Weapon[];
 	/**
 	 * Returns the armor of the actor.
 	 *
-	 * @returns {Array<Armor>}
+	 * @returns {Array<RPG_Armor>}
 	 * @memberof Game_Actor
 	 */
-	armors(): rm.types.Armor[];
+	armors(): RPG_Armor[];
 	/**
 	 * Returns true if the actor has a weapon.
 	 *
@@ -31802,7 +31802,7 @@ declare class Game_Actor extends Game_Battler {
 	 * @returns {Bool}
 	 * @memberof Game_Actor
 	 */
-	hasWeapon(weapon: rm.types.Weapon): boolean;
+	hasWeapon(weapon: RPG_Weapon): boolean;
 	/**
 	 * Returns true if the actor has armor.
 	 *
@@ -31810,7 +31810,7 @@ declare class Game_Actor extends Game_Battler {
 	 * @returns {Bool}
 	 * @memberof Game_Actor
 	 */
-	hasArmor(armor: rm.types.Armor): boolean;
+	hasArmor(armor: RPG_Armor): boolean;
 	/**
 	 * Returns true if the equip change is okay in the given slot.
 	 *
@@ -31827,7 +31827,7 @@ declare class Game_Actor extends Game_Battler {
 	 * @param {EquipItem} item
 	 * @memberof Game_Actor
 	 */
-	changeEquip(slotId: number, item: rm.types.EquipItem): void;
+	changeEquip(slotId: number, item: RPG_EquipItem): void;
 	/**
 	 * Forces the actor to change equipment in the given slot
 	 * with the given equip item without placing the item back into
@@ -31836,7 +31836,7 @@ declare class Game_Actor extends Game_Battler {
 	 * @param {EquipItem} item
 	 * @memberof Game_Actor
 	 */
-	forceChangeEquip(slotId: number, item: rm.types.EquipItem): void;
+	forceChangeEquip(slotId: number, item: RPG_EquipItem): void;
 	/**
 	 * Trades the new item with the old item in the party inventory.
 	 *
@@ -31845,7 +31845,7 @@ declare class Game_Actor extends Game_Battler {
 	 * @returns {Bool}
 	 * @memberof Game_Actor
 	 */
-	tradeItemWithParty(newItem: rm.types.EquipItem, oldItem: rm.types.EquipItem): boolean;
+	tradeItemWithParty(newItem: RPG_EquipItem, oldItem: RPG_EquipItem): boolean;
 	/**
 	 * Changes the actor equip with an item based on the equip id.
 	 *
@@ -31942,25 +31942,25 @@ declare class Game_Actor extends Game_Battler {
 	 * @returns {Array<Skill>}
 	 * @memberof Game_Actor
 	 */
-	skills(): rm.types.Skill[];
+	skills(): RPG_Skill[];
 	/**
 	 * Returns the usable skills of the actor.
 	 *
 	 * @returns {Array<Skill>}
 	 * @memberof Game_Actor
 	 */
-	usableSkills(): rm.types.Skill[];
+	usableSkills(): RPG_Skill[];
 	/**
 	 * Returns the attack element ids.
 	 *
-	 * @returns {Array<Int>}
+	 * @returns {Array<number>}
 	 * @memberof Game_Actor
 	 */
 	attackElements(): number[];
 	/**
 	 * Returns true if the actor has no weapon.
 	 *
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof Game_Actor
 	 */
 	hasNoWeapons(): boolean;
@@ -31968,7 +31968,7 @@ declare class Game_Actor extends Game_Battler {
 	 * Returns the element id of barehanded attacks.
 	 * By default this is 1.
 	 *
-	 * @returns {Int}
+	 * @returns {number}
 	 * @memberof Game_Actor
 	 */
 	bareHandsElementId(): number;

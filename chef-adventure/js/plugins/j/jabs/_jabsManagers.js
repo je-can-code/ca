@@ -187,7 +187,7 @@ DataManager.addJabsWeaponData = function()
 /**
  * The action to perform on each weapon.
  * This was separated out for extensibility if desired.
- * @param {rm.types.EquipItem} weapon The equip to modify.
+ * @param {RPG_EquipItem} weapon The equip to modify.
  * @param {number} index The index of the equip.
  */
 DataManager.parseWeaponData = function(weapon, index)
@@ -207,7 +207,7 @@ DataManager.addJabsArmorData = function()
 /**
  * The action to perform on each armor.
  * This was separated out for extensibility if desired.
- * @param {rm.types.EquipItem} armor The equip to modify.
+ * @param {RPG_EquipItem} armor The equip to modify.
  * @param {number} index The index of the equip.
  */
 DataManager.parseArmorData = function(armor, index)

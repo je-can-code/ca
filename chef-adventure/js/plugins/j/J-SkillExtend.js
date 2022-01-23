@@ -52,6 +52,10 @@
  * can see below for a comprehensive list of what happens to the base skill
  * based on an extension skill.
  *
+ * NOTE:
+ * Effects are only added or updated. Tags cannot be removed by this plugin
+ * with the single exception of the extend tag.
+ *
  * Comprehensive breakdown of how things are overridden:
  *  If a damage type is checked:
  *    - yes/no critical option is replaced.
@@ -93,7 +97,7 @@
  *  - bonusAggro
  *  - combo (!!!)
  *  - castTime
- *  - casterAnimation
+ *  - castAnimation
  *  - poseSuffix
  *  - knockback
  *  - piercing
@@ -119,9 +123,8 @@
  * !!!:
  *  The effects of adding the "combo/actionId/direct" tags onto any skills is
  *  something to be careful about, as they very significantly change how
- *  the manager interacts with the actions fairly significantly. Replacing
- *  any of those values though should be totally fine if they already existed
- *  on the base skill.
+ *  the manager interacts with the actions. Replacing any of those values
+ *  though should be totally fine if they already existed on the base skill.
  *
  * With that in mind, it is strongly recommended that you copy-paste the base
  * skill into the extension skill slot in your RMMZ editor database skill tab
@@ -204,7 +207,6 @@ J.EXTEND.Aliased = {
 //#endregion Introduction
 
 //#region Game objects
-
 //#region Game_Action
 /**
  * Basically replaces `setSkill()` with setting the skill to instead set our extended skill.
@@ -363,7 +365,7 @@ Game_Item.prototype.initialize = function(item)
   J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
   /**
    * The underlying object associated with this item.
-   * @type {rm.types.EquipItem|rm.types.UsableItem}
+   * @type {RPG_EquipItem|rm.types.UsableItem}
    */
   this._item = null;
   if (item)
@@ -452,7 +454,6 @@ Game_Party.prototype.extraOnCastSelfStateSources = function()
 //#endregion Game objects
 
 //#region Custom objects
-
 //#region OverlayManager
 /**
  * A static class for managing the overlaying of one skill onto another.
@@ -469,7 +470,7 @@ class OverlayManager
    * Gets the extended skill based on the caster's learned skills.
    * @param caster {Game_Actor|Game_Enemy} The caster of the skill.
    * @param skillId {number} The base skill to extend.
-   * @returns {rm.types.Skill}
+   * @returns {RPG_Skill}
    */
   static getExtendedSkill(caster, skillId)
   {
@@ -529,12 +530,8 @@ class OverlayManager
     // merge all of the base skill data.
     baseSkill = this.baseSkillData(baseSkill, skillOverlay);
 
-    // if we both have JABS skill data...
-    if (baseSkill._j && skillOverlay._j)
-    {
-      // lets merge them.
-      baseSkill = this.overwrite(baseSkill, skillOverlay);
-    }
+    // update all the JABS-specific data.
+    baseSkill = this.overwrite(baseSkill, skillOverlay);
 
     // sanitize the skill extends out of the base skill to prevent recursive extensions.
     baseSkill = this.sanitizeBaseSkill(baseSkill);
@@ -561,23 +558,25 @@ class OverlayManager
     baseSkill = this.actionId(baseSkill, skillOverlay);
     baseSkill = this.duration(baseSkill, skillOverlay);
     baseSkill = this.shape(baseSkill, skillOverlay);
-    baseSkill = this.piercing(baseSkill, skillOverlay);
     baseSkill = this.knockback(baseSkill, skillOverlay);
     baseSkill = this.poseSuffix(baseSkill, skillOverlay);
-    baseSkill = this.casterAnimation(baseSkill, skillOverlay);
+    baseSkill = this.castAnimation(baseSkill, skillOverlay);
     baseSkill = this.castTime(baseSkill, skillOverlay);
     baseSkill = this.freeCombo(baseSkill, skillOverlay);
-    baseSkill = this.combo(baseSkill, skillOverlay);
     baseSkill = this.direct(baseSkill, skillOverlay);
     baseSkill = this.bonusAggro(baseSkill, skillOverlay);
     baseSkill = this.aggroMultiplier(baseSkill, skillOverlay);
-    baseSkill = this.getBonusHits(baseSkill, skillOverlay);
+    baseSkill = this.bonusHits(baseSkill, skillOverlay);
     baseSkill = this.guard(baseSkill, skillOverlay);
     baseSkill = this.counterParry(baseSkill, skillOverlay);
     baseSkill = this.counterGuard(baseSkill, skillOverlay);
     baseSkill = this.projectile(baseSkill, skillOverlay);
     baseSkill = this.uniqueCooldown(baseSkill, skillOverlay);
     baseSkill = this.moveType(baseSkill, skillOverlay);
+    baseSkill = this.invincibleDodge(baseSkill, skillOverlay);
+
+    baseSkill = this.piercing(baseSkill, skillOverlay);
+    baseSkill = this.combo(baseSkill, skillOverlay);
 
     return baseSkill;
   };
@@ -758,395 +757,248 @@ class OverlayManager
   };
 
   /**
+   * Overlays the `invincibleDodge`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
+   */
+  static invincibleDodge(baseSkill, skillOverlay)
+  {
+    return this._overwriteAsBoolean(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.InvincibleDodge,
+      skillOverlay.jabsInvincibleDodge);
+  };
+
+  /**
    * Overlays the `moveType`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static moveType(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.moveType())
-    {
-      const parameterName = J.BASE.Notetags.MoveType;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.moveType()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.MoveType,
+      skillOverlay.jabsMoveType);
   };
 
   /**
    * Overlays the `uniqueCooldown`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static uniqueCooldown(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.uniqueCooldown())
-    {
-      const parameterName = J.BASE.Notetags.UniqueCooldown;
-      const parameterValue = `<${parameterName}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        // the skill already has unique cooldowns, so don't do anything.
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsBoolean(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.UniqueCooldown,
+      skillOverlay.jabsUniqueCooldown);
   };
 
   /**
    * Overlays the `projectile`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static projectile(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.projectile())
-    {
-      const parameterName = J.BASE.Notetags.Projectile;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.projectile()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
-  };
-
-  /**
-   * Overlays the `counterGuard`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
-   */
-  static counterGuard(baseSkill, skillOverlay)
-  {
-    if (skillOverlay._j.counterGuard())
-    {
-      const parameterName = J.BASE.Notetags.CounterGuard;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.counterGuard()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
-  };
-
-  /**
-   * Overlays the `counterParry`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
-   */
-  static counterParry(baseSkill, skillOverlay)
-  {
-    if (skillOverlay._j.counterParry())
-    {
-      const parameterName = J.BASE.Notetags.CounterParry;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.counterParry()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Projectile,
+      skillOverlay.jabsProjectile);
   };
 
   /**
    * Overlays the `parry`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static parry(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.parry())
-    {
-      const parameterName = J.BASE.Notetags.Parry;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.parry()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Parry,
+      skillOverlay.jabsParry);
+  };
 
-    return baseSkill;
+  /**
+   * Overlays the `counterParry`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
+   */
+  static counterParry(baseSkill, skillOverlay)
+  {
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.CounterParry,
+      skillOverlay.jabsCounterParry);
   };
 
   /**
    * Overlays the `guard`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static guard(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.guard())
-    {
-      const parameterName = J.BASE.Notetags.Guard;
-      const parameterValue = `<${parameterName}:[${skillOverlay._j.guard()}]>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Guard,
+      skillOverlay.jabsGuard);
+  };
 
-    return baseSkill;
+  /**
+   * Overlays the `counterGuard`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
+   */
+  static counterGuard(baseSkill, skillOverlay)
+  {
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.CounterGuard,
+      skillOverlay.jabsCounterGuard);
   };
 
   /**
    * Overlays the `getBonusHits`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
-  static getBonusHits(baseSkill, skillOverlay)
+  static bonusHits(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.getBonusHits())
-    {
-      const parameterName = J.BASE.Notetags.BonusHits;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.getBonusHits()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.BonusHits,
+      skillOverlay.jabsBonusHits);
   };
 
   /**
    * Overlays the `aggroMultiplier`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static aggroMultiplier(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.aggroMultiplier())
-    {
-      const parameterName = J.BASE.Notetags.AggroMultiplier;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.aggroMultiplier().toFixed(2)}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.AggroMultiplier,
+      skillOverlay.jabsAggroMultiplier);
   };
 
   /**
    * Overlays the `bonusAggro`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static bonusAggro(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.bonusAggro())
-    {
-      const parameterName = J.BASE.Notetags.Aggro;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.bonusAggro()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.BonusAggro,
+      skillOverlay.jabsBonusAggro);
   };
 
   /**
    * Overlays the `direct`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static direct(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.direct())
-    {
-      const parameterName = J.BASE.Notetags.DirectSkill;
-      const parameterValue = `<${parameterName}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        // the skill is already direct, so don't do anything.
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsBoolean(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Direct,
+      skillOverlay.jabsDirect);
   };
 
+  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `combo`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static combo(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.combo())
-    {
-      const parameterName = J.BASE.Notetags.Combo;
-      const parameterValue = `<${parameterName}:[${skillOverlay._j.combo()}]>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.ComboAction,
+      skillOverlay.jabsComboAction);
   };
+  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `freeCombo`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static freeCombo(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.freeCombo())
-    {
-      const parameterName = J.BASE.Notetags.FreeCombo;
-      const parameterValue = `<${parameterName}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        // the skill is already free combo, so don't do anything.
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsBoolean(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.FreeCombo,
+      skillOverlay.jabsFreeCombo);
   };
 
   /**
    * Overlays the `castTime`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static castTime(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.castTime() > -1)
-    {
-      const parameterName = J.BASE.Notetags.CastTime;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.castTime()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.CastTime,
+      skillOverlay.jabsCastTime);
   };
 
   /**
-   * Overlays the `casterAnimation`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * Overlays the `castAnimation`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
-  static casterAnimation(baseSkill, skillOverlay)
+  static castAnimation(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.casterAnimation())
-    {
-      const parameterName = J.BASE.Notetags.CastAnimation;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.casterAnimation()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.CastAnimation,
+      skillOverlay.jabsCastAnimation);
   };
 
+  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `poseSuffix`.
    * @param baseSkill {rm.types.Skill} The base skill.
@@ -1172,38 +1024,29 @@ class OverlayManager
 
     return baseSkill;
   };
+  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `knockback`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static knockback(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.knockback())
-    {
-      const parameterName = J.BASE.Notetags.Knockback;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.knockback()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Knockback,
+      skillOverlay.jabsKnockback);
   };
 
+  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `piercing`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static piercing(baseSkill, skillOverlay)
   {
@@ -1228,135 +1071,81 @@ class OverlayManager
 
     return baseSkill;
   };
+  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `shape`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static shape(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.shape())
-    {
-      const parameterName = J.BASE.Notetags.Shape;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.shape()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Shape,
+      skillOverlay.jabsShape);
   };
 
   /**
    * Overlays the `duration`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static duration(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.duration())
-    {
-      const parameterName = J.BASE.Notetags.Duration;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.duration()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Duration,
+      skillOverlay.jabsDuration);
   };
 
   /**
    * Overlays the `actionId`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static actionId(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.actionId() > 1)
-    {
-      const parameterName = J.BASE.Notetags.ActionId;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.actionId()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.ActionId,
+      skillOverlay.jabsActionId);
   };
 
   /**
    * Overlays the `proximity`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static proximity(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.proximity())
-    {
-      const parameterName = J.BASE.Notetags.Proximity;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.proximity()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Proximity,
+      skillOverlay.jabsProximity);
   };
 
   /**
    * Overlays the `range`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static range(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.range())
-    {
-      const parameterName = J.BASE.Notetags.Range;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.range()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Range,
+      skillOverlay.jabsRange);
   };
 
   /**
@@ -1367,34 +1156,95 @@ class OverlayManager
    */
   static cooldown(baseSkill, skillOverlay)
   {
-    // if the overlay doesn't have a JABS cooldown, then don't process it.
-    if (!skillOverlay.jabsCooldown) return baseSkill;
-
-    const difference = skillOverlay.jabsCooldown - baseSkill.jabsCooldown;
-    console.log(difference, baseSkill);
-    baseSkill.setJabsCooldownModifier(difference);
-    return baseSkill;
-
-    /*
-    if (skillOverlay.jabsCooldown)
-    {
-      const parameterName = J.BASE.Notetags.Cooldown;
-      const parameterValue = `<${parameterName}:${skillOverlay._j.cooldown()}>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
-    */
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.Cooldown,
+      skillOverlay.jabsCooldown);
   };
 
+  /**
+   * An overlay type of which we overwrite whatever the existing data is with
+   * the new data found on the skill overlay.
+   *
+   * This applies to numeric key-value pairs.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @param {RegExp} structure The regex structure being overwritten.
+   * @param {number|null} value The value to overwrite with from the overlay; may be null.
+   * @returns {RPG_Skill} The overlayed base skill.
+   */
+  static _overwriteAsKvp(baseSkill, skillOverlay, structure, value)
+  {
+    // if the value doesn't exist, don't overlay; return the base skill.
+    if (value === null) return baseSkill;
+
+    // strip out all tags that match the regex.
+    baseSkill.note = baseSkill.note.replace(structure, String.empty);
+
+    // determine the key from the regex.
+    const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+
+    // rebuild the tag for the skill.
+    let rebuiltTag;
+
+    // check if the value is an array.
+    if (Array.isArray(value))
+    {
+      // stuff arrays back in their brackets!
+      rebuiltTag = `<${key}:[${value}]>`;
+    }
+    // it is not an array.
+    else
+    {
+      // just place the value in there as-is.
+      rebuiltTag = `<${key}:${value}>`;
+    }
+
+    // append the rebuilt tag to the note.
+    baseSkill.note += rebuiltTag;
+
+    // overwrite the meta object with the overwrite value.
+    baseSkill.meta[key] = value;
+
+    // return the overlayed base skill.
+    return baseSkill;
+  };
+
+  /**
+   * An overlay type of which we overwrite whatever the existing data is with
+   * the new data found on the skill overlay.
+   *
+   * This applies to booleans, where there is no value, only a key.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @param {RegExp} structure The regex structure being overwritten.
+   * @param {number|null} value The value to overwrite with from the overlay; may be null.
+   * @returns {RPG_Skill} The overlayed base skill.
+   */
+  static _overwriteAsBoolean(baseSkill, skillOverlay, structure, value)
+  {
+    // if the value doesn't exist, don't overlay; return the base skill.
+    if (value === null) return baseSkill;
+
+    // strip out all tags that match the regex.
+    baseSkill.note = baseSkill.note.replace(structure, String.empty);
+
+    // determine the key from the regex.
+    const key = J.BASE.Helpers.getKeyFromRegexp(structure, true);
+
+    // rebuild the tag for the skill.
+    const rebuiltTag = `<${key}>`;
+
+    // append the rebuilt tag to the note.
+    baseSkill.note += rebuiltTag;
+
+    // overwrite the meta object with the overwrite value.
+    baseSkill.meta[key] = value;
+
+    // return the overlayed base skill.
+    return baseSkill;
+  };
 //#endregion overwrites
 }
 

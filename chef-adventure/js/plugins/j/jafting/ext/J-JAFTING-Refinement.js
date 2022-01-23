@@ -378,7 +378,7 @@ DataManager.loadArmorRefinementData = function()
 /**
  * The processing of adding the refinement data onto the equip.
  * This works for both weapons and armor.
- * @param {rm.types.EquipItem} equip The equip to modify.
+ * @param {RPG_EquipItem} equip The equip to modify.
  * @param {number} index The index of the equip.
  */
 DataManager.processEquipForRefinement = function(equip, index)
@@ -465,13 +465,13 @@ Game_JAFTING.prototype.initialize = function()
 
   /**
    * A collection of all weapons that have been refined.
-   * @type {rm.types.EquipItem[]}
+   * @type {RPG_EquipItem[]}
    */
   this._refinedWeapons = [];
 
   /**
    * A collection of all armors that have been refined.
-   * @type {rm.types.EquipItem[]}
+   * @type {RPG_EquipItem[]}
    */
   this._refinedArmors = [];
 
@@ -568,7 +568,7 @@ Game_JAFTING.prototype.getRefinementCounter = function(refinementType)
 
 /**
  * Adds a newly refined weapon to the collection for tracking purposes.
- * @param {rm.types.EquipItem} weapon The newly refined weapon.
+ * @param {RPG_EquipItem} weapon The newly refined weapon.
  */
 Game_JAFTING.prototype.trackRefinedWeapon = function(weapon)
 {
@@ -577,7 +577,7 @@ Game_JAFTING.prototype.trackRefinedWeapon = function(weapon)
 
 /**
  * Adds a newly refined armor to the collection for tracking purposes.
- * @param {rm.types.EquipItem} armor The newly refined armor.
+ * @param {RPG_EquipItem} armor The newly refined armor.
  */
 Game_JAFTING.prototype.trackRefinedArmor = function(armor)
 {
@@ -586,7 +586,7 @@ Game_JAFTING.prototype.trackRefinedArmor = function(armor)
 
 /**
  * Gets all tracked weapons that have been refined.
- * @returns {rm.types.EquipItem[]}
+ * @returns {RPG_EquipItem[]}
  */
 Game_JAFTING.prototype.getRefinedWeapons = function()
 {
@@ -595,7 +595,7 @@ Game_JAFTING.prototype.getRefinedWeapons = function()
 
 /**
  * Gets all tracked armors that have been refined.
- * @returns {rm.types.EquipItem[]}
+ * @returns {RPG_EquipItem[]}
  */
 Game_JAFTING.prototype.getRefinedArmors = function()
 {
@@ -628,9 +628,9 @@ Game_JAFTING.prototype.updateDataArmors = function()
 
 /**
  * Determines the result of refining a given base with a given material.
- * @param {rm.types.EquipItem} base An equip to parse traits off of.
- * @param {rm.types.EquipItem} material An equip to parse traits off of.
- * @returns {rm.types.EquipItem}
+ * @param {RPG_EquipItem} base An equip to parse traits off of.
+ * @param {RPG_EquipItem} material An equip to parse traits off of.
+ * @returns {RPG_EquipItem}
  */
 Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
 {
@@ -690,7 +690,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
  * Parses all traits off the equipment that are below the "divider".
  * The divider is NOT parameterized, the "collapse effect" trait is the perfect trait
  * to use for this purpose since it has 0 use on actor equipment.
- * @param {rm.types.EquipItem} equip An equip to parse traits off of.
+ * @param {RPG_EquipItem} equip An equip to parse traits off of.
  * @returns {JAFTING_Trait[]}
  */
 Game_JAFTING.prototype.parseTraits = function(equip)
@@ -716,7 +716,7 @@ Game_JAFTING.prototype.parseTraits = function(equip)
 
 /**
  * Determines whether or not a trait should be transfered to the refined base equip.
- * @param {rm.types.EquipItem} equip The to-be refined base equip.
+ * @param {RPG_EquipItem} equip The to-be refined base equip.
  * @param {JAFTING_Trait} newTrait The new trait to be potentially transferred.
  * @returns {boolean}
  */
@@ -1184,7 +1184,7 @@ Game_JAFTING.prototype.overwriteIfBetter = function(baseTraitList, materialTrait
 /**
  * Takes the refinement result equip and creates it in the appropriate datastore, and adds it to
  * the player's inventory.
- * @param {rm.types.EquipItem} outputEquip The equip to generate and add to the player's inventory.
+ * @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
  */
 Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
 {
@@ -1201,9 +1201,9 @@ Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
 /**
  * Generates the new entry in the corresponding datastore for the new equip data that was refined.
  * @param {rm.types.Weapon[]|rm.types.Armor[]} datastore The datastore to extend with new data.
- * @param {rm.types.EquipItem} outputEquip The equip to generate and add to the player's inventory.
+ * @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
  * @param {string} refinementType The type of equip this is; for incrementing the counter on custom data.
- * @returns {rm.types.EquipItem}
+ * @returns {RPG_EquipItem}
  */
 Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinementType)
 {
@@ -1524,7 +1524,7 @@ Scene_Map.prototype.generateRefinementOutput = function()
 
 /**
  * Gets the projected result of refinement.
- * @returns {rm.types.EquipItem}
+ * @returns {RPG_EquipItem}
  */
 Scene_Map.prototype.getRefinementProjectedResult = function()
 {
@@ -1533,7 +1533,7 @@ Scene_Map.prototype.getRefinementProjectedResult = function()
 
 /**
  * Sets the projected result of refinement to the designated equip.
- * @param {rm.types.EquipItem} output The equip to set as the projected result.
+ * @param {RPG_EquipItem} output The equip to set as the projected result.
  */
 Scene_Map.prototype.setRefinementProjectedResult = function(output)
 {
@@ -1542,7 +1542,7 @@ Scene_Map.prototype.setRefinementProjectedResult = function(output)
 
 /**
  * Gets the object that is "being hovered over" in the equip lists.
- * @returns {rm.types.EquipItem}
+ * @returns {RPG_EquipItem}
  */
 Scene_Map.prototype.getHoverForDetails = function()
 {
@@ -1551,7 +1551,7 @@ Scene_Map.prototype.getHoverForDetails = function()
 
 /**
  * Sets the object that is "being hovered over" in the equip lists.
- * @param {rm.types.EquipItem} equip The equip to set for viewing in the output window.
+ * @param {RPG_EquipItem} equip The equip to set for viewing in the output window.
  */
 Scene_Map.prototype.setHoverForDetails = function(equip)
 {
@@ -1560,7 +1560,7 @@ Scene_Map.prototype.setHoverForDetails = function(equip)
 
 /**
  * Sets the given equipment to the primary refinement slot.
- * @param {rm.types.EquipItem} equip The equip to set the primary refinement slot to.
+ * @param {RPG_EquipItem} equip The equip to set the primary refinement slot to.
  */
 Scene_Map.prototype.setPrimaryRefineSlot = function(equip)
 {
@@ -1574,7 +1574,7 @@ Scene_Map.prototype.setPrimaryRefineSlot = function(equip)
 
 /**
  * Gets the equipment in the primary refinement slot.
- * @returns {rm.types.EquipItem}
+ * @returns {RPG_EquipItem}
  */
 Scene_Map.prototype.getPrimaryRefineSlot = function()
 {
@@ -1583,7 +1583,7 @@ Scene_Map.prototype.getPrimaryRefineSlot = function()
 
 /**
  * Sets the given equipment to the secondary refinement slot.
- * @param {rm.types.EquipItem} equip The equip to set the primary refinement slot to.
+ * @param {RPG_EquipItem} equip The equip to set the primary refinement slot to.
  */
 Scene_Map.prototype.setSecondaryRefineSlot = function(equip)
 {
@@ -1593,7 +1593,7 @@ Scene_Map.prototype.setSecondaryRefineSlot = function(equip)
 
 /**
  * Gets the equipment in the secondary refinement slot.
- * @returns {rm.types.EquipItem}
+ * @returns {RPG_EquipItem}
  */
 Scene_Map.prototype.getSecondaryRefineSlot = function()
 {
@@ -1955,13 +1955,13 @@ class Window_JaftingEquip
 
     /**
      * The current equip that is selected as the base for refinement.
-     * @type {rm.types.EquipItem}
+     * @type {RPG_EquipItem}
      */
     this._primarySelection = null;
 
     /**
      * The projected result of refining the base item with the selected material.
-     * @type {rm.types.EquipItem}
+     * @type {RPG_EquipItem}
      */
     this._projectedOutput = null;
   };
@@ -2004,7 +2004,7 @@ class Window_JaftingEquip
   /**
    * Gets the base selection.
    * Always null if this is the primary equip window.
-   * @returns {rm.types.EquipItem}
+   * @returns {RPG_EquipItem}
    */
   get baseSelection()
   {
@@ -2199,27 +2199,27 @@ class Window_JaftingRefinementOutput
     /**
      * The primary equip that is the refinement target.
      * Traits from the secondary equip will be transfered to this equip.
-     * @type {rm.types.EquipItem}
+     * @type {RPG_EquipItem}
      */
     this._primaryEquip = null;
 
     /**
      * The secondary equip that is the refinement material.
      * The transferable traits on this equip will be transfered to the target.
-     * @type {rm.types.EquipItem}
+     * @type {RPG_EquipItem}
      */
     this._secondaryEquip = null;
 
     /**
      * The output of what would be the result from refining these items.
-     * @type {rm.types.EquipItem}
+     * @type {RPG_EquipItem}
      */
     this._resultingEquip = null;
   };
 
   /**
    * Gets the primary equip selected, aka the refinement target.
-   * @returns {rm.types.EquipItem}
+   * @returns {RPG_EquipItem}
    */
   get primaryEquip()
   {
@@ -2228,7 +2228,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Sets the primary equip selected, aka the refinement target.
-   * @param {rm.types.EquipItem} equip The equip to set as the target.
+   * @param {RPG_EquipItem} equip The equip to set as the target.
    */
   set primaryEquip(equip)
   {
@@ -2238,7 +2238,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Gets the secondary equip selected, aka the refinement material.
-   * @returns {rm.types.EquipItem}
+   * @returns {RPG_EquipItem}
    */
   get secondaryEquip()
   {
@@ -2247,7 +2247,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Sets the secondary equip selected, aka the refinement material.
-   * @param {rm.types.EquipItem} equip The equip to set as the material.
+   * @param {RPG_EquipItem} equip The equip to set as the material.
    */
   set secondaryEquip(equip)
   {
@@ -2265,7 +2265,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Sets the resulting equip to the output to allow for the scene to grab the data.
-   * @param {rm.types.EquipItem}
+   * @param {RPG_EquipItem}
    */
   set outputEquip(equip)
   {
@@ -2319,7 +2319,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Draws one column of a piece of equip and it's traits.
-   * @param {rm.types.EquipItem} equip The equip to draw details for.
+   * @param {RPG_EquipItem} equip The equip to draw details for.
    * @param {number} x The `x` coordinate to start drawing at.
    * @param {string} type Which column this is.
    */
@@ -2332,7 +2332,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Draws the title for this portion of the equip details.
-   * @param {rm.types.EquipItem} equip The equip to draw details for.
+   * @param {RPG_EquipItem} equip The equip to draw details for.
    * @param {number} x The `x` coordinate to start drawing at.
    * @param {string} type Which column this is.
    */
