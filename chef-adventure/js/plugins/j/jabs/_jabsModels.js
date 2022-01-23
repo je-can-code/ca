@@ -169,8 +169,11 @@ class JABS_Action
     // handle skill extension bonuses.
     if (J.EXTEND)
     {
+      // check if there is an underlying item to parse repeats off of.
       pierceCount += this._gameAction._item
+        // skill extensions borrow from the extended skill repeats instead.
         ? this._gameAction._item._item.repeats - 1
+        // no extended skill, no bonus repeats.
         : 0;
     }
 
@@ -189,10 +192,24 @@ class JABS_Action
   preCleanupHook()
   {
     // handle self-targeted animations on cleanup.
+    this.handleSelfAnimationOnDefeat();
+  };
+
+  /**
+   * If the action has an animation to cast on oneself, then execute it.
+   */
+  handleSelfAnimationOnDefeat()
+  {
+    // handle self-targeted animations on cleanup.
     const event = this.getActionSprite();
+
+    // check if the action has an animation to play before destroying.
     if (this._jabsData.selfAnimationId())
     {
+      // grab the animation id.
       const animationId = this._jabsData.selfAnimationId();
+
+      // play it on oneself.
       event.requestAnimation(animationId);
     }
   };
@@ -254,6 +271,15 @@ class JABS_Action
   };
 
   /**
+   * Gets the cast animation id for this action.
+   * @returns {number|null}
+   */
+  getCastAnimation()
+  {
+    return this.getBaseSkill().jabsCastAnimation;
+  };
+
+  /**
    * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
    * @returns {boolean} True if it is a retaliation, false otherwise.
    */
@@ -304,12 +330,7 @@ class JABS_Action
    */
   getMaxDuration()
   {
-    if (this.getJabsData().duration() >= JABS_Action.getMinimumDuration())
-    {
-      return this.getJabsData().duration();
-    }
-
-    return JABS_Action.getMinimumDuration();
+    return Math.max(this.getBaseSkill().jabsDuration, JABS_Action.getMinimumDuration())
   };
 
   /**
@@ -482,7 +503,7 @@ class JABS_Action
    */
   isDirectAction()
   {
-    return this.getJabsData().direct() ?? false;
+    return this.getBaseSkill().jabsDirect ?? false;
   };
 
   /**
@@ -500,7 +521,16 @@ class JABS_Action
    */
   getCooldown()
   {
-    return this.getJabsData().cooldown() ?? 0;
+    return this.getBaseSkill().jabsCooldown;
+  };
+
+  /**
+   * Gets the range of which this `JABS_Action` will reach.
+   * @returns {number} The range of this action.
+   */
+  getRange()
+  {
+    return this.getBaseSkill().jabsRange;
   };
 
   /**
@@ -520,26 +550,7 @@ class JABS_Action
   getCastTime()
   {
     // TODO: add a cast time modifier based on actor "all notes" collection.
-    const castTime = this.getJabsData().castTime();
-
-    // the unspecified cast time is -1.
-    if (castTime < 0)
-    {
-      return 0;
-    }
-
-    // return the total cast time.
-    return castTime;
-  };
-
-  /**
-   * Gets the range of which this `JABS_Action` will reach.
-   * @returns {number} The range of this action.
-   */
-  getRange()
-  {
-    // TODO: add ability to increase this (and duration).
-    return this.getJabsData().range();
+    return this.getBaseSkill().jabsCastTime ?? 0;
   };
 
   /**
@@ -555,10 +566,14 @@ class JABS_Action
       return 9999;
     }
 
-
-    return this.getJabsData().proximity();
+    // return the proximity from the underlying skill.
+    return this.getBaseSkill().jabsProximity;
   };
 
+  /**
+   * Whether or not the scope of this action is "User" or not.
+   * @returns {boolean}
+   */
   isForSelf()
   {
     return this.getBaseSkill().scope === 11;
@@ -570,16 +585,27 @@ class JABS_Action
    */
   getShape()
   {
-    return this.getJabsData().shape();
+    return this.getBaseSkill().jabsShape;
+  };
+
+  /**
+   * Gets the knockback of this action.
+   * @returns {number|null}
+   */
+  getKnockback()
+  {
+    return this.getBaseSkill().jabsKnockback;
   };
 
   /**
    * Gets the event id associated with this `JABS_Action` from the action map.
-   * @returns {number} The event id for this `JABS_Action`.
+   * This MUST have a numeric return value, and thus will default to eventId 1
+   * on the action map if none is present.
+   * @returns {number}
    */
   getActionId()
   {
-    return this.getJabsData().actionId();
+    return this.getBaseSkill().jabsActionId ?? 1;
   };
 
   /**
@@ -588,7 +614,7 @@ class JABS_Action
    */
   bonusAggro()
   {
-    return this.getJabsData().bonusAggro();
+    return this.getBaseSkill().jabsBonusAggro ?? 0;
   };
 
   /**
@@ -2005,14 +2031,25 @@ JABS_Battler.prototype.setDodging = function(dodging = true)
  */
 JABS_Battler.prototype.tryDodgeSkill = function()
 {
+  // grab the battler.
   const battler = this.getBattler();
+
+  // grab the skill id for the dodge slot.
   const skillId = battler.getEquippedSkill(JABS_Button.Dodge);
+
+  // if we have no skill id in the dodge slot, then do not dodge.
   if (!skillId) return;
 
-  const skill = $dataSkills[skillId];
+  // grab the skill for the given dodge skill id.
+  const skill = this.getSkill(skillId);
+
+  // determine if it can be paid.
   const canPay = battler.canPaySkillCost(skill);
-  if (canPay && skill._j.moveType())
+
+  // check if the user can pay the cost and if there is a move type available.
+  if (canPay && skill.jabsMoveType)
   {
+    // execute the skill in the dodge slot.
     this.executeDodgeSkill(skill);
   }
 };
@@ -2027,7 +2064,7 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.performActionPose(skill);
 
   // trigger invincibility for dodging if applicable.
-  const invincible = skill._j.invincible();
+  const invincible = skill.jabsInvincibleDodge;
   this.setInvincible(invincible);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
@@ -2035,19 +2072,18 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.getCharacter().setDodgeBoost(dodgeSpeed);
 
   // set the number of steps this dodge will roll you.
-  const range = skill._j.range();
+  const range = skill.jabsRange;
   this._dodgeSteps = range;
 
   // set the direction to be dodging in (front/back/specified).
-  const moveType = skill._j.moveType();
-  const direction = this.determineDodgeDirection(moveType);
+  const direction = this.determineDodgeDirection(skill.jabsMoveType);
   this._dodgeDirection = direction;
 
   // pay whatever costs are associated with the skill.
   this.getBattler().paySkillCost(skill);
 
   // apply the cooldowns for the dodge.
-  const cooldown = skill.jabsCooldown();
+  const cooldown = skill.jabsCooldown;
   this.modCooldownCounter(JABS_Button.Dodge, cooldown);
 
   // trigger the dodge!
@@ -4294,24 +4330,10 @@ JABS_Battler.prototype.getSkill = function(skillId)
 JABS_Battler.prototype.canPaySkillCost = function(skillId)
 {
   // if the skill cost is more than the battler has resources for, then fail.
-  const battler = this.getBattler();
-  let skill;
-
-  // check if we're using J-SkillExtend.
-  if (J.EXTEND)
-  {
-    // grab the potentially overlayed skill.
-    skill = OverlayManager.getExtendedSkill(battler, skillId);
-  }
-  // not using the skill extend plugin.
-  else
-  {
-    // grab the skill from the database.
-    skill = $dataSkills[skillId];
-  }
+  const skill = this.getSkill(skillId);
 
   // check if the battler can pay the cost.
-  if (!battler.canPaySkillCost(skill))
+  if (!this.getBattler().canPaySkillCost(skill))
   {
     return false;
   }
@@ -4450,7 +4472,7 @@ JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
 /**
  * Gets the number of additional/bonus hits per basic attack.
  * Skills (such as magic) do not receive bonus hits at this time.
- * @param {rm.types.Skill} skill The skill to consider regarding bonus hits.
+ * @param {RPG_Skill} skill The skill to consider regarding bonus hits.
  * @param {boolean} isBasicAttack True if this is a basic attack, false otherwise.
  * @returns {number} The number of bonus hits per attack.
  */
@@ -4865,7 +4887,7 @@ JABS_Battler.prototype.createJabsActionFromSkill = function(
     });
 
     actions.push(mapAction);
-  });
+  }, this);
 
   return actions;
 };
@@ -4887,7 +4909,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   if (!skillId) return [];
 
   // check to make sure we can actually use the skill.
-  if (!battler.canUse($dataSkills[skillId])) return [];
+  if (!battler.meetsSkillConditions(this.getSkill(skillId))) return [];
 
   // check to make sure we actually know the skill, too.
   if (!battler.hasSkill(skillId)) return [];
@@ -5398,17 +5420,17 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
   const skillId = battler.getEquippedSkill(cooldownKey);
   if (!skillId) return null;
 
-  const canUse = battler.canUse($dataSkills[skillId]);
+  const skill = this.getSkill(skillId);
+  const canUse = battler.meetsSkillConditions(skill);
   if (!canUse)
   {
     return null;
   }
 
-  const skill = OverlayManager.getExtendedSkill(battler, skillId);
-  const [flat, percent] = skill._j.guard();
-  const parry = skill._j.parry();
-  const counterParry = skill._j.counterParry();
-  const counterGuard = skill._j.counterGuard();
+  const [flat, percent] = skill.jabsGuard;
+  const parry = skill.jabsParry;
+  const counterParry = skill.jabsCounterParry;
+  const counterGuard = skill.jabsCounterGuard;
   return new JABS_GuardData(skillId, flat, percent, counterGuard, counterParry, parry);
 };
 
@@ -5419,11 +5441,17 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
  */
 JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
 {
-  const battler = this.getBattler();
-  const id = battler.getEquippedSkill(cooldownKey);
-  if (!id) return false;
+  // get the equipped skill in the given slot.
+  const skillId = this.getBattler().getEquippedSkill(cooldownKey);
 
-  return JABS_Battler.isGuardSkillById(id);
+  // if we don't hve a skill id, it isn't a guard skill.
+  if (!skillId) return false;
+
+  // if it it isn't a guard skill by its id, then ... it isn't a guard skill.
+  if (!JABS_Battler.isGuardSkillById(skillId)) return false;
+
+  // its a guard skill!
+  return true;
 };
 
 /**

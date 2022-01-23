@@ -1140,9 +1140,7 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
     case JABS_AllyAI.modes.DO_NOTHING.key:
       return this.decideDoNothing(attacker);
     case JABS_AllyAI.modes.BASIC_ATTACK.key:
-      const result = this.decideBasicAttack(availableSkills, attacker);
-      console.log(result);
-      return result;
+      return this.decideBasicAttack(availableSkills, attacker);
     case JABS_AllyAI.modes.VARIETY.key:
       return this.decideVariety(availableSkills, attacker, target);
     case JABS_AllyAI.modes.FULL_FORCE.key:

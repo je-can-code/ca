@@ -396,16 +396,27 @@ J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
 
 /**
  * Extracts the key portion from a tag.
+ * Captures everything between the `<` and `:`.
+ *
+ * If the optional `asBoolean` is provided as true, then it will instead
+ * capture everything between the `<` and `>`.
+ *
+ * This assumes it is one of the following formats:<br/>
+ *  `<someKey:someValue>`<br/>
+ *  `<someBooleanKey>`
  * @param {RegExp} structure The structure of the regular expression.
+ * @param {boolean} asBoolean True if we want everything between `<` and `>`, false if only `<` and `:`.
  * @returns {string}
  */
-J.BASE.Helpers.getKeyFromRegexp = function(structure)
+J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
 {
   const stringifiedStructure = structure.toString();
+  const openChar = '<';
+  const closeChar = asBoolean ? '>' : ':';
   return stringifiedStructure
     .substring(
-      stringifiedStructure.indexOf('<') + 1,
-      stringifiedStructure.indexOf(':'));
+      stringifiedStructure.indexOf(openChar) + 1,
+      stringifiedStructure.indexOf(closeChar));
 };
 
 /**
@@ -5494,7 +5505,7 @@ class RPG_Base
   };
 
   /**
-   * Parses a metadata object into whatever its given data type is.
+   * Parses a object into whatever its given data type is.
    * @param {any} obj The unknown object to parse.
    * @returns {any}
    */
@@ -5555,7 +5566,7 @@ class RPG_Base
   /**
    * Gets the note data of this baseitem split into an array by `\r\n`.
    * If this baseitem has no note data, it will return an empty array.
-   * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
+   * @returns {string[]|null} The value as RMMZ translated it, or null if the value didn't exist.
    */
   notedata()
   {
@@ -5579,7 +5590,18 @@ class RPG_Base
    */
   #formattedNotedata()
   {
-    return this.note.split(/[\r\n]+/);
+    // split the notes by new lines.
+    const formattedNotes = this.note.split(/[\r\n]+/);
+
+    // check if the note was actually empty and we got a false positive.
+    if (formattedNotes.length === 1 && formattedNotes[0] === "")
+    {
+      // return null instead.
+      return null;
+    }
+
+    // return our array of notes!
+    return formattedNotes;
   };
 
   /**
@@ -5588,19 +5610,24 @@ class RPG_Base
    * This accepts a regex structure, assuming the capture group is an integer value,
    * and adds all values together from each line in the notes that match the provided
    * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
    * @param {RegExp} structure The regular expression to filter notes by.
-   * @returns {number} The combined value added from the notes of this object; 0 if no notes matched.
+   * @param {boolean} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
    */
-  getNumberFromNotesByRegex(structure)
+  getNumberFromNotesByRegex(structure, nullIfEmpty = false)
   {
     // get the note data from this skill.
     const fromNote = this.notedata();
 
-    // if we have no note data to work with, then return default.
-    if (!fromNote.length) return 0;
-
     // initialize the value.
     let val = 0;
+
+    // default to not having a match.
+    let hasMatch = false;
 
     // iterate the note data array.
     fromNote.forEach(note =>
@@ -5610,8 +5637,182 @@ class RPG_Base
       {
         // parse the value out of the regex capture group.
         val += parseInt(RegExp.$1);
+
+        // flag that we found a match.
+        hasMatch = true;
       }
     });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want zero or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  };
+
+  /**
+   * Gets the last string value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is a string value.
+   * If multiple tags are found, only the last one will be returned.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default empty string as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return an empty string if not found, or null.
+   * @returns {number|null} The found value from the notes of this object, or empty/null.
+   */
+  getStringFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = String.empty;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (structure.test(note))
+      {
+        // parse the value out of the regex capture group.
+        val = RegExp.$1;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want an empty string or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  };
+
+  /**
+   * Gets whether or not there is a matching regex tag on this skill.
+   *
+   * Do be aware of the fact that with this type of tag, we are checking only
+   * for existence, not the value. As such, it will be `true` if found, and `false` if
+   * not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+   * `null` instead of `false` when missing, or use a string regex pattern and add
+   * something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+   *
+   * This accepts a regex structure, but does not leverage a capture group.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default `false` as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+   * @returns {boolean|null} The found value from the notes of this object, or empty/null.
+   */
+  getBooleanFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = false;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (structure.test(note))
+      {
+        // parse the value out of the regex capture group.
+        val = true;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want a "false" or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  };
+
+  /**
+   * Gets an accumulated numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an array of values
+   * all wrapped in hard brackets [].
+   *
+   * If the optional flag `tryParse` is true, then it will attempt to parse out
+   * the array of values as well, including translating strings to numbers/booleans
+   * and keeping array structures all intact.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
+   * @returns {any[]|null} The array from the notes, or null.
+   */
+  getArrayFromNotesByRegex(structure, tryParse = true)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = null;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (structure.test(note))
+      {
+        // parse the value out of the regex capture group.
+        val = RegExp.$1;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // if we didn't find a match, return null instead of attempting to parse.
+    if (!hasMatch) return null;
+
+    // check if we're going to attempt to parse it, too.
+    if (tryParse)
+    {
+      // attempt the parsing.
+      val = this.#parseObject(val);
+    }
 
     // return the found value.
     return val;
@@ -5715,7 +5916,7 @@ class RPG_EquipItem extends RPG_TraitItem
 
   /**
    * Constructor.
-   * @param {rm.types.EquipItem} equip The equip to parse.
+   * @param {RPG_EquipItem} equip The equip to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(equip, index)
@@ -5940,7 +6141,7 @@ class RPG_Actor extends RPG_BaseBattler
 
   /**
    * Constructor.
-   * @param {rm.types.Actor} actorBattler The actor to parse.
+   * @param {rm.types.Actor} actor The actor to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(actor, index)
@@ -5954,7 +6155,7 @@ class RPG_Actor extends RPG_BaseBattler
 
   /**
    * Maps the data from the JSON to this object.
-   * @param {rm.types.Actor} actorBattler The actor to parse.
+   * @param {rm.types.Actor} actor The actor to parse.
    */
   initMembers(actor)
   {
