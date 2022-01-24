@@ -869,6 +869,7 @@ J.ABS.RegExp = {
   MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
   InvincibleDodge: /<invincibleDodge>/gi,
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
 };
 
 /**
@@ -2735,7 +2736,7 @@ class JABS_Engine
     }
 
     // if freecombo-ing, then we already checked for combo when executing the action.
-    if (!skill._j.freeCombo())
+    if (!skill.jabsFreeCombo)
     {
       this.checkComboSequence(caster, action);
     }
