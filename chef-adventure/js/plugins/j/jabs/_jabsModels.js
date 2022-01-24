@@ -3078,7 +3078,7 @@ JABS_Battler.prototype.hasFollowers = function()
 
 /**
  * Gets the database data for this battler.
- * @returns {rm.types.Actor|rm.types.Enemy} The battler data.
+ * @returns {RPG_Actor|RPG_Enemy} The battler data.
  */
 JABS_Battler.prototype.getReferenceData = function()
 {

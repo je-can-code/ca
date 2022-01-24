@@ -3814,52 +3814,6 @@ Game_Interpreter.prototype.command204 = function(params)
 };
 
 /**
- * Enables the shop scene with JABS.
- * Removed the check for seeing if the player is in-battle, because the player is
- * technically ALWAYS in-battle while the ABS is enabled.
- */
-J.ABS.Aliased.Game_Interpreter.command302 = Game_Interpreter.prototype.command302;
-Game_Interpreter.prototype.command302 = function(params)
-{
-  if ($jabsEngine.absEnabled)
-  {
-    const goods = [params];
-    while (this.nextEventCode() === 605)
-    {
-      this._index++;
-      goods.push(this.currentCommand().parameters);
-    }
-
-    SceneManager.push(Scene_Shop);
-    SceneManager.prepareNextScene(goods, params[4]);
-    return true;
-  }
-  else
-  {
-    return J.ABS.Aliased.Game_Interpreter.command302.call(this, params);
-  }
-};
-
-/**
- * Enables saving with JABS.
- * Removed the check for seeing if the player is in-battle, because the player is
- * technically ALWAYS in-battle while the ABS is enabled.
- */
-J.ABS.Aliased.Game_Interpreter.command352 = Game_Interpreter.prototype.command352;
-Game_Interpreter.prototype.command352 = function()
-{
-  if ($jabsEngine.absEnabled)
-  {
-    SceneManager.push(Scene_Save);
-    return true;
-  }
-  else
-  {
-    return J.ABS.Aliased.Game_Interpreter.command352.call(this);
-  }
-};
-
-/**
  * Enables default battles with JABS.
  * Removed the check for seeing if the player is in-battle, because the player
  * is technically ALWAYS in-battle while the ABS is enabled.
@@ -3902,6 +3856,73 @@ Game_Interpreter.prototype.command301 = function(params)
   else
   {
     return J.ABS.Aliased.Game_Interpreter.command301.call(this, params);
+  }
+};
+
+/**
+ * Enables the shop scene with JABS.
+ * Removed the check for seeing if the player is in-battle, because the player is
+ * technically ALWAYS in-battle while the ABS is enabled.
+ */
+J.ABS.Aliased.Game_Interpreter.command302 = Game_Interpreter.prototype.command302;
+Game_Interpreter.prototype.command302 = function(params)
+{
+  if ($jabsEngine.absEnabled)
+  {
+    const goods = [params];
+    while (this.nextEventCode() === 605)
+    {
+      this._index++;
+      goods.push(this.currentCommand().parameters);
+    }
+
+    SceneManager.push(Scene_Shop);
+    SceneManager.prepareNextScene(goods, params[4]);
+    return true;
+  }
+  else
+  {
+    return J.ABS.Aliased.Game_Interpreter.command302.call(this, params);
+  }
+};
+
+/**
+ * Enables the name input processing with JABS.
+ * Removed the check for seeing if the player is in-battle, because the player is
+ * technically ALWAYS in-battle while the ABS is enabled.
+ */
+J.ABS.Aliased.Game_Interpreter.command303 = Game_Interpreter.prototype.command303;
+Game_Interpreter.prototype.command303 = function(params)
+{
+  if ($jabsEngine.absEnabled)
+  {
+    if ($dataActors[params[0]]) {
+      SceneManager.push(Scene_Name);
+      SceneManager.prepareNextScene(params[0], params[1]);
+    }
+
+    return true;
+  }
+
+  return J.ABS.Aliased.Game_Interpreter.command303.call(this, params);
+};
+
+/**
+ * Enables saving with JABS.
+ * Removed the check for seeing if the player is in-battle, because the player is
+ * technically ALWAYS in-battle while the ABS is enabled.
+ */
+J.ABS.Aliased.Game_Interpreter.command352 = Game_Interpreter.prototype.command352;
+Game_Interpreter.prototype.command352 = function()
+{
+  if ($jabsEngine.absEnabled)
+  {
+    SceneManager.push(Scene_Save);
+    return true;
+  }
+  else
+  {
+    return J.ABS.Aliased.Game_Interpreter.command352.call(this);
   }
 };
 //#endregion Game_Interpreter
@@ -6008,6 +6029,72 @@ RPG_Skill.prototype.extractJabsComboAction = function()
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.ComboAction);
 };
 //#endregion guard
+
+//#region knockbackResist
+//#region RPG_BaseBattler
+/**
+ * A new property for retrieving the JABS castTime from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsKnockbackResist",
+  {
+    get: function()
+    {
+      return this.getJabsKnockbackResist();
+    },
+  });
+
+/**
+ * Gets the JABS castTime this skill.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsKnockbackResist = function()
+{
+  return this.extractJabsKnockbackResist();
+};
+
+/**
+ * Extracts the JABS castTime for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsKnockbackResist = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
+};
+//#endregion RPG_BaseBattler
+
+//#region RPG_BaseBattler
+/**
+ * A new property for retrieving the JABS castTime from this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseItem.prototype, "jabsKnockbackResist",
+  {
+    get: function()
+    {
+      return this.getJabsKnockbackResist();
+    },
+  });
+
+/**
+ * Gets the JABS castTime this skill.
+ * @returns {number|null}
+ */
+RPG_BaseItem.prototype.getJabsKnockbackResist = function()
+{
+  return this.extractJabsKnockbackResist();
+};
+
+/**
+ * Extracts the JABS castTime for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseItem.prototype.extractJabsKnockbackResist = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
+};
+//#endregion RPG_BaseBattler
+//#endregion knockbackResist
 //#endregion RPG objects
 
 //ENDFILE
