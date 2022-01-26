@@ -936,7 +936,6 @@ class OverlayManager
       skillOverlay.jabsDirect);
   };
 
-  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `combo`.
    * @param baseSkill {RPG_Skill} The base skill.
@@ -951,7 +950,6 @@ class OverlayManager
       J.ABS.RegExp.ComboAction,
       skillOverlay.jabsComboAction);
   };
-  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `freeCombo`.
@@ -998,33 +996,20 @@ class OverlayManager
       skillOverlay.jabsCastAnimation);
   };
 
-  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `poseSuffix`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static poseSuffix(baseSkill, skillOverlay)
   {
-    if (skillOverlay._j.poseSuffix())
-    {
-      const parameterName = J.BASE.Notetags.PoseSuffix;
-      const parameterValue = `<${parameterName}:[${skillOverlay._j.poseSuffix()}]>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.PoseSuffix,
+      skillOverlay.jabsPoseData);
   };
-  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `knockback`.
@@ -1041,7 +1026,6 @@ class OverlayManager
       skillOverlay.jabsKnockback);
   };
 
-  //TODO: refactor this to use _overwriteAsKvp.
   /**
    * Overlays the `piercing`.
    * @param baseSkill {RPG_Skill} The base skill.
@@ -1050,28 +1034,12 @@ class OverlayManager
    */
   static piercing(baseSkill, skillOverlay)
   {
-    const piercing = skillOverlay._j.piercing();
-
-    // the piercing is pointless if it is only one [1,#].
-    const shouldOverlay = piercing[0] !== 1;
-    if (shouldOverlay)
-    {
-      const parameterName = J.BASE.Notetags.Piercing;
-      const parameterValue = `<${parameterName}:[${piercing}]>`;
-      const noteIndex = baseSkill._j._notes.findIndex(note => note.includes(parameterName));
-      if (noteIndex !== -1)
-      {
-        baseSkill._j._notes[noteIndex] = parameterValue;
-      }
-      else
-      {
-        baseSkill._j._notes.push(parameterValue);
-      }
-    }
-
-    return baseSkill;
+    return this._overwriteAsKvp(
+      baseSkill,
+      skillOverlay,
+      J.ABS.RegExp.PiercingData,
+      skillOverlay.jabsPiercingData);
   };
-  //TODO: refactor this to use _overwriteAsKvp.
 
   /**
    * Overlays the `shape`.

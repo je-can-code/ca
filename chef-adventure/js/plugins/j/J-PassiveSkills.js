@@ -77,6 +77,10 @@ J.PASSIVE.Metadata = {
   Version: '1.0.0',
 };
 
+J.PASSIVE.RegExp = {
+  PassiveStateId: /<passive:[ ]?(\[[\d, ]+])>/gi
+};
+
 J.PASSIVE.Aliased = {
   DataManager: new Map(),
   Game_Actor: new Map(),
@@ -384,26 +388,15 @@ Game_Battler.prototype.skillsToPassiveStates = function(skillIds)
 };
 
 /**
- * Gets the skill associated with the given skill id.
- * By default, we simply get the skill from the database with no modifications.
- * @param {number} skillId The skill id to get the skill for.
- * @returns {rm.types.Skill}
- */
-Game_Battler.prototype.skill = function(skillId)
-{
-  return $dataSkills[skillId];
-};
-
-/**
  * Determines whether or not a skill is identified as "passive".
  * This is intended to be used as a filter function against a collection of skills,
  * though it can be used to identify a singular skill otherwise.
- * @param {rm.types.Skill} skill The skill to identify.
+ * @param {RPG_Skill} skill The skill to identify.
  * @returns {boolean} True if the skill is identified as passive, false otherwise.
  */
 Game_Battler.prototype.isPassiveSkill = function(skill)
 {
-  return !!(skill.meta && skill.meta['passive']);
+  return !!skill.metadata("passive");
 };
 
 /**
@@ -422,7 +415,7 @@ Game_Battler.prototype.isRelevantPassiveState = function(stateId)
  * Extracts the passive state ids out of the skill.
  * This is intended to be used as a map function against a collection of skills
  * that contain state ids, though it can be used to extract a single skill's passive states.
- * @param {rm.types.Skill} referenceData The skill to extract passive state ids from.
+ * @param {RPG_Skill} referenceData The skill to extract passive state ids from.
  * @returns {number[]}
  */
 Game_Battler.prototype.extractPassives = function(referenceData)
@@ -468,29 +461,24 @@ Game_Enemy.prototype.skillIdsFromSelf = function()
   return this.skills().map(skill => skill.id);
 };
 
-// we don't need to force the user to use our BASE plugin if they aren't already using it.
-// define this function if the user is not using the BASE plugin.
-if (!J.BASE)
+/**
+ * Converts all "actions" from an enemy into their collection of known skills.
+ * This includes both skills listed in their skill list, and any added skills via traits.
+ * @returns {RPG_Skill[]}
+ */
+Game_Enemy.prototype.skills = function()
 {
-  /**
-   * Converts all "actions" from an enemy into their collection of known skills.
-   * This includes both skills listed in their skill list, and any added skills via traits.
-   * @returns {rm.types.Skill[]}
-   */
-  Game_Enemy.prototype.skills = function()
-  {
-    // get actions from their action list.
-    const actionSkillIds = this.enemy().actions
-      .map(action => this.skill(action.skillId));
+  // get actions from their action list.
+  const actionSkillIds = this.enemy().actions
+    .map(action => this.skill(action.skillId), this);
 
-    // get their "attack skill" trait skill ids.
-    const attackSkillId = this.enemy().traits
-      .filter(trait => trait.code === Game_BattlerBase.TRAIT_ATTACK_SKILL)
-      .map(skillTrait => this.skill(skillTrait.dataId));
+  // get their "attack skill" trait skill ids.
+  const attackSkillId = this.enemy().traits
+    .filter(trait => trait.code === Game_BattlerBase.TRAIT_ATTACK_SKILL)
+    .map(skillTrait => this.skill(skillTrait.dataId), this);
 
-    return [...actionSkillIds, ...attackSkillId].sort();
-  };
-}
+  return [...actionSkillIds, ...attackSkillId].sort();
+};
 //#endregion Game_Enemy
 
 //#endregion Game objects

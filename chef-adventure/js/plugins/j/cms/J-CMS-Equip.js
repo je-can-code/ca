@@ -439,12 +439,15 @@ class Window_MoreEquipData
    */
   recursivelyFindAllComboSkillIds(skillId, list = [])
   {
+    // start our list from what was passed in.
     const skillIdList = list;
-    const skill = $dataSkills[skillId];
-    const shouldRecurse = (s) => (s && s._j && s._j.combo() && !s._j.freeCombo());
+
+    // grab the database skill.
+    const skill = this.actor.skill(skillId);
+    const shouldRecurse = (s) => (s && s.jabsComboAction && !s.jabsFreeCombo);
     if (shouldRecurse(skill))
     {
-      const foundComboSkill = skill._j.combo()[0];
+      const foundComboSkill = skill.jabsComboAction[0];
       skillIdList.push(foundComboSkill);
       return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
     }

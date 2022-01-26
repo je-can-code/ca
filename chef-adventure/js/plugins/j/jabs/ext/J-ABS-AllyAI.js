@@ -1062,7 +1062,8 @@ JABS_AllyAI.modes = {
  * Gets all valid values of the possible modes currently implemented.
  * @returns {any[]}
  */
-JABS_AllyAI.getModes = () => Object.keys(JABS_AllyAI.modes)
+JABS_AllyAI.getModes = () => Object
+  .keys(JABS_AllyAI.modes)
   .map(key => JABS_AllyAI.modes[key]);
 
 /**
@@ -1070,7 +1071,8 @@ JABS_AllyAI.getModes = () => Object.keys(JABS_AllyAI.modes)
  * @param {string} potentialMode The mode to validate.
  * @returns {boolean}
  */
-JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI.getModes()
+JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI
+  .getModes()
   .find(mode => mode.key === potentialMode);
 //#endregion statics
 
@@ -1420,7 +1422,7 @@ JABS_AllyAI.prototype.decideSupportCleansing = function(availableSkills, healer)
       // the find the first one that we can cleanse.
       const cleansableState = allyStates.find(state =>
       {
-        const isNegative = state._j.negative; // skills to be cleansed have a "negative" tag.
+        const isNegative = state.jabsNegative; // skills to be cleansed have a "negative" tag.
         const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id);
         return isNegative && canBeCleansed;
       });

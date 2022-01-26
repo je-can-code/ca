@@ -1192,8 +1192,8 @@ class Window_PartyFrame extends Window_Base
   {
     if (trackedState.isExpired() || trackedState.stateId === 1) return false;
 
-    const state = $dataStates[trackedState.stateId];
-    if (state._j && state._j.negative)
+    const state = trackedState.battler.state(trackedState.stateId);
+    if (state.jabsNegative)
     {
       return false
     }
@@ -1210,8 +1210,8 @@ class Window_PartyFrame extends Window_Base
   {
     if (trackedState.isExpired() || trackedState.stateId === 1) return false;
 
-    const state = $dataStates[trackedState.stateId];
-    if (state._j && state._j.negative)
+    const state = trackedState.battler.state(trackedState.stateId);
+    if (state.jabsNegative)
     {
       return true;
     }

@@ -1401,7 +1401,7 @@ ImageManager.probeCharacter = function(characterFileName)
 {
   return new Promise(function(resolve, reject)
   {
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
     xhr.open("HEAD", characterImageUrl, true);
     xhr.onload = resolve;
@@ -1794,6 +1794,17 @@ Game_Actor.prototype.skillId = function()
 };
 
 /**
+ * OVERWRITE Gets the skill associated with the given skill id.
+ * By abstracting this, we can modify the underlying skill before it reaches its destination.
+ * @param {number} skillId The skill id to get the skill for.
+ * @returns {rm.types.Skill}
+ */
+Game_Actor.prototype.skill = function(skillId)
+{
+  return $dataSkills[skillId];
+};
+
+/**
  * Gets the sight range for this actor.
  * Looks first to the class, then the actor for the tag.
  * If neither are present, then it returns the default.
@@ -2095,7 +2106,7 @@ Game_Actor.prototype.retaliationSkills = function()
 
 /**
  * The underlying database data for this actor.
- * @returns {rm.types.Actor}
+ * @returns {RPG_Actor}
  */
 Game_Actor.prototype.databaseData = function()
 {
@@ -2105,10 +2116,21 @@ Game_Actor.prototype.databaseData = function()
 
 //#region Game_Battler
 /**
+ * Gets the skill associated with the given skill id.
+ * By default, we simply get the skill from the database with no modifications.
+ * @param {number} skillId The skill id to get the skill for.
+ * @returns {RPG_Skill}
+ */
+Game_Battler.prototype.skill = function(skillId)
+{
+  return $dataSkills[skillId];
+};
+
+/**
  * Gets the state associated with the given state id.
  * By abstracting this, we can modify the underlying state before it reaches its destination.
  * @param {number} stateId The state id to get data for.
- * @returns {rm.types.State}
+ * @returns {RPG_State}
  */
 Game_Battler.prototype.state = function(stateId)
 {
@@ -2130,7 +2152,7 @@ Game_Battler.prototype.battlerId = function()
  * The underlying database data for this battler.
  *
  * This allows operations to be performed against both actor and enemy indifferently.
- * @returns {rm.types.Enemy|rm.types.Actor}
+ * @returns {RPG_Enemy|RPG_Actor}
  */
 Game_Battler.prototype.databaseData = function()
 {
@@ -2322,38 +2344,6 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
 Game_Battler.prototype.getEverythingWithNotes = function()
 {
   return [];
-};
-
-/**
- * Gets whether or not the aggro is locked for this battler.
- * Locked aggro means their aggro cannot be modified in any way.
- * @returns {boolean}
- */
-Game_Battler.prototype.isAggroLocked = function()
-{
-  return this.states().some(state => state._j.aggroLock);
-};
-
-/**
- * Gets the multiplier for received aggro for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.aggroInAmp = function()
-{
-  let inAmp = 1.0;
-  this.states().forEach(state => inAmp += state._j.aggroInAmp);
-  return inAmp;
-};
-
-/**
- * Gets the multiplier for dealt aggro for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.aggroOutAmp = function()
-{
-  let outAmp = 1.0;
-  this.states().forEach(state => outAmp += state._j.aggroOutAmp);
-  return outAmp;
 };
 //#endregion Game_Battler
 
@@ -2778,7 +2768,7 @@ Game_Enemy.prototype.sdpPoints = function()
  */
 Game_Enemy.prototype.onOwnDefeatSkillIds = function()
 {
-  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
   return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
 
@@ -2788,14 +2778,14 @@ Game_Enemy.prototype.onOwnDefeatSkillIds = function()
  */
 Game_Enemy.prototype.onTargetDefeatSkillIds = function()
 {
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
   return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
 
 /**
  * Converts all "actions" from an enemy into their collection of known skills.
  * This includes both skills listed in their skill list, and any added skills via traits.
- * @returns {rm.types.Skill[]}
+ * @returns {RPG_Skill[]}
  */
 Game_Enemy.prototype.skills = function()
 {
@@ -2811,7 +2801,7 @@ Game_Enemy.prototype.skills = function()
 
 /**
  * Checks whether or not this enemy knows this skill.
- * @param skillId The id of the skill to check for.
+ * @param {number} skillId The id of the skill to check for.
  * @returns {boolean}
  */
 Game_Enemy.prototype.hasSkill = function(skillId)
@@ -2821,7 +2811,7 @@ Game_Enemy.prototype.hasSkill = function(skillId)
 
 /**
  * Gets all objects with notes available to enemies.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_Enemy[]}
  */
 Game_Enemy.prototype.getEverythingWithNotes = function()
 {
@@ -2846,7 +2836,7 @@ Game_Enemy.prototype.getCurrentWithNotes = function()
 
 /**
  * The underlying database data for this enemy.
- * @returns {rm.types.Enemy}
+ * @returns {RPG_Enemy}
  */
 Game_Enemy.prototype.databaseData = function()
 {
@@ -5065,7 +5055,7 @@ class RPG_DropItem
 
   /**
    * Constructor.
-   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
+   * @param {RPG_EnemyDropItem} enemyDropItem The drop item to parse.
    */
   constructor(enemyDropItem)
   {
@@ -5117,7 +5107,7 @@ class RPG_EnemyAction
 
   /**
    * Constructor.
-   * @param {rm.types.EnemyAction} enemyAction The action to parse.
+   * @param {RPG_EnemyAction} enemyAction The action to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(enemyAction, index)
@@ -5636,7 +5626,7 @@ class RPG_Base
       if (structure.test(note))
       {
         // parse the value out of the regex capture group.
-        val += parseInt(RegExp.$1);
+        val += parseFloat(RegExp.$1);
 
         // flag that we found a match.
         hasMatch = true;
@@ -6048,7 +6038,7 @@ class RPG_BaseBattler extends RPG_Base
   /**
    * Constructor.
    * Maps the base battler data to the properties on this class.
-   * @param {rm.types.Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(battler, index)
@@ -6308,7 +6298,7 @@ class RPG_Enemy extends RPG_BaseBattler
 
   /**
    * Constructor.
-   * @param {rm.types.Enemy} enemy The enemy to parse.
+   * @param {RPG_Enemy} enemy The enemy to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(enemy, index)
@@ -6322,7 +6312,7 @@ class RPG_Enemy extends RPG_BaseBattler
 
   /**
    * Maps the data from the JSON to this object.
-   * @param {rm.types.Enemy} enemy The enemy to parse.
+   * @param {RPG_Enemy} enemy The enemy to parse.
    */
   initMembers(enemy)
   {

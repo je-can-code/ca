@@ -1136,7 +1136,7 @@ if (J.DROPS)
   /**
    * Gets any additional drops from the notes of this particular enemy.
    * This allows for only gaining an SDP from enemies once.
-   * @returns {rm.types.EnemyDropItem[]}
+   * @returns {RPG_EnemyDropItem[]}
    */
   J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);
   Game_Enemy.prototype.extraDrops = function()
@@ -1156,7 +1156,7 @@ if (J.DROPS)
 
   /**
    * Determines if there is an SDP to drop, and whether or not to drop it.
-   * @returns {rm.types.EnemyDropItem}
+   * @returns {RPG_EnemyDropItem}
    */
   Game_Enemy.prototype.needsSdpDrop = function()
   {

@@ -870,6 +870,18 @@ J.ABS.RegExp = {
   InvincibleDodge: /<invincibleDodge>/gi,
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
+  PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
+
+  Negative: /<negative>/gi,
+  Paralyzed: /<paralyzed>/gi,
+  Rooted: /<rooted>/gi,
+  Disarmed: /<disabled>/gi,
+  Muted: /<muted>/gi,
+
+  AggroLock: /<aggroLock>/gi,
+  AggroOutAmp: /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
+  AggroInAmp: /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
 };
 
 /**
@@ -2115,7 +2127,7 @@ class JABS_Engine
     const baseSkill = action.getBaseSkill();
 
     // check if this action has the "freecombo" tag.
-    if (baseSkill._j.freeCombo())
+    if (action.getBaseSkill().jabsFreeCombo)
     {
       // trigger the free combo effect for this action.
       this.checkComboSequence(caster, action)
@@ -2141,7 +2153,6 @@ class JABS_Engine
   handleActionCastAnimation(caster, action)
   {
     // check if a cast animation exists.
-    //const casterAnimation = action.getBaseSkill()._j.casterAnimation();
     const casterAnimation = action.getCastAnimation();
     if (casterAnimation)
     {
@@ -2666,30 +2677,22 @@ class JABS_Engine
     aggro *= action.aggroMultiplier();
 
     // apply any aggro amplification from states.
-    const attackerStates = attacker.getBattler().states();
-    if (attackerStates.length > 0)
+    attacker.getBattler().states().forEach(state =>
     {
-      attackerStates.forEach(state =>
+      if (state.jabsAggroOutAmp >= 0)
       {
-        if (state._j.aggroOutAmp >= 0)
-        {
-          aggro *= state._j.aggroOutAmp;
-        }
-      });
-    }
+        aggro *= state.jabsAggroOutAmp;
+      }
+    });
 
     // apply any aggro reduction from states.
-    const targetStates = target.getBattler().states();
-    if (targetStates.length > 0)
+    target.getBattler().states().forEach(state =>
     {
-      targetStates.forEach(state =>
+      if (state.jabsAggroInAmp >= 0)
       {
-        if (state._j.aggroInAmp >= 0)
-        {
-          aggro *= state._j.aggroInAmp;
-        }
-      });
-    }
+        aggro *= state.jabsAggroInAmp;
+      }
+    });
 
     // apply the TGR multiplier from the attacker.
     aggro *= attacker.getBattler().tgr;
@@ -2866,25 +2869,42 @@ class JABS_Engine
    */
   checkComboSequence(caster, action)
   {
-    const combo = action.getBaseSkill()._j.combo();
-    if (combo)
+    // check to make sure we have combo data before processing the combo.
+    if (!this.canExecuteComboAction(caster, action)) return;
+
+    // execute the combo action.
+    this.executeComboAction(caster, action);
+  };
+
+  canExecuteComboAction(caster, action)
+  {
+    // grab the skill out of the action.
+    const skill = action.getBaseSkill();
+
+    // if we do not have a combo, we cannot combo.
+    if (!skill.jabsComboAction) return false;
+
+    // if the battler doesn't know the combo skill, we cannot combo.
+    if (!caster.getBattler().hasSkill(skill.jabsComboSkillId)) return false;
+
+    // execute combo actions!
+    return true;
+  }
+
+  executeComboAction(caster, action)
+  {
+    const skill = action.
+    const [skillId, comboDelay] = combo;
+
+    const cooldownKey = action.getCooldownType();
+    if (!(caster.getComboNextActionId(cooldownKey) === skillId))
     {
-      const battler = caster.getBattler();
-      const [skillId, comboDelay] = combo;
-      if (!battler.hasSkill(skillId))
-      {
-        return;
-      }
-
-      const cooldownKey = action.getCooldownType();
-      if (!(caster.getComboNextActionId(cooldownKey) === skillId))
-      {
-        caster.modCooldownCounter(cooldownKey, comboDelay);
-      }
-
-      caster.setComboFrames(cooldownKey, comboDelay);
-      caster.setComboNextActionId(cooldownKey, skillId);
+      caster.modCooldownCounter(cooldownKey, comboDelay);
     }
+
+    caster.setComboFrames(cooldownKey, comboDelay);
+    caster.setComboNextActionId(cooldownKey, skillId);
+
   };
 
   /**
