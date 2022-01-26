@@ -280,6 +280,15 @@ class JABS_Action
   };
 
   /**
+   * Gets whether or not this action is unparryable.
+   * @returns {boolean}
+   */
+  isUnparryable()
+  {
+    return !!this.getBaseSkill().jabsUnparryable;
+  };
+
+  /**
    * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
    * @returns {boolean} True if it is a retaliation, false otherwise.
    */
@@ -2729,18 +2738,6 @@ JABS_Battler.prototype.hasEventActions = function()
 
   const event = this.getCharacter();
   return event._pageIndex !== -1;
-};
-
-/**
- * Whether or not the battler has an "offhand" piece of gear equipped.
- * This can either be a dual-wielded second weapon, or the first armor equipped.
- * @returns {boolean} True if the battler has offhand equip with a skill, false otherwise.
- */
-JABS_Battler.prototype.hasOffhandSkill = function()
-{
-  const battler = this.getBattler();
-  const offhandGear = battler.equips()[1];
-  return !!(offhandGear && offhandGear._j.skillId);
 };
 
 /**

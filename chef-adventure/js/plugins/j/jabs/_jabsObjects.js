@@ -428,7 +428,7 @@ Game_Actor.prototype.getMainhandSkill = function()
   let mainhandSkill = 0;
   if (equips[0])
   {
-    mainhandSkill = parseInt(equips[0]._j.skillId);
+    mainhandSkill = equips[0].jabsSkillId ?? 0;
   }
 
   return mainhandSkill
@@ -453,35 +453,47 @@ Game_Actor.prototype.getOffhandSkill = function()
   let offhandSkill = 0;
   if (equips[1])
   {
-    offhandSkill = parseInt(equips[1]._j.skillId);
+    offhandSkill = equips[1].jabsSkillId ?? 0;
   }
 
   return offhandSkill;
 };
 
+/**
+ * Gets the offhand skill id override if one exists from
+ * any states.
+ * @returns {number}
+ */
 Game_Actor.prototype.offhandSkillOverride = function()
 {
+  // default to override of skill id 0.
   let overrideSkillId = 0;
+
+  // grab all states to start.
   let objectsToCheck = [...this.states()];
+
+  // grab the weapon of the actor.
   const weapon = this.equips()[0];
+
+  // check if we have a weapon.
   if (weapon)
   {
+    // add the weapon on for possible offhand overrides.
     objectsToCheck.unshift(weapon);
   }
 
-  const structure = /<offhandSkill:(\d+)>/i;
+  // iterate over all sources.
   objectsToCheck.forEach(obj =>
   {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
+    // check if we have an offhand skill id override.
+    if (obj.jabsOffhandSkillId)
     {
-      if (line.match(structure))
-      {
-        overrideSkillId = parseInt(RegExp.$1);
-      }
-    });
+      // assign it if we do.
+      overrideSkillId = obj.jabsOffhandSkillId;
+    }
   });
 
+  // return the last override skill found, if any.
   return overrideSkillId;
 };
 
@@ -621,13 +633,32 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
  */
 Game_Actor.prototype.refreshSpeedBoosts = function()
 {
-  const equips = this.equips();
+  // default to 0 of speed boost.
   let speedBoosts = 0;
 
-  equips.forEach(equip =>
+  // iterate over all equips.
+  this.equips().forEach(equip =>
   {
+    // if the equip is invalid, don't process.
     if (!equip) return;
-    speedBoosts += equip._j.speedBoost;
+
+    // check to make sure there is a speed boost before adding.
+    if (equip.jabsSpeedBoost)
+    {
+      // add the speed boost.
+      speedBoosts += equip.jabsSpeedBoost;
+    }
+  });
+
+  // iterate over all states.
+  this.states().forEach(state =>
+  {
+    // check to make sure there is a speed boost before adding.
+    if (state.jabsSpeedBoost)
+    {
+      // add the speed boost.
+      speedBoosts += state.jabsSpeedBoost;
+    }
   });
 
   this._j._speedBoosts = speedBoosts;
@@ -1483,7 +1514,7 @@ Game_Battler.prototype.currentHpPercent = function()
 
 Game_Battler.prototype.extractBonusHits = function(notedata)
 {
-
+  return 0;
 };
 
 /**
@@ -1492,27 +1523,15 @@ Game_Battler.prototype.extractBonusHits = function(notedata)
  */
 Game_Battler.prototype.ignoreAllParry = function()
 {
-  let ignore = false;
   const objectsToCheck = this.states();
   if (J.PASSIVE)
   {
     objectsToCheck.push(...this.passiveSkillStates());
   }
 
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    const structure = /<ignoreParry>/i;
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        ignore = true;
-      }
-    });
-  });
+  const unparryable = objectsToCheck.some(obj => obj.jabsUnparryable);
 
-  return ignore;
+  return unparryable;
 };
 //#endregion Game_Battler
 
@@ -5213,7 +5232,7 @@ Game_Player.prototype.removeLoot = function(lootEvent)
   lootEvent.setLootNeedsRemoving(true);
   $jabsEngine.requestClearLoot = true;
 };
-//#endregion
+//#endregion Game_Player
 
 //#region Game_Unit
 /**
@@ -5227,10 +5246,107 @@ Game_Unit.prototype.inBattle = function()
     ? true
     : J.ABS.Aliased.Game_Unit.inBattle.call(this);
 }
-//#endregion
+//#endregion Game_Unit
 //#endregion Game objects
 
 //#region RPG objects
+//#region equip effects
+//#region skillId
+/**
+ * The skill id associated with this equipment.
+ * This is typically found on weapons and offhand armors.
+ * @type {number}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jabsSkillId",
+  {
+    get: function()
+    {
+      return this.getJabsSkillId();
+    },
+  });
+
+/**
+ * Gets the JABS skill id for this equip.
+ * @returns {number}
+ */
+RPG_EquipItem.prototype.getJabsSkillId = function()
+{
+  return this.extractJabsSkillId()
+};
+
+/**
+ * Gets the value from its notes.
+ */
+RPG_EquipItem.prototype.extractJabsSkillId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+};
+//#endregion skillId
+
+//#region offhand skillId
+/**
+ * The offhand skill id override from this equip.
+ * @type {number}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jabsOffhandSkillId",
+  {
+    get: function()
+    {
+      return this.getJabsOffhandSkillId();
+    },
+  });
+
+/**
+ * Gets the JABS offhand skill id override for this equip.
+ * @returns {number}
+ */
+RPG_EquipItem.prototype.getJabsOffhandSkillId = function()
+{
+  return this.extractJabsOffhandSkillId()
+};
+
+/**
+ * Gets the value from its notes.
+ */
+RPG_EquipItem.prototype.extractJabsOffhandSkillId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+};
+//#endregion offhand skillId
+
+//#region speedBoost
+/**
+ * The movement speed modifier from this equip.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jabsSpeedBoost",
+  {
+    get: function()
+    {
+      return this.getJabsSpeedBoost();
+    },
+  });
+
+/**
+ * Gets the movement speed modifier from this equip.
+ * @returns {number|null}
+ */
+RPG_EquipItem.prototype.getJabsSpeedBoost = function()
+{
+  return this.extractJabsSpeedBoost()
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_EquipItem.prototype.extractJabsSpeedBoost = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
+};
+//#endregion speedBoost
+//#endregion equip effects
+
 //#region skill effects (mostly)
 //#region cooldown
 /**
@@ -6353,6 +6469,105 @@ RPG_Skill.prototype.extractJabsPoseData = function()
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.PoseSuffix, true);
 };
 //#endregion poseSuffix
+
+//#region ignoreParry
+/**
+ * The amount of parry rating ignored by this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreParry",
+  {
+    get: function()
+    {
+      return this.getJabsIgnoreParry();
+    },
+  });
+
+/**
+ * Gets the ignore parry amount for this skill.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsIgnoreParry = function()
+{
+  return this.extractJabsIgnoreParry()
+};
+
+/**
+ * Gets the value from the notes.
+ */
+RPG_Skill.prototype.extractJabsIgnoreParry = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.IgnoreParry, true);
+};
+//#endregion ignoreParry
+
+//#region unparryable
+//#region RPG_Skill
+/**
+ * Whether or not this skill is completely unparryable by the target.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsUnparryable",
+  {
+    get: function()
+    {
+      return this.getJabsUnparryable();
+    },
+  });
+
+/**
+ * Gets whether or not this skill is unparryable.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getJabsUnparryable = function()
+{
+  return this.extractJabsUnparryable();
+};
+
+/**
+ * Extracts the boolean from the notes.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.extractJabsUnparryable = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
+};
+//#endregion RPG_Skill
+
+//#region RPG_State
+/**
+ * Whether or not the battler afflicted with this state is unparryable in
+ * any action it takes.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsUnparryable",
+  {
+    get: function()
+    {
+      return this.getJabsUnparryable();
+    },
+  });
+
+/**
+ * Gets whether or not this state will provide the unparryable status
+ * to its afflictee.
+ * @returns {boolean|null}
+ */
+RPG_State.prototype.getJabsUnparryable = function()
+{
+  return this.extractJabsUnparryable();
+};
+
+/**
+ * Extracts the boolean from the notes.
+ * @returns {boolean|null}
+ */
+RPG_State.prototype.extractJabsUnparryable = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
+};
+//#endregion RPG_State
+//#endregion unparryable
 //#endregion skill effects (mostly)
 
 //#region state effects
@@ -6619,8 +6834,69 @@ RPG_State.prototype.extractJabsAggroLock = function()
 };
 //#endregion aggroLock
 
-//#endregion state effects
+//#region offhand skillId
+/**
+ * The offhand skill id override from this state.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsOffhandSkillId",
+  {
+    get: function()
+    {
+      return this.getJabsOffhandSkillId();
+    },
+  });
 
+/**
+ * Gets the JABS offhand skill id override for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsOffhandSkillId = function()
+{
+  return this.extractJabsOffhandSkillId()
+};
+
+/**
+ * Gets the value from its notes.
+ */
+RPG_State.prototype.extractJabsOffhandSkillId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+};
+//#endregion offhand skillId
+
+//#region speedBoost
+/**
+ * The movement speed modifier from this state.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSpeedBoost",
+  {
+    get: function()
+    {
+      return this.getJabsSpeedBoost();
+    },
+  });
+
+/**
+ * Gets the movement speed modifier from this state.
+ * @returns {number|null}
+ */
+RPG_State.prototype.getJabsSpeedBoost = function()
+{
+  return this.extractJabsSpeedBoost()
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_State.prototype.extractJabsSpeedBoost = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
+};
+//#endregion speedBoost
+//#endregion state effects
 //#endregion RPG objects
 
 //ENDFILE

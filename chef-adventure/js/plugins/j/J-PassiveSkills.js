@@ -252,7 +252,7 @@ Game_Battler.prototype.removeState = function(stateId)
  *
  * This is an expensive process, and shouldn't be performed on a per-frame basis.
  * @param {RPG_EquipItem[]} traitObjects
- * @returns {rm.types.State[]}
+ * @returns {RPG_State[]}
  */
 Game_Battler.prototype.sourcesToPassiveSkillStates = function(traitObjects)
 {
@@ -277,7 +277,7 @@ Game_Battler.prototype.sourcesToPassiveSkillStates = function(traitObjects)
 
 /**
  * Gets all the current passive skill states, if any exist.
- * @returns {rm.types.State[]}
+ * @returns {RPG_State[]}
  */
 Game_Battler.prototype.passiveSkillStates = function()
 {
@@ -293,7 +293,7 @@ Game_Battler.prototype.passiveSkillStates = function()
 
 /**
  * Gets all states on the battler, including passive skill states.
- * @returns {rm.types.State[]}
+ * @returns {RPG_State[]}
  */
 Game_Battler.prototype.allStates = function()
 {
