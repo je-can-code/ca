@@ -872,13 +872,18 @@ J.ABS.RegExp = {
   KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
   PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
   PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
+  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+  Unparryable: /<unparryable>/gi,
+
+  SkillId: /<skillId:[ ]?(\d+)>/gi,
+  OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
+  SpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 
   Negative: /<negative>/gi,
   Paralyzed: /<paralyzed>/gi,
   Rooted: /<rooted>/gi,
   Disarmed: /<disabled>/gi,
   Muted: /<muted>/gi,
-
   AggroLock: /<aggroLock>/gi,
   AggroOutAmp: /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
   AggroInAmp: /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
@@ -2570,13 +2575,13 @@ class JABS_Engine
     this.preExecuteSkillEffects(action, target);
 
     // get whether or not this action was unparryable.
-    const isUnparryable = (action.getBaseSkill()._j.ignoreParry() === -1);
+    const isUnparryable = (action.isUnparryable());
 
     // check whether or not this action was parried.
     const caster = action.getCaster();
     const isParried = isUnparryable
       ? false // parry is cancelled because the skill ignores it.
-      : this.checkParry(caster, target);
+      : this.checkParry(caster, target, action);
 
     // check if the action was parried instead.
     const targetBattler = target.getBattler();
@@ -2893,8 +2898,9 @@ class JABS_Engine
 
   executeComboAction(caster, action)
   {
-    const skill = action.
-    const [skillId, comboDelay] = combo;
+    const skill = action.getBaseSkill();
+    const skillId = skill.jabsComboSkillId;
+    const comboDelay = skill.jabsComboDelay;
 
     const cooldownKey = action.getCooldownType();
     if (!(caster.getComboNextActionId(cooldownKey) === skillId))
@@ -2904,16 +2910,16 @@ class JABS_Engine
 
     caster.setComboFrames(cooldownKey, comboDelay);
     caster.setComboNextActionId(cooldownKey, skillId);
-
   };
 
   /**
    * Calculates whether or not the attack was parried.
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
+   * @param {JABS_Action} action The action being executed.
    * @returns {boolean}
    */
-  checkParry(caster, target)
+  checkParry(caster, target, action)
   {
     const isFacing = caster.isFacingTarget(target.getCharacter());
     // cannot parry if not facing target.
@@ -2960,12 +2966,22 @@ class JABS_Engine
     const rng = parseInt(Math.randomInt(100) + 1);
     console.log(`attacker: ${attackerHit}, defender: ${defenderGrd}, rng: ${rng}, diff: ${difference}, parried: ${rng > difference}`);
     return rng > difference;
+    // console.log(`attacker:${casterBattler.name()} bonus:${bonusHit} + hit:${hit-bonusHit} < grd:${parryRate} ?${hit < parryRate}`);
     */
 
+    // apply the hit bonus to hit.
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
+
+    // calculate the hit rate.
     const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
-    const parry = parseFloat((targetBattler.grd - 1).toFixed(3));
-    // console.log(`attacker:${casterBattler.name()} bonus:${bonusHit} + hit:${hit-bonusHit} < grd:${parryRate} ?${hit < parryRate}`);
+
+    // grab the amount of parry ignored.
+    const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) * 0.01;
+
+    // calculate the parry rate.
+    const parry = parseFloat((targetBattler.grd - 1 - parryIgnored).toFixed(3));
+
+    // return whether or not the hit was successful.
     return hit < parry;
   };
 
