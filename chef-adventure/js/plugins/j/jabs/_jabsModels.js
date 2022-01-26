@@ -2612,7 +2612,7 @@ JABS_Battler.prototype.canBattlerMove = function()
   }
   else
   {
-    const rooted = states.find(state => (state._j.rooted || state._j.paralyzed));
+    const rooted = states.find(state => (state.jabsRooted || state.jabsParalyzed));
     return !rooted;
   }
 };
@@ -2623,15 +2623,14 @@ JABS_Battler.prototype.canBattlerMove = function()
  */
 JABS_Battler.prototype.canBattlerUseAttacks = function()
 {
-  const states = this.getBattler()
-    .states();
+  const states = this.getBattler().states();
   if (!states.length)
   {
     return true;
   }
   else
   {
-    const disabled = states.find(state => (state._j.disabled || state._j.paralyzed));
+    const disabled = states.find(state => (state.jabsDisarmed || state.jabsParalyzed));
     return !disabled;
   }
 };
@@ -2642,15 +2641,14 @@ JABS_Battler.prototype.canBattlerUseAttacks = function()
  */
 JABS_Battler.prototype.canBattlerUseSkills = function()
 {
-  const states = this.getBattler()
-    .states();
+  const states = this.getBattler().states();
   if (!states.length)
   {
     return true;
   }
   else
   {
-    const muted = states.find(state => (state._j.muted || state._j.paralyzed));
+    const muted = states.find(state => (state.jabsMuted || state.jabsParalyzed));
     return !muted;
   }
 };
@@ -4844,29 +4842,19 @@ JABS_Battler.prototype.createJabsActionFromSkill = function(
   isRetaliation = false,
   cooldownKey = null)
 {
-  const battler = this.getBattler();
-  const action = new Game_Action(battler, false);
+  // create the underlying skill for the action.
+  const action = new Game_Action(
+    this.getBattler(),
+    false);
 
   // set the skill which also applies all applicable overlays.
   action.setSkill(skillId);
 
-  let skill = null;
-  if (J.EXTEND)
-  {
-    // if using the skill extension plugin, then get the extended skill.
-    skill = OverlayManager.getExtendedSkill(this.getBattler(), skillId);
-
-    // apply all on-cast self states.
-    action.applyOnCastSelfStates();
-  }
-  else
-  {
-    // otherwise get the regular skill.
-    skill = $dataSkills[skillId];
-  }
+  // grab the potentially extended skill.
+  const skill = this.getSkill(skillId);
 
   // calculate the projectile count and directions.
-  const projectileCount = skill._j.projectile();
+  const projectileCount = skill.jabsProjectile;
   const projectileDirections = $jabsEngine.determineActionDirections(
     this.getCharacter().direction(),
     projectileCount);
@@ -5427,11 +5415,7 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
     return null;
   }
 
-  const [flat, percent] = skill.jabsGuard;
-  const parry = skill.jabsParry;
-  const counterParry = skill.jabsCounterParry;
-  const counterGuard = skill.jabsCounterGuard;
-  return new JABS_GuardData(skillId, flat, percent, counterGuard, counterParry, parry);
+  return skill.jabsGuardData;
 };
 
 /**
@@ -5457,9 +5441,9 @@ JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
 /**
  * Triggers and maintains the guard state.
  * @param {boolean} guarding True if the battler is guarding, false otherwise.
- * @param {string} skillSlot The skill slot to build guard data from.
+ * @param {string} slotKey The skill slot to build guard data from.
  */
-JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
+JABS_Battler.prototype.executeGuard = function(guarding, slotKey)
 {
   // if we're still guarding, and already in a guard state, don't reset.
   if (guarding && this.guarding()) return;
@@ -5477,7 +5461,7 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   if (!guarding) return;
 
   // if not guarding, wasn't guarding before, but want to guard, then let's guard!
-  const guardData = this.getGuardData(skillSlot);
+  const guardData = this.getGuardData(slotKey);
 
   // if we cannot guard, then don't try.
   if (!guardData.canGuard()) return;
@@ -5497,10 +5481,8 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 
   // set the pose!
-  const battler = this.getBattler();
-  const skillId = battler.getEquippedSkill(skillSlot);
-  const skill = OverlayManager.getExtendedSkill(battler, skillId);
-  this.performActionPose(skill);
+  const skillId = this.getBattler().getEquippedSkill(skillSlot);
+  this.performActionPose(this.getSkill(skillId));
 };
 
 /**
@@ -5534,7 +5516,7 @@ JABS_Battler.prototype.countdownParryWindow = function()
 /**
  * Executes an action pose.
  * Will silently fail if the asset is missing.
- * @param {rm.types.Skill} skill The skill to pose for.
+ * @param {RPG_Skill} skill The skill to pose for.
  */
 JABS_Battler.prototype.performActionPose = function(skill)
 {
@@ -5545,7 +5527,7 @@ JABS_Battler.prototype.performActionPose = function(skill)
   }
 
   // if we have a pose suffix for this skill, then try to perform the pose.
-  if (skill._j.poseSuffix())
+  if (skill.jabsPoseData)
   {
     this.changeCharacterSprite(skill);
   }
@@ -5554,23 +5536,19 @@ JABS_Battler.prototype.performActionPose = function(skill)
 /**
  * Executes the change of character sprite based on the action pose data
  * from within a skill's notes.
- * @param {rm.types.Skill} skill The skill to pose for.
+ * @param {RPG_Skill} skill The skill to pose for.
  */
 JABS_Battler.prototype.changeCharacterSprite = function(skill)
 {
-  // get the action pose data from the skill.
-  const notedata = skill._j.poseSuffix();
-  const [suffix, index, duration] = notedata;
-
   // establish the base sprite data.
   const baseSpriteName = this.getCharacterSpriteName();
   this.captureBaseSpriteInfo();
 
   // define the duration for this pose.
-  this.setAnimationCount(duration);
+  this.setAnimationCount(skill.jabsPoseDuration);
 
   // determine the new action pose sprite name.
-  const newCharacterSprite = `${baseSpriteName}${suffix}`;
+  const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
 
   // only actually switch to the other character sprite if it exists.
   ImageManager
@@ -5578,8 +5556,7 @@ JABS_Battler.prototype.changeCharacterSprite = function(skill)
     .then(() =>
     {
       ImageManager.loadCharacter(newCharacterSprite);
-      this.getCharacter()
-        .setImage(newCharacterSprite, index);
+      this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
     })
 };
 

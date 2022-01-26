@@ -1216,6 +1216,38 @@ Game_Battler.prototype.battlerId = function()
 };
 
 /**
+ * Gets whether or not the aggro is locked for this battler.
+ * Locked aggro means their aggro cannot be modified in any way.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isAggroLocked = function()
+{
+  return this.states().some(state => state.jabsAggroLock ?? false);
+};
+
+/**
+ * Gets the multiplier for received aggro for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.aggroInAmp = function()
+{
+  let inAmp = 1.0;
+  this.states().forEach(state => inAmp += state.jabsAggroInAmp ?? 0);
+  return inAmp;
+};
+
+/**
+ * Gets the multiplier for dealt aggro for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.aggroOutAmp = function()
+{
+  let outAmp = 1.0;
+  this.states().forEach(state => outAmp += state.jabsAggroOutAmp ?? 0);
+  return outAmp;
+};
+
+/**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
  * @param {number} stateId The state id to potentially apply.
@@ -1267,7 +1299,7 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 };
 
 /**
- *
+ * Extends `removeState()` to also expire the state in the JABS state tracker.
  * @param {number} stateId
  */
 J.ABS.Aliased.Game_Battler.removeState = Game_Battler.prototype.removeState;
@@ -1288,14 +1320,14 @@ Game_Battler.prototype.removeState = function(stateId)
  */
 Game_Battler.prototype.addJabsState = function(stateId, attacker)
 {
-  const state = $dataStates[stateId];
+  const state = attacker.state(stateId);
   let duration = state.stepsToRemove;
-  if (this.isActor() && !state._j.negative)
+  if (this.isActor() && !state.jabsNegative)
   {
     // extend our incoming positive states!
     duration += this.getStateDurationBoost(duration, attacker);
   }
-  else if (this.isEnemy() && attacker && attacker.isActor() && state._j.negative)
+  else if (this.isEnemy() && attacker && attacker.isActor() && state.jabsNegative)
   {
     // extend our outgoing negative states!
     duration += attacker.getStateDurationBoost(duration, this);
@@ -2253,7 +2285,7 @@ Game_Enemy.prototype.prepareTime = function()
 
 /**
  *
- * @param {rm.types.Enemy} referenceData
+ * @param {RPG_Enemy} referenceData
  * @returns
  */
 Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData)
@@ -2311,7 +2343,7 @@ Game_Enemy.prototype.skillId = function()
 
 /**
  * Gets the skill id from the notes.
- * @param {rm.types.Enemy} referenceData The reference data for this enemy.
+ * @param {RPG_Enemy} referenceData The reference data for this enemy.
  * @returns
  */
 Game_Enemy.prototype.getSkillIdFromEnemyNotes = function(referenceData)
@@ -5199,6 +5231,7 @@ Game_Unit.prototype.inBattle = function()
 //#endregion Game objects
 
 //#region RPG objects
+//#region skill effects (mostly)
 //#region cooldown
 /**
  * A new property for retrieving the JABS cooldown from this skill.
@@ -5486,8 +5519,10 @@ RPG_Skill.prototype.extractJabsCastTime = function()
 
 //#region freeCombo
 /**
- * A new property for retrieving the JABS freeCombo from this skill.
- * @type {boolean}
+ * Whether or not this skill has the "free combo" trait on it.
+ * Skills with "free combo" can continuously be executed regardless of
+ * the actual timing factor for combos.
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
   {
@@ -5499,7 +5534,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
 
 /**
  * Gets the JABS freeCombo this skill.
- * @returns {number|null}
+ * @returns {boolean|null}
  */
 RPG_Skill.prototype.getJabsFreeCombo = function()
 {
@@ -5508,7 +5543,7 @@ RPG_Skill.prototype.getJabsFreeCombo = function()
 
 /**
  * Extracts the JABS freeCombo for this skill from its notes.
- * @returns {number|null}
+ * @returns {boolean|null}
  */
 RPG_Skill.prototype.extractJabsFreeCombo = function()
 {
@@ -5742,6 +5777,36 @@ RPG_UsableItem.prototype.extractJabsBonusHits = function()
 //#endregion RPG_UsableItem
 //#endregion bonusHits
 
+//#region jabsGuardData
+/**
+ * The `JABS_GuardData` of this skill.
+ * Will return null if there is no guard tag available on this
+ * @type {JABS_GuardData}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsGuardData",
+  {
+    get: function()
+    {
+      return this.getJabsGuardData();
+    },
+  });
+
+/**
+ * Gets the JABS guard this skill.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsGuardData = function()
+{
+  return new JABS_GuardData(
+    this.id,
+    this.jabsGuardFlat,
+    this.jabsGuardPercent,
+    this.jabsCounterGuard,
+    this.jabsCounterParry,
+    this.jabsParry)
+};
+//#endregion jabsGuardData
+
 //#region guard
 /**
  * A new property for retrieving the JABS guard from this skill.
@@ -5752,6 +5817,34 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuard",
     get: function()
     {
       return this.getJabsGuard();
+    },
+  });
+
+/**
+ * The flat amount of damage reduced by this skill when guarding.
+ * Should be negative.
+ * If positive, this flat damage will instead be added on while guarding.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsGuardFlat",
+  {
+    get: function()
+    {
+      return this.jabsGuard[0];
+    },
+  });
+
+/**
+ * The percent amount of damage reduced by this skill when guarding.
+ * Should be negative.
+ * If positive, this percent damage will instead be added on while guarding.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsGuardPercent",
+  {
+    get: function()
+    {
+      return this.jabsGuard[1];
     },
   });
 
@@ -5776,7 +5869,8 @@ RPG_Skill.prototype.extractJabsGuard = function()
 
 //#region parry
 /**
- * A new property for retrieving the JABS parry frames from this skill.
+ * The number of frames that the precise-parry window is available
+ * when first guarding.
  * @type {number}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsParry",
@@ -5808,7 +5902,8 @@ RPG_Skill.prototype.extractJabsParryFrames = function()
 
 //#region counterParry
 /**
- * A new property for retrieving the JABS counterParry frames from this skill.
+ * When performing a precise-parry, this skill id will be automatically
+ * executed in retaliation.
  * @type {number}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsCounterParry",
@@ -5840,7 +5935,7 @@ RPG_Skill.prototype.extractJabsCounterParry = function()
 
 //#region counterGuard
 /**
- * A new property for retrieving the JABS counterGuard frames from this skill.
+ * While guarding, this skill id will be automatically executed in retaliation.
  * @type {number}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsCounterGuard",
@@ -5998,16 +6093,46 @@ RPG_Skill.prototype.extractJabsInvincibleDodge = function()
 };
 //#endregion invincibleDodge
 
-//#region combo
+//#region comboAction
 /**
- * A new property for retrieving the JABS combo from this skill.
- * @type {[number, number]}
+ * The JABS combo data for this skill.
+ *
+ * The zeroth index is the combo skill id
+ * The first index is the delay in frames until the combo can be triggered.
+ *
+ * Will be null if the combo tag is missing from the skill.
+ * @type {[number, number]|null}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsComboAction",
   {
     get: function()
     {
       return this.getJabsComboAction();
+    },
+  });
+
+/**
+ * The JABS combo skill id that this skill can lead into if the skill is learned
+ * by the caster.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsComboSkillId",
+  {
+    get: function()
+    {
+      return this.jabsComboAction[0];
+    },
+  });
+
+/**
+ * The JABS combo delay in frames before the combo skill can be triggered.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsComboDelay",
+  {
+    get: function()
+    {
+      return this.jabsComboAction[1];
     },
   });
 
@@ -6028,7 +6153,68 @@ RPG_Skill.prototype.extractJabsComboAction = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.ComboAction);
 };
-//#endregion guard
+//#endregion comboAction
+
+//#region piercing
+/**
+ * The JABS piercing data for this skill.
+ *
+ * The zeroth index is the number of times to repeatedly pierce targets.
+ * The first index is the delay in frames between each pierce hit.
+ *
+ * Will be null if the piercing tag is missing from the skill.
+ * @type {[number, number]|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPiercingData",
+  {
+    get: function()
+    {
+      return this.getJabsPiercingData();
+    },
+  });
+
+/**
+ * The number of times this skill can hit targets.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPierceCount",
+  {
+    get: function()
+    {
+      return this.jabsPiercingData[0];
+    },
+  });
+
+/**
+ * The delay in frames between each pierce hit on targets.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay",
+  {
+    get: function()
+    {
+      return this.jabsPiercingData[1];
+    },
+  });
+
+/**
+ * Gets the JABS combo this skill.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsPiercingData = function()
+{
+  return this.extractJabsPiercingData();
+};
+
+/**
+ * Extracts the JABS combo for this skill from its notes.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.extractJabsPiercingData = function()
+{
+  return this.getArrayFromNotesByRegex(J.ABS.RegExp.PiercingData);
+};
+//#endregion piercing
 
 //#region knockbackResist
 //#region RPG_BaseBattler
@@ -6063,7 +6249,7 @@ RPG_BaseBattler.prototype.extractJabsKnockbackResist = function()
 };
 //#endregion RPG_BaseBattler
 
-//#region RPG_BaseBattler
+//#region RPG_BaseItem
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -6093,8 +6279,348 @@ RPG_BaseItem.prototype.extractJabsKnockbackResist = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
 };
-//#endregion RPG_BaseBattler
+//#endregion RPG_BaseItem
 //#endregion knockbackResist
+
+//#region poseSuffix
+/**
+ * Gets the JABS pose suffix data for this skill.
+ *
+ * The zeroth index is the string suffix itself (no quotes needed).
+ * The first index is the index on the suffixed character sheet.
+ * The second index is the number of frames to spend in this pose.
+ * @type {[string, number, number]|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseData",
+  {
+    get: function()
+    {
+      return this.getJabsPoseData();
+    },
+  });
+
+/**
+ * Gets the JABS pose suffix for this skill.
+ * @type {string}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix",
+  {
+    get: function()
+    {
+      return this.jabsPoseData[0];
+    },
+  });
+
+/**
+ * Gets the JABS pose index for this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex",
+  {
+    get: function()
+    {
+      return this.jabsPoseData[1];
+    },
+  });
+
+/**
+ * Gets the JABS pose duration for this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration",
+  {
+    get: function()
+    {
+      return this.jabsPoseData[2];
+    },
+  });
+
+/**
+ * Gets the JABS pose suffix data for this skill.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsPoseData = function()
+{
+  return this.extractJabsPoseData();
+};
+
+/**
+ * Extracts the JABS pose suffix data for this skill from its notes.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.extractJabsPoseData = function()
+{
+  return this.getArrayFromNotesByRegex(J.ABS.RegExp.PoseSuffix, true);
+};
+//#endregion poseSuffix
+//#endregion skill effects (mostly)
+
+//#region state effects
+//#region paralysis
+/**
+ * Whether or not this state is also a JABS paralysis state.
+ * Paralysis is the same as being rooted & muted & disarmed simultaneously.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsParalyzed",
+  {
+    get: function()
+    {
+      return this.getJabsParalyzed();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS paralysis state.
+ * @returns {boolean}
+ */
+RPG_State.prototype.getJabsParalyzed = function()
+{
+  return this.extractJabsParalyzed()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean}
+ */
+RPG_State.prototype.extractJabsParalyzed = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Paralyzed, true);
+};
+//#endregion paralysis
+
+//#region rooted
+/**
+ * Whether or not this state is also a JABS rooted state.
+ * Rooted battlers are unable to move on the map.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsRooted",
+  {
+    get: function()
+    {
+      return this.getJabsRooted();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS rooted state.
+ * @returns {boolean}
+ */
+RPG_State.prototype.getJabsRooted = function()
+{
+  return this.extractJabsRooted()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean}
+ */
+RPG_State.prototype.extractJabsRooted = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Rooted, true);
+};
+//#endregion rooted
+
+//#region muted
+/**
+ * Whether or not this state is also a JABS muted state.
+ * Muted battlers are unable to use their combat skills.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsMuted",
+  {
+    get: function()
+    {
+      return this.getJabsMuted();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS muted state.
+ * @returns {boolean}
+ */
+RPG_State.prototype.getJabsMuted = function()
+{
+  return this.extractJabsMuted()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean}
+ */
+RPG_State.prototype.extractJabsMuted = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Muted, true);
+};
+//#endregion muted
+
+//#region disarmed
+/**
+ * Whether or not this state is also a JABS disarmed state.
+ * Disarmed battlers are unable to use their basic attacks.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsDisarmed",
+  {
+    get: function()
+    {
+      return this.getJabsDisarmed();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS disarmed state.
+ * @returns {boolean}
+ */
+RPG_State.prototype.getJabsDisarmed = function()
+{
+  return this.extractJabsDisarmed()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean}
+ */
+RPG_State.prototype.extractJabsDisarmed = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Disarmed, true);
+};
+//#endregion disarmed
+
+//#region negative
+/**
+ * Whether or not this state is considered "negative" for the purpose
+ * of AI action decision-making. Ally AI set to Support or enemy AI set
+ * to Healing will attempt to remove "negative" states if possible.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsNegative",
+  {
+    get: function()
+    {
+      return this.getJabsNegative();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS negative state.
+ * @returns {boolean}
+ */
+RPG_State.prototype.getJabsNegative = function()
+{
+  return this.extractJabsNegative()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean}
+ */
+RPG_State.prototype.extractJabsNegative = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Negative);
+};
+//#endregion disarmed
+
+//#region aggroInAmp
+/**
+ * Multiply incoming aggro by this amount.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsAggroInAmp",
+  {
+    get: function()
+    {
+      return this.getJabsAggroInAmp();
+    },
+  });
+
+/**
+ * Gets the incoming aggro amplifier.
+ * @returns {number|null}
+ */
+RPG_State.prototype.getJabsAggroInAmp = function()
+{
+  return this.extractJabsAggroInAmp()
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_State.prototype.extractJabsAggroInAmp = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroInAmp, true);
+};
+//#endregion aggroInAmp
+
+//#region aggroOutAmp
+/**
+ * Multiply outgoing aggro by this amount.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsAggroOutAmp",
+  {
+    get: function()
+    {
+      return this.getJabsAggroOutAmp();
+    },
+  });
+
+/**
+ * Gets the outgoing aggro amplifier.
+ * @returns {number|null}
+ */
+RPG_State.prototype.getJabsAggroOutAmp = function()
+{
+  return this.extractJabsAggroOutAmp()
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_State.prototype.extractJabsAggroOutAmp = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroOutAmp, true);
+};
+//#endregion aggroOutAmp
+
+//#region aggroLock
+/**
+ * Whether or not this state locks aggro. Battlers with this state applied
+ * can neither gain nor lose aggro for the duration of the state.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsAggroLock",
+  {
+    get: function()
+    {
+      return this.getJabsAggroLock();
+    },
+  });
+
+/**
+ * Gets whether or not this is a JABS aggro-locking state.
+ * @returns {boolean|null}
+ */
+RPG_State.prototype.getJabsAggroLock = function()
+{
+  return this.extractJabsAggroLock()
+};
+
+/**
+ * Extracts the boolean information from the notes.
+ * @returns {boolean|null}
+ */
+RPG_State.prototype.extractJabsAggroLock = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AggroLock, true);
+};
+//#endregion aggroLock
+
+//#endregion state effects
+
 //#endregion RPG objects
 
 //ENDFILE

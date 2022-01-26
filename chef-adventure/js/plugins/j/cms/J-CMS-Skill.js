@@ -461,7 +461,7 @@ class Window_SkillDetail extends Window_Base
    * Calculates the projected damage to build a parameter.
    *
    * If the skill lacks a formula, it won't try to project.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @param {Game_Actor} actor The actor.
    * @returns {JCMS_ParameterKvp}
    */
@@ -494,13 +494,13 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Combines the total number of possible hits this skill can hit a foe.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @param {Game_Actor} actor The actor.
    * @returns {JCMS_ParameterKvp}
    */
   makeHitsParam(skill, actor)
   {
-    const value = (skill.repeats - 1) + skill._j.piercing()[0];
+    const value = (skill.repeats - 1) + skill.jabsPierceCount;
     const param = new JCMS_ParameterKvp('Max Possible Hits', `x${value}`, ColorManager.textColor(0));
     return param;
   };

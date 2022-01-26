@@ -522,7 +522,7 @@ Game_Enemy.prototype.targetFrameText = function()
 
 /**
  * Extracts the extratext out of this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {string}
  */
 Game_Enemy.prototype.extractTargetFrameText = function(referenceData)
@@ -560,7 +560,7 @@ Game_Enemy.prototype.targetFrameIcon = function()
 
 /**
  * Extracts the target icon out of this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {number}
  */
 Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
@@ -608,7 +608,7 @@ Game_Enemy.prototype.showTargetFrame = function()
 
 /**
  * Extracts whether or not to show the target frame for this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {boolean}
  */
 Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
@@ -656,7 +656,7 @@ Game_Enemy.prototype.showTargetHpBar = function()
 
 /**
  * Extracts whether or not to show the hp bar for this target.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {boolean}
  */
 Game_Enemy.prototype.extractShowHpBar = function(referenceData)
@@ -704,7 +704,7 @@ Game_Enemy.prototype.showTargetMpBar = function()
 
 /**
  * Extracts whether or not to show the mp bar for this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {boolean}
  */
 Game_Enemy.prototype.extractShowMpBar = function(referenceData)
@@ -752,7 +752,7 @@ Game_Enemy.prototype.showTargetTpBar = function()
 
 /**
  * Extracts whether or not to show the tp bar for this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {boolean}
  */
 Game_Enemy.prototype.extractShowTpBar = function(referenceData)
@@ -800,7 +800,7 @@ Game_Enemy.prototype.showTargetText = function()
 
 /**
  * Extracts whether or not to show the target text for this enemy.
- * @param {rm.types.Enemy} referenceData The database data for this enemy.
+ * @param {RPG_Enemy} referenceData The database data for this enemy.
  * @returns {boolean}
  */
 Game_Enemy.prototype.extractShowTargetText = function(referenceData)

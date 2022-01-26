@@ -29200,7 +29200,7 @@ declare class Game_Action {
 	subject(): Game_Battler;
 	friendsUnit(): Game_Unit;
 	opponentsUnit(): Game_Unit;
-	setEnemyAction(action: rm.types.EnemyAction): void;
+	setEnemyAction(action: RPG_EnemyAction): void;
 	setAttack(): void;
 	setGuard(): void;
 	setSkill(skillId: number): void;
@@ -33086,7 +33086,7 @@ declare namespace rm.types {
 		/**
 		 * The enemy's action pattern. An array of RPG.Enemy.Action.
 		 */
-		actions: rm.types.EnemyAction[];
+		actions: RPG_EnemyAction[];
 		/**
 		 * The adjustment value for the battler graphic's hue (0..360).
 		 */
@@ -33098,7 +33098,7 @@ declare namespace rm.types {
 		/**
 		 * The items the enemy drops. An RPG.Enemy.DropItem array.
 		 */
-		dropItems: rm.types.EnemyDropItem[];
+		dropItems: RPG_EnemyDropItem[];
 		/**
 		 * The enemy's experience.
 		 */
@@ -33192,7 +33192,7 @@ declare class Game_Enemy extends Game_Battler {
 	 * @returns {RPG.Enemy}
 	 * @memberof Game_Enemy
 	 */
-	enemy(): rm.types.Enemy;
+	enemy(): RPG_Enemy;
 	/**
 	 * Returns the enemy's exp amount.
 	 *
@@ -33273,7 +33273,7 @@ declare class Game_Enemy extends Game_Battler {
 	 * @memberof Game_Enemy
 	 */
 	transform(enemyId: number): void;
-	meetsCondition(action: rm.types.EnemyAction): boolean;
+	meetsCondition(action: RPG_EnemyAction): boolean;
 	meetsTurnCondition(param1: number, param2: number): boolean;
 	meetsHpCondition(param1: number, param2: number): boolean;
 	meetsMpCondition(param1: number, param2: number): boolean;
@@ -33287,9 +33287,9 @@ declare class Game_Enemy extends Game_Battler {
 	 * @returns {boolean}
 	 * @memberof Game_Enemy
 	 */
-	isActionValid(action: rm.types.EnemyAction): boolean;
-	selectAction(actionList: rm.types.EnemyAction[], ratingZero: number): rm.types.EnemyAction;
-	selectAllActions(actionList: rm.types.EnemyAction[]): void;
+	isActionValid(action: RPG_EnemyAction): boolean;
+	selectAction(actionList: RPG_EnemyAction[], ratingZero: number): RPG_EnemyAction;
+	selectAllActions(actionList: RPG_EnemyAction[]): void;
 }
 
 declare namespace rm.types {
