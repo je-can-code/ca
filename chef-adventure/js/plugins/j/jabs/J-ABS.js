@@ -887,6 +887,15 @@ J.ABS.RegExp = {
   AggroLock: /<aggroLock>/gi,
   AggroOutAmp: /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
   AggroInAmp: /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
+  SlipHpFlat: /<hpFlat:[ ]?(-?\d+)>/gi,
+  SlipMpFlat: /<mpFlat:[ ]?(-?\d+)>/gi,
+  SlipTpFlat: /<tpFlat:[ ]?(-?\d+)>/gi,
+  SlipHpPercent: /<hpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipMpPercent: /<mpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipTpPercent: /<tpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipHpFormula: /<hpFormula:\[([+\-*\/ ().\w]+)]>/gi,
+  SlipMpFormula: /<mpFormula:\[([+\-*\/ ().\w]+)]>/gi,
+  SlipTpFormula: /<tpFormula:\[([+\-*\/ ().\w]+)]>/gi,
 };
 
 /**
