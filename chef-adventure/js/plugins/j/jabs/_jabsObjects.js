@@ -6896,6 +6896,450 @@ RPG_State.prototype.extractJabsSpeedBoost = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
 };
 //#endregion speedBoost
+
+//#region slipHp
+//#region flat
+/**
+ * The flat slip hp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFlatPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipHpFlatPer5();
+    },
+  });
+
+/**
+ * The flat slip hp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFlatPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipHpFlatPerFive / 5);
+    },
+  });
+
+/**
+ * The flat slip hp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFlatPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipHpFlatPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 flat slip hp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipHpFlatPer5 = function()
+{
+  return this.extractJabsSlipHpFlatPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipHpFlatPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpFlat);
+};
+//#endregion flat
+
+//#region percent
+/**
+ * The percent slip hp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpPercentPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipHpPercentPer5();
+    },
+  });
+
+/**
+ * The percent slip hp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpPercentPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipHpPercentPerFive / 5);
+    },
+  });
+
+/**
+ * The percent slip hp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpPercentPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipHpPercentPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 percent slip hp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipHpPercentPer5 = function()
+{
+  return this.extractJabsSlipHpPercentPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipHpPercentPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpPercent);
+};
+//#endregion percent
+
+//#region formula
+/**
+ * The formula slip hp amount- per 5 seconds.
+ * This does NOT `eval()` the formula, as there is no additional variables
+ * available for context.
+ * @type {string|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFormulaPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipHpFormulaPer5();
+    },
+  });
+
+/**
+ * Gets the per5 formula slip hp amount for this state.
+ * @returns {string|null}
+ */
+RPG_State.prototype.getJabsSlipHpFormulaPer5 = function()
+{
+  return this.extractJabsSlipHpFormulaPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipHpFormulaPer5 = function()
+{
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipHpFormula);
+};
+//#endregion formula
+//#endregion slipHp
+
+//#region slipMp
+//#region flat
+/**
+ * The flat slip mp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFlatPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipMpFlatPer5();
+    },
+  });
+
+/**
+ * The flat slip mp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFlatPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipMpFlatPerFive / 5);
+    },
+  });
+
+/**
+ * The flat slip mp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFlatPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipMpFlatPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 flat slip mp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipMpFlatPer5 = function()
+{
+  return this.extractJabsSlipMpFlatPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipMpFlatPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpFlat);
+};
+//#endregion flat
+
+//#region percent
+/**
+ * The percent slip mp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpPercentPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipMpPercentPer5();
+    },
+  });
+
+/**
+ * The percent slip mp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpPercentPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipMpPercentPerFive / 5);
+    },
+  });
+
+/**
+ * The percent slip mp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpPercentPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipMpPercentPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 percent slip mp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipMpPercentPer5 = function()
+{
+  return this.extractJabsSlipMpPercentPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipMpPercentPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpPercent);
+};
+//#endregion percent
+
+//#region formula
+/**
+ * The formula slip mp amount- per 5 seconds.
+ * This does NOT `eval()` the formula, as there is no additional variables
+ * available for context.
+ * @type {string|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFormulaPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipMpFormulaPer5();
+    },
+  });
+
+/**
+ * Gets the per5 formula slip mp amount for this state.
+ * @returns {string|null}
+ */
+RPG_State.prototype.getJabsSlipMpFormulaPer5 = function()
+{
+  return this.extractJabsSlipMpFormulaPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipMpFormulaPer5 = function()
+{
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipMpFormula);
+};
+//#endregion formula
+//#endregion slipMp
+
+//#region slipTp
+//#region flat
+/**
+ * The flat slip tp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFlatPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipTpFlatPer5();
+    },
+  });
+
+/**
+ * The flat slip tp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFlatPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipTpFlatPerFive / 5);
+    },
+  });
+
+/**
+ * The flat slip tp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFlatPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipTpFlatPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 flat slip tp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipTpFlatPer5 = function()
+{
+  return this.extractJabsSlipTpFlatPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipTpFlatPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpFlat);
+};
+//#endregion flat
+
+//#region percent
+/**
+ * The percent slip tp amount- per 5 seconds.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipTpPercentPer5();
+    },
+  });
+
+/**
+ * The percent slip tp amount- per second.
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerSecond",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipTpPercentPerFive / 5);
+    },
+  });
+
+/**
+ * The percent slip tp amount- per tick, aka 1/4 second (15 frames).
+ * @type {number}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerTick",
+  {
+    get: function()
+    {
+      return Math.ceil(this.jabsSlipTpPercentPerFive / 20);
+    },
+  });
+
+/**
+ * Gets the per5 percent slip tp amount for this state.
+ * @returns {number}
+ */
+RPG_State.prototype.getJabsSlipTpPercentPer5 = function()
+{
+  return this.extractJabsSlipTpPercentPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipTpPercentPer5 = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpPercent);
+};
+//#endregion percent
+
+//#region formula
+/**
+ * The formula slip tp amount- per 5 seconds.
+ * This does NOT `eval()` the formula, as there is no additional variables
+ * available for context.
+ * @type {string|null}
+ */
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormulaPerFive",
+  {
+    get: function()
+    {
+      return this.getJabsSlipTpFormulaPer5();
+    },
+  });
+
+/**
+ * Gets the per5 formula slip tp amount for this state.
+ * @returns {string|null}
+ */
+RPG_State.prototype.getJabsSlipTpFormulaPer5 = function()
+{
+  return this.extractJabsSlipTpFormulaPer5();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number}
+ */
+RPG_State.prototype.extractJabsSlipTpFormulaPer5 = function()
+{
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipTpFormula);
+};
+//#endregion formula
+//#endregion slipTp
 //#endregion state effects
 //#endregion RPG objects
 
