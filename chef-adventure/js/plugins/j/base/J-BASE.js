@@ -85,11 +85,6 @@ J.BASE.Notetags = {
 
   // on skills in database.
   ActionId: "actionId",
-  Aggro: "aggro",
-  AggroMultiplier: "aggroMultiplier",
-  AggroInAmp: "aggroInAmp",
-  AggroOutAmp: "aggroOutAmp",
-  AggroLock: "aggroLock",
   AiCooldown: "aiCooldown",
   CastAnimation: "castAnimation",
   CastTime: "castTime",
@@ -104,7 +99,6 @@ J.BASE.Notetags = {
   Guard: "guard",
   IgnoreParry: "ignoreParry",
   Knockback: "knockback",
-  MoveType: "moveType",
   Parry: "parry",
   Piercing: "pierce",
   PoseSuffix: "poseSuffix",
@@ -154,19 +148,6 @@ J.BASE.Notetags = {
   AlertDuration: "ad",
   AlertSightBoost: "as",
   AlertPursuitBoost: "ap",
-
-  // on states in database.
-  Paralyzed: "paralyzed",
-  Rooted: "rooted",
-  Muted: "muted",
-  Disabled: "disabled",
-  NegativeState: "negative",
-  HpFlat: "hpFlat",
-  MpFlat: "mpFlat",
-  TpFlat: "tpFlat",
-  HpPerc: "hpPerc",
-  MpPerc: "mpPerc",
-  TpPerc: "tpPerc",
 };
 
 /**
