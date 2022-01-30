@@ -158,7 +158,6 @@ DataManager.loadExtraData = function()
     this.addJabsWeaponData();
     this.addJabsArmorData();
     this.addJabsItemData();
-    this.addJabsStateData();
     this._j._jabsDataLoaded = true;
   }
 };
@@ -226,19 +225,6 @@ DataManager.addJabsItemData = function()
     if (!item) return;
     item._j = new JABS_ItemData(item.note, item.meta);
     item.index = index;
-  });
-};
-
-/**
- * Loads all extra data from the notes of states.
- */
-DataManager.addJabsStateData = function()
-{
-  $dataStates.forEach((state, index) =>
-  {
-    if (!state) return;
-    state._j = new JABS_StateData(state.note, state.meta);
-    state.index = index;
   });
 };
 //#endregion
