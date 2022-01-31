@@ -120,57 +120,6 @@ DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
 };
-
-/**
- * Whether or not the extra data was loaded into the multiple databases.
- */
-DataManager._j ||= {
-  /**
-   * Whether or not the jabs data from the database has been loaded yet.
-   * @type {boolean}
-   */
-  _jabsDataLoaded: false
-};
-
-/**
- * Hooks into the database loading and loads our extra data from notes and such.
- */
-J.ABS.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
-DataManager.isDatabaseLoaded = function()
-{
-  const result = J.ABS.Aliased.DataManager.isDatabaseLoaded.call(this);
-  if (result)
-  {
-    this.loadExtraData();
-  }
-
-  return result;
-};
-
-/**
- * Loads all extra data from notes and such into the various database objects.
- */
-DataManager.loadExtraData = function()
-{
-  if (!DataManager._j._jabsDataLoaded)
-  {
-    this.addJabsItemData();
-    this._j._jabsDataLoaded = true;
-  }
-};
-
-/**
- * Loads all extra data from the notes of items.
- */
-DataManager.addJabsItemData = function()
-{
-  $dataItems.forEach((item, index) =>
-  {
-    if (!item) return;
-    item._j = new JABS_ItemData(item.note, item.meta);
-    item.index = index;
-  });
-};
 //#endregion
 
 //#region Input

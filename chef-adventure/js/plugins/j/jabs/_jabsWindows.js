@@ -187,15 +187,15 @@ class Window_AbsMenuSelect
    */
   makeEquippedSkillList()
   {
-    $gameParty.leader()
-      .getAllSecondarySkills()
-      .forEach(skillSlot =>
+    const leader = $gameParty.leader();
+    const skills = leader.getAllSecondarySkills();
+    skills.forEach(skillSlot =>
       {
         let name = `${skillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
         let iconIndex = 0;
         if (skillSlot.isUsable())
         {
-          const equippedSkill = $dataSkills[skillSlot.id];
+          const equippedSkill = leader.skill(skillSlot.id);
           name = `${equippedSkill.name}`;
           iconIndex = equippedSkill.iconIndex;
         }
@@ -227,12 +227,18 @@ class Window_AbsMenuSelect
    */
   makeEquippedDodgeList()
   {
-    const dodgeSkill = $gameParty.leader().getDodgeSkill();
+    // grab the leader.
+    const leader = $gameParty.leader();
+
+    // grab the leader's dodge skill.
+    const dodgeSkill = leader.getDodgeSkill();
+
+    // default the unequipped slot text.
     let name = `${dodgeSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
     let iconIndex = 0;
     if (dodgeSkill.isUsable())
     {
-      const equippedDodgeSkill = $dataSkills[dodgeSkill.id];
+      const equippedDodgeSkill = leader.skill(dodgeSkill.id);
       name = `${equippedDodgeSkill.name}`;
       iconIndex = equippedDodgeSkill.iconIndex;
     }

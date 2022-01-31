@@ -1348,7 +1348,7 @@ JABS_Battler.prototype.initEnemyAttackCooldowns = function()
 JABS_Battler.prototype.initEnemyCooldownBySkill = function(skillId)
 {
   // grab the skill data from the database.
-  const skill = $dataSkills[skillId];
+  const skill = this.getSkill(skillId);
 
   // initailize the cooldown.
   this.initializeCooldown(`${skill.id}-${skill.name}`, 0);
@@ -1496,7 +1496,10 @@ JABS_Battler.isWeaponSkillById = function(id)
  */
 JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
 {
-  // explicitly hidden skills are not visible in the combat menu.
+  // invalid skills are not visible in the combat skill menu.
+  if (!skill) return false;
+
+  // explicitly hidden skills are not visible in the combat skill menu.
   if (skill.metaAsBoolean("hideFromJabsMenu")) return false;
 
   // dodge skills are not visible in the combat skill menu.
@@ -1520,6 +1523,9 @@ JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
  */
 JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
 {
+  // invalid skills are not visible in the dodge menu.
+  if (!skill) return false;
+
   // explicitly hidden skills are not visible in the dodge menu.
   if (skill.metaAsBoolean("hideFromJabsMenu")) return false;
 
@@ -1538,6 +1544,9 @@ JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
  */
 JABS_Battler.isItemVisibleInToolMenu = function(item)
 {
+  // invalid items are not visible in the item menu.
+  if (!item) return false;
+
   // explicitly hidden skills are not visible in the item menu.
   if (item.metaAsBoolean("hideFromJabsMenu")) return false;
 
@@ -7185,55 +7194,6 @@ class JABS_GuardData
   };
 }
 //#endregion JABS_GuardData
-
-//#region JABS_ItemData
-/**
- * A class that contains all custom data for JABS items.
- *
- * This class was created because items do not inherently have a class to hook into
- * for extensions, like `Game_Actor` or `Game_Map`.
- */
-class JABS_ItemData
-{
-  /**
-   * @constructor
-   * @param {string} notes The raw note box as a string.
-   * @param {any} meta The `meta` object containing prebuilt note metadata.
-   */
-  constructor(notes, meta)
-  {
-    this._notes = notes.split(/[\r\n]+/);
-    this._meta = meta;
-  };
-
-  /**
-   * Gets the duration in frames of how long this loot will persist on the map.
-   * If none is specified, the default will be used.
-   * @returns {number}
-   */
-  get expires()
-  {
-    let expires = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.LootExpiration])
-    {
-      expires = parseInt(this._meta[J.BASE.Notetags.LootExpiration]);
-    }
-    else
-    {
-      const structure = /<expires:[ ]?(\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          expires = parseInt(RegExp.$1);
-        }
-      });
-    }
-
-    return expires;
-  };
-}
-//#endregion JABS_ItemData
 
 //#region JABS_LootDrop
 /**

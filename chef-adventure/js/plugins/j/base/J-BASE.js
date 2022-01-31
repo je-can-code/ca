@@ -83,9 +83,6 @@ J.BASE.Notetags = {
   KnockbackResist: "knockbackResist",
   NoSwitch: "noSwitch",
 
-  // on items in database
-  LootExpiration: "expires",
-
   MaxRefineCount: "maxRefine",
   MaxRefineTraits: "maxRefinedTraits",
   NotRefinementBase: "notRefinementBase",
