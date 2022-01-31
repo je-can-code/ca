@@ -878,6 +878,7 @@ J.ABS.RegExp = {
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
 
   UseOnPickup: /<useOnPickup>/gi,
+  Expires: /<expires:[ ]?(\d+)>/gi,
 
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
@@ -2550,7 +2551,7 @@ class JABS_Engine
    * Adds the loot to the map.
    * @param {number} targetX The `x` coordinate of the battler dropping the loot.
    * @param {number} targetY The `y` coordinate of the battler dropping the loot.
-   * @param {object} item The loot's raw data object.
+   * @param {RPG_EquipItem|RPG_Item} item The loot's raw data object.
    */
   addLootDropToMap(targetX, targetY, item)
   {
@@ -2570,7 +2571,7 @@ class JABS_Engine
 
     // set the duration of this loot drop
     // if a custom time is available, then use that, otherwise use the default.
-    jabsLootData.duration = item._j.expires || J.ABS.Metadata.DefaultLootExpiration;
+    jabsLootData.duration = item.jabsExpiration ?? J.ABS.Metadata.DefaultLootExpiration;
 
     // generate a new event to visually represent the loot drop and flag it for adding.
     const eventId = $dataMap.events.length - 1;

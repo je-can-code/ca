@@ -5320,41 +5320,11 @@ Game_Unit.prototype.inBattle = function()
 //#endregion Game objects
 
 //#region RPG objects
-//#region base effects
-//#region useOnPickup
-/**
- * Whether or not this item will be automatically executed upon being picked up.
- * @type {boolean|null}
- */
-Object.defineProperty(RPG_BaseItem.prototype, "jabsUseOnPickup",
-  {
-    get: function()
-    {
-      return this.getJabsUseOnPickup();
-    },
-  });
+//#region RPG_BaseItem effects
 
-/**
- * Gets whether or not this item will be used on pickup.
- * @returns {boolean|null}
- */
-RPG_BaseItem.prototype.getJabsUseOnPickup = function()
-{
-  return this.extractJabsUseOnPickup();
-};
+//#endregion RPG_BaseItem effects
 
-/**
- * Extracts the boolean from the notes.
- * @returns {boolean|null}
- */
-RPG_BaseItem.prototype.extractJabsUseOnPickup = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UseOnPickup, true);
-};
-//#endregion useOnPickup
-//#endregion base effects
-
-//#region equip effects
+//#region RPG_EquipItem effects
 //#region skillId
 /**
  * The skill id associated with this equipment.
@@ -5450,9 +5420,56 @@ RPG_EquipItem.prototype.extractJabsSpeedBoost = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
 };
 //#endregion speedBoost
-//#endregion equip effects
 
-//#region item effects
+//#region useOnPickup
+/**
+ * Normally defines whether or not an item will be automatically used
+ * upon being picked up, however, equipment cannot be "used".
+ * @type {false}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jabsUseOnPickup",
+  {
+    get: function()
+    {
+      return false;
+    },
+  });
+//#endregion useOnPickup
+
+//#region expiration
+/**
+ * The expiration time in frames for this equip drop.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jabsExpiration",
+  {
+    get: function()
+    {
+      return this.getJabsExpirationFrames();
+    },
+  });
+
+/**
+ * Gets the expiration time in frames.
+ * @returns {number|null}
+ */
+RPG_EquipItem.prototype.getJabsExpirationFrames = function()
+{
+  return this.extractJabsExpirationFrames();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_EquipItem.prototype.extractJabsExpirationFrames = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
+};
+//#endregion expiration
+//#endregion RPG_EquipItem effects
+
+//#region RPG_Item effects
 //#region cooldown
 /**
  * The JABS cooldown when using this tool or item.
@@ -5489,7 +5506,7 @@ RPG_UsableItem.prototype.extractJabsCooldown = function()
  * The skill id associated with this item or tool.
  * @type {number|null}
  */
-Object.defineProperty(RPG_UsableItem.prototype, "jabsSkillId",
+Object.defineProperty(RPG_Item.prototype, "jabsSkillId",
   {
     get: function()
     {
@@ -5501,7 +5518,7 @@ Object.defineProperty(RPG_UsableItem.prototype, "jabsSkillId",
  * Gets the JABS skill id for this item or tool.
  * @returns {number|null}
  */
-RPG_UsableItem.prototype.getJabsSkillId = function()
+RPG_Item.prototype.getJabsSkillId = function()
 {
   return this.extractJabsSkillId();
 };
@@ -5510,14 +5527,78 @@ RPG_UsableItem.prototype.getJabsSkillId = function()
  * Gets the value from its notes.
  * @returns {number|null}
  */
-RPG_UsableItem.prototype.extractJabsSkillId = function()
+RPG_Item.prototype.extractJabsSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
 };
 //#endregion skillId
-//#endregion item effects
 
-//#region skill effects (mostly)
+//#region useOnPickup
+/**
+ * Whether or not this item will be automatically executed upon being picked up.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_Item.prototype, "jabsUseOnPickup",
+  {
+    get: function()
+    {
+      return this.getJabsUseOnPickup();
+    },
+  });
+
+/**
+ * Gets whether or not this item will be used on pickup.
+ * @returns {boolean|null}
+ */
+RPG_Item.prototype.getJabsUseOnPickup = function()
+{
+  return this.extractJabsUseOnPickup();
+};
+
+/**
+ * Extracts the boolean from the notes.
+ * @returns {boolean|null}
+ */
+RPG_Item.prototype.extractJabsUseOnPickup = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UseOnPickup, true);
+};
+//#endregion useOnPickup
+
+//#region expiration
+/**
+ * The expiration time in frames for this loot drop.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Item.prototype, "jabsExpiration",
+  {
+    get: function()
+    {
+      return this.getJabsExpirationFrames();
+    },
+  });
+
+/**
+ * Gets the expiration time in frames.
+ * @returns {number|null}
+ */
+RPG_Item.prototype.getJabsExpirationFrames = function()
+{
+  return this.extractJabsExpirationFrames();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_Item.prototype.extractJabsExpirationFrames = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
+};
+//#endregion expiration
+//#endregion RPG_Item effects
+
+//#region RPG_Skill effects (mostly)
 //#region cooldown
 /**
  * A new property for retrieving the JABS cooldown from this skill.
@@ -6843,7 +6924,7 @@ RPG_Skill.prototype.extractJabsDelayData = function()
 };
 //#endregion delay
 
-//#endregion skill effects (mostly)
+//#endregion RPG_Skill effects (mostly)
 
 //#region state effects
 //#region paralysis
