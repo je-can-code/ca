@@ -154,51 +154,9 @@ DataManager.loadExtraData = function()
 {
   if (!DataManager._j._jabsDataLoaded)
   {
-    this.addJabsWeaponData();
-    this.addJabsArmorData();
     this.addJabsItemData();
     this._j._jabsDataLoaded = true;
   }
-};
-
-/**
- * Loads all extra data from the notes of weapons.
- */
-DataManager.addJabsWeaponData = function()
-{
-  $dataWeapons.forEach(DataManager.parseWeaponData);
-};
-
-/**
- * The action to perform on each weapon.
- * This was separated out for extensibility if desired.
- * @param {RPG_EquipItem} weapon The equip to modify.
- * @param {number} index The index of the equip.
- */
-DataManager.parseWeaponData = function(weapon, index)
-{
-  if (!weapon) return;
-  weapon._j = new JABS_EquipmentData(weapon.note, weapon.meta);
-};
-
-/**
- * Loads all extra data from the notes of armors.
- */
-DataManager.addJabsArmorData = function()
-{
-  $dataArmors.forEach(DataManager.parseArmorData);
-};
-
-/**
- * The action to perform on each armor.
- * This was separated out for extensibility if desired.
- * @param {RPG_EquipItem} armor The equip to modify.
- * @param {number} index The index of the equip.
- */
-DataManager.parseArmorData = function(armor, index)
-{
-  if (!armor) return;
-  armor._j = new JABS_EquipmentData(armor.note, armor.meta);
 };
 
 /**

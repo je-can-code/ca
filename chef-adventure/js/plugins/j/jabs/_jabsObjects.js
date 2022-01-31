@@ -5320,6 +5320,40 @@ Game_Unit.prototype.inBattle = function()
 //#endregion Game objects
 
 //#region RPG objects
+//#region base effects
+//#region useOnPickup
+/**
+ * Whether or not this item will be automatically executed upon being picked up.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_BaseItem.prototype, "jabsUseOnPickup",
+  {
+    get: function()
+    {
+      return this.getJabsUseOnPickup();
+    },
+  });
+
+/**
+ * Gets whether or not this item will be used on pickup.
+ * @returns {boolean|null}
+ */
+RPG_BaseItem.prototype.getJabsUseOnPickup = function()
+{
+  return this.extractJabsUseOnPickup();
+};
+
+/**
+ * Extracts the boolean from the notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseItem.prototype.extractJabsUseOnPickup = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UseOnPickup, true);
+};
+//#endregion useOnPickup
+//#endregion base effects
+
 //#region equip effects
 //#region skillId
 /**
@@ -5417,6 +5451,71 @@ RPG_EquipItem.prototype.extractJabsSpeedBoost = function()
 };
 //#endregion speedBoost
 //#endregion equip effects
+
+//#region item effects
+//#region cooldown
+/**
+ * The JABS cooldown when using this tool or item.
+ * @type {number}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, "jabsCooldown",
+  {
+    get: function()
+    {
+      return this.getJabsCooldown();
+    },
+  });
+
+/**
+ * Gets the JABS cooldown for this tool or item.
+ * @returns {number}
+ */
+RPG_UsableItem.prototype.getJabsCooldown = function()
+{
+  return this.extractJabsCooldown()
+};
+
+/**
+ * Gets the value from the notes.
+ */
+RPG_UsableItem.prototype.extractJabsCooldown = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
+};
+//#endregion cooldown
+
+//#region skillId
+/**
+ * The skill id associated with this item or tool.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, "jabsSkillId",
+  {
+    get: function()
+    {
+      return this.getJabsSkillId();
+    },
+  });
+
+/**
+ * Gets the JABS skill id for this item or tool.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.getJabsSkillId = function()
+{
+  return this.extractJabsSkillId();
+};
+
+/**
+ * Gets the value from its notes.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.extractJabsSkillId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+};
+//#endregion skillId
+//#endregion item effects
 
 //#region skill effects (mostly)
 //#region cooldown

@@ -877,6 +877,8 @@ J.ABS.RegExp = {
   DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
 
+  UseOnPickup: /<useOnPickup>/gi,
+
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
   SpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
