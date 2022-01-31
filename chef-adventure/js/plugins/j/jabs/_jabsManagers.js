@@ -1167,7 +1167,6 @@ class JABS_AiManager
 
     // construct the skill from the battler's perspective.
     const skill = battler.getSkill(skillId);
-    console.log(battler, skillId);
 
     // build the cooldown from the skill.
     const cooldownKey = this.buildEnemyCooldownType(skill);

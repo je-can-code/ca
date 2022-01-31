@@ -2312,6 +2312,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
     // apply "per5" rate- 4 times per second, for 5 seconds, equals 20.
     regen /= 20;
 
+
     // if we have a non-zero amount, generate the popup.
     if (regen)
     {
@@ -5560,7 +5561,6 @@ JABS_Battler.prototype.performActionPose = function(skill)
   }
 
   // if we have a pose suffix for this skill, then try to perform the pose.
-  console.log(skill);
   if (skill.jabsPoseData)
   {
     this.changeCharacterSprite(skill);
