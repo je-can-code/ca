@@ -424,13 +424,20 @@ Game_Actor.prototype.updateEquipmentSkills = function()
  */
 Game_Actor.prototype.getMainhandSkill = function()
 {
-  const equips = this.equips();
+  // grab the mainhand of the actor.
+  const mainhand = this.equips()[0];
+
+  // default the mainhand skill to 0.
   let mainhandSkill = 0;
-  if (equips[0])
+
+  // check if we have something in our mainhand.
+  if (mainhand)
   {
-    mainhandSkill = equips[0].jabsSkillId ?? 0;
+    // assign the skill id tag from the mainhand.
+    mainhandSkill = mainhand.jabsSkillId ?? 0;
   }
 
+  // return what we found.
   return mainhandSkill
 };
 
@@ -443,19 +450,30 @@ Game_Actor.prototype.getMainhandSkill = function()
  */
 Game_Actor.prototype.getOffhandSkill = function()
 {
+  // grab the offhand skill override if one exists.
   const offhandOverride = this.offhandSkillOverride();
+
+  // check if there is an offhand override skill to use instead.
   if (offhandOverride)
   {
+    // return the override.
     return offhandOverride;
   }
 
-  const equips = this.equips();
+  // grab the offhand of the actor.
+  const offhand = this.equips()[1];
+
+  // default the offhand skill to 0.
   let offhandSkill = 0;
-  if (equips[1])
+
+  // check if we have something in our offhand.
+  if (offhand)
   {
-    offhandSkill = equips[1].jabsSkillId ?? 0;
+    // assign the skill id tag from the offhand.
+    offhandSkill = offhand.jabsSkillId ?? 0;
   }
 
+  // return what we found.
   return offhandSkill;
 };
 
@@ -1257,28 +1275,6 @@ Game_Battler.prototype.isAggroLocked = function()
 };
 
 /**
- * Gets the multiplier for received aggro for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.aggroInAmp = function()
-{
-  let inAmp = 1.0;
-  this.states().forEach(state => inAmp += state.jabsAggroInAmp ?? 0);
-  return inAmp;
-};
-
-/**
- * Gets the multiplier for dealt aggro for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.aggroOutAmp = function()
-{
-  let outAmp = 1.0;
-  this.states().forEach(state => outAmp += state.jabsAggroOutAmp ?? 0);
-  return outAmp;
-};
-
-/**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
  * @param {number} stateId The state id to potentially apply.
@@ -1287,21 +1283,33 @@ Game_Battler.prototype.aggroOutAmp = function()
 J.ABS.Aliased.Game_Battler.addState = Game_Battler.prototype.addState;
 Game_Battler.prototype.addState = function(stateId, attacker)
 {
+  // if we're missing an attacker or the engine is disabled, perform as usual.
   if (!attacker || !$jabsEngine._absEnabled)
   {
+    // perform original logic.
     J.ABS.Aliased.Game_Battler.addState.call(this, stateId);
+
+    // stop processing this state.
     return;
   }
 
+  // check if we can add the state to the battler.
   if (this.isStateAddable(stateId))
   {
+    // check to make sure we're not already afflicted with the state.
     if (!this.isStateAffected(stateId))
     {
+      // add the new state with the attacker data.
       this.addNewState(stateId, attacker);
+
+      // refresh this battler.
       this.refresh();
     }
 
+    // reset the state counts for the battler.
     this.resetStateCounts(stateId, attacker);
+
+    // add the new state to the action result on this battler.
     this._result.pushAddedState(stateId);
   }
 };
@@ -1314,7 +1322,10 @@ Game_Battler.prototype.addState = function(stateId, attacker)
 J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
 Game_Battler.prototype.addNewState = function(stateId, attacker)
 {
+  // perform original logic.
   J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
+
+  // add the jabs state.
   this.addJabsState(stateId, attacker);
 };
 
@@ -1323,9 +1334,13 @@ Game_Battler.prototype.addNewState = function(stateId, attacker)
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
+J.ABS.Aliased.Game_Battler.resetStateCounts = Game_Battler.prototype.resetStateCounts;
 Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 {
-  Game_BattlerBase.prototype.resetStateCounts.call(this, stateId);
+  // perform original logic.
+  J.ABS.Aliased.Game_Battler.resetStateCounts.call(this, stateId);
+
+  // add the state to the battler.
   this.addJabsState(stateId, attacker);
 };
 
@@ -1336,10 +1351,16 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 J.ABS.Aliased.Game_Battler.removeState = Game_Battler.prototype.removeState;
 Game_Battler.prototype.removeState = function(stateId)
 {
+  // perform original logic.
   J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
+
+  // query for the state to remove from the engine.
   const stateTracker = $jabsEngine.findStateTrackerByBattlerAndState(this, stateId);
+
+  // check if we found anything.
   if (stateTracker)
   {
+    // expire the found state if it is being removed.
     stateTracker.expired = true;
   }
 };
@@ -1351,19 +1372,33 @@ Game_Battler.prototype.removeState = function(stateId)
  */
 Game_Battler.prototype.addJabsState = function(stateId, attacker)
 {
+  // check if we're missing an actor due to external application of state.
+  if (!attacker)
+  {
+    // assign the attacker to be oneself if none otherwise exists.
+    attacker = this;
+  }
+
+  // grab the state from the attacker's perspective.
   const state = attacker.state(stateId);
+
+  // grab the duration out of the state.
   let duration = state.stepsToRemove;
+
+  // check if we should extend our incoming positive states.
   if (this.isActor() && !state.jabsNegative)
   {
     // extend our incoming positive states!
     duration += this.getStateDurationBoost(duration, attacker);
   }
+  // check if we should extend our outgoing negative states.
   else if (this.isEnemy() && attacker && attacker.isActor() && state.jabsNegative)
   {
     // extend our outgoing negative states!
     duration += attacker.getStateDurationBoost(duration, this);
   }
 
+  // build a new state tracker based on the given data.
   const stateTracker = new JABS_TrackedState({
     battler: this,
     stateId: stateId,
@@ -1371,6 +1406,8 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
     duration: duration,
     source: attacker
   });
+
+  // add the state to the engine's tracker.
   $jabsEngine.addStateTracker(stateTracker);
 };
 
@@ -4598,6 +4635,39 @@ Game_Map.prototype.findBattlerByUuid = function(uuid)
 };
 
 /**
+ * Finds the battler and its index in the collection by its `_eventId`.
+ *
+ * The result of this is intended to be destructured from the array.
+ * If no result is found, the battler will be null, and index will be -1.
+ * @param {number} eventId The `_eventId` of the battler to find.
+ * @returns {[JABS_Battler, number]}
+ */
+Game_Map.prototype.findBattlerByEventId = function(eventId)
+{
+  let targetIndex = -1;
+  const battler = this._j._allBattlers.find((battler, index) =>
+  {
+    // do not process non-enemies.
+    if (!battler.isEnemy()) return false;
+
+    // check if the enemy matches the event we're looking for.
+    const isTargetEvent = battler.getCharacter().eventId() === eventId;
+
+    // if it isn't the event we're looking for, keep looking.
+    if (!isTargetEvent) return false;
+
+    // grab the index in the collection.
+    targetIndex = index;
+
+    // we found a match!
+    return true;
+  });
+
+  // return the results.
+  return [battler, targetIndex];
+};
+
+/**
  * Removes a battler from tracking by its index in the master tracking list.
  * @param {number} index The index to splice away.
  */
@@ -5255,7 +5325,7 @@ Game_Unit.prototype.inBattle = function()
 /**
  * The skill id associated with this equipment.
  * This is typically found on weapons and offhand armors.
- * @type {number}
+ * @type {number|null}
  */
 Object.defineProperty(RPG_EquipItem.prototype, "jabsSkillId",
   {
@@ -5267,15 +5337,16 @@ Object.defineProperty(RPG_EquipItem.prototype, "jabsSkillId",
 
 /**
  * Gets the JABS skill id for this equip.
- * @returns {number}
+ * @returns {number|null}
  */
 RPG_EquipItem.prototype.getJabsSkillId = function()
 {
-  return this.extractJabsSkillId()
+  return this.extractJabsSkillId();
 };
 
 /**
  * Gets the value from its notes.
+ * @returns {number|null}
  */
 RPG_EquipItem.prototype.extractJabsSkillId = function()
 {
@@ -5310,7 +5381,7 @@ RPG_EquipItem.prototype.getJabsOffhandSkillId = function()
  */
 RPG_EquipItem.prototype.extractJabsOffhandSkillId = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
 //#endregion offhand skillId
 
@@ -6285,7 +6356,13 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPiercingData",
   {
     get: function()
     {
-      return this.getJabsPiercingData();
+      const piercingData = this.getJabsPiercingData();
+      if (!piercingData)
+      {
+        return [1, 0];
+      }
+
+      return piercingData;
     },
   });
 
@@ -6568,6 +6645,105 @@ RPG_State.prototype.extractJabsUnparryable = function()
 };
 //#endregion RPG_State
 //#endregion unparryable
+
+//#region selfAnimation
+/**
+ * The animation id to play on oneself when executing this skill.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsSelfAnimationId",
+  {
+    get: function()
+    {
+      return this.getJabsSelfAnimationId();
+    },
+  });
+
+/**
+ * Gets the JABS self animation id.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsSelfAnimationId = function()
+{
+  return this.extractJabsSelfAnimationId();
+};
+
+/**
+ * Extracts the value from the notes.
+ */
+RPG_Skill.prototype.extractJabsSelfAnimationId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SelfAnimationId, true);
+};
+//#endregion range
+
+//#region delay
+/**
+ * The JABS delay data for this skill.
+ *
+ * The zeroth index is the number of frames to delay the execution of the skill by.
+ * The first index is whether or not to execute regardless of delay by touch.
+ *
+ * Will be null if the delay tag is missing from the skill.
+ * @type {[number, boolean]|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsDelayData",
+  {
+    get: function()
+    {
+      const delayData = this.getJabsDelayData();
+      if (!delayData)
+      {
+        return [0, false];
+      }
+
+      return delayData;
+    },
+  });
+
+/**
+ * The duration in frames before this skill's action will trigger.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsDelayDuration",
+  {
+    get: function()
+    {
+      return this.jabsDelayData[0];
+    },
+  });
+
+/**
+ * Whether or not the delay will be ignored if an enemy touches this skill's action.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsDelayTriggerByTouch",
+  {
+    get: function()
+    {
+      return this.jabsDelayData[1];
+    },
+  });
+
+/**
+ * Gets the JABS delay data for this skill.
+ * @returns {[number, boolean]|null}
+ */
+RPG_Skill.prototype.getJabsDelayData = function()
+{
+  return this.extractJabsDelayData();
+};
+
+/**
+ * Extracts the data from the notes.
+ * @returns {[number, boolean]|null}
+ */
+RPG_Skill.prototype.extractJabsDelayData = function()
+{
+  return this.getArrayFromNotesByRegex(J.ABS.RegExp.DelayData);
+};
+//#endregion delay
+
 //#endregion skill effects (mostly)
 
 //#region state effects
@@ -6861,7 +7037,7 @@ RPG_State.prototype.getJabsOffhandSkillId = function()
  */
 RPG_State.prototype.extractJabsOffhandSkillId = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
 //#endregion offhand skillId
 

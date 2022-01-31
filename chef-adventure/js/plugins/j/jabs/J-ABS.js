@@ -874,6 +874,8 @@ J.ABS.RegExp = {
   PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
   IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
   Unparryable: /<unparryable>/gi,
+  DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
+  SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
 
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
@@ -1024,6 +1026,36 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 {
   $jabsEngine.requestJabsMenuRefresh = true;
 });
+
+/**
+ * Registers a plugin command for dealing arbitrary damage to an enemy based
+ * on the event id associated with the target.
+ */
+// PluginManager. registerCommand(J.ABS.Metadata.Name, "HP Damage to Enemy", args =>
+// {
+//   // extract the event ids and damage from the plugin args.
+//   const { eventIds, dmg } = args;
+//
+//   // translate the damage.
+//   const damageToDeal = parseInt(dmg) * -1;
+//
+//   // translate the event ids.
+//   const targetEventIds = JSON.parse(eventIds);
+//
+//   // iterate over all parsed event ids.
+//   targetEventIds.forEach(eventId =>
+//   {
+//     // scan the map for the matching event id.
+//     const [targetEnemy] = $gameMap.findBattlerByEventId(eventId);
+//
+//     // check to see if we found one.
+//     if (targetEnemy)
+//     {
+//       // apply the damage directly to the target's hp.
+//       targetEnemy.getBattler().gainHp(damageToDeal);
+//     }
+//   });
+// });
 //#endregion Plugin Command Registration
 //#endregion Introduction
 
@@ -2745,11 +2777,9 @@ class JABS_Engine
     targetCharacter.requestAnimation(targetAnimationId, result.parried);
 
     // if there is a self-animation id, apply that to yourself for every hit.
-    if (action.getJabsData().selfAnimationId())
+    if (action.hasSelfAnimationId())
     {
-      const event = action.getActionSprite();
-      const selfAnimationId = action.getJabsData().selfAnimationId();
-      event.requestAnimation(selfAnimationId);
+      action.performSelfAnimation();
     }
 
     // if freecombo-ing, then we already checked for combo when executing the action.

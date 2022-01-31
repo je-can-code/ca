@@ -83,32 +83,6 @@ J.BASE.Notetags = {
   KnockbackResist: "knockbackResist",
   NoSwitch: "noSwitch",
 
-  // on skills in database.
-  ActionId: "actionId",
-  AiCooldown: "aiCooldown",
-  CastAnimation: "castAnimation",
-  CastTime: "castTime",
-  Combo: "combo",
-  Cooldown: "cooldown",
-  CounterParry: "counterParry",
-  CounterGuard: "counterGuard",
-  Delay: "delay",
-  DirectSkill: "direct",
-  Duration: "duration",
-  FreeCombo: "freeCombo",
-  Guard: "guard",
-  IgnoreParry: "ignoreParry",
-  Knockback: "knockback",
-  Parry: "parry",
-  Piercing: "pierce",
-  PoseSuffix: "poseSuffix",
-  Projectile: "projectile",
-  Proximity: "proximity",
-  Range: "range",
-  Retaliate: "retaliate",
-  Shape: "shape",
-  UniqueCooldown: "unique",
-
   // on items in database
   UseOnPickup: "useOnPickup",
   LootExpiration: "expires",
@@ -144,7 +118,6 @@ J.BASE.Notetags = {
   NoDangerIndicator: "noDangerIndicator",
   NoBattlerName: "noName",
   Inanimate: "inanimate",
-  Invincible: "invincible", // also on dodge skills
   AlertDuration: "ad",
   AlertSightBoost: "as",
   AlertPursuitBoost: "ap",
@@ -5604,7 +5577,7 @@ class RPG_Base
     fromNote.forEach(note =>
     {
       // check if this line matches the given regex structure.
-      if (structure.test(note))
+      if (note.match(structure))
       {
         // parse the value out of the regex capture group.
         val += parseFloat(RegExp.$1);
@@ -5656,7 +5629,7 @@ class RPG_Base
     fromNote.forEach(note =>
     {
       // check if this line matches the given regex structure.
-      if (structure.test(note))
+      if (note.match(structure))
       {
         // parse the value out of the regex capture group.
         val = RegExp.$1;
@@ -5713,7 +5686,7 @@ class RPG_Base
     fromNote.forEach(note =>
     {
       // check if this line matches the given regex structure.
-      if (structure.test(note))
+      if (note.match(structure))
       {
         // parse the value out of the regex capture group.
         val = true;
@@ -5765,7 +5738,7 @@ class RPG_Base
     fromNote.forEach(note =>
     {
       // check if this line matches the given regex structure.
-      if (structure.test(note))
+      if (note.match(structure))
       {
         // parse the value out of the regex capture group.
         val = RegExp.$1;

@@ -154,25 +154,11 @@ DataManager.loadExtraData = function()
 {
   if (!DataManager._j._jabsDataLoaded)
   {
-    this.addJabsSkillData();
     this.addJabsWeaponData();
     this.addJabsArmorData();
     this.addJabsItemData();
     this._j._jabsDataLoaded = true;
   }
-};
-
-/**
- * Loads all extra data from the notes of skills.
- */
-DataManager.addJabsSkillData = function()
-{
-  $dataSkills.forEach((skill, index) =>
-  {
-    if (!skill) return;
-    skill._j = new JABS_SkillData(skill.note, skill.meta);
-    skill.index = index;
-  });
 };
 
 /**
@@ -1170,11 +1156,45 @@ class JABS_AiManager
     // determine the best attack action to use.
     const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse);
 
+    if (!this.isSkillIdValid(skillId))
+    {
+      // cancel the setup if we can't use any skills while being reckless!
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
+
+    // construct the skill from the battler's perspective.
+    const skill = battler.getSkill(skillId);
+    console.log(battler, skillId);
+
     // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
+    const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
+  };
+
+  /**
+   *
+   * @param {number|number[]} skillId The skill id or ids to validate.
+   * @returns {boolean} True if the skill id is
+   */
+  static isSkillIdValid(skillId)
+  {
+    // if the skill id is something falsy like 0/null/undefined, not valid.
+    if (!skillId) return false;
+
+    // check if the "skill id" is actually an array of them.
+    if (Array.isArray(skillId))
+    {
+      // the length of the skill id array is 0, not valid.
+      if (!skillId.length) return false;
+    }
+
+    // skill id is valid!
+    return true;
   };
   //#endregion ai:reckless
 
@@ -1234,8 +1254,6 @@ class JABS_AiManager
     {
       // cancel the action setup.
       this.cancelActionSetup(battler);
-
-      console.log('action cancelled!', battler, skillId);
 
       // do not process.
       return;
