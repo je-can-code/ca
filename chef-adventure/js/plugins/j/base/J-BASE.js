@@ -84,13 +84,7 @@ J.BASE.Notetags = {
   NoSwitch: "noSwitch",
 
   // on items in database
-  UseOnPickup: "useOnPickup",
   LootExpiration: "expires",
-
-  // on equipment in database.
-  BonusHits: "bonusHits",
-  SkillId: "skillId",
-  SpeedBoost: "speedBoost",
 
   MaxRefineCount: "maxRefine",
   MaxRefineTraits: "maxRefinedTraits",
@@ -5822,8 +5816,7 @@ class RPG_TraitItem extends RPG_BaseItem
     super(baseItem, index);
 
     // map the base item's traits.
-    this.traits = baseItem.traits
-      .map(trait => new RPG_Trait(trait));
+    this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   };
 }
 //#endregion RPG_TraitItem

@@ -5234,8 +5234,7 @@ JABS_Battler.prototype.performPredefeatEffects = function(victor)
     });
   }
 
-  const onTargetDefeatSkills = victor.getBattler()
-    .onTargetDefeatSkillIds();
+  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
   if (onTargetDefeatSkills.length)
   {
     onTargetDefeatSkills.forEach(onDefeatSkill =>
@@ -7098,109 +7097,6 @@ class JABS_Cooldown
 }
 //#endregion JABS_Cooldown
 
-//#region JABS_EquipmentData
-/**
- * A class that contains all custom data for JABS equipment.
- *
- * This class was created because equipment does not inherently have a class to hook into
- * for extensions, like `Game_Actor` or `Game_Map`.
- */
-class JABS_EquipmentData
-{
-  /**
-   * @constructor
-   * @param {string} notes The raw note box as a string.
-   * @param {any} meta The `meta` object containing prebuilt note metadata.
-   */
-  constructor(notes, meta)
-  {
-    this._notes = notes.split(/[\r\n]+/);
-    this._meta = meta;
-    this.skillId = this.skillId();
-    this.speedBoost = this.speedBoost();
-    this.bonusHits = this.getBonusHits();
-  }
-
-  /**
-   * Gets the skill id associated with this piece of equipment.
-   * @returns {number} The skill id.
-   */
-  skillId()
-  {
-    let skillId = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.SkillId])
-    {
-      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
-    }
-    else
-    {
-      const structure = /<skillId:[ ]?(\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          skillId = parseInt(RegExp.$1);
-        }
-      });
-    }
-
-    return skillId;
-  };
-
-  /**
-   * Gets the speed boost value associated with this piece of equipment.
-   * @returns {number} The speed boost value.
-   */
-  speedBoost()
-  {
-    let speedBoost = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.SpeedBoost])
-    {
-      speedBoost = parseInt(this._meta[J.BASE.Notetags.SpeedBoost]) || 0;
-    }
-    else
-    {
-      const structure = /<speedBoost:[ ]?([-]?\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          speedBoost = parseInt(RegExp.$1);
-        }
-      });
-    }
-
-    return speedBoost;
-  };
-
-  /**
-   * Gets the number of bonus hits this skill grants.
-   * @returns {number} The number of bonus hits.
-   */
-  getBonusHits()
-  {
-    let bonusHits = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.BonusHits])
-    {
-      bonusHits = parseInt(this._meta[J.BASE.Notetags.BonusHits]);
-    }
-    else
-    {
-      const structure = /<bonusHits:[ ]?(\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          bonusHits = parseInt(RegExp.$1);
-        }
-      });
-    }
-
-    return bonusHits;
-  };
-}
-//#endregion JABS_EquipmentData
-
 //#region JABS_GuardData
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
@@ -7308,84 +7204,6 @@ class JABS_ItemData
   {
     this._notes = notes.split(/[\r\n]+/);
     this._meta = meta;
-  };
-
-  /**
-   * Gets the skill id associated with this item/tool.
-   * @returns {number} The skill id, or `0` if none is present.
-   */
-  get skillId()
-  {
-    let skillId = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.SkillId])
-    {
-      skillId = parseInt(this._meta[J.BASE.Notetags.SkillId]) || 0;
-    }
-    else
-    {
-      const structure = /<skillId:[ ]?(\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          skillId = parseInt(RegExp.$1);
-        }
-      })
-    }
-
-    return skillId;
-  };
-
-  /**
-   * Gets the cooldown for this item.
-   * @returns {number} The cooldown in frames (default = 0).
-   */
-  get cooldown()
-  {
-    let cooldown = 0;
-    if (this._meta && this._meta[J.BASE.Notetags.Cooldown])
-    {
-      cooldown = parseInt(this._meta[J.BASE.Notetags.Cooldown]);
-    }
-    else
-    {
-      const structure = /<cooldown:[ ]?(\d+)>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          cooldown = parseInt(RegExp.$1);
-        }
-      });
-    }
-
-    return cooldown;
-  };
-
-  /**
-   * Gets whether or not this item will be used instantly on-pickup.
-   * @returns {boolean} True if this is an instant-use item, false otherwise.
-   */
-  get useOnPickup()
-  {
-    let useOnPickup = false;
-    if (this._meta && this._meta[J.BASE.Notetags.UseOnPickup])
-    {
-      useOnPickup = true;
-    }
-    else
-    {
-      const structure = /<useOnPickup>/i;
-      this._notes.forEach(note =>
-      {
-        if (note.match(structure))
-        {
-          useOnPickup = true;
-        }
-      });
-    }
-
-    return useOnPickup;
   };
 
   /**
@@ -7518,7 +7336,7 @@ class JABS_LootDrop
 
   /**
    * Gets the underlying loot object.
-   * @returns {rm.types.BaseItem}
+   * @returns {RPG_BaseItem}
    */
   get lootData()
   {
@@ -7540,7 +7358,7 @@ class JABS_LootDrop
    */
   get useOnPickup()
   {
-    return this._lootObject._j.useOnPickup;
+    return this._lootObject.jabsUseOnPickup ?? false;
   };
 }
 //#endregion JABS_LootDrop
@@ -7589,54 +7407,6 @@ class JABS_SkillChance
   };
 }
 //#endregion JABS_SkillChance
-
-//#region JABS_SkillData
-/**
- * A class that contains all custom feature flags for JABS skills.
- *
- * This class was created because skills do not inherently have a class to hook into
- * for extensions, like `Game_Actor` or `Game_Map`.
- */
-function JABS_SkillData()
-{
-  this.initialize(...arguments);
-}
-
-JABS_SkillData.prototype = {};
-JABS_SkillData.prototype.constructor = JABS_SkillData;
-
-/**
- * @constructor
- * @param {string} notes The raw note box as a string.
- * @param {any} meta The `meta` object containing prebuilt note metadata.
- */
-JABS_SkillData.prototype.initialize = function(notes, meta)
-{
-  this._notes = notes.split(/[\r\n]+/);
-  this._meta = meta;
-};
-
-/**
- * OVERWRITE Rewrites the way this object is deserialized when being stringified.
- * @returns {JABS_SkillData}
- */
-JABS_SkillData.prototype.toJSON = function()
-{
-  const jsonObj = Object.assign({}, this);
-  const proto = Object.getPrototypeOf(this);
-  for (const key of Object.getOwnPropertyNames(proto))
-  {
-    const desc = Object.getOwnPropertyDescriptor(proto, key);
-    const hasGetter = desc && typeof desc.get === 'function';
-    if (hasGetter)
-    {
-      jsonObj[key] = this[key];
-    }
-  }
-
-  return jsonObj;
-};
-//#endregion JABS_SkillData
 
 //#region JABS_SkillSlot
 /**
