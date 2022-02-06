@@ -205,7 +205,6 @@ class JABS_Action
     // check if the action has an animation to play before destroying.
     if (this.hasSelfAnimationId())
     {
-      console.log(this, this.getSelfAnimationId());
       // play it on oneself.
       event.requestAnimation(this.getSelfAnimationId());
     }
@@ -789,7 +788,7 @@ JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData)
   this.initGeneralInfo();
   this.initBattleInfo();
   this.initIdleInfo();
-  this.initAnimationInfo();
+  this.initPoseInfo();
 };
 
 /**
@@ -1230,21 +1229,21 @@ JABS_Battler.prototype.initIdleInfo = function()
 };
 
 /**
- * Initializes the properties of this battler that are related to the character graphics.
+ * Initializes the properties of this battler that are related to the character posing.
  */
-JABS_Battler.prototype.initAnimationInfo = function()
+JABS_Battler.prototype.initPoseInfo = function()
 {
   /**
-   * The number of frames to animate for.
+   * The number of frames to pose for.
    * @type {number}
    */
-  this._animationFrames = 0;
+  this._poseFrames = 0;
 
   /**
-   * Whether or not this battler is currently animating.
+   * Whether or not this battler is currently posing.
    * @type {boolean}
    */
-  this._animating = false;
+  this._posing = false;
 
   /**
    * The name of the file that contains this battler's character sprite (without extension).
@@ -1560,23 +1559,6 @@ JABS_Battler.isItemVisibleInToolMenu = function(item)
 };
 
 /**
- * Translates the AI attribute codes in `binary` form to a `JABS_BattlerAI`.
- * @param {string} code The code assigned in the notes that determines AI.
- * @returns {JABS_BattlerAI} The AI built off the provided attributes.
- */
-JABS_Battler.translateAiCode = function(code)
-{
-  return new JABS_BattlerAI(
-    Boolean(parseInt(code[0]) === 1) || false, // careful
-    Boolean(parseInt(code[1]) === 1) || false, // executor
-    Boolean(parseInt(code[2]) === 1) || false, // reckless
-    Boolean(parseInt(code[3]) === 1) || false, // healer
-    Boolean(parseInt(code[4]) === 1) || false, // follower
-    Boolean(parseInt(code[5]) === 1) || false, // leader
-  );
-};
-
-/**
  * Gets the team id for allies, including the player.
  * @returns {0}
  */
@@ -1622,7 +1604,7 @@ JABS_Battler.prototype.update = function()
   // don't update map battlers if JABS is disabled.
   if (!$jabsEngine.absEnabled) return;
 
-  this.updateAnimations();
+  this.updatePoseEffects();
   this.updateCooldowns();
   this.updateTimers();
   this.updateEngagement();
@@ -1636,15 +1618,8 @@ JABS_Battler.prototype.update = function()
  */
 JABS_Battler.prototype.processQueuedActions = function()
 {
-  // check if we have an action decided.
-  if (!this.isActionDecided()) return;
-
-  // check if we're still casting actions.
-  if (this.isCasting()) return;
-
-  // check if we're not a player.
-  // check also if we're not in position.
-  if (!this.isPlayer() && !this.isInPosition()) return;
+  // if we cannot process actions, then do not.
+  if (!this.canProcessQueuedActions()) return;
 
   // execute the action.
   $jabsEngine.executeMapActions(this, this.getDecidedAction());
@@ -1654,16 +1629,134 @@ JABS_Battler.prototype.processQueuedActions = function()
 };
 
 /**
+ * Check if we can process any queued actions.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canProcessQueuedActions = function()
+{
+  // check if we have an action decided.
+  if (!this.isActionDecided()) return false;
+
+  // check if we're still casting actions.
+  if (this.isCasting()) return false;
+
+  // check if we're not a player.
+  // check also if we're not in position.
+  if (!this.isPlayer() && !this.isInPosition()) return false;
+
+  // we can process all the actions!
+  return true;
+};
+
+//#region update pose effects
+/**
  * Update all character sprite animations executing on this battler.
  */
-JABS_Battler.prototype.updateAnimations = function()
+JABS_Battler.prototype.updatePoseEffects = function()
 {
-  if (this._animating)
+  // if we cannot update pose effects, then do not.
+  if (!this.canUpdatePoseEffects()) return;
+
+  // countdown the timer for posing.
+  this.countdownPoseTimer();
+
+  // manage the actual adjustments to the character's pose pattern.
+  this.handlePosePattern();
+};
+
+/**
+ * Determines whether or not this battler can update its own pose effects.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canUpdatePoseEffects = function()
+{
+  // we need to be currently animating in order to update animations.
+  if (!this.isPosing()) return false;
+
+  // update animations!
+  return true;
+};
+
+/**
+ * Gets whether or not this battler is currently posing.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isPosing = function()
+{
+  return this._posing;
+};
+
+/**
+ * Counts down the pose animation frames and manages the pose pattern.
+ */
+JABS_Battler.prototype.countdownPoseTimer = function()
+{
+  // if guarding, then do not countdown the pose frames.
+  if (this.guarding()) return;
+
+  // check if we are still posing.
+  if (this._poseFrames > 0)
   {
-    this.countdownAnimation();
+    // decrement the pose frames.
+    this._poseFrames--;
   }
 };
 
+/**
+ * Manages whether or not this battler is posing based on pose frames.
+ */
+JABS_Battler.prototype.handlePosePattern = function()
+{
+  // check if we are still posing.
+  if (this._poseFrames > 0)
+  {
+    // manage the current pose pattern based on the animation frame count.
+    this.managePosePattern();
+  }
+  // we are done posing now.
+  else
+  {
+    // reset the pose back to default.
+    this.resetAnimation();
+  }
+};
+
+/**
+ * Watches the current pose frames and adjusts the pose pattern accordingly.
+ */
+JABS_Battler.prototype.managePosePattern = function()
+{
+  // if the battler has 4 or less frames left.
+  if (this._poseFrames < 4)
+  {
+    // set the pose pattern to 0, the left side.
+    this.setPosePattern(0);
+  }
+  // check fi the battler has more than 10 frames left.
+  else if (this._poseFrames > 10)
+  {
+    // set the pose pattern to 2, the right side.
+    this.setPosePattern(2);
+  }
+  // the battler is between 5-9 pose frames.
+  else
+  {
+    // set the pose pattern to 1, the middle.
+    this.setPosePattern(1);
+  }
+};
+
+/**
+ * Sets this battler's underlying character's pose pattern.
+ * @param {number} pattern The pattern to set for this character.
+ */
+JABS_Battler.prototype.setPosePattern = function(pattern)
+{
+  this.getCharacter()._pattern = pattern;
+};
+//#endregion update pose effects
+
+//#region update cooldowns
 /**
  * Updates all cooldowns for this battler.
  */
@@ -1675,6 +1768,7 @@ JABS_Battler.prototype.updateCooldowns = function()
     this._cooldowns[key].update();
   });
 };
+//#endregion update cooldowns
 
 //#region update timers
 /**
@@ -1751,6 +1845,7 @@ JABS_Battler.prototype.processCastingTimer = function()
 };
 //#endregion update timers
 
+//#region update engagement
 /**
  * Monitors all other battlers and determines if they are engaged or not.
  */
@@ -1810,42 +1905,154 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
 {
   return this.inSightRange(target, distance);
 };
+//#endregion update engagement
 
+//#region update dodging
 /**
  * Updates the dodge skill.
- * Currently only used by the player.
  */
 JABS_Battler.prototype.updateDodging = function()
 {
-  if (!this.isPlayer()) return;
+  // if we cannot update dodge, do not.
+  if (!this.canUpdateDodge()) return;
 
   // cancel the dodge if we got locked down.
-  if (!this.canBattlerMove())
-  {
-    this.setDodging(false);
-    this._dodgeSteps = 0;
-  }
+  this.handleDodgeCancel();
 
   // force dodge move while dodging.
-  const player = this.getCharacter();
-  if (!player.isMoving() &&
-    this.canBattlerMove() &&
-    this._dodgeSteps > 0 &&
-    this._dodging)
-  {
-    player.moveStraight(this._dodgeDirection);
-    this._dodgeSteps--;
-  }
+  this.handleDodgeMovement();
 
   // if the dodge is over, end the dodging.
-  if (this._dodgeSteps <= 0 && !player.isMoving())
+  this.handleDodgeEnd();
+};
+
+/**
+ * Determine whether or not this battler can update its dodging.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canUpdateDodge = function()
+{
+  // if we are not a player, we cannot dodge.
+  if (!this.isPlayer()) return false;
+
+  // we can dodge!
+  return true;
+};
+
+/**
+ * Handles the ending of dodging if the battler is interrupted.
+ */
+JABS_Battler.prototype.handleDodgeCancel = function()
+{
+  // check if the battler is no longer able to move.
+  if (!this.canBattlerMove())
   {
+    // end the dodging.
     this.setDodging(false);
+
+    // set the dodge steps to 0.
     this._dodgeSteps = 0;
-    this.setInvincible(false);
   }
 };
 
+/**
+ * Checks if we should cancel the dodge.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.shouldCancelDodge = function()
+{
+  // if the battler cannot move, then we should cancel dodging.
+  if (!this.canBattlerMove()) return true;
+
+  // nothing is canceling the dodge.
+  return false;
+};
+
+JABS_Battler.prototype.handleDodgeMovement = function()
+{
+  // if we cannot dodge move, do not.
+  if (!this.canDodgeMove()) return;
+
+  // perform the movement.
+  this.executeDodgeMovement();
+};
+
+/**
+ * Determines whether or not this character can be forced to dodge move.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canDodgeMove = function()
+{
+  // if the character is currently moving, don't dodge move.
+  if (this.getCharacter().isMoving()) return false;
+
+  // if the battler cannot move, don't dodge move.
+  if (!this.canBattlerMove()) return false;
+
+  // if we are out of dodge steps, don't dodge move.
+  if (this._dodgeSteps <= 0) return false;
+
+  // if we are not dodging, don't dodge move.
+  if (!this._dodging) return false;
+
+  // we can dodge move!
+  return true;
+};
+
+/**
+ * Performs the forced dodge movement in the direction of the dodge.
+ */
+JABS_Battler.prototype.executeDodgeMovement = function()
+{
+  // move the character.
+  this.getCharacter().moveStraight(this._dodgeDirection);
+
+  // reduce the dodge steps.
+  this._dodgeSteps--;
+};
+
+/**
+ * Handles the conclusion of the dodging if necessary.
+ */
+JABS_Battler.prototype.handleDodgeEnd = function()
+{
+  // check if we even should end the dodge.
+  if (!this.shouldEndDodge()) return;
+
+  // conclude the dodge.
+  this.endDodge();
+};
+
+/**
+ * Determines wehether or not to end the dodging.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.shouldEndDodge = function()
+{
+  // if we are out of dodge steps and we're done moving, end the dodge.
+  if (this._dodgeSteps <= 0 && !this.getCharacter().isMoving()) return true;
+
+  // KEEP DODGING.
+  return false;
+};
+
+/**
+ * Stops the dodge and resets the values to default.
+ */
+JABS_Battler.prototype.endDodge = function()
+{
+  // stop the dodge.
+  this.setDodging(false);
+
+  // set dodge steps to 0 regardless of what they are.
+  this._dodgeSteps = 0;
+
+  // disable the invincibility from dodging.
+  this.setInvincible(false);
+};
+//#endregion update dodging
+
+//#region update death handling
 /**
  * Handles when this enemy battler is dying.
  */
@@ -1866,6 +2073,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
     this.destroy();
   }
 };
+//#endregion update death handling
 //#endregion updates
 
 //#region update helpers
@@ -2085,30 +2293,26 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.performActionPose(skill);
 
   // trigger invincibility for dodging if applicable.
-  const invincible = skill.jabsInvincibleDodge;
-  this.setInvincible(invincible);
+  this.setInvincible(skill.jabsInvincibleDodge);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
-  const dodgeSpeed = 2;
-  this.getCharacter().setDodgeBoost(dodgeSpeed);
+  const dodgeSpeedBoost = 2;
+  this.getCharacter().setDodgeBoost(dodgeSpeedBoost);
 
   // set the number of steps this dodge will roll you.
-  const range = skill.jabsRange;
-  this._dodgeSteps = range;
+  this._dodgeSteps = skill.jabsRange;
 
   // set the direction to be dodging in (front/back/specified).
-  const direction = this.determineDodgeDirection(skill.jabsMoveType);
-  this._dodgeDirection = direction;
+  this._dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
 
   // pay whatever costs are associated with the skill.
   this.getBattler().paySkillCost(skill);
 
   // apply the cooldowns for the dodge.
-  const cooldown = skill.jabsCooldown;
-  this.modCooldownCounter(JABS_Button.Dodge, cooldown);
+  this.modCooldownCounter(JABS_Button.Dodge, skill.jabsCooldown);
 
   // trigger the dodge!
-  this.setDodging();
+  this.setDodging(true);
 };
 
 /**
@@ -5044,7 +5248,9 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // create the log for the tool use.
   this.createToolLog(item);
 
-  const { cooldown: itemCooldown, skillId: itemSkillId } = item._j;
+  // extract the cooldown and skill id from the item.
+  const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
+
 
   // it is an item with a custom cooldown.
   if (itemCooldown)
@@ -5563,7 +5769,7 @@ JABS_Battler.prototype.countdownParryWindow = function()
 JABS_Battler.prototype.performActionPose = function(skill)
 {
   // if we are still animating from a previous skill, prematurely end it.
-  if (this._animating)
+  if (this._posing)
   {
     this.endAnimation();
   }
@@ -5617,16 +5823,16 @@ JABS_Battler.prototype.endAnimation = function()
  */
 JABS_Battler.prototype.setAnimationCount = function(count)
 {
-  this._animationFrames = count;
-  if (this._animationFrames > 0)
+  this._poseFrames = count;
+  if (this._poseFrames > 0)
   {
-    this._animating = true;
+    this._posing = true;
   }
 
-  if (this._animationFrames <= 0)
+  if (this._poseFrames <= 0)
   {
-    this._animating = false;
-    this._animationFrames = 0;
+    this._posing = false;
+    this._poseFrames = 0;
   }
 };
 
@@ -5636,7 +5842,7 @@ JABS_Battler.prototype.setAnimationCount = function(count)
 JABS_Battler.prototype.resetAnimation = function()
 {
   if (!this._baseSpriteImage && !this._baseSpriteIndex) return;
-  if (this._animating)
+  if (this._posing)
   {
     this.endAnimation();
   }
@@ -5649,37 +5855,6 @@ JABS_Battler.prototype.resetAnimation = function()
   if (originalImage !== currentImage || originalIndex !== currentIndex)
   {
     character.setImage(originalImage, originalIndex);
-  }
-};
-
-/**
- * Whether or not this battler is ready to take action of any kind.
- * @returns {boolean} True if the battler is ready, false otherwise.
- */
-JABS_Battler.prototype.countdownAnimation = function()
-{
-  // if guarding, then it must be a guard animation.
-  if (this.guarding()) return;
-
-  if (this._animationFrames > 0)
-  {
-    this._animationFrames--;
-    if (this._animationFrames < 4)
-    {
-      this.getCharacter()._pattern = 0;
-    }
-    else if (this._animationFrames > 10)
-    {
-      this.getCharacter()._pattern = 2;
-    }
-    else
-    {
-      this.getCharacter()._pattern = 1;
-    }
-  }
-  else
-  {
-    this.resetAnimation();
   }
 };
 //#endregion actionposes/animations
@@ -5984,7 +6159,6 @@ class JABS_BattlerAI
         elementalSkillCollection.push([skillId, rate]);
       });
 
-      console.log(elementalSkillCollection);
       // sorts the skills by their elemental effectiveness.
       elementalSkillCollection.sort((a, b) =>
       {
@@ -5992,7 +6166,6 @@ class JABS_BattlerAI
         if (a[1] < b[1]) return 1;
         return 0;
       });
-      console.log(elementalSkillCollection);
 
       // only use the highest elementally effective skill.
       skillsToUse = elementalSkillCollection[0][0];
@@ -6049,8 +6222,6 @@ class JABS_BattlerAI
         alliesMissingAnyHp++;
       }
     });
-
-    console.log(alliesMissingAnyHp);
 
     // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
     if (!alliesMissingAnyHp && !reckless) return skillsToUse;

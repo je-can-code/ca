@@ -28253,37 +28253,37 @@ declare class DataManager {
 	 * Item being a database object representing a skill.
 	 * @static
 	 * @param {object} item
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof DataManager
 	 */
-	static isSkill(item: rm.types.BaseItem): boolean;
+	static isSkill(item: RPG_BaseItem): boolean;
 	/**
 	 * Returns a Bool value given an item.
 	 * Item must be a database item to be true.
 	 * @static
 	 * @param {object} item
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof DataManager
 	 */
-	static isItem(item: rm.types.BaseItem): boolean;
+	static isItem(item: RPG_BaseItem): boolean;
 	/**
 	 * Returns a Bool value given an item.
 	 * Item must be a database weapon to be true.
 	 * @static
 	 * @param {object} item
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof DataManager
 	 */
-	static isWeapon(item: rm.types.BaseItem): boolean;
+	static isWeapon(item: RPG_BaseItem): boolean;
 	/**
 	 * Returns a Bool value given an item.
 	 * Item must be a database armor to be true.
 	 * @static
 	 * @param {object} item
-	 * @returns {Bool}
+	 * @returns {boolean}
 	 * @memberof DataManager
 	 */
-	static isArmor(item: rm.types.BaseItem): boolean;
+	static isArmor(item: RPG_BaseItem): boolean;
 	static createGameObjects(): void;
 	static setupNewGame(): void;
 	static setupBattleTest(): void;

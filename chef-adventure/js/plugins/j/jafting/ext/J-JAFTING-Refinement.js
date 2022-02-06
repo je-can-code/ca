@@ -1200,8 +1200,8 @@ Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
 
 /**
  * Generates the new entry in the corresponding datastore for the new equip data that was refined.
- * @param {rm.types.Weapon[]|rm.types.Armor[]} datastore The datastore to extend with new data.
- * @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
+ * @param {RPG_Weapon[]|RPG_Armor[]} datastore The datastore to extend with new data.
+ * @param {RPG_EquipItem} equip The equip to generate and add to the player's inventory.
  * @param {string} refinementType The type of equip this is; for incrementing the counter on custom data.
  * @returns {RPG_EquipItem}
  */
@@ -1257,45 +1257,6 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
   }
 };
 //#endregion Game_JAFTING
-
-//#region Game_Party
-/**
- * OVERWRITE Forces the party to use the index instead of the id for defining quantity.
- * Even though this overwrites that functionality, for items not created through
- * JAFTING refinement, this should not be a change anyone should need to be cognizant of.
- */
-Game_Party.prototype.gainItem = function(item, amount, includeEquip)
-{
-  const container = this.itemContainer(item);
-  if (container)
-  {
-    const lastNumber = this.numItems(item);
-    const newNumber = lastNumber + amount;
-    container[item.index] = newNumber.clamp(0, this.maxItems(item));
-    if (container[item.index] === 0)
-    {
-      delete container[item.index];
-    }
-    if (includeEquip && newNumber < 0)
-    {
-      this.discardMembersEquip(item, -newNumber);
-    }
-    $gameMap.requestRefresh();
-  }
-  $gameSystem.setRefreshRequest(true);
-};
-
-/**
- * Retrieves the number of items that the party has on-hand.
- * @param {rm.types.BaseItem} item The item to check the quantity of.
- * @returns {number}
- */
-Game_Party.prototype.numItems = function(item)
-{
-  const container = this.itemContainer(item);
-  return container ? container[item.index] || 0 : 0;
-};
-//#endregion Game_Party
 //#endregion Game objects
 
 //#region Scene objects

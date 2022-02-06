@@ -7,8 +7,10 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
- * @orderAfter J-BASE
+ * @base J-ControlledDrops
  * @orderAfter J-ABS
+ * @orderAfter J-BASE
+ * @orderAfter J-ControlledDrops
  * @help
  * ============================================================================
  * This plugin is a form of "stat distribution"- an alternative to the standard
@@ -539,7 +541,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: '1.1.0',
+  Version: '1.2.0',
 
   /**
    * The translated SDPs from the plugin parameters.
@@ -577,6 +579,10 @@ J.SDP.Metadata = {
   JabsShowBoth: J.SDP.PluginParameters['Show In Both'] === "true",
 };
 
+/**
+ * The default shape of the menu command.
+ * @param {boolean} isEnabled Whether or not the command is enabled.
+ */
 J.SDP.MenuCommand = isEnabled =>
 {
   return {
@@ -589,11 +595,14 @@ J.SDP.MenuCommand = isEnabled =>
   }
 };
 
+/**
+ * A collection of all aliased methods for this plugin.
+ */
 J.SDP.Aliased = {
   BattleManager: {},
   DataManager: {},
   Game_Actor: {},
-  Game_BattleMap: {},
+  JABS_Engine: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: {},
   Game_System: {},
@@ -603,6 +612,16 @@ J.SDP.Aliased = {
   Window_MenuCommand: {},
 };
 
+/**
+ * All regular expressions used by this plugin.
+ */
+J.SDP.RegExp = {
+  SdpPoints: /<sdpPoints:[ ]?([0-9]*)>/i,
+  SdpMultiplier: /<sdpMultiplier:[ ]?([-.\d]+)>/i,
+  SdpDropData: /<sdpDropData:[ ]?(\[[-\w]+,[ ]?\d+(:?,[ ]?\d+)?])>/i,
+};
+
+//#region plugin commands
 /**
  * Plugin command for calling the SDP scene/menu.
  */
@@ -662,6 +681,7 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify party SDP points", ar
     member.modSdpPoints(sdpPoints);
   });
 });
+//#endregion plugin commands
 //#endregion Introduction
 
 //#region Static objects
@@ -781,6 +801,8 @@ Game_Actor.prototype.initMembers = function()
      * @type {PanelRanking[]}
      */
     _ranks: [],
+
+    _sdpBoosts: {},
   };
 };
 
@@ -1041,64 +1063,96 @@ Game_Battler.prototype.sdpMultiplier = function()
 //#endregion Game_Battler
 
 //#region Game_Enemy
-if (J.DROPS)
+/**
+ * Gets any additional drops from the notes of this particular enemy.
+ * This allows for only gaining an SDP from enemies once.
+ * @returns {RPG_DropItem[]}
+ */
+J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);
+Game_Enemy.prototype.extraDrops = function()
 {
-  /**
-   * Gets any additional drops from the notes of this particular enemy.
-   * This allows for only gaining an SDP from enemies once.
-   * @returns {RPG_EnemyDropItem[]}
-   */
-  J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);
-  Game_Enemy.prototype.extraDrops = function()
-  {
-    // get the original drop list.
-    const dropList = J.SDP.Aliased.Game_Enemy.get("extraDrops").call(this);
+  // get the original drop list.
+  const dropList = J.SDP.Aliased.Game_Enemy.get("extraDrops").call(this);
 
-    // if there is a panel that needs to be added to the list, then add it.
-    const sdpDrop = this.needsSdpDrop();
-    if (sdpDrop)
-    {
-      dropList.push(sdpDrop);
-    }
+  // if we cannot drop the SDP for some reason, then return the unmodified drop list.
+  if (!this.canDropSdp()) return dropList;
 
-    return dropList;
+  // add the drop to the list of possible drops.
+  const sdpDrop = this.makeSdpDrop();
+  dropList.push(sdpDrop);
+
+  // return the list with the added SDP.
+  return dropList;
+};
+
+/**
+ * Determines if there is an SDP to drop, and whether or not to drop it.
+ * @returns {RPG_DropItem}
+ */
+Game_Enemy.prototype.canDropSdp = function()
+{
+  // if we do not have a panel to drop, then don't drop it.
+  if (!this.hasSdpDropData()) return false;
+
+  // if we have already unlocked the droppable panel, then don't drop it.
+  if ($gameSystem.getSdp(this.enemy().sdpDropKey).isUnlocked()) return false;
+
+  // drop the panel!
+  return true;
+};
+
+/**
+ * Makes the new drop item for the SDP based on the data from this enemy.
+ * @returns {RPG_Item}
+ */
+Game_Enemy.prototype.makeSdpDrop = function()
+{
+  // grab all the data points to build the SDP drop.
+  const [key, chance, itemId] = this.getSdpDropData();
+
+  // create an anonymous object representing the drop data.
+  const drop = {
+    kind: 1,
+    dataId: itemId,
+    denominator: chance
   };
 
-  /**
-   * Determines if there is an SDP to drop, and whether or not to drop it.
-   * @returns {RPG_EnemyDropItem}
-   */
-  Game_Enemy.prototype.needsSdpDrop = function()
-  {
-    const referenceData = this.enemy();
-    const structure = /<sdpPanel:[ ]?"(.*?)":(\d+):(\d+)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
+  // build the sdp drop item.
+  const sdpDrop = new RPG_DropItem(drop);
 
-    // get the panel key from this enemy if it exists.
-    let panelKey = "";
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        panelKey = RegExp.$1;
-      }
-    });
+  // assign the drop item the key for the panel.
+  sdpDrop.setSdpKey(key);
 
-    // if we don't have a panel key, then give up.
-    if (!panelKey) return null;
+  // return the custom item.
+  return sdpDrop;
+};
 
-    // if a panel exists to be earned, but we already have it, then give up.
-    const alreadyEarned = $gameSystem.getSdp(panelKey).isUnlocked();
-    if (alreadyEarned) return null;
+/**
+ * Gets the SDP drop data from this enemy.
+ * @returns {[string,number,number]}
+ */
+Game_Enemy.prototype.getSdpDropData = function()
+{
+  return this.enemy().sdpDropData;
+};
 
-    // create the new drop based on the SDP.
-    return {
-      kind: 1, // all SDP drops are assumed to be "items".
-      dataId: parseInt(RegExp.$2),
-      denominator: parseInt(RegExp.$3)
-    };
-  };
-}
+/**
+ * Gets whether or not this enemy has an SDP to drop.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.hasSdpDropData = function()
+{
+  return this.enemy().sdpDropData[0] !== String.empty;
+};
+
+/**
+ * Gets the base amount of SDP points this enemy grants.
+ * @returns {number}
+ */
+Game_Enemy.prototype.sdpPoints = function()
+{
+  return this.enemy().sdpPoints;
+};
 //#endregion Game_Enemy
 
 //#region Game_Switches
@@ -1257,13 +1311,13 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
  */
 Game_Troop.prototype.sdpTotal = function()
 {
-  const members = this.deadMembers();
-
+  // initialize total to zero.
   let sdpPoints = 0;
-  members.forEach(defeatedEnemy =>
-  {
-    sdpPoints += defeatedEnemy.sdpPoints();
-  });
+
+  // iterate over each dead enemy and sum their total SDP points.
+  this.deadMembers().forEach(enemy => sdpPoints += enemy.sdpPoints());
+
+  // return the summed value.
   return sdpPoints;
 };
 //#endregion Game_Troop
@@ -1277,18 +1331,28 @@ if (J.ABS)
    * @param {Game_Battler} enemy The target battler that was defeated.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
-  J.SDP.Aliased.Game_BattleMap.gainBasicRewards = JABS_Engine.prototype.gainBasicRewards;
+  J.SDP.Aliased.JABS_Engine.set('gainBasicRewards', JABS_Engine.prototype.gainBasicRewards);
   JABS_Engine.prototype.gainBasicRewards = function(enemy, actor)
   {
-    J.SDP.Aliased.Game_BattleMap.gainBasicRewards.call(this, enemy, actor);
+    // perform original logic.
+    J.SDP.Aliased.JABS_Engine.get('gainBasicRewards').call(this, enemy, actor);
+
+    // grab the sdp points value.
     let sdpPoints = enemy.sdpPoints();
 
+    // if we have no points, then no point in continuing.
     if (!sdpPoints) return;
 
+    // get the scaling multiplier if any exists.
     const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
+
+    // round up in favor of the player to skip decimals from the multiplier.
     sdpPoints = Math.ceil(sdpPoints * levelMultiplier);
 
+    // gain the value calculated.
     this.gainSdpReward(sdpPoints, actor);
+
+    // generate a log for the SDP gain.
     this.createSdpLog(sdpPoints, actor);
   };
 

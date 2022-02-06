@@ -3980,12 +3980,17 @@ class JABS_Engine
    */
   getRewardScalingMultiplier(enemy, actor)
   {
+    // default the multiplier to 1x.
     let multiplier = 1.0;
+
+    // check if we are using the level scaling functionality.
     if (J.LEVEL && J.LEVEL.Metadata.Enabled)
     {
+      // calculate the multiplier.
       multiplier = LevelScaling.multiplier(actor.getBattler().level, enemy.level);
     }
 
+    // return the findings.
     return multiplier;
   };
 
@@ -4132,9 +4137,7 @@ class JABS_Engine
     if (target.isActor()) return;
 
     // if we have no drops, don't bother.
-    const items = target
-      .getBattler()
-      .makeDropItems();
+    const items = target.getBattler().makeDropItems();
     if (items.length === 0) return;
 
     items.forEach(item => this.addLootDropToMap(target.getX(), target.getY(), item));
