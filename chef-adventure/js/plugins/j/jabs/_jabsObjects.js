@@ -5277,6 +5277,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 Game_Player.prototype.useOnPickup = function(lootData)
 {
   const player = $jabsEngine.getPlayer1();
+  console.log(lootData);
   player.applyToolEffects(lootData.id, true);
 };
 
@@ -5320,11 +5321,42 @@ Game_Unit.prototype.inBattle = function()
 //#endregion Game objects
 
 //#region RPG objects
-//#region RPG_BaseItem effects
+//#region RPG base classes
+//#region RPG_BaseBattler
+//#region bonusHits
+/**
+ * The number of additional bonus hits this battler adds to their basic attacks.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
 
-//#endregion RPG_BaseItem effects
+/**
+ * Gets the JABS bonus hits of this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
 
-//#region RPG_EquipItem effects
+/**
+ * Extracts the value from the notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion bonusHits
+//#endregion RPG_BaseBattler
+
+//#region RPG_EquipItem
 //#region skillId
 /**
  * The skill id associated with this equipment.
@@ -5467,12 +5499,78 @@ RPG_EquipItem.prototype.extractJabsExpirationFrames = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
 //#endregion expiration
-//#endregion RPG_EquipItem effects
+//#endregion RPG_EquipItem
 
-//#region RPG_Item effects
+//#region RPG_TraitItem
+//#region bonusHits
+/**
+ * A new property for retrieving the JABS bonusHits from this traited item.
+ * @type {number}
+ */
+Object.defineProperty(RPG_TraitItem.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonus hits of this traited item.
+ * @returns {number|null}
+ */
+RPG_TraitItem.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number|null}
+ */
+RPG_TraitItem.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion bonusHits
+//#endregion RPG_TraitItem
+
+//#region RPG_UsableItem
+//#region bonusHits
+/**
+ * The number of additional bonus hits this skill or item adds to their basic attacks.
+ * @type {number}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonus hits of this skill or item.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number|null}
+ */
+RPG_UsableItem.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion bonusHits
+
 //#region cooldown
 /**
- * The JABS cooldown when using this tool or item.
+ * The JABS cooldown when using this skill or item.
  * @type {number}
  */
 Object.defineProperty(RPG_UsableItem.prototype, "jabsCooldown",
@@ -5484,7 +5582,7 @@ Object.defineProperty(RPG_UsableItem.prototype, "jabsCooldown",
   });
 
 /**
- * Gets the JABS cooldown for this tool or item.
+ * Gets the JABS cooldown for this skill or item.
  * @returns {number}
  */
 RPG_UsableItem.prototype.getJabsCooldown = function()
@@ -5500,7 +5598,45 @@ RPG_UsableItem.prototype.extractJabsCooldown = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
 };
 //#endregion cooldown
+//#endregion RPG_UsableItem
+//#endregion RPG base classes
 
+//#region RPG implementations
+//#region RPG_Class
+//#region bonusHits
+/**
+ * The number of additional bonus hits this battler adds to their basic attacks.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Class.prototype, "jabsBonusHits",
+  {
+    get: function()
+    {
+      return this.getJabsBonusHits();
+    },
+  });
+
+/**
+ * Gets the JABS bonus hits of this battler.
+ * @returns {number|null}
+ */
+RPG_Class.prototype.getJabsBonusHits = function()
+{
+  return this.extractJabsBonusHits();
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number|null}
+ */
+RPG_Class.prototype.extractJabsBonusHits = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
+};
+//#endregion bonusHits
+//#endregion RPG_Class
+
+//#region RPG_Item
 //#region skillId
 /**
  * The skill id associated with this item or tool.
@@ -5596,43 +5732,14 @@ RPG_Item.prototype.extractJabsExpirationFrames = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
 //#endregion expiration
-//#endregion RPG_Item effects
+//#endregion RPG_Item
 
-//#region RPG_Skill effects (mostly)
-//#region cooldown
-/**
- * A new property for retrieving the JABS cooldown from this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsCooldown",
-  {
-    get: function()
-    {
-      return this.getJabsCooldown();
-    },
-  });
-
-/**
- * Gets the JABS cooldown for this skill.
- * @returns {number}
- */
-RPG_Skill.prototype.getJabsCooldown = function()
-{
-  return this.extractJabsCooldown()
-};
-
-/**
- * Gets the JABS cooldown for this skill from its notes.
- */
-RPG_Skill.prototype.extractJabsCooldown = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
-};
-//#endregion cooldown
-
+//#region RPG_Skill effects
 //#region range
 /**
- * A new property for retrieving the JABS range from this skill.
+ * The JABS range for this skill.
+ * This range determines the number of tiles the skill can reach in the
+ * context of collision with targets.
  * @type {number}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsRange",
@@ -6014,136 +6121,6 @@ RPG_Skill.prototype.extractJabsAggroMultiplier = function()
 };
 //#endregion aggroMultiplier
 
-//#region bonusHits
-//#region RPG_BaseBattler
-/**
- * A new property for retrieving the JABS bonusHits from this battler.
- * @type {number}
- */
-Object.defineProperty(RPG_BaseBattler.prototype, "jabsBonusHits",
-  {
-    get: function()
-    {
-      return this.getJabsBonusHits();
-    },
-  });
-
-/**
- * Gets the JABS bonusHits of this battler.
- * @returns {number|null}
- */
-RPG_BaseBattler.prototype.getJabsBonusHits = function()
-{
-  return this.extractJabsBonusHits();
-};
-
-/**
- * Extracts the JABS bonusHits for this battler from its notes.
- * @returns {number|null}
- */
-RPG_BaseBattler.prototype.extractJabsBonusHits = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
-};
-//#endregion RPG_BaseBattler
-
-//#region RPG_Class
-/**
- * A new property for retrieving the JABS bonusHits from this class.
- * @type {number}
- */
-Object.defineProperty(RPG_Class.prototype, "jabsBonusHits",
-  {
-    get: function()
-    {
-      return this.getJabsBonusHits();
-    },
-  });
-
-/**
- * Gets the JABS bonusHits of this class.
- * @returns {number|null}
- */
-RPG_Class.prototype.getJabsBonusHits = function()
-{
-  return this.extractJabsBonusHits();
-};
-
-/**
- * Extracts the JABS bonusHits for this class from its notes.
- * @returns {number|null}
- */
-RPG_Class.prototype.extractJabsBonusHits = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
-};
-//#endregion RPG_Class
-
-//#region RPG_TraitItem
-/**
- * A new property for retrieving the JABS bonusHits from this traited item.
- * @type {number}
- */
-Object.defineProperty(RPG_TraitItem.prototype, "jabsBonusHits",
-  {
-    get: function()
-    {
-      return this.getJabsBonusHits();
-    },
-  });
-
-/**
- * Gets the JABS bonusHits of this traited item.
- * @returns {number|null}
- */
-RPG_TraitItem.prototype.getJabsBonusHits = function()
-{
-  return this.extractJabsBonusHits();
-};
-
-/**
- * Extracts the JABS bonusHits for this traited item from its notes.
- * @returns {number|null}
- */
-RPG_TraitItem.prototype.extractJabsBonusHits = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
-};
-//#endregion RPG_EquipItem
-
-//#region RPG_UsableItem
-/**
- * A new property for retrieving the JABS bonusHits from this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_UsableItem.prototype, "jabsBonusHits",
-  {
-    get: function()
-    {
-      return this.getJabsBonusHits();
-    },
-  });
-
-/**
- * Gets the JABS bonusHits of this skill.
- * @returns {number|null}
- */
-RPG_UsableItem.prototype.getJabsBonusHits = function()
-{
-  return this.extractJabsBonusHits();
-};
-
-/**
- * Extracts the JABS bonusHits for this skill from its notes.
- * @returns {number|null}
- */
-RPG_UsableItem.prototype.extractJabsBonusHits = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
-};
-//#endregion RPG_UsableItem
-//#endregion bonusHits
-
 //#region jabsGuardData
 /**
  * The `JABS_GuardData` of this skill.
@@ -6398,7 +6375,7 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
 
 //#region moveType
 /**
- * A new property for retrieving the JABS moveType from this skill.
+ * The direction that this dodge skill will move.
  * @type {string}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsMoveType",
@@ -6430,7 +6407,8 @@ RPG_Skill.prototype.extractJabsMoveType = function()
 
 //#region invincibleDodge
 /**
- * A new property for retrieving the JABS invincibleDodge from this skill.
+ * Whether or not the battler is invincible for the duration of this
+ * skill's dodge movement.
  * @type {boolean}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsInvincibleDodge",
@@ -6442,7 +6420,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsInvincibleDodge",
   });
 
 /**
- * Gets the JABS invincibleDodge this skill.
+ * Gets the dodge invincibility flag for this skill.
  * @returns {number|null}
  */
 RPG_Skill.prototype.getJabsInvincibileDodge = function()
@@ -6923,10 +6901,9 @@ RPG_Skill.prototype.extractJabsDelayData = function()
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.DelayData);
 };
 //#endregion delay
+//#endregion RPG_Skill effects
 
-//#endregion RPG_Skill effects (mostly)
-
-//#region state effects
+//#region RPG_State effects
 //#region paralysis
 /**
  * Whether or not this state is also a JABS paralysis state.
@@ -7696,7 +7673,8 @@ RPG_State.prototype.extractJabsSlipTpFormulaPer5 = function()
 };
 //#endregion formula
 //#endregion slipTp
-//#endregion state effects
+//#endregion RPG_State effects
+//#endregion RPG implementations
 //#endregion RPG objects
 
 //ENDFILE

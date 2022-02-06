@@ -385,12 +385,13 @@ J.JAFTING.Metadata = {
  */
 J.JAFTING.Aliased = {
   DataManager: {},
-  Game_Party: {},
+  Game_Party: new Map(),
   Game_Player: {},
   Game_System: {},
   Scene_Map: {},
 };
 
+//#region plugin commands
 /**
  * Plugin command for calling forth the JAFTING menu and all its windowy glory.
  */
@@ -445,10 +446,10 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Lock All Categories", ()
 {
   $gameSystem.lockAllCategories();
 });
+//#endregion plugin commands
 //#endregion Introduction
 
 //#region Static objects
-
 //#region DataManager
 /**
  * Extends the save data extraction to include any changes in recipes/categories
@@ -502,74 +503,24 @@ DataManager.extractSaveContents = function(contents)
   J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
 //#endregion DataManager
-
 //#endregion Static objects
 
 //#region Game objects
 //#region Game_Party
-J.JAFTING.Aliased.Game_Party.gainItem = Game_Party.prototype.gainItem;
+/**
+ * Extends `gainItem()` to also refresh the JAFTING windows on item quantity change.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
+ * @param {number} amount The amount to modify the quantity by.
+ * @param {boolean} includeEquip Whether or not to include equipped items for equipment.
+ */
+J.JAFTING.Aliased.Game_Party.set('gainItem', Game_Party.prototype.gainItem);
 Game_Party.prototype.gainItem = function(item, amount, includeEquip)
 {
-  J.JAFTING.Aliased.Game_Party.gainItem.call(this, item, amount, includeEquip);
+  // perform original logic.
+  J.JAFTING.Aliased.Game_Party.get('gainItem').call(this, item, amount, includeEquip);
+
+  // refresh the JAFTING windows on item quantity change.
   $gameSystem.setRefreshRequest(true);
-};
-
-/**
- * An overwrite of how the itemcontainer function determines the type.
- * @param {object} item The item to discern type of.
- * @returns {object[]} The bucket containing the passed-in item type.
- */
-Game_Party.prototype.itemContainer = function(item)
-{
-  if (!item)
-  {
-    return null;
-  }
-  else if (item.itypeId)
-  {
-    return this._items;
-  }
-  else if (item.wtypeId && item.wtypeId > -1)
-  {
-    return this._weapons;
-  }
-  else if (item.atypeId && item.atypeId > -1)
-  {
-    return this._armors;
-  }
-  else
-  {
-    return null;
-  }
-};
-
-/**
- * OVERWRITE Changes the max to be what I set instead, or handle other plugins'
- * max item count if they modify it.
- */
-J.JAFTING.Aliased.Game_Party.maxItems = Game_Party.prototype.maxItems;
-Game_Party.prototype.maxItems = function(item = null)
-{
-  const defaultMaxItems = 999;
-  // if there is no item passed, then just return max.
-  if (!item)
-  {
-    return defaultMaxItems;
-  }
-  else
-  {
-    const baseMax = J.JAFTING.Aliased.Game_Party.maxItems.call(this, item);
-    if (!baseMax || isNaN(baseMax))
-    {
-      // if there is a problem with someone elses' plugins, return our max.
-      return defaultMaxItems;
-    }
-    else
-    {
-      // return other plugins max if available.
-      return baseMax;
-    }
-  }
 };
 //#endregion Game_Party
 

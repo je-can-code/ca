@@ -226,6 +226,22 @@ Game_Action.prototype.setSkill = function(skillId)
 };
 
 /**
+ * Basically replaces `setItemObject()` with setting
+ */
+J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
+Game_Action.prototype.setItemObject = function(itemId)
+{
+  if (!this.subject())
+  {
+    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemId);
+    return;
+  }
+
+  // assign the overlayed skill to the object instead.
+  this._item.setObject(skillToSet);
+};
+
+/**
  * Extends `apply()` to include applying states to one-self.
  */
 J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
@@ -375,21 +391,31 @@ Game_Item.prototype.initialize = function(item)
 };
 
 /**
- * Extends this function for actually writing the object to the item so
- * that it can be retrieved later if it was a custom object (like an extended skill).
+ * Extends `setObject()` to enable setting custom skills and items.
+ * @param {RPG_UsableItem|RPG_EquipItem}
  */
 J.EXTEND.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
-Game_Item.prototype.setObject = function(item)
+Game_Item.prototype.setObject = function(obj)
 {
-  J.EXTEND.Aliased.Game_Item.get('setObject').call(this, item);
-  if (!item) return;
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Item.get('setObject').call(this, obj);
 
-  // for extending skills, if its a skill, we should assign the extended skill
-  // for later retrieval.
-  if (item.hasOwnProperty('stypeId'))
+  // check to make sure we have something to work with.
+  if (!obj) return;
+
+  // check to ensure it has a skill category property.
+  if (obj.hasOwnProperty('stypeId'))
   {
+    // assign the data.
     this._dataClass = 'skill';
-    this._item = item;
+    this._item = obj;
+  }
+  // check to ensure it has an item category property.
+  else if (obj.hasOwnProperty('itypeId'))
+  {
+    // assign the data.
+    this._dataClass = 'item';
+    this._item = obj;
   }
 };
 

@@ -217,6 +217,7 @@ J.BASE.Traits = {
 J.BASE.Aliased = {
   DataManager: new Map(),
   Game_Character: {},
+  Game_Party: new Map(),
   Scene_Base: new Map(),
   Window_Base: {},
   Window_Command: {},
@@ -384,12 +385,12 @@ Array.iterate = function(times, func)
 
 //#region Static objects
 //#region DataManager
-
 /**
  * The over-arching object containing all of my added parameters.
  */
 DataManager._j ||= {};
 
+//#region rewrite data
 /**
  * Whether or not the database JSON data has been wrapped yet or not.
  * @type {boolean}
@@ -811,6 +812,47 @@ DataManager.rewriteWeaponData = function()
 DataManager.weaponRewriteClass = function()
 {
   return RPG_Weapon;
+};
+//#endregion rewrite data
+
+/**
+ * Checks whether or not the unidentified object is a skill.
+ * @param {RPG_Armor|RPG_Weapon|RPG_Item|RPG_Skill} unidentified The unidentified object.
+ * @returns {boolean} True if the object is a skill, false otherwise.
+ */
+DataManager.isSkill = function(unidentified)
+{
+  return unidentified && ('stypeId' in unidentified);
+};
+
+/**
+ * Checks whether or not the unidentified object is an item.
+ * @param {RPG_Armor|RPG_Weapon|RPG_Item|RPG_Skill} unidentified The unidentified object.
+ * @returns {boolean} True if the object is an item, false otherwise.
+ */
+DataManager.isItem = function(unidentified)
+{
+  return unidentified && ('itypeId' in unidentified);
+};
+
+/**
+ * Checks whether or not the unidentified object is a weapon.
+ * @param {RPG_Armor|RPG_Weapon|RPG_Item|RPG_Skill} unidentified The unidentified object.
+ * @returns {boolean} True if the object is a weapon, false otherwise.
+ */
+DataManager.isWeapon = function(unidentified)
+{
+  return unidentified && ('wtypeId' in unidentified);
+};
+
+/**
+ * Checks whether or not the unidentified object is an armor.
+ * @param {RPG_Armor|RPG_Weapon|RPG_Item|RPG_Skill} unidentified The unidentified object.
+ * @returns {boolean} True if the object is an armor, false otherwise.
+ */
+DataManager.isArmor = function(unidentified)
+{
+  return unidentified && ('atypeId' in unidentified);
 };
 //#endregion DataManager
 
@@ -2677,37 +2719,6 @@ Game_Enemy.prototype.battlerId = function()
 };
 
 /**
- * Gets the amount of sdp points granted by this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.sdpPoints = function()
-{
-  let points = 0;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SdpPoints])
-  {
-    // if its in the metadata, then grab it from there.
-    points = referenceData.meta[J.BASE.Notetags.SdpPoints];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<sdpPoints:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        points = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(points);
-};
-
-/**
  * Gets all skills that are executed by this enemy when it is defeated.
  * @returns {JABS_SkillChance}
  */
@@ -2735,10 +2746,10 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function()
 Game_Enemy.prototype.skills = function()
 {
   const actions = this.enemy().actions
-    .map(action => $dataSkills[action.skillId]);
+    .map(action => this.skill(action.skillId), this);
   const skillTraits = this.enemy().traits
     .filter(trait => trait.code === 35)
-    .map(skillTrait => $dataSkills[skillTrait.dataId]);
+    .map(skillTrait => this.skill(skillTrait.dataId), this);
   return actions
     .concat(skillTraits)
     .sort();
@@ -2751,7 +2762,7 @@ Game_Enemy.prototype.skills = function()
  */
 Game_Enemy.prototype.hasSkill = function(skillId)
 {
-  return this.skills().includes($dataSkills[skillId]);
+  return this.skills().some(skill => skill.id === skillId);
 };
 
 /**
@@ -2769,7 +2780,7 @@ Game_Enemy.prototype.getEverythingWithNotes = function()
 
 /**
  * Gets all objects with notes available to enemies.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 Game_Enemy.prototype.getCurrentWithNotes = function()
 {
@@ -2800,6 +2811,179 @@ Game_Event.prototype.matchesControlCode = function(code)
   return (code === 108 || code === 408);
 };
 //#endregion Game_Event
+
+//#region Game_Party
+/**
+ * OVERWRITE Replaces item gain and management with index-based management instead.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
+ * @param {number} amount The amount to modify the quantity by.
+ * @param {boolean} includeEquip Whether or not to include equipped items for equipment.
+ */
+Game_Party.prototype.gainItem = function(item, amount, includeEquip)
+{
+  // grab the container of items.
+  const container = this.itemContainer(item);
+
+  // check to make sure we have a container.
+  if (container)
+  {
+    // gain the item.
+    this.processItemGain(item, amount, includeEquip);
+  }
+  // we didn't find a container for that item.
+  else
+  {
+    // handle what happens when the item isn't one of the three main database objects.
+    this.processContainerlessItemGain(item, amount, includeEquip);
+  }
+};
+
+/**
+ * Modifies the quantity of an item/weapon/armor.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
+ * @param {number} amount The amount to modify the quantity by.
+ * @param {boolean} includeEquip Whether or not to include equipped items for equipment.
+ */
+Game_Party.prototype.processItemGain = function(item, amount, includeEquip)
+{
+  // grab the item/weapon/armor container.
+  const container = this.itemContainer(item);
+
+  // identify the last amount we previously had.
+  const lastNumber = this.numItems(item);
+
+  // add the new value to the previous.
+  const newNumber = lastNumber + amount;
+
+  // get the key for this item.
+  const itemKey = item._key();
+
+  // clamp the max item count to 0-item_max.
+  container[itemKey] = newNumber.clamp(0, this.maxItems(item));
+
+  // check if the result is now zero.
+  if (container[itemKey] === 0)
+  {
+    // remove the item from tracking.
+    delete container[itemKey];
+  }
+
+  // check if we have any of that particular item equipped.
+  if (includeEquip && newNumber < 0)
+  {
+    // and remove it if we no longer have any of it.
+    this.discardMembersEquip(item, -newNumber);
+  }
+
+  // request a map refresh.
+  $gameMap.requestRefresh();
+};
+
+/**
+ * Hook for item gain processing when the item gained was not one of the three main
+ * item types from the database.
+ * @param {RPG_BaseItem} item The item to modify the quantity of.
+ * @param {number} amount The amount to modify the quantity by.
+ * @param {boolean} includeEquip Whether or not to include equipped items for equipment.
+ */
+Game_Party.prototype.processContainerlessItemGain = function(item, amount, includeEquip)
+{
+  // do something.
+  console.warn(`an item was gained that is not flagged as a database object; ${item.name}.`);
+  console.error(item, amount, includeEquip);
+};
+
+/**
+ * Extends maximum quantity management.
+ */
+J.BASE.Aliased.Game_Party.set('maxItems', Game_Party.prototype.maxItems);
+Game_Party.prototype.maxItems = function(item = null)
+{
+  // if we weren't passed an item, then return the default.
+  if (!item) return this.defaultMaxItems();
+
+  // grab the original max quantity is for this item.
+  const baseMax = J.BASE.Aliased.Game_Party.get('maxItems').call(this, item);
+
+  // check to make sure we got a valid value.
+  if (!baseMax || isNaN(baseMax))
+  {
+    // if there is a problem with someone elses' plugins, return our max.
+    return defaultMaxItems;
+  }
+  // our value is valid.
+  else
+  {
+    // return the original max quantity for this item.
+    return baseMax;
+  }
+};
+
+/**
+ * The default maximum item count.
+ * @returns {number}
+ */
+Game_Party.prototype.defaultMaxItems = function()
+{
+  return 999;
+};
+
+/**
+ * OVERWRITE Retrieves the item based on its index.
+ * @param {RPG_BaseItem} item The item to check the quantity of.
+ * @returns {number}
+ */
+Game_Party.prototype.numItems = function(item)
+{
+  // grab the container for the item.
+  const container = this.itemContainer(item);
+
+  // return the amount in the container.
+  return container
+    // safety net for rounding to zero instead of undefined.
+    ? container[item._key()] || 0
+    // or just zero if we have no container.
+    : 0;
+};
+
+/*
+// TODO: for your item management rewrite.
+Game_Party.prototype.initAllItems = function() {
+  this._items = {};
+  this._weapons = {};
+  this._armors = {};
+};
+
+Game_Party.prototype.itemContainer = function(item) {
+  if (!item) {
+    return null;
+  } else if (DataManager.isItem(item)) {
+    return this._items;
+  } else if (DataManager.isWeapon(item)) {
+    return this._weapons;
+  } else if (DataManager.isArmor(item)) {
+    return this._armors;
+  } else {
+    return null;
+  }
+};
+
+Game_Party.prototype.items = function()
+{
+  return Object.keys(this._items).map(id => $dataItems[id]);
+};
+
+Game_Party.prototype.weapons = function()
+{
+  return Object.keys(this._weapons).map(id => $dataWeapons[id]);
+};
+
+Game_Party.prototype.armors = function()
+{
+  return Object.keys(this._armors).map(id => $dataArmors[id]);
+};
+*/
+//#endregion Game_Party
 //#endregion Game objects
 
 //#region Sprite objects
@@ -5000,7 +5184,7 @@ class RPG_DropItem
 
   /**
    * Constructor.
-   * @param {RPG_EnemyDropItem} enemyDropItem The drop item to parse.
+   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
    */
   constructor(enemyDropItem)
   {
@@ -5095,7 +5279,7 @@ class RPG_SkillDamage
    * The damage type this is, such as HP damage or MP healing.
    * @type {1|2|3|4|5|6}
    */
-  type = 1;
+  type = 0;
 
   /**
    * The % of variance this damage can have.
@@ -5111,11 +5295,18 @@ class RPG_SkillDamage
    */
   constructor(damage)
   {
-    this.critical = damage.critical;
-    this.elementId = damage.elementId;
-    this.formula = damage.formula;
-    this.type = damage.type;
-    this.variance = damage.variance;
+    if (damage)
+    {
+      this.critical = damage.critical;
+      this.elementId = damage.elementId;
+      this.formula = damage.formula;
+      this.type = damage.type;
+      this.variance = damage.variance;
+    }
+    else
+    {
+      // if we don't have damage, use the defaults.
+    }
   };
 }
 //#endregion RPG_SkillDamage
@@ -5312,6 +5503,19 @@ class RPG_Base
 
     // return the newly created copy.
     return clone;
+  };
+
+  /**
+   * The unique key that is used to register this object against
+   * its corresponding container when the party has one or more of these
+   * in their possession. By default, this is just the index of the item's entry
+   * from the databse, but you can change it if you need a more unique means
+   * of identifying things.
+   * @returns {any}
+   */
+  _key()
+  {
+    return this._index();
   };
 
   //#region meta
@@ -5702,7 +5906,7 @@ class RPG_Base
   };
 
   /**
-   * Gets an accumulated numeric value based on the provided regex structure.
+   * Gets an array value based on the provided regex structure.
    *
    * This accepts a regex structure, assuming the capture group is an array of values
    * all wrapped in hard brackets [].
@@ -5757,6 +5961,10 @@ class RPG_Base
 //#endregion RPG_Base
 
 //#region RPG_BaseItem
+/**
+ * The class representing baseItem from the database,
+ * and now an iconIndex with a description.
+ */
 class RPG_BaseItem extends RPG_Base
 {
   /**
