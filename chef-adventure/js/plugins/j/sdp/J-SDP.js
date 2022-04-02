@@ -1905,7 +1905,7 @@ class Window_SDP_List extends Window_Command
       */
     });
   };
-};
+}
 //#endregion Window_SDP_List
 
 //#region Window_SDP_Details
