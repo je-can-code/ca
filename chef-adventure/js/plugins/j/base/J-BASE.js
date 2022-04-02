@@ -5106,6 +5106,8 @@ Window_Selectable.prototype.select = function(index)
 
 /**
  * Designed for overriding to weave in functionality on-change of the index.
+ *
+ * NOTE: This executes AFTER the index has changed.
  */
 Window_Selectable.prototype.onIndexChange = function()
 {
