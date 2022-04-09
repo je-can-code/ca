@@ -5539,7 +5539,6 @@ class RPG_Base
       return result;
     }
 
-    console.warn(`key yielded no auto-parsed metadata: ${key}`);
     return null;
   };
 

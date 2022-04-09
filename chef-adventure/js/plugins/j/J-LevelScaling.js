@@ -279,6 +279,7 @@ J.LEVEL.PluginParameters = PluginManager.parameters(`J-LevelScaling`);
  */
 J.LEVEL.Metadata = {};
 J.LEVEL.Metadata.Version = '1.0.0';
+J.LEVEL.Metadata.Name = `J-LevelScaling`;
 
 /**
  * Whether or not the scaling functionality is enabled.

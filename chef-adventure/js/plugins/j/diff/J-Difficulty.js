@@ -40,6 +40,41 @@
  * @text Difficulties
  * @desc All difficulties, locked or otherwise.
  * @default ["{\"key\":\"010_Easy\",\"name\":\"Easy\",\"iconIndex\":\"881\",\"unlocked\":\"true\",\"description\":\"A mild experience for players that want to try less and fun more.\",\"bparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\"]\",\"xparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"50\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"3\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"0\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"0\\\\\\\"}\\\"]\",\"sparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"6\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"7\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\"]\",\"bonuses\":\"[\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"3\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\"]\"}","{\"key\":\"020_Normal\",\"name\":\"Normal\",\"iconIndex\":\"883\",\"unlocked\":\"true\",\"description\":\"Your expected gameplay difficulty. Nothing is modified.\",\"bparams\":\"[]\",\"xparams\":\"[]\",\"sparams\":\"[]\",\"bonuses\":\"[]\"}","{\"key\":\"030_Hard\",\"name\":\"Hard\",\"iconIndex\":\"885\",\"unlocked\":\"true\",\"description\":\"A more challenging experience where you might have to try more than button mashing to win.\",\"bparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"7\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"120\\\\\\\"}\\\"]\",\"xparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"3\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"4\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\"]\",\"sparams\":\"[\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"6\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\",\\\"{\\\\\\\"parameterId\\\\\\\":\\\\\\\"7\\\\\\\",\\\\\\\"parameterRate\\\\\\\":\\\\\\\"80\\\\\\\"}\\\"]\",\"bonuses\":\"[\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"0\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"1\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"2\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\",\\\"{\\\\\\\"bonusId\\\\\\\":\\\\\\\"3\\\\\\\",\\\\\\\"bonusRate\\\\\\\":\\\\\\\"150\\\\\\\"}\\\"]\"}"]
+ *
+ *
+ * @command callDifficultyMenu
+ * @text Call Difficulty Menu
+ * @desc Calls the difficulty menu regardless of the current scene.
+ *
+ * @command lockDifficulty
+ * @text Lock Difficulty
+ * @desc Locks a difficulty, making it unchoosable in the difficulty menu.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be locked.
+ *
+ * @command unlockDifficulty
+ * @text Unlock Difficulty
+ * @desc Unlocks a difficulty, making it choosable in the difficulty menu.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be unlocked.
+ *
+ * @command hideDifficulty
+ * @text Hide Difficulty
+ * @desc Hides a difficulty, preventing it from being added to the list in the difficulty menu.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be hidden.
+ *
+ * @command unhideDifficulty
+ * @text Unhide Difficulty
+ * @desc Shows a difficulty, forcing it to be added to the list in the difficulty menu.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be unhidden.
+ *
+ *
  */
 /*~struct~DifficultyStruct:
  * @param key
@@ -253,10 +288,17 @@ J.DIFF = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIFF = {};
-J.DIFF.Metadata = {};
-J.DIFF.Metadata.Version = '1.0.0';
-J.DIFF.Metadata.Name = `J-Difficulty`;
+J.DIFF.Metadata = {
+  /**
+   * The version of this plugin.
+   */
+  Version: '1.0.0',
+
+  /**
+   * The name of this plugin.
+   */
+  Name: `J-Difficulty`,
+};
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -348,12 +390,10 @@ J.DIFF.Helpers.toDifficulties = rawJson =>
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.DIFF.Metadata =
-  {
+J.DIFF.Metadata = {
     // the previously defined metadata.
     ...J.DIFF.Metadata,
 
-    // our configurable data points.
     Difficulties: J.DIFF.Helpers.toDifficulties(J.DIFF.PluginParameters['difficulties'])|| [],
 
     DefaultDifficulty: J.DIFF.PluginParameters['defaultDifficulty'] || String.empty,
@@ -363,6 +403,8 @@ J.DIFF.Metadata =
  * A collection of all aliased methods for this plugin.
  */
 J.DIFF.Aliased = {
+  Game_Enemy: new Map(),
+  Game_Map: new Map(),
   Game_System: new Map(),
   Scene_Map: new Map(),
 };
@@ -370,16 +412,242 @@ J.DIFF.Aliased = {
 
 //#region plugin commands
 /**
- * Plugin command for calling the SDP scene/menu.
+ * Plugin command for calling the Difficulty scene/menu.
  */
-PluginManager.registerCommand(J.DIFF.Metadata.Name, "Call Difficulty Menu", () =>
+PluginManager.registerCommand(J.DIFF.Metadata.Name, "callDifficultyMenu", () =>
 {
   SceneManager.push(Scene_Difficulty);
+});
+
+/**
+ * Plugin command for calling the locking one or many difficulties.
+ */
+PluginManager.registerCommand(J.DIFF.Metadata.Name, "lockDifficulty", args =>
+{
+  let {keys} = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key =>
+  {
+    $gameSystem.lockDifficulty(key);
+  });
+});
+
+/**
+ * Plugin command for calling the unlocking one or many difficulties.
+ */
+PluginManager.registerCommand(J.DIFF.Metadata.Name, "unlockDifficulty", args =>
+{
+  let {keys} = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key =>
+  {
+    $gameSystem.unlockDifficulty(key);
+  });
+});
+
+/**
+ * Plugin command for calling the hiding one or many difficulties.
+ */
+PluginManager.registerCommand(J.DIFF.Metadata.Name, "hideDifficulty", args =>
+{
+  let {keys} = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key =>
+  {
+    $gameSystem.hideDifficulty(key);
+  });
+});
+
+/**
+ * Plugin command for calling the unhiding one or many difficulties.
+ */
+PluginManager.registerCommand(J.DIFF.Metadata.Name, "unhideDifficulty", args =>
+{
+  let {keys} = args;
+  keys = JSON.parse(keys);
+  keys.forEach(key =>
+  {
+    $gameSystem.unhideDifficulty(key);
+  });
 });
 //#endregion plugin commands
 //#endregion introduction
 
 //#region Game objects
+//#region Game_Enemy
+/**
+ * Extends the `.param(paramId)` function to modify by difficulty.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Enemy.set("param", Game_Enemy.prototype.param);
+Game_Enemy.prototype.param = function(paramId)
+{
+  // grab the original value.
+  const originalValue = J.DIFF.Aliased.Game_Enemy.get("param").call(this, paramId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.bparam(paramId) / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return Math.round(originalValue * multiplier);
+};
+
+/**
+ * Extends the `.sparam(paramId)` function to modify by difficulty.
+ * @param {number} sparamId The s-parameter id.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Enemy.set("sparam", Game_Enemy.prototype.sparam);
+Game_Enemy.prototype.sparam = function(sparamId)
+{
+  // grab the original value.
+  const originalValue = J.DIFF.Aliased.Game_Enemy.get("sparam").call(this, sparamId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.sparam(sparamId) / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return (originalValue * multiplier);
+};
+
+/**
+ * Extends the `.xparam(paramId)` function to modify by difficulty.
+ * @param {number} xparamId The x-parameter id.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Enemy.set("xparam", Game_Enemy.prototype.xparam);
+Game_Enemy.prototype.xparam = function(xparamId)
+{
+  const originalValue = J.DIFF.Aliased.Game_Enemy.get("xparam").call(this, xparamId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.xparam(xparamId) / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return (originalValue * multiplier);
+};
+
+/**
+ * Extends the `.exp()` function to modify by difficulty.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Enemy.set("exp", Game_Enemy.prototype.exp);
+Game_Enemy.prototype.exp = function()
+{
+  // grab the original value.
+  const originalValue = J.DIFF.Aliased.Game_Enemy.get("exp").call(this);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the bonus according to the difficulty.
+  const multiplier = appliedDifficulty.exp / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return Math.round(originalValue * multiplier);
+};
+
+/**
+ * Extends the `.gold()` function to modify by difficulty.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
+Game_Enemy.prototype.gold = function()
+{
+  // grab the original value.
+  const originalValue = J.DIFF.Aliased.Game_Enemy.get("gold").call(this);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the bonus according to the difficulty.
+  const multiplier = appliedDifficulty.gold / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return Math.round(originalValue * multiplier);
+};
+
+// in order to to properly multiply drop rates, we need to use my drops plugin;
+// `J-ControlledDrops` gives easy access to modify the drop rates, so we'll extend that!
+if (J.DROPS)
+{
+  /**
+   * Extends the `.getBaseDropRate()` function to modify by difficulty.
+   * @returns {number}
+   */
+  J.DIFF.Aliased.Game_Enemy.set("getBaseDropRate", Game_Enemy.prototype.getBaseDropRate);
+  Game_Enemy.prototype.getBaseDropRate = function()
+  {
+    // grab the original value.
+    const originalValue = J.DIFF.Aliased.Game_Enemy.get("getBaseDropRate").call(this);
+
+    // grab the currently applied difficulty.
+    const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+    // determine the multiplier for the bonus according to the difficulty.
+    const multiplier = appliedDifficulty.drops / 100;
+
+    // return the rounded product of the multiplier and the original value.
+    return Math.round(originalValue * multiplier);
+  };
+}
+
+// to modify the SDP system, we actually need to have the SDP system implemented.
+if (J.SDP)
+{
+  /**
+   * Extends the `.sdpPoints()` function to modify by difficulty.
+   * @returns {number}
+   */
+  J.DIFF.Aliased.Game_Enemy.set("sdpPoints", Game_Enemy.prototype.sdpPoints);
+  Game_Enemy.prototype.sdpPoints = function()
+  {
+    // grab the original value.
+    const originalValue = J.DIFF.Aliased.Game_Enemy.get("sdpPoints").call(this);
+
+    // grab the currently applied difficulty.
+    const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+    // determine the multiplier for the bonus according to the difficulty.
+    const multiplier = appliedDifficulty.sdp / 100;
+
+    // return the rounded product of the multiplier and the original value.
+    return Math.round(originalValue * multiplier);
+  };
+}
+//#endregion Game_Enemy
+
+//#region Game_Map
+/**
+ * Extends the `.encounterStep()` function to modify by difficulty.
+ * @returns {number}
+ */
+J.DIFF.Aliased.Game_Map.set("encounterStep", Game_Map.prototype.encounterStep);
+Game_Map.prototype.encounterStep = function()
+{
+  // grab the original value.
+  const originalValue = J.DIFF.Aliased.Game_Map.get("encounterStep").call(this);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+  // determine the multiplier for the bonus according to the difficulty.
+  const multiplier = appliedDifficulty.encounters / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return Math.round(originalValue * multiplier);
+};
+//#endregion Game_Map
+
 //#region Game_System
 /**
  * Extends the `.initialize()` with our difficulty initialization.
@@ -438,6 +706,12 @@ Game_System.prototype.setAppliedDifficulty = function(difficulty)
   this._j._difficulty.appliedDifficulty = difficulty;
 };
 
+/**
+ * Finds the difficulty that matches the key provided.
+ * Returns null if no difficulty matching the key is found.
+ * @param {string} difficultyKey The key to find the difficulty of.
+ * @returns {Difficulty|null} The difficulty if found, null otherwise.
+ */
 Game_System.prototype.findDifficultyByKey = function(difficultyKey)
 {
   const foundDifficulty = this.allDifficulties().find(difficulty => difficulty.key === difficultyKey);
@@ -449,6 +723,58 @@ Game_System.prototype.findDifficultyByKey = function(difficultyKey)
   {
     console.warn(`could not find difficulty with key: [${difficultyKey}].`);
     return null;
+  }
+};
+
+Game_System.prototype.lockDifficulty = function(difficultyKey)
+{
+  const foundDifficulty = this.findDifficultyByKey(difficultyKey);
+  if (foundDifficulty)
+  {
+    foundDifficulty.lock();
+  }
+  else
+  {
+    console.warn(`could not lock difficulty with key: [${difficultyKey}].`);
+  }
+};
+
+Game_System.prototype.unlockDifficulty = function(difficultyKey)
+{
+  const foundDifficulty = this.findDifficultyByKey(difficultyKey);
+  if (foundDifficulty)
+  {
+    foundDifficulty.unlock();
+  }
+  else
+  {
+    console.warn(`could not unlock difficulty with key: [${difficultyKey}].`);
+  }
+};
+
+Game_System.prototype.hideDifficulty = function(difficultyKey)
+{
+  const foundDifficulty = this.findDifficultyByKey(difficultyKey);
+  if (foundDifficulty)
+  {
+    foundDifficulty.hide();
+  }
+  else
+  {
+    console.warn(`could not lock difficulty with key: [${difficultyKey}].`);
+  }
+};
+
+Game_System.prototype.unhideDifficulty = function(difficultyKey)
+{
+  const foundDifficulty = this.findDifficultyByKey(difficultyKey);
+  if (foundDifficulty)
+  {
+    foundDifficulty.unhide();
+  }
+  else
+  {
+    console.warn(`could not unlock difficulty with key: [${difficultyKey}].`);
   }
 };
 //#endregion Game_System
@@ -512,6 +838,18 @@ class Scene_Difficulty extends Scene_MenuBase
   };
 
   /**
+   * Extends `.start()` to include our post-window setup.
+   */
+  start()
+  {
+    super.start();
+    const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+
+    // select the current difficulty if it is in the list and not locked.
+    this._j._difficultyListWindow.selectExt(appliedDifficulty);
+  };
+
+  /**
    * Creates all windows associated with the difficulty scene.
    */
   createAllWindows()
@@ -571,7 +909,6 @@ class Scene_Difficulty extends Scene_MenuBase
   onHoverChange()
   {
     const hoveredDifficulty = this._j._difficultyListWindow.currentExt();
-    console.log('changed! ', hoveredDifficulty);
     this._j._difficultyDetailsWindow.setHoveredDifficulty(hoveredDifficulty);
     this._j._difficultyHelpWindow.setText(hoveredDifficulty.description);
   };
@@ -646,6 +983,9 @@ class Window_DifficultyList extends Window_Command
     // add all difficulties to the list.
     difficulties.forEach(difficulty =>
     {
+      // don't render the difficulty in the list if it is hidden.
+      if (difficulty.isHidden()) return;
+
       this.addCommand(
         difficulty.name,
         difficulty.key,
@@ -727,19 +1067,6 @@ class Window_DifficultyDetails extends Window_Base
   };
 
   /**
-   * Sets the applied difficulty.
-   * @param {Difficulty} difficulty The newly applied difficulty.
-   */
-  setAppliedDifficulty(difficulty)
-  {
-    if (this.appliedDifficulty !== difficulty)
-    {
-      this.appliedDifficulty = difficulty;
-      this.refresh();
-    }
-  };
-
-  /**
    * Gets the difficulty currently being hovered over in the list.
    * @returns {Difficulty}
    */
@@ -813,11 +1140,18 @@ class Window_DifficultyDetails extends Window_Base
    */
   drawComparedDifficultyNames(x, y, w, appliedDifficulty, hoveredDifficulty)
   {
-    this.drawComparedDifficultyName(x, y, w, appliedDifficulty.iconIndex, appliedDifficulty.name);
+    const lh = this.lineHeight();
+    const modifiedX = x + 100;
 
-    this.drawText("→", x+150, y, w, "left");
+    const currentY = lh * 0;
+    this.drawText("Current:", x, currentY, w, "left");
+    this.drawComparedDifficultyName(modifiedX, currentY, w, appliedDifficulty.iconIndex, appliedDifficulty.name);
 
-    this.drawComparedDifficultyName(x+250, y, w, hoveredDifficulty.iconIndex, hoveredDifficulty.name);
+    //this.drawText("→", x+150, y, w, "left");
+
+    const hoveredY = lh * 1;
+    this.drawText("Hovered:", x, hoveredY, w, "left");
+    this.drawComparedDifficultyName(modifiedX, hoveredY, w, hoveredDifficulty.iconIndex, hoveredDifficulty.name);
   };
 
   /**
@@ -979,7 +1313,7 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonuses(x, oy, appliedDifficulty, hoveredDifficulty = null)
   {
     const lh = this.lineHeight();
-    const w = 100;
+    const w = 120;
 
     const expRateY = oy + (lh * 0);
     this.drawDifficultyBonusExperience(x, expRateY, w, appliedDifficulty, hoveredDifficulty);

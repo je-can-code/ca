@@ -272,7 +272,7 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
 /**
  * Parses the given reference data to extract any extra drops that may be present.
  * @param {rm.types.BaseItem} referenceData The database object to parse.
- * @returns {RPG_EnemyDropItem[]}
+ * @returns {RPG_DropItem[]}
  */
 Game_Battler.prototype.extractExtraDrops = function(referenceData)
 {
@@ -303,7 +303,7 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
 /**
  * Extracts the extra drop from a single note line, if one is present.
  * @param {string} line The line from a note to extract from.
- * @returns {RPG_EnemyDropItem|null}
+ * @returns {RPG_DropItem|null}
  */
 Game_Battler.prototype.extractExtraDrop = function(line)
 {
@@ -420,7 +420,7 @@ Game_Enemy.prototype.makeDropItems = function()
 
 /**
  * Gets the drop items from this enemy from all sources available.
- * @returns {RPG_EnemyDropItem[]}
+ * @returns {RPG_DropItem[]}
  */
 Game_Enemy.prototype.getDropItems = function()
 {
@@ -432,7 +432,7 @@ Game_Enemy.prototype.getDropItems = function()
 /**
  * Gets any additional drops from the notes of this particular enemy.
  *
- * @returns {RPG_EnemyDropItem[]}
+ * @returns {RPG_DropItem[]}
  */
 Game_Enemy.prototype.extraDrops = function()
 {
@@ -472,12 +472,8 @@ Game_Enemy.prototype.getDropMultiplier = function()
   // get the party's bonus drop multiplier.
   multiplier += $gameParty.getDropMultiplier();
 
-  // if someone in the party has the "double drops" accessory...
-  if ($gameParty.hasDropItemDouble())
-  {
-    // then multiply the collective drop rates by 2x.
-    multiplier *= 2;
-  }
+  // if someone in the party has the "double drops" accessory, then double the rate.
+  multiplier *= this.dropItemRate();
 
   // return this magical loot multiplier.
   return multiplier;
