@@ -4,7 +4,7 @@
   },
 
   "include": [
-    "lunalite-pixi-mz.d.ts",
+    "defs/*.d.ts",
     "./**/*.js"
   ]
 }
