@@ -2821,6 +2821,13 @@ Game_Event.prototype.matchesControlCode = function(code)
  */
 Game_Party.prototype.gainItem = function(item, amount, includeEquip)
 {
+  // when items are unequipped, "null" is gained for some stupid fucking reason.
+  if (!item)
+  {
+    // don't try to gain "null" because rm core devs don't know how to code.
+    return;
+  }
+
   // grab the container of items.
   const container = this.itemContainer(item);
 

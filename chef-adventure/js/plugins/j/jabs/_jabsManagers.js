@@ -825,15 +825,15 @@ class JABS_AiManager
   //#region ai:leader
   /**
    * Decides the next action for all applicable followers.
-   * @param {JABS_Battler} battler The leader to make decisions with.
+   * @param {JABS_Battler} leader The leader to make decisions with.
    */
-  static decideActionsForFollowers(battler)
+  static decideActionsForFollowers(leader)
   {
     // grab all nearby followers.
-    const nearbyFollowers = $gameMap.getNearbyFollowers(battler);
+    const nearbyFollowers = $gameMap.getNearbyFollowers(leader);
 
     // iterate over each found follower.
-    nearbyFollowers.forEach(follower => this.decideActionForFollower(battler, follower));
+    nearbyFollowers.forEach(follower => this.decideActionForFollower(leader, follower));
   };
 
   /**
@@ -852,8 +852,11 @@ class JABS_AiManager
       follower.setLeader(leader.getUuid());
     }
 
+    // grab the leader's AI.
+    const leaderAi = leader.getAiMode();
+
     // decide the action of the follower for them.
-    const followerAction = leader.getAiMode().decideActionForFollower(leader, follower);
+    const followerAction = leaderAi.decideActionForFollower(leader, follower);
 
     // check if we found a valid action for the follower.
     if (followerAction)
@@ -871,8 +874,36 @@ class JABS_AiManager
    */
   static canDecideActionForFollower(leader, follower)
   {
-    // check if the follower already has a leader that isn't this leader.
-    if (follower.hasLeader() && follower.getLeader() !== leader.getUuid()) return false;
+    // check if the follower and the leader are actually the same.
+    if (leader === follower)
+    {
+      // you are already in control, bro.
+      return false;
+    }
+
+    // check if the follower exists.
+    if (!follower)
+    {
+      // there is nothing to control.
+      return false;
+    }
+
+    // check if the follower is a leader themself.
+    if (follower.getAiMode().leader)
+    {
+      // leaders cannot control leaders.
+      return false;
+    }
+
+    // check if the follower has a leader that is different than this leader.
+    if (follower.hasLeader() && follower.getLeader() !== leader.getUuid())
+    {
+      // stop trying to boss other leader's followers around!
+      leader.removeFollower(follower.getUuid());
+
+      // they are already under control.
+      return false;
+    }
 
     // lead this follower!
     return true;
@@ -947,8 +978,21 @@ class JABS_AiManager
       return;
     }
 
+    // construct the skill from the battler's perspective.
+    const skill = battler.getSkill(leaderDecidedSkillId);
+
+    // check to make sure we actually constructed a skill.
+    if (!skill)
+    {
+      // cancel the setup if we decided on nothing.
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
+
     // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[leaderDecidedSkillId]);
+    const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, leaderDecidedSkillId, cooldownKey);
@@ -962,13 +1006,26 @@ class JABS_AiManager
   static decideFollowerAiBySelf(battler)
   {
     // only basic attacks for this battler.
-    const [skillId] = battler.getEnemyBasicAttack();
+    const [basicAttackSkillId] = battler.getEnemyBasicAttack();
+
+    // construct the skill from the battler's perspective.
+    const skill = battler.getSkill(basicAttackSkillId);
+
+    // check to make sure we actually constructed a skill.
+    if (!skill)
+    {
+      // cancel the setup if we decided on nothing.
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
 
     // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
+    const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
-    this.setupActionForNextPhase(battler, skillId, cooldownKey);
+    this.setupActionForNextPhase(battler, basicAttackSkillId, cooldownKey);
   };
   //#endregion ai:follower
 
@@ -995,8 +1052,21 @@ class JABS_AiManager
       return;
     }
 
+    // construct the skill from the battler's perspective.
+    const skill = battler.getSkill(skillId);
+
+    // check to make sure we actually constructed a skill.
+    if (!skill)
+    {
+      // cancel the setup if we decided on nothing.
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
+
     // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
+    const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
@@ -1016,7 +1086,7 @@ class JABS_AiManager
     const skillsToUse = battler.getAllSkillIdsFromEnemy();
 
     // determine the best attack action to use.
-    const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse);
+    const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse) ?? 0;
 
     // check if we decided on a skill.
     if (!skillId)
@@ -1028,8 +1098,21 @@ class JABS_AiManager
       return;
     }
 
+    // construct the skill from the battler's perspective.
+    const skill = battler.getSkill(skillId);
+
+    // check to make sure we actually constructed a skill.
+    if (!skill)
+    {
+      // cancel the setup if we decided on nothing.
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
+
     // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
+    const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
@@ -1074,6 +1157,16 @@ class JABS_AiManager
 
     // construct the skill from the battler's perspective.
     const skill = battler.getSkill(skillId);
+
+    // check to make sure we actually constructed a skill.
+    if (!skill)
+    {
+      // cancel the setup if we decided on nothing.
+      this.cancelActionSetup(battler);
+
+      // stop processing.
+      return;
+    }
 
     // build the cooldown from the skill.
     const cooldownKey = this.buildEnemyCooldownType(skill);
@@ -1130,7 +1223,7 @@ class JABS_AiManager
     }
 
     // check if we decided on a skill.
-    if (!skillId || skillId.length)
+    if (!skillId)
     {
       // cancel the setup if we decided on nothing.
       this.cancelActionSetup(battler);

@@ -348,7 +348,7 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
   const baseDamage = J.LEVEL.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
 
   // get the multiplier based on target and user levels.
-  const multiplier = LevelScaling.multiplier(target.level, this.subject().level);
+  const multiplier = LevelScaling.multiplier(this.subject().level, target.level);
 
   // return the product of these two values.
   return (baseDamage * multiplier);
@@ -562,6 +562,8 @@ Game_Troop.prototype.getScaledExpResult = function()
   const reducer = (accumulativeExpTotal, currentEnemy) =>
   {
     // determine the experience factor for this defeated enemy level vs the average party level.
+    // if the enemy is higher, then the rewards will be greater.
+    // if the actor is higher, then the rewards will be lesser.
     const expFactor = LevelScaling.multiplier(averageActorLevel, currentEnemy.level);
 
     // multiply the factor against the experience amount to get the actual amount.
@@ -712,7 +714,7 @@ class LevelScaling
    *
    * This gives a multiplier in relation to the user.
    * @param {number} targetLevel The level of the target.
-   * @param {number} userLevel The level of the user.
+   * @param {number} userLevel The level of the user, typically the actor.
    * @returns {number} A decimal representing the multiplier for the scaling.
    */
   static multiplier(targetLevel, userLevel)
@@ -720,7 +722,7 @@ class LevelScaling
     // if the scaling functionality is disabled, then just return 1x.
     if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
 
-    // if one of the inputs is invalid, then default to 1x.
+    // if one of the inputs is invalid or just zero, then default to 1x.
     if (!this.#isValid(targetLevel, userLevel)) return this.#defaultScalingMultiplier;
 
     // determine the difference in level.
@@ -732,6 +734,7 @@ class LevelScaling
 
   /**
    * Determines whether or not the two battler's level inputs were valid.
+   * Zero, while "valid", is handled the same as invalid: just use the default multiplier.
    * @param {number} a One of the battler's level.
    * @param {number} b The other battler's level.
    * @returns {boolean} True if both battler's levels are valid, false otherwise.

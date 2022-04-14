@@ -1330,13 +1330,13 @@ JABS_Battler.prototype.initEnemySkillCooldowns = function()
 JABS_Battler.prototype.initEnemyAttackCooldowns = function()
 {
   // grab the basic attack skill id.
-  const [skillId] = this.getEnemyBasicAttack();
+  const [basicAttackSkillId] = this.getEnemyBasicAttack();
 
   // check to make sure we have a valid skillId.
-  if (skillId)
+  if (basicAttackSkillId)
   {
     // initialize the cooldown by its skill id.
-    this.initEnemyCooldownBySkill(skillId);
+    this.initEnemyCooldownBySkill(basicAttackSkillId);
   }
 };
 
@@ -4461,6 +4461,15 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   // grab the cooldown itself.
   const cooldown = this.getCooldown(cooldownKey);
 
+  // check if the skill was actually a remembered effective skill from a follower.
+  if (!cooldown)
+  {
+    // please stop trying to cast your follower's skills.
+    console.warn(this, cooldownKey);
+    console.trace();
+    return false;
+  }
+
   // check if the base is off cooldown yet.
   if (!cooldown.isBaseReady())
   {
@@ -4512,10 +4521,10 @@ JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
   if (this.isEnemy())
   {
     // grab the enemy basic attack.
-    const [basicAttackId] = this.getEnemyBasicAttack();
+    const [basicAttackSkillId] = this.getEnemyBasicAttack();
 
     // check if the chosen skill is the enemy's basic attack.
-    return (skillId === basicAttackId);
+    return (skillId === basicAttackSkillId);
   }
   // handle accordingly if an actor.
   else if (this.isActor())
@@ -4539,31 +4548,19 @@ JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
  * Gets the proper skill based on the skill id.
  * Accommodates J-SkillExtend and/or J-Passives.
  * @param {number} skillId The skill id to retrieve.
- * @returns {RPG_Skill}
+ * @returns {RPG_Skill|null}
  */
 JABS_Battler.prototype.getSkill = function(skillId)
 {
-  // grab the battler.
-  const battler = this.getBattler();
+  // check to make sure we actually have a skill id first.
+  if (!skillId)
+  {
+    // return null if we do not.
+    return null;
+  }
 
-  // check if we're using skill extend but not the passive skillstates.
-  if (J.EXTEND && !J.PASSIVE)
-  {
-    // use the overlay manager to get the skill.
-    return OverlayManager.getExtendedSkill(battler, skillId);
-  }
-  // check if we're using the passive skillstates.
-  else if (J.PASSIVE)
-  {
-    // return the battler's interpretation of the skill.
-    return battler.skill(skillId);
-  }
-  // not using any of my other plugins.
-  else
-  {
-    // return straight from the database.
-    return $dataSkills[skillId];
-  }
+  // return the skill assocaited with the underlying battler.
+  return this.getBattler().skill(skillId);
 };
 
 /**
@@ -5953,7 +5950,7 @@ class JABS_BattlerAI
     return (
       this.careful ||
       this.executor ||
-      this.reckles ||
+      this.reckless ||
       this.healer ||
       this.follower ||
       this.leader);
@@ -5967,45 +5964,64 @@ class JABS_BattlerAI
    */
   decideActionForFollower(leaderBattler, followerBattler)
   {
-    // all follower actions are decided based on the leader's ai.
-    const {careful, executor, healer} = this;
-    const basicAttackId = followerBattler.getEnemyBasicAttack()[0];
-    let skillsToUse = followerBattler.getSkillIdsFromEnemy();
-    if (skillsToUse.length)
-    {
-      const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
-      if (healer)
-      {
-        // get nearby allies with the leader's modified sight range of both battlers.
-        const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
+    // grab the basic attack skill id for this battler.
+    const [basicAttackSkillId] = followerBattler.getEnemyBasicAttack();
 
-        // prioritize healing when self or allies are low on hp.
-        if (healer)
-        {
-          skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
-        }
-      }
-      else if (careful || executor)
-      {
-        // focus on the leader's target instead of the follower's target.
-        skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
-      }
-    }
-    else
+    let skillsToUse = followerBattler.getSkillIdsFromEnemy();
+
+    // if the enemy has no skills, then just basic attack.
+    if (!skillsToUse.length)
     {
       // if there are no actual skills on this enemy, just use it's basic attack.
-      return basicAttackId;
+      return basicAttackSkillId;
     }
 
-    let chosenSkillId = Array.isArray(skillsToUse)
-      ? skillsToUse[0]
-      : skillsToUse;
-    const followerGameBattler = followerBattler.getBattler();
-    const canPayChosenSkillCosts = followerGameBattler.canPaySkillCost($dataSkills[chosenSkillId]);
-    if (!canPayChosenSkillCosts)
+    // all follower actions are decided based on the leader's ai.
+    const {careful, executor, healer} = this;
+
+    // the leader calculates for the follower, so the follower gets the leader's sight as a bonus.
+    const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
+
+    // healer AI takes priority.
+    if (healer)
     {
-      // if they can't pay the cost of the decided skill, check the basic attack.
-      chosenSkillId = basicAttackId;
+      // get nearby allies with the leader's modified sight range of both battlers.
+      const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
+
+      // prioritize healing when self or allies are low on hp.
+      if (healer)
+      {
+        skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
+      }
+    }
+    else if (careful || executor)
+    {
+      // focus on the leader's target instead of the follower's target.
+      skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
+    }
+
+    // if the enemy has no skills after all the filtering, then just basic attack.
+    if (!skillsToUse.length)
+    {
+      // basic attacking is always an option.
+      return basicAttackSkillId;
+    }
+
+    // handle either collection or single skill.
+    // TODO: probably should unify the responses of the above to return either a single OR collection.
+    let chosenSkillId = Array.isArray(skillsToUse) ? skillsToUse[0] : skillsToUse;
+
+    // grab the battler of the follower.
+    const followerGameBattler = followerBattler.getBattler();
+
+    // grab the skill.
+    const skill = followerGameBattler.skill(chosenSkillId);
+
+    // check if they can pay the costs of the skill.
+    if (!followerGameBattler.canPaySkillCost(skill))
+    {
+      // if they can't pay the cost of the decided skill, you can always basic attack!
+      chosenSkillId = basicAttackSkillId;
     }
 
     return chosenSkillId;
@@ -6046,6 +6062,8 @@ class JABS_BattlerAI
    */
   decideAttackAction(user, skillsToUse)
   {
+    const clone = [skillsToUse.map(x => x)];
+
     // reduce the list to only castable skills.
     skillsToUse = this.filterUncastableSkills(user, skillsToUse);
 
@@ -6089,29 +6107,29 @@ class JABS_BattlerAI
 
   /**
    * A protection method for handling none, one, or many skills remaining after
-   * filtering.
+   * filtering, and only returning a single skill id.
    * @param {JABS_Battler} user The battler to decide the skill for.
    * @param {number[]|number|null} skillsToUse The available skills to use.
    * @returns {number}
    */
   decideFromNoneToManySkills(user, skillsToUse)
   {
-    // check if the skill was invalid, or the array of skills was empty.
-    if (!skillsToUse || (Array.isArray(skillsToUse) && !skillsToUse.length))
-    {
-      // always at least basic attack.
-      return user.getEnemyBasicAttack()[0];
-    }
-
     // check if "skills" is actually just one valid skill.
     if (Number.isInteger(skillsToUse))
     {
       // return that, this is fine.
       return skillsToUse;
     }
+    // check if "skills" is indeed an array of skills with values.
+    else if (Array.isArray(skillsToUse) && skillsToUse.length)
+    {
+      // pick one at random.
+      return skillsToUse[Math.randomInt(skillsToUse.length)];
+    }
 
-    // otherwise, it must be a valid array, so pick one at random.
-    return skillsToUse[Math.randomInt(skillsToUse.length)];
+    // always at least basic attack.
+    console.log('couldnt pick a skill from ', skillsToUse, user);
+    return user.getEnemyBasicAttack()[0];
   };
 
   /**

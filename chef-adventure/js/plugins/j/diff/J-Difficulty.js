@@ -489,7 +489,7 @@ Game_Enemy.prototype.param = function(paramId)
   const appliedDifficulty = $gameSystem.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.bparam(paramId) / 100;
+  const multiplier = appliedDifficulty.bparams[paramId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -510,7 +510,7 @@ Game_Enemy.prototype.sparam = function(sparamId)
   const appliedDifficulty = $gameSystem.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.sparam(sparamId) / 100;
+  const multiplier = appliedDifficulty.sparams[sparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);
@@ -530,7 +530,7 @@ Game_Enemy.prototype.xparam = function(xparamId)
   const appliedDifficulty = $gameSystem.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.xparam(xparamId) / 100;
+  const multiplier = appliedDifficulty.xparams[xparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);

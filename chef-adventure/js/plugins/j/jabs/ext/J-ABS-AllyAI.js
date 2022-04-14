@@ -1596,7 +1596,7 @@ JABS_AllyAI.prototype.countLowHpAllies = function(healer, threshold = 0.6)
 JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler)
 {
   let bestSkillId = 0;
-  let smallestDifference = 99999999; // need it to be an unrealistically high difference to start.
+  let smallestDifference = Number.MAX_SAFE_INTEGER; // need it to be an unrealistically high difference to start.
   healingTypeSkills.forEach(skillId =>
   {
     const skill = $dataSkills[skillId];
