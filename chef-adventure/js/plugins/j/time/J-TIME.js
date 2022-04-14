@@ -142,6 +142,20 @@
  * 
  * @param BASEconfigs
  * @text BASE SETUP
+ *
+ * @param timeWindowX
+ * @parent BASEconfigs
+ * @type number
+ * @text Origin X
+ * @desc The x coordinate of the overarching TIME window.
+ * @default 1316
+ *
+ * @param timeWindowY
+ * @parent BASEconfigs
+ * @type number
+ * @text Origin Y
+ * @desc The y coordinate of the overarching TIME window.
+ * @default 0
  * 
  * @param startVisible
  * @parent BASEconfigs
@@ -530,6 +544,9 @@ J.TIME.Metadata.Name = `J-TIME`;
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.TIME.PluginParameters = PluginManager.parameters(J.TIME.Metadata.Name);
+J.TIME.Metadata.TimeWindowX = Number(J.TIME.PluginParameters['timeWindowX']);
+J.TIME.Metadata.TimeWindowY = Number(J.TIME.PluginParameters['timeWindowY']);
+
 J.TIME.Metadata.StartVisible = J.TIME.PluginParameters['startVisible'] === "true";
 J.TIME.Metadata.StartActivated = J.TIME.PluginParameters['startActivated'] === "true";
 J.TIME.Metadata.UseRealTime = J.TIME.PluginParameters['useRealTime'] === "true";
@@ -798,8 +815,8 @@ Scene_Map.prototype.createTimeWindow = function()
 {
   const w = 200;
   const h = 180;
-  const x = Graphics.boxWidth - w;
-  const y = 0;
+  const x = J.TIME.Metadata.TimeWindowX;
+  const y = J.TIME.Metadata.TimeWindowY;
   const rect = new Rectangle(x, y, w, h);
   const wind = new Window_Time(rect);
   this._j._timeWindow = wind;

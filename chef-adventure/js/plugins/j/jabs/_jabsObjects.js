@@ -1135,8 +1135,7 @@ Game_Action.prototype.apply = function(target)
 Game_Action.prototype.applySkill = function(target)
 {
   const result = target.result();
-  this.subject()
-    .clearResult();
+  this.subject().clearResult();
   result.clear();
   result.used = this.testApply(target);
   result.evaded = !this.calculateHitSuccess(target);
@@ -1152,9 +1151,7 @@ Game_Action.prototype.applySkill = function(target)
     }
 
     // add the subject who is applying the state as a parameter for tracking purposes.
-    this.item()
-      .effects
-      .forEach(effect => this.applyItemEffect(target, effect));
+    this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
     this.applyItemUserEffect(target);
   }
   this.updateLastTarget(target);
@@ -3305,15 +3302,8 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
       // shorthand the comment into a variable.
       const comment = command.parameters[0];
 
-      // check if this battler has the "careful" ai trait.
+      // check if this battler has ai traits.
       if (/<ai:[ ]?([0|1]{8})>/i.test(comment))
-      {
-        // parse the value out of the regex capture group.
-        code = RegExp.$1;
-      }
-
-      // check if this battler has the "careful" ai trait.
-      if (/<ai:[ ]?([0|1]{6})>/i.test(comment))
       {
         // parse the value out of the regex capture group.
         code = RegExp.$1;
@@ -3323,17 +3313,17 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
   // if we found a legacy AI code, we'll accept that... for now...
   if (code !== String.empty)
   {
+    //const basic = parseInt(code[0]) === 1; // no longer a feature.
+    const careful = parseInt(code[1]) === 1;
+    const executor = parseInt(code[2]) === 1;
+    const reckless = parseInt(code[3]) === 1;
+    //const defensive = parseInt(code[4]) === 1; // no longer a feature.
+    const healer = parseInt(code[5]) === 1;
+    const follower = parseInt(code[6]) === 1;
+    const leader = parseInt(code[7]) === 1;
+
     // build the new AI based on the old code.
-    return new JABS_BattlerAI(
-      //Boolean(parseInt(code[0]) === 1) || false, // basic, but no longer a feature.
-      Boolean(parseInt(code[1]) === 1) || false, // careful
-      Boolean(parseInt(code[2]) === 1) || false, // executor
-      Boolean(parseInt(code[3]) === 1) || false, // reckless
-      //Boolean(parseInt(code[4]) === 1) || false, // defensive, but no longer a feature.
-      Boolean(parseInt(code[5]) === 1) || false, // healer
-      Boolean(parseInt(code[6]) === 1) || false, // follower
-      Boolean(parseInt(code[7]) === 1) || false, // leader
-    );
+    return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
   }
 
   // if we found nothing, thats okay, we just legit have no overrides.

@@ -1365,7 +1365,7 @@ class JABS_Engine
      * the individual battlers.
      * @type {JABS_TrackedState[]}
      */
-    this._jabsStateTracker = this._jabsStateTracker || [];
+    this._jabsStateTracker = [];
   };
 
   /**
@@ -1626,6 +1626,11 @@ class JABS_Engine
     this.getJabsStates()
       // execute the update against it.
       .forEach(this.updateJabsState, this);
+
+    if (this._jabsStateTracker.length > 200)
+    {
+      this._jabsStateTracker.pop();
+    }
   };
 
   /**
@@ -3986,8 +3991,10 @@ class JABS_Engine
     // check if we are using the level scaling functionality.
     if (J.LEVEL && J.LEVEL.Metadata.Enabled)
     {
-      // calculate the multiplier.
-      multiplier = LevelScaling.multiplier(actor.getBattler().level, enemy.level);
+      // calculate the multiplier using scaling based on enemy and actor.
+      // if the enemy is higher, then the rewards will be greater.
+      // if the actor is higher, then the rewards will be lesser.
+      multiplier = LevelScaling.multiplier(enemy.level, actor.getBattler().level);
     }
 
     // return the findings.

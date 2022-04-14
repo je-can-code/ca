@@ -226,19 +226,19 @@ Game_Action.prototype.setSkill = function(skillId)
 };
 
 /**
- * Basically replaces `setItemObject()` with setting
+ * Basically replaces `setItemObject()` with setting the skill to instead set our extended skill.
  */
 J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
-Game_Action.prototype.setItemObject = function(itemId)
+Game_Action.prototype.setItemObject = function(itemObject)
 {
   if (!this.subject())
   {
-    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemId);
+    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemObject);
     return;
   }
 
-  // assign the overlayed skill to the object instead.
-  this._item.setObject(skillToSet);
+  // TODO: sort out how to manage this when both skills AND items come through this way.
+  this._item.setObject(itemObject);
 };
 
 /**
