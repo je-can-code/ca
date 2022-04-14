@@ -20,16 +20,12 @@
  * - 2.1.0
  *    Added wrapper objects for many database objects to ease plugin dev coding.
  *    Added "More data" window base class.
- *
+ *    Reverted the break-apart because that caused grief.
+ *    Shuffled ownership of various functions.
  * 
  * - 2.0.0 (breaking change!)
  *    Broke apart the entire plugin into a collection of pieces, to leverage
  *    the new "plugin in a nested folder" functionality of RMMZ.
- * 
- *    NOTE: If you, the RM dev, do not like this new layout, you are free to
- *    manually copy paste all the various pieces back together into a single
- *    plugin, as the dependencies between plugins have not changed- this is
- *    purely for my developer sanity.
  * 
  * - 1.0.3
  *    Added "on-own-death" and "on-target-death" tag for battlers.
