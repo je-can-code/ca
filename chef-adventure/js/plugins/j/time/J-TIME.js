@@ -60,7 +60,7 @@
  * 
  * Alongside the "time of day" functionality, there is also an optional "tone"
  * adjustment to alter the screen tone based on "time of day". The tone will
- * change on the hour. This can be disabled entirely, or selectively with tags.
+ * change on the hour. This can be disabled entirely, or selectively with glossary.
  * Keep in mind that, understandably, this does not play nicely with manual
  * tone-changes from outside this system. If you intend to control the tone
  * yourself, you should probably disable the tone-change functionality for

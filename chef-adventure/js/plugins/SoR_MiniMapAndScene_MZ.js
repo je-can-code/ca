@@ -544,7 +544,7 @@ Call a plugin command explicitly once to show the minimap.
 @desc Hide minimap. Call explicitly for events as cutscenes.
 @command ReloadSymbolTags
 @text Reload Symbol[Minimap&Scene]
-@desc Reload the symbol tags for minimap.
+@desc Reload the symbol glossary for minimap.
 @command CallAreaMap
 @text Call Area Map[Minimap&Scene]
 @desc Call and transit to the area map scene.

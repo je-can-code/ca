@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 LEVEL] Scales damage and exp/gold from defeated enemies.
+ * [v1.0.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz
  * @base J-BASE
@@ -54,7 +54,7 @@
  * LEVEL TAGS:
  * Have you ever wanted to scale damage/experience/gold by level, but realized
  * that enemies in RMMZ don't have a level parameter? Well now you can! By
- * adding the appropriate tags to various locations in the database, you too
+ * adding the appropriate glossary to various locations in the database, you too
  * can scale numbers to your hearts content!
  *
  * NOTE:
@@ -70,9 +70,9 @@
  * This was initially designed only for enemies, but has since been expanded to
  * also allow you to apply modifiers to your actors as well. For enemies, since
  * they do not innately have levels, the total amount of "level" is the sum of
- * all tags found for a given enemy across itself and any states that may be
+ * all glossary found for a given enemy across itself and any states that may be
  * applied to an enemy. For actors, it starts with whatever their current level
- * is, and if states/classes/equipment/skills also contain the tags, the level
+ * is, and if states/classes/equipment/skills also contain the glossary, the level
  * modifiers will be stacked against the actor's base level.
  *
  * ENEMY TAG USAGE:
@@ -270,16 +270,16 @@ var J = J || {};
 J.LEVEL = {};
 
 /**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.LEVEL.PluginParameters = PluginManager.parameters(`J-LevelScaling`);
-
-/**
  * The `metadata` associated with this plugin, such as version.
  */
 J.LEVEL.Metadata = {};
 J.LEVEL.Metadata.Version = '1.0.0';
-J.LEVEL.Metadata.Name = `J-LevelScaling`;
+J.LEVEL.Metadata.Name = `J-LevelMaster`;
+
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
+J.LEVEL.PluginParameters = PluginManager.parameters(J.LEVEL.Metadata.Name);
 
 /**
  * Whether or not the scaling functionality is enabled.
