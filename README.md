@@ -1,11 +1,12 @@
-# Chef Adventure (for MZ)
+# 🧑‍🍳Chef Adventure (for MZ)
 
 Welcome to the public repository for `Chef Adventure`, a personal RPG Maker MZ project of mine.
 
 > 🚧**This documentation is a work in progress**🚧
 
 ## What is Chef Adventure?
-`Chef Adventure`, henceforth referred to as "`CA`", has been a pet project of mine for a long while.
+`Chef Adventure` has been a pet project of mine for a long while across the different iterations of RPG Maker, with this
+current version being built in **RPG Maker MZ**.
 
 ### Short Version
 It is a means of which I will be sharing with you the various functionalities of different plugins I've written. Most
