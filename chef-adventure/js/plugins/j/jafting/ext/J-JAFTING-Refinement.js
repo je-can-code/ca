@@ -43,7 +43,7 @@
  * should be doing (such as refining a unique equipment onto another and there
  * by losing said unique equipment that could've been required for story!).
  * 
- * As such, I've introduced a few tags that can be applied onto weapons/armor:
+ * As such, I've introduced a few glossary that can be applied onto weapons/armor:
  * 
  * <noRefine>
  * Placing this tag onto equipment renders it unavailable to be refined at all.

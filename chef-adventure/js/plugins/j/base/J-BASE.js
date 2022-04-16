@@ -5804,7 +5804,7 @@ class RPG_Base
    * Gets the last string value based on the provided regex structure.
    *
    * This accepts a regex structure, assuming the capture group is a string value.
-   * If multiple tags are found, only the last one will be returned.
+   * If multiple glossary are found, only the last one will be returned.
    *
    * If the optional flag `nullIfEmpty` receives true passed in, then the result of
    * this will be `null` instead of the default empty string as an indicator we didn't find

@@ -30,7 +30,7 @@
  * - Rank up rewards for any/every/max rank, which can be most anything.
  * 
  * In order to rank up these SDPs, you'll need to use SDP points. These can be
- * acquired by using the tags below, or by using plugin commands.
+ * acquired by using the glossary below, or by using plugin commands.
  *
  * NOTES:
  * - SDP points gained from enemies are earned for all members of the party.
@@ -65,10 +65,10 @@
  *
  * NOTE:
  * The format implies that you will be providing whole numbers and not actual
- * multipliers, like 1.3 or something. If multiple tags are present across the
+ * multipliers, like 1.3 or something. If multiple glossary are present across the
  * various database locations on a single actor, they will stack additively.
  * SDP points cannot be reduced below 0 for an actor, but they most certainly
- * can receive negative amounts if the tags added up like that.
+ * can receive negative amounts if the glossary added up like that.
  *
  * TAG USAGE:
  * - Actors
@@ -89,7 +89,7 @@
  *
  *  <sdpMultiplier:80>
  *  <sdpMultiplier:-30>
- * An actor with something equipped/applied that has both of the above tags
+ * An actor with something equipped/applied that has both of the above glossary
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * 
@@ -402,7 +402,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {

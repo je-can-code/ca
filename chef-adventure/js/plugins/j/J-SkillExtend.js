@@ -117,11 +117,11 @@
  *  The effects of adding the "moveType" tag onto a skill that didn't
  *  previously have it are completely untested, use at your own risk!
  * ***:
- *  The effects of adding the "counterGuard/counterParry" tags onto a skill
+ *  The effects of adding the "counterGuard/counterParry" glossary onto a skill
  *  that didn't previously have it are untested, though shouldn't cause any
  *  problems if they are added onto a skill with "guard & parry".
  * !!!:
- *  The effects of adding the "combo/actionId/direct" tags onto any skills is
+ *  The effects of adding the "combo/actionId/direct" glossary onto any skills is
  *  something to be careful about, as they very significantly change how
  *  the manager interacts with the actions. Replacing any of those values
  *  though should be totally fine if they already existed on the base skill.
@@ -1173,7 +1173,7 @@ class OverlayManager
     // if the value doesn't exist, don't overlay; return the base skill.
     if (value === null) return baseSkill;
 
-    // strip out all tags that match the regex.
+    // strip out all glossary that match the regex.
     baseSkill.note = baseSkill.note.replace(structure, String.empty);
 
     // determine the key from the regex.
@@ -1221,7 +1221,7 @@ class OverlayManager
     // if the value doesn't exist, don't overlay; return the base skill.
     if (value === null) return baseSkill;
 
-    // strip out all tags that match the regex.
+    // strip out all glossary that match the regex.
     baseSkill.note = baseSkill.note.replace(structure, String.empty);
 
     // determine the key from the regex.

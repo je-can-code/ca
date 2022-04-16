@@ -62,7 +62,7 @@
  * TARGET FRAME TEXT:
  * Have you ever wanted your JABS battlers to have an extra line of text that
  * gives some sort of context to that particular enemy? Well now you can! By
- * applying the appropriate tags to either the enemy or the event that
+ * applying the appropriate glossary to either the enemy or the event that
  * represents the enemy on the map, you too can have meaningful text in your
  * target frame!
  *
@@ -91,7 +91,7 @@
  * ============================================================================
  * TARGET FRAME ICON:
  * Have you ever wanted your JABS battlers to have an icon displayed in the
- * target frame? Well now you can! By applying the appropriate tags to either
+ * target frame? Well now you can! By applying the appropriate glossary to either
  * the enemy or the event that represents the enemy on the map, you too can
  * have enemies with flashy and meaningful icons in your target frame!
  *
@@ -119,19 +119,19 @@
  * ============================================================================
  * HIDING DATA:
  * Have you ever wanted to hide certain data points for some enemies, but not
- * ALL enemies? Well now you can! By applying the appropriate tags to either
+ * ALL enemies? Well now you can! By applying the appropriate glossary to either
  * the enemy or the event that represents an enemy on the map, you too can have
  * the chosen data points completely absent from the target frame when striking
  * the tagged enemy!
  *
  * DETAILS:
- * Below you'll find 5 tags for hiding the various data points of the target
+ * Below you'll find 5 glossary for hiding the various data points of the target
  * frame, with the tag hopefully describing accurately what they accomplish.
  * Hiding the entire frame will take priority over any of the one elements.
- * Hiding with these tags via the event will take the highest priority over
- * showing via tags in the event or the database. Generally speaking, it is
+ * Hiding with these glossary via the event will take the highest priority over
+ * showing via glossary in the event or the database. Generally speaking, it is
  * probably recommended to enable and show all data points, and then hide
- * them selectively with the below tags.
+ * them selectively with the below glossary.
  *
  * TAG USAGE:
  * - Enemies
@@ -568,7 +568,7 @@ Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return String.empty;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -577,7 +577,7 @@ Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
   // start with the default icon index of 0.
   let targetFrameIcon = 0;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any tag matches the structure.
@@ -616,7 +616,7 @@ Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return true;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -625,7 +625,7 @@ Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
   // start with the default of true
   let showTargetFrame = true;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any line matches the structure.
@@ -664,7 +664,7 @@ Game_Enemy.prototype.extractShowHpBar = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return true;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -673,7 +673,7 @@ Game_Enemy.prototype.extractShowHpBar = function(referenceData)
   // start with the default of true
   let showHpBar = true;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any line matches the structure.
@@ -712,7 +712,7 @@ Game_Enemy.prototype.extractShowMpBar = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return true;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -721,7 +721,7 @@ Game_Enemy.prototype.extractShowMpBar = function(referenceData)
   // start with the default of true
   let showMpBar = true;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any line matches the structure.
@@ -760,7 +760,7 @@ Game_Enemy.prototype.extractShowTpBar = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return true;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -769,7 +769,7 @@ Game_Enemy.prototype.extractShowTpBar = function(referenceData)
   // start with the default of true
   let showTpBar = true;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any line matches the structure.
@@ -808,7 +808,7 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return true;
 
-  // translate the tags from notes into an array of strings for easy parsing.
+  // translate the glossary from notes into an array of strings for easy parsing.
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
@@ -817,7 +817,7 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   // start with the default of true
   let showTargetText = true;
 
-  // check all the tags from the notes.
+  // check all the glossary from the notes.
   notedata.forEach(line =>
   {
     // check if any line matches the structure.

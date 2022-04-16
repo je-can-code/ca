@@ -19,7 +19,7 @@
  * followers functionality is disabled, then they will simply do nothing.
  *
  * In order to set a default ally AI mode (defaults to "variety"), you can use
- * a tag on the actor and/or class. Class will take priority over actor tags:
+ * a tag on the actor and/or class. Class will take priority over actor glossary:
  * 
  * <defaultAi:MODE>
  * where MODE is one of the 5 below (the key in the parentheses).

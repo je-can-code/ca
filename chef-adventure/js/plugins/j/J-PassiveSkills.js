@@ -46,7 +46,7 @@
  *
  *  <passive:[10]>
  *  <passive:[10,11,12]>
- * If a battler had two separate skills learned matching the above two tags,
+ * If a battler had two separate skills learned matching the above two glossary,
  * then the states of id 10, 11, and 12 would be applied as passive states.
  * The duplicate 10 passive state would be ignored.
  * ============================================================================

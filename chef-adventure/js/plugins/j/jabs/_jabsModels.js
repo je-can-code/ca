@@ -2482,7 +2482,7 @@ JABS_Battler.prototype.processNaturalTpRegen = function()
 };
 
 /**
- * Processes all regenerations derived from state tags.
+ * Processes all regenerations derived from state glossary.
  * @param {RPG_State[]} states The filtered list of states to parse.
  */
 JABS_Battler.prototype.processStateRegens = function(states)

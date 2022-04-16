@@ -27,7 +27,7 @@
  *
  * WARNING 2:
  * The party ability of "Drop Item Double" will double the entire multiplier
- * that is provided via the tags. Having multiple of this party ability will
+ * that is provided via the glossary. Having multiple of this party ability will
  * not further double the multiplier.
  * ============================================================================
  * PERCENTAGE DROPS
@@ -52,11 +52,11 @@
  * ============================================================================
  * ADDITIONAL ITEMS
  * Have you ever wanted to drop more items than just three per enemy? Well now
- * you can with the proper tags applied to enemies in the database!
+ * you can with the proper glossary applied to enemies in the database!
  *
  * NOTE 1:
  * This is additive in the sense that if you specify drop items using the
- * editor and also have one or more of these tags on an enemy, it will add
+ * editor and also have one or more of these glossary on an enemy, it will add
  * all of them together as potential drops, exceeding the limit of 3.
  *
  * NOTE 2:
@@ -64,7 +64,7 @@
  * rates and they will individually be processed.
  *
  * NOTE 3:
- * Drop multipliers apply to items dropped using ADDITIONAL DROP tags, too.
+ * Drop multipliers apply to items dropped using ADDITIONAL DROP glossary, too.
  *
  * TAG USAGE:
  * - Enemies only.
@@ -87,7 +87,7 @@
  * This enemy has a [100% chance] to drop [an armor] of [id 5 in the database].
  * ============================================================================
  * DROP MULTIPLIER
- * Additionally, you can apply tags to increase this percentage chance
+ * Additionally, you can apply glossary to increase this percentage chance
  * multiplicatively! See the tag examples down below for additional details
  * on how the multiplication works and the caveats to consider when adding
  * the tag to things in the database.
@@ -127,7 +127,7 @@
  * ============================================================================
  * GOLD MULTIPLIER
  * Have you ever wanted to have an actor gain bonus gold for some thiefy
- * reason or another? Well now you can by applying the proper tags to the
+ * reason or another? Well now you can by applying the proper glossary to the
  * various database locations that are relevant.
  *
  * NOTE 1:
