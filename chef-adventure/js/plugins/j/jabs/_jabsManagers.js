@@ -1511,6 +1511,6 @@ class JABS_AiManager
   };
 
   //#endregion Phase 3 - Post-Action Cooldown Phase
-};
+}
 //#endregion JABS_AiManager
 //ENDFILE
