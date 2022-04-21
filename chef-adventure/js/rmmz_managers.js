@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.4.0
+// rmmz_managers.js v1.4.4
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -341,16 +341,11 @@ DataManager.savefileExists = function(savefileId) {
 DataManager.saveGame = function(savefileId) {
     const contents = this.makeSaveContents();
     const saveName = this.makeSavename(savefileId);
-    return StorageManager.saveObject(saveName, contents)
-      .then(() => {
+    return StorageManager.saveObject(saveName, contents).then(() => {
         this._globalInfo[savefileId] = this.makeSavefileInfo();
         this.saveGlobalInfo();
         return 0;
-    })
-      .catch((ex) =>
-      {
-         console.error(ex);
-      });
+    });
 };
 
 DataManager.loadGame = function(savefileId) {
@@ -360,8 +355,7 @@ DataManager.loadGame = function(savefileId) {
         this.extractSaveContents(contents);
         this.correctDataErrors();
         return 0;
-    })
-      .catch(err => console.log(err));
+    });
 };
 
 DataManager.makeSavename = function(savefileId) {
@@ -2689,7 +2683,7 @@ BattleManager.updateTurnEnd = function() {
         this.startTurn();
     } else {
         this.endAllBattlersTurn();
-        this.startInput();
+        this._phase = "start";
     }
 };
 

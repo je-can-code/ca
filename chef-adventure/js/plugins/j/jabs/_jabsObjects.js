@@ -3153,14 +3153,13 @@ Game_Event.prototype.getBattlerIdOverrides = function()
   let battlerId = 0;
 
   // check all the valid event commands to see what our battler id is.
-  this.getValidCommentCommands()
-    .forEach(command =>
+  this.getValidCommentCommands().forEach(command =>
     {
       // shorthand the comment into a variable.
       const comment = command.parameters[0];
 
       // check if this is a matching line.
-      if (/<(?:e|enemyId):[ ]?([0-9]*)>/i.test(comment))
+      if (/<(?:e|enemy|enemyId):[ ]?([0-9]*)>/i.test(comment))
       {
         // parse the value out of the regex capture group.
         battlerId = parseInt(RegExp.$1);
@@ -3181,8 +3180,7 @@ Game_Event.prototype.getTeamIdOverrides = function()
   let teamId = 1;
 
   // check all the valid event commands to see if we have an override for team.
-  this.getValidCommentCommands()
-    .forEach(command =>
+  this.getValidCommentCommands().forEach(command =>
     {
       // shorthand the comment into a variable.
       const comment = command.parameters[0];
@@ -3214,8 +3212,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   let leader = false;
 
   // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
+  this.getValidCommentCommands().forEach(command =>
     {
       // shorthand the comment into a variable.
       const comment = command.parameters[0];

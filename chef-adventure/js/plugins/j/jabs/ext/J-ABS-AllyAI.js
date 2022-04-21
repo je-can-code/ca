@@ -1148,7 +1148,9 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
     case JABS_AllyAI.modes.FULL_FORCE.key:
       return this.decideFullForce(availableSkills, attacker, target);
     case JABS_AllyAI.modes.SUPPORT.key:
-      return this.decideSupport(availableSkills, attacker);
+      const decided = this.decideSupport(availableSkills, attacker);
+      console.log(decided, availableSkills, attacker);
+      return decided;
   }
 
   console.log(currentMode);
@@ -1223,11 +1225,14 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
   const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
 
   // filter all available skills down to what we recall as effective.
-  tempAvailableSkills = tempAvailableSkills.filter(skillId =>
+  if (memoriesOfTarget.length)
   {
-    const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
-    return (priorMemory && priorMemory.wasEffective());
-  });
+    tempAvailableSkills = tempAvailableSkills.filter(skillId =>
+    {
+      const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
+      return (priorMemory && priorMemory.wasEffective());
+    });
+  }
 
   // if no skill was effective, or there were no memories, just pick a random skill and call it good.
   if (tempAvailableSkills.length === 0)
@@ -1271,12 +1276,15 @@ JABS_AllyAI.prototype.decideFullForce = function(availableSkills, attacker, targ
   // grab all memories that this battler has of the target.
   const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
 
-  // filter all available skills down to what we recall as effective.
-  tempAvailableSkills = tempAvailableSkills.filter(skillId =>
+  // filter all available skills down to what we recall as effective- if we have memories at all.
+  if (memoriesOfTarget.length)
   {
-    const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
-    return (priorMemory && priorMemory.wasEffective());
-  });
+    tempAvailableSkills = tempAvailableSkills.filter(skillId =>
+    {
+      const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
+      return (priorMemory && priorMemory.wasEffective());
+    });
+  }
 
   // if no skill was effective, or there were no memories, just pick a random skill and call it good.
   if (tempAvailableSkills.length === 0)
@@ -1325,7 +1333,7 @@ JABS_AllyAI.prototype.determineStrongestSkill = function(availableSkills, attack
   let biggestCritDamage = 0;
   availableSkills.forEach(skillId =>
   {
-    const skill = $dataSkills[skillId];
+    const skill = attacker.getSkill(skillId);
 
     // setup a game action for testing damage.
     const testAction = new Game_Action(attacker.getBattler(), false);
@@ -1423,14 +1431,14 @@ JABS_AllyAI.prototype.decideSupportCleansing = function(availableSkills, healer)
       const cleansableState = allyStates.find(state =>
       {
         const isNegative = state.jabsNegative; // skills to be cleansed have a "negative" tag.
-        const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id);
+        const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, healer);
         return isNegative && canBeCleansed;
       });
 
       // if we have a cleansable state, then return the best skill for it.
       if (cleansableState)
       {
-        bestSkillId = this.determineBestSkillForStateCleansing(availableSkills, cleansableState.id);
+        bestSkillId = this.determineBestSkillForStateCleansing(availableSkills, cleansableState.id, healer);
       }
     }
   });
@@ -1442,9 +1450,10 @@ JABS_AllyAI.prototype.decideSupportCleansing = function(availableSkills, healer)
  * Determines which skill of the available skills is the most effective for cleansing a given state.
  * @param {number[]} availableSkills The skill ids available to choose from.
  * @param {number} stateIdToBeCleansed The id of the state to be cleansed.
+ * @param {JABS_Battler} healer The battler choosing the skill.
  * @returns {number}
  */
-JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSkills, stateIdToBeCleansed)
+JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSkills, stateIdToBeCleansed, healer)
 {
   let bestSkillForStateCleansing = null;
   let highestCleanseRate = 0.0;
@@ -1452,7 +1461,7 @@ JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSk
   // iterate over all skills available to find the best rate of state removal for the target state.
   availableSkills.forEach(skillId =>
   {
-    const skill = $dataSkills[skillId];
+    const skill = healer.getSkill(skillId);
 
     // find all effects from a skill that remove states.
     const stateCleansingEffects = skill.effects.filter(fx => fx.code === 22 && fx.dataId === stateIdToBeCleansed);
@@ -1509,6 +1518,8 @@ JABS_AllyAI.prototype.decideSupportHealing = function(availableSkills, healer)
   let below60 = this.countLowHpAllies(healer);
   const lowestAllyBattler = lowestAlly.getBattler();
   const healerBattler = healer.getBattler();
+
+  console.log(below60);
 
   // depending on how many wounded targets we have, determine the best healing skill to use.
   if (below60 === 0)
@@ -1599,7 +1610,7 @@ JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, heale
   let smallestDifference = Number.MAX_SAFE_INTEGER; // need it to be an unrealistically high difference to start.
   healingTypeSkills.forEach(skillId =>
   {
-    const skill = $dataSkills[skillId];
+    const skill = healerBattler.skill(skillId);
     const testAction = new Game_Action(healerBattler);
     testAction.setItemObject(skill);
 
@@ -1607,7 +1618,7 @@ JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, heale
     if (healerBattler !== lowestAllyBattler && testAction.isForUser()) return;
 
     // if the skill doesn't target 1 or all or dead allies, then don't use it (omit random).
-    if (!testAction.isForOne() || !testAction.isForAll() || !testAction.isForDeadFriend()) return;
+    if (!testAction.isForOne() && !testAction.isForAll() && !testAction.isForDeadFriend()) return;
 
     // get the test heal amount for this skill against the ally.
     const healAmount = Math.abs(testAction.makeDamageValue(lowestAllyBattler, false));
@@ -1640,8 +1651,9 @@ JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, heale
   // filter out all skills that are not for multiple targets.
   const multiTargetHealingTypeSkills = healingTypeSkills.filter(skillId =>
   {
+    const skill = healerBattler.skill(skillId);
     const testAction = new Game_Action(healerBattler);
-    testAction.setItemObject($dataSkills[skillId]);
+    testAction.setItemObject(skill);
     return testAction.isForAll();
   });
 
@@ -1654,7 +1666,7 @@ JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, heale
   let smallestDifference = 99999999; // need it to be an unrealistically high difference to start.
   multiTargetHealingTypeSkills.forEach(skillId =>
   {
-    const skill = $dataSkills[skillId];
+    const skill = healerBattler.skill(skillId);
     const testAction = new Game_Action(healerBattler);
     testAction.setItemObject(skill);
 
@@ -1690,7 +1702,7 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
   let chosenAlly = null;
   availableSkills.forEach(skillId =>
   {
-    const skill = $dataSkills[skillId];
+    const skill = healer.getSkill(skillId);
 
     // find all effects from a skill that add states.
     const stateAddingEffects = skill.effects.filter(fx => fx.code === 21);
@@ -1698,7 +1710,6 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
     // if we have effects...
     if (stateAddingEffects.length > 0)
     {
-
       // ...iterate over them...
       let ready = false;
       stateAddingEffects.forEach(effect =>
