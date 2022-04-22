@@ -971,16 +971,24 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
 
   // decide the action based on the ally ai mode currently assigned.
-  const decidedSkillId = jabsBattler.getAllyAiMode()
-    .decideAction(
+  const decidedSkillId = jabsBattler.getAllyAiMode().decideAction(
       currentlyEquippedSkillIds,
       jabsBattler,
       jabsBattler.getTarget());
 
   // check if we have a skill and can pay its cost.
-  if (!decidedSkillId)// || !jabsBattler.canExecuteSkill(decidedSkillId))
+  if (!decidedSkillId)
   {
     // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
+    jabsBattler.resetPhases();
+    return;
+  }
+
+  // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
+  // check if the skill id is actually a mobility skill.
+  if (JABS_Battler.isDodgeSkillById(decidedSkillId))
+  {
+    // restart the decision-making process.
     jabsBattler.resetPhases();
     return;
   }
@@ -994,8 +1002,6 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // setup the action for use!
   this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
 };
-
-JABS_AiManager.canSetupActionForNextPhase()
 //#endregion JABS_AiManager
 
 //#region JABS_AllyAI
@@ -1149,7 +1155,6 @@ JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
       return this.decideFullForce(availableSkills, attacker, target);
     case JABS_AllyAI.modes.SUPPORT.key:
       const decided = this.decideSupport(availableSkills, attacker);
-      console.log(decided, availableSkills, attacker);
       return decided;
   }
 
@@ -1173,7 +1178,6 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
 //#region basic-attack
 /**
  * Decides a skill id based on the ai mode of "basic attack only".
- * Only uses the "mainhand" slotted skill. If no skill is equipped in that slot, then returns nothing.
  * @param {number[]} availableSkills The skill ids available to choose from.
  * @param {JABS_Battler} attacker The battler choosing the skill.
  * @returns {number|null}
@@ -1181,16 +1185,49 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
 JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
 {
   // determine which skill of the skills available is the mainhand skill.
-  const basicAttackSkillId = availableSkills
-    .find(id => attacker
-      .getBattler()
-      .findSlotForSkillId(id).key === JABS_Button.Main);
+  const mainBasicAttackSkillId = availableSkills
+    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Main);
 
-  // if the battler doesn't have a mainhand equipped, then do nothing.
-  if (!basicAttackSkillId) return null;
+  // determine which skill of the skills available is the offhand skill.
+  const offhandBasicAttackSkillId = availableSkills
+    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Offhand);
 
-  // return the mainhand attack skill id only.
-  return basicAttackSkillId;
+  // if we have neither basic attack skills, then do not process.
+  if (!mainBasicAttackSkillId && !offhandBasicAttackSkillId) return null;
+
+  // check if we have to decide between using mainhand or offhand.
+  if (mainBasicAttackSkillId && offhandBasicAttackSkillId)
+  {
+    // a 70% chance to use mainhand, 30% chance to use offhand by default.
+    return this.decideMainOrOffhand()
+      ? mainBasicAttackSkillId
+      : offhandBasicAttackSkillId;
+  }
+
+  // check if we do not have a mainhand skill.
+  if (!mainBasicAttackSkillId)
+  {
+    // in which case we return the offhand skill.
+    return offhandBasicAttackSkillId;
+  }
+  // since we do have a mainhand skill.
+  else
+  {
+    // lets return it.
+    return mainBasicAttackSkillId;
+  }
+};
+
+/**
+ * A small weighted chance for deciding whether to use mainhand or offhand skills
+ * for the basic attack decision.
+ * @returns {boolean} True if we should use mainhand, false if we should use offhand.
+ */
+JABS_AllyAI.prototype.decideMainOrOffhand = function()
+{
+  const randomFromTen = Math.ceil(Math.random() * 10);
+  const chanceForMain = 7;
+  return randomFromTen <= chanceForMain;
 };
 //#endregion basic-attack
 
@@ -1212,8 +1249,7 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
 
   // check if any nearby allies are "in danger".
   const nearbyAllies = attacker.getAllNearbyAllies();
-  const anyAlliesInDanger = nearbyAllies.some(battler => battler.getBattler()
-    .currentHpPercent() < 0.6);
+  const anyAlliesInDanger = nearbyAllies.some(battler => battler.getBattler().currentHpPercent() < 0.6);
 
   // if they are, 50:50 chance to instead prioritize a support action.
   if (anyAlliesInDanger && Math.randomInt(2) === 0)
@@ -1252,6 +1288,13 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
   if (tempAvailableSkills.length > 1)
   {
     chosenSkillId = tempAvailableSkills[Math.randomInt(tempAvailableSkills.length)];
+  }
+
+  // if the skill actually is a dodge skill, we don't support that yet.
+  if (JABS_Battler.isDodgeSkillById(chosenSkillId))
+  {
+    // replace the dodge skill id with 0 to force them to rechoose.
+    return this.decideBasicAttack(availableSkills, attacker);
   }
 
   return chosenSkillId;
