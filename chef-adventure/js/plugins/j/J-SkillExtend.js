@@ -508,16 +508,17 @@ class OverlayManager
     }
 
     // make a copy of the original skill to be overlayed.
-    const baseSkill = $dataSkills[skillId]._clone(); //JsonEx.makeDeepCopy($dataSkills[skillId]);
+    const baseSkill = $dataSkills[skillId]._clone();
 
     // the filter for filtering whether or not a skill is an extension skill.
+    /** @param {RPG_Skill} skill */
     const skillExtendFilter = (skill) =>
     {
       // if the skill isn't an extension skill, skip it.
-      const isExtensionSkill = !!(skill.meta && skill.meta['skillExtend']);
+      const isExtensionSkill = (skill.metadata('skillExtend'));
       if (!isExtensionSkill) return false;
 
-      const skillsExtended = JSON.parse(skill.meta['skillExtend']).map(parseInt);
+      const skillsExtended = JSON.parse(skill.metadata('skillExtend')).map(parseInt);
       return skillsExtended.includes(skillId);
     };
 
@@ -572,9 +573,9 @@ class OverlayManager
    * All parameters that the `skillOverlay` and `baseSkill` share will
    * be overridden by the `skillOverlay` values. Any parameters the
    * `skillOverlay` has that the `baseSkill` lacks will be added anew.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static overwrite(baseSkill, skillOverlay)
   {
@@ -614,9 +615,9 @@ class OverlayManager
    * Effects, meta, note, and repeats are combined.
    *
    * Scope, mpCost, tpCost, and tpGain are replaced.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static baseSkillData(baseSkill, skillOverlay)
   {
@@ -746,39 +747,19 @@ class OverlayManager
   };
 
   /**
-   * Purges all references to the skill extend tag and functionality
-   * from the `baseSkill`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * Purges all references to the skill extend tag from the `baseSkill`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static sanitizeBaseSkill(baseSkill)
   {
-    // purge out the skill extends from the baseSkill.
-    baseSkill.note.replace(/<skillExtend:\[[\d,]+]>/gmi, String.empty);
+    // remove the skill extend from the metadata.
+    baseSkill.deleteMetadata('skillExtend');
 
-    // purge out the skill extends from the baseSkill.
-    if (baseSkill.meta && baseSkill.meta['skillExtend'])
-    {
-      delete baseSkill.meta['skillExtend'];
-    }
+    // remove the skill extend from the notedata.
+    baseSkill.deleteNotedata(/<skillExtend:\[[\d,]+]>/gmi);
 
-    // purge out the skill extends from the JABS skill data.
-    if (baseSkill._j)
-    {
-      // if it exists in the meta object, delete it.
-      if (baseSkill._j._meta && baseSkill._j._meta['skillExtend'])
-      {
-        delete baseSkill._j._meta['skillExtend'];
-      }
-
-      // if it exists in the note object, splice it.
-      const skillExtendNoteIndex = baseSkill._j._notes.findIndex(note => note.includes('skillExtend'))
-      if (skillExtendNoteIndex !== -1)
-      {
-        baseSkill._j._notes.splice(skillExtendNoteIndex, 1);
-      }
-    }
-
+    // return the base skill sans any reference to skill extension.
     return baseSkill;
   };
 

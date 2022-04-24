@@ -178,6 +178,7 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
   // handles incoming requests to refresh the input frame.
   if ($hudManager.hasRequestRefreshInputFrame())
   {
+    console.log('needs refresh for input frame');
     // refresh the input frame.
     this._j._inputFrame.refresh();
 
@@ -348,9 +349,23 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
     // perform original logic.
     super.update();
 
-    // keep the icon index in-sync with the skill slot.
-    this.synchronizeIconIndex();
+    // check if this slot needs icon synchronization.
+    if (this.needsSynchronization())
+    {
+      // keep the icon index in-sync with the skill slot.
+      this.synchronizeIconIndex();
+    }
   };
+
+  /**
+   * Checks whether or not this slot is in need of name synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    return (this.hasSkillSlot() && this.skillSlot().needsVisualIconRefresh());
+  };
+
 
   synchronizeIconIndex()
   {
@@ -360,6 +375,9 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
       // if it isn't, update it.
       this.setIconIndex(this.skillSlotIcon());
     }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeIconRefresh();
   };
 
   /**
@@ -498,7 +516,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
   /**
    * Gets the skill currently assigned to the skill slot.
-   * @returns {rm.types.Skill|null}
+   * @returns {RPG_Skill|null}
    */
   skill()
   {
@@ -587,8 +605,21 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
     // perform original logic.
     super.update();
 
-    // sync the text.
-    this.synchronizeText();
+    // check if this slot needs name synchronization.
+    if (this.needsSynchronization())
+    {
+      // sync the text.
+      this.synchronizeText();
+    }
+  };
+
+  /**
+   * Checks whether or not this slot is in need of name synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    return (this.hasSkillSlot() && this.skillSlot().needsVisualNameRefresh());
   };
 
   /**
@@ -604,6 +635,9 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
       // if it isn't, update it.
       this.setText(this.skillName());
     }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeNameRefresh();
   };
 }
 //#endregion Sprite_SkillName
@@ -636,6 +670,9 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
     // assign the skill cost type to this sprite.
     this.setSkillCostType(skillCostType);
+
+    // empty the cost.
+    this.synchronizeCost();
   };
 
   /**
@@ -758,8 +795,29 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
     // perform original logic.
     super.update();
 
-    // sync the text.
-    this.synchronizeCostType();
+    // check if we need to synchronize a new cost.
+    if (this.needsSynchronization())
+    {
+      // sync the cost.
+      this.synchronizeCost();
+    }
+  };
+
+  /**
+   * Checks whether or not this slot is in need of cost synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    // if the slot is empty, then do not.
+    const skillslot = this.skillSlot();
+    if (!skillslot) return false;
+
+    // if the slot doesn't require synchronization, then do not.
+    if (!skillslot.needsVisualCostRefreshByType(this.skillCostType())) return false;
+
+    // the slot needs synchronization!
+    return true;
   };
 
   /**
@@ -767,7 +825,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
    * tracked skill slot. This allows dynamic updating when the slot
    * changes skill due to combos and such.
    */
-  synchronizeCostType()
+  synchronizeCost()
   {
     // get the cost of the assigned skill as an integer.
     let skillCost = this.skillCost().toFixed(0);
@@ -784,6 +842,9 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
       // if it isn't, update it.
       this.setText(skillCost);
+
+      // acknowledge the refresh.
+      this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
     }
   };
 }
@@ -1046,7 +1107,7 @@ class Sprite_InputKeySlot extends Sprite
    * @param {number} colorIndex The color index to draw this cost in.
    * @param {JABS_Button} inputType The type of input for this key.
    * @param {number} itemId If this is an item, then the item id can be passed for tracking.
-   * @returns {Sprite_AbilityCost}
+   * @returns {Sprite_SkillCost}
    */
   getOrCreateInputKeyAbilityCostSprite(amount, colorIndex, inputType, itemId = 0)
   {
@@ -1061,7 +1122,7 @@ class Sprite_InputKeySlot extends Sprite
     }
 
     // create a new sprite.
-    const sprite = new Sprite_AbilityCost(amount, colorIndex, itemId);
+    const sprite = new Sprite_SkillCost(amount, colorIndex, itemId);
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);
@@ -1084,7 +1145,7 @@ class Sprite_InputKeySlot extends Sprite
    */
   makeInputKeySkillCostSpriteKey(costType, inputType)
   {
-    return `cost-${this.battler().name()}-${this.battler().battlerId()}-${costType}-${inputType}`;
+    return `skillcost-${this.battler().name()}-${this.battler().battlerId()}-${costType}-${inputType}`;
   };
 
   /**
@@ -1092,7 +1153,7 @@ class Sprite_InputKeySlot extends Sprite
    * @param {JABS_SkillSlot} skillSlot The slot associated with this skill.
    * @param {Sprite_SkillCost.Types} costType The type of cost this sprite is.
    * @param {JABS_Button} inputType The type of input for this key.
-   * @returns {Sprite_AbilityCost}
+   * @returns {Sprite_SkillCost}
    */
   getOrCreateInputKeySkillCostSprite(skillSlot, costType, inputType)
   {

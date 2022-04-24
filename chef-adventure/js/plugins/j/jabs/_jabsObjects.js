@@ -160,6 +160,10 @@ Game_Actor.prototype.toggleDeathEffect = function()
   this._j._deathEffect = !this._j._deathEffect;
 };
 
+/**
+ * Extends {@link Game_Actor.prototype.die}.
+ * Adds a toggle of the death effects.
+ */
 J.ABS.Aliased.Game_Actor.die = Game_Actor.prototype.die;
 Game_Actor.prototype.die = function()
 {
@@ -168,6 +172,7 @@ Game_Actor.prototype.die = function()
 };
 
 /**
+ * Extends {@link Game_Actor.prototype.revive}.
  * Handles on-revive effects at the actor-level.
  */
 J.ABS.Aliased.Game_Actor.revive = Game_Actor.prototype.revive;
@@ -182,7 +187,7 @@ Game_Actor.prototype.revive = function()
 };
 
 /**
- * Initializes the jabs equipped skills based on equipment.
+ * Initializes the JABS equipped skills based on equipment.
  */
 Game_Actor.prototype.initAbsSkills = function()
 {
@@ -274,7 +279,7 @@ Game_Actor.prototype.getUpgradableSkillSlots = function()
         return false;
       }
 
-      const skillData = $dataSkills[skillSlot.id];
+      const skillData = this.skill(skillSlot.id);
       if (!skillData.meta || !skillData.meta["Hide if learned Skill"])
       {
         // skip skills that don't "upgrade" per yanfly's plugin.
@@ -579,23 +584,36 @@ Game_Actor.prototype.levelDown = function()
 };
 
 /**
- * When a new skill is learned, if it is for the leader then show it.
+ * A hook for performing actions when a battler learns a new skill.
+ * @param {number} skillId The skill id of the skill learned.
  */
-J.ABS.Aliased.Game_Actor.learnSkill = Game_Actor.prototype.learnSkill;
-Game_Actor.prototype.learnSkill = function(skillId)
+J.ABS.Aliased.Game_Actor.onLearnNewSkill = Game_Actor.prototype.onLearnNewSkill;
+Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
-  if (!this.isLearnedSkill(skillId))
-  {
-    const skill = $dataSkills[skillId];
-    if (skill)
-    {
-      $jabsEngine.battlerSkillLearn(skill, this.getUuid());
-      this.upgradeSkillIfUpgraded(skillId);
-      this.autoAssignSkillsIfRequired(skillId);
-    }
-  }
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.onLearnNewSkill.call(this, skillId);
 
-  J.ABS.Aliased.Game_Actor.learnSkill.call(this, skillId);
+  // if the skill id is invalid, do not do JABS things.
+  if (!skillId) return;
+
+  // show the popup for the skill learned on the battler.
+  $jabsEngine.battlerSkillLearn(this.skill(skillId), this.getUuid());
+
+  // upgrade the skill if permissable.
+  this.upgradeSkillIfUpgraded(skillId);
+
+  // autoassign skills if necessary.
+  this.autoAssignSkillsIfRequired(skillId);
+
+  // flag skills on the skillslot manager for refreshing.
+  this.getSkillSlotManager().flagAllSkillSlotsForRefresh();
+};
+
+Game_Actor.prototype.onForgetSkill = function(skillId)
+{
+  if (!skillId) return;
+
+
 };
 
 /**
@@ -612,13 +630,13 @@ Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
 
   upgradableSkillsSlots.forEach(skillSlot =>
   {
-    const skillData = $dataSkills[skillSlot.id];
+    const skillData = this.skill(skillSlot.id);
     const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
     if (upgradeSkillId === skillId)
     {
       this.setEquippedSkill(skillSlot.key, skillId);
     }
-  });
+  }, this);
 };
 
 /**
@@ -1259,6 +1277,15 @@ Game_Battler.prototype.setUuid = function(uuid)
 Game_Battler.prototype.battlerId = function()
 {
   return 0;
+};
+
+/**
+ * Gets the battler's skill slot manager directly.
+ * @returns {JABS_SkillSlotManager}
+ */
+Game_Battler.prototype.getSkillSlotManager = function()
+{
+  return this._j._equippedSkills;
 };
 
 /**
@@ -2264,8 +2291,10 @@ Game_Enemies.prototype.initialize = function()
  */
 Game_Enemies.prototype.enemy = function(enemyId)
 {
+  // check to make sure there is a matching enemy in the database.
   if ($dataEnemies[enemyId])
   {
+    // check if our cache has this enemy entry.
     if (!this._data[enemyId])
     {
       this._data[enemyId] = new Game_Enemy(enemyId, null, null);
@@ -3115,7 +3144,7 @@ Game_Event.prototype.parseEnemyComments = function()
     // inanimate objects belong to the neutral team.
     teamId = JABS_Battler.neutralTeamId();
 
-    // inanimate objects cannot idle.
+    // inanimate objects cannot idle, lack hp bars, and won't display their name.
     canIdle = false;
     showHpBar = false;
     showBattlerName = false;

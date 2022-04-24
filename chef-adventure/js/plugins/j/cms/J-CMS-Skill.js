@@ -175,7 +175,6 @@ Window_SkillList.prototype.refreshSkillDetailWindow = function()
 
 /**
  * Extends `.select()` to also update our skill detail window if need-be.
- * @type {Window_SkillList.select}
  */
 J.CMS_K.Aliased.Window_SkillList.select = Window_SkillList.prototype.select;
 Window_SkillList.prototype.select = function(index)
@@ -195,7 +194,7 @@ Window_SkillList.prototype.maxCols = function()
 
 /**
  * OVERWRITE Does not draw costs of any kind.
- * @param {rm.types.Skill} skill The skill to draw costs for.
+ * @param {RPG_Skill} skill The skill to draw costs for.
  * @param {number} x The `x` coordinate.
  * @param {number} y The `y` coordinate.
  * @param {number} width The text width.

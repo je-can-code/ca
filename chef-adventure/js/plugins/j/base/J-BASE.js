@@ -213,6 +213,7 @@ J.BASE.Traits = {
 J.BASE.Aliased = {
   DataManager: new Map(),
   Game_Character: {},
+  Game_Actor: new Map(),
   Game_Party: new Map(),
   Scene_Base: new Map(),
   Window_Base: {},
@@ -1777,17 +1778,6 @@ Game_Actor.prototype.skillId = function()
 };
 
 /**
- * OVERWRITE Gets the skill associated with the given skill id.
- * By abstracting this, we can modify the underlying skill before it reaches its destination.
- * @param {number} skillId The skill id to get the skill for.
- * @returns {rm.types.Skill}
- */
-Game_Actor.prototype.skill = function(skillId)
-{
-  return $dataSkills[skillId];
-};
-
-/**
  * Gets the sight range for this actor.
  * Looks first to the class, then the actor for the tag.
  * If neither are present, then it returns the default.
@@ -2095,6 +2085,56 @@ Game_Actor.prototype.databaseData = function()
 {
   return this.actor();
 };
+
+/**
+ * Extends {@link Game_Actor.prototype.learnSkill}.
+ * Adds a hook for performing actions when a new skill is learned.
+ * If the skill is already known, it will not trigger any on-skill-learned effects.
+ */
+J.BASE.Aliased.Game_Actor.set('learnSkill', Game_Actor.prototype.learnSkill);
+Game_Actor.prototype.learnSkill = function(skillId)
+{
+  // check if we don't already know the skill.
+  if (!this.isLearnedSkill(skillId))
+  {
+    // execute the on-learn-new-skill hook.
+    this.onLearnNewSkill(skillId);
+  }
+
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
+};
+
+/**
+ * A hook for performing actions when an actor learns a new skill.
+ * @param {number} skillId The skill id of the skill learned.
+ */
+Game_Actor.prototype.onLearnNewSkill = function(skillId) { };
+
+/**
+ * Extends {@link Game_Actor.prototype.learnSkill}.
+ * Adds a hook for performing actions when a new skill is learned.
+ * If the skill is already known, it will not trigger any on-skill-learned effects.
+ */
+J.BASE.Aliased.Game_Actor.set('forgetSkill', Game_Actor.prototype.forgetSkill);
+Game_Actor.prototype.forgetSkill = function(skillId)
+{
+  // you cannot forget a skill you do not know.
+  if (this.isLearnedSkill(skillId))
+  {
+    // execute the on-forget-skill hook.
+    this.onForgetSkill(skillId);
+  }
+
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
+};
+
+/**
+ * A hook for performing actions when a battler forgets a skill.
+ * @param {number} skillId The skill id of the skill forgotten.
+ */
+Game_Actor.prototype.onForgetSkill = function(skillId) { };
 //#endregion Game_Actor
 
 //#region Game_Battler
@@ -5436,7 +5476,8 @@ class RPG_Base
   /**
    * The `meta` object of this skill, containing a dictionary of
    * key value pairs translated from this skill's `note` object.
-   * @type {Record<string, string|number|boolean|any>}
+   * @param
+   * @type {{ [k: string]: any }}
    */
   meta = {};
 
@@ -5535,8 +5576,8 @@ class RPG_Base
     // pull the metadata of a given key.
     const result = this.#getMeta(key);
 
-    // check if we have a result.
-    if (result)
+    // check if we have a result that isn't undefined.
+    if (result !== undefined)
     {
       // return that result.
       return result;
@@ -5554,6 +5595,15 @@ class RPG_Base
   {
     return this.meta[key];
   }
+
+  /**
+   * Deletes the metadata key from the underlying object entirely.
+   * @param key
+   */
+  deleteMetadata(key)
+  {
+    delete this.meta[key]
+  };
 
   /**
    * Gets the metadata of a given key from this entry as a string.
@@ -5629,7 +5679,7 @@ class RPG_Base
   /**
    * Retrieves the metadata for a given key on this skill.
    * This is mostly designed for providing intellisense.
-   * @param key
+   * @param {string} key The key to the metadata.
    * @returns {null|*}
    */
   metaAsObject(key)
@@ -5734,17 +5784,62 @@ class RPG_Base
   #formattedNotedata()
   {
     // split the notes by new lines.
-    const formattedNotes = this.note.split(/[\r\n]+/);
+    const formattedNotes = this.note
+      .split(/[\r\n]+/)
+      // filter out invalid note data.
+      .filter(this.invalidNoteFilter, this);
 
-    // check if the note was actually empty and we got a false positive.
-    if (formattedNotes.length === 1 && formattedNotes[0] === "")
-    {
-      // return null instead.
-      return null;
-    }
+    // if we have no length left after filtering, then there is no note data.
+    if (formattedNotes.length === 0) return null;
 
     // return our array of notes!
     return formattedNotes;
+  };
+
+  /**
+   * A filter function for defining what is invalid when it comes to a note data.
+   * @param {string} note A single line in the note data.
+   * @returns {boolean} True if the note data is valid, false otherwise.
+   */
+  invalidNoteFilter(note)
+  {
+    // empty strings are not valid notes.
+    if (note === String.empty) return false;
+
+    // everything else is.
+    return true;
+  };
+
+  /**
+   * Removes all regex matches in the raw note data string.
+   * @param {RegExp} regex The regular expression to find matches for removal.
+   */
+  deleteNotedata(regex)
+  {
+    // remove the regex matches from the note.
+    this.note = this.note.replace(regex, String.empty);
+
+    // cleanup the line endings that may have been messed up.
+    this.#cleanupLineEndings();
+  };
+
+  /**
+   * Reformats the note data to remove any invalid line endings, including those
+   * that may be at the beginning because stuff was removed, or the duplicates that
+   * may live throughout the note after modification.
+   */
+  #cleanupLineEndings()
+  {
+    // cleanup any duplicate newlines.
+    this.note = this.note.replace(/\n\n/gmi, '\n');
+    this.note = this.note.replace(/\r\r/gmi, '\r');
+
+    // cleanup any leading newlines.
+    if (this.note.startsWith('\r') || this.note.startsWith('\n'))
+    {
+      this.note = this.note.slice(2);
+    }
+
   };
 
   /**

@@ -4317,7 +4317,7 @@ class JABS_Engine
   };
 
   /**
-   * Handles a skill being learned for the leader while on the map.
+   * Handles a skill being learned for a battler while on the map.
    * @param {rm.types.Skill} skill The skill being learned.
    * @param {string} uuid The uuid of the battler leveling up.
    */

@@ -4662,11 +4662,13 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
   // grab the database data for this enemy.
   const battlerData = this.getBattler().enemy();
 
+  const battler = this.getBattler();
+
   // filter out any "extend" skills as far as this collection is concerned.
   const filtering = action =>
   {
     // grab the skill from the database.
-    const skill = $dataSkills[action.skillId];
+    const skill = battler.skill(action.skillId);
 
     // determine if the skill is an extend skill or not.
     const isExtendSkill = skill.meta && skill.meta['skillExtend'];
@@ -7589,6 +7591,8 @@ JABS_SkillSlot.prototype.initialize = function(key, skillId)
    * @type {number}
    */
   this.id = skillId;
+
+  // initialize the rest of the members.
   this.initMembers();
 };
 
@@ -7604,6 +7608,138 @@ JABS_SkillSlot.prototype.initMembers = function()
    * @type {boolean}
    */
   this.locked = false;
+
+  /**
+   * Whether or not this skill slot's name needs refreshing.
+   * @type {boolean}
+   */
+  this.needsNameRefresh = true;
+
+  /**
+   * Whether or not this skill slot's item cost needs refreshing.
+   * @type {boolean}
+   */
+  this.needsItemCostRefresh = true;
+
+  /**
+   * Whether or not this skill slot's hp cost needs refreshing.
+   * @type {boolean}
+   */
+  this.needsHpCostRefresh = true;
+
+  /**
+   * Whether or not this skill slot's mp cost needs refreshing.
+   * @type {boolean}
+   */
+  this.needsMpCostRefresh = true;
+
+
+  /**
+   * Whether or not this skill slot's tp cost needs refreshing.
+   * @type {boolean}
+   */
+  this.needsTpCostRefresh = true;
+
+
+  /**
+   * Whether or not this skill slot's icon needs refreshing.
+   * @type {boolean}
+   */
+  this.needsIconRefresh = true;
+};
+
+/**
+ * Flags this skillslot to need a visual refresh for the HUD.
+ */
+JABS_SkillSlot.prototype.flagSkillSlotForRefresh = function()
+{
+  this.needsNameRefresh = true;
+  this.needsHpCostRefresh = true;
+  this.needsMpCostRefresh = true;
+  this.needsTpCostRefresh = true;
+  this.needsItemCostRefresh = true;
+  this.needsIconRefresh = true;
+};
+
+/**
+ * Checks whether or not this skillslot's name is in need of a visual refresh.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.needsVisualNameRefresh = function()
+{
+  return this.needsNameRefresh;
+};
+
+/**
+ * Acknowledges that this skillslot's name was visually refreshed.
+ */
+JABS_SkillSlot.prototype.acknowledgeNameRefresh = function()
+{
+  this.needsNameRefresh = false;
+};
+
+/**
+ * Checks whether or not this skillslot's item cost is in need of a visual refresh by type.
+ * @returns {boolean} True if the given type
+ */
+JABS_SkillSlot.prototype.needsVisualCostRefreshByType = function(costType)
+{
+  switch (costType)
+  {
+    case (Sprite_SkillCost.Types.HP):
+      return this.needsHpCostRefresh;
+    case (Sprite_SkillCost.Types.MP):
+      return this.needsMpCostRefresh;
+    case (Sprite_SkillCost.Types.TP):
+      return this.needsTpCostRefresh;
+    case (Sprite_SkillCost.Types.Item):
+      return this.needsItemCostRefresh;
+  }
+
+  console.warn(`attempted to acknowledge a refresh of type: ${costType}, but it isn't implemented.`);
+  return false;
+};
+
+/**
+ * Acknowledges that this skillslot's item cost was visually refreshed.
+ */
+JABS_SkillSlot.prototype.acknowledgeCostRefreshByType = function(costType)
+{
+  switch (costType)
+  {
+    case (Sprite_SkillCost.Types.HP):
+      this.needsHpCostRefresh = false;
+      break;
+    case (Sprite_SkillCost.Types.MP):
+      this.needsMpCostRefresh = false;
+      break;
+    case (Sprite_SkillCost.Types.TP):
+      this.needsTpCostRefresh = false;
+      break;
+    case (Sprite_SkillCost.Types.Item):
+      this.needsItemCostRefresh = false;
+      break;
+    default:
+      console.warn(`attempted to acknowledge a refresh of type: ${costType}, but it isn't implemented.`);
+      break;
+  }
+};
+
+/**
+ * Checks whether or not this skillslot's icon is in need of a visual refresh.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.needsVisualIconRefresh = function()
+{
+  return this.needsIconRefresh;
+};
+
+/**
+ * Acknowledges that this skillslot's icon was visually refreshed.
+ */
+JABS_SkillSlot.prototype.acknowledgeIconRefresh = function()
+{
+  this.needsIconRefresh = false;
 };
 
 /**
@@ -7630,7 +7766,7 @@ JABS_SkillSlot.prototype.isEmpty = function()
  * Supports skill extended data via J-SkillExtend.
  * @param {Game_Actor|null} user The user to get extended skill data for.
  * @param {number|null} targetId The target id to get skill data for.
- * @returns {rm.types.Item|rm.types.Skill|null}
+ * @returns {RPG_UsableItem|RPG_Skill|null}
  */
 JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
 {
@@ -7645,7 +7781,7 @@ JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
   }
 
   // check if we're using the skill extension plugin and have a user.
-  if (J.EXTEND && user)
+  if (user)
   {
     // return the user's extended skill.
     return user.skill(targetId);
@@ -7732,7 +7868,13 @@ JABS_SkillSlot.prototype.setSkillId = function(skillId)
     return;
   }
 
+  // assign the new skill id.
   this.id = skillId;
+
+  // raise a flag that we need the visual refresh.
+  this.flagSkillSlotForRefresh();
+
+  // return this for fluent-chaining.
   return this;
 };
 
@@ -7916,34 +8058,14 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
   const battlerData = enemy.enemy();
   if (!battlerData) return;
 
-  // a short-hand for getting the skill from wherever it might be.
-  const getSkill = skillId =>
-  {
-    let skill;
-    if (J.PASSIVE && !J.EXTEND)
-    {
-      skill = enemy.skill(skillId);
-    }
-    else if (J.EXTEND)
-    {
-      skill = OverlayManager.getExtendedSkill(enemy, skillId);
-    }
-    else
-    {
-      skill = $dataSkills[skillId];
-    }
-
-    return skill;
-  };
-
   // filter out any "extend" skills as far as this collection is concerned.
   const filtering = action =>
   {
     // grab the skill from the database.
-    const skill = getSkill(action.skillId);
+    const skill = enemy.skill(action.skillId);
 
     // determine if the skill is an extend skill or not.
-    const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+    const isExtendSkill = skill.metadata('skillExtend');
 
     // filter out the extend skills.
     return !isExtendSkill;
@@ -7958,7 +8080,7 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
   skillIds.forEach(skillId =>
   {
     // grab the skill itself.
-    const skill = getSkill(skillId);
+    const skill = enemy.skill(skillId);
 
     // calculate the cooldown key.
     const slotKey = JABS_AiManager.buildEnemyCooldownType(skill);
@@ -7966,6 +8088,14 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
     // add the slot to the manager for this enemy.
     this.addSlot(slotKey, skillId);
   }, this);
+};
+
+/**
+ * Flags all skillslots for needing visual refresh for the input frame.
+ */
+JABS_SkillSlotManager.prototype.flagAllSkillSlotsForRefresh = function()
+{
+  this._slots.forEach(slot => slot.flagSkillSlotForRefresh());
 };
 
 /**
