@@ -842,10 +842,10 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
       // if it isn't, update it.
       this.setText(skillCost);
-
-      // acknowledge the refresh.
-      this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
     }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
   };
 }
 //#endregion Sprite_SkillCost

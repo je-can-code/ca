@@ -7680,6 +7680,7 @@ JABS_SkillSlot.prototype.acknowledgeNameRefresh = function()
 
 /**
  * Checks whether or not this skillslot's item cost is in need of a visual refresh by type.
+ * @param {Sprite_SkillCost.Types} costType
  * @returns {boolean} True if the given type
  */
 JABS_SkillSlot.prototype.needsVisualCostRefreshByType = function(costType)
@@ -7696,7 +7697,7 @@ JABS_SkillSlot.prototype.needsVisualCostRefreshByType = function(costType)
       return this.needsItemCostRefresh;
   }
 
-  console.warn(`attempted to acknowledge a refresh of type: ${costType}, but it isn't implemented.`);
+  console.warn(`attempted to request a refresh of type: ${costType}, but it isn't implemented.`);
   return false;
 };
 
