@@ -1,4 +1,6 @@
-import {Bitmap, Game_Actor, HTML5Audio, rm, Scene_Base} from "./lunalite-pixi-mz";
+import { rm } from "./lunalite-pixi-mz";
+import { Scene_Base } from './rmmz_scenes';
+import { Bitmap } from './rmmz_core';
 
 /**
  * Manages the game data: saving, loading, meta data,
@@ -76,7 +78,7 @@ declare class DataManager {
      * If the savefileId exists; the value will be true.
      * @static
      * @param {number} savefileId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof DataManager
      */
     static isThisGameFile(savefileId: number): boolean;
@@ -101,7 +103,7 @@ declare class DataManager {
      * Returns true if successful.
      * @static
      * @param {number} savefileId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof DataManager
      */
     static saveGame(savefileId: number): Promise<any>;
@@ -994,4 +996,3 @@ declare class EffectManager {
      */
     static isReady(): boolean;
 }
-

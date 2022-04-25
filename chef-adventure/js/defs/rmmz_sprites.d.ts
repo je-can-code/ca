@@ -1,14 +1,19 @@
+import './pixi';
+import { rm } from "./lunalite-pixi-mz";
 import {
-    Bitmap,
-    Game_Actor, Game_Battler,
-    Game_Character, Game_Enemy, Game_Event, Game_Picture, Game_Player,
-    Rectangle,
-    rm,
-    ScreenSprite, ShaderTilemap,
-    Sprite,
-    Sprite_Base,
-    Sprite_Battler, Tilemap, TilingSprite, ToneFilter, ToneSprite, Weather
-} from "./lunalite-pixi-mz";
+    Game_Actor,
+    Game_Battler,
+    Game_Character,
+    Game_Enemy,
+    Game_Event,
+    Game_Picture,
+    Game_Player
+} from "./rmmz_objects";
+import {Bitmap, ScreenSprite, ShaderTilemap, Sprite, Tilemap, ToneFilter, ToneSprite, Weather} from "./rmmz_core";
+
+declare class Sprite_Base { }
+
+declare class Sprite_Battler { }
 
 /**
  * -----------------------------------------------------------------------------
@@ -109,7 +114,7 @@ declare class Sprite_Actor extends Sprite_Battler {
     /**
      * Returns the speed of the motion for the sprite actor.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Sprite_Actor
      */
     motionSpeed(): number;
@@ -376,10 +381,10 @@ declare class Sprite_Button extends Sprite {
     /**
      * Set the button sprites cold frame.
      *
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} width
-     * @param {Int} height
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
      *
      * @memberof Sprite_Button
      *
@@ -388,10 +393,10 @@ declare class Sprite_Button extends Sprite {
     /**
      * Set the button sprites hot frame
      *
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} width
-     * @param {Int} height
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
      *
      * @memberof Sprite_Button
      *
@@ -400,14 +405,13 @@ declare class Sprite_Button extends Sprite {
     /**
      * Creates a new handler and binds it to the button.
      *
-     * @param {function} height
      * @memberof Sprite_Button
+     * @param method
      */
     setClickHandler(method: () => void): void;
     /**
      * Calls the handler method bound to the button.
      *
-     * @param {function} height
      * @memberof Sprite_Button
      */
     callClickHandler(): void;
@@ -419,28 +423,28 @@ declare class Sprite_Button extends Sprite {
     processTouch(): void;
     /**
      * Returns true if the sprite button is currently active.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Button
      */
     isActive(): boolean;
     /**
      * Returns true is the button is presently being touched.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Button
      */
     isButtonTouched(): boolean;
     /**
      * Changes the x coordinate of the screen to local sprite x coordinate.
-     * @param {Int} x
-     * @returns {Int}
+     * @param {number} x
+     * @returns {number}
      * @memberof Sprite_Button
      */
     canvasToLocalX(x: number): number;
     /**
      * Changes the y coordinate of the screen
      * to local sprite y coordinate.
-     * @param {Int} y
-     * @returns {Int}
+     * @param {number} y
+     * @returns {number}
      * @memberof Sprite_Button
      */
     canvasToLocalY(y: number): number;
@@ -492,7 +496,7 @@ declare class Sprite_Character extends Sprite_Base {
     /**
      * Returns true if the Game_Character object
      * tileId is greater than 0.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Character
      */
     isTile(): boolean;
@@ -506,7 +510,7 @@ declare class Sprite_Character extends Sprite_Base {
     /**
      * Returns true if the sprite character image has changed.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Character
      */
     isImageChanged(): boolean;
@@ -603,7 +607,7 @@ declare class Sprite_Character extends Sprite_Base {
     /**
      * Returns true if a balloon animation
      * is playing on the character.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Character
      */
     isBalloonPlaying(): boolean;
@@ -788,7 +792,7 @@ declare class Sprite_Enemy extends Sprite_Battler {
     /**
      * Returns true if the effect type on the sprite enemy
      * is not null.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Sprite_Enemy
      */
     isEffecting(): boolean;
@@ -1300,7 +1304,7 @@ declare class Spriteset_Battle extends Spriteset_Base {
     /**
      * Returns all battler sprites on the battle spriteset.
      *
-     * @returns {Array<Sprite_Battler>}
+     * @returns {Sprite_Battler[]}
      * @memberof Spriteset_Battle
      */
     battlerSprites(): Sprite_Battler[];

@@ -1,14 +1,8 @@
+import { rm } from "./lunalite-pixi-mz";
 import {
-    Game_Action, Game_ActionResult,
-    Game_Actor,
-    Game_Battler, Game_BattlerBase,
-    Game_Character, Game_CharacterBase, Game_CommonEvent,
-    Game_Enemy, Game_Event, Game_Follower,
-    Game_Interpreter, Game_Party,
-    Game_Picture, Game_Player,
-    Game_Unit,
-    rm
-} from "./lunalite-pixi-mz";
+    RPG_Armor, RPG_BaseItem, RPG_Class, RPG_Enemy, RPG_EnemyAction, RPG_EquipItem,
+    RPG_Skill, RPG_State, RPG_UsableItem, RPG_Weapon
+} from '../plugins/j/base';
 
 declare class Game_Action {
     /**
@@ -32,9 +26,9 @@ declare class Game_Action {
     setGuard(): void;
     setSkill(skillId: number): void;
     setItem(itemId: number): void;
-    setItemObject(object: rm.types.UsableItem): void;
+    setItemObject(object: RPG_UsableItem): void;
     setTarget(targetIndex: number): void;
-    item(): rm.types.UsableItem | rm.types.Skill;
+    item(): RPG_UsableItem | RPG_Skill;
     isSkill(): boolean;
     isItem(): boolean;
     numRepeats(): number;
@@ -159,45 +153,15 @@ declare class Game_ActionResult {
     addedDebuffs: number[];
     removedBuffs: number[];
     initialize(): void;
-    /**
-     * Clears the game action result.
-     *
-     * @memberof Game_ActionResult
-     */
     clear(): void;
-    /**
-     * Returns the added states from the action result.
-     *
-     * @returns {Array<RPG.State>}
-     * @memberof Game_ActionResult
-     */
-    addedStateObjects(): rm.types.State[];
-    /**
-     * Returns the removes states from the result.
-     *
-     * @returns {Array<RPG.State>}
-     * @memberof Game_ActionResult
-     */
-    removedStateObjects(): rm.types.State[];
+    addedStateObjects(): RPG_State[];
+    removedStateObjects(): RPG_State[];
     isStatusAffected(): boolean;
-    /**
-     * Returns true if the action result is a hit.
-     *
-     * @returns {Bool}
-     * @memberof Game_ActionResult
-     */
     isHit(): boolean;
     isStateAdded(stateId: number): boolean;
     pushAddedState(stateId: number): void;
     isStateRemoved(stateId: number): boolean;
     pushRemovedState(stateId: number): void;
-    /**
-     * Returns true if the a buff is added to the specified param
-     * from the action result.
-     * @param {number} paramId
-     * @returns {Bool}
-     * @memberof Game_ActionResult
-     */
     isBuffAdded(paramId: number): boolean;
     pushAddedBuff(paramId: number): void;
     isDebuffAdded(paramId: number): boolean;
@@ -206,713 +170,7 @@ declare class Game_ActionResult {
     pushRemovedBuff(paramId: number): void;
 }
 
-declare class Game_Actor extends Game_Battler {
-    constructor(actorId: number);
-    _actorId: number;
-    _name: string;
-    _nickname: string;
-    _profile: string;
-    _classId: number;
-    _level: number;
-    _characterName: string;
-    _characterIndex: number;
-    _faceName: string;
-    _faceIndex: number;
-    _battlerName: string;
-    _exp: Object;
-    /**
-     * Skill Ids
-     */
-    _skills: number[];
-    _equips: Game_Item[];
-    _actionInputIndex: number;
-    _lastMenuSkill: Game_Item;
-    _lastBattleSkill: Game_Item;
-    _lastCommandSymbol: string;
-    _stateSteps: Object;
-    /**
-     * [read-only]
-     */
-    level: number;
-    setup(actorId: number): void;
-    /**
-     * Returns the id of the actor.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    actorId(): number;
-    /**
-     * Returns the database information of the actor.
-     *
-     * @returns {Actor}
-     * @memberof Game_Actor
-     */
-    actor(): rm.types.Actor;
-    /**
-     * Returns the actor's name.
-     * @return String
-     */
-    name(): string;
-    /**
-     * Sets the actor name.
-     *
-     * @param {String} name
-     * @memberof Game_Actor
-     */
-    setName(name: string): void;
-    /**
-     * Returns the nickname of the actor.
-     *
-     * @returns {String}
-     * @memberof Game_Actor
-     */
-    nickname(): string;
-    /**
-     * Sets the nickname of the actor.
-     *
-     * @param {String} nickname
-     * @memberof Game_Actor
-     */
-    setNickname(nickname: string): void;
-    /**
-     * Returns the actor profile.
-     *
-     * @returns {String}
-     * @memberof Game_Actor
-     */
-    profile(): string;
-    /**
-     * Sets the actor profile.
-     *
-     * @param {String} profile
-     * @memberof Game_Actor
-     */
-    setProfile(profile: string): void;
-    /**
-     * Returns the face name of the actor; this is
-     * the image of faces for the actor.
-     * @returns {String}
-     * @memberof Game_Actor
-     */
-    faceName(): string;
-    /**
-     * Returns the face index of the actor.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    faceIndex(): number;
-    /**
-     * Clears all states from the actor.
-     *
-     * @memberof Game_Actor
-     */
-    clearStates(): void;
-    /**
-     * Erase the specified state from the actor.
-     *
-     * @param {Int} stateId
-     * @memberof Game_Actor
-     */
-    eraseState(stateId: number): void;
-    /**
-     * Reset state count of the specified state.
-     *
-     * @param {Int} stateId
-     * @memberof Game_Actor
-     */
-    resetStateCounts(stateId: number): void;
-    /**
-     * Initialize images of the actor.
-     *
-     * @memberof Game_Actor
-     */
-    initImages(): void;
-    /**
-     * Returns the exp required to level.
-     *
-     * @param {Int} level
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    expForLevel(level: number): number;
-    /**
-     * Initialize exp of the actor.
-     *
-     * @memberof Game_Actor
-     */
-    initExp(): void;
-    /**
-     * Returns the current experience points of the actor.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    currentExp(): number;
-    /**
-     * Returns the current level's experience for the actor.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    currentLevelExp(): number;
-    /**
-     * Returns the experience points for the next level of the actor.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    nextLevelExp(): number;
-    /**
-     * Returns the next required experience points for the actor to level up.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    nextRequiredExp(): number;
-    /**
-     * Returns the maximum level of the actor.
-     *
-     * @memberof Game_Actor
-     */
-    maxLevel(): void;
-    /**
-     * Returns true if the actor is max level.
-     *
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isMaxLevel(): boolean;
-    /**
-     * Initialize actor skills.
-     *
-     * @memberof Game_Actor
-     */
-    initSkills(): void;
-    /**
-     * Initialize actor equipment in the given slots.
-     *
-     * @param {Array<Int>} equips
-     * @memberof Game_Actor
-     */
-    initEquips(equips: number[]): void;
-    /**
-     * Returns the equip slots of the actor.
-     *
-     * @returns {Array<Int>}
-     * @memberof Game_Actor
-     */
-    equipSlots(): number[];
-    /**
-     * Returns the equipment of the actor.
-     *
-     * @returns {Array<RPG_EquipItem>}
-     * @memberof Game_Actor
-     */
-    equips(): RPG_EquipItem[];
-    /**
-     * Returns the weapon of the actor.
-     *
-     * @returns {Array<RPG_Weapon>}
-     * @memberof Game_Actor
-     */
-    weapons(): RPG_Weapon[];
-    /**
-     * Returns the armor of the actor.
-     *
-     * @returns {Array<RPG_Armor>}
-     * @memberof Game_Actor
-     */
-    armors(): RPG_Armor[];
-    /**
-     * Returns true if the actor has a weapon.
-     *
-     * @param {Weapon} weapon
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    hasWeapon(weapon: RPG_Weapon): boolean;
-    /**
-     * Returns true if the actor has armor.
-     *
-     * @param {Armor} armor
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    hasArmor(armor: RPG_Armor): boolean;
-    /**
-     * Returns true if the equip change is okay in the given slot.
-     *
-     * @param {Int} slotId
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isEquipChangeOk(slotId: number): boolean;
-    /**
-     * Changes the actor equipment in the given slot with the
-     * given equip item. Places the original item into the party
-     * inventory.
-     * @param {Int} slotId
-     * @param {EquipItem} item
-     * @memberof Game_Actor
-     */
-    changeEquip(slotId: number, item: RPG_EquipItem): void;
-    /**
-     * Forces the actor to change equipment in the given slot
-     * with the given equip item without placing the item back into
-     * the party inventory.
-     * @param {Int} slotId
-     * @param {EquipItem} item
-     * @memberof Game_Actor
-     */
-    forceChangeEquip(slotId: number, item: RPG_EquipItem): void;
-    /**
-     * Trades the new item with the old item in the party inventory.
-     *
-     * @param {EquipItem} newItem
-     * @param {EquipItem} oldItem
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    tradeItemWithParty(newItem: RPG_EquipItem, oldItem: RPG_EquipItem): boolean;
-    /**
-     * Changes the actor equip with an item based on the equip id.
-     *
-     * @param {Int} etypeId
-     * @param {Int} itemId
-     * @memberof Game_Actor
-     */
-    changeEquipById(etypeId: number, itemId: number): void;
-    /**
-     * Returns true if the actor is equipped with the specific item.
-     *
-     * @param {EquipItem} item
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isEquipped(item: rm.types.EquipItem): boolean;
-    /**
-     * Discards the given equip item from the actor; item
-     * is not return to the party inventory.
-     * @param {EquipItem} item
-     * @memberof Game_Actor
-     */
-    discardEquip(item: rm.types.EquipItem): void;
-    /**
-     * Returns items the actor can't normally equip to the party inventory.
-     *
-     * @param {Bool} forcing
-     * @memberof Game_Actor
-     */
-    releaseUnequippableItems(forcing: boolean): void;
-    /**
-     * Clears the actor's equipment; items are returned to the inventory.
-     *
-     * @memberof Game_Actor
-     */
-    clearEquipments(): void;
-    /**
-     * Optimize the actor's equipment.
-     *
-     * @memberof Game_Actor
-     */
-    optimizeEquipments(): void;
-    /**
-     * Equips the best item in the given slot.
-     *
-     * @param {Int} slotId
-     * @memberof Game_Actor
-     */
-    bestEquipItem(slotId: number): void;
-    /**
-     * Calculates the equip item performance and returns the sum/difference.
-     *
-     * @param {EquipItem} item
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    calcEquipItemPerformance(item: rm.types.EquipItem): number;
-    isSkillWtypeOk(skill: rm.types.Skill): boolean;
-    isWtypeEquipped(wtypeId: number): boolean;
-    /**
-     * Refreshes the actor.
-     *
-     * @memberof Game_Actor
-     */
-    refresh(): void;
-    friendsUnit(): Game_Party;
-    opponentsUnit(): Game_Temp;
-    /**
-     * Returns true if the actor is a member in battle.
-     *
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isBattleMember(): boolean;
-    isFormationChangeOk(): boolean;
-    /**
-     * Returns the current class of the actor from the database.
-     *
-     * @returns {Class}
-     * @memberof Game_Actor
-     */
-    currentClass(): rm.types.RPGClass;
-    /**
-     * Returns true if the actor is the specified class from the database.
-     *
-     * @param {Class} gameClass
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isClass(gameClass: rm.types.RPGClass): boolean;
-    /**
-     * Returns the actor's skills; even if the skills are not usable.
-     *
-     * @returns {Array<Skill>}
-     * @memberof Game_Actor
-     */
-    skills(): RPG_Skill[];
-    /**
-     * Returns the usable skills of the actor.
-     *
-     * @returns {Array<Skill>}
-     * @memberof Game_Actor
-     */
-    usableSkills(): RPG_Skill[];
-    /**
-     * Returns the attack element ids.
-     *
-     * @returns {Array<number>}
-     * @memberof Game_Actor
-     */
-    attackElements(): number[];
-    /**
-     * Returns true if the actor has no weapon.
-     *
-     * @returns {boolean}
-     * @memberof Game_Actor
-     */
-    hasNoWeapons(): boolean;
-    /**
-     * Returns the element id of barehanded attacks.
-     * By default this is 1.
-     *
-     * @returns {number}
-     * @memberof Game_Actor
-     */
-    bareHandsElementId(): number;
-    /**
-     * Returns the base value of the parameter.
-     * @param paramId
-     * @return Int
-     */
-    paramBase(paramId: number): number;
-    /**
-     * Returns the first attack animation id.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    attackAnimationId1(): number;
-    /**
-     * Returns the second attack animation id.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    attackAnimationId2(): number;
-    /**
-     * Returns the animation id for a barehanded attack.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    bareHandsAnimationId(): number;
-    /**
-     * Change the actor experience points; leveling up the actor
-     * if it's above the required exp for the current level.
-     * If show is set to true, actor level up with be displayed.
-     * @param {Int} exp
-     * @param {Bool} show
-     * @memberof Game_Actor
-     */
-    changeExp(exp: number, show: boolean): void;
-    /**
-     * Level up the actor.
-     *
-     * @memberof Game_Actor
-     */
-    levelUp(): void;
-    /**
-     * Level down the actor.
-     *
-     * @memberof Game_Actor
-     */
-    levelDown(): void;
-    findNewSkills(lastSkills: rm.types.Skill[]): rm.types.Skill[];
-    /**
-     * Displays the actor level up in a message window, with the learned skills.
-     *
-     * @param {Array<Skill>} newSkills
-     * @memberof Game_Actor
-     */
-    displayLevelUp(newSkills: rm.types.Skill[]): void;
-    /**
-     * Gives the specified exp to the actor.
-     *
-     * @param {Int} exp
-     * @memberof Game_Actor
-     */
-    gainExp(exp: number): void;
-    /**
-     * Returns the final exp rate of the actor based on if the actor
-     * is a reserved party member or an active battle member.
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    finalExpRate(): number;
-    /**
-     * Returns the exp rate of actors not in battle; this is set in the database.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    benchMembersExpRate(): number;
-    /**
-     * Returns true if the actor should display level up in a message window.
-     *
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    shouldDisplayLevelUp(): boolean;
-    /**
-     * Changes the actor level; if show is set to true,
-     * the actor level will be displayed.
-     * @param {Int} level
-     * @param {Bool} show
-     * @memberof Game_Actor
-     */
-    changeLevel(level: number, show: boolean): void;
-    /**
-     * Actor learns the specified skill given the skill id.
-     *
-     * @param {Int} skillId
-     * @memberof Game_Actor
-     */
-    learnSkill(skillId: number): void;
-    /**
-     * Actor forgets the specified skill given the skill id from
-     * the actor's usable skills.
-     * @param {Int} skillId
-     * @memberof Game_Actor
-     */
-    forgetSkill(skillId: number): void;
-    /**
-     * Returns true if the actor has learned the specified
-     * skill given the specified skill id.
-     * @param {Int} skillId
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isLearnedSkill(skillId: number): boolean;
-    /**
-     * Changes the actor class; if keep is true, the actor
-     * will retain their experience points.
-     * @param {Int} classId
-     * @param {Bool} keepExp
-     * @memberof Game_Actor
-     */
-    changeClass(classId: number, keepExp: boolean): void;
-    setCharacterImage(characterName: string, characterIndex: number): void;
-    /**
-     * Sets the face image of the actor given the face image (from database)
-     * and face index within the iamge.
-     *
-     * @param {String} faceName
-     * @param {Int} faceIndex
-     * @memberof Game_Actor
-     */
-    setFaceImage(faceName: string, faceIndex: number): void;
-    /**
-     * Sets the battler image of the actor; this is the sprite displayed
-     * in the side view mode.
-     * @param {String} battlerName
-     * @memberof Game_Actor
-     */
-    setBattlerImage(battlerName: string): void;
-    /**
-     * Returns true if the actor sprite is visible.
-     *
-     * @returns {Bool}
-     * @memberof Game_Actor
-     */
-    isSpriteVisible(): boolean;
-    /**
-     * Starts the animation on the actor given the specified animation id;
-     * if  mirror is set to true, the animation will be mirrored. If a delay is enter,
-     * the animation will be delayed.
-     * @param {Int} animationId
-     * @param {Bool} mirror
-     * @param {Int} delay
-     * @memberof Game_Actor
-     */
-    startAnimation(animationId: number, mirror: boolean, delay: number): void;
-    /**
-     * Performs the attack motion for the actor.
-     *
-     * @memberof Game_Actor
-     */
-    performAttack(): void;
-    /**
-     * Perform the victory motion for the actor.
-     *
-     * @memberof Game_Actor
-     */
-    performVictory(): void;
-    /**
-     * Performs the escape motion for the actor.
-     *
-     * @memberof Game_Actor
-     */
-    performEscape(): void;
-    /**
-     * Creates the action list for the actor.
-     *
-     * @returns {Array<Game_Action>}
-     * @memberof Game_Actor
-     */
-    makeActionList(): Game_Action[];
-    /**
-     * Creates the auto battle actions for the game actor.
-     *
-     * @memberof Game_Actor
-     */
-    makeAutoBattleActions(): void;
-    makeConfusionActions(): void;
-    /**
-     * Handler for when the player walks on the map scene.
-     *
-     * @memberof Game_Actor
-     */
-    onPlayerWalk(): void;
-    updateStateSteps(state: rm.types.State): void;
-    /**
-     * Shows the added states to the actor.
-     *
-     * @memberof Game_Actor
-     */
-    showAddedStates(): void;
-    /**
-     * Shows the removed states from the actor.
-     *
-     * @memberof Game_Actor
-     */
-    showRemovedStates(): void;
-    stepsForTurn(): number;
-    turnEndOnMap(): void;
-    /**
-     * Checks the effect of the floor on the actor.
-     *
-     * @memberof Game_Actor
-     */
-    checkFloorEffect(): void;
-    /**
-     * Executes the floor dmaage on the actor.
-     *
-     * @memberof Game_Actor
-     */
-    executeFloorDamage(): void;
-    /**
-     * Returns the basic floor damage.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    basicFloorDamage(): number;
-    /**
-     * Returns the max floor damage.
-     *
-     * @returns {Int}
-     * @memberof Game_Actor
-     */
-    maxFloorDamage(): number;
-    /**
-     * Perform damage to the actor on the map scene.
-     *
-     * @memberof Game_Actor
-     */
-    performMapDamage(): void;
-    /**
-     * Clears all of the actor's animations.
-     *
-     * @memberof Game_Actor
-     */
-    clearActions(): void;
-    /**
-     * Returns action the actor is inputting.
-     *
-     * @returns {Game_Action}
-     * @memberof Game_Actor
-     */
-    inputtingAction(): Game_Action;
-    selectNextCommand(): boolean;
-    selectPreviousCommand(): boolean;
-    /**
-     * Returns the last menu skill of the actor.
-     *
-     * @returns {Skill}
-     * @memberof Game_Actor
-     */
-    lastMenuSkill(): rm.types.Skill;
-    setLastMenuSkill(skill: rm.types.Skill): void;
-    /**
-     * Returns the last battle skill of the actor.
-     *
-     * @returns {Skill}
-     * @memberof Game_Actor
-     */
-    lastBattleSkill(): rm.types.Skill;
-    setLastBattleSkill(skill: rm.types.Skill): void;
-    /**
-     * Returns the last command symbol that the actor used.
-     *
-     * @returns {String}
-     * @memberof Game_Actor
-     */
-    lastCommandSymbol(): string;
-    /**
-     * Sets the last command symbol to the given symbol; this is the
-     * selected command in the battle menu.
-     * @param {String} symbol
-     * @memberof Game_Actor
-     */
-    setLastCommandSymbol(symbol: string): void;
-    /**
-     * Returns true if the item effect  has a special effect from game action.
-     * @param item
-     * @return Bool
-     */
-    testEscape(item: rm.types.BaseItem): boolean;
-}
-
-declare class Game_Actors {
-    constructor();
-    /**
-     * List of all Game_Actor in the database.
-     */
-    _data: Game_Actor[];
-    initialize(): void;
-    /**
-     * Returns the actor with the specified id.
-     *
-     * @param {number} actorId
-     * @returns {Game_Actor}
-     * @memberof Game_Actors
-     */
-    actor(actorId: number): Game_Actor;
-}
-
+//#region battlers
 declare class Game_BattlerBase {
     constructor();
     initialize(): void;
@@ -1075,7 +333,7 @@ declare class Game_BattlerBase {
      * Returns true if the battler is affected by the specified state given
      * the state id.
      * @param {number} stateId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isStateAffected(stateId: number): boolean;
@@ -1098,7 +356,7 @@ declare class Game_BattlerBase {
      * Returns true if the state, given the state id is expired.
      *
      * @param {number} stateId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isStateExpired(stateId: number): boolean;
@@ -1294,7 +552,7 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the battler dual wields.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isDualWield(): boolean;
@@ -1308,7 +566,7 @@ declare class Game_BattlerBase {
     /**
      * Returns the collapse type of the battler.
      * This is represented as an Int.
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_BattlerBase
      */
     collapseType(): number;
@@ -1316,14 +574,14 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the battler is set to battle automatically.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isAutoBattle(): boolean;
     /**
      * Returns true if the battler is guarding.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isGuard(): boolean;
@@ -1331,7 +589,7 @@ declare class Game_BattlerBase {
     /**
      * Returns true if tp is preserved between battles.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isPreserveTp(): boolean;
@@ -1412,49 +670,49 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the game battler is hidden.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isHidden(): boolean;
     /**
      * Returns true if the game battler is not hidden.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isAppeared(): boolean;
     /**
      * Returns true if the battler is dead.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isDead(): boolean;
     /**
      * Returns true if the battler is alive.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isAlive(): boolean;
     /**
      * Returns true if the battler is dying.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isDying(): boolean;
     /**
      * Returns true if the game battler is restricted.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isRestricted(): boolean;
     /**
      * Returns true if the battler can input actions.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     canInput(): boolean;
@@ -1462,7 +720,7 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the battler is confused.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isConfused(): boolean;
@@ -1476,14 +734,14 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the battler is an actor.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isActor(): boolean;
     /**
      * Returns true if the battler is an enemy.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     isEnemy(): boolean;
@@ -1519,99 +777,99 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the skill is a weapon type
      * oriented skill.
-     * @param {RPG.Skill} skill
-     * @returns {Bool}
+     * @returns {RPG_Skill} skill
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    isSkillWtypeOk(skill: rm.types.Skill): boolean;
+    isSkillWtypeOk(skill: RPG_Skill): boolean;
     /**
      * Returns the mp cost of the skill.
      *
-     * @param {RPG.Skill} skill
+     * @returns {RPG_Skill} skill
      * @returns {number}
      * @memberof Game_BattlerBase
      */
-    skillMpCost(skill: rm.types.Skill): number;
+    skillMpCost(skill: RPG_Skill): number;
     /**
      * Returns the tp cost of the skill.
      *
-     * @param {RPG.Skill} skill
+     * @returns {RPG_Skill} skill
      * @returns {number}
      * @memberof Game_BattlerBase
      */
-    skillTpCost(skill: rm.types.Skill): number;
+    skillTpCost(skill: RPG_Skill): number;
     /**
      * Returns true if the battler can pay the cost
      * of the specified skill.
-     * @param {RPG.Skill} skill
-     * @returns {Bool}
+     * @returns {RPG_Skill} skill
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    canPaySkillCost(skill: rm.types.Skill): boolean;
+    canPaySkillCost(skill: RPG_Skill): boolean;
     /**
      * Pays the cost of the skill when activating the skill.
      *
-     * @param {RPG.Skill} skill
+     * @returns {RPG_Skill} skill
      * @memberof Game_BattlerBase
      */
-    paySkillCost(skill: rm.types.Skill): void;
+    paySkillCost(skill: RPG_Skill): void;
     /**
      * Returns true if the item occasion is okay.
      *
-     * @param {RPG.UsableItem} item
-     * @returns {Bool}
+     * @returns {RPG_UsableItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    isOccasionOk(item: rm.types.UsableItem): boolean;
-    meetsUsableItemConditions(item: rm.types.UsableItem): boolean;
+    isOccasionOk(item: RPG_UsableItem): boolean;
+    meetsUsableItemConditions(item: RPG_UsableItem): boolean;
     /**
      * Returns true if the battler meets the skill conditions.
      *
-     * @param {RPG.Skill} skill
-     * @returns {Bool}
+     * @returns {RPG_Skill} skill
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    meetsSkillConditions(skill: rm.types.Skill): boolean;
+    meetsSkillConditions(skill: RPG_Skill): boolean;
     /**
      * Returns true if the battler meets the item conditions.
      *
-     * @param {RPG.Item} item
-     * @returns {Bool}
+     * @returns {RPG_UsableItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     meetsItemConditions(item: rm.types.Item): boolean;
     /**
      * Returns true if the battler can use the item.
      *
-     * @param {RPG.UsableItem} item
-     * @returns {Bool}
+     * @returns {RPG_UsableItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    canUse(item: rm.types.UsableItem): boolean;
+    canUse(item: RPG_UsableItem): boolean;
     /**
      * Returns true if the battler can equip the item.
      *
-     * @param {RPG.EquipItem} item
-     * @returns {Bool}
+     * @param {RPG_EquipItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    canEquip(item: rm.types.EquipItem): boolean;
+    canEquip(item: RPG_EquipItem): boolean;
     /**
      * Returns true if the battler can equip a weapon.
      *
-     * @param {RPG.EquipItem} item
-     * @returns {Bool}
+     * @param {RPG_EquipItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    canEquipWeapon(item: rm.types.EquipItem): boolean;
+    canEquipWeapon(item: RPG_EquipItem): boolean;
     /**
      * Returns true if the battler can equip armor.
      *
-     * @param {RPG.EquipItem} item
-     * @returns {Bool}
+     * @param {RPG_EquipItem} item
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
-    canEquipArmor(item: rm.types.EquipItem): boolean;
+    canEquipArmor(item: RPG_EquipItem): boolean;
     /**
      * Returns the attack skill id in the database.
      *
@@ -1629,14 +887,14 @@ declare class Game_BattlerBase {
     /**
      * Returns true if the battler can attack.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     canAttack(): boolean;
     /**
      * Returns true if the battler can guard.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_BattlerBase
      */
     canGuard(): boolean;
@@ -1858,14 +1116,14 @@ declare class Game_Battler extends Game_BattlerBase {
     /**
      * Returns true if a motion is requested.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isMotionRequested(): boolean;
     /**
      * Returns true if a weapon animation is requested.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isWeaponAnimationRequested(): boolean;
@@ -1903,7 +1161,7 @@ declare class Game_Battler extends Game_BattlerBase {
      * Starts the specified animation, given the animation id on the
      * battler.
      * @param {number} animationId
-     * @param {Bool} mirror
+     * @param {boolean} mirror
      * @param {number} delay
      * @memberof Game_Battler
      */
@@ -1973,7 +1231,7 @@ declare class Game_Battler extends Game_BattlerBase {
      * Returns true if the specified state given the state id
      * is addable.
      * @param {number} stateId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isStateAddable(stateId: number): boolean;
@@ -1982,7 +1240,7 @@ declare class Game_Battler extends Game_BattlerBase {
      * restricts.
      *
      * @param {number} stateId
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isStateRestrict(stateId: number): boolean;
@@ -2080,17 +1338,17 @@ declare class Game_Battler extends Game_BattlerBase {
     /**
      * Has theb attler use the given item.
      *
-     * @param {RPG.UsableItem} item
+     * @returns {RPG_UsableItem} item
      * @memberof Game_Battler
      */
-    useItem(item: rm.types.UsableItem): void;
+    useItem(item: RPG_UsableItem): void;
     /**
      * Has the battler consume the given item.
      *
-     * @param {RPG.UsableItem} item
+     * @returns {RPG_UsableItem} item
      * @memberof Game_Battler
      */
-    consumeItem(item: rm.types.UsableItem): void;
+    consumeItem(item: RPG_UsableItem): void;
     /**
      * Adds the specified amount of hp to the battler.
      *
@@ -2189,35 +1447,35 @@ declare class Game_Battler extends Game_BattlerBase {
     /**
      * Returns true if the battler is inputting commands in battle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isInputting(): boolean;
     /**
      * Returns true if the battler is waiting in battle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isWaiting(): boolean;
     /**
      * Returns true if the battler is performing an action in battle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isActing(): boolean;
     /**
      * Returns true if the battler is chanting in combat.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isChanting(): boolean;
     /**
      * Returns true if the battler is waiting to guard.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Battler
      */
     isGuardWaiting(): boolean;
@@ -2298,6 +1556,713 @@ declare class Game_Battler extends Game_BattlerBase {
     performCollapse(): void;
 }
 
+declare class Game_Actor extends Game_Battler {
+    constructor(actorId: number);
+    _actorId: number;
+    _name: string;
+    _nickname: string;
+    _profile: string;
+    _classId: number;
+    _level: number;
+    _characterName: string;
+    _characterIndex: number;
+    _faceName: string;
+    _faceIndex: number;
+    _battlerName: string;
+    _exp: Object;
+    /**
+     * Skill Ids
+     */
+    _skills: number[];
+    _equips: Game_Item[];
+    _actionInputIndex: number;
+    _lastMenuSkill: Game_Item;
+    _lastBattleSkill: Game_Item;
+    _lastCommandSymbol: string;
+    _stateSteps: Object;
+    /**
+     * [read-only]
+     */
+    level: number;
+    setup(actorId: number): void;
+    /**
+     * Returns the id of the actor.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    actorId(): number;
+    /**
+     * Returns the database information of the actor.
+     *
+     * @returns {Actor}
+     * @memberof Game_Actor
+     */
+    actor(): rm.types.Actor;
+    /**
+     * Returns the actor's name.
+     * @return String
+     */
+    name(): string;
+    /**
+     * Sets the actor name.
+     *
+     * @param {String} name
+     * @memberof Game_Actor
+     */
+    setName(name: string): void;
+    /**
+     * Returns the nickname of the actor.
+     *
+     * @returns {String}
+     * @memberof Game_Actor
+     */
+    nickname(): string;
+    /**
+     * Sets the nickname of the actor.
+     *
+     * @param {String} nickname
+     * @memberof Game_Actor
+     */
+    setNickname(nickname: string): void;
+    /**
+     * Returns the actor profile.
+     *
+     * @returns {String}
+     * @memberof Game_Actor
+     */
+    profile(): string;
+    /**
+     * Sets the actor profile.
+     *
+     * @param {String} profile
+     * @memberof Game_Actor
+     */
+    setProfile(profile: string): void;
+    /**
+     * Returns the face name of the actor; this is
+     * the image of faces for the actor.
+     * @returns {String}
+     * @memberof Game_Actor
+     */
+    faceName(): string;
+    /**
+     * Returns the face index of the actor.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    faceIndex(): number;
+    /**
+     * Clears all states from the actor.
+     *
+     * @memberof Game_Actor
+     */
+    clearStates(): void;
+    /**
+     * Erase the specified state from the actor.
+     *
+     * @param {number} stateId
+     * @memberof Game_Actor
+     */
+    eraseState(stateId: number): void;
+    /**
+     * Reset state count of the specified state.
+     *
+     * @param {number} stateId
+     * @memberof Game_Actor
+     */
+    resetStateCounts(stateId: number): void;
+    /**
+     * Initialize images of the actor.
+     *
+     * @memberof Game_Actor
+     */
+    initImages(): void;
+    /**
+     * Returns the exp required to level.
+     *
+     * @param {number} level
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    expForLevel(level: number): number;
+    /**
+     * Initialize exp of the actor.
+     *
+     * @memberof Game_Actor
+     */
+    initExp(): void;
+    /**
+     * Returns the current experience points of the actor.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    currentExp(): number;
+    /**
+     * Returns the current level's experience for the actor.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    currentLevelExp(): number;
+    /**
+     * Returns the experience points for the next level of the actor.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    nextLevelExp(): number;
+    /**
+     * Returns the next required experience points for the actor to level up.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    nextRequiredExp(): number;
+    /**
+     * Returns the maximum level of the actor.
+     *
+     * @memberof Game_Actor
+     */
+    maxLevel(): void;
+    /**
+     * Returns true if the actor is max level.
+     *
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isMaxLevel(): boolean;
+    /**
+     * Initialize actor skills.
+     *
+     * @memberof Game_Actor
+     */
+    initSkills(): void;
+    /**
+     * Initialize actor equipment in the given slots.
+     *
+     * @param {number[]} equips
+     * @memberof Game_Actor
+     */
+    initEquips(equips: number[]): void;
+    /**
+     * Returns the equip slots of the actor.
+     *
+     * @memberof Game_Actor
+     */
+    equipSlots(): number[];
+    /**
+     * Returns the equipment of the actor.
+     *
+     * @memberof Game_Actor
+     */
+    equips(): RPG_EquipItem[];
+    /**
+     * Returns the weapon of the actor.
+     *
+     * @returns {RPG_Weapon[]}
+     * @memberof Game_Actor
+     */
+    weapons(): RPG_Weapon[];
+    /**
+     * Returns the armor of the actor.
+     *
+     * @returns {RPG_Armor[]}
+     * @memberof Game_Actor
+     */
+    armors(): RPG_Armor[];
+    /**
+     * Returns true if the actor has a weapon.
+     *
+     * @param {Weapon} weapon
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    hasWeapon(weapon: RPG_Weapon): boolean;
+    /**
+     * Returns true if the actor has armor.
+     *
+     * @param {Armor} armor
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    hasArmor(armor: RPG_Armor): boolean;
+    /**
+     * Returns true if the equip change is okay in the given slot.
+     *
+     * @param {number} slotId
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isEquipChangeOk(slotId: number): boolean;
+    /**
+     * Changes the actor equipment in the given slot with the
+     * given equip item. Places the original item into the party
+     * inventory.
+     * @param {number} slotId
+     * @param {RPG_EquipItem} item
+     * @memberof Game_Actor
+     */
+    changeEquip(slotId: number, item: RPG_EquipItem): void;
+    /**
+     * Forces the actor to change equipment in the given slot
+     * with the given equip item without placing the item back into
+     * the party inventory.
+     * @param {number} slotId
+     * @param {RPG_EquipItem} item
+     * @memberof Game_Actor
+     */
+    forceChangeEquip(slotId: number, item: RPG_EquipItem): void;
+    /**
+     * Trades the new item with the old item in the party inventory.
+     *
+     * @param {RPG_EquipItem} newItem
+     * @param {RPG_EquipItem} oldItem
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    tradeItemWithParty(newItem: RPG_EquipItem, oldItem: RPG_EquipItem): boolean;
+    /**
+     * Changes the actor equip with an item based on the equip id.
+     *
+     * @param {number} etypeId
+     * @param {number} itemId
+     * @memberof Game_Actor
+     */
+    changeEquipById(etypeId: number, itemId: number): void;
+    /**
+     * Returns true if the actor is equipped with the specific item.
+     *
+     * @param {RPG_EquipItem} item
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isEquipped(item: RPG_EquipItem): boolean;
+    /**
+     * Discards the given equip item from the actor; item
+     * is not return to the party inventory.
+     * @param {RPG_EquipItem} item
+     * @memberof Game_Actor
+     */
+    discardEquip(item: RPG_EquipItem): void;
+    /**
+     * Returns items the actor can't normally equip to the party inventory.
+     *
+     * @param {boolean} forcing
+     * @memberof Game_Actor
+     */
+    releaseUnequippableItems(forcing: boolean): void;
+    /**
+     * Clears the actor's equipment; items are returned to the inventory.
+     *
+     * @memberof Game_Actor
+     */
+    clearEquipments(): void;
+    /**
+     * Optimize the actor's equipment.
+     *
+     * @memberof Game_Actor
+     */
+    optimizeEquipments(): void;
+    /**
+     * Equips the best item in the given slot.
+     *
+     * @param {number} slotId
+     * @memberof Game_Actor
+     */
+    bestEquipItem(slotId: number): void;
+    /**
+     * Calculates the equip item performance and returns the sum/difference.
+     *
+     * @param {RPG_EquipItem} item
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    calcEquipItemPerformance(item: RPG_EquipItem): number;
+    isSkillWtypeOk(skill: RPG_Skill): boolean;
+    isWtypeEquipped(wtypeId: number): boolean;
+    /**
+     * Refreshes the actor.
+     *
+     * @memberof Game_Actor
+     */
+    refresh(): void;
+    friendsUnit(): Game_Party;
+    opponentsUnit(): Game_Temp;
+    /**
+     * Returns true if the actor is a member in battle.
+     *
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isBattleMember(): boolean;
+    isFormationChangeOk(): boolean;
+    /**
+     * Returns the current class of the actor from the database.
+     *
+     * @returns {RPG_Class}
+     * @memberof Game_Actor
+     */
+    currentClass(): RPG_Class;
+    /**
+     * Returns true if the actor is the specified class from the database.
+     *
+     * @param {RPG_Class} gameClass
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isClass(gameClass: RPG_Class): boolean;
+    /**
+     * Returns the actor's skills; even if the skills are not usable.
+     *
+     * @returns {RPG_Skill[]}
+     * @memberof Game_Actor
+     */
+    skills(): RPG_Skill[];
+    /**
+     * Returns the usable skills of the actor.
+     *
+     * @returns {RPG_Skill[]}
+     * @memberof Game_Actor
+     */
+    usableSkills(): RPG_Skill[];
+    /**
+     * Returns the attack element ids.
+     *
+     * @returns {Array<number>}
+     * @memberof Game_Actor
+     */
+    attackElements(): number[];
+    /**
+     * Returns true if the actor has no weapon.
+     *
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    hasNoWeapons(): boolean;
+    /**
+     * Returns the element id of barehanded attacks.
+     * By default this is 1.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    bareHandsElementId(): number;
+    /**
+     * Returns the base value of the parameter.
+     * @param paramId
+     * @return Int
+     */
+    paramBase(paramId: number): number;
+    /**
+     * Returns the first attack animation id.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    attackAnimationId1(): number;
+    /**
+     * Returns the second attack animation id.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    attackAnimationId2(): number;
+    /**
+     * Returns the animation id for a barehanded attack.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    bareHandsAnimationId(): number;
+    /**
+     * Change the actor experience points; leveling up the actor
+     * if it's above the required exp for the current level.
+     * If show is set to true, actor level up with be displayed.
+     * @param {number} exp
+     * @param {boolean} show
+     * @memberof Game_Actor
+     */
+    changeExp(exp: number, show: boolean): void;
+    /**
+     * Level up the actor.
+     *
+     * @memberof Game_Actor
+     */
+    levelUp(): void;
+    /**
+     * Level down the actor.
+     *
+     * @memberof Game_Actor
+     */
+    levelDown(): void;
+    findNewSkills(lastSkills: RPG_Skill[]): RPG_Skill[];
+    /**
+     * Displays the actor level up in a message window, with the learned skills.
+     *
+     * @param {RPG_Skill[]} newSkills
+     * @memberof Game_Actor
+     */
+    displayLevelUp(newSkills: RPG_Skill[]): void;
+    /**
+     * Gives the specified exp to the actor.
+     *
+     * @param {number} exp
+     * @memberof Game_Actor
+     */
+    gainExp(exp: number): void;
+    /**
+     * Returns the final exp rate of the actor based on if the actor
+     * is a reserved party member or an active battle member.
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    finalExpRate(): number;
+    /**
+     * Returns the exp rate of actors not in battle; this is set in the database.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    benchMembersExpRate(): number;
+    /**
+     * Returns true if the actor should display level up in a message window.
+     *
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    shouldDisplayLevelUp(): boolean;
+    /**
+     * Changes the actor level; if show is set to true,
+     * the actor level will be displayed.
+     * @param {number} level
+     * @param {boolean} show
+     * @memberof Game_Actor
+     */
+    changeLevel(level: number, show: boolean): void;
+    /**
+     * Actor learns the specified skill given the skill id.
+     *
+     * @param {number} skillId
+     * @memberof Game_Actor
+     */
+    learnSkill(skillId: number): void;
+    /**
+     * Actor forgets the specified skill given the skill id from
+     * the actor's usable skills.
+     * @param {number} skillId
+     * @memberof Game_Actor
+     */
+    forgetSkill(skillId: number): void;
+    /**
+     * Returns true if the actor has learned the specified
+     * skill given the specified skill id.
+     * @param {number} skillId
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isLearnedSkill(skillId: number): boolean;
+    /**
+     * Changes the actor class; if keep is true, the actor
+     * will retain their experience points.
+     * @param {number} classId
+     * @param {boolean} keepExp
+     * @memberof Game_Actor
+     */
+    changeClass(classId: number, keepExp: boolean): void;
+    setCharacterImage(characterName: string, characterIndex: number): void;
+    /**
+     * Sets the face image of the actor given the face image (from database)
+     * and face index within the iamge.
+     *
+     * @param {String} faceName
+     * @param {number} faceIndex
+     * @memberof Game_Actor
+     */
+    setFaceImage(faceName: string, faceIndex: number): void;
+    /**
+     * Sets the battler image of the actor; this is the sprite displayed
+     * in the side view mode.
+     * @param {String} battlerName
+     * @memberof Game_Actor
+     */
+    setBattlerImage(battlerName: string): void;
+    /**
+     * Returns true if the actor sprite is visible.
+     *
+     * @returns {boolean}
+     * @memberof Game_Actor
+     */
+    isSpriteVisible(): boolean;
+    /**
+     * Starts the animation on the actor given the specified animation id;
+     * if  mirror is set to true, the animation will be mirrored. If a delay is enter,
+     * the animation will be delayed.
+     * @param {number} animationId
+     * @param {boolean} mirror
+     * @param {number} delay
+     * @memberof Game_Actor
+     */
+    startAnimation(animationId: number, mirror: boolean, delay: number): void;
+    /**
+     * Performs the attack motion for the actor.
+     *
+     * @memberof Game_Actor
+     */
+    performAttack(): void;
+    /**
+     * Perform the victory motion for the actor.
+     *
+     * @memberof Game_Actor
+     */
+    performVictory(): void;
+    /**
+     * Performs the escape motion for the actor.
+     *
+     * @memberof Game_Actor
+     */
+    performEscape(): void;
+    /**
+     * Creates the action list for the actor.
+     *
+     * @returns {Array<Game_Action>}
+     * @memberof Game_Actor
+     */
+    makeActionList(): Game_Action[];
+    /**
+     * Creates the auto battle actions for the game actor.
+     *
+     * @memberof Game_Actor
+     */
+    makeAutoBattleActions(): void;
+    makeConfusionActions(): void;
+    /**
+     * Handler for when the player walks on the map scene.
+     *
+     * @memberof Game_Actor
+     */
+    onPlayerWalk(): void;
+    updateStateSteps(state: RPG_State): void;
+    /**
+     * Shows the added states to the actor.
+     *
+     * @memberof Game_Actor
+     */
+    showAddedStates(): void;
+    /**
+     * Shows the removed states from the actor.
+     *
+     * @memberof Game_Actor
+     */
+    showRemovedStates(): void;
+    stepsForTurn(): number;
+    turnEndOnMap(): void;
+    /**
+     * Checks the effect of the floor on the actor.
+     *
+     * @memberof Game_Actor
+     */
+    checkFloorEffect(): void;
+    /**
+     * Executes the floor dmaage on the actor.
+     *
+     * @memberof Game_Actor
+     */
+    executeFloorDamage(): void;
+    /**
+     * Returns the basic floor damage.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    basicFloorDamage(): number;
+    /**
+     * Returns the max floor damage.
+     *
+     * @returns {number}
+     * @memberof Game_Actor
+     */
+    maxFloorDamage(): number;
+    /**
+     * Perform damage to the actor on the map scene.
+     *
+     * @memberof Game_Actor
+     */
+    performMapDamage(): void;
+    /**
+     * Clears all of the actor's animations.
+     *
+     * @memberof Game_Actor
+     */
+    clearActions(): void;
+    /**
+     * Returns action the actor is inputting.
+     *
+     * @returns {Game_Action}
+     * @memberof Game_Actor
+     */
+    inputtingAction(): Game_Action;
+    selectNextCommand(): boolean;
+    selectPreviousCommand(): boolean;
+    /**
+     * Returns the last menu skill of the actor.
+     *
+     * @returns {Skill}
+     * @memberof Game_Actor
+     */
+    lastMenuSkill(): RPG_Skill;
+    setLastMenuSkill(skill: RPG_Skill): void;
+    /**
+     * Returns the last battle skill of the actor.
+     *
+     * @returns {Skill}
+     * @memberof Game_Actor
+     */
+    lastBattleSkill(): RPG_Skill;
+    setLastBattleSkill(skill: RPG_Skill): void;
+    /**
+     * Returns the last command symbol that the actor used.
+     *
+     * @returns {String}
+     * @memberof Game_Actor
+     */
+    lastCommandSymbol(): string;
+    /**
+     * Sets the last command symbol to the given symbol; this is the
+     * selected command in the battle menu.
+     * @param {String} symbol
+     * @memberof Game_Actor
+     */
+    setLastCommandSymbol(symbol: string): void;
+    /**
+     * Returns true if the item effect  has a special effect from game action.
+     * @param item
+     * @return Bool
+     */
+    testEscape(item: RPG_BaseItem): boolean;
+}
+//#endregion battlers
+
+declare class Game_Actors {
+    constructor();
+    /**
+     * List of all Game_Actor in the database.
+     */
+    _data: Game_Actor[];
+    initialize(): void;
+    /**
+     * Returns the actor with the specified id.
+     *
+     * @param {number} actorId
+     * @returns {Game_Actor}
+     * @memberof Game_Actors
+     */
+    actor(actorId: number): Game_Actor;
+}
+
+//#region characters
 declare class Game_CharacterBase {
     constructor();
     _x: number;
@@ -2345,7 +2310,7 @@ declare class Game_CharacterBase {
     /**
      * Returns the move speed of the game character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     moveSpeed(): number;
@@ -2353,7 +2318,7 @@ declare class Game_CharacterBase {
     /**
      * Returns the move frequency of the character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     moveFrequency(): number;
@@ -2363,21 +2328,21 @@ declare class Game_CharacterBase {
     /**
      * Returns the blend mode of the character;
      * these are represented by Ints.
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     blendMode(): number;
     /**
      * Sets the blend mode of the character;
      * these are represented by Ints.
-     * @param {Int} blendMode
+     * @param {number} blendMode
      * @memberof Game_CharacterBase
      */
     setBlendMode(blendMode: number): void;
     /**
      * Returns true if the character is
      * normal priority; this means you can collide with them.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isNormalPriority(): boolean;
@@ -2385,28 +2350,28 @@ declare class Game_CharacterBase {
     /**
      * Returns true if the character is moving.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isMoving(): boolean;
     /**
      * Returns true if the character is jumping.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isJumping(): boolean;
     /**
      * Returns the jump height of base character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     jumpHeight(): number;
     /**
      * Returns true if the character is stopping.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isStopping(): boolean;
@@ -2422,7 +2387,7 @@ declare class Game_CharacterBase {
     /**
      * Returns true if the character is dashing.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isDashing(): boolean;
@@ -2447,21 +2412,21 @@ declare class Game_CharacterBase {
     /**
      * Sets the direction of the character based on numpad
      * directions.
-     * @param {Int} d
+     * @param {number} d
      * @memberof Game_CharacterBase
      */
     setDirection(d: number): void;
     /**
      * Returns true if the character is a tile; these
      * are events without character sprites.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isTile(): boolean;
     /**
      * Returns true if the character is an object character;
      * these are events with character sprites.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isObjectCharacter(): boolean;
@@ -2471,21 +2436,21 @@ declare class Game_CharacterBase {
     /**
      * Returns the character's scrreen x position.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     screenX(): number;
     /**
      * Returns the character's screen y position.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     screenY(): number;
     /**
      * Returns the character's screen z position.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     screenZ(): number;
@@ -2507,14 +2472,14 @@ declare class Game_CharacterBase {
     /**
      * Returns the pattern of the character; these are the walking
      * patterns.
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     pattern(): number;
     /**
      * Sets the pattern of the character, given
      * a pattern Int.
-     * @param {Int} pattern
+     * @param {number} pattern
      * @memberof Game_CharacterBase
      */
     setPattern(pattern: number): void;
@@ -2531,14 +2496,14 @@ declare class Game_CharacterBase {
     /**
      * Returns the terrain tag of the character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     terrainTag(): number;
     /**
      * Returns the region id of the character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     regionId(): number;
@@ -2551,7 +2516,7 @@ declare class Game_CharacterBase {
     /**
      * Returns the tile id of character.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     tileId(): number;
@@ -2571,7 +2536,7 @@ declare class Game_CharacterBase {
     /**
      * Returns true if the character has step animation.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     hasStepAnime(): boolean;
@@ -2579,14 +2544,14 @@ declare class Game_CharacterBase {
     /**
      * Returns true if the character is set to a fixed direction.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isDirectionFixed(): boolean;
     /**
      * Sets the character to be fixed in a specified direction
      * given a Bool value.
-     * @param {Bool} directionFix
+     * @param {boolean} directionFix
      * @memberof Game_CharacterBase
      */
     setDirectionFix(directionFix: boolean): void;
@@ -2626,14 +2591,14 @@ declare class Game_CharacterBase {
     /**
      * Returns the animation id.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     animationId(): number;
     /**
      * Returns the id of the balloon animation.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_CharacterBase
      */
     balloonId(): number;
@@ -2653,7 +2618,7 @@ declare class Game_CharacterBase {
     /**
      * Returns true if a balloon animation is playing.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_CharacterBase
      */
     isBalloonPlaying(): boolean;
@@ -2690,21 +2655,21 @@ declare class Game_Character extends Game_CharacterBase {
     /**
      * Returns true if the move route is being forced.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Character
      */
     isMoveRouteForcing(): boolean;
     /**
      * Sets the move route of the game character.
      *
-     * @param {RPG.MoveRoute} moveRoute
+     * @param {rm.types.MoveRoute} moveRoute
      * @memberof Game_Character
      */
     setMoveRoute(moveRoute: rm.types.MoveRoute): void;
     /**
      * Forces the move route of the game character.
      *
-     * @param {RPG.MoveRoute} moveRoute
+     * @param {rm.types.MoveRoute} moveRoute
      * @memberof Game_Character
      */
     forceMoveRoute(moveRoute: rm.types.MoveRoute): void;
@@ -2718,7 +2683,7 @@ declare class Game_Character extends Game_CharacterBase {
     /**
      * Processes the given move commands.
      *
-     * @param {RPG.MoveCommand} command
+     * @param {rm.types.MoveCommand} command
      * @memberof Game_Character
      */
     processMoveCommand(command: rm.types.MoveCommand): void;
@@ -2831,7 +2796,7 @@ declare class Game_Character extends Game_CharacterBase {
     /**
      * Returns the search limit for path finding.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Character
      */
     searchLimit(): number;
@@ -2883,46 +2848,6 @@ declare class Game_Character extends Game_CharacterBase {
     static ROUTE_SCRIPT: number;
 }
 
-declare class Game_CommonEvent {
-    constructor(commonEventId: number);
-    _commonEventId: number;
-    _interpreter: Game_Interpreter;
-    initialize(commonEventId: number): void;
-    /**
-     * Returns the common event information from the database.
-     *
-     * @returns {CommonEvent}
-     * @memberof Game_CommonEvent
-     */
-    event(): rm.types.CommonEvent;
-    /**
-     * Returns the common event's list of event commands.
-     *
-     * @returns {Array<EventCommand>}
-     * @memberof Game_CommonEvent
-     */
-    list(): rm.types.EventCommand[];
-    /**
-     * Refreshes the common event.
-     *
-     * @memberof Game_CommonEvent
-     */
-    refresh(): void;
-    /**
-     * Returns true if the common event is active.
-     *
-     * @returns {boolean}
-     * @memberof Game_CommonEvent
-     */
-    isActive(): boolean;
-    /**
-     * Updates the common event.
-     *
-     * @memberof Game_CommonEvent
-     */
-    update(): void;
-}
-
 declare class Game_Enemy extends Game_Battler {
     constructor(enemyId: number, x: number, y: number);
     _enemyId: number;
@@ -2958,7 +2883,7 @@ declare class Game_Enemy extends Game_Battler {
     /**
      * Returns the enemy information from the database.
      *
-     * @returns {RPG.Enemy}
+     * @returns {RPG_Enemy}
      * @memberof Game_Enemy
      */
     enemy(): RPG_Enemy;
@@ -2979,10 +2904,10 @@ declare class Game_Enemy extends Game_Battler {
     /**
      * Creates the drop items for the enemy specified by the database.
      *
-     * @returns {Array<RPG.BaseItem>}
+     * @returns {RPG_BaseItem[]}
      * @memberof Game_Enemy
      */
-    makeDropItems(): rm.types.BaseItem[];
+    makeDropItems(): RPG_BaseItem[];
     /**
      * Returns the item drop rate of the enemy.
      *
@@ -2996,7 +2921,7 @@ declare class Game_Enemy extends Game_Battler {
      * @param {number} kind The type/category of item the drop is.
      * @param {number} dataId The id of the object from the database.
      */
-    itemObject(kind: number, dataId: number): rm.types.BaseItem;
+    itemObject(kind: number, dataId: number): RPG_BaseItem;
     /**
      * Returns true if the enemy sprite is visible.
      *
@@ -3052,7 +2977,7 @@ declare class Game_Enemy extends Game_Battler {
     /**
      * Returns true if the enemy action is valid.
      *
-     * @param {RPG.Enemy.Action} action
+     * @param {RPG_EnemyAction} action
      * @returns {boolean}
      * @memberof Game_Enemy
      */
@@ -3079,28 +3004,28 @@ declare class Game_Event extends Game_Character {
     /**
      * Returns the event id of the game event.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Event
      */
     eventId(): number;
     /**
      * Returns the event database information.
      *
-     * @returns {RPG.Event}
+     * @returns {rm.types.Event}
      * @memberof Game_Event
      */
     event(): rm.types.Event;
     /**
      * Returns the event page created in the database.
      *
-     * @returns {RPG.EventPage}
+     * @returns {rm.types.EventPage}
      * @memberof Game_Event
      */
     page(): rm.types.EventPage;
     /**
      * Returns the list of event commands on the current page of the game event.
      *
-     * @returns {Array<RPG.EventCommand>}
+     * @returns {Array<rm.types.EventCommand>}
      * @memberof Game_Event
      */
     list(): rm.types.EventCommand[];
@@ -3109,9 +3034,9 @@ declare class Game_Event extends Game_Character {
     /**
      * Returns true if the event has collided with the player character
      * at the specified x and y coordinates.
-     * @param {Int} x
-     * @param {Int} y
-     * @returns {Bool}
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
      * @memberof Game_Event
      */
     isCollidedWithPlayerCharacters(x: number, y: number): boolean;
@@ -3140,7 +3065,7 @@ declare class Game_Event extends Game_Character {
     /**
      * Returns true if the game event is near the player.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Event
      */
     isNearThePlayer(): boolean;
@@ -3148,7 +3073,7 @@ declare class Game_Event extends Game_Character {
     /**
      * Returns true if the event is staring.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Event
      */
     isStarting(): boolean;
@@ -3180,7 +3105,7 @@ declare class Game_Event extends Game_Character {
     /**
      * Finds the proper page index of the game event for
      * event command processing.
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Event
      */
     findProperPageIndex(): number;
@@ -3217,7 +3142,7 @@ declare class Game_Event extends Game_Character {
     /**
      * Forces the game event to move along the specified route.
      *
-     * @param {RPG.MoveRoute} moveRoute
+     * @param {rm.types.MoveRoute} moveRoute
      * @memberof Game_Event
      */
     forceMoveRoute(moveRoute: rm.types.MoveRoute): void;
@@ -3237,7 +3162,7 @@ declare class Game_Follower extends Game_Character {
     /**
      * Returns true if the follower is visible.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Follower
      */
     isVisible(): boolean;
@@ -3255,6 +3180,47 @@ declare class Game_Follower extends Game_Character {
      */
     chaseCharacter(character: Game_Character): void;
 }
+//#endregion characters
+
+declare class Game_CommonEvent {
+    constructor(commonEventId: number);
+    _commonEventId: number;
+    _interpreter: Game_Interpreter;
+    initialize(commonEventId: number): void;
+    /**
+     * Returns the common event information from the database.
+     *
+     * @returns {CommonEvent}
+     * @memberof Game_CommonEvent
+     */
+    event(): rm.types.CommonEvent;
+    /**
+     * Returns the common event's list of event commands.
+     *
+     * @returns {Array<EventCommand>}
+     * @memberof Game_CommonEvent
+     */
+    list(): rm.types.EventCommand[];
+    /**
+     * Refreshes the common event.
+     *
+     * @memberof Game_CommonEvent
+     */
+    refresh(): void;
+    /**
+     * Returns true if the common event is active.
+     *
+     * @returns {boolean}
+     * @memberof Game_CommonEvent
+     */
+    isActive(): boolean;
+    /**
+     * Updates the common event.
+     *
+     * @memberof Game_CommonEvent
+     */
+    update(): void;
+}
 
 declare class Game_Followers {
     constructor();
@@ -3265,7 +3231,7 @@ declare class Game_Followers {
     /**
      * Returns true if the followers are visible.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Followers
      */
     isVisible(): boolean;
@@ -3320,7 +3286,7 @@ declare class Game_Followers {
     /**
      * Returns true if the followers are gathering.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Followers
      */
     areGathering(): boolean;
@@ -3334,14 +3300,14 @@ declare class Game_Followers {
     /**
      * Returns true if the followers are moving.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Followers
      */
     areMoving(): boolean;
     /**
      * Returns true if the followers are gathered.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Followers
      */
     areGathered(): boolean;
@@ -3351,7 +3317,7 @@ declare class Game_Followers {
      *
      * @param {number} x
      * @param {number} y
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Followers
      */
     isSomeoneCollided(x: number, y: number): boolean;
@@ -3385,36 +3351,36 @@ declare class Game_Interpreter {
      * Sets up the interpreter with the list of event commands, and the given
      * event Id.
      *
-     * @param {Array<RPG.EventCommand>} list
-     * @param {Int} eventId
+     * @param {Array<rm.types.EventCommand>} list
+     * @param {number} eventId
      * @memberof Game_Interpreter
      */
     setup(list: rm.types.EventCommand[], eventId: number): void;
     /**
      * Returns the currrent eventId.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Interpreter
      */
     eventId(): number;
     /**
      * Returns true if the event is on the current map.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     isOnCurrentMap(): boolean;
     /**
      * Returns true after setting up the reserved common event.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     setupReservedCommonEvent(): boolean;
     /**
      * Returns true if the interpreter is running.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     isRunning(): boolean;
@@ -3422,14 +3388,14 @@ declare class Game_Interpreter {
     /**
      * Updates the child game interpreter.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     updateChild(): boolean;
     /**
      * Updates the wait of the game interpreter.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     updateWait(): boolean;
@@ -3445,7 +3411,7 @@ declare class Game_Interpreter {
     /**
      * sets a specified wait duration for the interpreter.
      *
-     * @param {Int} duration
+     * @param {number} duration
      * @memberof Game_Interpreter
      */
     wait(duration: number): void;
@@ -3453,14 +3419,14 @@ declare class Game_Interpreter {
     /**
      * Executes the event command;
      * returns true or false based on execution.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     executeCommand(): boolean;
     /**
      * Checks if the interpreter has frozen.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Interpreter
      */
     checkFreeze(): boolean;
@@ -3479,14 +3445,14 @@ declare class Game_Interpreter {
     /**
      * Returns the current event command.
      *
-     * @returns {RPG.EventCommand}
+     * @returns {rm.types.EventCommand}
      * @memberof Game_Interpreter
      */
     currentCommand(): rm.types.EventCommand;
     /**
      * Returns the next event code.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Interpreter
      */
     nextEventCode(): number;
@@ -3962,7 +3928,7 @@ declare class Game_Interpreter {
 }
 
 declare class Game_Item {
-    constructor(item: rm.types.BaseItem);
+    constructor(item: RPG_BaseItem);
     _dataClass: string;
     _itemId: number;
     initialize(): void;
@@ -4022,14 +3988,14 @@ declare class Game_Item {
      * @memberof Game_Item
      */
     itemId(): number;
-    object(): rm.types.BaseItem;
+    object(): RPG_BaseItem;
     /**
      * Sets the current item of the current Game_Item object.
      *
-     * @param {rm.types.UsableItem|rm.types.EquipItem} item
+     * @param {RPG_UsableItem|RPG_EquipItem} item
      * @memberof Game_Item
      */
-    setObject(item: rm.types.UsableItem | rm.types.EquipItem): void;
+    setObject(item: RPG_UsableItem | RPG_EquipItem): void;
     setEquip(isWeapon: boolean, itemId: number): void;
 }
 
@@ -4063,49 +4029,49 @@ declare class Game_Map {
     /**
      * Returns true if an event is running.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isEventRunning(): boolean;
     /**
      * Returns tile width.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     tileWidth(): number;
     /**
      * Returns tile height.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     tileHeight(): number;
     /**
      * Returns map id.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     mapId(): number;
     /**
      * Returns the tileset id.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     tilesetId(): number;
     /**
      * Returns the display x coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     displayX(): number;
     /**
      * Returns the display y coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     displayY(): number;
@@ -4130,7 +4096,7 @@ declare class Game_Map {
     /**
      * Returns true if the name display is enabled.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isNameDisplayEnabled(): boolean;
@@ -4199,7 +4165,7 @@ declare class Game_Map {
     /**
      * Returns an event, given the event id.
      *
-     * @param {Int} eventId
+     * @param {number} eventId
      * @returns {Game_Event}
      * @memberof Game_Map
      */
@@ -4207,14 +4173,14 @@ declare class Game_Map {
     /**
      * Erases the event given the event id.
      *
-     * @param {Int} eventId
+     * @param {number} eventId
      * @memberof Game_Map
      */
     eraseEvent(eventId: number): void;
     /**
      * Returns all the parallel running common events.
      *
-     * @returns {Array<RPG.CommonEvent>}
+     * @returns {rm.types.CommonEvent[]}
      * @memberof Game_Map
      */
     parallelCommonEvents(): rm.types.CommonEvent[];
@@ -4227,14 +4193,13 @@ declare class Game_Map {
     /**
      * Returns the tilset of the game map.
      *
-     * @returns {RPG.Tileset}
+     * @returns {rm.types.Tileset}
      * @memberof Game_Map
      */
     tileset(): rm.types.Tileset;
     /**
      * Returns the tileset flags of the game map.
      *
-     * @returns {Array<Int>}
      * @memberof Game_Map
      */
     tilesetFlags(): number[];
@@ -4248,77 +4213,76 @@ declare class Game_Map {
     /**
      * Returns the map width.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     width(): number;
     /**
      * Returns the map height.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     height(): number;
     /**
      * Returns the map data.
      *
-     * @returns {Array<Int>}
      * @memberof Game_Map
      */
     data(): number[];
     /**
      * Returns true if the map loops horizontally.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isLoopHorizontal(): boolean;
     /**
      * Returns true if the map loops vertically.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isLoopVertical(): boolean;
     /**
      * Returns true if dash is disabled on the map.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isDashDisabled(): boolean;
     /**
      * Returns the list of possible encounters on the current map.
      *
-     * @returns {Array<RPG.Map.Encounter>}
+     * @returns {rm.types.MapEncounter[]}
      * @memberof Game_Map
      */
     encounterList(): rm.types.MapEncounter[];
     /**
      * Returns the Int of encounter steps on the map.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     encounterStep(): number;
     /**
      * Returns true if the map is an over world map.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isOverworld(): boolean;
     /**
      * Returns the screen tile x coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     screenTileX(): number;
     /**
      * Returns the screen tile y coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Map
      */
     screenTileY(): number;
@@ -4336,16 +4300,16 @@ declare class Game_Map {
     /**
      * Converts the x coordinate from canvas to map coordinate x.
      *
-     * @param {Int} x
-     * @returns {Int}
+     * @param {number} x
+     * @returns {number}
      * @memberof Game_Map
      */
     canvasToMapX(x: number): number;
     /**
      * Converts the y coordinate from canvas to map y coordinate.
      *
-     * @param {Int} y
-     * @returns {Int}
+     * @param {number} y
+     * @returns {number}
      * @memberof Game_Map
      */
     canvasToMapY(y: number): number;
@@ -4361,8 +4325,8 @@ declare class Game_Map {
     /**
      * Returns the game events at the specified
      * x and y position.
-     * @param {Int} x
-     * @param {Int} y
+     * @param {number} x
+     * @param {number} y
      * @returns {Array<Game_Event>}
      * @memberof Game_Map
      */
@@ -4377,9 +4341,9 @@ declare class Game_Map {
     /**
      * Returns true if the x and y coordinates are valid.
      *
-     * @param {Int} x
-     * @param {Int} y
-     * @returns {Bool}
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isValid(x: number, y: number): boolean;
@@ -4387,10 +4351,10 @@ declare class Game_Map {
     /**
      * Returns the tile id at the specified x, y, and z coordinates.
      *
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} z
-     * @returns {Int}
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {number}
      * @memberof Game_Map
      */
     tileId(x: number, y: number, z: number): number;
@@ -4405,9 +4369,9 @@ declare class Game_Map {
     /**
      * Returns true if the specified element at the given x and y coordinates
      * is a ladder.
-     * @param {Int} x
-     * @param {Int} y
-     * @returns {Bool}
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isLadder(x: number, y: number): boolean;
@@ -4421,7 +4385,7 @@ declare class Game_Map {
     /**
      * Updates the game map, given that the scene is active.
      *
-     * @param {Bool} sceneActive
+     * @param {boolean} sceneActive
      * @memberof Game_Map
      */
     update(sceneActive: boolean): void;
@@ -4449,7 +4413,7 @@ declare class Game_Map {
     /**
      * Changes them ap tileset, given the tileset id.
      *
-     * @param {Int} tilesetId
+     * @param {number} tilesetId
      * @memberof Game_Map
      */
     changeTileset(tilesetId: number): void;
@@ -4464,7 +4428,7 @@ declare class Game_Map {
     /**
      * Unlocks an event on the map given the event id.
      *
-     * @param {Int} eventId
+     * @param {number} eventId
      * @memberof Game_Map
      */
     unlockEvent(eventId: number): void;
@@ -4474,14 +4438,14 @@ declare class Game_Map {
     /**
      * Sets up an auto run common event.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     setupAutorunCommonEvent(): boolean;
     /**
      * Returns true if any event is starting on the map.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Map
      */
     isAnyEventStarting(): boolean;
@@ -4671,7 +4635,7 @@ declare class Game_Message {
      * Sets a callback to be associated with a specific choice;
      * a callback is a JavaScript function that will be run when the
      * choice is selected.
-     * @param {((n: number) => Void)} callback
+     * @param {((n: number) => void)} callback
      * @memberof Game_Message
      */
     setChoiceCallback(callback: (n: number) => void): void;
@@ -4724,6 +4688,116 @@ declare class Game_Message {
      * @memberof Game_Message
      */
     allText(): string;
+}
+
+declare class Game_Unit {
+    constructor();
+    _inBattle: boolean;
+    initialize(): void;
+    /**
+     * Returns true if unit is in battle.
+     *
+     * @returns {boolean}
+     * @memberof Game_Unit
+     */
+    inBattle(): boolean;
+    /**
+     * Returns the list of battlers.
+     *
+     * @returns {Array<Game_Battler>}
+     * @memberof Game_Unit
+     */
+    members(): Game_Battler[];
+    /**
+     * Returns the list of alive battlers.
+     *
+     * @returns {Array<Game_Battler>}
+     * @memberof Game_Unit
+     */
+    aliveMembers(): Game_Battler[];
+    /**
+     * Returns the list of dead battlers.
+     *
+     * @returns {Game_Actor[]|Game_Enemy[]}
+     * @memberof Game_Unit
+     */
+    deadMembers(): Game_Actor[] | Game_Enemy[];
+    /**
+     * Returns the list of movable members.
+     *
+     * @returns {Array<Game_Battler>}
+     * @memberof Game_Unit
+     */
+    movableMembers(): Game_Battler[];
+    /**
+     * Clears the unit's actions.
+     *
+     * @memberof Game_Unit
+     */
+    clearActions(): void;
+    /**
+     * Returns the agility of the unit.
+     *
+     * @returns {number}
+     * @memberof Game_Unit
+     */
+    agility(): number;
+    tgrSum(): number;
+    /**
+     * Returns a random target from the game unit.
+     *
+     * @returns {Game_Battler}
+     * @memberof Game_Unit
+     */
+    randomTarget(): Game_Battler;
+    /**
+     * Returns a random dead target from the game unit.
+     *
+     * @returns {Game_Battler}
+     * @memberof Game_Unit
+     */
+    randomDeadTarget(): Game_Battler;
+    smoothTarget(index: number): Game_Battler;
+    smoothDeadTarget(index: number): Game_Battler;
+    /**
+     * Clears the action results.
+     *
+     * @memberof Game_Unit
+     */
+    clearResults(): void;
+    /**
+     * Handler for when battle is started.
+     *
+     * @memberof Game_Unit
+     */
+    onBattleStart(): void;
+    /**
+     * Handler for when battle has ended.
+     *
+     * @memberof Game_Unit
+     */
+    onBattleEnd(): void;
+    /**
+     * Creates the action's of the game unit.
+     *
+     * @memberof Game_Unit
+     */
+    makeActions(): void;
+    /**
+     * Selects a member of the unit given a battler.
+     *
+     * @param {Game_Battler} activeMember
+     * @memberof Game_Unit
+     */
+    select(activeMember: Game_Battler): void;
+    /**
+     * Returns true if all members of the unit are dead.
+     *
+     * @returns {boolean}
+     * @memberof Game_Unit
+     */
+    isAllDead(): boolean;
+    substituteBattler(): Game_Battler;
 }
 
 declare class Game_Party extends Game_Unit {
@@ -4793,28 +4867,28 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns true if the game party exists.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     exists(): boolean;
     /**
      * Returns the size of the party.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     size(): number;
     /**
      * Returns true if the game party is empty.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     isEmpty(): boolean;
     /**
      * Returns the maximum battle members in the party.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     maxBattleMembers(): number;
@@ -4835,32 +4909,32 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns the weapons of the party.
      *
-     * @returns {Array<RPG.Weapon>}
+     * @returns {RPG_Weapon[]}
      * @memberof Game_Party
      */
     weapons(): rm.types.Weapon[];
     /**
      * Returns the party's armor.
      *
-     * @returns {Array<RPG.Armor>}
+     * @returns {RPG_Armor[]}
      * @memberof Game_Party
      */
     armors(): rm.types.Armor[];
     /**
      * Returns the party's equippable items.
      *
-     * @returns {Array<RPG.EquipItem>}
+     * @returns {RPG_EquipItem[]}
      * @memberof Game_Party
      */
-    equipItems(): rm.types.EquipItem[];
+    equipItems(): RPG_EquipItem[];
     /**
      * Returns all items within the party's posession.
      * Items can be of equip item, or item type.
-     * @returns {Array<RPG.BaseItem>}
+     * @returns {RPG_BaseItem[]}
      * @memberof Game_Party
      */
-    allItems(): rm.types.BaseItem[];
-    itemContainer(item: rm.types.BaseItem): {ItemId: number};
+    allItems(): RPG_BaseItem[];
+    itemContainer(item: RPG_BaseItem): {ItemId: number};
     /**
      * Sets up the starting party members.
      *
@@ -4889,56 +4963,56 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns the highest level in the party.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     highestLevel(): number;
     /**
      * Adds an actor to the party given the actor id.
      *
-     * @param {Int} actorId
+     * @param {number} actorId
      * @memberof Game_Party
      */
     addActor(actorId: number): void;
     /**
      * Removes an actor from the party given the actor id.
      *
-     * @param {Int} actorId
+     * @param {number} actorId
      * @memberof Game_Party
      */
     removeActor(actorId: number): void;
     /**
      * Returns party gold.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     gold(): number;
     /**
      * Increases the party gold given a specified amount.
      *
-     * @param {Int} amount
+     * @param {number} amount
      * @memberof Game_Party
      */
     gainGold(amount: number): void;
     /**
      * Decreases the party gold given a specified amount.
      *
-     * @param {Int} amount
+     * @param {number} amount
      * @memberof Game_Party
      */
     loseGold(amount: number): void;
     /**
      * Returns maximum gold of the party.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     maxGold(): number;
     /**
      * Returns the Int of steps the party has taken.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Party
      */
     steps(): number;
@@ -4951,55 +5025,55 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns the Int of items in the possession of the party of the
      * given item.
-     * @param {RPG.BaseItem} item
-     * @returns {Int}
+     * @param {RPG_BaseItem} item
+     * @returns {number}
      * @memberof Game_Party
      */
-    numItems(item: rm.types.BaseItem): number;
+    numItems(item: RPG_BaseItem): number;
     /**
      * Returns the maximum Int of items of the given item.
      *
-     * @param {RPG.BaseItem} item
-     * @returns {Int}
+     * @param {RPG_BaseItem} item
+     * @returns {number}
      * @memberof Game_Party
      */
-    maxItems(item: rm.types.BaseItem): number;
-    hasMaxItems(item: rm.types.BaseItem): boolean;
+    maxItems(item: RPG_BaseItem): number;
+    hasMaxItems(item: RPG_BaseItem): boolean;
     /**
      * Returns true if the party has the given item;
      * if includeEquip is set to true, this will also check party equipment.
-     * @param {RPG.BaseItem} item
-     * @param {Bool} includeEquip
-     * @returns {Bool}
+     * @param {RPG_BaseItem} item
+     * @param {boolean} includeEquip
+     * @returns {boolean}
      * @memberof Game_Party
      */
-    hasItem(item: rm.types.BaseItem, includeEquip: boolean): boolean;
+    hasItem(item: RPG_BaseItem, includeEquip: boolean): boolean;
     /**
      * Returns true if any party member has the specified equip item.
      *
-     * @param {RPG.EquipItem} item
-     * @returns {Bool}
+     * @param {RPG_EquipItem} item
+     * @returns {boolean}
      * @memberof Game_Party
      */
-    isAnyMemberEquipped(item: rm.types.EquipItem): boolean;
-    gainItem(item: rm.types.BaseItem, amount: number, includeEquip: boolean): void;
-    discardMembersEquip(item: rm.types.EquipItem, amount: number): void;
-    loseItem(item: rm.types.BaseItem, amount: number, includeEquip: boolean): void;
+    isAnyMemberEquipped(item: RPG_EquipItem): boolean;
+    gainItem(item: RPG_BaseItem, amount: number, includeEquip: boolean): void;
+    discardMembersEquip(item: RPG_EquipItem, amount: number): void;
+    loseItem(item: RPG_BaseItem, amount: number, includeEquip: boolean): void;
     /**
      * Has the party consume the given item.
      *
-     * @param {RPG.BaseItem} item
+     * @param {RPG_BaseItem} item
      * @memberof Game_Party
      */
-    consumeItem(item: rm.types.BaseItem): void;
+    consumeItem(item: RPG_BaseItem): void;
     /**
      * Returns true if the party can use the item.
      *
-     * @param {RPG.BaseItem} item
-     * @returns {Bool}
+     * @param {RPG_BaseItem} item
+     * @returns {boolean}
      * @memberof Game_Party
      */
-    canUse(item: rm.types.BaseItem): boolean;
+    canUse(item: RPG_BaseItem): boolean;
     canInput(): boolean;
     /**
      * Handler for when the player walks.
@@ -5022,11 +5096,11 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns the last item selected by the game party.
      *
-     * @returns {RPG.BaseItem}
+     * @returns {RPG_BaseItem}
      * @memberof Game_Party
      */
-    lastItem(): rm.types.BaseItem;
-    setLastItem(item: rm.types.BaseItem): void;
+    lastItem(): RPG_BaseItem;
+    setLastItem(item: RPG_BaseItem): void;
     swapOrder(index1: number, index2: number): void;
     /**
      * Returns the characters that go on the save life.
@@ -5046,14 +5120,14 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns true if the encounter rate is set to half.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     hasEncounterHalf(): boolean;
     /**
      * Returns true if the encounter rate is set to none.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     hasEncounterNone(): boolean;
@@ -5061,14 +5135,14 @@ declare class Game_Party extends Game_Unit {
     /**
      * Returns true if the party has an increased chance of preemptive strike.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     hasRaisePreemptive(): boolean;
     /**
      * Returns true if the party has double gold in effect.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Party
      */
     hasGoldDouble(): boolean;
@@ -5289,18 +5363,18 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player is stopping.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isStopping(): boolean;
     /**
      * Reserves a transfer of the player to the specified map, at the given
      * x and y coordinates, facing the given direction (d). Using a specific fade.
-     * @param {Int} mapId
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} [d]
-     * @param {Int} [fadeType]
+     * @param {number} mapId
+     * @param {number} x
+     * @param {number} y
+     * @param {number} [d]
+     * @param {number} [fadeType]
      * @memberof Game_Player
      */
     reserveTransfer(mapId: number, x: number, y: number, d?: number, fadeType?: number): void;
@@ -5309,7 +5383,7 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns the new map id.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     newMapId(): number;
@@ -5331,42 +5405,42 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player is in a boat.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isInBoat(): boolean;
     /**
      * Returns true if the player is in a ship.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isInShip(): boolean;
     /**
      * Returns true if the player is in an airship.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isInAirship(): boolean;
     /**
      * Returns true if the player is in a vehicle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isInVehicle(): boolean;
     /**
      * Returns true if the player is in their normal state.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isNormal(): boolean;
     /**
      * Returns true if the player is dashing.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isDashRing(): boolean;
@@ -5375,14 +5449,14 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns the player's center x coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     centerX(): number;
     /**
      * Returns the player's center y coordinate.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     centerY(): number;
@@ -5398,7 +5472,7 @@ declare class Game_Player extends Game_Character {
     /**
      * Creates the encounter troop id and returns it.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     makeEncounterTroopId(): number;
@@ -5406,17 +5480,17 @@ declare class Game_Player extends Game_Character {
     /**
      * Executes an encounter.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     executeEncounter(): boolean;
     /**
      * Has the player start a map event at the given x and y coordinates.
      * Also passing the triggers and whether the event start is normal.
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Array<Int>} triggers
-     * @param {Bool} normal
+     * @param {number} x
+     * @param {number} y
+     * @param {number[]} triggers
+     * @param {boolean} normal
      * @memberof Game_Player
      */
     startMapEvent(x: number, y: number, triggers: number[], normal: boolean): void;
@@ -5424,14 +5498,14 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player can move.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     canMove(): boolean;
     /**
      * Gets the input direction of the player as a Int.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     getInputDirection(): number;
@@ -5446,7 +5520,7 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the dash button is pressed.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isDashButtonPressed(): boolean;
@@ -5475,7 +5549,7 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player triggered a touch action.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     triggerTouchAction(): boolean;
@@ -5491,14 +5565,14 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player can encounter enemies.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     canEncounter(): boolean;
     /**
      * Returns the encounter progress value of the player.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_Player
      */
     encounterProgressValue(): number;
@@ -5507,28 +5581,28 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player can start local events.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     canStartLocalEvents(): boolean;
     /**
      * Returns true if the player is getting on/off a vehicle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     getOnOffVehicle(): boolean;
     /**
      * Returns true if the player is getting on a vehicle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     getOnVehicle(): boolean;
     /**
      * Returns true if the player is getting off a vehicle.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     getOffVehicle(): boolean;
@@ -5541,22 +5615,22 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the player is on a floor that does damage.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     isOnDamageFloor(): boolean;
     /**
      * Moves the player straight, given a direction.
      *
-     * @param {Int} d
+     * @param {number} d
      * @memberof Game_Player
      */
     moveStraight(d: number): void;
     /**
      * Moves the player diagonally, given a horizontal
      * and vertical direction. The numpad represents the directions.
-     * @param {Int} horz
-     * @param {Int} vert
+     * @param {number} horz
+     * @param {number} vert
      * @memberof Game_Player
      */
     moveDiagonally(horz: number, vert: number): void;
@@ -5564,8 +5638,8 @@ declare class Game_Player extends Game_Character {
      * Has the player jump in the given direction at the specified
      * x and y coordinate. This x and y will be added to the player's current
      * position.
-     * @param {Int} xPlus
-     * @param {Int} yPlus
+     * @param {number} xPlus
+     * @param {number} yPlus
      * @memberof Game_Player
      */
     jump(xPlus: number, yPlus: number): void;
@@ -5590,14 +5664,14 @@ declare class Game_Player extends Game_Character {
     /**
      * Returns true if the followers are currently gathering.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     areFollowersGathering(): boolean;
     /**
      * Returns true if the followers are gathered.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Player
      */
     areFollowersGathered(): boolean;
@@ -5873,7 +5947,7 @@ declare class Game_System {
     /**
      * Returns true if the menu is enabled.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_System
      */
     isMenuEnabled(): boolean;
@@ -5953,23 +6027,22 @@ declare class Game_System {
      */
     savefileId(): number;
     /**
-     * Sets the save file id
+     * Sets the save file id.
      *
-     * @returns {Void}
+     * @param {number} savefileId The id of the save file.
      * @memberof Game_System
      */
     setSavefileId(savefileId: number): void;
     /**
      * Returns the tone of the window in the database.
      *
-     * @returns {Array<Int>}
      * @memberof Game_System
      */
     windowTone(): number[];
     /**
      * Sets the window tone, given an array
      * of rgb. Example:  [0, 255, 255].
-     * @param {Array<Int>} value
+     * @param {number[]} value
      * @memberof Game_System
      */
     setWindowTone(value: number[]): void;
@@ -6068,14 +6141,14 @@ declare class Game_System {
     /**
      * Returns the main font size
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_System
      */
     mainFontSize(): number;
     /**
      * Returns the window padding
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Game_System
      */
     windowPadding(): number;
@@ -6137,7 +6210,7 @@ declare class Game_Temp extends Game_Unit {
     /**
      * Returns troop information from the database.
      *
-     * @returns {RPG.Troop}
+     * @returns {rm.types.Troop}
      * @memberof Game_Troop
      */
     troop(): rm.types.Troop;
@@ -6194,10 +6267,10 @@ declare class Game_Temp extends Game_Unit {
     /**
      * Creates the drop items for all members of the enemy troop, and
      * returns the item information.
-     * @returns {Array<RPG.BaseItem>}
+     * @returns {RPG_BaseItem[]}
      * @memberof Game_Troop
      */
-    makeDropItems(): rm.types.BaseItem[];
+    makeDropItems(): RPG_BaseItem[];
     static LETTER_TABLE_HALF: string[];
     static LETTER_TABLE_FULL: string[];
 }
@@ -6249,115 +6322,7 @@ declare class Game_Timer {
     onExpire(): void;
 }
 
-declare class Game_Unit {
-    constructor();
-    _inBattle: boolean;
-    initialize(): void;
-    /**
-     * Returns true if unit is in battle.
-     *
-     * @returns {boolean}
-     * @memberof Game_Unit
-     */
-    inBattle(): boolean;
-    /**
-     * Returns the list of battlers.
-     *
-     * @returns {Array<Game_Battler>}
-     * @memberof Game_Unit
-     */
-    members(): Game_Battler[];
-    /**
-     * Returns the list of alive battlers.
-     *
-     * @returns {Array<Game_Battler>}
-     * @memberof Game_Unit
-     */
-    aliveMembers(): Game_Battler[];
-    /**
-     * Returns the list of dead battlers.
-     *
-     * @returns {Game_Actor[]|Game_Enemy[]}
-     * @memberof Game_Unit
-     */
-    deadMembers(): Game_Actor[] | Game_Enemy[];
-    /**
-     * Returns the list of movable members.
-     *
-     * @returns {Array<Game_Battler>}
-     * @memberof Game_Unit
-     */
-    movableMembers(): Game_Battler[];
-    /**
-     * Clears the unit's actions.
-     *
-     * @memberof Game_Unit
-     */
-    clearActions(): void;
-    /**
-     * Returns the agility of the unit.
-     *
-     * @returns {Int}
-     * @memberof Game_Unit
-     */
-    agility(): number;
-    tgrSum(): number;
-    /**
-     * Returns a random target from the game unit.
-     *
-     * @returns {Game_Battler}
-     * @memberof Game_Unit
-     */
-    randomTarget(): Game_Battler;
-    /**
-     * Returns a random dead target from the game unit.
-     *
-     * @returns {Game_Battler}
-     * @memberof Game_Unit
-     */
-    randomDeadTarget(): Game_Battler;
-    smoothTarget(index: number): Game_Battler;
-    smoothDeadTarget(index: number): Game_Battler;
-    /**
-     * Clears the action results.
-     *
-     * @memberof Game_Unit
-     */
-    clearResults(): void;
-    /**
-     * Handler for when battle is started.
-     *
-     * @memberof Game_Unit
-     */
-    onBattleStart(): void;
-    /**
-     * Handler for when battle has ended.
-     *
-     * @memberof Game_Unit
-     */
-    onBattleEnd(): void;
-    /**
-     * Creates the action's of the game unit.
-     *
-     * @memberof Game_Unit
-     */
-    makeActions(): void;
-    /**
-     * Selects a member of the unit given a battler.
-     *
-     * @param {Game_Battler} activeMember
-     * @memberof Game_Unit
-     */
-    select(activeMember: Game_Battler): void;
-    /**
-     * Returns true if all members of the unit are dead.
-     *
-     * @returns {Bool}
-     * @memberof Game_Unit
-     */
-    isAllDead(): boolean;
-    substituteBattler(): Game_Battler;
-}
+declare class Game_Troop {}
 
 /**
  * The game object class for game variables.
@@ -6386,21 +6351,21 @@ declare class Game_Vehicle extends Game_Character {
     /**
      * Returns true if the vehicle is a boat.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isBoat(): boolean;
     /**
      * Returns true if the vehicle is a ship.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isShip(): boolean;
     /**
      * Returns true if the vehicle is an airship.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isAirship(): boolean;
@@ -6414,7 +6379,7 @@ declare class Game_Vehicle extends Game_Character {
     /**
      * Returns the current vehicle.
      *
-     * @returns {RPG.System.Vehicle}
+     * @returns {rm.types.SystemVehicle}
      * @memberof Game_Vehicle
      */
     vehicle(): rm.types.SystemVehicle;
@@ -6443,7 +6408,7 @@ declare class Game_Vehicle extends Game_Character {
     /**
      * Sets the bgm associated with the vehicle.
      *
-     * @param {RPG.AudioFile} bgm
+     * @param {rm.types.AudioFile} bgm
      * @memberof Game_Vehicle
      */
     setBgm(bgm: rm.types.AudioFile): void;
@@ -6490,7 +6455,7 @@ declare class Game_Vehicle extends Game_Character {
     /**
      * Returns true if the vehicle can move.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     canMove(): boolean;
@@ -6522,21 +6487,21 @@ declare class Game_Vehicle extends Game_Character {
     /**
      * Returns true if the vehicle is at it's lowest altitude.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isLowest(): boolean;
     /**
      * Returns true if the vehicle is at it's highest altitude.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isHighest(): boolean;
     /**
      * Returns true if take off is ok.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isTakeoffOk(): boolean;
@@ -6546,7 +6511,7 @@ declare class Game_Vehicle extends Game_Character {
      * @param {number} x
      * @param {number} y
      * @param {number} d
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Game_Vehicle
      */
     isLandOk(x: number, y: number, d: rm.types.Direction): boolean;

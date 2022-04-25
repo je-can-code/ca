@@ -1,13 +1,15 @@
+import { rm } from "./lunalite-pixi-mz";
 import {
-    Game_Actor,
-    Rectangle,
-    rm,
-    Scene_Base,
-    Scene_ItemBase,
-    Scene_MenuBase,
-    Sprite, Sprite_Button, Stage, Window_Base, Window_ChoiceList, Window_EventItem, Window_NameBox, Window_NumberInput,
-    Window_TitleCommand, WindowLayer
-} from "./lunalite-pixi-mz";
+    Window_Base,
+    Window_ChoiceList,
+    Window_EventItem,
+    Window_NameBox,
+    Window_NumberInput,
+    Window_TitleCommand
+} from "./rmmz_windows";
+import { Sprite, Stage, WindowLayer } from "./rmmz_core";
+import { Sprite_Button } from "./rmmz_sprites";
+import { Game_Actor } from "./rmmz_objects";
 
 declare class Scene_Base extends Stage {
     constructor();

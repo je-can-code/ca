@@ -1,15 +1,8 @@
-import {
-    Game_Action,
-    Game_Actor,
-    Game_Battler,
-    Game_Enemy,
-    Rectangle,
-    rm,
-    Spriteset_Battle,
-    Window,
-    Window_Help, Window_ShopStatus
-} from "./lunalite-pixi-mz";
-
+import { rm } from "./lunalite-pixi-mz";
+import { RPG_BaseItem, RPG_EquipItem, RPG_Skill, RPG_UsableItem } from '../plugins/j/base';
+import { Game_Action, Game_Actor, Game_Battler, Game_Enemy } from "./rmmz_objects";
+import { Rectangle, Window } from "./rmmz_core";
+import { Spriteset_Battle } from "./rmmz_sprites";
 
 declare class Window_Base extends Window {
     constructor(rect: Rectangle);
@@ -365,7 +358,7 @@ declare class Window_Base extends Window {
     /**
      * Returns the text Size of drawTextEx.
      * @param text
-     * @returns {width:Int, height:Int}
+     * @returns {width:number, height:number}
      */
     textSizeEx(text: string): {height: number, width: number};
     /**
@@ -414,7 +407,7 @@ declare class Window_Base extends Window {
     /**
      * Process each character in the text when drawTextEx
      * is used to draw text.
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processCharacter(textState: rm.types.TextState): void;
@@ -422,21 +415,21 @@ declare class Window_Base extends Window {
      * Processes the normal characters in the text
      * when drawTextEx is used to draw text.
      * Normal characters are letters and numbers.
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processNormalCharacter(textState: rm.types.TextState): void;
     /**
      * Processes new line when drawTextEx is used to draw text.
      *
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processNewLine(textState: rm.types.TextState): void;
     /**
      * Processes new page when drawTexttEx is used to draw text.
      *
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processNewPage(textState: rm.types.TextState): void;
@@ -444,7 +437,7 @@ declare class Window_Base extends Window {
     /**
      * Obtains the escape parameters from text codes in the text state
      * when drawTextEx is used to draw text.
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @returns {(number | String)}
      * @memberof Window_Base
      */
@@ -453,7 +446,7 @@ declare class Window_Base extends Window {
      * Processes escape characters when drawTextEx is used
      * for drawing text.
      * @param {String} code
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processEscapeCharacter(code: string, textState: rm.types.TextState): void;
@@ -461,7 +454,7 @@ declare class Window_Base extends Window {
      * Processes drawing an icon when drawTextEx is used for
      * drawing text.
      * @param {number} iconIndex
-     * @param {MV.TextState} textState
+     * @param {rm.types.TextState} textState
      * @memberof Window_Base
      */
     processDrawIcon(iconIndex: number, textState: rm.types.TextState): void;
@@ -482,7 +475,7 @@ declare class Window_Base extends Window {
      * if all is set to true, all lines of text are calculated, otherwise
      * only a single line is processed.
      * @param {rm.TextState} textState
-     * @param {Bool} all
+     * @param {boolean} all
      * @returns Int
      * @memberof Window_Base
      */
@@ -582,9 +575,9 @@ declare class Window_Base extends Window {
      * Draws the actor nickname at the specified x and y coordinates
      * within the given width.
      * @param {Game_Actor} actor
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} width
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
      * @memberof Window_Base
      */
     drawActorNickname(actor: Game_Actor, x: number, y: number, width: number): void;
@@ -592,8 +585,8 @@ declare class Window_Base extends Window {
      * Draws the actor level at the specified x and y coordinates.
      *
      * @param {Game_Actor} actor
-     * @param {Int} x
-     * @param {Int} y
+     * @param {number} x
+     * @param {number} y
      * @memberof Window_Base
      */
     drawActorLevel(actor: Game_Actor, x: number, y: number): void;
@@ -665,13 +658,13 @@ declare class Window_Base extends Window {
     /**
      * Draws the item name at the specified x and y coordinates within
      * the given width.
-     * @param {RPG.BaseItem} item
+     * @param {RPG_BaseItem} item
      * @param {number} x
      * @param {number} y
      * @param {number} width
      * @memberof Window_Base
      */
-    drawItemName(item: rm.types.BaseItem, x: number, y: number, width: number): void;
+    drawItemName(item: RPG_BaseItem, x: number, y: number, width: number): void;
     /**
      * Draws the currency value given at the specified x and y coordinates within
      * the width given. Useful if you want to write your own custom currency value.
@@ -992,7 +985,7 @@ declare class Window_Selectable extends Window_Scrollable {
     /**
      * Returns the current position of the _index property.
      *
-     * @returns {Int}
+     * @returns {number}
      * @memberof Window_Selectable
      */
     index(): number;
@@ -1660,7 +1653,7 @@ declare class Window_ItemList extends Window_Selectable {
 declare class Window_BattleItem extends Window_ItemList {
     constructor(rect: Rectangle);
     initialize(rect: Rectangle): void;
-    includes(item: rm.types.UsableItem): boolean;
+    includes(item: RPG_UsableItem): boolean;
 }
 
 /**
@@ -1728,7 +1721,7 @@ declare class Window_BattleLog extends Window_Base {
     endAction(subject: Game_Battler): void;
     displayCurrentState(subject: Game_Battler): void;
     displayRegeneration(subject: Game_Battler): void;
-    displayAction(subject: Game_Battler, item: rm.types.UsableItem): void;
+    displayAction(subject: Game_Battler, item: RPG_UsableItem): void;
     displayCounter(target: Game_Battler): void;
     displayReflection(target: Game_Battler): void;
     displaySubstitute(substitute: Game_Battler, target: Game_Battler): void;
@@ -1772,15 +1765,15 @@ declare class Window_SkillList extends Window_Selectable {
     /**
      * Returns the Skill Type Id, which is an Int.
      */
-    _stypeId: rm.types.SkillTypeIdA;
-    _data: rm.types.Skill[];
+    _stypeId: RPG_SkillTypeIdA;
+    _data: RPG_Skill[];
     initialize(rect: Rectangle): void;
     /**
      * Returns skill at the specified index.
      * @param index
      * @return Null<Skill>
      */
-    itemAt(index: number): rm.types.Skill;
+    itemAt(index: number): RPG_Skill;
     /**
      * Sets the current actor of the skill list window.
      *
@@ -1794,31 +1787,31 @@ declare class Window_SkillList extends Window_Selectable {
      * @param {number} stypeId - Integer
      * @memberof Window_SkillList
      */
-    setStypeId(stypeId: rm.types.SkillTypeIdA): void;
+    setStypeId(stypeId: RPG_SkillTypeIdA): void;
     /**
      * Returns the current skill at the window index
      * loaded from the databse.
      *
-     * @returns {RPG.Skill}
+     * @returns {RPG_Skill}
      * @memberof Window_SkillList
      */
-    item(): rm.types.Skill;
+    item(): RPG_Skill;
     /**
      * Returns true if the given skill is included.
      *
-     * @param {RPG.Skill} item
+     * @param {RPG_Skill} item
      * @returns {boolean}
      * @memberof Window_SkillList
      */
-    includes(item: rm.types.Skill): boolean;
+    includes(item: RPG_Skill): boolean;
     /**
      * Returns true if the given skill is enabled.
      *
-     * @param {RPG.Skill} item
+     * @param {RPG_Skill} item
      * @returns {boolean}
      * @memberof Window_SkillList
      */
-    isEnabled(item: rm.types.Skill): boolean;
+    isEnabled(item: RPG_Skill): boolean;
     /**
      * Creates the item list.
      *
@@ -1827,7 +1820,7 @@ declare class Window_SkillList extends Window_Selectable {
     makeItemList(): void;
     selectLast(): void;
     costWidth(): number;
-    drawSkillCost(skill: rm.types.Skill, x: number, y: number, width: number): void;
+    drawSkillCost(skill: RPG_Skill, x: number, y: number, width: number): void;
 }
 
 /**
@@ -1918,8 +1911,8 @@ declare class Window_EquipItem {
     constructor(x: number, y: number, width: number, height: number);
     setActor(actor: Game_Actor): void;
     setSlotId(slotId: number): void;
-    includes(item: rm.types.EquipItem): boolean;
-    isEnabled(item: rm.types.EquipItem): boolean;
+    includes(item: RPG_EquipItem): boolean;
+    isEnabled(item: RPG_EquipItem): boolean;
     setStatusWindow(statusWindow: Window_EquipStatus): void;
 }
 
@@ -1943,10 +1936,10 @@ declare class Window_EquipSlot extends Window_Selectable {
     /**
      * Returns the current equip item.
      *
-     * @returns {RPG.EquipItem}
+     * @returns {RPG_EquipItem}
      * @memberof Window_EquipSlot
      */
-    item(): rm.types.EquipItem;
+    item(): RPG_EquipItem;
     /**
      * Returns the name of the slot at the specified index.
      *
@@ -2013,8 +2006,8 @@ declare class Window_EventItem extends Window_ItemList {
      */
     start(): void;
     updatePlacement(): void;
-    includes(item: rm.types.BaseItem): boolean;
-    isEnabled(item: rm.types.BaseItem): boolean;
+    includes(item: RPG_BaseItem): boolean;
+    isEnabled(item: RPG_BaseItem): boolean;
     onOk(): void;
     onCancel(): void;
 }
@@ -2062,10 +2055,10 @@ declare class Window_Help extends Window_Base {
     /**
      * Sets the current item of the help window.
      *
-     * @param {RPG.BaseItem} item
+     * @param {RPG_BaseItem} item
      * @memberof Window_Help
      */
-    setItem(item: rm.types.BaseItem): void;
+    setItem(item: RPG_BaseItem): void;
 }
 
 declare class Window_ItemCategory extends Window_HorzCommand {
@@ -2193,7 +2186,7 @@ declare class Window_MenuStatus extends Window_Selectable {
 declare class Window_MenuActor extends Window_MenuStatus {
     constructor();
     initialize(): void;
-    selectForItem(item: rm.types.BaseItem): void;
+    selectForItem(item: RPG_BaseItem): void;
 }
 
 declare class Window_MenuCommand extends Window_Command {
@@ -2363,7 +2356,7 @@ declare class Window_Message extends Window_Base {
     /**
      * Updates the wait of the message window.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     updateWait(): boolean;
@@ -2371,21 +2364,21 @@ declare class Window_Message extends Window_Base {
     /**
      * Updates input when the message window is processing.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     updateInput(): boolean;
     /**
      * Returns true if any sub window is active.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     isAnySubWindowActive(): boolean;
     /**
      * Updates the message.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     updateMessage(): boolean;
@@ -2399,21 +2392,21 @@ declare class Window_Message extends Window_Base {
     /**
      * Returns true if the ok or cancel inputs have been triggered
      * multiple times.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     isTriggered(): boolean;
     /**
      * Returns true if the message window still has text
      * and settings have not changed.
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     doesContinue(): boolean;
     /**
      * Returns true if the message window settings have been changed.
      *
-     * @returns {Bool}
+     * @returns {boolean}
      * @memberof Window_Message
      */
     areSettingsChanged(): boolean;
@@ -2682,7 +2675,7 @@ declare class Window_SavefileList extends Window_Selectable {
     /**
      * Whether ornot the auto save feature is enabled
      *
-     * @default {Bool} false
+     * @default {boolean} false
      * @memberof Window_SavefileList
      */
     _autosave: boolean;
@@ -2794,25 +2787,25 @@ declare class Window_ShopBuy extends Window_Selectable {
     /**
      * Returns the current item of the window.
      *
-     * @returns {RPG.BaseItem}
+     * @returns {RPG_BaseItem}
      * @memberof Window_ShopBuy
      */
-    item(): rm.types.BaseItem;
+    item(): RPG_BaseItem;
     setMoney(money: number): void;
     /**
      * Returns the p rice of an item
      * @param item
      * @return Int
      */
-    price(item: rm.types.BaseItem): number;
+    price(item: RPG_BaseItem): number;
     /**
      * Checks if the current item is enabled (can be bought/sold).
      *
-     * @param {RPG.BaseItem} item
+     * @param {RPG_BaseItem} item
      * @returns {boolean}
      * @memberof Window_ShopBuy
      */
-    isEnabled(item: rm.types.BaseItem): boolean;
+    isEnabled(item: RPG_BaseItem): boolean;
     /**
      * Creates a list of items for the shop window.
      *
@@ -2871,7 +2864,7 @@ declare class Window_ShopNumber extends Window_Selectable {
      */
     windowWidth(): number;
     number(): number;
-    setup(item: rm.types.BaseItem, max: number, price: number): void;
+    setup(item: RPG_BaseItem, max: number, price: number): void;
     setCurrencyUnit(currencyUnit: string): void;
     createButtons(): void;
     placeButtons(): void;
@@ -2978,11 +2971,11 @@ declare class Window_ShopSell extends Window_ItemList {
     /**
      * Determines if the item is sellable, otherwise, greyed out.
      *
-     * @param {RPG.BaseItem} item
+     * @param {RPG_BaseItem} item
      * @returns {boolean}
      * @memberof Window_ShopSell
      */
-    isEnabled(item: rm.types.BaseItem): boolean;
+    isEnabled(item: RPG_BaseItem): boolean;
 }
 
 /**
@@ -3012,7 +3005,7 @@ declare class Window_ShopStatus extends Window_Base {
     /**
      * Sets the item in the window shop status for display.
      */
-    setItem(item: rm.types.BaseItem): void;
+    setItem(item: RPG_BaseItem): void;
     /**
      * Returns true if the item in the
      * shop status window is an equippable item.
@@ -3039,7 +3032,7 @@ declare class Window_ShopStatus extends Window_Base {
      */
     maxPages(): number;
     drawActorEquipInfo(x: number, y: number, actor: Game_Actor): void;
-    drawActorParamChange(x: number, y: number, actor: Game_Actor, item1: rm.types.EquipItem): void;
+    drawActorParamChange(x: number, y: number, actor: Game_Actor, item1: RPG_EquipItem): void;
     /**
      * Returns the parameter id.
      *
@@ -3052,10 +3045,10 @@ declare class Window_ShopStatus extends Window_Base {
      * the respective equipment Id is passed.
      * @param {Game_Actor} actor
      * @param {number} etypeId
-     * @returns {RPG.EquipItem}
+     * @returns {RPG_EquipItem}
      * @memberof Window_ShopStatus
      */
-    currentEquippedItem(actor: Game_Actor, etypeId: rm.types.EquipTypeId): rm.types.EquipItem;
+    currentEquippedItem(actor: Game_Actor, etypeId: rm.types.EquipTypeId): RPG_EquipItem;
     /**
      * Updates the current page.
      *

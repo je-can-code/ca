@@ -1,8 +1,12 @@
 import './pixi.d.ts';
-import {rm} from "./lunalite-pixi-mz";
-import { Game_Party } from './rmmz_objects';
-
-
+import {
+    Game_Actors,
+    Game_Map, Game_Message, Game_Party,
+    Game_Player, Game_Screen, Game_SelfSwitches,
+    Game_Switches, Game_System, Game_Temp, Game_Timer, Game_Troop, Game_Variables,
+} from "./rmmz_objects";
+import { ImageManager } from "./rmmz_managers";
+import { rm } from "./lunalite-pixi-mz";
 
 /** @global RPGMaker Plugin's Object */
 declare var $plugins: Array<rm.types.PluginSettings>;

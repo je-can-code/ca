@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "target":"ES5"
+    "target":"ES6"
   },
 
   "include": [
     "defs/*.d.ts",
+    "defs/**/*.d.ts",
+    "./**/*.d.ts",
     "./**/*.js"
   ]
 }
