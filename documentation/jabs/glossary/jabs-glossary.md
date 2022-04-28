@@ -1,8 +1,8 @@
-# `JABS` Glossary
+# `JABS` tags
 ### Overview
 This is a work in progress.
 
-# Notetag Glossary
+# Notetag tags
 There are tons of tags that you can put in the notes of various elements across the database and otherwise. Here is a
 relatively comprehensive list of all of them and where they can go.
 

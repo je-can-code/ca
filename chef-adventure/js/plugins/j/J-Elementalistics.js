@@ -7,7 +7,7 @@
  * @url https://github.com/je-can-code/rmmz
  * @help
  * ============================================================================
- * This plugin enables the ability to modify skills with note glossary to to
+ * This plugin enables the ability to modify skills with note tags to to
  * further control a skill's elemental properties in the context of battle.
  * 
  * By overwriting the .calcElementRate() function, we have added new
@@ -18,7 +18,7 @@
  * - Actors/Enemies can now whitelist effective elements.
  * 
  * WARNING:
- * None of the note glossary below support negative numbers and are white-space
+ * None of the note tags below support negative numbers and are white-space
  * sensitive. Follow the examples closely to achieve your desired effects.
  * 
  * NOTE:
@@ -114,7 +114,7 @@
  * Have you ever wanted a battler to temporarily (or permanently) become more
  * effective with skills of a particular element? Well now you can! By applying
  * the appropriate note tag to the various database locations applicable, you
- * can "boost" one or more elements (more requires multiple glossary) by as little
+ * can "boost" one or more elements (more requires multiple tags) by as little
  * or as much as your heart desires!
  *
  * DETAILS:
@@ -166,7 +166,7 @@
  * DETAILS:
  * All sources are checked and a list of all "strict" elements are combined
  * to define for a given battler. Effectively, this is a whitelist of all
- * elements a battler can be hurt by. If there are no glossary found on any
+ * elements a battler can be hurt by. If there are no tags found on any
  * sources, then all elements are added to the list as a default. Similar
  * to absorption, only the elements that a skill has that overlap with the
  * "strict" elements of a battler are considered for calculation.
@@ -611,7 +611,7 @@ Game_Action.prototype.healingFactor = function(targetAbsorbs)
 
 //#region Game_Actor
 /**
- * Modifies the element rate to accommodate elemental absorption glossary on an actor.
+ * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
 J.ELEM.Aliased.Game_Actor.set("elementRate", Game_Actor.prototype.elementRate);
 Game_Actor.prototype.elementRate = function(elementId)
@@ -837,7 +837,7 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
 
 //#region Game_Enemy
 /**
- * Modifies the element rate to accommodate elemental absorption glossary on an actor.
+ * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
 J.ELEM.Aliased.Game_Enemy.set("elementRate", Game_Enemy.prototype.elementRate);
 Game_Enemy.prototype.elementRate = function(elementId)

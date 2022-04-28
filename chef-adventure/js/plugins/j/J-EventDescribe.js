@@ -14,7 +14,7 @@
  * specified distance from the event.
  * 
  * In order to utilize this functionality, add a comment to an event with one
- * of the following glossary below to create text/icons that show up on the event:
+ * of the following tags below to create text/icons that show up on the event:
  * 
  * <text:EVENT_TEXT>
  * Where EVENT_TEXT is whatever text you want to show on this event.
@@ -39,7 +39,7 @@
  * standing ontop of the event in order for the icon to show up.
  * ============================================================================
  * NOTE:
- * Proximity glossary are optional. If they are not added to the event alongside
+ * Proximity tags are optional. If they are not added to the event alongside
  * the text or icon tag, then the text/icon will always be visible while the
  * event is visible on the map.
  * ============================================================================

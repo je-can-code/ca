@@ -8,7 +8,7 @@
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage
- * based on a pair of glossary.
+ * based on a pair of tags.
  *
  * DETAILS:
  * This overwrites the "applyCritical()" function in its entirety and replaces
@@ -26,7 +26,7 @@
  * locations, you can now control how hard (or weak) a battler's crit will be!
  *
  * NOTE:
- * If multiple glossary are present on a single battler, then all tag amounts will
+ * If multiple tags are present on a single battler, then all tag amounts will
  * be added together for a single multiplier amount as seen in the examples.
  *
  * TAG USAGE:

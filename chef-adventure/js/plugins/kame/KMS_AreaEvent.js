@@ -17,6 +17,8 @@
  * This is designed to be entered as a comment into the event you want to allow
  * interactivity with of a bigger rectangle shape.
  *
+ * NOTE: The anchor of the coordinates is upper-left.
+ *
  * <areaEvent:WIDTHxHEIGHT>
  *  where WIDTH is a number representing the width of the rectangle.
  *  where HEIGHT is a number representing the height of the rectangle.

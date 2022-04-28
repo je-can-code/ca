@@ -107,7 +107,7 @@ J.TPGROW.Aliased = {
 //#region Game_Actor
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
- * formulas and apply rates from glossary, etc.
+ * formulas and apply rates from tags, etc.
  * @returns {number}
  */
 J.TPGROW.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);

@@ -41,11 +41,11 @@
  * ============================================================================
  * PROFICIENCY BLOCKING:
  * Have you ever wanted a battler to NOT be able to gain proficiency? Well now
- * you can! By applying the appropriate glossary to the various database locations,
+ * you can! By applying the appropriate tags to the various database locations,
  * you too can block any battler from giving or gaining proficiency!
  *
  * NOTE:
- * It is important to recognize that there are two glossary that both block the
+ * It is important to recognize that there are two tags that both block the
  * gain of proficiency in different ways. One tag is designed to prevent the
  * GIVING of proficiency, for most commonly being placed on enemies or states
  * that enemies can be placed in. The second tag is designed to prevent the

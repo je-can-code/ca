@@ -178,7 +178,6 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
   // handles incoming requests to refresh the input frame.
   if ($hudManager.hasRequestRefreshInputFrame())
   {
-    console.log('needs refresh for input frame');
     // refresh the input frame.
     this._j._inputFrame.refresh();
 

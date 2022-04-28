@@ -19,7 +19,7 @@
  * followers functionality is disabled, then they will simply do nothing.
  *
  * In order to set a default ally AI mode (defaults to "variety"), you can use
- * a tag on the actor and/or class. Class will take priority over actor glossary:
+ * a tag on the actor and/or class. Class will take priority over actor tags:
  * 
  * <defaultAi:MODE>
  * where MODE is one of the 5 below (the key in the parentheses).
@@ -1561,8 +1561,6 @@ JABS_AllyAI.prototype.decideSupportHealing = function(availableSkills, healer)
   let below60 = this.countLowHpAllies(healer);
   const lowestAllyBattler = lowestAlly.getBattler();
   const healerBattler = healer.getBattler();
-
-  console.log(below60);
 
   // depending on how many wounded targets we have, determine the best healing skill to use.
   if (below60 === 0)

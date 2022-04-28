@@ -1474,7 +1474,7 @@ class DungeonGenerator {
             this._generateOuterMaps(map);
         
         if (maps.length == 0)
-            throw Error("There's no Snippets Map defined to generate dungeon. Please insert at least one snippets map in Space Map's note glossary.");
+            throw Error("There's no Snippets Map defined to generate dungeon. Please insert at least one snippets map in Space Map's note tags.");
         
         for (var x = 0; x < map.length; x++) {
             for (var y = 0; y < map[x].length; y++) {

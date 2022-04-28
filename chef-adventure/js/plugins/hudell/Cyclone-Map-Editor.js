@@ -84,7 +84,7 @@
  *   * Added support to Cyclone Extra Tilesets
  *
  * 2020-09-15 - Version 1.06.00
- *   * New option to view tile properties such as glossary, passability, bush,
+ *   * New option to view tile properties such as tags, passability, bush,
  *   ladder and so on.
  *
  * 2020-09-14 - Version 1.05.01

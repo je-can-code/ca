@@ -30,7 +30,7 @@
  * - Rank up rewards for any/every/max rank, which can be most anything.
  * 
  * In order to rank up these SDPs, you'll need to use SDP points. These can be
- * acquired by using the glossary below, or by using plugin commands.
+ * acquired by using the tags below, or by using plugin commands.
  *
  * NOTES:
  * - SDP points gained from enemies are earned for all members of the party.
@@ -65,10 +65,10 @@
  *
  * NOTE:
  * The format implies that you will be providing whole numbers and not actual
- * multipliers, like 1.3 or something. If multiple glossary are present across the
+ * multipliers, like 1.3 or something. If multiple tags are present across the
  * various database locations on a single actor, they will stack additively.
  * SDP points cannot be reduced below 0 for an actor, but they most certainly
- * can receive negative amounts if the glossary added up like that.
+ * can receive negative amounts if the tags added up like that.
  *
  * TAG USAGE:
  * - Actors
@@ -89,7 +89,7 @@
  *
  *  <sdpMultiplier:80>
  *  <sdpMultiplier:-30>
- * An actor with something equipped/applied that has both of the above glossary
+ * An actor with something equipped/applied that has both of the above tags
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * 
@@ -1094,8 +1094,19 @@ Game_Enemy.prototype.canDropSdp = function()
   // if we do not have a panel to drop, then don't drop it.
   if (!this.hasSdpDropData()) return false;
 
+  // grab the panel for shorthand reference below.
+  const panel = $gameSystem.getSdp(this.enemy().sdpDropKey);
+
+  // if the enemy has a panel that isn't defined, then don't drop it.
+  if (!panel)
+  {
+    console.warn(`Panel of key ${this.enemy().sdpDropKey} is not defined, but was trying to be dropped.`);
+    console.warn(`Consider defining a panel with the key of ${this.enemy().sdpDropKey}.`);
+    return false;
+  }
+
   // if we have already unlocked the droppable panel, then don't drop it.
-  if ($gameSystem.getSdp(this.enemy().sdpDropKey).isUnlocked()) return false;
+  if (panel.isUnlocked()) return false;
 
   // drop the panel!
   return true;
