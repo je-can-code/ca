@@ -4014,7 +4014,7 @@ class JABS_Engine
     const activeParty = $gameParty.battleMembers();
     activeParty.forEach(member =>
     {
-      const gainedExperience = experience *= member.exr;
+      const gainedExperience = experience * member.exr;
       member.gainExp(gainedExperience);
     });
 

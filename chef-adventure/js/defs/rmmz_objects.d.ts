@@ -1726,7 +1726,7 @@ declare class Game_Actor extends Game_Battler {
      *
      * @memberof Game_Actor
      */
-    maxLevel(): void;
+    maxLevel(): number;
     /**
      * Returns true if the actor is max level.
      *
