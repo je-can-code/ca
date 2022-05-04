@@ -1172,6 +1172,8 @@ Game_Action.prototype.applySkill = function(target)
     this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
     this.applyItemUserEffect(target);
   }
+
+  // also update the last target hit.
   this.updateLastTarget(target);
 };
 
@@ -2366,9 +2368,9 @@ Game_Enemy.prototype.prepareTime = function()
 };
 
 /**
- *
+ * Gets the prepare time from the notes of the provided reference data.
  * @param {RPG_Enemy} referenceData
- * @returns
+ * @returns {number}
  */
 Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData)
 {
@@ -2396,61 +2398,19 @@ Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData)
 };
 
 /**
- * Gets the enemy's basic attack skill id from their notes.
- * This will be overwritten by values provided from an event.
+ * Gets the enemy's basic attack skill id.
+ * This is defined by the first "Attack Skill" trait on an enemy.
+ * If there are multiple traits of this kind, only the first found will be used.
  * @returns {number}
  */
-Game_Enemy.prototype.skillId = function()
+J.ABS.Aliased.Game_Enemy.set('basicAttackSkillId', Game_Enemy.prototype.basicAttackSkillId);
+Game_Enemy.prototype.basicAttackSkillId = function()
 {
-  const referenceData = this.enemy();
+  // check our enemy to see if we found a custom basic attack skill id.
+  const basicAttackSkillId = J.ABS.Aliased.Game_Enemy.get('basicAttackSkillId').call(this);
 
-  // check the traits for the skill id first.
-  const attackSkillTrait = referenceData.traits
-    .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
-  if (attackSkillTrait)
-  {
-    return attackSkillTrait.dataId;
-  }
-
-  // then check the notes for the skill id.
-  const notesSkillId = this.getSkillIdFromEnemyNotes(referenceData);
-  if (notesSkillId)
-  {
-    return notesSkillId;
-  }
-
-  // still no dice, then use the default one.
-  return J.ABS.Metadata.DefaultEnemyAttackSkillId;
-};
-
-/**
- * Gets the skill id from the notes.
- * @param {RPG_Enemy} referenceData The reference data for this enemy.
- * @returns
- */
-Game_Enemy.prototype.getSkillIdFromEnemyNotes = function(referenceData)
-{
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.SkillId])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.SkillId]) || skillId;
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    let skillId = 0;
-    const structure = /<skillId:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        skillId = parseInt(RegExp.$1);
-      }
-    });
-
-    return skillId;
-  }
+  // if we didn't find one, return the default instead.
+  return basicAttackSkillId ?? J.ABS.Metadata.DefaultEnemyAttackSkillId;
 };
 
 /**

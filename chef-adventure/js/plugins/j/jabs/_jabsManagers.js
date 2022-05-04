@@ -690,10 +690,17 @@ class JABS_AiManager
    */
   static needsRepositioning(battler)
   {
-    // check if the battler isn't moving.
-    // check also if the battler isn't in position.
-    // check also if the battler can move.
-    if (!battler._event.isMoving() && !battler.isInPosition() && battler.canBattlerMove()) return true;
+    // check if the battler is currently busy with another action like moving or casting.
+    const isBusy = battler._event.isMoving() || battler.isCasting();
+
+    // check if the battler is able to move.
+    const isAble = battler.canBattlerMove();
+
+    // check if the battler is already in-position.
+    const alreadyInPosition = battler.isInPosition()
+
+    // if the battler isn't busy, is able, and not already in position, then reposition!
+    if (!isBusy && !alreadyInPosition && isAble) return true;
 
     // battler is fine where they are at.
     return false;

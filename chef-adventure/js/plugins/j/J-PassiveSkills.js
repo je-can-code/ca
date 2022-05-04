@@ -143,19 +143,6 @@ Game_Actor.prototype.forgetSkill = function(skillId)
   J.PASSIVE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
   this.forcePassiveSkillRefresh();
 };
-
-/**
- * OVERWRITE Gets the skill associated with the given skill id.
- * By abstracting this, we can modify the underlying skill before it reaches its destination.
- * @param {number} skillId The skill id to get the skill for.
- * @returns {RPG_Skill}
- */
-Game_Actor.prototype.skill = function(skillId)
-{
-  return J.EXTEND
-    ? OverlayManager.getExtendedSkill(this, skillId)
-    : $dataSkills[skillId];
-};
 //#endregion Game_Actor
 
 //#region Game_Battler

@@ -3718,7 +3718,7 @@ JABS_Battler.prototype.unlockEngagement = function()
 
 /**
  * Gets the current target of this battler.
- * @returns {JABS_Battler}
+ * @returns {JABS_Battler|null}
  */
 JABS_Battler.prototype.getTarget = function()
 {
@@ -4690,7 +4690,7 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 JABS_Battler.prototype.getEnemyBasicAttack = function()
 {
   const battler = this.getBattler();
-  const basicAttackSkill = battler.skillId();
+  const basicAttackSkill = battler.basicAttackSkillId();
   return [basicAttackSkill, 5];
 };
 

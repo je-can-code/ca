@@ -2059,25 +2059,6 @@ Game_Actor.prototype.isInanimate = function()
 };
 
 /**
- * Gets the retaliation skill ids for this actor.
- * Will retrieve from actor, class, all equipment, and states.
- * @returns {JABS_SkillChance[]}
- */
-Game_Actor.prototype.retaliationSkills = function()
-{
-  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const objectsToCheck = this.getEverythingWithNotes();
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
-};
-
-/**
  * The underlying database data for this actor.
  * @returns {RPG_Actor}
  */
@@ -2193,12 +2174,28 @@ Game_Battler.prototype.prepareTime = function()
 };
 
 /**
- * All battlers have a skill id for their basic attack.
- * At this level, returns the default skill id of 1.
+ * Gets the battler's basic attack skill id.
+ * This is defined by the first "Attack Skill" trait on a battler.
+ * If there are multiple traits of this kind, only the first found will be used.
  * @returns {number}
  */
-Game_Battler.prototype.skillId = function()
+Game_Battler.prototype.basicAttackSkillId = function()
 {
+  // get the data from the database of this battler.
+  const databaseData = this.databaseData();
+
+  // the battler's basic attack is their first found "Attack Skill" trait.
+  const attackSkillTrait = databaseData.traits
+    .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
+
+  // check to make sure we found a trait.
+  if (attackSkillTrait)
+  {
+    // return the traits underlying skill id.
+    return attackSkillTrait.dataId;
+  }
+
+  // we didn't find a trait so just return 1.
   return 1;
 };
 
@@ -2330,7 +2327,7 @@ Game_Battler.prototype.isInanimate = function()
  */
 Game_Battler.prototype.retaliationSkills = function()
 {
-  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+\])>/i;
+  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
   const objectsToCheck = this.getEverythingWithNotes();
   const skills = [];
   objectsToCheck.forEach(obj =>
