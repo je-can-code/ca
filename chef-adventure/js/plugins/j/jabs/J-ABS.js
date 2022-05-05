@@ -3130,12 +3130,10 @@ class JABS_Engine
    */
   handleActorRetaliation(battler)
   {
-    const result = battler.getBattler()
-      .result();
+    const result = battler.getBattler().result();
     const needsCounterParry = result.preciseParried && battler.counterParry();
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
-    const retaliationSkills = battler.getBattler()
-      .retaliationSkills();
+    const retaliationSkills = battler.getBattler().retaliationSkills();
 
     // if we should be counter-parrying.
     if (needsCounterParry)

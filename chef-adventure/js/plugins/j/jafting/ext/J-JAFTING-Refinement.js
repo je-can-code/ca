@@ -2346,7 +2346,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Draws all transferable traits on this piece of equipment.
-   * @param {rm.types.Trait[]} traits A list of transferable traits.
+   * @param {RPG_Trait[]} traits A list of transferable traits.
    * @param {number} x The `x` coordinate to start drawing at.
    */
   drawEquipTraits(traits, x)
@@ -2446,7 +2446,7 @@ JAFTING_Trait.prototype.initialize = function(code, dataId, value)
 /**
  * The defacto of what JAFTING considers a "divider" trait.
  * All traits defined AFTER this trait are considered transferable.
- * @returns {rm.types.Trait}
+ * @returns {RPG_Trait}
  */
 JAFTING_Trait.divider = function()
 {
@@ -2670,7 +2670,7 @@ JAFTING_Trait.prototype.translatePartyAbility = function()
 
 /**
  * Gets the original RM trait associated with this JAFTING trait.
- * @returns {rm.types.Trait}
+ * @returns {RPG_Trait}
  */
 JAFTING_Trait.prototype.convertToRmTrait = function()
 {

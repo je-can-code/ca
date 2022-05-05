@@ -194,12 +194,36 @@ J.BASE.Traits = {
   ATTACK_REPEATS: 34,
 
   /**
-   * Defines the skill id.
+   * Defines the basic attack skill id.
    * For weapons and enemies, this represents the skill used for attacking.
    * For armor, this does nothing directly- but when used in the context of
    * JAFTING's refinement, it can redefine the skill used when a weapon attacks.
    */
   ATTACK_SKILLID: 35,
+
+  /**
+   * Defines the addition/learning of a new skill category/type by means of trait.
+   * The `dataId` for this trait represents the skill type id being learned.
+   */
+  ADD_SKILLTYPE: 41,
+
+  /**
+   * Defines the removal/forgetting of a previous skill category/type by means of trait.
+   * The `dataId` for this trait represents the skill type id being forgotten.
+   */
+  SEAL_SKILLTYPE: 42,
+
+  /**
+   * Defines the addition/learning of a new skill by means of trait.
+   * The `dataId` for this trait represents the skill id being learned.
+   */
+  ADD_SKILL: 43,
+
+  /**
+   * Defines the removal/forgetting of a previous skill by means of trait.
+   * The `dataId` for this trait represents the skill id being forgotten.
+   */
+  SEAL_SKILL: 44,
 
   /**
    * The `DIVIDER` trait, specifically for JAFTING's refinement functionality.
@@ -312,7 +336,7 @@ J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
  * Parses out a skill chance based on the regex from the reference data.
  * @param {RegExp} structure The RegExp expression to match.
  * @param {rm.types.BaseItem} referenceData The reference data to parse.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
 {
@@ -326,7 +350,7 @@ J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
     if (line.match(structure))
     {
       const data = JSON.parse(RegExp.$1);
-      const skillChance = new JABS_SkillChance(
+      const skillChance = new JABS_OnChanceEffect(
         parseInt(data[0]),
         parseInt(data[1]),
         J.BASE.Helpers.getKeyFromRegexp(structure));
@@ -374,7 +398,7 @@ Object.defineProperty(String, "empty", { writable: false });
  * @param {number} times
  * @param {Function} func The function
  */
-Array.iterate = function(times, func)
+Number.prototype.iterate = function(times, func)
 {
   [...Array(times)].forEach(func);
 };
@@ -1552,7 +1576,7 @@ Game_Actor.prototype.battlerId = function()
 
 /**
  * Gets all skills that are executed when this actor is defeated.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Actor.prototype.onOwnDefeatSkillIds = function()
 {
@@ -1570,7 +1594,7 @@ Game_Actor.prototype.onOwnDefeatSkillIds = function()
 
 /**
  * Gets all skills that are executed when this actor defeats a target.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Actor.prototype.onTargetDefeatSkillIds = function()
 {
@@ -2323,7 +2347,7 @@ Game_Battler.prototype.isInanimate = function()
 
 /**
  * All battlers have a default of no retaliation skills.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.retaliationSkills = function()
 {
@@ -2341,7 +2365,7 @@ Game_Battler.prototype.retaliationSkills = function()
 
 /**
  * All battlers have a default of no on-own-defeat skill ids.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.onOwnDefeatSkillIds = function()
 {
@@ -2350,7 +2374,7 @@ Game_Battler.prototype.onOwnDefeatSkillIds = function()
 
 /**
  * All battlers have a default of no on-defeating-a-target skill ids.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.onTargetDefeatSkillIds = function()
 {
@@ -2753,7 +2777,7 @@ Game_Enemy.prototype.battlerId = function()
 
 /**
  * Gets all skills that are executed by this enemy when it is defeated.
- * @returns {JABS_SkillChance}
+ * @returns {JABS_OnChanceEffect}
  */
 Game_Enemy.prototype.onOwnDefeatSkillIds = function()
 {
@@ -2763,7 +2787,7 @@ Game_Enemy.prototype.onOwnDefeatSkillIds = function()
 
 /**
  * Gets all skills that are executed by this enemy when it defeats its target.
- * @returns {JABS_SkillChance}
+ * @returns {JABS_OnChanceEffect}
  */
 Game_Enemy.prototype.onTargetDefeatSkillIds = function()
 {
@@ -2778,11 +2802,16 @@ Game_Enemy.prototype.onTargetDefeatSkillIds = function()
  */
 Game_Enemy.prototype.skills = function()
 {
+  // grab the actions for the enemy.
   const actions = this.enemy().actions
     .map(action => this.skill(action.skillId), this);
-  const skillTraits = this.enemy().traits
-    .filter(trait => trait.code === 35)
+  
+  // grab any additional skills added via traits.
+  const skillTraits = this.traitObjects()
+    .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
     .map(skillTrait => this.skill(skillTrait.dataId), this);
+  
+  // combine the two arrays of skills.
   return actions
     .concat(skillTraits)
     .sort();
@@ -5382,7 +5411,7 @@ class RPG_Trait
 
   /**
    * Constructor.
-   * @param {rm.types.Trait} trait The trait to parse.
+   * @param {RPG_Trait} trait The trait to parse.
    */
   constructor(trait)
   {

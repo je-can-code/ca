@@ -442,7 +442,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 	}
 }
 
@@ -748,7 +748,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 
         /**
          * Contains additional JABS-related info about this equip.
@@ -873,7 +873,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 	}
 }
 
@@ -944,7 +944,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 		/**
 		 * The weapon type ID.
 		 */
@@ -1016,7 +1016,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 	}
 }
 
@@ -1091,7 +1091,7 @@ declare namespace rm.types {
 		/**
 		 * The array of Trait data.
 		 */
-		traits: rm.types.Trait[];
+		traits: RPG_Trait[];
 	}
 }
 
@@ -1299,9 +1299,9 @@ declare namespace rm.types {
         level: number;
         /**
          * The traits defined for this enemy in the database.
-         * @type {rm.types.Trait[]}
+         * @type {RPG_Trait[]}
          */
-        traits: rm.types.Trait[];
+        traits: RPG_Trait[];
 		/**
 		 * The name of the enemy in the database.
 		 *

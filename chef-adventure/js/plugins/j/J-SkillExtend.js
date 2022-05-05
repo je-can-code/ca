@@ -266,7 +266,7 @@ Game_Action.prototype.applyOnHitSelfStates = function()
 /**
  * Gets all possible states that could be self-inflicted
  * when this skill hits a target.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Action.prototype.onHitSelfStates = function()
 {
@@ -321,7 +321,7 @@ Game_Action.prototype.applyOnCastSelfStates = function()
 /**
  * Gets all possible states that could be self-inflicted
  * when casting this skill.
- * @returns {JABS_SkillChance[]}
+ * @returns {JABS_OnChanceEffect[]}
  */
 Game_Action.prototype.onCastSelfStates = function()
 {
@@ -351,7 +351,7 @@ Game_Action.prototype.onCastSelfStates = function()
 /**
  * Applies the given states to the target.
  * @param target {Game_Actor|Game_Enemy} The targe to apply states to.
- * @param stateChances {JABS_SkillChance[]} The various states to potentially apply.
+ * @param stateChances {JABS_OnChanceEffect[]} The various states to potentially apply.
  */
 Game_Action.prototype.applyStates = function(target, stateChances)
 {

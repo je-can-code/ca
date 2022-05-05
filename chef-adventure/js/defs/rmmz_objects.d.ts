@@ -443,16 +443,16 @@ declare class Game_BattlerBase {
      * Returns the trait objects of the user.
      * @return Array<any>
      */
-    traitObjects(): any[];
+    traitObjects(): RPG_Trait[];
     /**
      * Returns all the traits of the battler.
      *
-     * @returns {Array<rm.types.Trait[]>}
+     * @returns {RPG_Trait[]}
      * @memberof Game_BattlerBase
      */
-    allTraits(): rm.types.Trait[];
-    traits(code: number): rm.types.Trait[];
-    traitsWithId(code: number, traitId: number): rm.types.Trait[];
+    allTraits(): RPG_Trait[];
+    traits(code: number): RPG_Trait[];
+    traitsWithId(code: number, traitId: number): RPG_Trait[];
     traitsPi(code: number, traitId: number): number;
     traitsSum(code: number, traitId: number): number;
     traitsSumAll(code: number): number;
