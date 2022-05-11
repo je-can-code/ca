@@ -46,7 +46,7 @@ declare namespace rm.types {
 	export type BattleRewards = {
 		exp: number;
 		gold: number;
-		items: rm.types.BaseItem[];
+		items: RPG_BaseItem[];
 	}
 }
 

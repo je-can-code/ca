@@ -470,31 +470,56 @@ declare class Game_BattlerBase {
     paramMax(paramId: number): number;
     paramRate(paramId: number): number;
     paramBuffRate(paramId: number): number;
+
     /**
-     * Returns a standard parameter, given a paramId;
-     * standard parameters include: HP, MP, Atk, M.Atk, Def, M.Def, Luck, Agility.
-     * @param {number} paramId
-     * @returns {number}
-     * @memberof Game_BattlerBase
+     * Gets the current value of the given parameter based on the given param id.
+     * <pre>
+     * [0](mhp) Max HP
+     * [1](mmp) Max MP
+     * [2](atk) ATtacK
+     * [3](def) DEFense
+     * [4](mat) Magic ATtack
+     * [5](mdf) Magic DeFense
+     * [6](agi) AGIlity
+     * [7](luk) LUcK
+     * </pre>
      */
     param(paramId: number): number;
+
     /**
-     * Returns the Extra parameter, given a  x parameter id.
-     * These include
-     * Hit rate
-     * Evasion rate
-     * Critical rate
-     * Magic evasion rate
-     * Magic reflection rate
-     * Counter attack rate
-     * Hp regeneration rate
-     * Mp regeneration rate
-     * Tp regeneration rate
-     * @param xparamId
-     * @return Int
+     * Gets the current value of the given ex-parameter based on the given param id.
+     * <pre>
+     * [0](hit) HIT rate
+     * [1](eva) EVAsion rate
+     * [2](cri) CRItical rate
+     * [3](cev) Critical EVasion rate
+     * [4](mev) Magic EVasion rate
+     * [5](mrf) Magic ReFlection rate
+     * [6](cnt) CouNTer rate
+     * [7](hrg) Hp ReGeneration rate
+     * [8](mrg) Mp ReGeneration rate
+     * [9](trg) Tp ReGeneration rate
+     * </pre>
      */
     xparam(xparamId: number): number;
+
+    /**
+     * Gets the current value of the given ex-parameter based on the given param id.
+     * <pre>
+     * [0](tgr) TarGeting Rate
+     * [1](grd) GuaRD rate
+     * [2](rec) RECovery rate
+     * [3](pha) PHArmacy rate
+     * [4](mcr) Magic Cost Rate
+     * [5](tcr) Tp Charge Rate
+     * [6](pdr) Physical Damage Rate
+     * [7](mdr) Magical Damage Rate
+     * [8](mdr) Floor Damage Rate
+     * [9](exr) EXperience Rate
+     * </pre>
+     */
     sparam(sparamId: number): number;
+
     elementRate(elementId: number): number;
     debuffRate(paramId: number): number;
     stateRate(stateId: number): number;

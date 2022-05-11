@@ -130,7 +130,10 @@ Game_Actor.prototype.traitObjects = function()
 J.PASSIVE.Aliased.Game_Actor.set('learnSkill', Game_Actor.prototype.learnSkill);
 Game_Actor.prototype.learnSkill = function(skillId)
 {
+  // perform original logic.
   J.PASSIVE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
+
+  // refresh our passive skill list.
   this.forcePassiveSkillRefresh();
 };
 
@@ -140,8 +143,45 @@ Game_Actor.prototype.learnSkill = function(skillId)
 J.PASSIVE.Aliased.Game_Actor.set('forgetSkill', Game_Actor.prototype.forgetSkill);
 Game_Actor.prototype.forgetSkill = function(skillId)
 {
+  // perform original logic.
   J.PASSIVE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
+
+  // refresh our passive skill list.
   this.forcePassiveSkillRefresh();
+};
+
+/**
+ * Extends `getCurrentWithNotes` to include passive skill states.
+ * @returns {RPG_BaseItem[]}
+ */
+J.PASSIVE.Aliased.Game_Actor.set('getEverythingWithNotes', Game_Actor.prototype.getEverythingWithNotes);
+Game_Actor.prototype.getEverythingWithNotes = function()
+{
+  // perform the origina logic to retrieve the objects with notes.
+  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getEverythingWithNotes').call(this);
+
+  // then add all those currently applied passive skill states, too.
+  objectsWithNotes.push(...this.passiveSkillStates())
+
+  // return that potentially slightly-less massive combination.
+  return objectsWithNotes;
+};
+
+/**
+ * Extends `getCurrentWithNotes` to include passive skill states.
+ * @returns {RPG_BaseItem[]}
+ */
+J.PASSIVE.Aliased.Game_Actor.set('getCurrentWithNotes', Game_Actor.prototype.getCurrentWithNotes);
+Game_Actor.prototype.getCurrentWithNotes = function()
+{
+  // perform the origina logic to retrieve the objects with notes.
+  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getCurrentWithNotes').call(this);
+
+  // then add all those currently applied passive skill states, too.
+  objectsWithNotes.push(...this.passiveSkillStates())
+
+  // return that potentially slightly-less massive combination.
+  return objectsWithNotes;
 };
 //#endregion Game_Actor
 
@@ -446,25 +486,6 @@ Game_Battler.prototype.hasPassiveState = function(stateId)
 Game_Enemy.prototype.skillIdsFromSelf = function()
 {
   return this.skills().map(skill => skill.id);
-};
-
-/**
- * Converts all "actions" from an enemy into their collection of known skills.
- * This includes both skills listed in their skill list, and any added skills via traits.
- * @returns {RPG_Skill[]}
- */
-Game_Enemy.prototype.skills = function()
-{
-  // get actions from their action list.
-  const actionSkillIds = this.enemy().actions
-    .map(action => this.skill(action.skillId), this);
-
-  // get their "attack skill" trait skill ids.
-  const attackSkillId = this.enemy().traits
-    .filter(trait => trait.code === Game_BattlerBase.TRAIT_ATTACK_SKILL)
-    .map(skillTrait => this.skill(skillTrait.dataId), this);
-
-  return [...actionSkillIds, ...attackSkillId].sort();
 };
 //#endregion Game_Enemy
 

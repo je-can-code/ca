@@ -58,7 +58,7 @@ var $plugins =
 {"name":"j/J-TextPops","status":true,"description":"[v1.0 POPUPS] Enable text pops on the map.","parameters":{}},
 {"name":"j/J-Elementalistics","status":true,"description":"[v1.0 ELEM] Enables greater control over elements.","parameters":{}},
 {"name":"j/J-CriticalFactors","status":true,"description":"[v1.0 CRIT] Manages critical damage multiplier/reduction of battlers.","parameters":{}},
-{"name":"j/J-TpGrowth","status":true,"description":"[v1.0 TPGROW] Allows TP max to be dynamic rather than static 100.","parameters":{"actorBaseTp":"0","enemyBaseTp":"100"}},
+{"name":"j/J-NaturalGrowth","status":true,"description":"[v1.0.0 NATURAL] Enables level-based growth of all parameters.","parameters":{"actorBaseTp":"0","enemyBaseTp":"100"}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
 {"name":"j/otib/_otibModels","status":true,"description":"[v1.0 OTIB] The various custom models created for OTIB.","parameters":{}},
 {"name":"j/otib/J-OneTimeItemBoost","status":true,"description":"[v1.0 BOOST] Enables items to grant a one time item boost, permanently.","parameters":{"OTIBs":"[]"}},

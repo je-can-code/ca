@@ -4180,7 +4180,7 @@ class JABS_Engine
 
   /**
    * Generates popups for a pile of items picked up at the same time.
-   * @param {rm.types.BaseItem[]} itemDataList All items picked up.
+   * @param {RPG_BaseItem[]} itemDataList All items picked up.
    * @param {Game_Character} character The character displaying the popups.
    */
   generatePopItemBulk(itemDataList, character)
@@ -4205,7 +4205,7 @@ class JABS_Engine
    * NOTE:
    * This is used from within the `generatePopItemBulk()`!
    * Use that instead of this!
-   * @param {rm.types.BaseItem} itemData The item's database object.
+   * @param {RPG_BaseItem} itemData The item's database object.
    * @param {Game_Character} character The character displaying the popup.
    * @param {number} y The y coordiante for this item pop.
    */
@@ -4223,7 +4223,7 @@ class JABS_Engine
 
   /**
    * Creates the text pop of the acquired item.
-   * @param {rm.types.BaseItem} itemData The item's database object.
+   * @param {RPG_BaseItem} itemData The item's database object.
    * @param {number} y The y coordiante for this item pop.
    */
   configureItemPop(itemData, y)

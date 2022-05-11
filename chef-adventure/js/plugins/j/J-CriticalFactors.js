@@ -329,7 +329,7 @@ Game_Battler.prototype.criticalDamageMultiplier = function()
 /**
  * Extracts the critical damage multiplier out of the notes of the given database object.
  * The object given can be any database object with a note.
- * @param {rm.types.BaseItem} referenceData The database object.
+ * @param {RPG_BaseItem} referenceData The database object.
  * @returns {number} The 100x form of the critical damage multiplier from this database object.
  */
 Game_Battler.prototype.extractCritDamageMultipliers = function(referenceData)
@@ -364,7 +364,7 @@ Game_Battler.prototype.criticalDamageReduction = function()
 /**
  * Extracts the critical damage reduction out of the notes of the given database object.
  * The object given can be any database object with a note.
- * @param {rm.types.BaseItem} referenceData The database object.
+ * @param {RPG_BaseItem} referenceData The database object.
  * @returns {number} The 100x form of the critical damage reduction from this database object.
  */
 Game_Battler.prototype.extractCritDamageReductions = function(referenceData)

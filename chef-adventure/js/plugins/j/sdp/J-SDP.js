@@ -903,7 +903,7 @@ Game_Actor.prototype.sdpMultiplier = function()
 
 /**
  * Gets all multipliers that this database object contains.
- * @param {rm.types.BaseItem} referenceData The database data of the object.
+ * @param {RPG_BaseItem} referenceData The database data of the object.
  * @returns {number}
  */
 Game_Actor.prototype.extractSdpMultiplier = function(referenceData)

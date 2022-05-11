@@ -335,7 +335,7 @@ J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
 /**
  * Parses out a skill chance based on the regex from the reference data.
  * @param {RegExp} structure The RegExp expression to match.
- * @param {rm.types.BaseItem} referenceData The reference data to parse.
+ * @param {RPG_BaseItem} referenceData The reference data to parse.
  * @returns {JABS_OnChanceEffect[]}
  */
 J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
@@ -437,7 +437,7 @@ DataManager.rewriteProcessed = function()
 };
 
 /**
- * Hooks into the database loading and loads our extra data from notes and such.
+ * Extends `isDatabaseLoaded` to give a hook to perform additional actions once the databsae is finished loading.
  */
 J.BASE.Aliased.DataManager.set('isDatabaseLoaded', DataManager.isDatabaseLoaded);
 DataManager.isDatabaseLoaded = function()
@@ -445,10 +445,23 @@ DataManager.isDatabaseLoaded = function()
   const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
   if (isLoaded)
   {
-    this.rewriteDatabaseData();
+    this.onDatabaseLoad();
   }
 
   return isLoaded;
+};
+
+/**
+ * Performs additional actions upon the completion of the database loading.
+ */
+DataManager.onDatabaseLoad = function()
+{
+  // check to make sure we haven't already rewritten the database objects.
+  if (!this.isRewriteProcessed())
+  {
+    // wrap the database objects with our wrappers.
+    this.rewriteDatabaseData();
+  }
 };
 
 /**
@@ -457,22 +470,18 @@ DataManager.isDatabaseLoaded = function()
  */
 DataManager.rewriteDatabaseData = function()
 {
-  // check if we've already wrapped all the JSON objects yet.
-  if (!this.isRewriteProcessed())
-  {
-    // add all the wrappers around the JSON objects from the database.
-    this.rewriteActorData();
-    this.rewriteArmorData();
-    this.rewriteClassData();
-    this.rewriteEnemyData();
-    this.rewriteItemData();
-    this.rewriteSkillData();
-    this.rewriteStateData();
-    this.rewriteWeaponData();
+  // add all the wrappers around the JSON objects from the database.
+  this.rewriteActorData();
+  this.rewriteArmorData();
+  this.rewriteClassData();
+  this.rewriteEnemyData();
+  this.rewriteItemData();
+  this.rewriteSkillData();
+  this.rewriteStateData();
+  this.rewriteWeaponData();
 
-    // flip the flag so we don't try to wrap them all again.
-    this.rewriteProcessed();
-  }
+  // flip the flag so we don't try to wrap them all again.
+  this.rewriteProcessed();
 };
 
 /**
@@ -1575,42 +1584,6 @@ Game_Actor.prototype.battlerId = function()
 };
 
 /**
- * Gets all skills that are executed when this actor is defeated.
- * @returns {JABS_OnChanceEffect[]}
- */
-Game_Actor.prototype.onOwnDefeatSkillIds = function()
-{
-  const objectsToCheck = this.getCurrentWithNotes();
-  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+\])>/i;
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
-};
-
-/**
- * Gets all skills that are executed when this actor defeats a target.
- * @returns {JABS_OnChanceEffect[]}
- */
-Game_Actor.prototype.onTargetDefeatSkillIds = function()
-{
-  const objectsToCheck = this.getCurrentWithNotes();
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
-};
-
-/**
  * Checks all possible places for whether or not the actor is able to
  * be switched to.
  * @returns {boolean}
@@ -1644,7 +1617,7 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
 {
   const objectsToCheck = this.getEverythingWithNotes();
   const structure = /<autoAssignSkills>/i;
-  let switchLocked = false;
+  let autoAssign = false;
   objectsToCheck.forEach(obj =>
   {
     const notedata = obj.note.split(/[\r\n]+/);
@@ -1652,12 +1625,12 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
     {
       if (line.match(structure))
       {
-        switchLocked = true;
+        autoAssign = true;
       }
     });
   });
 
-  return switchLocked;
+  return autoAssign;
 };
 
 /**
@@ -1670,7 +1643,7 @@ Game_Actor.prototype.getEverythingWithNotes = function()
   const objectsWithNotes = [];
 
   // get the actor object.
-  objectsWithNotes.push(this.actor());
+  objectsWithNotes.push(this.databaseData());
 
   // get their current class object.
   objectsWithNotes.push(this.currentClass());
@@ -1684,13 +1657,6 @@ Game_Actor.prototype.getEverythingWithNotes = function()
   // get any currently applied normal states.
   objectsWithNotes.push(...this.states());
 
-  // if we are using the passive skill-state system...
-  if (J.PASSIVE)
-  {
-    // then add all those currently applied passive skill states, too.
-    objectsWithNotes.push(...this.passiveSkillStates())
-  }
-
   // return that potentially massive combination.
   return objectsWithNotes;
 };
@@ -1698,7 +1664,7 @@ Game_Actor.prototype.getEverythingWithNotes = function()
 /**
  * Gets all things except skills that can possibly have notes on it at the
  * present moment. Skills are omitted on purpose.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 Game_Actor.prototype.getCurrentWithNotes = function()
 {
@@ -1717,13 +1683,6 @@ Game_Actor.prototype.getCurrentWithNotes = function()
 
   // get any currently applied normal states.
   objectsWithNotes.push(...this.states());
-
-  // if we are using the passive skill-state system...
-  if (J.PASSIVE)
-  {
-    // then add all those currently applied passive skill states, too.
-    objectsWithNotes.push(...this.passiveSkillStates())
-  }
 
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;
@@ -2275,7 +2234,10 @@ Game_Battler.prototype.alertDuration = function()
  */
 Game_Battler.prototype.teamId = function()
 {
-  if (J.ABS) return JABS_Battler.enemyTeamId();
+  if (J.ABS)
+  {
+    return JABS_Battler.enemyTeamId();
+  }
 
   return 1;
 };
@@ -2286,7 +2248,10 @@ Game_Battler.prototype.teamId = function()
  */
 Game_Battler.prototype.ai = function()
 {
-  if (J.ABS) return new JABS_BattlerAI();
+  if (J.ABS)
+  {
+    return new JABS_BattlerAI();
+  }
 
   return null;
 };
@@ -2351,16 +2316,7 @@ Game_Battler.prototype.isInanimate = function()
  */
 Game_Battler.prototype.retaliationSkills = function()
 {
-  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const objectsToCheck = this.getEverythingWithNotes();
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
+  return [];
 };
 
 /**
@@ -2382,8 +2338,8 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
 };
 
 /**
- * All battlers have this, but actors and enemies perform this function differently.
- * @returns {rm.types.BaseItem[]}
+ * Gets everything that this battler has with notes on it, such as skills, equips, states, etc.
+ * @returns {RPG_BaseItem[]}
  */
 Game_Battler.prototype.getEverythingWithNotes = function()
 {
@@ -2765,6 +2721,15 @@ Game_Character.prototype.isInanimate = function()
 
 //#region Game_Enemy
 /**
+ * The underlying database data for this enemy.
+ * @returns {RPG_Enemy}
+ */
+Game_Enemy.prototype.databaseData = function()
+{
+  return this.enemy();
+};
+
+/**
  * The underlying database data for this battler.
  *
  * This allows operations to be performed against both actor and enemy indifferently.
@@ -2773,26 +2738,6 @@ Game_Character.prototype.isInanimate = function()
 Game_Enemy.prototype.battlerId = function()
 {
   return this.enemyId();
-};
-
-/**
- * Gets all skills that are executed by this enemy when it is defeated.
- * @returns {JABS_OnChanceEffect}
- */
-Game_Enemy.prototype.onOwnDefeatSkillIds = function()
-{
-  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
-};
-
-/**
- * Gets all skills that are executed by this enemy when it defeats its target.
- * @returns {JABS_OnChanceEffect}
- */
-Game_Enemy.prototype.onTargetDefeatSkillIds = function()
-{
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
 
 /**
@@ -2850,15 +2795,6 @@ Game_Enemy.prototype.getCurrentWithNotes = function()
   objectsWithNotes.push(this.enemy());
   objectsWithNotes.push(...this.states());
   return objectsWithNotes;
-};
-
-/**
- * The underlying database data for this enemy.
- * @returns {RPG_Enemy}
- */
-Game_Enemy.prototype.databaseData = function()
-{
-  return this.enemy();
 };
 //#endregion Game_Enemy
 
@@ -4967,7 +4903,7 @@ class Window_MoreData
 
   /**
    * Sets an item to this window to display more data for.
-   * @param {rm.types.BaseItem} newItem The item to set for this window.
+   * @param {RPG_BaseItem} newItem The item to set for this window.
    */
   setItem(newItem)
   {
@@ -5865,7 +5801,6 @@ class RPG_Base
     {
       this.note = this.note.slice(2);
     }
-
   };
 
   /**
@@ -6080,6 +6015,39 @@ class RPG_Base
 
     // return the found value.
     return val;
+  };
+
+  /**
+   * Gets all lines of data from the notedata that match the provided regex.
+   *
+   * This accepts a regex structure, and translates nothing; it is intended to
+   * be used with the intent of translating the lines that match elsewhere.
+   *
+   * If nothing is found, then this will return an empty array.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @returns {string[]} The data matching the regex from the notes.
+   */
+  getFilteredNotesByRegex(structure)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    const data = [];
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        data.push(note);
+      }
+    });
+
+    // return the found value.
+    return data;
   };
   //#endregion note
 }

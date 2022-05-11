@@ -735,7 +735,7 @@ Game_Battler.prototype.elementsAbsorbed = function()
  * Gets all absorbed element ids from a given object on this battler.
  *
  * @todo Potentially lift this to J.BASE.Helpers
- * @param {rm.types.BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} referenceData The database data object.
  * @returns {number[]}
  */
 Game_Battler.prototype.extractAbsorbedElements = function(referenceData)
@@ -774,7 +774,7 @@ Game_Battler.prototype.strictElements = function()
  * Gets the strict element ids from a given object on this battler.
  *
  * @todo Potentially lift this to J.BASE.Helpers
- * @param {rm.types.BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} referenceData The database data object.
  * @returns {number[]}
  */
 Game_Battler.prototype.extractStrictElements = function(referenceData)
@@ -808,7 +808,7 @@ Game_Battler.prototype.elementRateBoost = function(elementId)
 
 /**
  * Gets the element boosts associated with the provided element id.
- * @param {rm.types.BaseItem} referenceData The reference data with a note to parse.
+ * @param {RPG_BaseItem} referenceData The reference data with a note to parse.
  * @returns {[number, number][]}
  */
 Game_Battler.prototype.extractElementRateBoosts = function(referenceData)

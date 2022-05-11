@@ -5006,12 +5006,11 @@ JABS_Battler.prototype.canActionConnect = function()
   if (this.isInvincible()) return false;
 
   // the player cannot be targeted while holding the DEBUG button.
-  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Cheat)) return false;
+  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Debug)) return false;
 
   // precise timing allows for battlers to hit other battlers the instant they
   // meet event conditions, and that is not grounds to hit enemies.
-  if (this.getCharacter()
-    .isAction())
+  if (this.getCharacter().isAction())
   {
     return false;
   }
@@ -7529,7 +7528,7 @@ class JABS_OnChanceEffect
 
   /**
    * Gets the underlying skill.
-   * @returns {rm.types.Skill}
+   * @returns {RPG_Skill}
    */
   baseSkill()
   {

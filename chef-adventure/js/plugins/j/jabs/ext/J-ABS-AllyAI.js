@@ -298,7 +298,7 @@ Game_Actor.prototype.initMembers = function()
   this._j = this._j || {};
   /**
    * The current ally ai configuration for this actor.
-   * @type {JABS_AllyAi}
+   * @type {JABS_AllyAI}
    */
   this._j._allyAi = this._j._allyAi || null;
 };

@@ -109,6 +109,47 @@ DataManager.createGameObjects = function()
   $jabsController1 = new JABS_InputController();
 };
 //#endregion DataManager
+
+//#region Input
+/**
+ * Extends the existing mapper for keyboards to accommodate for the
+ * additional skill inputs that are used for gamepads.
+ */
+Input.keyMapper = {
+  // define the original keyboard mapping.
+  ...Input.keyMapper,
+
+  // core buttons.
+  90: J.ABS.Input.Mainhand,     // z
+  88: J.ABS.Input.Offhand,      // x
+  16: J.ABS.Input.Dash,         // shift (already defined)
+  67: J.ABS.Input.Tool,         // c
+
+  // functional buttons.
+  81: J.ABS.Input.SkillTrigger, // q
+  17: J.ABS.Input.StrafeTrigger,// ctrl
+  69: J.ABS.Input.GuardTrigger, // e
+  9: J.ABS.Input.MobilitySkill,// tab
+
+  // quickmenu button.
+  13: J.ABS.Input.Quickmenu,    // enter
+
+  // party cycling button.
+  46: J.ABS.Input.PartyCycle,   // del
+
+  // movement buttons.
+  38: J.ABS.Input.DirUp,        // arrow up
+  40: J.ABS.Input.DirDown,      // arrow down
+  37: J.ABS.Input.DirLeft,      // arrow left
+  39: J.ABS.Input.DirRight,     // arrow right
+
+  // keyboard alternative for the multi-button skills.
+  49: J.ABS.Input.CombatSkill1,       // 1 = L1 + cross
+  50: J.ABS.Input.CombatSkill2,       // 2 = L1 + circle
+  51: J.ABS.Input.CombatSkill3,       // 3 = L1 + square
+  52: J.ABS.Input.CombatSkill4,       // 4 = L1 + triangle
+};
+//#endregion Input
 //#endregion Static objects
 
 //#region Custom objects
@@ -401,7 +442,7 @@ class JABS_InputController
   isMenuActionTriggered()
   {
     // this action requires Menu to be triggered.
-    if (Input.isTriggered(J.ABS.Input.Start))
+    if (Input.isTriggered(J.ABS.Input.Quickmenu))
     {
       return true;
     }
@@ -441,7 +482,7 @@ class JABS_InputController
   isPartyCycleActionTriggered()
   {
     // this action requires Select to be triggered.
-    if (Input.isTriggered(J.ABS.Input.Select))
+    if (Input.isTriggered(J.ABS.Input.PartyCycle))
     {
       return true;
     }
@@ -487,7 +528,7 @@ class JABS_InputController
     }
 
     // this action requires A to be triggered.
-    if (Input.isTriggered(J.ABS.Input.A))
+    if (Input.isTriggered(J.ABS.Input.Mainhand))
     {
       return true;
     }
@@ -533,7 +574,7 @@ class JABS_InputController
     }
 
     // this action requires B to be triggered.
-    if (Input.isTriggered(J.ABS.Input.B))
+    if (Input.isTriggered(J.ABS.Input.Offhand))
     {
       return true;
     }
@@ -579,7 +620,7 @@ class JABS_InputController
     }
 
     // this action requires Y to be triggered.
-    if (Input.isTriggered(J.ABS.Input.Y))
+    if (Input.isTriggered(J.ABS.Input.Tool))
     {
       return true;
     }
@@ -619,7 +660,7 @@ class JABS_InputController
   isDodgeActionTriggered()
   {
     // this action requires R2 to be triggered.
-    if (Input.isTriggered(J.ABS.Input.R2))
+    if (Input.isTriggered(J.ABS.Input.MobilitySkill))
     {
       return true;
     }
@@ -646,7 +687,7 @@ class JABS_InputController
   isCombatSkillUsageEnabled()
   {
     // this action requires L1 to be held down.
-    if (Input.isPressed(J.ABS.Input.L1))
+    if (Input.isPressed(J.ABS.Input.SkillTrigger))
     {
       return true;
     }
@@ -663,7 +704,7 @@ class JABS_InputController
   updateCombatAction1()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction1Triggered())
+    if (this.isCombatAction1Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill1))
     {
       // execute the action.
       this.performCombatAction1();
@@ -680,7 +721,7 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having A triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.A))
+      if (Input.isTriggered(J.ABS.Input.Mainhand))
       {
         return true;
       }
@@ -709,7 +750,7 @@ class JABS_InputController
   updateCombatAction2()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction2Triggered())
+    if (this.isCombatAction2Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill2))
     {
       // execute the action.
       this.performCombatAction2();
@@ -726,7 +767,7 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having B triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.B))
+      if (Input.isTriggered(J.ABS.Input.Offhand))
       {
         return true;
       }
@@ -755,7 +796,7 @@ class JABS_InputController
   updateCombatAction3()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction3Triggered())
+    if (this.isCombatAction3Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill3))
     {
       // execute the action.
       this.performCombatAction3();
@@ -772,7 +813,7 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having X triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.X))
+      if (Input.isTriggered(J.ABS.Input.Dash))
       {
         return true;
       }
@@ -801,7 +842,7 @@ class JABS_InputController
   updateCombatAction4()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction4Triggered())
+    if (this.isCombatAction4Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill4))
     {
       // execute the action.
       this.performCombatAction4();
@@ -818,7 +859,7 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having Y triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.Y))
+      if (Input.isTriggered(J.ABS.Input.Tool))
       {
         return true;
       }
@@ -868,7 +909,7 @@ class JABS_InputController
   isStrafeActionTriggered()
   {
     // this action requires L2 to be triggered.
-    if (Input.isPressed(J.ABS.Input.L2))
+    if (Input.isPressed(J.ABS.Input.StrafeTrigger))
     {
       return true;
     }
@@ -922,7 +963,7 @@ class JABS_InputController
   isRotateActionTriggered()
   {
     // this action requires R1 to be triggered.
-    if (Input.isPressed(J.ABS.Input.R1))
+    if (Input.isPressed(J.ABS.Input.GuardTrigger))
     {
       return true;
     }
@@ -976,7 +1017,7 @@ class JABS_InputController
   isGuardActionTriggered()
   {
     // this action requires R1 to be held down.
-    if (Input.isPressed(J.ABS.Input.R1))
+    if (Input.isPressed(J.ABS.Input.GuardTrigger))
     {
       return true;
     }

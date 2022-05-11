@@ -157,7 +157,7 @@ Game_Actor.prototype.calculateFloorDamage = function()
 
 /**
  * Extracts the damage this object yields for floor damage.
- * @param {rm.types.BaseItem} referenceData The database object to extract from.
+ * @param {RPG_BaseItem} referenceData The database object to extract from.
  * @returns {number}
  */
 Game_Actor.prototype.extractFloorDamageRate = function(referenceData)
@@ -413,7 +413,7 @@ JABS_Engine.prototype.trackActionData = function(action)
 /**
  * Extends the drop sources to include passive skill states.
  * This isn't a flavor everyone might like, so this is personal functionality instead.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 J.CAMods.Aliased.Game_Enemy.set("dropSources", Game_Enemy.prototype.dropSources);
 Game_Enemy.prototype.dropSources = function()
@@ -496,7 +496,7 @@ Game_Map.prototype.setup = function(mapId)
  * Gets any additional sources to scan for drops when determining a drop item list on
  * an enemy. In this case, we are including passive skill states to potentially add
  * new items to every enemy.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 Game_Party.prototype.extraDropSources = function()
 {

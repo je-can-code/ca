@@ -59,15 +59,6 @@ Game_Actor.prototype.setup = function(actorId)
 };
 
 /**
- * Gets the battler id of this actor from the database.
- * @returns {number}
- */
-Game_Actor.prototype.battlerId = function()
-{
-  return this.actorId();
-};
-
-/**
  * The team id of this actor.
  * Defaults to the default ally team id.
  * @returns {number}
@@ -76,7 +67,7 @@ Game_Actor.prototype.teamId = function()
 {
   let val = JABS_Battler.allyTeamId();
 
-  const referenceData = this.actor();
+  const referenceData = this.databaseData();
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
   {
     // if its in the metadata, then grab it from there.
@@ -112,6 +103,42 @@ Game_Actor.prototype.performMapDamage = function()
   {
     $gameScreen.startFlashForDamage();
   }
+};
+
+/**
+ * Gets all skills that are executed when this actor defeats a target.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Actor.prototype.onTargetDefeatSkillIds = function()
+{
+  const objectsToCheck = this.getCurrentWithNotes();
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const skills = [];
+  objectsToCheck.forEach(obj =>
+  {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
+};
+
+/**
+ * Gets all skills that are executed when this actor is defeated.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Actor.prototype.onOwnDefeatSkillIds = function()
+{
+  const objectsToCheck = this.getCurrentWithNotes();
+  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const skills = [];
+  objectsToCheck.forEach(obj =>
+  {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
 };
 
 /**
@@ -192,6 +219,33 @@ Game_Actor.prototype.revive = function()
 Game_Actor.prototype.initAbsSkills = function()
 {
   this.updateEquipmentSkills();
+};
+
+/**
+ * All battlers have a default of no retaliation skills.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Battler.prototype.retaliationSkills = function()
+{
+  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
+  const objectsToCheck = this.getEverythingWithNotes();
+  const skills = [];
+  objectsToCheck.forEach(obj =>
+  {
+    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
+    skills.push(...innerSkills);
+  });
+
+  return skills;
+};
+
+/**
+ * Gets all skills that are executed by this battler when it is defeated.
+ * @returns {JABS_OnChanceEffect}
+ */
+Game_Battler.prototype.onOwnDefeatSkillIds = function()
+{
+  return [];
 };
 
 /**
@@ -773,7 +827,7 @@ Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
 
 /**
  * Gets the combined amount of flat state duration boosts from all sources.
- * @param {rm.types.BaseItem} noteObject object to inspect the notes of.
+ * @param {RPG_BaseItem} noteObject object to inspect the notes of.
  * @returns {number}
  */
 Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
@@ -794,7 +848,7 @@ Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
 
 /**
  * Gets the combined amount of percent-based state duration boosts from all sources.
- * @param {rm.types.BaseItem} noteObject The database object.
+ * @param {RPG_BaseItem} noteObject The database object.
  * @param {number} baseDuration The base duration of the state.
  * @returns {number}
  */
@@ -816,7 +870,7 @@ Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuratio
 
 /**
  * Gets the combined amount of formula-based state duration boosts from all sources.
- * @param {rm.types.BaseItem} noteObject The database object.
+ * @param {RPG_BaseItem} noteObject The database object.
  * @param {number} baseDuration The base duration of the state.
  * @param attacker
  * @returns {number}
@@ -2316,6 +2370,26 @@ Game_Enemies.prototype.enemy = function(enemyId)
 Game_Enemy.prototype.battlerId = function()
 {
   return this.enemyId();
+};
+
+/**
+ * Gets all skills that are executed by this enemy when it is defeated.
+ * @returns {JABS_OnChanceEffect}
+ */
+Game_Enemy.prototype.onOwnDefeatSkillIds = function()
+{
+  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
+  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
+};
+
+/**
+ * Gets all skills that are executed by this enemy when it defeats its target.
+ * @returns {JABS_OnChanceEffect}
+ */
+Game_Enemy.prototype.onTargetDefeatSkillIds = function()
+{
+  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
+  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
 };
 
 /**
@@ -4917,7 +4991,7 @@ Game_Party.prototype.canPartyCycle = function()
  */
 Game_Player.prototype.isDashButtonPressed = function()
 {
-  const shift = Input.isPressed(J.ABS.Input.X);
+  const shift = Input.isPressed(J.ABS.Input.Dash);
   if (ConfigManager.alwaysDash)
   {
     return !shift;
@@ -4984,7 +5058,7 @@ Game_Player.prototype.isDebugThrough = function()
 {
   if ($jabsEngine.absEnabled)
   {
-    return Input.isPressed(J.ABS.Input.Cheat) && $gameTemp.isPlaytest();
+    return Input.isPressed(J.ABS.Input.Debug) && $gameTemp.isPlaytest();
   }
   else
   {
@@ -5248,7 +5322,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 
 /**
  * Uses the loot as soon as it is collected.
- * @param {rm.types.BaseItem} lootData An object representing the loot.
+ * @param {RPG_BaseItem} lootData An object representing the loot.
  */
 Game_Player.prototype.useOnPickup = function(lootData)
 {
@@ -5258,7 +5332,7 @@ Game_Player.prototype.useOnPickup = function(lootData)
 
 /**
  * Picks up the loot and stores it in the player's inventory.
- * @param {rm.types.BaseItem} lootData The loot database data itself.
+ * @param {RPG_BaseItem} lootData The loot database data itself.
  */
 Game_Player.prototype.storeOnPickup = function(lootData)
 {

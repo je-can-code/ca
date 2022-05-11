@@ -207,7 +207,7 @@ Game_Actor.prototype.getDropMultiplier = function()
 
 /**
  * Gets the bonus drop multiplier from a given database object.
- * @param {rm.types.BaseItem} referenceData The database object in question.
+ * @param {RPG_BaseItem} referenceData The database object in question.
  * @returns {number}
  */
 Game_Actor.prototype.extractDropMultiplier = function(referenceData)
@@ -244,7 +244,7 @@ Game_Actor.prototype.getGoldMultiplier = function()
 
 /**
  * Gets the bonus gold multiplier from a given database object.
- * @param {rm.types.BaseItem} referenceData The database object in question.
+ * @param {RPG_BaseItem} referenceData The database object in question.
  * @returns {number}
  */
 Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
@@ -271,7 +271,7 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
 //#region Game_Battler
 /**
  * Parses the given reference data to extract any extra drops that may be present.
- * @param {rm.types.BaseItem} referenceData The database object to parse.
+ * @param {RPG_BaseItem} referenceData The database object to parse.
  * @returns {RPG_DropItem[]}
  */
 Game_Battler.prototype.extractExtraDrops = function(referenceData)
@@ -374,7 +374,7 @@ Game_Enemy.prototype.getBaseGoldRate = function()
  * OVERWRITE Modifies the drop chance algorithm to treat the number entered in the
  * database as a percent chance instead of some weird fractional shit. Also applies
  * any applicable multipliers against the discovery rate of loot.
- * @returns {rm.types.BaseItem[]} The array of loot successfully found.
+ * @returns {RPG_BaseItem[]} The array of loot successfully found.
  */
 Game_Enemy.prototype.makeDropItems = function()
 {
@@ -450,7 +450,7 @@ Game_Enemy.prototype.extraDrops = function()
 /**
  * A collection of all sources of which loot may be acquired from.
  * Typically, this will only be the enemy itself, but is open for extension.
- * @returns {rm.types.BaseItem[]}
+ * @returns {RPG_BaseItem[]}
  */
 Game_Enemy.prototype.dropSources = function()
 {

@@ -106,42 +106,21 @@ J.TPGROW.Aliased = {
 
 //#region Game_Actor
 /**
- * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
- * formulas and apply rates from tags, etc.
+ * Gets the base max tp for this actor.
  * @returns {number}
  */
-J.TPGROW.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
-Game_Actor.prototype.maxTp = function()
+Game_Actor.prototype.getBaseMaxTp = function()
 {
-  const originalFormula = J.TPGROW.Aliased.Game_Actor.get("maxTp").call(this);
-  const customFormulai = this.getTpGrowthFormulai();
-  if (!customFormulai.length)
-  {
-    return originalFormula;
-  }
-
-  // establish the base max TP.
-  let baseTpMax = J.TPGROW.Metadata.BaseTpMaxActors;
-  const a = this; // this battler, used in the formula.
-  customFormulai.forEach(formula =>
-  {
-    const result = Math.round(eval(formula));
-    baseTpMax += result;
-  });
-
-  // apply the max TP rate modifier.
-  baseTpMax *= this.getMaxTpRate();
-
-  // clamp the minimum to 0 in case it went negative.
-  baseTpMax = Math.max(baseTpMax, 0);
-  return baseTpMax;
+  return J.TPGROW.Metadata.BaseTpMaxActors;
 };
+//#endregion Game_Actor
 
+//#region Game_Battler
 /**
- * Gets all formulai for tp growth on this actor.
+ * Gets all formulai for tp growth on this battler.
  * @returns {string[]} All formulai to process for tp growth.
  */
-Game_Actor.prototype.getTpGrowthFormulai = function()
+Game_Battler.prototype.getTpGrowthFormulai = function()
 {
   const objectsToCheck = this.getEverythingWithNotes();
 
@@ -157,13 +136,11 @@ Game_Actor.prototype.getTpGrowthFormulai = function()
 
   return tpGrowthFormulai;
 };
-//#endregion Game_Actor
 
-//#region Game_Battler
 /**
  * Scans an object with notes to extract out the tp growth formula,
  * if it exists.
- * @param {rm.types.BaseItem} referenceData The item with notes to scan.
+ * @param {RPG_BaseItem} referenceData The item with notes to scan.
  * @returns {string}
  */
 Game_Battler.prototype.extractTpGrowthFormula = function(referenceData)
@@ -209,7 +186,7 @@ Game_Battler.prototype.getMaxTpRate = function()
 
 /**
  * Extracts the maximum TP rate from the given database object.
- * @param {rm.types.BaseItem} referenceData The database object to check.
+ * @param {RPG_BaseItem} referenceData The database object to check.
  * @returns {number}
  */
 Game_Battler.prototype.extractMaxTpRate = function(referenceData)
@@ -231,17 +208,16 @@ Game_Battler.prototype.extractMaxTpRate = function(referenceData)
 
   return (rate / 100);
 };
-//#endregion Game_Battler
 
-//#region Game_Enemy
 /**
- * The maximum TP that this enemy has.
+ * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+ * formulas and apply rates from tags, etc.
  * @returns {number}
  */
-J.TPGROW.Aliased.Game_Enemy.set("maxTp", Game_Enemy.prototype.maxTp);
-Game_Enemy.prototype.maxTp = function()
+J.TPGROW.Aliased.Game_Actor.set("maxTp", Game_Battler.prototype.maxTp);
+Game_Battler.prototype.maxTp = function()
 {
-  const originalFormula = J.TPGROW.Aliased.Game_Enemy.get("maxTp").call(this);
+  const originalFormula = J.TPGROW.Aliased.Game_Actor.get("maxTp").call(this);
   const customFormulai = this.getTpGrowthFormulai();
   if (!customFormulai.length)
   {
@@ -249,7 +225,7 @@ Game_Enemy.prototype.maxTp = function()
   }
 
   // establish the base max TP.
-  let baseTpMax = J.TPGROW.Metadata.BaseTpMaxEnemies;
+  let baseTpMax = this.getBaseMaxTp();
   const a = this; // this battler, used in the formula.
   customFormulai.forEach(formula =>
   {
@@ -266,24 +242,23 @@ Game_Enemy.prototype.maxTp = function()
 };
 
 /**
- * Gets all formulai for tp growth on this enemy.
- * @returns {string[]} All formulai to process for tp growth.
+ * Gets the base max tp for this battler.
+ * @returns {number}
  */
-Game_Enemy.prototype.getTpGrowthFormulai = function()
+Game_Battler.prototype.getBaseMaxTp = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  return 0;
+};
+//#endregion Game_Battler
 
-  const tpGrowthFormulai = [];
-  objectsToCheck.forEach(referenceData =>
-  {
-    const tpGrowthFormula = this.extractTpGrowthFormula(referenceData);
-    if (tpGrowthFormula)
-    {
-      tpGrowthFormulai.push(tpGrowthFormula);
-    }
-  });
-
-  return tpGrowthFormulai;
+//#region Game_Enemy
+/**
+ * Gets the base max tp for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBaseMaxTp = function()
+{
+  return J.TPGROW.Metadata.BaseTpMaxEnemies;
 };
 //#endregion Game_Enemy
 
