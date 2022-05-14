@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0.0 DROP] Enables greater control over gold and item drops.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @orderAfter J-BASE
  * @help

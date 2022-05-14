@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 MSG] Gives access to more text codes in windows.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
  * This plugin extends the variety of text codes available in windows.

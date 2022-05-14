@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 PASSIVE] Grants skills the ability to provide passive state effects.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
  * This plugin enables the ability to have a skill provide passive effects just

@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.0.0 DIFF] The various custom models created for difficulty.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-Difficulty
  * @orderBefore J-Difficulty
  * @help

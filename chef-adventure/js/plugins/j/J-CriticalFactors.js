@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage

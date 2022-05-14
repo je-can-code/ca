@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
  * This plugin extends the functionality of skills. It features additional

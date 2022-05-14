@@ -4,7 +4,7 @@
  * @plugindesc 
  * Mods exclusive to Chef Adventure.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * These modifications of code are exclusive to Chef Adventure.
  * 

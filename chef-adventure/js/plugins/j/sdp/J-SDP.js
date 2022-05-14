@@ -5,7 +5,7 @@
  * [v1.1 SDP] Enables the SDP system, allowing for distribution of points into panels that
  * contain various stats.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @base J-ControlledDrops
  * @orderAfter J-ABS

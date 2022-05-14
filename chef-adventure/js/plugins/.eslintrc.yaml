@@ -2,7 +2,8 @@ parser: "@babel/eslint-parser"
 parserOptions:
   requireConfigFile: false
 
-extends: eslint:recommended
+extends:
+  - eslint:recommended
 rules:
   no-case-declarations: off           # confusing, but sometimes a necessary evil.
   no-empty-function: off              # some functions are empty for overriding.

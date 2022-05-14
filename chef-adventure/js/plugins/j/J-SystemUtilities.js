@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.0.0 UTIL] Various system utilities.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @help
  * ============================================================================

@@ -4,26 +4,174 @@
  * @plugindesc
  * [v1.0.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
+ * @base J-BASE
  * @help
- * ==============================================================================
- * This plugin enables growth of all parameters parameters via level.
+ * ============================================================================
+ * OVERVIEW:
+ * This plugin enables "Natural Growth", aka formulaic parameter growth, for
+ * actors. This "Natural Growth" enables temporary/permanent stat growth while
+ * various tags are applied.
  *
- * Use:
- *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULAIC_AMOUNT]>
+ * The "Natural Growths" are separated into two categories:
+ * - "Buffs":   has effect while applied.
+ * - "Growths": effect is applied permanently for every level gained.
  *
- * Example:
+ * Additionally, each "Natural Growth" can be applied in two ways:
+ * - "Plus": a flat bonus to the base parameter.
+ * - "Rate": a multiplicative bonus to the (base parameter + "plus" bonus).
+ * ============================================================================
+ * NATURAL GROWTH:
+ * Have you ever wanted an actor to gain a particular stat, but couldn't quite
+ * make it as customizable as you wanted it to be? Well now you can! By adding
+ * the correct tags to your notes across the various entries in the database,
+ * you too can make your actors gain more specific stats!
+ *
+ * DETAILS:
+ * By constructing tags using the format described below, you are given access
+ * to a "Formula" box that behaves similar to a "Formula" box that defines the
+ * damage of a skill. None of the tags are case sensitive, but the order is
+ * specific. If you find yourself having trouble building the tags, you can
+ * peek at the source code of this file and search for "J.NATURAL.RegExp =" to
+ * find the grand master list of all combinations of tags. Do note that the
+ * hard brackets of [] are required to wrap the formula in the note tag.
+ *
+ * THE PERMANENCE OF BUFF:
+ * The "Buffs" effect, as indicated above, is applied temporarily at whatever
+ * the formula would calculate out to when the parameter is requested. This
+ * allows the application of these "buffs" to live on dynamic objects, such as
+ * equipment or states, giving greater control over what stats are gained and
+ * how much. However, it is important to note that if you put a "buff" tag on
+ * a non-temporary object, such as the actor itself, it would be functionally
+ * a permanent "buff".
+ *
+ * THE PERMANENCE OF GROWTH:
+ * The "Growths" effect, as indicated above, is applied permanently for every
+ * level gained. However, it is important to note that due to the nature of the
+ * growth being permanent, it WILL NOT be lost if the level is reduced in some
+ * way, and WILL be gained AGAIN if the level increases once more.
+ *
+ * NOTE1:
+ * The "stats" word choice was deliberate vague because this can apply to any
+ * of the 8 base parameters, 10 sp-parameters, or 10 ex-parameters, or max tp.
+ *
+ * TIP:
+ * Within the FORMULA of the tag, the variable "a" is can be used to access
+ * the actor for more complex calculations.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULA]>
+ * Where (PARAM) is the (base/sp/ex) parameter shorthand.
+ * Where (BUFF|GROWTH) is literally one of either "Buff" or "Growth".
+ * Where (PLUS|RATE) is literally one of either "Plus" or "Rate".
+ * Where [FORMULA] is the formula to produce the amount.
+ *
+ * TAG FORMAT:
  *  <hrgGrowthRate:[5]>
- *  gain a permanent 5 HRG per level up.
+ * Gain 5 hp regen per level.
+ * This would result in gaining an ever-increasing amount of hp regen per level.
  *
- * Example:
  *  <exrBuffPlus:[25]>
- *  gain a flat 25 EXR while this tag is applied to this battler.
+ * Gain a flat 25 EXR while this tag is applied to this battler.
+ * This would be lost if the object this tag lived on was removed.
  *
- * Example:
  *  <atkGrowthPlus:[a.level * 3]>
- *  gain (the battler's leve multiplied by 3) attack per level.
- *  this would result in gaining an ever-increasing amount of attack per level.
+ * Gain (the battler's level multiplied by 3) attack per level.
+ * This would result in gaining an ever-increasing amount of attack per level.
+ * ==============================================================================
+ * EXAMPLE IDEAS:
+ * While you can read about the syntax in the next section below, here I wanted
+ * to present you a few ideas of things you can do with this plugin, to better
+ * illustrate what exactly this plugin can do.
+ *
+ * TAG:
+ *  <mtpBuffPlus:[80]>
+ * LOCATION:
+ *  An actor.
+ * EFFECT:
+ *  The actor now has a permanent bonus of 80 to their max tp.
+ *
+ * TAG:
+ *  <grdGrowthRate:[a.grd / 2]>
+ * LOCATION:
+ *  A class.
+ * EFFECT:
+ *  For every level gained by an actor using this class, they will gain a
+ *  a permanent bonus of 50% of their current GRD added as a "rate" bonus,
+ *  meaning it is a multiplied percent bonus against their base and plus
+ *  values combined.
+ *
+ * TAG:
+ *  <hrgBuffPlus:[(a.level**1.3)+(a.level*5)]>
+ * LOCATION:
+ *  An armor.
+ * EFFECT:
+ *  The actor will have a bonus of (5x their level) and (their level to the
+ *  1.3rd power) added together worth of HRG.
+ *
+ * TAG:
+ *  <atkGrowthPlus:[a.level]>
+ * LOCATION:
+ *  A state.
+ * EFFECT:
+ *  For every level gained by an actor afflicted with this state, they will
+ *  gain their level's worth of attack permanently.
+ *
+ * ==============================================================================
+ * GLOSSARY:
+ * There are a lot of shorthands available for use with this plugin to build your
+ * various buff and growth tags. Here is a comprehensive list of the shorthands
+ * along with a translation to the actual parameter of all supported shorthands.
+ *
+ * NOTE:
+ * Custom parameters will require their respective plugins added above this one.
+ *
+ * Base Parameters:
+ * - mhp (max hp)
+ * - mmp (max mp)
+ * - atk (attack)
+ * - def (defense)
+ * - mat (magic attack)
+ * - mdf (magic defense)
+ * - agi (agility)
+ * - luk (luck)
+ *
+ * Ex Parameters:
+ * - hit (hit rate)
+ * - eva (evasion rate)
+ * - cri (critical hit rate)
+ * - cev (critical evasion rate)
+ * - mev (magic evasion rate)
+ * - mrf (magic reflect rate)
+ * - cnt (counter attack rate)
+ * - hrg (hp regen rate)
+ * - mrg (mp regen rate)
+ * - trg (tp regen rate)
+ *
+ * Sp Parameters:
+ * - trg (targeting rate)
+ * - grd (guarding rate)
+ * - rec (recovery rate)
+ * - pha (pharmacy rate)
+ * - mcr (mp cost reduction rate)
+ * - tcr (tp cost reduction rate)
+ * - pdr (physical damage reduction rate)
+ * - mdr (magical damage reduction rate)
+ * - fdr (floor damage reduction rate)
+ * - exr (experience gained rate)
+ *
+ * Custom Parameters:
+ * - mtp (max tp)
+ *
  * ==============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -73,13 +221,13 @@ J.NATURAL.PluginParameters = PluginManager.parameters(J.NATURAL.Metadata.Name);
 J.NATURAL.Metadata.BaseTpMaxActors = Number(J.NATURAL.PluginParameters['actorBaseTp']);
 J.NATURAL.Metadata.BaseTpMaxEnemies = Number(J.NATURAL.PluginParameters['enemyBaseTp']);
 
-
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.NATURAL.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
+  Game_BattlerBase: new Map(),
   Game_Enemy: new Map(),
 };
 
@@ -228,224 +376,65 @@ J.NATURAL.RegExp = {
 
   // additionally supported parameters.
   // TP-related parameters.
+  BaseMaxTech: /<baseMaxTp:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechGrowth: /<mtpGrowth:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechRate: /<mtpRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechBuffPlus: /mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechBuffRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthPlus: /mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 };
 //#endregion Introduction
 
 //#region Game objects
 //#region Game_Actor
-J.NATURAL.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.NATURAL.Aliased.Game_Actor.get('initMembers').call(this);
-
-  // initialize the natural parameter collections.
-  this.initNaturalParams();
-};
-
 /**
- * Initializes the natural growth parameters for this actor.
+ * Gets all natural bonuses for max tp.
+ * Actors have both buffs and growths.
+ * @param {number} baseParam The base max tp value.
+ * @returns {number} The natural bonuses applied.
  */
-Game_Actor.prototype.initNaturalParams = function()
+Game_Actor.prototype.getMaxTpNaturalBonuses = function(baseParam)
 {
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
+  // destructure out the plus and rate structures for buffs.
+  const [buffPlusStructure, buffRateStructure,,] = this.getRegexForMaxTp();
 
-  /**
-   * A grouping of all properties associated with natural growth.
-   */
-  this._j._natural ||= {};
+  // calculate the max tp bonuses from buffs.
+  const maxTpBuff = this.getMaxTpBuff(baseParam, buffPlusStructure, buffRateStructure);
 
-  /**
-   * The permanent flat bonuses for each of the base parameters.
-   * @type {number[]}
-   */
-  this._j._natural._bParamsPlus = [  0,   0,   0,   0,   0,   0,   0,   0];
+  // calculate the max tp bonuses from growths.
+  const maxTpGrowth = this.getMaxTpGrowth(baseParam);
 
-  /**
-   * The permanent multiplier bonuses for each of the base parameters.
-   * @type {number[]}
-   */
-  this._j._natural._bParamsRate = [0, 0, 0, 0, 0, 0, 0, 0];
-
-  /**
-   * The permanent flat bonuses for each of the sp-parameters.
-   * @type {number[]}
-   */
-  this._j._natural._sParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-  /**
-   * The permanent multiplier bonuses for each of the sp-parameters.
-   * @type {number[]}
-   */
-  this._j._natural._sParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-  /**
-   * The permanent flat bonuses for each of the ex-parameters.
-   * @type {number[]}
-   */
-  this._j._natural._xParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-  /**
-   * The permanent multiplier bonuses for each of the ex-parameters.
-   * @type {number[]}
-   */
-  this._j._natural._xParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+  // return that combination.
+  return (maxTpBuff + maxTpGrowth);
 };
 
 /**
- * Gets the permanent flat bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
+ * Gets the base max tp for this actor.
  * @returns {number}
  */
-Game_Actor.prototype.bParamPlus = function(paramId)
+Game_Actor.prototype.getBaseMaxTp = function()
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
-
-  return this._j._natural._bParamsPlus[paramId] ?? 0;
+  return J.NATURAL.Metadata.BaseTpMaxActors;
 };
 
 /**
- * Modifies the permanent flat bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modBparamPlus = function(paramId, amount)
-{
-  this._j._natural._bParamsPlus[paramId] += amount;
-};
-
-/**
- * Gets the permanent multiplier bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
+ * Gets the current amount of max tp bonuses added from growths.
+ * @param {number} baseParam The base parameter value.
  * @returns {number}
  */
-Game_Actor.prototype.bParamRate = function(paramId)
+Game_Actor.prototype.getMaxTpGrowth = function(baseParam)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
+  // get the permanent flat bonus to this parameter.
+  const growthPlus = this.maxTpPlus();
 
-  return this._j._natural._bParamsRate[paramId] ?? 0;
-};
+  // get the permanent rate bonus to this parameter.
+  const growthRate = this.maxTpRate();
 
-/**
- * Modifies the permanent multiplier bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modBparamRate = function(paramId, amount)
-{
-  this._j._natural._bParamsRate[paramId] += amount;
-};
+  // short circuit if we have no bonuses of any kind.
+  if (!growthPlus && !growthRate) return 0;
 
-/**
- * Gets the permanent flat bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
- * @returns {number}
- */
-Game_Actor.prototype.sParamPlus = function(paramId)
-{
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
-
-  return this._j._natural._sParamsPlus[paramId] ?? 0;
-};
-
-/**
- * Modifies the permanent flat bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modSparamPlus = function(paramId, amount)
-{
-  this._j._natural._sParamsPlus[paramId] += amount;
-};
-
-/**
- * Gets the permanent multiplier bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
- * @returns {number}
- */
-Game_Actor.prototype.sParamRate = function(paramId)
-{
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
-
-  return this._j._natural._sParamsRate[paramId] ?? 0;
-};
-
-/**
- * Modifies the permanent multiplier bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modSparamRate = function(paramId, amount)
-{
-  this._j._natural._sParamsRate[paramId] += amount;
-};
-
-/**
- * Gets the permanent flat bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
- * @returns {number}
- */
-Game_Actor.prototype.xParamPlus = function(paramId)
-{
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
-
-  return this._j._natural._xParamsPlus[paramId] ?? 0;
-};
-
-/**
- * Modifies the permanent flat bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modXparamPlus = function(paramId, amount)
-{
-  this._j._natural._xParamsPlus[paramId] += amount;
-};
-
-/**
- * Gets the permanent multiplier bonus for a base parameter of the given id.
- * @param {number} paramId The id of the parameter.
- * @returns {number}
- */
-Game_Actor.prototype.xParamRate = function(paramId)
-{
-  if (!this._j._natural)
-  {
-    this.initNaturalParams();
-  }
-
-  return this._j._natural._xParamsRate[paramId] ?? 0;
-};
-
-/**
- * Modifies the permanent multiplier bonus value of the given id by a given amount.
- * @param {number} paramId The id of the parameter.
- * @param {number} amount The amount to modify the parameter by.
- */
-Game_Actor.prototype.modXparamRate = function(paramId, amount)
-{
-  this._j._natural._xParamsRate[paramId] += amount;
+  // return result.
+  return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
 
 /**
@@ -611,6 +600,7 @@ Game_Actor.prototype.sparamNaturalBonuses = function(sparamId)
 
 /**
  * Gets all natural growths for this sp-parameter.
+ * Actors have buffs and growths.
  * @param {number} sparamId The parameter id in question.
  * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
  * @param {number} baseParam The base parameter.
@@ -638,7 +628,7 @@ Game_Actor.prototype.getSparamNaturalBonuses = function(sparamId, structures, ba
  * @param {RegExp} rateStructure The RegExp for the rate buff for this parameter.
  * @returns {number} The calculated buff amount for this parameter.
  */
-Game_Actor.prototype.getParamBuff = function(baseParam, plusStructure, rateStructure)
+Game_Battler.prototype.getParamBuff = function(baseParam, plusStructure, rateStructure)
 {
   // determine buff plus for this param.
   const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
@@ -660,109 +650,109 @@ Game_Actor.prototype.getParamBuff = function(baseParam, plusStructure, rateStruc
  * @param {RegExp} rateStructure The RegExp for the rate buff for this parameter.
  * @returns {number} The calculated buff amount for this parameter.
  */
-Game_Actor.prototype.getSXParamBuff = function(baseParam, plusStructure, rateStructure)
+Game_Battler.prototype.getSXParamBuff = function(baseParam, plusStructure, rateStructure)
 {
   // determine buff plus for this param.
   const buffPlus = (this.naturalParamBuff(plusStructure, baseParam) / 100);
 
-  // determine buff rate fort his param.
+  // determine buff rate for this param.
   const buffRate = (this.naturalParamBuff(rateStructure, baseParam) / 100);
 
   // don't calculate if we don't have anything.
   if (!buffPlus && !buffRate) return 0;
 
+  // return result.
+  return this.calculatePlusRate(baseParam, buffPlus, buffRate);
+};
+
+/**
+ * Gets the permanent growth for a given base parameter based on the provided id.
+ * @param {number} paramId The parameter id to get the growth for.
+ * @param {number} baseParam The current value of the given parameter for rate multipliers.
+ * @returns {number} The calculated growth amount for this parameter.
+ */
+Game_Actor.prototype.getBparamGrowth = function(paramId, baseParam)
+{
+  // get the permanent flat bonus to this parameter.
+  const growthPlus = this.bParamPlus(paramId);
+
+  // get the permanent rate bonus to this parameter.
+  const growthRate = this.bParamRate(paramId);
+
+  // short circuit if we have no bonuses of any kind.
+  if (!growthPlus && !growthRate) return 0;
+
   // determine the modified buff rate.
-  const buffFactor = ((buffRate + 100) / 100);
+  const growthFactor = ((growthRate + 100) / 100);
 
   // determine the modified base parameter.
-  const buffBase = (baseParam + buffPlus);
+  const growthBase = (baseParam + growthPlus);
 
   // remove the value of base param since it is added at the end.
-  const result = (buffBase * buffFactor) - baseParam;
+  const result = (growthBase * growthFactor) - baseParam;
 
   // return result.
   return result;
 };
 
 /**
- * Gets the permanent growth for a given base parameter based on the provided id.
- * @param {number} paramId The parameter id to get the growth for.
- * @param {number} currentParam The current value of the given parameter for rate multipliers.
- * @returns {number} The calculated growth amount for this parameter.
- */
-Game_Actor.prototype.getBparamGrowth = function(paramId, currentParam)
-{
-  // get the permanent flat bonus to this parameter.
-  const paramGrowthPlus = this.bParamPlus(paramId);
-
-  // get the permanent rate bonus to this parameter.
-  const paramGrowthRate = this.bParamRate(paramId);
-
-  // short circuit if we have no bonuses of any kind.
-  if (!paramGrowthPlus && !paramGrowthRate) return 0;
-
-  // calculate the result.
-  const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
-
-  // return the growth modifier.
-  return paramGrowthResult;
-};
-
-/**
  * Gets the permanent growth for a given ex-parameter based on the provided id.
  * @param {number} paramId The parameter id to get the growth for.
- * @param {number} currentParam The current value of the given parameter for rate multipliers.
+ * @param {number} baseParam The current value of the given parameter for rate multipliers.
  * @returns {number} The calculated growth amount for this parameter.
  */
-Game_Actor.prototype.getXparamGrowth = function(paramId, currentParam)
+Game_Actor.prototype.getXparamGrowth = function(paramId, baseParam)
 {
   // get the permanent flat bonus to this parameter.
-  const paramGrowthPlus = this.xParamPlus(paramId);
+  const growthPlus = this.xParamPlus(paramId);
 
   // get the permanent rate bonus to this parameter.
-  const paramGrowthRate = this.xParamRate(paramId);
+  const growthRate = this.xParamRate(paramId);
 
   // short circuit if we have no bonuses of any kind.
-  if (!paramGrowthPlus && !paramGrowthRate) return 0;
+  if (!growthPlus && !growthRate) return 0;
 
-  // calculate the result.
-  const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
+  // determine the modified buff rate.
+  const growthFactor = ((growthRate + 100) / 100);
 
-  // return the growth modifier.
-  return paramGrowthResult;
+  // determine the modified base parameter.
+  const growthBase = (baseParam + growthPlus);
+
+  // remove the value of base param since it is added at the end.
+  const result = (growthBase * growthFactor) - baseParam;
+
+  // return result.
+  return result;
 };
 
 /**
  * Gets the permanent growth for a given sp-parameter based on the provided id.
  * @param {number} paramId The parameter id to get the growth for.
- * @param {number} currentParam The current value of the given parameter for rate multipliers.
+ * @param {number} baseParam The current value of the given parameter for rate multipliers.
  * @returns {number} The calculated growth amount for this parameter.
  */
-Game_Actor.prototype.getSparamGrowth = function(paramId, currentParam)
+Game_Actor.prototype.getSparamGrowth = function(paramId, baseParam)
 {
   // get the permanent flat bonus to this parameter.
-  const paramGrowthPlus = this.sParamPlus(paramId);
+  const growthPlus = this.sParamPlus(paramId);
 
   // get the permanent rate bonus to this parameter.
-  const paramGrowthRate = this.sParamRate(paramId);
+  const growthRate = this.sParamRate(paramId);
 
   // short circuit if we have no bonuses of any kind.
-  if (!paramGrowthPlus && !paramGrowthRate) return 0;
+  if (!growthPlus && !growthRate) return 0;
 
-  // calculate the result.
-  const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
+  // determine the modified buff rate.
+  const growthFactor = ((growthRate + 100) / 100);
 
-  // return the growth modifier.
-  return paramGrowthResult;
-};
+  // determine the modified base parameter.
+  const growthBase = (baseParam + growthPlus);
 
-/**
- * Gets the base max tp for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getBaseMaxTp = function()
-{
-  return J.NATURAL.Metadata.BaseTpMaxActors;
+  // remove the value of base param since it is added at the end.
+  const result = (growthBase * growthFactor) - baseParam;
+
+  // return result.
+  return result;
 };
 
 /**
@@ -778,13 +768,38 @@ Game_Actor.prototype.levelUp = function()
   this.applyNaturalGrowths();
 };
 
+/**
+ * Applies all natural growths applied to this actor at the present moment.
+ */
 Game_Actor.prototype.applyNaturalGrowths = function()
 {
-  // apply all parameters growth types.
+  // apply all growth types.
+  this.applyNaturalMaxTpGrowths();
   this.applyNaturalBparamGrowths();
   this.applyNaturalXparamGrowths();
   this.applyNaturalSparamGrowths();
   this.applyNaturalCustomGrowths();
+};
+
+/**
+ * Applies the growths for max tp.
+ */
+Game_Actor.prototype.applyNaturalMaxTpGrowths = function()
+{
+  // destructure out the plus and rate structures for growths.
+  const [,,growthPlusStructure, growthRateStructure] = this.getRegexForMaxTp();
+
+  // calculate the flat growth for this parameter.
+  const growthPlus = this.naturalParamBuff(growthPlusStructure, value);
+
+  // add it to the running total of permanent growth pluses.
+  this.modMaxTpPlus(growthPlus);
+
+  // calculate the rate growth for this parameter.
+  const growthRate = this.naturalParamBuff(growthRateStructure, value);
+
+  // add it to the running total of permanent growth rates.
+  this.modMaxTpRate(growthRate);
 };
 
 /**
@@ -947,13 +962,288 @@ Game_Actor.prototype.getGrowthRegexBySparamId = function(sparamId)
   }
 };
 
+/**
+ * A hook for applying additional custom growths that aren't native to RMMZ.
+ */
 Game_Actor.prototype.applyNaturalCustomGrowths = function()
 {
-
 };
 //#endregion Game_Actor
 
 //#region Game_Battler
+/**
+ * Extends `.initMembers()` to include initializing the natural growth parameters.
+ */
+J.NATURAL.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.NATURAL.Aliased.Game_Battler.get('initMembers').call(this);
+
+  // initialize the natural parameter collections.
+  this.initNaturalGrowthParameters();
+};
+
+/**
+ * Initializes the natural growth parameters for this battler.
+ */
+Game_Battler.prototype.initNaturalGrowthParameters = function()
+{
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with natural growth.
+   */
+  this._j._natural ||= {};
+
+  /**
+   * The permanent flat bonus for max tp.
+   * @type {number}
+   */
+  this._j._natural._maxTpPlus = 0;
+
+  /**
+   * The permanent multiplier bonus for max tp.
+   * @type {number}
+   */
+  this._j._natural._maxTpRate = 0;
+
+  /**
+   * The permanent flat bonuses for each of the base parameters.
+   * @type {number[]}
+   */
+  this._j._natural._bParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The permanent multiplier bonuses for each of the base parameters.
+   * @type {number[]}
+   */
+  this._j._natural._bParamsRate = [0, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The permanent flat bonuses for each of the sp-parameters.
+   * @type {number[]}
+   */
+  this._j._natural._sParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The permanent multiplier bonuses for each of the sp-parameters.
+   * @type {number[]}
+   */
+  this._j._natural._sParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The permanent flat bonuses for each of the ex-parameters.
+   * @type {number[]}
+   */
+  this._j._natural._xParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The permanent multiplier bonuses for each of the ex-parameters.
+   * @type {number[]}
+   */
+  this._j._natural._xParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+};
+
+/**
+ * Gets the permanent flat bonus for max tp.
+ * @returns {number}
+ */
+Game_Battler.prototype.maxTpPlus = function()
+{
+  if (!this._j._natural || (this._j._natural._maxTpPlus === undefined))
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._maxTpPlus;
+};
+
+/**
+ * Modifies the permanent flat bonus for max tp by a given amount.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modMaxTpPlus = function(amount)
+{
+  this._j._natural._maxTpPlus += amount;
+};
+
+/**
+ * Gets the permanent multiplicative bonus for max tp.
+ * @returns {number}
+ */
+Game_Battler.prototype.maxTpRate = function()
+{
+  if (!this._j._natural || (this._j._natural._maxTpRate === undefined))
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._maxTpRate;
+};
+
+/**
+ * Modifies the permanent multiplicative bonus for max tp by a given amount.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modMaxTpRate = function(amount)
+{
+  this._j._natural._maxTpRate += amount;
+};
+
+/**
+ * Gets the permanent flat bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.bParamPlus = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._bParamsPlus[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent flat bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modBparamPlus = function(paramId, amount)
+{
+  this._j._natural._bParamsPlus[paramId] += amount;
+};
+
+/**
+ * Gets the permanent multiplier bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.bParamRate = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._bParamsRate[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent multiplier bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modBparamRate = function(paramId, amount)
+{
+  this._j._natural._bParamsRate[paramId] += amount;
+};
+
+/**
+ * Gets the permanent flat bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.sParamPlus = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._sParamsPlus[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent flat bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modSparamPlus = function(paramId, amount)
+{
+  this._j._natural._sParamsPlus[paramId] += amount;
+};
+
+/**
+ * Gets the permanent multiplier bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.sParamRate = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._sParamsRate[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent multiplier bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modSparamRate = function(paramId, amount)
+{
+  this._j._natural._sParamsRate[paramId] += amount;
+};
+
+/**
+ * Gets the permanent flat bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.xParamPlus = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._xParamsPlus[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent flat bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modXparamPlus = function(paramId, amount)
+{
+  this._j._natural._xParamsPlus[paramId] += amount;
+};
+
+/**
+ * Gets the permanent multiplier bonus for a base parameter of the given id.
+ * @param {number} paramId The id of the parameter.
+ * @returns {number}
+ */
+Game_Battler.prototype.xParamRate = function(paramId)
+{
+  if (!this._j._natural)
+  {
+    this.initNaturalGrowthParameters();
+  }
+
+  return this._j._natural._xParamsRate[paramId] ?? 0;
+};
+
+/**
+ * Modifies the permanent multiplier bonus value of the given id by a given amount.
+ * @param {number} paramId The id of the parameter.
+ * @param {number} amount The amount to modify the parameter by.
+ */
+Game_Battler.prototype.modXparamRate = function(paramId, amount)
+{
+  this._j._natural._xParamsRate[paramId] += amount;
+};
+
 /**
  * Translates a base parameter id into its corresponding RegExp buff plus and rate structures.
  * @param {number} paramId The parameter id to find the RegExp structures for.
@@ -1083,6 +1373,7 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
       matchingFormulai.forEach(line =>
       {
         // extract the captured formula.
+        // eslint-disable-next-line prefer-destructuring
         const result = structure.exec(line)[1];
 
         // make sure we had a real formula first.
@@ -1100,104 +1391,131 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
 };
 
 /**
+ * Calculates the combination of base parameter value, param plus, and param rate.
+ * This can be overridden if alternative calculations is desired.
+ * @param {number} baseValue The base value of the parameter.
+ * @param {number} paramPlus The flat bonus value of the parameter.
+ * @param {number} paramRate The multiplier bonus value of the parameter.
+ * @returns {number} The calculated result.
+ */
+Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramRate)
+{
+  // determine the modified buff rate.
+  const paramFactor = ((paramRate + 100) / 100);
+
+  // determine the modified base parameter.
+  const paramBase = (baseValue + paramPlus);
+
+  // remove the value of base param since it is added at the end.
+  const result = (paramBase * paramFactor) - baseValue;
+
+  // return result.
+  return result;
+};
+
+/**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
  * @returns {number}
  */
-J.NATURAL.Aliased.Game_Actor.set("maxTp", Game_Battler.prototype.maxTp);
+J.NATURAL.Aliased.Game_BattlerBase.set("maxTp", Game_Battler.prototype.maxTp);
 Game_Battler.prototype.maxTp = function()
 {
   // check to make sure we have custom max tp formulai.
-  if (!this.getTpGrowthFormulai().length)
-  {
-    // we have no custom formulai; return the original logic.
-    return J.NATURAL.Aliased.Game_Actor.get("maxTp").call(this);
-  }
-
-  // TODO: mirror plus and rate strategy as with other parameters.
-
-  // return the max tp based on our custom formulai.
-  return this.getCustomMaxTp();
+  return this.actualMaxTp();
 };
 
 /**
- * Calculates the max tp based on the various formulai found being applied to this battler.
+ * Get the actual calculated max tp for this battler.
  * @returns {number}
  */
-Game_Battler.prototype.getCustomMaxTp = function()
+Game_Battler.prototype.actualMaxTp = function()
 {
-  // we initialize to 0 max tp.
-  let additionalMaxTp = 0;
+  // get the base max tp defined
+  const baseParam = this.getBaseMaxTp();
 
-  // grab all the formulai for evaluation.
-  const customFormulai = this.getTpGrowthFormulai();
+  // get all bonuses to max tp from natural bonuses.
+  const maxTpNaturalBonuses = this.maxTpNaturalBonuses();
 
-  // this battler, used in the formula.
-  // eslint-disable-next-line no-unused-vars
-  const a = this;
-
-  // iterate over each custom formula to evaluate it.
-  customFormulai.forEach(formula =>
-  {
-    // eval the formula to get the max tp.
-    const result = Math.round(eval(formula));
-
-    // add this result to the running total.
-    additionalMaxTp += result;
-  });
-
-  // add together the base and calculated from formulai.
-  const tempMaxTp = this.getBaseMaxTp() + additionalMaxTp;
-
-  // multiply the temp max tp against the tp rate.
-  const totalMaxTp = tempMaxTp * this.getMaxTpRate();
-
-  // clamp the minimum to 0 in case it went negative.
-  return Math.max(totalMaxTp, 0);
+  // return result.
+  return (baseParam + maxTpNaturalBonuses);
 };
 
 /**
- * Gets all formulai for tp growth on this battler.
- * @returns {string[]} All formulai to process for tp growth.
+ * This is exclusively for access to the natural growth values, without the base max tp value added.
+ * @returns {number}
  */
-Game_Battler.prototype.getTpGrowthFormulai = function()
+Game_Battler.prototype.maxTpNaturalBonuses = function()
 {
-  // start the formula container with none.
-  const tpGrowthFormulai = [];
+  // get the base max tp for this battler.
+  const baseParam = this.getBaseMaxTp();
 
-  // the regular expression to scan for.
-  const structure = J.NATURAL.RegExp.MaxTechGrowth;
+  // return the calculated natural bonuses.
+  return this.getMaxTpNaturalBonuses(baseParam);
+};
 
-  // grab all things with notes that a battler could gain parameters from.
-  const objectsToCheck = this.getEverythingWithNotes();
+/**
+ * Gets all natural bonuses for max tp.
+ * @param {number} baseParam The base max tp value.
+ * @returns {number} The natural bonuses applied.
+ */
+Game_Battler.prototype.getMaxTpNaturalBonuses = function(baseParam)
+{
+  return 0;
+};
 
-  // iterate over all relevant objects.
-  objectsToCheck.forEach(databaseData =>
-  {
-    // grab the formulai matching the regex from this object.
-    const matchingFormulai = databaseData.getFilteredNotesByRegex(structure);
+/**
+ * Gets all natural bonuses for max tp.
+ * Enemies have only buffs.
+ * @param {number} baseParam The base max tp value.
+ * @returns {number} The natural bonuses applied.
+ */
+Game_Enemy.prototype.getMaxTpNaturalBonuses = function(baseParam)
+{
+  // destructure out the plus and rate structures for buffs.
+  const [buffPlusStructure, buffRateStructure,,] = this.getRegexForMaxTp();
 
-    // check to make sure we have matching formulai.
-    if (matchingFormulai.length)
-    {
-      // iterate over the found formulai.
-      matchingFormulai.forEach(line =>
-      {
-        // extract the captured formula.
-        const result = structure.exec(line)[1];
+  // determine the buffs to the parameter.
+  const maxTpBuff = this.getMaxTpBuff(baseParam, buffPlusStructure, buffRateStructure);
 
-        // make sure we had a real formula first.
-        if (result)
-        {
-          // shove it into the formula container.
-          tpGrowthFormulai.push(result);
-        }
-      });
-    }
-  });
+  // return the natural growth buffs currently applied.
+  return maxTpBuff;
+};
 
-  // return the formula container.
-  return tpGrowthFormulai;
+/**
+ * Retrieves the four regular RegExps governing max tp buffs and growths.
+ * @returns {[RegExp, RegExp, RegExp, RegExp]} The [buffplus, buffrate, growthplus, growthrate] regex structures.
+ */
+Game_Battler.prototype.getRegexForMaxTp = function()
+{
+  return [
+    J.NATURAL.RegExp.MaxTechBuffPlus,
+    J.NATURAL.RegExp.MaxTechBuffRate,
+    J.NATURAL.RegExp.MaxTechGrowthPlus,
+    J.NATURAL.RegExp.MaxTechGrowthRate,
+  ];
+};
+
+/**
+ * Get the current amount of max tp bonuses added from buffs.
+ * @param {number} baseParam The base parameter value.
+ * @param {RegExp} plusStructure The regex for the plus structure.
+ * @param {RegExp} rateStructure The regex for the rate structure.
+ * @returns {number}
+ */
+Game_Battler.prototype.getMaxTpBuff = function(baseParam, plusStructure, rateStructure)
+{
+  // determine buff plus for max tp.
+  const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
+
+  // determine buff rate for max tp.
+  const buffRate = this.naturalParamBuff(rateStructure, baseParam);
+
+  // don't calculate if we don't have anything.
+  if (!buffPlus && !buffRate) return 0;
+
+  // return result.
+  return this.calculatePlusRate(baseParam, buffPlus, buffRate);
 };
 
 /**
@@ -1207,53 +1525,6 @@ Game_Battler.prototype.getTpGrowthFormulai = function()
 Game_Battler.prototype.getBaseMaxTp = function()
 {
   return 0;
-};
-
-/**
- * Gets the maximum TP rate for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.getMaxTpRate = function()
-{
-  // the base max tp rate.
-  let maxTpRate = 1;
-
-  // all objects we'll be considering for max tp rate.
-  const objectsToCheck = this.getEverythingWithNotes();
-
-  // scan all the objects and extract their max tp rates.
-  objectsToCheck.forEach(obj => (maxTpRate += this.extractMaxTpRate(obj)), this);
-
-  // clamp the minimum to a 0 multiplier, we probably shouldn't try to have negatives.
-  maxTpRate = Math.max(maxTpRate, 0);
-
-  // we have to return it in factor form.
-  return maxTpRate;
-};
-
-/**
- * Extracts the maximum TP rate from the given database object.
- * @param {RPG_BaseItem} referenceData The database object to check.
- * @returns {number}
- */
-Game_Battler.prototype.extractMaxTpRate = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return 0;
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<maxTpRate:[ ]?(-?[\d]+)>/i;
-  let rate = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const multiplier = parseInt(RegExp.$1);
-      rate += multiplier;
-    }
-  });
-
-  return (rate / 100);
 };
 //#endregion Game_Battler
 
@@ -1268,19 +1539,53 @@ Game_Enemy.prototype.paramBase = function(paramId)
   const baseParam = J.NATURAL.Aliased.Game_Enemy.get('paramBase').call(this, paramId);
 
   // determine the structure for this parameter.
-  const structure = this.getRegexByParamId(paramId);
-
-  // if there is no regexp, then don't try to do things.
-  if (!structure) return baseParam;
-
-  // determine additional growth rates.
-  const additionalGrowths = this.naturalParamBuff(structure, baseParam);
-
-  // combine results.
-  const result = baseParam + additionalGrowths;
+  const paramBaseNaturalBonuses = this.paramBaseNaturalBonuses(paramId);
 
   // return result.
-  return result;
+  return (baseParam + paramBaseNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the base parameter value added.
+ * @param {number} paramId The parameter id in question.
+ * @returns {number}
+ */
+Game_Enemy.prototype.paramBaseNaturalBonuses = function(paramId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Enemy.get('paramBase').call(this, paramId);
+
+  // determine the structure for this parameter.
+  const structures = this.getRegexByParamId(paramId);
+
+  // if there is no regexp, then don't try to do things.
+  if (!structures) return 0;
+
+  // destructure into the plus and rate regexp structures.
+  const paramNaturalBonuses = this.getParamBaseNaturalBonuses(paramId, structures, baseParam);
+
+  // return result.
+  return (paramNaturalBonuses);
+};
+
+/**
+ * Gets all natural growths for this base parameter.
+ * Enemies only have buffs.
+ * @param {number} paramId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, structures, baseParam)
+{
+  // destructure into the plus and rate regexp structures.
+  const [plusStructure, rateStructure] = structures;
+
+  // determine temporary buff for this param.
+  const paramBuff = this.getParamBuff(baseParam, plusStructure, rateStructure);
+
+  // return result.
+  return paramBuff;
 };
 
 /**
@@ -1293,19 +1598,52 @@ Game_Enemy.prototype.xparam = function(xparamId)
   const baseParam = J.NATURAL.Aliased.Game_Enemy.get('xparam').call(this, xparamId);
 
   // determine the structure for this parameter.
-  const structure = this.getRegexByExParamId(xparamId);
-
-  // if there is no regexp, then don't try to do things.
-  if (!structure) return baseParam;
-
-  // determine additional growth rates.
-  const additionalGrowths = this.naturalParamBuff(structure, baseParam) / 100;
-
-  // combine results.
-  const result = baseParam + additionalGrowths;
+  const xparamNaturalBonuses = this.xparamNaturalBonuses(xparamId);
 
   // return result.
-  return result;
+  return (baseParam + xparamNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the ex-parameter value added.
+ * @param {number} xparamId The parameter id in question.
+ * @returns {number}
+ */
+Game_Enemy.prototype.xparamNaturalBonuses = function(xparamId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Enemy.get('xparam').call(this, xparamId);
+
+  // determine the structure for this parameter.
+  const structures = this.getRegexByExParamId(xparamId);
+
+  // if there is no regexp, then don't try to do things.
+  if (!structures) return 0;
+
+  // destructure into the plus and rate regexp structures.
+  const paramNaturalBonuses = this.getXparamNaturalBonuses(xparamId, structures, baseParam);
+
+  // return result.
+  return paramNaturalBonuses;
+};
+
+/**
+ * Gets all natural growths for this ex-parameter.
+ * @param {number} xparamId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, structures, baseParam)
+{
+  // destructure into the plus and rate regexp structures.
+  const [plusStructure, rateStructure] = structures;
+
+  // determine temporary buff for this param.
+  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
+
+  // return result.
+  return paramBuff;
 };
 
 /**
@@ -1318,19 +1656,53 @@ Game_Enemy.prototype.sparam = function(sparamId)
   const baseParam = J.NATURAL.Aliased.Game_Enemy.get('sparam').call(this, sparamId);
 
   // determine the structure for this parameter.
-  const structure = this.getRegexBySpParamId(sparamId);
-
-  // if there is no regexp, then don't try to do things.
-  if (!structure) return baseParam;
-
-  // determine additional growth rates.
-  const additionalGrowths = this.naturalParamBuff(structure, baseParam) / 100;
-
-  // combine results.
-  const result = baseParam + additionalGrowths;
+  const sparamNaturalBonuses = this.sparamNaturalBonuses(sparamId);
 
   // return result.
-  return result;
+  return (baseParam + sparamNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the sp-parameter value added.
+ * @param {number} sparamId The parameter id in question.
+ * @returns {number}
+ */
+Game_Enemy.prototype.sparamNaturalBonuses = function(sparamId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Enemy.get('sparam').call(this, sparamId);
+
+  // determine the structure for this parameter.
+  const structures = this.getRegexBySpParamId(sparamId);
+
+  // if there is no regexp, then don't try to do things.
+  if (!structures) return 0;
+
+  // destructure into the plus and rate regexp structures.
+  const sparamNaturalBonuses = this.getSparamNaturalBonuses(sparamId, structures, baseParam);
+
+  // return result.
+  return sparamNaturalBonuses;
+};
+
+/**
+ * Gets all natural growths for this sp-parameter.
+ * Enemies only have buffs.
+ * @param {number} sparamId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, baseParam)
+{
+  // destructure into the plus and rate regexp structures.
+  const [plusStructure, rateStructure] = structures;
+
+  // determine temporary buff for this param.
+  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
+
+  // return result.
+  return paramBuff;
 };
 
 /**

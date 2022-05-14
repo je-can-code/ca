@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0.0 TIME] A system for tracking time- real or artificial.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ==============================================================================
  * This is a system that tracks time, either artificial or real, and manipulates

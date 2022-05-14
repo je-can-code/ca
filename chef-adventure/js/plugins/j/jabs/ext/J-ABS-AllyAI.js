@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @base J-ABS
  * @orderBefore J-ABS-InputManager

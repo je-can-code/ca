@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-ABS
  * @base J-BASE
  * @base J-HUD

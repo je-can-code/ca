@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v2.1.0 BASE] The base class for all J plugins.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ==============================================================================
  * This is the base class that is required for basically ALL of J-* plugins.

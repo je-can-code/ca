@@ -3,7 +3,7 @@
  * @plugindesc 
  * [v3.0 JABS] Mods/Adds for the various window object classes.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-ABS
  * @orderAfter J-ABS
  * @help

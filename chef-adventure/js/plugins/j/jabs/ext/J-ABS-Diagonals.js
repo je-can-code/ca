@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0 DIAG] Fixes diagonal movement for projectiles and characters.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @base J-ABS
  * @orderAfter J-BASE

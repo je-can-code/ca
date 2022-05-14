@@ -3,7 +3,7 @@
  * @plugindesc
  * [v2.0 JAFT] The various custom models created for JAFTING.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-JAFTING
  * @orderBefore J-JAFTING
  * @orderBefore J-JAFTING-Refinement

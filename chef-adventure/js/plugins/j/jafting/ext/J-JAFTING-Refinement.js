@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0.0 JAFT-REFINE] Extends JAFTING to include refinement.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @base J-JAFTING
  * @orderAfter J-BASE

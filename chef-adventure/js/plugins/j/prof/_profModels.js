@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.0 PROF] The various custom models created for proficiencies.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-Proficiency
  * @orderBefore J-Proficiency
  * @help

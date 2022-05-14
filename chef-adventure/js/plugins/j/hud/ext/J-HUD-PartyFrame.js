@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @orderAfter J-BASE
  * @help

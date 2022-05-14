@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.1 SDP] The various custom models created for SDP.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-SDP
  * @orderBefore J-SDP
  * @help

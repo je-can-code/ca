@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-HUD
  * @orderAfter J-HUD
  * @help

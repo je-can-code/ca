@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0 CMS_S] A redesign of the status menu.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @orderAfter J-BASE
  * @help
@@ -261,7 +261,7 @@ class Window_StatusParameters
    */
   drawXParams(x, y)
   {
-    this.drawTitle("Rates (ex-param)", x, y - 15, 92, 1);
+    this.drawTitle("Rates (ex)", x, y - 15, 92, 1);
 
     const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     paramIds.forEach((xparamId, index) =>
@@ -281,7 +281,7 @@ class Window_StatusParameters
    */
   drawSParams(x, y)
   {
-    this.drawTitle("Bonuses (sp-param)", x, y - 10, 73, 1);
+    this.drawTitle("Bonuses (sp)", x, y - 10, 73, 1);
 
     const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     paramIds.forEach((sparamId, index) =>

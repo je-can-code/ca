@@ -3,7 +3,7 @@
  * @plugindesc
  * [v3.0 JABS] The various custom models created for JABS.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-ABS
  * @orderAfter J-ABS
  * @help

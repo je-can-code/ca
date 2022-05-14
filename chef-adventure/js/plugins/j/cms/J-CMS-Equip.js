@@ -4,7 +4,7 @@
  * @plugindesc 
  * [v1.0 CMS_E] A redesign of the equip menu.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @orderAfter J-BASE
  * @help
