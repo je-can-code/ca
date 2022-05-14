@@ -1,4 +1,5 @@
 //#region Introduction
+/* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc 
@@ -518,6 +519,7 @@
  * @default 64
 */
 //=================================================================================================
+/* eslint-enable max-len */
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -639,8 +641,9 @@ J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaul
 J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
 
 // custom data configurations.
-J.ABS.Metadata.UseElementalIcons = Boolean(J.ABS.PluginParameters['useElementalIcons'] === "true");
-J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
+J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === "true";
+J.ABS.Metadata.ElementalIcons =
+  J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
 
 // action decided configurations.
 J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
@@ -898,9 +901,9 @@ J.ABS.RegExp = {
   SlipHpPercent: /<hpPercent:[ ]?(-?\d+)%?>/gi,
   SlipMpPercent: /<mpPercent:[ ]?(-?\d+)%?>/gi,
   SlipTpPercent: /<tpPercent:[ ]?(-?\d+)%?>/gi,
-  SlipHpFormula: /<hpFormula:\[([+\-*\/ ().\w]+)]>/gi,
-  SlipMpFormula: /<mpFormula:\[([+\-*\/ ().\w]+)]>/gi,
-  SlipTpFormula: /<tpFormula:\[([+\-*\/ ().\w]+)]>/gi,
+  SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
+  SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
+  SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
 };
 
 /**
@@ -1068,7 +1071,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
  * This class is the engine that manages JABS and how `JABS_Action`s interact
  * with the `JABS_Battler`s on the map.
  */
-class JABS_Engine
+class JABS_Engine // eslint-disable-line no-unused-vars
 {
   /**
    * @constructor
@@ -1076,7 +1079,7 @@ class JABS_Engine
   constructor()
   {
     this.initialize();
-  };
+  }
 
   //#region properties
   /**
@@ -1086,7 +1089,7 @@ class JABS_Engine
   get absEnabled()
   {
     return this._absEnabled;
-  };
+  }
 
   /**
    * Sets the ABS enabled switch to a new boolean value.
@@ -1095,7 +1098,7 @@ class JABS_Engine
   set absEnabled(enabled)
   {
     this._absEnabled = enabled;
-  };
+  }
 
   /**
    * Retrieves whether or not the ABS is currently paused.
@@ -1104,7 +1107,7 @@ class JABS_Engine
   get absPause()
   {
     return this._absPause;
-  };
+  }
 
   /**
    * Sets the ABS pause switch to a new boolean value.
@@ -1122,7 +1125,7 @@ class JABS_Engine
   get requestAbsMenu()
   {
     return this._requestAbsMenu;
-  };
+  }
 
   /**
    * Sets the current request for calling the ABS-specific menu.
@@ -1131,7 +1134,7 @@ class JABS_Engine
   set requestAbsMenu(requested)
   {
     this._requestAbsMenu = requested;
-  };
+  }
 
   /**
    * Gets whether or not there is a request to cycle through party members.
@@ -1140,7 +1143,7 @@ class JABS_Engine
   get requestPartyRotation()
   {
     return this._requestPartyRotation;
-  };
+  }
 
   /**
    * Sets the request for party rotation.
@@ -1149,7 +1152,7 @@ class JABS_Engine
   set requestPartyRotation(rotate)
   {
     this._requestPartyRotation = rotate;
-  };
+  }
 
   /**
    * Gets whether or not there is a request to refresh the JABS menu.
@@ -1159,7 +1162,7 @@ class JABS_Engine
   get requestJabsMenuRefresh()
   {
     return this._requestJabsMenuRefresh;
-  };
+  }
 
   /**
    * Sets the request for refreshing the JABS menu.
@@ -1168,7 +1171,7 @@ class JABS_Engine
   set requestJabsMenuRefresh(requested)
   {
     this._requestJabsMenuRefresh = requested;
-  };
+  }
 
   /**
    * Checks whether or not we have a need to request rendering for new actions.
@@ -1177,7 +1180,7 @@ class JABS_Engine
   get requestActionRendering()
   {
     return this._requestActionRendering;
-  };
+  }
 
   /**
    * Issues a request to render actions on the map.
@@ -1186,7 +1189,7 @@ class JABS_Engine
   set requestActionRendering(request)
   {
     this._requestActionRendering = request;
-  };
+  }
 
   /**
    * Checks whether or not we have a need to request rendering for new loot sprites.
@@ -1195,7 +1198,7 @@ class JABS_Engine
   get requestLootRendering()
   {
     return this._requestLootRendering;
-  };
+  }
 
   /**
    * Issues a request to render loot onto the map.
@@ -1204,7 +1207,7 @@ class JABS_Engine
   set requestLootRendering(request)
   {
     this._requestLootRendering = request;
-  };
+  }
 
   /**
    * Checks whether or not we have a need to request a clearing of the action sprites
@@ -1214,7 +1217,7 @@ class JABS_Engine
   get requestClearMap()
   {
     return this._requestClearMap;
-  };
+  }
 
   /**
    * Issues a request to clear the map of all stale actions.
@@ -1223,7 +1226,7 @@ class JABS_Engine
   set requestClearMap(request)
   {
     this._requestClearMap = request;
-  };
+  }
 
   /**
    * Checks whether or not we have a need to request a clearing of the loot sprites
@@ -1242,7 +1245,7 @@ class JABS_Engine
   set requestClearLoot(request)
   {
     this._requestClearLoot = request;
-  };
+  }
 
   /**
    * Checks whether or not we have a need to refresh all character sprites on the current map.
@@ -1251,7 +1254,7 @@ class JABS_Engine
   get requestSpriteRefresh()
   {
     return this._requestSpriteRefresh;
-  };
+  }
 
   /**
    * Issues a request to refresh all character sprites on the current map.
@@ -1260,7 +1263,7 @@ class JABS_Engine
   set requestSpriteRefresh(request)
   {
     this._requestSpriteRefresh = request;
-  };
+  }
   //#endregion properties
 
   /**
@@ -1291,12 +1294,6 @@ class JABS_Engine
      * @type {boolean}
      */
     this._requestPartyRotation = false;
-
-    /**
-     * True if we want to render additional sprites to the screen, false otherwise.
-     * @type {boolean}
-     */
-    this._requestRendering = false;
 
     /**
      * True if we want to empty the map of all action sprites, false otherwise.
@@ -1367,7 +1364,7 @@ class JABS_Engine
      * @type {JABS_TrackedState[]}
      */
     this._jabsStateTracker = [];
-  };
+  }
 
   /**
    * Adds a new `JABS_Action` to this battle map for tracking.
@@ -1382,7 +1379,7 @@ class JABS_Engine
     {
       this._activeActions.push(actionEventData);
     }
-  };
+  }
 
   /**
    * Finds the event metadata associated with the given `uuid`.
@@ -1393,31 +1390,7 @@ class JABS_Engine
   {
     const results = this._activeActions.filter(eventData => eventData.uniqueId === uuid);
     return results[0];
-  };
-
-  /**
-   * Removes the temporary metadata from our store.
-   * @param {JABS_Action} actionEvent The action event data.
-   */
-  removeActionEvent(actionEvent)
-  {
-    // find all the actions that are the same as this one.
-    const sameAction = this._actionEvents
-      .filter(action => action.getUuid() === actionEvent.getUuid());
-    if (!sameAction || !sameAction.length)
-    {
-      // if for some reason we don't have any matching actions, then we're done.
-      return;
-    }
-
-    const uniqueId = sameAction[0].getUuid();
-
-    // filter out all those same actions.
-    const updatedActiveActions = this.
-    _activeActions
-      .filter(active => !(active.uniqueId === uniqueId));
-    this._activeActions = updatedActiveActions;
-  };
+  }
 
   /**
    * Clears all currently managed `JABS_Action`s on this battle map that are marked
@@ -1434,7 +1407,7 @@ class JABS_Engine
     }
 
     this._actionEvents = updatedActionEvents;
-  };
+  }
 
   /**
    * Checks for how many living enemies there are present on the map.
@@ -1447,7 +1420,7 @@ class JABS_Engine
       .getBattlers()
       .find(battler => battler.isEnemy() && !battler.isInanimate());
     return !!anyEnemies;
-  };
+  }
 
   /**
    * Determines the animation id for this particular attack.
@@ -1459,7 +1432,7 @@ class JABS_Engine
   getAnimationId(skill, caster)
   {
     // grab the animation id from the skill.
-    let animationId = skill.animationId;
+    const {animationId} = skill;
 
     // check if the animation id indicates we should look to the weapon.
     if (animationId === -1)
@@ -1471,8 +1444,7 @@ class JABS_Engine
         return J.ABS.DefaultValues.AttackAnimationId;
       }
       // the caster was not an enemy.
-      else
-      {
+      
         // grab the weapons of the caster.
         const weapons = caster.getBattler().weapons();
 
@@ -1483,16 +1455,15 @@ class JABS_Engine
           return weapons[0].animationId;
         }
         // we are barefisting it.
-        else
-        {
+        
           // just return the default attack animation id.
           return J.ABS.DefaultValues.AttackAnimationId;
-        }
-      }
+        
+      
     }
 
     return animationId;
-  };
+  }
 
   /**
    * Returns the `JABS_Battler` associated with the player.
@@ -1501,7 +1472,7 @@ class JABS_Engine
   getPlayer1()
   {
     return this._player1;
-  };
+  }
 
   /**
    * Initializes the player properties associated with this battle map.
@@ -1516,7 +1487,7 @@ class JABS_Engine
 
     // assign the uuid to the player.
     $gamePlayer.setMapBattler(this._player1.getUuid());
-  };
+  }
 
   /**
    * Determines whether or not the player should be initialized.
@@ -1532,7 +1503,7 @@ class JABS_Engine
 
     // initialize the player!
     return false;
-  };
+  }
 
   //#region update
   /**
@@ -1555,7 +1526,7 @@ class JABS_Engine
 
     // handle input from the player(s).
     this.updateInput();
-  };
+  }
 
   //#region update player
   /**
@@ -1581,7 +1552,7 @@ class JABS_Engine
 
     // perform all battler updates.
     player.update();
-  };
+  }
 
   /**
    * Determines whether or not we can update the player battler.
@@ -1597,7 +1568,7 @@ class JABS_Engine
 
     // update!
     return true;
-  };
+  }
   //#region state tracking
 
   /**
@@ -1607,7 +1578,7 @@ class JABS_Engine
   getJabsStates()
   {
     return this._jabsStateTracker;
-  };
+  }
 
   /**
    * Add a new JABS state to the tracker.
@@ -1616,7 +1587,7 @@ class JABS_Engine
   addJabsState(newJabsState)
   {
     this._jabsStateTracker.push(newJabsState);
-  };
+  }
 
   /**
    * Updates all JABS states for all battlers that are afflicted.
@@ -1632,7 +1603,7 @@ class JABS_Engine
     {
       this._jabsStateTracker.pop();
     }
-  };
+  }
 
   /**
    * Updates a single JABS state.
@@ -1641,7 +1612,7 @@ class JABS_Engine
   updateJabsState(jabsState)
   {
     jabsState.update();
-  };
+  }
 
   /**
    * Adds a state tracker to the collection.
@@ -1657,7 +1628,7 @@ class JABS_Engine
 
     // if not reapplied, then add the state to the tracker.
     this.addJabsState(newTrackedState);
-  };
+  }
 
   /**
    * Reapply the state to the same battler afflicted with the same state.
@@ -1696,7 +1667,7 @@ class JABS_Engine
 
     // return the flag.
     return reapplied;
-  };
+  }
 
   /**
    * Gets all tracked states for a given battler.
@@ -1706,7 +1677,7 @@ class JABS_Engine
   getStateTrackerByBattler(battler)
   {
     return this._jabsStateTracker.filter(trackedState => trackedState.battler === battler);
-  };
+  }
 
   /**
    * Finds the tracked state associated with a specific battler and a state id.
@@ -1720,7 +1691,7 @@ class JABS_Engine
       .find(trackedState =>
         trackedState.battler === battler &&
         trackedState.stateId === stateId);
-  };
+  }
   //#endregion state tracking
   //#endregion update player
 
@@ -1741,7 +1712,7 @@ class JABS_Engine
 
     // update each of them.
     visibleBattlers.forEach(this.performAiBattlerUpdate, this);
-  };
+  }
 
   /**
    * Determines whether or not we can update the ai-controlled battlers.
@@ -1750,7 +1721,7 @@ class JABS_Engine
   canUpdateAiBattlers()
   {
     return true;
-  };
+  }
 
   /**
    * Performs the update against this non-player battler.
@@ -1777,7 +1748,7 @@ class JABS_Engine
       // process defeat.
       this.handleDefeatedTarget(battler, this.getPlayer1());
     }
-  };
+  }
 
   /**
    * Determines whether or not a battler should be handled as defeated.
@@ -1797,7 +1768,7 @@ class JABS_Engine
 
     // target is defeated!
     return true;
-  };
+  }
   //#endregion update ai battlers
 
   //#region update input
@@ -1815,7 +1786,7 @@ class JABS_Engine
       console.warn(`No input managers have been registered with the input adapter!`);
       console.warn(`if you built your own, be sure to run "JABS_InputAdapter.register(controller)"!`);
     }
-  };
+  }
 
   /**
    * Determines whether or not to process JABS input.
@@ -1840,7 +1811,7 @@ class JABS_Engine
 
     // update!
     return true;
-  };
+  }
 
   /**
    * Actually executes the party cycling and swaps to the next living member.
@@ -1884,7 +1855,7 @@ class JABS_Engine
 
     // request a map-wide sprite refresh on cycling.
     this.requestSpriteRefresh = true;
-  };
+  }
 
   /**
    * Determines whether or not this member can be party cycled to.
@@ -1908,7 +1879,7 @@ class JABS_Engine
 
     // perform!
     return true;
-  };
+  }
   //#endregion update input
 
   //#region update actions
@@ -1922,7 +1893,7 @@ class JABS_Engine
     if (!actionEvents.length) return;
 
     actionEvents.forEach(this.updateAction, this);
-  };
+  }
 
   /**
    * Updates a single `JABS_Action` that is active on the map.
@@ -1958,7 +1929,7 @@ class JABS_Engine
 
     // determine targets that this action collided with.
     this.processActionCollision(action);
-  };
+  }
 
   /**
    * Determines if the action can be updated.
@@ -1972,7 +1943,7 @@ class JABS_Engine
 
     // update!
     return true;
-  };
+  }
 
   /**
    * Determines whether or not to cleanup the action.
@@ -1989,7 +1960,7 @@ class JABS_Engine
 
     // not ready for cleanup.
     return false;
-  };
+  }
 
   /**
    * Cleans up a `JABS_Action`.
@@ -2008,7 +1979,7 @@ class JABS_Engine
 
     // clear out stale action events.
     this.clearActionEvents();
-  };
+  }
 
   /**
    * Determines whether or not the action is ready to hit again.
@@ -2022,7 +1993,7 @@ class JABS_Engine
 
     // hit again!
     return true;
-  };
+  }
 
   /**
    * Executes all effects of when an action collides with one or more targets.
@@ -2040,7 +2011,7 @@ class JABS_Engine
 
     // execute any additional post-collision processing.
     this.handleActionPostCollision(action);
-  };
+  }
 
   /**
    * Determines whether or not this action can collide with targets.
@@ -2054,7 +2025,7 @@ class JABS_Engine
 
     // we have collision targets!
     return true;
-  };
+  }
 
   /**
    * Handles any post-collision processing, such as ending delays.
@@ -2068,7 +2039,7 @@ class JABS_Engine
     // if the target can pierce enemies, adjust those values.
     action.resetPiercingDelay();
     action.modPiercingTimes();
-  };
+  }
   //#endregion update actions
   //#endregion update
 
@@ -2094,7 +2065,7 @@ class JABS_Engine
 
     // iterate over each action and execute them as the caster.
     actions.forEach(action => this.executeMapAction(caster, action, x, y));
-  };
+  }
 
   /**
    * Executes all provided actions at the given coordinates if possible.
@@ -2113,7 +2084,7 @@ class JABS_Engine
 
     // iterate over each action and execute them as the caster.
     actions.forEach(action => this.executeMapAction(caster, action, targetX, targetY));
-  };
+  }
 
   /**
    * Determines whether or not the given map actions can be executed by the caster.
@@ -2128,7 +2099,7 @@ class JABS_Engine
 
     // execute!
     return true;
-  };
+  }
 
   /**
    * Applies any on-execution effects to the caster based on the actions.
@@ -2145,7 +2116,7 @@ class JABS_Engine
 
     // apply the necessary cooldowns for the action against the caster.
     this.applyCooldownCounters(caster, primaryAction);
-  };
+  }
 
   /**
    * Executes the provided `JABS_Action`.
@@ -2169,7 +2140,7 @@ class JABS_Engine
 
     // handle the generation of the action on the map.
     this.handleActionGeneration(caster, action, targetX, targetY);
-  };
+  }
 
   /**
    * Handles the combo functionality behind this action.
@@ -2178,16 +2149,13 @@ class JABS_Engine
    */
   handleActionCombo(caster, action)
   {
-    // grab the underlying skill for this action.
-    const baseSkill = action.getBaseSkill();
-
     // check if this action has the "freecombo" tag.
     if (action.getBaseSkill().jabsFreeCombo)
     {
       // trigger the free combo effect for this action.
       this.checkComboSequence(caster, action)
     }
-  };
+  }
 
   /**
    * Handles the pose functionality behind this action.
@@ -2198,7 +2166,7 @@ class JABS_Engine
   {
     // perform the action's corresponding pose.
     caster.performActionPose(action.getBaseSkill());
-  };
+  }
 
   /**
    * Handles the cast animation functionality behind this action.
@@ -2214,7 +2182,7 @@ class JABS_Engine
       // execute the cast animation.
       caster.getCharacter().requestAnimation(casterAnimation);
     }
-  };
+  }
 
   /**
    * Handles adding this action to the map if applicable.
@@ -2238,7 +2206,7 @@ class JABS_Engine
 
     // add the action to the tracker.
     this.addActionEvent(action, actionEventData);
-  };
+  }
 
   /**
    * It generates a copy of an event from the "ActionMap".
@@ -2259,7 +2227,7 @@ class JABS_Engine
     actionEventData.uniqueId = action.getUuid();
     actionEventData.actionDeleted = false;
     return actionEventData;
-  };
+  }
 
   /**
    * Determines the directions of all projectiles.
@@ -2298,7 +2266,7 @@ class JABS_Engine
     }
 
     return directions;
-  };
+  }
 
   /**
    * Rotates the direction provided 45 degrees.
@@ -2341,7 +2309,7 @@ class JABS_Engine
     }
 
     return newDirection;
-  };
+  }
 
   /**
    * Rotates the direction provided 90 degrees.
@@ -2384,7 +2352,7 @@ class JABS_Engine
     }
 
     return newDirection;
-  };
+  }
 
   /**
    * Rotates the direction provided 180 degrees.
@@ -2426,7 +2394,7 @@ class JABS_Engine
     }
 
     return newDirection;
-  };
+  }
 
   /**
    * Checks whether or not this skill is a basic attack.
@@ -2438,7 +2406,7 @@ class JABS_Engine
     const isMainHand = cooldownKey === JABS_Button.Main;
     const isOffHand = cooldownKey === JABS_Button.Offhand;
     return (isMainHand || isOffHand);
-  };
+  }
 
   /**
    * Pays the costs for the skill (mp/tp default) if applicable.
@@ -2450,7 +2418,7 @@ class JABS_Engine
     const battler = caster.getBattler();
     const skill = action.getBaseSkill();
     battler.paySkillCost(skill);
-  };
+  }
 
   /**
    * Applies the cooldowns to the battler.
@@ -2460,7 +2428,7 @@ class JABS_Engine
   applyCooldownCounters(caster, action)
   {
     this.applyPlayerCooldowns(caster, action);
-  };
+  }
 
   /**
    * Applies cooldowns in regards to the player for the casted action.
@@ -2491,7 +2459,7 @@ class JABS_Engine
         caster.setCooldownCounter(skillSlot.key, cooldownValue);
       }
     });
-  };
+  }
 
   /**
    * Creates a new `JABS_Action` and adds it to the map and tracking.
@@ -2551,7 +2519,7 @@ class JABS_Engine
     action.setActionSprite(actionEventSprite);
     $gameMap.addEvent(actionEventSprite);
     this.requestActionRendering = true;
-  };
+  }
 
   /**
    * Adds the loot to the map.
@@ -2588,7 +2556,7 @@ class JABS_Engine
     // add loot event to map.
     this.requestLootRendering = true;
     $gameMap.addEvent(lootEvent);
-  };
+  }
 
   /**
    * Applies an action against a designated target battler.
@@ -2611,7 +2579,7 @@ class JABS_Engine
 
     // run any additional functionality that we needed to run after a skill is executed.
     this.postPrimaryBattleEffects(action, target);
-  };
+  }
 
   /**
    * Attempts to execute the skill effects of this action against the target.
@@ -2649,7 +2617,7 @@ class JABS_Engine
 
     // handle any post-execution effects.
     this.postExecuteSkillEffects(action, target);
-  };
+  }
 
   /**
    * Execute any pre-execution effects.
@@ -2660,7 +2628,7 @@ class JABS_Engine
    */
   preExecuteSkillEffects(action, target)
   {
-  };
+  }
 
   /**
    * Execute any post-execution effects.
@@ -2672,7 +2640,7 @@ class JABS_Engine
   {
     // apply aggro regardless of successful hit.
     this.applyAggroEffects(action, target);
-  };
+  }
 
   /**
    * Applies all aggro effects against the target.
@@ -2761,7 +2729,7 @@ class JABS_Engine
 
     // apply the aggro to the target.
     target.addUpdateAggro(attacker.getUuid(), aggro);
-  };
+  }
 
   /**
    * Applies on-hit effects against the target.
@@ -2805,7 +2773,7 @@ class JABS_Engine
     {
       caster.setBattlerLastHit(target);
     }
-  };
+  }
 
   /**
    * Forces the target hit to be knocked back.
@@ -2824,7 +2792,7 @@ class JABS_Engine
     let knockbackResist = 1.00;
     if (targetMeta && targetMeta[J.ABS.Notetags.KnockbackResist])
     {
-      let metaResist = parseInt(targetMeta[J.ABS.Notetags.KnockbackResist]);
+      const metaResist = parseInt(targetMeta[J.ABS.Notetags.KnockbackResist]);
       knockbackResist = (100 - metaResist) / 100;
     }
 
@@ -2838,7 +2806,7 @@ class JABS_Engine
     let knockback = action.getKnockback();
 
     // check to make sure the skill has knockback before processing.
-    if (knockback == null) return;
+    if (knockback === null) return;
 
     // multiply the knockback by the resist.
     knockback *= knockbackResist;
@@ -2913,7 +2881,7 @@ class JABS_Engine
 
     // execute the jump to the new destination.
     targetSprite.jump(realX - targetSprite.x, realY - targetSprite.y);
-  };
+  }
 
   /**
    * Determines if there is a combo action that should succeed this skill.
@@ -2927,7 +2895,7 @@ class JABS_Engine
 
     // execute the combo action.
     this.executeComboAction(caster, action);
-  };
+  }
 
   canExecuteComboAction(caster, action)
   {
@@ -2958,7 +2926,7 @@ class JABS_Engine
 
     caster.setComboFrames(cooldownKey, comboDelay);
     caster.setComboNextActionId(cooldownKey, skillId);
-  };
+  }
 
   /**
    * Calculates whether or not the attack was parried.
@@ -2982,6 +2950,7 @@ class JABS_Engine
     // if the attacker has a state that ignores all parry, then skip parrying.
     if (casterBattler.ignoreAllParry()) return false;
 
+    /* eslint-disable */
     /*
     // WIP formula!
     // defender's stat calculation of grd, bonuses from agi/luk.
@@ -3016,6 +2985,7 @@ class JABS_Engine
     return rng > difference;
     // console.log(`attacker:${casterBattler.name()} bonus:${bonusHit} + hit:${hit-bonusHit} < grd:${parryRate} ?${hit < parryRate}`);
     */
+    /* eslint-enable */
 
     // apply the hit bonus to hit.
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
@@ -3031,7 +3001,7 @@ class JABS_Engine
 
     // return whether or not the hit was successful.
     return hit < parry;
-  };
+  }
 
   /**
    * If the battler is hit from outside of it's engagement range,
@@ -3055,7 +3025,7 @@ class JABS_Engine
     {
       target.setWaitCountdown(45);
     }
-  };
+  }
 
   /**
    * Checks if the battler can even be alerted in the first place.
@@ -3078,7 +3048,7 @@ class JABS_Engine
     if (battler.isInanimate()) return false;
 
     return true;
-  };
+  }
 
   /**
    * Applies all effects to the target that occur after the skill execution is complete.
@@ -3093,7 +3063,7 @@ class JABS_Engine
     // apply the battle memories to the target.
     const result = target.getBattler().result();
     this.applyBattleMemories(result, action, target);
-  };
+  }
 
   /**
    * Executes a retalation if necessary on receiving a hit.
@@ -3122,7 +3092,7 @@ class JABS_Engine
       // handle non-player retaliations.
       this.handleEnemyRetaliation(targetBattler);
     }
-  };
+  }
 
   /**
    * Executes any retaliation the player may have when receiving a hit while guarding/parrying.
@@ -3165,7 +3135,7 @@ class JABS_Engine
         }
       })
     }
-  };
+  }
 
   /**
    * If the counter rate is sufficient, then automatically perform your counterskills on any
@@ -3221,7 +3191,7 @@ class JABS_Engine
         }
       })
     }
-  };
+  }
 
   /**
    * Applies a battle memory to the target.
@@ -3245,7 +3215,7 @@ class JABS_Engine
         .calculateRawElementRate(target.getBattler()),
       result.hpDamage);
     target.applyBattleMemories(newMemory);
-  };
+  }
 
   /**
    * Executes a retalation if necessary on receiving a hit.
@@ -3262,7 +3232,7 @@ class JABS_Engine
 
     // generate the text popup for the skill usage on the caster.
     this.generatePopSkillUsage(action, target);
-  };
+  }
 
   /**
    * Generates a popup based on the action executed and its result.
@@ -3285,7 +3255,7 @@ class JABS_Engine
     // add the pop to the target's tracking.
     character.addTextPop(damagePop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Generates a popup on the caster based on the skill used.
@@ -3310,7 +3280,7 @@ class JABS_Engine
     // add the pop to the caster's tracking.
     character.addTextPop(skillUsagePop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Generates a log in the `Map_TextLog` if applicable.
@@ -3409,7 +3379,7 @@ class JABS_Engine
         $gameTextLog.addLog(log);
       });
     }
-  };
+  }
 
   /**
    * Configures this skill used popup based on the skill itself.
@@ -3421,7 +3391,7 @@ class JABS_Engine
     return new TextPopBuilder(skill.name)
       .isSkillUsed(skill.iconIndex)
       .build();
-  };
+  }
 
   /**
    * Configures this damage popup based on the action result against the target.
@@ -3508,7 +3478,7 @@ class JABS_Engine
       .isElemental(elementalRate)
       .setCritical(actionResult.critical)
       .build();
-  };
+  }
 
   /**
    * Translates a skill's elemental affiliation into the icon id representing it.
@@ -3521,7 +3491,7 @@ class JABS_Engine
     // if not using the elemental icons, don't return one.
     if (!J.ABS.Metadata.UseElementalIcons) return 0;
 
-    let elementId = skill.damage.elementId;
+    let {elementId} = skill.damage;
 
     // if the battler is an actor and the action is based on the weapon's elements
     // probe the weapon's traits for its actual element.
@@ -3531,7 +3501,7 @@ class JABS_Engine
       if (attackElements.length)
       {
         // we pick only the first element!
-        elementId = attackElements[0];
+        [elementId,] = attackElements;
       }
       else
       {
@@ -3548,7 +3518,7 @@ class JABS_Engine
     const iconData = J.ABS.Metadata.ElementalIcons;
     const elementalIcon = iconData.find(data => data.element === elementId);
     return elementalIcon ? elementalIcon.icon : 0;
-  };
+  }
   //#endregion action execution
 
   //#region collision
@@ -3575,7 +3545,7 @@ class JABS_Engine
     /**  @type {JABS_Battler[]} */
     const battlers = $gameMap.getAllBattlersDistanceSortedFromPlayer(casterJabsBattler);
     let hitOne = false;
-    let targetsHit = [];
+    const targetsHit = [];
 
     const allyTarget = casterJabsBattler.getAllyTarget();
     if (allyTarget && action.getAction()
@@ -3648,7 +3618,7 @@ class JABS_Engine
       });
 
     return targetsHit;
-  };
+  }
 
   /**
    * Determines collision of a given shape vs coordinates.
@@ -3679,7 +3649,7 @@ class JABS_Engine
       default:
         return false;
     }
-  };
+  }
 
   /**
    * A rhombus-shaped (aka diamond) collision.
@@ -3693,7 +3663,7 @@ class JABS_Engine
   collisionRhombus(absDx, absDy, range)
   {
     return (absDx + absDy) <= range;
-  };
+  }
 
   /**
    * A square-shaped collision.
@@ -3709,7 +3679,7 @@ class JABS_Engine
     const inHorzRange = absDx <= range;
     const inVertRange = absDy <= range;
     return inHorzRange && inVertRange;
-  };
+  }
 
   /**
    * A square-shaped collision infront of the caster.
@@ -3744,7 +3714,7 @@ class JABS_Engine
     }
 
     return inHorzRange && inVertRange && isFacing;
-  };
+  }
 
   /**
    * A line-shaped collision.
@@ -3775,7 +3745,7 @@ class JABS_Engine
     }
 
     return result;
-  };
+  }
 
   /**
    * An arc-shaped collision.
@@ -3807,7 +3777,7 @@ class JABS_Engine
     }
 
     return inRange && isFacing;
-  };
+  }
 
   /**
    * A wall-shaped collision.
@@ -3834,7 +3804,7 @@ class JABS_Engine
     }
 
     return result;
-  };
+  }
 
   /**
    * A cross shaped collision.
@@ -3849,7 +3819,7 @@ class JABS_Engine
     const inVertRange = Math.abs(dy) <= range && dx === 0;
     const inHorzRange = Math.abs(dx) <= range && dy === 0;
     return inVertRange || inHorzRange;
-  };
+  }
 
   //#endregion collision
   //#endregion functional
@@ -3879,7 +3849,7 @@ class JABS_Engine
     }
 
     this.postDefeatHandler(target, caster);
-  };
+  }
 
   /**
    * Handles the effects that occur before a target's defeat is processed,
@@ -3890,7 +3860,7 @@ class JABS_Engine
   predefeatHandler(target, caster)
   {
     target.performPredefeatEffects(caster);
-  };
+  }
 
   /**
    * Handles the effects that occur after a target's defeat is processed.
@@ -3900,7 +3870,7 @@ class JABS_Engine
   postDefeatHandler(target, caster)
   {
     target.performPostdefeatEffects(caster);
-  };
+  }
 
   /**
    * Handles the defeat of the battler the player is currently controlling.
@@ -3908,15 +3878,15 @@ class JABS_Engine
   handleDefeatedPlayer()
   {
     this.performPartyCycling();
-  };
+  }
 
   /**
    * Handles a non-player ally that was defeated.
+   * @param {JABS_Battler} defeatedAlly The ally that was defeated.
    */
   handleDefeatedAlly(defeatedAlly)
   {
-    //console.log(`${defeatedAlly.getBattler().name()} has died.`);
-  };
+  }
 
   /**
    * Handles an enemy that was defeated, including dolling out exp/gold and loot drops.
@@ -3952,7 +3922,7 @@ class JABS_Engine
 
     // remove the target's character from the map.
     defeatedTarget.setDying(true);
-  };
+  }
 
   /**
    * Grants experience/gold/loot rewards to the battler that defeated the target.
@@ -3973,7 +3943,7 @@ class JABS_Engine
     this.gainExperienceReward(experience, actorCharacter);
     this.gainGoldReward(gold, actorCharacter);
     this.createRewardsLog(experience, gold, actor);
-  };
+  }
 
   /**
    * Gets the multiplier based on difference in level between attacker and
@@ -3998,7 +3968,7 @@ class JABS_Engine
 
     // return the findings.
     return multiplier;
-  };
+  }
 
   /**
    * Gains experience from battle rewards.
@@ -4019,7 +3989,7 @@ class JABS_Engine
 
     // generate the text popup for the experience earned.
     this.generatePopExperience(experience, casterCharacter);
-  };
+  }
 
   /**
    * Generates a popup for experience earned.
@@ -4037,7 +4007,7 @@ class JABS_Engine
     // add the pop to the target's tracking.
     character.addTextPop(expPop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Creates the text pop of the experienced gained.
@@ -4053,7 +4023,7 @@ class JABS_Engine
     return new TextPopBuilder(experienceGained)
       .isExperience()
       .build();
-  };
+  }
 
   /**
    * Gains gold from battle rewards.
@@ -4070,7 +4040,7 @@ class JABS_Engine
 
     // generate the text popup for the gold found.
     this.generatePopGold(gold, character);
-  };
+  }
 
   /**
    * Generates a popup for gold found.
@@ -4088,7 +4058,7 @@ class JABS_Engine
     // add the pop to the target's tracking.
     character.addTextPop(goldPop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Creates the text pop of the gold gained.
@@ -4103,7 +4073,7 @@ class JABS_Engine
     return new TextPopBuilder(goldGained)
       .isGold()
       .build();
-  };
+  }
 
   /**
    * Create a log entry for both experience earned and gold dropped.
@@ -4130,7 +4100,7 @@ class JABS_Engine
         .build();
       $gameTextLog.addLog(goldLog);
     }
-  };
+  }
 
   /**
    * Create all drops for a defeated enemy and gain them.
@@ -4147,7 +4117,7 @@ class JABS_Engine
     if (items.length === 0) return;
 
     items.forEach(item => this.addLootDropToMap(target.getX(), target.getY(), item));
-  };
+  }
 
   /**
    * Creates a log for an item earned as a loot drop from an enemy.
@@ -4176,7 +4146,7 @@ class JABS_Engine
       .setupLootObtained(this.getPlayer1().getReferenceData().name, lootType, item.id)
       .build();
     $gameTextLog.addLog(lootLog);
-  };
+  }
 
   /**
    * Generates popups for a pile of items picked up at the same time.
@@ -4197,7 +4167,7 @@ class JABS_Engine
 
     // flag the character for processing pops.
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Generates a popup for an acquired item.
@@ -4219,7 +4189,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(lootPop);
-  };
+  }
 
   /**
    * Creates the text pop of the acquired item.
@@ -4233,7 +4203,7 @@ class JABS_Engine
       .isLoot(y)
       .setIconIndex(itemData.iconIndex)
       .build();
-  };
+  }
 
   /**
    * Handles a level up for the leader while on the map.
@@ -4249,7 +4219,7 @@ class JABS_Engine
       this.generatePopLevelUp(character);
       this.createLevelUpLog(battler);
     }
-  };
+  }
 
   /**
    * Creates a text pop of the level up.
@@ -4266,7 +4236,7 @@ class JABS_Engine
     // add the pop to the target's tracking.
     character.addTextPop(levelUpPop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Configures the level up text pop.
@@ -4278,7 +4248,7 @@ class JABS_Engine
     return new TextPopBuilder(`LEVEL UP`)
       .isLevelUp()
       .build();
-  };
+  }
 
   /**
    * Creates a level up log for the given battler.
@@ -4291,7 +4261,7 @@ class JABS_Engine
     const battler = jabsBattler.getBattler();
     const log = this.configureLevelUpLog(battler.name(), battler.level);
     $gameTextLog.addLog(log);
-  };
+  }
 
   /**
    * Configures the log for the actor reaching a new level.
@@ -4304,7 +4274,7 @@ class JABS_Engine
     return new MapLogBuilder()
       .setupLevelUp(targetName, newLevel)
       .build();
-  };
+  }
 
   /**
    * Plays the level up animation on the character.
@@ -4313,7 +4283,7 @@ class JABS_Engine
   playLevelUpAnimation(character)
   {
     character.requestAnimation(49);
-  };
+  }
 
   /**
    * Handles a skill being learned for a battler while on the map.
@@ -4329,7 +4299,7 @@ class JABS_Engine
       this.generatePopSkillLearn(skill, character);
       this.createSkillLearnLog(skill, battler);
     }
-  };
+  }
 
   /**
    * Creates a text pop of the skill being learned.
@@ -4347,7 +4317,7 @@ class JABS_Engine
     // add the pop to the target's tracking.
     character.addTextPop(skillLearnPop);
     character.setRequestTextPop();
-  };
+  }
 
   /**
    * Configures the popup for a skill learned.
@@ -4359,7 +4329,7 @@ class JABS_Engine
     return new TextPopBuilder(skill.name)
       .isSkillLearned(skill.iconIndex)
       .build();
-  };
+  }
 
   /**
    * Creates a skill learning log for the player.
@@ -4372,7 +4342,7 @@ class JABS_Engine
 
     const log = this.configureSkillLearnLog(player.getReferenceData().name, skill.id);
     $gameTextLog.addLog(log);
-  };
+  }
 
   /**
    * Configures the log for the skill learned.
@@ -4385,7 +4355,7 @@ class JABS_Engine
     return new MapLogBuilder()
       .setupSkillLearn(targetName, learnedSkillId)
       .build();
-  };
+  }
 
 //#endregion defeated target aftermath
 }
@@ -4410,7 +4380,10 @@ class JABS_InputAdapter
    * Constructor.
    * A static class though, so don't try to instantiate this.
    */
-  constructor() { throw new Error('JABS_InputAdapter is a static class.')};
+  constructor() 
+{
+ throw new Error('JABS_InputAdapter is a static class.')
+}
 
   /**
    * Registers a controller with this input adapter.
@@ -4419,7 +4392,7 @@ class JABS_InputAdapter
   static register(controller)
   {
     this.controllers.push(controller);
-  };
+  }
 
   /**
    * Checks whether or not any controllers have been registered
@@ -4429,7 +4402,7 @@ class JABS_InputAdapter
   static hasControllers()
   {
     return this.controllers.length > 0;
-  };
+  }
 
   /**
    * Executes an action on the map based on the mainhand skill slot.
@@ -4441,7 +4414,7 @@ class JABS_InputAdapter
     if (!this.canPerformMainhandAction(jabsBattler)) return;
 
     // get all actions associated with the mainhand.
-    let actions = jabsBattler.getAttackData(JABS_Button.Main);
+    const actions = jabsBattler.getAttackData(JABS_Button.Main);
 
     // apply the cooldown type to the appropriate slot.
     actions.forEach(action => action.setCooldownType(JABS_Button.Main));
@@ -4454,7 +4427,7 @@ class JABS_InputAdapter
 
     // reset the combo data now that we are executing the actions.
     jabsBattler.resetComboData(JABS_Button.Main);
-  };
+  }
 
   /**
    * Determines whether or not the player can execute the mainhand action.
@@ -4483,7 +4456,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Executes an action on the map based on the offhand skill slot.
@@ -4508,7 +4481,7 @@ class JABS_InputAdapter
 
     // reset the combo data now that we are executing the actions.
     jabsBattler.resetComboData(JABS_Button.Offhand);
-  };
+  }
 
   /**
    * Determines whether or not the player can execute the offhand action.
@@ -4540,7 +4513,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Begins the execution of a tool.
@@ -4557,7 +4530,7 @@ class JABS_InputAdapter
 
     // perform tool effects!
     jabsBattler.applyToolEffects(toolId);
-  };
+  }
 
   /**
    * Determines whether or not the player can execute the tool action.
@@ -4574,7 +4547,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Executes the dodge action.
@@ -4588,7 +4561,7 @@ class JABS_InputAdapter
 
     // perform the dodge skill.
     jabsBattler.tryDodgeSkill();
-  };
+  }
 
   /**
    * Determines whether or not the player can perform a dodge skill.
@@ -4605,7 +4578,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Begins execution of a skill based on any of the L1 + ABXY skill slots.
@@ -4625,7 +4598,7 @@ class JABS_InputAdapter
 
     // set the cast time for this battler to the primary skill in the list.
     jabsBattler.setCastCountdown(actions[0].getCastTime());
-  };
+  }
 
   /**
    * Determines whether or not the player can execute the combat action.
@@ -4652,7 +4625,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Executes the strafe action.
@@ -4667,7 +4640,7 @@ class JABS_InputAdapter
 
     // perform the strafe.
     jabsBattler.getCharacter().setDirectionFix(strafing);
-  };
+  }
 
   /**
    * Determines whether or not the player can strafe and hold direction while moving.
@@ -4677,7 +4650,7 @@ class JABS_InputAdapter
   static canPerformStrafe(jabsBattler)
   {
     return true;
-  };
+  }
 
   /**
    * Executes the rotation action.
@@ -4692,7 +4665,7 @@ class JABS_InputAdapter
 
     // perform the rotation.
     jabsBattler.setMovementLock(rotating);
-  };
+  }
 
   /**
    * Determines whether or not the player can rotate in-place without movement.
@@ -4702,7 +4675,7 @@ class JABS_InputAdapter
   static canPerformRotate(jabsBattler)
   {
     return true;
-  };
+  }
 
   /**
    * Executes the guard action.
@@ -4717,7 +4690,7 @@ class JABS_InputAdapter
 
     // perform the guard skill in the offhand slot.
     jabsBattler.executeGuard(guarding, JABS_Button.Offhand);
-  };
+  }
 
   /**
    * Determines whether or not the player can guard.
@@ -4732,7 +4705,7 @@ class JABS_InputAdapter
 
     // perform!
     return true;
-  };
+  }
 
   /**
    * Rotates the leader out to the back and pulls in the next-in-line.
@@ -4747,7 +4720,7 @@ class JABS_InputAdapter
 
     // execute the party cycling.
     $jabsEngine.performPartyCycling(force);
-  };
+  }
 
   /**
    * Determines whether or not the player can party cycle.
@@ -4764,7 +4737,7 @@ class JABS_InputAdapter
 
     // cycle!
     return true;
-  };
+  }
 
   /**
    * Calls the JABS quick menu on the map.
@@ -4779,7 +4752,7 @@ class JABS_InputAdapter
 
     // request the menu.
     $jabsEngine.requestAbsMenu = true;
-  };
+  }
 
   /**
    * Determines whether or not we can call the menu.
@@ -4789,7 +4762,7 @@ class JABS_InputAdapter
   {
     // there are currently no conditions for accessing the JABS menu.
     return true;
-  };
+  }
 }
 //#endregion JABS_InputAdapter
 //ENDFILE

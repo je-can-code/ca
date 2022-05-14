@@ -149,7 +149,7 @@ Game_Battler.prototype.extractTpGrowthFormula = function(referenceData)
   if (!referenceData.note) return [];
 
   const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<tpGrowth:\[([+\-*\/ ().\w]+)]>/gmi;
+  const structure = /<tpGrowth:\[([+\-*/ ().\w]+)]>/gmi;
   let formula = null;
   notedata.forEach(line =>
   {

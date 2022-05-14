@@ -248,7 +248,10 @@ class JABS_AiManager
    * Constructor.
    * This is a static class.
    */
-  constructor() { throw new Error("The JABS_AiManager is a static class."); };
+  constructor() 
+{
+ throw new Error("The JABS_AiManager is a static class."); 
+}
 
   //#region update loop
   /**
@@ -261,7 +264,7 @@ class JABS_AiManager
 
     // execute AI management.
     this.manageAi();
-  };
+  }
 
   /**
    * Whether or not the ai manager can process an update.
@@ -280,7 +283,7 @@ class JABS_AiManager
 
     // update!
     return true;
-  };
+  }
 
   /**
    * Define whether or not the player is engaged in combat with any of the current battlers.
@@ -297,7 +300,7 @@ class JABS_AiManager
 
     // iterate over each battler available.
     battlers.forEach(this.handleBattlerAi, this);
-  };
+  }
 
   /**
    * Handles the AI management of this battler.
@@ -310,7 +313,7 @@ class JABS_AiManager
 
     // execute the AI loop for this battler.
     this.executeAi(battler);
-  };
+  }
 
   /**
    * Determines whether or not this battler can have its AI managed.
@@ -330,7 +333,7 @@ class JABS_AiManager
 
     // manage that AI!
     return true;
-  };
+  }
 
   /**
    * Executes the interactions specified by the combination of the AI mode bits.
@@ -376,7 +379,7 @@ class JABS_AiManager
       // the battler is not engaged, instead just idle about.
       this.aiPhase0(battler);
     }
-  };
+  }
   //#endregion update loop
 
   //#region Phase 0 - Idle Phase
@@ -415,7 +418,7 @@ class JABS_AiManager
         this.moveIdly(battler);
       }
     }
-  };
+  }
 
   /**
    * If a battler is idle but alerted, then they will try to seek out what
@@ -429,7 +432,7 @@ class JABS_AiManager
 
     // attempt to move intelligently towards those coordiantes.
     battler.smartMoveTowardCoordinates(alertX, alertY);
-  };
+  }
 
   /**
    * Progresses the battler towards their home coordinates.
@@ -452,7 +455,7 @@ class JABS_AiManager
       // flag this battler as being idle.
       battler.setIdle(true);
     }
-  };
+  }
 
   /**
    * Executes whatever the idle action is for this battler.
@@ -484,7 +487,7 @@ class JABS_AiManager
 
     // reset the idle action counter.
     battler.resetIdleAction();
-  };
+  }
 
   /**
    * Determiens whether or not this battler can move idly.
@@ -501,7 +504,7 @@ class JABS_AiManager
 
     // idle about!
     return true;
-  };
+  }
   //#endregion Phase 0 - Idle Phase
 
   //#region Phase 1 - Pre-Action Movement Phase
@@ -535,7 +538,7 @@ class JABS_AiManager
     }
 
     // otherwise, we must be processing a movement command from before.
-  };
+  }
 
   /**
    * Determines whether or not this battler is ready to transition to AI phase 2.
@@ -549,7 +552,7 @@ class JABS_AiManager
 
     // move to phase 2!
     return true;
-  };
+  }
 
   /**
    * Transitions this battler to AI phase 2, action decision and repositioning.
@@ -559,7 +562,7 @@ class JABS_AiManager
   {
     // move to the next phase of AI.
     battler.setPhase(2);
-  };
+  }
 
   /**
    * Determines whether or not this battler can perform pre-action movement.
@@ -576,7 +579,7 @@ class JABS_AiManager
 
     // move!
     return true;
-  };
+  }
 
   /**
    * Moves the battler around in an effort to maintain a "comfortable" distance
@@ -605,7 +608,7 @@ class JABS_AiManager
       // turn towards the target.
       battler.turnTowardTarget();
     }
-  };
+  }
 
   /**
    * Determines whether or not this battler should disengage from its target
@@ -626,7 +629,7 @@ class JABS_AiManager
 
     // do not disengage.
     return false;
-  };
+  }
 
   /**
    * This battler will attempt to keep a "safe" distance of not-too-far and
@@ -650,7 +653,7 @@ class JABS_AiManager
       // move intelligently towards the target (uses careful pathfinding).
       battler.smartMoveTowardTarget();
     }
-  };
+  }
   //#endregion Phase 1 - Pre-Action Movement Phase
 
   //#region Phase 2 - Execute Action Phase
@@ -688,7 +691,7 @@ class JABS_AiManager
       // execute the decided action.
       this.executeAiPhase2Action(battler);
     }
-  };
+  }
 
   /**
    * Determines whether or not this battler needs to decide an action.
@@ -702,7 +705,7 @@ class JABS_AiManager
 
     // battler already has already made a decision.
     return false;
-  };
+  }
 
   /**
    * Determines whether or not this battler needs to get into position.
@@ -725,7 +728,7 @@ class JABS_AiManager
 
     // battler is fine where they are at.
     return false;
-  };
+  }
 
   /**
    * Determines whether or not this battler needs to execute queued actions.
@@ -745,7 +748,7 @@ class JABS_AiManager
 
     // we need action!
     return true;
-  };
+  }
 
   /**
    * Execute the decided queued actions for this battler.
@@ -764,7 +767,7 @@ class JABS_AiManager
 
     // switch to cooldown phase.
     battler.setPhase(3);
-  };
+  }
 
   /**
    * The battler decides what action to execute.
@@ -773,7 +776,7 @@ class JABS_AiManager
   static decideAiPhase2Action(battler)
   {
     this.decideEnemyAiPhase2Action(battler);
-  };
+  }
 
   /**
    * The enemy battler decides what action to take.
@@ -848,7 +851,7 @@ class JABS_AiManager
 
     // stop processing.
     return;
-  };
+  }
 
   //#region ai:leader
   /**
@@ -862,7 +865,7 @@ class JABS_AiManager
 
     // iterate over each found follower.
     nearbyFollowers.forEach(follower => this.decideActionForFollower(leader, follower));
-  };
+  }
 
   /**
    * Decides the next action for a follower.
@@ -892,7 +895,7 @@ class JABS_AiManager
       // set it as their next action.
       follower.setLeaderDecidedAction(followerAction);
     }
-  };
+  }
 
   /**
    * Determines whether or not this leader can lead the given follower.
@@ -935,7 +938,7 @@ class JABS_AiManager
 
     // lead this follower!
     return true;
-  };
+  }
   //#endregion ai:leader
 
   //#region ai:follower
@@ -962,7 +965,7 @@ class JABS_AiManager
       // only basic attacks for this battler.
       this.decideFollowerAiBySelf(battler);
     }
-  };
+  }
 
   /**
    * Determines whether or not this battler has a leader ready to guide them.
@@ -982,7 +985,7 @@ class JABS_AiManager
 
     // let the leader decide!
     return true;
-  };
+  }
 
   /**
    * Allows the leader to decide this follower's next action to take.
@@ -1024,7 +1027,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, leaderDecidedSkillId, cooldownKey);
-  };
+  }
 
   /**
    * Allows the follower to decide their own next action to take.
@@ -1054,7 +1057,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, basicAttackSkillId, cooldownKey);
-  };
+  }
   //#endregion ai:follower
 
   //#region ai:healer
@@ -1098,7 +1101,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  };
+  }
   //#endregion ai:healer
 
   //#region ai:careful/executor
@@ -1144,7 +1147,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  };
+  }
   //#endregion ai:careful/executor
 
   //#region ai:reckless
@@ -1201,7 +1204,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  };
+  }
 
   /**
    *
@@ -1222,7 +1225,7 @@ class JABS_AiManager
 
     // skill id is valid!
     return true;
-  };
+  }
   //#endregion ai:reckless
 
   //#region ai:unassigned
@@ -1265,7 +1268,7 @@ class JABS_AiManager
 
     // setup the skill for use.
     this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  };
+  }
   //#endregion ai:unassigned
 
   /**
@@ -1306,7 +1309,7 @@ class JABS_AiManager
 
     // set the decided action.
     battler.setDecidedAction(actions);
-  };
+  }
 
   /**
    * Constructs a cooldown key based on the skill.
@@ -1316,7 +1319,7 @@ class JABS_AiManager
   static buildEnemyCooldownType(skill)
   {
     return `${skill.id}-${skill.name}`;
-  };
+  }
 
   /**
    * Determines whether or not the given skill can be transformed into an action
@@ -1335,7 +1338,7 @@ class JABS_AiManager
 
     // setup the action!
     return true;
-  };
+  }
 
   /**
    * Cancel the setup process for this battler.
@@ -1348,7 +1351,7 @@ class JABS_AiManager
 
     // if we can't setup this skill for some reason, then wait before trying again.
     battler.setWaitCountdown(20);
-  };
+  }
 
   /**
    * Performs a brief animation to indicate that the battler has decided an action.
@@ -1370,7 +1373,7 @@ class JABS_AiManager
       // show the "attack decision" animation on the battler.
       battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
     }
-  };
+  }
 
   /**
    * The battler attempts to move into a position where they can execute
@@ -1394,7 +1397,7 @@ class JABS_AiManager
       // flag this battler as in-position to execute.
       battler.setInPosition(true);
     }
-  };
+  }
 
   /**
    * Determines whether or not this battler can (or needs to) perform ai phase 2 movement.
@@ -1411,7 +1414,7 @@ class JABS_AiManager
 
     // move closer!
     return true;
-  };
+  }
 
   /**
    * Determines whether or not to move closer in AI phase 2.
@@ -1436,7 +1439,7 @@ class JABS_AiManager
 
     // no need to move.
     return false;
-  };
+  }
 
   /**
    * Moves this battler closer to the relevant target.
@@ -1456,7 +1459,7 @@ class JABS_AiManager
       // move towards the target instead.
       battler.smartMoveTowardTarget();
     }
-  };
+  }
   //#endregion Phase 2 - Execute Action Phase
 
   //#region Phase 3 - Post-Action Cooldown Phase
@@ -1484,7 +1487,7 @@ class JABS_AiManager
         this.decideAiPhase3Movement(battler);
       }
     }
-  };
+  }
 
   /**
    * Determines wehther or not this battler is ready to reset its AI phases.
@@ -1498,7 +1501,7 @@ class JABS_AiManager
 
     // ready for reset!
     return true;
-  };
+  }
 
   /**
    * Resets the phases for this battler back to phase 1.
@@ -1508,7 +1511,7 @@ class JABS_AiManager
   {
     // AI loop complete, reset back to phase 1.
     battler.resetPhases();
-  };
+  }
 
   /**
    * Determines whether or not this battler can move around while waiting for
@@ -1526,7 +1529,7 @@ class JABS_AiManager
 
     // move!
     return true;
-  };
+  }
 
   /**
    * Decides where to move while waiting for cooldown to complete from the skill.
@@ -1536,7 +1539,7 @@ class JABS_AiManager
   {
     // move around as-necessary.
     this.decideAiMovement(battler);
-  };
+  }
 
   //#endregion Phase 3 - Post-Action Cooldown Phase
 }

@@ -215,7 +215,7 @@ null,
 {"id":213,"expanded":true,"name":"DUNGEON: Erocia Isthmus","order":209,"parentId":118,"scrollX":1331.25,"scrollY":984.75},
 {"id":214,"expanded":false,"name":"Forced Connection","order":212,"parentId":213,"scrollX":1328,"scrollY":640},
 {"id":215,"expanded":true,"name":"Going Under","order":213,"parentId":213,"scrollX":2028,"scrollY":1433.4545454545455},
-{"id":216,"expanded":false,"name":"A Path Aside","order":216,"parentId":213,"scrollX":1344,"scrollY":1296},
+{"id":216,"expanded":false,"name":"A Path Aside","order":216,"parentId":213,"scrollX":1394.25,"scrollY":985.5},
 {"id":217,"expanded":false,"name":"Northern Exit","order":217,"parentId":213,"scrollX":2028,"scrollY":1433.4545454545455},
 {"id":218,"expanded":false,"name":"Watery Hill","order":214,"parentId":215,"scrollX":832,"scrollY":1280},
 {"id":219,"expanded":false,"name":"Watery Path","order":215,"parentId":215,"scrollX":1344,"scrollY":624}

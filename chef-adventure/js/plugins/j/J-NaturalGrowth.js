@@ -8,6 +8,22 @@
  * @help
  * ==============================================================================
  * This plugin enables growth of all parameters parameters via level.
+ *
+ * Use:
+ *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULAIC_AMOUNT]>
+ *
+ * Example:
+ *  <hrgGrowthRate:[5]>
+ *  gain a permanent 5 HRG per level up.
+ *
+ * Example:
+ *  <exrBuffPlus:[25]>
+ *  gain a flat 25 EXR while this tag is applied to this battler.
+ *
+ * Example:
+ *  <atkGrowthPlus:[a.level * 3]>
+ *  gain (the battler's leve multiplied by 3) attack per level.
+ *  this would result in gaining an ever-increasing amount of attack per level.
  * ==============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -73,147 +89,147 @@ J.NATURAL.Aliased = {
 J.NATURAL.RegExp = {
   // base parameters.
   // base parameter buffs flat (temporary).
-  MaxLifeBuffPlus: /<mhpBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MaxMagiBuffPlus: /<mmpBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  PowerBuffPlus: /<atkBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  DefenseBuffPlus: /<defBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ForceBuffPlus: /<matBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ResistBuffPlus: /<mdfBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  SpeedBuffPlus: /<agiBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  LuckBuffPlus: /<lukBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  MaxLifeBuffPlus: /<mhpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxMagiBuffPlus: /<mmpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  PowerBuffPlus: /<atkBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  DefenseBuffPlus: /<defBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ForceBuffPlus: /<matBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ResistBuffPlus: /<mdfBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  SpeedBuffPlus: /<agiBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  LuckBuffPlus: /<lukBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // base parameter buffs rate (temporary).
-  MaxLifeBuffRate: /<mhpBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MaxMagiBuffRate: /<mmpBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  PowerBuffRate: /<atkBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  DefenseBuffRate: /<defBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ForceBuffRate: /<matBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ResistBuffRate: /<mdfBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  SpeedBuffRate: /<agiBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  LuckBuffRate: /<lukBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
+  MaxLifeBuffRate: /<mhpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxMagiBuffRate: /<mmpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  PowerBuffRate: /<atkBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  DefenseBuffRate: /<defBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  ForceBuffRate: /<matBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  ResistBuffRate: /<mdfBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  SpeedBuffRate: /<agiBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  LuckBuffRate: /<lukBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // base parameter growths flat (permanent)
-  MaxLifeGrowthPlus: /<mhpGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MaxMagiGrowthPlus: /<mmpGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  PowerGrowthPlus: /<atkGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  DefenseGrowthPlus: /<defGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ForceGrowthPlus: /<matGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ResistGrowthPlus: /<mdfGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  SpeedGrowthPlus: /<agiGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  LuckGrowthPlus: /<lukGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  MaxLifeGrowthPlus: /<mhpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxMagiGrowthPlus: /<mmpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  PowerGrowthPlus: /<atkGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  DefenseGrowthPlus: /<defGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ForceGrowthPlus: /<matGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ResistGrowthPlus: /<mdfGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  SpeedGrowthPlus: /<agiGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  LuckGrowthPlus: /<lukGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // base parameter growths rate (permanent)
-  MaxLifeGrowthRate: /<mhpGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MaxMagiGrowthRate: /<mmpGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  PowerGrowthRate: /<atkGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  DefenseGrowthRate: /<defGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ForceGrowthRate: /<matGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ResistGrowthRate: /<mdfGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  SpeedGrowthRate: /<agiGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  LuckGrowthRate: /<lukGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
+  MaxLifeGrowthRate: /<mhpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxMagiGrowthRate: /<mmpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  PowerGrowthRate: /<atkGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  DefenseGrowthRate: /<defGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  ForceGrowthRate: /<matGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  ResistGrowthRate: /<mdfGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  SpeedGrowthRate: /<agiGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  LuckGrowthRate: /<lukGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // ex parameters.
   // ex parameter buffs flat (temporary).
-  HitBuffPlus: /<hitBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  EvadeBuffPlus: /<evaBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CritChanceBuffPlus: /<criBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CritEvadeBuffPlus: /<cevBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiEvadeBuffPlus: /<mevBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiReflectBuffPlus: /<mrfBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CounterBuffPlus: /<cntBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  LifeRegenBuffPlus: /<hrgBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiRegenBuffPlus: /<mrgBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  TechRegenBuffPlus: /<trgBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  HitBuffPlus: /<hitBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  EvadeBuffPlus: /<evaBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritChanceBuffPlus: /<criBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritEvadeBuffPlus: /<cevBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiEvadeBuffPlus: /<mevBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiReflectBuffPlus: /<mrfBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CounterBuffPlus: /<cntBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  LifeRegenBuffPlus: /<hrgBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiRegenBuffPlus: /<mrgBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  TechRegenBuffPlus: /<trgBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // ex parameter buffs rate (temporary).
-  HitBuffRate: /<hitBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  EvadeBuffRate: /<evaBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CritChanceBuffRate: /<criBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CritEvadeBuffRate: /<cevBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiEvadeBuffRate: /<mevBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiReflectBuffRate: /<mrfBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CounterBuffRate: /<cntBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  LifeRegenBuffRate: /<hrgBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiRegenBuffRate: /<mrgBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  TechRegenBuffRate: /<trgBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
+  HitBuffRate: /<hitBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  EvadeBuffRate: /<evaBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritChanceBuffRate: /<criBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritEvadeBuffRate: /<cevBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiEvadeBuffRate: /<mevBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiReflectBuffRate: /<mrfBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  CounterBuffRate: /<cntBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  LifeRegenBuffRate: /<hrgBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiRegenBuffRate: /<mrgBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  TechRegenBuffRate: /<trgBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // ex parameter growths flat (permanent)
-  HitGrowthPlus: /<hitGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  EvadeGrowthPlus: /<evaGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CritChanceGrowthPlus: /<criGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CritEvadeGrowthPlus: /<cevGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiEvadeGrowthPlus: /<mevGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiReflectGrowthPlus: /<mrfGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  CounterGrowthPlus: /<cntGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  LifeRegenGrowthPlus: /<hrgGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiRegenGrowthPlus: /<mrgGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  TechRegenGrowthPlus: /<trgGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  HitGrowthPlus: /<hitGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  EvadeGrowthPlus: /<evaGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritChanceGrowthPlus: /<criGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritEvadeGrowthPlus: /<cevGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiEvadeGrowthPlus: /<mevGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiReflectGrowthPlus: /<mrfGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CounterGrowthPlus: /<cntGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  LifeRegenGrowthPlus: /<hrgGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiRegenGrowthPlus: /<mrgGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  TechRegenGrowthPlus: /<trgGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // ex parameter growths rate (permanent)
-  HitGrowthRate: /<hitGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  EvadeGrowthRate: /<evaGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CritChanceGrowthRate: /<criGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CritEvadeGrowthRate: /<cevGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiEvadeGrowthRate: /<mevGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiReflectGrowthRate: /<mrfGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  CounterGrowthRate: /<cntGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  LifeRegenGrowthRate: /<hrgGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiRegenGrowthRate: /<mrgGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  TechRegenGrowthRate: /<trgGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
+  HitGrowthRate: /<hitGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  EvadeGrowthRate: /<evaGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritChanceGrowthRate: /<criGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritEvadeGrowthRate: /<cevGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiEvadeGrowthRate: /<mevGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiReflectGrowthRate: /<mrfGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  CounterGrowthRate: /<cntGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  LifeRegenGrowthRate: /<hrgGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiRegenGrowthRate: /<mrgGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  TechRegenGrowthRate: /<trgGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // sp parameters.
   // sp parameter buffs flat (temporary).
-  AggroBuffPlus: /<tgrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ParryBuffPlus: /<grdBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  HealingBuffPlus: /<recBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ItemFxBuffPlus: /<phaBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiCostRateBuffPlus: /<mcrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  TechCostRateBuffPlus: /<tcrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  PhysDmgRateBuffPlus: /<pdrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiDmgRateBuffPlus: /<mdrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  FloorDmgRateBuffPlus: /<fdrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ExpGainRateBuffPlus: /<exrBuffPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  AggroBuffPlus: /<tgrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ParryBuffPlus: /<grdBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  HealingBuffPlus: /<recBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ItemFxBuffPlus: /<phaBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiCostRateBuffPlus: /<mcrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  TechCostRateBuffPlus: /<tcrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  PhysDmgRateBuffPlus: /<pdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiDmgRateBuffPlus: /<mdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  FloorDmgRateBuffPlus: /<fdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ExpGainRateBuffPlus: /<exrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // sp parameter buffs rate (temporary).
-  AggroBuffRate: /<tgrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ParryBuffRate: /<grdBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  HealingBuffRate: /<recBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ItemFxBuffRate: /<phaBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiCostRateBuffRate: /<mcrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  TechCostRateBuffRate: /<tcrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  PhysDmgRateBuffRate: /<pdrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiDmgRateBuffRate: /<mdrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  FloorDmgRateBuffRate: /<fdrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ExpGainRateBuffRate: /<exrBuffRate:\[([+\-*\/ ().\w]+)]>/gi,
+  AggroBuffRate: /<tgrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  ParryBuffRate: /<grdBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  HealingBuffRate: /<recBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  ItemFxBuffRate: /<phaBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiCostRateBuffRate: /<mcrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  TechCostRateBuffRate: /<tcrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  PhysDmgRateBuffRate: /<pdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiDmgRateBuffRate: /<mdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  FloorDmgRateBuffRate: /<fdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  ExpGainRateBuffRate: /<exrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // sp parameter growths flat (permanent).
-  AggroGrowthPlus: /<tgrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ParryGrowthPlus: /<grdGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  HealingGrowthPlus: /<recGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ItemFxGrowthPlus: /<phaGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiCostRateGrowthPlus: /<mcrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  TechCostRateGrowthPlus: /<tcrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  PhysDmgRateGrowthPlus: /<pdrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiDmgRateGrowthPlus: /<mdrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  FloorDmgRateGrowthPlus: /<fdrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
-  ExpGainRateGrowthPlus: /<exrGrowthPlus:\[([+\-*\/ ().\w]+)]>/gi,
+  AggroGrowthPlus: /<tgrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ParryGrowthPlus: /<grdGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  HealingGrowthPlus: /<recGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ItemFxGrowthPlus: /<phaGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiCostRateGrowthPlus: /<mcrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  TechCostRateGrowthPlus: /<tcrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  PhysDmgRateGrowthPlus: /<pdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MagiDmgRateGrowthPlus: /<mdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  FloorDmgRateGrowthPlus: /<fdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  ExpGainRateGrowthPlus: /<exrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 
   // sp parameter buffs rate (permanent).
-  AggroGrowthRate: /<tgrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ParryGrowthRate: /<grdGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  HealingGrowthRate: /<recGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ItemFxGrowthRate: /<phaGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiCostRateGrowthRate: /<mcrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  TechCostRateGrowthRate: /<tcrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  PhysDmgRateGrowthRate: /<pdrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  MagiDmgRateGrowthRate: /<mdrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  FloorDmgRateGrowthRate: /<fdrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
-  ExpGainRateGrowthRate: /<exrGrowthRate:\[([+\-*\/ ().\w]+)]>/gi,
+  AggroGrowthRate: /<tgrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  ParryGrowthRate: /<grdGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  HealingGrowthRate: /<recGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  ItemFxGrowthRate: /<phaGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiCostRateGrowthRate: /<mcrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  TechCostRateGrowthRate: /<tcrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  PhysDmgRateGrowthRate: /<pdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MagiDmgRateGrowthRate: /<mdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  FloorDmgRateGrowthRate: /<fdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  ExpGainRateGrowthRate: /<exrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // additionally supported parameters.
   // TP-related parameters.
-  MaxTechGrowth: /<mtpGrowth:\[([+\-*\/ ().\w]+)]>/gi,
-  MaxTechRate: /<mtpRate:\[([+\-*\/ ().\w]+)]>/gi,
+  MaxTechGrowth: /<mtpGrowth:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechRate: /<mtpRate:\[([+\-*/ ().\w]+)]>/gi,
 };
 //#endregion Introduction
 
@@ -254,31 +270,31 @@ Game_Actor.prototype.initNaturalParams = function()
    * The permanent multiplier bonuses for each of the base parameters.
    * @type {number[]}
    */
-  this._j._natural._bParamsRate = [100, 100, 100, 100, 100, 100, 100, 100];
+  this._j._natural._bParamsRate = [0, 0, 0, 0, 0, 0, 0, 0];
 
   /**
    * The permanent flat bonuses for each of the sp-parameters.
    * @type {number[]}
    */
-  this._j._natural._sParamsPlus = [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
+  this._j._natural._sParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   /**
    * The permanent multiplier bonuses for each of the sp-parameters.
    * @type {number[]}
    */
-  this._j._natural._sParamsRate = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  this._j._natural._sParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   /**
    * The permanent flat bonuses for each of the ex-parameters.
    * @type {number[]}
    */
-  this._j._natural._xParamsPlus = [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
+  this._j._natural._xParamsPlus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   /**
    * The permanent multiplier bonuses for each of the ex-parameters.
    * @type {number[]}
    */
-  this._j._natural._xParamsRate = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  this._j._natural._xParamsRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 };
 
@@ -319,7 +335,7 @@ Game_Actor.prototype.bParamRate = function(paramId)
     this.initNaturalParams();
   }
 
-  return this._j._natural._bParamsRate[paramId] ?? 100;
+  return this._j._natural._bParamsRate[paramId] ?? 0;
 };
 
 /**
@@ -369,7 +385,7 @@ Game_Actor.prototype.sParamRate = function(paramId)
     this.initNaturalParams();
   }
 
-  return this._j._natural._sParamsRate[paramId] ?? 100;
+  return this._j._natural._sParamsRate[paramId] ?? 0;
 };
 
 /**
@@ -419,7 +435,7 @@ Game_Actor.prototype.xParamRate = function(paramId)
     this.initNaturalParams();
   }
 
-  return this._j._natural._xParamsRate[paramId] ?? 100;
+  return this._j._natural._xParamsRate[paramId] ?? 0;
 };
 
 /**
@@ -442,11 +458,44 @@ Game_Actor.prototype.paramBase = function(paramId)
   const baseParam = J.NATURAL.Aliased.Game_Actor.get('paramBase').call(this, paramId);
 
   // determine the structure for this parameter.
+  const paramBaseNaturalBonuses = this.paramBaseNaturalBonuses(paramId);
+
+  // return result.
+  return (baseParam + paramBaseNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the base parameter value added.
+ * @param {number} paramId The parameter id in question.
+ * @returns {number}
+ */
+Game_Actor.prototype.paramBaseNaturalBonuses = function(paramId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Actor.get('paramBase').call(this, paramId);
+
+  // determine the structure for this parameter.
   const structures = this.getRegexByParamId(paramId);
 
   // if there is no regexp, then don't try to do things.
-  if (!structures) return baseParam;
+  if (!structures) return 0;
 
+  // destructure into the plus and rate regexp structures.
+  const paramNaturalBonuses = this.getParamBaseNaturalBonuses(paramId, structures, baseParam);
+
+  // return result.
+  return (paramNaturalBonuses);
+};
+
+/**
+ * Gets all natural growths for this base parameter.
+ * @param {number} paramId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Actor.prototype.getParamBaseNaturalBonuses = function(paramId, structures, baseParam)
+{
   // destructure into the plus and rate regexp structures.
   const [plusStructure, rateStructure] = structures;
 
@@ -470,19 +519,52 @@ Game_Actor.prototype.xparam = function(xparamId)
   const baseParam = J.NATURAL.Aliased.Game_Actor.get('xparam').call(this, xparamId);
 
   // determine the structure for this parameter.
+  const xparamNaturalBonuses = this.xparamNaturalBonuses(xparamId);
+
+  // return result.
+  return (baseParam + xparamNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the ex-parameter value added.
+ * @param {number} xparamId The parameter id in question.
+ * @returns {number}
+ */
+Game_Actor.prototype.xparamNaturalBonuses = function(xparamId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Actor.get('xparam').call(this, xparamId);
+
+  // determine the structure for this parameter.
   const structures = this.getRegexByExParamId(xparamId);
 
   // if there is no regexp, then don't try to do things.
-  if (!structures) return baseParam;
+  if (!structures) return 0;
 
+  // destructure into the plus and rate regexp structures.
+  const paramNaturalBonuses = this.getXparamNaturalBonuses(xparamId, structures, baseParam);
+
+  // return result.
+  return (paramNaturalBonuses);
+};
+
+/**
+ * Gets all natural growths for this ex-parameter.
+ * @param {number} xparamId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Actor.prototype.getXparamNaturalBonuses = function(xparamId, structures, baseParam)
+{
   // destructure into the plus and rate regexp structures.
   const [plusStructure, rateStructure] = structures;
 
   // determine temporary buff for this param.
-  const paramBuff = this.getParamBuff(baseParam, plusStructure, rateStructure) / 100;
+  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
 
   // determine permanent growth for this param.
-  const paramGrowth = 1 + this.getXparamGrowth(xparamId, baseParam) / 100;
+  const paramGrowth = (this.getXparamGrowth(xparamId, baseParam) / 100);
 
   // return result.
   return (paramBuff + paramGrowth);
@@ -498,16 +580,49 @@ Game_Actor.prototype.sparam = function(sparamId)
   const baseParam = J.NATURAL.Aliased.Game_Actor.get('sparam').call(this, sparamId);
 
   // determine the structure for this parameter.
+  const sparamNaturalBonuses = this.sparamNaturalBonuses(sparamId);
+
+  // return result.
+  return (baseParam + sparamNaturalBonuses);
+};
+
+/**
+ * This is exclusively for access to the natural growth values, without the sp-parameter value added.
+ * @param {number} sparamId The parameter id in question.
+ * @returns {number}
+ */
+Game_Actor.prototype.sparamNaturalBonuses = function(sparamId)
+{
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Actor.get('sparam').call(this, sparamId);
+
+  // determine the structure for this parameter.
   const structures = this.getRegexBySpParamId(sparamId);
 
   // if there is no regexp, then don't try to do things.
-  if (!structures) return baseParam;
+  if (!structures) return 0;
 
+  // destructure into the plus and rate regexp structures.
+  const sparamNaturalBonuses = this.getSparamNaturalBonuses(sparamId, structures, baseParam);
+
+  // return result.
+  return (sparamNaturalBonuses);
+};
+
+/**
+ * Gets all natural growths for this sp-parameter.
+ * @param {number} sparamId The parameter id in question.
+ * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
+ * @param {number} baseParam The base parameter.
+ * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
+ */
+Game_Actor.prototype.getSparamNaturalBonuses = function(sparamId, structures, baseParam)
+{
   // destructure into the plus and rate regexp structures.
   const [plusStructure, rateStructure] = structures;
 
   // determine temporary buff for this param.
-  const paramBuff = (this.getParamBuff(baseParam, plusStructure, rateStructure) / 100);
+  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
 
   // determine permanent growth for this param.
   const paramGrowth = (this.getSparamGrowth(sparamId, baseParam) / 100);
@@ -529,10 +644,41 @@ Game_Actor.prototype.getParamBuff = function(baseParam, plusStructure, rateStruc
   const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
 
   // determine buff rate fort his param.
-  const buffRate = 1 + (this.naturalParamBuff(rateStructure, baseParam) / 100);
+  const buffRate = (this.naturalParamBuff(rateStructure, baseParam) / 100);
 
   // calculate the result into a variable for debugging.
-  const result = (baseParam + buffPlus) * buffRate;
+  const result = (baseParam * buffRate) + buffPlus;
+
+  // return result.
+  return result;
+};
+
+/**
+ * Gets the temporary buff for a given ex/sp-parameter based on the provided regexp structures.
+ * @param {number} baseParam The base value of the parameter in question.
+ * @param {RegExp} plusStructure The RegExp for the flat buff for this parameter.
+ * @param {RegExp} rateStructure The RegExp for the rate buff for this parameter.
+ * @returns {number} The calculated buff amount for this parameter.
+ */
+Game_Actor.prototype.getSXParamBuff = function(baseParam, plusStructure, rateStructure)
+{
+  // determine buff plus for this param.
+  const buffPlus = (this.naturalParamBuff(plusStructure, baseParam) / 100);
+
+  // determine buff rate fort his param.
+  const buffRate = (this.naturalParamBuff(rateStructure, baseParam) / 100);
+
+  // don't calculate if we don't have anything.
+  if (!buffPlus && !buffRate) return 0;
+
+  // determine the modified buff rate.
+  const buffFactor = ((buffRate + 100) / 100);
+
+  // determine the modified base parameter.
+  const buffBase = (baseParam + buffPlus);
+
+  // remove the value of base param since it is added at the end.
+  const result = (buffBase * buffFactor) - baseParam;
 
   // return result.
   return result;
@@ -551,6 +697,9 @@ Game_Actor.prototype.getBparamGrowth = function(paramId, currentParam)
 
   // get the permanent rate bonus to this parameter.
   const paramGrowthRate = this.bParamRate(paramId);
+
+  // short circuit if we have no bonuses of any kind.
+  if (!paramGrowthPlus && !paramGrowthRate) return 0;
 
   // calculate the result.
   const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
@@ -573,6 +722,9 @@ Game_Actor.prototype.getXparamGrowth = function(paramId, currentParam)
   // get the permanent rate bonus to this parameter.
   const paramGrowthRate = this.xParamRate(paramId);
 
+  // short circuit if we have no bonuses of any kind.
+  if (!paramGrowthPlus && !paramGrowthRate) return 0;
+
   // calculate the result.
   const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
 
@@ -594,6 +746,9 @@ Game_Actor.prototype.getSparamGrowth = function(paramId, currentParam)
   // get the permanent rate bonus to this parameter.
   const paramGrowthRate = this.sParamRate(paramId);
 
+  // short circuit if we have no bonuses of any kind.
+  if (!paramGrowthPlus && !paramGrowthRate) return 0;
+
   // calculate the result.
   const paramGrowthResult = ((currentParam * paramGrowthRate) / 100) + paramGrowthPlus;
 
@@ -611,7 +766,7 @@ Game_Actor.prototype.getBaseMaxTp = function()
 };
 
 /**
- * Executes the JABS level up process if the leader is the one leveling up.
+ * Extends `.levelUp()` to include applying any natural growths the battler has.
  */
 J.NATURAL.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
 Game_Actor.prototype.levelUp = function()
@@ -881,8 +1036,10 @@ Game_Battler.prototype.naturalParamBuff = function(structure, baseParam)
   if (!paramGrowthFormulai.length) return 0;
 
   // allows access to the battler and base parameter values in formula.
+  /* eslint-disable no-unused-vars */
   const a = this;
   const b = baseParam;
+  /* eslint-enable no-unused-vars */
 
   // the growth amount from the formula.
   let bonusParam = 0;
@@ -957,6 +1114,8 @@ Game_Battler.prototype.maxTp = function()
     return J.NATURAL.Aliased.Game_Actor.get("maxTp").call(this);
   }
 
+  // TODO: mirror plus and rate strategy as with other parameters.
+
   // return the max tp based on our custom formulai.
   return this.getCustomMaxTp();
 };
@@ -974,6 +1133,7 @@ Game_Battler.prototype.getCustomMaxTp = function()
   const customFormulai = this.getTpGrowthFormulai();
 
   // this battler, used in the formula.
+  // eslint-disable-next-line no-unused-vars
   const a = this;
 
   // iterate over each custom formula to evaluate it.

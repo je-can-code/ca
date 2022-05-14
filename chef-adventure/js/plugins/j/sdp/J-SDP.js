@@ -445,7 +445,7 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
   parsedBlob.forEach(panelBlob =>
   {
     // parse and translate all properties to the correct type.
-    let parsedPanel = JSON.parse(panelBlob);
+    const parsedPanel = JSON.parse(panelBlob);
 
     // parse and assign all the various panel parameters.
     const parsedPanelParameters = [];
@@ -730,7 +730,7 @@ BattleManager.displayRewards = function()
 
 BattleManager.displaySdp = function()
 {
-  const sdp = this._rewards.sdp;
+  const {sdp} = this._rewards;
   if (sdp > 0)
   {
     const text = `${sdp} ${J.SDP.Metadata.VictoryText}`;
@@ -956,7 +956,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
     {
       panelParameters.forEach(panelParameter =>
       {
-        const perRank = panelParameter.perRank;
+        const {perRank} = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {
@@ -997,7 +997,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
     {
       panelParameters.forEach(panelParameter =>
       {
-        const perRank = panelParameter.perRank;
+        const {perRank} = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {
@@ -1217,8 +1217,8 @@ Game_System.prototype.getSdp = function(key)
   // if we don't have panels to search through, don't do it.
   if (!this._j._sdp._panels.length) return null;
 
-  const panel = this._j._sdp._panels.find(panel => panel.key === key);
-  return panel;
+  const foundPanel = this._j._sdp._panels.find(panel => panel.key === key);
+  return foundPanel;
 };
 
 /**
@@ -1483,7 +1483,7 @@ class Scene_SDP
   {
     super();
     this.initialize();
-  };
+  }
 
   /**
    * The entry point of this scene.
@@ -1492,7 +1492,7 @@ class Scene_SDP
   {
     super.initialize(this);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all properties for this scene.
@@ -1557,7 +1557,7 @@ class Scene_SDP
        */
       _initialized: false,
     };
-  };
+  }
 
   /**
    * Hooks into the create parent function to create all windows after the window
@@ -1567,7 +1567,7 @@ class Scene_SDP
   {
     super.create();
     this.createAllWindows();
-  };
+  }
 
   /**
    * Runs once per frame to update all things in this scene.
@@ -1577,7 +1577,7 @@ class Scene_SDP
     super.update();
     this.updateIndex();
     this.updateActor();
-  };
+  }
 
   /**
    * Updates the index to keep in sync with the window's currently-selected index.
@@ -1593,7 +1593,7 @@ class Scene_SDP
       this._j._index = this._j._sdpListWindow.index();
       this._j._currentPanel = this._j._sdpListWindow._list[this._j._index].ext;
       this._j._sdpDetailsWindow.setPanel(this._j._currentPanel);
-      let msg = this._j._currentPanel.description.split("|");
+      const msg = this._j._currentPanel.description.split("|");
       if (msg.length > 1)
       {
         this._j._sdpHelpWindow.setText(`${msg[0]}\n${msg[1]}`);
@@ -1603,7 +1603,7 @@ class Scene_SDP
         this._j._sdpHelpWindow.setText(`${this._j._currentPanel.description}`);
       }
     }
-  };
+  }
 
   /**
    * OVERWRITE Determines the current actor.
@@ -1611,15 +1611,14 @@ class Scene_SDP
   updateActor()
   {
     this._j._currentActor = $gameParty.menuActor();
-  };
+  }
 
   /**
    * OVERWRITE Removes the buttons on the map/screen.
    */
   createButtons()
   {
-    return;
-  };
+  }
 
   //#region SDP window creation
   /**
@@ -1632,7 +1631,7 @@ class Scene_SDP
     this.createDetailsWindow();
     this.createListWindow();
     this.createConfirmationWindow();
-  };
+  }
 
   /**
    * Creates the list of SDPs available to the player.
@@ -1652,7 +1651,7 @@ class Scene_SDP
     this._j._sdpListWindow.setHandler('pageup', this.cycleMembers.bind(this, false));
     this._j._sdpListWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpListWindow);
-  };
+  }
 
   /**
    * Creates the details window that describes a panel and what leveling it does.
@@ -1667,7 +1666,7 @@ class Scene_SDP
     this._j._sdpDetailsWindow = new Window_SDP_Details(rect);
     this._j._sdpDetailsWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpDetailsWindow);
-  };
+  }
 
   /**
    * Creates the help window that provides contextual details to the player about the panel.
@@ -1681,7 +1680,7 @@ class Scene_SDP
     const rect = new Rectangle(x, y, width, height);
     this._j._sdpHelpWindow = new Window_SDP_Help(rect);
     this.addWindow(this._j._sdpHelpWindow);
-  };
+  }
 
   /**
    * Creates the points window that tracks how many SDP points the player has.
@@ -1696,7 +1695,7 @@ class Scene_SDP
     this._j._sdpPointsWindow = new Window_SDP_Points(rect);
     this._j._sdpPointsWindow.setActor($gameParty.menuActor());
     this.addWindow(this._j._sdpPointsWindow);
-  };
+  }
 
   /**
    * Creates the list of SDPs available to the player.
@@ -1713,7 +1712,7 @@ class Scene_SDP
     this._j._sdpConfirmationWindow.setHandler('ok', this.onUpgradeConfirm.bind(this));
     this._j._sdpConfirmationWindow.hide();
     this.addWindow(this._j._sdpConfirmationWindow);
-  };
+  }
 
   //#endregion SDP window creation
 
@@ -1728,7 +1727,7 @@ class Scene_SDP
     this._j._sdpPointsWindow.setActor(this._j._currentActor);
 
     this._j._sdpHelpWindow.refresh();
-  };
+  }
 
   /**
    * When selecting a panel, bring up the confirmation window.
@@ -1738,7 +1737,7 @@ class Scene_SDP
     this._j._sdpConfirmationWindow.show();
     this._j._sdpConfirmationWindow.open();
     this._j._sdpConfirmationWindow.activate();
-  };
+  }
 
   /**
    * Cycles the currently selected member to the next in the party.
@@ -1752,7 +1751,7 @@ class Scene_SDP
     this._j._currentActor = $gameParty.menuActor();
     this.refreshAllWindows();
     this._j._sdpListWindow.activate();
-  };
+  }
 
   /**
    * If the player opts to upgrade the existing panel, remove the points and rank up the panel.
@@ -1770,7 +1769,7 @@ class Scene_SDP
 
     this._j._sdpConfirmationWindow.close();
     this._j._sdpListWindow.activate();
-  };
+  }
 
   /**
    * If the player opts to cancel the upgrade process, return to the list window.
@@ -1780,8 +1779,8 @@ class Scene_SDP
     this._j._sdpConfirmationWindow.close();
     this._j._sdpConfirmationWindow.hide();
     this._j._sdpListWindow.activate();
-  };
-};
+  }
+}
 //#endregion Scene_SDP
 //#endregion Scene objects
 
@@ -1802,7 +1801,7 @@ if (J.ABS)
     // The menu shouldn't be accessible if there are no panels to work with.
     const enabled = $gameSystem.getUnlockedSdps().length;
 
-    const sdpCommand = J.SDP.MenuCommand(enabled); //{ name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
+    const sdpCommand = J.SDP.MenuCommand(enabled);
     this._list.splice(this._list.length - 2, 0, sdpCommand);
   };
 }
@@ -1825,7 +1824,7 @@ Window_MenuCommand.prototype.makeCommandList = function()
   // The menu shouldn't be accessible if there are no panels to work with.
   const enabled = $gameSystem.getUnlockedSdps().length;
 
-  const sdpCommand = J.SDP.MenuCommand(enabled); //{ name: "Distribute", symbol: "sdp-menu", enabled, ext: null, icon: 0 };
+  const sdpCommand = J.SDP.MenuCommand(enabled);
   const lastCommand = this._list[this._list.length - 1];
   if (lastCommand.symbol === "gameEnd")
   {
@@ -1852,7 +1851,7 @@ class Window_SDP_List extends Window_Command
   {
     super(rect);
     this.initMembers();
-  };
+  }
 
   initMembers()
   {
@@ -1862,7 +1861,7 @@ class Window_SDP_List extends Window_Command
      * @type {Game_Actor}
      */
     this.currentActor = null;
-  };
+  }
 
   /**
    * Sets the actor for this window to the provided actor. Implicit refresh.
@@ -1872,7 +1871,7 @@ class Window_SDP_List extends Window_Command
   {
     this.currentActor = actor;
     this.refresh();
-  };
+  }
 
   /**
    * OVERWRITE Sets the alignment for this command window to be left-aligned.
@@ -1880,7 +1879,7 @@ class Window_SDP_List extends Window_Command
   itemTextAlign()
   {
     return "left";
-  };
+  }
 
   /**
    * OVERWRITE Creates the command list for this window.
@@ -1896,11 +1895,11 @@ class Window_SDP_List extends Window_Command
     // add all panels to the list.
     panels.forEach(panel =>
     {
-      let panelRanking = actor.getSdpByKey(panel.key);
+      const panelRanking = actor.getSdpByKey(panel.key);
       // if this actor is missing any rankings for the panel, just make one.
       if (!panelRanking) actor.addNewPanelRanking(panel.key);
 
-      const currentRank = actor.getSdpByKey(panel.key).currentRank;
+      const {currentRank} = actor.getSdpByKey(panel.key);
       const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
       const isMaxRank = panel.maxRank === currentRank;
       const enabled = hasEnoughPoints && !isMaxRank;
@@ -1915,7 +1914,7 @@ class Window_SDP_List extends Window_Command
         godly: 25
       */
     });
-  };
+  }
 }
 //#endregion Window_SDP_List
 
@@ -1931,7 +1930,7 @@ class Window_SDP_Details
     super(rect);
     this.initMembers();
     this.refresh();
-  };
+  }
 
   /**
    * Initializes all members of this window.
@@ -1949,7 +1948,7 @@ class Window_SDP_Details
      * @type {Game_Actor}
      */
     this.currentActor = null;
-  };
+  }
 
   /**
    * Refreshes this window and all its content.
@@ -1961,7 +1960,7 @@ class Window_SDP_Details
 
     this.contents.clear();
     this.drawPanelInfo();
-  };
+  }
 
   /**
    * Sets the panel that this window is displaying info for.
@@ -1971,7 +1970,7 @@ class Window_SDP_Details
   {
     this.currentPanel = panel;
     this.refresh();
-  };
+  }
 
   /**
    * Sets the stat comparison actor to be this actor.
@@ -1980,7 +1979,7 @@ class Window_SDP_Details
   setActor(actor)
   {
     this.currentActor = actor;
-  };
+  }
 
   /**
    * Draws all the data associated with the currently selected panel.
@@ -1991,7 +1990,7 @@ class Window_SDP_Details
     this.drawLevelDetails();
     this.drawCostDetails();
     this.drawAllParameterDetails();
-  };
+  }
 
   /**
    * Draws the top-level information of the panel.
@@ -2002,7 +2001,7 @@ class Window_SDP_Details
     const lh = this.lineHeight();
     this.drawTextEx(`\\I[${panel.iconIndex}]\\C[${panel.rarity}]${panel.name}\\C[0]`, 0, lh * 0, 300);
     this.drawTextEx(`${panel.topFlavorText}`, 20, lh * 1, 600);
-  };
+  }
 
   /**
    * Draws the ranking information of the panel.
@@ -2020,7 +2019,7 @@ class Window_SDP_Details
     this.resetTextColor();
     this.drawText(`/`, ox + 110, lh * 0, 30, "left");
     this.drawText(`${panel.maxRank}`, ox + 130, lh * 0, 50, "left");
-  };
+  }
 
   /**
    * Determines the color of the "current rank" number text.
@@ -2046,7 +2045,7 @@ class Window_SDP_Details
     {
       return ColorManager.normalColor();
     }
-  };
+  }
 
   /**
    * Draws the cost information of ranking this panel up.
@@ -2071,7 +2070,7 @@ class Window_SDP_Details
     {
       this.drawText(`---`, ox + 100, lh * 0, 80, "left");
     }
-  };
+  }
 
   /**
    * Determines the color of the "current rank" number text.
@@ -2094,7 +2093,7 @@ class Window_SDP_Details
     {
       return ColorManager.damageColor();
     }
-  };
+  }
 
   /**
    * Draws the parameters and how they are affected by this panel.
@@ -2103,13 +2102,13 @@ class Window_SDP_Details
   {
     const panel = this.currentPanel;
     const lh = this.lineHeight();
-    const panelParameters = panel.panelParameters;
+    const {panelParameters} = panel;
     this.drawParameterHeaderRow(120);
     panelParameters.forEach((parameter, index) =>
     {
       this.drawParameterDetailsRow(parameter, 160 + lh * index);
     });
-  };
+  }
 
   /**
    * Draws the header row of the table that represents all parameters affected by
@@ -2123,7 +2122,7 @@ class Window_SDP_Details
     this.drawText(`Current`, ox + rw * 1 + 100, y, 100, "left");
     this.drawText(`Effect`, ox + rw * 2 + 50, y, 100, "left");
     this.drawText(`Potential`, ox + rw * 3, y, 120, "left");
-  };
+  }
 
   /**
    * Draws a single row representing one potentially changed parameter by leveling this panel.
@@ -2209,7 +2208,7 @@ class Window_SDP_Details
     // new parameter value if this panel is ranked up.
     this.drawText(`${potentialValue}${basePercentSymbol}`, ox + rw * 3, y, 100, "center");
     this.resetTextColor();
-  };
+  }
 
   /**
    * Translates a parameter id into an object with its name, value, iconIndex, and whether or not
@@ -2268,7 +2267,7 @@ class Window_SDP_Details
     }
 
     return {name, value, iconIndex, smallerIsBetter, isPercentValue};
-  };
+  }
 
   /**
    * Determines whether or not the parameter should be suffixed with a % character.
@@ -2281,7 +2280,7 @@ class Window_SDP_Details
     const isPercentParameterIds = [9, 14, 20, 21, 22, 23, 24, 25, 26, 27];
     const isPercent = isPercentParameterIds.includes(parameterId);
     return isPercent;
-  };
+  }
 
   /**
    * Determines whether or not the parameter should be marked as "improved" if it is negative.
@@ -2293,8 +2292,8 @@ class Window_SDP_Details
     const smallerIsBetterParameterIds = [18, 22, 23, 24, 25, 26];
     const smallerIsBetter = smallerIsBetterParameterIds.includes(parameterId);
     return smallerIsBetter;
-  };
-};
+  }
+}
 //#endregion Window_SDP_Details
 
 //#region Window_SDP_Help
@@ -2312,8 +2311,8 @@ class Window_SDP_Help
   {
     super(rect);
     this.initialize(rect);
-  };
-};
+  }
+}
 //#endregion Window_SDP_Help
 
 //#region Window_SDP_Points
@@ -2332,7 +2331,7 @@ class Window_SDP_Points
     super(rect);
     this.initialize(rect);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all members of this window.
@@ -2340,7 +2339,7 @@ class Window_SDP_Points
   initMembers()
   {
     this._actor = null;
-  };
+  }
 
   /**
    * Refreshes this window and all its content.
@@ -2349,7 +2348,7 @@ class Window_SDP_Points
   {
     this.contents.clear();
     this.drawPoints();
-  };
+  }
 
   /**
    * Draws the SDP icon and number of points this actor has.
@@ -2359,7 +2358,7 @@ class Window_SDP_Points
     this.drawSdpIcon();
     this.drawSdpPoints();
     this.drawSdpFace();
-  };
+  }
 
   /**
    * Draws the "SDP icon" representing points.
@@ -2370,7 +2369,7 @@ class Window_SDP_Points
     const y = 2;
     const iconIndex = J.SDP.Metadata.PointsIcon;
     this.drawIcon(iconIndex, x, y);
-  };
+  }
 
   /**
    * Draws the SDP points the actor currently has.
@@ -2386,7 +2385,7 @@ class Window_SDP_Points
     const textWidth = 300;
     const alignment = "left";
     this.drawText(points, x, y, textWidth, alignment);
-  };
+  }
 
   /**
    * A wrapper around the drawing of the actor's face- in case we need logic.
@@ -2401,7 +2400,7 @@ class Window_SDP_Points
       this._actor.faceIndex(),
       0, 0,   // x,y
       128, 40);// w,h
-  };
+  }
 
   /**
    * Sets the actor focus for the SDP points window. Implicit refresh.
@@ -2411,8 +2410,8 @@ class Window_SDP_Points
   {
     this._actor = actor;
     this.refresh();
-  };
-};
+  }
+}
 //#endregion Window_SDP_Points
 
 //#region Window_SDP_ConfirmUpgrade
@@ -2431,7 +2430,7 @@ class Window_SDP_ConfirmUpgrade
     super(rect);
     this.initialize(rect);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all members of this window.
@@ -2449,7 +2448,7 @@ class Window_SDP_ConfirmUpgrade
      * @type {Game_Actor}
      */
     this.actor = null;
-  };
+  }
 
   /**
    * OVERWRITE Creates the command list for this window.
@@ -2458,8 +2457,8 @@ class Window_SDP_ConfirmUpgrade
   {
     this.addCommand(`Upgrade this panel`, `panel-upgrade-ok`, true, null, 91);
     this.addCommand(`Cancel`, `panel-upgrade-cancel`, true, null, 90);
-  };
-};
+  }
+}
 //#endregion Window_SDP_ConfirmUpgrade
 //#endregion Window objects
 

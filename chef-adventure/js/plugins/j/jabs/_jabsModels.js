@@ -29,7 +29,7 @@ class JABS_Action
   static getMinimumDuration()
   {
     return 8;
-  };
+  }
 
   /**
    * @constructor
@@ -155,7 +155,7 @@ class JABS_Action
      * @type {number}
      */
     this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
-  };
+  }
 
   /**
    * Combines from all available sources the bonus hits for this action.
@@ -183,7 +183,7 @@ class JABS_Action
       this._actionCooldownType === JABS_Button.Offhand)
 
     return pierceCount;
-  };
+  }
 
   /**
    * Executes additional logic before this action is disposed.
@@ -192,7 +192,7 @@ class JABS_Action
   {
     // handle self-targeted animations on cleanup.
     this.handleSelfAnimationOnDefeat();
-  };
+  }
 
   /**
    * If the action has an animation to cast on oneself, then execute it.
@@ -208,7 +208,7 @@ class JABS_Action
       // play it on oneself.
       event.requestAnimation(this.getSelfAnimationId());
     }
-  };
+  }
 
   /**
    * Gets whether or not this action has a self animation id.
@@ -217,7 +217,7 @@ class JABS_Action
   hasSelfAnimationId()
   {
     return this.getSelfAnimationId() !== 0;
-  };
+  }
 
   /**
    * Gets the self animation id to display on oneself when
@@ -227,7 +227,7 @@ class JABS_Action
   getSelfAnimationId()
   {
     return this._selfAnimationId;
-  };
+  }
 
   /**
    * Performs the self animation upon this action.
@@ -235,7 +235,7 @@ class JABS_Action
   performSelfAnimation()
   {
     this.getActionSprite().requestAnimation(this.getSelfAnimationId());
-  };
+  }
 
   /**
    * Gets the `uuid` of this action.
@@ -246,7 +246,7 @@ class JABS_Action
   getUuid()
   {
     return this._uuid;
-  };
+  }
 
   /**
    * Gets the base skill this `JABS_Action` is based on.
@@ -255,7 +255,7 @@ class JABS_Action
   getBaseSkill()
   {
     return this._baseSkill;
-  };
+  }
 
   /**
    * Gets the team id of the caster of this action.
@@ -264,7 +264,7 @@ class JABS_Action
   getTeamId()
   {
     return this.getCaster().getTeam();
-  };
+  }
 
   /**
    * The base game action this `JABS_Action` is based on.
@@ -273,7 +273,7 @@ class JABS_Action
   getAction()
   {
     return this._gameAction;
-  };
+  }
 
   /**
    * Gets the `JABS_Battler` that created this `JABS_Action`.
@@ -282,7 +282,7 @@ class JABS_Action
   getCaster()
   {
     return this._caster;
-  };
+  }
 
   /**
    * Gets the cast animation id for this action.
@@ -291,7 +291,7 @@ class JABS_Action
   getCastAnimation()
   {
     return this.getBaseSkill().jabsCastAnimation;
-  };
+  }
 
   /**
    * Gets whether or not this action is unparryable.
@@ -300,7 +300,7 @@ class JABS_Action
   isUnparryable()
   {
     return !!this.getBaseSkill().jabsUnparryable;
-  };
+  }
 
   /**
    * Whether or not this action is a retaliation- meaning it will not invoke retaliation.
@@ -309,7 +309,7 @@ class JABS_Action
   isRetaliation()
   {
     return this._isRetaliation;
-  };
+  }
 
   /**
    * Gets the direction this action is facing.
@@ -318,7 +318,7 @@ class JABS_Action
   direction()
   {
     return this._facing || this.getActionSprite().direction();
-  };
+  }
 
   /**
    * Gets the name of the cooldown for this action.
@@ -327,7 +327,7 @@ class JABS_Action
   getCooldownType()
   {
     return this._actionCooldownType;
-  };
+  }
 
   /**
    * Sets the name of the cooldown for tracking on the caster.
@@ -336,7 +336,7 @@ class JABS_Action
   setCooldownType(type)
   {
     this._actionCooldownType = type;
-  };
+  }
 
   /**
    * Gets the durations remaining on this `JABS_Action`.
@@ -344,7 +344,7 @@ class JABS_Action
   getDuration()
   {
     return this._currentDuration;
-  };
+  }
 
   /**
    * Gets the max duration in frames that this action will exist on the map.
@@ -354,7 +354,7 @@ class JABS_Action
   getMaxDuration()
   {
     return Math.max(this.getBaseSkill().jabsDuration, JABS_Action.getMinimumDuration())
-  };
+  }
 
   /**
    * Increments the duration for this `JABS_Action`. If the duration drops
@@ -367,7 +367,7 @@ class JABS_Action
     {
       this.setNeedsRemoval();
     }
-  };
+  }
 
   /**
    * Gets whether or not this action is expired and should be removed.
@@ -378,7 +378,7 @@ class JABS_Action
     const isExpired = this.getMaxDuration() <= this._currentDuration;
     const minDurationElapsed = this._currentDuration > JABS_Action.getMinimumDuration();
     return (isExpired && minDurationElapsed);
-  };
+  }
 
   /**
    * Gets whether or not this `JABS_Action` needs removing.
@@ -387,7 +387,7 @@ class JABS_Action
   getNeedsRemoval()
   {
     return this._needsRemoval;
-  };
+  }
 
   /**
    * Sets whether or not this `JABS_Action` needs removing.
@@ -396,7 +396,7 @@ class JABS_Action
   setNeedsRemoval(remove = true)
   {
     this._needsRemoval = remove;
-  };
+  }
 
   /**
    * Gets the `Game_Event` this `JABS_Action` is bound to.
@@ -415,7 +415,7 @@ class JABS_Action
   setActionSprite(actionSprite)
   {
     this._actionSprite = actionSprite;
-  };
+  }
 
   /**
    * Decrements the pre-countdown delay timer for this action. If the action does not
@@ -427,7 +427,7 @@ class JABS_Action
     {
       this._delayDuration--;
     }
-  };
+  }
 
   /**
    * Gets whether or not the delay on this action has completed.
@@ -438,7 +438,7 @@ class JABS_Action
   isDelayCompleted()
   {
     return this._delayDuration <= 0 && !this.isEndlessDelay();
-  };
+  }
 
   /**
    * Automatically finishes the delay regardless of its current status.
@@ -446,7 +446,7 @@ class JABS_Action
   endDelay()
   {
     this._delayDuration = 0;
-  };
+  }
 
   /**
    * Gets whether or not this action will be delayed until triggered.
@@ -455,7 +455,7 @@ class JABS_Action
   isEndlessDelay()
   {
     return this._delayDuration === -1;
-  };
+  }
 
   /**
    * Gets whether or not this action will be triggered by touch, regardless of its
@@ -468,7 +468,7 @@ class JABS_Action
   triggerOnTouch()
   {
     return this._triggerOnTouch || this.isEndlessDelay();
-  };
+  }
 
   /**
    * Gets the number of times this action can potentially hit a target.
@@ -477,7 +477,7 @@ class JABS_Action
   getPiercingTimes()
   {
     return this._pierceTimesLeft;
-  };
+  }
 
   /**
    * Modifies the piercing times counter of this action by an amount (default = 1). If an action
@@ -491,7 +491,7 @@ class JABS_Action
     {
       this.setNeedsRemoval();
     }
-  };
+  }
 
   /**
    * Gets the delay between hits for this action.
@@ -500,7 +500,7 @@ class JABS_Action
   getPiercingDelay()
   {
     return this._currentPierceDelay;
-  };
+  }
 
   /**
    * Modifies the piercing delay by this amount (default = 1). If a negative number is
@@ -510,7 +510,7 @@ class JABS_Action
   modPiercingDelay(decrement = 1)
   {
     this._currentPierceDelay -= decrement;
-  };
+  }
 
   /**
    * Resets the piercing delay of this action back to it's base.
@@ -518,7 +518,7 @@ class JABS_Action
   resetPiercingDelay()
   {
     this._currentPierceDelay = this._basePierceDelay;
-  };
+  }
 
   /**
    * Gets whether or not this action is a direct-targeting action.
@@ -527,7 +527,7 @@ class JABS_Action
   isDirectAction()
   {
     return this.getBaseSkill().jabsDirect ?? false;
-  };
+  }
 
   /**
    * Gets whether or not this action is a support action.
@@ -536,7 +536,7 @@ class JABS_Action
   isSupportAction()
   {
     return this._gameAction.isForFriend();
-  };
+  }
 
   /**
    * The number of frames until this action's caster may act again.
@@ -545,7 +545,7 @@ class JABS_Action
   getCooldown()
   {
     return this.getBaseSkill().jabsCooldown;
-  };
+  }
 
   /**
    * Gets the range of which this `JABS_Action` will reach.
@@ -554,7 +554,7 @@ class JABS_Action
   getRange()
   {
     return this.getBaseSkill().jabsRange;
-  };
+  }
 
   /**
    * Gets the cast time for this skill.
@@ -564,7 +564,7 @@ class JABS_Action
   {
     // TODO: add a cast time modifier based on actor "all notes" collection.
     return this.getBaseSkill().jabsCastTime ?? 0;
-  };
+  }
 
   /**
    * Gets the proximity to the target in order to use this `JABS_Action`.
@@ -581,7 +581,7 @@ class JABS_Action
 
     // return the proximity from the underlying skill.
     return this.getBaseSkill().jabsProximity;
-  };
+  }
 
   /**
    * Whether or not the scope of this action is "User" or not.
@@ -590,7 +590,7 @@ class JABS_Action
   isForSelf()
   {
     return this.getBaseSkill().scope === 11;
-  };
+  }
 
   /**
    * Gets the shape of the hitbox for this `JABS_Action`.
@@ -599,7 +599,7 @@ class JABS_Action
   getShape()
   {
     return this.getBaseSkill().jabsShape;
-  };
+  }
 
   /**
    * Gets the knockback of this action.
@@ -608,7 +608,7 @@ class JABS_Action
   getKnockback()
   {
     return this.getBaseSkill().jabsKnockback;
-  };
+  }
 
   /**
    * Gets the event id associated with this `JABS_Action` from the action map.
@@ -619,7 +619,7 @@ class JABS_Action
   getActionId()
   {
     return this.getBaseSkill().jabsActionId ?? 1;
-  };
+  }
 
   /**
    * Gets any additional aggro this skill generates.
@@ -628,7 +628,7 @@ class JABS_Action
   bonusAggro()
   {
     return this.getBaseSkill().jabsBonusAggro ?? 0;
-  };
+  }
 
   /**
    * Gets the aggro multiplier from this skill.
@@ -637,7 +637,7 @@ class JABS_Action
   aggroMultiplier()
   {
     return this.getBaseSkill().jabsAggroMultiplier ?? 1.0;
-  };
+  }
 }
 //#endregion JABS_Action
 
@@ -2386,11 +2386,10 @@ JABS_Battler.prototype.isRegenReady = function()
     this.setRegenCounter(0);
     return true;
   }
-  else
-  {
+  
     this._regenCounter--;
     return false;
-  }
+  
 };
 
 /**
@@ -2863,17 +2862,15 @@ JABS_Battler.prototype.canBattlerMove = function()
     return false;
   }
 
-  const states = this.getBattler()
-    .states();
+  const states = this.getBattler().states();
   if (!states.length)
   {
     return true;
   }
-  else
-  {
+  
     const rooted = states.find(state => (state.jabsRooted || state.jabsParalyzed));
     return !rooted;
-  }
+  
 };
 
 /**
@@ -2887,11 +2884,10 @@ JABS_Battler.prototype.canBattlerUseAttacks = function()
   {
     return true;
   }
-  else
-  {
+  
     const disabled = states.find(state => (state.jabsDisarmed || state.jabsParalyzed));
     return !disabled;
-  }
+  
 };
 
 /**
@@ -2905,11 +2901,10 @@ JABS_Battler.prototype.canBattlerUseSkills = function()
   {
     return true;
   }
-  else
-  {
+  
     const muted = states.find(state => (state.jabsMuted || state.jabsParalyzed));
     return !muted;
-  }
+  
 };
 
 /**
@@ -3154,10 +3149,9 @@ JABS_Battler.prototype.getLeaderBattler = function()
   {
     return $gameMap.getBattlerByUuid(this._leaderUuid);
   }
-  else
-  {
+  
     return null;
-  }
+  
 };
 
 /**
@@ -3210,10 +3204,9 @@ JABS_Battler.prototype.getFollowerByUuid = function(followerUuid)
   {
     return $gameMap.getBattlerByUuid(foundUuid);
   }
-  else
-  {
+  
     return null;
-  }
+  
 };
 
 /**
@@ -3605,10 +3598,9 @@ JABS_Battler.prototype.isEventReady = function()
   {
     return false;
   }
-  else
-  {
+  
     return !!character.event();
-  }
+  
 };
 
 /**
@@ -3841,10 +3833,9 @@ JABS_Battler.prototype.isDead = function()
   { // battler is actually dead.
     return true;
   }
-  else
-  { // battler is OK!
+   // battler is OK!
     return false;
-  }
+  
 };
 
 /**
@@ -4236,8 +4227,7 @@ JABS_Battler.prototype.isPostActionCooldownComplete = function()
     // we are ready to do idle things.
     return true;
   }
-  else
-  {
+  
     if (this._postActionCooldown <= this._postActionCooldownMax)
     {
       // we are still charging up...
@@ -4249,7 +4239,7 @@ JABS_Battler.prototype.isPostActionCooldownComplete = function()
 
     // we are ready to finish phase3!
     return true;
-  }
+  
 };
 
 /**
@@ -4292,8 +4282,7 @@ JABS_Battler.prototype.isIdleActionReady = function()
     // we are ready to do idle things.
     return true;
   }
-  else
-  {
+  
     if (this._idleActionCount <= this._idleActionCountMax)
     {
       // we are still charging up...
@@ -4305,7 +4294,7 @@ JABS_Battler.prototype.isIdleActionReady = function()
 
     // we are ready to idle!
     return true;
-  }
+  
 };
 
 /**
@@ -4376,8 +4365,7 @@ JABS_Battler.prototype.isActionReady = function()
     // we are ready to take action.
     return true;
   }
-  else
-  {
+  
     if (this._prepareCounter < this._prepareMax)
     {
       // we are still charging up...
@@ -4389,7 +4377,7 @@ JABS_Battler.prototype.isActionReady = function()
     this._prepareCounter = 0;
     // we are charged up now!
     return true;
-  }
+  
 };
 
 /**
@@ -5136,7 +5124,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   const battler = this.getBattler();
 
   // get the skill equipped in the designated slot.
-  let skillId = this.getSkillIdForAction(cooldownKey);
+  const skillId = this.getSkillIdForAction(cooldownKey);
 
   // if there isn't one, then we don't do anything.
   if (!skillId) return [];
@@ -5940,7 +5928,7 @@ class JABS_BattlerAI
      * ai traits.
      */
     this.leader = leader;
-  };
+  }
 
   /**
    * Checks whether or not this AI has any bonus ai traits.
@@ -5955,7 +5943,7 @@ class JABS_BattlerAI
       this.healer ||
       this.follower ||
       this.leader);
-  };
+  }
 
   /**
    * Decides an action for the designated follower based on the leader's ai.
@@ -6026,7 +6014,7 @@ class JABS_BattlerAI
     }
 
     return chosenSkillId;
-  };
+  }
 
   /**
    * Decides a support-oriented action to perform.
@@ -6063,8 +6051,6 @@ class JABS_BattlerAI
    */
   decideAttackAction(user, skillsToUse)
   {
-    const clone = [skillsToUse.map(x => x)];
-
     // reduce the list to only castable skills.
     skillsToUse = this.filterUncastableSkills(user, skillsToUse);
 
@@ -6088,7 +6074,7 @@ class JABS_BattlerAI
 
     // handle the possibility of none or many skills still remaining.
     return this.decideFromNoneToManySkills(user, skillsToUse);
-  };
+  }
 
   /**
    * Filters out skills that cannot be executed at this time by the battler.
@@ -6104,7 +6090,7 @@ class JABS_BattlerAI
 
     // filter the skills by whether or not they can be executed.
     return skillsToUse.filter(user.canExecuteSkill, user);
-  };
+  }
 
   /**
    * A protection method for handling none, one, or many skills remaining after
@@ -6131,7 +6117,7 @@ class JABS_BattlerAI
     // always at least basic attack.
     console.log('couldnt pick a skill from ', skillsToUse, user);
     return user.getEnemyBasicAttack()[0];
-  };
+  }
 
   /**
    * Decides an action from an array of skill objects based on the target.
@@ -6153,7 +6139,7 @@ class JABS_BattlerAI
     }
 
     return skillsToUse;
-  };
+  }
 
   /**
    * Decides an action from an array of skill objects based on the target.
@@ -6169,12 +6155,12 @@ class JABS_BattlerAI
 
     if (skillsToUse.length > 1)
     {
-      let elementalSkillCollection = [];
+      const elementalSkillCollection = [];
       skillsToUse.forEach(skillId =>
       {
         const testAction = new Game_Action(user.getBattler());
         testAction.setSkill(skillId);
-        let rate = testAction.calcElementRate(target.getBattler());
+        const rate = testAction.calcElementRate(target.getBattler());
         elementalSkillCollection.push([skillId, rate]);
       });
 
@@ -6191,7 +6177,7 @@ class JABS_BattlerAI
     }
 
     return skillsToUse;
-  };
+  }
 
   /**
    * Filters skills by a healing priority.
@@ -6401,7 +6387,7 @@ class JABS_BattlerAI
     }
 
     return bestSkillId;
-  };
+  }
 }
 //#endregion JABS_BattlerAI
 
@@ -6539,7 +6525,8 @@ JABS_BattlerCoreData.prototype.initialize = function({
  * Initializes all properties of this class.
  * This is effectively a hook for adding extra properties into this object.
  */
-JABS_BattlerCoreData.prototype.initMembers = function() { };
+JABS_BattlerCoreData.prototype.initMembers = function() 
+{ };
 
 /**
  * Gets this battler's enemy id.
@@ -6772,7 +6759,7 @@ class JABS_CoreDataBuilder
   constructor(battlerId)
   {
     this.setBattlerId(battlerId);
-  };
+  }
 
   /**
    * Builds the core data with the current set of parameters.
@@ -6808,7 +6795,7 @@ class JABS_CoreDataBuilder
     }
 
     return core;
-  };
+  }
 
   //#region setters
   /**
@@ -6836,7 +6823,7 @@ class JABS_CoreDataBuilder
     this.#isInanimate = battler.isInanimate();
 
     return this;
-  };
+  }
 
   /**
    * Sets all properties based on the assumption that this is for the player.
@@ -6860,7 +6847,7 @@ class JABS_CoreDataBuilder
     this.#isInanimate = false;
 
     return this;
-  };
+  }
 
   /**
    * Sets the battler id of this core data.
@@ -6871,7 +6858,7 @@ class JABS_CoreDataBuilder
   {
     this.#battlerId = battlerId;
     return this;
-  };
+  }
 
   /**
    * Sets the team id of this core data.
@@ -6882,7 +6869,7 @@ class JABS_CoreDataBuilder
   {
     this.#teamId = teamId;
     return this;
-  };
+  }
 
   /**
    * Sets the AI of this core data.
@@ -6893,7 +6880,7 @@ class JABS_CoreDataBuilder
   {
     this.#battlerAi = battlerAi;
     return this;
-  };
+  }
 
   /**
    * Sets the sight range of this core data.
@@ -6904,7 +6891,7 @@ class JABS_CoreDataBuilder
   {
     this.#sightRange = sightRange;
     return this;
-  };
+  }
 
   /**
    * Sets the alerted sight boost of this core data.
@@ -6915,7 +6902,7 @@ class JABS_CoreDataBuilder
   {
     this.#alertedSightBoost = alertedSightBoost;
     return this;
-  };
+  }
 
   /**
    * Sets the pursuit range of this core data.
@@ -6926,7 +6913,7 @@ class JABS_CoreDataBuilder
   {
     this.#pursuitRange = pursuitRange;
     return this;
-  };
+  }
 
   /**
    * Sets the alerted pursuit boost of this core data.
@@ -6937,7 +6924,7 @@ class JABS_CoreDataBuilder
   {
     this.#alertedPursuitBoost = alertedPursuitBoost;
     return this;
-  };
+  }
 
   /**
    * Sets the alerted duration of this core data.
@@ -6948,7 +6935,7 @@ class JABS_CoreDataBuilder
   {
     this.#alertDuration = alertDuration;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler can idle while not in combat.
@@ -6959,7 +6946,7 @@ class JABS_CoreDataBuilder
   {
     this.#canIdle = canIdle;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler's hp bar is visible.
@@ -6970,7 +6957,7 @@ class JABS_CoreDataBuilder
   {
     this.#showHpBar = showHpBar;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler's danger indicator is visible.
@@ -6981,7 +6968,7 @@ class JABS_CoreDataBuilder
   {
     this.#showDangerIndicator = showDangerIndicator;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler's name is visible.
@@ -6992,7 +6979,7 @@ class JABS_CoreDataBuilder
   {
     this.#showBattlerName = showBattlerName;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler is invincible.
@@ -7003,7 +6990,7 @@ class JABS_CoreDataBuilder
   {
     this.#isInvincible = isInvincible;
     return this;
-  };
+  }
 
   /**
    * Sets whether or not this battler is inanimate.
@@ -7014,7 +7001,7 @@ class JABS_CoreDataBuilder
   {
     this.#isInanimate = isInanimate;
     return this;
-  };
+  }
   //#endregion setters
 }
 //#endregion JABS_CoreDataBuilder
@@ -7047,7 +7034,7 @@ class JABS_Cooldown
     this.comboReady = false;
     this.comboNextActionId = 0;
     this.locked = false;
-  };
+  }
 
   //#endregion initialize
 
@@ -7058,7 +7045,7 @@ class JABS_Cooldown
   isAnyReady()
   {
     return this.ready || this.comboReady;
-  };
+  }
 
   /**
    * Manages the update cycle for this cooldown.
@@ -7073,7 +7060,7 @@ class JABS_Cooldown
 
     this.updateBaseCooldown();
     this.updateComboCooldown();
-  };
+  }
 
   //#region base cooldown
   /**
@@ -7097,7 +7084,7 @@ class JABS_Cooldown
       this.resetCombo();
       this.enableBase();
     }
-  };
+  }
 
   /**
    * Decrements the base cooldown gauge 1 frame at a time.
@@ -7105,7 +7092,7 @@ class JABS_Cooldown
   tickBase()
   {
     this.frames--;
-  };
+  }
 
   /**
    * Enables the flag to indicate the base skill is ready for this cooldown.
@@ -7114,7 +7101,7 @@ class JABS_Cooldown
   {
     this.ready = true;
     this.frames = 0;
-  };
+  }
 
   /**
    * Gets whether or not the base skill is off cooldown.
@@ -7123,7 +7110,7 @@ class JABS_Cooldown
   isBaseReady()
   {
     return this.ready;
-  };
+  }
 
   /**
    * Sets a new value for the base cooldown to countdown from.
@@ -7142,7 +7129,7 @@ class JABS_Cooldown
     {
       this.ready = false;
     }
-  };
+  }
 
   /**
    * Adds a value to the combo frames to extend the combo countdown.
@@ -7161,7 +7148,7 @@ class JABS_Cooldown
     {
       this.ready = false;
     }
-  };
+  }
   //#endregion base cooldown
 
   //#region combo cooldown
@@ -7185,7 +7172,7 @@ class JABS_Cooldown
     {
       this.enableCombo();
     }
-  };
+  }
 
   /**
    * Decrements the combo gauge 1 frame at a time.
@@ -7193,7 +7180,7 @@ class JABS_Cooldown
   tickCombo()
   {
     this.comboFrames--;
-  };
+  }
 
   /**
    * Enables the flag to indicate a combo is ready for this cooldown.
@@ -7205,7 +7192,7 @@ class JABS_Cooldown
     {
       this.comboReady = true;
     }
-  };
+  }
 
   /**
    * Sets the combo frames to countdown from this value.
@@ -7224,7 +7211,7 @@ class JABS_Cooldown
     {
       this.comboReady = false;
     }
-  };
+  }
 
   /**
    * Adds a value to the combo frames to extend the combo countdown.
@@ -7243,7 +7230,7 @@ class JABS_Cooldown
     {
       this.comboReady = false;
     }
-  };
+  }
 
   /**
    * Resets the combo data associated with this cooldown.
@@ -7253,7 +7240,7 @@ class JABS_Cooldown
     this.comboFrames = 0;
     this.comboNextActionId = 0;
     this.comboReady = false;
-  };
+  }
 
   /**
    * Gets whether or not the combo cooldown is ready.
@@ -7274,7 +7261,7 @@ class JABS_Cooldown
   isLocked()
   {
     return this.locked;
-  };
+  }
 
   /**
    * Locks this cooldown to prevent it from cooling down.
@@ -7290,7 +7277,7 @@ class JABS_Cooldown
   unlock()
   {
     this.locked = false;
-  };
+  }
 
   //#endregion locking
 }
@@ -7354,7 +7341,7 @@ class JABS_GuardData
      * @type {number}
      */
     this.parryDuration = parryDuration;
-  };
+  }
 
   /**
    * Gets whether or not this guard data includes the ability to guard at all.
@@ -7363,7 +7350,7 @@ class JABS_GuardData
   canGuard()
   {
     return !!(this.flatGuardReduction || this.percGuardReduction);
-  };
+  }
 
   /**
    * Gets whether or not this guard data includes the ability to precise-parry.
@@ -7372,7 +7359,7 @@ class JABS_GuardData
   canParry()
   {
     return this.parryDuration > 0;
-  };
+  }
 
   /**
    * Gets whether or not this guard data enables countering of any kind.
@@ -7381,7 +7368,7 @@ class JABS_GuardData
   canCounter()
   {
     return !!(this.counterGuardId || this.counterParryId);
-  };
+  }
 }
 //#endregion JABS_GuardData
 
@@ -7395,7 +7382,7 @@ class JABS_LootDrop
   {
     this._lootObject = object;
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes properties of this object that don't require parameters.
@@ -7419,7 +7406,7 @@ class JABS_LootDrop
      * @type {string}
      */
     this._uuid = J.BASE.Helpers.generateUuid();
-  };
+  }
 
   /**
    * Gets the `uuid` of this loot drop.
@@ -7428,7 +7415,7 @@ class JABS_LootDrop
   get uuid()
   {
     return this._uuid;
-  };
+  }
 
   /**
    * Sets the `uuid` to the new value.
@@ -7438,7 +7425,7 @@ class JABS_LootDrop
   set uuid(newUuid)
   {
     this._uuid = newUuid;
-  };
+  }
 
   /**
    * Gets the duration remaining on this loot drop.
@@ -7447,7 +7434,7 @@ class JABS_LootDrop
   get duration()
   {
     return this._duration;
-  };
+  }
 
   /**
    * Sets the duration for this loot drop.
@@ -7460,7 +7447,7 @@ class JABS_LootDrop
     }
 
     this._duration = newDuration;
-  };
+  }
 
   /**
    * Whether or not this loot drop's duration is expired.
@@ -7472,7 +7459,7 @@ class JABS_LootDrop
     if (!this._canExpire) return false;
 
     return this._duration <= 0;
-  };
+  }
 
   /**
    * Counts down the duration for this loot drop.
@@ -7482,7 +7469,7 @@ class JABS_LootDrop
     if (!this._canExpire || this._duration <= 0) return;
 
     this._duration--;
-  };
+  }
 
   /**
    * Gets the underlying loot object.
@@ -7491,7 +7478,7 @@ class JABS_LootDrop
   get lootData()
   {
     return this._lootObject;
-  };
+  }
 
   /**
    * Gets the `iconIndex` for the underlying loot object.
@@ -7500,7 +7487,7 @@ class JABS_LootDrop
   get lootIcon()
   {
     return this._lootObject.iconIndex;
-  };
+  }
 
   /**
    * Gets whether or not this loot should be automatically consumed on pickup.
@@ -7509,7 +7496,7 @@ class JABS_LootDrop
   get useOnPickup()
   {
     return this._lootObject.jabsUseOnPickup ?? false;
-  };
+  }
 }
 //#endregion JABS_LootDrop
 
@@ -7533,7 +7520,7 @@ class JABS_OnChanceEffect
   baseSkill()
   {
     return $dataSkills[this.skillId];
-  };
+  }
 
   /**
    * Gets whether or not the skill this chance is associated with should cast from the
@@ -7544,7 +7531,7 @@ class JABS_OnChanceEffect
   {
     const skill = this.baseSkill();
     return !!skill.meta["onDefeatedTarget"];
-  };
+  }
 
   /**
    * Dances with RNG to determine if this onChanceEffect was successful or not.
@@ -7600,7 +7587,7 @@ class JABS_OnChanceEffect
 
     // return our successes (or failure).
     return success;
-  };
+  }
 }
 //#endregion JABS_OnChanceEffect
 
@@ -7997,10 +7984,9 @@ JABS_SkillSlot.prototype.autoclear = function()
     // skip because you can't autoclear these slots.
     return this;
   }
-  else
-  {
+  
     return this.setSkillId(0);
-  }
+  
 };
 
 /**

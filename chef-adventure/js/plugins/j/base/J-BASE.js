@@ -900,7 +900,7 @@ class IconManager
   constructor()
   {
     throw new Error("The IconManager is a static class.");
-  };
+  }
 
   /**
    * Gets the corresponding `iconIndex` for the param.
@@ -928,7 +928,7 @@ class IconManager
       case  7:
         return 39; // luk
     }
-  };
+  }
 
   /**
    * Gets the corresponding `iconIndex` for the x-param.
@@ -960,7 +960,7 @@ class IconManager
       case  9:
         return 13; // trg
     }
-  };
+  }
 
   /**
    * Gets the corresponding `iconIndex` for the s-param.
@@ -992,7 +992,7 @@ class IconManager
       case  9:
         return 156; // exr
     }
-  };
+  }
 
   /**
    * Gets the `iconIndex` based on the "long" parameter id.
@@ -1066,7 +1066,7 @@ class IconManager
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
     }
-  };
+  }
 
   /**
    * Gets the corresponding `iconIndex` for the element based on their id.
@@ -1138,7 +1138,7 @@ class IconManager
       default:
         return 93;  // a question mark for the unknown.
     }
-  };
+  }
 
   /**
    * Gets the icon for the skill type.
@@ -1176,7 +1176,7 @@ class IconManager
       default:
         return 0;
     }
-  };
+  }
 
   /**
    * Gets the icon for the weapon type.
@@ -1192,7 +1192,7 @@ class IconManager
       default:
         return 16;
     }
-  };
+  }
 
   /**
    * Gets the icon for the armor type.
@@ -1208,7 +1208,7 @@ class IconManager
       default:
         return 16;
     }
-  };
+  }
 
   /**
    * Gets the icon for the equip type.
@@ -1224,7 +1224,7 @@ class IconManager
       default:
         return 16;
     }
-  };
+  }
 
   /**
    * Gets the icon for the special flag of a trait.
@@ -1240,7 +1240,7 @@ class IconManager
       default:
         return 16;
     }
-  };
+  }
 
   /**
    * Gets the icon for the party ability of a trait.
@@ -1256,7 +1256,7 @@ class IconManager
       default:
         return 16;
     }
-  };
+  }
 
   /**
    * Gets the icon for a trait.
@@ -1321,7 +1321,7 @@ class IconManager
         console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
         return false;
     }
-  };
+  }
 
   /**
    * A tag for correlating a JABS parameter to an icon.
@@ -1349,7 +1349,7 @@ class IconManager
       case this.JABS_PARAMETER.ATTACK_SKILL:
         return 76;
     }
-  };
+  }
 
   /**
    * A tag for correlating a JAFTING parameter to an icon.
@@ -1386,7 +1386,7 @@ class IconManager
       case this.JAFTING_PARAMETER.UNREFINABLE:
         return 90;
     }
-  };
+  }
 
   /**
    * Gets the icon representing the team id provided.
@@ -1404,7 +1404,7 @@ class IconManager
       case 2: // neutral
         return 91;
     }
-  };
+  }
 }
 //#endregion IconManager
 
@@ -1416,7 +1416,7 @@ class IconManager
  */
 ImageManager.probeCharacter = function(characterFileName)
 {
-  return new Promise(function(resolve, reject)
+  return new Promise((resolve, reject) =>
   {
     const xhr = new XMLHttpRequest();
     const characterImageUrl = `img/characters/${Utils.encodeURI(characterFileName)}.png`;
@@ -2073,7 +2073,8 @@ Game_Actor.prototype.learnSkill = function(skillId)
  * A hook for performing actions when an actor learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
  */
-Game_Actor.prototype.onLearnNewSkill = function(skillId) { };
+Game_Actor.prototype.onLearnNewSkill = function(skillId) 
+{ };
 
 /**
  * Extends {@link Game_Actor.prototype.learnSkill}.
@@ -2098,7 +2099,8 @@ Game_Actor.prototype.forgetSkill = function(skillId)
  * A hook for performing actions when a battler forgets a skill.
  * @param {number} skillId The skill id of the skill forgotten.
  */
-Game_Actor.prototype.onForgetSkill = function(skillId) { };
+Game_Actor.prototype.onForgetSkill = function(skillId) 
+{ };
 //#endregion Game_Actor
 
 //#region Game_Battler
@@ -3276,7 +3278,7 @@ class Sprite_Icon extends Sprite
 
     // setups up the bitmap with the default iconset via promises.
     this.setupDefaultIconsetBitmap(iconIndex);
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -3322,7 +3324,7 @@ class Sprite_Icon extends Sprite
      * @type {number}
      */
     this._j._iconColumns = ImageManager.iconColumns;
-  };
+  }
 
   /**
    * Sets up the bitmap with the default iconset.
@@ -3336,13 +3338,16 @@ class Sprite_Icon extends Sprite
     // setup a promise for when the bitmap loads.
     const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
       .then(bitmap => this.setIconsetBitmap(bitmap))
-      .catch(() => { throw new Error('default iconset bitmap failed to load.'); });
+      .catch(() => 
+{
+ throw new Error('default iconset bitmap failed to load.'); 
+});
 
     // upon promise delivery, execute the rendering.
     Promise.all([bitmapPromise])
       // execute on-ready logic, such as setting the icon index of this sprite to render.
       .then(() => this.onReady(iconIndex))
-  };
+  }
 
   /**
    * Sets the ready flag to false to prevent rendering further
@@ -3350,7 +3355,7 @@ class Sprite_Icon extends Sprite
   unReady()
   {
     this._j._isReady = false;
-  };
+  }
 
   /**
    * Gets whether or not this icon sprite is ready for rendering.
@@ -3359,7 +3364,7 @@ class Sprite_Icon extends Sprite
   isReady()
   {
     return this._j._isReady;
-  };
+  }
 
   /**
    * Sets the bitmap to the designated bitmap.
@@ -3368,7 +3373,7 @@ class Sprite_Icon extends Sprite
   setIconsetBitmap(bitmap)
   {
     this.bitmap = bitmap;
-  };
+  }
 
   /**
    * Gets the icon index from the iconset for this sprite.
@@ -3377,7 +3382,7 @@ class Sprite_Icon extends Sprite
   iconIndex()
   {
     return this._j._iconIndex;
-  };
+  }
 
   /**
    * Sets the icon index for this sprite.
@@ -3393,7 +3398,7 @@ class Sprite_Icon extends Sprite
 
     // (re)renders the sprite based on the icon index.
     this.drawIcon();
-  };
+  }
 
   /**
    * Gets the width of this icon for this sprite.
@@ -3402,7 +3407,7 @@ class Sprite_Icon extends Sprite
   iconWidth()
   {
     return this._j._iconWidth;
-  };
+  }
 
   /**
    * Sets the width of this sprite's icon.
@@ -3411,7 +3416,7 @@ class Sprite_Icon extends Sprite
   setIconWidth(width)
   {
     this._j._iconWidth = width;
-  };
+  }
 
   /**
    * Gets the height of this icon for this sprite.
@@ -3420,7 +3425,7 @@ class Sprite_Icon extends Sprite
   iconHeight()
   {
     return this._j._iconHeight;
-  };
+  }
 
   /**
    * Sets the height of this sprite's icon.
@@ -3429,7 +3434,7 @@ class Sprite_Icon extends Sprite
   setIconHeight(height)
   {
     this._j._iconHeight = height;
-  };
+  }
 
   /**
    * Gets the number of columns for this sprite's iconset.
@@ -3438,7 +3443,7 @@ class Sprite_Icon extends Sprite
   iconColumns()
   {
     return this._j._iconColumns;
-  };
+  }
 
   /**
    * Sets the number of columns for the sprite's iconset.
@@ -3447,7 +3452,7 @@ class Sprite_Icon extends Sprite
   setIconColumns(columns)
   {
     this._j._iconColumns = columns;
-  };
+  }
 
   /**
    * Upon becoming ready, execute this logic.
@@ -3461,7 +3466,7 @@ class Sprite_Icon extends Sprite
 
     // and also follow up with rendering an icon.
     this.setIconIndex(iconIndex);
-  };
+  }
 
   /**
    * Sets the frame of the bitmap to be the icon we care about.
@@ -3480,7 +3485,7 @@ class Sprite_Icon extends Sprite
 
     // set the frame of the bitmap to start at the x:y, and be as big as designated.
     this.setFrame(x, y, iconWidth, iconHeight);
-  };
+  }
 }
 //#endregion Sprite_Icon
 
@@ -3514,7 +3519,7 @@ class Sprite_BaseText extends Sprite
 
     // set the text of the sprite.
     this.setText(text);
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -3574,7 +3579,7 @@ class Sprite_BaseText extends Sprite
      * @type {number}
      */
     this._j._fontSize = $gameSystem.mainFontSize();
-  };
+  }
 
   /**
    * Sets up the bitmap based on the desired text content.
@@ -3593,7 +3598,7 @@ class Sprite_BaseText extends Sprite
 
     // setup the bitmap with the current configuration.
     this.configureBitmap();
-  };
+  }
 
   /**
    * Configures the bitmap with the current settings and configuration.
@@ -3606,7 +3611,7 @@ class Sprite_BaseText extends Sprite
     this.bitmap.fontBold = this.isBold();
     this.bitmap.fontItalic = this.isItalics();
     this.bitmap.textColor = this.color();
-  };
+  }
 
   /**
    * Refresh the content of this sprite.
@@ -3628,7 +3633,7 @@ class Sprite_BaseText extends Sprite
 
     // render the text onto the bitmap.
     this.renderText();
-  };
+  }
 
   /**
    * The width of this bitmap.
@@ -3645,7 +3650,7 @@ class Sprite_BaseText extends Sprite
 
     // and return the measured text width.
     return this._j._testBitmap.measureTextWidth(this._j._text) * 2;
-  };
+  }
 
   /**
    * The height of this bitmap.
@@ -3655,7 +3660,7 @@ class Sprite_BaseText extends Sprite
   bitmapHeight()
   {
     return this._j._fontSize * 3;
-  };
+  }
 
   /**
    * The text currently assigned to this sprite.
@@ -3664,7 +3669,7 @@ class Sprite_BaseText extends Sprite
   text()
   {
     return this._j._text;
-  };
+  }
 
   /**
    * Assigns text to this sprite.
@@ -3685,7 +3690,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Gets the current color assigned to this sprite's text.
@@ -3694,7 +3699,7 @@ class Sprite_BaseText extends Sprite
   color()
   {
     return this._j._color;
-  };
+  }
 
   /**
    * Sets the color of this sprite's text.
@@ -3714,7 +3719,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Validates the color to ensure it is a hex color.
@@ -3736,7 +3741,7 @@ class Sprite_BaseText extends Sprite
 
     // return the result.
     return isHexColor;
-  };
+  }
 
   /**
    * Gets the text alignment for this text sprite.
@@ -3745,7 +3750,7 @@ class Sprite_BaseText extends Sprite
   alignment()
   {
     return this._j._alignment;
-  };
+  }
 
   /**
    * Sets the alignment of this sprite's text.
@@ -3765,7 +3770,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Validates the alignment to ensure it is a valid alignment.
@@ -3781,7 +3786,7 @@ class Sprite_BaseText extends Sprite
     ]
 
     return validAlignments.includes(alignment);
-  };
+  }
 
   /**
    * Gets whether or not this sprite's text is bold.
@@ -3790,7 +3795,7 @@ class Sprite_BaseText extends Sprite
   isBold()
   {
     return this._j._bold;
-  };
+  }
 
   /**
    * Sets the bold for this sprite's text.
@@ -3806,7 +3811,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Gets whether or not this sprite's text is italics.
@@ -3815,7 +3820,7 @@ class Sprite_BaseText extends Sprite
   isItalics()
   {
     return this._j._italics;
-  };
+  }
 
   /**
    * Sets the italics for this sprite's text.
@@ -3831,7 +3836,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Gets the current font face name.
@@ -3840,7 +3845,7 @@ class Sprite_BaseText extends Sprite
   fontFace()
   {
     return this._j._fontFace;
-  };
+  }
 
   /**
    * Sets the font face to the designated font.
@@ -3858,7 +3863,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Gets the current font size.
@@ -3867,7 +3872,7 @@ class Sprite_BaseText extends Sprite
   fontSize()
   {
     return this._j._fontSize;
-  };
+  }
 
   /**
    * Sets the font size to the designated number.
@@ -3883,7 +3888,7 @@ class Sprite_BaseText extends Sprite
 
     // return this for chaining if desired.
     return this;
-  };
+  }
 
   /**
    * Renders the text of this sprite.
@@ -3898,7 +3903,7 @@ class Sprite_BaseText extends Sprite
       this.bitmapWidth(),
       this.bitmapHeight(),
       this.alignment());
-  };
+  }
 }
 //#endregion Sprite_BaseText
 
@@ -4155,10 +4160,10 @@ Sprite_CooldownTimer.prototype.updateCooldownText = function()
     baseCooldown = 0;
   }
 
-  let cooldownBaseText = baseCooldown > 0
+  const cooldownBaseText = baseCooldown > 0
     ? baseCooldown
     : "✔";
-  let cooldownComboText = (cooldownBaseText > 0 && this._j._cooldownData.comboNextActionId != 0)
+  const cooldownComboText = (cooldownBaseText > 0 && this._j._cooldownData.comboNextActionId !== 0)
     ? "COMBO!"
     : "❌";
 
@@ -4230,7 +4235,8 @@ Sprite_MapGauge.prototype.initialize = function(
   label = String.empty,
   value = null,
   iconIndex = -1
-) {
+) 
+{
   this._duration = 0;
   this._gauge = {};
   this._gauge._bitmapWidth = bitmapWidth;
@@ -4698,7 +4704,7 @@ WindowLayer.prototype.render = function(renderer)
   }
 
   const graphics = new PIXI.Graphics()
-    , gl = renderer.gl
+    , {gl} = renderer
     , children = this.children.clone();
 
   // noinspection JSUnresolvedFunction
@@ -4876,7 +4882,7 @@ class Window_MoreData
     this.initialize(rect);
     this.initMembers();
     this.refresh();
-  };
+  }
 
   /**
    * Initializes all properties of this method.
@@ -4899,7 +4905,7 @@ class Window_MoreData
      * @type {Game_Actor}
      */
     this.actor = null;
-  };
+  }
 
   /**
    * Sets an item to this window to display more data for.
@@ -4909,7 +4915,7 @@ class Window_MoreData
   {
     this.item = newItem;
     this.refresh();
-  };
+  }
 
   /**
    * Sets the actor of this window for performing parameter calculations against.
@@ -4919,7 +4925,7 @@ class Window_MoreData
   {
     this.actor = newActor;
     this.refresh();
-  };
+  }
 
   /**
    * Refreshes this window by clearing it and redrawing all its contents.
@@ -4931,7 +4937,7 @@ class Window_MoreData
     {
       this.determineItemType();
     }
-  };
+  }
 
   /**
    * Updates the type of item this is.
@@ -4957,7 +4963,7 @@ class Window_MoreData
         console.warn('was provided an unknown item type to display more data for.', this.item);
         break;
     }
-  };
+  }
 
   /**
    * Determines whether or not the selected row is a weapon or not.
@@ -4966,7 +4972,7 @@ class Window_MoreData
   weaponSelected()
   {
     return this.type === Window_MoreData.Types.Weapon;
-  };
+  }
 
   /**
    * Determines whether or not the selected row is an armor or not.
@@ -4975,7 +4981,7 @@ class Window_MoreData
   armorSelected()
   {
     return this.type === Window_MoreData.Types.Armor;
-  };
+  }
 
   /**
    * Determines whether or not the selected row is an item or not.
@@ -4984,7 +4990,7 @@ class Window_MoreData
   itemSelected()
   {
     return this.type === Window_MoreData.Types.Item;
-  };
+  }
 
   /**
    * Determines whether or not the selected row is a skill or not.
@@ -4993,7 +4999,7 @@ class Window_MoreData
   skillSelected()
   {
     return this.type === Window_MoreData.Types.Skill;
-  };
+  }
 
   /**
    * Creates a command list for this menu.
@@ -5006,7 +5012,7 @@ class Window_MoreData
       // this.addCommand(`${this.item.name}`, null, true, null, this.item.iconIndex, 0);
       this.adjustWindowHeight();
     }
-  };
+  }
 
   /**
    * Readjusts the height of the command window to match the number of commands.
@@ -5023,8 +5029,8 @@ class Window_MoreData
     {
       this.height = calculatedHeight;
     }
-  };
-};
+  }
+}
 //#endregion Window_MoreData
 
 //#region Window_Selectable
@@ -5158,7 +5164,7 @@ class RPG_ClassLearning
     this.level = learning.level;
     this.skillId = learning.skillId;
     this.note = learning.note;
-  };
+  }
 }
 //#endregion RPG_ClassLearning
 
@@ -5199,7 +5205,7 @@ class RPG_DropItem
     this.dataId = enemyDropItem.dataId;
     this.denominator = enemyDropItem.denominator;
     this.kind = enemyDropItem.kind;
-  };
+  }
 }
 //#endregion RPG_DropItem
 
@@ -5253,7 +5259,7 @@ class RPG_EnemyAction
     this.conditionType = enemyAction.conditionType;
     this.rating = enemyAction.rating;
     this.skillId = enemyAction.skillId;
-  };
+  }
 }
 //#endregion RPG_EnemyAction
 
@@ -5314,7 +5320,7 @@ class RPG_SkillDamage
     {
       // if we don't have damage, use the defaults.
     }
-  };
+  }
 }
 //#endregion RPG_SkillDamage
 
@@ -5354,7 +5360,7 @@ class RPG_Trait
     this.code = trait.code;
     this.dataId = trait.dataId;
     this.value = trait.value;
-  };
+  }
 }
 //#endregion RPG_Trait
 
@@ -5401,7 +5407,7 @@ class RPG_UsableEffect
     this.dataId = effect.dataId;
     this.value1 = effect.value1;
     this.value2 = effect.value2;
-  };
+  }
 }
 //#endregion RPG_UsableEffect
 //#endregion RPG data
@@ -5471,7 +5477,7 @@ class RPG_Base
     this.meta = baseItem.meta;
     this.name = baseItem.name;
     this.note = baseItem.note;
-  };
+  }
 
   /**
    * Retrieves the index of this entry in the database.
@@ -5480,7 +5486,7 @@ class RPG_Base
   _index()
   {
     return this.#index;
-  };
+  }
 
   /**
    * Retrieves the original underlying data that was passed to this
@@ -5490,7 +5496,7 @@ class RPG_Base
   _original()
   {
     return this.#original;
-  };
+  }
 
   /**
    * Creates a new instance of this wrapper class with all the same
@@ -5511,7 +5517,7 @@ class RPG_Base
 
     // return the newly created copy.
     return clone;
-  };
+  }
 
   /**
    * The unique key that is used to register this object against
@@ -5524,7 +5530,7 @@ class RPG_Base
   _key()
   {
     return this._index();
-  };
+  }
 
   //#region meta
   /**
@@ -5546,7 +5552,7 @@ class RPG_Base
     }
 
     return null;
-  };
+  }
 
   /**
    * Gets the value of the given key from this entry's meta object.
@@ -5565,7 +5571,7 @@ class RPG_Base
   deleteMetadata(key)
   {
     delete this.meta[key]
-  };
+  }
 
   /**
    * Gets the metadata of a given key from this entry as a string.
@@ -5586,7 +5592,7 @@ class RPG_Base
     }
 
     return null;
-  };
+  }
 
   /**
    * Gets the metadata of a given key from this skill as a number.
@@ -5607,7 +5613,7 @@ class RPG_Base
     }
 
     return null;
-  };
+  }
 
   /**
    * Gets the metadata of a given key from this skill as a boolean.
@@ -5636,7 +5642,7 @@ class RPG_Base
     }
 
     return null;
-  };
+  }
 
   /**
    * Retrieves the metadata for a given key on this skill.
@@ -5657,7 +5663,7 @@ class RPG_Base
     }
 
     return null;
-  };
+  }
 
   /**
    * Parses a object into whatever its given data type is.
@@ -5694,7 +5700,7 @@ class RPG_Base
 
     // number, boolean, or otherwise unidentifiable object.
     return obj;
-  };
+  }
 
   /**
    * Parses a metadata object from a string into possibly a boolean or number.
@@ -5714,7 +5720,7 @@ class RPG_Base
 
     // it must just be a word or something.
     return str;
-  };
+  }
   //#endregion meta
 
   //#region note
@@ -5737,7 +5743,7 @@ class RPG_Base
 
     // if we returned no data from this baseitem, then return an empty array.
     return [];
-  };
+  }
 
   /**
    * Returns a formatted array of strings as output from the note data of this baseitem.
@@ -5756,7 +5762,7 @@ class RPG_Base
 
     // return our array of notes!
     return formattedNotes;
-  };
+  }
 
   /**
    * A filter function for defining what is invalid when it comes to a note data.
@@ -5770,7 +5776,7 @@ class RPG_Base
 
     // everything else is.
     return true;
-  };
+  }
 
   /**
    * Removes all regex matches in the raw note data string.
@@ -5783,7 +5789,7 @@ class RPG_Base
 
     // cleanup the line endings that may have been messed up.
     this.#cleanupLineEndings();
-  };
+  }
 
   /**
    * Reformats the note data to remove any invalid line endings, including those
@@ -5801,7 +5807,7 @@ class RPG_Base
     {
       this.note = this.note.slice(2);
     }
-  };
+  }
 
   /**
    * Gets an accumulated numeric value based on the provided regex structure.
@@ -5854,7 +5860,7 @@ class RPG_Base
       // return the found value.
       return val;
     }
-  };
+  }
 
   /**
    * Gets the last string value based on the provided regex structure.
@@ -5906,7 +5912,7 @@ class RPG_Base
       // return the found value.
       return val;
     }
-  };
+  }
 
   /**
    * Gets whether or not there is a matching regex tag on this skill.
@@ -5963,7 +5969,7 @@ class RPG_Base
       // return the found value.
       return val;
     }
-  };
+  }
 
   /**
    * Gets an array value based on the provided regex structure.
@@ -6015,7 +6021,7 @@ class RPG_Base
 
     // return the found value.
     return val;
-  };
+  }
 
   /**
    * Gets all lines of data from the notedata that match the provided regex.
@@ -6048,7 +6054,7 @@ class RPG_Base
 
     // return the found value.
     return data;
-  };
+  }
   //#endregion note
 }
 //#endregion RPG_Base
@@ -6086,7 +6092,7 @@ class RPG_BaseItem extends RPG_Base
     // map the additional description and iconIndex as well for all base items.
     this.description = baseItem.description;
     this.iconIndex = baseItem.iconIndex;
-  };
+  }
 }
 //#endregion RPG_BaseItem
 
@@ -6115,7 +6121,7 @@ class RPG_TraitItem extends RPG_BaseItem
 
     // map the base item's traits.
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
-  };
+  }
 }
 //#endregion RPG_TraitItem
 
@@ -6163,7 +6169,7 @@ class RPG_EquipItem extends RPG_TraitItem
     this.etypeId = equip.etypeId;
     this.params = equip.params;
     this.price = equip.price;
-  };
+  }
 }
 //#endregion RPG_EquipItem
 
@@ -6257,7 +6263,7 @@ class RPG_UsableItem extends RPG_BaseItem
     this.speed = usableItem.speed;
     this.successRate = usableItem.successRate;
     this.tpGain = usableItem.tpGain;
-  };
+  }
 }
 //#endregion RPG_UsableItem
 
@@ -6295,7 +6301,7 @@ class RPG_BaseBattler extends RPG_Base
     this.battlerName = battler.battlerName;
     this.traits = battler.traits
       .map(trait => new RPG_Trait(trait));
-  };
+  }
 }
 //#endregion RPG_BaseBattler
 //#endregion RPG base classes
@@ -6386,7 +6392,7 @@ class RPG_Actor extends RPG_BaseBattler
 
     // map the data.
     this.initMembers(actor)
-  };
+  }
 
   /**
    * Maps the data from the JSON to this object.
@@ -6405,7 +6411,7 @@ class RPG_Actor extends RPG_BaseBattler
     this.maxLevel = actor.maxLevel;
     this.nickName = actor.nickname;
     this.profile = actor.profile;
-  };
+  }
 }
 //#endregion RPG_Actor
 
@@ -6436,7 +6442,7 @@ class RPG_Armor extends RPG_EquipItem
 
     // map the data.
     this.atypeId = armor.atypeId;
-  };
+  }
 }
 //#endregion RPG_Armor
 
@@ -6491,7 +6497,7 @@ class RPG_Class extends RPG_Base
     this.params = classData.params;
     this.traits = classData.traits
       .map(trait => new RPG_Trait(trait));
-  };
+  }
 }
 //#endregion RPG_Class
 
@@ -6553,7 +6559,7 @@ class RPG_Enemy extends RPG_BaseBattler
 
     // map the data.
     this.initMembers(enemy);
-  };
+  }
 
   /**
    * Maps the data from the JSON to this object.
@@ -6570,7 +6576,7 @@ class RPG_Enemy extends RPG_BaseBattler
     this.exp = enemy.exp;
     this.gold = enemy.gold;
     this.params = enemy.params;
-  };
+  }
 }
 //#endregion RPG_Enemy
 
@@ -6615,7 +6621,7 @@ class RPG_Item extends RPG_UsableItem
     this.consumable = item.consumable;
     this.itypeId = item.itypeId;
     this.price = item.price;
-  };
+  }
 }
 //#endregion RPG_Item
 
@@ -6688,7 +6694,7 @@ class RPG_Skill extends RPG_UsableItem
 
     // map the data.
     this.initMembers(skill);
-  };
+  }
 
   /**
    * Maps all the data from the JSON to this object.
@@ -6705,7 +6711,7 @@ class RPG_Skill extends RPG_UsableItem
     this.requiredWtypeId2 = skill.requiredWtypeId2;
     this.stypeId = skill.stypeId;
     this.tpCost = skill.tpCost;
-  };
+  }
 }
 //#endregion RPG_Skill
 
@@ -6874,7 +6880,7 @@ class RPG_State extends RPG_TraitItem
     this.removeByWalking = state.removeByWalking;
     this.restriction = state.restriction;
     this.stepsToRemove = state.stepsToRemove;
-  };
+  }
 }
 //#endregion RPG_State
 
@@ -6912,7 +6918,7 @@ class RPG_Weapon extends RPG_EquipItem
     // map the data.
     this.animationId = weapon.animationId;
     this.wtypeId = weapon.wtypeId;
-  };
+  }
 }
 //#endregion RPG_Weapon
 //#endregion RPG implementations

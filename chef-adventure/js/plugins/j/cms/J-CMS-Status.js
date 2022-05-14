@@ -181,7 +181,7 @@ class Window_StatusParameters
     super(rect);
     super.initialize(rect);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all members of this class.
@@ -189,7 +189,7 @@ class Window_StatusParameters
   initMembers()
   {
     this.actor = null;
-  };
+  }
 
   /**
    * OVERWRITE Changes the lineheight to default to something smaller than 36 for this window.
@@ -198,7 +198,7 @@ class Window_StatusParameters
   lineHeight()
   {
     return 32;
-  };
+  }
 
   /**
    * Sets the actor for this window to draw parameter data for.
@@ -208,7 +208,7 @@ class Window_StatusParameters
   {
     this.actor = actor;
     this.refresh();
-  };
+  }
 
   /**
    * Refreshes this window by clearing it and redrawing all its contents.
@@ -217,7 +217,7 @@ class Window_StatusParameters
   {
     this.contents.clear();
     this.drawContent();
-  };
+  }
 
   /**
    * Draws all content in this window.
@@ -232,7 +232,7 @@ class Window_StatusParameters
     this.drawSParams(700, 0);
     this.drawElementalRates(0, 380);
     this.drawStateRates(350, 380);
-  };
+  }
 
   /**
    * Draws all the b-params for the actor.
@@ -252,7 +252,7 @@ class Window_StatusParameters
       y = ((index + 1) * this.lineHeight()) + 8;
       this.drawParameter(name, value, iconIndex, x + 40, y);
     });
-  };
+  }
 
   /**
    * Draws all the x-params for the actor.
@@ -261,7 +261,7 @@ class Window_StatusParameters
    */
   drawXParams(x, y)
   {
-    this.drawTitle("Rates", x, y - 15, 92, 1);
+    this.drawTitle("Rates (ex-param)", x, y - 15, 92, 1);
 
     const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     paramIds.forEach((xparamId, index) =>
@@ -272,7 +272,7 @@ class Window_StatusParameters
       y = ((index + 1) * this.lineHeight()) + 8;
       this.drawParameter(name, value, iconIndex, x + 40, y);
     });
-  };
+  }
 
   /**
    * Draws all the s-params for the actor.
@@ -281,7 +281,7 @@ class Window_StatusParameters
    */
   drawSParams(x, y)
   {
-    this.drawTitle("Bonuses", x, y - 10, 73, 1);
+    this.drawTitle("Bonuses (sp-param)", x, y - 10, 73, 1);
 
     const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     paramIds.forEach((sparamId, index) =>
@@ -292,7 +292,7 @@ class Window_StatusParameters
       y = ((index + 1) * this.lineHeight()) + 8;
       this.drawParameter(name, value, iconIndex, x + 40, y);
     });
-  };
+  }
 
   /**
    * Draws the elemental rates section.
@@ -308,7 +308,7 @@ class Window_StatusParameters
     elements.forEach((name, index) =>
     {
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      let rate = ((this.actor.traitsPi(11, index)) * 100);
+      const rate = ((this.actor.traitsPi(11, index)) * 100);
       let colorIndex = 0;
       if (rate > 100)
       {
@@ -322,7 +322,7 @@ class Window_StatusParameters
       name = (name === "") ? "Neutral" : name;
       this.drawParameter(`${name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
-  };
+  }
 
   /**
    * Draws the state rates section.
@@ -339,7 +339,7 @@ class Window_StatusParameters
       if (!state) return;
 
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      let rate = ((this.actor.traitsPi(13, index + 4)) * 100);
+      const rate = ((this.actor.traitsPi(13, index + 4)) * 100);
       let colorIndex = 0;
       if (rate > 100)
       {
@@ -349,10 +349,10 @@ class Window_StatusParameters
       {
         colorIndex = 3; // green
       }
-      const iconIndex = state.iconIndex;
+      const {iconIndex} = state;
       this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
-  };
+  }
 
   /**
    * Draws the given data as "a parameter".
@@ -371,7 +371,7 @@ class Window_StatusParameters
     this.drawText(`${name}`, modifiedX, y, 200);
     this.changeTextColor(ColorManager.textColor(colorIndex));
     this.drawText(`${value}`, modifiedX + 200, y, 250);
-  };
+  }
 
   /**
    * Draws the title of one of the sections for parameters.
@@ -389,8 +389,8 @@ class Window_StatusParameters
     this.contents.fontSize += 12;
     this.drawText(text, x + 32, y + 16, 350);
     this.contents.fontSize -= 12;
-  };
-};
+  }
+}
 //#endregion Window_StatusParameters
 //#endregion Window objects
 
