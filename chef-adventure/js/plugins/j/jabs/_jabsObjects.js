@@ -547,10 +547,10 @@ Game_Actor.prototype.offhandSkillOverride = function()
   let overrideSkillId = 0;
 
   // grab all states to start.
-  let objectsToCheck = [...this.states()];
+  const objectsToCheck = [...this.states()];
 
   // grab the weapon of the actor.
-  const weapon = this.equips()[0];
+  const [weapon,] = this.equips()[0];
 
   // check if we have a weapon.
   if (weapon)
@@ -832,7 +832,7 @@ Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
  */
 Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
 {
-  const structure = /<stateDurationFlat:[ ]?([\-+]?\d+)>/i;
+  const structure = /<stateDurationFlat:[ ]?([-+]?\d+)>/i;
   const notedata = noteObject.note.split(/[\r\n]+/);
   let flatDurationBoost = 0;
   notedata.forEach(line =>
@@ -854,7 +854,7 @@ Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
  */
 Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuration)
 {
-  const structure = /<stateDurationPerc:[ ]?([\-+]?\d+)>/i;
+  const structure = /<stateDurationPerc:[ ]?([-+]?\d+)>/i;
   const notedata = noteObject.note.split(/[\r\n]+/);
   let percDurationBoost = 0;
   notedata.forEach(line =>
@@ -2013,14 +2013,15 @@ Game_Character.prototype.getDiagonalDirections = function(direction)
  * @param {number} goalX The `x` coordinate trying to be reached.
  * @param {number} goalY The `y` coordinate trying to be reached.
  */
+/* eslint-disable */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {
-  let searchLimit = this.searchLimit();
-  let mapWidth = $gameMap.width();
-  let nodeList = [];
-  let openList = [];
-  let closedList = [];
-  let start = {};
+  const searchLimit = this.searchLimit();
+  const mapWidth = $gameMap.width();
+  const nodeList = [];
+  const openList = [];
+  const closedList = [];
+  const start = {};
   let best = start;
   let goaled = false;
 
@@ -2048,11 +2049,11 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
       }
     }
 
-    let current = nodeList[bestIndex];
-    let x1 = current.x;
-    let y1 = current.y;
-    let pos1 = y1 * mapWidth + x1;
-    let g1 = current.g;
+    const current = nodeList[bestIndex];
+    const x1 = current.x;
+    const y1 = current.y;
+    const pos1 = y1 * mapWidth + x1;
+    const g1 = current.g;
 
     nodeList.splice(bestIndex, 1);
     openList.splice(openList.indexOf(pos1), 1);
@@ -2086,11 +2087,11 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
         directions = [j, j];
       }
 
-      let horz = directions[0];
-      let vert = directions[1];
-      let x2 = $gameMap.roundXWithDirection(x1, horz);
-      let y2 = $gameMap.roundYWithDirection(y1, vert);
-      let pos2 = y2 * mapWidth + x2;
+      const horz = directions[0];
+      const vert = directions[1];
+      const x2 = $gameMap.roundXWithDirection(x1, horz);
+      const y2 = $gameMap.roundYWithDirection(y1, vert);
+      const pos2 = y2 * mapWidth + x2;
 
       if (closedList.contains(pos2))
       {
@@ -2147,8 +2148,8 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     node = node.parent;
   }
 
-  let deltaX1 = $gameMap.deltaX(node.x, start.x);
-  let deltaY1 = $gameMap.deltaY(node.y, start.y);
+  const deltaX1 = $gameMap.deltaX(node.x, start.x);
+  const deltaY1 = $gameMap.deltaY(node.y, start.y);
   if (deltaY1 > 0)
   {
     return deltaX1 === 0 ? 2 : deltaX1 > 0 ? 3 : 1;
@@ -2165,8 +2166,8 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 
-  let deltaX2 = this.deltaXFrom(goalX);
-  let deltaY2 = this.deltaYFrom(goalY);
+  const deltaX2 = this.deltaXFrom(goalX);
+  const deltaY2 = this.deltaYFrom(goalY);
   if (Math.abs(deltaX2) > Math.abs(deltaY2))
   {
     if (deltaX2 > 0)
@@ -2198,6 +2199,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 };
+/* eslint-enable */
 //#endregion Game_Character
 
 //#region Game_CharacterBase
@@ -3158,19 +3160,19 @@ Game_Event.prototype.parseEnemyComments = function()
   }
 
   //  determine our overrides.
-  let battlerId = this.getBattlerIdOverrides();
+  const battlerId = this.getBattlerIdOverrides();
   let teamId = this.getTeamIdOverrides();
-  let ai = this.getBattlerAiOverrides();
-  let sightRange = this.getSightRangeOverrides();
-  let alertedSightBoost = this.getAlertedSightBoostOverrides();
-  let pursuitRange = this.getPursuitRangeOverrides();
-  let alertedPursuitBoost = this.getAlertedPursuitBoostOverrides();
-  let alertDuration = this.getAlertDurationOverrides();
+  const ai = this.getBattlerAiOverrides();
+  const sightRange = this.getSightRangeOverrides();
+  const alertedSightBoost = this.getAlertedSightBoostOverrides();
+  const pursuitRange = this.getPursuitRangeOverrides();
+  const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides();
+  const alertDuration = this.getAlertDurationOverrides();
   let canIdle = this.getCanIdleOverrides();
   let showHpBar = this.getShowHpBarOverrides();
   let showBattlerName = this.getShowBattlerNameOverrides();
-  let isInvincible = this.getInvincibleOverrides();
-  let isInanimate = this.getInanimateOverrides();
+  const isInvincible = this.getInvincibleOverrides();
+  const isInanimate = this.getInanimateOverrides();
 
   // if inanimate, override the overrides with these instead.
   if (isInanimate)
@@ -3278,7 +3280,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   this.getValidCommentCommands().forEach(command =>
     {
       // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+      const [comment,] = command.parameters[0];
 
       // check if this battler has the "careful" ai trait.
       if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(comment))
@@ -3766,7 +3768,7 @@ Game_Event.prototype.getValidCommentCommands = function()
 
     // make sure it has a valid structure.
     const comment = command.parameters[0];
-    if (!comment.match(/^<[\w :"'.!+\-*\/\\]+>$/i)) return false;
+    if (!comment.match(/^<[\w :"'.!+\-*/\\]+>$/i)) return false;
 
     // it is a valid comment worth parsing!
     return true;
@@ -4034,7 +4036,8 @@ Game_Interpreter.prototype.command303 = function(params)
 {
   if ($jabsEngine.absEnabled)
   {
-    if ($dataActors[params[0]]) {
+    if ($dataActors[params[0]]) 
+    {
       SceneManager.push(Scene_Name);
       SceneManager.prepareNextScene(params[0], params[1]);
     }
@@ -4175,7 +4178,6 @@ Game_Map.prototype.refreshOneBattler = function(event)
       this._j._allBattlers.push(newBattler);
     }
     // the next page is not an enemy, do nothing.
-    else { }
   }
 };
 
@@ -4674,14 +4676,14 @@ Game_Map.prototype.convertOneToEnemy = function(event)
 Game_Map.prototype.findBattlerByUuid = function(uuid)
 {
   let targetIndex = -1;
-  const battler = this._j._allBattlers.find((battler, index) =>
+  const foundBattler = this._j._allBattlers.find((battler, index) =>
   {
     const result = battler.getUuid() === uuid;
     if (result) targetIndex = index;
     return result;
   });
 
-  return [battler, targetIndex];
+  return [foundBattler, targetIndex];
 };
 
 /**
@@ -4695,7 +4697,7 @@ Game_Map.prototype.findBattlerByUuid = function(uuid)
 Game_Map.prototype.findBattlerByEventId = function(eventId)
 {
   let targetIndex = -1;
-  const battler = this._j._allBattlers.find((battler, index) =>
+  const foundBattler = this._j._allBattlers.find((battler, index) =>
   {
     // do not process non-enemies.
     if (!battler.isEnemy()) return false;
@@ -4714,7 +4716,7 @@ Game_Map.prototype.findBattlerByEventId = function(eventId)
   });
 
   // return the results.
-  return [battler, targetIndex];
+  return [foundBattler, targetIndex];
 };
 
 /**
@@ -5276,7 +5278,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   lootCollected.forEach(loot =>
   {
     // get the underlying loot item.
-    const lootData = loot.getLootData().lootData;
+    const {lootData} = loot.getLootData();
 
     // store the loot on-pickup.
     this.storeOnPickup(lootData);
@@ -5314,7 +5316,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 {
   // extract the loot data.
   const lootMetadata = lootEvent.getLootData();
-  const lootData = lootMetadata.lootData;
+  const {lootData} = lootMetadata;
   lootMetadata.useOnPickup
     ? this.useOnPickup(lootData)
     : this.storeOnPickup(lootData);

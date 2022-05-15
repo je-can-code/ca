@@ -1015,13 +1015,13 @@ Applicable to:
 
 **Syntax**:
 ```html
-<range: rangeValue>
+<radius: rangeValue>
 rangeValue = the size/range of the skill.
 ```
 
 **Example**:
 ```html
-<range: 2>
+<radius: 2>
 - the action can potentially hit up to 2 squares/spaces/tiles away/wide/far (see the shapes section).
 ```
 
@@ -1075,13 +1075,13 @@ Applicable to:
 
 **Syntax**:
 ```html
-<shape: theShape>
+<hitbox: theShape>
 theShape = the shape of this action. See above for the available options.
 ```
 
 **Example**:
 ```html
-<shape: arc>
+<hitbox: arc>
 - the action will hit in an arc-shape, dependent on how big the range is.
 ```
 

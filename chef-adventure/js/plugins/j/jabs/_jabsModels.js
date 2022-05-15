@@ -6330,13 +6330,8 @@ class JABS_BattlerAI
       }
     });
 
-    // basic will just pick a random one from the four skill options.
-    // basic will get overwritten if there are additional ai traits.
-    if (basic)
-    {
-      const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
-      bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
-    }
+    const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
+    bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
 
     // careful will decide in this order:
     if (careful)

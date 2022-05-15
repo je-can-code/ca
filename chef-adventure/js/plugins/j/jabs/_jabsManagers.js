@@ -848,9 +848,6 @@ class JABS_AiManager
 
     // process generic AI decision making.
     this.decideGenericAi(battler);
-
-    // stop processing.
-    return;
   }
 
   //#region ai:leader

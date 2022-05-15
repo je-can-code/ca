@@ -3,15 +3,16 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v3.0 JABS] Enables battles to be carried out on the map.
+ * [v3.0.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE
  * @orderAfter J-BASE
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is JABS: J's Action Battle System.
- * Using this plugin will enable you to carry out battles directly on the map
+ * Using this plugin will enable you to carry out combat directly on the map
  * in real-time, similar to popular game franchises like Zelda.
  *
  * In order to leverage this plugin, all the following plugins must be present
@@ -25,50 +26,387 @@
  * - _jabsSprites
  * - _jabsWindows
  * ============================================================================
- * DEVELOPER NOTES:
- * This plugin is divided into 7 separate "plugins" that also must be present
- * in order for this engine to work, and ideally in this order:
- * - J-ABS (this plugin/file)
- *    This plugin contains the actual engine that orchestrates the the entirety
- *    of this action battle system. Additionally, the JABS_InputAdapter lives
- *    here and handles the translation of input into commands that JABS can
- *    understand and make use of.
+ * DETAILS:
+ * Have you ever wanted to decorate events with tons of event comments and
+ * watch them come to life as AI-controlled allies/enemies in an action battle
+ * system for your button-mashing hack-n-slash pleasure? Well now you can! Just
+ * slap some tags on the various everything across the entire RMMZ editor, and
+ * you too can have a functional ABS, aka JABS!
+ * ============================================================================
+ * FIRST TIME SETUP, THE ACTION MAP:
+ * If you're not using the demo as a base, then you'll need to add a new map to
+ * your project where all the "action events" will live. These events represent
+ * the visual components of skills executed on the map and are mapped by adding
+ * a tag to the skills that associate your skill with the designated event on
+ * the action map. Once you've created the map, you'll need to take note of the
+ * map id and align it in the plugin parameters with the "Action Map Id" param.
  *
- * - _jabsModels
- *    This contains all the various custom classes that were not overwrites or
- *    extensions of the core RMMZ scripts. Things such as the JABS_Battler
- *    class can be found there.
+ * ============================================================================
+ * SETTING UP YOUR ENEMY EVENTS:
+ * There are a lot of potential tags that you can place all across the database
+ * to accomplish various goals, so lets get started with setting up an enemy
+ * event.
  *
- * - _jabsManagers
- *    This contains all modifications to the core RMMZ scripts that are just
- *    static classes, such as the DataManager and Input. Additionally, you can
- *    find the JABS_AiManager there.
+ * First and foremost, all tags will be living inside comment event commands:
+ *    "Event Commands > Flow Control > Comment"
+ * ----------------------------------------------------------------------------
+ * ENEMY ID:
+ * If you want an event to be tagged as an enemy, then the system needs a way
+ * to associate the event with the enemy. To accomplish this, we'll use the
+ * "enemy" tag:
+ *    <enemyId:ENEMY_ID>
+ *  Where ENEMY_ID is the id from the database of the enemy for this event.
  *
- * - _jabsObjects
- *    This contains all modifications to the core RMMZ scripts that are related
- *    to the various "Game_*" objects, such as Game_Event or Game_Map. I
- *    Call out Game_Event and Game_Map specifically because they received the
- *    largest amount of modifications to accommodate EVENTS being able to be
- *    translated into enemies that reside on the MAP, as this engine demands.
+ * ----------------------------------------------------------------------------
+ * SIGHT RADIUS:
+ * The "sight" of an enemy, is the radius around the enemy that it can perceive
+ * the player. When the player comes within this radius, the enemy will try to
+ * attack the player. To define the "sight" radius of an enemy, we'll use the
+ * "sight" tag:
+ *    <sight:RADIUS>
+ *  Where RADIUS is the distance in tiles this enemy can see.
  *
- * - _jabsScenes
- *    This contains all modifications to the core RMMZ scripts that are related
- *    to the various "Scene_*" objects, such as Scene_Load and Scene_Map. This
- *    mostly just contains the orchestration for the JABS menu on the map.
+ * NOTE: Enemy sight ignores obstacles like walls. They have x-ray vision.
  *
- * - _jabsSprites
- *    This contains all modifications to the core RMMZ scripts that are related
- *    to the various "Sprite_*" and "Spriteset_*" objects, such as
- *    Sprite_Character and Spriteset_Map. This mostly is where the sprite
- *    orchestration for adding actions or loot to the map exists.
+ * This can also be placed in the database on the enemy to set it as a default.
  *
- * - _jabsWindows
- *    This contains all modifications to the core RMMZ scripts that are related
- *    to the various "Window_*" objects, such as Window_AbsMenu. Actually, that
- *    isn't an overwrite, its just new, but it seemed strange to not have a
- *    windows file after having a file for all the other types of core objects.
+ * ----------------------------------------------------------------------------
+ * PURSUIT RADIUS:
+ * The "pursuit" of an enemy is the radius around the enemy that if will
+ * pursue the player once in combat. Effectively, this is the enemy's sight
+ * radius after it is engaged in combat. This is typically designed to be
+ * bigger than the sight radius. To define the "pursuit" radius of an enemy,
+ * we'll use the "pursuit" tag:
+ *    <pursuit:RADIUS>
+ *  Where RADIUS is the distance in tiles this enemy can pursue combatants.
  *
+ * This can also be placed in the database on the enemy to set it as a default.
  *
+ * ----------------------------------------------------------------------------
+ * ALERTING:
+ * When an enemy is struck with a skill from outside of its sight/pursuit
+ * range, the enemy will enter an "alerted" state. While in said "alerted"
+ * state, they can have heightened sight and pursuit, and will navigate to the
+ * point of which they believe the attacker resides. It is encouraged to use
+ * this functionality, or else enemies can be easily defeated with ranged
+ * skills and no risk. To leverage this functionality, there are a few tags you
+ * may want to use:
+ *    <alertDuration:DURATION>
+ *  Where DURATION is the duration in frames to remain alerted.
+ *
+ *    <alertedSightBoost:RADIUS_BOOST>
+ *  Where RADIUS_BOOST is the amount of bonus sight gained while alerted.
+ *
+ *    <alertedPursuitBoost:RADIUS_BOOST>
+ *  Where RADIUS_BOOST is the amount of bonus pursuit gained while alerted.
+ *
+ * This can also be placed in the database on the enemy to set it as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * MOVE SPEED:
+ * Sometimes, you want an enemy to move somewhere between 3 and 4 movespeed,
+ * because 3 to 4 movespeed is literally a 2x jump in movespeed. If you want
+ * to assign a number like 3.7 as an enemy's move speed, you can use this tag:
+ *    <moveSpeed:SPEED>
+ *  Where SPEED is the numeric value to represent the move speed.
+ *
+ * NOTE: This will override whatever the native RMMZ event page is set to.
+ * NOTE: I have found a good balance is between 3.5 and 4.5 for move speed.
+ *
+ * ----------------------------------------------------------------------------
+ * AI TRAITS:
+ * While the basic AI works, you may want to modify the AI a bit for various
+ * enemies. To do this, I've built some tags that flex the various themes that
+ * the AI can perform. These tags should be added alongside wherever you might
+ * add the above tags for things like enemy id and sight radius.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:careful>
+ * Enemies with the Careful AI trait will be more calculating about their
+ * strategies, and avoid using things that would benefit you, such as skills
+ * that are elementally ineffective. This also influences decision-making for
+ * other AI traits.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:executor>
+ * Enemies with the Executor AI trait will prioritize leveraging skills that
+ * maximize damage and target weak spots. They know everything and will
+ * use every skill in their arsenal to destroy you.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:reckless>
+ * Enemies with the Reckless AI trait will never use their basic attack, and
+ * will spam their learned skills until they are out of resources instead.
+ * This also influences decision-making for other AI traits.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:healer>
+ * Enemies with the Healer AI trait will monitor their nearby allies while they
+ * use their various skills and prioritize their own healing skills to keep
+ * their allies alive. If an enemy has the Reckless AI trait alongside this,
+ * they will disregard efficiency and just use the strongest healing skill to
+ * heal their allies. If an enemy has the Careful AI trait, they will be more
+ * calculating and use the "best fitted" healing skill for the situation.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:follower>
+ * Enemies with the Follower AI trait are restricted to only using their basic
+ * attack skill when without a leader. When another enemy is in the nearby
+ * vicinity that has the Leader AI Trait, then the leader enemy will decide
+ * actions on behalf of the follower enemy to perform. This AI trait is
+ * typically used to create "dormant" enemies that awaken when a leader is
+ * present and can utilize their skills. You can also gate healing skills
+ * behind requiring a leader to leverage them.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:leader>
+ * Enemies with the Leader AI trait are just like normal enemies and will obey
+ * their other AI traits, but also they will take over and make decisions on
+ * behalf of any available followers in the nearby vicinity using their own
+ * AI traits to decide what skills for the follower to use.
+ *
+ * ============================================================================
+ * TEAMS:
+ * By default, when an enemy is created, they are assigned a numeric team value
+ * of 1. When allied battlers (such as the player) are created, they are given
+ * the team value of 0. Because these two battlers are on different teams, they
+ * are able to deal damage to eachother with skills. If your game is more
+ * complex than "good guy" & "bad guy", you may require additional teams. While
+ * it isn't greatly supported in the sense that there is team relationships
+ * and associations you can create (such as two separate teams that consider
+ * eachother allies, or neutral teams), you can still add a tag to enemies on
+ * the map that will redefine their team id, to potentially allow enemies to
+ * fight eachother.
+ *
+ * By default, the following teams are already setup:
+ * - 0 is for the player/allies.
+ * - 1 is for enemies/monsters.
+ * - 2 is for "neutral", aka inanimate objects.
+ *
+ *    <teamId:TEAM>
+ *  Where TEAM is the numeric id to assign.
+ *
+ * ============================================================================
+ * CIRCUMSTANTIALS:
+ * There are a few more tags that you may want to be aware of that modify the
+ * base functionality of how enemies on the map look or act. Add these to the
+ * enemy somehow, and the defaults can be changed.
+ *
+ * ----------------------------------------------------------------------------
+ * BATTLER NAME:
+ * The name of enemies is shown beneath the battler's character itself. If you
+ * want to conceal or reveal this name, you can use the below tags to do that.
+ *    <jabsConfig:noName>
+ *    <jabsConfig:showName>
+ *
+ * ----------------------------------------------------------------------------
+ * HP BAR:
+ * Enemies by default will have small hp bars beneath them on the map. It is a
+ * nice visual indicator that it is an enemy and displays their current health.
+ * However, if you have a reason to hide it (or show it), you can use the tags
+ * below to do this.
+ *    <jabsConfig:noHpBar>
+ *    <jabsConfig:showHpBar>
+ *
+ * ----------------------------------------------------------------------------
+ * IDLING:
+ * By default, enemies will kinda idle about in a 2-tile radius surrounding
+ * wherever they are placed on the map. If you want to change this, or undo
+ * your defaults, there are tags for that!
+ *    <jabsConfig:noIdle>
+ *    <jabsConfig:canIdle>
+ *
+ * ----------------------------------------------------------------------------
+ * INANIMATE:
+ * Some enemies actually aren't enemies. They are pots, crates, bushes, or
+ * other various inanimate objects that are just there to be chopped up. You
+ * can disable an enemy's AI, movement, knockback, hp bar, etc., all from one
+ * convenient tag!
+ *    <jabsConfig:inanimate>
+ *    <jabsConfig:notInanimate>
+ *
+ * ----------------------------------------------------------------------------
+ * INVINCIBLE:
+ * Enemies don't always need to be defeatable. If you want to make an enemy
+ * completely invincible (combat actions will not connect with this enemy), or
+ * disable said invincibility, you can using the tags below.
+ *    <jabsConfig:invincible>
+ *    <jabsConfig:notInvincible>
+ *
+ * ============================================================================
+ * SETTING UP THE ENEMIES IN THE DATABASE:
+ * While you may wish that the enemies would just... work out of the box as
+ * soon as you set them up on the map, there is a bit more to it than that! We
+ * still need to define a couple of the basics for them in the database. Rather
+ * than tons of notes, it'll be a bit of trait management and clicking.
+ *
+ * ----------------------------------------------------------------------------
+ * BASIC ATTACK:
+ * All enemies probably should have a "basic attack".
+ * This is defined by the "Attack Skill" trait, found on the top of the third
+ * page in the trait picker for enemies.
+ *
+ * PREPARE SPEED:
+ * To emulate a "turn speed" of sorts, enemies all have a fixed amount of time
+ * that they must wait before they take action. This value is defined by the
+ * "Attack Speed" trait, found in the middle of the third page in the trait
+ * picker for enemies.
+ *
+ * ============================================================================
+ * SETTING UP YOUR SKILLS:
+ * In addition to setting up your enemies, you'll need to setup skills as well.
+ * There are a huge variety of tags to be used, but there are a few that you'll
+ * probably include on most skills, and we'll go over those below.
+ *
+ * NOTE: This is not a comprehensive list of all tags for skills.
+ *
+ * ----------------------------------------------------------------------------
+ * ACTION ID:
+ * You setup the action map, right?
+ * Well, now that you did and defined some events in there, you'll need to pick
+ * one to represent what this skill looks like on the map.
+ *    <actionId:EVENT_ID>
+ *  Where EVENT_ID is the id of the event from the action map for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * DURATION:
+ * The duration of a skill defines how long its corresponding action event will
+ * remain on the map.
+ *    <duration:FRAMES>
+ *  Where FRAMES is the amount of time in frames this event will exist.
+ *
+ * NOTE ABOUT PIERCING:
+ * Skills that have a "pierce" tag, will disappear as soon as all hits connect.
+ *
+ * NOTE ABOUT MIN DURATION:
+ * Skills still have a minimum duration of 8 frames.
+ *
+ * ----------------------------------------------------------------------------
+ * RADIUS:
+ * The radius represents how big the "shape" of this skill using tiles as the
+ * measurement. This must be a positive integer value.
+ *    <radius:VAL>
+ *  Where VAL is the radius value for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * PROXIMITY:
+ * The proximity represents how close an AI-controlled battler must get to the
+ * target before they are able to execute a skill. This has a unique
+ * interaction with "direct" skills.
+ *    <proximity:VAL>
+ *  Where VAL is the proximity value for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * COOLDOWN:
+ * The cooldown is probably what you think it is: an amount of time in frames
+ * that must pass before the battler can use the skill again.
+ *    <cooldown:VAL>
+ *  Where VAL is the cooldown amount in frames for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * HITBOX:
+ * The hitbox defines the shape of the hitbox for this skill (surprise!).
+ * The value for this must be selected from the given list, and each can
+ * interact a bit differently with the "radius" tag.
+ *
+ * NOTE:
+ * It is important to remember that while the hitbox defines the shape of
+ * collision, the hitbox is always centered on the action event (with some
+ * exceptions), and can definitely be moving.
+ *
+ * RHOMBUS:
+ * The "rhombus" hitbox is effectively a diamond that grows in size the
+ * greater the "radius" value is.
+ *    <hitbox:rhombus>
+ *
+ * ARC:
+ * The "arc" hitbox is similar to rhombus, but instead of being a full diamond
+ * all around the action event, the side that is not the direction the action
+ * event is facing is omitted.
+ *    <hitbox:arc>
+ *
+ * SQUARE:
+ * The "square" hitbox is an equal square, with the "radius" defining what the
+ * length of the side of the square is.
+ *    <hitbox:square>
+ *
+ * FRONTSQUARE:
+ * The "frontsquare" hitbox is similar to square, but instead of being a full
+ * square all around the action event, the side that is not the direction the
+ * action event is facing is omitted.
+ *    <hitbox:frontsquare>
+ *
+ * LINE:
+ * The "line" hitbox is a single 1-width line with the "radius" defining what
+ * the length of this line is.
+ *    <hitbox:line>
+ *
+ * WALL:
+ * The "wall" hitbox is a single 1-height line with the "radius" defining what
+ * the width of this line is. This is kind of a strange one, but easy to
+ * visualize if you think of it as an inverted line hitbox.
+ *    <hitbox:wall>
+ *
+ * CROSS:
+ * The "cross" hitbox is basically just the combination of both line and wall
+ * hitboxes in one. The "radius" determines how far the cross will reach.
+ *    <hitbox:cross>
+ *
+ * ----------------------------------------------------------------------------
+ * CAST TIME:
+ * The "cast time" is probably what you think: a number of frames that the
+ * battler executing a skill must wait helplessly before a skill is performed.
+ * While the battler is casting, the "cast animation" will loop if the skill
+ * has a cast animation value.
+ *    <castTime:VAL>
+ *  Where VAL is the number of frames to cast this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * CAST ANIMATION:
+ * The "cast animation" is simply a numeric value that represents an animation
+ * that will play on the caster while the skill being casted.
+ *    <castAnimation:VAL>
+ *  Where VAL is the animation id to repeatedly loop while casting.
+ *
+ * ----------------------------------------------------------------------------
+ * PIERCING:
+ * The "pierce" tag is a tag that enables a skill to hit multiple targets
+ * multiple times, potentially with a delay between each hit.
+ *    <pierce:[TIMES,DELAY]>
+ *  Where TIMES is the maximum number of times this skill can pierce.
+ *  Where DELAY is the number of frames between each hit.
+ *
+ * NOTE: The most a skill can hit via "pierce" is once per frame. If the DELAY
+ * is set to 0, then it will hit each frame that the skill's hitbox collides
+ * with the target.
+ *
+ * NOTE: The "repeats" field from the database is added onto the TIMES value,
+ * even if there is no "pierce" tag on the skill, meaning if you omit the
+ * "pierce" tag and add "5 repeats" via the database editor, the skill will
+ * effectively have this tag on it:
+ *    <pierce:[6,0]>
+ *
+ * ----------------------------------------------------------------------------
+ * POSE SUFFIX:
+ * The "pose suffix" tag enables a sort of "animation" for battlers when
+ * performing their skills. The engine will seek out a file that matches their
+ * own character sprite's name along with the appended suffix in the tag and
+ * if that matches a valid character set, it'll swap out the current set for
+ * the "pose" for the defined amount of time and switch back after.
+ *    <poseSuffix:[SUFFIX,INDEX,DURATION]>
+ *  Where SUFFIX is the suffix of the filename you want to swap out for.
+ *  Where INDEX is the index in the character file to become.
+ *  Where DURATION is the amount of frames to remain in this pose.
+ *
+ * EXAMPLE:
+ *    <poseSuffix:[-spell,0,25]>
+ * As an example, if the character using the skill was a player with a
+ * character sprite named "Actor1", the above tag would look for "Actor1-spell"
+ * and swap to the 0th index (the upper left-most character) for 25 frames
+ * (which is about a half second).
+ *
+ * WARNING:
+ * This is not a highly tested feature of JABS and may not work as intended.
  *
  * ============================================================================
  * @param baseConfigs
@@ -850,11 +1188,11 @@ J.ABS.Notetags = {
  */
 J.ABS.RegExp = {
   Cooldown: /<cooldown:[ ]?(\d+)>/gi,
-  Range: /<range:[ ]?(\d+)>/gi,
+  Range: /<radius:[ ]?(\d+)>/gi,
   Proximity: /<proximity:[ ]?(\d+)>/gi,
   ActionId: /<actionId:[ ]?(\d+)>/gi,
   Duration: /<duration:[ ]?(\d+)>/gi,
-  Shape: /<shape:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Shape: /<hitbox:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
   CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
   CastTime: /<castTime:[ ]?(\d+)>/gi,

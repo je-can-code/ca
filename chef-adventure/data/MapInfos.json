@@ -212,12 +212,12 @@ null,
 {"id":210,"expanded":false,"name":"STAGE: ADVANCED","order":33,"parentId":78,"scrollX":0,"scrollY":0},
 {"id":211,"expanded":false,"name":"STAGE: MASTER","order":34,"parentId":78,"scrollX":0,"scrollY":0},
 {"id":212,"expanded":false,"name":"Southern Exit","order":211,"parentId":213,"scrollX":816,"scrollY":984},
-{"id":213,"expanded":false,"name":"DUNGEON: Erocia Isthmus","order":209,"parentId":118,"scrollX":1184.5714285714284,"scrollY":1112.5714285714284},
-{"id":214,"expanded":false,"name":"Forced Connection","order":212,"parentId":213,"scrollX":1328,"scrollY":640},
+{"id":213,"expanded":true,"name":"DUNGEON: Erocia Isthmus","order":209,"parentId":118,"scrollX":683,"scrollY":649},
+{"id":214,"expanded":false,"name":"Forced Connection","order":212,"parentId":213,"scrollX":1328,"scrollY":649},
 {"id":215,"expanded":true,"name":"Going Under","order":213,"parentId":213,"scrollX":1184.5714285714284,"scrollY":1112.5714285714284},
 {"id":216,"expanded":false,"name":"A Path Aside","order":216,"parentId":213,"scrollX":1394.25,"scrollY":985.5},
 {"id":217,"expanded":false,"name":"Northern Exit","order":217,"parentId":213,"scrollX":832,"scrollY":640},
 {"id":218,"expanded":false,"name":"Watery Hill","order":214,"parentId":215,"scrollX":1490.1818181818182,"scrollY":1433.4545454545455},
 {"id":219,"expanded":false,"name":"Watery Path","order":215,"parentId":215,"scrollX":1490.1818181818182,"scrollY":1446.5454545454545},
-{"id":220,"expanded":false,"name":"South Savanna","order":219,"parentId":125,"scrollX":0,"scrollY":0}
+{"id":220,"expanded":false,"name":"South Savanna","order":219,"parentId":125,"scrollX":2055,"scrollY":2711}
 ]
