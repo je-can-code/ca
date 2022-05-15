@@ -93,7 +93,7 @@ Scene_Status.prototype.refreshActor = function()
 
 /**
  * Creates the Rectangle that will represent the window for the base status details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusWindowRect = function()
 {
@@ -106,7 +106,7 @@ Scene_Status.prototype.statusWindowRect = function()
 
 /**
  * Creates the Rectangle that will represent the window for the equip details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusEquipWindowRect = function()
 {
@@ -131,7 +131,7 @@ Scene_Status.prototype.createStatusParamsWindow = function()
 
 /**
  * Creates the Rectangle that will represent the window for the parameter details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusParamsWindowRect = function()
 {
@@ -146,17 +146,31 @@ Scene_Status.prototype.statusParamsWindowRect = function()
 
 //#region Window objects
 //#region Window_Status
+/**
+ * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
+ * Also does NOT write nicknames, because why is that a thing?
+ */
 Window_Status.prototype.drawBlock1 = function()
 {
+  // grab the y coordinate.
   const y = this.block1Y();
+
+  // draw the components.
   this.drawActorName(this._actor, 0, y, 168);
   this.drawActorClass(this._actor, 204, y, 168);
-  this.drawActorNickname(this._actor, 0, y + 200, 270);
+
+  // don't draw the nickname.
 };
 
+/**
+ * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
+ */
 Window_Status.prototype.drawBlock2 = function()
 {
+  // grab the y coordinate.
   const y = this.block2Y();
+
+  // draw the components.
   this.drawActorFace(this._actor, 12, y);
   this.drawBasicInfo(204, y);
   this.drawExpInfo(0, y + 250);
@@ -169,11 +183,9 @@ Window_Status.prototype.drawBlock2 = function()
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
  * params, including b-/x-/s- params.
  */
-class Window_StatusParameters
-  extends Window_Base
+class Window_StatusParameters extends Window_Base
 {
   /**
-   * @constructor
    * @param {Rectangle} rect A rectangle that represents the shape of this window.
    */
   constructor(rect)
@@ -249,8 +261,8 @@ class Window_StatusParameters
       const name = TextManager.param(paramId);
       const value = this.actor.param(paramId);
       const iconIndex = IconManager.param(paramId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
+      const modifiedY = ((index + 1) * this.lineHeight()) + 8;
+      this.drawParameter(name, value, iconIndex, x + 40, modifiedY);
     });
   }
 
@@ -269,8 +281,8 @@ class Window_StatusParameters
       const name = TextManager.xparam(xparamId);
       const value = Math.round(this.actor.xparam(xparamId) * 100);
       const iconIndex = IconManager.xparam(xparamId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
+      const modifiedY = ((index + 1) * this.lineHeight()) + 8;
+      this.drawParameter(name, value, iconIndex, x + 40, modifiedY);
     });
   }
 
@@ -289,8 +301,8 @@ class Window_StatusParameters
       const name = TextManager.sparam(sparamId);
       const value = Math.round(this.actor.sparam(sparamId) * 100) - 100;
       const iconIndex = IconManager.sparam(sparamId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
+      const modifiedY = ((index + 1) * this.lineHeight()) + 8;
+      this.drawParameter(name, value, iconIndex, x + 40, modifiedY);
     });
   }
 
@@ -305,7 +317,7 @@ class Window_StatusParameters
     this.drawTitle("Elements", x, y - 10, 78, 1);
 
     const elements = $dataSystem.elements.slice(0, limit);
-    elements.forEach((name, index) =>
+    elements.forEach((elementName, index) =>
     {
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
       const rate = ((this.actor.traitsPi(11, index)) * 100);
@@ -319,8 +331,8 @@ class Window_StatusParameters
         colorIndex = 3; // green
       }
       const iconIndex = IconManager.element(index);
-      name = (name === "") ? "Neutral" : name;
-      this.drawParameter(`${name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+      const actualElementName = (elementName === "") ? "Neutral" : elementName;
+      this.drawParameter(`${actualElementName}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }
 
