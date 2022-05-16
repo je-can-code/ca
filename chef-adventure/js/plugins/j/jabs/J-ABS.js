@@ -240,6 +240,11 @@
  * still need to define a couple of the basics for them in the database. Rather
  * than tons of notes, it'll be a bit of trait management and clicking.
  *
+ * NOTE:
+ * Most configuration you want to universally apply to all enemies of a given
+ * id can be applied to the notes of the enemies in the database instead of on
+ * every single event you create of that enemy.
+ *
  * ----------------------------------------------------------------------------
  * BASIC ATTACK:
  * All enemies probably should have a "basic attack".
@@ -858,6 +863,7 @@
 */
 //=================================================================================================
 /* eslint-enable max-len */
+
 /**
  * The core where all of my extensions live: in the `J` object.
  */

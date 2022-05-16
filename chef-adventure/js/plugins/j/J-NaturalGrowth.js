@@ -789,14 +789,17 @@ Game_Actor.prototype.applyNaturalMaxTpGrowths = function()
   // destructure out the plus and rate structures for growths.
   const [,,growthPlusStructure, growthRateStructure] = this.getRegexForMaxTp();
 
+  // grab the base max tp for value basing.
+  const baseMaxTp = this.getBaseMaxTp();
+
   // calculate the flat growth for this parameter.
-  const growthPlus = this.naturalParamBuff(growthPlusStructure, value);
+  const growthPlus = this.naturalParamBuff(growthPlusStructure, baseMaxTp);
 
   // add it to the running total of permanent growth pluses.
   this.modMaxTpPlus(growthPlus);
 
   // calculate the rate growth for this parameter.
-  const growthRate = this.naturalParamBuff(growthRateStructure, value);
+  const growthRate = this.naturalParamBuff(growthRateStructure, baseMaxTp);
 
   // add it to the running total of permanent growth rates.
   this.modMaxTpRate(growthRate);

@@ -181,7 +181,7 @@ class Hud_Manager
 
     // flag this as ready for processing.
     this.#setReady(true);
-  };
+  }
 
   /**
    * The update loop for the manager.
@@ -216,7 +216,7 @@ class Hud_Manager
       this.#hideAllies();
       this.requestRefreshHud();
     }
-  };
+  }
 
   /**
    * Whether or not this hud can update its incoming request processing.
@@ -229,7 +229,7 @@ class Hud_Manager
 
     // we are ready for processing.
     return true;
-  };
+  }
 
   /**
    * Whether or not we can show the hud.
@@ -238,7 +238,7 @@ class Hud_Manager
   canShowHud()
   {
     return this.#hudVisible;
-  };
+  }
 
   /**
    * Whether or not we can show allies.
@@ -247,7 +247,7 @@ class Hud_Manager
   canShowAllies()
   {
     return this.#alliesVisible;
-  };
+  }
 
   /**
    * Issue a request to the hud to show allies in the hud.
@@ -255,7 +255,7 @@ class Hud_Manager
   requestShowAllies()
   {
     this.#setRequestShowAllies(true);
-  };
+  }
 
   /**
    * Issue a request to the hud to hide the allies from view.
@@ -263,7 +263,7 @@ class Hud_Manager
   requestHideAllies()
   {
     this.#setRequestHideAllies(true);
-  };
+  }
 
   /**
    * Issue a request to show the hud.
@@ -271,7 +271,7 @@ class Hud_Manager
   requestShowHud()
   {
     this.#setRequestShowHud(true);
-  };
+  }
 
   /**
    * Issue a request to hide the hud.
@@ -279,7 +279,7 @@ class Hud_Manager
   requestHideHud()
   {
     this.#setRequestHideHud(true);
-  };
+  }
 
   /**
    * Issue a request to refresh the hud.
@@ -287,7 +287,7 @@ class Hud_Manager
   requestRefreshHud()
   {
     this.#setRequestRefreshHud(true);
-  };
+  }
 
   /**
    * Checks whether or not we have a request to refresh the hud.
@@ -296,7 +296,7 @@ class Hud_Manager
   hasRequestRefreshHud()
   {
     return this.#requestRefresh;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the hud.
@@ -304,7 +304,7 @@ class Hud_Manager
   acknowledgeRefreshHud()
   {
     this.#setRequestRefreshHud(false);
-  };
+  }
 
   /**
    * Issue a request to refresh the image cache of the hud.
@@ -312,7 +312,7 @@ class Hud_Manager
   requestRefreshImageCache()
   {
     this.#setRequestRefreshImageCache(true);
-  };
+  }
 
   /**
    * Whether or not we have a request to refresh the hud's image cache.
@@ -321,7 +321,7 @@ class Hud_Manager
   hasRequestRefreshImageCache()
   {
     return this.#requestRefreshImageCache;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the hud's image cache.
@@ -329,7 +329,7 @@ class Hud_Manager
   acknowledgeRefreshImageCache()
   {
     this.#setRequestRefreshImageCache(false);
-  };
+  }
 
   /**
    * Whether or not we have a request to assign a new target to the target frame.
@@ -338,7 +338,7 @@ class Hud_Manager
   hasRequestAssignTarget()
   {
     return this.#newTarget !== null;
-  };
+  }
 
   /**
    * Gets the currently tracked target.
@@ -347,7 +347,7 @@ class Hud_Manager
   getNewTarget()
   {
     return this.#newTarget;
-  };
+  }
 
   /**
    * Sets the provided target to the tracker.
@@ -356,7 +356,7 @@ class Hud_Manager
   setNewTarget(newTarget)
   {
     this.#newTarget = newTarget;
-  };
+  }
 
   /**
    * Requests the target frame to refresh its inactivity timer.
@@ -364,7 +364,7 @@ class Hud_Manager
   requestTargetFrameRefresh()
   {
     this.#setRequestTargetFrameRefreshInactivity(true);
-  };
+  }
 
   /**
    * Gets whether or not we have a request to refresh the target frame's
@@ -374,7 +374,7 @@ class Hud_Manager
   hasRequestTargetFrameRefreshInactivityTimer()
   {
     return this.#requestTargetFrameRefreshInactivity;
-  };
+  }
 
   /**
    * Acknowledges the request to refresh the target frame's inactivity timer.
@@ -382,7 +382,7 @@ class Hud_Manager
   acknowledgeTargetFrameInactivityTimerRefresh()
   {
     this.#setRequestTargetFrameRefreshInactivity(false);
-  };
+  }
 
   /**
    * Acknowledges the request to assign a new target to the target frame.
@@ -390,7 +390,7 @@ class Hud_Manager
   acknowledgeAssignedTarget()
   {
     this.setNewTarget(null);
-  };
+  }
 
   /**
    * Issue a request to refresh the input frame.
@@ -398,7 +398,7 @@ class Hud_Manager
   requestRefreshInputFrame()
   {
     this.#setRequestRefreshInputFrame(true);
-  };
+  }
 
   /**
    * Checks whether or not we have a request to refresh the input frame.
@@ -407,7 +407,7 @@ class Hud_Manager
   hasRequestRefreshInputFrame()
   {
     return this.#requestRefreshInputFrame;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the input frame.
@@ -415,7 +415,7 @@ class Hud_Manager
   acknowledgeRefreshInputFrame()
   {
     this.#setRequestRefreshInputFrame(false);
-  };
+  }
 
   //#region private functions
   /**
@@ -426,7 +426,7 @@ class Hud_Manager
   #isReady()
   {
     return this.#ready;
-  };
+  }
 
   /**
    * Sets whether or not the target frame window to refresh the timer.
@@ -435,7 +435,7 @@ class Hud_Manager
   #setRequestTargetFrameRefreshInactivity(request)
   {
     this.#requestTargetFrameRefreshInactivity = request;
-  };
+  }
 
   /**
    * Sets whether or not the hud's image cache needs refreshing.
@@ -445,7 +445,7 @@ class Hud_Manager
   #setRequestRefreshImageCache(request)
   {
     this.#requestRefreshImageCache = request;
-  };
+  }
 
   /**
    * Sets whether or not the hud requires a refresh.
@@ -455,7 +455,7 @@ class Hud_Manager
   #setRequestRefreshHud(request)
   {
     this.#requestRefresh = request;
-  };
+  }
 
   /**
    * Sets whether or not the input frame requires a refresh.
@@ -465,7 +465,7 @@ class Hud_Manager
   #setRequestRefreshInputFrame(request)
   {
     this.#requestRefreshInputFrame = request;
-  };
+  }
 
   /**
    * Sets whether or not this hud manager is ready to go.
@@ -475,7 +475,7 @@ class Hud_Manager
   #setReady(ready)
   {
     this.#ready = ready;
-  };
+  }
 
   /**
    * Sets the request to show allies to the given value.
@@ -485,7 +485,7 @@ class Hud_Manager
   #setRequestShowAllies(request)
   {
     this.#requestShowAllies = request;
-  };
+  }
 
   /**
    * Sets the showing of allies.
@@ -495,7 +495,7 @@ class Hud_Manager
   #setShowAllies(showAllies)
   {
     this.#alliesVisible = showAllies;
-  };
+  }
 
   /**
    * Whether or not we have a request to show allies in the hud.
@@ -504,7 +504,7 @@ class Hud_Manager
   #hasRequestShowAllies()
   {
     return this.#requestShowAllies;
-  };
+  }
 
   /**
    * Shows all allies.
@@ -518,7 +518,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudAlliesVisible(true);
-  };
+  }
 
   /**
    * Sets the request to hide allies to the given value.
@@ -528,7 +528,7 @@ class Hud_Manager
   #setRequestHideAllies(request)
   {
     this.#requestHideAllies = request;
-  };
+  }
 
   /**
    * Whether or not we have a request to hide allies in the hud.
@@ -537,7 +537,7 @@ class Hud_Manager
   #hasRequestHideAllies()
   {
     return this.#requestHideAllies;
-  };
+  }
 
   /**
    * Disables the showing of your allies in the hud.
@@ -549,7 +549,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudAlliesVisible(false);
-  };
+  }
 
   /**
    * Sets whether or not the hud is visible.
@@ -559,7 +559,7 @@ class Hud_Manager
   #setHudVisible(hudVisible)
   {
     this.#hudVisible = hudVisible;
-  };
+  }
 
   /**
    * Shows the hud.
@@ -573,7 +573,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudVisible(true);
-  };
+  }
 
   /**
    * Hides the hud.
@@ -587,7 +587,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudVisible(false);
-  };
+  }
 
   /**
    * Whether or not we have a request to show the hud.
@@ -596,7 +596,7 @@ class Hud_Manager
   #hasRequestShowHud()
   {
     return this.#requestShowHud;
-  };
+  }
 
   /**
    * Whether or not we have a request to hide the hud.
@@ -605,7 +605,7 @@ class Hud_Manager
   #hasRequestHideHud()
   {
     return this.#requestHideHud;
-  };
+  }
 
   /**
    * Sets the request to show the hud to the given value.
@@ -615,7 +615,7 @@ class Hud_Manager
   #setRequestShowHud(request)
   {
     this.#requestShowHud = request;
-  };
+  }
 
   /**
    * Sets the request to hide the hud to the given value.
@@ -625,7 +625,7 @@ class Hud_Manager
   #setRequestHideHud(request)
   {
     this.#requestHideHud = request;
-  };
+  }
   //#endregion private functions
 }
 //#endregion Hud_Manager
@@ -753,7 +753,8 @@ Scene_Map.prototype.updateHudFrames = function()
 /**
  * A hook for refreshing all frames of the HUD.
  */
-Scene_Map.prototype.refreshHud = function() { };
+Scene_Map.prototype.refreshHud = function() 
+{ };
 //#endregion Scene_Map
 //#endregion Scene objects
 
@@ -768,7 +769,10 @@ class Window_Frame extends Window_Base
    * Constructor.
    * @param {Rectangle} rect The shape of this window.
    */
-  constructor(rect) { super(rect); };
+  constructor(rect) 
+{
+ super(rect); 
+}
 
   /**
    * Initializes the properties of this class.
@@ -784,7 +788,7 @@ class Window_Frame extends Window_Base
 
     // run any one-time configuration changes.
     this.configure();
-  };
+  }
 
   /**
    * Initializes all members of this class.
@@ -801,7 +805,7 @@ class Window_Frame extends Window_Base
      * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
-  };
+  }
 
   /**
    * Executes any one-time configuration required for this window.
@@ -810,7 +814,7 @@ class Window_Frame extends Window_Base
   {
     // build the image cache for the first time.
     this.refreshCache();
-  };
+  }
 
   //#region caching
   /**
@@ -823,7 +827,7 @@ class Window_Frame extends Window_Base
 
     // recreate all sprites for the cache.
     this.createCache();
-  };
+  }
 
   /**
    * Empties the cache of all sprites.
@@ -835,7 +839,7 @@ class Window_Frame extends Window_Base
 
     // empty the collection of all references.
     this._j._spriteCache.clear();
-  };
+  }
 
   /**
    * Empties and recreates the entire cache of sprites.
@@ -843,7 +847,7 @@ class Window_Frame extends Window_Base
   createCache()
   {
     // fill with sprite creation methods.
-  };
+  }
   //#endregion caching
 
   /**
@@ -856,7 +860,7 @@ class Window_Frame extends Window_Base
 
     // update this frame.
     this.updateFrame();
-  };
+  }
 
   /**
    * Updates the logic for this window frame.
@@ -864,7 +868,7 @@ class Window_Frame extends Window_Base
   updateFrame()
   {
     // fill with window frame logic.
-  };
+  }
 }
 //#endregion Window_InputFrame
 //#endregion Window objects

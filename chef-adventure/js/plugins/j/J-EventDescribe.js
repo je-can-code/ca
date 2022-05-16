@@ -642,7 +642,7 @@ Sprite_Character.prototype.fadeInDescribeIcon = function()
 function Event_Describe()
 {
   this.initialize(...arguments);
-};
+}
 Event_Describe.prototype = {};
 Event_Describe.prototype.constructor = Event_Describe;
 

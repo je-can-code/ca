@@ -478,7 +478,7 @@ J.HUD.EXT_TARGET.Aliased = {
  * A collection of all the regular expression structures used in this plugin.
  */
 J.HUD.EXT_TARGET.RegExp = {
-  TargetFrameText: /<targetFrameText:([\w :"'.!+\-*\/\\]*)>/i,
+  TargetFrameText: /<targetFrameText:([\w :"'.!+\-*/\\]*)>/i,
   TargetFrameIcon: /<targetFrameIcon:(\d+)>/i,
   HideTargetFrame: /<hideTargetFrame>/i,
   HideTargetText: /<hideTargetFrameText>/i,
@@ -1292,7 +1292,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // initialize the gauge sprites from file.
     this.initializeGauges();
-  };
+  }
 
   /**
    * Initializes the gauges based on bitmaps loaded from file.
@@ -1309,7 +1309,10 @@ class Sprite_FlowingGauge extends Sprite
     // manage the completion and error handling of the bitmap loading.
     backgroundPromise
       .then(bitmap => this.setBackgroundBitmap(bitmap))
-      .catch(() => { throw new Error('background bitmap failed to load.'); });
+      .catch(() => 
+{
+ throw new Error('background bitmap failed to load.'); 
+});
 
     // establish a promise for loading the gauge foreground into memory.
     const foregroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
@@ -1318,13 +1321,16 @@ class Sprite_FlowingGauge extends Sprite
     // manage the completion and error handling of the bitmap loading.
     foregroundPromise
       .then(bitmap => this.setForegroundBitmap(bitmap))
-      .catch(() => { throw new Error('background bitmap failed to load.'); });
+      .catch(() => 
+{
+ throw new Error('background bitmap failed to load.'); 
+});
 
     // when both back and foreground are done loading, let this gauge know we're ready.
     Promise
       .all([backgroundPromise, foregroundPromise])
       .then(() => this.onReady());
-  };
+  }
 
   /**
    * Extracts the filename out of the extended path.
@@ -1338,7 +1344,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // return only the filename.
     return longFileName.substring(lastSlash);
-  };
+  }
 
   /**
    * Sets the background bitmap to the given value.
@@ -1348,7 +1354,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // assign the bitmap for re-use.
     this._backgroundBitmap = bitmap;
-  };
+  }
 
   /**
    * Sets the foreground bitmap to the given value.
@@ -1358,7 +1364,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // assign the bitmap for re-use.
     this._gaugeBitmap = bitmap;
-  };
+  }
 
   /**
    * Creates gauge's background sprite.
@@ -1370,7 +1376,7 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeBackground.x = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageX;
     this._gaugeBackground.y = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageY;
     this.addChild(this._gaugeBackground);
-  };
+  }
 
   /**
    * Creates gauge's foreground sprite.
@@ -1388,7 +1394,7 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeActualSprite.x = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageX;
     this._gaugeActualSprite.y = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageY;
     this.addChild(this._gaugeActualSprite);
-  };
+  }
 
   /**
    * Resets all gauge values to 0.
@@ -1398,7 +1404,7 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeCurrent = 0;
     this._gaugeTarget = 0;
     this._gaugeMax = 0;
-  };
+  }
 
   /**
    * Clears the battler of this gauge.
@@ -1406,7 +1412,7 @@ class Sprite_FlowingGauge extends Sprite
   clearBattler()
   {
     this._battler = null;
-  };
+  }
 
   /**
    * The "current" value of the gauge.
@@ -1417,7 +1423,7 @@ class Sprite_FlowingGauge extends Sprite
   current()
   {
     return this._gaugeCurrent;
-  };
+  }
 
   /**
    * The "target" value of the gauge.
@@ -1434,7 +1440,7 @@ class Sprite_FlowingGauge extends Sprite
     {
       return 0;
     }
-  };
+  }
 
   /**
    * Gets the target value for this gauge by its gauge type.
@@ -1453,7 +1459,7 @@ class Sprite_FlowingGauge extends Sprite
       default:
         return 0;
     }
-  };
+  }
 
   /**
    * The "max" value of the gauge.
@@ -1470,7 +1476,7 @@ class Sprite_FlowingGauge extends Sprite
     {
       return 0;
     }
-  };
+  }
 
   /**
    * Gets the max value for this gauge by its gauge type.
@@ -1489,7 +1495,7 @@ class Sprite_FlowingGauge extends Sprite
       default:
         return 0;
     }
-  };
+  }
 
   /**
    * Sets up this gauge with the given enemy battler.
@@ -1507,7 +1513,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // show the gauge when it is setup for battle.
     this.show();
-  };
+  }
 
   /**
    * Sets up the gauge based on the gauge type.
@@ -1528,7 +1534,7 @@ class Sprite_FlowingGauge extends Sprite
         this.setupGaugeAsTp();
         break;
     }
-  };
+  }
 
   /**
    * Sets up the gauge as an hp gauge.
@@ -1539,12 +1545,12 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeTarget = this._battler.hp;
     this._gaugeMax = this._battler.mhp;
     this._gaugeActualSprite.setHue(this.hpGaugeHue());
-  };
+  }
 
   hpGaugeHue()
   {
     return 0;
-  };
+  }
 
   /**
    * Sets up the gauge as an mp gauge.
@@ -1555,12 +1561,12 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeTarget = this._battler.mp;
     this._gaugeMax = this._battler.mmp;
     this._gaugeActualSprite.setHue(this.mpGaugeHue());
-  };
+  }
 
   mpGaugeHue()
   {
     return -180;
-  };
+  }
 
   /**
    * Sets up the gauge as a tp gauge.
@@ -1571,12 +1577,12 @@ class Sprite_FlowingGauge extends Sprite
     this._gaugeTarget = this._battler.tp;
     this._gaugeMax = this._battler.maxTp();
     this._gaugeActualSprite.setHue(this.tpGaugeHue());
-  };
+  }
 
   tpGaugeHue()
   {
     return 80;
-  };
+  }
 
   /**
    * Refresh this gauge by redrawing it.
@@ -1584,7 +1590,7 @@ class Sprite_FlowingGauge extends Sprite
   refresh()
   {
     this.drawGauge();
-  };
+  }
 
   /**
    * The update loop of this gauge.
@@ -1604,7 +1610,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // redraw the gauge.
     this.drawGauge();
-  };
+  }
 
   /**
    * Checks if this gauge is ready for drawing.
@@ -1615,7 +1621,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // if we are already ready, then just carry on.
     return this._isReady;
-  };
+  }
 
   /**
    * Executes one-time actions once the gauge is ready.
@@ -1633,7 +1639,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // and now we are ready to draw gauges.
     this._isReady = true;
-  };
+  }
 
   /**
    * Updates the current and max values of the flow effect.
@@ -1643,7 +1649,7 @@ class Sprite_FlowingGauge extends Sprite
     // update the limit based on the sprite width.
     this._gaugeActualFlowLimit = this.gaugeWidth();
     this._gaugeActualFlowCurrent = Math.floor(Math.random() * this._gaugeActualFlowLimit);
-  };
+  }
 
   /**
    * Updates the current value of the fore-most gauge.
@@ -1674,7 +1680,7 @@ class Sprite_FlowingGauge extends Sprite
       // handle what happens when the value isn't changing.
       this.handleCurrentValueUnchanged();
     }
-  };
+  }
 
   /**
    * Handles the update to the "current" value while it is changing either up or down.
@@ -1694,7 +1700,7 @@ class Sprite_FlowingGauge extends Sprite
     {
       this.processCurrentValueDecrease(changeRate);
     }
-  };
+  }
 
   /**
    * Processes the decrease of the current value and changes the tone.
@@ -1713,7 +1719,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // if the gauge is going down, set the tone to be red.
     this._gaugeCurrentSprite.setColorTone(this.downTone());
-  };
+  }
 
   /**
    * Processes the increase of the current value and changes the tone.
@@ -1732,7 +1738,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // if the gauge is going up, set the tone to be green.
     this._gaugeCurrentSprite.setColorTone(this.upTone());
-  };
+  }
 
   /**
    * Handles the update to the "current" value while it is unchanging.
@@ -1741,7 +1747,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // if the gauge isn't going anywhere, then set it to grey.
     this._gaugeCurrentSprite.setColorTone(this.greyTone());
-  };
+  }
 
   /**
    * Whether or not we can update the
@@ -1752,7 +1758,7 @@ class Sprite_FlowingGauge extends Sprite
     if (!this._battler) return false;
 
     return true;
-  };
+  }
 
   /**
    * Whether or not this HP gauge is empty.
@@ -1766,7 +1772,7 @@ class Sprite_FlowingGauge extends Sprite
     if (this.target() !== 0) return false;
 
     return true;
-  };
+  }
 
   /**
    * Logic to execute when this target is defeated.
@@ -1778,7 +1784,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // reset the gauge values.
     this.resetValues();
-  };
+  }
 
   /**
    * The hue to alter the image by when the middleground gauge is going up.
@@ -1789,7 +1795,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // [red, green, blue, grey].
     return [0,255,0,128];
-  };
+  }
 
   /**
    * The hue to alter the image by when the middleground gauge is going down.
@@ -1799,7 +1805,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // [red, green, blue, grey].
     return [255,0,0,0];
-  };
+  }
 
   /**
    * The color tone to turn the sprite greyscale.
@@ -1809,7 +1815,7 @@ class Sprite_FlowingGauge extends Sprite
   {
     // [red, green, blue, grey].
     return [0, 0, 0, 255];
-  };
+  }
 
   /**
    * Calculates the rate of which to increment/decrement the current gauge.
@@ -1821,7 +1827,7 @@ class Sprite_FlowingGauge extends Sprite
     const divisor = 10;
     const rate = Math.abs((this.target() - this.current()) / divisor);
     return rate;
-  };
+  }
 
   /**
    * Update the flow meter to give the flowy aesthetic.
@@ -1837,7 +1843,7 @@ class Sprite_FlowingGauge extends Sprite
       // reset the current flow to 0.
       this._gaugeActualFlowCurrent = 0;
     }
-  };
+  }
 
   /**
    * Draws this gauge.
@@ -1849,7 +1855,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // draw the accurate "actual" gauge.
     this.drawActualGauge();
-  };
+  }
 
   /**
    * Draws the "current" gauge, the gauge drawn in the middleground that
@@ -1869,7 +1875,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // set the flowed-frame of the gauge.
     this._gaugeCurrentSprite.setFrame(this._gaugeActualFlowCurrent, gaugeHeight, factor, gaugeHeight);
-  };
+  }
 
   /**
    * Draws the "actual" gauge, the gauge drawn in the foremost-ground that
@@ -1888,7 +1894,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // set the flowed-frame of the gauge.
     this._gaugeActualSprite.setFrame(this._gaugeActualFlowCurrent, 0, factor, gaugeHeight);
-  };
+  }
 
   /**
    * The width of the gauge.
@@ -1897,7 +1903,7 @@ class Sprite_FlowingGauge extends Sprite
   gaugeWidth()
   {
     return Math.floor(this._gaugeBitmap.width / 3);
-  };
+  }
 
   /**
    * The height of the gauge.
@@ -1906,7 +1912,7 @@ class Sprite_FlowingGauge extends Sprite
   gaugeHeight()
   {
     return Math.floor(this._gaugeBitmap.height / 2);
-  };
+  }
 }
 //#endregion Sprite_FlowingGauge
 //#endregion Sprite objects
@@ -1928,7 +1934,10 @@ class Window_TargetFrame extends Window_Base
    * Constructor.
    * @param {Rectangle} rect The shape of this window.
    */
-  constructor(rect) { super(rect); };
+  constructor(rect) 
+{
+ super(rect); 
+}
 
   /**
    * Initializes the properties of this class.
@@ -1944,7 +1953,7 @@ class Window_TargetFrame extends Window_Base
 
     // run any one-time configuration changes.
     this.configure();
-  };
+  }
 
   /**
    * Initializes all members of this class.
@@ -2002,7 +2011,7 @@ class Window_TargetFrame extends Window_Base
      * @type {number}
      */
     this._j._inactivityTimer = 0;
-  };
+  }
 
   /**
    * Executes any one-time configuration required for this window.
@@ -2014,7 +2023,7 @@ class Window_TargetFrame extends Window_Base
 
     // build the image cache for the first time.
     this.refreshCache();
-  };
+  }
 
   //#region caching
   /**
@@ -2027,7 +2036,7 @@ class Window_TargetFrame extends Window_Base
 
     // recreate all sprites for the cache.
     this.createCache();
-  };
+  }
 
   /**
    * Empties the cache of all sprites.
@@ -2039,7 +2048,7 @@ class Window_TargetFrame extends Window_Base
 
     // empty the collection of all references.
     this._j._spriteCache.clear();
-  };
+  }
 
   /**
    * Ensures all sprites are created and available for use.
@@ -2054,7 +2063,7 @@ class Window_TargetFrame extends Window_Base
 
     // cache the target tp gauge.
     this.getOrCreateTargetTpGaugeSprite();
-  };
+  }
 
   /**
    * Creates an target gauge sprite for this window and caches it.
@@ -2088,7 +2097,7 @@ class Window_TargetFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates an target gauge sprite for this window and caches it.
@@ -2122,7 +2131,7 @@ class Window_TargetFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates an target gauge sprite for this window and caches it.
@@ -2157,7 +2166,7 @@ class Window_TargetFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
   //#endregion caching
 
   /**
@@ -2175,7 +2184,7 @@ class Window_TargetFrame extends Window_Base
 
     // refresh the contents of the window to reflect the changes.
     this.refresh();
-  };
+  }
 
   /**
    * Sets whether or not this window needs to refresh its target.
@@ -2183,7 +2192,7 @@ class Window_TargetFrame extends Window_Base
   requestTargetRefresh()
   {
     this._j._requestTargetRefresh = true;
-  };
+  }
 
   /**
    * Gets whether or not this window needs to refresh its target.
@@ -2192,7 +2201,7 @@ class Window_TargetFrame extends Window_Base
   hasRequestTargetRefresh()
   {
     return this._j._requestTargetRefresh;
-  };
+  }
 
   /**
    * Acknowledges the request to refresh the target of this window.
@@ -2200,7 +2209,7 @@ class Window_TargetFrame extends Window_Base
   acknowledgeTargetRefresh()
   {
     this._j._requestTargetRefresh = false;
-  };
+  }
 
   /**
    * Gets the name of the current target of this window.
@@ -2209,7 +2218,7 @@ class Window_TargetFrame extends Window_Base
   targetName()
   {
     return this._j._name;
-  };
+  }
 
   /**
    * Gets the extra line of information for the current target of this window.
@@ -2218,7 +2227,7 @@ class Window_TargetFrame extends Window_Base
   targetText()
   {
     return this._j._text;
-  };
+  }
 
   /**
    * Gets the icon of the current target of this window.
@@ -2227,7 +2236,7 @@ class Window_TargetFrame extends Window_Base
   targetIcon()
   {
     return this._j._icon;
-  };
+  }
 
   /**
    * Gets the configuration of the current target.
@@ -2236,7 +2245,7 @@ class Window_TargetFrame extends Window_Base
   targetConfiguration()
   {
     return this._j._configuration;
-  };
+  }
 
   /**
    * Refreshes the contents of this window.
@@ -2254,7 +2263,7 @@ class Window_TargetFrame extends Window_Base
 
     // rebuilds the contents of the window.
     this.updateTarget();
-  };
+  }
 
   /**
    * Resets the inactivity timer back to max.
@@ -2262,7 +2271,7 @@ class Window_TargetFrame extends Window_Base
   resetInactivityTimer()
   {
     this._j._inactivityTimer = Window_TargetFrame.MaxDuration;
-  };
+  }
 
   /**
    * Hooks into the update cycle for updating this window.
@@ -2274,7 +2283,7 @@ class Window_TargetFrame extends Window_Base
 
     // update the window logic.
     this.updateTarget();
-  };
+  }
 
   /**
    * Updates the target of this window as-necessary.
@@ -2319,7 +2328,7 @@ class Window_TargetFrame extends Window_Base
       // acknowledge the request to refresh the target.
       this.acknowledgeTargetRefresh();
     }
-  };
+  }
 
   /**
    * Handles inactivity of this window.
@@ -2339,7 +2348,7 @@ class Window_TargetFrame extends Window_Base
     {
       this.fadeInWindow();
     }
-  };
+  }
 
   /**
    * Fades out the target frame window along with all sprites and content.
@@ -2350,7 +2359,7 @@ class Window_TargetFrame extends Window_Base
     this.backOpacity -= 10;
     this.contentsOpacity -= 10;
     this._j._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
-  };
+  }
 
   /**
    * Fades in the target frame window along with all sprites and content.
@@ -2361,7 +2370,7 @@ class Window_TargetFrame extends Window_Base
     this.backOpacity += 40;
     this.contentsOpacity += 40;
     this._j._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
-  };
+  }
 
   /**
    * Determines whether or not the target data should be updated.
@@ -2372,7 +2381,7 @@ class Window_TargetFrame extends Window_Base
     if (!this.hasRequestTargetRefresh()) return false;
 
     return true;
-  };
+  }
 
   /**
    * Draws the target's name in the window.
@@ -2388,7 +2397,7 @@ class Window_TargetFrame extends Window_Base
     }
 
     this.drawTextEx(name, x, y, 200);
-  };
+  }
 
   /**
    * Draws the target's level in the window.
@@ -2401,7 +2410,7 @@ class Window_TargetFrame extends Window_Base
     if (!this.canDrawTargetLevel()) return;
 
     // get the level from the battler.
-    const level = this._j._battler.level;
+    const {level} = this._j._battler;
 
     // check to see if the enemy is leveled.
     if (level)
@@ -2412,7 +2421,7 @@ class Window_TargetFrame extends Window_Base
       // and draw it to the window.
       this.drawTextEx(levelString, x, y, 200);
     }
-  };
+  }
 
   /**
    * Determines whether or not we can draw the level of the target.
@@ -2428,7 +2437,7 @@ class Window_TargetFrame extends Window_Base
 
     // draw levels!
     return true;
-  };
+  }
 
   /**
    * Draws the target's extra information in the window.
@@ -2442,7 +2451,7 @@ class Window_TargetFrame extends Window_Base
 
     // draw the extra text.
     this.drawTextEx(`\\FS[14]${this.targetText()}`, x, y, 200);
-  };
+  }
 
   /**
    * Determine whether or not we have extra text to draw for the current target.
@@ -2455,7 +2464,7 @@ class Window_TargetFrame extends Window_Base
 
     // return the truth.
     return true;
-  };
+  }
 
   /**
    * Draws the target's icon in the window.
@@ -2482,7 +2491,7 @@ class Window_TargetFrame extends Window_Base
 
     // return the truth.
     return true;
-  };
+  }
 
   /**
    * Draws the target's battler data- if present- in the window.
@@ -2509,7 +2518,7 @@ class Window_TargetFrame extends Window_Base
       // clear/hide the gauge data.
       this._j._spriteCache.forEach((value, _) => value.hide());
     }
-  };
+  }
 
   /**
    * Calculate the X coordinate for gauges.
@@ -2526,7 +2535,7 @@ class Window_TargetFrame extends Window_Base
 
     // otherwise, we have no modifiers.
     return -8;
-  };
+  }
 
   /**
    * Calculate the Y coordinate for gauges.
@@ -2543,7 +2552,7 @@ class Window_TargetFrame extends Window_Base
 
     // don't move it down as much..
     return 44;
-  };
+  }
 
   /**
    * Draws the target's various gauges.
@@ -2556,7 +2565,7 @@ class Window_TargetFrame extends Window_Base
     this.drawTargetHpGauge(x, y);
     this.drawTargetMpGauge(x, y+22);
     this.drawTargetTpGauge(x-10, y+32);
-  };
+  }
 
   /**
    * Draws the hp gauge of the target.
@@ -2578,7 +2587,7 @@ class Window_TargetFrame extends Window_Base
 
     // relocate the gauge sprite.
     gauge.move(x, y);
-  };
+  }
 
   /**
    * Draws the mp gauge of the target.
@@ -2600,7 +2609,7 @@ class Window_TargetFrame extends Window_Base
 
     // relocate the gauge sprite.
     gauge.move(x, y);
-  };
+  }
 
   /**
    * Draws the tp gauge of the target.
@@ -2622,7 +2631,7 @@ class Window_TargetFrame extends Window_Base
 
     // relocate the gauge sprite.
     gauge.move(x, y);
-  };
+  }
 }
 //#endregion Window_TargetFrame
 //#endregion Window objects
@@ -2679,7 +2688,7 @@ class FramedTarget
     this.icon = icon;
     this.battler = battler;
     this.configuration = configuration;
-  };
+  }
 }
 //#endregion FramedTarget
 
@@ -2739,7 +2748,7 @@ class FramedTargetConfiguration
     this.showHp = showHp;
     this.showMp = showMp;
     this.showTp = showTp;
-  };
+  }
 }
 //#endregion FramedTargetConfiguration
 
@@ -2835,13 +2844,13 @@ JABS_Battler.prototype.canShowTargetFrame = function()
   if (!this.isEnemy()) return false;
 
   // check the event to see if we can show the target frame.
-  let hiddenByEvent = !this.getCharacter().canShowTargetFrame();
+  const hiddenByEvent = !this.getCharacter().canShowTargetFrame();
 
   // if the event prevents showing the target frame, then don't show it.
   if (hiddenByEvent) return false;
 
   // check the enemy to see if the enemy in the database prevents showing.
-  let hiddenByDatabase = !this.getBattler().showTargetFrame();
+  const hiddenByDatabase = !this.getBattler().showTargetFrame();
 
   // if one or the other are indicating not to show, then don't.
   if (hiddenByDatabase) return false;

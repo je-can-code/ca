@@ -550,7 +550,7 @@ Game_Actor.prototype.offhandSkillOverride = function()
   const objectsToCheck = [...this.states()];
 
   // grab the weapon of the actor.
-  const [weapon,] = this.equips()[0];
+  const [weapon,] = this.equips();
 
   // check if we have a weapon.
   if (weapon)
@@ -3280,7 +3280,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   this.getValidCommentCommands().forEach(command =>
     {
       // shorthand the comment into a variable.
-      const [comment,] = command.parameters[0];
+      const [comment,] = command.parameters;
 
       // check if this battler has the "careful" ai trait.
       if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(comment))

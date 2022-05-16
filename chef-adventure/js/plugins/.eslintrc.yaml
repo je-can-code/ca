@@ -10,6 +10,7 @@ rules:
   no-undef: off                       # most game objects are undefined.
   no-unused-vars: off                 # globally defining models can't be handled by this.
   no-useless-call: off                # all aliasing is done with .call() for scoping this.
+  no-prototype-builtins: off          # with prototypical inheritance, this is needed sometimes.
 
   eqeqeq: error
   complexity: ["warn", 20]

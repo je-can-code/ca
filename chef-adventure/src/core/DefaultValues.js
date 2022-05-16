@@ -11,7 +11,7 @@ J.STAR.DefaultValues = {
   /**
    * The maximum number of enemies that can be generated in a troop.
    * Though the max in the database is higher, this keeps things smooth.
-   * @type {mnumber}
+   * @type {number}
    */
   MaxEnemyCount: 12,
 };

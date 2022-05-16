@@ -1,4 +1,5 @@
 //#region introduction
+/* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc
@@ -260,6 +261,7 @@
  * @desc The percent multiplier that the given bonus will be modified by.
  * @default 100
  */
+/* eslint-enable */
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -322,10 +324,10 @@ J.DIFF.Helpers.toDifficulties = rawJson =>
   {
     const parsedDifficultyBlob = JSON.parse(rawDifficultyBlob);
 
-    const key = parsedDifficultyBlob.key;
-    const name = parsedDifficultyBlob.name;
+    const {key} = parsedDifficultyBlob;
+    const {name} = parsedDifficultyBlob;
     const iconIndex = parseInt(parsedDifficultyBlob.iconIndex);
-    const description = parsedDifficultyBlob.description;
+    const {description} = parsedDifficultyBlob;
     const builder = new DifficultyBuilder(name, key)
       .setIconIndex(iconIndex)
       .setDescription(description);
@@ -791,7 +793,7 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     super();
     this.initialize();
-  };
+  }
 
   /**
    * The entry point of this scene.
@@ -800,7 +802,7 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     super.initialize(this);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all properties for this scene.
@@ -826,7 +828,7 @@ class Scene_Difficulty extends Scene_MenuBase
        */
       _difficultyDetailsWindow: null,
     };
-  };
+  }
 
   /**
    * Extends `.create()` to include our window creation.
@@ -835,7 +837,7 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     super.create();
     this.createAllWindows();
-  };
+  }
 
   /**
    * Extends `.start()` to include our post-window setup.
@@ -847,7 +849,7 @@ class Scene_Difficulty extends Scene_MenuBase
 
     // select the current difficulty if it is in the list and not locked.
     this._j._difficultyListWindow.selectExt(appliedDifficulty);
-  };
+  }
 
   /**
    * Creates all windows associated with the difficulty scene.
@@ -857,7 +859,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.createHelpWindow();
     this.createListWindow();
     this.createDetailsWindow();
-  };
+  }
 
   /**
    * Creates the help window that provides contextual details to the player
@@ -872,7 +874,7 @@ class Scene_Difficulty extends Scene_MenuBase
     const rect = new Rectangle(x, y, width, height);
     this._j._difficultyHelpWindow = new Window_Help(rect);
     this.addWindow(this._j._difficultyHelpWindow);
-  };
+  }
 
   /**
    * Creates the list of difficulties available to the player.
@@ -889,7 +891,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this._j._difficultyListWindow.setHandler('ok', this.onSelectDifficulty.bind(this));
     this._j._difficultyListWindow.onIndexChange = this.onHoverChange.bind(this);
     this.addWindow(this._j._difficultyListWindow);
-  };
+  }
 
   /**
    * Creates the details window that describes the selected difficulty
@@ -904,14 +906,14 @@ class Scene_Difficulty extends Scene_MenuBase
     const rect = new Rectangle(x, y, width, height);
     this._j._difficultyDetailsWindow = new Window_DifficultyDetails(rect);
     this.addWindow(this._j._difficultyDetailsWindow);
-  };
+  }
 
   onHoverChange()
   {
     const hoveredDifficulty = this._j._difficultyListWindow.currentExt();
     this._j._difficultyDetailsWindow.setHoveredDifficulty(hoveredDifficulty);
     this._j._difficultyHelpWindow.setText(hoveredDifficulty.description);
-  };
+  }
 
   /**
    * Runs when the user chooses one of the items in the difficulty list.
@@ -921,7 +923,7 @@ class Scene_Difficulty extends Scene_MenuBase
     $gameSystem.setAppliedDifficulty(this.hoveredDifficulty());
     this.refreshDifficultyWindows();
     this._j._difficultyListWindow.activate();
-  };
+  }
 
   /**
    * Gets the difficulty being hovered over in the difficulty list.
@@ -930,14 +932,14 @@ class Scene_Difficulty extends Scene_MenuBase
   hoveredDifficulty()
   {
     return this._j._difficultyListWindow.hoveredDifficulty();
-  };
+  }
 
   refreshDifficultyWindows()
   {
     this._j._difficultyListWindow.refresh();
     this._j._difficultyDetailsWindow.refresh();
     this._j._difficultyHelpWindow.refresh();
-  };
+  }
 
   /**
    * Runs once per frame to update all things in this scene.
@@ -946,12 +948,12 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     super.update();
     this.updateDetailWindow();
-  };
+  }
 
   updateDetailWindow()
   {
     this._j._difficultyDetailsWindow.setHoveredDifficulty(this.hoveredDifficulty());
-  };
+  }
 }
 //#endregion Scene_Difficulty
 //#endregion Scene objects
@@ -967,7 +969,7 @@ class Window_DifficultyList extends Window_Command
   constructor(rect)
   {
     super(rect);
-  };
+  }
 
   /**
    * OVERWRITE Creates the command list for this window.
@@ -993,7 +995,7 @@ class Window_DifficultyList extends Window_Command
         difficulty,
         difficulty.iconIndex);
     }, this);
-  };
+  }
 
   /**
    * Gets the difficulty being hovered over in this list.
@@ -1002,14 +1004,14 @@ class Window_DifficultyList extends Window_Command
   hoveredDifficulty()
   {
     return this.currentExt();
-  };
+  }
 
   /**
    * Designed for overriding to weave in functionality on-change of the index.
    */
   onIndexChange()
   {
-  };
+  }
 }
 //#endregion Window_DifficultyList
 
@@ -1025,7 +1027,7 @@ class Window_DifficultyDetails extends Window_Base
     super(rect);
     this.initMembers();
     this.refresh();
-  };
+  }
 
   static ComparisonTypes = {
     SAME: "same",
@@ -1043,7 +1045,7 @@ class Window_DifficultyDetails extends Window_Base
      * @type {Difficulty}
      */
     this.hoveredDifficulty = null;
-  };
+  }
 
   /**
    * Refreshes this window and all its content.
@@ -1055,7 +1057,7 @@ class Window_DifficultyDetails extends Window_Base
 
     this.contents.clear();
     this.drawDifficultyInfo();
-  };
+  }
 
   /**
    * Gets the difficulty currently applied to the player.
@@ -1064,7 +1066,7 @@ class Window_DifficultyDetails extends Window_Base
   getAppliedDifficulty()
   {
     return $gameSystem.getAppliedDifficulty();
-  };
+  }
 
   /**
    * Gets the difficulty currently being hovered over in the list.
@@ -1073,7 +1075,7 @@ class Window_DifficultyDetails extends Window_Base
   getHoveredDifficulty()
   {
     return this.hoveredDifficulty;
-  };
+  }
 
   /**
    * Sets the hovered difficulty.
@@ -1086,7 +1088,7 @@ class Window_DifficultyDetails extends Window_Base
       this.hoveredDifficulty = difficulty;
       this.refresh();
     }
-  };
+  }
 
   /**
    * Draws the information of the compared difficulties.
@@ -1097,7 +1099,7 @@ class Window_DifficultyDetails extends Window_Base
     {
       this.drawComparedDifficulties();
     }
-  };
+  }
 
   /**
    * Draws the comparison between two difficulties, the one applied and the one being hovered
@@ -1128,7 +1130,7 @@ class Window_DifficultyDetails extends Window_Base
 
     // draw all bonus difficulty modifiers.
     this.drawDifficultyBonuses(ox+40, bonusesOy, appliedDifficulty, hoveredDifficulty);
-  };
+  }
 
   /**
    * Draws the names of the two difficulties being compared.
@@ -1152,7 +1154,7 @@ class Window_DifficultyDetails extends Window_Base
     const hoveredY = lh * 1;
     this.drawText("Hovered:", x, hoveredY, w, "left");
     this.drawComparedDifficultyName(modifiedX, hoveredY, w, hoveredDifficulty.iconIndex, hoveredDifficulty.name);
-  };
+  }
 
   /**
    * Draws the difficulty name at the designated location with its icon.
@@ -1166,7 +1168,7 @@ class Window_DifficultyDetails extends Window_Base
   {
     this.drawIcon(iconIndex, x, y);
     this.drawText(`${difficultyName}`, x+32, y, w, "left");
-  };
+  }
 
   /**
    * Draws all the b-parameters.
@@ -1178,7 +1180,7 @@ class Window_DifficultyDetails extends Window_Base
   drawBParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
   {
     const lh = this.lineHeight();
-    const bparams = appliedDifficulty.bparams;
+    const {bparams} = appliedDifficulty;
     const hoveredBparams = hoveredDifficulty.bparams ?? [];
     bparams.forEach((bparam, index) =>
     {
@@ -1211,7 +1213,7 @@ class Window_DifficultyDetails extends Window_Base
         hoveredParamRate,
         biggerIsBetter);
     });
-  };
+  }
 
   /**
    * Draws all the s-parameters.
@@ -1223,7 +1225,7 @@ class Window_DifficultyDetails extends Window_Base
   drawSParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
   {
     const lh = this.lineHeight();
-    const sparams = appliedDifficulty.sparams;
+    const {sparams} = appliedDifficulty;
     const hoveredSparams = hoveredDifficulty.sparams ?? [];
     sparams.forEach((sparam, index) =>
     {
@@ -1256,7 +1258,7 @@ class Window_DifficultyDetails extends Window_Base
         hoveredParamRate,
         biggerIsBetter);
     });
-  };
+  }
 
   /**
    * Draws all the x-parameters.
@@ -1268,7 +1270,7 @@ class Window_DifficultyDetails extends Window_Base
   drawXParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
   {
     const lh = this.lineHeight();
-    const xparams = appliedDifficulty.xparams;
+    const {xparams} = appliedDifficulty;
     const hoveredXparams = hoveredDifficulty.xparams ?? [];
     xparams.forEach((xparam, index) =>
     {
@@ -1301,7 +1303,7 @@ class Window_DifficultyDetails extends Window_Base
         hoveredParamRate,
         biggerIsBetter);
     });
-  };
+  }
 
   /**
    * Draws all difficulty bonuses.
@@ -1329,7 +1331,7 @@ class Window_DifficultyDetails extends Window_Base
 
     const encountersRateY = oy + (lh * 4);
     this.drawDifficultyBonusEncounters(x, encountersRateY, w, appliedDifficulty, hoveredDifficulty);
-  };
+  }
 
   /**
    * Draws the bonus data for experience earned by the player.
@@ -1346,7 +1348,7 @@ class Window_DifficultyDetails extends Window_Base
     const appliedRate = appliedDifficulty.exp;
     const hoveredRate = hoveredDifficulty.exp ?? appliedRate;
     this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  };
+  }
 
   /**
    * Draws the bonus data for gold found by the player.
@@ -1363,7 +1365,7 @@ class Window_DifficultyDetails extends Window_Base
     const appliedRate = appliedDifficulty.gold;
     const hoveredRate = hoveredDifficulty.gold ?? appliedRate;
     this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  };
+  }
 
   /**
    * Draws the bonus data for sdp acquired by the player.
@@ -1380,7 +1382,7 @@ class Window_DifficultyDetails extends Window_Base
     const appliedRate = appliedDifficulty.sdp;
     const hoveredRate = hoveredDifficulty.sdp ?? appliedRate;
     this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  };
+  }
 
   /**
    * Draws the bonus data for drop rates gained by the player.
@@ -1397,7 +1399,7 @@ class Window_DifficultyDetails extends Window_Base
     const appliedRate = appliedDifficulty.drops;
     const hoveredRate = hoveredDifficulty.drops ?? appliedRate;
     this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  };
+  }
 
   /**
    * Draws the bonus data for encountering enemies by the player.
@@ -1414,7 +1416,7 @@ class Window_DifficultyDetails extends Window_Base
     const appliedRate = appliedDifficulty.encounters;
     const hoveredRate = hoveredDifficulty.encounters ?? appliedRate;
     this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  };
+  }
 
   /**
    * Draws a pair of two compared parameters at the designated coordinates.
@@ -1443,7 +1445,7 @@ class Window_DifficultyDetails extends Window_Base
 
     // draw the hovered parameter- on the right.
     this.drawComparedHoveredParameter(x+150, y, w, appliedParameter, hoveredParameter, biggerIsBetter);
-  };
+  }
 
   /**
    * Draws the icon for the parameter.
@@ -1455,7 +1457,7 @@ class Window_DifficultyDetails extends Window_Base
   {
     // draw the icon first.
     this.drawIcon(paramIconIndex, x-40, y);
-  };
+  }
 
   /**
    * Draws the name for the parameter.
@@ -1467,7 +1469,7 @@ class Window_DifficultyDetails extends Window_Base
   drawComparedParamName(x, y, w, paramName)
   {
     this.drawText(paramName, x, y, w, "left");
-  };
+  }
 
   /**
    * Draws the currently applied parameter value.
@@ -1486,7 +1488,7 @@ class Window_DifficultyDetails extends Window_Base
 
     // cleanup font settings.
     this.resetFontSettings();
-  };
+  }
 
   /**
    * Draws the comparison symbol for two compared parameters.
@@ -1508,7 +1510,7 @@ class Window_DifficultyDetails extends Window_Base
 
     // cleanup font settings.
     this.resetFontSettings();
-  };
+  }
 
   /**
    * Draws the hovered/potential parameter on the left.
@@ -1530,7 +1532,7 @@ class Window_DifficultyDetails extends Window_Base
 
     // cleanup font settings.
     this.resetFontSettings();
-  };
+  }
 
   /**
    * Gets the symbol displayed between two compared parameters to indicate whether there is no
@@ -1555,7 +1557,7 @@ class Window_DifficultyDetails extends Window_Base
     //   case Window_DifficultyDetails.ComparisonTypes.HARDER:
     //     return '😡';
     // }
-  };
+  }
 
   /**
    * Gets the text color for the compared/hovered parameter value.
@@ -1576,7 +1578,7 @@ class Window_DifficultyDetails extends Window_Base
       case Window_DifficultyDetails.ComparisonTypes.HARDER:
         return "rgba(192, 0, 0, 0.8)";
     }
-  };
+  }
 
   /**
    * Determines whether or not one parameter is "better" than the other.
@@ -1608,7 +1610,7 @@ class Window_DifficultyDetails extends Window_Base
       return Window_DifficultyDetails.ComparisonTypes.HARDER;
     }
 
-  };
+  }
 
   /**
    * Get whether or not bigger is better for a b-parameter contextually for the player.
@@ -1629,7 +1631,7 @@ class Window_DifficultyDetails extends Window_Base
     ];
 
     return biggerIsBetterBParameters[bparamId] ?? false;
-  };
+  }
 
   /**
    * Get whether or not bigger is better for an s-parameter contextually for the player.
@@ -1652,7 +1654,7 @@ class Window_DifficultyDetails extends Window_Base
     ];
 
     return biggerIsBetterSParameters[sparamId] ?? true;
-  };
+  }
 
   /**
    * Get whether or not bigger is better for an s-parameter contextually for the player.
@@ -1675,7 +1677,7 @@ class Window_DifficultyDetails extends Window_Base
     ];
 
     return biggerIsBetterXParameters[xparamId] ?? true;
-  };
+  }
 }
 //#endregion Window_DifficultyDetails
 //#endregion Window objects
