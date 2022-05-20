@@ -13,6 +13,11 @@
  * actors. This "Natural Growth" enables temporary/permanent stat growth while
  * various tags are applied.
  *
+ * Integrates with others of mine plugins:
+ * - J-CriticalFactors; enables natural growths of CDM/CDR.
+ *
+ * ----------------------------------------------------------------------------
+ * DETAILS:
  * The "Natural Growths" are separated into two categories:
  * - "Buffs":   has effect while applied.
  * - "Growths": effect is applied permanently for every level gained.
@@ -75,17 +80,17 @@
  * Where (PLUS|RATE) is literally one of either "Plus" or "Rate".
  * Where [FORMULA] is the formula to produce the amount.
  *
- * TAG FORMAT:
+ * EXAMPLE:
  *  <hrgGrowthRate:[5]>
- * Gain 5 hp regen per level.
+ * Gain +5% hp regen (hrg) per level.
  * This would result in gaining an ever-increasing amount of hp regen per level.
  *
  *  <exrBuffPlus:[25]>
- * Gain a flat 25 EXR while this tag is applied to this battler.
+ * Gain a flat 25 exp rate (exr) while this tag is applied to this battler.
  * This would be lost if the object this tag lived on was removed.
  *
  *  <atkGrowthPlus:[a.level * 3]>
- * Gain (the battler's level multiplied by 3) attack per level.
+ * Gain (the battler's level multiplied by 3) attack (atk) per level.
  * This would result in gaining an ever-increasing amount of attack per level.
  * ==============================================================================
  * EXAMPLE IDEAS:
@@ -377,13 +382,16 @@ J.NATURAL.RegExp = {
   // additionally supported parameters.
   // TP-related parameters.
   BaseMaxTech: /<baseMaxTp:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechGrowth: /<mtpGrowth:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechBuffPlus: /mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechBuffRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechGrowthPlus: /mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechGrowthRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthPlus: /mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthRate: /mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 };
 //#endregion Introduction
+
+//#region Static objects
+
+//#endregion Static objects
 
 //#region Game objects
 //#region Game_Actor
@@ -682,17 +690,8 @@ Game_Actor.prototype.getBparamGrowth = function(paramId, baseParam)
   // short circuit if we have no bonuses of any kind.
   if (!growthPlus && !growthRate) return 0;
 
-  // determine the modified buff rate.
-  const growthFactor = ((growthRate + 100) / 100);
-
-  // determine the modified base parameter.
-  const growthBase = (baseParam + growthPlus);
-
-  // remove the value of base param since it is added at the end.
-  const result = (growthBase * growthFactor) - baseParam;
-
   // return result.
-  return result;
+  return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
 
 /**
@@ -712,17 +711,8 @@ Game_Actor.prototype.getXparamGrowth = function(paramId, baseParam)
   // short circuit if we have no bonuses of any kind.
   if (!growthPlus && !growthRate) return 0;
 
-  // determine the modified buff rate.
-  const growthFactor = ((growthRate + 100) / 100);
-
-  // determine the modified base parameter.
-  const growthBase = (baseParam + growthPlus);
-
-  // remove the value of base param since it is added at the end.
-  const result = (growthBase * growthFactor) - baseParam;
-
   // return result.
-  return result;
+  return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
 
 /**
@@ -742,17 +732,8 @@ Game_Actor.prototype.getSparamGrowth = function(paramId, baseParam)
   // short circuit if we have no bonuses of any kind.
   if (!growthPlus && !growthRate) return 0;
 
-  // determine the modified buff rate.
-  const growthFactor = ((growthRate + 100) / 100);
-
-  // determine the modified base parameter.
-  const growthBase = (baseParam + growthPlus);
-
-  // remove the value of base param since it is added at the end.
-  const result = (growthBase * growthFactor) - baseParam;
-
   // return result.
-  return result;
+  return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
 
 /**
@@ -1057,11 +1038,6 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
  */
 Game_Battler.prototype.maxTpPlus = function()
 {
-  if (!this._j._natural || (this._j._natural._maxTpPlus === undefined))
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._maxTpPlus;
 };
 
@@ -1080,11 +1056,6 @@ Game_Battler.prototype.modMaxTpPlus = function(amount)
  */
 Game_Battler.prototype.maxTpRate = function()
 {
-  if (!this._j._natural || (this._j._natural._maxTpRate === undefined))
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._maxTpRate;
 };
 
@@ -1104,11 +1075,6 @@ Game_Battler.prototype.modMaxTpRate = function(amount)
  */
 Game_Battler.prototype.bParamPlus = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._bParamsPlus[paramId] ?? 0;
 };
 
@@ -1129,11 +1095,6 @@ Game_Battler.prototype.modBparamPlus = function(paramId, amount)
  */
 Game_Battler.prototype.bParamRate = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._bParamsRate[paramId] ?? 0;
 };
 
@@ -1154,11 +1115,6 @@ Game_Battler.prototype.modBparamRate = function(paramId, amount)
  */
 Game_Battler.prototype.sParamPlus = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._sParamsPlus[paramId] ?? 0;
 };
 
@@ -1179,11 +1135,6 @@ Game_Battler.prototype.modSparamPlus = function(paramId, amount)
  */
 Game_Battler.prototype.sParamRate = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._sParamsRate[paramId] ?? 0;
 };
 
@@ -1204,11 +1155,6 @@ Game_Battler.prototype.modSparamRate = function(paramId, amount)
  */
 Game_Battler.prototype.xParamPlus = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._xParamsPlus[paramId] ?? 0;
 };
 
@@ -1229,11 +1175,6 @@ Game_Battler.prototype.modXparamPlus = function(paramId, amount)
  */
 Game_Battler.prototype.xParamRate = function(paramId)
 {
-  if (!this._j._natural)
-  {
-    this.initNaturalGrowthParameters();
-  }
-
   return this._j._natural._xParamsRate[paramId] ?? 0;
 };
 
@@ -1361,7 +1302,7 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
   const paramGrowthFormulai = [];
 
   // grab all things with notes that a battler could gain parameters from.
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
 
   // iterate over all relevant objects.
   objectsToCheck.forEach(databaseData =>

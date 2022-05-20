@@ -254,13 +254,12 @@ class Window_SkillDetail extends Window_Base
     else
     {
       this.refresh();
-      //console.log($dataSkills[this._skillId]);
     }
   };
 
   /**
    * Gets the skill currently being worked with.
-   * @returns {rm.types.Skill|null}
+   * @returns {RPG_Skill|null}
    */
   skill()
   {
@@ -357,7 +356,7 @@ class Window_SkillDetail extends Window_Base
   /**
    * Places the corresponding skill icon image.
    * @param {number} x The `x` coordinate.
-   * @param {rm.types.Skill} skill The skill to draw this for.
+   * @param {RPG_Skill} skill The skill to draw this for.
    */
   placeSkillIcon(x, skill)
   {
@@ -506,7 +505,7 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Gets all the states and their chances of application for this skill.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @param {Game_Actor} actor The actor.
    * @returns {JCMS_ParameterKvp[]}
    */
@@ -561,7 +560,7 @@ class Window_SkillDetail extends Window_Base
   /**
    * Makes a parameter that displays this actor's proficiency with this skill.
    * @param {Game_Actor} actor The actor.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @returns {JCMS_ParameterKvp}
    */
   makeSkillProficiency(actor, skill)
@@ -578,7 +577,7 @@ class Window_SkillDetail extends Window_Base
   /**
    * Makes a parameter that displays this actor's proficiency with this skill.
    * @param {Game_Actor} actor The actor.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @returns {JCMS_ParameterKvp[]}
    */
   makeRelatedProficiencyConditionals(actor, skill)
@@ -616,7 +615,7 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Creates a list of all elemenets contained by this skill.
-   * @param {rm.types.Skill} skill The skill.
+   * @param {RPG_Skill} skill The skill.
    * @param {Game_Actor} actor The actor.
    * @returns {JCMS_ParameterKvp[]}
    */
@@ -648,7 +647,7 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Makes the skill type key value parameter.
-   * @param {rm.types.Skill} skill The skill object.
+   * @param {RPG_Skill} skill The skill object.
    */
   makeSkillTypeParam(skill)
   {
@@ -684,7 +683,7 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Makes the mp cost key value parameter.
-   * @param {rm.types.Skill} skill The skill object.
+   * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
    */
   makeMpCostParam(skill, actor)
@@ -701,7 +700,7 @@ class Window_SkillDetail extends Window_Base
 
   /**
    * Makes the tp cost key value parameter.
-   * @param {rm.types.Skill} skill The skill object.
+   * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
    */
   makeTpCostParam(skill, actor)

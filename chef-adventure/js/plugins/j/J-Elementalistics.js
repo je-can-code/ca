@@ -628,7 +628,7 @@ Game_Actor.prototype.elementRate = function(elementId)
  */
 Game_Actor.prototype.elementsAbsorbed = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const absorbed = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -645,7 +645,7 @@ Game_Actor.prototype.elementsAbsorbed = function()
  */
 Game_Actor.prototype.strictElements = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const strict = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -670,7 +670,7 @@ Game_Actor.prototype.strictElements = function()
  */
 Game_Actor.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -854,7 +854,7 @@ Game_Enemy.prototype.elementRate = function(elementId)
  */
 Game_Enemy.prototype.elementsAbsorbed = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const absorbed = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -871,7 +871,7 @@ Game_Enemy.prototype.elementsAbsorbed = function()
  */
 Game_Enemy.prototype.strictElements = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const strict = [];
   objectsToCheck.forEach(referenceData =>
   {

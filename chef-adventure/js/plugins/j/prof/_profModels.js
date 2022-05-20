@@ -130,7 +130,7 @@ SkillProficiency.prototype.initialize = function(
 
 /**
  * Gets the underlying skill of this prof.
- * @returns {rm.types.Skill}
+ * @returns {RPG_Skill}
  */
 SkillProficiency.prototype.skill = function()
 {

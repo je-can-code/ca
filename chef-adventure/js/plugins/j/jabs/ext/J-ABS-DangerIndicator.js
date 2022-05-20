@@ -136,8 +136,10 @@ J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.DANGER.PluginParameters = PluginManager.parameters(J.DANGER.Metadata.Name);
-J.DANGER.Metadata.DefaultEnemyShowDangerIndicator = J.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
-J.DANGER.Metadata.DangerIndicatorIcons = J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.DANGER.PluginParameters['dangerIndicatorIconData']);
+J.DANGER.Metadata.DefaultEnemyShowDangerIndicator =
+  J.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
+J.DANGER.Metadata.DangerIndicatorIcons =
+  J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.DANGER.PluginParameters['dangerIndicatorIconData']);
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
@@ -445,7 +447,6 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
     case (bpl > ppl * 1.5):
       return J.DANGER.DangerIndicatorIcons.Deadly;
     default:
-      console.error(bpl);
       return -1;
   }
 };

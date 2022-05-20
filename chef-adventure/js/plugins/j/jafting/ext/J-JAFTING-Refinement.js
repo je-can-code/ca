@@ -1235,7 +1235,6 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
 
   // gain the actual item.
   $gameParty.gainItem(datastore[newIndex], 1);
-  //console.log(datastore[newIndex]);
 
   // increment the index to ensure we don't overwrite it.
   this.incrementRefinementCounter(refinementType);

@@ -11,6 +11,7 @@
  * functionality that allow you to leverage new strategies in skill learning
  * and game development.
  *
+ * DETAILS:
  * The new functionalities available are as follows:
  * - Skills extending skills.
  * - On-hit self-state application.
@@ -557,13 +558,13 @@ class OverlayManager
         const reducer = (skillPreviously, skillOverlay) => this.extendSkill(skillPreviously, skillOverlay);
         return skillExtendSkills.reduce(reducer, baseSkill);
     }
-  };
+  }
 
   /**
    * Merges the skill overlay onto the base skill and returns the updated base skill.
-   * @param baseSkill {rm.types.Skill} The base skill to be overlayed.
-   * @param skillOverlay {rm.types.Skill} The skill to overlay with.
-   * @returns {rm.types.Skill} The base skill overlayed with the overlay skill.
+   * @param baseSkill {RPG_Skill} The base skill to be overlayed.
+   * @param skillOverlay {RPG_Skill} The skill to overlay with.
+   * @returns {RPG_Skill} The base skill overlayed with the overlay skill.
    */
   static extendSkill(baseSkill, skillOverlay)
   {
@@ -578,7 +579,7 @@ class OverlayManager
 
     // return the base skill merged with the overlay.
     return baseSkill;
-  };
+  }
 
   /**
    * Overlays `skillOverlay` onto the `baseSkill`.
@@ -619,7 +620,7 @@ class OverlayManager
     baseSkill = this.combo(baseSkill, skillOverlay);
 
     return baseSkill;
-  };
+  }
 
 //#region overwrites
   /**
@@ -757,7 +758,7 @@ class OverlayManager
     baseSkill = this.sanitizeBaseSkill(baseSkill);
 
     return baseSkill;
-  };
+  }
 
   /**
    * Purges all references to the skill extend tag from the `baseSkill`.
@@ -774,7 +775,7 @@ class OverlayManager
 
     // return the base skill sans any reference to skill extension.
     return baseSkill;
-  };
+  }
 
   /**
    * Overlays the `invincibleDodge`.
@@ -789,7 +790,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.InvincibleDodge,
       skillOverlay.jabsInvincibleDodge);
-  };
+  }
 
   /**
    * Overlays the `moveType`.
@@ -804,7 +805,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.MoveType,
       skillOverlay.jabsMoveType);
-  };
+  }
 
   /**
    * Overlays the `uniqueCooldown`.
@@ -819,7 +820,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.UniqueCooldown,
       skillOverlay.jabsUniqueCooldown);
-  };
+  }
 
   /**
    * Overlays the `projectile`.
@@ -834,7 +835,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Projectile,
       skillOverlay.jabsProjectile);
-  };
+  }
 
   /**
    * Overlays the `parry`.
@@ -849,7 +850,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Parry,
       skillOverlay.jabsParry);
-  };
+  }
 
   /**
    * Overlays the `counterParry`.
@@ -864,7 +865,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CounterParry,
       skillOverlay.jabsCounterParry);
-  };
+  }
 
   /**
    * Overlays the `guard`.
@@ -879,7 +880,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Guard,
       skillOverlay.jabsGuard);
-  };
+  }
 
   /**
    * Overlays the `counterGuard`.
@@ -894,7 +895,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CounterGuard,
       skillOverlay.jabsCounterGuard);
-  };
+  }
 
   /**
    * Overlays the `getBonusHits`.
@@ -909,7 +910,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.BonusHits,
       skillOverlay.jabsBonusHits);
-  };
+  }
 
   /**
    * Overlays the `aggroMultiplier`.
@@ -924,7 +925,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.AggroMultiplier,
       skillOverlay.jabsAggroMultiplier);
-  };
+  }
 
   /**
    * Overlays the `bonusAggro`.
@@ -939,7 +940,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.BonusAggro,
       skillOverlay.jabsBonusAggro);
-  };
+  }
 
   /**
    * Overlays the `direct`.
@@ -954,7 +955,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Direct,
       skillOverlay.jabsDirect);
-  };
+  }
 
   /**
    * Overlays the `combo`.
@@ -969,7 +970,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.ComboAction,
       skillOverlay.jabsComboAction);
-  };
+  }
 
   /**
    * Overlays the `freeCombo`.
@@ -984,7 +985,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.FreeCombo,
       skillOverlay.jabsFreeCombo);
-  };
+  }
 
   /**
    * Overlays the `castTime`.
@@ -999,7 +1000,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CastTime,
       skillOverlay.jabsCastTime);
-  };
+  }
 
   /**
    * Overlays the `castAnimation`.
@@ -1014,7 +1015,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CastAnimation,
       skillOverlay.jabsCastAnimation);
-  };
+  }
 
   /**
    * Overlays the `poseSuffix`.
@@ -1029,7 +1030,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.PoseSuffix,
       skillOverlay.jabsPoseData);
-  };
+  }
 
   /**
    * Overlays the `knockback`.
@@ -1044,7 +1045,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Knockback,
       skillOverlay.jabsKnockback);
-  };
+  }
 
   /**
    * Overlays the `piercing`.
@@ -1059,7 +1060,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.PiercingData,
       skillOverlay.jabsPiercingData);
-  };
+  }
 
   /**
    * Overlays the `shape`.
@@ -1074,7 +1075,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Shape,
       skillOverlay.jabsShape);
-  };
+  }
 
   /**
    * Overlays the `duration`.
@@ -1089,7 +1090,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Duration,
       skillOverlay.jabsDuration);
-  };
+  }
 
   /**
    * Overlays the `actionId`.
@@ -1104,7 +1105,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.ActionId,
       skillOverlay.jabsActionId);
-  };
+  }
 
   /**
    * Overlays the `proximity`.
@@ -1119,7 +1120,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Proximity,
       skillOverlay.jabsProximity);
-  };
+  }
 
   /**
    * Overlays the `range`.
@@ -1134,7 +1135,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Range,
       skillOverlay.jabsRange);
-  };
+  }
 
   /**
    * Overlays the `cooldown`.
@@ -1149,7 +1150,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Cooldown,
       skillOverlay.jabsCooldown);
-  };
+  }
 
   /**
    * An overlay type of which we overwrite whatever the existing data is with
@@ -1197,7 +1198,7 @@ class OverlayManager
 
     // return the overlayed base skill.
     return baseSkill;
-  };
+  }
 
   /**
    * An overlay type of which we overwrite whatever the existing data is with
@@ -1232,7 +1233,7 @@ class OverlayManager
 
     // return the overlayed base skill.
     return baseSkill;
-  };
+  }
 //#endregion overwrites
 }
 

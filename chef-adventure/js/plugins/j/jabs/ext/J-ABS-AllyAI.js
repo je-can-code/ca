@@ -1900,6 +1900,7 @@ JABS_BattleMemory.prototype.wasEffective = function()
 //#region JABS_Battler
 /**
  * Extends the engagement determination to handle aggro/passive party toggling.
+ * @param {JABS_Battler} target The target to see if we should engage with.
  * @returns {boolean}
  */
 J.ALLYAI.Aliased.JABS_Battler.shouldEngage = JABS_Battler.prototype.shouldEngage;

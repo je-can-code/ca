@@ -154,11 +154,11 @@ Game_Actor.prototype.forgetSkill = function(skillId)
  * Extends `getCurrentWithNotes` to include passive skill states.
  * @returns {RPG_BaseItem[]}
  */
-J.PASSIVE.Aliased.Game_Actor.set('getEverythingWithNotes', Game_Actor.prototype.getEverythingWithNotes);
-Game_Actor.prototype.getEverythingWithNotes = function()
+J.PASSIVE.Aliased.Game_Actor.set('getAllNotes', Game_Actor.prototype.getAllNotes);
+Game_Actor.prototype.getAllNotes = function()
 {
   // perform the origina logic to retrieve the objects with notes.
-  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getEverythingWithNotes').call(this);
+  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getAllNotes').call(this);
 
   // then add all those currently applied passive skill states, too.
   objectsWithNotes.push(...this.passiveSkillStates())

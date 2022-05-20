@@ -1,8 +1,9 @@
 //#region Introduction
+/* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.1 SDP] Enables the SDP system, allowing for distribution of points into panels that
+ * [v1.1.0 SDP] Enables the SDP system, allowing for distribution of points into panels that
  * contain various stats.
  * @author JE
  * @url https://github.com/je-can-code/ca
@@ -15,7 +16,13 @@
  * ============================================================================
  * This plugin is a form of "stat distribution"- an alternative to the standard
  * of leveling up to raise an actor's stats.
- * 
+ *
+ * Integrates with others of mine plugins:
+ * - J-ControlledDrops; enables usage of item-as-panel drops.
+ * - J-CriticalFactors; enables usage of CDM/CDR as parameters on panels.
+ *
+ * ----------------------------------------------------------------------------
+ * DETAILS:
  * This system allows the player's party to unlock "stat distribution panels"
  * (aka SDPs), by means of plugin command.
  * 
@@ -38,6 +45,7 @@
  * - SDP points for an actor cannot be reduced below 0.
  * - Stat Distribution Panels are unlocked for all members of the party.
  * - Stat Distribution Panels being leveled or maxed can unlock other SDPs.
+ *
  * ============================================================================
  * SDP POINTS:
  * Ever want enemies to drop SDP Points? Well now they can! By applying the
@@ -350,6 +358,10 @@
  * @value 26
  * @option Experience Rate
  * @value 27
+ * @option Crit Damage Multiplier
+ * @value 28
+ * @option Crit Damage Reduction
+ * @value 29
  * @default 0
  * 
  * @param perRank
@@ -392,6 +404,7 @@
  * @desc Use Javascript to execute code when the panel reaches the given rank. a = the actor leveling the panel.
  * @default a.learnSkill(10);
  */
+/* eslint-enable */
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -892,7 +905,7 @@ Game_Actor.prototype.sdpMultiplier = function()
   let multiplier = 100;
 
   // get all the objects to scan for possible sdp multipliers.
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
 
   // iterate over each of them and add the multiplier up.
   objectsToCheck.forEach(obj => (multiplier += this.extractSdpMultiplier(obj)), this);
@@ -950,7 +963,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdp(panelRanking.key)
+      .getSdpByKey(panelRanking.key)
       .getPanelParameterById(paramId);
     if (panelParameters.length)
     {
@@ -991,7 +1004,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdp(panelRanking.key)
+      .getSdpByKey(panelRanking.key)
       .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
     if (panelParameters.length)
     {
@@ -1095,7 +1108,7 @@ Game_Enemy.prototype.canDropSdp = function()
   if (!this.hasSdpDropData()) return false;
 
   // grab the panel for shorthand reference below.
-  const panel = $gameSystem.getSdp(this.enemy().sdpDropKey);
+  const panel = $gameSystem.getSdpByKey(this.enemy().sdpDropKey);
 
   // if the enemy has a panel that isn't defined, then don't drop it.
   if (!panel)
@@ -1208,17 +1221,39 @@ Game_System.prototype.initSdpMembers = function()
 };
 
 /**
+ * Gets all panels currently built from the plugin parameters.
+ * @returns {StatDistributionPanel[]}
+ */
+Game_System.prototype.getAllSdps = function()
+{
+  return this._j._sdp._panels;
+};
+
+/**
  * Gets a single panel based on the key provided.
  * @param {string} key The less-friendly unique key that represents this SDP.
  * @returns {StatDistributionPanel}
  */
-Game_System.prototype.getSdp = function(key)
+Game_System.prototype.getSdpByKey = function(key)
 {
   // if we don't have panels to search through, don't do it.
   if (!this._j._sdp._panels.length) return null;
 
   const foundPanel = this._j._sdp._panels.find(panel => panel.key === key);
   return foundPanel;
+};
+
+/**
+ * Gets all panels that match the keys provided.
+ * @param {string[]} keys The list of keys to find panels for.
+ * @returns {StatDistributionPanel[]}
+ */
+Game_System.prototype.getSdpsByKeys = function(keys)
+{
+  // if we don't have panels to search through, don't do it.
+  if (!this._j._sdp._panels.length) return [];
+
+  return this.getAllSdps().filter(sdp => keys.includes(sdp.key));
 };
 
 /**
@@ -1239,7 +1274,7 @@ Game_System.prototype.getUnlockedSdps = function()
  */
 Game_System.prototype.getUnlockedSdpsCount = function()
 {
-  return this._j._sdp._panels.length;
+  return this.getUnlockedSdps().length;
 };
 
 /**
@@ -1248,7 +1283,7 @@ Game_System.prototype.getUnlockedSdpsCount = function()
  */
 Game_System.prototype.unlockSdp = function(key)
 {
-  const panel = this.getSdp(key);
+  const panel = this.getSdpByKey(key);
   if (panel)
   {
     panel.unlock();
@@ -1275,7 +1310,7 @@ Game_System.prototype.unlockAllSdps = function()
  */
 Game_System.prototype.lockSdp = function(key)
 {
-  const panel = this.getSdp(key);
+  const panel = this.getSdpByKey(key);
   if (panel)
   {
     panel.lock();
@@ -1922,8 +1957,7 @@ class Window_SDP_List extends Window_Command
 /**
  * The window that displays all details of how a panel would affect the actor's parameters.
  */
-class Window_SDP_Details
-  extends Window_Base
+class Window_SDP_Details extends Window_Base
 {
   constructor(rect)
   {
@@ -2074,8 +2108,7 @@ class Window_SDP_Details
 
   /**
    * Determines the color of the "current rank" number text.
-   * @param {number} currentRank The current rank of this panel.
-   * @param {number} maxRank The maximum rank of this panel.
+   * @param {number} rankUpCost The cost to rank up this panel.
    * @returns {number} The id of the color.
    */
   determineCostColor(rankUpCost)
@@ -2216,6 +2249,7 @@ class Window_SDP_Details
    * @param {number} paramId The id to translate.
    * @returns {{name: string, value: number, iconIndex: number, smallerIsBetter: boolean, isPercentValue: boolean}}
    */
+  // eslint-disable-next-line complexity
   translateParameter(paramId)
   {
     const smallerIsBetter = this.isNegativeGood(paramId);
@@ -2264,6 +2298,7 @@ class Window_SDP_Details
         name = TextManager.sparam(paramId - 18);
         value = (this.currentActor.sparam(paramId - 18) * 100).toFixed(2);
         iconIndex = IconManager.sparam(paramId - 18);
+        break;
     }
 
     return {name, value, iconIndex, smallerIsBetter, isPercentValue};
@@ -2277,9 +2312,34 @@ class Window_SDP_Details
    */
   isPercentParameter(parameterId)
   {
-    const isPercentParameterIds = [9, 14, 20, 21, 22, 23, 24, 25, 26, 27];
+    // grab the list of ids that qualify as "needs a % symbol".
+    const isPercentParameterIds = this.getIsPercentParameterIds();
+
+    // check to see if our id is in that special list.
     const isPercent = isPercentParameterIds.includes(parameterId);
+
+    // return the check.
     return isPercent;
+  }
+
+  /**
+   * The collection of long-form parameter ids that should be decorated with a `%` symbol.
+   * @returns {number[]}
+   */
+  getIsPercentParameterIds()
+  {
+    return [
+      9,    // eva
+      14,   // cnt
+      20,   // rec
+      21,   // pha
+      22,   // mcr
+      23,   // tcr
+      24,   // pdr
+      25,   // mdr
+      26,   // fdr
+      27    // exr
+    ];
   }
 
   /**
@@ -2289,9 +2349,31 @@ class Window_SDP_Details
    */
   isNegativeGood(parameterId)
   {
-    const smallerIsBetterParameterIds = [18, 22, 23, 24, 25, 26];
+    // grab the list of ids that qualify as "smaller is better".
+    const smallerIsBetterParameterIds = this.getSmallerIsBetterParameterIds();
+
+    // check to see if our id is in that special list.
     const smallerIsBetter = smallerIsBetterParameterIds.includes(parameterId);
+
+    // return the check.
     return smallerIsBetter;
+  }
+
+  /**
+   * The collection of long-form parameter ids that should have a positive color indicator
+   * when there is a decrease of value in that parameter from the panel.
+   * @returns {number[]}
+   */
+  getSmallerIsBetterParameterIds()
+  {
+    return [
+      18,   // trg
+      22,   // mcr
+      23,   // tcr
+      24,   // pdr
+      25,   // mdr
+      26    // fdr
+    ];
   }
 }
 //#endregion Window_SDP_Details

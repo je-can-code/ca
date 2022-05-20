@@ -2937,7 +2937,14 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     this.preExecuteSkillEffects(action, target);
 
     // get whether or not this action was unparryable.
-    const isUnparryable = (action.isUnparryable());
+    let isUnparryable = (action.isUnparryable());
+
+    // if the target is a player and also dashing...
+    if (target.isPlayer() && target.getCharacter().isDashButtonPressed())
+    {
+      // they cannot parry anything.
+      isUnparryable = true;
+    }
 
     // check whether or not this action was parried.
     const caster = action.getCaster();
@@ -3727,7 +3734,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Configures this skill used popup based on the skill itself.
-   * @param {rm.types.Skill} skill The skill that was used.
+   * @param {RPG_Skill} skill The skill that was used.
    * @returns {Map_TextPop}
    */
   configureSkillUsedPop(skill)
@@ -3740,7 +3747,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   /**
    * Configures this damage popup based on the action result against the target.
    * @param {Game_Action} gameAction The action this popup is based on.
-   * @param {rm.types.Skill} skill The skill reference data itself.
+   * @param {RPG_Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler who casted this skill.
    * @param {JABS_Battler} target The target battler the popup is placed on.
    */
@@ -3826,7 +3833,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Translates a skill's elemental affiliation into the icon id representing it.
-   * @param {rm.types.Skill} skill The skill reference data itself.
+   * @param {RPG_Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler performing the action.
    * @returns {number} The icon index to use for this popup.
    */
@@ -4631,7 +4638,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Handles a skill being learned for a battler while on the map.
-   * @param {rm.types.Skill} skill The skill being learned.
+   * @param {RPG_Skill} skill The skill being learned.
    * @param {string} uuid The uuid of the battler leveling up.
    */
   battlerSkillLearn(skill, uuid)
@@ -4647,7 +4654,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Creates a text pop of the skill being learned.
-   * @param {rm.types.Skill} skill The skill being learned.
+   * @param {RPG_Skill} skill The skill being learned.
    * @param {Game_Character} character The character to show the popup on.
    */
   generatePopSkillLearn(skill, character)
@@ -4665,7 +4672,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Configures the popup for a skill learned.
-   * @param {rm.types.Skill} skill The skill learned.
+   * @param {RPG_Skill} skill The skill learned.
    * @returns {Map_TextPop}
    */
   configureSkillLearnPop(skill)
@@ -4677,7 +4684,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   /**
    * Creates a skill learning log for the player.
-   * @param {rm.types.Skill} skill The skill being learned.
+   * @param {RPG_Skill} skill The skill being learned.
    * @param {JABS_Battler} player The player's `JABS_Battler`.
    */
   createSkillLearnLog(skill, player)

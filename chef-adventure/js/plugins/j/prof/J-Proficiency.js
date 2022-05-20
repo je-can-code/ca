@@ -728,7 +728,7 @@ Game_Actor.prototype.checkProficiencyConditionals = function()
  */
 Game_Actor.prototype.bonusSkillProficiencyGains = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const structure = /<proficiencyBonus:[ ]?([0-9]*)>/i;
   let bonusProficiency = 0;
   objectsToCheck.forEach(obj =>
@@ -814,7 +814,7 @@ Game_Battler.prototype.canGiveProficiency = function()
  */
 Game_Battler.prototype.extractProficiencyGivingBlock = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const structure = /<proficiencyGivingBlock>/i;
   let canGiveProficiency = true;
   objectsToCheck.forEach(obj =>
@@ -851,7 +851,7 @@ Game_Battler.prototype.canGainProficiency = function()
  */
 Game_Battler.prototype.extractProficiencyGainingBlock = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const structure = /<proficiencyGainingBlock>/i;
   let canGainProficiency = true;
   objectsToCheck.forEach(obj =>

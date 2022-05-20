@@ -916,18 +916,27 @@ class IconManager
       case  1:
         return 33; // mmp
       case  2:
-        return 34; // atk
+        return 35; // atk
       case  3:
-        return 35; // def
+        return 36; // def
       case  4:
-        return 36; // mat
+        return 37; // mat
       case  5:
-        return 37; // mdf
+        return 38; // mdf
       case  6:
-        return 38; // agi
+        return 39; // agi
       case  7:
-        return 39; // luk
+        return 40; // luk
     }
+  }
+
+  /**
+   * Gets the `iconIndex` for max tp.
+   * @returns {number} The `iconIndex`.
+   */
+  static maxTp()
+  {
+    return 34;
   }
 
   /**
@@ -1002,6 +1011,7 @@ class IconManager
    * @param {number} paramId The "long" parameter id.
    * @returns {number} The `iconIndex`.
    */
+  // eslint-disable-next-line complexity
   static longParam(paramId)
   {
     switch (paramId)
@@ -1025,17 +1035,17 @@ class IconManager
       case  8:
         return this.xparam(paramId - 8); // hit
       case  9:
-        return this.xparam(paramId - 8); // eva (parry boost)
+        return this.xparam(paramId - 8); // eva (jabs: parry boost)
       case 10:
         return this.xparam(paramId - 8); // cri
       case 11:
         return this.xparam(paramId - 8); // cev
       case 12:
-        return this.xparam(paramId - 8); // mev (unused)
+        return this.xparam(paramId - 8); // mev (jabs: unused)
       case 13:
         return this.xparam(paramId - 8); // mrf
       case 14:
-        return this.xparam(paramId - 8); // cnt (autocounter)
+        return this.xparam(paramId - 8); // cnt (jabs: autocounter)
       case 15:
         return this.xparam(paramId - 8); // hrg
       case 16:
@@ -1043,17 +1053,17 @@ class IconManager
       case 17:
         return this.xparam(paramId - 8); // trg
       case 18:
-        return this.sparam(paramId - 18); // trg (aggro)
+        return this.sparam(paramId - 18); // trg (jabs: aggro)
       case 19:
-        return this.sparam(paramId - 18); // grd (parry)
+        return this.sparam(paramId - 18); // grd (jabs: parry)
       case 20:
         return this.sparam(paramId - 18); // rec
       case 21:
         return this.sparam(paramId - 18); // pha
       case 22:
-        return this.sparam(paramId - 18); // mcr (mp cost)
+        return this.sparam(paramId - 18); // mcr
       case 23:
-        return this.sparam(paramId - 18); // tcr (tp cost)
+        return this.sparam(paramId - 18); // tcr
       case 24:
         return this.sparam(paramId - 18); // pdr
       case 25:
@@ -1432,6 +1442,15 @@ ImageManager.probeCharacter = function(characterFileName)
 
 //#region TextManager
 /**
+ * Gets the proper name of "max tp".
+ * @returns {string} The name of the parameter.
+ */
+TextManager.maxTp = function()
+{
+  return "Max Tech";
+};
+
+/**
  * Gets the name of the given sp-parameter.
  * @param {number} sParamId The id of the sp-param to get a name for.
  * @returns {string} The name of the parameter.
@@ -1502,6 +1521,7 @@ TextManager.xparam = function(xParamId)
  * @param {number} paramId The "long" parameter id.
  * @returns {string} The `name`.
  */
+// eslint-disable-next-line complexity
 TextManager.longParam = function(paramId)
 {
   switch (paramId)
@@ -1564,10 +1584,98 @@ TextManager.longParam = function(paramId)
       return this.sparam(paramId - 18); // exr
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-      return '';
+      return String.empty;
   }
 };
 //#endregion TextManager
+
+//#region RPGManager
+/**
+ * A utility class for handling common database-related translations.
+ */
+class RPGManager
+{
+  /**
+   * Gets the sum of all values from the notes of a collection of database objects.
+   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   */
+  static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // check to make sure we have a collection to work with.
+    if (!databaseDatas.length)
+    {
+      // short circuit with null if we are using the flag, or 0 otherwise.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value to 0.
+    let val = 0;
+
+    // iterate over each database object to get the values.
+    databaseDatas.forEach(databaseData =>
+    {
+      // add the value from all the notes of each database object.
+      val += databaseData.getNumberFromNotesByRegex(structure);
+    });
+
+    // check if we turned up empty and are using the nullIfEmpty flag.
+    if (!val && nullIfEmpty)
+    {
+      // we are both, so return null.
+      return null;
+    }
+
+    // return the value, or 0.
+    return val;
+  }
+
+  /**
+   * Gets the eval'd formulai of all values from the notes of a collection of database objects.
+   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+   * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   * @returns {number} The calculated result from all formula summed together.
+   */
+  static getResultsFromAllNotesByRegex(
+    databaseDatas,
+    structure,
+    baseParam = 0,
+    context = null,
+    nullIfEmpty = false)
+  {
+    // check to make sure we have a collection to work with.
+    if (!databaseDatas.length)
+    {
+      // short circuit with null if we are using the flag, or 0 otherwise.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value to 0.
+    let val = 0;
+
+    // iterate over each database object to get the values.
+    databaseDatas.forEach(databaseData =>
+    {
+      // add the eval'd formulas from all the notes of each database object.
+      val += databaseData.getResultsFromNotesByRegex(structure, baseParam, context);
+    });
+
+    // check if we turned up empty and are using the nullIfEmpty flag.
+    if (!val && nullIfEmpty)
+    {
+      // we are both, so return null.
+      return null;
+    }
+
+    // return the value, or 0.
+    return val;
+  }
+}
+//#endregion RPGManager
 //#endregion Static objects
 
 //#region Game objects
@@ -1590,7 +1698,7 @@ Game_Actor.prototype.battlerId = function()
  */
 Game_Actor.prototype.switchLocked = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const structure = /<noSwitch>/i;
   let switchLocked = false;
   objectsToCheck.forEach(obj =>
@@ -1615,7 +1723,7 @@ Game_Actor.prototype.switchLocked = function()
  */
 Game_Actor.prototype.autoAssignOnLevelup = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const structure = /<autoAssignSkills>/i;
   let autoAssign = false;
   objectsToCheck.forEach(obj =>
@@ -1638,7 +1746,7 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
  * This is very similar to the `traitObjects()` function.
  * @returns {RPG_BaseItem[]}
  */
-Game_Actor.prototype.getEverythingWithNotes = function()
+Game_Actor.prototype.getAllNotes = function()
 {
   const objectsWithNotes = [];
 
@@ -2343,383 +2451,11 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
  * Gets everything that this battler has with notes on it, such as skills, equips, states, etc.
  * @returns {RPG_BaseItem[]}
  */
-Game_Battler.prototype.getEverythingWithNotes = function()
+Game_Battler.prototype.getAllNotes = function()
 {
   return [];
 };
 //#endregion Game_Battler
-
-//#region Game_Character
-/**
- * Gets the `aiCode` for this character.
- * If no code is specified, return `10000000`.
- * @returns {string}
- */
-Game_Character.prototype.aiCode = function()
-{
-  let aiCode = "10000000";
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AiCode])
-  {
-    aiCode = referenceData.meta[J.BASE.Notetags.AiCode] || aiCode;
-  }
-  else
-  {
-    const structure = /<ai:[ ]?([0|1]{8})>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        aiCode = RegExp.$1;
-      }
-    })
-  }
-
-  return aiCode;
-};
-
-/**
- * Gets the `battlerId` for this character.
- * If no id is specified, return `0`.
- * @returns {number}
- */
-Game_Character.prototype.battlerId = function()
-{
-  let battlerId = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.BattlerId])
-  {
-    // if its in the metadata, then grab it from there.
-    battlerId = referenceData.meta[J.BASE.Notetags.BattlerId] || battlerId;
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<e:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        battlerId = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(battlerId);
-};
-
-/**
- * Gets the `sightRange` for this character.
- * If no sight is specified, return `0`.
- * @returns {number}
- */
-Game_Character.prototype.sightRadius = function()
-{
-  let sightRadius = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
-  {
-    sightRadius = referenceData.meta[J.BASE.Notetags.Sight] || sightRadius;
-  }
-  else
-  {
-    const structure = /<s:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        sightRadius = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(sightRadius);
-};
-
-/**
- * Gets the boost to `sightRange` for this character when alerted.
- * @returns {number}
- */
-Game_Character.prototype.alertedSightBoost = function()
-{
-  let sightBoost = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    sightBoost = referenceData.meta[J.BASE.Notetags.AlertSightBoost] || sightBoost;
-  }
-  else
-  {
-    const structure = /<as:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        sightBoost = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(sightBoost);
-};
-
-/**
- * Gets the `pursuitRange` for this character.
- * If no pursuit is specified, return `0`.
- * @returns {number}
- */
-Game_Character.prototype.pursuitRadius = function()
-{
-  let pursuitRadius = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
-  {
-    pursuitRadius = referenceData.meta[J.BASE.Notetags.Pursuit] || pursuitRadius;
-  }
-  else
-  {
-    const structure = /<p:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        pursuitRadius = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(pursuitRadius);
-};
-
-/**
- * Gets the boost to `pursuitRange` for this character when alerted.
- * @returns {number}
- */
-Game_Character.prototype.alertedPursuitBoost = function()
-{
-  let pursuitBoost = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    pursuitBoost = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost] || pursuitBoost;
-  }
-  else
-  {
-    const structure = /<ap:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        pursuitBoost = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(pursuitBoost);
-};
-
-/**
- * Gets the duration of which this battler will spend alerted.
- * @returns {number}
- */
-Game_Character.prototype.alertedDuration = function()
-{
-  let alertDuration = 300;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
-  {
-    alertDuration = referenceData.meta[J.BASE.Notetags.AlertDuration] || alertDuration;
-  }
-  else
-  {
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        alertDuration = RegExp.$1;
-      }
-    })
-  }
-
-  return parseInt(alertDuration);
-};
-
-/**
- * Gets the custom move speed for this battler.
- * If no move speed is specified, return `0`, which will default to the event's movespeed.
- * @returns {number}
- */
-Game_Character.prototype.customMoveSpeed = function()
-{
-  let customMoveSpeed = 0;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.MoveSpeed])
-  {
-    customMoveSpeed = referenceData.meta[J.BASE.Notetags.MoveSpeed] || customMoveSpeed;
-  }
-  else
-  {
-    const structure = /<ms:((0|([1-9][0-9]*))(\.[0-9]+)?)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        customMoveSpeed = RegExp.$1;
-      }
-    })
-  }
-
-  return parseFloat(customMoveSpeed);
-};
-
-/**
- * Gets the `idle` boolean for this battler.
- * `True` by default.
- * @returns {boolean}
- */
-Game_Character.prototype.canIdle = function()
-{
-  let canIdle = true;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle])
-  {
-    canIdle = false;
-  }
-  else
-  {
-    const structure = /<noIdle>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        canIdle = false;
-      }
-    })
-  }
-
-  if (this.isInanimate()) canIdle = false;
-  return canIdle;
-};
-
-/**
- * Gets the boolean for whether or not to show the hp bar.
- * `True` by default.
- * @returns {boolean}
- */
-Game_Character.prototype.showHpBar = function()
-{
-  if (!(this instanceof Game_Event)) return false;
-
-  let showHpBar = true;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar])
-  {
-    showHpBar = false;
-  }
-  else
-  {
-    const structure = /<noHpBar>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        showHpBar = false;
-      }
-    })
-  }
-
-  if (this.isInanimate()) showHpBar = false;
-  return showHpBar;
-};
-
-/**
- * Gets the boolean for whether or not this battler is invincible.
- * Invincible is defined as "not able to be collided with".
- * `False` by default.
- * @returns {boolean}
- */
-Game_Character.prototype.isInvincible = function()
-{
-  if (!(this instanceof Game_Event)) return;
-
-  let invincible = false;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible])
-  {
-    invincible = true;
-  }
-  else
-  {
-    const structure = /<invincible>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        invincible = true;
-      }
-    })
-  }
-
-  return invincible;
-};
-
-/**
- * Gets the boolean for whether or not this is an inanimate object.
- * Inanimate objects have no hp bar, don't move idly, and cannot engage.
- * This is typically used for things like traps that perform actions.
- * `False` by default.
- * @returns {boolean}
- */
-Game_Character.prototype.isInanimate = function()
-{
-  if (!(this instanceof Game_Event)) return;
-
-  let inanimate = false;
-  const referenceData = this.event();
-
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate])
-  {
-    inanimate = true;
-  }
-  else
-  {
-    const structure = /<inanimate>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        inanimate = true;
-      }
-    })
-  }
-
-  return inanimate;
-};
-//#endregion Game_Character
 
 //#region Game_Enemy
 /**
@@ -2778,7 +2514,7 @@ Game_Enemy.prototype.hasSkill = function(skillId)
  * Gets all objects with notes available to enemies.
  * @returns {RPG_Enemy[]}
  */
-Game_Enemy.prototype.getEverythingWithNotes = function()
+Game_Enemy.prototype.getAllNotes = function()
 {
   const objectsWithNotes = [];
   objectsWithNotes.push(this.enemy());
@@ -2952,44 +2688,6 @@ Game_Party.prototype.numItems = function(item)
     // or just zero if we have no container.
     : 0;
 };
-
-/*
-// TODO: for your item management rewrite.
-Game_Party.prototype.initAllItems = function() {
-  this._items = {};
-  this._weapons = {};
-  this._armors = {};
-};
-
-Game_Party.prototype.itemContainer = function(item) {
-  if (!item) {
-    return null;
-  } else if (DataManager.isItem(item)) {
-    return this._items;
-  } else if (DataManager.isWeapon(item)) {
-    return this._weapons;
-  } else if (DataManager.isArmor(item)) {
-    return this._armors;
-  } else {
-    return null;
-  }
-};
-
-Game_Party.prototype.items = function()
-{
-  return Object.keys(this._items).map(id => $dataItems[id]);
-};
-
-Game_Party.prototype.weapons = function()
-{
-  return Object.keys(this._weapons).map(id => $dataWeapons[id]);
-};
-
-Game_Party.prototype.armors = function()
-{
-  return Object.keys(this._armors).map(id => $dataArmors[id]);
-};
-*/
 //#endregion Game_Party
 //#endregion Game objects
 
@@ -5444,7 +5142,6 @@ class RPG_Base
   /**
    * The `meta` object of this skill, containing a dictionary of
    * key value pairs translated from this skill's `note` object.
-   * @param
    * @type {{ [k: string]: any }}
    */
   meta = {};
@@ -5461,6 +5158,7 @@ class RPG_Base
   note = String.empty;
   //#endregion properties
 
+  //#region base
   /**
    * Constructor.
    * Maps the base item's properties into this object.
@@ -5531,6 +5229,7 @@ class RPG_Base
   {
     return this._index();
   }
+  //#endregion base
 
   //#region meta
   /**
@@ -5812,13 +5511,15 @@ class RPG_Base
   /**
    * Gets an accumulated numeric value based on the provided regex structure.
    *
-   * This accepts a regex structure, assuming the capture group is an integer value,
+   * This accepts a regex structure, assuming the capture group is an numeric value,
    * and adds all values together from each line in the notes that match the provided
    * regex structure.
    *
    * If the optional flag `nullIfEmpty` receives true passed in, then the result of
    * this will be `null` instead of the default 0 as an indicator we didn't find
    * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} nullIfEmpty Whether or not to return 0 if not found, or null.
    * @returns {number|null} The combined value added from the notes of this object, or zero/null.
@@ -5826,40 +5527,88 @@ class RPG_Base
   getNumberFromNotesByRegex(structure, nullIfEmpty = false)
   {
     // get the note data from this skill.
-    const fromNote = this.notedata();
+    const lines = this.getFilteredNotesByRegex(structure);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : 0;
+    }
 
     // initialize the value.
     let val = 0;
 
-    // default to not having a match.
-    let hasMatch = false;
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
     {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        val += parseFloat(RegExp.$1);
+      // extract the captured formula.
+      // eslint-disable-next-line prefer-destructuring
+      const amount = structure.exec(line)[1];
 
-        // flag that we found a match.
-        hasMatch = true;
-      }
+      // add it to the running total.
+      val += parseFloat(amount);
     });
 
-    // check if we didn't find a match, and we want null instead of empty.
-    if (!hasMatch && nullIfEmpty)
+    // return the
+    return val;
+  }
+
+  /**
+   * Evaluates formulai into a numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an formula,
+   * and adds all results together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {number=} baseParam The base parameter value used as the "b" in the formula.
+   * @param {RPG_BaseBattler=} context The contextual battler used as the "a" in the formula.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  getResultsFromNotesByRegex(structure, baseParam = 0, context = null, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const lines = this.getFilteredNotesByRegex(structure);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
     {
-      // return null.
-      return null;
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : 0;
     }
-    // we want zero or the found value.
-    else
+
+    // initialize the value.
+    let val = 0;
+
+    // establish a variable to be used as "a" in the formula- the battler.
+    const a = context;
+
+    // establish a variable to be used as "b" in the formula- the base parameter value.
+    const b = baseParam;
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
     {
-      // return the found value.
-      return val;
-    }
+      // extract the captured formula.
+      // eslint-disable-next-line prefer-destructuring
+      const formula = structure.exec(line)[1];
+
+      // evaluate the formula/value.
+      const result = eval(formula).toFixed(3);
+
+      // add it to the running total.
+      val += parseFloat(result);
+    });
+
+    // return the calculated summed value.
+    return val;
   }
 
   /**
@@ -6684,7 +6433,7 @@ class RPG_Skill extends RPG_UsableItem
   /**
    * Constructor.
    * Maps the skill's properties into this object.
-   * @param {rm.types.Skill} skill The underlying skill object.
+   * @param {RPG_Skill} skill The underlying skill object.
    * @param {number} index The index of the skill in the database.
    */
   constructor(skill, index)
@@ -6698,7 +6447,7 @@ class RPG_Skill extends RPG_UsableItem
 
   /**
    * Maps all the data from the JSON to this object.
-   * @param {rm.types.Skill} skill The underlying skill object.
+   * @param {RPG_Skill} skill The underlying skill object.
    */
   initMembers(skill)
   {

@@ -200,7 +200,7 @@ J.DROPS.Aliased = {
 Game_Actor.prototype.getDropMultiplier = function()
 {
   let dropMultiplier = 0;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   objectsToCheck.forEach(obj => (dropMultiplier += this.extractDropMultiplier(obj)));
   return (dropMultiplier / 100);
 };
@@ -237,7 +237,7 @@ Game_Actor.prototype.extractDropMultiplier = function(referenceData)
 Game_Actor.prototype.getGoldMultiplier = function()
 {
   let goldMultiplier = 0;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   objectsToCheck.forEach(obj => (goldMultiplier += this.extractGoldMultiplier(obj)));
   return (goldMultiplier / 100);
 };

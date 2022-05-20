@@ -34,7 +34,7 @@ class JABS_Action
   /**
    * @constructor
    * @param {string} uuid This action's unique identifier.
-   * @param {rm.types.Skill} baseSkill The skill retrieved from `$dataSkills[id]`.
+   * @param {RPG_Skill} baseSkill The skill retrieved from `$dataSkills[id]`.
    * @param {number} teamId A shorthand for the team id this skill belongs to.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
    * @param {JABS_Battler} caster The `JABS_Battler` who created this `JABS_Action`.
@@ -6115,7 +6115,6 @@ class JABS_BattlerAI
     }
 
     // always at least basic attack.
-    console.log('couldnt pick a skill from ', skillsToUse, user);
     return user.getEnemyBasicAttack()[0];
   }
 

@@ -129,7 +129,7 @@ Input.keyMapper = {
   81: J.ABS.Input.SkillTrigger, // q
   17: J.ABS.Input.StrafeTrigger,// ctrl
   69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab
+   9: J.ABS.Input.MobilitySkill,// tab
 
   // quickmenu button.
   13: J.ABS.Input.Quickmenu,    // enter
@@ -289,7 +289,7 @@ class JABS_Button
       this.CombatSkill3,
       this.CombatSkill4,
     ];
-  };
+  }
 }
 //#endregion JABS_Button
 
@@ -309,14 +309,20 @@ class JABS_Input
    * The action performed when this key is input.
    * @returns {function}
    */
-  action = () => { console.log(`hello from JABS v${J.ABS.Metadata.Version}!`); };
+  action = () => 
+{
+ console.log(`hello from JABS v${J.ABS.Metadata.Version}!`); 
+};
 
   /**
    * The alternative action performed when this key's input is not being met.
    * This is optionally available.
    * @returns {function}
    */
-  alterAction = () => { console.log(`goodbye for now!`) };
+  alterAction = () => 
+{
+ console.log(`goodbye for now!`) 
+};
 
   /**
    * Constructor.
@@ -329,7 +335,7 @@ class JABS_Input
     this.key = key;
     this.action = action;
     this.alterAction = alterAction;
-  };
+  }
 }
 //#endregion JABS_Input
 
@@ -347,7 +353,7 @@ class JABS_InputController
   {
     // register this controller with the input adapter.
     JABS_InputAdapter.register(this);
-  };
+  }
 
   //#region properties
   /**
@@ -363,7 +369,7 @@ class JABS_InputController
   get battler()
   {
     return this.battler;
-  };
+  }
 
   /**
    * Sets the battler that this input manager oversees.
@@ -372,7 +378,7 @@ class JABS_InputController
   set battler(battler)
   {
     this.battler = battler;
-  };
+  }
   //#endregion properties
 
   //#region update
@@ -404,7 +410,7 @@ class JABS_InputController
     this.updateGuardCommand();
     this.updateStrafeCommand();
     this.updateRotateCommand();
-  };
+  }
 
   /**
    * Checks whether or not we can update this input manager.
@@ -417,7 +423,7 @@ class JABS_InputController
 
     // update!
     return true;
-  };
+  }
   //#endregion update
 
   //#region menu action
@@ -433,7 +439,7 @@ class JABS_InputController
       // execute the action.
       this.performMenuAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the menu action (Menu default).
@@ -449,7 +455,7 @@ class JABS_InputController
 
     // Menu was never triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the menu action (Menu default).
@@ -457,7 +463,7 @@ class JABS_InputController
   performMenuAction()
   {
     JABS_InputAdapter.performMenuAction();
-  };
+  }
   //#endregion menu action
 
   //#region party cycle
@@ -473,7 +479,7 @@ class JABS_InputController
       // execute the action.
       this.performPartyCycleAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the party cycle action (Select default).
@@ -489,7 +495,7 @@ class JABS_InputController
 
     // Select was never triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the party cycle action (Select default).
@@ -497,7 +503,7 @@ class JABS_InputController
   performPartyCycleAction()
   {
     JABS_InputAdapter.performPartyCycling(false);
-  };
+  }
   //#endregion party cycle
 
   //#region mainhand
@@ -513,7 +519,7 @@ class JABS_InputController
       // execute the action.
       this.performMainhandAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the mainhand action currently assigned (A default).
@@ -535,7 +541,7 @@ class JABS_InputController
 
     // A is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned mainhand action (A default).
@@ -543,7 +549,7 @@ class JABS_InputController
   performMainhandAction()
   {
     JABS_InputAdapter.performMainhandAction(this.battler);
-  };
+  }
   //#endregion mainhand
 
   //#region offhand
@@ -559,7 +565,7 @@ class JABS_InputController
       // execute the action.
       this.performOffhandAction()
     }
-  };
+  }
 
   /**
    * Checks the inputs of the offhand action currently assigned (B default).
@@ -581,7 +587,7 @@ class JABS_InputController
 
     // B is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned offhand action (B default).
@@ -589,7 +595,7 @@ class JABS_InputController
   performOffhandAction()
   {
     JABS_InputAdapter.performOffhandAction(this.battler);
-  };
+  }
   //#endregion offhand
 
   //#region tool
@@ -605,7 +611,7 @@ class JABS_InputController
       // execute the action.
       this.performToolAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the tool action currently assigned (Y default).
@@ -627,7 +633,7 @@ class JABS_InputController
 
     // Y is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned tool action (Y default).
@@ -635,7 +641,7 @@ class JABS_InputController
   performToolAction()
   {
     JABS_InputAdapter.performToolAction($jabsEngine.getPlayer1());
-  };
+  }
   //#endregion tool
 
   //#region dodge
@@ -651,7 +657,7 @@ class JABS_InputController
       // execute the action.
       this.performDodgeAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the dodge action currently assigned (R2 default).
@@ -667,7 +673,7 @@ class JABS_InputController
 
     // R2 is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned dodge action (R2 default).
@@ -675,7 +681,7 @@ class JABS_InputController
   performDodgeAction()
   {
     JABS_InputAdapter.performDodgeAction($jabsEngine.getPlayer1());
-  };
+  }
   //#endregion dodge
 
   //#region combat actions
@@ -694,7 +700,7 @@ class JABS_InputController
 
     // L1 is not being held down.
     return false;
-  };
+  }
 
   //#region combat action 1
   /**
@@ -709,7 +715,7 @@ class JABS_InputController
       // execute the action.
       this.performCombatAction1();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the combat action in slot 1 (L1+A default).
@@ -729,7 +735,7 @@ class JABS_InputController
 
     // A was never triggered while L1 was held down.
     return false;
-  };
+  }
 
   /**
    * Executes the combat action in slot 1 (L1+A default).
@@ -739,7 +745,7 @@ class JABS_InputController
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill1,
       $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion combat action 1
 
   //#region combat action 2
@@ -755,7 +761,7 @@ class JABS_InputController
       // execute the action.
       this.performCombatAction2();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the combat action in slot 2 (L1+B default).
@@ -775,7 +781,7 @@ class JABS_InputController
 
     // B was never triggered while L1 was held down.
     return false;
-  };
+  }
 
   /**
    * Executes the combat action in slot 2 (L1+B default).
@@ -785,7 +791,7 @@ class JABS_InputController
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill2,
       $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion combat action 2
 
   //#region combat action 3
@@ -801,7 +807,7 @@ class JABS_InputController
       // execute the action.
       this.performCombatAction3();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the combat action in slot 3 (L1+X default).
@@ -821,7 +827,7 @@ class JABS_InputController
 
     // X was never triggered while L1 was held down.
     return false;
-  };
+  }
 
   /**
    * Executes the combat action in slot 3 (L1+X default).
@@ -831,7 +837,7 @@ class JABS_InputController
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill3,
       $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion combat action 3
 
   //#region combat action 4
@@ -847,7 +853,7 @@ class JABS_InputController
       // execute the action.
       this.performCombatAction4();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the combat action in slot 4 (L1+Y default).
@@ -867,7 +873,7 @@ class JABS_InputController
 
     // Y was never triggered while L1 was held down.
     return false;
-  };
+  }
 
   /**
    * Executes the combat action in slot 4 (L1+Y default).
@@ -877,7 +883,7 @@ class JABS_InputController
     JABS_InputAdapter.performCombatAction(
       JABS_Button.CombatSkill4,
       $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion combat action 4
   //#endregion combat actions
 
@@ -900,7 +906,7 @@ class JABS_InputController
       // then execute the alter-action.
       this.performStrafeAlterAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the strafe action currently assigned (L2 default).
@@ -916,7 +922,7 @@ class JABS_InputController
 
     // R2 is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned strafe action (L2 default).
@@ -924,7 +930,7 @@ class JABS_InputController
   performStrafeAction()
   {
     JABS_InputAdapter.performStrafe(true, this.battler);
-  };
+  }
 
   /**
    * Executes the currently assigned strafe alter-action (untouched-L2 default).
@@ -932,7 +938,7 @@ class JABS_InputController
   performStrafeAlterAction()
   {
     JABS_InputAdapter.performStrafe(false, this.battler);
-  };
+  }
   //#endregion strafe
 
   //#region rotate
@@ -954,7 +960,7 @@ class JABS_InputController
       // then execute the alter-action.
       this.performRotateAlterAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the rotate action currently assigned (L2 default).
@@ -970,7 +976,7 @@ class JABS_InputController
 
     // R1 is not being triggered.
     return false;
-  };
+  }
 
   /**
    * Executes the currently assigned rotate action (R1 default).
@@ -978,7 +984,7 @@ class JABS_InputController
   performRotateAction()
   {
     JABS_InputAdapter.performRotate(true, $jabsEngine.getPlayer1());
-  };
+  }
 
   /**
    * Executes the currently assigned rotate alter-action (untouched-R1 default).
@@ -986,7 +992,7 @@ class JABS_InputController
   performRotateAlterAction()
   {
     JABS_InputAdapter.performRotate(false, $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion strafe
 
   //#region guard
@@ -1008,7 +1014,7 @@ class JABS_InputController
       // then execute the alter-action.
       this.performGuardAlterAction();
     }
-  };
+  }
 
   /**
    * Checks the inputs of the guard action currently assigned (R1 default).
@@ -1024,7 +1030,7 @@ class JABS_InputController
 
     // R1 is not being held down.
     return false;
-  };
+  }
 
   /**
    * Activates the currently assigned guard action (untouched-R1 default).
@@ -1032,7 +1038,7 @@ class JABS_InputController
   performGuardAction()
   {
     JABS_InputAdapter.performGuard(true, $jabsEngine.getPlayer1());
-  };
+  }
 
   /**
    * Deactivates the currently assigned guard alter-action (untouched-R1 default).
@@ -1040,7 +1046,7 @@ class JABS_InputController
   performGuardAlterAction()
   {
     JABS_InputAdapter.performGuard(false, $jabsEngine.getPlayer1());
-  };
+  }
   //#endregion guard
 }
 //#endregion JABS_InputController

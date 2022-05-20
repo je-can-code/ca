@@ -161,7 +161,10 @@ RPG_DropItem.prototype.setSdpKey = function(key)
 /**
  * The class that governs the details of a single SDP.
  */
-function StatDistributionPanel() { this.initialize(...arguments); }
+function StatDistributionPanel() 
+{
+ this.initialize(...arguments); 
+}
 StatDistributionPanel.prototype = {};
 StatDistributionPanel.prototype.constructor = StatDistributionPanel;
 
@@ -281,10 +284,14 @@ StatDistributionPanel.prototype.initialize = function({
  * @param {number} currentRank The current ranking of this panel for a given actor.
  * @returns {number}
  */
-StatDistributionPanel.prototype.rankUpCost = function(currentRank) {
-  if (currentRank === this.maxRank) {
+StatDistributionPanel.prototype.rankUpCost = function(currentRank) 
+{
+  if (currentRank === this.maxRank) 
+{
     return 0;
-  } else {
+  }
+ else 
+{
     const growth = Math.floor(this.multGrowthCost * (this.flatGrowthCost * (currentRank + 1)));
     return this.baseCost + growth;
   }
@@ -295,8 +302,9 @@ StatDistributionPanel.prototype.rankUpCost = function(currentRank) {
  * @param {number} paramId The `paramId` to find parameters for.
  * @returns {PanelParameter[]}
  */
-StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
-  const panelParameters = this.panelParameters;
+StatDistributionPanel.prototype.getPanelParameterById = function(paramId) 
+{
+  const {panelParameters} = this;
   return panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
 };
 
@@ -305,8 +313,9 @@ StatDistributionPanel.prototype.getPanelParameterById = function(paramId) {
  * @param {number} rank The rank to check and see if there are any rewards for.
  * @returns {PanelRankupReward[]}
  */
-StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank) {
-  const panelRewards = this.panelRewards;
+StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank) 
+{
+  const {panelRewards} = this;
   return panelRewards.filter(reward => reward.rankRequired === rank);
 };
 
@@ -314,22 +323,74 @@ StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank) {
  * Gets whether or not this SDP is unlocked.
  * @returns {boolean} True if this SDP is unlocked, false otherwise.
  */
-StatDistributionPanel.prototype.isUnlocked = function() {
+StatDistributionPanel.prototype.isUnlocked = function() 
+{
   return this.unlocked;
 };
 
 /**
  * Sets this SDP to be unlocked.
  */
-StatDistributionPanel.prototype.unlock = function() {
+StatDistributionPanel.prototype.unlock = function() 
+{
   this.unlocked = true;
 };
 
 /**
  * Sets this SDP to be locked.
  */
-StatDistributionPanel.prototype.lock = function() {
+StatDistributionPanel.prototype.lock = function() 
+{
   this.unlocked = false;
+};
+
+StatDistributionPanel.prototype.calculateBonusByRank = function(
+  paramId,
+  currentRank,
+  baseParam = 0,
+  fractional = false)
+{
+  // determine all the applicable panel parameters.
+  const panelParameters = this.panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
+
+  // short circuit if we have no applicable parameters.
+  if (!panelParameters.length) return 0;
+
+  // initialize the running value.
+  let val = 0;
+
+  // iterate over each matching panel parameter.
+  panelParameters.forEach(panelParameter =>
+  {
+    // grab the per-rank bonus on this panel.
+    const { perRank, isFlat } = panelParameter;
+
+    // check if the panel should use the percent or flat formula.
+    if (!isFlat)
+    {
+      // calculate the factor per panel rank.
+      const factor = (currentRank * perRank) / 100;
+
+      // add the product to the running total.
+      val += (baseParam * factor);
+    }
+    // it is flat.
+    else
+    {
+      // the flat formula.
+      val += (currentRank * perRank);
+    }
+  });
+
+  // check if this is a non-base parameter like CRI or HRG.
+  if (fractional)
+  {
+    // divide by 100 to create a factor out of it.
+    val /= 100;
+  }
+
+  // return the total.
+  return val;
 };
 //#endregion SDP_Panel
 
@@ -337,7 +398,10 @@ StatDistributionPanel.prototype.lock = function() {
 /**
  * A class that represents a single parameter and its growth for a SDP.
  */
-function PanelParameter() { this.initialize(...arguments); }
+function PanelParameter() 
+{
+ this.initialize(...arguments); 
+}
 PanelParameter.prototype = {};
 PanelParameter.prototype.constructor = PanelParameter;
 
@@ -352,8 +416,7 @@ PanelParameter.prototype.initialize = function({
   parameterId,
   perRank,
   isFlat = false,
-  isCore = false,
-})
+  isCore = false,})
 {
   /**
    * The id of the parameter this class represents.
@@ -440,8 +503,8 @@ PanelRanking.prototype.initMembers = function()
  */
 PanelRanking.prototype.rankUp = function()
 {
-  const panel = $gameSystem.getSdp(this.key);
-  const maxRank = panel.maxRank;
+  const panel = $gameSystem.getSdpByKey(this.key);
+  const {maxRank} = panel;
   if (this.currentRank < maxRank)
   {
     this.currentRank++;
@@ -472,7 +535,7 @@ PanelRanking.prototype.performRankupEffects = function(newRank)
 {
   const a = $gameActors.actor(this.actorId);
   const rewardEffects = $gameSystem
-    .getSdp(this.key)
+    .getSdpByKey(this.key)
     .getPanelRewardsByRank(newRank);
   if (rewardEffects.length > 0)
   {
@@ -484,7 +547,9 @@ PanelRanking.prototype.performRankupEffects = function(newRank)
       }
       catch (err)
       {
-        console.error(`An error occurred while trying to execute the rank-${this.currentRank} reward for panel: ${this.key}`);
+        console.error(`
+        An error occurred while trying to execute the rank-${this.currentRank} 
+        reward for panel: ${this.key}`);
         console.error(err);
       }
     });

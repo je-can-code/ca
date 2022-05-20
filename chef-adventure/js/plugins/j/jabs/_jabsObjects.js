@@ -228,7 +228,7 @@ Game_Actor.prototype.initAbsSkills = function()
 Game_Battler.prototype.retaliationSkills = function()
 {
   const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const skills = [];
   objectsToCheck.forEach(obj =>
   {
@@ -484,7 +484,7 @@ Game_Actor.prototype.updateEquipmentSkills = function()
 Game_Actor.prototype.getMainhandSkill = function()
 {
   // grab the mainhand of the actor.
-  const mainhand = this.equips()[0];
+  const [mainhand] = this.equips();
 
   // default the mainhand skill to 0.
   let mainhandSkill = 0;
@@ -767,7 +767,7 @@ Game_Actor.prototype.getSpeedBoosts = function()
  * Updates the bonus hit count for this actor based on equipment.
  *
  * NOTE:
- * This is explicitly not using `this.getEverythingWithNotes()` so that we can
+ * This is explicitly not using `this.getAllNotes()` so that we can
  * also parse out the repeats from all the relevant sources as well.
  */
 Game_Actor.prototype.refreshBonusHits = function()
@@ -814,7 +814,7 @@ Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
   let flatDurationBoost = 0;
   let multiplierDurationBoost = 0;
   let formulaDurationBoost = 0;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   objectsToCheck.forEach(obj =>
   {
     flatDurationBoost += this.getStateDurationFlatPlus(obj);
@@ -904,7 +904,7 @@ Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDura
 Game_Actor.prototype.getVisionModifier = function()
 {
   let visionMultiplier = 100;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   objectsToCheck.forEach(obj => (visionMultiplier += this.extractVisionModifiers(obj)));
 
   return Math.max((visionMultiplier / 100), 0);
@@ -1532,6 +1532,11 @@ Game_Battler.prototype.getPowerLevel = function()
     }
 
     counter++;
+  }
+
+  if (Number.isNaN(powerLevel))
+  {
+    console.warn('what happened');
   }
 
   powerLevel += (this.level ** 2);
@@ -2402,7 +2407,7 @@ Game_Enemy.prototype.getBonusHits = function()
 {
   let bonusHits = 0;
   const structure = /<bonusHits:[ ]?(\d+)>/i;
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   objectsToCheck.forEach(obj =>
   {
     const notedata = obj.note.split(/[\r\n]+/);

@@ -373,7 +373,7 @@ Game_Actor.prototype.getBattlerBaseLevel = function()
 Game_Actor.prototype.getLevelSources = function()
 {
   // our sources of data that a level can be retrieved from.
-  return this.getEverythingWithNotes();
+  return this.getAllNotes();
 };
 
 /**
@@ -398,11 +398,34 @@ Game_Actor.prototype.getLevelBalancer = function()
 /**
  * Generates the "level" property for all battlers, along with
  * a new function to calculate level retrieval.
+ *
+ * This is the same as `battler.lvl`.
  * @returns {number}
  */
 Object.defineProperty(
   Game_Battler.prototype,
   "level",
+  {
+    get()
+    {
+      // get the level from this battler.
+      return this.getLevel();
+    },
+
+    // sure, lets make this level property configurable.
+    configurable: true,
+  });
+
+/**
+ * Generates the "lvl" property for all battlers, along with
+ * a new function to calculate level retrieval.
+ *
+ * This is the same as `battler.level`.
+ * @returns {number}
+ */
+Object.defineProperty(
+  Game_Battler.prototype,
+  "lvl",
   {
     get()
     {
