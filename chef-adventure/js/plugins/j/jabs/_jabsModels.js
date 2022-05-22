@@ -4738,8 +4738,7 @@ JABS_Battler.prototype.getSpeedBoosts = function()
   // only calculate for the player (and allies).
   if (this.isEnemy()) return 0;
 
-  return this.getBattler()
-    .getSpeedBoosts();
+  return this.getBattler().getSpeedBoosts();
 };
 //#endregion get data
 

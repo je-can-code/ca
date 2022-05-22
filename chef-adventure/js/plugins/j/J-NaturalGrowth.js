@@ -390,7 +390,9 @@ J.NATURAL.RegExp = {
 //#endregion Introduction
 
 //#region Static objects
+//#region TextManager
 
+//#endregion TextManager
 //#endregion Static objects
 
 //#region Game objects

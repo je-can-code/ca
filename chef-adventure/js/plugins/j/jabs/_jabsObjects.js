@@ -778,7 +778,7 @@ Game_Actor.prototype.refreshBonusHits = function()
   // iterate over all equips.
   bonusHits += this.getBonusHitsFromTraitedSources(this.equips());
 
-  // iterate over all equips.
+  // iterate over all states.
   bonusHits += this.getBonusHitsFromTraitedSources(this.states());
 
   // add your own actor data as a source.

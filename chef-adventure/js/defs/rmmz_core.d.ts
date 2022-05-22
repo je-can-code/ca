@@ -135,8 +135,8 @@ declare class Bitmap {
      *
      * @class Bitmap
      * @constructor
-     * @param {Int} width The width of the bitmap
-     * @param {Int} height The height of the bitmap
+     * @param {number} width The width of the bitmap
+     * @param {number} height The height of the bitmap
      */
     constructor(width?: number, height?: number);
     /**
@@ -427,14 +427,14 @@ declare class Bitmap {
      *
      * @method blt
      * @param {Bitmap} source The bitmap to draw
-     * @param {Int} sx The x coordinate in the source
-     * @param {Int} sy The y coordinate in the source
-     * @param {Int} sw The width of the source image
-     * @param {Int} sh The height of the source image
-     * @param {Int} dx The x coordinate in the destination
-     * @param {Int} dy The y coordinate in the destination
-     * @param {Int} [dw=sw] The width to draw the image in the destination
-     * @param {Int} [dh=sh] The height to draw the image in the destination
+     * @param {number} sx The x coordinate in the source
+     * @param {number} sy The y coordinate in the source
+     * @param {number} sw The width of the source image
+     * @param {number} sh The height of the source image
+     * @param {number} dx The x coordinate in the destination
+     * @param {number} dy The y coordinate in the destination
+     * @param {number} [dw=sw] The width to draw the image in the destination
+     * @param {number} [dh=sh] The height to draw the image in the destination
      */
     bltImage(source: Bitmap, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw?: number, dh?: number): void;
     /**
@@ -1097,6 +1097,38 @@ declare class JsonEx {
      * @return {Object} The reconstructed object
      */
     static parse(json: string): any;
+}
+
+/**
+ * Extends the `Number` class with additional functions.
+ */
+declare class Number
+{
+    /**
+     * Makes a number string with leading zeros.
+     *
+     * @memberof JsExtensions
+     * @param {number} length - The length of the output string.
+     * @returns {string} A string with leading zeros.
+     */
+    padZero(length: number): string;
+}
+
+/**
+ * Extends the `Number` class with additional functions.
+ */
+declare class String
+{
+    /**
+     * Makes a number string with leading zeros.
+     *
+     * @memberof JsExtensions
+     * @param {number} length - The length of the output string.
+     * @returns {string} A string with leading zeros.
+     */
+    padZero(length: number): string;
+
+    padStart(length: number, fillStr?: string = ' '): string;
 }
 
 declare class Rectangle extends PIXI.Rectangle {
@@ -1949,9 +1981,9 @@ declare class Utils {
      *
      * @static
      * @method rgbToCssColor
-     * @param {Int} r The red value in the range (0, 255)
-     * @param {Int} g The green value in the range (0, 255)
-     * @param {Int} b The blue value in the range (0, 255)
+     * @param {number} r The red value in the range (0, 255)
+     * @param {number} g The green value in the range (0, 255)
+     * @param {number} b The blue value in the range (0, 255)
      * @return {String} CSS color string
      */
     static rgbToCssColor(r: number, g: number, b: number): string;

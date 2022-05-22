@@ -312,9 +312,9 @@ TextManager.critParam = function(paramId)
   switch (paramId)
   {
     case 0:
-      return "Crit Multiplier";
+      return "Crit Amp";
     case 1:
-      return "Crit Reduction";
+      return "Crit Block";
   }
 };
 //#endregion TextManager
@@ -450,7 +450,7 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
 if (J.NATURAL)
 {
   /**
-   * A hook for applying additional custom growths that aren't native to RMMZ.
+   * Extend `.applyNaturalCustomGrowths()` to include our cdm/cdr growths.
    */
   J.NATURAL.Aliased.Game_Actor.set('applyNaturalCustomGrowths', Game_Actor.prototype.applyNaturalCustomGrowths);
   Game_Actor.prototype.applyNaturalCustomGrowths = function()
@@ -465,6 +465,23 @@ if (J.NATURAL)
     this.applyNaturalCdrGrowths();
   };
 }
+
+/**
+ * Extend `.longParam()` to first check for our crit params.
+ */
+J.CRIT.Aliased.Game_Actor.set('longParam', Game_Actor.prototype.longParam);
+Game_Actor.prototype.longParam = function(longParamId)
+{
+  switch (longParamId)
+  {
+    case 28:
+      return this.cdm;
+    case 29:
+      return this.cdr;
+    default:
+      return J.CRIT.Aliased.Game_Actor.get('longParam').call(this, longParamId);
+  }
+};
 
 /**
  * Applies the natural CDM growths to this battler.

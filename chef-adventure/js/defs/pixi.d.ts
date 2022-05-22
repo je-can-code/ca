@@ -25115,7 +25115,7 @@ declare namespace PIXI {
          * If the index is out of bounds an error will be thrown.
          *
          * @param child {DisplayObject} The child to add
-         * @param index {Int} The index to place the child in
+         * @param index {number} The index to place the child in
          * @return {DisplayObject} The child that was added.
          */
         addChildAt<T>(child: T, index: number): T;
@@ -25130,20 +25130,20 @@ declare namespace PIXI {
          * Returns the index position of a child DisplayObject instance
          *
          * @param child {DisplayObject} The DisplayObject instance to identify
-         * @return {Int} The index position of the child display object to identify
+         * @return {number} The index position of the child display object to identify
          */
         getChildIndex(child: PIXI.DisplayObject): number;
         /**
          * Changes the position of an existing child in the display object container
          *
          * @param child {DisplayObject} The child DisplayObject instance for which you want to change the index number
-         * @param index {Int} The resulting index number for the child display object
+         * @param index {number} The resulting index number for the child display object
          */
         setChildIndex(child: PIXI.DisplayObject, index: number): void;
         /**
          * Returns the child at the specified index
          *
-         * @param index {Int} The index to get the child from
+         * @param index {number} The index to get the child from
          * @return {DisplayObject} The child at the given index, if any.
          */
         getChildAt(index: number): PIXI.DisplayObject;
@@ -25157,15 +25157,15 @@ declare namespace PIXI {
         /**
          * Removes a child from the specified index position.
          *
-         * @param index {Int} The index to get the child from
+         * @param index {number} The index to get the child from
          * @return {DisplayObject} The child that was removed.
          */
         removeChildAt(index: number): PIXI.DisplayObject;
         /**
          * Removes all children from this container that are within the begin and end indexes.
          *
-         * @param beginIndex {Int} The beginning position. Default value is 0.
-         * @param endIndex {Int} The ending position. Default value is size of the container.
+         * @param beginIndex {number} The beginning position. Default value is 0.
+         * @param endIndex {number} The ending position. Default value is size of the container.
          * @return {Array<DisplayObject>} The children that are removed.
          */
         removeChildren(beginIndex?: number, endIndex?: number): PIXI.DisplayObject[];
@@ -25214,14 +25214,14 @@ declare namespace PIXI {
         /**
          * The tint applied to the sprite. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
          *
-         * @member {Int}
+         * @member {number}
          * @default 0xFFFFFF
          */
         tint: number;
         /**
          * The blend mode to be applied to the sprite. Set to CONST.blendModes.NORMAL to remove any blend mode.
          *
-         * @member {Int}
+         * @member {number}
          * @default CONST.blendModes.NORMAL;
          */
         blendMode: any;

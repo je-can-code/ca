@@ -924,7 +924,7 @@ Game_Actor.prototype.extractSdpMultiplier = function(referenceData)
   if (!referenceData || !referenceData.note) return 0;
 
   let sdpMultiplier = 0;
-  const structure = /<sdpMultiplier:[ ]?([-.\d]+)>/i;
+  const structure = J.SDP.RegExp.SdpMultiplier;
   const notedata = referenceData.note.split(/[\r\n]+/);
   notedata.forEach(line =>
   {

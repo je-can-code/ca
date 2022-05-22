@@ -405,6 +405,26 @@ Number.prototype.iterate = function(times, func)
 //#endregion Helpers
 
 //#region Static objects
+//#region ColorManager
+/**
+ * Gets the color index from the "long" parameter id.
+ *
+ * "Long" parameter ids are used in the context of 0-27, rather than
+ * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
+ * @param {number} paramId The "long" parameter id.
+ * @returns {number} The color index of the given parameter.
+ */
+ColorManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    // currently there are no special colors for parameters, but just in case...
+    default:
+      return 0;
+  }
+};
+//#endregion ColorManager
+
 //#region DataManager
 /**
  * The over-arching object containing all of my added parameters.
@@ -903,6 +923,42 @@ class IconManager
   }
 
   /**
+   * Gets the `iconIndex` for SDP Multiplier.
+   * @returns {number}
+   */
+  static sdpMultiplier()
+  {
+    return 2229;
+  }
+
+  /**
+   * Gets the `iconIndex` for proficiency boost.
+   * @returns {number}
+   */
+  static proficiencyBoost()
+  {
+    return 125;
+  }
+
+  /**
+   * Gets the `iconIndex` for move speed boost.
+   * @returns {number}
+   */
+  static movespeed()
+  {
+    return 140;
+  }
+
+  /**
+   * Gets the `iconIndex` for max tp.
+   * @returns {number} The `iconIndex`.
+   */
+  static maxTp()
+  {
+    return 34;
+  }
+
+  /**
    * Gets the corresponding `iconIndex` for the param.
    * @param {number} paramId The id of the param.
    * @returns {number} The `iconIndex`.
@@ -928,15 +984,6 @@ class IconManager
       case  7:
         return 40; // luk
     }
-  }
-
-  /**
-   * Gets the `iconIndex` for max tp.
-   * @returns {number} The `iconIndex`.
-   */
-  static maxTp()
-  {
-    return 34;
   }
 
   /**
@@ -1072,6 +1119,14 @@ class IconManager
         return this.sparam(paramId - 18); // fdr
       case 27:
         return this.sparam(paramId - 18); // exr
+      case 30:
+        return this.maxTp();
+      case 31:
+        return this.movespeed();
+      case 32:
+        return this.proficiencyBoost();
+      case 33:
+        return this.sdpMultiplier();
       default:
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
@@ -1083,6 +1138,7 @@ class IconManager
    * @param {number} elementId The id of the element.
    * @returns {number}
    */
+  // eslint-disable-next-line complexity
   static element(elementId)
   {
     switch (elementId)
@@ -1273,6 +1329,7 @@ class IconManager
    * @param {JAFTING_Trait} trait The target trait.
    * @returns {number} The corresponding icon index.
    */
+  // eslint-disable-next-line complexity
   static trait(trait)
   {
     switch (trait._code)
@@ -1442,6 +1499,33 @@ ImageManager.probeCharacter = function(characterFileName)
 
 //#region TextManager
 /**
+ * Gets the proper name of "SDP Multiplier".
+ * @returns {string}
+ */
+TextManager.sdpMultiplier = function()
+{
+  return "SDP Multiplier";
+};
+
+/**
+ * Gets the proper name of "proficiency bonus", which is quite long, really.
+ * @returns {string}
+ */
+TextManager.proficiencyBonus = function()
+{
+  return "Proficiency+";
+};
+
+/**
+ * Gets the proper name of "move speed boost".
+ * @returns {string}
+ */
+TextManager.movespeed = function()
+{
+  return "Move Boost";
+};
+
+/**
  * Gets the proper name of "max tp".
  * @returns {string} The name of the parameter.
  */
@@ -1496,7 +1580,7 @@ TextManager.xparam = function(xParamId)
     case 1:
       return "Parry Extend";//J.Param.EVA_text;
     case 2:
-      return "Critical Hit"; //J.Param.CRI_text;
+      return "Crit Strike"; //J.Param.CRI_text;
     case 3:
       return "Crit Dodge"; //J.Param.CEV_text;
     case 4:
@@ -1582,6 +1666,14 @@ TextManager.longParam = function(paramId)
       return this.sparam(paramId - 18); // fdr
     case 27:
       return this.sparam(paramId - 18); // exr
+    case 30:
+      return this.maxTp();              // max tp
+    case 31:
+      return this.movespeed();          // move speed boost
+    case 32:
+      return this.proficiencyBonus();   // proficiency boost
+    case 33:
+      return this.sdpMultiplier();      // sdp multiplier
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -1680,6 +1772,89 @@ class RPGManager
 
 //#region Game objects
 //#region Game_Actor
+/**
+ * Gets the parameter value from the "long" parameter id.
+ *
+ * "Long" parameter ids are used in the context of 0-27, rather than
+ * 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
+ * @param {number} paramId The "long" parameter id.
+ * @returns {number} The value of the given parameter.
+ */
+// eslint-disable-next-line complexity
+Game_Actor.prototype.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0:
+      return this.param(paramId); // mhp
+    case  1:
+      return this.param(paramId); // mmp
+    case  2:
+      return this.param(paramId); // atk
+    case  3:
+      return this.param(paramId); // def
+    case  4:
+      return this.param(paramId); // mat
+    case  5:
+      return this.param(paramId); // mdf
+    case  6:
+      return this.param(paramId); // agi
+    case  7:
+      return this.param(paramId); // luk
+    case  8:
+      return this.xparam(paramId - 8); // hit
+    case  9:
+      return this.xparam(paramId - 8); // eva (parry boost)
+    case 10:
+      return this.xparam(paramId - 8); // cri
+    case 11:
+      return this.xparam(paramId - 8); // cev
+    case 12:
+      return this.xparam(paramId - 8); // mev (unused)
+    case 13:
+      return this.xparam(paramId - 8); // mrf
+    case 14:
+      return this.xparam(paramId - 8); // cnt (autocounter)
+    case 15:
+      return this.xparam(paramId - 8); // hrg
+    case 16:
+      return this.xparam(paramId - 8); // mrg
+    case 17:
+      return this.xparam(paramId - 8); // trg
+    case 18:
+      return this.sparam(paramId - 18); // trg (aggro)
+    case 19:
+      return this.sparam(paramId - 18); // grd (parry)
+    case 20:
+      return this.sparam(paramId - 18); // rec
+    case 21:
+      return this.sparam(paramId - 18); // pha
+    case 22:
+      return this.sparam(paramId - 18); // mcr (mp cost)
+    case 23:
+      return this.sparam(paramId - 18); // tcr (tp cost)
+    case 24:
+      return this.sparam(paramId - 18); // pdr
+    case 25:
+      return this.sparam(paramId - 18); // mdr
+    case 26:
+      return this.sparam(paramId - 18); // fdr
+    case 27:
+      return this.sparam(paramId - 18); // exr
+    case 30:
+      return this.maxTp();              // mtp
+    case 31:
+      return this.getSpeedBoosts();               // move speed boost
+    case 32:
+      return this.bonusSkillProficiencyGains();   // proficiency boost
+    case 33:
+      return this.sdpMultiplier();                // sdp multiplier
+    default:
+      console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
+      return 0;
+  }
+};
+
 /**
  * The underlying database data for this battler.
  *
@@ -4448,6 +4623,36 @@ WindowLayer.prototype.render = function(renderer)
   renderer.batch.flush();
 }
 //#endregion WindowLayer
+
+//#region Window_Base
+/**
+ * Draws a horizontal "line" with the given parameters.
+ *
+ * The origin coordinate is always the upper left corner.
+ * @param {number} x The x coordinate of the line.
+ * @param {number} y The y coordinate of the line.
+ * @param {number} width The width in pixels of the line.
+ * @param {number=} height The height in pixels of the line; defaults to 2.
+ */
+Window_Base.prototype.drawHorizontalLine = function(x, y, width, height = 2)
+{
+  this.drawRect(x, y, width, height);
+};
+
+/**
+ * Draws a vertical "line" with the given parameters.
+ *
+ * The origin coordinate is always the upper left corner.
+ * @param {number} x The x coordinate of the line.
+ * @param {number} y The y coordinate of the line.
+ * @param {number} height The height in pixels of the line.
+ * @param {number=} width The width in pixels of the line; defaults to 2.
+ */
+Window_Base.prototype.drawVerticalLine = function(x, y, height, width = 2)
+{
+  this.drawRect(x, y, width, height);
+};
+//#endregion Window_Base
 
 //#region Window_Command
 /**

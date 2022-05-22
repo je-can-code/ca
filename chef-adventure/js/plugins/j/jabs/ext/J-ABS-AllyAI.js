@@ -584,22 +584,27 @@ Game_Follower.prototype.chaseCharacter = function(character)
 J.ALLYAI.Aliased.Game_Follower.update = Game_Follower.prototype.update;
 Game_Follower.prototype.update = function()
 {
+  // check to make sure we're working with valid followers.
   if (!this.isVisible())
   {
+    // perform original logic if we are not.
     J.ALLYAI.Aliased.Game_Follower.update.call(this);
+
+    // stop processing.
     return;
   }
-  else
-  {
-    Game_Character.prototype.update.call(this);
-    this.setMoveSpeed($gamePlayer.realMoveSpeed());
-    this.setOpacity($gamePlayer.opacity());
-    this.setBlendMode($gamePlayer.blendMode());
-    this.setWalkAnime($gamePlayer.hasWalkAnime());
-    this.setStepAnime($gamePlayer.hasStepAnime());
-    this.setTransparent($gamePlayer.isTransparent());
-    this.handleEngagementDistancing();
-  }
+
+  // perform superclass logic.
+  Game_Character.prototype.update.call(this);
+
+  // update the various parameters accordingly for followers.
+  this.setMoveSpeed($gamePlayer.realMoveSpeed());
+  this.setOpacity($gamePlayer.opacity());
+  this.setBlendMode($gamePlayer.blendMode());
+  this.setWalkAnime($gamePlayer.hasWalkAnime());
+  this.setStepAnime($gamePlayer.hasStepAnime());
+  this.setTransparent($gamePlayer.isTransparent());
+  this.handleEngagementDistancing();
 };
 
 /**
