@@ -893,27 +893,47 @@ class Window_StatusParameters extends Window_Base
    */
   drawElementalRates(x, y, limit = 10)
   {
+    // draw the title for this section.
     this.drawTitle("Elemental Affiliations", x, y - 10, 64, 8);
 
     // draw a visual separator from title and data.
     this.drawHorizontalLine(x, y+36, 450, 3);
 
+    // grab all relevant elements.
     const elements = $dataSystem.elements.slice(0, limit);
+
+    // iterate over each element to draw it.
     elements.forEach((elementName, index) =>
     {
+      // calculate the y coordinate.
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
+
+      // calculate the rate.
       const rate = ((this.actor.traitsPi(11, index)) * 100);
+
+      // initialize the color index to default.
       let colorIndex = 0;
+
+      // check if the rate is over the base 100 rate.
       if (rate > 100)
       {
+        // higher rates mean more incoming damage.
         colorIndex = 10; // red
       }
+      // check fi the rate is under the base 100 rate.
       else if (rate < 100)
       {
+        // lower rates mean less incoming damage.
         colorIndex = 3; // green
       }
+
+      // determine the icon index for the element.
       const iconIndex = IconManager.element(index);
-      const actualElementName = (elementName === "") ? "Neutral" : elementName;
+
+      // determine the element name.
+      const actualElementName = (elementName === String.empty)
+        ? "Neutral"
+        : elementName;
       this.drawParameter(`${actualElementName}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }
