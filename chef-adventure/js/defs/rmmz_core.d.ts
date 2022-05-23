@@ -1112,6 +1112,16 @@ declare class Number
      * @returns {string} A string with leading zeros.
      */
     padZero(length: number): string;
+
+    /**
+     * Returns a number whose value is limited to the given range.
+     *
+     * @memberof JsExtensions
+     * @param {number} min - The lower boundary.
+     * @param {number} max - The upper boundary.
+     * @returns {number} A number in the range (min, max).
+     */
+    clamp(min: number, max: number): number;
 }
 
 /**

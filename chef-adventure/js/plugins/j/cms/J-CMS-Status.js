@@ -300,7 +300,7 @@ class Window_StatusParameters extends Window_Base
     const parameterWidth = w / 2;
 
     // define the right column's x coordinate.
-    const rightX = x + parameterWidth + 8;
+    const rightX = x + parameterWidth + 16;
 
     // define the first row's y coordinate.
     const row1y = y + (lh * 1);
@@ -401,7 +401,7 @@ class Window_StatusParameters extends Window_Base
     const parameterWidth = sectionWidth / 2;
 
     // define the right column's x coordinate.
-    const rightX = leftX + parameterWidth + 8;
+    const rightX = leftX + parameterWidth + 16;
 
     // define the first row's y coordinate.
     const row1y = rowBaseY + (lh * 1);
@@ -472,7 +472,7 @@ class Window_StatusParameters extends Window_Base
     const parameterWidth = w / 2;
 
     // define the right column's x coordinate.
-    const rightX = x + parameterWidth + 8;
+    const rightX = x + parameterWidth + 16;
 
     // define the first row's y coordinate.
     const row1y = y + (lh * 1);
@@ -573,7 +573,7 @@ class Window_StatusParameters extends Window_Base
     const parameterWidth = sectionWidth / 2;
 
     // define the right column's x coordinate.
-    const rightX = leftX + parameterWidth + 8;
+    const rightX = leftX + parameterWidth + 16;
 
     // define the first row's y coordinate.
     const row1y = rowBaseY + (lh * 1);
@@ -691,7 +691,7 @@ class Window_StatusParameters extends Window_Base
     const parameterWidth = sectionWidth / 2;
 
     // define the right column's x coordinate.
-    const rightX = leftX + parameterWidth + 8;
+    const rightX = leftX + parameterWidth + 16;
 
     // define the first row's y coordinate.
     const row1y = rowBaseY + (lh * 1);
@@ -741,16 +741,16 @@ class Window_StatusParameters extends Window_Base
     const firstRowY = y + (lh * 1);
 
     // separate the title from the parameters, for visual effect.
-    this.drawHorizontalLine(x, firstRowY - 6, w, 3);
+    this.drawHorizontalLine(x, firstRowY - 4, w+16, 3);
 
     // define the right column's x coordinate.
-    const secondColumnX = x + (w / 2) + 8;
+    const secondColumnX = x + (w / 2) + 12;
 
     // define the x coordinate for the vertical line.
     const verticalLineX = secondColumnX - 4;
 
     // define the height in pixels for the vertical line.
-    const verticalLineHeight = lh * lines;
+    const verticalLineHeight = (lh * lines) + 4;
 
     // separate the two columns of parameters, for visual effect.
     this.drawVerticalLine(verticalLineX, firstRowY-2, verticalLineHeight, 3);
@@ -951,7 +951,7 @@ class Window_StatusParameters extends Window_Base
     // draw a visual separator from title and data.
     this.drawHorizontalLine(x, y+36, 450, 3);
 
-    const states = $dataStates.slice(4, 12);
+    const states = $dataStates.slice(4, 13);
     states.forEach((state, index) =>
     {
       if (!state) return;

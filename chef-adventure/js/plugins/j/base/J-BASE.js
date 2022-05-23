@@ -2623,12 +2623,25 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
 };
 
 /**
- * Gets everything that this battler has with notes on it, such as skills, equips, states, etc.
+ * Gets everything that this battler has with notes on it.
+ * All battlers have their own database data, along with all their states.
+ * Actors get their class, skills, and equips added.
+ * Enemies get just their skills added.
  * @returns {RPG_BaseItem[]}
  */
 Game_Battler.prototype.getAllNotes = function()
 {
-  return [];
+  // initialize the container.
+  const objectsWithNotes = [];
+
+  // get the actor object.
+  objectsWithNotes.push(this.databaseData());
+
+  // get any currently applied normal states.
+  objectsWithNotes.push(...this.states());
+
+  // return this combined collection of trait objects.
+  return objectsWithNotes;
 };
 //#endregion Game_Battler
 
