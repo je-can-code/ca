@@ -1867,31 +1867,6 @@ Game_Actor.prototype.battlerId = function()
 };
 
 /**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
- */
-Game_Actor.prototype.switchLocked = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
-
-  return switchLocked;
-};
-
-/**
  * Gets whether or not there are notes that indicate skills should be autoassigned
  * when leveling up.
  * @returns {boolean}
@@ -2357,7 +2332,8 @@ Game_Actor.prototype.learnSkill = function(skillId)
  * @param {number} skillId The skill id of the skill learned.
  */
 Game_Actor.prototype.onLearnNewSkill = function(skillId) 
-{ };
+{
+};
 
 /**
  * Extends {@link Game_Actor.prototype.learnSkill}.
@@ -2383,7 +2359,59 @@ Game_Actor.prototype.forgetSkill = function(skillId)
  * @param {number} skillId The skill id of the skill forgotten.
  */
 Game_Actor.prototype.onForgetSkill = function(skillId) 
-{ };
+{
+};
+
+/**
+ * Extends {@link Game_Actor.die}.
+ * Adds a toggle of the death effects.
+ */
+J.BASE.Aliased.Game_Actor.set('die', Game_Actor.prototype.die);
+Game_Actor.prototype.die = function()
+{
+  // perform original effects.
+  J.BASE.Aliased.Game_Actor.get('die').call(this);
+
+  // perform on-death effects.
+  this.onDeath();
+};
+
+/**
+ * An event hook fired when this actor dies.
+ */
+Game_Actor.prototype.onDeath = function()
+{
+};
+
+/**
+ * Extends {@link Game_Actor.revive}.
+ * Handles on-revive effects at the actor-level.
+ */
+J.BASE.Aliased.Game_Actor.set('revive', Game_Actor.prototype.revive);
+Game_Actor.prototype.revive = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('revive').call(this);
+
+  // perform on-revive effects.
+  this.onRevive();
+};
+
+/**
+ * An event hook fired when this actor revives.
+ */
+Game_Actor.prototype.onRevive = function()
+{
+};
+
+/**
+ * Determines whether or not this actor is the leader.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isLeader = function()
+{
+  return $gameParty.leader() === this;
+};
 //#endregion Game_Actor
 
 //#region Game_Battler
@@ -5739,10 +5767,10 @@ class RPG_Base
    *
    * This can handle both integers and decimal numbers.
    * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
    * @returns {number|null} The combined value added from the notes of this object, or zero/null.
    */
-  getNumberFromNotesByRegex(structure, nullIfEmpty = false)
+  getNumberFromNotesByRegex(structure, nullIfEmpty = false, useParseEval = false)
   {
     // get the note data from this skill.
     const lines = this.getFilteredNotesByRegex(structure);
@@ -5762,10 +5790,10 @@ class RPG_Base
     {
       // extract the captured formula.
       // eslint-disable-next-line prefer-destructuring
-      const amount = structure.exec(line)[1];
+      const result = structure.exec(line)[1];
 
-      // add it to the running total.
-      val += parseFloat(amount);
+      // regular parse it and add it to the running total.
+      val += parseFloat(result);
     });
 
     // return the

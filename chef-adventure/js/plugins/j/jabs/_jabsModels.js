@@ -1851,27 +1851,17 @@ JABS_Battler.prototype.processCastingTimer = function()
  */
 JABS_Battler.prototype.updateEngagement = function()
 {
+  // ai engagement is blocked for players and while the game is paused.
   if (!this.canUpdateEngagement()) return;
 
-  const targetResult = this.closestEnemyTarget();
-  if (!targetResult[0] || targetResult[0].getUuid() === this.getUuid()) return;
+  // grab the nearest target to this battler.
+  const [target, distance] = this.closestEnemyTarget();
 
-  const target = targetResult[0];
-  const distance = targetResult[1];
-  if (this.isEngaged())
-  {
-    if (this.shouldDisengage(target, distance))
-    {
-      this.disengageTarget();
-    }
-  }
-  else
-  {
-    if (this.shouldEngage(target, distance))
-    {
-      this.engageTarget(target);
-    }
-  }
+  // if we're unable to engage the target, do not engage.
+  if (!this.canEngageTarget(target)) return;
+
+  // process engagement handling.
+  this.handleEngagement(target, distance);
 };
 
 /**
@@ -1885,6 +1875,52 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 };
 
 /**
+ * Determines if this battler can engage the given target.
+ * @param {JABS_Battler} target The potential target to engage.
+ * @returns {boolean} True if we can engage this target, false otherwise.
+ */
+JABS_Battler.prototype.canEngageTarget = function(target)
+{
+  // you cannot engage with nothing.
+  if (!target) return false;
+
+  // you cannot engage with yourself.
+  if (target.getUuid() === this.getUuid()) return false;
+
+  // engage!
+  return true;
+};
+
+/**
+ * Process the engagement with the given target and distance.
+ * @param {JABS_Battler} target The target in question for engagement.
+ * @param {number} distance The distance between this battler and the target.
+ */
+JABS_Battler.prototype.handleEngagement = function(target, distance)
+{
+  // check if we're already engaged.
+  if (this.isEngaged())
+  {
+    // if engaged already, check if maybe we should now disengage.
+    if (this.shouldDisengage(target, distance))
+    {
+      // disengage combat with the target.
+      this.disengageTarget();
+    }
+  }
+  // we aren't engaged yet.
+  else
+  {
+    // check if we should now engage this target based on the given distance.
+    if (this.shouldEngage(target, distance))
+    {
+      // engage in combat with the target.
+      this.engageTarget(target);
+    }
+  }
+};
+
+/**
  * Determines whether or not this battler should disengage from it's target.
  * @param {JABS_Battler} target The target to potentially disengage from.
  * @param {number} distance The distance in number of tiles.
@@ -1892,7 +1928,11 @@ JABS_Battler.prototype.canUpdateEngagement = function()
  */
 JABS_Battler.prototype.shouldDisengage = function(target, distance)
 {
-  return !this.inPursuitRange(target, distance);
+  // check if we're out of pursuit range with this target.
+  const isOutOfRange = !this.inPursuitRange(target, distance);
+
+  // return the findings.
+  return isOutOfRange;
 };
 
 /**
@@ -1903,7 +1943,11 @@ JABS_Battler.prototype.shouldDisengage = function(target, distance)
  */
 JABS_Battler.prototype.shouldEngage = function(target, distance)
 {
-  return this.inSightRange(target, distance);
+  // check if we're in range of sight with the target.
+  const isInSightRange = this.inSightRange(target, distance);
+
+  // return the findings.
+  return isInSightRange;
 };
 //#endregion update engagement
 
@@ -1944,15 +1988,14 @@ JABS_Battler.prototype.canUpdateDodge = function()
  */
 JABS_Battler.prototype.handleDodgeCancel = function()
 {
-  // check if the battler is no longer able to move.
-  if (!this.canBattlerMove())
-  {
-    // end the dodging.
-    this.setDodging(false);
+  // check if we really should cancel dodging.
+  if (!this.shouldCancelDodge()) return;
 
-    // set the dodge steps to 0.
-    this._dodgeSteps = 0;
-  }
+  // end the dodging.
+  this.setDodging(false);
+
+  // set the dodge steps to 0.
+  this._dodgeSteps = 0;
 };
 
 /**
@@ -2079,16 +2122,6 @@ JABS_Battler.prototype.updateDeathHandling = function()
 //#region update helpers
 
 //#region timers
-/**
- * Set whether or not the battler is strafing.
- * Only applicable to the player.
- * @param {boolean} strafing Whether or not the player is strafing.
- */
-JABS_Battler.prototype.setStrafing = function(strafing)
-{
-  this._strafing = strafing;
-};
-
 /**
  * Counts down the duration for this battler's wait time.
  */
@@ -2368,28 +2401,39 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType)
  */
 JABS_Battler.prototype.updateRG = function()
 {
-  if (this.isRegenReady() && !this.getBattler()
-    .isDead())
-  {
-    this.performRegeneration();
-    this.setRegenCounter(15);
-  }
+  // check if we are able to update the RG.
+  if (!this.canUpdateRG()) return;
+
+  //
+  this.performRegeneration();
+  this.setRegenCounter(15);
 };
+
+JABS_Battler.prototype.canUpdateRG = function()
+{
+  // check if the regen is even ready for this battler.
+  if (!this.isRegenReady()) return false;
+
+  // if its ready but
+  if (this.getBattler().isDead()) return false;
+
+  return true;
+};
+
 /**
  * Whether or not the regen tick is ready.
  * @returns {boolean} True if its time for a regen tick, false otherwise.
  */
 JABS_Battler.prototype.isRegenReady = function()
 {
-  if (this.getRegenCounter() <= 0)
+  if (this._regenCounter <= 0)
   {
     this.setRegenCounter(0);
     return true;
   }
   
-    this._regenCounter--;
-    return false;
-  
+  this._regenCounter--;
+  return false;
 };
 
 /**
@@ -3046,13 +3090,11 @@ JABS_Battler.prototype.inPursuitRange = function(target, distance)
 {
   let pursuitRadius = this.getPursuitRadius();
 
-  // if the target is an actor, they may have pursuit reduction/boost from something.
-  if (target.isActor())
-  {
-    // apply the modification from the actor, if any.
-    const visionMultiplier = target.getBattler().getVisionModifier();
-    pursuitRadius *= visionMultiplier;
-  }
+  // apply the modification from the actor, if any.
+  const visionMultiplier = target.getBattler().getVisionModifier();
+
+  // apply the multiplier to the base.
+  pursuitRadius *= visionMultiplier;
 
   return (distance <= pursuitRadius);
 };
@@ -3065,17 +3107,34 @@ JABS_Battler.prototype.inPursuitRange = function(target, distance)
  */
 JABS_Battler.prototype.inSightRange = function(target, distance)
 {
-  let sightRadius = this.getSightRadius();
+  // grab the sight for this battler.
+  const sightRadius = this.getSightRadius();
 
-  // if the target is an actor, they may have sight reduction/boost from something.
-  if (target.isActor())
-  {
-    // apply the modification from the actor, if any.
-    const visionMultiplier = target.getBattler().getVisionModifier();
-    sightRadius *= visionMultiplier;
-  }
+  // apply the modification from the actor, if any.
+  const modifiedSight = this.applyVisionMultiplier(target);
 
-  return (distance <= sightRadius);
+  // determine whether or not the target is in sight.
+  const isInSightRange = (distance <= sightRadius);
+
+  // return the answer.
+  return isInSightRange;
+};
+
+/**
+ * Applies the vision multiplier against the base vision radius in question.
+ * @param {JABS_Battler} target The target we're trying to see.
+ * @param {number} originalRadius The original vision radius.
+ */
+JABS_Battler.prototype.applyVisionMultiplier = function(target, originalRadius)
+{
+  // get this battler's vision multiplier factor.
+  const visionMultiplier = target.getBattler().getVisionModifier();
+
+  // calculate the new radius.
+  const modifiedVisionRadius = (originalRadius * visionMultiplier);
+
+  // return our calculation.
+  return modifiedVisionRadius;
 };
 
 /**

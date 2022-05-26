@@ -1248,6 +1248,9 @@ J.ABS.RegExp = {
   SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
   SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
   SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
+  StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
+  StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
+  StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
 };
 
 /**
@@ -1255,7 +1258,7 @@ J.ABS.RegExp = {
  */
 J.ABS.Aliased = {
   DataManager: {},
-  Game_Actor: {},
+  Game_Actor: new Map(),
   Game_Action: {},
   Game_ActionResult: {},
   Game_Battler: {},

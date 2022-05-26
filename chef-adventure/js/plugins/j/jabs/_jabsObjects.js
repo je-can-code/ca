@@ -20,42 +20,58 @@
 /**
  * Adds in the jabs tracking object for equipped skills.
  */
-J.ABS.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
+J.ABS.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
-  J.ABS.Aliased.Game_Actor.initMembers.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('initMembers').call(this);
+
+  /**
+   * The master reference to the `_j` object containing all plugin properties.
+   * @type {{}}
+   */
   this._j ||= {};
+
+  /**
+   * The master reference to all JABS-related added properties on this class.
+   * @type {{}}
+   */
+  this._j._abs ||= {};
 
   /**
    * The total speed boosts currently applied to this actor.
    * @type {number}
    */
-  this._j._speedBoosts = 0;
+  this._j._abs._speedBoosts = 0;
 
   /**
    * The number of bonus hits this actor currently has.
    * @type {number}
    */
-  this._j._bonusHits = 0;
+  this._j._abs._bonusHits = 0;
 
   /**
    * Whether or not the death effect has been performed.
    * The death effect is defined as "death animation".
    * @type {boolean}
    */
-  this._j._deathEffect = false;
+  this._j._abs._deathEffect = false;
 };
 
 /**
  * Extends `.setup()` and initializes the jabs equipped skills.
  */
-J.ABS.Aliased.Game_Actor.setup = Game_Actor.prototype.setup;
+J.ABS.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
-  J.ABS.Aliased.Game_Actor.setup.call(this, actorId);
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('setup').call(this, actorId);
+
+  // setup all the JABS skill slots for the first time.
   this.initAbsSkills();
-  this.refreshSpeedBoosts();
-  this.refreshBonusHits();
+
+  // execute the first refresh for JABS-related things.
+  this.jabsRefresh();
 };
 
 /**
@@ -92,17 +108,30 @@ Game_Actor.prototype.teamId = function()
 /**
  * Replaces the map damage with JABS' version of the map damage.
  */
-J.ABS.Aliased.Game_Actor.performMapDamage = Game_Actor.prototype.performMapDamage;
+J.ABS.Aliased.Game_Actor.set('performMapDamage', Game_Actor.prototype.performMapDamage);
 Game_Actor.prototype.performMapDamage = function()
 {
+  // check if JABS is disabled.
   if (!$jabsEngine.absEnabled)
   {
-    J.ABS.Aliased.Game_Actor.performMapDamage.call(this);
+    // perform original logic.
+    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
   }
+  // JABS is definitely enabled.
   else
   {
-    $gameScreen.startFlashForDamage();
+    // let JABS handle it.
+    this.performJabsFloorDamage();
   }
+};
+
+/**
+ * Handles how an actor is treated when they are taking floor damage on the map.
+ */
+Game_Actor.prototype.performJabsFloorDamage = function()
+{
+  // just flash the screen, the damage is applied by other means.
+  $gameScreen.startFlashForDamage();
 };
 
 /**
@@ -146,13 +175,15 @@ Game_Actor.prototype.onOwnDefeatSkillIds = function()
  * (built-in effects include regeneration and poison, but those are
  * already handled elsewhere in the engine)
  */
-J.ABS.Aliased.Game_Actor.turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+J.ABS.Aliased.Game_Actor.set('turnEndOnMap', Game_Actor.prototype.turnEndOnMap);
 Game_Actor.prototype.turnEndOnMap = function()
 {
-  if (!$jabsEngine.absEnabled)
-  {
-    J.ABS.Aliased.Game_Actor.turnEndOnMap.call(this);
-  }
+  // if JABS is enabled, the fun never stops!
+  if (!$jabsEngine.absEnabled) return;
+
+  // do normal turn-end things while JABS is disabled.
+  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
+
 };
 
 /**
@@ -171,12 +202,37 @@ Game_Actor.prototype.getUuid = function()
 };
 
 /**
+ * Checks all possible places for whether or not the actor is able to
+ * be switched to.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.switchLocked = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<noSwitch>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
+};
+
+/**
  * Gets whether or not this actor needs a death effect.
  * @returns {boolean}
  */
 Game_Actor.prototype.needsDeathEffect = function()
 {
-  return this._j._deathEffect;
+  return this._j._abs._deathEffect;
 };
 
 /**
@@ -184,33 +240,45 @@ Game_Actor.prototype.needsDeathEffect = function()
  */
 Game_Actor.prototype.toggleDeathEffect = function()
 {
-  this._j._deathEffect = !this._j._deathEffect;
+  this._j._abs._deathEffect = !this._j._abs._deathEffect;
 };
 
 /**
- * Extends {@link Game_Actor.prototype.die}.
- * Adds a toggle of the death effects.
+ * Toggles the death effect for this actor when they die.
  */
-J.ABS.Aliased.Game_Actor.die = Game_Actor.prototype.die;
-Game_Actor.prototype.die = function()
+J.ABS.Aliased.Game_Actor.set('onDeath', Game_Actor.prototype.onDeath);
+Game_Actor.prototype.onDeath = function()
 {
-  J.ABS.Aliased.Game_Actor.die.call(this);
+  // toggle the on-death flag for tracking if death has occurred or not.
   this.toggleDeathEffect();
 };
 
 /**
- * Extends {@link Game_Actor.prototype.revive}.
- * Handles on-revive effects at the actor-level.
+ * Reverts the death effect toggle when they are revived.
  */
-J.ABS.Aliased.Game_Actor.revive = Game_Actor.prototype.revive;
-Game_Actor.prototype.revive = function()
+J.ABS.Aliased.Game_Actor.set('onRevive', Game_Actor.prototype.onRevive);
+Game_Actor.prototype.onRevive = function()
 {
-  J.ABS.Aliased.Game_Actor.revive.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('onRevive').call(this);
+
+  // stops this battler from being flagged as dead by JABS.
+  this.stopDying();
+};
+
+/**
+ * Stops this actor from being in the death effect flagged state.
+ */
+Game_Actor.prototype.stopDying = function()
+{
+  // grab the battler that is revived.
   const jabsBattler = $gameMap.getBattlerByUuid(this.getUuid());
-  if (jabsBattler)
-  {
-    jabsBattler.setDying(false);
-  }
+
+  // validate the existance of the battler before using.
+  if (!jabsBattler) return;
+
+  // turn off the dying effect.
+  jabsBattler.setDying(false);
 };
 
 /**
@@ -595,14 +663,109 @@ Game_Actor.prototype.releaseUnequippableSkills = function()
 /**
  * Refreshes equipment-based skills every time the actor refreshes.
  */
-J.ABS.Aliased.Game_Actor.refresh = Game_Actor.prototype.refresh;
+J.ABS.Aliased.Game_Actor.set('refresh', Game_Actor.prototype.refresh);
 Game_Actor.prototype.refresh = function()
 {
-  J.ABS.Aliased.Game_Actor.refresh.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('refresh').call(this);
+
+  // update JABS-related things.
+  this.jabsRefresh();
+};
+
+/**
+ * Refreshes aspects associated with this battler in the context of JABS.
+ */
+Game_Actor.prototype.jabsRefresh = function()
+{
+  // refresh the currently equipped skills to ensure they are still valid.
   this.updateEquipmentSkills();
+
+  // refresh the speed boosts to ensure they are still accurate.
   this.refreshSpeedBoosts();
+
+  // refresh the bonus hits to ensure they are still accurate.
   this.refreshBonusHits();
 };
+
+/**
+ * An event hook, similar in function to {@link Game_Actor.refresh}, except fired less frequently since
+ * this ignores hp/mp/tp changes.
+ *
+ * This hook reacts to:
+ * - learning/forgetting a skill.
+ * - changing/removing/equipping equipment.
+ * - adding/removing a state.
+ */
+Game_Actor.prototype.onActorDataChange = function()
+{
+
+};
+
+/*
+Game_Actor.prototype.forgetSkill = function(skillId) {
+    this._skills.remove(skillId);
+};
+
+Game_Actor.prototype.changeEquip = function(slotId, item) {
+    if (
+        this.tradeItemWithParty(item, this.equips()[slotId]) &&
+        (!item || this.equipSlots()[slotId] === item.etypeId)
+    ) {
+        this._equips[slotId].setObject(item);
+        this.refresh();
+    }
+};
+
+Game_Actor.prototype.discardEquip = function(item) {
+    const slotId = this.equips().indexOf(item);
+    if (slotId >= 0) {
+        this._equips[slotId].setObject(null);
+    }
+};
+
+Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
+    this._equips[slotId].setObject(item);
+    this.releaseUnequippableItems(true);
+    this.refresh();
+};
+
+Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
+    for (;;) {
+        const slots = this.equipSlots();
+        const equips = this.equips();
+        let changed = false;
+        for (let i = 0; i < equips.length; i++) {
+            const item = equips[i];
+            if (item && (!this.canEquip(item) || item.etypeId !== slots[i])) {
+                if (!forcing) {
+                    this.tradeItemWithParty(null, item);
+                }
+                this._equips[i].setObject(null);
+                changed = true;
+            }
+        }
+        if (!changed) {
+            break;
+        }
+    }
+};
+
+Game_Actor.prototype.eraseState = function(stateId) {
+    Game_Battler.prototype.eraseState.call(this, stateId);
+    delete this._stateSteps[stateId];
+};
+
+J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
+Game_Battler.prototype.addNewState = function(stateId, attacker)
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
+
+  // add the jabs state.
+  this.addJabsState(stateId, attacker);
+};
+ */
 
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
@@ -615,38 +778,73 @@ Game_Actor.prototype.shouldDisplayLevelUp = function()
 /**
  * Executes the JABS level up process if the leader is the one leveling up.
  */
-J.ABS.Aliased.Game_Actor.levelUp = Game_Actor.prototype.levelUp;
+J.ABS.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
 Game_Actor.prototype.levelUp = function()
 {
-  J.ABS.Aliased.Game_Actor.levelUp.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('levelUp').call(this);
+
+  // perform JABS-related things for leveling up.
+  this.jabsLevelUp();
+};
+
+/**
+ * Do JABS-related things for leveling up.
+ */
+Game_Actor.prototype.jabsLevelUp = function()
+{
+  // refresh the sprite if they need it.
   $jabsEngine.requestSpriteRefresh = true;
+
+  // command the JABS engine to do the JABS-related things for leveling up.
   $jabsEngine.battlerLevelup(this.getUuid());
 };
 
 /**
  * Extends the level down function to refresh sprites' danger indicator.
  */
-J.ABS.Aliased.Game_Actor.levelDown = Game_Actor.prototype.levelDown;
+J.ABS.Aliased.Game_Actor.set('levelDown', Game_Actor.prototype.levelDown);
 Game_Actor.prototype.levelDown = function()
 {
-  J.ABS.Aliased.Game_Actor.levelDown.call(this);
-  const isLeader = $gameParty.leader() === this;
-  if (isLeader)
-  {
-    $jabsEngine.requestSpriteRefresh = true;
-  }
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('levelDown').call(this);
+
+  // perform JABS-related things for leveling down.
+  this.jabsLevelDown();
+};
+
+/**
+ * Do JABS-related things for leveling down.
+ */
+Game_Actor.prototype.jabsLevelDown = function()
+{
+  // if this isn't the leader, then don't worry about leveling down.
+  if (!this.isLeader()) return;
+
+  // this is the leader so refresh the battler sprite!
+  $jabsEngine.requestSpriteRefresh = true;
 };
 
 /**
  * A hook for performing actions when a battler learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
  */
-J.ABS.Aliased.Game_Actor.onLearnNewSkill = Game_Actor.prototype.onLearnNewSkill;
+J.ABS.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewSkill);
 Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.onLearnNewSkill.call(this, skillId);
+  J.ABS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
 
+  // perform JABS-related things for learning a new skill.
+  this.jabsLearnNewSkill(skillId);
+};
+
+/**
+ * Do JABS-related things for leveling down.
+ * @param {number} skillId The skill id being learned.
+ */
+Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
+{
   // if the skill id is invalid, do not do JABS things.
   if (!skillId) return;
 
@@ -661,13 +859,6 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
 
   // flag skills on the skillslot manager for refreshing.
   this.getSkillSlotManager().flagAllSkillSlotsForRefresh();
-};
-
-Game_Actor.prototype.onForgetSkill = function(skillId)
-{
-  if (!skillId) return;
-
-
 };
 
 /**
@@ -751,7 +942,7 @@ Game_Actor.prototype.refreshSpeedBoosts = function()
     }
   });
 
-  this._j._speedBoosts = speedBoosts;
+  this._j._abs._speedBoosts = speedBoosts;
 };
 
 /**
@@ -760,7 +951,7 @@ Game_Actor.prototype.refreshSpeedBoosts = function()
  */
 Game_Actor.prototype.getSpeedBoosts = function()
 {
-  return this._j._speedBoosts;
+  return this._j._abs._speedBoosts;
 };
 
 /**
@@ -791,7 +982,7 @@ Game_Actor.prototype.refreshBonusHits = function()
   bonusHits += this.getBonusHitsFromNonTraitedSources(this.skills());
 
   // set the bonus hits to the total amount found everywhere.
-  this._j._bonusHits = bonusHits;
+  this._j._abs._bonusHits = bonusHits;
 };
 
 /**
@@ -800,7 +991,7 @@ Game_Actor.prototype.refreshBonusHits = function()
  */
 Game_Actor.prototype.getBonusHits = function()
 {
-  return this._j._bonusHits;
+  return this._j._abs._bonusHits;
 };
 
 /**
@@ -811,38 +1002,46 @@ Game_Actor.prototype.getBonusHits = function()
  */
 Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
 {
-  let flatDurationBoost = 0;
-  let multiplierDurationBoost = 0;
-  let formulaDurationBoost = 0;
+  // initialize the running tally.
+  let durationBoost = 0;
+
+  // grab all the things to check.
   const objectsToCheck = this.getAllNotes();
+
+  // iterate over each of the things to check.
   objectsToCheck.forEach(obj =>
   {
-    flatDurationBoost += this.getStateDurationFlatPlus(obj);
-    multiplierDurationBoost += this.getStateDurationPercPlus(obj, baseDuration);
-    formulaDurationBoost += this.getStateDurationFormulaPlus(obj, baseDuration, attacker);
+    // add the flat boosts.
+    durationBoost += this.getStateDurationFlatPlus(obj);
+
+    // add the percent boosts, using the base duration.
+    durationBoost += this.getStateDurationPercPlus(obj, baseDuration);
+
+    // add the formula-driven boosts, using the base duration and the attacker.
+    durationBoost += this.getStateDurationFormulaPlus(obj, baseDuration, attacker);
   });
 
-  return Math.round(flatDurationBoost + multiplierDurationBoost + formulaDurationBoost);
+  // reduce to 2 decimal places.
+  const fixedDurationBoost = parseFloat(durationBoost.toFixed(2));
+
+  // return our calculated state duration boosts.
+  return fixedDurationBoost;
 };
 
 /**
  * Gets the combined amount of flat state duration boosts from all sources.
- * @param {RPG_BaseItem} noteObject object to inspect the notes of.
+ * @param {RPG_BaseItem} noteObject The database object.
  * @returns {number}
  */
 Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
 {
-  const structure = /<stateDurationFlat:[ ]?([-+]?\d+)>/i;
-  const notedata = noteObject.note.split(/[\r\n]+/);
-  let flatDurationBoost = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      flatDurationBoost += parseInt(RegExp.$1);
-    }
-  });
+  // determine the structure.
+  const structure = J.ABS.RegExp.StateDurationFlatPlus;
 
+  // extract the amount from the object.
+  const flatDurationBoost = noteObject.getNumberFromNotesByRegex(structure);
+
+  // return was found.
   return flatDurationBoost;
 };
 
@@ -854,18 +1053,17 @@ Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
  */
 Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuration)
 {
-  const structure = /<stateDurationPerc:[ ]?([-+]?\d+)>/i;
-  const notedata = noteObject.note.split(/[\r\n]+/);
-  let percDurationBoost = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      percDurationBoost += parseInt(RegExp.$1);
-    }
-  });
+  // determine the structure.
+  const structure = J.ABS.RegExp.StateDurationPercentPlus;
 
-  return Math.round(baseDuration * (percDurationBoost / 100));
+  // extract the amount from the object.
+  const percDurationBoost = noteObject.getNumberFromNotesByRegex(structure);
+
+  // perform the calculation.
+  const calculatedBoost = Math.round(baseDuration * (percDurationBoost / 100));
+
+  // return the calculated amount.
+  return calculatedBoost;
 };
 
 /**
@@ -877,62 +1075,41 @@ Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuratio
  */
 Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDuration, attacker)
 {
+  // determine the structure.
+  const structure = J.ABS.RegExp.StateDurationFormulaPlus;
+
+  // get the note data from this skill.
+  const lines = noteObject.getFilteredNotesByRegex(structure);
+
+  // if we have no matching notes, then short circuit.
+  if (!lines.length)
+  {
+    // return null or 0 depending on provided options.
+    return nullIfEmpty ? null : 0;
+  }
+
+  // initialize the base boost.
+  let formulaDurationBoost = 0;
+
+  // establish some variables for eval scope access.
   const a = this;  // the one who applied the state.
   const b = attacker; // this battler, afflicted by the state.
   const v = $gameVariables._data; // access to variables if you need it.
   const d = baseDuration;
-  const structure = /<(?:stateDurationFormula|stateDurationForm):[ ]?\[([+\-*/ ().\w]+)]>/i;
-  const notedata = noteObject.note.split(/[\r\n]+/);
-  let formulaDurationBoost = 0;
-  notedata.forEach(line =>
+
+  // iterate over each valid line of the note.
+  lines.forEach(line =>
   {
-    if (line.match(structure))
-    {
-      formulaDurationBoost += eval(RegExp.$1) ?? 0;
-    }
+    // extract the captured formula.
+    // eslint-disable-next-line prefer-destructuring
+    const result = structure.exec(line)[1];
+
+    // regular parse it and add it to the running total.
+    formulaDurationBoost += JSON.parse(eval(result));
   });
 
-  return Math.round(formulaDurationBoost);
-};
-
-/**
- * A multiplier against the vision of an enemy target.
- * This may increase/decrease the sight and pursuit range of an enemy attempting to
- * perceive the actor.
- * @returns {number}
- */
-Game_Actor.prototype.getVisionModifier = function()
-{
-  let visionMultiplier = 100;
-  const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => (visionMultiplier += this.extractVisionModifiers(obj)));
-
-  return Math.max((visionMultiplier / 100), 0);
-};
-
-/**
- * Gets all modifiers related to vision from this database object.
- * @param referenceData
- * @returns {number}
- */
-Game_Actor.prototype.extractVisionModifiers = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return 0;
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<visionMultiplier:[ ]?(-?[\d]+)>/i;
-  let visionMultiplier = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const multiplier = parseInt(RegExp.$1);
-      visionMultiplier += multiplier;
-    }
-  });
-
-  return visionMultiplier;
+  // return our evaluated amounts.
+  return formulaDurationBoost;
 };
 //#endregion Game_Actor
 
@@ -1281,6 +1458,47 @@ Game_ActionResult.prototype.isHit = function()
 //#endregion Game_ActionResult
 
 //#region Game_Battler
+
+/**
+ * A multiplier against the vision of an enemy target.
+ * This may increase/decrease the sight and pursuit range of an enemy attempting to
+ * perceive the actor.
+ * @returns {number}
+ */
+Game_Battler.prototype.getVisionModifier = function()
+{
+  let visionMultiplier = 100;
+  const objectsToCheck = this.getAllNotes();
+  objectsToCheck.forEach(obj => (visionMultiplier += this.extractVisionModifiers(obj)));
+
+  return Math.max((visionMultiplier / 100), 0);
+};
+
+/**
+ * Gets all modifiers related to vision from this database object.
+ * @param referenceData
+ * @returns {number}
+ */
+Game_Battler.prototype.extractVisionModifiers = function(referenceData)
+{
+  // if for some reason there is no note, then don't try to parse it.
+  if (!referenceData.note) return 0;
+
+  const notedata = referenceData.note.split(/[\r\n]+/);
+  const structure = /<visionMultiplier:[ ]?(-?[\d]+)>/i;
+  let visionMultiplier = 0;
+  notedata.forEach(line =>
+  {
+    if (line.match(structure))
+    {
+      const multiplier = parseInt(RegExp.$1);
+      visionMultiplier += multiplier;
+    }
+  });
+
+  return visionMultiplier;
+};
+
 /**
  * Adds the `uuid` to the battler class.
  */
