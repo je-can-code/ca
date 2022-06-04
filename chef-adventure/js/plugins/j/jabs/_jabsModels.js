@@ -539,12 +539,12 @@ class JABS_Action
   }
 
   /**
-   * The number of frames until this action's caster may act again.
+   * Gets the cooldown time for this skill.
    * @returns {number} The cooldown frames of this `JABS_Action`.
    */
   getCooldown()
   {
-    return this.getBaseSkill().jabsCooldown;
+    return this.getBaseSkill().jabsCooldown ?? 0;
   }
 
   /**
@@ -562,7 +562,6 @@ class JABS_Action
    */
   getCastTime()
   {
-    // TODO: add a cast time modifier based on actor "all notes" collection.
     return this.getBaseSkill().jabsCastTime ?? 0;
   }
 

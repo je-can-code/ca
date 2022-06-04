@@ -75,6 +75,317 @@ Game_Actor.prototype.setup = function(actorId)
 };
 
 /**
+ * Gets the prepare time for this actor.
+ * Actors are not gated by prepare times, only by post-action cooldowns.
+ * @returns {number}
+ */
+Game_Actor.prototype.prepareTime = function()
+{
+  return 1;
+};
+
+/**
+ * Gets the skill id for this actor.
+ * Actors don't use this functionality, they have equipped skills instead.
+ * @returns {null}
+ */
+Game_Actor.prototype.skillId = function()
+{
+  return null;
+};
+
+/**
+ * Gets the sight range for this actor.
+ * Looks first to the class, then the actor for the tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.sightRange = function()
+{
+  let val = Game_Battler.prototype.sightRange.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight])
+  {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Sight]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
+  {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.Sight]);
+  }
+  else
+  {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<s:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alerted sight boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertedSightBoost = function()
+{
+  let val = Game_Battler.prototype.alertedSightBoost.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost])
+  {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
+  {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertSightBoost]);
+  }
+  else
+  {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<as:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alerted pursuit boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.pursuitRange = function()
+{
+  let val = Game_Battler.prototype.pursuitRange.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit])
+  {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Pursuit]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
+  {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.Pursuit]);
+  }
+  else
+  {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<p:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alerted pursuit boost for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertedPursuitBoost = function()
+{
+  let val = Game_Battler.prototype.alertedPursuitBoost.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost])
+  {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
+  {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]);
+  }
+  else
+  {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ap:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the alert duration for this actor.
+ * Looks first to the class, then the actor for a skill id tag.
+ * If neither are present, then it returns the default.
+ * @returns {number}
+ */
+Game_Actor.prototype.alertDuration = function()
+{
+  let val = Game_Battler.prototype.alertDuration.call(this);
+  const referenceData = this.actor();
+
+  // if there is a class prepare tag, we want that first.
+  const referenceDataClass = $dataClasses[referenceData.classId];
+  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration])
+  {
+    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertDuration]);
+  }
+
+  // if there is no class prepare tag, then look to the actor.
+  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
+  {
+    // if its in the metadata, then grab it from there.
+    return parseInt(referenceData.meta[J.BASE.Notetags.AlertDuration]);
+  }
+  else
+  {
+    // if its not in the metadata, then check the notes proper.
+    const structure = /<ad:[ ]?([0-9]*)>/i;
+    const notedata = referenceData.note.split(/[\r\n]+/);
+    notedata.forEach(note =>
+    {
+      if (note.match(structure))
+      {
+        val = parseInt(RegExp.$1);
+      }
+    })
+  }
+
+  return val;
+};
+
+/**
+ * Gets the ai of the actor.
+ * Though allies leverage ally ai for action decision making, this AI does
+ * have one effect: how to move around and stuff throughout the phases.
+ * @returns {null}
+ */
+Game_Actor.prototype.ai = function()
+{
+  return new JABS_BattlerAI(true, true);
+};
+
+/**
+ * Gets whether or not the actor can idle.
+ * Actors can never idle.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.canIdle = function()
+{
+  return false;
+};
+
+/**
+ * Gets whether or not the actor's hp bar will show.
+ * Actors never show their hp bar (they use HUDs for that).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.showHpBar = function()
+{
+  return false;
+};
+
+/**
+ * Gets whether or not the actor's name will show below their character.
+ * Actors never show their name (the use HUDs for that).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.showBattlerName = function()
+{
+  return false;
+};
+
+/**
+ * Gets whether or not the actor is invincible.
+ * Actors are never invincible by this means.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isInvincible = function()
+{
+  return false;
+};
+
+/**
+ * Gets whether or not the actor is inanimate.
+ * Actors are never inanimate (duh).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isInanimate = function()
+{
+  return false;
+};
+
+/**
+ * Gets whether or not there are notes that indicate skills should be autoassigned
+ * when leveling up.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.autoAssignOnLevelup = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<autoAssignSkills>/i;
+  let autoAssign = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        autoAssign = true;
+      }
+    });
+  });
+
+  return autoAssign;
+};
+
+/**
  * The team id of this actor.
  * Defaults to the default ally team id.
  * @returns {number}
@@ -286,7 +597,7 @@ Game_Actor.prototype.stopDying = function()
  */
 Game_Actor.prototype.initAbsSkills = function()
 {
-  this.updateEquipmentSkills();
+  this.refreshEquipmentSkills();
 };
 
 /**
@@ -531,18 +842,19 @@ Game_Actor.prototype.unlockAllSlots = function()
 };
 
 /**
- * Updates the latest equipped mainhand/offhand skill slots with whatever the
- * currently equipped gear provides.
+ * Refreshes the JABS skills that are currently equipped.
+ * If any are no longer valid, they will be removed.
  */
-Game_Actor.prototype.updateEquipmentSkills = function()
+Game_Actor.prototype.refreshEquipmentSkills = function()
 {
+  // remove all unequippable skills from their slots.
   this.releaseUnequippableSkills();
 
-  const mainhandSkill = this.getMainhandSkill();
-  const offhandSkill = this.getOffhandSkill();
+  // update the mainhand skill slot.
+  this.updateMainhandSkill();
 
-  this.setEquippedSkill(JABS_Button.Main, mainhandSkill);
-  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
+  // update the offhand skill slot.
+  this.updateOffhandSkill();
 };
 
 /**
@@ -552,7 +864,7 @@ Game_Actor.prototype.updateEquipmentSkills = function()
 Game_Actor.prototype.getMainhandSkill = function()
 {
   // grab the mainhand of the actor.
-  const [mainhand] = this.equips();
+  const [mainhand,] = this.equips();
 
   // default the mainhand skill to 0.
   let mainhandSkill = 0;
@@ -566,6 +878,18 @@ Game_Actor.prototype.getMainhandSkill = function()
 
   // return what we found.
   return mainhandSkill
+};
+
+/**
+ * Updates the mainhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateMainhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const mainhandSkill = this.getMainhandSkill();
+
+  // update the main and offhand skill slots.
+  this.setEquippedSkill(JABS_Button.Main, mainhandSkill);
 };
 
 /**
@@ -588,7 +912,7 @@ Game_Actor.prototype.getOffhandSkill = function()
   }
 
   // grab the offhand of the actor.
-  const offhand = this.equips()[1];
+  const [,offhand] = this.equips();
 
   // default the offhand skill to 0.
   let offhandSkill = 0;
@@ -602,6 +926,18 @@ Game_Actor.prototype.getOffhandSkill = function()
 
   // return what we found.
   return offhandSkill;
+};
+
+/**
+ * Updates the offhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateOffhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const offhandSkill = this.getOffhandSkill();
+
+  // update the offhand skill slot.
+  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
 };
 
 /**
@@ -661,13 +997,14 @@ Game_Actor.prototype.releaseUnequippableSkills = function()
 };
 
 /**
- * Refreshes equipment-based skills every time the actor refreshes.
+ * Extends {@link #onBattlerDataChange}.
+ * Adds a hook for performing actions when a state is removed from the battler.
  */
-J.ABS.Aliased.Game_Actor.set('refresh', Game_Actor.prototype.refresh);
-Game_Actor.prototype.refresh = function()
+J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('refresh').call(this);
+  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
 
   // update JABS-related things.
   this.jabsRefresh();
@@ -679,7 +1016,7 @@ Game_Actor.prototype.refresh = function()
 Game_Actor.prototype.jabsRefresh = function()
 {
   // refresh the currently equipped skills to ensure they are still valid.
-  this.updateEquipmentSkills();
+  this.refreshEquipmentSkills();
 
   // refresh the speed boosts to ensure they are still accurate.
   this.refreshSpeedBoosts();
@@ -687,85 +1024,6 @@ Game_Actor.prototype.jabsRefresh = function()
   // refresh the bonus hits to ensure they are still accurate.
   this.refreshBonusHits();
 };
-
-/**
- * An event hook, similar in function to {@link Game_Actor.refresh}, except fired less frequently since
- * this ignores hp/mp/tp changes.
- *
- * This hook reacts to:
- * - learning/forgetting a skill.
- * - changing/removing/equipping equipment.
- * - adding/removing a state.
- */
-Game_Actor.prototype.onActorDataChange = function()
-{
-
-};
-
-/*
-Game_Actor.prototype.forgetSkill = function(skillId) {
-    this._skills.remove(skillId);
-};
-
-Game_Actor.prototype.changeEquip = function(slotId, item) {
-    if (
-        this.tradeItemWithParty(item, this.equips()[slotId]) &&
-        (!item || this.equipSlots()[slotId] === item.etypeId)
-    ) {
-        this._equips[slotId].setObject(item);
-        this.refresh();
-    }
-};
-
-Game_Actor.prototype.discardEquip = function(item) {
-    const slotId = this.equips().indexOf(item);
-    if (slotId >= 0) {
-        this._equips[slotId].setObject(null);
-    }
-};
-
-Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
-    this._equips[slotId].setObject(item);
-    this.releaseUnequippableItems(true);
-    this.refresh();
-};
-
-Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
-    for (;;) {
-        const slots = this.equipSlots();
-        const equips = this.equips();
-        let changed = false;
-        for (let i = 0; i < equips.length; i++) {
-            const item = equips[i];
-            if (item && (!this.canEquip(item) || item.etypeId !== slots[i])) {
-                if (!forcing) {
-                    this.tradeItemWithParty(null, item);
-                }
-                this._equips[i].setObject(null);
-                changed = true;
-            }
-        }
-        if (!changed) {
-            break;
-        }
-    }
-};
-
-Game_Actor.prototype.eraseState = function(stateId) {
-    Game_Battler.prototype.eraseState.call(this, stateId);
-    delete this._stateSteps[stateId];
-};
-
-J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
-Game_Battler.prototype.addNewState = function(stateId, attacker)
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
-
-  // add the jabs state.
-  this.addJabsState(stateId, attacker);
-};
- */
 
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
@@ -776,13 +1034,13 @@ Game_Actor.prototype.shouldDisplayLevelUp = function()
 };
 
 /**
- * Executes the JABS level up process if the leader is the one leveling up.
+ * Executes the JABS level up process.
  */
-J.ABS.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
-Game_Actor.prototype.levelUp = function()
+J.ABS.Aliased.Game_Actor.set('onLevelUp', Game_Actor.prototype.onLevelUp);
+Game_Actor.prototype.onLevelUp = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('levelUp').call(this);
+  J.ABS.Aliased.Game_Actor.get('onLevelUp').call(this);
 
   // perform JABS-related things for leveling up.
   this.jabsLevelUp();
@@ -801,13 +1059,14 @@ Game_Actor.prototype.jabsLevelUp = function()
 };
 
 /**
- * Extends the level down function to refresh sprites' danger indicator.
+ * Extends {@link #onLevelDown}.
+ * Also refresh sprites' danger indicator.
  */
-J.ABS.Aliased.Game_Actor.set('levelDown', Game_Actor.prototype.levelDown);
-Game_Actor.prototype.levelDown = function()
+J.ABS.Aliased.Game_Actor.set('onLevelDown', Game_Actor.prototype.onLevelDown);
+Game_Actor.prototype.onLevelDown = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('levelDown').call(this);
+  J.ABS.Aliased.Game_Actor.get('onLevelDown').call(this);
 
   // perform JABS-related things for leveling down.
   this.jabsLevelDown();
@@ -1070,7 +1329,7 @@ Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuratio
  * Gets the combined amount of formula-based state duration boosts from all sources.
  * @param {RPG_BaseItem} noteObject The database object.
  * @param {number} baseDuration The base duration of the state.
- * @param attacker
+ * @param {Game_Actor|Game_Enemy} attacker The attacker applying the state.
  * @returns {number}
  */
 Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDuration, attacker)
@@ -1085,7 +1344,7 @@ Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDura
   if (!lines.length)
   {
     // return null or 0 depending on provided options.
-    return nullIfEmpty ? null : 0;
+    return 0;
   }
 
   // initialize the base boost.
@@ -1458,6 +1717,186 @@ Game_ActionResult.prototype.isHit = function()
 //#endregion Game_ActionResult
 
 //#region Game_Battler
+/**
+ * All battlers have a prepare time.
+ * At this level, returns default 180 frames.
+ * @returns {number}
+ */
+Game_Battler.prototype.prepareTime = function()
+{
+  return 180;
+};
+
+/**
+ * Gets the battler's basic attack skill id.
+ * This is defined by the first "Attack Skill" trait on a battler.
+ * If there are multiple traits of this kind, only the first found will be used.
+ * @returns {number}
+ */
+Game_Battler.prototype.basicAttackSkillId = function()
+{
+  // get the data from the database of this battler.
+  const databaseData = this.databaseData();
+
+  // the battler's basic attack is their first found "Attack Skill" trait.
+  const attackSkillTrait = databaseData.traits
+  .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
+
+  // check to make sure we found a trait.
+  if (attackSkillTrait)
+  {
+    // return the traits underlying skill id.
+    return attackSkillTrait.dataId;
+  }
+
+  // we didn't find a trait so just return 1.
+  return 1;
+};
+
+/**
+ * All battlers have a default sight range.
+ * @returns {number}
+ */
+Game_Battler.prototype.sightRange = function()
+{
+  return 4;
+};
+
+/**
+ * All battlers have a default alerted sight boost.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertedSightBoost = function()
+{
+  return 2;
+};
+
+/**
+ * All battlers have a default pursuit range.
+ * @returns {number}
+ */
+Game_Battler.prototype.pursuitRange = function()
+{
+  return 6;
+};
+
+/**
+ * All battlers have a default alerted pursuit boost.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertedPursuitBoost = function()
+{
+  return 4;
+};
+
+/**
+ * All battlers have a default alert duration.
+ * @returns {number}
+ */
+Game_Battler.prototype.alertDuration = function()
+{
+  return 300;
+};
+
+/**
+ * All battlers have a default team id.
+ * At this level, the default team id is 1 (the default for enemies).
+ * @returns {number}
+ */
+Game_Battler.prototype.teamId = function()
+{
+  return JABS_Battler.enemyTeamId();
+};
+
+/**
+ * All battlers have a default AI.
+ * @returns {JABS_BattlerAI}
+ */
+Game_Battler.prototype.ai = function()
+{
+  return new JABS_BattlerAI();
+};
+
+/**
+ * All battlers can idle by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.canIdle = function()
+{
+  return true;
+};
+
+/**
+ * All battlers will show their hp bar by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showHpBar = function()
+{
+  return true;
+};
+
+/**
+ * All battlers will show their danger indicator by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showDangerIndicator = function()
+{
+  return true;
+};
+
+/**
+ * All battlers will show their database name by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.showBattlerName = function()
+{
+  return true;
+};
+
+/**
+ * All battlers can be invincible, but are not by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isInvincible = function()
+{
+  return false;
+};
+
+/**
+ * All battlers can be inanimate, but are not by default.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isInanimate = function()
+{
+  return false;
+};
+
+/**
+ * All battlers have a default of no retaliation skills.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Battler.prototype.retaliationSkills = function()
+{
+  return [];
+};
+
+/**
+ * All battlers have a default of no on-own-defeat skill ids.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Battler.prototype.onOwnDefeatSkillIds = function()
+{
+  return [];
+};
+
+/**
+ * All battlers have a default of no on-defeating-a-target skill ids.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Battler.prototype.onTargetDefeatSkillIds = function()
+{
+  return [];
+};
 
 /**
  * A multiplier against the vision of an enemy target.

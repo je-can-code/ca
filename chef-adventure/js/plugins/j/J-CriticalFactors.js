@@ -892,11 +892,8 @@ Game_Battler.prototype.cdmNaturalBuffs = function()
   // don't calculate if we don't have anything.
   if (!cdmBuffPlus && !cdmBuffRate) return 0;
 
-  // grab the base param for calculations.
-  const baseCdm = this.baseCriticalMultiplier();
-
   // return result.
-  return this.calculatePlusRate(baseCdm, cdmBuffPlus, cdmBuffRate);
+  return this.calculatePlusRate(baseParam, cdmBuffPlus, cdmBuffRate);
 };
 
 /**

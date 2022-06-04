@@ -24,6 +24,7 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-DangerIndicator","status":true,"description":"[v1.0 DANGER] Enable danger indicators on foes on the map.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
 {"name":"j/jabs/ext/J-ABS-InputManager","status":true,"description":"[v1.0 ABS-INPUT] A manager for overseeing the input of JABS.","parameters":{}},
+{"name":"j/jabs/ext/J-ABS-ActionUpgrades","status":true,"description":"[v1.0 ACTION] Enable additional action-related functionalities.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-STAR","status":false,"description":"Test Bundling","parameters":{"hello":""}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
