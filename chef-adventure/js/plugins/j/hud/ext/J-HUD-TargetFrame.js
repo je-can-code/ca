@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v1.0.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -475,7 +475,7 @@ J.HUD.EXT_TARGET.Aliased = {
 };
 
 /**
- * A collection of all the regular expression structures used in this plugin.
+ * All regular expressions used by this plugin.
  */
 J.HUD.EXT_TARGET.RegExp = {
   TargetFrameText: /<targetFrameText:([\w :"'.!+\-*/\\]*)>/i,

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 DESC] Enables "describing" the event with some text and/or an icon.
+ * [v1.0.0 DESC] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE

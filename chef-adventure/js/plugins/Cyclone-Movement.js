@@ -1315,7 +1315,10 @@ class CycloneMovement$1 extends CyclonePlugin {
 globalThis.CycloneMovement = CycloneMovement$1;
 CycloneMovement$1.register();
 
-CycloneMovement.patchClass(Game_Map, $super => class {
+CycloneMovement.patchClass(
+  Game_Map,
+  /** @param {Game_Map} $super */
+    $super => class {
   isValid(x, y) {
     return x >= 0 && y >= 0 && Math.floor(x) < this.width() && Math.floor(y) < this.height();
   }

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 ABS-INPUT] A manager for overseeing the input of JABS.
+ * [v1.0.0 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -361,24 +361,6 @@ class JABS_InputController
    * @type {JABS_Battler|null}
    */
   battler = null;
-
-  /**
-   * Gets the battler associated with this input manager.
-   * @returns {JABS_Battler|null}
-   */
-  get battler()
-  {
-    return this.battler;
-  }
-
-  /**
-   * Sets the battler that this input manager oversees.
-   * @param {JABS_Battler} battler The battler to manage.
-   */
-  set battler(battler)
-  {
-    this.battler = battler;
-  }
   //#endregion properties
 
   //#region update

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0 HUD] Provides CORE functionality for this hud system.
+ * [v2.0.0 HUD] Provides CORE functionality for this hud system.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS

@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 PROF] The various custom models created for proficiencies.
+ * [v1.0.0 PROF] The various custom models created for proficiencies.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Proficiency

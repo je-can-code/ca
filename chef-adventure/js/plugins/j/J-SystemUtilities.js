@@ -43,6 +43,9 @@ J.UTIL.Metadata = {
   Version: '1.0.0',
 };
 
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
 J.UTIL.PluginParameters = PluginManager.parameters(J.UTIL.Metadata.Name);
 
 /**

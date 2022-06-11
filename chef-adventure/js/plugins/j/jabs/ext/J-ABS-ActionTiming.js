@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 ACTION] Enable additional action-related functionalities.
+ * [v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -10,20 +10,132 @@
  * @help
  * ============================================================================
  * OVERVIEW:
- * This plugin enables additional map-action-related functionalities for JABS.
+ * This plugin enables modifications for cast times and cooldowns for actions.
  *
  * Enables:
  * - NEW! added param "Fast Cooldown", for modifying cooldown times.
  * - NEW! added param "Cast Speed", for modifying cast speeds.
  *
  * This plugin requires JABS.
- * This plugin is plug-n-play, with minimal configuration.
+ * This plugin requires no plugin parameter configuration.
+ * ----------------------------------------------------------------------------
+ * DETAILS:
+ * The new parameters of fast cooldown and cast speed are both cached to
+ * minimize processing time. The cache is refreshed on the following events:
+ *
+ * For all battlers:
+ * - a new state is added.
+ * - a current state is removed.
+ * For only actors:
+ * - new equipment is equipped.
+ * - existing equipment is unequipped.
+ * - leveling up.
+ * - leveling down.
  * ============================================================================
- * USAGE:
- * If you are using JABS, then JABS already knows what to do to make use of
- * this functionality. Just add this plugin after/below JABS, and it'll work
- * with no additional adjustments.
+ * FAST COOLDOWN:
+ * Have you ever wanted skills to have a base cooldown time, but maybe when
+ * a battler has a particular state applied or equipment equipped, they now
+ * have even faster cooldown times (or slower???)? Well now you can! By
+ * applying the appropriate tag to various database locations, you can control
+ * how fast (or slow) a battler's cooldown times are!
+ *
+ * DETAILS:
+ * By constructing tags using the format described below, you are given access
+ * to a "Formula" box that behaves similar to a "Formula" box that defines the
+ * damage of a skill. None of the tags are case sensitive, but the order is
+ * specific. If you find yourself having trouble building the tags, you can
+ * peek at the source code of this file and search for
+ * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * combinations of tags. Do note that the hard brackets of [] are required to
+ * wrap the formula in the note tag.
+ *
+ * NOTE1:
+ * If you want faster cooldowns, the formula should result in a NEGATIVE value.
+ * If you want slower cooldowns, the formula should result in a POSITIVE value.
+ *
+ * NOTE2:
+ * The minimum amount of time for cooldowns is 0 frames.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <baseFastCooldown:[FORMULA]>
+ *  <fastCooldownFlat:[FORMULA]>
+ *  <fastCooldownRate:[FORMULA]>
+ * Where [FORMULA] is the formula to produce the fast cooldown value.
+ *
+ * EXAMPLE:
+ *  <baseFastCooldown:[3]>
+ * Base fast cooldown will be set to +3 frames.
+ *
+ *  <fastCooldownFlat:[(a.level * -2)]>
+ * All cooldowns are reduced by 2 frames per level.
+ *
+ *  <fastCooldownRate:[b * -5]>
+ * All cooldowns will be reduced by 5% per point of base fast cooldown.
+ * (not a practical formula, but demonstrating use)
  * ============================================================================
+ * CAST SPEED:
+ * Have you ever wanted skills to have a base cast speed, but maybe when
+ * a battler has a particular state applied or equipment equipped, they now
+ * have even faster cast times (or slower???)? Well now you can! By
+ * applying the appropriate tag to various database locations, you can control
+ * how fast (or slow) a battler's cast times are!
+ *
+ * DETAILS:
+ * By constructing tags using the format described below, you are given access
+ * to a "Formula" box that behaves similar to a "Formula" box that defines the
+ * damage of a skill. None of the tags are case sensitive, but the order is
+ * specific. If you find yourself having trouble building the tags, you can
+ * peek at the source code of this file and search for
+ * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * combinations of tags. Do note that the hard brackets of [] are required to
+ * wrap the formula in the note tag.
+ *
+ * NOTE1:
+ * If you want faster casting, the formula should result in a NEGATIVE value.
+ * If you want slower casting, the formula should result in a POSITIVE value.
+ *
+ * NOTE2:
+ * The minimum amount of time for casting is 0 frames.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <baseCastSpeed:[FORMULA]>
+ *  <castSpeedFlat:[FORMULA]>
+ *  <castSpeedRate:[FORMULA]>
+ * Where [FORMULA] is the formula to produce the fast cooldown value.
+ *
+ * EXAMPLE:
+ *  <baseCastSpeed:[3]>
+ * Base cast speed will be set to +3 frames.
+ *
+ *  <castSpeedFlat:[(a.level * -2)]>
+ * All cast times are reduced by 2 frames per level.
+ *
+ *  <castSpeedRate:[b * -5]>
+ * All cast times will be reduced by 5% per point of base fast cooldown.
+ * (not a practical formula, but demonstrating use)
+ * ==============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ==============================================================================
  */
 
 /**
@@ -34,16 +146,16 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.ABS.EXT_ACTUP1 = {};
+J.ABS.EXT_TIMING = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_ACTUP1.Metadata = {
+J.ABS.EXT_TIMING.Metadata = {
   /**
    * The name of this plugin.
    */
-  Name: `J-ABS-ActionUpgrade`,
+  Name: `J-ABS-ActionTiming`,
 
   /**
    * The version of this plugin.
@@ -51,14 +163,12 @@ J.ABS.EXT_ACTUP1.Metadata = {
   Version: '1.0.0',
 };
 
-J.ABS.EXT_ACTUP1.PluginParameters = PluginManager.parameters(J.ABS.EXT_ACTUP1.Metadata.Name);
-J.ABS.EXT_ACTUP1.Metadata.BaseTpMaxActors = Number(J.ABS.EXT_ACTUP1.PluginParameters['actorBaseTp']);
-J.ABS.EXT_ACTUP1.Metadata.BaseTpMaxEnemies = Number(J.ABS.EXT_ACTUP1.PluginParameters['enemyBaseTp']);
+J.ABS.EXT_TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT_TIMING.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_ACTUP1.Aliased = {
+J.ABS.EXT_TIMING.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
@@ -66,7 +176,10 @@ J.ABS.EXT_ACTUP1.Aliased = {
   JABS_Action: new Map(),
 };
 
-J.ABS.EXT_ACTUP1.RegExp = {
+/**
+ * All regular expressions used by this plugin.
+ */
+J.ABS.EXT_TIMING.RegExp = {
   BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
@@ -80,11 +193,11 @@ J.ABS.EXT_ACTUP1.RegExp = {
 /**
  * Extends `initMembers()` to include initialization of our new parameters.
  */
-J.ABS.EXT_ACTUP1.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
+J.ABS.EXT_TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_ACTUP1.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.EXT_TIMING.Aliased.Game_Battler.get('initMembers').call(this);
 
   // initialize the extra members.
   this.initActionUpgrades1();
@@ -108,43 +221,43 @@ Game_Battler.prototype.initActionUpgrades1 = function()
   /**
    * A grouping of all JABS properties associated with the set-1 of action upgrades.
    */
-  this._j._abs._au1 = {};
+  this._j._abs._timing = {};
 
   /**
    * The cached value for fast cooldown's base modifier.
    * @type {number}
    */
-  this._j._abs._au1._baseFastCooldown = 0;
+  this._j._abs._timing._baseFastCooldown = 0;
 
   /**
    * The cached value for fast cooldown's flat modifier.
    * @type {number}
    */
-  this._j._abs._au1._fastCooldownFlat = 0;
+  this._j._abs._timing._fastCooldownFlat = 0;
 
   /**
    * The cached value for the fast cooldown's multiplicative modifier.
    * @type {number}
    */
-  this._j._abs._au1._fastCooldownRate = 0;
+  this._j._abs._timing._fastCooldownRate = 0;
 
   /**
    * The cached value for the cast speed's base modifier.
    * @type {number}
    */
-  this._j._abs._au1._baseCastSpeed = 0;
+  this._j._abs._timing._baseCastSpeed = 0;
 
   /**
    * The cached value for the cast speed's flat modifier.
    * @type {number}
    */
-  this._j._abs._au1._castSpeedFlat = 0;
+  this._j._abs._timing._castSpeedFlat = 0;
 
   /**
    * The cached value for the cast speed's multiplicative modifier.
    * @type {number}
    */
-  this._j._abs._au1._castSpeedRate = 0;
+  this._j._abs._timing._castSpeedRate = 0;
 };
 
 //#region getters & setters & updates
@@ -154,7 +267,7 @@ Game_Battler.prototype.initActionUpgrades1 = function()
  */
 Game_Battler.prototype.getBaseFastCooldown = function()
 {
-  return this._j._abs._au1._baseFastCooldown;
+  return this._j._abs._timing._baseFastCooldown;
 };
 
 /**
@@ -163,7 +276,7 @@ Game_Battler.prototype.getBaseFastCooldown = function()
  */
 Game_Battler.prototype.setBaseFastCooldown = function(amount)
 {
-  this._j._abs._au1._baseFastCooldown = amount;
+  this._j._abs._timing._baseFastCooldown = amount;
 };
 
 /**
@@ -185,7 +298,7 @@ Game_Battler.prototype.updateBaseFastCooldown = function()
  */
 Game_Battler.prototype.getFastCooldownFlat = function()
 {
-  return this._j._abs._au1._fastCooldownFlat;
+  return this._j._abs._timing._fastCooldownFlat;
 };
 
 /**
@@ -194,7 +307,7 @@ Game_Battler.prototype.getFastCooldownFlat = function()
  */
 Game_Battler.prototype.setFastCooldownFlat = function(amount)
 {
-  this._j._abs._au1._fastCooldownFlat = amount;
+  this._j._abs._timing._fastCooldownFlat = amount;
 };
 
 /**
@@ -215,7 +328,7 @@ Game_Battler.prototype.updateFastCooldownFlat = function()
  */
 Game_Battler.prototype.getFastCooldownRate = function()
 {
-  return this._j._abs._au1._fastCooldownRate;
+  return this._j._abs._timing._fastCooldownRate;
 };
 
 /**
@@ -224,7 +337,7 @@ Game_Battler.prototype.getFastCooldownRate = function()
  */
 Game_Battler.prototype.setFastCooldownRate = function(amount)
 {
-  this._j._abs._au1._fastCooldownRate = amount;
+  this._j._abs._timing._fastCooldownRate = amount;
 };
 
 /**
@@ -245,7 +358,7 @@ Game_Battler.prototype.updateFastCooldownRate = function()
  */
 Game_Battler.prototype.getBaseCastSpeed = function()
 {
-  return this._j._abs._au1._baseCastSpeed;
+  return this._j._abs._timing._baseCastSpeed;
 };
 
 /**
@@ -254,7 +367,7 @@ Game_Battler.prototype.getBaseCastSpeed = function()
  */
 Game_Battler.prototype.setBaseCastSpeed = function(amount)
 {
-  this._j._abs._au1._baseCastSpeed = amount;
+  this._j._abs._timing._baseCastSpeed = amount;
 };
 
 /**
@@ -275,7 +388,7 @@ Game_Battler.prototype.updateBaseCastSpeed = function()
  */
 Game_Battler.prototype.getCastSpeedFlat = function()
 {
-  return this._j._abs._au1._castSpeedFlat;
+  return this._j._abs._timing._castSpeedFlat;
 };
 
 /**
@@ -284,7 +397,7 @@ Game_Battler.prototype.getCastSpeedFlat = function()
  */
 Game_Battler.prototype.setCastSpeedFlat = function(amount)
 {
-  this._j._abs._au1._castSpeedFlat = amount;
+  this._j._abs._timing._castSpeedFlat = amount;
 };
 
 /**
@@ -305,7 +418,7 @@ Game_Battler.prototype.updateCastSpeedFlat = function()
  */
 Game_Battler.prototype.getCastSpeedRate = function()
 {
-  return this._j._abs._au1._castSpeedRate;
+  return this._j._abs._timing._castSpeedRate;
 };
 
 /**
@@ -314,7 +427,7 @@ Game_Battler.prototype.getCastSpeedRate = function()
  */
 Game_Battler.prototype.setCastSpeedRate = function(amount)
 {
-  this._j._abs._au1._castSpeedRate = amount;
+  this._j._abs._timing._castSpeedRate = amount;
 };
 
 /**
@@ -347,7 +460,7 @@ Game_Battler.prototype.baseCastSpeed = function()
   // sum together all the csp flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.BaseCastSpeed,
+    J.ABS.EXT_TIMING.RegExp.BaseCastSpeed,
     baseParam,
     this);
 
@@ -370,7 +483,7 @@ Game_Battler.prototype.castSpeedFlat = function()
   // sum together all the csp flat modifiers.
   const cspFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.CastSpeedFlat,
+    J.ABS.EXT_TIMING.RegExp.CastSpeedFlat,
     baseParam,
     this);
 
@@ -393,7 +506,7 @@ Game_Battler.prototype.castSpeedRate = function()
   // grab the base parameter value.
   const cspRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.CastSpeedRate,
+    J.ABS.EXT_TIMING.RegExp.CastSpeedRate,
     baseParam,
     this);
 
@@ -473,7 +586,7 @@ Game_Battler.prototype.baseFastCooldown = function()
   // sum together all the fcd flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.BaseFastCooldown,
+    J.ABS.EXT_TIMING.RegExp.BaseFastCooldown,
     baseParam,
     this);
 
@@ -496,7 +609,7 @@ Game_Battler.prototype.fastCooldownFlat = function()
   // sum together all the fcd flat modifiers.
   const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.FastCooldownFlat,
+    J.ABS.EXT_TIMING.RegExp.FastCooldownFlat,
     baseParam,
     this);
 
@@ -519,7 +632,7 @@ Game_Battler.prototype.fastCooldownRate = function()
   // grab the base parameter value.
   const fcdRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_ACTUP1.RegExp.FastCooldownRate,
+    J.ABS.EXT_TIMING.RegExp.FastCooldownRate,
     baseParam,
     this);
 
@@ -587,11 +700,11 @@ Game_Battler.prototype.minimumCooldown = function()
  * Extends {@link JABS_Action.getCastTime}.
  * Applies cast speed into the equation of determining cast time.
  */
-J.ABS.EXT_ACTUP1.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
+J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
 JABS_Action.prototype.getCastTime = function()
 {
   // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT_ACTUP1.Aliased.JABS_Action.get('getCastTime').call(this);
+  const skillCastTime = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();
@@ -610,11 +723,11 @@ JABS_Action.prototype.getCastTime = function()
  * Extends {@link JABS_Action.getCooldown}.
  * Applies fast cooldown into the equation of determining cooldown time.
  */
-J.ABS.EXT_ACTUP1.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
+J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
 JABS_Action.prototype.getCooldown = function()
 {
   // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT_ACTUP1.Aliased.JABS_Action.get('getCooldown').call(this);
+  const skillCooldown = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();

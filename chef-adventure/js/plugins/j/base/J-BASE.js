@@ -237,6 +237,7 @@ J.BASE.Aliased = {
   Game_Character: {},
   Game_Actor: new Map(),
   Game_Battler: new Map(),
+  Game_Enemy: new Map(),
   Game_Party: new Map(),
   Scene_Base: new Map(),
   Window_Base: {},
@@ -1843,7 +1844,7 @@ Game_Actor.prototype.longParam = function(paramId)
     case 30:
       return this.maxTp();              // mtp
     case 31:
-      return this.getSpeedBoosts();               // move speed boost
+      return this.getWalkSpeedBoosts();               // move speed boost
     case 32:
       return this.bonusSkillProficiencyGains();   // proficiency boost
     case 33:
@@ -1890,6 +1891,7 @@ Game_Actor.prototype.isLeader = function()
  */
 Game_Actor.prototype.getAllNotes = function()
 {
+  // initialize the collection.
   const objectsWithNotes = [];
 
   // get the actor object.
@@ -1936,6 +1938,31 @@ Game_Actor.prototype.getCurrentWithNotes = function()
 
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;
+};
+
+/**
+ * Extends {@link #setup}.
+ * Adds a hook for performing actions when an actor is setup.
+ */
+J.BASE.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
+Game_Actor.prototype.setup = function(actorId)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('setup').call(this, actorId);
+
+  // execute the on-setup hook.
+  this.onSetup(actorId);
+};
+
+/**
+ * A hook for performing actions when an actor is setup.
+ * @param {number} actorId The actor's id.
+ */
+Game_Actor.prototype.onSetup = function(actorId)
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
+  console.log(`actor ${this.name()} was setup.`);
 };
 
 /**
@@ -2357,6 +2384,30 @@ Game_Enemy.prototype.databaseData = function()
 Game_Enemy.prototype.battlerId = function()
 {
   return this.enemyId();
+};
+
+/**
+ * Extends {@link #setup}.
+ * Adds a hook for performing actions when an enemy is setup.
+ */
+J.BASE.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
+Game_Enemy.prototype.setup = function(enemyId)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Enemy.get('setup').call(this, enemyId);
+
+  // execute the on-setup hook.
+  this.onSetup(enemyId);
+};
+
+/**
+ * A hook for performing actions when an enemy is setup.
+ * @param {number} enemyId The enemy's id.
+ */
+Game_Enemy.prototype.onSetup = function(enemyId)
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
 };
 
 /**
@@ -6031,7 +6082,7 @@ class RPG_Actor extends RPG_BaseBattler
    * The nickname of this actor from the database.
    * @type {string}
    */
-  nickName = String.empty;
+  nickname = String.empty;
 
   /**
    * The profile multiline text for this actor in the database.
@@ -6069,7 +6120,7 @@ class RPG_Actor extends RPG_BaseBattler
     this.faceName = actor.faceName;
     this.initialLevel = actor.initialLevel;
     this.maxLevel = actor.maxLevel;
-    this.nickName = actor.nickname;
+    this.nickname = actor.nickname;
     this.profile = actor.profile;
   }
 }

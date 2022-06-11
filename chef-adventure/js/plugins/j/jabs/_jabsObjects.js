@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v3.0 JABS] Mods/Adds for the various game object classes.
+ * [v3.0.0 JABS] Mods/Adds for the various game object classes.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -37,12 +37,6 @@ Game_Actor.prototype.initMembers = function()
    * @type {{}}
    */
   this._j._abs ||= {};
-
-  /**
-   * The total speed boosts currently applied to this actor.
-   * @type {number}
-   */
-  this._j._abs._speedBoosts = 0;
 
   /**
    * The number of bonus hits this actor currently has.
@@ -998,7 +992,7 @@ Game_Actor.prototype.releaseUnequippableSkills = function()
 
 /**
  * Extends {@link #onBattlerDataChange}.
- * Adds a hook for performing actions when a state is removed from the battler.
+ * Adds a hook for performing actions when the battler's data hase changed.
  */
 J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
 Game_Actor.prototype.onBattlerDataChange = function()
@@ -1017,9 +1011,6 @@ Game_Actor.prototype.jabsRefresh = function()
 {
   // refresh the currently equipped skills to ensure they are still valid.
   this.refreshEquipmentSkills();
-
-  // refresh the speed boosts to ensure they are still accurate.
-  this.refreshSpeedBoosts();
 
   // refresh the bonus hits to ensure they are still accurate.
   this.refreshBonusHits();
@@ -1166,51 +1157,6 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
     const slotKey = emptySlots[0].key;
     this.setEquippedSkill(slotKey, skillId);
   }
-};
-
-/**
- * Updates the speed boost scale for this actor based on equipment.
- */
-Game_Actor.prototype.refreshSpeedBoosts = function()
-{
-  // default to 0 of speed boost.
-  let speedBoosts = 0;
-
-  // iterate over all equips.
-  this.equips().forEach(equip =>
-  {
-    // if the equip is invalid, don't process.
-    if (!equip) return;
-
-    // check to make sure there is a speed boost before adding.
-    if (equip.jabsSpeedBoost)
-    {
-      // add the speed boost.
-      speedBoosts += equip.jabsSpeedBoost;
-    }
-  });
-
-  // iterate over all states.
-  this.states().forEach(state =>
-  {
-    // check to make sure there is a speed boost before adding.
-    if (state.jabsSpeedBoost)
-    {
-      // add the speed boost.
-      speedBoosts += state.jabsSpeedBoost;
-    }
-  });
-
-  this._j._abs._speedBoosts = speedBoosts;
-};
-
-/**
- * Gets the current speed boost scale for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getSpeedBoosts = function()
-{
-  return this._j._abs._speedBoosts;
 };
 
 /**
@@ -2263,16 +2209,6 @@ Game_Battler.prototype.getBonusHitsFromNonTraitedSources = function(sources)
 };
 
 /**
- * Gets the current speed boost scale for this actor.
- * At the Game_Battler level will always return 0.
- * @returns {number}
- */
-Game_Battler.prototype.getSpeedBoosts = function()
-{
-  return 0;
-};
-
-/**
  * Gets the currently-equipped skill id in the specified slot.
  * At the Game_Battler level will always return 0.
  * @returns {number}
@@ -2514,16 +2450,16 @@ Game_Character.prototype.getActionUuid = function()
  * Gets the `JABS_Battler` associated with this character.
  * @returns {JABS_Battler}
  */
-Game_Character.prototype.getMapBattler = function()
+Game_Character.prototype.getJabsBattler = function()
 {
-  const uuid = this.getMapBattlerUuid();
+  const uuid = this.getJabsBattlerUuid();
   return $gameMap.getBattlerByUuid(uuid);
 };
 
 /**
  * Gets the `uuid` of this `JABS_Battler`.
  */
-Game_Character.prototype.getMapBattlerUuid = function()
+Game_Character.prototype.getJabsBattlerUuid = function()
 {
   const asp = this.getActionSpriteProperties();
   return asp.battlerUuid;
@@ -2620,7 +2556,7 @@ Game_Character.prototype.requestAnimation = function(animationId, parried = fals
 J.ABS.Aliased.Game_Character.isMovementSucceeded = Game_Character.prototype.isMovementSucceeded;
 Game_Character.prototype.isMovementSucceeded = function()
 {
-  const battler = this.getMapBattler();
+  const battler = this.getJabsBattler();
   if (battler && !battler.canBattlerMove())
   {
     return false;
@@ -2890,11 +2826,10 @@ Game_CharacterBase.prototype.initMembers = function()
  */
 Game_CharacterBase.prototype.realMoveSpeed = function()
 {
-  let realMoveSpeed = this._realMoveSpeed;
   const dashBoost = (this.isDashing()
     ? this.dashSpeed()
     : 0);
-  realMoveSpeed += dashBoost;
+  const realMoveSpeed = this._realMoveSpeed + dashBoost;
   return realMoveSpeed;
 };
 
@@ -2912,7 +2847,10 @@ Game_CharacterBase.prototype.dashSpeed = function()
 J.ABS.Aliased.Game_CharacterBase.setMoveSpeed = Game_CharacterBase.prototype.setMoveSpeed;
 Game_CharacterBase.prototype.setMoveSpeed = function(moveSpeed)
 {
+  // perform original logic.
   J.ABS.Aliased.Game_CharacterBase.setMoveSpeed.call(this, moveSpeed);
+
+  // set the underlying real move speed to this.
   this._realMoveSpeed = moveSpeed;
 };
 
@@ -3779,7 +3717,7 @@ Game_Event.prototype.page = function()
  */
 Game_Event.prototype.transformBattler = function()
 {
-  const battler = this.getMapBattler();
+  const battler = this.getJabsBattler();
   if (battler)
   {
     battler.revealHiddenBattler();
@@ -4812,7 +4750,7 @@ Game_Map.prototype.refreshAllBattlers = function()
 Game_Map.prototype.refreshOneBattler = function(event)
 {
   // get the index of the battler by uuid, assuming they exist in the collection.
-  const [battler, targetIndex] = this.findBattlerByUuid(event.getMapBattlerUuid());
+  const [battler, targetIndex] = this.findBattlerByUuid(event.getJabsBattlerUuid());
 
   // if we found a match, it is update/delete.
   const newBattler = this.convertOneToEnemy(event);
@@ -5682,7 +5620,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
           !event._erased &&
           event.isTriggerIn(triggers) &&
           event.isNormalPriority() === normal &&
-          !event.getMapBattler()
+          !event.getJabsBattler()
         )
         {
           event.start();
@@ -5705,8 +5643,7 @@ Game_Player.prototype.canMove = function()
 {
   const isMenuRequested = $jabsEngine.requestAbsMenu;
   const isAbsPaused = $jabsEngine.absPause;
-  const isPlayerCasting = $jabsEngine.getPlayer1()
-    .isCasting();
+  const isPlayerCasting = $jabsEngine.getPlayer1().isCasting();
   if (isMenuRequested || isAbsPaused || isPlayerCasting)
   {
     return false;
@@ -5738,120 +5675,6 @@ Game_Player.prototype.refresh = function()
 {
   J.ABS.Aliased.Game_Player.refresh.call(this);
   $jabsEngine.initializePlayer1();
-};
-
-/**
- * Hooks into the distance per frame algorithm and extends it for custom move speeds
- * based on equipment for the player.
- * @return {number} The modified distance per frame to move.
- */
-J.ABS.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
-Game_Player.prototype.distancePerFrame = function()
-{
-  const base = J.ABS.Aliased.Game_Player.distancePerFrame.call(this);
-  const bonus = this.calculateMovespeedMultiplier(base);
-  return (base + bonus);
-};
-
-/**
- * Determines the bonus (or penalty) move speed for the player based on equipment.
- * @param {number} baseMoveSpeed The base distance per frame.
- */
-Game_Player.prototype.calculateMovespeedMultiplier = function(baseMoveSpeed)
-{
-  // if we don't have a player to work with, don't do this.
-  const player = $jabsEngine.getPlayer1();
-  if (!player) return 0;
-
-  const scale = player.getSpeedBoosts();
-  if (scale === 0) return 0;
-
-  const multiplier = (scale > 0)
-    ? this.translatePositiveSpeedBoost(scale)
-    : this.translateNegativeSpeedBoost(scale);
-
-  return baseMoveSpeed * multiplier;
-};
-
-/**
- * Translates a scale of positive points into bonus move speed multiplier.
- * @param {number} scale The scale of points to translate into bonus move speed.
- * @returns {number} The multiplier against the base move speed.
- */
-Game_Player.prototype.translatePositiveSpeedBoost = function(scale)
-{
-  let boost = 0.00000;
-
-  // tier 1 boost = 10% per scale for 5 ranks (max +50%).
-  if (scale > 5)
-  {
-    boost += 0.5;
-    scale -= 5;
-  }
-  else
-  {
-    boost += (scale * 0.1);
-    return boost;
-  }
-
-  // tier 2 boost = 5% per scale for 5 ranks (max +25%).
-  if (scale > 5)
-  {
-    boost += 0.25;
-    scale -= 5;
-  }
-  else
-  {
-    boost += (scale * 0.05);
-    return boost;
-  }
-
-  // tier 3 boost = 2.5% per scale for all remaining ranks.
-  boost += (scale * 0.025);
-  return boost;
-};
-
-/**
- * Translates a scale of positive points into penalty move speed multiplier.
- * @param {number} scale The scale of points to translate into penalty move speed.
- * @returns {number} The multiplier against the base move speed.
- */
-Game_Player.prototype.translateNegativeSpeedBoost = function(scale)
-{
-  // normalize the scale because its easier that way.
-  scale = Math.abs(scale);
-  let boost = 0.00000;
-
-  // tier 1 boost = 3% per scale for 5 ranks (max -15%).
-  const t1scale = 0.03;
-  if (scale > 5)
-  {
-    boost -= (t1scale * 5);
-    scale -= 5;
-  }
-  else
-  {
-    boost -= (scale * t1scale);
-    return boost;
-  }
-
-  // tier 2 boost = 2% per scale for 5 ranks (max -10%) again.
-  const t2scale = 0.02;
-  if (scale > 5)
-  {
-    boost -= (t2scale * 5);
-    scale -= 5;
-  }
-  else
-  {
-    boost += (scale * t2scale);
-    return boost;
-  }
-
-  // tier 3 boost = 1% per scale for all remaining ranks.
-  const t3scale = 0.01;
-  boost += (scale * t3scale);
-  return boost;
 };
 
 /**
@@ -6134,37 +5957,7 @@ RPG_EquipItem.prototype.extractJabsOffhandSkillId = function()
 };
 //#endregion offhand skillId
 
-//#region speedBoost
-/**
- * The movement speed modifier from this equip.
- * @type {number|null}
- */
-Object.defineProperty(RPG_EquipItem.prototype, "jabsSpeedBoost",
-  {
-    get: function()
-    {
-      return this.getJabsSpeedBoost();
-    },
-  });
 
-/**
- * Gets the movement speed modifier from this equip.
- * @returns {number|null}
- */
-RPG_EquipItem.prototype.getJabsSpeedBoost = function()
-{
-  return this.extractJabsSpeedBoost()
-};
-
-/**
- * Gets the value from its notes.
- * @returns {number|null}
- */
-RPG_EquipItem.prototype.extractJabsSpeedBoost = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
-};
-//#endregion speedBoost
 
 //#region useOnPickup
 /**
@@ -7910,38 +7703,6 @@ RPG_State.prototype.extractJabsOffhandSkillId = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
 //#endregion offhand skillId
-
-//#region speedBoost
-/**
- * The movement speed modifier from this state.
- * @type {number|null}
- */
-Object.defineProperty(RPG_State.prototype, "jabsSpeedBoost",
-  {
-    get: function()
-    {
-      return this.getJabsSpeedBoost();
-    },
-  });
-
-/**
- * Gets the movement speed modifier from this state.
- * @returns {number|null}
- */
-RPG_State.prototype.getJabsSpeedBoost = function()
-{
-  return this.extractJabsSpeedBoost()
-};
-
-/**
- * Gets the value from its notes.
- * @returns {number|null}
- */
-RPG_State.prototype.extractJabsSpeedBoost = function()
-{
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
-};
-//#endregion speedBoost
 
 //#region slipHp
 //#region flat

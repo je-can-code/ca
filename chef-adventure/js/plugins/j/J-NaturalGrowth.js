@@ -138,7 +138,7 @@
  * along with a translation to the actual parameter of all supported shorthands.
  *
  * NOTE:
- * Custom parameters will require their respective plugins added above this one.
+ * Custom parameters will require their respective plugins added below this one.
  *
  * Base Parameters:
  * - mhp (max hp)
@@ -222,6 +222,9 @@ J.NATURAL.Metadata = {
   Version: '1.0.0',
 };
 
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
 J.NATURAL.PluginParameters = PluginManager.parameters(J.NATURAL.Metadata.Name);
 J.NATURAL.Metadata.BaseTpMaxActors = Number(J.NATURAL.PluginParameters['actorBaseTp']);
 J.NATURAL.Metadata.BaseTpMaxEnemies = Number(J.NATURAL.PluginParameters['enemyBaseTp']);

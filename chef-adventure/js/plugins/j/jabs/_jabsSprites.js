@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v3.0 JABS] Mods/Adds for the various sprite object classes.
+ * [v3.0.0 JABS] Mods/Adds for the various sprite object classes.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -402,7 +402,7 @@ Sprite_Character.prototype.getBattler = function()
   if (this.isJabsBattler())
   {
     // grab the battler associated with this sprite.
-    return this._character.getMapBattler().getBattler();
+    return this._character.getJabsBattler().getBattler();
   }
   // otherwise, this must be a regular sprite for an event.
   else return null;
@@ -708,7 +708,7 @@ Sprite_Character.prototype.canUpdateHpGauge = function()
   if (!this.isJabsBattler()) return false;
 
   // if we aren't allowed to show the gauge, then it shouldn't update.
-  if (!this._character.getMapBattler().showHpBar()) return false;
+  if (!this._character.getJabsBattler().showHpBar()) return false;
 
   // we should update!
   return true;
@@ -837,7 +837,7 @@ Sprite_Character.prototype.canUpdateBattlerName = function()
   if (!this.isJabsBattler()) return false;
 
   // if we aren't allowed to show the battler name, then it shouldn't update.
-  if (!this._character.getMapBattler().showBattlerName()) return false;
+  if (!this._character.getJabsBattler().showBattlerName()) return false;
 
   // we should update!
   return true;

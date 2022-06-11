@@ -3268,18 +3268,23 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
   executeComboAction(caster, action)
   {
+    // get the base skill of the action.
     const skill = action.getBaseSkill();
-    const skillId = skill.jabsComboSkillId;
-    const comboDelay = skill.jabsComboDelay;
 
+    // extract the combo data out of the skill.
+    const {jabsComboSkillId, jabsComboDelay} = skill;
+
+    // determine which slot to apply cooldowns to.
     const cooldownKey = action.getCooldownType();
-    if (!(caster.getComboNextActionId(cooldownKey) === skillId))
+
+    //
+    if (!(caster.getComboNextActionId(cooldownKey) === jabsComboSkillId))
     {
-      caster.modCooldownCounter(cooldownKey, comboDelay);
+      caster.modCooldownCounter(cooldownKey, jabsComboDelay);
     }
 
-    caster.setComboFrames(cooldownKey, comboDelay);
-    caster.setComboNextActionId(cooldownKey, skillId);
+    caster.setComboFrames(cooldownKey, jabsComboDelay);
+    caster.setComboNextActionId(cooldownKey, jabsComboSkillId);
   }
 
   /**
@@ -3348,7 +3353,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
 
     // grab the amount of parry ignored.
-    const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) * 0.01;
+    const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) / 100;
 
     // calculate the parry rate.
     const parry = parseFloat((targetBattler.grd - 1 - parryIgnored).toFixed(3));
@@ -3430,8 +3435,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
-    if (action.getCaster()
-      .isSameTeam(targetBattler.getTeam()))
+    if (action.getCaster().isSameTeam(targetBattler.getTeam()))
     {
       return;
     }
@@ -4765,7 +4769,7 @@ class JABS_InputAdapter
   static performMainhandAction(jabsBattler)
   {
     // if the mainhand action isn't ready, then do not perform.
-    if (!this.canPerformMainhandAction(jabsBattler)) return;
+    if (!this.#canPerformMainhandAction(jabsBattler)) return;
 
     // get all actions associated with the mainhand.
     const actions = jabsBattler.getAttackData(JABS_Button.Main);
@@ -4788,7 +4792,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformMainhandAction(jabsBattler)
+  static #canPerformMainhandAction(jabsBattler)
   {
     // do not perform actions if there is pedestrians infront of you!
     if ($gameMap.hasInteractableEventInFront(jabsBattler)) return false;
@@ -4812,6 +4816,26 @@ class JABS_InputAdapter
     return true;
   }
 
+  static performMainhandActionCharging(charging, jabsBattler)
+  {
+
+  }
+
+  static #canPerformMainhandActionCharging(jabsBattler)
+  {
+    // if the battler can't use attacks, then do not perform.
+    if (!jabsBattler.canBattlerUseAttacks()) return false;
+
+    // if the mainhand action isn't ready, then do not perform.
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Main)) return false;
+
+    // if the player is casting, then do not perform.
+    if (jabsBattler.isCasting()) return false;
+
+    // perform!
+    return true;
+  }
+
   /**
    * Executes an action on the map based on the offhand skill slot.
    * @param {JABS_Battler} jabsBattler The battler performing the action.
@@ -4819,7 +4843,7 @@ class JABS_InputAdapter
   static performOffhandAction(jabsBattler)
   {
     // if the offhand action isn't ready, then do not perform.
-    if (!this.canPerformOffhandAction(jabsBattler)) return;
+    if (!this.#canPerformOffhandAction(jabsBattler)) return;
 
     // get all actions associated with the offhand.
     const actions = jabsBattler.getAttackData(JABS_Button.Offhand);
@@ -4842,7 +4866,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformOffhandAction(jabsBattler)
+  static #canPerformOffhandAction(jabsBattler)
   {
     // if the offhand skill is actually a guard skill, then do not perform.
     if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
@@ -4877,7 +4901,7 @@ class JABS_InputAdapter
   static performToolAction(jabsBattler)
   {
     // if the tool action isn't ready, then do not perform.
-    if (!this.canPerformToolAction(jabsBattler)) return;
+    if (!this.#canPerformToolAction(jabsBattler)) return;
 
     // grab the tool id currently equipped.
     const toolId = jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool);
@@ -4891,7 +4915,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformToolAction(jabsBattler)
+  static #canPerformToolAction(jabsBattler)
   {
     // if the tool is not off cooldown, then do not perform.
     if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
@@ -4911,7 +4935,7 @@ class JABS_InputAdapter
   static performDodgeAction(jabsBattler)
   {
     // check if we can dodge.
-    if (!this.canPerformDodge(jabsBattler)) return;
+    if (!this.#canPerformDodge(jabsBattler)) return;
 
     // perform the dodge skill.
     jabsBattler.tryDodgeSkill();
@@ -4922,7 +4946,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformDodge(jabsBattler)
+  static #canPerformDodge(jabsBattler)
   {
     // if the dodge skill is not off cooldown, then do not perform.
     if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Dodge)) return false;
@@ -4942,7 +4966,7 @@ class JABS_InputAdapter
   static performCombatAction(slot, jabsBattler)
   {
     // if the offhand action isn't ready, then do not perform.
-    if (!this.canPerformCombatActionBySlot(slot, jabsBattler)) return;
+    if (!this.#canPerformCombatActionBySlot(slot, jabsBattler)) return;
 
     // get all actions associated with the offhand.
     const actions = jabsBattler.getAttackData(slot);
@@ -4960,7 +4984,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformCombatActionBySlot(slot, jabsBattler)
+  static #canPerformCombatActionBySlot(slot, jabsBattler)
   {
     // if the battler can't use attacks, then do not perform.
     if (!jabsBattler.canBattlerUseSkills()) return false;
@@ -4990,7 +5014,7 @@ class JABS_InputAdapter
   static performStrafe(strafing, jabsBattler)
   {
     // check if we can strafe.
-    if (!this.canPerformStrafe(jabsBattler)) return;
+    if (!this.#canPerformStrafe(jabsBattler)) return;
 
     // perform the strafe.
     jabsBattler.getCharacter().setDirectionFix(strafing);
@@ -5001,7 +5025,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformStrafe(jabsBattler)
+  static #canPerformStrafe(jabsBattler)
   {
     return true;
   }
@@ -5015,7 +5039,7 @@ class JABS_InputAdapter
   static performRotate(rotating, jabsBattler)
   {
     // check if we can rotate.
-    if (!this.canPerformRotate(jabsBattler)) return;
+    if (!this.#canPerformRotate(jabsBattler)) return;
 
     // perform the rotation.
     jabsBattler.setMovementLock(rotating);
@@ -5026,7 +5050,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformRotate(jabsBattler)
+  static #canPerformRotate(jabsBattler)
   {
     return true;
   }
@@ -5040,7 +5064,7 @@ class JABS_InputAdapter
   static performGuard(guarding, jabsBattler)
   {
     // check if we can guard with the offhand slot.
-    if (!this.canPerformGuardBySlot(JABS_Button.Offhand, jabsBattler)) return;
+    if (!this.#canPerformGuardBySlot(JABS_Button.Offhand, jabsBattler)) return;
 
     // perform the guard skill in the offhand slot.
     jabsBattler.executeGuard(guarding, JABS_Button.Offhand);
@@ -5052,7 +5076,7 @@ class JABS_InputAdapter
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformGuardBySlot(slot, jabsBattler)
+  static #canPerformGuardBySlot(slot, jabsBattler)
   {
     // if the offhand slot is not a guard skill, then do not perform.
     if (!jabsBattler.isGuardSkillByKey(slot)) return false;
@@ -5070,7 +5094,7 @@ class JABS_InputAdapter
   static performPartyCycling(force = false)
   {
     // check if we can party cycle.
-    if (!this.canPerformPartyCycling(force)) return;
+    if (!this.#canPerformPartyCycling(force)) return;
 
     // execute the party cycling.
     $jabsEngine.performPartyCycling(force);
@@ -5081,7 +5105,7 @@ class JABS_InputAdapter
    * @param {boolean} force Using `force` overrides party-cycle-lock.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformPartyCycling(force)
+  static #canPerformPartyCycling(force)
   {
     // if rotating is disabled, then skip- forced cycling bypasses this check.
     if (!$gameParty.canPartyCycle() && !force) return false;
@@ -5099,7 +5123,7 @@ class JABS_InputAdapter
   static performMenuAction()
   {
     // if we cannot call the menu, then do not.
-    if (!this.canPerformMenuAction()) return;
+    if (!this.#canPerformMenuAction()) return;
 
     // pause JABS.
     $jabsEngine.absPause = true;
@@ -5112,7 +5136,7 @@ class JABS_InputAdapter
    * Determines whether or not we can call the menu.
    * @returns {boolean} True if they can, false otherwise.
    */
-  static canPerformMenuAction()
+  static #canPerformMenuAction()
   {
     // there are currently no conditions for accessing the JABS menu.
     return true;

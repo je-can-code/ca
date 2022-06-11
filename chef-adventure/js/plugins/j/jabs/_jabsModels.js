@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0 JABS] The various custom models created for JABS.
+ * [v3.0.0 JABS] The various custom models created for JABS.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -938,12 +938,6 @@ JABS_Battler.prototype.initBattleInfo = function()
   this.initEnemySkillManager();
 
   /**
-   * The collection of all states for this battler.
-   * @type {any}
-   */
-  this._stateTracker = {};
-
-  /**
    * The current phase of AI battling that this battler is in.
    * Only utilized by AI.
    * @type {number}
@@ -1536,7 +1530,7 @@ JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
 
 /**
  * Determines whether or not an item should be visible
- * in the jabs tool assignment menu.
+ * in the JABS tool assignment menu.
  * @param {RPG_Item} item The item to check if should be visible.
  * @returns {boolean}
  */
@@ -2328,8 +2322,8 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.setInvincible(skill.jabsInvincibleDodge);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
-  const dodgeSpeedBoost = 2;
-  this.getCharacter().setDodgeBoost(dodgeSpeedBoost);
+  const dodgeSpeedBonus = 2;
+  this.getCharacter().setDodgeBoost(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
   this._dodgeSteps = skill.jabsRange;
@@ -2584,7 +2578,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
 
 /**
  * Determines if a state should be processed or not for slip effects.
- * @param {rm.types.State} state The state to check if needing processing.
+ * @param {RPG_State} state The state to check if needing processing.
  * @returns {boolean} True if we should process this state, false otherwise.
  */
 JABS_Battler.prototype.shouldProcessState = function(state)
@@ -2900,20 +2894,33 @@ JABS_Battler.prototype.setMovementLock = function(locked = true)
  */
 JABS_Battler.prototype.canBattlerMove = function()
 {
-  if (this.isMovementLocked())
-  {
-    return false;
-  }
+  // battlers cannot move if they are movement locked by choice (rotating/guarding/etc).
+  if (this.isMovementLocked()) return false;
 
+  // battlers cannot move if they are movement locked by state.
+  if (this.isMovementLockedByState()) return false;
+
+  // battler can move!
+  return true;
+};
+
+/**
+ * Checks all states to see if any are movement-locking.
+ * @returns {boolean} True if there is at least one locking movement, false otherwise.
+ */
+JABS_Battler.prototype.isMovementLockedByState = function()
+{
+  // grab the states to check for movement-blocking effects.
   const states = this.getBattler().states();
-  if (!states.length)
-  {
-    return true;
-  }
-  
-    const rooted = states.find(state => (state.jabsRooted || state.jabsParalyzed));
-    return !rooted;
-  
+
+  // if we have no states,
+  if (!states.length) return false;
+
+  // check all our states to see if any are blocking movement.
+  const lockedByState = states.some(state => (state.jabsRooted || state.jabsParalyzed));
+
+  // return what we found.
+  return lockedByState;
 };
 
 /**
@@ -4686,7 +4693,17 @@ JABS_Battler.prototype.getBattlerId = function()
  */
 JABS_Battler.prototype.getComboNextActionId = function(cooldownKey)
 {
-  return this._cooldowns[cooldownKey].comboNextActionId;
+  // grab the cooldown of the given slot.
+  const cooldown = this.getCooldown(cooldownKey);
+
+  // if we have no cooldown there, then default to 0.
+  if (!cooldown) return 0;
+
+  // extract the next combo action from the cooldown.
+  const {comboNextActionId} = cooldown;
+
+  // return the extraction.
+  return comboNextActionId;
 };
 
 /**
@@ -4785,18 +4802,6 @@ JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
   }
 
   return bonusHits;
-};
-
-/**
- * Gets the speedboost values for this battler.
- * @returns {number} The speedboost value.
- */
-JABS_Battler.prototype.getSpeedBoosts = function()
-{
-  // only calculate for the player (and allies).
-  if (this.isEnemy()) return 0;
-
-  return this.getBattler().getSpeedBoosts();
 };
 //#endregion get data
 

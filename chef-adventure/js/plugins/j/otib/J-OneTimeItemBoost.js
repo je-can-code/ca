@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 BOOST] Enables items to grant a one time item boost, permanently.
+ * [v1.0.0 BOOST] Enables items to grant a one time item boost, permanently.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 DIAG] Fixes diagonal movement for projectiles and characters.
+ * [v1.0.0 DIAG] Fixes diagonal movement for projectiles and characters.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE
@@ -398,7 +398,7 @@ Game_Event.prototype.homeIntoTarget = function()
   }
   else if (this.isJabsBattler())
   {
-    const target = this.getMapBattler().getTarget();
+    const target = this.getJabsBattler().getTarget();
     this.homeIntoTargetBattler(target);
   }
   else
@@ -421,7 +421,7 @@ Game_Event.prototype.homeIntoLastHit = function()
   }
   else if (this.isJabsBattler())
   {
-    const lastHit = this.getMapBattler().getBattlerLastHit();
+    const lastHit = this.getJabsBattler().getBattlerLastHit();
     this.homeIntoLastHitBattler(lastHit);
   }
   else
@@ -499,7 +499,7 @@ Game_Event.prototype.seekTarget = function()
   }
   else if (this.isJabsBattler())
   {
-    const target = this.getMapBattler().getTarget();
+    const target = this.getJabsBattler().getTarget();
     this.seekTargetBattler(target);
   }
   else
@@ -522,7 +522,7 @@ Game_Event.prototype.seekLastHit = function()
   }
   else if (this.isJabsBattler())
   {
-    const lastHit = this.getMapBattler().getBattlerLastHit();
+    const lastHit = this.getJabsBattler().getBattlerLastHit();
     this.seekLastHitBattler(lastHit);
   }
   else

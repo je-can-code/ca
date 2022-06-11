@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.0 DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
@@ -487,7 +487,7 @@ Sprite_Character.prototype.canUpdateDangerIndicator = function()
   if (!this.isJabsBattler()) return false;
 
   // if we aren't allowed to show the indicator, then it shouldn't update.
-  if (!this._character.getMapBattler().showDangerIndicator()) return false;
+  if (!this._character.getJabsBattler().showDangerIndicator()) return false;
 
   // we should update!
   return true;

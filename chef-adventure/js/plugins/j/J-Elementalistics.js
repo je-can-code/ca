@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 ELEM] Enables greater control over elements.
+ * [v1.0.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help

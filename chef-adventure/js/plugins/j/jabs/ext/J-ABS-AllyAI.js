@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
+ * [v1.0.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE
@@ -228,7 +228,9 @@ J.ALLYAI.Metadata = {};
 J.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
 J.ALLYAI.Metadata.Version = '1.0.0';
 
-// plugin parameters for user-customization.
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
 J.ALLYAI.PluginParameters = PluginManager.parameters(J.ALLYAI.Metadata.Name);
 
 // configuration for the main JABS quick menu command for ally AI.
@@ -519,7 +521,7 @@ Game_Followers.prototype.jumpAll = function()
       if (!follower || !follower.isVisible()) return;
 
       // don't jump to the player when the player gets hit.
-      const battler = follower.getMapBattler();
+      const battler = follower.getJabsBattler();
       if (battler.isEngaged()) return;
 
       // if not engaged, then jumping to the player is OK.
@@ -557,7 +559,7 @@ J.ALLYAI.Aliased.Game_Follower.chaseCharacter = Game_Follower.prototype.chaseCha
 Game_Follower.prototype.chaseCharacter = function(character)
 {
   // if we're just a ghost follower, or a dead battler, follow like a good little default follower.
-  const battler = this.getMapBattler();
+  const battler = this.getJabsBattler();
   if (!this.isVisible() || battler.isDead())
   {
     J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
@@ -622,7 +624,7 @@ Game_Follower.prototype.jumpToPlayer = function()
  */
 Game_Follower.prototype.handleEngagementDistancing = function()
 {
-  const battler = this.getMapBattler();
+  const battler = this.getJabsBattler();
   if (!battler)
   {
     return;

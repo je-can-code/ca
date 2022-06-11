@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 PASSIVE] Grants skills the ability to provide passive state effects.
+ * [v1.0.0 PASSIVE] Grants skills the ability to provide passive state effects.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -77,6 +77,9 @@ J.PASSIVE.Metadata = {
   Version: '1.0.0',
 };
 
+/**
+ * All regular expressions used by this plugin.
+ */
 J.PASSIVE.RegExp = {
   PassiveStateId: /<passive:[ ]?(\[[\d, ]+])>/gi
 };

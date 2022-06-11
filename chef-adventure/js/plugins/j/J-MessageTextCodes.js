@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 MSG] Gives access to more text codes in windows.
+ * [v1.0.0 MSG] Gives access to more text codes in windows.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help

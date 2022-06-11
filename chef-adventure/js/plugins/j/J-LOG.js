@@ -2,7 +2,7 @@
 /*:
 * @target MZ
 * @plugindesc
-* [v2.0 LOG] A log window for viewing on the map.
+* [v2.0.0 LOG] A log window for viewing on the map.
 * @author JE
 * @url https://github.com/je-can-code/ca
 * @base J-BASE

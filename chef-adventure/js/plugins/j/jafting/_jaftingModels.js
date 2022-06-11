@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0 JAFT] The various custom models created for JAFTING.
+ * [v2.0.0 JAFT] The various custom models created for JAFTING.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-JAFTING

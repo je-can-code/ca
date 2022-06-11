@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 OTIB] The various custom models created for OTIB.
+ * [v1.0.0 OTIB] The various custom models created for OTIB.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-OneTimeItemBoost

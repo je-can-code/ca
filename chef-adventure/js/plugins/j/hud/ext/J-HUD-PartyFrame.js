@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE

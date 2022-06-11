@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 CMS_S] A redesign of the status menu.
+ * [v1.0.0 CMS_S] A redesign of the status menu.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-BASE

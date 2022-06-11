@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.0.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help

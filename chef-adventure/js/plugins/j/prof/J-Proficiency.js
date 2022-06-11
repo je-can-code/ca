@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v1.0 PROF] Enables skill prof and condition triggers.
+ * [v1.0.0 PROF] Enables skill prof and condition triggers.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -240,8 +240,7 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
 };
 
 /**
- * The plugin's parameters extracted from the plugin manager.
- * @type {string}
+ * The actual `plugin parameters` extracted from RMMZ.
  */
 J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
 J.PROF.Metadata =

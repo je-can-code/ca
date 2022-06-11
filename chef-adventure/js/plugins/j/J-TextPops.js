@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 POPUPS] Enable text pops on the map.
+ * [v1.0.0 POPUPS] Enable text pops on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @orderAfter J-ABS

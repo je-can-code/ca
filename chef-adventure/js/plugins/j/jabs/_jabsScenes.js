@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc 
- * [v3.0 JABS] Mods/Adds for the various scene object classes.
+ * [v3.0.0 JABS] Mods/Adds for the various scene object classes.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
