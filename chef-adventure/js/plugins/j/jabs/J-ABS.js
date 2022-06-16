@@ -1193,52 +1193,90 @@ J.ABS.Notetags = {
  * All regular expressions used by this plugin.
  */
 J.ABS.RegExp = {
+  /* ON SKILLS */
+  ActionId: /<actionId:[ ]?(\d+)>/gi,
+
+  // pre-execution-related.
+  CastTime: /<castTime:[ ]?(\d+)>/gi,
+  CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
+
+  // post-execution-related.
   Cooldown: /<cooldown:[ ]?(\d+)>/gi,
+  UniqueCooldown: /<uniqueCooldown>/gi,
+
+  // projectile-related.
   Range: /<radius:[ ]?(\d+)>/gi,
   Proximity: /<proximity:[ ]?(\d+)>/gi,
-  ActionId: /<actionId:[ ]?(\d+)>/gi,
-  Duration: /<duration:[ ]?(\d+)>/gi,
+  Projectile: /<projectile:[ ]?([12348])>/gi,
   Shape: /<hitbox:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Duration: /<duration:[ ]?(\d+)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
-  CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
-  CastTime: /<castTime:[ ]?(\d+)>/gi,
+  DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
+
+  // animation-related.
+  SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
+  PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
+
+  // skill/combo-related.
+  ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   FreeCombo: /<freeCombo>/gi,
   Direct: /<direct>/gi,
+
+  // aggro-related.
   BonusAggro: /<aggro:[ ]?(\d+)>/gi,
   AggroMultiplier: /<aggroMultiplier:[ ]?(\d+)>/gi,
+
+  // hits-related.
+  Unparryable: /<unparryable>/gi,
   BonusHits: /<bonusHits:[ ]?(\d+)>/gi,
+  PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
+
+  // guarding-related.
   Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
   Parry: /<parry:[ ]?(\d+)>/gi,
   CounterParry: /<counterParry:[ ]?(\d+)>/gi,
   CounterGuard: /<counterGuard:[ ]?(\d+)>/gi,
-  Projectile: /<projectile:[ ]?([12348])>/gi,
-  UniqueCooldown: /<uniqueCooldown>/gi,
+
+  // dodge-related.
   MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
   InvincibleDodge: /<invincibleDodge>/gi,
-  ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
-  PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
-  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
-  Unparryable: /<unparryable>/gi,
-  DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
-  SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
 
-  UseOnPickup: /<useOnPickup>/gi,
-  Expires: /<expires:[ ]?(\d+)>/gi,
 
+  /* ON SKILLS */
+
+  /* ON EQUIPS */
+  // skill-related.
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
-  SpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 
+  // knockback-related.
+  KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
+
+  // parry-related.
+  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+  /* ON EQUIPS */
+
+  /* ON ITEMS */
+  UseOnPickup: /<useOnPickup>/gi,
+  Expires: /<expires:[ ]?(\d+)>/gi,
+  /* ON ITEMS */
+
+  /* ON STATES */
+  // definition-related.
   Negative: /<negative>/gi,
+
+  // jabs core ailment functionalities.
   Paralyzed: /<paralyzed>/gi,
   Rooted: /<rooted>/gi,
   Disarmed: /<disabled>/gi,
   Muted: /<muted>/gi,
+
+  // aggro-related.
   AggroLock: /<aggroLock>/gi,
   AggroOutAmp: /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
   AggroInAmp: /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
+
+  // slip hp/mp/tp effects.
   SlipHpFlat: /<hpFlat:[ ]?(-?\d+)>/gi,
   SlipMpFlat: /<mpFlat:[ ]?(-?\d+)>/gi,
   SlipTpFlat: /<tpFlat:[ ]?(-?\d+)>/gi,
@@ -1248,9 +1286,12 @@ J.ABS.RegExp = {
   SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
   SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
   SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
+
+  // state duration-related.
   StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
   StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
+  /* ON STATES */
 };
 
 /**
@@ -3245,13 +3286,20 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   checkComboSequence(caster, action)
   {
     // check to make sure we have combo data before processing the combo.
-    if (!this.canExecuteComboAction(caster, action)) return;
+    if (!this.canUpdateComboSequence(caster, action)) return;
 
     // execute the combo action.
-    this.executeComboAction(caster, action);
+    this.updateComboSequence(caster, action);
   }
 
-  canExecuteComboAction(caster, action)
+  /**
+   * Determines whether or not the caster can update their combo data based on
+   * the given action.
+   * @param {JABS_Battler} caster The caster of the action.
+   * @param {JABS_Action} action The action executed.
+   * @returns {boolean} True if the combo action should be updated, false otherwise.
+   */
+  canUpdateComboSequence(caster, action)
   {
     // grab the skill out of the action.
     const skill = action.getBaseSkill();
@@ -3266,25 +3314,42 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     return true;
   }
 
-  executeComboAction(caster, action)
+  /**
+   * Updates the combo action data for the caster.
+   * The next time the appropriate slot is executed, the combo skill will execute instead.
+   * @param {JABS_Battler} caster The caster of the action.
+   * @param {JABS_Action} action The action executed.
+   */
+  updateComboSequence(caster, action)
   {
-    // get the base skill of the action.
-    const skill = action.getBaseSkill();
-
     // extract the combo data out of the skill.
-    const {jabsComboSkillId, jabsComboDelay} = skill;
+    const { jabsComboSkillId, jabsComboDelay } = action.getBaseSkill();
 
     // determine which slot to apply cooldowns to.
     const cooldownKey = action.getCooldownType();
 
-    //
-    if (!(caster.getComboNextActionId(cooldownKey) === jabsComboSkillId))
+    // clarifies that this check is whether or not the next combo skill is a continuation of the combo.
+    const isComboAction = (caster.getComboNextActionId(cooldownKey) !== jabsComboSkillId);
+
+    // check if this is actually a combo action to the last action.
+    if (isComboAction)
     {
+      // its a combo skill, so also extend the base cooldown by the combo cooldown.
       caster.modCooldownCounter(cooldownKey, jabsComboDelay);
     }
 
+    // update the next combo data.
     caster.setComboFrames(cooldownKey, jabsComboDelay);
     caster.setComboNextActionId(cooldownKey, jabsComboSkillId);
+  }
+
+  /**
+   * Resets the combo action for the given battler.
+   * @param {JABS_Battler} caster The caster of the combo attack.
+   */
+  resetComboAction(caster)
+  {
+    console.log('should cancel combo action!');
   }
 
   /**
@@ -4808,26 +4873,6 @@ class JABS_InputAdapter
 
     // if there are none, then do not perform.
     if (!actions || !actions.length) return false;
-
-    // if the player is casting, then do not perform.
-    if (jabsBattler.isCasting()) return false;
-
-    // perform!
-    return true;
-  }
-
-  static performMainhandActionCharging(charging, jabsBattler)
-  {
-
-  }
-
-  static #canPerformMainhandActionCharging(jabsBattler)
-  {
-    // if the battler can't use attacks, then do not perform.
-    if (!jabsBattler.canBattlerUseAttacks()) return false;
-
-    // if the mainhand action isn't ready, then do not perform.
-    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Main)) return false;
 
     // if the player is casting, then do not perform.
     if (jabsBattler.isCasting()) return false;

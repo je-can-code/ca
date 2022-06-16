@@ -591,7 +591,11 @@ Game_Actor.prototype.stopDying = function()
  */
 Game_Actor.prototype.initAbsSkills = function()
 {
-  this.refreshEquipmentSkills();
+  // setup the skill slots for the first time.
+  this.getSkillSlotManager().setupSlots(this);
+
+  // update them with data.
+  this.refreshBasicAttackSkills();
 };
 
 /**
@@ -627,7 +631,7 @@ Game_Battler.prototype.onOwnDefeatSkillIds = function()
  */
 Game_Battler.prototype.getAllEquippedSkills = function()
 {
-  return this._j._equippedSkills.getAllSlots();
+  return this.getSkillSlotManager().getAllSlots();
 };
 
 /**
@@ -636,7 +640,7 @@ Game_Battler.prototype.getAllEquippedSkills = function()
  */
 Game_Actor.prototype.getAllPrimarySkills = function()
 {
-  return this._j._equippedSkills.getAllPrimarySlots();
+  return this.getSkillSlotManager().getAllPrimarySlots();
 };
 
 /**
@@ -645,7 +649,7 @@ Game_Actor.prototype.getAllPrimarySkills = function()
  */
 Game_Actor.prototype.getAllSecondarySkills = function()
 {
-  return this._j._equippedSkills.getAllSecondarySlots();
+  return this.getSkillSlotManager().getAllSecondarySlots();
 };
 
 /**
@@ -654,7 +658,7 @@ Game_Actor.prototype.getAllSecondarySkills = function()
  */
 Game_Actor.prototype.getToolSkill = function()
 {
-  return this._j._equippedSkills.getToolSlot();
+  return this.getSkillSlotManager().getToolSlot();
 };
 
 /**
@@ -663,7 +667,7 @@ Game_Actor.prototype.getToolSkill = function()
  */
 Game_Actor.prototype.getDodgeSkill = function()
 {
-  return this._j._equippedSkills.getDodgeSlot();
+  return this.getSkillSlotManager().getDodgeSlot();
 };
 
 /**
@@ -672,7 +676,10 @@ Game_Actor.prototype.getDodgeSkill = function()
  */
 Game_Actor.prototype.getValidEquippedSkillSlots = function()
 {
-  return this._j._equippedSkills.getEquippedSlots();
+  // don't try to get slots if we are not setup yet.
+  if (!this.getSkillSlotManager()) return [];
+
+  return this.getSkillSlotManager().getEquippedSlots();
 };
 
 /**
@@ -681,7 +688,7 @@ Game_Actor.prototype.getValidEquippedSkillSlots = function()
  */
 Game_Actor.prototype.getValidSkillSlotsForAlly = function()
 {
-  return this._j._equippedSkills.getEquippedAllySlots();
+  return this.getSkillSlotManager().getEquippedAllySlots();
 };
 
 /**
@@ -724,7 +731,7 @@ Game_Actor.prototype.getUpgradableSkillSlots = function()
  */
 Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
 {
-  return this._j._equippedSkills.getSlotBySkillId(skillIdToFind);
+  return this.getSkillSlotManager().getSlotBySkillId(skillIdToFind);
 };
 
 /**
@@ -732,7 +739,7 @@ Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
  * @param {string} slot The slot to retrieve an equipped skill for.
  * @returns {number}
  */
-Game_Actor.prototype.getEquippedSkill = function(slot)
+Game_Battler.prototype.getEquippedSkill = function(slot)
 {
   return this.getSkillSlot(slot).id;
 };
@@ -742,18 +749,18 @@ Game_Actor.prototype.getEquippedSkill = function(slot)
  * @param {string} slot The slot to retrieve a slot for.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.getSkillSlot = function(slot)
+Game_Battler.prototype.getSkillSlot = function(slot)
 {
-  return this._j._equippedSkills.getSkillBySlot(slot);
+  return this.getSkillSlotManager().getSkillSlotByKey(slot);
 };
 
 /**
  * Gets all secondary slots that are unassigned.
  * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getEmptySecondarySkills = function()
+Game_Battler.prototype.getEmptySecondarySkills = function()
 {
-  return this._j._equippedSkills.getEmptySecondarySlots();
+  return this.getSkillSlotManager().getEmptySecondarySlots();
 };
 
 /**
@@ -762,13 +769,16 @@ Game_Actor.prototype.getEmptySecondarySkills = function()
  * @param {number} skillId The skill id to assign to the specified slot.
  * @param {boolean} locked Whether or not the skill is locked onto this slot.
  */
-Game_Actor.prototype.setEquippedSkill = function(slot, skillId, locked = false)
+Game_Battler.prototype.setEquippedSkill = function(slot, skillId, locked = false)
 {
+  // do nothing if we don't have skill slots to work with.
+  if (!this.getSkillSlotManager()) return;
+
   // check if we need to actually update the slot.
   if (this.needsSlotUpdate(slot, skillId, locked))
   {
     // update the slot.
-    this._j._equippedSkills.setSlot(slot, skillId, locked);
+    this.getSkillSlotManager().setSlot(slot, skillId, locked);
 
     // check if we're using the hud's input frame.
     if (J.HUD && J.HUD.EXT_INPUT)
@@ -786,7 +796,7 @@ Game_Actor.prototype.setEquippedSkill = function(slot, skillId, locked = false)
  * @param {boolean} locked Whether or not the skill is locked onto this slot.
  * @returns {boolean} True if this slot needs to be updated, false otherwise.
  */
-Game_Actor.prototype.needsSlotUpdate = function(slot, skillId, locked)
+Game_Battler.prototype.needsSlotUpdate = function(slot, skillId, locked)
 {
   // grab the slot in question.
   const currentSlot = this.getSkillSlot(slot);
@@ -809,10 +819,10 @@ Game_Actor.prototype.needsSlotUpdate = function(slot, skillId, locked)
  * @param {string} slot The slot being checked to see if it is locked.
  * @returns {boolean}
  */
-Game_Actor.prototype.isSlotLocked = function(slot)
+Game_Battler.prototype.isSlotLocked = function(slot)
 {
-  return this._j._equippedSkills
-    .getSkillBySlot(slot)
+  return this.getSkillSlotManager()
+    .getSkillSlotByKey(slot)
     .isLocked();
 };
 
@@ -820,35 +830,47 @@ Game_Actor.prototype.isSlotLocked = function(slot)
  * Unlocks a slot that was forcefully assigned.
  * @param {string} slot The slot to unlock.
  */
-Game_Actor.prototype.unlockSlot = function(slot)
+Game_Battler.prototype.unlockSlot = function(slot)
 {
-  this._j._equippedSkills
-    .getSkillBySlot(slot)
+  this.getSkillSlotManager()
+    .getSkillSlotByKey(slot)
     .unlock();
 };
 
 /**
  * Unlocks all slots that were forcefully assigned.
  */
-Game_Actor.prototype.unlockAllSlots = function()
+Game_Battler.prototype.unlockAllSlots = function()
 {
-  this._j._equippedSkills.unlockAllSlots();
+  this.getSkillSlotManager().unlockAllSlots();
 };
 
 /**
  * Refreshes the JABS skills that are currently equipped.
  * If any are no longer valid, they will be removed.
  */
-Game_Actor.prototype.refreshEquipmentSkills = function()
+Game_Actor.prototype.refreshBasicAttackSkills = function()
 {
+  // don't refresh if setup hasn't been completed.
+  if (!this.canRefreshBasicAttackSkills()) return;
+
   // remove all unequippable skills from their slots.
-  this.releaseUnequippableSkills();
+  this.removeInvalidSkills();
 
   // update the mainhand skill slot.
   this.updateMainhandSkill();
 
   // update the offhand skill slot.
   this.updateOffhandSkill();
+};
+
+Game_Actor.prototype.canRefreshBasicAttackSkills = function()
+{
+  // don't refresh if setup hasn't been completed.
+  if (!this.getSkillSlotManager().isSetupComplete()) return false;
+
+  // refresh!
+  return true;
 };
 
 /**
@@ -977,17 +999,21 @@ Game_Actor.prototype.offhandSkillOverride = function()
  * This most commonly will occur when a skill is bound to equipment that is
  * no longer equipped to the character. Skills that are "forced" will not be removed.
  */
-Game_Actor.prototype.releaseUnequippableSkills = function()
+Game_Actor.prototype.removeInvalidSkills = function()
 {
-  this._j._equippedSkills
-    .getAllSlots()
-    .forEach(skillSlot =>
+  // grab all the slots this actor has.
+  const slots = this.getSkillSlotManager().getAllSlots();
+
+  // iterate over each of them.
+  slots.forEach(skillSlot =>
+  {
+    // check if we currently know this skill.
+    if (!this.hasSkill(skillSlot.id))
     {
-      if (!this.hasSkill(skillSlot.id))
-      {
-        skillSlot.autoclear();
-      }
-    });
+      // remove it if we don't.
+      skillSlot.autoclear();
+    }
+  });
 };
 
 /**
@@ -1010,7 +1036,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
 Game_Actor.prototype.jabsRefresh = function()
 {
   // refresh the currently equipped skills to ensure they are still valid.
-  this.refreshEquipmentSkills();
+  this.refreshBasicAttackSkills();
 
   // refresh the bonus hits to ensure they are still accurate.
   this.refreshBonusHits();
@@ -1106,6 +1132,9 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
 
   // autoassign skills if necessary.
   this.autoAssignSkillsIfRequired(skillId);
+
+  // do nothing if we don't have a slot manager to work with.
+  if (!this.getSkillSlotManager()) return;
 
   // flag skills on the skillslot manager for refreshing.
   this.getSkillSlotManager().flagAllSkillSlotsForRefresh();
@@ -1686,7 +1715,7 @@ Game_Battler.prototype.basicAttackSkillId = function()
 
   // the battler's basic attack is their first found "Attack Skill" trait.
   const attackSkillTrait = databaseData.traits
-  .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
+    .find(trait => trait.code === J.BASE.Traits.ATTACK_SKILLID);
 
   // check to make sure we found a trait.
   if (attackSkillTrait)
@@ -1696,7 +1725,7 @@ Game_Battler.prototype.basicAttackSkillId = function()
   }
 
   // we didn't find a trait so just return 1.
-  return 1;
+  return 0;
 };
 
 /**
@@ -1907,7 +1936,7 @@ Game_Battler.prototype.initMembers = function()
    * All equipped skills on this battler.
    * @type {JABS_SkillSlotManager}
    */
-  this._j._equippedSkills ||= new JABS_SkillSlotManager(this);
+  this._j._equippedSkills = new JABS_SkillSlotManager();
 };
 
 /**
@@ -2206,16 +2235,6 @@ Game_Battler.prototype.getBonusHitsFromNonTraitedSources = function(sources)
 
   // return the bonus hits from non-traited sources.
   return bonusHits;
-};
-
-/**
- * Gets the currently-equipped skill id in the specified slot.
- * At the Game_Battler level will always return 0.
- * @returns {number}
- */
-Game_Battler.prototype.getEquippedSkill = function(slot)
-{
-  return 0;
 };
 
 /**
@@ -2965,6 +2984,24 @@ Game_Enemies.prototype.enemy = function(enemyId)
 //#endregion Game_Enemies
 
 //#region Game_Enemy
+J.ABS.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
+Game_Enemy.prototype.setup = function(enemyId, x, y)
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Enemy.get('setup').call(this, enemyId, x, y);
+
+  // initialize the combat skills for the battler.
+  this.initAbsSkills();
+};
+
+/**
+ * Initializes the JABS equipped skills based on skill data from this enemy.
+ */
+Game_Enemy.prototype.initAbsSkills = function()
+{
+  this.getSkillSlotManager().setupSlots(this);
+};
+
 /**
  * Gets the battler id of this enemy from the database.
  * @returns {number}

@@ -28,13 +28,12 @@
  * is while on the map.
  *
  * NOTE1:
- * The movement speed boost does NOT calculate the same way that event
- * movespeed is described. See the next section to understand better how the
- * calculations work.
+ * Multiple tags across multiple objects on a single battler will stack
+ * additively.
  *
  * NOTE2:
- * The amount of all tags will be added together first and then calculated for
- * a single battler's movement speed modifier.
+ * There is no upper limit of move speed, so be careful!
+ * There is a(n arbitrary) lower limit, of -90% move speed multiplier.
  *
  * TAG USAGE:
  * - Actors
@@ -47,91 +46,23 @@
  *
  * TAG FORMAT:
  *  <speedBoost:NUM>
- * Where NUM is the positive/negative amount to add.
+ * Where NUM is the positive/negative percent modifier against base movespeed.
  *
  * EXAMPLE:
- *  <speedBoost:4>
+ *  <speedBoost:40>
  * This battler's movement speed will be increased by ~40%.
  *
- *  <speedBoost:-2>
- * This battler's movement speed will be decreased by ~6%.
+ *  <speedBoost:-26>
+ * This battler's movement speed will be decreased by ~26%.
  *
  *  <speedBoost:11>
- * This battler's movement speed will be increased by ~77.5%.
+ * This battler's movement speed will be increased by ~11%.
  *
- *  <speedBoost:7>
- *  <speedBoost:-5>
- *  <speedBoost:-1>
- *  <speedBoost:3>
- * This battlers movement speed will be increased by ~40%.
- * ============================================================================
- * MOVEMENT SPEED BOOST CALCULATIONS:
- * The movement speed boosts as seen are just whole numbers. They are added
- * together and there is some math under the covers that calculates the amount
- * into an actual speed boost modifier. What does the formula look like you
- * ask? Let us look together.
- *
- * NOTE:
- * There is no upper limit for move speed, but the lower limit is right around
- * about -75% movespeed (approximately equivalent to movespeed of 1).
- * ----------------------------------------------------------------------------
- * FOR POSITIVE:
- * There are three scaling tiers in speed boosts for positive tags.
- *
- * TIER 1:
- * For the first five positive points into speed boost, movespeed will be
- * increased by 10% per point.
- *  <speedBoost:1> = 10% speed boost.
- *  <speedBoost:2> = 20% speed boost.
- *  <speedBoost:3> = 30% speed boost.
- *  <speedBoost:4> = 40% speed boost.
- *  <speedBoost:5> = 50% speed boost.
- *
- * TIER 2:
- * For the second five positive points into speed boost, movespeed will be
- * increased by 5% per point.
- *  <speedBoost:6>  = (50% from before) +  5 = 55% speed boost.
- *  <speedBoost:7>  = (50% from before) + 10 = 60% speed boost.
- *  <speedBoost:8>  = (50% from before) + 15 = 65% speed boost.
- *  <speedBoost:9>  = (50% from before) + 20 = 55% speed boost.
- *  <speedBoost:10> = (50% from before) + 25 = 75% speed boost.
- *
- * TIER 3+:
- * And for all positive points after the second five, movespeed will be
- * increased by 2.5% per point.
- *  <speedBoost:11>  = (75% from before) +  2.5 = 55% speed boost.
- *  <speedBoost:12>  = (75% from before) +    5 = 60% speed boost.
- *  ...
- *  <speedBoost:25>  = (75% from before) + 37.5 = 112.5% speed boost.
- * ----------------------------------------------------------------------------
- * FOR NEGATIVE:
- * There are also three scaling tiers in speed boosts for negative tags.
- *
- * TIER 1:
- * For the first five negative points into speed boost, movespeed will be
- * decreased by 3% per point.
- *  <speedBoost:-1> = -3% speed boost.
- *  <speedBoost:-2> = -6% speed boost.
- *  <speedBoost:-3> = -9% speed boost.
- *  <speedBoost:-4> = -12% speed boost.
- *  <speedBoost:-5> = -15% speed boost.
- *
- * TIER 2:
- * For the second five negative points into speed boost, movespeed will be
- * decreased by 2% per point.
- *  <speedBoost:-6>  = (-15% from before) -  2 = -17% speed boost.
- *  <speedBoost:-7>  = (-15% from before) -  4 = -19% speed boost.
- *  <speedBoost:-8>  = (-15% from before) -  6 = -21% speed boost.
- *  <speedBoost:-9>  = (-15% from before) -  8 = -23% speed boost.
- *  <speedBoost:-10> = (-15% from before) - 10 = -25% speed boost.
- *
- * TIER 3+:
- * And for all positive points after the second five, movespeed will be
- * increased by 1% per point.
- *  <speedBoost:-11>  = (-25% from before) -  1 = -26% speed boost.
- *  <speedBoost:-12>  = (-25% from before) -  2 = -27% speed boost.
- *  ...
- *  <speedBoost:-25>  = (-25% from before) - 15 = -40% speed boost.
+ *  <speedBoost:70>
+ *  <speedBoost:-50>
+ *  <speedBoost:-10>
+ *  <speedBoost:30>
+ * This battler's movement speed will be increased by ~40%.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -183,7 +114,7 @@ J.ABS.EXT_SPEED.Aliased = {
  * All regular expressions used by this plugin.
  */
 J.ABS.EXT_SPEED.RegExp = {
-  BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
+  WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 };
 //#endregion Introduction
 
@@ -330,9 +261,11 @@ Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed)
   // if we have no boosts, then don't process.
   if (scale === 0) return 0;
 
+  // constrained scale, to prevent going into moonwalk mode; defaults to minimum -90% penalty.
+  const constrainedScale = Math.max(this.minimumWalkSpeedBoost(), scale);
+
   // get the multiplier.
-  //const multiplier = (scale > 0) ? this.translatePositiveSpeedBoost(scale) : this.translateNegativeSpeedBoost(scale);
-  const multiplier = (scale / 100);
+  const multiplier = (constrainedScale / 100);
 
   // calculate the move speed.
   const calculatedMoveSpeed = baseMoveSpeed * multiplier;
@@ -341,108 +274,9 @@ Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed)
   return calculatedMoveSpeed;
 };
 
-/**
- * Translates a scale of positive points into bonus move speed multiplier.
- * @param {number} scale The scale of points to translate into bonus move speed.
- * @returns {number} The multiplier against the base move speed.
- */
-Game_Character.prototype.translatePositiveSpeedBoost = function(scale)
+Game_Character.prototype.minimumWalkSpeedBoost = function()
 {
-  // localize the scale because its a good practice.
-  let localScale = scale;
-
-  // initialize the boost.
-  let boost = 0;
-
-  // tier 1 boost = 10% per scale for 5 ranks (max +50%).
-  if (localScale > 5)
-  {
-    // shortcut the calculated boost.
-    boost += 0.5;
-
-    // reduce the scale to continue.
-    localScale -= 5;
-  }
-  // we have less than 5 so lets math it out.
-  else
-  {
-    // math out the new movespeed boost.
-    boost += (localScale * 0.1);
-
-    // return the calculated boost.
-    return boost;
-  }
-
-  // tier 2 boost = 5% per scale for 5 ranks (max +25%).
-  if (localScale > 5)
-  {
-    // shortcut the calculated boost.
-    boost += 0.25;
-
-    // reduce the scale to continue.
-    localScale -= 5;
-  }
-  // we have less than 5 so lets math it out.
-  else
-  {
-    // math out the new movespeed boost.
-    boost += (localScale * 0.05);
-
-    // return the calculated boost.
-    return boost;
-  }
-
-  // tier 3 boost = 2.5% per scale for all remaining ranks.
-  const t3scale = 0.025;
-  boost += (localScale * t3scale);
-
-  // return our calculated boost from all tiers of speed boost.
-  return boost;
-};
-
-/**
- * Translates a scale of positive points into penalty move speed multiplier.
- * @param {number} scale The scale of points to translate into penalty move speed.
- * @returns {number} The multiplier against the base move speed.
- */
-Game_Character.prototype.translateNegativeSpeedBoost = function(scale)
-{
-  // normalize the scale because its easier that way.
-  let normalizedScale = Math.abs(scale);
-  let boost = 0.00000;
-
-  // tier 1 boost = 3% per scale for 5 ranks (max -15%).
-  const t1scale = 0.03;
-  if (scale > 5)
-  {
-    boost -= (t1scale * 5);
-    normalizedScale -= 5;
-  }
-  else
-  {
-    boost -= (normalizedScale * t1scale);
-    return boost;
-  }
-
-  // tier 2 boost = 2% per scale for 5 ranks (max -10%) again.
-  const t2scale = 0.02;
-  if (scale > 5)
-  {
-    boost -= (t2scale * 5);
-    normalizedScale -= 5;
-  }
-  else
-  {
-    boost -= (normalizedScale * t2scale);
-    return boost;
-  }
-
-  // tier 3 boost = 1% per scale for all remaining ranks.
-  const t3scale = 0.01;
-  boost -= (normalizedScale * t3scale);
-
-  // return our calculated boost from all tiers of speed boost.
-  return boost;
+  return -90;
 };
 
 /**
@@ -452,7 +286,8 @@ Game_Character.prototype.translateNegativeSpeedBoost = function(scale)
 Game_Character.prototype.minimumDistancePerFrame = function()
 {
   // the minimum speed is "2" aka "4x slower" according to events.
-  const minimumDistance = 0.015625;
+  // remove comment to let it go lower, but be careful, thats really low!
+  const minimumDistance = 0.015625; // / 2;
 
   // return the calculated amount.
   return minimumDistance;
@@ -505,7 +340,7 @@ RPG_Base.prototype.getJabsSpeedBoost = function()
  */
 RPG_Base.prototype.extractJabsSpeedBoost = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.SpeedBoost, true);
+  return this.getNumberFromNotesByRegex(J.ABS.EXT_SPEED.RegExp.WalkSpeedBoost, true);
 };
 //#endregion RPG_Base
 //#endregion RPG objects

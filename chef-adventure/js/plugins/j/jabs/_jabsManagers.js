@@ -1421,7 +1421,7 @@ class JABS_AiManager
   static needsToMoveCloser(battler)
   {
     // grab the action.
-    const action = battler.getDecidedAction()[0];
+    const [action,] = battler.getDecidedAction();
 
     // check if the action is self-targeting; we can cast these wherever.
     if (action.isForSelf()) return false;

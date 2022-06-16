@@ -240,7 +240,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
 
     // assign the skill slot to this sprite.
     this.setSkillSlot(skillSlot);
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -255,7 +255,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
      * @type {JABS_SkillSlot|null}
      */
     this._j._skillSlot = null;
-  };
+  }
 
   /**
    * Sets the skill slot for this sprite's icon.
@@ -264,7 +264,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   setSkillSlot(skillSlot)
   {
     this._j._skillSlot = skillSlot;
-  };
+  }
 
   /**
    * Gets whether or not there is a skill slot currently being tracked.
@@ -273,7 +273,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   hasSkillSlot()
   {
     return !!this._j._skillSlot;
-  };
+  }
 
   /**
    * Gets the skill slot currently assigned to this sprite.
@@ -282,7 +282,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   skillSlot()
   {
     return this._j._skillSlot;
-  };
+  }
 
   /**
    * Gets the icon associated with the tracked skill slot.
@@ -297,14 +297,14 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
     if (!$gameParty.leader()) return this._j._iconIndex;
 
     // if we are leveraging skill extensions, then grab the appropriate skill.
-    let skill = this.skillSlot().data($gameParty.leader());
+    const skill = this.skillSlot().data($gameParty.leader());
 
     // if nothing was in the slot, then don't draw it.
     if (!skill) return 0;
 
     // return the skill's icon index.
     return skill.iconIndex;
-  };
+  }
 
   /**
    * The `JABS_Button` key that this skill slot belongs to.
@@ -313,7 +313,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   skillSlotKey()
   {
     return this._j._skillSlot.key;
-  };
+  }
 
   /**
    * Gets the id of the skill associated with the currently assigned skill slot.
@@ -338,7 +338,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
 
     // return the found id.
     return skillId;
-  };
+  }
 
   /**
    * Extends the `update()` to monitor the icon index in case it changes.
@@ -354,7 +354,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
       // keep the icon index in-sync with the skill slot.
       this.synchronizeIconIndex();
     }
-  };
+  }
 
   /**
    * Checks whether or not this slot is in need of name synchronization.
@@ -363,7 +363,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   needsSynchronization()
   {
     return (this.hasSkillSlot() && this.skillSlot().needsVisualIconRefresh());
-  };
+  }
 
 
   synchronizeIconIndex()
@@ -377,7 +377,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
 
     // acknowledge the refresh.
     this.skillSlot().acknowledgeIconRefresh();
-  };
+  }
 
   /**
    * Upon becoming ready, execute this logic.
@@ -395,7 +395,7 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
       // set the icon index to be whatever the skill slot's icon is.
       this.setIconIndex(this.skillSlotIcon());
     }
-  };
+  }
 }
 //#endregion Sprite_SkillIcon
 
@@ -417,7 +417,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
     // sets the skill slot to trigger a refresh.
     this.setSkillSlot(skillSlot);
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -432,7 +432,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
      * @type {JABS_SkillSlot|null}
      */
     this._j._skillSlot = null;
-  };
+  }
 
   /**
    * Gets the skill slot associated with this sprite.
@@ -441,7 +441,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   skillSlot()
   {
     return this._j._skillSlot;
-  };
+  }
 
   /**
    * Gets whether or not there is a skill slot presently
@@ -451,7 +451,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   hasSkillSlot()
   {
     return !!this._j._skillSlot;
-  };
+  }
 
   /**
    * Sets the skill slot for this sprite.
@@ -461,7 +461,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   {
     this._j._skillSlot = skillSlot;
     this.setText(this.skillName());
-  };
+  }
 
   /**
    * Gets whether or not this slot is for an item instead of a skill.
@@ -470,7 +470,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   isItem()
   {
     return this.skillSlot().isItem();
-  };
+  }
 
   /**
    * Get the cooldown data associated with the battler that owns
@@ -490,7 +490,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
     // grab the cooldown data from the leader based on this slot.
     return jabsBattler.getCooldown(inputType);
-  };
+  }
 
   /**
    * Gets the target `JABS_Battler` associated with this sprite.
@@ -499,7 +499,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   targetJabsBattler()
   {
     return $jabsEngine.getPlayer1();
-  };
+  }
 
   /**
    * Gets the target `Game_Actor` or `Game_Enemy`
@@ -511,7 +511,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
     if (!jabsBattler) return null;
 
     return jabsBattler.getBattler();
-  };
+  }
 
   /**
    * Gets the skill currently assigned to the skill slot.
@@ -530,7 +530,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
     // grab the skill itself, either extended or not.
     return this.skillSlot().data(this.targetBattler(), this.skillId());
-  };
+  }
 
   /**
    * Gets the skill (or item) id of the assigned ability of this skill slot.
@@ -558,7 +558,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
       : skillId;                        // return the current skill.
 
     return nextSkillId;
-  };
+  }
 
   /**
    * Gets the skill name of the skill currently in the slot.
@@ -568,14 +568,14 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   skillName()
   {
     // grab the skill itself, either extended or not.
-    let skill = this.skill();
+    const skill = this.skill();
 
     // if no skill is in the slot, then the name is empty.
     if (!skill) return String.empty;
 
     // return the found name.
     return skill.name;
-  };
+  }
 }
 //#endregion Sprite_BaseSkillSlot
 
@@ -593,7 +593,7 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
   fontSize()
   {
     return 12;
-  };
+  }
 
   /**
    * Extends the `update()` to also synchronize the text to
@@ -610,7 +610,7 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
       // sync the text.
       this.synchronizeText();
     }
-  };
+  }
 
   /**
    * Checks whether or not this slot is in need of name synchronization.
@@ -619,7 +619,7 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
   needsSynchronization()
   {
     return (this.hasSkillSlot() && this.skillSlot().needsVisualNameRefresh());
-  };
+  }
 
   /**
    * Synchronizes the text with the underlying skill inside the
@@ -637,7 +637,7 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
 
     // acknowledge the refresh.
     this.skillSlot().acknowledgeNameRefresh();
-  };
+  }
 }
 //#endregion Sprite_SkillName
 
@@ -672,7 +672,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
     // empty the cost.
     this.synchronizeCost();
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -687,7 +687,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
      * @type {Sprite_SkillCost.Types}
      */
     this._j._skillCostType = Sprite_SkillCost.Types.MP;
-  };
+  }
 
   /**
    * Gets the skill cost type of this sprite.
@@ -696,7 +696,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
   skillCostType()
   {
     return this._j._skillCostType;
-  };
+  }
 
   /**
    * Gets the skill cost of this sprite.
@@ -705,7 +705,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
   skillCost()
   {
     return this.skillCostByType();
-  };
+  }
 
   /**
    * Calculates the skill cost accordingly to the type of this sprite.
@@ -731,7 +731,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
       case Sprite_SkillCost.Types.Item:
         return $gameParty.numItems(ability);
     }
-  };
+  }
 
   /**
    * Sets the skill cost type for this sprite.
@@ -744,7 +744,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
       this._j._skillCostType = skillCostType;
       this.refresh();
     }
-  };
+  }
 
   /**
    * OVERWRITE Gets the color of the text for this sprite based on the
@@ -754,7 +754,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
   color()
   {
     return this.colorBySkillCostType();
-  };
+  }
 
   /**
    * Gets the hex color based on the type of skill cost this is.
@@ -773,7 +773,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
       default:
         return "#ffffff";
     }
-  };
+  }
 
   /**
    * OVERWRITE Gets the font size for this sprite's text.
@@ -783,7 +783,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
   fontSize()
   {
     return 12;
-  };
+  }
 
   /**
    * Extends the `update()` to also synchronize the text to
@@ -800,7 +800,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
       // sync the cost.
       this.synchronizeCost();
     }
-  };
+  }
 
   /**
    * Checks whether or not this slot is in need of cost synchronization.
@@ -817,7 +817,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
     // the slot needs synchronization!
     return true;
-  };
+  }
 
   /**
    * Synchronizes the text with the underlying skill inside the
@@ -845,7 +845,7 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 
     // acknowledge the refresh.
     this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
-  };
+  }
 }
 //#endregion Sprite_SkillCost
 
@@ -870,7 +870,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // setup this input key slot sprite.
     this.setup(skillSlot, battler);
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -900,7 +900,7 @@ class Sprite_InputKeySlot extends Sprite
      * @type {Map<string, Sprite_SkillSlotIcon|Sprite_SkillName|Sprite_SkillCost|Sprite_ComboGauge>}
      */
     this._j._spriteCache = new Map();
-  };
+  }
 
   /**
    * Sets up this sprite with the given skill slot and owning battler.
@@ -917,7 +917,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // draw the sprite!
     this.drawInputKey();
-  };
+  }
 
   //#region getters & setters
   /**
@@ -927,7 +927,7 @@ class Sprite_InputKeySlot extends Sprite
   skillSlot()
   {
     return this._j._skillSlot;
-  };
+  }
 
   /**
    * Checks whether or not there is a skill slot currently assigned.
@@ -936,7 +936,7 @@ class Sprite_InputKeySlot extends Sprite
   hasSkillSlot()
   {
     return !!this._j._skillSlot;
-  };
+  }
 
   /**
    * Assigns the given skill slot to this sprite.
@@ -945,7 +945,7 @@ class Sprite_InputKeySlot extends Sprite
   setSkillSlot(skillSlot)
   {
     this._j._skillSlot = skillSlot;
-  };
+  }
 
   /**
    * Get the cooldown data associated with the battler that owns
@@ -965,7 +965,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // grab the cooldown data from the leader based on this slot.
     return jabsBattler.getCooldown(inputType);
-  };
+  }
 
   /**
    * Gets the skill (or item) id of the assigned ability of this skill slot.
@@ -991,7 +991,7 @@ class Sprite_InputKeySlot extends Sprite
     return hasNextSkill
       ? cooldownData.comboNextActionId  // return the next skill in the combo.
       : skillId;                        // return the current skill.
-  };
+  }
 
   /**
    * Gets the `JABS_Battler` this input key slot is associated with.
@@ -1000,7 +1000,7 @@ class Sprite_InputKeySlot extends Sprite
   jabsBattler()
   {
     return this._j._battler;
-  };
+  }
 
   /**
    * Gets the `Game_Battler` associated with the `JABS_Battler` assigned to this sprite.
@@ -1009,7 +1009,7 @@ class Sprite_InputKeySlot extends Sprite
   battler()
   {
     return this.jabsBattler().getBattler();
-  };
+  }
 
   /**
    * Checks whether or not there is a battler currently assigned.
@@ -1018,7 +1018,7 @@ class Sprite_InputKeySlot extends Sprite
   hasBattler()
   {
     return !!this._j._battler;
-  };
+  }
 
   /**
    * Assigns the given battler to this sprite.
@@ -1027,7 +1027,7 @@ class Sprite_InputKeySlot extends Sprite
   setBattler(battler)
   {
     this._j._battler = battler;
-  };
+  }
   //#endregion getters & setters
 
   //#region caching
@@ -1041,7 +1041,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // grab the leader and their battler for doing things.
     const leader = $gameParty.leader();
-  };
+  }
 
   /**
    * Creates the key for the input key icon sprite based on the parameters.
@@ -1052,7 +1052,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeyIconSpriteKey(skillSlot, inputType)
   {
     return `icon-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
-  };
+  }
 
   /**
    * Creates an icon sprite for the given input key and caches it.
@@ -1086,7 +1086,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for the input key ability cost sprite based on the parameters.
@@ -1098,7 +1098,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeyAbilityCostSpriteKey(amount, colorIndex, inputType)
   {
     return `cost-${this.battler().name()}-${this.battler().battlerId()}-${inputType}-${amount}-${colorIndex}`;
-  };
+  }
 
   /**
    * Creates an ability cost sprite for the given input key and caches it.
@@ -1134,7 +1134,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for the input key ability cost sprite based on the parameters.
@@ -1145,7 +1145,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeySkillCostSpriteKey(costType, inputType)
   {
     return `skillcost-${this.battler().name()}-${this.battler().battlerId()}-${costType}-${inputType}`;
-  };
+  }
 
   /**
    * Creates an skill cost sprite for the given input key and caches it.
@@ -1180,7 +1180,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for the input key cooldown timer sprite based on the parameters.
@@ -1192,7 +1192,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeyCooldowntTimerSpriteKey(cooldownData, inputType, isItem)
   {
     return `cooldown-${this.battler().name()}-${this.battler().battlerId()}-${inputType}-${isItem}`;
-  };
+  }
 
   /**
    * Creates a cooldown timer sprite for the given input key and caches it.
@@ -1229,7 +1229,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for the input key combo gauge sprite based on the parameters.
@@ -1240,7 +1240,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeyComboGaugeSpriteKey(cooldownData, inputType)
   {
     return `combo-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
-  };
+  }
 
   /**
    * Creates a combo gauge sprite for the given input key and caches it.
@@ -1279,7 +1279,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for the input key skill name sprite based on the parameters.
@@ -1289,7 +1289,7 @@ class Sprite_InputKeySlot extends Sprite
   makeInputKeySkillNameSpriteKey(inputType)
   {
     return `skillname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
-  };
+  }
 
   /**
    * Creates a skill name sprite for the given input key and caches it.
@@ -1323,7 +1323,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // return the created sprite.
     return sprite;
-  };
+  }
   //#endregion caching
 
   //#region drawing
@@ -1360,7 +1360,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // draw skill name.
     this.drawInputKeySkillName(x, y);
-  };
+  }
 
   /**
    * Checks whether or not this input key has the necessary data in order
@@ -1380,7 +1380,7 @@ class Sprite_InputKeySlot extends Sprite
 
     // let's draw!
     return true;
-  };
+  }
 
   /**
    * Draws the input key's associated skill icon.
@@ -1397,7 +1397,7 @@ class Sprite_InputKeySlot extends Sprite
     const sprite = this.getOrCreateInputKeyIconSprite(skillSlot, inputType);
     sprite.show();
     sprite.move(x+6, y+20);
-  };
+  }
 
   /**
    * Draws the input key's associated mp cost.
@@ -1417,7 +1417,7 @@ class Sprite_InputKeySlot extends Sprite
       inputType);
     sprite.show();
     sprite.move(x-2, y-10);
-  };
+  }
 
   /**
    * Draws the input key's associated mp cost.
@@ -1437,7 +1437,7 @@ class Sprite_InputKeySlot extends Sprite
       inputType);
     sprite.show();
     sprite.move(x-2, y);
-  };
+  }
 
   /**
    * Draws the input key's associated tp cost.
@@ -1457,7 +1457,7 @@ class Sprite_InputKeySlot extends Sprite
       inputType);
     sprite.show();
     sprite.move(x-2, y+10);
-  };
+  }
 
   /**
    * Draws the input key's associated item cost.
@@ -1477,7 +1477,7 @@ class Sprite_InputKeySlot extends Sprite
       inputType);
     sprite.show();
     sprite.move(x+36, y+10);
-  };
+  }
 
   /**
    * Draws the input key's associated combo gauge.
@@ -1494,7 +1494,7 @@ class Sprite_InputKeySlot extends Sprite
     const sprite = this.getOrCreateInputKeyComboGaugeSprite(cooldownData, inputType);
     sprite.show();
     sprite.move(x+32, y+32);
-  };
+  }
 
   /**
    * Draws the input key's associated cooldown data in text.
@@ -1511,7 +1511,7 @@ class Sprite_InputKeySlot extends Sprite
     const sprite = this.getOrCreateInputKeyCooldownTimerSprite(cooldownData, inputType);
     sprite.show();
     sprite.move(x+28, y+16);
-  };
+  }
 
   /**
    * Draws the input key's skill's name.
@@ -1528,7 +1528,7 @@ class Sprite_InputKeySlot extends Sprite
     const sprite = this.getOrCreateInputKeySkillNameSprite(skillSlot, inputType);
     sprite.show();
     sprite.move(x, y+24);
-  };
+  }
   //#endregion drawing
 }
 //#endregion Sprite_InputKeySlot
@@ -1545,7 +1545,10 @@ class Window_InputFrame extends Window_Frame
    * Constructor.
    * @param {Rectangle} rect The shape of this window.
    */
-  constructor(rect) { super(rect); };
+  constructor(rect) 
+{
+ super(rect); 
+}
 
   /**
    * Initializes all members of this class.
@@ -1568,7 +1571,7 @@ class Window_InputFrame extends Window_Frame
      * @type {boolean}
      */
     this._j._needsRefresh = true;
-  };
+  }
 
   /**
    * Executes any one-time configuration required for this window.
@@ -1580,7 +1583,7 @@ class Window_InputFrame extends Window_Frame
 
     // remove opacity for completely transparent window.
     this.opacity = 0;
-  };
+  }
 
   /**
    * Requests this window to clear and redraw its contents.
@@ -1588,7 +1591,7 @@ class Window_InputFrame extends Window_Frame
   requestInternalRefresh()
   {
     this._j._needsRefresh = true;
-  };
+  }
 
   /**
    * Gets whether or not this window needs refresh.
@@ -1597,7 +1600,7 @@ class Window_InputFrame extends Window_Frame
   needsInternalRefresh()
   {
     return this._j._needsRefresh;
-  };
+  }
 
   /**
    * Flags internally this window for successfully refreshing text.
@@ -1605,7 +1608,7 @@ class Window_InputFrame extends Window_Frame
   acknowledgeInternalRefresh()
   {
     this._j._needsRefresh = false;
-  };
+  }
 
   //#region caching
   /**
@@ -1615,7 +1618,7 @@ class Window_InputFrame extends Window_Frame
   {
     // perform original logic.
     super.createCache();
-  };
+  }
 
   /**
    * Creates the key for the input key icon sprite based on the parameters.
@@ -1626,7 +1629,7 @@ class Window_InputFrame extends Window_Frame
   makeInputKeySlotSpriteKey(skillSlot, inputType)
   {
     return `inputkey-${$gameParty.leader().actorId()}-${inputType}`;
-  };
+  }
 
   /**
    * Creates the input key sprite for the given slot.
@@ -1662,7 +1665,7 @@ class Window_InputFrame extends Window_Frame
 
     // return the created sprite.
     return sprite;
-  };
+  }
   //#endregion caching
 
   /**
@@ -1675,7 +1678,7 @@ class Window_InputFrame extends Window_Frame
 
     // rebuilds the contents of the window.
     this.requestInternalRefresh();
-  };
+  }
 
   /**
    * Hide all sprites for the hud.
@@ -1686,7 +1689,7 @@ class Window_InputFrame extends Window_Frame
     this._j._spriteCache.forEach((sprite, _) => sprite.hide());
 
     this.requestInternalRefresh();
-  };
+  }
 
   /**
    * Updates the logic for this window frame.
@@ -1701,7 +1704,7 @@ class Window_InputFrame extends Window_Frame
 
     // draw the contents.
     this.drawInputFrame();
-  };
+  }
 
   //#region visibility
   /**
@@ -1724,7 +1727,7 @@ class Window_InputFrame extends Window_Frame
       // undo the opacity changes.
       this.revertInterferenceOpacity();
     }
-  };
+  }
 
   /**
    * Close and open the window based on whether or not the message window is up.
@@ -1750,7 +1753,7 @@ class Window_InputFrame extends Window_Frame
       // just open the window.
       this.open();
     }
-  };
+  }
 
   /**
    * Determines whether or not the player is in the way (or near it) of this window.
@@ -1761,7 +1764,7 @@ class Window_InputFrame extends Window_Frame
     const playerX = $gamePlayer.screenX();
     const playerY = $gamePlayer.screenY();
     return (playerX < this.width+100) && (playerY < this.height+100);
-  };
+  }
 
   /**
    * Manages opacity for all sprites while the player is interfering with the visibility.
@@ -1775,7 +1778,7 @@ class Window_InputFrame extends Window_Frame
       // if we are below 64, increment by +1 until we get to 64.
       else if (sprite.opacity < 64) sprite.opacity += 1;
     });
-  };
+  }
 
   /**
    * Reverts the opacity changes associated with the player getting in the way.
@@ -1789,7 +1792,7 @@ class Window_InputFrame extends Window_Frame
       // if we are above 255, set to 255.
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
-  };
+  }
   //#endregion visibility
 
   /**
@@ -1799,7 +1802,7 @@ class Window_InputFrame extends Window_Frame
   inputKeyWidth()
   {
     return 72;
-  };
+  }
 
   /**
    * Draws the input frame window in its entirety.
@@ -1831,7 +1834,7 @@ class Window_InputFrame extends Window_Frame
 
     // flags that this has been refreshed.
     this.acknowledgeInternalRefresh();
-  };
+  }
 
   /**
    * Determines whether or not we can draw the input frame.
@@ -1853,7 +1856,7 @@ class Window_InputFrame extends Window_Frame
 
     // draw it!
     return true;
-  };
+  }
 
   /**
    * Draws the primary set of input keys.
@@ -1873,7 +1876,7 @@ class Window_InputFrame extends Window_Frame
     this.drawInputKey(JABS_Button.Offhand, baseX+(ikw*1), baseY+32);
     this.drawInputKey(JABS_Button.Dodge, baseX+(ikw*2), baseY+64);
     this.drawInputKey(JABS_Button.Tool, baseX+(ikw*2), baseY);
-  };
+  }
 
   /**
    * Draws the primary set of input keys.
@@ -1893,7 +1896,7 @@ class Window_InputFrame extends Window_Frame
     this.drawInputKey(JABS_Button.CombatSkill4, baseX+(ikw*1), baseY);
     this.drawInputKey(JABS_Button.CombatSkill1, baseX+(ikw*1), baseY+64);
     this.drawInputKey(JABS_Button.CombatSkill2, baseX+(ikw*2), baseY+32);
-  };
+  }
 
   /**
    * Draws a single input key of the input frame.
@@ -1917,7 +1920,7 @@ class Window_InputFrame extends Window_Frame
 
     // draw the input key slot's sprite.
     this.drawInputKeySlotSprite(skillSlot, inputType, x, y);
-  };
+  }
 
   /**
    * Draw the input key associated with a given skill slot.
@@ -1931,7 +1934,7 @@ class Window_InputFrame extends Window_Frame
     const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, inputType);
     sprite.show();
     sprite.move(x+6, y+20);
-  };
+  }
 }
 //#endregion Window_InputFrame
 //#endregion Window objects

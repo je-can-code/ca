@@ -788,6 +788,7 @@ JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData)
   this.initBattleInfo();
   this.initIdleInfo();
   this.initPoseInfo();
+  this.initCooldowns();
 };
 
 /**
@@ -930,12 +931,10 @@ JABS_Battler.prototype.initGeneralInfo = function()
 JABS_Battler.prototype.initBattleInfo = function()
 {
   /**
-   * An object to track cooldowns within.
-   * @type {JABS_Cooldown[]}
+   * The id of the last skill that was executed by this battler.
+   * @type {number}
    */
-  this._cooldowns = {};
-  this.initCooldowns();
-  this.initEnemySkillManager();
+  this._lastUsedSkillId = 0;
 
   /**
    * The current phase of AI battling that this battler is in.
@@ -1075,19 +1074,6 @@ JABS_Battler.prototype.initBattleInfo = function()
    * @type {string[]}
    */
   this._followers = [];
-
-  /**
-   * The id of the skill that is set to be the next combo action.
-   * Defaults to `0` if there is no combo available for a skill.
-   * @type {number}
-   */
-  this._comboNextActionId = 0;
-
-  /**
-   * Whether or not the combo action is ready.
-   * @type {boolean}
-   */
-  this._comboReady = false;
 
   /**
    * The counter that governs slip effects like regeneration or poison.
@@ -1257,127 +1243,11 @@ JABS_Battler.prototype.initPoseInfo = function()
  */
 JABS_Battler.prototype.initCooldowns = function()
 {
-  // initializes cooldowns that all battlers have.
-  this.initBattlerCooldowns();
-
-  // initialize enemy cooldowns.
-  this.initEnemyCooldowns();
-
-  // initialize actor cooldowns.
-  this.initActorCooldowns();
-};
-
-/**
- * Initializes commonly used battler cooldowns.
- */
-JABS_Battler.prototype.initBattlerCooldowns = function()
-{
-  // setup a global cooldown for all battlers.
-  this.initializeCooldown("global", 0);
-
-  // setup a basic attack cooldown for all battlers.
-  this.initializeCooldown("attack", 0);
-
-  // setup a skill usage cooldown for all battlers.
-  this.initializeCooldown("skill", 0);
-};
-
-/**
- * Initializes all enemy cooldowns, including skills and basic attack.
- */
-JABS_Battler.prototype.initEnemyCooldowns = function()
-{
-  // only enemies can have enemy cooldowns!
-  if (!this.isEnemy()) return;
-
-  // initialize all skill cooldowns.
-  this.initEnemySkillCooldowns();
-
-  // initialize the basic attack cooldown.
-  this.initEnemyAttackCooldowns();
-};
-
-/**
- * Initialize all enemy skill cooldowns.
- */
-JABS_Battler.prototype.initEnemySkillCooldowns = function()
-{
-  // grab all skills that this enemy has on it from the database.
-  const skills = this.getSkillIdsFromEnemy();
-
-  // check if we actually have a list of skills.
-  if (skills.length)
-  {
-    // iterate over all available skills.
-    skills.forEach(skillId =>
-    {
-      // initialize the cooldown by its skill id.
-      this.initEnemyCooldownBySkill(skillId);
-    })
-  }
-};
-
-/**
- * Initialize the enemy's basic attack cooldown if one is present.
- */
-JABS_Battler.prototype.initEnemyAttackCooldowns = function()
-{
-  // grab the basic attack skill id.
-  const [basicAttackSkillId] = this.getEnemyBasicAttack();
-
-  // check to make sure we have a valid skillId.
-  if (basicAttackSkillId)
-  {
-    // initialize the cooldown by its skill id.
-    this.initEnemyCooldownBySkill(basicAttackSkillId);
-  }
-};
-
-/**
- * Initializes a single cooldown of a skill based on its skill id.
- * @param {number} skillId The id of the skill to initialize.
- */
-JABS_Battler.prototype.initEnemyCooldownBySkill = function(skillId)
-{
-  // grab the skill data from the database.
-  const skill = this.getSkill(skillId);
-
-  // initailize the cooldown.
-  this.initializeCooldown(`${skill.id}-${skill.name}`, 0);
-};
-
-/**
- * Initializes all actor cooldowns.
- */
-JABS_Battler.prototype.initActorCooldowns = function()
-{
-  // only actors can have actor cooldowns!
-  if (!this.isActor()) return;
-
-  // players don't need skills initialized, but they do need cooldown slots.
-  this.initializeCooldown(JABS_Button.Main, 0);
-  this.initializeCooldown(JABS_Button.Offhand, 0);
-  this.initializeCooldown(JABS_Button.Tool, 0);
-  this.initializeCooldown(JABS_Button.Dodge, 0);
-  this.initializeCooldown(JABS_Button.CombatSkill1, 0);
-  this.initializeCooldown(JABS_Button.CombatSkill2, 0);
-  this.initializeCooldown(JABS_Button.CombatSkill3, 0);
-  this.initializeCooldown(JABS_Button.CombatSkill4, 0);
-};
-
-/**
- * Initializes the skill manager with all of the enemy's skills.
- */
-JABS_Battler.prototype.initEnemySkillManager = function()
-{
-  // if this is not an enemy, then do not setup enemy skills.
-  if (!this.isEnemy()) return;
-
-  // grab the battler for double use.
+  // grab the battler for use.
   const battler = this.getBattler();
 
   // setup the skill slots for the enemy.
-  battler._j._equippedSkills.setupEnemySlots(battler);
+  battler.getSkillSlotManager().setupSlots(battler);
 };
 //#endregion initialize battler
 
@@ -1614,8 +1484,13 @@ JABS_Battler.prototype.processQueuedActions = function()
   // if we cannot process actions, then do not.
   if (!this.canProcessQueuedActions()) return;
 
+  const decidedActions = this.getDecidedAction();
+
   // execute the action.
-  $jabsEngine.executeMapActions(this, this.getDecidedAction());
+  $jabsEngine.executeMapActions(this, decidedActions);
+
+  // set the last skill used to be the skill we just used.
+  this.setLastUsedSkillId(decidedActions[0].getBaseSkill().id);
 
   // clear the queued action.
   this.clearDecidedAction();
@@ -1755,11 +1630,15 @@ JABS_Battler.prototype.setPosePattern = function(pattern)
  */
 JABS_Battler.prototype.updateCooldowns = function()
 {
+  this.getBattler().getSkillSlotManager().updateCooldowns();
+
+  /*
   // update all skill slot cooldowns.
   Object.keys(this._cooldowns).forEach(key =>
   {
     this._cooldowns[key].update();
   });
+  */
 };
 //#endregion update cooldowns
 
@@ -2193,8 +2072,7 @@ JABS_Battler.prototype.performCastAnimation = function()
   const animationId = this.getDecidedAction()[0].getCastAnimation();
   if (!animationId) return;
 
-  if (!this.getCharacter()
-    .isAnimationPlaying())
+  if (!this.getCharacter().isAnimationPlaying())
   {
     this.showAnimation(animationId);
   }
@@ -3900,7 +3778,7 @@ JABS_Battler.prototype.isDead = function()
   }
    // battler is OK!
     return false;
-  
+
 };
 
 /**
@@ -4234,7 +4112,6 @@ JABS_Battler.prototype.turnTowardTarget = function()
 
   character.turnTowardCharacter(target.getCharacter());
 };
-
 //#endregion reference helpers
 
 //#region isReady & cooldowns
@@ -4245,12 +4122,14 @@ JABS_Battler.prototype.turnTowardTarget = function()
  */
 JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
 {
-  if (!this._cooldowns[cooldownKey])
-  {
-    const cooldown = new JABS_Cooldown(cooldownKey);
-    cooldown.setFrames(duration);
-    this._cooldowns[cooldownKey] = cooldown;
-  }
+  // grab the slot being worked with.
+  const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
+
+  // if we don't have a slot, then do not process.
+  if (!skillSlot) return;
+
+  // set the skillslot's cooldown frames to the default.
+  skillSlot.getCooldown().setFrames(duration);
 };
 
 /**
@@ -4260,7 +4139,18 @@ JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
  */
 JABS_Battler.prototype.getCooldown = function(cooldownKey)
 {
-  return this._cooldowns[cooldownKey];
+  const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
+
+  if (!skillSlot)
+  {
+    console.warn('omg');
+
+    // TODO: make sure enemies get assigned their slots.
+
+    return null;
+  }
+
+  return skillSlot.getCooldown();
 };
 
 /**
@@ -4293,17 +4183,17 @@ JABS_Battler.prototype.isPostActionCooldownComplete = function()
     return true;
   }
   
-    if (this._postActionCooldown <= this._postActionCooldownMax)
-    {
-      // we are still charging up...
-      this._postActionCooldown++;
-      return false;
-    }
-    this._postActionCooldownComplete = true;
-    this._postActionCooldown = 0;
+  if (this._postActionCooldown <= this._postActionCooldownMax)
+  {
+    // we are still charging up...
+    this._postActionCooldown++;
+    return false;
+  }
+  this._postActionCooldownComplete = true;
+  this._postActionCooldown = 0;
 
-    // we are ready to finish phase3!
-    return true;
+  // we are ready to finish phase3!
+  return true;
   
 };
 
@@ -4369,7 +4259,10 @@ JABS_Battler.prototype.isIdleActionReady = function()
  */
 JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey)
 {
-  return this._cooldowns[cooldownKey].isAnyReady();
+  const isAnyReady = this.getBattler()
+    .getSkillSlotManager()
+    .isAnyCooldownReadyForSlot(cooldownKey);
+  return isAnyReady;
 };
 
 /**
@@ -4379,15 +4272,7 @@ JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey)
  */
 JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
 {
-  try
-  {
-    this._cooldowns[cooldownKey].modBaseFrames(duration);
-  }
-  catch (ex)
-  {
-    console.warn(this._cooldowns, cooldownKey, duration);
-    console.error(ex);
-  }
+  this.getCooldown(cooldownKey).modBaseFrames(duration);
 };
 
 /**
@@ -4397,7 +4282,7 @@ JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
  */
 JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration)
 {
-  this._cooldowns[cooldownKey].setFrames(duration);
+  this.getCooldown(cooldownKey).setFrames(duration);
 };
 
 /**
@@ -4406,7 +4291,10 @@ JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration)
  */
 JABS_Battler.prototype.resetComboData = function(cooldownKey)
 {
-  this._cooldowns[cooldownKey].resetCombo();
+  this.getBattler()
+    .getSkillSlotManager()
+    .getSkillSlotByKey(cooldownKey)
+    .resetCombo();
 };
 
 /**
@@ -4416,7 +4304,7 @@ JABS_Battler.prototype.resetComboData = function(cooldownKey)
  */
 JABS_Battler.prototype.setComboFrames = function(cooldownKey, duration)
 {
-  this._cooldowns[cooldownKey].setComboFrames(duration);
+  this.getCooldown(cooldownKey).setComboFrames(duration);
 };
 
 /**
@@ -4640,6 +4528,24 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
 
 //#region get data
 /**
+ * Gets the skill id of the last skill that this battler executed.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getLastUsedSkillId = function()
+{
+  return this._lastUsedSkillId;
+};
+
+/**
+ * Sets the skill id of the last skill that this battler executed.
+ * @param {number} skillId The skill id of the last skill used.
+ */
+JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
+{
+  this._lastUsedSkillId = skillId;
+};
+
+/**
  * Gets all allies to this battler within a large range.
  * (Not map-wide because that could result in unexpected behavior)
  * @returns {JABS_Battler[]}
@@ -4693,17 +4599,11 @@ JABS_Battler.prototype.getBattlerId = function()
  */
 JABS_Battler.prototype.getComboNextActionId = function(cooldownKey)
 {
-  // grab the cooldown of the given slot.
-  const cooldown = this.getCooldown(cooldownKey);
+  const nextComboId = this.getBattler()
+    .getSkillSlotManager()
+    .getSlotComboId(cooldownKey);
 
-  // if we have no cooldown there, then default to 0.
-  if (!cooldown) return 0;
-
-  // extract the next combo action from the cooldown.
-  const {comboNextActionId} = cooldown;
-
-  // return the extraction.
-  return comboNextActionId;
+  return nextComboId;
 };
 
 /**
@@ -4713,7 +4613,9 @@ JABS_Battler.prototype.getComboNextActionId = function(cooldownKey)
  */
 JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
 {
-  this._cooldowns[cooldownKey].comboNextActionId = nextComboId;
+  this.getBattler()
+    .getSkillSlotManager()
+    .setSlotComboId(cooldownKey, nextComboId);
 };
 
 /**
@@ -4722,9 +4624,6 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
-  // grab the database data for this enemy.
-  const battlerData = this.getBattler().enemy();
-
   const battler = this.getBattler();
 
   // filter out any "extend" skills as far as this collection is concerned.
@@ -4739,6 +4638,9 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
     // filter out the extend skills.
     return !isExtendSkill;
   };
+
+  // grab the database data for this enemy.
+  const battlerData = this.getBattler().enemy();
 
   // return the filtered result of skills.
   return battlerData.actions
@@ -5166,7 +5068,7 @@ JABS_Battler.prototype.createJabsActionFromSkill = function(
       caster: this,
       isRetaliation: isRetaliation,
       direction: direction,
-      cooldownKey,
+      cooldownKey: cooldownKey,
     });
 
     actions.push(mapAction);
@@ -5192,7 +5094,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   if (!skillId) return [];
 
   // check to make sure we can actually use the skill.
-  if (!battler.meetsSkillConditions(this.getSkill(skillId))) return [];
+  if (!battler.meetsSkillConditions(battler.skill(skillId))) return [];
 
   // check to make sure we actually know the skill, too.
   if (!battler.hasSkill(skillId)) return [];
@@ -5237,6 +5139,7 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
  * @param {number} toolId The id of the tool/item to be used.
  * @param {boolean} isLoot Whether or not this is a loot pickup.
  */
+// eslint-disable-next-line complexity
 JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
 {
   const item = $dataItems[toolId];
@@ -7068,6 +6971,42 @@ class JABS_CoreDataBuilder
  */
 class JABS_Cooldown
 {
+  /**
+   * The key of the cooldown.
+   * @type {string}
+   */
+  key = String.empty;
+
+  /**
+   * The frames of the cooldown.
+   * @type {number}
+   */
+  frames = 0;
+
+  /**
+   * Whether or not the base cooldown is ready.
+   * @type {boolean}
+   */
+  ready = false;
+
+  /**
+   * The number of frames in which the combo action can be executed instead.
+   * @type {number}
+   */
+  comboFrames = 0;
+
+  /**
+   * Whether or not the combo cooldown is ready.
+   * @type {boolean}
+   */
+  comboReady = false;
+
+  /**
+   * Whether or not this cooldown is locked from changing.
+   * @type {boolean}
+   */
+  locked = false;
+
   //#region initialize
   /**
    * @constructor
@@ -7075,23 +7014,26 @@ class JABS_Cooldown
    */
   constructor(key)
   {
+    // assign the properties.
     this.key = key;
-    this.initMembers();
+
+    // initialize the rest of the properties.
+    this.clearData();
   }
 
   /**
    * Initializes all members of this class.
    */
-  initMembers()
+  clearData()
   {
+    // default all the values.
     this.frames = 0;
     this.ready = false;
     this.comboFrames = 0;
     this.comboReady = false;
-    this.comboNextActionId = 0;
     this.locked = false;
+    this.mustComboClear = false;
   }
-
   //#endregion initialize
 
   /**
@@ -7103,18 +7045,55 @@ class JABS_Cooldown
     return this.ready || this.comboReady;
   }
 
+  needsComboClear()
+  {
+    return this.mustComboClear;
+  }
+
+  acknowledgeComboClear()
+  {
+    this.mustComboClear = false;
+  }
+
+  requestComboClear()
+  {
+    this.mustComboClear = true;
+  }
+
   /**
    * Manages the update cycle for this cooldown.
    */
   update()
   {
-    // don't update the cooldown for this skill while locked.
-    if (this.isLocked())
-    {
-      return;
-    }
+    // check if we can update the cooldowns at all.
+    if (!this.canUpdate()) return;
 
+    // update the cooldowns.
+    this.updateCooldownData();
+  }
+
+  /**
+   * Determines whether or not this cooldown can be updated.
+   * @returns {boolean} True if it can be updated, false otherwise.
+   */
+  canUpdate()
+  {
+    // cannot update a cooldown when it is locked.
+    if (this.isLocked()) return false;
+
+    // update the cooldown!
+    return true;
+  }
+
+  /**
+   * Updates the base and combo cooldowns.
+   */
+  updateCooldownData()
+  {
+    // update the base cooldown.
     this.updateBaseCooldown();
+
+    // update the combo cooldown.
     this.updateComboCooldown();
   }
 
@@ -7124,39 +7103,31 @@ class JABS_Cooldown
    */
   updateBaseCooldown()
   {
-    if (this.ready)
-    {
-      return;
-    }
+    // if the base cooldown is ready, do not update.
+    if (this.ready) return;
 
+    // check if we have a base cooldown to decrement.
     if (this.frames > 0)
     {
-      this.tickBase()
-      return;
+      // decrement the base cooldown.
+      this.frames--;
     }
 
-    if (this.frames <= 0)
-    {
-      this.resetCombo();
-      this.enableBase();
-    }
-  }
-
-  /**
-   * Decrements the base cooldown gauge 1 frame at a time.
-   */
-  tickBase()
-  {
-    this.frames--;
+    // check if the base cooldown is complete.
+    this.handleIfBaseReady();
   }
 
   /**
    * Enables the flag to indicate the base skill is ready for this cooldown.
+   * This also clears the combo data, as they both cannot be available at the same time.
    */
   enableBase()
   {
-    this.ready = true;
+    // set the base cooldown frames to 0.
     this.frames = 0;
+
+    // toggles the base ready flag.
+    this.ready = true;
   }
 
   /**
@@ -7174,17 +7145,14 @@ class JABS_Cooldown
    */
   setFrames(frames)
   {
+    // set the value.
     this.frames = frames;
-    if (this.frames <= 0)
-    {
-      this.ready = true;
-      this.frames = 0;
-    }
 
-    if (this.frames > 0)
-    {
-      this.ready = false;
-    }
+    // check if the base cooldown is now ready.
+    this.handleIfBaseReady();
+
+    // check if the base cooldown is now not ready.
+    this.handleIfBaseUnready();
   }
 
   /**
@@ -7193,15 +7161,43 @@ class JABS_Cooldown
    */
   modBaseFrames(frames)
   {
+    // modify the value.
     this.frames += frames;
+
+    // check if the base cooldown is now ready.
+    this.handleIfBaseReady();
+
+    // check if the base cooldown is now not ready.
+    this.handleIfBaseUnready();
+  }
+
+  /**
+   * Checks if the base cooldown is in a state of ready.
+   * If it is, the ready flag will be enabled.
+   */
+  handleIfBaseReady()
+  {
+    // check if the base cooldown is now ready.
     if (this.frames <= 0)
     {
-      this.ready = true;
-      this.frames = 0;
-    }
+      // clear the combo data.
+      this.resetCombo();
 
+      // enable the base skill.
+      this.enableBase();
+    }
+  }
+
+  /**
+   * Checks if the base cooldown is in a state of unready.
+   * If it is, the ready flag will be disabled.
+   */
+  handleIfBaseUnready()
+  {
+    // check if the base cooldown is now not ready.
     if (this.frames > 0)
     {
+      // not ready.
       this.ready = false;
     }
   }
@@ -7213,29 +7209,18 @@ class JABS_Cooldown
    */
   updateComboCooldown()
   {
-    if (this.comboReady)
-    {
-      return;
-    }
+    // if the combo cooldown is ready, do not update.
+    if (this.comboReady) return;
 
+    // decrement the combo cooldown.
     if (this.comboFrames > 0)
     {
-      this.tickCombo();
-      return;
+      // decrement the combo cooldown.
+      this.comboFrames--;
     }
 
-    if (this.comboFrames <= 0)
-    {
-      this.enableCombo();
-    }
-  }
-
-  /**
-   * Decrements the combo gauge 1 frame at a time.
-   */
-  tickCombo()
-  {
-    this.comboFrames--;
+    // handle if the base cooldown is now ready.
+    this.handleIfComboReady();
   }
 
   /**
@@ -7243,11 +7228,12 @@ class JABS_Cooldown
    */
   enableCombo()
   {
+    // action ready!
+    // zero the wait time for combo frames.
     this.comboFrames = 0;
-    if (this.comboNextActionId)
-    {
-      this.comboReady = true;
-    }
+
+    // enable the combo!
+    this.comboReady = true;
   }
 
   /**
@@ -7256,17 +7242,14 @@ class JABS_Cooldown
    */
   setComboFrames(frames)
   {
+    // set the value.
     this.comboFrames = frames;
-    if (this.comboFrames <= 0)
-    {
-      this.comboReady = true;
-      this.comboFrames = 0;
-    }
 
-    if (this.comboFrames > 0)
-    {
-      this.comboReady = false;
-    }
+    // handle if the base cooldown is now ready.
+    this.handleIfComboReady();
+
+    // handle if the base cooldown is now not ready.
+    this.handleIfComboUnready();
   }
 
   /**
@@ -7275,15 +7258,40 @@ class JABS_Cooldown
    */
   modComboFrames(frames)
   {
+    // modify the value.
     this.comboFrames += frames;
+
+    // handle if the base cooldown is now ready.
+    this.handleIfComboReady();
+
+    // handle if the base cooldown is now not ready.
+    this.handleIfComboUnready();
+  }
+
+  /**
+   * Checks if the combo cooldown is in a state of ready.
+   * If it is, the ready flag will be enabled.
+   */
+  handleIfComboReady()
+  {
+    // check if the base cooldown is now ready.
     if (this.comboFrames <= 0)
     {
-      this.comboReady = true;
-      this.comboFrames = 0;
+      // enable the combo!
+      this.enableCombo();
     }
+  }
 
+  /**
+   * Checks if the combo cooldown is in a state of unready.
+   * If it is, the ready flag will be disabled.
+   */
+  handleIfComboUnready()
+  {
+    // check if the combo cooldown is now not ready.
     if (this.comboFrames > 0)
     {
+      // not ready.
       this.comboReady = false;
     }
   }
@@ -7293,9 +7301,14 @@ class JABS_Cooldown
    */
   resetCombo()
   {
+    // zero the combo frames.
     this.comboFrames = 0;
-    this.comboNextActionId = 0;
+
+    // disable the ready flag.
     this.comboReady = false;
+
+    // requests the slot containing this cooldown to clear the combo id.
+    this.requestComboClear();
   }
 
   /**
@@ -7306,7 +7319,6 @@ class JABS_Cooldown
   {
     return this.comboReady;
   }
-
   //#endregion combo cooldown
 
   //#region locking
@@ -7334,7 +7346,6 @@ class JABS_Cooldown
   {
     this.locked = false;
   }
-
   //#endregion locking
 }
 //#endregion JABS_Cooldown
@@ -7690,6 +7701,18 @@ JABS_SkillSlot.prototype.initialize = function(key, skillId)
 JABS_SkillSlot.prototype.initMembers = function()
 {
   /**
+   * The combo id that comes after the current id; default is 0.
+   * @type {number}
+   */
+  this.comboId = 0;
+
+  /**
+   * The cooldown associated with this slot.
+   * @type {JABS_Cooldown}
+   */
+  this.cooldown = new JABS_Cooldown(this.key);
+
+  /**
    * Whether or not this skill slot is locked.
    *
    * Locked slots cannot be changed until unlocked.
@@ -7697,6 +7720,16 @@ JABS_SkillSlot.prototype.initMembers = function()
    */
   this.locked = false;
 
+  // initialize the refreshes.
+  this.initVisualRefreshes();
+};
+
+//#region refreshes
+/**
+ * Initializes the various visual refreshes.
+ */
+JABS_SkillSlot.prototype.initVisualRefreshes = function()
+{
   /**
    * Whether or not this skill slot's name needs refreshing.
    * @type {boolean}
@@ -7830,6 +7863,71 @@ JABS_SkillSlot.prototype.acknowledgeIconRefresh = function()
 {
   this.needsIconRefresh = false;
 };
+//#endregion refreshes
+
+/**
+ * Gets the cooldown associated with this skill slot.
+ * @returns {JABS_Cooldown}
+ */
+JABS_SkillSlot.prototype.getCooldown = function()
+{
+  return this.cooldown;
+};
+
+/**
+ * Updates the cooldown for this skill slot.
+ */
+JABS_SkillSlot.prototype.updateCooldown = function()
+{
+  // update the cooldown.
+  this.getCooldown().update();
+
+  // handle the need to clear the combo id from this slot.
+  this.handleComboReadiness();
+};
+
+JABS_SkillSlot.prototype.handleComboReadiness = function()
+{
+  // grab this slot's cooldown.
+  const cooldown = this.getCooldown();
+
+  // check if we need to clear the combo id.
+  if (cooldown.needsComboClear())
+  {
+    // otherwise, reset the combo id for this slot.
+    this.resetCombo();
+
+    // let the cooldown know we did the deed.
+    cooldown.acknowledgeComboClear();
+  }
+};
+
+/**
+ * Resets the combo id for this slot.
+ */
+JABS_SkillSlot.prototype.resetCombo = function()
+{
+  // reset the combo id to 0, forcing use of the main id.
+  this.setComboId(0);
+};
+
+/**
+ * Gets the next combo skill id for this skill slot.
+ * @returns {number}
+ */
+JABS_SkillSlot.prototype.getComboId = function()
+{
+  return this.comboId;
+};
+
+/**
+ * Sets the next combo skill id for this skill slot.
+ * @param {number} skillId The new skill id that is next in the combo.
+ */
+JABS_SkillSlot.prototype.setComboId = function(skillId)
+{
+  this.comboId = skillId;
+};
 
 /**
  * Gets whether or not this slot has anything assigned to it.
@@ -7850,37 +7948,6 @@ JABS_SkillSlot.prototype.isEmpty = function()
 };
 
 /**
- * Gets the underlying data for this slot.
- * Supports retrieving combo skills via targetId.
- * Supports skill extended data via J-SkillExtend.
- * @param {Game_Actor|null} user The user to get extended skill data for.
- * @param {number|null} targetId The target id to get skill data for.
- * @returns {RPG_UsableItem|RPG_Skill|null}
- */
-JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
-{
-  // if this slot is empty, then return null.
-  if (this.isEmpty()) return null;
-
-  // check if this slot is an item.
-  if (this.isItem())
-  {
-    // return the corresponding item.
-    return $dataItems[targetId];
-  }
-
-  // check if we're using the skill extension plugin and have a user.
-  if (user)
-  {
-    // return the user's extended skill.
-    return user.skill(targetId);
-  }
-
-  // otherwise, just return the database data for the skill.
-  return $dataSkills[targetId];
-};
-
-/**
  * Gets whether or not this slot belongs to the tool slot.
  * @returns {boolean}
  */
@@ -7896,15 +7963,6 @@ JABS_SkillSlot.prototype.isItem = function()
 JABS_SkillSlot.prototype.isSkill = function()
 {
   return this.key !== JABS_Button.Tool;
-};
-
-/**
- * Gets whether or not this slot is locked.
- * @returns {boolean}
- */
-JABS_SkillSlot.prototype.isLocked = function()
-{
-  return this.locked;
 };
 
 /**
@@ -7954,7 +8012,7 @@ JABS_SkillSlot.prototype.setSkillId = function(skillId)
   {
     console.warn("This slot is currently locked.");
     SoundManager.playBuzzer();
-    return;
+    return this;
   }
 
   // assign the new skill id.
@@ -8017,6 +8075,56 @@ JABS_SkillSlot.prototype.unlock = function()
 };
 
 /**
+ * Gets whether or not this slot is locked.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.isLocked = function()
+{
+  return this.locked;
+};
+
+/**
+ * Gets the underlying data for this slot.
+ * Supports retrieving combo skills via targetId.
+ * Supports skill extended data via J-SkillExtend.
+ * @param {Game_Actor|null} user The user to get extended skill data for.
+ * @param {number|null} targetId The target id to get skill data for.
+ * @returns {RPG_UsableItem|RPG_Skill|null}
+ */
+JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
+{
+  // if this slot is empty, then return null.
+  if (this.isEmpty()) return null;
+
+  // check if this slot is an item.
+  if (this.isItem())
+  {
+    // return the corresponding item.
+    return $dataItems[targetId];
+  }
+
+  // check if we're using the skill extension plugin and have a user.
+  if (user)
+  {
+    // grab the combo id in this slot.
+    const comboId = this.getComboId();
+
+    // check first if we have a valid combo id.
+    if (comboId)
+    {
+      // nice find! return the combo id version of the skill instead.
+      return user.skill(comboId);
+    }
+
+    // otherwise, return the target id.
+    return user.skill(targetId);
+  }
+
+  // all else fails... just return the database data for the skill.
+  return $dataSkills[targetId];
+};
+
+/**
  * Returns this slot to skill id 0 and unlocks it.
  * @returns {this} Returns `this` for fluent chaining.
  */
@@ -8041,8 +8149,7 @@ JABS_SkillSlot.prototype.autoclear = function()
     return this;
   }
   
-    return this.setSkillId(0);
-  
+  return this.setSkillId(0);
 };
 
 /**
@@ -8081,9 +8188,6 @@ JABS_SkillSlotManager.prototype.initialize = function(battler)
 {
   // setup the properties of this class.
   this.initMembers();
-
-  // setup the slots based on the battler type this is.
-  this.setupSlots(battler);
 };
 
 /**
@@ -8098,6 +8202,32 @@ JABS_SkillSlotManager.prototype.initMembers = function()
    * @type {JABS_SkillSlot[]}
    */
   this._slots = [];
+
+  /**
+   * A single flip that gets toggled when this class no longer requires a setup.
+   * @type {boolean}
+   * @private
+   */
+  this._setupComplete = false;
+};
+
+/**
+ * Gets whether or not this skill slot manager has been setup yet.
+ * @returns {boolean}
+ */
+JABS_SkillSlotManager.prototype.isSetupComplete = function()
+{
+  return this._setupComplete;
+};
+
+/**
+ * Finalizes the initialization of this skill slot manager.
+ * @param {Game_Actor|Game_Enemy} battler The battler being finalized.
+ */
+JABS_SkillSlotManager.prototype.completeSetup = function(battler)
+{
+  // flag it as setup.
+  this._setupComplete = true;
 };
 
 /**
@@ -8106,15 +8236,42 @@ JABS_SkillSlotManager.prototype.initMembers = function()
  */
 JABS_SkillSlotManager.prototype.setupSlots = function(battler)
 {
-  if (battler.isActor())
+  // actors only get one setup!
+  if (this.isSetupComplete() && battler.isActor()) return;
+
+  // initialize the slots.
+  this.initializeBattlerSlots();
+
+  // either actor or enemy, no in between!
+  switch (true)
   {
-    this.setupActorSlots();
+    case (battler.isActor()):
+      console.log(`setting up: `, battler.name(), battler);
+      this.setupActorSlots();
+      break;
+    case (battler.isEnemy()):
+      this.setupEnemySlots(battler);
+      break;
   }
 
-  if (battler.isEnemy())
-  {
-    this.setupEnemySlots(battler);
-  }
+  // flag the setup as complete.
+  this.completeSetup(battler);
+};
+
+/**
+ * Gets all skill slots, regardless of whether or not their are assigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getAllSlots = function()
+{
+  return this._slots;
+};
+
+
+JABS_SkillSlotManager.prototype.initializeBattlerSlots = function()
+{
+  // initialize the slots.
+  this._slots = [];
 };
 
 /**
@@ -8123,8 +8280,6 @@ JABS_SkillSlotManager.prototype.setupSlots = function(battler)
  */
 JABS_SkillSlotManager.prototype.setupActorSlots = function()
 {
-  this._slots.push(new JABS_SkillSlot("Global", 0));
-
   this._slots.push(new JABS_SkillSlot(JABS_Button.Main, 0));
   this._slots.push(new JABS_SkillSlot(JABS_Button.Offhand, 0));
   this._slots.push(new JABS_SkillSlot(JABS_Button.Tool, 0));
@@ -8143,8 +8298,12 @@ JABS_SkillSlotManager.prototype.setupActorSlots = function()
  */
 JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
 {
-  const battlerData = enemy.enemy();
-  if (!battlerData) return;
+  const battlerData = enemy.databaseData();
+  if (!battlerData)
+  {
+    console.warn('missing battler data.', enemy);
+    return;
+  }
 
   // filter out any "extend" skills as far as this collection is concerned.
   const filtering = action =>
@@ -8163,6 +8322,16 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
   const skillIds = battlerData.actions
     .filter(filtering)
     .map(action => action.skillId);
+
+  // grab the basic attack skill id as well.
+  const basicAttackSkillId = enemy.basicAttackSkillId();
+
+  // check to make sure we found one.
+  if (basicAttackSkillId)
+  {
+    // add it to the list if we did.
+    skillIds.push(basicAttackSkillId);
+  }
 
   // iterate over each skill.
   skillIds.forEach(skillId =>
@@ -8205,15 +8374,6 @@ JABS_SkillSlotManager.prototype.addSlot = function(key, initialSkillId)
 };
 
 /**
- * Gets all skill slots, regardless of whether or not their are assigned.
- * @returns {JABS_SkillSlot[]}
- */
-JABS_SkillSlotManager.prototype.getAllSlots = function()
-{
-  return this._slots;
-};
-
-/**
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
  */
@@ -8239,7 +8399,7 @@ JABS_SkillSlotManager.prototype.getAllSecondarySlots = function()
  */
 JABS_SkillSlotManager.prototype.getToolSlot = function()
 {
-  return this.getSkillBySlot(JABS_Button.Tool);
+  return this.getSkillSlotByKey(JABS_Button.Tool);
 };
 
 /**
@@ -8248,7 +8408,7 @@ JABS_SkillSlotManager.prototype.getToolSlot = function()
  */
 JABS_SkillSlotManager.prototype.getDodgeSlot = function()
 {
-  return this.getSkillBySlot(JABS_Button.Dodge);
+  return this.getSkillSlotByKey(JABS_Button.Dodge);
 };
 
 /**
@@ -8284,7 +8444,7 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
  * @param {string} key The key to find the matching slot for.
  * @returns {JABS_SkillSlot}
  */
-JABS_SkillSlotManager.prototype.getSkillBySlot = function(key)
+JABS_SkillSlotManager.prototype.getSkillSlotByKey = function(key)
 {
   return this.getAllSlots()
     .find(skillSlot => skillSlot.key === key);
@@ -8309,9 +8469,66 @@ JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind)
  */
 JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked)
 {
-  this.getSkillBySlot(key)
+  this.getSkillSlotByKey(key)
     .setSkillId(skillId)
     .setLock(locked);
+};
+
+/**
+ * Gets the combo id of the given skill slot.
+ * @param {string} key The skill slot key.
+ * @returns {number}
+ */
+JABS_SkillSlotManager.prototype.getSlotComboId = function(key)
+{
+  return this.getSkillSlotByKey(key)
+    .getComboId();
+};
+
+/**
+ * Sets the combo id of the given skill slot.
+ * @param {string} key The new skill slot key.
+ * @param {number} comboId The new combo skill id.
+ */
+JABS_SkillSlotManager.prototype.setSlotComboId = function(key, comboId)
+{
+  this.getSkillSlotByKey(key)
+    .setComboId(comboId);
+};
+
+/**
+ * Updates the cooldowns of all slots with a skill in them.
+ */
+JABS_SkillSlotManager.prototype.updateCooldowns = function()
+{
+  // this.getAllSlots() // use this if slots should update when there is no skill in them.
+  this.getEquippedSlots()
+    .forEach(slot => slot.updateCooldown());
+};
+
+JABS_SkillSlotManager.prototype.isAnyCooldownReadyForSlot = function(key)
+{
+  // shorthand the slot.
+  const slot = this.getSkillSlotByKey(key);
+
+  // shorthand the cooldown.
+  const cooldown = slot.getCooldown();
+
+  // whether or not the slot has a combo id available to it.
+  const hasComboId = (slot.getComboId() !== 0);
+
+  // check if the combo cooldown is flagged as ready.
+  const comboCooldownReady = cooldown.isComboReady();
+
+  // if we have both a combo id and a ready, we can use a combo.
+  const isComboReady = hasComboId && comboCooldownReady;
+
+  // if the base cooldown is ready, thats it- its ready.
+  const isBaseReady = cooldown.isBaseReady();
+
+  const isAnyReady = (isComboReady || isBaseReady);
+
+  return isAnyReady;
 };
 
 /**
@@ -8320,7 +8537,7 @@ JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked)
  */
 JABS_SkillSlotManager.prototype.clearSlot = function(key)
 {
-  this.getSkillBySlot(key).clear();
+  this.getSkillSlotByKey(key).clear();
 };
 
 /**

@@ -647,16 +647,14 @@ Game_Actor.prototype.addSkillProficiency = function(skillId, initialProficiency 
 /**
  * Extends skill learning to add new skill proficiencies if we learned new skills.
  */
-J.PROF.Aliased.Game_Actor.set("learnSkill", Game_Actor.prototype.learnSkill);
-Game_Actor.prototype.learnSkill = function(skillId)
+J.PROF.Aliased.Game_Actor.set("onLearnNewSkill", Game_Actor.prototype.onLearnNewSkill);
+Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
-  const beforeSkillCount = this.skills().length;
-  J.PROF.Aliased.Game_Actor.get("learnSkill").call(this, skillId);
-  const afterSkillCount = this.skills().length;
-  if (beforeSkillCount !== afterSkillCount)
-  {
-    this.addSkillProficiency(skillId);
-  }
+  // perform original logic.
+  J.PROF.Aliased.Game_Actor.get("onLearnNewSkill").call(this, skillId);
+
+  // add the skill proficiency.
+  this.addSkillProficiency(skillId);
 };
 
 /**

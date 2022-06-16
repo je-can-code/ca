@@ -1962,7 +1962,6 @@ Game_Actor.prototype.onSetup = function(actorId)
 {
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
-  console.log(`actor ${this.name()} was setup.`);
 };
 
 /**
@@ -5728,6 +5727,58 @@ class RPG_Base
     {
       // attempt the parsing.
       val = this.#parseObject(val);
+    }
+
+    // return the found value.
+    return val;
+  }
+
+  /**
+   * Gets an array of arrays based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an array of values
+   * all wrapped in hard brackets [].
+   *
+   * If the optional flag `tryParse` is true, then it will attempt to parse out
+   * the array of values as well, including translating strings to numbers/booleans
+   * and keeping array structures all intact.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
+   * @returns {any[]|null} The array from the notes, or null.
+   */
+  getArraysFromNotesByRegex(structure, tryParse = true)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = [];
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val.push(RegExp.$1);
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // if we didn't find a match, return null instead of attempting to parse.
+    if (!hasMatch) return null;
+
+    // check if we're going to attempt to parse it, too.
+    if (tryParse)
+    {
+      // attempt the parsing.
+      val = val.map(this.#parseObject, this);
     }
 
     // return the found value.
