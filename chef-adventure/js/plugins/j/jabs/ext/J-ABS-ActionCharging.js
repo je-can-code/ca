@@ -10,20 +10,149 @@
  * @help
  * ============================================================================
  * OVERVIEW:
- * This plugin enables modifications for cast times and cooldowns for actions.
- *
- * Enables:
- * - NEW! added param "Fast Cooldown", for modifying cooldown times.
- * - NEW! added param "Cast Speed", for modifying cast speeds.
+ * This plugin enables the ability to charge certain skills by holding down
+ * the input associated with the skill slot.
  *
  * This plugin requires JABS.
  * This plugin requires no plugin parameter configuration.
  * ----------------------------------------------------------------------------
- * ==============================================================================
+ * DETAILS:
+ * Actors can now "charge up" their skills to configurable degrees based on
+ * the tags applied to the skills in question. This concept is basically a
+ * JABS version of what Link can do when you charge up his sword to swing it
+ * all around, instead of just swinging it by mashing the button.
+ *
+ * The functionality is defined by "charging tiers", which include data points
+ * such as:
+ * - how long to charge this tier.
+ * - what skill will be executed if released when this tier is charged.
+ * - the tier number of this tier.
+ *
+ * A skill can have multiple tiers of charging to represent the ability to
+ * have different releasable abilities depending on how long you charge.
+ *
+ * ============================================================================
+ * CHARGING TIERS:
+ * Have you ever wanted your player to be able to "charge" skills? Well now
+ * you can! By applying the appropriate tags to skills, you can allow the
+ * player to hold down a skill slot's input to "charge" up the skill!
+ *
+ * NOTE1:
+ * To understand some of the nuances, do be sure to read the next section
+ * below that describes in greater detail how the charging tiers work.
+ *
+ * NOTE2:
+ * The two optional tags in the tag format below can be made uniform by
+ * instead adjusting the configuration in the plugin parameters.
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT:
+ *  <chargeTier:[TIER,DURATION,RELEASED_SKILL,CHARGE_ANIM?,DONE_ANIM?]>
+ * Where TIER represents the number of charge tier this defines.
+ * Where DURATION is how long in frames the button must be held to charge.
+ * Where RELEASED_SKILL is the skill to execute when released after charging.
+ * Where CHARGE_ANIM? is the animation to play while charging (optional).
+ * Where DONE_ANIM? is the animation to play when done charging (optional).
+ *
+ * EXAMPLE:
+ *  <chargeTier:[1,30,175]>
+ * The player can charge this skill up 1 tier by holding down the input for
+ * this skill slot for 30 frames. When fully charged and released, it will
+ * execute the skill of id 175.
+ *
+ *  <chargeTier:[1,30,175,10]>
+ * The player can charge this skill up 1 tier by holding down the input for
+ * this skill slot for 30 frames. While charging, the animation of id 10
+ * will play on loop. When fully charged and released, it will execute the
+ * skill of id 175.
+ *
+ *  <chargeTier:[1,30,175,10,25]>
+ * The player can charge this skill up 1 tier by holding down the input for
+ * this skill slot for 30 frames. While charging, the animation of id 10
+ * will play on loop. Each tier completed will play the animation of id 25.
+ * When fully charged and released, it will execute the skill of id 175.
+ *
+ *  <chargeTier:[1,60,0]>
+ *  <chargeTier:[2,120,90]>
+ * The player can charge this skill up 2 tiers by holding down the input for
+ * this skill slot. The first tier requires the input held for 60 frames, but
+ * will yield no skill when released. The second tier requires the input held
+ * for an additional 120 frames, and when fully charged and released, it will
+ * execute the skill id of 90.
+ *
+ *  <chargeTier:[1,60,125]>
+ *  <chargeTier:[2,300,0]>
+ *  <chargeTier:[7,150,90]>
+ * (this is probably an unrealistic example, but illustrates the functionality)
+ * The player can charge this skill up 7 tiers by holding down the input for
+ * this skill slot. The first tier requires the input held for 60 frames, and
+ * will execute skill of id 125 when released after charging for at minimum
+ * the 60 frames. The second tier requires the input to be held for an
+ * additional 300 frames (! roughly five seconds !), and when released after
+ * charging, will execute the same skill as tier 1 because tier 2 has 0 set as
+ * the skill id to execute. The tiers of (3/4/5/6) are all auto-generated and
+ * each require 30 frames of holding the input. Finally, tier 7 requires the
+ * input to be held for another 150 frames, and when fully charged and released
+ * will execute skill id 90 instead. This skill requires a total of:
+ * 60 + 300 + 30 + 30 + 30 + 30 + 150 = 630 aka ~10.5 seconds of holding the
+ * input down to fully charge all the tiers!
+ * ============================================================================
+ * MORE ABOUT CHARGE TIERS:
+ * In some cases, you may only want the player's charged ablity to release a
+ * skill if it is charged multiple tiers. While you could just make a really
+ * long charge tier, it may make more sense to charge up three tiers and only
+ * the last tier will release a skill when fully charged. In this case, you
+ * can only place the last tag on a skill (like a tier7 tag) and this engine
+ * will auto-generate the prior tiers as 1/2 second charges per tier up
+ * until the tier you defined is reached. None of the auto-generated tiers
+ * will have releasable skills.
+ *
+ * If you manually created a gap, for example, by defining only charging tiers
+ * 1 and 6, the auto-generated ones (2/3/4/5) would not have any releasable
+ * skills, but if the tier1 you defined DOES have a releasable skill, releasing
+ * anything after the first but before the 6th tier would end up releasing the
+ * 1st tier charge skill as a result.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    Initial release.
- * ==============================================================================
+ * ============================================================================
+ * @param defaults
+ * @text DEFAULTS
+ *
+ * @param defaultChargingAnimId
+ * @parent defaults
+ * @type animation
+ * @text Charging Animation
+ * @desc This will be the default animation to play when a
+ * while charging up. 0 means no animation.
+ * @default 0
+ *
+ * @param defaultTierCompleteAnimId
+ * @parent defaults
+ * @type animation
+ * @text Tier Complete Animation
+ * @desc This will be the default animation to play when a
+ * charging tier is charged. 0 means no animation.
+ * @default 0
+ *
+ * @param useTierCompleteSE
+ * @parent defaults
+ * @type boolean
+ * @text Use Tier Complete SE
+ * @desc Whether or not to use the charging tier complete sound
+ * effects.
+ * @default false
+ *
+ * @param allowTierCompleteSEandAnim
+ * @parent defaults
+ * @type boolean
+ * @text Allow Tier Complete SE/Anim
+ * @desc Whether or not to use both sound effects and the defined
+ * animations when a charging tier completes.
+ * @default false
  */
 
 /**
@@ -56,6 +185,37 @@ J.ABS.EXT_CHARGE.Metadata = {
  */
 J.ABS.EXT_CHARGE.PluginParameters = PluginManager.parameters(J.ABS.EXT_CHARGE.Metadata.Name);
 
+J.ABS.EXT_CHARGE.Metadata = {
+  // the original properties.
+  ...J.ABS.EXT_CHARGE.Metadata,
+
+  /**
+   * The default charging animation id.
+   * 0 will yield no default animation.
+   * @type {number}
+   */
+  DefaultChargingAnimationId: Number(J.ABS.EXT_CHARGE.PluginParameters['defaultChargingAnimId']),
+
+  /**
+   * The default tier complete animation id.
+   * 0 will yield no default animation.
+   * @type {number}
+   */
+  DefaultTierCompleteAnimationId: Number(J.ABS.EXT_CHARGE.PluginParameters['defaultTierCompleteAnimId']),
+
+  /**
+   * Whether or not to use the charging tier complete sound effect.
+   * @type {boolean}
+   */
+  UseTierCompleteSE: J.ABS.EXT_CHARGE.PluginParameters['useTierCompleteSE'] === "true",
+
+  /**
+   * Whether or not to use the charging tier complete sound effect when there is an animation present.
+   * @type {boolean}
+   */
+  AllowTierCompleteSEandAnimation: J.ABS.EXT_CHARGE.PluginParameters['allowTierCompleteSEandAnim'] === "true",
+};
+
 /**
  * A collection of all aliased methods for this plugin.
  */
@@ -67,15 +227,92 @@ J.ABS.EXT_CHARGE.Aliased = {
   JABS_Action: new Map(),
   JABS_Battler: new Map(),
   JABS_InputController: new Map(),
+  SoundManager: new Map(),
 };
 
 /**
  * All regular expressions used by this plugin.
  */
 J.ABS.EXT_CHARGE.RegExp = {
-  ChargeData: /<chargeTier:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+])>/gi,
+  ChargeData: /<chargeTier:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+(,[ ]?\d+(,[ ]?\d+)?)?])>/gi,
 };
 //#endregion Introduction
+
+//#region Static objects
+//#region SoundManager
+/**
+ * Extends {@link SoundManager.preloadImportantSounds}.
+ * Also preloads the charging-related sound effects.
+ */
+J.ABS.EXT_CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);
+SoundManager.preloadImportantSounds = function()
+{
+  // perform original logic.
+  J.ABS.EXT_CHARGE.Aliased.SoundManager.get('preloadImportantSounds').call(this);
+
+  // load our charging sounds.
+  this.loadJabsChargingSounds();
+};
+
+/**
+ * Adds the charging-related sound effects to the list of preloaded sound effects.
+ */
+SoundManager.loadJabsChargingSounds = function()
+{
+  // grab the sound effect for charging tier complete.
+  const chargeTierComplete = this.chargeTierCompleteSE();
+
+  // grab the sound effect for max charge becoming ready.
+  const maxChargeReady = this.maxChargeReadySE();
+
+  // preload em.
+  AudioManager.loadStaticSe(chargeTierComplete);
+  AudioManager.loadStaticSe(maxChargeReady);
+};
+
+/**
+ * Plays the sound effect for when a charging tier has completed charging.
+ */
+SoundManager.playChargeTierCompleteSE = function()
+{
+  // grab the sound effect for charging tier complete.
+  const se = this.chargeTierCompleteSE();
+
+  // play the effect.
+  this.playSoundEffect(se);
+};
+
+/**
+ * Plays the sound effect for when the max charge effect is ready.
+ */
+SoundManager.playMaxChargeReadySE = function()
+{
+  // grab the sound effect for the max charge becoming ready.
+  const se = this.maxChargeReadySE();
+
+  // play the effect.
+  this.playSoundEffect(se);
+};
+
+/**
+ * The sound effect to play when a charging tier has completed charging.
+ * @returns {RPG_SoundEffect}
+ */
+SoundManager.chargeTierCompleteSE = function()
+{
+  return new RPG_SoundEffect("Heal6", 40, 130, 0);
+};
+
+/**
+ * The sound effect to play when the max charge effect is ready.
+ * @returns {RPG_SoundEffect}
+ */
+SoundManager.maxChargeReadySE = function()
+{
+  return new RPG_SoundEffect("Item3", 50, 110, 0);
+};
+//#endregion SoundManager
+//#endregion Static objects
 
 //#region existing JABS objects
 //#region JABS_InputController
@@ -745,10 +982,22 @@ JABS_Battler.prototype.getChargingTiers = function(slot)
   const convertedData = chargingTierData.map(tierData =>
   {
     // destruct the tier data.
-    const [chargeTier, maxDuration, chargeSkillId] = tierData;
+    const [
+      chargeTier,
+      maxDuration,
+      chargeSkillId,
+      whileChargingAnimationId,
+      chargeTierCompleteAnimationId,
+    ] = tierData;
 
-    // return a compiled charging tier.
-    return new JABS_ChargingTier(chargeTier, maxDuration, chargeSkillId)
+    // return a compiled charging tier; note default animationId.
+    return new JABS_ChargingTier(
+      chargeTier,
+      maxDuration,
+      chargeSkillId,
+      whileChargingAnimationId ?? 0,
+      chargeTierCompleteAnimationId ?? 0
+      );
   });
 
   // get the normalized data.
@@ -834,14 +1083,14 @@ JABS_Battler.prototype.updateCharging = function()
   // grab the current tier of charging.
   const currentTier = this.getCurrentChargingTier();
 
-  // if we do not have a tier to charge, then do not.
-  if (!currentTier) return;
+  // perform the pre-update charging hook.
+  this.preUpdateCharging(currentTier);
 
   // update the current charging tier.
   currentTier.update();
 
-  //const { tier, duration, maxDuration } = currentTier;
-  //console.log(`tier:[${tier}], duration:[${duration}/${maxDuration}]`);
+  // perform the post-update charging hook.
+  this.postUpdateCharging(currentTier);
 };
 
 /**
@@ -859,6 +1108,180 @@ JABS_Battler.prototype.canUpdateCharging = function()
   // we can charge!
   return true;
 };
+
+/**
+ * Processes the pre-update charging effects.
+ * This defines
+ * @param {JABS_ChargingTier} currentTier The current tier about to be charged.
+ */
+JABS_Battler.prototype.preUpdateCharging = function(currentTier)
+{
+  // check if we can show the while-charging animation.
+  if (this.canShowPreChargingAnimation(currentTier))
+  {
+    // grab the [default] animation id.
+    const animationId = currentTier.whileChargingAnimationId === 0
+      ? J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId
+      : currentTier.whileChargingAnimationId;
+
+    // play an animation.
+    this.showAnimation(animationId);
+  }
+};
+
+/**
+ * Determines whether or not to show the charging animation.
+ * @param {JABS_ChargingTier} currentTier The current tier about to be charged.
+ */
+JABS_Battler.prototype.canShowPreChargingAnimation = function(currentTier)
+{
+  // check whether or not we have an animation id to play.
+  const hasNoAnimationId = currentTier.whileChargingAnimationId === 0;
+
+  // check if we set a default animation id to play.
+  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId !== 0;
+
+  // if we have no animation id nor default, then we cannot show animations.
+  if (hasNoAnimationId && !usingDefault) return false;
+
+  // we play roughly once per second while charging.
+  if (currentTier.duration % 15 !== 0) return false;
+
+  // show the animation!
+  return true;
+};
+
+/**
+ * Processes the post-update charging effects.
+ * This defines the hooks for on-max charge and the like.
+ * @param {JABS_ChargingTier} currentTier The most recent charging tier that was updated.
+ */
+JABS_Battler.prototype.postUpdateCharging = function(currentTier)
+{
+  // grab the newly updated tier.
+  const afterUpdateTier = this.getCurrentChargingTier();
+
+  // if all tiers are completed, then we celebrate!
+  if (!afterUpdateTier)
+  {
+    // process the on-max-charge event hook.
+    this.onMaxCharge(currentTier);
+
+    // don't continue processing!
+    return;
+  }
+
+  // check if we are still on the same charging tier.
+  if (!currentTier.completed)
+  {
+    // stop processing because still charging.
+    return;
+  }
+
+  // they must be two separate charging tiers, we charged a tier!
+  if (currentTier.tier < afterUpdateTier.tier)
+  {
+    // process the on-charge-tier-complete event hook.
+    this.onChargeTierComplete(currentTier, afterUpdateTier);
+  }
+};
+
+/**
+ * Determines whether or not to show the charging animation.
+ * @param {JABS_ChargingTier} currentTier The current tier about to be charged.
+ */
+JABS_Battler.prototype.canShowTierCompletionAnimation = function(currentTier)
+{
+  // check whether or not we have an animation id to play.
+  const hasNoAnimationId = currentTier.chargeTierCompleteAnimationId === 0;
+
+  // check if we set a default animation id to play.
+  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId !== 0;
+
+  // if we have no animation id nor default, then we cannot show animations.
+  if (hasNoAnimationId && !usingDefault) return false;
+
+  // show the animation!
+  return true;
+};
+
+/**
+ * Processes the max charge ready effects.
+ * Either this or {@link JABS_Battler.onChargeTierComplete} will execute, not both.
+ * @param {JABS_ChargingTier} finalChargeTier The last tier that completed charging.
+ */
+JABS_Battler.prototype.onMaxCharge = function(finalChargeTier)
+{
+  // shorthand our various conditions for playing/showing things.
+  const canShowAnimation = this.canShowTierCompletionAnimation(finalChargeTier);
+  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+
+  // grab the [default] animation id.
+  const animationId = finalChargeTier.chargeTierCompleteAnimationId === 0
+    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    : finalChargeTier.chargeTierCompleteAnimationId;
+
+  // check if we can show the animation.
+  if (canShowAnimation)
+  {
+
+    // show the animation.
+    this.showAnimation(animationId);
+
+    // check if we should also play the SE.
+    if (canPlaySEwithAnimation)
+    {
+      // play a sound effect!
+      SoundManager.playMaxChargeReadySE();
+    }
+  }
+  // we can't play the animation, but check if we can at least play the SE.
+  else if (canPlaySE)
+  {
+    // play a sound effect!
+    SoundManager.playMaxChargeReadySE();
+  }
+};
+
+/**
+ * Processes the charge tier complete effects.
+ * Either this or {@link JABS_Battler.onMaxCharge} will execute, not both.
+ * @param {JABS_ChargingTier} completedChargeTier The most recent charging tier completed.
+ * @param {JABS_ChargingTier} nextChargeTier The next charging tier.
+ */
+JABS_Battler.prototype.onChargeTierComplete = function(completedChargeTier, nextChargeTier)
+{
+  // shorthand our various conditions for playing/showing things.
+  const canShowAnimation = this.canShowTierCompletionAnimation(completedChargeTier);
+  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+
+  // grab the [default] animation id.
+  const animationId = completedChargeTier.chargeTierCompleteAnimationId === 0
+    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    : completedChargeTier.chargeTierCompleteAnimationId;
+
+  // check if we can show the animation.
+  if (canShowAnimation)
+  {
+    // show the animation.
+    this.showAnimation(animationId);
+
+    // check if we should also play the SE.
+    if (canPlaySEwithAnimation)
+    {
+      // play a sound effect!
+      SoundManager.playChargeTierCompleteSE();
+    }
+  }
+  // we can't play the animation, but check if we can at least play the SE.
+  else if (canPlaySE)
+  {
+    // play a sound effect!
+    SoundManager.playChargeTierCompleteSE();
+  }
+};
 //#endregion JABS_Battler
 //#endregion existing JABS objects
 
@@ -869,6 +1292,7 @@ JABS_Battler.prototype.canUpdateCharging = function()
  */
 class JABS_ChargingTier
 {
+  //#region properties
   /**
    * The number of frames that this tier has already been charged.
    * @type {number}
@@ -900,16 +1324,35 @@ class JABS_ChargingTier
   completed = false;
 
   /**
+   * The animation id to be played while this tier is being charged.
+   * If it is set to 0 or missing, no animation will be played.
+   * @type {number}
+   */
+  whileChargingAnimationId = 0;
+
+  /**
+   * The animation id to be played when this tier has finished charging.
+   * If it is set to 0 or missing, no animation will be played.
+   * @type {number}
+   */
+  chargeTierCompleteAnimationId = 0;
+  //endregion properties
+
+  /**
    * Constructor.
    * @param {number} tier The number of tier this is.
    * @param {number} maxDuration The duration for this tier.
    * @param {number} skillId The skill to be executed on charge-up.
+   * @param {number} whileChargingAnimationId The animation to be played while charging this skill.
+   * @param {number} maxChargeReadyAnimationId The animation to be played when max charge is ready.
    */
-  constructor(tier, maxDuration, skillId)
+  constructor(tier, maxDuration, skillId, whileChargingAnimationId, maxChargeReadyAnimationId)
   {
     this.maxDuration = maxDuration;
     this.tier = tier;
     this.skillId = skillId;
+    this.whileChargingAnimationId = whileChargingAnimationId;
+    this.chargeTierCompleteAnimationId = maxChargeReadyAnimationId;
   }
 
   /**
@@ -920,7 +1363,7 @@ class JABS_ChargingTier
    */
   static defaultTier(fillerTier = 1)
   {
-    return new JABS_ChargingTier(fillerTier, 30, 0);
+    return new JABS_ChargingTier(fillerTier, 30, 0, 0, 0);
   }
 
   /**
@@ -951,7 +1394,6 @@ class JABS_ChargingTier
    */
   onComplete()
   {
-    console.log(`completed tier ${this.tier}, charge skill ${this.skillId} available!`);
   }
 }
 //#endregion JABS_ChargingTier
@@ -961,7 +1403,7 @@ class JABS_ChargingTier
 //#region RPG_Skill
 /**
  * The charge tier data associated with a skill.
- * @type {[number, number, number][]|null}
+ * @type {[number, number, number, number][]|null}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsChargeData",
   {
@@ -973,7 +1415,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsChargeData",
 
 /**
  * Gets the charge tier data from this skill.
- * @returns {[number, number, number][]|null}
+ * @returns {[number, number, number, number][]|null}
  */
 RPG_Base.prototype.getJabsChargeData = function()
 {
@@ -982,7 +1424,7 @@ RPG_Base.prototype.getJabsChargeData = function()
 
 /**
  * Gets the value from its notes.
- * @returns {[number, number, number][]|null}
+ * @returns {[number, number, number, number][]|null}
  */
 RPG_Base.prototype.extractJabsChargeData = function()
 {

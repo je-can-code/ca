@@ -170,7 +170,7 @@
  * By default, when an enemy is created, they are assigned a numeric team value
  * of 1. When allied battlers (such as the player) are created, they are given
  * the team value of 0. Because these two battlers are on different teams, they
- * are able to deal damage to eachother with skills. If your game is more
+ * are able to deal damage to each other with skills. If your game is more
  * complex than "good guy" & "bad guy", you may require additional teams. While
  * it isn't greatly supported in the sense that there is team relationships
  * and associations you can create (such as two separate teams that consider

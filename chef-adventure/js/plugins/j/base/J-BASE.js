@@ -233,6 +233,7 @@ J.BASE.Traits = {
  * A collection of all aliased methods for this plugin.
  */
 J.BASE.Aliased = {
+  AudioManager: new Map(),
   DataManager: new Map(),
   Game_Character: {},
   Game_Actor: new Map(),
@@ -240,6 +241,7 @@ J.BASE.Aliased = {
   Game_Enemy: new Map(),
   Game_Party: new Map(),
   Scene_Base: new Map(),
+  SoundManager: new Map(),
   Window_Base: {},
   Window_Command: {},
   Window_Selectable: {},
@@ -405,6 +407,9 @@ Number.prototype.iterate = function(times, func)
 //#endregion Helpers
 
 //#region Static objects
+//#region AudioManager
+
+//#endregion AudioManager
 //#region ColorManager
 /**
  * Gets the color index from the "long" parameter id.
@@ -1496,6 +1501,17 @@ ImageManager.probeCharacter = function(characterFileName)
   });
 };
 //#endregion ImageManager
+//#region SoundManager
+/**
+ * Plays the sound effect provided.
+ * @param {RPG_SoundEffect} se The sound effect to play.
+ */
+SoundManager.playSoundEffect = function(se)
+{
+  AudioManager.playStaticSe(se);
+};
+//#endregion SoundManager
+
 
 //#region TextManager
 /**
@@ -6684,5 +6700,52 @@ class RPG_Weapon extends RPG_EquipItem
 }
 //#endregion RPG_Weapon
 //#endregion RPG implementations
+
+//#region miscellaneous others
+/**
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.
+ */
+class RPG_SoundEffect
+{
+  /**
+   * The name of the sound effect.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The L/R adjustment of the sound effect.
+   * @type {number}
+   */
+  pan = 0;
+
+  /**
+   * The high/low pitch of the sound effect.
+   * @type {number}
+   */
+  pitch = 100;
+
+  /**
+   * The volume of the sound effect.
+   * @type {number}
+   */
+  volume = 100;
+
+  /**
+   * Constructor.
+   * @param {string} name The name of the sound effect.
+   * @param {number} volume The volume of the sound effect.
+   * @param {number} pitch The high/low pitch of the sound effect.
+   * @param {number} pan The L/R adjustment of the sound effect.
+   */
+  constructor(name, volume = 100, pitch = 100, pan = 0)
+  {
+    this.name = name;
+    this.pan = pan;
+    this.pitch = pitch;
+    this.volume = volume;
+  }
+}
+//#endregion miscellaneous others
 //#endregion RPG objects
 //ENDFILE

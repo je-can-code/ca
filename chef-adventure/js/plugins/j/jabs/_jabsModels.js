@@ -2061,21 +2061,37 @@ JABS_Battler.prototype.countdownCastTime = function()
 };
 
 /**
- * If there is a cast animation to play and there is no current animation playing,
- * then play the cast animation on this battler.
+ * Performs the cast animation if possible on this battler.
  */
 JABS_Battler.prototype.performCastAnimation = function()
 {
-  // if we don't have a decided action somehow, then don't do cast animation things.
-  if (!this.getDecidedAction()) return;
+  // check if we can perform a cast animation.
+  if (!this.canPerformCastAnimation()) return;
 
+  // get the cast animation id.
   const animationId = this.getDecidedAction()[0].getCastAnimation();
-  if (!animationId) return;
 
-  if (!this.getCharacter().isAnimationPlaying())
-  {
-    this.showAnimation(animationId);
-  }
+  // show the animation.
+  this.showAnimation(animationId);
+};
+
+/**
+ * Determines whether or not we can perform a cast animation.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canPerformCastAnimation = function()
+{
+  // if we don't have a decided action somehow, then don't do cast animation things.
+  if (!this.getDecidedAction()) return false;
+
+  // if we don't have a cast animation, then don't do cast animation things.
+  if (!this.getDecidedAction()[0].getCastAnimation()) return false;
+
+  // don't show casting animations while other animations are playing on you.
+  if (this.isShowingAnimation()) return false;
+
+  // show cast animations!
+  return true;
 };
 
 /**
@@ -5827,6 +5843,15 @@ JABS_Battler.prototype.showBalloon = function(balloonId)
 JABS_Battler.prototype.showAnimation = function(animationId)
 {
   this.getCharacter().requestAnimation(animationId);
+};
+
+/**
+ * Checks if there is currently an animation playing on this character.
+ * @returns {boolean} True if there is an animation playing, false otherwise.
+ */
+JABS_Battler.prototype.isShowingAnimation = function()
+{
+  return this.getCharacter().isAnimationPlaying();
 };
 //#endregion utility helpers
 //#endregion JABS_Battler

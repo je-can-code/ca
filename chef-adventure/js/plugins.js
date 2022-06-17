@@ -25,7 +25,7 @@ var $plugins =
 {"name":"j/jabs/ext/J-ABS-InputManager","status":true,"description":"[v1.0.0 INPUT] A manager for overseeing the input of JABS.","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-Diagonals","status":true,"description":"[v1.0.0 DIAG] Fixes diagonal movement for projectiles and characters.","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-DangerIndicator","status":true,"description":"[v1.0.0 DANGER] Enable danger indicators on foes on the map.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
-{"name":"j/jabs/ext/J-ABS-ActionCharging","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{}},
+{"name":"j/jabs/ext/J-ABS-ActionCharging","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{"defaults":"","defaultChargingAnimId":"160","defaultTierCompleteAnimId":"161","useTierCompleteSE":"true","allowTierCompleteSEandAnim":"true"}},
 {"name":"j/jabs/ext/J-ABS-ActionTiming","status":true,"description":"[v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"---------------------------------------------------------------------","parameters":{}},
 {"name":"j/jabs/ext/J-ABS-STAR","status":false,"description":"Test Bundling","parameters":{"hello":""}},
