@@ -7031,6 +7031,13 @@ class JABS_Cooldown
    */
   locked = false;
 
+  /**
+   * Whether or not the skill manager needs to clear the combo data for the
+   * slot that this cooldown is attached to.
+   * @type {boolean}
+   */
+  mustComboClear = false;
+
   //#region initialize
   /**
    * @constructor
@@ -7061,24 +7068,25 @@ class JABS_Cooldown
   //#endregion initialize
 
   /**
-   * Gets whether or not if either of the components of the cooldown are ready.
+   * Whether or not the combo data needs clearing.
    * @returns {boolean}
    */
-  isAnyReady()
-  {
-    return this.ready || this.comboReady;
-  }
-
   needsComboClear()
   {
     return this.mustComboClear;
   }
 
+  /**
+   * Acknowledges the combo was cleared and sets the flag to false.
+   */
   acknowledgeComboClear()
   {
     this.mustComboClear = false;
   }
 
+  /**
+   * Requests the combo to be cleared and sets the flag to true.
+   */
   requestComboClear()
   {
     this.mustComboClear = true;
@@ -7927,12 +7935,24 @@ JABS_SkillSlot.prototype.handleComboReadiness = function()
 };
 
 /**
+ * An event hook fired when this skill slot changes in some way.
+ */
+JABS_SkillSlot.prototype.onChange = function()
+{
+  // flags the slot for visual refresh.
+  this.flagSkillSlotForRefresh();
+};
+
+/**
  * Resets the combo id for this slot.
  */
 JABS_SkillSlot.prototype.resetCombo = function()
 {
   // reset the combo id to 0, forcing use of the main id.
   this.setComboId(0);
+
+  // perform the on-change event hook.
+  this.onChange();
 };
 
 /**
@@ -7947,10 +7967,32 @@ JABS_SkillSlot.prototype.getComboId = function()
 /**
  * Sets the next combo skill id for this skill slot.
  * @param {number} skillId The new skill id that is next in the combo.
+ * @returns {this} Returns `this` for fluent chaining.
  */
 JABS_SkillSlot.prototype.setComboId = function(skillId)
 {
+  // initialize change to false.
+  let changed = false;
+
+  // check if the combo id is being changed.
+  if (skillId !== this.comboId)
+  {
+    // it was changed.
+    changed = true;
+  }
+
+  // update the combo id.
   this.comboId = skillId;
+
+  // check if the slot had a change.
+  if (changed)
+  {
+    // perform the on-change event hook.
+    this.onChange();
+  }
+
+  // return this for fluent-chaining.
+  return this;
 };
 
 /**
@@ -8042,8 +8084,8 @@ JABS_SkillSlot.prototype.setSkillId = function(skillId)
   // assign the new skill id.
   this.id = skillId;
 
-  // raise a flag that we need the visual refresh.
-  this.flagSkillSlotForRefresh();
+  // no change check, always perform the on-change event hook.
+  this.onChange();
 
   // return this for fluent-chaining.
   return this;
@@ -8184,8 +8226,6 @@ JABS_SkillSlot.prototype.autoclear = function()
 JABS_SkillSlot.prototype.canBeAutocleared = function()
 {
   const noAutoclearSlots = [
-    JABS_Button.Mainhand,
-    JABS_Button.Offhand,
     JABS_Button.Tool
   ];
 
@@ -8515,8 +8555,14 @@ JABS_SkillSlotManager.prototype.getSlotComboId = function(key)
  */
 JABS_SkillSlotManager.prototype.setSlotComboId = function(key, comboId)
 {
-  this.getSkillSlotByKey(key)
-    .setComboId(comboId);
+  // shorthand the skill slot.
+  const skillSlot = this.getSkillSlotByKey(key);
+
+  // set the new combo id.
+  skillSlot.setComboId(comboId);
+
+  // flag for refresh.
+  skillSlot.flagSkillSlotForRefresh();
 };
 
 /**
@@ -8529,6 +8575,11 @@ JABS_SkillSlotManager.prototype.updateCooldowns = function()
     .forEach(slot => slot.updateCooldown());
 };
 
+/**
+ * Determines if either cooldown is available for the given slot.
+ * @param {string} key The slot.
+ * @returns {boolean} True if one of the cooldowns is ready, false if both are not.
+ */
 JABS_SkillSlotManager.prototype.isAnyCooldownReadyForSlot = function(key)
 {
   // shorthand the slot.
@@ -8549,8 +8600,10 @@ JABS_SkillSlotManager.prototype.isAnyCooldownReadyForSlot = function(key)
   // if the base cooldown is ready, thats it- its ready.
   const isBaseReady = cooldown.isBaseReady();
 
+  // whether or not either type of cooldown is available.
   const isAnyReady = (isComboReady || isBaseReady);
 
+  // return our result.
   return isAnyReady;
 };
 
@@ -8566,12 +8619,13 @@ JABS_SkillSlotManager.prototype.clearSlot = function(key)
 /**
  * Unlocks all slots owned by this actor.
  */
-JABS_SkillSlotManager.prototype.unlockAllSlots = function(key)
+JABS_SkillSlotManager.prototype.unlockAllSlots = function()
 {
   this.getAllSlots().forEach(slot => slot.unlock());
 };
 //#endregion JABS_SkillSlotManager
 
+//#region JABS_Timer
 /**
  * A reusable timer with some nifty functions.
  */
@@ -8746,8 +8800,6 @@ class JABS_Timer
 
     // increment the timer.
     this._timer++;
-
-    console.log(`timer ticking...`, this);
   }
 
   /**
@@ -8802,6 +8854,7 @@ class JABS_Timer
     console.log(`timer completed`, this);
   }
 }
+//#endregion JABS_Timer
 
 //#region JABS_TrackedState
 /**

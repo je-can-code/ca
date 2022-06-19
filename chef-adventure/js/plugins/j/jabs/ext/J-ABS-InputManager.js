@@ -122,7 +122,7 @@ Input.keyMapper = {
   // core buttons.
   90: J.ABS.Input.Mainhand,     // z
   88: J.ABS.Input.Offhand,      // x
-  16: J.ABS.Input.Dodge,        // shift (already defined)
+  16: J.ABS.Input.Dash,        // shift (already defined)
   67: J.ABS.Input.Tool,         // c
 
   // functional buttons.
@@ -349,7 +349,7 @@ class JABS_InputController
     this.inputMapping.set(JABS_Button.Mainhand, J.ABS.Input.Mainhand);
     this.inputMapping.set(JABS_Button.Offhand, J.ABS.Input.Offhand);
     this.inputMapping.set(JABS_Button.Tool, J.ABS.Input.Tool);
-    this.inputMapping.set(JABS_Button.Dodge, J.ABS.Input.Dodge);
+    this.inputMapping.set(JABS_Button.Dodge, J.ABS.Input.Dash);
     this.inputMapping.set(JABS_Button.CombatSkill1, J.ABS.Input.CombatSkill1);
     this.inputMapping.set(JABS_Button.CombatSkill2, J.ABS.Input.CombatSkill2);
     this.inputMapping.set(JABS_Button.CombatSkill3, J.ABS.Input.CombatSkill3);
@@ -801,7 +801,7 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having X triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.Dodge))
+      if (Input.isTriggered(J.ABS.Input.Dash))
       {
         return true;
       }

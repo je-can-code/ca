@@ -771,18 +771,24 @@ Game_Battler.prototype.getEmptySecondarySkills = function()
  */
 Game_Battler.prototype.setEquippedSkill = function(slot, skillId, locked = false)
 {
+  // shorthand the skill slot manager.
+  const skillSlotManager = this.getSkillSlotManager();
+
   // do nothing if we don't have skill slots to work with.
-  if (!this.getSkillSlotManager()) return;
+  if (!skillSlotManager) return;
 
   // check if we need to actually update the slot.
   if (this.needsSlotUpdate(slot, skillId, locked))
   {
     // update the slot.
-    this.getSkillSlotManager().setSlot(slot, skillId, locked);
+    skillSlotManager.setSlot(slot, skillId, locked);
 
     // check if we're using the hud's input frame.
     if (J.HUD && J.HUD.EXT_INPUT)
     {
+      // flag the slot for refresh.
+      skillSlotManager.getSkillSlotByKey(slot).flagSkillSlotForRefresh();
+
       // request an update to the input frame.
       $hudManager.requestRefreshInputFrame();
     }
@@ -854,14 +860,14 @@ Game_Actor.prototype.refreshBasicAttackSkills = function()
   // don't refresh if setup hasn't been completed.
   if (!this.canRefreshBasicAttackSkills()) return;
 
-  // remove all unequippable skills from their slots.
-  this.removeInvalidSkills();
-
   // update the mainhand skill slot.
   this.updateMainhandSkill();
 
   // update the offhand skill slot.
   this.updateOffhandSkill();
+
+  // remove all unequippable skills from their slots.
+  this.removeInvalidSkills();
 };
 
 Game_Actor.prototype.canRefreshBasicAttackSkills = function()
@@ -5572,10 +5578,13 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
 /**
  * Extends the initialize to include additional objects for JABS.
  */
-J.ABS.Aliased.Game_Party.initialize = Game_Party.prototype.initialize;
+J.ABS.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
-  J.ABS.Aliased.Game_Party.initialize.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Party.get('initialize').call(this);
+
+  // initialize party data for JABS.
   this.initJabsPartyData();
 };
 
@@ -5584,11 +5593,23 @@ Game_Party.prototype.initialize = function()
  */
 Game_Party.prototype.initJabsPartyData = function()
 {
-  this._j = this._j || {};
-  if (this._j._canPartyCycle === undefined)
-  {
-    this._j._canPartyCycle = true;
-  }
+  /**
+   * The master reference to the `_j` object containing all plugin properties.
+   * @type {{}}
+   */
+  this._j ||= {};
+
+  /**
+   * The master reference to all JABS-related added properties on this class.
+   * @type {{}}
+   */
+  this._j._abs ||= {};
+
+  /**
+   * Whether or not the party is allowed to party cycle.
+   * @type {boolean}
+   */
+  this._j._abs._canPartyCycle ||= true;
 };
 
 /**
@@ -5596,8 +5617,7 @@ Game_Party.prototype.initJabsPartyData = function()
  */
 Game_Party.prototype.enablePartyCycling = function()
 {
-  this.initJabsPartyData();
-  this._j._canPartyCycle = true;
+  this._j._abs._canPartyCycle = true;
 };
 
 /**
@@ -5605,8 +5625,7 @@ Game_Party.prototype.enablePartyCycling = function()
  */
 Game_Party.prototype.disablePartyCycling = function()
 {
-  this.initJabsPartyData();
-  this._j._canPartyCycle = false;
+  this._j._abs._canPartyCycle = false;
 };
 
 /**
@@ -5615,12 +5634,7 @@ Game_Party.prototype.disablePartyCycling = function()
  */
 Game_Party.prototype.canPartyCycle = function()
 {
-  if (this._j === undefined)
-  {
-    this.initJabsPartyData();
-  }
-
-  return this._j._canPartyCycle;
+  return this._j._abs._canPartyCycle;
 };
 //#endregion Game_Party
 
@@ -5630,7 +5644,7 @@ Game_Party.prototype.canPartyCycle = function()
  */
 Game_Player.prototype.isDashButtonPressed = function()
 {
-  const shift = Input.isPressed(J.ABS.Input.Dodge);
+  const shift = Input.isPressed(J.ABS.Input.Dash);
   if (ConfigManager.alwaysDash)
   {
     return !shift;

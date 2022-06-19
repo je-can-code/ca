@@ -880,7 +880,7 @@ JABS_InputController.prototype.isCombatAction3Charging = function()
   if (!this.isCombatSkillUsageEnabled()) return false;
 
   // or just the single-button input to be held down.
-  if (Input.isPressed(J.ABS.Input.Dodge) || Input.isPressed(J.ABS.Input.CombatSkill3)) return true;
+  if (Input.isPressed(J.ABS.Input.Dash) || Input.isPressed(J.ABS.Input.CombatSkill3)) return true;
 
   // inputs are not being held down.
   return false;
@@ -1290,7 +1290,6 @@ JABS_Battler.prototype.setChargingSlot = function(slot)
 {
   this._chargeSlot = slot;
 };
-
 //#endregion property getter setter
 
 /**
@@ -1315,6 +1314,8 @@ JABS_Battler.prototype.resetChargeData = function()
  */
 JABS_Battler.prototype.executeChargeAction = function(slot, charging)
 {
+  if (!this.canChargeSlot(slot)) return;
+
   // get whether or not we're currently charging some action.
   const isCurrentlyCharging = this.isCharging();
 
@@ -1381,6 +1382,32 @@ JABS_Battler.prototype.executeChargeAction = function(slot, charging)
     // setup the charging.
     this.setupCharging(slot, chargingTiers);
   }
+};
+
+/**
+ * Determines whether or not the given slot can be charged.
+ * @param {string} slot The slot to potentially be charged.
+ * @returns {boolean} True if it can be charged, false otherwise.
+ */
+JABS_Battler.prototype.canChargeSlot = function(slot)
+{
+  // if there is no slot provided, do not charge.
+  if (!slot) return false;
+
+  // shorthand the skill slot.
+  const skillSlot = this
+    .getBattler()
+    .getSkillSlotManager()
+    .getSkillSlotByKey(slot);
+
+  // if there is no actual slot for the key, we cannot charge.
+  if (!skillSlot) return false;
+
+  // cannot charge slots with skills you do not know.
+  if (!this.getBattler().hasSkill(skillSlot.id)) return false;
+
+  // we can charge this slot!
+  return true;
 };
 
 /**

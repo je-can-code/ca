@@ -1312,7 +1312,7 @@ J.ABS.Aliased = {
   Game_Followers: {},
   Game_Interpreter: {},
   Game_Map: new Map(),
-  Game_Party: {},
+  Game_Party: new Map(),
   Game_Player: {},
   Game_Unit: {},
   RPG_Actor: new Map(),
@@ -2240,6 +2240,9 @@ class JABS_Engine // eslint-disable-line no-unused-vars
         .build();
       $gameTextLog.addLog(log);
     }
+
+    // also trigger an update against the switching player.
+    this.getPlayer1().getBattler().onBattlerDataChange();
 
     // request a map-wide sprite refresh on cycling.
     this.requestSpriteRefresh = true;

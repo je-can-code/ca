@@ -316,31 +316,6 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
   }
 
   /**
-   * Gets the id of the skill associated with the currently assigned skill slot.
-   * Accommodates skill comboing.
-   * @returns {number}
-   */
-  skillSlotId()
-  {
-    // grab the cooldown data and the skillslot data from the leader based on the slot.
-    const actionKeyData = $jabsEngine
-      .getPlayer1()
-      .getActionKeyData(this.skillSlotKey());
-
-    // if there is no data associated with this, then just return the id in the slot.
-    if (!actionKeyData) return this._j._skillSlot.id;
-
-    // check the comboing to see if we have a combo skill in the slot.
-    const cooldownData = actionKeyData.cooldown;
-    const skillId = (cooldownData.comboNextActionId > 0)
-      ? cooldownData.comboNextActionId
-      : this._j._skillSlot.id;
-
-    // return the found id.
-    return skillId;
-  }
-
-  /**
    * Extends the `update()` to monitor the icon index in case it changes.
    */
   update()
@@ -365,7 +340,10 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
     return (this.hasSkillSlot() && this.skillSlot().needsVisualIconRefresh());
   }
 
-
+  /**
+   * Synchronize the icon index for this skill slot.
+   * Updates it if necessary.
+   */
   synchronizeIconIndex()
   {
     // check if the icon index for this icon is up to date.
