@@ -2791,7 +2791,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    */
   isBasicAttack(cooldownKey)
   {
-    const isMainHand = cooldownKey === JABS_Button.Main;
+    const isMainHand = cooldownKey === JABS_Button.Mainhand;
     const isOffHand = cooldownKey === JABS_Button.Offhand;
     return (isMainHand || isOffHand);
   }
@@ -4837,10 +4837,10 @@ class JABS_InputAdapter
     if (!this.#canPerformMainhandAction(jabsBattler)) return;
 
     // get all actions associated with the mainhand.
-    const actions = jabsBattler.getAttackData(JABS_Button.Main);
+    const actions = jabsBattler.getAttackData(JABS_Button.Mainhand);
 
     // apply the cooldown type to the appropriate slot.
-    actions.forEach(action => action.setCooldownType(JABS_Button.Main));
+    actions.forEach(action => action.setCooldownType(JABS_Button.Mainhand));
 
     // set the player's pending actions action to this skill.
     jabsBattler.setDecidedAction(actions);
@@ -4849,7 +4849,7 @@ class JABS_InputAdapter
     jabsBattler.setCastCountdown(actions[0].getCastTime());
 
     // reset the combo data now that we are executing the actions.
-    jabsBattler.resetComboData(JABS_Button.Main);
+    jabsBattler.resetComboData(JABS_Button.Mainhand);
   }
 
   /**
@@ -4866,10 +4866,10 @@ class JABS_InputAdapter
     if (!jabsBattler.canBattlerUseAttacks()) return false;
 
     // if the mainhand action isn't ready, then do not perform.
-    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Main)) return false;
+    if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Mainhand)) return false;
 
     // get all actions associated with the mainhand.
-    const actions = jabsBattler.getAttackData(JABS_Button.Main);
+    const actions = jabsBattler.getAttackData(JABS_Button.Mainhand);
 
     // if there are none, then do not perform.
     if (!actions || !actions.length) return false;

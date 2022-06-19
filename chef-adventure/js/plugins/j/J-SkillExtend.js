@@ -392,7 +392,9 @@ Game_Actor.prototype.skill = function(skillId)
 J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
 Game_Item.prototype.initialize = function(item)
 {
+  // perform original logic.
   J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
+
   /**
    * The underlying object associated with this item.
    * @type {RPG_EquipItem|rm.types.UsableItem}
@@ -402,6 +404,17 @@ Game_Item.prototype.initialize = function(item)
   {
     this._item = item;
   }
+};
+
+/**
+ * Gets the underlying object for this `Game_Item`.
+ * Normally this can be retrieved by using {@link Game_Item.object}, but that function limits
+ * the possibility of retrieval to only stuff in the database, which extended skills will
+ * not be in the database.
+ */
+Game_Item.prototype.underlyingObject = function()
+{
+  return this._item;
 };
 
 /**

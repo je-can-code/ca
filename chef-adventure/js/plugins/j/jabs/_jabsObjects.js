@@ -905,7 +905,7 @@ Game_Actor.prototype.updateMainhandSkill = function()
   const mainhandSkill = this.getMainhandSkill();
 
   // update the main and offhand skill slots.
-  this.setEquippedSkill(JABS_Button.Main, mainhandSkill);
+  this.setEquippedSkill(JABS_Button.Mainhand, mainhandSkill);
 };
 
 /**
@@ -5630,7 +5630,7 @@ Game_Party.prototype.canPartyCycle = function()
  */
 Game_Player.prototype.isDashButtonPressed = function()
 {
-  const shift = Input.isPressed(J.ABS.Input.Dash);
+  const shift = Input.isPressed(J.ABS.Input.Dodge);
   if (ConfigManager.alwaysDash)
   {
     return !shift;

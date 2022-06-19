@@ -136,7 +136,7 @@ J.ABS.Input.DirLeft = "left";
 J.ABS.Input.DirRight = "right";
 J.ABS.Input.Mainhand = "ok";
 J.ABS.Input.Offhand = "cancel";
-J.ABS.Input.Dash = "shift";
+J.ABS.Input.Dodge = "shift";
 J.ABS.Input.Tool = "tab";
 J.ABS.Input.GuardTrigger = "pagedown";
 J.ABS.Input.SkillTrigger = "pageup";
@@ -174,7 +174,7 @@ J.ABS.Input.CombatSkill4 = "combat-skill-4";
 Input.gamepadMapper = {
   0: J.ABS.Input.Mainhand,      // cross
   1: J.ABS.Input.Offhand,        // circle
-  2: J.ABS.Input.Dash,          // square
+  2: J.ABS.Input.Dodge,          // square
   3: J.ABS.Input.Tool,          // triangle
 
   4: J.ABS.Input.SkillTrigger,  // left bumper
@@ -209,7 +209,7 @@ Input.keyMapper = {
   // core buttons.
   90: J.ABS.Input.Mainhand,     // z
   88: J.ABS.Input.Offhand,      // x
-  16: J.ABS.Input.Dash,         // shift (overwrite)
+  16: J.ABS.Input.Dodge,         // shift (overwrite)
   67: J.ABS.Input.Tool,         // c
   
   // functional buttons.

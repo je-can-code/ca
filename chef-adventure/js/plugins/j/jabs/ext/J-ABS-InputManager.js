@@ -122,7 +122,7 @@ Input.keyMapper = {
   // core buttons.
   90: J.ABS.Input.Mainhand,     // z
   88: J.ABS.Input.Offhand,      // x
-  16: J.ABS.Input.Dash,         // shift (already defined)
+  16: J.ABS.Input.Dodge,        // shift (already defined)
   67: J.ABS.Input.Tool,         // c
 
   // functional buttons.
@@ -197,7 +197,7 @@ class JABS_Button
    * Used for executing the mainhand action.
    * @type {string}
    */
-  static Main = "Main";
+  static Mainhand = "Main";
 
   /**
    * The "offhand", "B" button, or "X" key.
@@ -278,7 +278,7 @@ class JABS_Button
   {
     return [
       // primary
-      this.Main,
+      this.Mainhand,
       this.Offhand,
       this.Tool,
       this.Dodge,
@@ -293,52 +293,6 @@ class JABS_Button
 }
 //#endregion JABS_Button
 
-//#region JABS_Input
-/**
- * A class representing a key and the functionality it can perform.
- */
-class JABS_Input
-{
-  /**
-   * The key representing this input.
-   * @returns {JABS_Button}
-   */
-  key = String.empty;
-
-  /**
-   * The action performed when this key is input.
-   * @returns {function}
-   */
-  action = () => 
-{
- console.log(`hello from JABS v${J.ABS.Metadata.Version}!`); 
-};
-
-  /**
-   * The alternative action performed when this key's input is not being met.
-   * This is optionally available.
-   * @returns {function}
-   */
-  alterAction = () => 
-{
- console.log(`goodbye for now!`) 
-};
-
-  /**
-   * Constructor.
-   * @param {JABS_Button} key The key representing this input.
-   * @param {function} action The action to execute for this input.
-   * @param {function} alterAction The alternative action executed while input is not met.
-   */
-  constructor(key, action, alterAction)
-  {
-    this.key = key;
-    this.action = action;
-    this.alterAction = alterAction;
-  }
-}
-//#endregion JABS_Input
-
 //#region JABS_InputController
 /**
  * The class that handles input in the context of JABS for a player.
@@ -351,17 +305,66 @@ class JABS_InputController
    */
   constructor()
   {
-    // register this controller with the input adapter.
-    JABS_InputAdapter.register(this);
+    // initialize this.
+    this.initialize();
   }
 
-  //#region properties
   /**
-   * The battler that this input manager manages.
-   * @type {JABS_Battler|null}
+   * Initializes this class.
    */
-  battler = null;
-  //#endregion properties
+  initialize()
+  {
+    // register this controller with the input adapter.
+    JABS_InputAdapter.register(this);
+
+    // initialize the other members of the class.
+    this.initMembers();
+
+    this.initMapping();
+  }
+
+  /**
+   * Initializes all members of this class.
+   */
+  initMembers()
+  {
+    /**
+     * The battler that this input manager manages.
+     * @type {JABS_Battler|null}
+     */
+    this.battler = null;
+
+    /**
+     * A collection of input mappings from button to function.
+     * @type {Map<string, string>}
+     */
+    this.inputMapping = new Map();
+  }
+
+  /**
+   * Initialize the button to input mappings.
+   */
+  initMapping()
+  {
+    this.inputMapping.set(JABS_Button.Mainhand, J.ABS.Input.Mainhand);
+    this.inputMapping.set(JABS_Button.Offhand, J.ABS.Input.Offhand);
+    this.inputMapping.set(JABS_Button.Tool, J.ABS.Input.Tool);
+    this.inputMapping.set(JABS_Button.Dodge, J.ABS.Input.Dodge);
+    this.inputMapping.set(JABS_Button.CombatSkill1, J.ABS.Input.CombatSkill1);
+    this.inputMapping.set(JABS_Button.CombatSkill2, J.ABS.Input.CombatSkill2);
+    this.inputMapping.set(JABS_Button.CombatSkill3, J.ABS.Input.CombatSkill3);
+    this.inputMapping.set(JABS_Button.CombatSkill4, J.ABS.Input.CombatSkill4);
+  }
+
+  /**
+   * Gets the key input for the given button.
+   * @param {string} slot The button mapping to the slot.
+   * @returns {string} The input to press for this given slot.
+   */
+  getInputForButton(slot)
+  {
+    return this.inputMapping.get(slot);
+  }
 
   //#region update
   /**
@@ -684,6 +687,17 @@ class JABS_InputController
     return false;
   }
 
+  /**
+   * Executes the combat action in the given slot.
+   * @param {string} slot The slot to execute the combo action from.
+   */
+  performCombatAction(slot)
+  {
+    JABS_InputAdapter.performCombatAction(
+      slot,
+      $jabsEngine.getPlayer1());
+  }
+
   //#region combat action 1
   /**
    * Monitors and takes action based on player input regarding combat action 1.
@@ -692,10 +706,10 @@ class JABS_InputController
   updateCombatAction1()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction1Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill1))
+    if (this.isCombatAction1Triggered())
     {
       // execute the action.
-      this.performCombatAction1();
+      this.performCombatAction(JABS_Button.CombatSkill1);
     }
   }
 
@@ -715,18 +729,11 @@ class JABS_InputController
       }
     }
 
+    // if the keyboard input is met, then we are triggering this input.
+    if (Input.isTriggered(J.ABS.Input.CombatSkill1)) return true;
+
     // A was never triggered while L1 was held down.
     return false;
-  }
-
-  /**
-   * Executes the combat action in slot 1 (L1+A default).
-   */
-  performCombatAction1()
-  {
-    JABS_InputAdapter.performCombatAction(
-      JABS_Button.CombatSkill1,
-      $jabsEngine.getPlayer1());
   }
   //#endregion combat action 1
 
@@ -738,10 +745,10 @@ class JABS_InputController
   updateCombatAction2()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction2Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill2))
+    if (this.isCombatAction2Triggered())
     {
       // execute the action.
-      this.performCombatAction2();
+      this.performCombatAction(JABS_Button.CombatSkill2);
     }
   }
 
@@ -761,18 +768,11 @@ class JABS_InputController
       }
     }
 
+    // if the keyboard input is met, then we are triggering this input.
+    if (Input.isTriggered(J.ABS.Input.CombatSkill2)) return true;
+
     // B was never triggered while L1 was held down.
     return false;
-  }
-
-  /**
-   * Executes the combat action in slot 2 (L1+B default).
-   */
-  performCombatAction2()
-  {
-    JABS_InputAdapter.performCombatAction(
-      JABS_Button.CombatSkill2,
-      $jabsEngine.getPlayer1());
   }
   //#endregion combat action 2
 
@@ -784,10 +784,10 @@ class JABS_InputController
   updateCombatAction3()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction3Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill3))
+    if (this.isCombatAction3Triggered())
     {
       // execute the action.
-      this.performCombatAction3();
+      this.performCombatAction(JABS_Button.CombatSkill3);
     }
   }
 
@@ -801,24 +801,17 @@ class JABS_InputController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and also having X triggered at the same time.
-      if (Input.isTriggered(J.ABS.Input.Dash))
+      if (Input.isTriggered(J.ABS.Input.Dodge))
       {
         return true;
       }
     }
 
+    // if the keyboard input is met, then we are triggering this input.
+    if (Input.isTriggered(J.ABS.Input.CombatSkill3)) return true;
+
     // X was never triggered while L1 was held down.
     return false;
-  }
-
-  /**
-   * Executes the combat action in slot 3 (L1+X default).
-   */
-  performCombatAction3()
-  {
-    JABS_InputAdapter.performCombatAction(
-      JABS_Button.CombatSkill3,
-      $jabsEngine.getPlayer1());
   }
   //#endregion combat action 3
 
@@ -830,10 +823,10 @@ class JABS_InputController
   updateCombatAction4()
   {
     // check if the action's input requirements have been met.
-    if (this.isCombatAction4Triggered() || Input.isTriggered(J.ABS.Input.CombatSkill4))
+    if (this.isCombatAction4Triggered())
     {
       // execute the action.
-      this.performCombatAction4();
+      this.performCombatAction(JABS_Button.CombatSkill4);
     }
   }
 
@@ -853,18 +846,11 @@ class JABS_InputController
       }
     }
 
+    // if the keyboard input is met, then we are triggering this input.
+    if (Input.isTriggered(J.ABS.Input.CombatSkill4)) return true;
+
     // Y was never triggered while L1 was held down.
     return false;
-  }
-
-  /**
-   * Executes the combat action in slot 4 (L1+Y default).
-   */
-  performCombatAction4()
-  {
-    JABS_InputAdapter.performCombatAction(
-      JABS_Button.CombatSkill4,
-      $jabsEngine.getPlayer1());
   }
   //#endregion combat action 4
   //#endregion combat actions

@@ -1193,7 +1193,7 @@ JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
 {
   // determine which skill of the skills available is the mainhand skill.
   const mainBasicAttackSkillId = availableSkills
-    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Main);
+    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Mainhand);
 
   // determine which skill of the skills available is the offhand skill.
   const offhandBasicAttackSkillId = availableSkills

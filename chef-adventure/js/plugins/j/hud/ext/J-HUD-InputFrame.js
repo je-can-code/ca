@@ -1872,7 +1872,7 @@ class Window_InputFrame extends Window_Frame
     const baseY = y + 8;
 
     // draw the four basic core functions of JABS.
-    this.drawInputKey(JABS_Button.Main, baseX+ikw*0, baseY+32);
+    this.drawInputKey(JABS_Button.Mainhand, baseX+ikw*0, baseY+32);
     this.drawInputKey(JABS_Button.Offhand, baseX+(ikw*1), baseY+32);
     this.drawInputKey(JABS_Button.Dodge, baseX+(ikw*2), baseY+64);
     this.drawInputKey(JABS_Button.Tool, baseX+(ikw*2), baseY);
