@@ -1,0 +1,19 @@
+{
+  "name": "plugin-dev-utilities",
+  "type": "module",
+  "scripts": {
+    "init": "node init.js",
+    "once:star": "node combine.js ./j/star ../plugins/j/abs/ext J-ABS-Star.js",
+    "watch:star": "nodemon -L combine.js ./j/abs/ext/star ../plugins/j/jabs/ext J-ABS-Star.js",
+    "once:jabs": "node combine.js ./j/abs/core ../plugins/j/jabs J-ABS.js",
+    "watch:jabs": "nodemon -L combine.js ./j/abs/core ../plugins/j/jabs J-ABS.js"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.17.0",
+    "eslint-plugin-jsdoc": "^39.2.9",
+    "nodemon": "^2.0.16"
+  },
+  "dependencies": {
+    "glob": "^8.0.3"
+  }
+}

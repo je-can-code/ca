@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/nodemon.json",
+  "verbose": true,
+  "watch": ["./**/*.js"],
+  "ext": "js",
+  "delay": 2500,
+  "events": {
+    "start": "cls || clear"
+  }
+}

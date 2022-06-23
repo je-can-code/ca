@@ -5503,9 +5503,10 @@ declare class Game_Player extends Game_Character {
     makeEncounterTroopId(): number;
     meetsEncounterConditions(encounter: rm.types.MapEncounter): boolean;
     /**
-     * Executes an encounter.
+     * Attempt to execute an encounter.
+     * Chance increases with reduction of {@link _encounterCount}.
      *
-     * @returns {boolean}
+     * @returns {boolean} True if an encounter was engaged, false otherwise.
      * @memberof Game_Player
      */
     executeEncounter(): boolean;

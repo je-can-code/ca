@@ -2101,7 +2101,7 @@ J.BASE.Aliased.Game_Actor.set('changeEquip', Game_Actor.prototype.changeEquip);
 Game_Actor.prototype.changeEquip = function(slotId, item)
 {
   // grab a snapshot of what the equips looked like before changing.
-  const oldEquips = Array.from(this._equips);
+  const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
   J.BASE.Aliased.Game_Actor.get('changeEquip').call(this, slotId, item);
@@ -2125,7 +2125,7 @@ J.BASE.Aliased.Game_Actor.set('discardEquip', Game_Actor.prototype.discardEquip)
 Game_Actor.prototype.discardEquip = function(item)
 {
   // grab a snapshot of what the equips looked like before changing.
-  const oldEquips = Array.from(this._equips);
+  const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
   J.BASE.Aliased.Game_Actor.get('discardEquip').call(this, item);
@@ -2146,13 +2146,13 @@ Game_Actor.prototype.discardEquip = function(item)
  * Adds a hook for performing actions when equipment on the actor has been forcefully changed.
  */
 J.BASE.Aliased.Game_Actor.set('forceChangeEquip', Game_Actor.prototype.forceChangeEquip);
-Game_Actor.prototype.forceChangeEquip = function(item)
+Game_Actor.prototype.forceChangeEquip = function(slotId, item)
 {
   // grab a snapshot of what the equips looked like before changing.
-  const oldEquips = Array.from(this._equips);
+  const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('forceChangeEquip').call(this, item);
+  J.BASE.Aliased.Game_Actor.get('forceChangeEquip').call(this, slotId, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -2170,13 +2170,14 @@ Game_Actor.prototype.forceChangeEquip = function(item)
  * Adds a hook for performing actions when equipment on the actor has been released due to internal change.
  */
 J.BASE.Aliased.Game_Actor.set('releaseUnequippableItems', Game_Actor.prototype.releaseUnequippableItems);
-Game_Actor.prototype.releaseUnequippableItems = function(item)
+Game_Actor.prototype.releaseUnequippableItems = function(forcing)
 {
+  console.log('doing this');
   // grab a snapshot of what the equips looked like before changing.
-  const oldEquips = Array.from(this._equips);
+  const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, item);
+  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, forcing);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
