@@ -494,7 +494,7 @@ Game_Battler.prototype.getBonusHits = function()
 
 /**
  * Extracts all bonus hits from a collection of traited sources.
- * @param {RPG_TraitItem[]|RPG_BaseBattler[]|RPG_Class[]} sources The collection to iterate over.
+ * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]} sources The collection to iterate over.
  * @returns {number}
  */
 Game_Battler.prototype.getBonusHitsFromTraitedSources = function(sources)

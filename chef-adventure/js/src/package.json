@@ -1,12 +1,45 @@
 {
   "name": "plugin-dev-utilities",
   "type": "module",
+  "license": "GPL-3",
   "scripts": {
-    "init": "node init.js",
-    "once:star": "node combine.js ./j/star ../plugins/j/abs/ext J-ABS-Star.js",
-    "watch:star": "nodemon -L combine.js ./j/abs/ext/star ../plugins/j/jabs/ext J-ABS-Star.js",
-    "once:jabs": "node combine.js ./j/abs/core ../plugins/j/jabs J-ABS.js",
-    "watch:jabs": "nodemon -L combine.js ./j/abs/core ../plugins/j/jabs J-ABS.js"
+    "init": "node utils/init.js",
+
+    "once:base": "node utils/combine.js ./j/base ../plugins/j/base J-Base.js",
+    "watch:base": "nodemon -L utils/combine.js ./j/base ../plugins/j/base J-Base.js",
+
+    "once:sdp": "node utils/combine.js ./j/sdp ../plugins/j/sdp J-SDP.js",
+    "watch:sdp": "nodemon -L utils/combine.js ./j/sdp ../plugins/j/sdp J-SDP.js",
+
+    "once:drops": "node utils/combine.js ./j/drops ../plugins/j/drops J-ControlledDrops.js",
+    "watch:drops": "nodemon -L utils/combine.js ./j/drops ../plugins/j/drops J-ControlledDrops.js",
+
+    "once:jabs": "node utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",
+    "watch:jabs": "nodemon -L utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",
+
+    "once:jabs-allyai": "node utils/combine.js ./j/abs/ext/allyai ../plugins/j/abs/ext J-ABS-AllyAI.js",
+    "watch:jabs-allyai": "nodemon -L utils/combine.js ./j/abs/ext/allyai ../plugins/j/abs/ext J-ABS-AllyAI.js",
+
+    "once:jabs-charge": "node utils/combine.js ./j/abs/ext/charge ../plugins/j/abs/ext J-ABS-Charge.js",
+    "watch:jabs-charge": "nodemon -L utils/combine.js ./j/abs/ext/charge ../plugins/j/abs/ext J-ABS-Charge.js",
+
+    "once:jabs-danger": "node utils/combine.js ./j/abs/ext/danger ../plugins/j/abs/ext J-ABS-DangerIndicator.js",
+    "watch:jabs-danger": "nodemon -L utils/combine.js ./j/abs/ext/danger ../plugins/j/abs/ext J-ABS-DangerIndicator.js",
+
+    "once:jabs-diag": "node utils/combine.js ./j/abs/ext/diag ../plugins/j/abs/ext J-ABS-Diagonals.js",
+    "watch:jabs-diag": "nodemon -L utils/combine.js ./j/abs/ext/diag ../plugins/j/abs/ext J-ABS-Diagonals.js",
+
+    "once:jabs-input": "node utils/combine.js ./j/abs/ext/input ../plugins/j/abs/ext J-ABS-InputManager.js",
+    "watch:jabs-input": "nodemon -L utils/combine.js ./j/abs/ext/input ../plugins/j/abs/ext J-ABS-InputManager.js",
+
+    "once:jabs-speed": "node utils/combine.js ./j/abs/ext/speed ../plugins/j/abs/ext J-ABS-Speed.js",
+    "watch:jabs-speed": "nodemon -L utils/combine.js ./j/abs/ext/speed ../plugins/j/abs/ext J-ABS-Speed.js",
+
+    "once:jabs-timing": "node utils/combine.js ./j/abs/ext/timing ../plugins/j/abs/ext J-ABS-Timing.js",
+    "watch:jabs-timing": "nodemon -L utils/combine.js ./j/abs/ext/timing ../plugins/j/abs/ext J-ABS-Timing.js",
+
+    "once:jabs-star": "node utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js",
+    "watch:jabs-star": "nodemon -L utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",

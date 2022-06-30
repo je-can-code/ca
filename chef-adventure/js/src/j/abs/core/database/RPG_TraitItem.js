@@ -1,10 +1,10 @@
-//#region RPG_TraitItem
+//#region RPG_Traited
 //#region bonusHits
 /**
  * A new property for retrieving the JABS bonusHits from this traited item.
  * @type {number}
  */
-Object.defineProperty(RPG_TraitItem.prototype, "jabsBonusHits",
+Object.defineProperty(RPG_Traited.prototype, "jabsBonusHits",
   {
     get: function()
     {
@@ -16,7 +16,7 @@ Object.defineProperty(RPG_TraitItem.prototype, "jabsBonusHits",
  * Gets the JABS bonus hits of this traited item.
  * @returns {number|null}
  */
-RPG_TraitItem.prototype.getJabsBonusHits = function()
+RPG_Traited.prototype.getJabsBonusHits = function()
 {
   return this.extractJabsBonusHits();
 };
@@ -25,9 +25,9 @@ RPG_TraitItem.prototype.getJabsBonusHits = function()
  * Extracts the value from the notes.
  * @returns {number|null}
  */
-RPG_TraitItem.prototype.extractJabsBonusHits = function()
+RPG_Traited.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
 //#endregion bonusHits
-//#endregion RPG_TraitItem
+//#endregion RPG_Traited

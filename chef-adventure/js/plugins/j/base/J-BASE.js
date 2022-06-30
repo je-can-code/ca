@@ -1,7 +1,9 @@
+/*  BUNDLED TIME: Tue Jun 28 2022 14:24:01 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
- * @plugindesc 
+ * @plugindesc
  * [v2.1.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/ca
@@ -22,22 +24,22 @@
  *    Added "More data" window base class.
  *    Reverted the break-apart because that caused grief.
  *    Shuffled ownership of various functions.
- * 
+ *
  * - 2.0.0 (breaking change!)
  *    Broke apart the entire plugin into a collection of pieces, to leverage
  *    the new "plugin in a nested folder" functionality of RMMZ.
- * 
+ *
  * - 1.0.3
  *    Added "on-own-death" and "on-target-death" tag for battlers.
  *    Changed "retaliate" tag structure to allow a chance for triggering.
- * 
+ *
  * - 1.0.2
  *    Added an "IconManager" for consistent icon indexing between all my plugins.
- * 
+ *
  * - 1.0.1
  *    Updates for new models leveraged by the JAFTING system (refinement).
  *    All equipment now have a ._jafting property available on them.
- * 
+ *
  * - 1.0.0
  *    First proper actual release where I'm leveraging and enforcing versioning.
  * ==============================================================================
@@ -406,10 +408,1944 @@ Number.prototype.iterate = function(times, func)
 };
 //#endregion Helpers
 
-//#region Static objects
-//#region AudioManager
+//#region RPG_ClassLearning
+/**
+ * A class representing a single learning of a skill for a class from the database.
+ */
+class RPG_ClassLearning
+{
+  //#region properties
+  /**
+   * The level that the owning class will learn the given skill.
+   * @type {number}
+   */
+  level = 0;
 
-//#endregion AudioManager
+  /**
+   * The skill to be learned when the owning class reaches the given level.
+   * @type {number}
+   */
+  skillId = 0;
+
+  /**
+   * The note data for this given learning.
+   * @type {string}
+   */
+  note = String.empty;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.ClassLearning} learning The class learning to parse.
+   */
+  constructor(learning)
+  {
+    // map the database data to this object.
+    this.level = learning.level;
+    this.skillId = learning.skillId;
+    this.note = learning.note;
+  }
+}
+//#endregion RPG_ClassLearning
+
+//#region RPG_DropItem
+/**
+ * A class representing a single drop item of an enemy from the database.
+ */
+class RPG_DropItem
+{
+  //#region properties
+  /**
+   * The id of the underlying item's entry in the database.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The drop chance value numeric field in the database.
+   * @type {number}
+   */
+  denominator = 0;
+
+  /**
+   * The type of drop this is:
+   * 0 being item, 1 being weapon, 2 being armor.
+   * @type {number}
+   */
+  kind = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
+   */
+  constructor(enemyDropItem)
+  {
+    // map the enemy drop to this object.
+    this.dataId = enemyDropItem.dataId;
+    this.denominator = enemyDropItem.denominator;
+    this.kind = enemyDropItem.kind;
+  }
+}
+//#endregion RPG_DropItem
+
+//#region RPG_EnemyAction
+/**
+ * A class representing a single enemy action from the database.
+ */
+class RPG_EnemyAction
+{
+  //#region properties
+  /**
+   * The first parameter of the condition configuration.
+   * @type {number}
+   */
+  conditionParam1 = 0;
+
+  /**
+   * The second parameter of the condition configuration.
+   * @type {number}
+   */
+  conditionParam2 = 0;
+
+  /**
+   * The type of condition it is.
+   * @type {number}
+   */
+  conditionType = 0;
+
+  /**
+   * The weight or rating that this enemy will execute this skill.
+   * @type {number}
+   */
+  rating = 5;
+
+  /**
+   * The skill id associated with the action.
+   * @type {number}
+   */
+  skillId = 1;
+  //endregion properties
+
+  /**
+   * Constructor.
+   * @param {RPG_EnemyAction} enemyAction The action to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(enemyAction, index)
+  {
+    this.conditionParam1 = enemyAction.conditionParam1;
+    this.conditionParam2 = enemyAction.conditionParam2;
+    this.conditionType = enemyAction.conditionType;
+    this.rating = enemyAction.rating;
+    this.skillId = enemyAction.skillId;
+  }
+}
+//#endregion RPG_EnemyAction
+
+//#region RPG_SkillDamage
+/**
+ * The damage data for the skill, such as the damage formula or associated element.
+ */
+class RPG_SkillDamage
+{
+  //#region properties
+  /**
+   * Whether or not the damage can produce a critical hit.
+   * @type {boolean}
+   */
+  critical = false;
+
+  /**
+   * The element id associated with this damage.
+   * @type {number}
+   */
+  elementId = -1;
+
+  /**
+   * The formula to be evaluated in real time to determine damage.
+   * @type {string}
+   */
+  formula = String.empty;
+
+  /**
+   * The damage type this is, such as HP damage or MP healing.
+   * @type {1|2|3|4|5|6}
+   */
+  type = 0;
+
+  /**
+   * The % of variance this damage can have.
+   * @type {number}
+   */
+  variance = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the skill's damage properties into this object.
+   * @param {rm.types.Damage} damage The original damage object to map.
+   */
+  constructor(damage)
+  {
+    if (damage)
+    {
+      this.critical = damage.critical;
+      this.elementId = damage.elementId;
+      this.formula = damage.formula;
+      this.type = damage.type;
+      this.variance = damage.variance;
+    }
+    else
+    {
+      // if we don't have damage, use the defaults.
+    }
+  }
+}
+//#endregion RPG_SkillDamage
+
+//#region RPG_Trait
+/**
+ * A class representing a single trait living on one of the many types
+ * of database classes that leverage traits.
+ */
+class RPG_Trait
+{
+  /**
+   * The code that designates what kind of trait this is.
+   * @type {number}
+   */
+  code = 0;
+
+  /**
+   * The identifier that further defines the trait.
+   * Data type and usage depends on the code.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The value of the trait, for traits that have numeric values.
+   * Often is a floating point number to represent a percent multiplier.
+   * @type {number}
+   */
+  value = 1.00;
+
+  /**
+   * Constructor.
+   * @param {RPG_Trait} trait The trait to parse.
+   */
+  constructor(trait)
+  {
+    this.code = trait.code;
+    this.dataId = trait.dataId;
+    this.value = trait.value;
+  }
+}
+//#endregion RPG_Trait
+
+//#region RPG_UsableEffect
+/**
+ * A class representing a single effect on an item or skill from the database.
+ */
+class RPG_UsableEffect
+{
+  //#region properties
+  /**
+   * The type of effect this is.
+   * @type {number}
+   */
+  code = 0;
+
+  /**
+   * The dataId further defines what type of effect this is.
+   * @type {number}
+   */
+  dataId = 0;
+
+  /**
+   * The first value parameter of the effect.
+   * @type {number}
+   */
+  value1 = 0;
+
+  /**
+   * The second value parameter of the effect.
+   * @type {number}
+   */
+  value2 = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Effect} effect The effect to parse.
+   */
+  constructor(effect)
+  {
+    // map the data.
+    this.code = effect.code;
+    this.dataId = effect.dataId;
+    this.value1 = effect.value1;
+    this.value2 = effect.value2;
+  }
+}
+//#endregion RPG_UsableEffect
+
+//#region RPG_Base
+/**
+ * A class representing the foundation of all database objects.
+ * In addition to doing all the things that a database object normally does,
+ * there are now some useful helper functions available for meta and note access,
+ * and additionally a means to access the original database object directly in case
+ * there are other things that aren't supported by this class that need accessing.
+ */
+class RPG_Base
+{
+  //#region properties
+  /**
+   * The original object that this data was built from.
+   * @type {any}
+   */
+  #original = null;
+
+  /**
+   * The index of this entry in the database.
+   * @type {number}
+   */
+  #index = 0;
+
+  /**
+   * The entry's id in the database.
+   */
+  id = 0;
+
+  /**
+   * The `meta` object of this skill, containing a dictionary of
+   * key value pairs translated from this skill's `note` object.
+   * @type {{ [k: string]: any }}
+   */
+  meta = {};
+
+  /**
+   * The entry's name.
+   */
+  name = String.empty;
+
+  /**
+   * The note field of this entry in the database.
+   * @type {string}
+   */
+  note = String.empty;
+  //#endregion properties
+
+  //#region base
+  /**
+   * Constructor.
+   * Maps the base item's properties into this object.
+   * @param {any} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    this.#original = baseItem;
+    this.#index = index;
+
+    // map the core data that all database objects have.
+    this.id = baseItem.id;
+    this.meta = baseItem.meta;
+    this.name = baseItem.name;
+    this.note = baseItem.note;
+  }
+
+  /**
+   * Retrieves the index of this entry in the database.
+   * @returns {number}
+   */
+  _index()
+  {
+    return this.#index;
+  }
+
+  /**
+   * Retrieves the original underlying data that was passed to this
+   * wrapper from the database.
+   * @returns {any}
+   */
+  _original()
+  {
+    return this.#original;
+  }
+
+  /**
+   * Creates a new instance of this wrapper class with all the same
+   * database data that this one contains.
+   * @returns {this}
+   */
+  _clone()
+  {
+    // generate a new instance with the same data as the original.
+    const clone = new this.constructor(this._original(), this._index());
+
+    // check if there is an underlying _j data point.
+    if (this._j)
+    {
+      // clone that too if it exists.
+      clone._j = this._j;
+    }
+
+    // return the newly created copy.
+    return clone;
+  }
+
+  /**
+   * The unique key that is used to register this object against
+   * its corresponding container when the party has one or more of these
+   * in their possession. By default, this is just the index of the item's entry
+   * from the databse, but you can change it if you need a more unique means
+   * of identifying things.
+   * @returns {any}
+   */
+  _key()
+  {
+    return this._index();
+  }
+  //#endregion base
+
+  //#region meta
+  /**
+   * Gets the metadata of a given key from this skill as whatever value RMMZ stored it as.
+   * Only returns null if there was no underlying data associated with the provided key.
+   * @param {string} key The key to the metadata.
+   * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
+   */
+  metadata(key)
+  {
+    // pull the metadata of a given key.
+    const result = this.#getMeta(key);
+
+    // check if we have a result that isn't undefined.
+    if (result !== undefined)
+    {
+      // return that result.
+      return result;
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the value of the given key from this entry's meta object.
+   * @param key
+   * @returns {string|number|boolean|*}
+   */
+  #getMeta(key)
+  {
+    return this.meta[key];
+  }
+
+  /**
+   * Deletes the metadata key from the underlying object entirely.
+   * @param key
+   */
+  deleteMetadata(key)
+  {
+    delete this.meta[key]
+  }
+
+  /**
+   * Gets the metadata of a given key from this entry as a string.
+   * Only returns `null` if there was no underlying data associated with the provided key.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} The value as a string, or null if the value didn't exist.
+   */
+  metaAsString(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.#getMeta(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // return the stringified value.
+      return fromMeta.toString();
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the metadata of a given key from this skill as a number.
+   * Only returns `null` if the underlying data wasn't a number or numeric string.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} The number value, or null if the number wasn't valid.
+   */
+  metaAsNumber(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.#getMeta(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // return the parsed and possibly floating point value.
+      return parseFloat(fromMeta);
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the metadata of a given key from this skill as a boolean.
+   * Only returns `null` if the underlying data wasn't a truthy or falsey value.
+   * @param {string} key The key to the metadata.
+   * @returns {boolean|null} True if the value was true, false otherwise; or null if invalid.
+   */
+  metaAsBoolean(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.#getMeta(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // check if the value was a truthy value.
+      if (fromMeta === true || fromMeta.toLowerCase() === "true")
+      {
+        return true;
+      }
+      // check if the value was a falsey value.
+      else if (fromMeta === false || fromMeta.toLowerCase() === "false")
+      {
+        return false;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Retrieves the metadata for a given key on this skill.
+   * This is mostly designed for providing intellisense.
+   * @param {string} key The key to the metadata.
+   * @returns {null|*}
+   */
+  metaAsObject(key)
+  {
+    // grab the metadata for this skill.
+    const fromMeta = this.metadata(key);
+
+    // check to make sure we actually got a value.
+    if (fromMeta)
+    {
+      // parse out the underlying data.
+      return this.#parseObject(fromMeta);
+    }
+
+    return null;
+  }
+
+  /**
+   * Parses a object into whatever its given data type is.
+   * @param {any} obj The unknown object to parse.
+   * @returns {any}
+   */
+  #parseObject(obj)
+  {
+    // check if the object to parse is a string.
+    if (typeof obj === "string")
+    {
+      // check if the string is an unparsed array.
+      if (obj.startsWith("[") && obj.endsWith("]"))
+      {
+        // expose the stringified segments of the array.
+        const exposedArray = obj
+        // peel off the outer brackets.
+        .slice(1, obj.length-1)
+        // split string into an array by comma or space+comma.
+        .split(/, |,/);
+        return this.#parseObject(exposedArray);
+      }
+
+      // no check for special string values.
+      return this.#parseString(obj);
+    }
+
+    // check if the object to parse is a collection.
+    if (Array.isArray(obj))
+    {
+      // iterate over the array and parse each item.
+      return obj.map(this.#parseObject, this);
+    }
+
+    // number, boolean, or otherwise unidentifiable object.
+    return obj;
+  }
+
+  /**
+   * Parses a metadata object from a string into possibly a boolean or number.
+   * If the conversion to those fail, then it'll proceed as a string.
+   * @param {string} str The string object to parse.
+   * @returns {boolean|number|string}
+   */
+  #parseString(str)
+  {
+    // check if its actually boolean true.
+    if (str.toLowerCase() === "true") return true;
+    // check if its actually boolean false.
+    else if (str.toLowerCase() === "false") return false;
+
+    // check if its actually a number.
+    if (!isNaN(parseFloat(str))) return parseFloat(str);
+
+    // it must just be a word or something.
+    return str;
+  }
+  //#endregion meta
+
+  //#region note
+  /**
+   * Gets the note data of this baseitem split into an array by `\r\n`.
+   * If this baseitem has no note data, it will return an empty array.
+   * @returns {string[]|null} The value as RMMZ translated it, or null if the value didn't exist.
+   */
+  notedata()
+  {
+    // pull the note data of this baseitem.
+    const fromNote = this.#formattedNotedata();
+
+    // checks if we have note data.
+    if (fromNote)
+    {
+      // return the note data as an array of strings.
+      return fromNote;
+    }
+
+    // if we returned no data from this baseitem, then return an empty array.
+    return [];
+  }
+
+  /**
+   * Returns a formatted array of strings as output from the note data of this baseitem.
+   * @returns {string[]}
+   */
+  #formattedNotedata()
+  {
+    // split the notes by new lines.
+    const formattedNotes = this.note
+    .split(/[\r\n]+/)
+    // filter out invalid note data.
+    .filter(this.invalidNoteFilter, this);
+
+    // if we have no length left after filtering, then there is no note data.
+    if (formattedNotes.length === 0) return null;
+
+    // return our array of notes!
+    return formattedNotes;
+  }
+
+  /**
+   * A filter function for defining what is invalid when it comes to a note data.
+   * @param {string} note A single line in the note data.
+   * @returns {boolean} True if the note data is valid, false otherwise.
+   */
+  invalidNoteFilter(note)
+  {
+    // empty strings are not valid notes.
+    if (note === String.empty) return false;
+
+    // everything else is.
+    return true;
+  }
+
+  /**
+   * Removes all regex matches in the raw note data string.
+   * @param {RegExp} regex The regular expression to find matches for removal.
+   */
+  deleteNotedata(regex)
+  {
+    // remove the regex matches from the note.
+    this.note = this.note.replace(regex, String.empty);
+
+    // cleanup the line endings that may have been messed up.
+    this.#cleanupLineEndings();
+  }
+
+  /**
+   * Reformats the note data to remove any invalid line endings, including those
+   * that may be at the beginning because stuff was removed, or the duplicates that
+   * may live throughout the note after modification.
+   */
+  #cleanupLineEndings()
+  {
+    // cleanup any duplicate newlines.
+    this.note = this.note.replace(/\n\n/gmi, '\n');
+    this.note = this.note.replace(/\r\r/gmi, '\r');
+
+    // cleanup any leading newlines.
+    if (this.note.startsWith('\r') || this.note.startsWith('\n'))
+    {
+      this.note = this.note.slice(2);
+    }
+  }
+
+  /**
+   * Gets an accumulated numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  getNumberFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const lines = this.getFilteredNotesByRegex(structure);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value.
+    let val = 0;
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // extract the captured formula.
+      // eslint-disable-next-line prefer-destructuring
+      const result = structure.exec(line)[1];
+
+      // regular parse it and add it to the running total.
+      val += parseFloat(result);
+    });
+
+    // return the
+    return val;
+  }
+
+  /**
+   * Evaluates formulai into a numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an formula,
+   * and adds all results together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {number=} baseParam The base parameter value used as the "b" in the formula.
+   * @param {RPG_BaseBattler=} context The contextual battler used as the "a" in the formula.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  getResultsFromNotesByRegex(structure, baseParam = 0, context = null, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const lines = this.getFilteredNotesByRegex(structure);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value.
+    let val = 0;
+
+    // establish a variable to be used as "a" in the formula- the battler.
+    const a = context;
+
+    // establish a variable to be used as "b" in the formula- the base parameter value.
+    const b = baseParam;
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // extract the captured formula.
+      // eslint-disable-next-line prefer-destructuring
+      const formula = structure.exec(line)[1];
+
+      // evaluate the formula/value.
+      const result = eval(formula).toFixed(3);
+
+      // add it to the running total.
+      val += parseFloat(result);
+    });
+
+    // return the calculated summed value.
+    return val;
+  }
+
+  /**
+   * Gets the last string value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is a string value.
+   * If multiple tags are found, only the last one will be returned.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default empty string as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return an empty string if not found, or null.
+   * @returns {number|null} The found value from the notes of this object, or empty/null.
+   */
+  getStringFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = String.empty;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val = RegExp.$1;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want an empty string or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  }
+
+  /**
+   * Gets whether or not there is a matching regex tag on this skill.
+   *
+   * Do be aware of the fact that with this type of tag, we are checking only
+   * for existence, not the value. As such, it will be `true` if found, and `false` if
+   * not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+   * `null` instead of `false` when missing, or use a string regex pattern and add
+   * something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+   *
+   * This accepts a regex structure, but does not leverage a capture group.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default `false` as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+   * @returns {boolean|null} The found value from the notes of this object, or empty/null.
+   */
+  getBooleanFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = false;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val = true;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want a "false" or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  }
+
+  /**
+   * Gets an array value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an array of values
+   * all wrapped in hard brackets [].
+   *
+   * If the optional flag `tryParse` is true, then it will attempt to parse out
+   * the array of values as well, including translating strings to numbers/booleans
+   * and keeping array structures all intact.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
+   * @returns {any[]|null} The array from the notes, or null.
+   */
+  getArrayFromNotesByRegex(structure, tryParse = true)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = null;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val = RegExp.$1;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // if we didn't find a match, return null instead of attempting to parse.
+    if (!hasMatch) return null;
+
+    // check if we're going to attempt to parse it, too.
+    if (tryParse)
+    {
+      // attempt the parsing.
+      val = this.#parseObject(val);
+    }
+
+    // return the found value.
+    return val;
+  }
+
+  /**
+   * Gets an array of arrays based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an array of values
+   * all wrapped in hard brackets [].
+   *
+   * If the optional flag `tryParse` is true, then it will attempt to parse out
+   * the array of values as well, including translating strings to numbers/booleans
+   * and keeping array structures all intact.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
+   * @returns {any[]|null} The array from the notes, or null.
+   */
+  getArraysFromNotesByRegex(structure, tryParse = true)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    let val = [];
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val.push(RegExp.$1);
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // if we didn't find a match, return null instead of attempting to parse.
+    if (!hasMatch) return null;
+
+    // check if we're going to attempt to parse it, too.
+    if (tryParse)
+    {
+      // attempt the parsing.
+      val = val.map(this.#parseObject, this);
+    }
+
+    // return the found value.
+    return val;
+  }
+
+  /**
+   * Gets all lines of data from the notedata that match the provided regex.
+   *
+   * This accepts a regex structure, and translates nothing; it is intended to
+   * be used with the intent of translating the lines that match elsewhere.
+   *
+   * If nothing is found, then this will return an empty array.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @returns {string[]} The data matching the regex from the notes.
+   */
+  getFilteredNotesByRegex(structure)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the value.
+    const data = [];
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        data.push(note);
+      }
+    });
+
+    // return the found value.
+    return data;
+  }
+  //#endregion note
+}
+//#endregion RPG_Base
+
+//#region RPG_BaseBattler
+/**
+ * A class representing the groundwork for what all battlers
+ * database data look like.
+ */
+class RPG_BaseBattler extends RPG_Base
+{
+  /**
+   * The name of the battler while in battle.
+   * @type {string}
+   */
+  battlerName = String.empty;
+
+  /**
+   * The collection of traits this battler has.
+   * @type {RPG_Trait[]}
+   */
+  traits = [];
+
+  /**
+   * Constructor.
+   * Maps the base battler data to the properties on this class.
+   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(battler, index)
+  {
+    // perform original logic.
+    super(battler, index);
+
+    // map core battler data onto this object.
+    this.battlerName = battler.battlerName;
+    this.traits = battler.traits
+      .map(trait => new RPG_Trait(trait));
+  }
+}
+//#endregion RPG_BaseBattler
+
+//#region RPG_BaseItem
+/**
+ * The class representing baseItem from the database,
+ * and now an iconIndex with a description.
+ */
+class RPG_BaseItem extends RPG_Base
+{
+  /**
+   * The description of this entry.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The icon index of this entry.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * Constructor.
+   * Maps the base item's properties into this object.
+   * @param {any} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    // perform original logic.
+    super(baseItem, index);
+
+    // map the additional description and iconIndex as well for all base items.
+    this.description = baseItem.description;
+    this.iconIndex = baseItem.iconIndex;
+  }
+}
+//#endregion RPG_BaseItem
+
+//#region RPG_Traited
+/**
+ * A class representing a BaseItem from the database, but with traits.
+ */
+class RPG_Traited extends RPG_BaseItem
+{
+  /**
+   * A collection of all traits this item possesses.
+   * @type {RPG_Trait[]}
+   */
+  traits = [];
+
+  /**
+   * Constructor.
+   * Maps the base item's traits into this object.
+   * @param {RPG_BaseItem} baseItem The underlying database object.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(baseItem, index)
+  {
+    // perform original logic.
+    super(baseItem, index);
+
+    // map the base item's traits.
+    this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
+  }
+}
+//#endregion RPG_Traited
+
+//#region RPG_EquipItem
+/**
+ * A base class representing containing common properties found in both
+ * weapons and armors.
+ */
+class RPG_EquipItem extends RPG_Traited
+{
+  //#region properties
+  /**
+   * The type of equip this is.
+   * This number is the index that maps to your equip types.
+   * @type {number}
+   */
+  etypeId = 1;
+
+  /**
+   * The core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [1, 0, 0, 0, 0, 0, 0, 0];
+
+  /**
+   * The price of this equip.
+   * @type {number}
+   */
+  price = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {RPG_EquipItem} equip The equip to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(equip, index)
+  {
+    // supply the base class params.
+    super(equip, index);
+
+    // map the data.
+    this.etypeId = equip.etypeId;
+    this.params = equip.params;
+    this.price = equip.price;
+  }
+}
+//#endregion RPG_EquipItem
+
+//#region RPG_UsableItem
+/**
+ * A class representing the base properties for any usable item or skill
+ * from the database.
+ */
+class RPG_UsableItem extends RPG_BaseItem
+{
+  //#region properties
+  /**
+   * The animation id to execute for this skill.
+   * @type {number}
+   */
+  animationId = -1;
+
+  /**
+   * The damage data for this skill.
+   * @type {RPG_SkillDamage}
+   */
+  damage = null;
+
+  /**
+   * The various effects of this skill.
+   * @type {RPG_UsableEffect[]}
+   */
+  effects = [];
+
+  /**
+   * The hit type of this skill.
+   * @type {number}
+   */
+  hitType = 0;
+
+  /**
+   * The occasion type when this skill can be used.
+   * @type {number}
+   */
+  occasion = 0;
+
+  /**
+   * The number of times this skill repeats.
+   * @type {number}
+   */
+  repeats = 1;
+
+  /**
+   * The scope of this skill.
+   * @type {number}
+   */
+  scope = 0;
+
+  /**
+   * The speed bonus of this skill.
+   * @type {number}
+   */
+  speed = 0;
+
+  /**
+   * The % chance of success for this skill.
+   * @type {number}
+   */
+  successRate = 100;
+
+  /**
+   * The amount of TP gained from executing this skill.
+   * @type {number}
+   */
+  tpGain = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.UsableItem} usableItem The usable item to parse.
+   * @param {number} index The index of the skill in the database.
+   */
+  constructor(usableItem, index)
+  {
+    // supply the base class params.
+    super(usableItem, index);
+
+    // map the data.
+    this.animationId = usableItem.animationId;
+    this.damage = new RPG_SkillDamage(usableItem.damage);
+    this.effects = usableItem.effects.map(effect => new RPG_UsableEffect(effect));
+    this.hitType = usableItem.hitType;
+    this.occasion = usableItem.occasion;
+    this.repeats = usableItem.repeats;
+    this.scope = usableItem.scope;
+    this.speed = usableItem.speed;
+    this.successRate = usableItem.successRate;
+    this.tpGain = usableItem.tpGain;
+  }
+}
+//#endregion RPG_UsableItem
+
+//#region RPG_Actor
+/**
+ * A class representing a single actor battler's data from the database.
+ */
+class RPG_Actor extends RPG_BaseBattler
+{
+  //#region properties
+  /**
+   * The index of the character sprite of the battler
+   * on the spritesheet.
+   * @type {number}
+   */
+  characterIndex = 0;
+
+  /**
+   * The name of the file that the character sprite
+   * resides within.
+   * @type {string}
+   */
+  characterName = String.empty;
+
+  /**
+   * The id of the class that this actor currently is.
+   * @type {number}
+   */
+  classId = 0;
+
+  /**
+   * The ids of the equipment in the core equips slots
+   * of the actors from the database.
+   * @type {number[]}
+   */
+  equips = [0, 0, 0, 0, 0];
+
+  /**
+   * The index of the face sprite of this battler on
+   * the spritesheet.
+   * @type {number}
+   */
+  faceIndex = 0;
+
+  /**
+   * The name of the file that the face sprite resides
+   * within.
+   * @type {string}
+   */
+  faceName = String.empty;
+
+  /**
+   * The starting level for this actor in the database.
+   * @type {number}
+   */
+  initialLevel = 1;
+
+  /**
+   * The maximum level of this actor from the database.
+   * @type {number}
+   */
+  maxLevel = 99;
+
+  /**
+   * The nickname of this actor from the database.
+   * @type {string}
+   */
+  nickname = String.empty;
+
+  /**
+   * The profile multiline text for this actor in the database.
+   * @type {string}
+   */
+  profile = String.empty;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Actor} actor The actor to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(actor, index)
+  {
+    // supply parameters to base class.
+    super(actor, index);
+
+    // map the data.
+    this.initMembers(actor)
+  }
+
+  /**
+   * Maps the data from the JSON to this object.
+   * @param {rm.types.Actor} actor The actor to parse.
+   */
+  initMembers(actor)
+  {
+    // map actor-specific battler properties.
+    this.characterIndex = actor.characterIndex;
+    this.characterName = actor.characterName;
+    this.classId = actor.classId;
+    this.equips = actor.equips;
+    this.faceIndex = actor.faceIndex;
+    this.faceName = actor.faceName;
+    this.initialLevel = actor.initialLevel;
+    this.maxLevel = actor.maxLevel;
+    this.nickname = actor.nickname;
+    this.profile = actor.profile;
+  }
+}
+//#endregion RPG_Actor
+
+//#region RPG_Armor
+/**
+ * A class representing a single armor from the database.
+ */
+class RPG_Armor extends RPG_EquipItem
+{
+  //#region properties
+  /**
+   * The type of armor this is.
+   * This number is the index that maps to your armor types.
+   * @type {number}
+   */
+  atypeId = 1;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Armor} armor The armor to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(armor, index)
+  {
+    // supply the base class params.
+    super(armor, index);
+
+    // map the data.
+    this.atypeId = armor.atypeId;
+  }
+}
+//#endregion RPG_Armor
+
+//#region RPG_Class
+/**
+ * A class representing a RPG-relevant class from the database.
+ */
+class RPG_Class extends RPG_Base
+{
+  //#region properties
+  /**
+   * The four data points that comprise the EXP curve for this class.
+   * @type {[number, number, number, number]}
+   */
+  expParams = [0, 0, 0, 0];
+
+  /**
+   * A collection of skill learning data points for this class.
+   * @type {RPG_ClassLearning[]}
+   */
+  learnings = [];
+
+  /**
+   * A multi-dimensional array of the core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order, but for all 100 of the base levels.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [[1], [0], [0], [0], [0], [0], [0], [0]];
+
+  /**
+   * A collection of traits this class has.
+   * @type {RPG_Trait[]}
+   */
+  traits = [];
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.RPGClass} classData The class data to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(classData, index)
+  {
+    // perform original logic.
+    super(classData, index);
+
+    // map the class data to this object.
+    this.expParams = classData.expParams;
+    this.learnings = classData.learnings
+    .map(learning => new RPG_ClassLearning(learning));
+    this.params = classData.params;
+    this.traits = classData.traits
+    .map(trait => new RPG_Trait(trait));
+  }
+}
+//#endregion RPG_Class
+
+//#region RPG_Enemy
+/**
+ * A class representing a single enemy battler's data from the database.
+ */
+class RPG_Enemy extends RPG_BaseBattler
+{
+  //#region properties
+  /**
+   * A collection of all actions that an enemy has assigned from the database.
+   * @type {RPG_EnemyAction[]}
+   */
+  actions = [];
+
+  /**
+   * The -255-0-255 hue of the battler sprite.
+   * @type {number}
+   */
+  battlerHue = 0;
+
+  /**
+   * A collection of all drop items this enemy can drop.
+   * @type {RPG_DropItem[]}
+   */
+  dropItems = [];
+
+  /**
+   * The base amount of experience this enemy grants upon defeat.
+   * @type {number}
+   */
+  exp = 0;
+
+  /**
+   * The base amount of gold this enemy grants upon defeat.
+   * @type {number}
+   */
+  gold = 0;
+
+  /**
+   * The core parameters that all battlers have:
+   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
+   * in that order.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {RPG_Enemy} enemy The enemy to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(enemy, index)
+  {
+    // supply the base class params.
+    super(enemy, index);
+
+    // map the data.
+    this.initMembers(enemy);
+  }
+
+  /**
+   * Maps the data from the JSON to this object.
+   * @param {RPG_Enemy} enemy The enemy to parse.
+   */
+  initMembers(enemy)
+  {
+    // map the data.
+    this.actions = enemy.actions
+      .map(enemyAction => new RPG_EnemyAction(enemyAction));
+    this.battlerHue = enemy.battlerHue;
+    this.dropItems = enemy.dropItems
+      .map(dropItem => new RPG_DropItem(dropItem));
+    this.exp = enemy.exp;
+    this.gold = enemy.gold;
+    this.params = enemy.params;
+  }
+}
+//#endregion RPG_Enemy
+
+//#region RPG_Item
+/**
+ * A class representing a single item entry from the database.
+ */
+class RPG_Item extends RPG_UsableItem
+{
+  //#region properties
+  /**
+   * Whether or not this item is removed after using it.
+   * @type {boolean}
+   */
+  consumable = true;
+
+  /**
+   * The type of item this is:
+   * 0 for regular item, 1 for key item, 2 for hiddenA, 3 for hiddenB.
+   * @type {number}
+   */
+  itypeId = 1;
+
+  /**
+   * The price of this item.
+   * @type {number}
+   */
+  price = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Item} item The item to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(item, index)
+  {
+    // supply the base class params.
+    super(item, index);
+
+    // map the data.
+    this.consumable = item.consumable;
+    this.itypeId = item.itypeId;
+    this.price = item.price;
+  }
+}
+//#endregion RPG_Item
+
+//#region RPG_Skill
+/**
+ * An class representing a single skill from the database.
+ */
+class RPG_Skill extends RPG_UsableItem
+{
+  //#region properties
+  /**
+   * The first line of the message for this skill.
+   * @type {string}
+   */
+  message1 = String.empty;
+
+  /**
+   * The second line of the message for this skill.
+   * @type {string}
+   */
+  message2 = String.empty;
+
+  /**
+   * The type of message for this skill.
+   * @type {number}
+   */
+  messageType = 0;
+
+  /**
+   * The amount of MP required to execute this skill.
+   * @type {number}
+   */
+  mpCost = 0;
+
+  /**
+   * The first of two required weapon types to be equipped to execute this skill.
+   * @type {number}
+   */
+  requiredWtypeId1 = 0;
+
+  /**
+   * The second of two required weapon types to be equipped to execute this skill.
+   * @type {number}
+   */
+  requiredWtypeId2 = 0;
+
+  /**
+   * The skill type that this skill belongs to.
+   * @type {number}
+   */
+  stypeId = 0;
+
+  /**
+   * The amount of TP required to execute this skill.
+   * @type {number}
+   */
+  tpCost = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the skill's properties into this object.
+   * @param {RPG_Skill} skill The underlying skill object.
+   * @param {number} index The index of the skill in the database.
+   */
+  constructor(skill, index)
+  {
+    // supply the base class params.
+    super(skill, index);
+
+    // map the data.
+    this.initMembers(skill);
+  }
+
+  /**
+   * Maps all the data from the JSON to this object.
+   * @param {RPG_Skill} skill The underlying skill object.
+   */
+  initMembers(skill)
+  {
+    // map the data.
+    this.message1 = skill.message1;
+    this.message2 = skill.message2;
+    this.messageType = skill.messageType;
+    this.mpCost = skill.mpCost;
+    this.requiredWtypeId1 = skill.requiredWtypeId1;
+    this.requiredWtypeId2 = skill.requiredWtypeId2;
+    this.stypeId = skill.stypeId;
+    this.tpCost = skill.tpCost;
+  }
+}
+//#endregion RPG_Skill
+
+//#region RPG_State
+/**
+ * An class representing a single state from the database.
+ */
+class RPG_State extends RPG_Traited
+{
+  //#region properties
+  /**
+   * The automatic removal timing.
+   * @type {0|1|2}
+   */
+  autoRemovalTiming = 0;
+
+  /**
+   * The percent chance that receiving damage will remove this state.
+   * Requires `removeByDamage` to be true on this state.
+   * @type {number}
+   */
+  chanceByDamage = 100;
+
+  /**
+   * OVERWRITE States do not normally have descriptions.
+   * Rather than leaving it as `undefined`, lets be nice and keep it
+   * an empty string.
+   * @type {String.empty}
+   */
+  description = String.empty;
+
+  /**
+   * The maximum number of turns this state will persist.
+   * Requires `restriction` to not be 0 to be leveraged.
+   * @type {number}
+   */
+  maxTurns = 1;
+
+  /**
+   * "If an actor is inflicted with this state..."
+   * @type {string}
+   */
+  message1 = String.empty;
+
+  /**
+   * "If an enemy is inflicted with this state..."
+   * @type {string}
+   */
+  message2 = String.empty;
+
+  /**
+   * "If the state persists..."
+   * @type {string}
+   */
+  message3 = String.empty;
+
+  /**
+   * "If the state is removed..."
+   * @type {string}
+   */
+  message4 = String.empty;
+
+  /**
+   * The type of message this is.
+   * (unsure)
+   * @type {number}
+   */
+  messageType = 1;
+
+  /**
+   * The minimum number of turns this state will persist.
+   * Requires `restriction` to not be 0 to be leveraged.
+   * @type {number}
+   */
+  minTurns = 1;
+
+  /**
+   * The motion the sideview battler will take while afflicted
+   * with this state.
+   * @type {number}
+   */
+  motion = 0;
+
+  /**
+   * The state overlay id that shows on the battler while
+   * this state is afflicted.
+   * @type {number}
+   */
+  overlay = 0;
+
+  /**
+   * The priority of the skill.
+   * @type {number}
+   */
+  priority = 50;
+
+  /**
+   * Whether or not this state will automatically be removed at
+   * the end of the battle.
+   * @type {boolean}
+   */
+  removeAtBattleEnd = false;
+
+  /**
+   * Whether or not this state can be removed simply by taking damage.
+   * Leverages the `chanceByDamage` percent for whether or not to remove.
+   * @type {boolean}
+   */
+  removeByDamage = false;
+
+  /**
+   * Whether or not this state can be removed by applying a different state
+   * that has a higher `restriction` type.
+   * @type {boolean}
+   */
+  removeByRestriction = false;
+
+  /**
+   * Whether or not this state can be removed by taking the `stepsToRemove` number
+   * of steps on this state.
+   * @type {boolean}
+   */
+  removeByWalking = false;
+
+  /**
+   * The type of restriction this state has.
+   * @type {number}
+   */
+  restriction = 0;
+
+  /**
+   * The number of steps to remove this state.
+   * Requires `removeByWalking` to be true on this state to be leveraged.
+   * @type {number}
+   */
+  stepsToRemove = 100;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * Maps the state's properties into this object.
+   * @param {rm.types.State} state The underlying state object.
+   * @param {number} index The index of the state in the database.
+   */
+  constructor(state, index)
+  {
+    // perform original logic.
+    super(state, index);
+
+    // map the states's data points 1:1.
+    this.autoRemovalTiming = state.autoRemovalTiming;
+    this.chanceByDamage = state.chanceByDamage;
+    this.maxTurns = state.maxTurns;
+    this.message1 = state.message1;
+    this.message2 = state.message2;
+    this.message3 = state.message3;
+    this.message4 = state.message4;
+    this.messageType = state.messageType;
+    this.minTurns = state.minTurns;
+    this.motion = state.motion;
+    this.overlay = state.overlay;
+    this.priority = state.priority;
+    this.removeAtBattleEnd = state.removeAtBattleEnd;
+    this.removeByDamage = state.removeByDamage;
+    this.removeByRestriction = state.removeByRestriction;
+    this.removeByWalking = state.removeByWalking;
+    this.restriction = state.restriction;
+    this.stepsToRemove = state.stepsToRemove;
+  }
+}
+//#endregion RPG_State
+
+//#region RPG_Weapon
+/**
+ * A class representing a single weapon from the database.
+ */
+class RPG_Weapon extends RPG_EquipItem
+{
+  //#region properties
+  /**
+   * The animation id for this weapon.
+   * @type {number}
+   */
+  animationId = -1;
+
+  /**
+   * The type of weapon this is.
+   * This number is the index that maps to your weapon types.
+   * @type {number}
+   */
+  wtypeId = 1;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {rm.types.Weapon} weapon The weapon to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(weapon, index)
+  {
+    // supply the base class params.
+    super(weapon, index);
+
+    // map the data.
+    this.animationId = weapon.animationId;
+    this.wtypeId = weapon.wtypeId;
+  }
+}
+//#endregion RPG_Weapon
+
+/**
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.
+ */
+class RPG_SoundEffect
+{
+  /**
+   * The name of the sound effect.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The L/R adjustment of the sound effect.
+   * @type {number}
+   */
+  pan = 0;
+
+  /**
+   * The high/low pitch of the sound effect.
+   * @type {number}
+   */
+  pitch = 100;
+
+  /**
+   * The volume of the sound effect.
+   * @type {number}
+   */
+  volume = 100;
+
+  /**
+   * Constructor.
+   * @param {string} name The name of the sound effect.
+   * @param {number} volume The volume of the sound effect.
+   * @param {number} pitch The high/low pitch of the sound effect.
+   * @param {number} pan The L/R adjustment of the sound effect.
+   */
+  constructor(name, volume = 100, pitch = 100, pan = 0)
+  {
+    this.name = name;
+    this.pan = pan;
+    this.pitch = pitch;
+    this.volume = volume;
+  }
+}
+
 //#region ColorManager
 /**
  * Gets the color index from the "long" parameter id.
@@ -1500,7 +3436,130 @@ ImageManager.probeCharacter = function(characterFileName)
     xhr.send();
   });
 };
+
+/**
+ * Generates a promise based on the resolution of the bitmap.<br/>
+ * If the promise resolves successfully, it'll contain the bitmap.<br/>
+ * If the promise rejects, then it is up to the handler how to deal with that.<br/>
+ * @param {string} filename The name of the file without the file extension.
+ * @param {string} directory The name of the directory to find the filename in (include trailing slash!).
+ * @returns {Promise}
+ */
+ImageManager.loadBitmapPromise = function(filename, directory)
+{
+  // create a promise for the bitmap.
+  const bitmapPromise = new Promise((resolve, reject) =>
+  {
+    // load the bitmap from our designated location.
+    const bitmap = this.loadBitmap(`${directory}`, filename, 0, true);
+
+    // and add a listener to the bitmap to resolve _onLoad.
+    bitmap.addLoadListener(thisBitmap =>
+    {
+      // if everything is clear, resolve with the loaded bitmap.
+      if (thisBitmap.isReady()) resolve(thisBitmap);
+
+      // if there were problems, then reject.
+      else if (thisBitmap.isError()) reject();
+    });
+  });
+
+  // return the created promise.
+  return bitmapPromise;
+};
+
+ImageManager.iconColumns = 16;
+
 //#endregion ImageManager
+
+//#region RPGManager
+/**
+ * A utility class for handling common database-related translations.
+ */
+class RPGManager
+{
+  /**
+   * Gets the sum of all values from the notes of a collection of database objects.
+   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   */
+  static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // check to make sure we have a collection to work with.
+    if (!databaseDatas.length)
+    {
+      // short circuit with null if we are using the flag, or 0 otherwise.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value to 0.
+    let val = 0;
+
+    // iterate over each database object to get the values.
+    databaseDatas.forEach(databaseData =>
+    {
+      // add the value from all the notes of each database object.
+      val += databaseData.getNumberFromNotesByRegex(structure);
+    });
+
+    // check if we turned up empty and are using the nullIfEmpty flag.
+    if (!val && nullIfEmpty)
+    {
+      // we are both, so return null.
+      return null;
+    }
+
+    // return the value, or 0.
+    return val;
+  }
+
+  /**
+   * Gets the eval'd formulai of all values from the notes of a collection of database objects.
+   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+   * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   * @returns {number} The calculated result from all formula summed together.
+   */
+  static getResultsFromAllNotesByRegex(
+    databaseDatas,
+    structure,
+    baseParam = 0,
+    context = null,
+    nullIfEmpty = false)
+  {
+    // check to make sure we have a collection to work with.
+    if (!databaseDatas.length)
+    {
+      // short circuit with null if we are using the flag, or 0 otherwise.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value to 0.
+    let val = 0;
+
+    // iterate over each database object to get the values.
+    databaseDatas.forEach(databaseData =>
+    {
+      // add the eval'd formulas from all the notes of each database object.
+      val += databaseData.getResultsFromNotesByRegex(structure, baseParam, context);
+    });
+
+    // check if we turned up empty and are using the nullIfEmpty flag.
+    if (!val && nullIfEmpty)
+    {
+      // we are both, so return null.
+      return null;
+    }
+
+    // return the value, or 0.
+    return val;
+  }
+}
+//#endregion RPGManager
+
 //#region SoundManager
 /**
  * Plays the sound effect provided.
@@ -1511,7 +3570,6 @@ SoundManager.playSoundEffect = function(se)
   AudioManager.playStaticSe(se);
 };
 //#endregion SoundManager
-
 
 //#region TextManager
 /**
@@ -1697,96 +3755,6 @@ TextManager.longParam = function(paramId)
 };
 //#endregion TextManager
 
-//#region RPGManager
-/**
- * A utility class for handling common database-related translations.
- */
-class RPGManager
-{
-  /**
-   * Gets the sum of all values from the notes of a collection of database objects.
-   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-   * @param {RegExp} structure The RegExp structure to find values for.
-   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-   */
-  static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
-  {
-    // check to make sure we have a collection to work with.
-    if (!databaseDatas.length)
-    {
-      // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
-    }
-
-    // initialize the value to 0.
-    let val = 0;
-
-    // iterate over each database object to get the values.
-    databaseDatas.forEach(databaseData =>
-    {
-      // add the value from all the notes of each database object.
-      val += databaseData.getNumberFromNotesByRegex(structure);
-    });
-
-    // check if we turned up empty and are using the nullIfEmpty flag.
-    if (!val && nullIfEmpty)
-    {
-      // we are both, so return null.
-      return null;
-    }
-
-    // return the value, or 0.
-    return val;
-  }
-
-  /**
-   * Gets the eval'd formulai of all values from the notes of a collection of database objects.
-   * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-   * @param {RegExp} structure The RegExp structure to find values for.
-   * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-   * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-   * @returns {number} The calculated result from all formula summed together.
-   */
-  static getResultsFromAllNotesByRegex(
-    databaseDatas,
-    structure,
-    baseParam = 0,
-    context = null,
-    nullIfEmpty = false)
-  {
-    // check to make sure we have a collection to work with.
-    if (!databaseDatas.length)
-    {
-      // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
-    }
-
-    // initialize the value to 0.
-    let val = 0;
-
-    // iterate over each database object to get the values.
-    databaseDatas.forEach(databaseData =>
-    {
-      // add the eval'd formulas from all the notes of each database object.
-      val += databaseData.getResultsFromNotesByRegex(structure, baseParam, context);
-    });
-
-    // check if we turned up empty and are using the nullIfEmpty flag.
-    if (!val && nullIfEmpty)
-    {
-      // we are both, so return null.
-      return null;
-    }
-
-    // return the value, or 0.
-    return val;
-  }
-}
-//#endregion RPGManager
-//#endregion Static objects
-
-//#region Game objects
 //#region Game_Actor
 /**
  * Gets the parameter value from the "long" parameter id.
@@ -2003,7 +3971,7 @@ Game_Actor.prototype.learnSkill = function(skillId)
  * A hook for performing actions when an actor learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
  */
-Game_Actor.prototype.onLearnNewSkill = function(skillId) 
+Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
@@ -2032,7 +4000,7 @@ Game_Actor.prototype.forgetSkill = function(skillId)
  * A hook for performing actions when a battler forgets a skill.
  * @param {number} skillId The skill id of the skill forgotten.
  */
-Game_Actor.prototype.onForgetSkill = function(skillId) 
+Game_Actor.prototype.onForgetSkill = function(skillId)
 {
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
@@ -2172,7 +4140,6 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item)
 J.BASE.Aliased.Game_Actor.set('releaseUnequippableItems', Game_Actor.prototype.releaseUnequippableItems);
 Game_Actor.prototype.releaseUnequippableItems = function(forcing)
 {
-  console.log('doing this');
   // grab a snapshot of what the equips looked like before changing.
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
@@ -2435,17 +4402,17 @@ Game_Enemy.prototype.skills = function()
 {
   // grab the actions for the enemy.
   const actions = this.enemy().actions
-    .map(action => this.skill(action.skillId), this);
-  
+  .map(action => this.skill(action.skillId), this);
+
   // grab any additional skills added via traits.
   const skillTraits = this.traitObjects()
-    .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
-    .map(skillTrait => this.skill(skillTrait.dataId), this);
-  
+  .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
+  .map(skillTrait => this.skill(skillTrait.dataId), this);
+
   // combine the two arrays of skills.
   return actions
-    .concat(skillTraits)
-    .sort();
+  .concat(skillTraits)
+  .sort();
 };
 
 /**
@@ -2637,9 +4604,7 @@ Game_Party.prototype.numItems = function(item)
     : 0;
 };
 //#endregion Game_Party
-//#endregion Game objects
 
-//#region Sprite objects
 //#region Sprite_ActorValue
 /**
  * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
@@ -2817,323 +4782,6 @@ Sprite_ActorValue.prototype.fontFace = function()
   return $gameSystem.numberFontFace();
 };
 //#endregion Sprite_ActorValue
-
-//#region Sprite_Face
-/**
- * A sprite that displays a single face.
- */
-function Sprite_Face()
-{
-  this.initialize(...arguments);
-}
-
-Sprite_Face.prototype = Object.create(Sprite.prototype);
-Sprite_Face.prototype.constructor = Sprite_Face;
-Sprite_Face.prototype.initialize = function(faceName, faceIndex)
-{
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(faceName, faceIndex);
-  this.loadBitmap();
-};
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {string} faceName The name of the face file.
- * @param {number} faceIndex The index of the face.
- */
-Sprite_Face.prototype.initMembers = function(faceName, faceIndex)
-{
-  this._j = {
-    _faceName: faceName,
-    _faceIndex: faceIndex,
-  };
-};
-
-/**
- * Loads the bitmap into the sprite.
- */
-Sprite_Face.prototype.loadBitmap = function()
-{
-  this.bitmap = ImageManager.loadFace(this._j._faceName);
-  const pw = ImageManager.faceWidth;
-  const ph = ImageManager.faceHeight;
-  const width = pw;
-  const height = ph;
-  const sw = Math.min(width, pw);
-  const sh = Math.min(height, ph);
-  const sx = Math.floor((this._j._faceIndex % 4) * pw + (pw - sw) / 2);
-  const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
-  this.setFrame(sx, sy, pw, ph);
-};
-//#endregion Sprite_Face
-
-/**
- * Generates a promise based on the resolution of the bitmap.<br/>
- * If the promise resolves successfully, it'll contain the bitmap.<br/>
- * If the promise rejects, then it is up to the handler how to deal with that.<br/>
- * @param {string} filename The name of the file without the file extension.
- * @param {string} directory The name of the directory to find the filename in (include trailing slash!).
- * @returns {Promise}
- */
-ImageManager.loadBitmapPromise = function(filename, directory)
-{
-  // create a promise for the bitmap.
-  const bitmapPromise = new Promise((resolve, reject) =>
-  {
-    // load the bitmap from our designated location.
-    const bitmap = this.loadBitmap(`${directory}`, filename, 0, true);
-
-    // and add a listener to the bitmap to resolve _onLoad.
-    bitmap.addLoadListener(thisBitmap =>
-    {
-      // if everything is clear, resolve with the loaded bitmap.
-      if (thisBitmap.isReady()) resolve(thisBitmap);
-
-      // if there were problems, then reject.
-      else if (thisBitmap.isError()) reject();
-    });
-  });
-
-  // return the created promise.
-  return bitmapPromise;
-};
-
-ImageManager.iconColumns = 16;
-
-//#region Sprite_Icon
-/**
- * A customizable sprite that displays a single icon.
- *
- * Defaults to regular `ImageManager`'s defaults in size and columns,
- * but can be modified manually to different iconsets bitmaps and/or
- * different icon widths and heights.
- */
-class Sprite_Icon extends Sprite
-{
-  /**
-   * Initializes this sprite with the designated icon.
-   * @param {number} iconIndex The icon index of the icon for this sprite.
-   */
-  initialize(iconIndex = 0)
-  {
-    // perform original logic.
-    super.initialize();
-
-    // initialize our properties.
-    this.initMembers();
-
-    // setups up the bitmap with the default iconset via promises.
-    this.setupDefaultIconsetBitmap(iconIndex);
-  }
-
-  /**
-   * Initialize all properties of this class.
-   */
-  initMembers()
-  {
-    /**
-     * All encompassing _j object for storing my custom properties.
-     */
-    this._j ||= {};
-
-    /**
-     * Whether or not the sprite is ready to be drawn yet.
-     * @type {boolean}
-     */
-    this._j._isReady = false;
-
-
-    /**
-     * The icon index that this sprite represents.
-     * @type {number}
-     */
-    this._j._iconIndex = 0;
-
-    /**
-     * The width of our icon. Defaults to the image manager's width,
-     * but it can be set higher or lower for different-sized iconsheets.
-     * @type {number}
-     */
-    this._j._iconWidth = ImageManager.iconWidth;
-
-    /**
-     * The height of our icon. Defaults to the image manager's height,
-     * but it can be set higher or lower for different-sized iconsheets.
-     * @type {number}
-     */
-    this._j._iconHeight = ImageManager.iconHeight;
-
-    /**
-     * The number of columns on the iconset we're using. Defaults to 16,
-     * which was also predefined by this plugin, but is just the number
-     * of columns the default iconset.png file has.
-     * @type {number}
-     */
-    this._j._iconColumns = ImageManager.iconColumns;
-  }
-
-  /**
-   * Sets up the bitmap with the default iconset.
-   * @param {number} iconIndex The icon index of the icon for this sprite.
-   */
-  setupDefaultIconsetBitmap(iconIndex)
-  {
-    // undoes the ready check flag.
-    this.unReady();
-
-    // setup a promise for when the bitmap loads.
-    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
-      .then(bitmap => this.setIconsetBitmap(bitmap))
-      .catch(() => 
-{
- throw new Error('default iconset bitmap failed to load.'); 
-});
-
-    // upon promise delivery, execute the rendering.
-    Promise.all([bitmapPromise])
-      // execute on-ready logic, such as setting the icon index of this sprite to render.
-      .then(() => this.onReady(iconIndex))
-  }
-
-  /**
-   * Sets the ready flag to false to prevent rendering further
-   */
-  unReady()
-  {
-    this._j._isReady = false;
-  }
-
-  /**
-   * Gets whether or not this icon sprite is ready for rendering.
-   * @returns {boolean}
-   */
-  isReady()
-  {
-    return this._j._isReady;
-  }
-
-  /**
-   * Sets the bitmap to the designated bitmap.
-   * @param {Bitmap} bitmap The base bitmap of this sprite.
-   */
-  setIconsetBitmap(bitmap)
-  {
-    this.bitmap = bitmap;
-  }
-
-  /**
-   * Gets the icon index from the iconset for this sprite.
-   * @returns {number}
-   */
-  iconIndex()
-  {
-    return this._j._iconIndex;
-  }
-
-  /**
-   * Sets the icon index for this sprite.
-   * @param {number} iconIndex The icon index this sprite should render.
-   */
-  setIconIndex(iconIndex)
-  {
-    // reassign the icon index.
-    this._j._iconIndex = iconIndex;
-
-    // if we are not ready to render, then do not.
-    if (!this.isReady()) return;
-
-    // (re)renders the sprite based on the icon index.
-    this.drawIcon();
-  }
-
-  /**
-   * Gets the width of this icon for this sprite.
-   * @returns {number}
-   */
-  iconWidth()
-  {
-    return this._j._iconWidth;
-  }
-
-  /**
-   * Sets the width of this sprite's icon.
-   * @param width
-   */
-  setIconWidth(width)
-  {
-    this._j._iconWidth = width;
-  }
-
-  /**
-   * Gets the height of this icon for this sprite.
-   * @returns {number}
-   */
-  iconHeight()
-  {
-    return this._j._iconHeight;
-  }
-
-  /**
-   * Sets the height of this sprite's icon.
-   * @param height
-   */
-  setIconHeight(height)
-  {
-    this._j._iconHeight = height;
-  }
-
-  /**
-   * Gets the number of columns for this sprite's iconset.
-   * @returns {number}
-   */
-  iconColumns()
-  {
-    return this._j._iconColumns;
-  }
-
-  /**
-   * Sets the number of columns for the sprite's iconset.
-   * @param {number} columns The new number of columns in this sprite's iconset.
-   */
-  setIconColumns(columns)
-  {
-    this._j._iconColumns = columns;
-  }
-
-  /**
-   * Upon becoming ready, execute this logic.
-   * In this sprite's case, we render ourselves.
-   * @param {number} iconIndex The icon index of this sprite.
-   */
-  onReady(iconIndex = 0)
-  {
-    // flag this sprite as being ready for rendering.
-    this._j._isReady = true;
-
-    // and also follow up with rendering an icon.
-    this.setIconIndex(iconIndex);
-  }
-
-  /**
-   * Sets the frame of the bitmap to be the icon we care about.
-   */
-  drawIcon()
-  {
-    // determine the universal shape of the icon and iconset.
-    const iconWidth = this.iconWidth();
-    const iconHeight = this.iconHeight();
-    const iconsetColumns = this.iconColumns();
-    const iconIndex = this.iconIndex();
-
-    // calculate the x:y of the icon's origin based on index.
-    const x = (iconIndex % iconsetColumns) * iconWidth;
-    const y = Math.floor(iconIndex / iconsetColumns) * iconHeight;
-
-    // set the frame of the bitmap to start at the x:y, and be as big as designated.
-    this.setFrame(x, y, iconWidth, iconHeight);
-  }
-}
-//#endregion Sprite_Icon
 
 //#region Sprite_BaseText
 /**
@@ -3863,6 +5511,290 @@ Sprite_CooldownTimer.prototype.fontFace = function()
 }
 //#endregion
 
+//#region Sprite_Face
+/**
+ * A sprite that displays a single face.
+ */
+function Sprite_Face()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_Face.prototype = Object.create(Sprite.prototype);
+Sprite_Face.prototype.constructor = Sprite_Face;
+Sprite_Face.prototype.initialize = function(faceName, faceIndex)
+{
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(faceName, faceIndex);
+  this.loadBitmap();
+};
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {string} faceName The name of the face file.
+ * @param {number} faceIndex The index of the face.
+ */
+Sprite_Face.prototype.initMembers = function(faceName, faceIndex)
+{
+  this._j = {
+    _faceName: faceName,
+    _faceIndex: faceIndex,
+  };
+};
+
+/**
+ * Loads the bitmap into the sprite.
+ */
+Sprite_Face.prototype.loadBitmap = function()
+{
+  this.bitmap = ImageManager.loadFace(this._j._faceName);
+  const pw = ImageManager.faceWidth;
+  const ph = ImageManager.faceHeight;
+  const width = pw;
+  const height = ph;
+  const sw = Math.min(width, pw);
+  const sh = Math.min(height, ph);
+  const sx = Math.floor((this._j._faceIndex % 4) * pw + (pw - sw) / 2);
+  const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
+  this.setFrame(sx, sy, pw, ph);
+};
+//#endregion Sprite_Face
+
+//#region Sprite_Icon
+/**
+ * A customizable sprite that displays a single icon.
+ *
+ * Defaults to regular `ImageManager`'s defaults in size and columns,
+ * but can be modified manually to different iconsets bitmaps and/or
+ * different icon widths and heights.
+ */
+class Sprite_Icon extends Sprite
+{
+  /**
+   * Initializes this sprite with the designated icon.
+   * @param {number} iconIndex The icon index of the icon for this sprite.
+   */
+  initialize(iconIndex = 0)
+  {
+    // perform original logic.
+    super.initialize();
+
+    // initialize our properties.
+    this.initMembers();
+
+    // setups up the bitmap with the default iconset via promises.
+    this.setupDefaultIconsetBitmap(iconIndex);
+  }
+
+  /**
+   * Initialize all properties of this class.
+   */
+  initMembers()
+  {
+    /**
+     * All encompassing _j object for storing my custom properties.
+     */
+    this._j ||= {};
+
+    /**
+     * Whether or not the sprite is ready to be drawn yet.
+     * @type {boolean}
+     */
+    this._j._isReady = false;
+
+
+    /**
+     * The icon index that this sprite represents.
+     * @type {number}
+     */
+    this._j._iconIndex = 0;
+
+    /**
+     * The width of our icon. Defaults to the image manager's width,
+     * but it can be set higher or lower for different-sized iconsheets.
+     * @type {number}
+     */
+    this._j._iconWidth = ImageManager.iconWidth;
+
+    /**
+     * The height of our icon. Defaults to the image manager's height,
+     * but it can be set higher or lower for different-sized iconsheets.
+     * @type {number}
+     */
+    this._j._iconHeight = ImageManager.iconHeight;
+
+    /**
+     * The number of columns on the iconset we're using. Defaults to 16,
+     * which was also predefined by this plugin, but is just the number
+     * of columns the default iconset.png file has.
+     * @type {number}
+     */
+    this._j._iconColumns = ImageManager.iconColumns;
+  }
+
+  /**
+   * Sets up the bitmap with the default iconset.
+   * @param {number} iconIndex The icon index of the icon for this sprite.
+   */
+  setupDefaultIconsetBitmap(iconIndex)
+  {
+    // undoes the ready check flag.
+    this.unReady();
+
+    // setup a promise for when the bitmap loads.
+    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
+      .then(bitmap => this.setIconsetBitmap(bitmap))
+      .catch(() =>
+      {
+        throw new Error('default iconset bitmap failed to load.');
+      });
+
+    // upon promise delivery, execute the rendering.
+    Promise.all([bitmapPromise])
+    // execute on-ready logic, such as setting the icon index of this sprite to render.
+      .then(() => this.onReady(iconIndex))
+  }
+
+  /**
+   * Sets the ready flag to false to prevent rendering further
+   */
+  unReady()
+  {
+    this._j._isReady = false;
+  }
+
+  /**
+   * Gets whether or not this icon sprite is ready for rendering.
+   * @returns {boolean}
+   */
+  isReady()
+  {
+    return this._j._isReady;
+  }
+
+  /**
+   * Sets the bitmap to the designated bitmap.
+   * @param {Bitmap} bitmap The base bitmap of this sprite.
+   */
+  setIconsetBitmap(bitmap)
+  {
+    this.bitmap = bitmap;
+  }
+
+  /**
+   * Gets the icon index from the iconset for this sprite.
+   * @returns {number}
+   */
+  iconIndex()
+  {
+    return this._j._iconIndex;
+  }
+
+  /**
+   * Sets the icon index for this sprite.
+   * @param {number} iconIndex The icon index this sprite should render.
+   */
+  setIconIndex(iconIndex)
+  {
+    // reassign the icon index.
+    this._j._iconIndex = iconIndex;
+
+    // if we are not ready to render, then do not.
+    if (!this.isReady()) return;
+
+    // (re)renders the sprite based on the icon index.
+    this.drawIcon();
+  }
+
+  /**
+   * Gets the width of this icon for this sprite.
+   * @returns {number}
+   */
+  iconWidth()
+  {
+    return this._j._iconWidth;
+  }
+
+  /**
+   * Sets the width of this sprite's icon.
+   * @param width
+   */
+  setIconWidth(width)
+  {
+    this._j._iconWidth = width;
+  }
+
+  /**
+   * Gets the height of this icon for this sprite.
+   * @returns {number}
+   */
+  iconHeight()
+  {
+    return this._j._iconHeight;
+  }
+
+  /**
+   * Sets the height of this sprite's icon.
+   * @param height
+   */
+  setIconHeight(height)
+  {
+    this._j._iconHeight = height;
+  }
+
+  /**
+   * Gets the number of columns for this sprite's iconset.
+   * @returns {number}
+   */
+  iconColumns()
+  {
+    return this._j._iconColumns;
+  }
+
+  /**
+   * Sets the number of columns for the sprite's iconset.
+   * @param {number} columns The new number of columns in this sprite's iconset.
+   */
+  setIconColumns(columns)
+  {
+    this._j._iconColumns = columns;
+  }
+
+  /**
+   * Upon becoming ready, execute this logic.
+   * In this sprite's case, we render ourselves.
+   * @param {number} iconIndex The icon index of this sprite.
+   */
+  onReady(iconIndex = 0)
+  {
+    // flag this sprite as being ready for rendering.
+    this._j._isReady = true;
+
+    // and also follow up with rendering an icon.
+    this.setIconIndex(iconIndex);
+  }
+
+  /**
+   * Sets the frame of the bitmap to be the icon we care about.
+   */
+  drawIcon()
+  {
+    // determine the universal shape of the icon and iconset.
+    const iconWidth = this.iconWidth();
+    const iconHeight = this.iconHeight();
+    const iconsetColumns = this.iconColumns();
+    const iconIndex = this.iconIndex();
+
+    // calculate the x:y of the icon's origin based on index.
+    const x = (iconIndex % iconsetColumns) * iconWidth;
+    const y = Math.floor(iconIndex / iconsetColumns) * iconHeight;
+
+    // set the frame of the bitmap to start at the x:y, and be as big as designated.
+    this.setFrame(x, y, iconWidth, iconHeight);
+  }
+}
+//#endregion Sprite_Icon
+
 //#region Sprite_MapGauge
 /**
  * The sprite for displaying a gauge over a character's sprite.
@@ -3881,7 +5813,7 @@ Sprite_MapGauge.prototype.initialize = function(
   label = String.empty,
   value = null,
   iconIndex = -1
-) 
+)
 {
   this._duration = 0;
   this._gauge = {};
@@ -4324,7 +6256,6 @@ Sprite_Text.prototype.textAlignment = function()
   return this._j._alignment;
 };
 //#endregion Sprite_Text
-//#endregion Sprite objects
 
 //#region TileMap
 /**
@@ -4334,68 +6265,6 @@ Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 {
 };
 //#endregion TileMap
-
-//#region Window objects
-//#region WindowLayer
-/**
- * OVERWRITE Renders windows, but WITH the ability to overlay.
- *
- * @param {PIXI.Renderer} renderer - The renderer.
- */
-WindowLayer.prototype.render = function(renderer)
-{
-  if (!this.visible)
-  {
-    return;
-  }
-
-  const graphics = new PIXI.Graphics()
-    , {gl} = renderer
-    , children = this.children.clone();
-
-  // noinspection JSUnresolvedFunction
-  renderer.framebuffer.forceStencil();
-  graphics.transform = this.transform;
-  renderer.batch.flush();
-  gl.enable(gl.STENCIL_TEST);
-
-  while (children.length > 0)
-  {
-    // draw from front to back instead of back to front.
-    const win = children.shift();
-    if (win._isWindow && win.visible && win.openness > 0)
-    {
-      gl.stencilFunc(gl.EQUAL, 0, ~0);
-      gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-      win.render(renderer);
-      renderer.batch.flush();
-      graphics.clear();
-      // no "win.drawShape(graphics)" anymore.
-      gl.stencilFunc(gl.ALWAYS, 1, ~0);
-      gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
-      gl.blendFunc(gl.ZERO, gl.ONE);
-      graphics.render(renderer);
-      renderer.batch.flush();
-      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    }
-  }
-
-  gl.disable(gl.STENCIL_TEST);
-  gl.clear(gl.STENCIL_BUFFER_BIT);
-  gl.clearStencil(0);
-  renderer.batch.flush();
-
-  for (const child of this.children)
-  {
-    if (!child._isWindow && child.visible)
-    {
-      child.render(renderer);
-    }
-  }
-
-  renderer.batch.flush();
-}
-//#endregion WindowLayer
 
 //#region Window_Base
 /**
@@ -4800,1953 +6669,64 @@ Window_Selectable.prototype.onIndexChange = function()
 {
 };
 //#endregion Window_Selectable
-//#endregion Window objects
 
-//#region RPG objects
-//#region RPG data
-//#region RPG_ClassLearning
+//#region WindowLayer
 /**
- * A class representing a single learning of a skill for a class from the database.
+ * OVERWRITE Renders windows, but WITH the ability to overlay.
+ *
+ * @param {PIXI.Renderer} renderer - The renderer.
  */
-class RPG_ClassLearning
+WindowLayer.prototype.render = function(renderer)
 {
-  //#region properties
-  /**
-   * The level that the owning class will learn the given skill.
-   * @type {number}
-   */
-  level = 0;
-
-  /**
-   * The skill to be learned when the owning class reaches the given level.
-   * @type {number}
-   */
-  skillId = 0;
-
-  /**
-   * The note data for this given learning.
-   * @type {string}
-   */
-  note = String.empty;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.ClassLearning} learning The class learning to parse.
-   */
-  constructor(learning)
+  if (!this.visible)
   {
-    // map the database data to this object.
-    this.level = learning.level;
-    this.skillId = learning.skillId;
-    this.note = learning.note;
+    return;
   }
-}
-//#endregion RPG_ClassLearning
 
-//#region RPG_DropItem
-/**
- * A class representing a single drop item of an enemy from the database.
- */
-class RPG_DropItem
-{
-  //#region properties
-  /**
-   * The id of the underlying item's entry in the database.
-   * @type {number}
-   */
-  dataId = 0;
+  const graphics = new PIXI.Graphics()
+    , {gl} = renderer
+    , children = this.children.clone();
 
-  /**
-   * The drop chance value numeric field in the database.
-   * @type {number}
-   */
-  denominator = 0;
+  // noinspection JSUnresolvedFunction
+  renderer.framebuffer.forceStencil();
+  graphics.transform = this.transform;
+  renderer.batch.flush();
+  gl.enable(gl.STENCIL_TEST);
 
-  /**
-   * The type of drop this is:
-   * 0 being item, 1 being weapon, 2 being armor.
-   * @type {number}
-   */
-  kind = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
-   */
-  constructor(enemyDropItem)
+  while (children.length > 0)
   {
-    // map the enemy drop to this object.
-    this.dataId = enemyDropItem.dataId;
-    this.denominator = enemyDropItem.denominator;
-    this.kind = enemyDropItem.kind;
-  }
-}
-//#endregion RPG_DropItem
-
-//#region RPG_EnemyAction
-/**
- * A class representing a single enemy action from the database.
- */
-class RPG_EnemyAction
-{
-  //#region properties
-  /**
-   * The first parameter of the condition configuration.
-   * @type {number}
-   */
-  conditionParam1 = 0;
-
-  /**
-   * The second parameter of the condition configuration.
-   * @type {number}
-   */
-  conditionParam2 = 0;
-
-  /**
-   * The type of condition it is.
-   * @type {number}
-   */
-  conditionType = 0;
-
-  /**
-   * The weight or rating that this enemy will execute this skill.
-   * @type {number}
-   */
-  rating = 5;
-
-  /**
-   * The skill id associated with the action.
-   * @type {number}
-   */
-  skillId = 1;
-  //endregion properties
-
-  /**
-   * Constructor.
-   * @param {RPG_EnemyAction} enemyAction The action to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(enemyAction, index)
-  {
-    this.conditionParam1 = enemyAction.conditionParam1;
-    this.conditionParam2 = enemyAction.conditionParam2;
-    this.conditionType = enemyAction.conditionType;
-    this.rating = enemyAction.rating;
-    this.skillId = enemyAction.skillId;
-  }
-}
-//#endregion RPG_EnemyAction
-
-//#region RPG_SkillDamage
-/**
- * The damage data for the skill, such as the damage formula or associated element.
- */
-class RPG_SkillDamage
-{
-  //#region properties
-  /**
-   * Whether or not the damage can produce a critical hit.
-   * @type {boolean}
-   */
-  critical = false;
-
-  /**
-   * The element id associated with this damage.
-   * @type {number}
-   */
-  elementId = -1;
-
-  /**
-   * The formula to be evaluated in real time to determine damage.
-   * @type {string}
-   */
-  formula = String.empty;
-
-  /**
-   * The damage type this is, such as HP damage or MP healing.
-   * @type {1|2|3|4|5|6}
-   */
-  type = 0;
-
-  /**
-   * The % of variance this damage can have.
-   * @type {number}
-   */
-  variance = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * Maps the skill's damage properties into this object.
-   * @param {rm.types.Damage} damage The original damage object to map.
-   */
-  constructor(damage)
-  {
-    if (damage)
+    // draw from front to back instead of back to front.
+    const win = children.shift();
+    if (win._isWindow && win.visible && win.openness > 0)
     {
-      this.critical = damage.critical;
-      this.elementId = damage.elementId;
-      this.formula = damage.formula;
-      this.type = damage.type;
-      this.variance = damage.variance;
-    }
-    else
-    {
-      // if we don't have damage, use the defaults.
-    }
-  }
-}
-//#endregion RPG_SkillDamage
-
-//#region RPG_Trait
-/**
- * A class representing a single trait living on one of the many types
- * of database classes that leverage traits.
- */
-class RPG_Trait
-{
-  /**
-   * The code that designates what kind of trait this is.
-   * @type {number}
-   */
-  code = 0;
-
-  /**
-   * The identifier that further defines the trait.
-   * Data type and usage depends on the code.
-   * @type {number}
-   */
-  dataId = 0;
-
-  /**
-   * The value of the trait, for traits that have numeric values.
-   * Often is a floating point number to represent a percent multiplier.
-   * @type {number}
-   */
-  value = 1.00;
-
-  /**
-   * Constructor.
-   * @param {RPG_Trait} trait The trait to parse.
-   */
-  constructor(trait)
-  {
-    this.code = trait.code;
-    this.dataId = trait.dataId;
-    this.value = trait.value;
-  }
-}
-//#endregion RPG_Trait
-
-//#region RPG_UsableEffect
-/**
- * A class representing a single effect on an item or skill from the database.
- */
-class RPG_UsableEffect
-{
-  //#region properties
-  /**
-   * The type of effect this is.
-   * @type {number}
-   */
-  code = 0;
-
-  /**
-   * The dataId further defines what type of effect this is.
-   * @type {number}
-   */
-  dataId = 0;
-
-  /**
-   * The first value parameter of the effect.
-   * @type {number}
-   */
-  value1 = 0;
-
-  /**
-   * The second value parameter of the effect.
-   * @type {number}
-   */
-  value2 = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.Effect} effect The effect to parse.
-   */
-  constructor(effect)
-  {
-    // map the data.
-    this.code = effect.code;
-    this.dataId = effect.dataId;
-    this.value1 = effect.value1;
-    this.value2 = effect.value2;
-  }
-}
-//#endregion RPG_UsableEffect
-//#endregion RPG data
-
-//#region RPG base classes
-//#region RPG_Base
-/**
- * A class representing the foundation of all database objects.
- * In addition to doing all the things that a database object normally does,
- * there are now some useful helper functions available for meta and note access,
- * and additionally a means to access the original database object directly in case
- * there are other things that aren't supported by this class that need accessing.
- */
-class RPG_Base
-{
-  //#region properties
-  /**
-   * The original object that this data was built from.
-   * @type {any}
-   */
-  #original = null;
-
-  /**
-   * The index of this entry in the database.
-   * @type {number}
-   */
-  #index = 0;
-
-  /**
-   * The entry's id in the database.
-   */
-  id = 0;
-
-  /**
-   * The `meta` object of this skill, containing a dictionary of
-   * key value pairs translated from this skill's `note` object.
-   * @type {{ [k: string]: any }}
-   */
-  meta = {};
-
-  /**
-   * The entry's name.
-   */
-  name = String.empty;
-
-  /**
-   * The note field of this entry in the database.
-   * @type {string}
-   */
-  note = String.empty;
-  //#endregion properties
-
-  //#region base
-  /**
-   * Constructor.
-   * Maps the base item's properties into this object.
-   * @param {any} baseItem The underlying database object.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(baseItem, index)
-  {
-    this.#original = baseItem;
-    this.#index = index;
-
-    // map the core data that all database objects have.
-    this.id = baseItem.id;
-    this.meta = baseItem.meta;
-    this.name = baseItem.name;
-    this.note = baseItem.note;
-  }
-
-  /**
-   * Retrieves the index of this entry in the database.
-   * @returns {number}
-   */
-  _index()
-  {
-    return this.#index;
-  }
-
-  /**
-   * Retrieves the original underlying data that was passed to this
-   * wrapper from the database.
-   * @returns {any}
-   */
-  _original()
-  {
-    return this.#original;
-  }
-
-  /**
-   * Creates a new instance of this wrapper class with all the same
-   * database data that this one contains.
-   * @returns {this}
-   */
-  _clone()
-  {
-    // generate a new instance with the same data as the original.
-    const clone = new this.constructor(this._original(), this._index());
-
-    // check if there is an underlying _j data point.
-    if (this._j)
-    {
-      // clone that too if it exists.
-      clone._j = this._j;
-    }
-
-    // return the newly created copy.
-    return clone;
-  }
-
-  /**
-   * The unique key that is used to register this object against
-   * its corresponding container when the party has one or more of these
-   * in their possession. By default, this is just the index of the item's entry
-   * from the databse, but you can change it if you need a more unique means
-   * of identifying things.
-   * @returns {any}
-   */
-  _key()
-  {
-    return this._index();
-  }
-  //#endregion base
-
-  //#region meta
-  /**
-   * Gets the metadata of a given key from this skill as whatever value RMMZ stored it as.
-   * Only returns null if there was no underlying data associated with the provided key.
-   * @param {string} key The key to the metadata.
-   * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
-   */
-  metadata(key)
-  {
-    // pull the metadata of a given key.
-    const result = this.#getMeta(key);
-
-    // check if we have a result that isn't undefined.
-    if (result !== undefined)
-    {
-      // return that result.
-      return result;
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the value of the given key from this entry's meta object.
-   * @param key
-   * @returns {string|number|boolean|*}
-   */
-  #getMeta(key)
-  {
-    return this.meta[key];
-  }
-
-  /**
-   * Deletes the metadata key from the underlying object entirely.
-   * @param key
-   */
-  deleteMetadata(key)
-  {
-    delete this.meta[key]
-  }
-
-  /**
-   * Gets the metadata of a given key from this entry as a string.
-   * Only returns `null` if there was no underlying data associated with the provided key.
-   * @param {string} key The key to the metadata.
-   * @returns {boolean|null} The value as a string, or null if the value didn't exist.
-   */
-  metaAsString(key)
-  {
-    // grab the metadata for this skill.
-    const fromMeta = this.#getMeta(key);
-
-    // check to make sure we actually got a value.
-    if (fromMeta)
-    {
-      // return the stringified value.
-      return fromMeta.toString();
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the metadata of a given key from this skill as a number.
-   * Only returns `null` if the underlying data wasn't a number or numeric string.
-   * @param {string} key The key to the metadata.
-   * @returns {boolean|null} The number value, or null if the number wasn't valid.
-   */
-  metaAsNumber(key)
-  {
-    // grab the metadata for this skill.
-    const fromMeta = this.#getMeta(key);
-
-    // check to make sure we actually got a value.
-    if (fromMeta)
-    {
-      // return the parsed and possibly floating point value.
-      return parseFloat(fromMeta);
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the metadata of a given key from this skill as a boolean.
-   * Only returns `null` if the underlying data wasn't a truthy or falsey value.
-   * @param {string} key The key to the metadata.
-   * @returns {boolean|null} True if the value was true, false otherwise; or null if invalid.
-   */
-  metaAsBoolean(key)
-  {
-    // grab the metadata for this skill.
-    const fromMeta = this.#getMeta(key);
-
-    // check to make sure we actually got a value.
-    if (fromMeta)
-    {
-      // check if the value was a truthy value.
-      if (fromMeta === true || fromMeta.toLowerCase() === "true")
-      {
-        return true;
-      }
-      // check if the value was a falsey value.
-      else if (fromMeta === false || fromMeta.toLowerCase() === "false")
-      {
-        return false;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Retrieves the metadata for a given key on this skill.
-   * This is mostly designed for providing intellisense.
-   * @param {string} key The key to the metadata.
-   * @returns {null|*}
-   */
-  metaAsObject(key)
-  {
-    // grab the metadata for this skill.
-    const fromMeta = this.metadata(key);
-
-    // check to make sure we actually got a value.
-    if (fromMeta)
-    {
-      // parse out the underlying data.
-      return this.#parseObject(fromMeta);
-    }
-
-    return null;
-  }
-
-  /**
-   * Parses a object into whatever its given data type is.
-   * @param {any} obj The unknown object to parse.
-   * @returns {any}
-   */
-  #parseObject(obj)
-  {
-    // check if the object to parse is a string.
-    if (typeof obj === "string")
-    {
-      // check if the string is an unparsed array.
-      if (obj.startsWith("[") && obj.endsWith("]"))
-      {
-        // expose the stringified segments of the array.
-        const exposedArray = obj
-          // peel off the outer brackets.
-          .slice(1, obj.length-1)
-          // split string into an array by comma or space+comma.
-          .split(/, |,/);
-        return this.#parseObject(exposedArray);
-      }
-
-      // no check for special string values.
-      return this.#parseString(obj);
-    }
-
-    // check if the object to parse is a collection.
-    if (Array.isArray(obj))
-    {
-      // iterate over the array and parse each item.
-      return obj.map(this.#parseObject, this);
-    }
-
-    // number, boolean, or otherwise unidentifiable object.
-    return obj;
-  }
-
-  /**
-   * Parses a metadata object from a string into possibly a boolean or number.
-   * If the conversion to those fail, then it'll proceed as a string.
-   * @param {string} str The string object to parse.
-   * @returns {boolean|number|string}
-   */
-  #parseString(str)
-  {
-    // check if its actually boolean true.
-    if (str.toLowerCase() === "true") return true;
-    // check if its actually boolean false.
-    else if (str.toLowerCase() === "false") return false;
-
-    // check if its actually a number.
-    if (!isNaN(parseFloat(str))) return parseFloat(str);
-
-    // it must just be a word or something.
-    return str;
-  }
-  //#endregion meta
-
-  //#region note
-  /**
-   * Gets the note data of this baseitem split into an array by `\r\n`.
-   * If this baseitem has no note data, it will return an empty array.
-   * @returns {string[]|null} The value as RMMZ translated it, or null if the value didn't exist.
-   */
-  notedata()
-  {
-    // pull the note data of this baseitem.
-    const fromNote = this.#formattedNotedata();
-
-    // checks if we have note data.
-    if (fromNote)
-    {
-      // return the note data as an array of strings.
-      return fromNote;
-    }
-
-    // if we returned no data from this baseitem, then return an empty array.
-    return [];
-  }
-
-  /**
-   * Returns a formatted array of strings as output from the note data of this baseitem.
-   * @returns {string[]}
-   */
-  #formattedNotedata()
-  {
-    // split the notes by new lines.
-    const formattedNotes = this.note
-      .split(/[\r\n]+/)
-      // filter out invalid note data.
-      .filter(this.invalidNoteFilter, this);
-
-    // if we have no length left after filtering, then there is no note data.
-    if (formattedNotes.length === 0) return null;
-
-    // return our array of notes!
-    return formattedNotes;
-  }
-
-  /**
-   * A filter function for defining what is invalid when it comes to a note data.
-   * @param {string} note A single line in the note data.
-   * @returns {boolean} True if the note data is valid, false otherwise.
-   */
-  invalidNoteFilter(note)
-  {
-    // empty strings are not valid notes.
-    if (note === String.empty) return false;
-
-    // everything else is.
-    return true;
-  }
-
-  /**
-   * Removes all regex matches in the raw note data string.
-   * @param {RegExp} regex The regular expression to find matches for removal.
-   */
-  deleteNotedata(regex)
-  {
-    // remove the regex matches from the note.
-    this.note = this.note.replace(regex, String.empty);
-
-    // cleanup the line endings that may have been messed up.
-    this.#cleanupLineEndings();
-  }
-
-  /**
-   * Reformats the note data to remove any invalid line endings, including those
-   * that may be at the beginning because stuff was removed, or the duplicates that
-   * may live throughout the note after modification.
-   */
-  #cleanupLineEndings()
-  {
-    // cleanup any duplicate newlines.
-    this.note = this.note.replace(/\n\n/gmi, '\n');
-    this.note = this.note.replace(/\r\r/gmi, '\r');
-
-    // cleanup any leading newlines.
-    if (this.note.startsWith('\r') || this.note.startsWith('\n'))
-    {
-      this.note = this.note.slice(2);
+      gl.stencilFunc(gl.EQUAL, 0, ~0);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+      win.render(renderer);
+      renderer.batch.flush();
+      graphics.clear();
+      // no "win.drawShape(graphics)" anymore.
+      gl.stencilFunc(gl.ALWAYS, 1, ~0);
+      gl.stencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE);
+      gl.blendFunc(gl.ZERO, gl.ONE);
+      graphics.render(renderer);
+      renderer.batch.flush();
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
   }
 
-  /**
-   * Gets an accumulated numeric value based on the provided regex structure.
-   *
-   * This accepts a regex structure, assuming the capture group is an numeric value,
-   * and adds all values together from each line in the notes that match the provided
-   * regex structure.
-   *
-   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
-   * this will be `null` instead of the default 0 as an indicator we didn't find
-   * anything from the notes of this skill.
-   *
-   * This can handle both integers and decimal numbers.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
-   */
-  getNumberFromNotesByRegex(structure, nullIfEmpty = false)
+  gl.disable(gl.STENCIL_TEST);
+  gl.clear(gl.STENCIL_BUFFER_BIT);
+  gl.clearStencil(0);
+  renderer.batch.flush();
+
+  for (const child of this.children)
   {
-    // get the note data from this skill.
-    const lines = this.getFilteredNotesByRegex(structure);
-
-    // if we have no matching notes, then short circuit.
-    if (!lines.length)
+    if (!child._isWindow && child.visible)
     {
-      // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
-    }
-
-    // initialize the value.
-    let val = 0;
-
-    // iterate over each valid line of the note.
-    lines.forEach(line =>
-    {
-      // extract the captured formula.
-      // eslint-disable-next-line prefer-destructuring
-      const result = structure.exec(line)[1];
-
-      // regular parse it and add it to the running total.
-      val += parseFloat(result);
-    });
-
-    // return the
-    return val;
-  }
-
-  /**
-   * Evaluates formulai into a numeric value based on the provided regex structure.
-   *
-   * This accepts a regex structure, assuming the capture group is an formula,
-   * and adds all results together from each line in the notes that match the provided
-   * regex structure.
-   *
-   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
-   * this will be `null` instead of the default 0 as an indicator we didn't find
-   * anything from the notes of this skill.
-   *
-   * This can handle both integers and decimal numbers.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {number=} baseParam The base parameter value used as the "b" in the formula.
-   * @param {RPG_BaseBattler=} context The contextual battler used as the "a" in the formula.
-   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
-   */
-  getResultsFromNotesByRegex(structure, baseParam = 0, context = null, nullIfEmpty = false)
-  {
-    // get the note data from this skill.
-    const lines = this.getFilteredNotesByRegex(structure);
-
-    // if we have no matching notes, then short circuit.
-    if (!lines.length)
-    {
-      // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
-    }
-
-    // initialize the value.
-    let val = 0;
-
-    // establish a variable to be used as "a" in the formula- the battler.
-    const a = context;
-
-    // establish a variable to be used as "b" in the formula- the base parameter value.
-    const b = baseParam;
-
-    // iterate over each valid line of the note.
-    lines.forEach(line =>
-    {
-      // extract the captured formula.
-      // eslint-disable-next-line prefer-destructuring
-      const formula = structure.exec(line)[1];
-
-      // evaluate the formula/value.
-      const result = eval(formula).toFixed(3);
-
-      // add it to the running total.
-      val += parseFloat(result);
-    });
-
-    // return the calculated summed value.
-    return val;
-  }
-
-  /**
-   * Gets the last string value based on the provided regex structure.
-   *
-   * This accepts a regex structure, assuming the capture group is a string value.
-   * If multiple tags are found, only the last one will be returned.
-   *
-   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
-   * this will be `null` instead of the default empty string as an indicator we didn't find
-   * anything from the notes of this skill.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean} nullIfEmpty Whether or not to return an empty string if not found, or null.
-   * @returns {number|null} The found value from the notes of this object, or empty/null.
-   */
-  getStringFromNotesByRegex(structure, nullIfEmpty = false)
-  {
-    // get the note data from this skill.
-    const fromNote = this.notedata();
-
-    // initialize the value.
-    let val = String.empty;
-
-    // default to not having a match.
-    let hasMatch = false;
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
-    {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        val = RegExp.$1;
-
-        // flag that we found a match.
-        hasMatch = true;
-      }
-    });
-
-    // check if we didn't find a match, and we want null instead of empty.
-    if (!hasMatch && nullIfEmpty)
-    {
-      // return null.
-      return null;
-    }
-    // we want an empty string or the found value.
-    else
-    {
-      // return the found value.
-      return val;
+      child.render(renderer);
     }
   }
 
-  /**
-   * Gets whether or not there is a matching regex tag on this skill.
-   *
-   * Do be aware of the fact that with this type of tag, we are checking only
-   * for existence, not the value. As such, it will be `true` if found, and `false` if
-   * not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
-   * `null` instead of `false` when missing, or use a string regex pattern and add
-   * something like `<someKey:true>` or `<someKey:false>` for greater clarity.
-   *
-   * This accepts a regex structure, but does not leverage a capture group.
-   *
-   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
-   * this will be `null` instead of the default `false` as an indicator we didn't find
-   * anything from the notes of this skill.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-   * @returns {boolean|null} The found value from the notes of this object, or empty/null.
-   */
-  getBooleanFromNotesByRegex(structure, nullIfEmpty = false)
-  {
-    // get the note data from this skill.
-    const fromNote = this.notedata();
-
-    // initialize the value.
-    let val = false;
-
-    // default to not having a match.
-    let hasMatch = false;
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
-    {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        val = true;
-
-        // flag that we found a match.
-        hasMatch = true;
-      }
-    });
-
-    // check if we didn't find a match, and we want null instead of empty.
-    if (!hasMatch && nullIfEmpty)
-    {
-      // return null.
-      return null;
-    }
-    // we want a "false" or the found value.
-    else
-    {
-      // return the found value.
-      return val;
-    }
-  }
-
-  /**
-   * Gets an array value based on the provided regex structure.
-   *
-   * This accepts a regex structure, assuming the capture group is an array of values
-   * all wrapped in hard brackets [].
-   *
-   * If the optional flag `tryParse` is true, then it will attempt to parse out
-   * the array of values as well, including translating strings to numbers/booleans
-   * and keeping array structures all intact.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
-   * @returns {any[]|null} The array from the notes, or null.
-   */
-  getArrayFromNotesByRegex(structure, tryParse = true)
-  {
-    // get the note data from this skill.
-    const fromNote = this.notedata();
-
-    // initialize the value.
-    let val = null;
-
-    // default to not having a match.
-    let hasMatch = false;
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
-    {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        val = RegExp.$1;
-
-        // flag that we found a match.
-        hasMatch = true;
-      }
-    });
-
-    // if we didn't find a match, return null instead of attempting to parse.
-    if (!hasMatch) return null;
-
-    // check if we're going to attempt to parse it, too.
-    if (tryParse)
-    {
-      // attempt the parsing.
-      val = this.#parseObject(val);
-    }
-
-    // return the found value.
-    return val;
-  }
-
-  /**
-   * Gets an array of arrays based on the provided regex structure.
-   *
-   * This accepts a regex structure, assuming the capture group is an array of values
-   * all wrapped in hard brackets [].
-   *
-   * If the optional flag `tryParse` is true, then it will attempt to parse out
-   * the array of values as well, including translating strings to numbers/booleans
-   * and keeping array structures all intact.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @param {boolean} tryParse Whether or not to attempt to parse the found array.
-   * @returns {any[]|null} The array from the notes, or null.
-   */
-  getArraysFromNotesByRegex(structure, tryParse = true)
-  {
-    // get the note data from this skill.
-    const fromNote = this.notedata();
-
-    // initialize the value.
-    let val = [];
-
-    // default to not having a match.
-    let hasMatch = false;
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
-    {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        val.push(RegExp.$1);
-
-        // flag that we found a match.
-        hasMatch = true;
-      }
-    });
-
-    // if we didn't find a match, return null instead of attempting to parse.
-    if (!hasMatch) return null;
-
-    // check if we're going to attempt to parse it, too.
-    if (tryParse)
-    {
-      // attempt the parsing.
-      val = val.map(this.#parseObject, this);
-    }
-
-    // return the found value.
-    return val;
-  }
-
-  /**
-   * Gets all lines of data from the notedata that match the provided regex.
-   *
-   * This accepts a regex structure, and translates nothing; it is intended to
-   * be used with the intent of translating the lines that match elsewhere.
-   *
-   * If nothing is found, then this will return an empty array.
-   * @param {RegExp} structure The regular expression to filter notes by.
-   * @returns {string[]} The data matching the regex from the notes.
-   */
-  getFilteredNotesByRegex(structure)
-  {
-    // get the note data from this skill.
-    const fromNote = this.notedata();
-
-    // initialize the value.
-    const data = [];
-
-    // iterate the note data array.
-    fromNote.forEach(note =>
-    {
-      // check if this line matches the given regex structure.
-      if (note.match(structure))
-      {
-        // parse the value out of the regex capture group.
-        data.push(note);
-      }
-    });
-
-    // return the found value.
-    return data;
-  }
-  //#endregion note
+  renderer.batch.flush();
 }
-//#endregion RPG_Base
-
-//#region RPG_BaseItem
-/**
- * The class representing baseItem from the database,
- * and now an iconIndex with a description.
- */
-class RPG_BaseItem extends RPG_Base
-{
-  /**
-   * The description of this entry.
-   * @type {string}
-   */
-  description = String.empty;
-
-  /**
-   * The icon index of this entry.
-   * @type {number}
-   */
-  iconIndex = 0;
-
-  /**
-   * Constructor.
-   * Maps the base item's properties into this object.
-   * @param {any} baseItem The underlying database object.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(baseItem, index)
-  {
-    // perform original logic.
-    super(baseItem, index);
-
-    // map the additional description and iconIndex as well for all base items.
-    this.description = baseItem.description;
-    this.iconIndex = baseItem.iconIndex;
-  }
-}
-//#endregion RPG_BaseItem
-
-//#region RPG_TraitItem
-/**
- * A class representing a BaseItem from the database, but with traits.
- */
-class RPG_TraitItem extends RPG_BaseItem
-{
-  /**
-   * A collection of all traits this item possesses.
-   * @type {RPG_Trait[]}
-   */
-  traits = [];
-
-  /**
-   * Constructor.
-   * Maps the base item's traits into this object.
-   * @param {RPG_BaseItem} baseItem The underlying database object.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(baseItem, index)
-  {
-    // perform original logic.
-    super(baseItem, index);
-
-    // map the base item's traits.
-    this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
-  }
-}
-//#endregion RPG_TraitItem
-
-//#region RPG_EquipItem
-/**
- * A base class representing containing common properties found in both
- * weapons and armors.
- */
-class RPG_EquipItem extends RPG_TraitItem
-{
-  //#region properties
-  /**
-   * The type of equip this is.
-   * This number is the index that maps to your equip types.
-   * @type {number}
-   */
-  etypeId = 1;
-
-  /**
-   * The core parameters that all battlers have:
-   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
-   * in that order.
-   * @type {[number, number, number, number, number, number, number, number]}
-   */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
-
-  /**
-   * The price of this equip.
-   * @type {number}
-   */
-  price = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {RPG_EquipItem} equip The equip to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(equip, index)
-  {
-    // supply the base class params.
-    super(equip, index);
-
-    // map the data.
-    this.etypeId = equip.etypeId;
-    this.params = equip.params;
-    this.price = equip.price;
-  }
-}
-//#endregion RPG_EquipItem
-
-//#region RPG_UsableItem
-/**
- * A class representing the base properties for any usable item or skill
- * from the database.
- */
-class RPG_UsableItem extends RPG_BaseItem
-{
-  //#region properties
-  /**
-   * The animation id to execute for this skill.
-   * @type {number}
-   */
-  animationId = -1;
-
-  /**
-   * The damage data for this skill.
-   * @type {RPG_SkillDamage}
-   */
-  damage = null;
-
-  /**
-   * The various effects of this skill.
-   * @type {RPG_UsableEffect[]}
-   */
-  effects = [];
-
-  /**
-   * The hit type of this skill.
-   * @type {number}
-   */
-  hitType = 0;
-
-  /**
-   * The occasion type when this skill can be used.
-   * @type {number}
-   */
-  occasion = 0;
-
-  /**
-   * The number of times this skill repeats.
-   * @type {number}
-   */
-  repeats = 1;
-
-  /**
-   * The scope of this skill.
-   * @type {number}
-   */
-  scope = 0;
-
-  /**
-   * The speed bonus of this skill.
-   * @type {number}
-   */
-  speed = 0;
-
-  /**
-   * The % chance of success for this skill.
-   * @type {number}
-   */
-  successRate = 100;
-
-  /**
-   * The amount of TP gained from executing this skill.
-   * @type {number}
-   */
-  tpGain = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.UsableItem} usableItem The usable item to parse.
-   * @param {number} index The index of the skill in the database.
-   */
-  constructor(usableItem, index)
-  {
-    // supply the base class params.
-    super(usableItem, index);
-
-    // map the data.
-    this.animationId = usableItem.animationId;
-    this.damage = new RPG_SkillDamage(usableItem.damage);
-    this.effects = usableItem.effects.map(effect => new RPG_UsableEffect(effect));
-    this.hitType = usableItem.hitType;
-    this.occasion = usableItem.occasion;
-    this.repeats = usableItem.repeats;
-    this.scope = usableItem.scope;
-    this.speed = usableItem.speed;
-    this.successRate = usableItem.successRate;
-    this.tpGain = usableItem.tpGain;
-  }
-}
-//#endregion RPG_UsableItem
-
-//#region RPG_BaseBattler
-/**
- * A class representing the groundwork for what all battlers
- * database data look like.
- */
-class RPG_BaseBattler extends RPG_Base
-{
-  /**
-   * The name of the battler while in battle.
-   * @type {string}
-   */
-  battlerName = String.empty;
-
-  /**
-   * The collection of traits this battler has.
-   * @type {RPG_Trait[]}
-   */
-  traits = [];
-
-  /**
-   * Constructor.
-   * Maps the base battler data to the properties on this class.
-   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(battler, index)
-  {
-    // perform original logic.
-    super(battler, index);
-
-    // map core battler data onto this object.
-    this.battlerName = battler.battlerName;
-    this.traits = battler.traits
-      .map(trait => new RPG_Trait(trait));
-  }
-}
-//#endregion RPG_BaseBattler
-//#endregion RPG base classes
-
-//#region RPG implementations
-//#region RPG_Actor
-/**
- * A class representing a single actor battler's data from the database.
- */
-class RPG_Actor extends RPG_BaseBattler
-{
-  //#region properties
-  /**
-   * The index of the character sprite of the battler
-   * on the spritesheet.
-   * @type {number}
-   */
-  characterIndex = 0;
-
-  /**
-   * The name of the file that the character sprite
-   * resides within.
-   * @type {string}
-   */
-  characterName = String.empty;
-
-  /**
-   * The id of the class that this actor currently is.
-   * @type {number}
-   */
-  classId = 0;
-
-  /**
-   * The ids of the equipment in the core equips slots
-   * of the actors from the database.
-   * @type {number[]}
-   */
-  equips = [0, 0, 0, 0, 0];
-
-  /**
-   * The index of the face sprite of this battler on
-   * the spritesheet.
-   * @type {number}
-   */
-  faceIndex = 0;
-
-  /**
-   * The name of the file that the face sprite resides
-   * within.
-   * @type {string}
-   */
-  faceName = String.empty;
-
-  /**
-   * The starting level for this actor in the database.
-   * @type {number}
-   */
-  initialLevel = 1;
-
-  /**
-   * The maximum level of this actor from the database.
-   * @type {number}
-   */
-  maxLevel = 99;
-
-  /**
-   * The nickname of this actor from the database.
-   * @type {string}
-   */
-  nickname = String.empty;
-
-  /**
-   * The profile multiline text for this actor in the database.
-   * @type {string}
-   */
-  profile = String.empty;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.Actor} actor The actor to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(actor, index)
-  {
-    // supply parameters to base class.
-    super(actor, index);
-
-    // map the data.
-    this.initMembers(actor)
-  }
-
-  /**
-   * Maps the data from the JSON to this object.
-   * @param {rm.types.Actor} actor The actor to parse.
-   */
-  initMembers(actor)
-  {
-    // map actor-specific battler properties.
-    this.characterIndex = actor.characterIndex;
-    this.characterName = actor.characterName;
-    this.classId = actor.classId;
-    this.equips = actor.equips;
-    this.faceIndex = actor.faceIndex;
-    this.faceName = actor.faceName;
-    this.initialLevel = actor.initialLevel;
-    this.maxLevel = actor.maxLevel;
-    this.nickname = actor.nickname;
-    this.profile = actor.profile;
-  }
-}
-//#endregion RPG_Actor
-
-//#region RPG_Armor
-/**
- * A class representing a single armor from the database.
- */
-class RPG_Armor extends RPG_EquipItem
-{
-  //#region properties
-  /**
-   * The type of armor this is.
-   * This number is the index that maps to your armor types.
-   * @type {number}
-   */
-  atypeId = 1;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.Armor} armor The armor to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(armor, index)
-  {
-    // supply the base class params.
-    super(armor, index);
-
-    // map the data.
-    this.atypeId = armor.atypeId;
-  }
-}
-//#endregion RPG_Armor
-
-//#region RPG_Class
-/**
- * A class representing a RPG-relevant class from the database.
- */
-class RPG_Class extends RPG_Base
-{
-  //#region properties
-  /**
-   * The four data points that comprise the EXP curve for this class.
-   * @type {[number, number, number, number]}
-   */
-  expParams = [0, 0, 0, 0];
-
-  /**
-   * A collection of skill learning data points for this class.
-   * @type {RPG_ClassLearning[]}
-   */
-  learnings = [];
-
-  /**
-   * A multi-dimensional array of the core parameters that all battlers have:
-   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
-   * in that order, but for all 100 of the base levels.
-   * @type {[number, number, number, number, number, number, number, number]}
-   */
-  params = [[1], [0], [0], [0], [0], [0], [0], [0]];
-
-  /**
-   * A collection of traits this class has.
-   * @type {RPG_Trait[]}
-   */
-  traits = [];
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.RPGClass} classData The class data to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(classData, index)
-  {
-    // perform original logic.
-    super(classData, index);
-
-    // map the class data to this object.
-    this.expParams = classData.expParams;
-    this.learnings = classData.learnings
-      .map(learning => new RPG_ClassLearning(learning));
-    this.params = classData.params;
-    this.traits = classData.traits
-      .map(trait => new RPG_Trait(trait));
-  }
-}
-//#endregion RPG_Class
-
-//#region RPG_Enemy
-/**
- * A class representing a single enemy battler's data from the database.
- */
-class RPG_Enemy extends RPG_BaseBattler
-{
-  //#region properties
-  /**
-   * A collection of all actions that an enemy has assigned from the database.
-   * @type {RPG_EnemyAction[]}
-   */
-  actions = [];
-
-  /**
-   * The -255-0-255 hue of the battler sprite.
-   * @type {number}
-   */
-  battlerHue = 0;
-
-  /**
-   * A collection of all drop items this enemy can drop.
-   * @type {RPG_DropItem[]}
-   */
-  dropItems = [];
-
-  /**
-   * The base amount of experience this enemy grants upon defeat.
-   * @type {number}
-   */
-  exp = 0;
-
-  /**
-   * The base amount of gold this enemy grants upon defeat.
-   * @type {number}
-   */
-  gold = 0;
-
-  /**
-   * The core parameters that all battlers have:
-   * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
-   * in that order.
-   * @type {[number, number, number, number, number, number, number, number]}
-   */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {RPG_Enemy} enemy The enemy to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(enemy, index)
-  {
-    // supply the base class params.
-    super(enemy, index);
-
-    // map the data.
-    this.initMembers(enemy);
-  }
-
-  /**
-   * Maps the data from the JSON to this object.
-   * @param {RPG_Enemy} enemy The enemy to parse.
-   */
-  initMembers(enemy)
-  {
-    // map the data.
-    this.actions = enemy.actions
-      .map(enemyAction => new RPG_EnemyAction(enemyAction));
-    this.battlerHue = enemy.battlerHue;
-    this.dropItems = enemy.dropItems
-      .map(dropItem => new RPG_DropItem(dropItem));
-    this.exp = enemy.exp;
-    this.gold = enemy.gold;
-    this.params = enemy.params;
-  }
-}
-//#endregion RPG_Enemy
-
-//#region RPG_Item
-/**
- * A class representing a single item entry from the database.
- */
-class RPG_Item extends RPG_UsableItem
-{
-  //#region properties
-  /**
-   * Whether or not this item is removed after using it.
-   * @type {boolean}
-   */
-  consumable = true;
-
-  /**
-   * The type of item this is:
-   * 0 for regular item, 1 for key item, 2 for hiddenA, 3 for hiddenB.
-   * @type {number}
-   */
-  itypeId = 1;
-
-  /**
-   * The price of this item.
-   * @type {number}
-   */
-  price = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.Item} item The item to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(item, index)
-  {
-    // supply the base class params.
-    super(item, index);
-
-    // map the data.
-    this.consumable = item.consumable;
-    this.itypeId = item.itypeId;
-    this.price = item.price;
-  }
-}
-//#endregion RPG_Item
-
-//#region RPG_Skill
-/**
- * An class representing a single skill from the database.
- */
-class RPG_Skill extends RPG_UsableItem
-{
-  //#region properties
-  /**
-   * The first line of the message for this skill.
-   * @type {string}
-   */
-  message1 = String.empty;
-
-  /**
-   * The second line of the message for this skill.
-   * @type {string}
-   */
-  message2 = String.empty;
-
-  /**
-   * The type of message for this skill.
-   * @type {number}
-   */
-  messageType = 0;
-
-  /**
-   * The amount of MP required to execute this skill.
-   * @type {number}
-   */
-  mpCost = 0;
-
-  /**
-   * The first of two required weapon types to be equipped to execute this skill.
-   * @type {number}
-   */
-  requiredWtypeId1 = 0;
-
-  /**
-   * The second of two required weapon types to be equipped to execute this skill.
-   * @type {number}
-   */
-  requiredWtypeId2 = 0;
-
-  /**
-   * The skill type that this skill belongs to.
-   * @type {number}
-   */
-  stypeId = 0;
-
-  /**
-   * The amount of TP required to execute this skill.
-   * @type {number}
-   */
-  tpCost = 0;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * Maps the skill's properties into this object.
-   * @param {RPG_Skill} skill The underlying skill object.
-   * @param {number} index The index of the skill in the database.
-   */
-  constructor(skill, index)
-  {
-    // supply the base class params.
-    super(skill, index);
-
-    // map the data.
-    this.initMembers(skill);
-  }
-
-  /**
-   * Maps all the data from the JSON to this object.
-   * @param {RPG_Skill} skill The underlying skill object.
-   */
-  initMembers(skill)
-  {
-    // map the data.
-    this.message1 = skill.message1;
-    this.message2 = skill.message2;
-    this.messageType = skill.messageType;
-    this.mpCost = skill.mpCost;
-    this.requiredWtypeId1 = skill.requiredWtypeId1;
-    this.requiredWtypeId2 = skill.requiredWtypeId2;
-    this.stypeId = skill.stypeId;
-    this.tpCost = skill.tpCost;
-  }
-}
-//#endregion RPG_Skill
-
-//#region RPG_State
-/**
- * An class representing a single state from the database.
- */
-class RPG_State extends RPG_TraitItem
-{
-  //#region properties
-  /**
-   * The automatic removal timing.
-   * @type {0|1|2}
-   */
-  autoRemovalTiming = 0;
-
-  /**
-   * The percent chance that receiving damage will remove this state.
-   * Requires `removeByDamage` to be true on this state.
-   * @type {number}
-   */
-  chanceByDamage = 100;
-
-  /**
-   * OVERWRITE States do not normally have descriptions.
-   * Rather than leaving it as `undefined`, lets be nice and keep it
-   * an empty string.
-   * @type {String.empty}
-   */
-  description = String.empty;
-
-  /**
-   * The maximum number of turns this state will persist.
-   * Requires `restriction` to not be 0 to be leveraged.
-   * @type {number}
-   */
-  maxTurns = 1;
-
-  /**
-   * "If an actor is inflicted with this state..."
-   * @type {string}
-   */
-  message1 = String.empty;
-
-  /**
-   * "If an enemy is inflicted with this state..."
-   * @type {string}
-   */
-  message2 = String.empty;
-
-  /**
-   * "If the state persists..."
-   * @type {string}
-   */
-  message3 = String.empty;
-
-  /**
-   * "If the state is removed..."
-   * @type {string}
-   */
-  message4 = String.empty;
-
-  /**
-   * The type of message this is.
-   * (unsure)
-   * @type {number}
-   */
-  messageType = 1;
-
-  /**
-   * The minimum number of turns this state will persist.
-   * Requires `restriction` to not be 0 to be leveraged.
-   * @type {number}
-   */
-  minTurns = 1;
-
-  /**
-   * The motion the sideview battler will take while afflicted
-   * with this state.
-   * @type {number}
-   */
-  motion = 0;
-
-  /**
-   * The state overlay id that shows on the battler while
-   * this state is afflicted.
-   * @type {number}
-   */
-  overlay = 0;
-
-  /**
-   * The priority of the skill.
-   * @type {number}
-   */
-  priority = 50;
-
-  /**
-   * Whether or not this state will automatically be removed at
-   * the end of the battle.
-   * @type {boolean}
-   */
-  removeAtBattleEnd = false;
-
-  /**
-   * Whether or not this state can be removed simply by taking damage.
-   * Leverages the `chanceByDamage` percent for whether or not to remove.
-   * @type {boolean}
-   */
-  removeByDamage = false;
-
-  /**
-   * Whether or not this state can be removed by applying a different state
-   * that has a higher `restriction` type.
-   * @type {boolean}
-   */
-  removeByRestriction = false;
-
-  /**
-   * Whether or not this state can be removed by taking the `stepsToRemove` number
-   * of steps on this state.
-   * @type {boolean}
-   */
-  removeByWalking = false;
-
-  /**
-   * The type of restriction this state has.
-   * @type {number}
-   */
-  restriction = 0;
-
-  /**
-   * The number of steps to remove this state.
-   * Requires `removeByWalking` to be true on this state to be leveraged.
-   * @type {number}
-   */
-  stepsToRemove = 100;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * Maps the state's properties into this object.
-   * @param {rm.types.State} state The underlying state object.
-   * @param {number} index The index of the state in the database.
-   */
-  constructor(state, index)
-  {
-    // perform original logic.
-    super(state, index);
-
-    // map the states's data points 1:1.
-    this.autoRemovalTiming = state.autoRemovalTiming;
-    this.chanceByDamage = state.chanceByDamage;
-    this.maxTurns = state.maxTurns;
-    this.message1 = state.message1;
-    this.message2 = state.message2;
-    this.message3 = state.message3;
-    this.message4 = state.message4;
-    this.messageType = state.messageType;
-    this.minTurns = state.minTurns;
-    this.motion = state.motion;
-    this.overlay = state.overlay;
-    this.priority = state.priority;
-    this.removeAtBattleEnd = state.removeAtBattleEnd;
-    this.removeByDamage = state.removeByDamage;
-    this.removeByRestriction = state.removeByRestriction;
-    this.removeByWalking = state.removeByWalking;
-    this.restriction = state.restriction;
-    this.stepsToRemove = state.stepsToRemove;
-  }
-}
-//#endregion RPG_State
-
-//#region RPG_Weapon
-/**
- * A class representing a single weapon from the database.
- */
-class RPG_Weapon extends RPG_EquipItem
-{
-  //#region properties
-  /**
-   * The animation id for this weapon.
-   * @type {number}
-   */
-  animationId = -1;
-
-  /**
-   * The type of weapon this is.
-   * This number is the index that maps to your weapon types.
-   * @type {number}
-   */
-  wtypeId = 1;
-  //#endregion properties
-
-  /**
-   * Constructor.
-   * @param {rm.types.Weapon} weapon The weapon to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(weapon, index)
-  {
-    // supply the base class params.
-    super(weapon, index);
-
-    // map the data.
-    this.animationId = weapon.animationId;
-    this.wtypeId = weapon.wtypeId;
-  }
-}
-//#endregion RPG_Weapon
-//#endregion RPG implementations
-
-//#region miscellaneous others
-/**
- * The structure of the data points required to play a sound effect using the {@link SoundManager}.
- */
-class RPG_SoundEffect
-{
-  /**
-   * The name of the sound effect.
-   * @type {string}
-   */
-  name = String.empty;
-
-  /**
-   * The L/R adjustment of the sound effect.
-   * @type {number}
-   */
-  pan = 0;
-
-  /**
-   * The high/low pitch of the sound effect.
-   * @type {number}
-   */
-  pitch = 100;
-
-  /**
-   * The volume of the sound effect.
-   * @type {number}
-   */
-  volume = 100;
-
-  /**
-   * Constructor.
-   * @param {string} name The name of the sound effect.
-   * @param {number} volume The volume of the sound effect.
-   * @param {number} pitch The high/low pitch of the sound effect.
-   * @param {number} pan The L/R adjustment of the sound effect.
-   */
-  constructor(name, volume = 100, pitch = 100, pan = 0)
-  {
-    this.name = name;
-    this.pan = pan;
-    this.pitch = pitch;
-    this.volume = volume;
-  }
-}
-//#endregion miscellaneous others
-//#endregion RPG objects
-//ENDFILE
+//#endregion WindowLayer

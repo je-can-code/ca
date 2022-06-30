@@ -847,7 +847,6 @@ Game_Actor.prototype.refreshBasicAttackSkills = function()
   // remove all unequippable skills from their slots.
   this.removeInvalidSkills();
 
-  console.log(`refreshed basic attacks for ${this.name()}.`);
 };
 
 Game_Actor.prototype.canRefreshBasicAttackSkills = function()
