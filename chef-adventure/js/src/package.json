@@ -2,17 +2,99 @@
   "name": "plugin-dev-utilities",
   "type": "module",
   "license": "GPL-3",
+
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.17.0",
+    "eslint-plugin-jsdoc": "^39.2.9",
+    "nodemon": "^2.0.16"
+  },
+  "dependencies": {
+    "glob": "^8.0.3"
+  },
+
   "scripts": {
     "init": "node utils/init.js",
 
-    "once:base": "node utils/combine.js ./j/base ../plugins/j/base J-Base.js",
-    "watch:base": "nodemon -L utils/combine.js ./j/base ../plugins/j/base J-Base.js",
 
-    "once:sdp": "node utils/combine.js ./j/sdp ../plugins/j/sdp J-SDP.js",
-    "watch:sdp": "nodemon -L utils/combine.js ./j/sdp ../plugins/j/sdp J-SDP.js",
+    "once:base": "node utils/combine.js ./j/base ../plugins/j J-Base.js",
+    "watch:base": "nodemon -L utils/combine.js ./j/base ../plugins/j J-Base.js",
 
-    "once:drops": "node utils/combine.js ./j/drops ../plugins/j/drops J-ControlledDrops.js",
-    "watch:drops": "nodemon -L utils/combine.js ./j/drops ../plugins/j/drops J-ControlledDrops.js",
+    "once:sdp": "node utils/combine.js ./j/sdp ../plugins/j J-SDP.js",
+    "watch:sdp": "nodemon -L utils/combine.js ./j/sdp ../plugins/j J-SDP.js",
+
+    "once:cms-equip": "node utils/combine.js ./j/cms/equip ../plugins/j/cms J-CMS-Equip.js",
+    "watch:cms-equip": "nodemon -L utils/combine.js ./j/cms/equip ../plugins/j/cms J-CMS-Equip.js",
+
+    "once:cms-skill": "node utils/combine.js ./j/cms/skill ../plugins/j/cms J-CMS-Skill.js",
+    "watch:cms-skill": "nodemon -L utils/combine.js ./j/cms/skill ../plugins/j/cms J-CMS-Skill.js",
+
+    "once:cms-status": "node utils/combine.js ./j/cms/status ../plugins/j/cms J-CMS-Status.js",
+    "watch:cms-status": "nodemon -L utils/combine.js ./j/cms/status ../plugins/j/cms J-CMS-Status.js",
+
+    "once:crit": "node utils/combine.js ./j/crit ../plugins/j J-CriticalFactors.js",
+    "watch:crit": "nodemon -L utils/combine.js ./j/crit ../plugins/j J-CriticalFactors.js",
+
+    "once:diff": "node utils/combine.js ./j/diff ../plugins/j J-Difficulty.js",
+    "watch:diff": "nodemon -L utils/combine.js ./j/diff ../plugins/j J-Difficulty.js",
+
+    "once:drops": "node utils/combine.js ./j/drops ../plugins/j J-DropsControl.js",
+    "watch:drops": "nodemon -L utils/combine.js ./j/drops ../plugins/j J-DropsControl.js",
+
+    "once:elem": "node utils/combine.js ./j/elem ../plugins/j J-Elementalistics.js",
+    "watch:elem": "nodemon -L utils/combine.js ./j/elem ../plugins/j J-Elementalistics.js",
+
+    "once:escribe": "node utils/combine.js ./j/escribe ../plugins/j J-Escriptions.js",
+    "watch:escribe": "nodemon -L utils/combine.js ./j/escribe ../plugins/j J-Escriptions.js",
+
+    "once:extend": "node utils/combine.js ./j/extend ../plugins/j J-SkillExtend.js",
+    "watch:extend": "nodemon -L utils/combine.js ./j/extend ../plugins/j J-SkillExtend.js",
+
+    "once:hud": "node utils/combine.js ./j/hud/core ../plugins/j/hud J-HUD.js",
+    "watch:hud": "nodemon -L utils/combine.js ./j/hud/core ../plugins/j/hud J-HUD.js",
+
+    "once:hud-input": "node utils/combine.js ./j/hud/ext/input ../plugins/j/hud/ext J-HUD-InputFrame.js",
+    "watch:hud-input": "nodemon -L utils/combine.js ./j/hud/ext/input ../plugins/j/hud/ext J-HUD-InputFrame.js",
+
+    "once:hud-party": "node utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
+    "watch:hud-part": "nodemon -L utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
+
+    "once:hud-target": "node utils/combine.js ./j/hud/ext/target ../plugins/j/hud J-HUD-TargetFrame.js",
+    "watch:hud-target": "nodemon -L utils/combine.js ./j/hud/ext/target ../plugins/j/hud J-HUD-TargetFrame.js",
+
+
+    "once:level": "node utils/combine.js ./j/level ../plugins/j J-LevelMaster.js",
+    "watch:level": "nodemon -L utils/combine.js ./j/level ../plugins/j J-LevelMaster.js",
+
+    "once:log": "node utils/combine.js ./j/log ../plugins/j J-Log.js",
+    "watch:log": "nodemon -L utils/combine.js ./j/log ../plugins/j J-Log.js",
+
+    "once:msg": "node utils/combine.js ./j/msg ../plugins/j J-MessageTextCodes.js",
+    "watch:msg": "nodemon -L utils/combine.js ./j/msg ../plugins/j J-MessageTextCodes.js",
+
+    "once:natural": "node utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",
+    "watch:natural": "nodemon -L utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",
+
+    "once:otib": "node utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
+    "watch:otib": "nodemon -L utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
+
+    "once:passive": "node utils/combine.js ./j/passive ../plugins/j J-PassiveSkills.js",
+    "watch:passive": "nodemon -L utils/combine.js ./j/passive ../plugins/j J-PassiveSkills.js",
+
+    "once:popups": "node utils/combine.js ./j/popups ../plugins/j J-TextPops.js",
+    "watch:popups": "nodemon -L utils/combine.js ./j/popups ../plugins/j J-TextPops.js",
+
+    "once:prof": "node utils/combine.js ./j/prof ../plugins/j J-Proficiency.js",
+    "watch:prof": "nodemon -L utils/combine.js ./j/prof ../plugins/j J-Proficiency.js",
+
+    "once:time": "node utils/combine.js ./j/time ../plugins/j J-TIME.js",
+    "watch:time": "nodemon -L utils/combine.js ./j/time ../plugins/j J-TIME.js",
+
+    "once:jafting": "node utils/combine.js ./j/jafting/core ../plugins/j/jafting J-JAFTING.js",
+    "watch:jafting": "nodemon -L utils/combine.js ./j/jafting/core ../plugins/j/jafting J-JAFTING.js",
+
+    "once:jafting-refine": "node utils/combine.js ./j/jafting/ext/refine ../plugins/j/jafting/ext J-JAFTING-Refinement.js",
+    "watch:jafting-refine": "nodemon -L utils/combine.js ./j/jafting/ext/refine ../plugins/j/jafting/ext J-JAFTING-Refinement.js",
+
 
     "once:jabs": "node utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",
     "watch:jabs": "nodemon -L utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",
@@ -40,13 +122,5 @@
 
     "once:jabs-star": "node utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js",
     "watch:jabs-star": "nodemon -L utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js"
-  },
-  "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "eslint-plugin-jsdoc": "^39.2.9",
-    "nodemon": "^2.0.16"
-  },
-  "dependencies": {
-    "glob": "^8.0.3"
   }
 }

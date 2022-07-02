@@ -89,7 +89,7 @@ async function main()
   // write the file to the designated location.
   await fs.writeFile(filepathAndName, bundledJs, 'utf-8');
 
-  Logger.log(`finished combining ${files.length} files into 1 as ${OUT_FILENAME}`);
+  Logger.log(`finished combining all files into 1 as ${OUT_FILENAME}`);
 
   Logger.logAnyway(`Combiner™ has completed execution. 💯✅`);
 }

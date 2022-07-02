@@ -8,7 +8,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-ABS
  * @orderAfter J-BASE
  * @orderAfter J-ABS-AllyAI

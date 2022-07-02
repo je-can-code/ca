@@ -7,7 +7,7 @@
  * [v3.0.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @help
  * ============================================================================

@@ -15,7 +15,7 @@ J.BASE.Metadata = {
   /**
    * The name of this plugin.
    */
-  Name: `J-BASE`,
+  Name: `J-Base`,
 
   /**
    * The version of this plugin.

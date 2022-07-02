@@ -4,7 +4,7 @@
  * [v1.0.0 UTIL] Various system utilities.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @help
  * ============================================================================
  * A small set of system utility functions.

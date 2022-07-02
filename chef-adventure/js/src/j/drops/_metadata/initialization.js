@@ -15,7 +15,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Name: `J-ControlledDrops`,
+  Name: `J-DropsControl`,
 
   /**
    * The version of this plugin.

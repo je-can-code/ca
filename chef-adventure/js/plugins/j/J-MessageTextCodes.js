@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 09:07:57 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
@@ -341,4 +343,3 @@ Window_Base.prototype.toggleBold = function(force = null)
 };
 //#endregion bold and italics
 //#endregion Window_Base
-//ENDOFFILE

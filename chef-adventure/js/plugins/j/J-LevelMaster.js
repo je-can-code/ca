@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Thu Jun 30 2022 16:09:45 GMT-0700 (Pacific Daylight Time)  */
+
 //#region initialization
 /*:
  * @target MZ
@@ -5,7 +7,7 @@
  * [v1.0.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @help
  * ============================================================================
@@ -240,7 +242,7 @@
  * @command enableScaling
  * @text Enable Scaling
  * @desc Enables the scaling functionality for damage/rewards.
- * 
+ *
  * @command disableScaling
  * @text Disable Scaling
  * @desc Disables the scaling functionality for damage/rewards.
@@ -336,6 +338,147 @@ PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () =>
 });
 //#endregion Plugin Command Registration
 //#endregion initialization
+
+//#region LevelScaling
+/**
+ * A helper class for calculating level-based scaling multipliers.
+ */
+class LevelScaling
+{
+  //#region properties
+  /**
+   * The default scaling multiplier.
+   * @type {number}
+   * @private
+   */
+  static #defaultScalingMultiplier = 1.0;
+
+  /**
+   * The minimum amount the multiplier can be.
+   * If after calculation it is lower, it will be raised to this amount.
+   * @type {number}
+   * @private
+   */
+  static #minimumMultiplier = J.LEVEL.Metadata.MinimumMultiplier;
+
+  /**
+   * The maximum amount the multiplier can be.
+   * If after calculation it is higher, it will be lowered to this amount.
+   * @type {number}
+   */
+  static #maximumMultiplier = J.LEVEL.Metadata.MaximumMultiplier;
+
+  /**
+   * The amount of growth per level of difference in the scaling multiplier.
+   * @type {number}
+   */
+  static #growthMultiplier = J.LEVEL.Metadata.GrowthMultiplier;
+
+  /**
+   * The upper threshold of invariance, effective the dead zone for ignoring
+   * level differences when they are not high enough.
+   * @type {number}
+   */
+  static #upperInvariance = J.LEVEL.Metadata.InvariantUpperRange;
+
+  /**
+   * The lower threshold of invariance, effective the dead zone for ignoring
+   * level differences when they are not low enough.
+   * @type {number}
+   */
+  static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
+  //#endregion properties
+
+  /**
+   * Constructor; however, this is a static class designed to have its methods used
+   * directly instead of instantiating for later use.
+   */
+  constructor()
+  {
+    throw new Error(`"LevelScaling" is a static class; use its methods directly.`);
+  }
+
+  /**
+   * Determines the multiplier based on the target's and user's levels.
+   *
+   * This gives a multiplier in relation to the user.
+   * @param {number} targetLevel The level of the target.
+   * @param {number} userLevel The level of the user, typically the actor.
+   * @returns {number} A decimal representing the multiplier for the scaling.
+   */
+  static multiplier(targetLevel, userLevel)
+  {
+    // if the scaling functionality is disabled, then just return 1x.
+    if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
+
+    // if one of the inputs is invalid or just zero, then default to 1x.
+    if (!this.#isValid(targetLevel, userLevel)) return this.#defaultScalingMultiplier;
+
+    // determine the difference in level.
+    const levelDifference = this.determineLevelDifference(targetLevel, userLevel);
+
+    // return the calculated multiplier based on the given level difference.
+    return this.calculate(levelDifference);
+  }
+
+  /**
+   * Determines whether or not the two battler's level inputs were valid.
+   * Zero, while "valid", is handled the same as invalid: just use the default multiplier.
+   * @param {number} a One of the battler's level.
+   * @param {number} b The other battler's level.
+   * @returns {boolean} True if both battler's levels are valid, false otherwise.
+   */
+  static #isValid(a, b)
+  {
+    // if either value is falsey, then it isn't valid.
+    if (!a || !b) return false;
+
+    // valid!
+    return true;
+  }
+
+  /**
+   * Determine the difference in level between two battlers.
+   * @param {number} targetLevel The level of the target.
+   * @param {number} userLevel The level of the user.
+   * @returns {number} A decimal representing the multiplier for the scaling.
+   */
+  static determineLevelDifference(targetLevel, userLevel)
+  {
+    // determine the difference between the target and user in relation to the user.
+    return targetLevel - userLevel;
+  }
+
+  /**
+   * Calculates the multiplier based on the given level difference.
+   * @param {number} levelDifference The difference in levels between target and user.
+   * @returns {number}
+   */
+  static calculate(levelDifference)
+  {
+    // grab the baseline for the multiplier.
+    const base = this.#defaultScalingMultiplier;
+
+    // grab the growth rate per level of difference.
+    const growth = this.#growthMultiplier;
+
+    // check if the difference is within our invariance range.
+    if (levelDifference <= this.#upperInvariance &&
+      levelDifference >= this.#lowerInvariance) return base;
+
+    // determine the level difference lesser the invariance range.
+    const invariantDifference = levelDifference > 0
+      ? levelDifference - this.#upperInvariance
+      : levelDifference + this.#lowerInvariance;
+
+    // calculate the multiplier.
+    const result = base + (invariantDifference * growth);
+
+    // clamp the multiplier within given thresholds, and return it.
+    return result.clamp(this.#minimumMultiplier, this.#maximumMultiplier);
+  }
+}
+//#endregion LevelScaling
 
 //#region Game_Action
 /**
@@ -544,63 +687,6 @@ Game_Enemy.prototype.getLevelBalancer = function()
 };
 //#endregion Game_Enemy
 
-//#region Game_Troop
-/**
- * Upon defeating a troop of enemies, scales the earned experience based on
- * average actor level vs each of the enemies.
- */
-J.LEVEL.Aliased.Game_Troop.set('expTotal', Game_Troop.prototype.expTotal);
-Game_Troop.prototype.expTotal = function()
-{
-  // check if the level scaling functionality is enabled.
-  if (J.LEVEL.Metadata.Enabled)
-  {
-    // return the scaled result instead.
-    return this.getScaledExpResult();
-  }
-  // the scaling is not enabled.
-  else
-  {
-    // return the default logic instead.
-    return J.LEVEL.Aliased.Game_Troop.get('expTotal').call(this);
-  }
-};
-
-/**
- * Determines the amount of experience gained based on the average battle party compared to
- * each defeated enemy.
- *
- * This method is used in place of the current `.reduce()` to find total experience.
- * @returns {number} The scaled amount of EXP this enemy troop yielded.
- */
-Game_Troop.prototype.getScaledExpResult = function()
-{
-  // grab all the dead enemies of this troop.
-  const deadEnemies = this.deadMembers();
-
-  // calculate the average actor level of the party.
-  const averageActorLevel = $gameParty.averageActorLevel();
-
-  // the reducer function for adding up experience.
-  const reducer = (accumulativeExpTotal, currentEnemy) =>
-  {
-    // determine the experience factor for this defeated enemy level vs the average party level.
-    // if the enemy is higher, then the rewards will be greater.
-    // if the actor is higher, then the rewards will be lesser.
-    const expFactor = LevelScaling.multiplier(averageActorLevel, currentEnemy.level);
-
-    // multiply the factor against the experience amount to get the actual amount.
-    const total = Math.round(expFactor * currentEnemy.exp());
-
-    // add it to the running total.
-    return (accumulativeExpTotal + total);
-  };
-
-  // return the rounded sum of scaled experience.
-  return Math.round(deadEnemies.reduce(reducer, 0));
-};
-//#endregion Game_Troop
-
 //#region Game_Party
 /**
  * Checks the current battle party and averages all levels.
@@ -673,144 +759,59 @@ Game_System.prototype.disableLevelScaling = function()
 };
 //#endregion Game_System
 
-//#region LevelScaling
+//#region Game_Troop
 /**
- * A helper class for calculating level-based scaling multipliers.
+ * Upon defeating a troop of enemies, scales the earned experience based on
+ * average actor level vs each of the enemies.
  */
-class LevelScaling
+J.LEVEL.Aliased.Game_Troop.set('expTotal', Game_Troop.prototype.expTotal);
+Game_Troop.prototype.expTotal = function()
 {
-  //#region properties
-  /**
-   * The default scaling multiplier.
-   * @type {number}
-   * @private
-   */
-  static #defaultScalingMultiplier = 1.0;
-
-  /**
-   * The minimum amount the multiplier can be.
-   * If after calculation it is lower, it will be raised to this amount.
-   * @type {number}
-   * @private
-   */
-  static #minimumMultiplier = J.LEVEL.Metadata.MinimumMultiplier;
-
-  /**
-   * The maximum amount the multiplier can be.
-   * If after calculation it is higher, it will be lowered to this amount.
-   * @type {number}
-   */
-  static #maximumMultiplier = J.LEVEL.Metadata.MaximumMultiplier;
-
-  /**
-   * The amount of growth per level of difference in the scaling multiplier.
-   * @type {number}
-   */
-  static #growthMultiplier = J.LEVEL.Metadata.GrowthMultiplier;
-
-  /**
-   * The upper threshold of invariance, effective the dead zone for ignoring
-   * level differences when they are not high enough.
-   * @type {number}
-   */
-  static #upperInvariance = J.LEVEL.Metadata.InvariantUpperRange;
-
-  /**
-   * The lower threshold of invariance, effective the dead zone for ignoring
-   * level differences when they are not low enough.
-   * @type {number}
-   */
-  static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
-  //#endregion properties
-
-  /**
-   * Constructor; however, this is a static class designed to have its methods used
-   * directly instead of instantiating for later use.
-   */
-  constructor()
+  // check if the level scaling functionality is enabled.
+  if (J.LEVEL.Metadata.Enabled)
   {
-    throw new Error(`"LevelScaling" is a static class; use its methods directly.`);
+    // return the scaled result instead.
+    return this.getScaledExpResult();
+  }
+  // the scaling is not enabled.
+  else
+  {
+    // return the default logic instead.
+    return J.LEVEL.Aliased.Game_Troop.get('expTotal').call(this);
+  }
+};
+
+/**
+ * Determines the amount of experience gained based on the average battle party compared to
+ * each defeated enemy.
+ *
+ * This method is used in place of the current `.reduce()` to find total experience.
+ * @returns {number} The scaled amount of EXP this enemy troop yielded.
+ */
+Game_Troop.prototype.getScaledExpResult = function()
+{
+  // grab all the dead enemies of this troop.
+  const deadEnemies = this.deadMembers();
+
+  // calculate the average actor level of the party.
+  const averageActorLevel = $gameParty.averageActorLevel();
+
+  // the reducer function for adding up experience.
+  const reducer = (accumulativeExpTotal, currentEnemy) =>
+  {
+    // determine the experience factor for this defeated enemy level vs the average party level.
+    // if the enemy is higher, then the rewards will be greater.
+    // if the actor is higher, then the rewards will be lesser.
+    const expFactor = LevelScaling.multiplier(averageActorLevel, currentEnemy.level);
+
+    // multiply the factor against the experience amount to get the actual amount.
+    const total = Math.round(expFactor * currentEnemy.exp());
+
+    // add it to the running total.
+    return (accumulativeExpTotal + total);
   };
 
-  /**
-   * Determines the multiplier based on the target's and user's levels.
-   *
-   * This gives a multiplier in relation to the user.
-   * @param {number} targetLevel The level of the target.
-   * @param {number} userLevel The level of the user, typically the actor.
-   * @returns {number} A decimal representing the multiplier for the scaling.
-   */
-  static multiplier(targetLevel, userLevel)
-  {
-    // if the scaling functionality is disabled, then just return 1x.
-    if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
-
-    // if one of the inputs is invalid or just zero, then default to 1x.
-    if (!this.#isValid(targetLevel, userLevel)) return this.#defaultScalingMultiplier;
-
-    // determine the difference in level.
-    const levelDifference = this.determineLevelDifference(targetLevel, userLevel);
-
-    // return the calculated multiplier based on the given level difference.
-    return this.calculate(levelDifference);
-  };
-
-  /**
-   * Determines whether or not the two battler's level inputs were valid.
-   * Zero, while "valid", is handled the same as invalid: just use the default multiplier.
-   * @param {number} a One of the battler's level.
-   * @param {number} b The other battler's level.
-   * @returns {boolean} True if both battler's levels are valid, false otherwise.
-   */
-  static #isValid(a, b)
-  {
-    // if either value is falsey, then it isn't valid.
-    if (!a || !b) return false;
-
-    // valid!
-    return true;
-  };
-
-  /**
-   * Determine the difference in level between two battlers.
-   * @param {number} targetLevel The level of the target.
-   * @param {number} userLevel The level of the user.
-   * @returns {number} A decimal representing the multiplier for the scaling.
-   */
-  static determineLevelDifference(targetLevel, userLevel)
-  {
-    // determine the difference between the target and user in relation to the user.
-    return targetLevel - userLevel;
-  };
-
-  /**
-   * Calculates the multiplier based on the given level difference.
-   * @param {number} levelDifference The difference in levels between target and user.
-   * @returns {number}
-   */
-  static calculate(levelDifference)
-  {
-    // grab the baseline for the multiplier.
-    let base = this.#defaultScalingMultiplier;
-
-    // grab the growth rate per level of difference.
-    const growth = this.#growthMultiplier;
-
-    // check if the difference is within our invariance range.
-    if (levelDifference <= this.#upperInvariance &&
-      levelDifference >= this.#lowerInvariance) return base;
-
-    // determine the level difference lesser the invariance range.
-    const invariantDifference = levelDifference > 0
-      ? levelDifference - this.#upperInvariance
-      : levelDifference + this.#lowerInvariance;
-
-    // calculate the multiplier.
-    const result = base + (invariantDifference * growth);
-
-    // clamp the multiplier within given thresholds, and return it.
-    return result.clamp(this.#minimumMultiplier, this.#maximumMultiplier);
-  };
-}
-//#endregion LevelScaling
-//ENDOFFILE
+  // return the rounded sum of scaled experience.
+  return Math.round(deadEnemies.reduce(reducer, 0));
+};
+//#endregion Game_Troop

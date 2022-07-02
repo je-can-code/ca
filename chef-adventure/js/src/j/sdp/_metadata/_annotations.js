@@ -7,11 +7,11 @@
  * contain various stats.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @base J-ControlledDrops
  * @orderAfter J-ABS
  * @orderAfter J-BASE
- * @orderAfter J-ControlledDrops
+ * @orderAfter J-DropControl
  * @help
  * ============================================================================
  * This plugin is a form of "stat distribution"- an alternative to the standard

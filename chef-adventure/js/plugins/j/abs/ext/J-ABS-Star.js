@@ -6,7 +6,7 @@
  * [v1.0.0 STAR] Converts random encounters into star battles.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @help
  * ============================================================================

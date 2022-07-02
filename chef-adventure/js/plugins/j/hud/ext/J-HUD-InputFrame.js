@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 10:45:20 GMT-0700 (Pacific Daylight Time)  */
+
 //#region introduction
 /*:
  * @target MZ
@@ -81,7 +83,6 @@ J.HUD.EXT_INPUT.Aliased = {
 //#endregion metadata
 //#endregion introduction
 
-//#region Scene objects
 //#region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
@@ -219,163 +220,6 @@ Scene_Map.prototype.refreshHud = function()
   this._j._inputFrame.refresh();
 };
 //#endregion Scene_Map
-//#endregion Scene objects
-
-//#region Sprite objects
-//#region Sprite_SkillSlotIcon
-/**
- * A sprite that displays the icon represented by the assigned skill slot.
- */
-class Sprite_SkillSlotIcon extends Sprite_Icon
-{
-  /**
-   * Initializes this sprite with the designated icon.
-   * @param {number} iconIndex The icon index of the icon for this sprite.
-   * @param {JABS_SkillSlot} skillSlot The skill slot to monitor.
-   */
-  initialize(iconIndex = 0, skillSlot = null)
-  {
-    // perform original logic.
-    super.initialize(iconIndex);
-
-    // assign the skill slot to this sprite.
-    this.setSkillSlot(skillSlot);
-  }
-
-  /**
-   * Initialize all properties of this class.
-   */
-  initMembers()
-  {
-    // perform original logic.
-    super.initMembers();
-
-    /**
-     * The skill slot that this sprite is watching.
-     * @type {JABS_SkillSlot|null}
-     */
-    this._j._skillSlot = null;
-  }
-
-  /**
-   * Sets the skill slot for this sprite's icon.
-   * @param {JABS_SkillSlot} skillSlot The skill slot being assigned.
-   */
-  setSkillSlot(skillSlot)
-  {
-    this._j._skillSlot = skillSlot;
-  }
-
-  /**
-   * Gets whether or not there is a skill slot currently being tracked.
-   * @returns {boolean}
-   */
-  hasSkillSlot()
-  {
-    return !!this._j._skillSlot;
-  }
-
-  /**
-   * Gets the skill slot currently assigned to this sprite.
-   * @returns {JABS_SkillSlot|null}
-   */
-  skillSlot()
-  {
-    return this._j._skillSlot;
-  }
-
-  /**
-   * Gets the icon associated with the tracked skill slot.
-   * @returns {number}
-   */
-  skillSlotIcon()
-  {
-    // if there is no skill slot, return whatever is currently there.
-    if (!this.hasSkillSlot()) return this._j._iconIndex;
-
-    // if there is no leader, do not try to translate the slot into an icon.
-    if (!$gameParty.leader()) return this._j._iconIndex;
-
-    // if we are leveraging skill extensions, then grab the appropriate skill.
-    const skill = this.skillSlot().data($gameParty.leader());
-
-    // if nothing was in the slot, then don't draw it.
-    if (!skill) return 0;
-
-    // return the skill's icon index.
-    return skill.iconIndex;
-  }
-
-  /**
-   * The `JABS_Button` key that this skill slot belongs to.
-   * @returns {string}
-   */
-  skillSlotKey()
-  {
-    return this._j._skillSlot.key;
-  }
-
-  /**
-   * Extends the `update()` to monitor the icon index in case it changes.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // check if this slot needs icon synchronization.
-    if (this.needsSynchronization())
-    {
-      // keep the icon index in-sync with the skill slot.
-      this.synchronizeIconIndex();
-    }
-  }
-
-  /**
-   * Checks whether or not this slot is in need of name synchronization.
-   * @returns {boolean}
-   */
-  needsSynchronization()
-  {
-    return (this.hasSkillSlot() && this.skillSlot().needsVisualIconRefresh());
-  }
-
-  /**
-   * Synchronize the icon index for this skill slot.
-   * Updates it if necessary.
-   */
-  synchronizeIconIndex()
-  {
-    // check if the icon index for this icon is up to date.
-    if (this.iconIndex() !== this.skillSlotIcon())
-    {
-      // if it isn't, update it.
-      this.setIconIndex(this.skillSlotIcon());
-    }
-
-    // acknowledge the refresh.
-    this.skillSlot().acknowledgeIconRefresh();
-  }
-
-  /**
-   * Upon becoming ready, execute this logic.
-   * In this sprite's case, we render ourselves.
-   * @param {number} iconIndex The icon index of this sprite.
-   */
-  onReady(iconIndex = 0)
-  {
-    // perform original logic.
-    super.onReady(iconIndex);
-
-    // only perform this logic if we have a skill slot.
-    if (this.hasSkillSlot())
-    {
-      // set the icon index to be whatever the skill slot's icon is.
-      this.setIconIndex(this.skillSlotIcon());
-    }
-  }
-}
-//#endregion Sprite_SkillIcon
 
 //#region Sprite_BaseSkillSlot
 /**
@@ -556,276 +400,6 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
   }
 }
 //#endregion Sprite_BaseSkillSlot
-
-//#region Sprite_SkillName
-/**
- * A sprite that represents a skill slot's assigned skill's name.
- */
-class Sprite_SkillName extends Sprite_BaseSkillSlot
-{
-  /**
-   * OVERWRITE Gets the font size for this sprite's text.
-   * Skill names are hard-coded to be a fixed size, 12.
-   * @returns {number}
-   */
-  fontSize()
-  {
-    return 12;
-  }
-
-  /**
-   * Extends the `update()` to also synchronize the text to
-   * match the skill slot it is
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // check if this slot needs name synchronization.
-    if (this.needsSynchronization())
-    {
-      // sync the text.
-      this.synchronizeText();
-    }
-  }
-
-  /**
-   * Checks whether or not this slot is in need of name synchronization.
-   * @returns {boolean}
-   */
-  needsSynchronization()
-  {
-    return (this.hasSkillSlot() && this.skillSlot().needsVisualNameRefresh());
-  }
-
-  /**
-   * Synchronizes the text with the underlying skill inside the
-   * tracked skill slot. This allows dynamic updating when the slot
-   * changes skill due to combos and such.
-   */
-  synchronizeText()
-  {
-    // check if the icon index for this icon is up to date.
-    if (this.text() !== this.skillName())
-    {
-      // if it isn't, update it.
-      this.setText(this.skillName());
-    }
-
-    // acknowledge the refresh.
-    this.skillSlot().acknowledgeNameRefresh();
-  }
-}
-//#endregion Sprite_SkillName
-
-//#region Sprite_SkillCost
-/**
- * A sprite that represents a skill slot's assigned skill's mp cost.
- */
-class Sprite_SkillCost extends Sprite_BaseSkillSlot
-{
-  /**
-   * The supported types of skill costs for this sprite.
-   */
-  static Types = {
-    HP: "hp",
-    MP: "mp",
-    TP: "tp",
-    Item: "item"
-  };
-
-  /**
-   * Extend initialization of the sprite to assign a skill slot for tracking.
-   * @param {JABS_SkillSlot} skillSlot The skill slot to track the name of.
-   * @param {Sprite_SkillCost.Types} skillCostType The skillcost type for this sprite.
-   */
-  initialize(skillSlot, skillCostType)
-  {
-    // perform original logic.
-    super.initialize(skillSlot);
-
-    // assign the skill cost type to this sprite.
-    this.setSkillCostType(skillCostType);
-
-    // empty the cost.
-    this.synchronizeCost();
-  }
-
-  /**
-   * Initialize all properties of this class.
-   */
-  initMembers()
-  {
-    // perform original logic.
-    super.initMembers();
-
-    /**
-     * The skill cost type.
-     * @type {Sprite_SkillCost.Types}
-     */
-    this._j._skillCostType = Sprite_SkillCost.Types.MP;
-  }
-
-  /**
-   * Gets the skill cost type of this sprite.
-   * @returns {Sprite_SkillCost.Types}
-   */
-  skillCostType()
-  {
-    return this._j._skillCostType;
-  }
-
-  /**
-   * Gets the skill cost of this sprite.
-   * @returns {number}
-   */
-  skillCost()
-  {
-    return this.skillCostByType();
-  }
-
-  /**
-   * Calculates the skill cost accordingly to the type of this sprite.
-   * @returns {number}
-   */
-  skillCostByType()
-  {
-    const leader = $gameParty.leader();
-    if (!leader) return 0;
-
-    const ability = this.skillSlot().data(leader);
-    if (!ability) return 0;
-
-    switch (this.skillCostType())
-    {
-      case Sprite_SkillCost.Types.HP:
-        // TODO: implement HP costs.
-        return 0;
-      case Sprite_SkillCost.Types.MP:
-        return ability.mpCost * leader.mcr;
-      case Sprite_SkillCost.Types.TP:
-        return ability.tpCost * leader.tcr;
-      case Sprite_SkillCost.Types.Item:
-        return $gameParty.numItems(ability);
-    }
-  }
-
-  /**
-   * Sets the skill cost type for this sprite.
-   * @param {Sprite_SkillCost.Types} skillCostType The skill type to assign to this sprite.
-   */
-  setSkillCostType(skillCostType)
-  {
-    if (this.skillCostType() !== skillCostType)
-    {
-      this._j._skillCostType = skillCostType;
-      this.refresh();
-    }
-  }
-
-  /**
-   * OVERWRITE Gets the color of the text for this sprite based on the
-   * type of skill cost for this sprite, instead of the assigned color.
-   * @returns {string}
-   */
-  color()
-  {
-    return this.colorBySkillCostType();
-  }
-
-  /**
-   * Gets the hex color based on the type of skill cost this is.
-   * @returns {string}
-   */
-  colorBySkillCostType()
-  {
-    switch (this.skillCostType())
-    {
-      case Sprite_SkillCost.Types.HP:
-        return "#ff0000";
-      case Sprite_SkillCost.Types.MP:
-        return "#0077ff";
-      case Sprite_SkillCost.Types.TP:
-        return "#33ff33";
-      default:
-        return "#ffffff";
-    }
-  }
-
-  /**
-   * OVERWRITE Gets the font size for this sprite's text.
-   * Skill costs are hard-coded to be a fixed size, 12.
-   * @returns {number}
-   */
-  fontSize()
-  {
-    return 12;
-  }
-
-  /**
-   * Extends the `update()` to also synchronize the text to
-   * match the skill slot it is
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // check if we need to synchronize a new cost.
-    if (this.needsSynchronization())
-    {
-      // sync the cost.
-      this.synchronizeCost();
-    }
-  }
-
-  /**
-   * Checks whether or not this slot is in need of cost synchronization.
-   * @returns {boolean}
-   */
-  needsSynchronization()
-  {
-    // if the slot is empty, then do not.
-    const skillslot = this.skillSlot();
-    if (!skillslot) return false;
-
-    // if the slot doesn't require synchronization, then do not.
-    if (!skillslot.needsVisualCostRefreshByType(this.skillCostType())) return false;
-
-    // the slot needs synchronization!
-    return true;
-  }
-
-  /**
-   * Synchronizes the text with the underlying skill inside the
-   * tracked skill slot. This allows dynamic updating when the slot
-   * changes skill due to combos and such.
-   */
-  synchronizeCost()
-  {
-    // get the cost of the assigned skill as an integer.
-    let skillCost = this.skillCost().toFixed(0);
-
-    // check if the icon index for this icon is up to date.
-    if (this.text() !== skillCost)
-    {
-      // check if the skill cost is actually 0.
-      if (skillCost === "0")
-      {
-        // replace 0 with an empty string instead.
-        skillCost = String.empty;
-      }
-
-      // if it isn't, update it.
-      this.setText(skillCost);
-    }
-
-    // acknowledge the refresh.
-    this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
-  }
-}
-//#endregion Sprite_SkillCost
 
 //#region Sprite_InputKeySlot
 /**
@@ -1510,9 +1084,432 @@ class Sprite_InputKeySlot extends Sprite
   //#endregion drawing
 }
 //#endregion Sprite_InputKeySlot
-//#endregion Sprite objects
 
-//#region Window objects
+//#region Sprite_SkillCost
+/**
+ * A sprite that represents a skill slot's assigned skill's mp cost.
+ */
+class Sprite_SkillCost extends Sprite_BaseSkillSlot
+{
+  /**
+   * The supported types of skill costs for this sprite.
+   */
+  static Types = {
+    HP: "hp",
+    MP: "mp",
+    TP: "tp",
+    Item: "item"
+  };
+
+  /**
+   * Extend initialization of the sprite to assign a skill slot for tracking.
+   * @param {JABS_SkillSlot} skillSlot The skill slot to track the name of.
+   * @param {Sprite_SkillCost.Types} skillCostType The skillcost type for this sprite.
+   */
+  initialize(skillSlot, skillCostType)
+  {
+    // perform original logic.
+    super.initialize(skillSlot);
+
+    // assign the skill cost type to this sprite.
+    this.setSkillCostType(skillCostType);
+
+    // empty the cost.
+    this.synchronizeCost();
+  }
+
+  /**
+   * Initialize all properties of this class.
+   */
+  initMembers()
+  {
+    // perform original logic.
+    super.initMembers();
+
+    /**
+     * The skill cost type.
+     * @type {Sprite_SkillCost.Types}
+     */
+    this._j._skillCostType = Sprite_SkillCost.Types.MP;
+  }
+
+  /**
+   * Gets the skill cost type of this sprite.
+   * @returns {Sprite_SkillCost.Types}
+   */
+  skillCostType()
+  {
+    return this._j._skillCostType;
+  }
+
+  /**
+   * Gets the skill cost of this sprite.
+   * @returns {number}
+   */
+  skillCost()
+  {
+    return this.skillCostByType();
+  }
+
+  /**
+   * Calculates the skill cost accordingly to the type of this sprite.
+   * @returns {number}
+   */
+  skillCostByType()
+  {
+    const leader = $gameParty.leader();
+    if (!leader) return 0;
+
+    const ability = this.skillSlot().data(leader);
+    if (!ability) return 0;
+
+    switch (this.skillCostType())
+    {
+      case Sprite_SkillCost.Types.HP:
+        // TODO: implement HP costs.
+        return 0;
+      case Sprite_SkillCost.Types.MP:
+        return ability.mpCost * leader.mcr;
+      case Sprite_SkillCost.Types.TP:
+        return ability.tpCost * leader.tcr;
+      case Sprite_SkillCost.Types.Item:
+        return $gameParty.numItems(ability);
+    }
+  }
+
+  /**
+   * Sets the skill cost type for this sprite.
+   * @param {Sprite_SkillCost.Types} skillCostType The skill type to assign to this sprite.
+   */
+  setSkillCostType(skillCostType)
+  {
+    if (this.skillCostType() !== skillCostType)
+    {
+      this._j._skillCostType = skillCostType;
+      this.refresh();
+    }
+  }
+
+  /**
+   * OVERWRITE Gets the color of the text for this sprite based on the
+   * type of skill cost for this sprite, instead of the assigned color.
+   * @returns {string}
+   */
+  color()
+  {
+    return this.colorBySkillCostType();
+  }
+
+  /**
+   * Gets the hex color based on the type of skill cost this is.
+   * @returns {string}
+   */
+  colorBySkillCostType()
+  {
+    switch (this.skillCostType())
+    {
+      case Sprite_SkillCost.Types.HP:
+        return "#ff0000";
+      case Sprite_SkillCost.Types.MP:
+        return "#0077ff";
+      case Sprite_SkillCost.Types.TP:
+        return "#33ff33";
+      default:
+        return "#ffffff";
+    }
+  }
+
+  /**
+   * OVERWRITE Gets the font size for this sprite's text.
+   * Skill costs are hard-coded to be a fixed size, 12.
+   * @returns {number}
+   */
+  fontSize()
+  {
+    return 12;
+  }
+
+  /**
+   * Extends the `update()` to also synchronize the text to
+   * match the skill slot it is
+   */
+  update()
+  {
+    // perform original logic.
+    super.update();
+
+    // check if we need to synchronize a new cost.
+    if (this.needsSynchronization())
+    {
+      // sync the cost.
+      this.synchronizeCost();
+    }
+  }
+
+  /**
+   * Checks whether or not this slot is in need of cost synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    // if the slot is empty, then do not.
+    const skillslot = this.skillSlot();
+    if (!skillslot) return false;
+
+    // if the slot doesn't require synchronization, then do not.
+    if (!skillslot.needsVisualCostRefreshByType(this.skillCostType())) return false;
+
+    // the slot needs synchronization!
+    return true;
+  }
+
+  /**
+   * Synchronizes the text with the underlying skill inside the
+   * tracked skill slot. This allows dynamic updating when the slot
+   * changes skill due to combos and such.
+   */
+  synchronizeCost()
+  {
+    // get the cost of the assigned skill as an integer.
+    let skillCost = this.skillCost().toFixed(0);
+
+    // check if the icon index for this icon is up to date.
+    if (this.text() !== skillCost)
+    {
+      // check if the skill cost is actually 0.
+      if (skillCost === "0")
+      {
+        // replace 0 with an empty string instead.
+        skillCost = String.empty;
+      }
+
+      // if it isn't, update it.
+      this.setText(skillCost);
+    }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
+  }
+}
+//#endregion Sprite_SkillCost
+
+//#region Sprite_SkillName
+/**
+ * A sprite that represents a skill slot's assigned skill's name.
+ */
+class Sprite_SkillName extends Sprite_BaseSkillSlot
+{
+  /**
+   * OVERWRITE Gets the font size for this sprite's text.
+   * Skill names are hard-coded to be a fixed size, 12.
+   * @returns {number}
+   */
+  fontSize()
+  {
+    return 12;
+  }
+
+  /**
+   * Extends the `update()` to also synchronize the text to
+   * match the skill slot it is
+   */
+  update()
+  {
+    // perform original logic.
+    super.update();
+
+    // check if this slot needs name synchronization.
+    if (this.needsSynchronization())
+    {
+      // sync the text.
+      this.synchronizeText();
+    }
+  }
+
+  /**
+   * Checks whether or not this slot is in need of name synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    return (this.hasSkillSlot() && this.skillSlot().needsVisualNameRefresh());
+  }
+
+  /**
+   * Synchronizes the text with the underlying skill inside the
+   * tracked skill slot. This allows dynamic updating when the slot
+   * changes skill due to combos and such.
+   */
+  synchronizeText()
+  {
+    // check if the icon index for this icon is up to date.
+    if (this.text() !== this.skillName())
+    {
+      // if it isn't, update it.
+      this.setText(this.skillName());
+    }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeNameRefresh();
+  }
+}
+//#endregion Sprite_SkillName
+
+//#region Sprite_SkillSlotIcon
+/**
+ * A sprite that displays the icon represented by the assigned skill slot.
+ */
+class Sprite_SkillSlotIcon extends Sprite_Icon
+{
+  /**
+   * Initializes this sprite with the designated icon.
+   * @param {number} iconIndex The icon index of the icon for this sprite.
+   * @param {JABS_SkillSlot} skillSlot The skill slot to monitor.
+   */
+  initialize(iconIndex = 0, skillSlot = null)
+  {
+    // perform original logic.
+    super.initialize(iconIndex);
+
+    // assign the skill slot to this sprite.
+    this.setSkillSlot(skillSlot);
+  }
+
+  /**
+   * Initialize all properties of this class.
+   */
+  initMembers()
+  {
+    // perform original logic.
+    super.initMembers();
+
+    /**
+     * The skill slot that this sprite is watching.
+     * @type {JABS_SkillSlot|null}
+     */
+    this._j._skillSlot = null;
+  }
+
+  /**
+   * Sets the skill slot for this sprite's icon.
+   * @param {JABS_SkillSlot} skillSlot The skill slot being assigned.
+   */
+  setSkillSlot(skillSlot)
+  {
+    this._j._skillSlot = skillSlot;
+  }
+
+  /**
+   * Gets whether or not there is a skill slot currently being tracked.
+   * @returns {boolean}
+   */
+  hasSkillSlot()
+  {
+    return !!this._j._skillSlot;
+  }
+
+  /**
+   * Gets the skill slot currently assigned to this sprite.
+   * @returns {JABS_SkillSlot|null}
+   */
+  skillSlot()
+  {
+    return this._j._skillSlot;
+  }
+
+  /**
+   * Gets the icon associated with the tracked skill slot.
+   * @returns {number}
+   */
+  skillSlotIcon()
+  {
+    // if there is no skill slot, return whatever is currently there.
+    if (!this.hasSkillSlot()) return this._j._iconIndex;
+
+    // if there is no leader, do not try to translate the slot into an icon.
+    if (!$gameParty.leader()) return this._j._iconIndex;
+
+    // if we are leveraging skill extensions, then grab the appropriate skill.
+    const skill = this.skillSlot().data($gameParty.leader());
+
+    // if nothing was in the slot, then don't draw it.
+    if (!skill) return 0;
+
+    // return the skill's icon index.
+    return skill.iconIndex;
+  }
+
+  /**
+   * The `JABS_Button` key that this skill slot belongs to.
+   * @returns {string}
+   */
+  skillSlotKey()
+  {
+    return this._j._skillSlot.key;
+  }
+
+  /**
+   * Extends the `update()` to monitor the icon index in case it changes.
+   */
+  update()
+  {
+    // perform original logic.
+    super.update();
+
+    // check if this slot needs icon synchronization.
+    if (this.needsSynchronization())
+    {
+      // keep the icon index in-sync with the skill slot.
+      this.synchronizeIconIndex();
+    }
+  }
+
+  /**
+   * Checks whether or not this slot is in need of name synchronization.
+   * @returns {boolean}
+   */
+  needsSynchronization()
+  {
+    return (this.hasSkillSlot() && this.skillSlot().needsVisualIconRefresh());
+  }
+
+  /**
+   * Synchronize the icon index for this skill slot.
+   * Updates it if necessary.
+   */
+  synchronizeIconIndex()
+  {
+    // check if the icon index for this icon is up to date.
+    if (this.iconIndex() !== this.skillSlotIcon())
+    {
+      // if it isn't, update it.
+      this.setIconIndex(this.skillSlotIcon());
+    }
+
+    // acknowledge the refresh.
+    this.skillSlot().acknowledgeIconRefresh();
+  }
+
+  /**
+   * Upon becoming ready, execute this logic.
+   * In this sprite's case, we render ourselves.
+   * @param {number} iconIndex The icon index of this sprite.
+   */
+  onReady(iconIndex = 0)
+  {
+    // perform original logic.
+    super.onReady(iconIndex);
+
+    // only perform this logic if we have a skill slot.
+    if (this.hasSkillSlot())
+    {
+      // set the icon index to be whatever the skill slot's icon is.
+      this.setIconIndex(this.skillSlotIcon());
+    }
+  }
+}
+//#endregion Sprite_SkillIcon
+
 //#region Window_InputFrame
 /**
  * A window displaying available skills and button inputs.
@@ -1524,9 +1521,9 @@ class Window_InputFrame extends Window_Frame
    * @param {Rectangle} rect The shape of this window.
    */
   constructor(rect) 
-{
- super(rect); 
-}
+  {
+    super(rect); 
+  }
 
   /**
    * Initializes all members of this class.
@@ -1915,5 +1912,3 @@ class Window_InputFrame extends Window_Frame
   }
 }
 //#endregion Window_InputFrame
-//#endregion Window objects
-//ENDOFFILE

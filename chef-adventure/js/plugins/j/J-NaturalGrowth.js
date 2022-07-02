@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 09:18:56 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
@@ -5,7 +7,7 @@
  * [v1.0.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @help
  * ============================================================================
  * OVERVIEW:
@@ -392,13 +394,6 @@ J.NATURAL.RegExp = {
 };
 //#endregion Introduction
 
-//#region Static objects
-//#region TextManager
-
-//#endregion TextManager
-//#endregion Static objects
-
-//#region Game objects
 //#region Game_Actor
 /**
  * Gets all natural bonuses for max tp.
@@ -1663,6 +1658,3 @@ Game_Enemy.prototype.getBaseMaxTp = function()
   return J.NATURAL.Metadata.BaseTpMaxEnemies;
 };
 //#endregion Game_Enemy
-//#endregion Game objects
-
-//ENDOFFILE

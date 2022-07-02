@@ -5,7 +5,7 @@
  * [v1.0.0 MOVE] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @orderAfter J-ABS
  * @help

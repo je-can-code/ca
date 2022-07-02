@@ -2,10 +2,10 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DROP] Enables greater control over gold and item drops.
+ * [v1.0.0 DROPS] Enables greater control over gold and item drops.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @help
  * ============================================================================

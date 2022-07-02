@@ -1,11 +1,13 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 10:07:57 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
- * @plugindesc 
+ * @plugindesc
  * [v1.0.0 JAFT-REFINE] Extends JAFTING to include refinement.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @base J-JAFTING
  * @orderAfter J-BASE
  * @orderAfter J-JAFTING
@@ -17,91 +19,91 @@
  * onto another". It is also important to note that "transferable traits" are
  * defined as "all traits on an equip in the database that are below the
  * divider".
- * 
+ *
  * The "divider" is another trait: 'Collapse Effect'. It doesn't matter which
  * option you select in the dropdown for this (for now). Traits that are above
  * the "divider" are considered "passive" traits that cannot be transfered.
- * 
+ *
  * This plugin does not handle trait removal, so do keep that in mind.
- * 
+ *
  * [DESCRIPTION]:
  * This functionality's exclusive target is equipment. The most common use case
- * for this type of plugin is to repeatedly upgrade a weapon or armor of a 
- * given type with new/improved traits, allowing the player to keep their 
- * equipment relevant longer (or hang onto stuff for sentimental reasons, I 
- * guess). It works in tandem with a basic crafting system (the JAFTING base 
- * system) to allow you, the RM dev, to come up with fun ways to allow not only 
- * you, but the player as well, to flex creativity by using recipes to make 
- * stuff, then using refinement to upgrade it. With a wide variety of traits 
- * spread across various equipment, combined with the notetags below, this 
+ * for this type of plugin is to repeatedly upgrade a weapon or armor of a
+ * given type with new/improved traits, allowing the player to keep their
+ * equipment relevant longer (or hang onto stuff for sentimental reasons, I
+ * guess). It works in tandem with a basic crafting system (the JAFTING base
+ * system) to allow you, the RM dev, to come up with fun ways to allow not only
+ * you, but the player as well, to flex creativity by using recipes to make
+ * stuff, then using refinement to upgrade it. With a wide variety of traits
+ * spread across various equipment, combined with the notetags below, this
  * extension on JAFTING can make for some interesting situations in-game (good
  * and bad).
- * 
+ *
  * [NOTE TAGS]:
  * Obviously, being able to willy nilly refine any equips with any equips could
  * be volatile for the RM dev being able to keep control on what the player
  * should be doing (such as refining a unique equipment onto another and there
  * by losing said unique equipment that could've been required for story!).
- * 
+ *
  * As such, I've introduced a few tags that can be applied onto weapons/armor:
- * 
+ *
  * <noRefine>
  * Placing this tag onto equipment renders it unavailable to be refined at all.
  * That means it simply won't show up in the refinement menu's equip lists.
- * 
+ *
  * <notRefinementBase>
  * Placing this tag onto equipment means it will be a disabled option when
- * selecting a base equip to refine. This most commonly would be used by 
- * perhaps some kind of "fragile" types of equipment, or for equipment you 
+ * selecting a base equip to refine. This most commonly would be used by
+ * perhaps some kind of "fragile" types of equipment, or for equipment you
  * designed explicitly as a material.
- * 
+ *
  * <notRefinementMaterial>
  * Placing this tag onto equipment means it will be a disabled option when
  * selecting a material equip to refine onto the base. This most commonly would
  * be used for preventing the player from sacrificing an equipment that is
  * required for story purposes.
- * 
+ *
  * <maxRefine:NUM>
  * Where NUM is a number that represents how many times this can be refined.
  * Placing this tag onto equipment means it can only be used as a base for
  * refinement NUM number of times.
- * 
+ *
  * <maxRefinedTraits:NUM>
  * Where NUM is a number that represents how many combined traits it can have.
  * Placing this tag onto equipment means it can only be used as a base as long
  * as the number of combined trait slots (see the screen while refining) is
- * lesser than or equal to NUM. This most commonly would be used to prevent 
+ * lesser than or equal to NUM. This most commonly would be used to prevent
  * the player from adding an unreasonable number of traits onto an equip.
- * 
+ *
  * [PLUGIN PARAMETERS]:
  * There are just a couple that will control the visibility of the actual
  * command that shows up for refinement in the JAFTING mode select window.
- * 
+ *
  * I debated on putting all the various text bits that show up
- * throughout the menu here for translation, but instead I captured them all 
- * and put them in the J.JAFTING.Messages object. If you want to change the 
- * text, feel free to edit that instead. Additionally, for the various traits 
- * text, you can find that text hard-coded english starting at line 2164 by 
+ * throughout the menu here for translation, but instead I captured them all
+ * and put them in the J.JAFTING.Messages object. If you want to change the
+ * text, feel free to edit that instead. Additionally, for the various traits
+ * text, you can find that text hard-coded english starting at line 2164 by
  * trait code.
  * ============================================================================
  * CHANGELOG:
- * 
+ *
  * - 1.0.0
  *    Initial release.
  * ============================================================================
- * 
+ *
  * @command hideJaftingRefinement
  * @text Hide Refinement Option
  * @desc Removes the "refinement" option from the JAFTING mode selection window.
- * 
+ *
  * @command showJaftingRefinement
  * @text Show Refinement Option
  * @desc Adds the "refinement" option to the JAFTING mode selection window.
- * 
+ *
  * @command disableJaftingRefinement
  * @text Disable Refinement Option
  * @desc Disables the "refinement" option in the JAFTING mode selection window.
- * 
+ *
  * @command enableJaftingRefinement
  * @text Enable Refinement Option
  * @desc Enables the "refinement" option in the JAFTING mode selection window.
@@ -272,143 +274,6 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJa
 });
 //#endregion Introduction
 
-//#region Static objects
-//#region DataManager
-
-/**
- * Whether or not the extra data was loaded into the multiple databases.
- */
-DataManager._j ||= {
-  /**
-   * Whether or not the refinement data from the database has been loaded yet.
-   * @type {boolean}
-   */
-  _refinementDataLoaded: false,
-};
-//#region save/load data
-/**
- * Extends the game object creation to include creating the JAFTING manager.
- */
-J.JAFTING.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
-DataManager.createGameObjects = function()
-{
-  J.JAFTING.Aliased.DataManager.createGameObjects.call(this);
-  $gameJAFTING = new Game_JAFTING();
-};
-
-/**
- * Extends the save content creation to include creating JAFTING data.
- */
-J.JAFTING.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
-DataManager.makeSaveContents = function()
-{
-  const contents = J.JAFTING.Aliased.DataManager.makeSaveContents.call(this);
-  contents.jafting = $gameJAFTING;
-  return contents;
-};
-
-/**
- * Extends the save content extraction to include extracting JAFTING data.
- *
- * NOTE: This is the first function encountered where I actually extend it _twice_.
- * As such, we accommodated that by numbering it.
- */
-J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
-DataManager.extractSaveContents = function(contents)
-{
-  J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
-  $gameJAFTING = contents.jafting;
-  $gameJAFTING.updateDataWeapons();
-  $gameJAFTING.updateDataArmors();
-};
-//#endregion save/load data
-
-/**
- * Hooks into the database loading and loads our extra data from notes and such.
- */
-J.JAFTING.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
-DataManager.isDatabaseLoaded = function()
-{
-  // check if the database is loaded.
-  const result = J.JAFTING.Aliased.DataManager.isDatabaseLoaded.call(this);
-  if (result)
-  {
-    // if it is, then load our refinement data from it.
-    this.loadRefinementData();
-  }
-
-  // continue with the loading.
-  return result;
-};
-
-/**
- * Loads the additional required refinement data onto the database objects.
- */
-DataManager.loadRefinementData = function()
-{
-  // check if we have already loaded the refinment data.
-  if (!DataManager._j._refinementDataLoaded)
-  {
-    // load up the weapons and armors refinement data.
-    this.loadWeaponRefinementData();
-    this.loadArmorRefinementData();
-
-    // set the flag to true so we only do this once.
-    this._j._refinementDataLoaded = true;
-  }
-};
-
-/**
- * Loads the refinement data from the notes of weapons.
- */
-DataManager.loadWeaponRefinementData = function()
-{
-  // iterate over every weapon and process their refinement data.
-  $dataWeapons.forEach(DataManager.processEquipForRefinement);
-};
-
-/**
- * Loads the refinement data from the notes of armors.
- */
-DataManager.loadArmorRefinementData = function()
-{
-  $dataArmors.forEach(DataManager.processEquipForRefinement);
-};
-
-/**
- * The processing of adding the refinement data onto the equip.
- * This works for both weapons and armor.
- * @param {RPG_EquipItem} equip The equip to modify.
- * @param {number} index The index of the equip.
- */
-DataManager.processEquipForRefinement = function(equip, index)
-{
-  // the first equip is always null.
-  if (!equip) return;
-
-  // add the JAFTING data onto it.
-  equip._jafting = new JAFTING_RefinementData(equip.note, equip.meta);
-
-  // assign the index for refinement reasons.
-  equip.index = index;
-};
-//#endregion DataManager
-//#endregion Static objects
-
-//#region Game objects
-//#region Game_Item
-/**
- * Largely overwrites this function to instead leverage an item's index value over
- * it's ID for setting objects to the item slot.
- */
-J.JAFTING.Aliased.Game_Item.setObject = Game_Item.prototype.setObject;
-Game_Item.prototype.setObject = function(item)
-{
-  J.JAFTING.Aliased.Game_Item.setObject.call(this, item);
-  this._itemId = item ? item.index : 0;
-};
-//#endregion Game_Item
-
 //#region Game_JAFTING
 /**
  * A class for managing all things related to JAFTING.
@@ -416,7 +281,7 @@ Game_Item.prototype.setObject = function(item)
 function Game_JAFTING()
 {
   this.initialize(...arguments)
-};
+}
 Game_JAFTING.prototype = {};
 Game_JAFTING.prototype.constructor = Game_JAFTING;
 
@@ -1105,7 +970,7 @@ Game_JAFTING.prototype.overwriteIfBetter = function(baseTraitList, materialTrait
   const lowerIsBetterCodes = [11, 12, 13];
 
   // a quick function to use against each element of the base trait list
-  // to check and see if the material trait list has any of the same codes with dataIds 
+  // to check and see if the material trait list has any of the same codes with dataIds
   const hasTraitCodeAndDataIdWithBetterValue = trait =>
   {
     if (trait._code !== code) return false;
@@ -1256,9 +1121,557 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
   }
 };
 //#endregion Game_JAFTING
-//#endregion Game objects
 
-//#region Scene objects
+//#region JAFT_RefinementData
+/**
+ * A class containing all the various data points extracted from notes.
+ */
+class JAFTING_RefinementData
+{
+  /**
+   * @constructor
+   * @param {string} notes The raw note box as a string.
+   * @param {any} meta The `meta` object containing prebuilt note metadata.
+   */
+  constructor(notes, meta)
+  {
+    this._notes = notes.split(/[\r\n]+/);
+    this._meta = meta;
+    this.refinedCount = 0;
+    this.maxRefineCount = this.getMaxRefineCount();
+    this.maxTraitCount = this.getMaxTraitCount();
+    this.notRefinementMaterial = this.isNotMaterial();
+    this.notRefinementBase = this.isNotBase();
+    this.unrefinable = this.isNotRefinable();
+  }
+
+  /**
+   * The number of times this piece of equipment can be refined.
+   * @returns {number}
+   */
+  getMaxRefineCount()
+  {
+    let count = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineCount])
+    {
+      count = parseInt(this._meta[J.BASE.Notetags.MaxRefineCount]) || count;
+    }
+    else
+    {
+      const structure = /<maxRefine:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          count = parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return count;
+  }
+
+  /**
+   * The number of transferable traits that this piece of equipment can have at any one time.
+   * @returns {number}
+   */
+  getMaxTraitCount()
+  {
+    let count = 0;
+    if (this._meta && this._meta[J.BASE.Notetags.MaxRefineTraits])
+    {
+      count = parseInt(this._meta[J.BASE.Notetags.MaxRefineTraits]) || count;
+    }
+    else
+    {
+      const structure = /<maxRefinedTraits:[ ]?(\d+)>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          count = parseInt(RegExp.$1);
+        }
+      })
+    }
+
+    return count;
+  }
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement as a material.
+   * @returns {boolean}
+   */
+  isNotMaterial()
+  {
+    let notMaterial = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementMaterial])
+    {
+      notMaterial = true;
+    }
+    else
+    {
+      const structure = /<notRefinementMaterial>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          notMaterial = true;
+        }
+      })
+    }
+
+    return notMaterial;
+  }
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement as a base.
+   * @returns {boolean}
+   */
+  isNotBase()
+  {
+    let notBase = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NotRefinementBase])
+    {
+      notBase = true;
+    }
+    else
+    {
+      const structure = /<notRefinementBase>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          notBase = true;
+        }
+      })
+    }
+
+    return notBase;
+  }
+
+  /**
+   * Gets whether or not this piece of equipment can be used in refinement.
+   * If this is true, this will mean this cannot be used in refinement as base or material.
+   * @returns
+   */
+  isNotRefinable()
+  {
+    let noRefine = false;
+    if (this._meta && this._meta[J.BASE.Notetags.NoRefinement])
+    {
+      noRefine = true;
+    }
+    else
+    {
+      const structure = /<noRefine>/i;
+      this._notes.forEach(note =>
+      {
+        if (note.match(structure))
+        {
+          noRefine = true;
+        }
+      })
+    }
+
+    return noRefine;
+  }
+}
+//#endregion JAFT_RefinementData
+
+//#region JAFTING_Trait
+/**
+ * A class representing a single trait on a piece of equipment that can be potentially
+ * transferred by means of JAFTING's refinement mode.
+ */
+function JAFTING_Trait()
+{
+  this.initialize(...arguments);
+}
+JAFTING_Trait.prototype = {};
+JAFTING_Trait.prototype.constructor = JAFTING_Trait;
+
+/**
+ * Initializes the members of this class.
+ * @param {number} code The code of the trait.
+ * @param {number} dataId The dataId of the trait.
+ * @param {number} value The value of the trait.
+ */
+JAFTING_Trait.prototype.initialize = function(code, dataId, value)
+{
+  this._code = code;
+  this._dataId = dataId;
+  this._value = value;
+};
+
+/**
+ * The defacto of what JAFTING considers a "divider" trait.
+ * All traits defined AFTER this trait are considered transferable.
+ * @returns {RPG_Trait}
+ */
+JAFTING_Trait.divider = function()
+{
+  return {code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1};
+};
+
+/**
+ * Gets a standardized concatenation of the name and value for a given trait.
+ * @returns {string}
+ */
+Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
+  get()
+  {
+    return `${this.name} ${this.value}`;
+  },
+  configurable: true,
+});
+
+/**
+ * Gets the friendly name of the trait based on the trait code.
+ * @returns {string}
+ */
+Object.defineProperty(JAFTING_Trait.prototype, "name", {
+  get()
+  {
+    switch (this._code)
+    {
+      // first tab.
+      case 11:
+        return `${$dataSystem.elements[this._dataId]} dmg`;
+      case 12:
+        return `${TextManager.param(this._dataId)} debuff rate`;
+      case 13:
+        return `${$dataStates[this._dataId].name} resist`;
+      case 14:
+        return `Immune to`;
+
+      // second tab.
+      case 21:
+        return `${TextManager.param(this._dataId)}`;
+      case 22:
+        return `${TextManager.xparam(this._dataId)}`;
+      case 23:
+        return `${TextManager.sparam(this._dataId)}`;
+
+      // third tab.
+      case 31:
+        return `Attack Element:`;
+      case 32:
+        return `${$dataStates[this._dataId].name} on-hit`;
+      case 33:
+        return `Skill Speed`;
+      case 34:
+        return `Times`;
+      case 35:
+        return `Basic Attack w/`;
+
+      // fourth tab.
+      case 41:
+        return `Unlock:`;
+      case 42:
+        return `Lock:`;
+      case 43:
+        return `Learn:`;
+      case 44:
+        return `Seal:`;
+
+      // fifth tab.
+      case 51:
+        return `${$dataSystem.weaponTypes[this._dataId]}`;
+      case 52:
+        return `${$dataSystem.armorTypes[this._dataId]}`;
+      case 53:
+        return `${$dataSystem.equipTypes[this._dataId]}`;
+      case 54:
+        return `${$dataSystem.equipTypes[this._dataId]}`;
+      case 55:
+        return `${this._dataId ? "Enable" : "Disable"}`;
+
+      // sixth tab.
+      case 61:
+        return `Another turn chance:`;
+      case 62:
+        return `${this.translateSpecialFlag()}`;
+      case 64:
+        return `${this.translatePartyAbility()}`;
+
+      case 63:
+        return `TRANSFERABLE TRAITS`;
+      default:
+        return "All traits were implemented,";
+    }
+  },
+  configurable: true,
+});
+
+/**
+ * Gets the friendly value of the trait based on the trait code and value.
+ * @returns {string}
+ */
+Object.defineProperty(JAFTING_Trait.prototype, "value", {
+  get()
+  {
+    switch (this._code)
+    {
+      // first tab.
+      case 11:
+        const calculatedElementalRate = Math.round(100 - (this._value * 100));
+        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+      case 12:
+        const calculatedDebuffRate = Math.round((this._value * 100) - 100);
+        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+      case 13:
+        const calculatedStateRate = Math.round(100 - (this._value * 100));
+        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+      case 14:
+        return `${$dataStates[this._dataId].name}`;
+
+      // second tab.
+      case 21:
+        const calculatedBParam = Math.round((this._value * 100) - 100);
+        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+      case 22:
+        const calculatedXParam = Math.round((this._value * 100));
+        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+      case 23:
+        const calculatedSParam = Math.round((this._value * 100) - 100);
+        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+
+      // third tab.
+      case 31:
+        return `${$dataSystem.elements[this._dataId]}`;
+      case 32:
+        return `${(this._value * 100)}%`;
+      case 33:
+        return `${this._value > 0 ? "+" : "-"}${this._value}`;
+      case 34:
+        return `${this._value > 0 ? "+" : "-"}${this._value}`;
+      case 35:
+        return `${$dataSkills[this._value].name}`;
+
+      // fourth tab.
+      case 41:
+        return `${$dataSystem.skillTypes[this._dataId]}`;
+      case 42:
+        return `${$dataSystem.skillTypes[this._dataId]}`;
+      case 43:
+        return `${$dataSkills[this._dataId].name}`;
+      case 44:
+        return `${$dataSkills[this._dataId].name}`;
+
+      // fifth tab.
+      case 51:
+        return `proficiency`;
+      case 52:
+        return `proficiency`;
+      case 53:
+        return `is locked`;
+      case 54:
+        return `is sealed`;
+      case 55:
+        return `Dual-wield`;
+
+      // sixth tab.
+      case 61:
+        return `${Math.round(this._value * 100)}%`;
+      case 62:
+        return ``;
+      case 64:
+        return ``;
+      case 63:
+        return ``;
+      default:
+        return "is this a custom trait?";
+    }
+  },
+  configurable: true,
+});
+
+/**
+ * Translates the data id of the trait into what it represents according to RMMZ.
+ * @returns {string}
+ */
+JAFTING_Trait.prototype.translateSpecialFlag = function()
+{
+  switch (this._dataId)
+  {
+    case 0:
+      return `Autobattle`;
+    case 1:
+      return `Empowered Guard`;
+    case 2:
+      return `Cover/Substitute`;
+    case 3:
+      return `Preserve TP`;
+  }
+};
+
+/**
+ * Translates the data id of the trait into what it represents according to RMMZ.
+ * @returns {string}
+ */
+JAFTING_Trait.prototype.translatePartyAbility = function()
+{
+  switch (this._dataId)
+  {
+    case 0:
+      return `Encounter Half`;
+    case 1:
+      return `Encounter None`;
+    case 2:
+      return `Prevent Surprise`;
+    case 3:
+      return `Frequent Pre-emptive`;
+    case 4:
+      return `Gold Dropped 2x`;
+    case 5:
+      return `Item Drop Chance 2x`;
+  }
+};
+
+/**
+ * Gets the original RM trait associated with this JAFTING trait.
+ * @returns {RPG_Trait}
+ */
+JAFTING_Trait.prototype.convertToRmTrait = function()
+{
+  return {code: this._code, dataId: this._dataId, value: this._value};
+};
+//#endregion JAFTING_Trait
+
+//#region DataManager
+
+/**
+ * Whether or not the extra data was loaded into the multiple databases.
+ */
+DataManager._j ||= {
+  /**
+   * Whether or not the refinement data from the database has been loaded yet.
+   * @type {boolean}
+   */
+  _refinementDataLoaded: false,
+};
+//#region save/load data
+/**
+ * Extends the game object creation to include creating the JAFTING manager.
+ */
+J.JAFTING.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+DataManager.createGameObjects = function()
+{
+  J.JAFTING.Aliased.DataManager.createGameObjects.call(this);
+  $gameJAFTING = new Game_JAFTING();
+};
+
+/**
+ * Extends the save content creation to include creating JAFTING data.
+ */
+J.JAFTING.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
+DataManager.makeSaveContents = function()
+{
+  const contents = J.JAFTING.Aliased.DataManager.makeSaveContents.call(this);
+  contents.jafting = $gameJAFTING;
+  return contents;
+};
+
+/**
+ * Extends the save content extraction to include extracting JAFTING data.
+ *
+ * NOTE: This is the first function encountered where I actually extend it _twice_.
+ * As such, we accommodated that by numbering it.
+ */
+J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
+DataManager.extractSaveContents = function(contents)
+{
+  J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
+  $gameJAFTING = contents.jafting;
+  $gameJAFTING.updateDataWeapons();
+  $gameJAFTING.updateDataArmors();
+};
+//#endregion save/load data
+
+/**
+ * Hooks into the database loading and loads our extra data from notes and such.
+ */
+J.JAFTING.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function()
+{
+  // check if the database is loaded.
+  const result = J.JAFTING.Aliased.DataManager.isDatabaseLoaded.call(this);
+  if (result)
+  {
+    // if it is, then load our refinement data from it.
+    this.loadRefinementData();
+  }
+
+  // continue with the loading.
+  return result;
+};
+
+/**
+ * Loads the additional required refinement data onto the database objects.
+ */
+DataManager.loadRefinementData = function()
+{
+  // check if we have already loaded the refinment data.
+  if (!DataManager._j._refinementDataLoaded)
+  {
+    // load up the weapons and armors refinement data.
+    this.loadWeaponRefinementData();
+    this.loadArmorRefinementData();
+
+    // set the flag to true so we only do this once.
+    this._j._refinementDataLoaded = true;
+  }
+};
+
+/**
+ * Loads the refinement data from the notes of weapons.
+ */
+DataManager.loadWeaponRefinementData = function()
+{
+  // iterate over every weapon and process their refinement data.
+  $dataWeapons.forEach(DataManager.processEquipForRefinement);
+};
+
+/**
+ * Loads the refinement data from the notes of armors.
+ */
+DataManager.loadArmorRefinementData = function()
+{
+  $dataArmors.forEach(DataManager.processEquipForRefinement);
+};
+
+/**
+ * The processing of adding the refinement data onto the equip.
+ * This works for both weapons and armor.
+ * @param {RPG_EquipItem} equip The equip to modify.
+ * @param {number} index The index of the equip.
+ */
+DataManager.processEquipForRefinement = function(equip, index)
+{
+  // the first equip is always null.
+  if (!equip) return;
+
+  // add the JAFTING data onto it.
+  equip._jafting = new JAFTING_RefinementData(equip.note, equip.meta);
+
+  // assign the index for refinement reasons.
+  equip.index = index;
+};
+//#endregion DataManager
+
+//#region Game_Item
+/**
+ * Largely overwrites this function to instead leverage an item's index value over
+ * it's ID for setting objects to the item slot.
+ */
+J.JAFTING.Aliased.Game_Item.setObject = Game_Item.prototype.setObject;
+Game_Item.prototype.setObject = function(item)
+{
+  J.JAFTING.Aliased.Game_Item.setObject.call(this, item);
+  this._itemId = item ? item.index : 0;
+};
+//#endregion Game_Item
+
 //#region Scene_Map
 //#region window initialization
 /**
@@ -1851,32 +2264,6 @@ Scene_Map.prototype.toggleJaftingRefineConfirmationWindow = function(visible)
   }
 };
 //#endregion Scene_Map
-//#endregion Scene objects
-
-//#region Window objects
-//#region Window_JaftingModeMenu
-/**
- * Extends the mode command creation to include a new command for refinement.
- */
-J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
-Window_JaftingModeMenu.prototype.makeCommandList = function()
-{
-  J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
-  if ($gameJAFTING.isRefinementHidden()) return;
-
-  const hasEquipment = $gameParty.equipItems().length > 1; // need at least 2 items to refine.
-  const refineAllowed = $gameJAFTING.isRefinementEnabled();
-  const canRefine = hasEquipment && refineAllowed;
-  const refineCommand = {
-    name: J.JAFTING.Messages.RefineCommandName,
-    symbol: `refine-mode`,
-    enabled: canRefine,
-    ext: null,
-    icon: 223
-  };
-  this._list.splice(1, 0, refineCommand);
-};
-//#endregion Window_JaftingModeMenu
 
 //#region Window_JaftingEquip
 /**
@@ -1894,7 +2281,7 @@ class Window_JaftingEquip
     super(rect);
     this.initialize(rect);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes the properties of this class.
@@ -1924,7 +2311,7 @@ class Window_JaftingEquip
      * @type {RPG_EquipItem}
      */
     this._projectedOutput = null;
-  };
+  }
 
   /**
    * Gets the current index that was last assigned of this window.
@@ -1933,7 +2320,7 @@ class Window_JaftingEquip
   get currentIndex()
   {
     return this._currentIndex;
-  };
+  }
 
   /**
    * Sets the current index to a given value.
@@ -1941,7 +2328,7 @@ class Window_JaftingEquip
   set currentIndex(index)
   {
     this._currentIndex = index;
-  };
+  }
 
   /**
    * Gets whether or not this equip list window is the primary equip or not.
@@ -1950,7 +2337,7 @@ class Window_JaftingEquip
   get isPrimary()
   {
     return this._isPrimaryEquipWindow;
-  };
+  }
 
   /**
    * Sets whether or not this equip list window is the base equip or not.
@@ -1959,7 +2346,7 @@ class Window_JaftingEquip
   {
     this._isPrimaryEquipWindow = primary;
     this.refresh();
-  };
+  }
 
   /**
    * Gets the base selection.
@@ -1969,7 +2356,7 @@ class Window_JaftingEquip
   get baseSelection()
   {
     return this._primarySelection;
-  };
+  }
 
   /**
    * Sets the primary selection.
@@ -1977,7 +2364,7 @@ class Window_JaftingEquip
   set baseSelection(equip)
   {
     this._primarySelection = equip;
-  };
+  }
 
   /**
    * OVERWRITE Sets the alignment for this command window to be left-aligned.
@@ -1985,7 +2372,7 @@ class Window_JaftingEquip
   itemTextAlign()
   {
     return "left";
-  };
+  }
 
   /**
    * Creates a list of all available equipment in the inventory.
@@ -2027,11 +2414,11 @@ class Window_JaftingEquip
         ? true
         : canSelectBaseAgain; // only select the base again if you have 2+ copies of it.
 
-      let iconIndex = equip.iconIndex;
+      let {iconIndex} = equip;
 
       let errorText = "";
 
-      // if the equipment is completely unable to 
+      // if the equipment is completely unable to
       if (equip._jafting.unrefinable)
       {
         enabled = false;
@@ -2128,9 +2515,62 @@ class Window_JaftingEquip
 
       this.addCommand(equip.name, 'refine-object', enabled, extData, iconIndex);
     });
-  };
-};
+  }
+}
 //#endregion Window_JaftingEquip
+
+//#region Window_JaftingModeMenu
+/**
+ * Extends the mode command creation to include a new command for refinement.
+ */
+J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
+Window_JaftingModeMenu.prototype.makeCommandList = function()
+{
+  J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
+  if ($gameJAFTING.isRefinementHidden()) return;
+
+  const hasEquipment = $gameParty.equipItems().length > 1; // need at least 2 items to refine.
+  const refineAllowed = $gameJAFTING.isRefinementEnabled();
+  const canRefine = hasEquipment && refineAllowed;
+  const refineCommand = {
+    name: J.JAFTING.Messages.RefineCommandName,
+    symbol: `refine-mode`,
+    enabled: canRefine,
+    ext: null,
+    icon: 223
+  };
+  this._list.splice(1, 0, refineCommand);
+};
+//#endregion Window_JaftingModeMenu
+
+//#region Window_JaftingRefinementConfirmation
+/**
+ * A window that gives the player a chance to confirm or cancel their
+ * refinement before executing.
+ */
+class Window_JaftingRefinementConfirmation
+  extends Window_Command
+{
+  /**
+   * @constructor
+   * @param {Rectangle} rect The rectangle that represents this window.
+   */
+  constructor(rect)
+  {
+    super(rect);
+    this.initialize(rect);
+  }
+
+  /**
+   * OVERWRITE Creates the command list for this window.
+   */
+  makeCommandList()
+  {
+    this.addCommand(`${J.JAFTING.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
+    this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
+  }
+}
+//#endregion Window_JaftingRefinementConfirmation
 
 //#region Window_JaftingRefinementOutput
 /**
@@ -2149,7 +2589,7 @@ class Window_JaftingRefinementOutput
     this.initialize(rect);
     this.initMembers();
     this.opacity = 220;
-  };
+  }
 
   /**
    * Initializes all members of this window.
@@ -2175,7 +2615,7 @@ class Window_JaftingRefinementOutput
      * @type {RPG_EquipItem}
      */
     this._resultingEquip = null;
-  };
+  }
 
   /**
    * Gets the primary equip selected, aka the refinement target.
@@ -2184,7 +2624,7 @@ class Window_JaftingRefinementOutput
   get primaryEquip()
   {
     return this._primaryEquip;
-  };
+  }
 
   /**
    * Sets the primary equip selected, aka the refinement target.
@@ -2194,7 +2634,7 @@ class Window_JaftingRefinementOutput
   {
     this._primaryEquip = equip;
     this.refresh();
-  };
+  }
 
   /**
    * Gets the secondary equip selected, aka the refinement material.
@@ -2203,7 +2643,7 @@ class Window_JaftingRefinementOutput
   get secondaryEquip()
   {
     return this._secondaryEquip;
-  };
+  }
 
   /**
    * Sets the secondary equip selected, aka the refinement material.
@@ -2213,7 +2653,7 @@ class Window_JaftingRefinementOutput
   {
     this._secondaryEquip = equip;
     this.refresh();
-  };
+  }
 
   /**
    * Gets the resulting equip from the output.
@@ -2221,7 +2661,7 @@ class Window_JaftingRefinementOutput
   get outputEquip()
   {
     return this._resultingEquip;
-  };
+  }
 
   /**
    * Sets the resulting equip to the output to allow for the scene to grab the data.
@@ -2230,19 +2670,19 @@ class Window_JaftingRefinementOutput
   set outputEquip(equip)
   {
     this._resultingEquip = equip;
-  };
+  }
 
   lineHeight()
   {
     return 32;
-  };
+  }
 
   refresh()
   {
     // redraw all the contents.
     this.contents.clear();
     this.drawContent();
-  };
+  }
 
   /**
    * Draws all content in this window.
@@ -2255,7 +2695,7 @@ class Window_JaftingRefinementOutput
     this.drawRefinementTarget();
     this.drawRefinementMaterial();
     this.drawRefinementResult();
-  };
+  }
 
   /**
    * Draws the primary equip that is being used as a base for refinement.
@@ -2264,7 +2704,7 @@ class Window_JaftingRefinementOutput
   drawRefinementTarget()
   {
     this.drawEquip(this.primaryEquip, 0, "base");
-  };
+  }
 
   /**
    * Draws the secondary equip that is being used as a material for refinement.
@@ -2275,7 +2715,7 @@ class Window_JaftingRefinementOutput
     if (!this.secondaryEquip) return;
 
     this.drawEquip(this.secondaryEquip, 350, "material");
-  };
+  }
 
   /**
    * Draws one column of a piece of equip and it's traits.
@@ -2288,7 +2728,7 @@ class Window_JaftingRefinementOutput
     const jaftingTraits = $gameJAFTING.combineBaseParameterTraits($gameJAFTING.parseTraits(equip));
     this.drawEquipTitle(equip, x, type);
     this.drawEquipTraits(jaftingTraits, x);
-  };
+  }
 
   /**
    * Draws the title for this portion of the equip details.
@@ -2341,7 +2781,7 @@ class Window_JaftingRefinementOutput
     {
       this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${equip.name}\\C[0]`, x, lh * 1, 200);
     }
-  };
+  }
 
   /**
    * Draws all transferable traits on this piece of equipment.
@@ -2364,7 +2804,7 @@ class Window_JaftingRefinementOutput
       const y = (lh * 2) + (index * lh);
       this.drawTextEx(`${trait.nameAndValue}`, x, y, 250);
     });
-  };
+  }
 
   /**
    * Draws the projected refinement result of fusing the material into the base.
@@ -2381,301 +2821,7 @@ class Window_JaftingRefinementOutput
 
     // assign it for ease of retrieving from the scene.
     this.outputEquip = result;
-  };
+  }
 
-};
+}
 //#endregion Window_JaftingRefinementOutput
-
-//#region Window_JaftingRefinementConfirmation
-/**
- * A window that gives the player a chance to confirm or cancel their
- * refinement before executing.
- */
-class Window_JaftingRefinementConfirmation
-  extends Window_Command
-{
-  /**
-   * @constructor
-   * @param {Rectangle} rect The rectangle that represents this window.
-   */
-  constructor(rect)
-  {
-    super(rect);
-    this.initialize(rect);
-  };
-
-  /**
-   * OVERWRITE Creates the command list for this window.
-   */
-  makeCommandList()
-  {
-    this.addCommand(`${J.JAFTING.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
-    this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
-  };
-};
-//#endregion Window_JaftingRefinementConfirmation
-//#endregion Window objects
-
-//#region Custom objects
-//#region JAFTING_Trait
-/**
- * A class representing a single trait on a piece of equipment that can be potentially
- * transferred by means of JAFTING's refinement mode.
- */
-function JAFTING_Trait()
-{
-  this.initialize(...arguments);
-};
-JAFTING_Trait.prototype = {};
-JAFTING_Trait.prototype.constructor = JAFTING_Trait;
-
-/**
- * Initializes the members of this class.
- * @param {number} code The code of the trait.
- * @param {number} dataId The dataId of the trait.
- * @param {number} value The value of the trait.
- */
-JAFTING_Trait.prototype.initialize = function(code, dataId, value)
-{
-  this._code = code;
-  this._dataId = dataId;
-  this._value = value;
-};
-
-/**
- * The defacto of what JAFTING considers a "divider" trait.
- * All traits defined AFTER this trait are considered transferable.
- * @returns {RPG_Trait}
- */
-JAFTING_Trait.divider = function()
-{
-  return {code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1};
-};
-
-/**
- * Gets a standardized concatenation of the name and value for a given trait.
- * @returns {string}
- */
-Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
-  get()
-  {
-    return `${this.name} ${this.value}`;
-  },
-  configurable: true,
-});
-
-/**
- * Gets the friendly name of the trait based on the trait code.
- * @returns {string}
- */
-Object.defineProperty(JAFTING_Trait.prototype, "name", {
-  get()
-  {
-    switch (this._code)
-    {
-      // first tab.
-      case 11:
-        return `${$dataSystem.elements[this._dataId]} dmg`;
-      case 12:
-        return `${TextManager.param(this._dataId)} debuff rate`;
-      case 13:
-        return `${$dataStates[this._dataId].name} resist`;
-      case 14:
-        return `Immune to`;
-
-      // second tab.
-      case 21:
-        return `${TextManager.param(this._dataId)}`;
-      case 22:
-        return `${TextManager.xparam(this._dataId)}`;
-      case 23:
-        return `${TextManager.sparam(this._dataId)}`;
-
-      // third tab.
-      case 31:
-        return `Attack Element:`;
-      case 32:
-        return `${$dataStates[this._dataId].name} on-hit`;
-      case 33:
-        return `Skill Speed`;
-      case 34:
-        return `Times`;
-      case 35:
-        return `Basic Attack w/`;
-
-      // fourth tab.
-      case 41:
-        return `Unlock:`;
-      case 42:
-        return `Lock:`;
-      case 43:
-        return `Learn:`;
-      case 44:
-        return `Seal:`;
-
-      // fifth tab.
-      case 51:
-        return `${$dataSystem.weaponTypes[this._dataId]}`;
-      case 52:
-        return `${$dataSystem.armorTypes[this._dataId]}`;
-      case 53:
-        return `${$dataSystem.equipTypes[this._dataId]}`;
-      case 54:
-        return `${$dataSystem.equipTypes[this._dataId]}`;
-      case 55:
-        return `${this._dataId ? "Enable" : "Disable"}`;
-
-      // sixth tab.
-      case 61:
-        return `Another turn chance:`;
-      case 62:
-        return `${this.translateSpecialFlag()}`;
-      case 64:
-        return `${this.translatePartyAbility()}`;
-
-      case 63:
-        return `TRANSFERABLE TRAITS`;
-      default:
-        return "All traits were implemented,";
-    }
-  },
-  configurable: true,
-});
-
-/**
- * Gets the friendly value of the trait based on the trait code and value.
- * @returns {string}
- */
-Object.defineProperty(JAFTING_Trait.prototype, "value", {
-  get()
-  {
-    switch (this._code)
-    {
-      // first tab.
-      case 11:
-        const calculatedElementalRate = Math.round(100 - (this._value * 100));
-        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
-      case 12:
-        const calculatedDebuffRate = Math.round((this._value * 100) - 100);
-        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
-      case 13:
-        const calculatedStateRate = Math.round(100 - (this._value * 100));
-        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
-      case 14:
-        return `${$dataStates[this._dataId].name}`;
-
-      // second tab.
-      case 21:
-        const calculatedBParam = Math.round((this._value * 100) - 100);
-        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
-      case 22:
-        const calculatedXParam = Math.round((this._value * 100));
-        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
-      case 23:
-        const calculatedSParam = Math.round((this._value * 100) - 100);
-        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
-
-      // third tab.
-      case 31:
-        return `${$dataSystem.elements[this._dataId]}`;
-      case 32:
-        return `${(this._value * 100)}%`;
-      case 33:
-        return `${this._value > 0 ? "+" : "-"}${this._value}`;
-      case 34:
-        return `${this._value > 0 ? "+" : "-"}${this._value}`;
-      case 35:
-        return `${$dataSkills[this._value].name}`;
-
-      // fourth tab.
-      case 41:
-        return `${$dataSystem.skillTypes[this._dataId]}`;
-      case 42:
-        return `${$dataSystem.skillTypes[this._dataId]}`;
-      case 43:
-        return `${$dataSkills[this._dataId].name}`;
-      case 44:
-        return `${$dataSkills[this._dataId].name}`;
-
-      // fifth tab.
-      case 51:
-        return `proficiency`;
-      case 52:
-        return `proficiency`;
-      case 53:
-        return `is locked`;
-      case 54:
-        return `is sealed`;
-      case 55:
-        return `Dual-wield`;
-
-      // sixth tab.
-      case 61:
-        return `${Math.round(this._value * 100)}%`;
-      case 62:
-        return ``;
-      case 64:
-        return ``;
-      case 63:
-        return ``;
-      default:
-        return "is this a custom trait?";
-    }
-  },
-  configurable: true,
-});
-
-/**
- * Translates the data id of the trait into what it represents according to RMMZ.
- * @returns {string}
- */
-JAFTING_Trait.prototype.translateSpecialFlag = function()
-{
-  switch (this._dataId)
-  {
-    case 0:
-      return `Autobattle`;
-    case 1:
-      return `Empowered Guard`;
-    case 2:
-      return `Cover/Substitute`;
-    case 3:
-      return `Preserve TP`;
-  }
-};
-
-/**
- * Translates the data id of the trait into what it represents according to RMMZ.
- * @returns {string}
- */
-JAFTING_Trait.prototype.translatePartyAbility = function()
-{
-  switch (this._dataId)
-  {
-    case 0:
-      return `Encounter Half`;
-    case 1:
-      return `Encounter None`;
-    case 2:
-      return `Prevent Surprise`;
-    case 3:
-      return `Frequent Pre-emptive`;
-    case 4:
-      return `Gold Dropped 2x`;
-    case 5:
-      return `Item Drop Chance 2x`;
-  }
-};
-
-/**
- * Gets the original RM trait associated with this JAFTING trait.
- * @returns {RPG_Trait}
- */
-JAFTING_Trait.prototype.convertToRmTrait = function()
-{
-  return {code: this._code, dataId: this._dataId, value: this._value};
-};
-//#endregion JAFTING_Trait
-//#endregion Custom objects
-
-//ENDFILE

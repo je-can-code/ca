@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 10:47:16 GMT-0700 (Pacific Daylight Time)  */
+
 //#region introduction
 /*:
  * @target MZ
@@ -5,7 +7,7 @@
  * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @base J-BASE
+ * @base J-Base
  * @orderAfter J-BASE
  * @help
  * ============================================================================
@@ -139,8 +141,8 @@ PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshImageCache"
   $hudManager.requestRefreshImageCache();
 });
 //#endregion plugin commands
+//#endregion introduction
 
-//#region Scene objects
 //#region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
@@ -282,9 +284,7 @@ Scene_Map.prototype.handleRefreshPartyFrameImageCache = function()
   }
 };
 //#endregion Scene_Map
-//#endregion Scene objects
 
-//#region Window objects
 //#region Window_PartyFrame
 /**
  * A window containing the HUD data for the map.
@@ -331,7 +331,7 @@ class Window_PartyFrame extends Window_Base
   {
     // required when extending a base class.
     super(rect);
-  };
+  }
 
   /**
    * Initializes this class.
@@ -350,7 +350,7 @@ class Window_PartyFrame extends Window_Base
 
     // refresh the window for the first time.
     this.refresh();
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -362,7 +362,7 @@ class Window_PartyFrame extends Window_Base
      * @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon>}
      */
     this._hudSprites = new Map();
-  };
+  }
 
   /**
    * Performs the one-time setup and configuration per instantiation.
@@ -374,7 +374,7 @@ class Window_PartyFrame extends Window_Base
 
     // initialize the cache.
     this.refreshCache();
-  };
+  }
 
   /**
    * Redraw all contents of the window.
@@ -389,7 +389,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw the hud anew.
     this.drawHud();
-  };
+  }
 
   /**
    * Hide all sprites for the hud.
@@ -409,7 +409,7 @@ class Window_PartyFrame extends Window_Base
         sprite.deactivateGauge();
       }
     });
-  };
+  }
 
   //#region caching
   /**
@@ -422,7 +422,7 @@ class Window_PartyFrame extends Window_Base
 
     // recreate all sprites for the cache.
     this.createCache();
-  };
+  }
 
   /**
    * Empties the cache of all sprites.
@@ -434,7 +434,7 @@ class Window_PartyFrame extends Window_Base
 
     // empty the collection of all references.
     this._hudSprites.clear();
-  };
+  }
 
   /**
    * Creates all sprites for this hud and caches them.
@@ -466,7 +466,7 @@ class Window_PartyFrame extends Window_Base
         this.getOrCreateActorValueSprite(actor, gaugeType);
       });
     });
-  };
+  }
 
   /**
    * Creates the key for an actor's face sprite based on the parameters.
@@ -479,7 +479,7 @@ class Window_PartyFrame extends Window_Base
     return isFull
       ? `face-full-${actor.name()}-${actor.actorId()}`
       : `face-mini-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates a full-sized face sprite for the given actor and caches it.
@@ -516,7 +516,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created full sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates a mini-sized face sprite for the given actor and caches it.
@@ -553,7 +553,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created mini sprite.
     return sprite;
-  };
+  }
 
   /**
    * An array of all gauge types; for convenience.
@@ -567,7 +567,7 @@ class Window_PartyFrame extends Window_Base
       Window_PartyFrame.gaugeTypes.TP,
       Window_PartyFrame.gaugeTypes.XP
     ];
-  };
+  }
 
   /**
    * Creates the key for an actor's gauge sprite based on the parameters.
@@ -580,7 +580,7 @@ class Window_PartyFrame extends Window_Base
   {
     const gaugeSize = isFull ? `full` : `mini`;
     return `gauge-${gaugeType}-${gaugeSize}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Determines the gauge height based on the gauge type.
@@ -602,7 +602,7 @@ class Window_PartyFrame extends Window_Base
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates a full-sized gauge sprite for the given actor and caches it.
@@ -648,7 +648,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Determines the gauge height based on the gauge type.
@@ -670,7 +670,7 @@ class Window_PartyFrame extends Window_Base
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates a mini-sized gauge sprite for the given actor and caches it.
@@ -716,7 +716,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for an actor's gauge value sprite based on the parameters.
@@ -727,7 +727,7 @@ class Window_PartyFrame extends Window_Base
   makeValueSpriteKey(actor, gaugeType)
   {
     return `value-${gaugeType}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates a actor value sprite for the given actor's gauge and caches it.
@@ -767,7 +767,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Determines the font size for the actor value based on the gauge type.
@@ -791,7 +791,7 @@ class Window_PartyFrame extends Window_Base
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates the key for an actor's state affliction.
@@ -802,7 +802,7 @@ class Window_PartyFrame extends Window_Base
   makeStateIconSpriteKey(actor, stateId)
   {
     return `state-${stateId}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates an icon sprite for a given state.
@@ -839,7 +839,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for an actor's state affliction.
@@ -850,7 +850,7 @@ class Window_PartyFrame extends Window_Base
   makeStateTimerSpriteKey(actor, stateId)
   {
     return `timer-${stateId}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates the timer sprite for a given state.
@@ -884,7 +884,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
   //#endregion caching
 
   /**
@@ -897,7 +897,7 @@ class Window_PartyFrame extends Window_Base
 
     // update our stuff.
     this.drawHud();
-  };
+  }
 
   /**
    * Draws the contents of the HUD.
@@ -918,7 +918,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw all allies' data.
     this.drawAllies(136, 8);
-  };
+  }
 
   //#region visibility
   /**
@@ -941,7 +941,7 @@ class Window_PartyFrame extends Window_Base
       // undo the opacity changes.
       this.revertInterferenceOpacity();
     }
-  };
+  }
 
   /**
    * Close and open the window based on whether or not the message window is up.
@@ -967,7 +967,7 @@ class Window_PartyFrame extends Window_Base
       // just open the window.
       this.open();
     }
-  };
+  }
 
   /**
    * Determines whether or not the player is in the way (or near it) of this window.
@@ -978,7 +978,7 @@ class Window_PartyFrame extends Window_Base
     const playerX = $gamePlayer.screenX();
     const playerY = $gamePlayer.screenY();
     return (playerX < this.width+100) && (playerY < this.height+100);
-  };
+  }
 
   /**
    * Manages opacity for all sprites while the player is interfering with the visibility.
@@ -992,7 +992,7 @@ class Window_PartyFrame extends Window_Base
       // if we are below 64, increment by +1 until we get to 64.
       else if (sprite.opacity < 64) sprite.opacity += 1;
     });
-  };
+  }
 
   /**
    * Reverts the opacity changes associated with the player getting in the way.
@@ -1006,7 +1006,7 @@ class Window_PartyFrame extends Window_Base
       // if we are above 255, set to 255.
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
-  };
+  }
   //#endregion visibility
 
   /**
@@ -1027,7 +1027,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw states for the leader.
     this.drawStates();
-  };
+  }
 
   /**
    * Draw the leader's face.
@@ -1043,7 +1043,7 @@ class Window_PartyFrame extends Window_Base
     const sprite = this.getOrCreateFullSizeFaceSprite(leader);
     sprite.move(x, y);
     sprite.show();
-  };
+  }
 
   /**
    * Draws all gauges for the leader into the hud.
@@ -1106,7 +1106,7 @@ class Window_PartyFrame extends Window_Base
     const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
     levelNumbers.move(x+84, oy-24);
     levelNumbers.show();
-  };
+  }
 
   /**
    * Draw all states for the leader of the party.
@@ -1148,7 +1148,7 @@ class Window_PartyFrame extends Window_Base
         this.drawState(leader, positiveTrackedState, x, y);
       });
     }
-  };
+  }
 
   /**
    * Hides all expired states on the leader.
@@ -1181,7 +1181,7 @@ class Window_PartyFrame extends Window_Base
         timerSprite.hide();
       });
     }
-  };
+  }
 
   /**
    * The filter function for determining positive states.
@@ -1199,7 +1199,7 @@ class Window_PartyFrame extends Window_Base
     }
 
     return true;
-  };
+  }
 
   /**
    * The filter function for determining negative states.
@@ -1217,7 +1217,7 @@ class Window_PartyFrame extends Window_Base
     }
 
     return false;
-  };
+  }
 
   /**
    * Draws a single state onto the hud.
@@ -1235,7 +1235,7 @@ class Window_PartyFrame extends Window_Base
     const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
     timerSprite.move(ox-4, y+20);
     timerSprite.show();
-  };
+  }
 
   /**
    * Draw all allies data for the hud.
@@ -1257,7 +1257,7 @@ class Window_PartyFrame extends Window_Base
       const y = oy + lh*(index-1);
       this.drawAlly(ally, x, y);
     });
-  };
+  }
 
   /**
    * Draws a single ally's data for the hud.
@@ -1272,7 +1272,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw the ally's mini gauges.
     this.drawAllyGauges(ally, x+40, oy+6);
-  };
+  }
 
   /**
    * Draws a single ally's mini face for the hud.
@@ -1286,7 +1286,7 @@ class Window_PartyFrame extends Window_Base
     const sprite = this.getOrCreateMiniSizeFaceSprite(ally);
     sprite.move(x, y);
     sprite.show();
-  };
+  }
 
   /**
    * Draws a single ally's mini gauges.
@@ -1316,12 +1316,6 @@ class Window_PartyFrame extends Window_Base
     tpGauge.activateGauge();
     tpGauge.move(x-24, oy + lh*2);
     tpGauge.show();
-  };
+  }
 }
 //#endregion Window_PartyFrame
-//#endregion Window objects
-
-//#region Custom objects
-
-//#endregion Custom objects
-//ENDOFFILE

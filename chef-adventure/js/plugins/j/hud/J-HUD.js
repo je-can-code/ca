@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 10:42:38 GMT-0700 (Pacific Daylight Time)  */
+
 //#region introduction
 /*:
  * @target MZ
@@ -6,7 +8,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-ABS
- * @base J-BASE
+ * @base J-Base
  * @base J-HUD
  * @orderAfter J-ABS
  * @orderAfter J-BASE
@@ -68,14 +70,13 @@ J.HUD.Aliased = {
 };
 //#endregion metadata
 
-//#endregion introduction
-
 /**
  * A global object for managing the hud.
  * @global
  * @type {Hud_Manager}
  */
 var $hudManager = null;
+//#endregion introduction
 
 //#region Hud_Manager
 /**
@@ -630,7 +631,6 @@ class Hud_Manager
 }
 //#endregion Hud_Manager
 
-//#region Static objects
 //#region DataManager
 /**
  * Instantiates the hud manager after the rest of the objects are created.
@@ -669,9 +669,7 @@ DataManager.setupNewGame = function()
   $hudManager.setup();
 };
 //#endregion DataManager
-//#endregion Static objects
 
-//#region Game objects
 //#region Game_System
 /**
  * Extends the `initialize()` to include our hud data for remembering.
@@ -724,9 +722,7 @@ Game_System.prototype.getHudAlliesVisible = function()
   return this._j._hud._alliesVisible;
 };
 //#endregion Game_System
-//#endregion Game objects
 
-//#region Scene objects
 //#region Scene_Map
 /**
  * Extends the `update()` function to also monitor updates for the hud.
@@ -753,13 +749,11 @@ Scene_Map.prototype.updateHudFrames = function()
 /**
  * A hook for refreshing all frames of the HUD.
  */
-Scene_Map.prototype.refreshHud = function() 
+Scene_Map.prototype.refreshHud = function()
 { };
 //#endregion Scene_Map
-//#endregion Scene objects
 
-//#region Window objects
-//#region Window_InputFrame
+//#region Window_Frame
 /**
  * A base class with some common sprite-cache-management features.
  */
@@ -769,10 +763,10 @@ class Window_Frame extends Window_Base
    * Constructor.
    * @param {Rectangle} rect The shape of this window.
    */
-  constructor(rect) 
-{
- super(rect); 
-}
+  constructor(rect)
+  {
+    super(rect);
+  }
 
   /**
    * Initializes the properties of this class.
@@ -800,11 +794,13 @@ class Window_Frame extends Window_Base
      */
     this._j ||= {};
 
+    /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
      * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
+    /* eslint-enable max-len */
   }
 
   /**
@@ -870,8 +866,4 @@ class Window_Frame extends Window_Base
     // fill with window frame logic.
   }
 }
-//#endregion Window_InputFrame
-//#endregion Window objects
-
-
-//ENDOFFILE
+//#endregion Window_Frame

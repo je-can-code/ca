@@ -1,7 +1,9 @@
+/*  BUNDLED TIME: Thu Jun 30 2022 15:54:39 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
- * @plugindesc 
+ * @plugindesc
  * [v1.0.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/ca
@@ -9,18 +11,18 @@
  * ============================================================================
  * This plugin enables the ability to modify skills with note tags to to
  * further control a skill's elemental properties in the context of battle.
- * 
+ *
  * By overwriting the .calcElementRate() function, we have added new
  * functionality to elemental processing:
  * - Skills can now possess more than one element.
  * - Elements can now be absorbed.
  * - Elements can now be boosted.
  * - Actors/Enemies can now whitelist effective elements.
- * 
+ *
  * WARNING:
  * None of the note tags below support negative numbers and are white-space
  * sensitive. Follow the examples closely to achieve your desired effects.
- * 
+ *
  * NOTE:
  * Combining multiple elements together is done multiplicatively for all
  * the various operations below.
@@ -29,24 +31,24 @@
  * Have you ever wanted a skill to be both fire and ice typed? Well now you
  * can! By applying the appropriate tag to the skill(s) in question, you can
  * add one or more "attack elements" to a given skill.
- * 
+ *
  * NOTE:
  * If you use "normal attack" as the base element on a skill, you will apply
  * all elements that your normal attack should include AND all elements you
  * add with this tag.
- * 
+ *
  * TAG USAGE:
  * - Skills Only
- * 
+ *
  * TAG FORMAT:
  *  <attackElements:[NUM]>          (for one extra element)
  *  <attackElements:[NUM,NUM,...]>  (for many extra elements)
- * 
+ *
  * TAG EXAMPLE(S):
  *  <attackElements:[22]>
  * Adds the element of 22 to the skill, in addition to any other attack
  * elements the skill has.
- * 
+ *
  *  <attackElements:[1,2,5]>
  * Adds elements 1, 2, and 5 to the skill, in addition to any other attack
  * elements the skill has.
@@ -56,7 +58,7 @@
  * Well now you can! By applying the appropriate note tag to the various
  * database locations applicable, you can absorb one or more "absorb elements"
  * from anything that performs elemental calculations (mostly skills/items).
- * 
+ *
  * DETAILS:
  * When a skill lands on a battler, all relevant notes will be checked to see
  * if the incoming skill elements have any overlap with the elements that this
@@ -64,26 +66,26 @@
  * elements will be removed from consideration and all elements being absorbed
  * will have their rates multiplied together. Absorption is prioritized over
  * handling elements with 0% rate (null elements).
- * 
+ *
  * EXAMPLE 1:
  * If an enemy was weak to fire, but absorbed ice, and you hit them with a
  * fire+ice element skill, the weakness would be ignored and the skill would
  * be absorbed at the rate provided for ice.
- * 
+ *
  * EXAMPLE 2:
  * If an enemy was immune to fire, but absorbed ice, and you hit them with a
  * fire+ice element skill, the immunity would be ignored, and the skill would
  * be absorbed at the rate provided.
- * 
+ *
  * EXAMPLE 3:
  * If an enemy absorbed both fire at 200% (or no rate specified) and ice at
  * the rate of 300%, and you hit them with a fire+ice element skill, the
  * rates would be multiplied together and the rate would be 600% damage
  * absorbed.
- * 
+ *
  * NOTE:
  * Defining the same element on two different sources does nothing extra.
- * 
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
@@ -97,14 +99,14 @@
  *  <absorbElements:[NUM]>          (for one absorbed element)
  *  <absorbElements:[NUM,NUM,...]>  (for many absorbed elements)
  * Where NUM is the element id from the "types" tab.
- * 
+ *
  * TAG EXAMPLES:
  *  <absorbElements:[4]>
  * This battler now absorbs element id of 4.
- * 
+ *
  *  <absorbElements:[10,18]>
  * This battler now absorbs elements 10 and 18.
- * 
+ *
  *  <absorbElements:[3,7]> on battler (either actor or enemy)
  *  <absorbElements:[4,7,9,12]> on armor (only applicable to actors)
  *  <absorbElements:[10]> on state
@@ -162,7 +164,7 @@
  * By applying the appropriate note tag to the various database locations
  * applicable, you can restrict incoming damage to be limited to only a
  * subset of the available elements.
- * 
+ *
  * DETAILS:
  * All sources are checked and a list of all "strict" elements are combined
  * to define for a given battler. Effectively, this is a whitelist of all
@@ -170,14 +172,14 @@
  * sources, then all elements are added to the list as a default. Similar
  * to absorption, only the elements that a skill has that overlap with the
  * "strict" elements of a battler are considered for calculation.
- * 
+ *
  * NOTE:
  * Defining the same element on two different sources does nothing extra.
  * Additionally, this effect could also be done without this plugin by just
  * adding a 0%-rate for all elements except the one you want, but if you
  * have a ton of elements, that might get unwieldly, which is the exact
  * reason I created this functionality.
- * 
+ *
  * TAG USAGE:
  * - Actors
  * - Enemies
@@ -185,23 +187,23 @@
  * - Armors
  * - States
  * - Classes
- * 
+ *
  * TAG FORMAT:
  *  <strictElements:[NUM]>          (for one strict element)
  *  <strictElements:[NUM,NUM,...]>  (for many strict elements)
- * 
+ *
  * TAG EXAMPLES:
  *  <strictElements:[8]>
  * This battler now can only receive damage from skills with element id of 8.
- * 
+ *
  *  <strictElements:[3,5,6]>
  * This battler now can only receive damage from skills that include the
  * element id of 3, 5, or 6.
- * 
+ *
  *  <strictElements:[1,2,3,4,5,6]> on state applied to battler.
  *  <strictElements:[1,8]> on battler (either actor or enemy).
  * This battler now can only receive damage from skills that include the
- * element id of 1, 2, 3, 4, 5, 6, or 8. 
+ * element id of 1, 2, 3, 4, 5, 6, or 8.
  * ============================================================================
  */
 
@@ -237,7 +239,7 @@ J.ELEM.Aliased = {
 };
 //#endregion Introduction
 
-//#region Game objects
+//#region Game_Action
 /**
  * OVERWRITE Calculates the elemental rates of this action against the designated target.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -384,7 +386,7 @@ Game_Action.prototype.multipleElementalRates = function(target, elements)
     return this.calculateAntiNullElementalRate(target, elements);
   }
 
-  // if we have an absorb rate amidst the attack elements that the target absorbs... 
+  // if we have an absorb rate amidst the attack elements that the target absorbs...
   const hasAbsorbRate = target.elementsAbsorbed().some(absorbed => elements.includes(absorbed));
   if (hasAbsorbRate)
   {
@@ -916,4 +918,3 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
 };
 
 //#endregion Game_Enemy
-//#endregion Game objects

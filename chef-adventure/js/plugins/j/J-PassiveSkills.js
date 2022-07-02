@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sat Jul 02 2022 09:25:57 GMT-0700 (Pacific Daylight Time)  */
+
 //#region Introduction
 /*:
  * @target MZ
@@ -92,8 +94,6 @@ J.PASSIVE.Aliased = {
   Game_Enemy: new Map(),
 };
 //#endregion Introduction
-
-//#region Game objects
 
 //#region Game_Actor
 /**
@@ -491,5 +491,3 @@ Game_Enemy.prototype.skillIdsFromSelf = function()
   return this.skills().map(skill => skill.id);
 };
 //#endregion Game_Enemy
-
-//#endregion Game objects

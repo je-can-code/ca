@@ -81,7 +81,7 @@ async function main()
     await addInitFiles(templatePath);
   }
 
-  Logger.logAnyway(`Initter has completed execution. 💯✅`)
+  Logger.logAnyway(`Initter™ has completed execution. 💯✅`)
 }
 
 /**
