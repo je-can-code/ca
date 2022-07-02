@@ -1,6 +1,6 @@
 [
 null,
-{"id":1,"expanded":true,"name":"Test Oasis","order":3,"parentId":0,"scrollX":878.5,"scrollY":771},
+{"id":1,"expanded":true,"name":"Test Oasis","order":3,"parentId":0,"scrollX":878.5,"scrollY":771.5},
 {"id":2,"expanded":false,"name":"_ActionMap","order":1,"parentId":0,"scrollX":733,"scrollY":649},
 {"id":3,"expanded":true,"name":"DUNGEON: Crossover","order":35,"parentId":77,"scrollX":850.5,"scrollY":649},
 {"id":4,"expanded":false,"name":"Cave - 1 - START","order":36,"parentId":3,"scrollX":939,"scrollY":649},

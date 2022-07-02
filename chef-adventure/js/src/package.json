@@ -56,10 +56,10 @@
     "watch:hud-input": "nodemon -L utils/combine.js ./j/hud/ext/input ../plugins/j/hud/ext J-HUD-InputFrame.js",
 
     "once:hud-party": "node utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
-    "watch:hud-part": "nodemon -L utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
+    "watch:hud-party": "nodemon -L utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
 
-    "once:hud-target": "node utils/combine.js ./j/hud/ext/target ../plugins/j/hud J-HUD-TargetFrame.js",
-    "watch:hud-target": "nodemon -L utils/combine.js ./j/hud/ext/target ../plugins/j/hud J-HUD-TargetFrame.js",
+    "once:hud-target": "node utils/combine.js ./j/hud/ext/target ../plugins/j/hud/ext J-HUD-TargetFrame.js",
+    "watch:hud-target": "nodemon -L utils/combine.js ./j/hud/ext/target ../plugins/j/hud/ext J-HUD-TargetFrame.js",
 
 
     "once:level": "node utils/combine.js ./j/level ../plugins/j J-LevelMaster.js",

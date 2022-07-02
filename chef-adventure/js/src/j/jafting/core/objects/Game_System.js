@@ -5,8 +5,11 @@
 J.JAFTING.Aliased.Game_System.initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function()
 {
-  this.initJaftingMembers();
+  // perform original logic.
   J.JAFTING.Aliased.Game_System.initialize.call(this);
+
+  // initialize the members.
+  this.initJaftingMembers();
 };
 
 /**
@@ -27,13 +30,15 @@ Game_System.prototype.initJaftingMembers = function()
    * The collection of all jafting recipes extracted from the database.
    * @type {JAFTING_Recipe[]}
    */
-  this._j._jafting._recipes = J.JAFTING.Metadata.Recipes;
+  this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+  // J.JAFTING.Metadata.Recipes;
 
   /**
    * The collection of all categories that are viewable within the JAFTING menu.
    * @type {JAFTING_Category[]}
    */
-  this._j._jafting._categories = J.JAFTING.Metadata.Categories;
+  this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
+  // J.JAFTING.Metadata.Categories;
 
   /**
    * A request to refresh the windows of JAFTING.

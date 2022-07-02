@@ -204,12 +204,12 @@ J.JAFTING.Metadata = {
   /**
    * All recipes defined in the plugin settings that can be JAFTED.
    */
-  Recipes: J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']),
+  Recipes: [], //() => J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']),
 
   /**
    * All categories defined in the plugin settings that can contain JAFTING recipes.
    */
-  Categories: J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']),
+  Categories: [], //J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']),
 };
 
 /**
