@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import pkg from '../package.json' assert { type: 'json' };
 import Logger from './logger.js';
 
@@ -30,7 +30,7 @@ for (const key in scripts)
   const execution = new Promise(resolve =>
   {
     // kick off the command.
-    const process = exec(command, { stdio: "pipe" }, () => resolve(command));
+    const process = exec(command, { stdio: "pipe" }, () => resolve());
 
     // track the output and log it.
     process.stdout.on('data', data => Logger.log(data));
