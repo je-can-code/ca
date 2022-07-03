@@ -1,4 +1,4 @@
-import { exec, spawn } from 'child_process';
+import { exec } from 'child_process';
 import pkg from '../package.json' assert { type: 'json' };
 import Logger from './logger.js';
 
