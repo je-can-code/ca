@@ -210,7 +210,7 @@ J.SDP.Aliased = {
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: {},
-  Game_System: {},
+  Game_System: new Map(),
   Scene_Map: {},
   Scene_Menu: {},
   Window_AbsMenu: {},

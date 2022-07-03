@@ -204,12 +204,12 @@ J.JAFTING.Metadata = {
   /**
    * All recipes defined in the plugin settings that can be JAFTED.
    */
-  Recipes: [], //() => J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']),
+  Recipes: [],
 
   /**
    * All categories defined in the plugin settings that can contain JAFTING recipes.
    */
-  Categories: [], //J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']),
+  Categories: [],
 };
 
 /**
@@ -219,7 +219,7 @@ J.JAFTING.Aliased = {
   DataManager: {},
   Game_Party: new Map(),
   Game_Player: {},
-  Game_System: {},
+  Game_System: new Map(),
   Scene_Map: {},
 };
 

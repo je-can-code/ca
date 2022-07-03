@@ -131,8 +131,10 @@ J.DIFF.Metadata = {
   // the previously defined metadata.
   ...J.DIFF.Metadata,
 
-  Difficulties: J.DIFF.Helpers.toDifficulties(J.DIFF.PluginParameters['difficulties'])|| [],
-
+  /**
+   * The key for the default difficulty.
+   * @type {string}
+   */
   DefaultDifficulty: J.DIFF.PluginParameters['defaultDifficulty'] || String.empty,
 };
 

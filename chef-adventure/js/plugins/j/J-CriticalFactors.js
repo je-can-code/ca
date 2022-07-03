@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jun 30 2022 15:47:42 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 03 2022 12:42:05 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -7,6 +7,9 @@
  * [v1.0.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @orderAfter J-BASE
+ * @orderAfter J-SDP
+ * @orderAfter J-NaturalGrowths
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage

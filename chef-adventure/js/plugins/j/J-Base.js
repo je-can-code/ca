@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jun 30 2022 15:54:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 03 2022 12:42:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -242,7 +242,7 @@ J.BASE.Aliased = {
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
-  Scene_Base: new Map(),
+  Scene_Load: new Map(),
   SoundManager: new Map(),
   Window_Base: {},
   Window_Command: {},

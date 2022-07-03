@@ -38,15 +38,11 @@ import { existsSync } from 'fs';
 import * as fs from 'fs/promises';
 import Logger from './logger.js';
 
-// explicitly enable logging.
-Logger.enableLogging();
-
 // whether or not to include a timestamp of when this was bundled up.
 const USE_BUNDLE_TIMESTAMP = true;
 
 // do the work.
 await main();
-
 
 /**
  * The main function that will do the work.
@@ -89,9 +85,9 @@ async function main()
   // write the file to the designated location.
   await fs.writeFile(filepathAndName, bundledJs, 'utf-8');
 
-  Logger.log(`finished combining all files into 1 as ${OUT_FILENAME}`);
+  Logger.log(`finished combining all files into 1.`);
 
-  Logger.logAnyway(`Combiner™ has completed execution. 💯✅`);
+  Logger.logAnyway(`Combiner™ has completed execution for ${OUT_FILENAME}. 💯✅`);
 }
 
 /**

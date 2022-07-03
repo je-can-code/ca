@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jul 02 2022 15:00:20 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 03 2022 12:42:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -620,7 +620,7 @@ J.SDP.Aliased = {
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: {},
-  Game_System: {},
+  Game_System: new Map(),
   Scene_Map: {},
   Scene_Menu: {},
   Window_AbsMenu: {},
@@ -1897,11 +1897,14 @@ Game_Switches.prototype.onChange = function()
 /**
  * Hooks in and initializes the SDP system.
  */
-J.SDP.Aliased.Game_System.initialize = Game_System.prototype.initialize;
+J.SDP.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
+  // perform original logic.
+  J.SDP.Aliased.Game_System.get('initialize').call(this);
+
+  // initializes members for this plugin.
   this.initSdpMembers();
-  J.SDP.Aliased.Game_System.initialize.call(this);
 };
 
 /**
@@ -1920,9 +1923,31 @@ Game_System.prototype.initSdpMembers = function()
   this._j._sdp ||= {};
 
   /**
-   * The collection of all panels earned (though maybe not unlocked).
+   * The collection of all defined SDPs.
    * @type {StatDistributionPanel[]}
    */
+  this._j._sdp._panels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
+};
+
+/**
+ * Updates the list of all available difficulties from the latest plugin metadata.
+ */
+J.SDP.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.SDP.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update from the latest plugin metadata.
+  this.updateSdpsFromPluginMetadata();
+};
+
+/**
+ * Updates the panel list from the latest plugin metadata.
+ */
+Game_System.prototype.updateSdpsFromPluginMetadata = function()
+{
+  // refresh the panel list from the plugin metadata.
   this._j._sdp._panels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
 };
 

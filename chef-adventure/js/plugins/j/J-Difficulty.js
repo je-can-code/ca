@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jul 02 2022 10:13:46 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 03 2022 12:42:05 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /* eslint-disable */
@@ -398,8 +398,10 @@ J.DIFF.Metadata = {
   // the previously defined metadata.
   ...J.DIFF.Metadata,
 
-  Difficulties: J.DIFF.Helpers.toDifficulties(J.DIFF.PluginParameters['difficulties'])|| [],
-
+  /**
+   * The key for the default difficulty.
+   * @type {string}
+   */
   DefaultDifficulty: J.DIFF.PluginParameters['defaultDifficulty'] || String.empty,
 };
 
@@ -971,7 +973,10 @@ Game_Map.prototype.encounterStep = function()
 J.DIFF.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
+  // perform original logic.
   J.DIFF.Aliased.Game_System.get('initialize').call(this);
+
+  // initializes members for this plugin.
   this.initDifficultyMembers();
 };
 
@@ -980,10 +985,61 @@ Game_System.prototype.initialize = function()
  */
 Game_System.prototype.initDifficultyMembers = function()
 {
+  /**
+   * The over-arching object that contains all properties for this plugin.
+   */
   this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the difficulty system.
+   */
   this._j._difficulty ||= {};
-  this._j._difficulty.allDifficulties = J.DIFF.Metadata.Difficulties;
+
+  /**
+   * All difficulties that were defined in the plugin metadata.
+   * @type {Difficulty[]}
+   */
+  this._j._difficulty.allDifficulties = J.DIFF.Helpers.toDifficulties(J.DIFF.PluginParameters['difficulties'])|| [];
+
+  /**
+   * The currently applied difficulty.
+   * @type {Difficulty}
+   */
   this._j._difficulty.appliedDifficulty ||= this.findDifficultyByKey(J.DIFF.Metadata.DefaultDifficulty);
+};
+
+/**
+ * Updates the list of all available difficulties from the latest plugin metadata.
+ */
+J.DIFF.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.DIFF.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update from the latest plugin metadata.
+  this.updateDifficultiesFromPluginMetadata();
+};
+
+/**
+ * Updates the difficulties from the latest plugin metadata.
+ */
+Game_System.prototype.updateDifficultiesFromPluginMetadata = function()
+{
+  // refresh the difficulty list from the plugin metadata.
+  this._j._difficulty.allDifficulties = J.DIFF.Helpers.toDifficulties(J.DIFF.PluginParameters['difficulties']) || [];
+
+  // grab the currently applied difficulty.
+  const currentDifficulty = this.getAppliedDifficulty();
+
+  // check to see if this difficulty went missing.
+  if (!this.findDifficultyByKey(currentDifficulty.key))
+  {
+    console.warn(`The previous difficulty of ${currentDifficulty.key} is no longer valid; resetting to default.`);
+
+    // overwrite the invalid difficulty with the default.
+    this.setAppliedDifficulty(this.findDifficultyByKey(J.DIFF.Metadata.DefaultDifficulty));
+  }
 };
 
 /**
@@ -1042,6 +1098,10 @@ Game_System.prototype.findDifficultyByKey = function(difficultyKey)
   }
 };
 
+/**
+ * Locks the difficulty with the given key.
+ * @param {string} difficultyKey The difficulty key to lock.
+ */
 Game_System.prototype.lockDifficulty = function(difficultyKey)
 {
   const foundDifficulty = this.findDifficultyByKey(difficultyKey);
@@ -1055,6 +1115,10 @@ Game_System.prototype.lockDifficulty = function(difficultyKey)
   }
 };
 
+/**
+ * Unlocks the difficulty with the given key.
+ * @param {string} difficultyKey The difficulty key to unlock.
+ */
 Game_System.prototype.unlockDifficulty = function(difficultyKey)
 {
   const foundDifficulty = this.findDifficultyByKey(difficultyKey);
@@ -1068,6 +1132,10 @@ Game_System.prototype.unlockDifficulty = function(difficultyKey)
   }
 };
 
+/**
+ * Hides the difficulty with the given key.
+ * @param {string} difficultyKey The difficulty key to hide.
+ */
 Game_System.prototype.hideDifficulty = function(difficultyKey)
 {
   const foundDifficulty = this.findDifficultyByKey(difficultyKey);
@@ -1081,6 +1149,10 @@ Game_System.prototype.hideDifficulty = function(difficultyKey)
   }
 };
 
+/**
+ * Reveals the difficulty with the given key.
+ * @param {string} difficultyKey The difficulty key to reveal.
+ */
 Game_System.prototype.unhideDifficulty = function(difficultyKey)
 {
   const foundDifficulty = this.findDifficultyByKey(difficultyKey);

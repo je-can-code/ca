@@ -17,8 +17,15 @@ Game_System.prototype.initialize = function()
  */
 Game_System.prototype.initJaftingMembers = function()
 {
-  this._j = this._j || {};
-  this._j._jafting = this._j._jafting || {};
+  /**
+   * The over-arching object that contains all properties for this plugin.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the JAFTING system.
+   */
+  this._j._jafting ||= {};
 
   /**
    * Whether or not the JAFTING flow is executing.
@@ -31,20 +38,52 @@ Game_System.prototype.initJaftingMembers = function()
    * @type {JAFTING_Recipe[]}
    */
   this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
-  // J.JAFTING.Metadata.Recipes;
 
   /**
    * The collection of all categories that are viewable within the JAFTING menu.
    * @type {JAFTING_Category[]}
    */
   this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
-  // J.JAFTING.Metadata.Categories;
 
   /**
    * A request to refresh the windows of JAFTING.
    * @type {boolean}
    */
   this._j._jafting._requestRefresh = false;
+};
+
+/**
+ * Updates the list of all available JAFTING recipes from the latest plugin metadata.
+ */
+J.JAFTING.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.JAFTING.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update the recipes from the latest plugin metadata.
+  this.updateRecipesFromPluginMetadata();
+
+  // update the recipes from the latest plugin metadata.
+  this.updateCategoriesFromPluginMetadata();
+};
+
+/**
+ * Updates the recipe list from the latest plugin metadata.
+ */
+Game_System.prototype.updateRecipesFromPluginMetadata = function()
+{
+  // refresh the recipes list from the plugin metadata.
+  this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+};
+
+/**
+ * Updates the category list from the latest plugin metadata.
+ */
+Game_System.prototype.updateCategoriesFromPluginMetadata = function()
+{
+  // refresh the categories list from the plugin metadata.
+  this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
 };
 
 /**

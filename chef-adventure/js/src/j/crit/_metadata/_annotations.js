@@ -5,6 +5,9 @@
  * [v1.0.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @orderAfter J-BASE
+ * @orderAfter J-SDP
+ * @orderAfter J-NaturalGrowths
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage
