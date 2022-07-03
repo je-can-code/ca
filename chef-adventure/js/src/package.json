@@ -2,28 +2,36 @@
   "name": "plugin-dev-utilities",
   "type": "module",
   "license": "GPL-3",
+  "author": "je-can-code",
 
-  "devDependencies": {
+  "devDependencies":
+  {
     "@babel/eslint-parser": "^7.18.2",
     "@babel/plugin-syntax-import-assertions": "^7.18.6",
     "eslint-plugin-jsdoc": "^39.3.3",
     "nodemon": "^2.0.18"
   },
-  "dependencies": {
+  "dependencies":
+  {
     "async": "^3.2.4",
     "glob": "^8.0.3"
   },
-  "babel": {
-    "plugins": [
+  "babel":
+  {
+    "plugins":
+    [
       "@babel/plugin-syntax-import-assertions"
     ]
   },
 
-  "scripts": {
+  "scripts":
+  {
     "init": "node utils/init.js",
 
     "all": "node utils/build-all.js",
 
+    "once:utils": "node utils/combine.js ./j/utils ../plugins/j J-SystemUtilities.js",
+    "watch:utils": "nodemon -L utils/combine.js ./j/utils ../plugins/j J-SystemUtilities.js",
 
     "once:base": "node utils/combine.js ./j/base ../plugins/j J-Base.js",
     "watch:base": "nodemon -L utils/combine.js ./j/base ../plugins/j J-Base.js",
@@ -70,7 +78,6 @@
     "once:hud-target": "node utils/combine.js ./j/hud/ext/target ../plugins/j/hud/ext J-HUD-TargetFrame.js",
     "watch:hud-target": "nodemon -L utils/combine.js ./j/hud/ext/target ../plugins/j/hud/ext J-HUD-TargetFrame.js",
 
-
     "once:level": "node utils/combine.js ./j/level ../plugins/j J-LevelMaster.js",
     "watch:level": "nodemon -L utils/combine.js ./j/level ../plugins/j J-LevelMaster.js",
 
@@ -103,7 +110,6 @@
 
     "once:jafting-refine": "node utils/combine.js ./j/jafting/ext/refine ../plugins/j/jafting/ext J-JAFTING-Refinement.js",
     "watch:jafting-refine": "nodemon -L utils/combine.js ./j/jafting/ext/refine ../plugins/j/jafting/ext J-JAFTING-Refinement.js",
-
 
     "once:jabs": "node utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",
     "watch:jabs": "nodemon -L utils/combine.js ./j/abs/core ../plugins/j/abs J-ABS.js",

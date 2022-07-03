@@ -1,3 +1,5 @@
+/*  BUNDLED TIME: Sun Jul 03 2022 14:20:06 GMT-0700 (Pacific Daylight Time)  */
+
 /*:
  * @target MZ
  * @plugindesc
@@ -80,7 +82,6 @@ Input.keyMapper =
   };
 //#endregion Input
 
-//#region Scene objects
 //#region Scene_Base
 /**
  * Extends the `.update()` to include a watcher for whether or not
@@ -132,6 +133,8 @@ Scene_Base.prototype.toggleVolume = function()
   }
 };
 //#endregion Scene_Base
+
+//#region Scene_Boot
 /**
  * Extends `startNormalGame()` to accommodate plugin parameters.
  * If the "auto-newgame" parameter is true, then we skip straight into a new game,
@@ -153,4 +156,4 @@ Scene_Boot.prototype.startNormalGame = function()
     J.UTIL.Aliased.Scene_Boot.get('startNormalGame').call(this);
   }
 };
-//#endregion Scene objects
+//#endregion Scene_Boot
