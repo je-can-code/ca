@@ -129,6 +129,9 @@
     "once:jabs-input": "node utils/combine.js ./j/abs/ext/input ../plugins/j/abs/ext J-ABS-InputManager.js",
     "watch:jabs-input": "nodemon -L utils/combine.js ./j/abs/ext/input ../plugins/j/abs/ext J-ABS-InputManager.js",
 
+    "once:jabs-pixel": "node utils/combine.js ./j/abs/ext/pixel ../plugins/j/abs/ext J-ABS-PixelMovement.js",
+    "watch:jabs-pixel": "nodemon -L utils/combine.js ./j/abs/ext/pixel ../plugins/j/abs/ext J-ABS-PixelMovement.js",
+
     "once:jabs-speed": "node utils/combine.js ./j/abs/ext/speed ../plugins/j/abs/ext J-ABS-Speed.js",
     "watch:jabs-speed": "nodemon -L utils/combine.js ./j/abs/ext/speed ../plugins/j/abs/ext J-ABS-Speed.js",
 

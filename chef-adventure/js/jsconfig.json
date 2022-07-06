@@ -3,8 +3,11 @@
     "target":"ES6",
     "checkJs": true
   },
+  "exclude": [
+    "**/node_modules/**"
+  ],
   "include": [
-    "./j/**/*.js",
-    "./utils/**/*.js"
+    "./src/**/*.js",
+    "./plugins/**/*.js"
   ]
 }

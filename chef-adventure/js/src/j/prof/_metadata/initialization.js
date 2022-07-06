@@ -62,29 +62,17 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
-J.PROF.Metadata =
-  {
-    ...J.PROF.Metadata,
-
-    /**
-     * The master collection from the plugin metadata that represents all unlockable
-     * prof requirements.
-     * @type {ProficiencyConditional[]}
-     */
-    ProficiencyConditionals: J.PROF.Helpers.TranslateProficiencyRequirements(J.PROF.PluginParameters['conditionals'])
-  };
 
 /**
  * The various aliases associated with this plugin.
  */
 J.PROF.Aliased =
   {
-    DataManager: new Map(),
     Game_Actor: new Map(),
     Game_Action: new Map(),
     Game_Battler: new Map(),
     Game_Enemy: new Map(),
-    Game_Party: new Map(),
+    Game_System: new Map(),
   };
 
 /**
