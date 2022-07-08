@@ -1,3 +1,28 @@
+/**
+ * BUILDER
+ *
+ * OVERVIEW:
+ * This nodejs script is intended to be used to quickly execute ALL "once:" types
+ * of builds present in ../ directory's package.json. This is designed to run them
+ * in parallel
+ *
+ * NOTE:
+ * This takes advantage of import assertions to get the package.json. You may need
+ * to ensure you have the latest nodejs installed to run it.
+ *
+ * USAGE:
+ * There are no additional arguments required, just use node to run it.
+ *
+ * SAMPLE INPUT:
+ * $ node build-all.js
+ *
+ * SAMPLE OUTPUT:
+ *
+ * // imagine this is all your various build logs being output here.
+ *
+ * 👊 Builder™ has completed execution. 💯✅
+ */
+
 import { exec } from 'child_process';
 import pkg from '../package.json' assert { type: 'json' };
 import Logger from './logger.js';

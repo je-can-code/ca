@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 03 2022 14:20:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Fri Jul 08 2022 13:51:41 GMT-0700 (Pacific Daylight Time)  */
 
 /*:
  * @target MZ
@@ -28,12 +28,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.UTIL = {};
+J.UTILS = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.UTIL.Metadata = {
+J.UTILS.Metadata = {
   /**
    * The name of this plugin.
    */
@@ -48,25 +48,25 @@ J.UTIL.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.UTIL.PluginParameters = PluginManager.parameters(J.UTIL.Metadata.Name);
+J.UTILS.PluginParameters = PluginManager.parameters(J.UTILS.Metadata.Name);
 
 /**
  * Whether or not to use the "auto-newgame" feature.
  * @type {boolean}
  */
-J.UTIL.Metadata.AutoNewgame = J.UTIL.PluginParameters['autoNewgame'] === 'true';
+J.UTILS.Metadata.AutoNewgame = J.UTILS.PluginParameters['autoNewgame'] === 'true';
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.UTIL.Aliased = {
+J.UTILS.Aliased = {
   Scene_Base: new Map(),
   Scene_Boot: new Map(),
 };
 
-J.UTIL.Helpers = {};
-J.UTIL.Helpers.depth = (o) =>
-  Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTIL.Helpers.depth)) : 0;
+J.UTILS.Helpers = {};
+J.UTILS.Helpers.depth = (o) =>
+  Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTILS.Helpers.depth)) : 0;
 
 //#region Input
 /**
@@ -87,12 +87,16 @@ Input.keyMapper =
  * Extends the `.update()` to include a watcher for whether or not
  * the volume toggle button is pressed.
  */
-J.UTIL.Aliased.Scene_Base.set('update', Scene_Base.prototype.update);
+J.UTILS.Aliased.Scene_Base.set('update', Scene_Base.prototype.update);
 Scene_Base.prototype.update = function()
 {
-  J.UTIL.Aliased.Scene_Base.get('update').call(this);
+  // perform original logic.
+  J.UTILS.Aliased.Scene_Base.get('update').call(this);
+
+  // check if the volume toggling is happening.
   if (this.isVolumeToggling())
   {
+    // then toggle the volume on/off.
     this.toggleVolume();
   }
 };
@@ -113,7 +117,7 @@ Scene_Base.prototype.isVolumeToggling = function()
  */
 Scene_Base.prototype.toggleVolume = function()
 {
-  const {bgmVolume, bgsVolume, meVolume, seVolume} = ConfigManager;
+  const { bgmVolume, bgsVolume, meVolume, seVolume } = ConfigManager;
   const isMuted = !bgmVolume || !bgsVolume || !meVolume || !seVolume;
   if (isMuted)
   {
@@ -140,11 +144,11 @@ Scene_Base.prototype.toggleVolume = function()
  * If the "auto-newgame" parameter is true, then we skip straight into a new game,
  * bypassing the title screen altogether.
  */
-J.UTIL.Aliased.Scene_Boot.set('startNormalGame', Scene_Boot.prototype.startNormalGame);
+J.UTILS.Aliased.Scene_Boot.set('startNormalGame', Scene_Boot.prototype.startNormalGame);
 Scene_Boot.prototype.startNormalGame = function()
 {
   // if using the "auto-newgame" feature, then skip straight to a new game.
-  if (J.UTIL.Metadata.AutoNewgame)
+  if (J.UTILS.Metadata.AutoNewgame)
   {
     this.checkPlayerLocation();
     DataManager.setupNewGame();
@@ -153,7 +157,7 @@ Scene_Boot.prototype.startNormalGame = function()
   // otherwise, perform original logic.
   else
   {
-    J.UTIL.Aliased.Scene_Boot.get('startNormalGame').call(this);
+    J.UTILS.Aliased.Scene_Boot.get('startNormalGame').call(this);
   }
 };
 //#endregion Scene_Boot
