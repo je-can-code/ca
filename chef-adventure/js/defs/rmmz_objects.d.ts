@@ -1,9 +1,3 @@
-import { rm } from "./lunalite-pixi-mz";
-import {
-    RPG_Armor, RPG_BaseItem, RPG_Class, RPG_Enemy, RPG_EnemyAction, RPG_EquipItem,
-    RPG_Skill, RPG_State, RPG_UsableItem, RPG_Weapon
-} from '../plugins/j/base';
-
 declare class Game_Action {
     /**
      *
@@ -420,14 +414,14 @@ declare class Game_BattlerBase {
     /**
      * Returns the array of state icons attached to the battler;
      * this is determined by the active states on the battler.
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_BattlerBase
      */
     stateIcons(): number[];
     /**
      * Returns the array of buff icons attached to the battler;
      * this is determined by the active buffs on the battler.
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_BattlerBase
      */
     buffIcons(): number[];
@@ -435,7 +429,7 @@ declare class Game_BattlerBase {
     /**
      * Returns all of the icons attached to the battler.
      *
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_BattlerBase
      */
     allIcons(): number[];
@@ -528,14 +522,14 @@ declare class Game_BattlerBase {
     /**
      * Returns the attack elements of the battler
      * as a list of numbers.
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_BattlerBase
      */
     attackElements(): number[];
     /**
      * Returns the attack states of the battler as a
      * list of numbers.
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_BattlerBase
      */
     attackStates(): number[];
@@ -1956,7 +1950,7 @@ declare class Game_Actor extends Game_Battler {
     /**
      * Returns the attack element ids.
      *
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_Actor
      */
     attackElements(): number[];
@@ -5301,7 +5295,7 @@ declare class Game_Picture {
     /**
      * Returns the tone of the game picture.
      *
-     * @returns {Array<number>}
+     * @returns {number[]}
      * @memberof Game_Picture
      */
     tone(): number[];

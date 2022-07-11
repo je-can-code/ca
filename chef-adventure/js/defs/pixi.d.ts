@@ -6331,7 +6331,7 @@ declare namespace PIXI {
             readonly items: PIXI.BaseTexture[];
             /**
              * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
+             * @member {number[]} PIXI.resources.ArrayResource#itemDirtyIds
              * @readonly
              */
             readonly itemDirtyIds: number[];
@@ -6893,7 +6893,7 @@ declare namespace PIXI {
             readonly items: PIXI.BaseTexture[];
             /**
              * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
+             * @member {number[]} PIXI.resources.ArrayResource#itemDirtyIds
              * @readonly
              */
             readonly itemDirtyIds: number[];

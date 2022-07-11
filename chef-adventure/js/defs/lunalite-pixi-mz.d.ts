@@ -2054,7 +2054,7 @@ interface TestBattler {
    * 3: Body
    * 4: Accessory
    */
-  equips: Array<number>;
+  equips: number[];
 }
 
  type MapInfo = {
@@ -2198,7 +2198,7 @@ interface TestBattler {
     /**
      * The map data. A 3-dimensional tile ID array (Table).
      */
-    data: Array<number>;
+    data: number[];
 
     /**
      * The array of RPG.Event data.
@@ -2225,7 +2225,7 @@ interface System {
   /**
    * The initial party. An array of actor IDs.
    */
-  partyMembers: Array<number>;
+  partyMembers: number[];
 
   /**
    * The unit of currency.
@@ -2235,7 +2235,7 @@ interface System {
   /**
    * The window color.
    */
-  windowTone: Array<number>;
+  windowTone: number[];
 
   /**
    * The array of System.AttackMotion data.

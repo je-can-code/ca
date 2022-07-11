@@ -14573,7 +14573,7 @@ var PIXI = (function (exports) {
 
 	        /**
 	         * Dirty IDs for each part
-	         * @member {Array<number>}
+	         * @member {number[]}
 	         * @readonly
 	         */
 	        this.itemDirtyIds = [];
