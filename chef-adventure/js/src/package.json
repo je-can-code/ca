@@ -1,7 +1,7 @@
 {
   "name": "plugin-dev-utilities",
   "type": "module",
-  "license": "GPL-3",
+  "license": "AGPL-3.0-or-later",
   "author": "je-can-code",
 
   "devDependencies":

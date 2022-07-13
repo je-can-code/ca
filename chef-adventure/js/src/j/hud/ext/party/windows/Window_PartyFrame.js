@@ -492,15 +492,15 @@ class Window_PartyFrame extends Window_Base
     switch (gaugeType)
     {
       case Window_PartyFrame.gaugeTypes.HP:
-        return -10;
+        return -4;
       case Window_PartyFrame.gaugeTypes.MP:
-        return -12;
-      case Window_PartyFrame.gaugeTypes.TP:
-        return -14;
-      case Window_PartyFrame.gaugeTypes.XP:
-        return -12;
-      case Window_PartyFrame.gaugeTypes.Level:
         return -6;
+      case Window_PartyFrame.gaugeTypes.TP:
+        return -10;
+      case Window_PartyFrame.gaugeTypes.XP:
+        return -6;
+      case Window_PartyFrame.gaugeTypes.Level:
+        return 2;
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }

@@ -512,7 +512,7 @@ RPG_Skill.prototype.extractJabsParryFrames = function()
 /**
  * When performing a precise-parry, this skill id will be automatically
  * executed in retaliation.
- * @type {number}
+ * @type {number[]}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsCounterParry",
   {
@@ -524,7 +524,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsCounterParry",
 
 /**
  * Gets the JABS counterParry this skill.
- * @returns {number|null}
+ * @returns {number[]}
  */
 RPG_Skill.prototype.getJabsCounterParry = function()
 {
@@ -533,18 +533,18 @@ RPG_Skill.prototype.getJabsCounterParry = function()
 
 /**
  * Extracts the JABS counterParry for this skill from its notes.
- * @returns {number|null}
+ * @returns {number[]}
  */
 RPG_Skill.prototype.extractJabsCounterParry = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CounterParry, true);
+  return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterParry);
 };
 //#endregion counterParry
 
 //#region counterGuard
 /**
  * While guarding, this skill id will be automatically executed in retaliation.
- * @type {number}
+ * @type {number[]}
  */
 Object.defineProperty(RPG_Skill.prototype, "jabsCounterGuard",
   {
@@ -556,7 +556,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsCounterGuard",
 
 /**
  * Gets the JABS counterGuard this skill.
- * @returns {number|null}
+ * @returns {number[]}
  */
 RPG_Skill.prototype.getJabsCounterGuard = function()
 {
@@ -565,11 +565,11 @@ RPG_Skill.prototype.getJabsCounterGuard = function()
 
 /**
  * Extracts the JABS counterGuard for this skill from its notes.
- * @returns {number|null}
+ * @returns {number[]}
  */
 RPG_Skill.prototype.extractJabsCounterGuard = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.RegExp.CounterGuard, true);
+  return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterGuard);
 };
 //#endregion counterGuard
 

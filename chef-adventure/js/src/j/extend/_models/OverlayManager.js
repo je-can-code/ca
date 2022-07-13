@@ -673,7 +673,8 @@ class OverlayManager
     if (value === null) return baseSkill;
 
     // strip out all tags that match the regex.
-    baseSkill.note = baseSkill.note.replace(structure, String.empty);
+    baseSkill.deleteNotedata(structure);
+    //baseSkill.note = baseSkill.note.replace(structure, String.empty);
 
     // determine the key from the regex.
     const key = J.BASE.Helpers.getKeyFromRegexp(structure);

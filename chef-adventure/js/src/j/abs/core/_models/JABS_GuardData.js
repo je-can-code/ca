@@ -9,16 +9,16 @@ class JABS_GuardData
    * @param {number} skillId The skill this guard data is associated with.
    * @param {number} flatGuardReduction The flat amount of damage reduced when guarding, if any.
    * @param {number} percGuardReduction The percent amount of damage mitigated when guarding, if any.
-   * @param {number} counterGuardId The skill id to counter with when guarding, if any.
-   * @param {number} counterParryId The skill id to counter with when precise-parrying, if any.
+   * @param {number[]} counterGuardIds The skill id to counter with when guarding, if any.
+   * @param {number[]} counterParryIds The skill ids to counter with when precise-parrying, if any.
    * @param {number} parryDuration The duration of which a precise-parry is available, if any.
    */
   constructor(
     skillId,
     flatGuardReduction,
     percGuardReduction,
-    counterGuardId,
-    counterParryId,
+    counterGuardIds,
+    counterParryIds,
     parryDuration)
   {
     /**
@@ -40,16 +40,16 @@ class JABS_GuardData
     this.percGuardReduction = percGuardReduction;
 
     /**
-     * The skill id to counter with when guarding, if any.
-     * @type {number}
+     * The skill ids to counter with when guarding, if any.
+     * @type {number[]}
      */
-    this.counterGuardId = counterGuardId;
+    this.counterGuardIds = counterGuardIds;
 
     /**
-     * The skill id to counter with when precise-parrying, if any.
-     * @type {number}
+     * The skill ids to counter with when precise-parrying, if any.
+     * @type {number[]}
      */
-    this.counterParryId = counterParryId;
+    this.counterParryIds = counterParryIds;
 
     /**
      * The duration of which a precise-parry is available, if any.
@@ -78,11 +78,12 @@ class JABS_GuardData
 
   /**
    * Gets whether or not this guard data enables countering of any kind.
+   * This is defined as "has at least one counterguard or counterparry skill id".
    * @returns {boolean}
    */
   canCounter()
   {
-    return !!(this.counterGuardId || this.counterParryId);
+    return !!(this.counterGuardIds.length || this.counterParryIds.length);
   }
 }
 //#endregion JABS_GuardData

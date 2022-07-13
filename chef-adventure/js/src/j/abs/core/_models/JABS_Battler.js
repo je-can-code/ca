@@ -384,15 +384,15 @@ JABS_Battler.prototype.initBattleInfo = function()
 
   /**
    * The id of the skill to retaliate with when successfully precise-parrying.
-   * @type {number}
+   * @type {number[]}
    */
-  this._counterParryId = 0;
+  this._counterParryIds = [];
 
   /**
    * The id of the skill to retaliate with when successfully guarding.
    * @type {number}
    */
-  this._counterGuardId = 0;
+  this._counterGuardIds = 0;
 
   /**
    * The id of the skill associated with the guard data.
@@ -4826,61 +4826,60 @@ JABS_Battler.prototype.setPercGuardReduction = function(percReduction)
 
 /**
  * Checks to see if retrieving the counter-guard skill id is appropriate.
- * @returns {number}
+ * @returns {number[]}
  */
 JABS_Battler.prototype.counterGuard = function()
 {
   return this.guarding()
-    ? this.counterGuardId()
-    : 0;
+    ? this.counterGuardIds()
+    : [];
 };
 
 /**
  * Gets the id of the skill for counter-guarding.
- * @returns {number}
+ * @returns {number[]}
  */
-JABS_Battler.prototype.counterGuardId = function()
+JABS_Battler.prototype.counterGuardIds = function()
 {
-  return this._counterGuardId;
+  return this._counterGuardIds;
 };
 
 /**
  * Sets the battler's retaliation id for guarding.
- * @param {number} counterGuardSkillId The skill id to counter with while guarding.
+ * @param {number[]} counterGuardSkillIds The skill id to counter with while guarding.
  */
-JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillId)
+JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillIds)
 {
-  this._counterGuardId = counterGuardSkillId;
+  this._counterGuardIds = counterGuardSkillIds;
 };
 
 /**
  * Checks to see if retrieving the counter-parry skill id is appropriate.
- * @returns {number}
+ * @returns {number[]}
  */
 JABS_Battler.prototype.counterParry = function()
 {
   return this.guarding()
-    ? this.counterParryId()
-    : 0;
+    ? this.counterParryIds()
+    : [];
 };
 
 /**
- * Gets the id of the skill for counter-parrying.
- * @returns {number}
+ * Gets the ids of the skill for counter-parrying.
+ * @returns {number[]}
  */
-JABS_Battler.prototype.counterParryId = function()
+JABS_Battler.prototype.counterParryIds = function()
 {
-  return this._counterParryId;
+  return this._counterParryIds;
 };
 
 /**
  * Sets the id of the skill to retaliate with when successfully precise-parrying.
- * @param {number} counterParrySkillId The skill id of the counter-parry skill.
- * @returns {number}
+ * @param {number[]} counterParrySkillIds The skill ids of the counter-parry skill.
  */
-JABS_Battler.prototype.setCounterParry = function(counterParrySkillId)
+JABS_Battler.prototype.setCounterParry = function(counterParrySkillIds)
 {
-  this._counterParryId = counterParrySkillId;
+  this._counterParryIds = counterParrySkillIds;
 };
 
 /**
@@ -4909,17 +4908,25 @@ JABS_Battler.prototype.setGuardSkillId = function(guardSkillId)
  */
 JABS_Battler.prototype.getGuardData = function(cooldownKey)
 {
-  const battler = this.getBattler()
+  // shorthand the battler of which we're getting data for.
+  const battler = this.getBattler();
+
+  // determine the skill in the given slot.
   const skillId = battler.getEquippedSkill(cooldownKey);
+
+  // if we have no skill to guard with, then we don't guard.
   if (!skillId) return null;
 
+  // get the skill.
   const skill = this.getSkill(skillId);
-  const canUse = battler.meetsSkillConditions(skill);
-  if (!canUse)
-  {
-    return null;
-  }
 
+  // check also to make sure we can use the guard skill in the slot.
+  const canUse = battler.meetsSkillConditions(skill);
+
+  // if we cannot use the guard skill due to constraints, then we don't guard.
+  if (!canUse) return null;
+
+  // return the guard data off the skill.
   return skill.jabsGuardData;
 };
 
@@ -4969,14 +4976,14 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   const guardData = this.getGuardData(skillSlot);
 
   // if we cannot guard, then don't try.
-  if (!guardData.canGuard()) return;
+  if (!guardData || !guardData.canGuard()) return;
 
   // begin guarding!
   this.setGuarding(true);
   this.setFlatGuardReduction(guardData.flatGuardReduction);
   this.setPercGuardReduction(guardData.percGuardReduction);
-  this.setCounterGuard(guardData.counterGuardId);
-  this.setCounterParry(guardData.counterParryId);
+  this.setCounterGuard(guardData.counterGuardIds);
+  this.setCounterParry(guardData.counterParryIds);
   this.setGuardSkillId(guardData.skillId);
 
   // calculate parry frames, include eva bonus to parry.

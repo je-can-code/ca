@@ -2065,33 +2065,42 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Executes any retaliation the player may have when receiving a hit while guarding/parrying.
-   * @param {JABS_Battler} battler The player's `JABS_Battler`.
+   * Executes any retaliation the player may have when receiving a hit.
+   * @param {JABS_Battler} battler The battler doing the retaliating.
    */
   handleActorRetaliation(battler)
   {
-    const result = battler.getBattler().result();
-    const needsCounterParry = result.preciseParried && battler.counterParry();
-    const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard();
-    const retaliationSkills = battler.getBattler().retaliationSkills();
+    // grab the action result.
+    const actionResult = battler.getBattler().result();
+
+    // check if we need to perform any sort of countering.
+    const needsCounterParry = actionResult.preciseParried && battler.counterParry().length;
+
+    // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
+    const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
 
     // if we should be counter-parrying.
     if (needsCounterParry)
     {
-      this.forceMapAction(battler, battler.counterParry(), true);
+      // execute the counterparry.
+      this.doCounterParry(battler, JABS_Button.Offhand);
     }
 
     // if we should be counter-guarding.
     if (needsCounterGuard)
     {
-      this.forceMapAction(battler, battler.counterGuard(), true);
+      // execute the counterguard.
+      this.doCounterGuard(battler, JABS_Button.Offhand);
     }
 
     // if auto-counter is available, then just do that.
-    if (result.parried)
+    if (actionResult.parried)
     {
       this.handleAutoCounter(battler);
     }
+
+    // grab all the retaliation skills for this battler.
+    const retaliationSkills = battler.getBattler().retaliationSkills();
 
     // if there are any passive retaliation skills to perform...
     if (retaliationSkills.length)
@@ -2114,29 +2123,90 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    */
   handleAutoCounter(battler)
   {
-    // if we don't have anything to auto-counter with, skip it.
-    const guardData = battler.getGuardData(JABS_Button.Offhand);
-    if (!guardData) return;
-    if (!guardData.canCounter()) return;
+    // stop processing if we cannot autocounter.
+    if (!this.canAutoCounter(battler)) return;
 
-    // if RNG is within the threshold...
+    // check if RNG favors you.
     const shouldAutoCounter = battler.getBattler().cnt > Math.random();
 
-    // ...then execute all counters available!
+    // if RNG did actually favor you, then proceed.
     if (shouldAutoCounter)
     {
-      if (guardData.counterGuardId)
-      {
-        // if we have a counterguard, perform it.
-        this.forceMapAction(battler, guardData.counterGuardId, true);
-      }
-
-      if (guardData.counterParryId)
-      {
-        // if we have a counterparry, perform it.
-        this.forceMapAction(battler, guardData.counterParryId, true);
-      }
+      // perform the autocounter.
+      this.doAutoCounter(battler, JABS_Button.Offhand);
     }
+  }
+
+  /**
+   * Commands the {@link JABS_Battler} to perform an autocounter.
+   * This will attempt to execute all counterguard/counterparry skill ids available
+   * in the given slot.
+   * @param {JABS_Battler} battler The battler doing the autocounter.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   */
+  doAutoCounter(battler, slot = JABS_Button.Offhand)
+  {
+    // execute counterparrying.
+    this.doCounterParry(battler, slot);
+
+    // execute counterguarding.
+    this.doCounterGuard(battler, slot);
+  }
+
+  /**
+   * Executes any counterguard skills available to the given battler.
+   * @param {JABS_Battler} battler The battler to perform the skills.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   */
+  doCounterGuard(battler, slot = JABS_Button.Offhand)
+  {
+    // destructure out the guard and parry ids.
+    const { counterGuardIds } = battler.getGuardData(slot);
+
+    // check if we even have any skills to counterguard with.
+    if (counterGuardIds.length)
+    {
+      // iterate over each of them and auto-counterguard!
+      counterGuardIds.forEach(id => this.forceMapAction(battler, id, true));
+    }
+  }
+
+  /**
+   * Executes any counterparry skills available to the given battler.
+   * @param {JABS_Battler} battler The battler to perform the skills.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   */
+  doCounterParry(battler, slot = JABS_Button.Offhand)
+  {
+    // destructure out the parry ids.
+    const { counterParryIds } = battler.getGuardData(slot);
+
+    // check if we even have any skills to counterparry with.
+    if (counterParryIds.length)
+    {
+      // iterate over each of them and auto-counterparry!
+      counterParryIds.forEach(id => this.forceMapAction(battler, id, true));
+    }
+  }
+
+  /**
+   * Determines whether or not the battler can perform any sort of autocountering.
+   * @param {JABS_Battler} battler The battler to potentially autocounter.
+   * @returns {boolean} True if we should try to autocounter, false otherwise.
+   */
+  canAutoCounter(battler)
+  {
+    // shorthand the guard data from your offhand.
+    const guardData = battler.getGuardData(JABS_Button.Offhand);
+
+    // if we have no guard data, don't try to autocounter.
+    if (!guardData) return false;
+
+    // if we are unable to perform a counter, don't try to autocounter.
+    if (!guardData.canCounter()) return false;
+
+    // we should try to autocounter.
+    return true;
   }
 
   /**
@@ -2146,8 +2216,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   handleEnemyRetaliation(enemy)
   {
     // assumes enemy battler is enemy.
-    const retaliationSkills = enemy.getBattler()
-      .retaliationSkills();
+    const retaliationSkills = enemy.getBattler().retaliationSkills();
 
     // if there are any passive retaliation skills to perform...
     if (retaliationSkills.length)

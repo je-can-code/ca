@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 13:51:42 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Jul 12 2022 16:13:36 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1128,6 +1128,54 @@ class RPG_Base
 
       // regular parse it and add it to the running total.
       val += parseFloat(result);
+    });
+
+    // return the
+    return val;
+  }
+
+  /**
+   * Gets all numbers matching the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and concats all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default empty array [] as an indicator we didn't find
+   * anything from the notes of this object.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  getNumberArrayFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const lines = this.getFilteredNotesByRegex(structure);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : [];
+    }
+
+    // initialize the value.
+    const val = [];
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // extract the captured formula.
+      const [,result] = structure.exec(line);
+
+      // parse out the contents of the note.
+      const parsed = JSON.parse(result).map(parseFloat);
+
+      // destructure the array and add its bits to the running total.
+      val.push(...parsed);
     });
 
     // return the

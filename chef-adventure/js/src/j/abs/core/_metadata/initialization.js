@@ -369,14 +369,12 @@ J.ABS.RegExp = {
   // guarding-related.
   Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
   Parry: /<parry:[ ]?(\d+)>/gi,
-  CounterParry: /<counterParry:[ ]?(\d+)>/gi,
-  CounterGuard: /<counterGuard:[ ]?(\d+)>/gi,
+  CounterParry: /<counterParry:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
+  CounterGuard: /<counterGuard:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
 
   // dodge-related.
   MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
   InvincibleDodge: /<invincibleDodge>/gi,
-
-
   /* ON SKILLS */
 
   /* ON EQUIPS */

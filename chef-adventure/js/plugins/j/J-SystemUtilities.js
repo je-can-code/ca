@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 13:51:41 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Jul 12 2022 16:22:05 GMT-0700 (Pacific Daylight Time)  */
 
 /*:
  * @target MZ
@@ -60,11 +60,25 @@ J.UTILS.Metadata.AutoNewgame = J.UTILS.PluginParameters['autoNewgame'] === 'true
  * A collection of all aliased methods for this plugin.
  */
 J.UTILS.Aliased = {
+  Game_Actor: new Map(),
   Scene_Base: new Map(),
   Scene_Boot: new Map(),
 };
 
+/**
+ * A collection of all helper functions that don't need to live anywhere specific.
+ */
 J.UTILS.Helpers = {};
+
+/**
+ * Checks recursively how deep an object goes.
+ *
+ * This was used once to help troubleshoot where I accidentally created an infinitely nested
+ * save object. I used this function to check each of the chunks of data in the save file to
+ * see which was the one that was infinitely deep.
+ * @param {any} o The object to check.
+ * @returns {number} Chances are if this returns a number you're fine, otherwise it'll hang.
+ */
 J.UTILS.Helpers.depth = (o) =>
   Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTILS.Helpers.depth)) : 0;
 
@@ -81,6 +95,55 @@ Input.keyMapper =
     117: 'volumeToggle',
   };
 //#endregion Input
+
+/**
+ * Extends {@link Game_Actor.onLearnNewSkill}.
+ * Wraps the function so that if a new skill is learned, it'll echo to the console.
+ */
+J.UTILS.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewSkill);
+Game_Actor.prototype.onLearnNewSkill = function(skillId)
+{
+  // perform original logic.
+  J.UTILS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
+
+  // instead of responding with undefined to the console, return the name of the skill.
+  console.log(`[${skillId}] {${this.skill(skillId).name}} was learned.`);
+};
+
+/**
+ * Extends {@link Game_Actor.onForgetSkill}.
+ * Wraps the function so that if a skill is forgotten, it'll echo back to the console.
+ */
+J.UTILS.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetSkill);
+Game_Actor.prototype.onForgetSkill = function(skillId)
+{
+  // perform original logic.
+  J.UTILS.Aliased.Game_Actor.get('onForgetSkill').call(this, skillId);
+
+  // instead of responding with undefined to the console, return the name of the skill.
+  return `[${skillId}] {${this.skill(skillId).name}} was not learned.`;
+};
+
+/**
+ * Now you can retrieve the player's battler from the player.
+ * This is synonymous with {@link Game_Party.leader}.
+ * @returns {Game_Actor|null}
+ */
+Game_Player.prototype.battler = function()
+{
+  // the leader is synonymous for the player.
+  const battler = $gameParty.leader();
+
+  // check if we have a leader battler.
+  if (!battler)
+  {
+    console.warn("There is currently no leader.");
+    return null;
+  }
+
+  // return the found battler.
+  return battler;
+};
 
 //#region Scene_Base
 /**
@@ -161,3 +224,12 @@ Scene_Boot.prototype.startNormalGame = function()
   }
 };
 //#endregion Scene_Boot
+
+//#region TileMap
+/**
+ * OVERWRITE Fuck those autoshadows.
+ */
+Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) 
+{
+};
+//#endregion TileMap
