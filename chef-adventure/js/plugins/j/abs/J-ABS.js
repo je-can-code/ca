@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Jul 12 2022 17:48:40 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Jul 14 2022 16:38:00 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -7137,13 +7137,14 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   // if not guarding anymore, turn off the guard state.
   if (!guarding && this.guarding())
   {
-    this.setGuarding(false);
-    this.setParryWindow(0);
-    this.endAnimation();
+    // stop guarding.
+    this.endGuarding();
+
+    // stop processing.
     return;
   }
 
-  // if we aren't guarding, and weren't guarding, don't do anything.
+  // if we aren't guarding now, and weren't guarding before, don't do anything.
   if (!guarding) return;
 
   // if not guarding, wasn't guarding before, but want to guard, then let's guard!
@@ -7151,6 +7152,19 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
 
   // if we cannot guard, then don't try.
   if (!guardData || !guardData.canGuard()) return;
+
+  // begin guarding!
+  this.startGuarding(skillSlot);
+};
+
+/**
+ * Begin guarding with the given skill slot.
+ * @param {string} skillSlot The skill slot containing the guard data.
+ */
+JABS_Battler.prototype.startGuarding = function(skillSlot)
+{
+  // grab the guard data.
+  const guardData = this.getGuardData(skillSlot);
 
   // begin guarding!
   this.setGuarding(true);
@@ -7169,6 +7183,21 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   // set the pose!
   const skillId = this.getBattler().getEquippedSkill(skillSlot);
   this.performActionPose(this.getSkill(skillId));
+};
+
+/**
+ * Ends the guarding stance for this battler.
+ */
+JABS_Battler.prototype.endGuarding = function()
+{
+  // end the guarding tracker.
+  this.setGuarding(false);
+
+  // remove any remaining parry time.
+  this.setParryWindow(0);
+
+  // stop posing.
+  this.endAnimation();
 };
 
 /**
@@ -10777,8 +10806,8 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    */
   checkParry(caster, target, action)
   {
-    const isFacing = caster.isFacingTarget(target.getCharacter());
     // cannot parry if not facing target.
+    const isFacing = caster.isFacingTarget(target.getCharacter());
     if (!isFacing) return false;
 
     // if the target battler has 0% GRD, they can't parry.
@@ -10827,10 +10856,10 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     */
     /* eslint-enable */
 
-    // apply the hit bonus to hit.
+    // apply the hit bonus to hit (10% of actual hit).
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
 
-    // calculate the hit rate.
+    // calculate the hit rate (rng + bonus hit).
     const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
 
     // grab the amount of parry ignored.
@@ -10943,7 +10972,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const actionResult = battler.getBattler().result();
 
     // check if we need to perform any sort of countering.
-    const needsCounterParry = actionResult.preciseParried && battler.counterParry().length;
+    const needsCounterParry = actionResult.parried && battler.counterParry().length;
 
     // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
@@ -11213,7 +11242,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     if (result.parried)
     {
       const parryLog = new MapLogBuilder()
-        .setupParry(targetName, casterName, skill.id, result.preciseParried)
+        .setupParry(targetName, casterName, skill.id, result.parried)
         .build();
       $gameTextLog.addLog(parryLog);
       return;
@@ -18231,13 +18260,10 @@ Game_Action.prototype.itemEffectAddState = function(target, effect)
   if (isPlayer)
   {
     // if it is the player, peek at the result before applying.
-    const result = player.getBattler()
-      .result();
-    if (result.preciseParried)
-    {
-      // if the player precise-parried the action, no status effects applied.
-      return;
-    }
+    const result = player.getBattler().result();
+
+    // if the player precise-parried the action, no status effects applied.
+    if (result.parried) return;
   }
 
   // if the precise-parry-state-prevention wasn't successful, apply as usual.
@@ -18245,78 +18271,188 @@ Game_Action.prototype.itemEffectAddState = function(target, effect)
 };
 
 /**
- * Reduces
+ * Handles all guard-related effects, such as parrying or guarding.
  * @param {number} damage The amount of damage before damage reductions.
- * @param {JABS_Battler} player The player's `JABS_Battler`.
+ * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
  * @returns {number} The amount of damage after damage reductions from guarding.
  */
-Game_Action.prototype.handleGuardEffects = function(damage, player)
+Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
 {
-  // if the player is parrying...
-  if (player.parrying())
+  // check if the battler is parrying; parrying takes priority over guarding.
+  if (jabsBattler.parrying())
   {
-    const playerBattler = player.getBattler();
-    const result = playerBattler.result();
+    // process the parry functionality.
+    this.processParry(jabsBattler);
 
-    // nullify the result via parry.
-    result.parried = true;
-    result.preciseParried = true;
-    damage = 0;
-    player.getCharacter()
-      .requestAnimation(0, true, true);
+    // calculate the reduced amount from guarding.
+    const parryReducedDamage = this.calculateParryDamageReduction(jabsBattler, damage);
 
-    // handle tp generation from precise-parrying.
-    const skillId = player.getGuardSkillId();
-    if (skillId)
-    {
-      const skill = OverlayManager.getExtendedSkill(playerBattler, skillId);
-      playerBattler.gainTp(skill.tpGain);
-    }
-
-    // reset the player's guarding.
-    player.setParryWindow(0);
-    player.setGuardSkillId(0);
+    // return the reduced amount.
+    return parryReducedDamage;
   }
 
-  // if the player is guarding...
-  else if (player.guarding())
+  // check if the battler is guarding.
+  if (jabsBattler.guarding())
   {
-    // reduce the damage accordingly per the guard data.
-    damage = this.percDamageReduction(damage, player);
-    damage = this.flatDamageReduction(damage, player);
+    // process the guard functionality.
+    this.processGuard(jabsBattler);
+
+    // calculate the reduced amount from guarding.
+    const guardReducedDamage = this.calculateGuardDamageReduction(jabsBattler, damage);
+
+    // return the reduced amount.
+    return guardReducedDamage;
   }
 
+  // if there was no guarding or parrying happen, just return the original damage.
   return damage;
+};
+
+/**
+ * Processes the action as a parry, mitigating all damage, along
+ * with any additional side effects.
+ * @param {JABS_Battler} jabsBattler The battler that is parrying.
+ */
+Game_Action.prototype.processParry = function(jabsBattler)
+{
+  // shorthand the underlying battler.
+  const battler = jabsBattler.getBattler();
+
+  // grab the action result.
+  const actionResult = battler.result();
+
+  // nullify the result via parry.
+  actionResult.parried = true;
+
+  // TODO: pull the parry logic out of the requestanimation function.
+  // play the parry animation.
+  jabsBattler.getCharacter().requestAnimation(0, true);
+
+  // handle tp generation from parrying.
+  const guardSkillTp = this.getTpFromGuardSkill(jabsBattler) * 10;
+
+  // gain 10x of the tp from the guard skill when parrying.
+  jabsBattler.getBattler().gainTp(guardSkillTp);
+
+  // reset the player's guarding.
+  jabsBattler.setParryWindow(0);
+  jabsBattler.setGuardSkillId(0);
+};
+
+/**
+ * Calculates the damage reduction from parrying.
+ * @param {JABS_Battler} jabsBattler The battler that is parrying.
+ * @param {number} originalDamage The original amount of damage.
+ * @returns {number} The damage after reduction.
+ */
+Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, originalDamage)
+{
+  // assign the damage to a local variable because good coding practices.
+  let modifiedDamage = originalDamage;
+
+  // parry damage reduction is always 100%.
+  modifiedDamage = 0;
+
+  // return the parry-modified damage.
+  return modifiedDamage;
+};
+
+/**
+ * Processes the action as a guard, reducing damage along with any
+ * additional side effects.
+ * @param {JABS_Battler} jabsBattler The battler that is guarding.
+ */
+Game_Action.prototype.processGuard = function(jabsBattler)
+{
+  // gain any tp associated with defending.
+  const guardSkillTp = this.getTpFromGuardSkill(jabsBattler);
+
+  // gain 100% of the tp from the guard skill when guarding.
+  jabsBattler.getBattler().gainTp(guardSkillTp);
+};
+
+/**
+ * Calculates the damage reduction from guarding.
+ * @param {JABS_Battler} jabsBattler The battler that is guarding.
+ * @param {number} originalDamage The original amount of damage.
+ * @returns {number} The damage after reduction.
+ */
+Game_Action.prototype.calculateGuardDamageReduction = function(jabsBattler, originalDamage)
+{
+  // assign the damage to a local variable because good coding practices.
+  let modifiedDamage = originalDamage;
+
+  // reduce the damage accordingly per the guard data- percent then flat.
+  modifiedDamage = this.percDamageReduction(modifiedDamage, jabsBattler);
+  modifiedDamage = this.flatDamageReduction(modifiedDamage, jabsBattler);
+
+  // return the guard-modified damage.
+  return modifiedDamage;
+};
+
+/**
+ * Gets the TP from the guard skill that was performed.
+ * @param {JABS_Battler} jabsBattler The battler that is defending.
+ * @return {number} The TP
+ */
+Game_Action.prototype.getTpFromGuardSkill = function(jabsBattler)
+{
+  // handle tp generation from the guard skill.
+  const skillId = jabsBattler.getGuardSkillId();
+
+  // grab the potentially extended guard skill.
+  const skill = jabsBattler.getSkill(skillId);
+
+  // return the tp associated with the guard skill.
+  return skill.tpGain;
 };
 
 /**
  * Reduces damage of a value if defending- by a flat amount.
  * @param {number} base The base damage value to modify.
  * @param {JABS_Battler} player The player's JABS battler.
+ * @returns {number} The damage after reduction.
  */
 Game_Action.prototype.flatDamageReduction = function(base, player)
 {
+  // calculate the flat reduction.
   const reduction = parseFloat(player.flatGuardReduction());
-  const result = player.getBattler()
-    .result();
+
+  // grab the action result for updating.
+  const result = player.getBattler().result();
+
+  // take note of the flat amount reduced in the action result.
   result.reduced += reduction;
-  base = Math.max((base + reduction), 0);
-  return base;
+
+  // prevent reducing the damage into healing instead.
+  const flatReducedDamage = Math.max((base + reduction), 0);
+
+  // return the reduced amount of damage.
+  return flatReducedDamage;
 };
 
 /**
  * Reduces damage of a value if defending- by a percent amount.
- * @param {number} base The base damage value to modify.
- * @param {JABS_Battler} player The player's JABS battler.
+ * @param {number} baseDamage The base damage value to modify.
+ * @param {JABS_Battler} jabsBattler The battler reducing damage.
+ * @returns {number} The damage after reduction.
  */
-Game_Action.prototype.percDamageReduction = function(base, player)
+Game_Action.prototype.percDamageReduction = function(baseDamage, jabsBattler)
 {
-  const reduction = parseFloat(base - ((100 + player.percGuardReduction()) / 100) * base);
-  const result = player.getBattler()
-    .result();
-  result.reduced -= reduction;
-  base = Math.max((base - reduction), 0);
-  return base;
+  // calculate the percent reduction.
+  const reduction = parseFloat(baseDamage - ((100 + jabsBattler.percGuardReduction()) / 100) * baseDamage);
+
+  // grab the action result for updating.
+  const actionResult = jabsBattler.getBattler().result();
+
+  // take note of the percent amount reduced in the action result.
+  actionResult.reduced -= reduction;
+
+  // prevent reducing the damage into healing instead.
+  const percentReducedDamage = Math.max((baseDamage - reduction), 0);
+
+  // return the reduced amount of damage.
+  return percentReducedDamage;
 };
 
 /**
@@ -18423,7 +18559,6 @@ J.ABS.Aliased.Game_ActionResult.initialize = Game_ActionResult.prototype.initial
 Game_ActionResult.prototype.initialize = function()
 {
   this.parried = false;
-  this.preciseParried = false;
   this.reduced = 0;
   J.ABS.Aliased.Game_ActionResult.initialize.call(this);
 };
@@ -18436,7 +18571,6 @@ Game_ActionResult.prototype.clear = function()
 {
   J.ABS.Aliased.Game_ActionResult.clear.call(this);
   this.parried = false;
-  this.preciseParried = false;
   this.reduced = 0;
 };
 
@@ -18445,7 +18579,7 @@ Game_ActionResult.prototype.clear = function()
  */
 Game_ActionResult.prototype.isHit = function()
 {
-  return this.used && !this.parried && !this.evaded && !this.preciseParried;
+  return this.used && !this.parried && !this.evaded;
 };
 //#endregion Game_ActionResult
 
@@ -20649,13 +20783,17 @@ Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = 
  * Execute an animation of a provided id upon this character.
  * @param {number} animationId The animation id to execute on this character.
  * @param {boolean} parried Whether or not the animation being requested was parried.
- * @param {boolean} preciseParried Whether or not the animation being requested was precise-parried.
  */
-Game_Character.prototype.requestAnimation = function(animationId, parried = false, preciseParried = false)
+Game_Character.prototype.requestAnimation = function(animationId, parried = false)
 {
+  // TODO: remove the parry logic out of this function.
+  // check if we parried.
   if (parried)
   {
-    const parryAnimationId = preciseParried ? 132 : 122;
+    // TODO: extract this.
+    const parryAnimationId = 122;
+
+    // request the animation on this character.
     $gameTemp.requestAnimation([this], parryAnimationId);
   }
   else

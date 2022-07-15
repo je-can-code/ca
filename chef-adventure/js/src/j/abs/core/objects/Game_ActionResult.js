@@ -7,7 +7,6 @@ J.ABS.Aliased.Game_ActionResult.initialize = Game_ActionResult.prototype.initial
 Game_ActionResult.prototype.initialize = function()
 {
   this.parried = false;
-  this.preciseParried = false;
   this.reduced = 0;
   J.ABS.Aliased.Game_ActionResult.initialize.call(this);
 };
@@ -20,7 +19,6 @@ Game_ActionResult.prototype.clear = function()
 {
   J.ABS.Aliased.Game_ActionResult.clear.call(this);
   this.parried = false;
-  this.preciseParried = false;
   this.reduced = 0;
 };
 
@@ -29,6 +27,6 @@ Game_ActionResult.prototype.clear = function()
  */
 Game_ActionResult.prototype.isHit = function()
 {
-  return this.used && !this.parried && !this.evaded && !this.preciseParried;
+  return this.used && !this.parried && !this.evaded;
 };
 //#endregion Game_ActionResult

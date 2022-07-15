@@ -4963,13 +4963,14 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   // if not guarding anymore, turn off the guard state.
   if (!guarding && this.guarding())
   {
-    this.setGuarding(false);
-    this.setParryWindow(0);
-    this.endAnimation();
+    // stop guarding.
+    this.endGuarding();
+
+    // stop processing.
     return;
   }
 
-  // if we aren't guarding, and weren't guarding, don't do anything.
+  // if we aren't guarding now, and weren't guarding before, don't do anything.
   if (!guarding) return;
 
   // if not guarding, wasn't guarding before, but want to guard, then let's guard!
@@ -4977,6 +4978,19 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
 
   // if we cannot guard, then don't try.
   if (!guardData || !guardData.canGuard()) return;
+
+  // begin guarding!
+  this.startGuarding(skillSlot);
+};
+
+/**
+ * Begin guarding with the given skill slot.
+ * @param {string} skillSlot The skill slot containing the guard data.
+ */
+JABS_Battler.prototype.startGuarding = function(skillSlot)
+{
+  // grab the guard data.
+  const guardData = this.getGuardData(skillSlot);
 
   // begin guarding!
   this.setGuarding(true);
@@ -4995,6 +5009,21 @@ JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
   // set the pose!
   const skillId = this.getBattler().getEquippedSkill(skillSlot);
   this.performActionPose(this.getSkill(skillId));
+};
+
+/**
+ * Ends the guarding stance for this battler.
+ */
+JABS_Battler.prototype.endGuarding = function()
+{
+  // end the guarding tracker.
+  this.setGuarding(false);
+
+  // remove any remaining parry time.
+  this.setParryWindow(0);
+
+  // stop posing.
+  this.endAnimation();
 };
 
 /**

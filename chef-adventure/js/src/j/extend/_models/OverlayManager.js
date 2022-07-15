@@ -119,7 +119,6 @@ class OverlayManager
     baseSkill = this.uniqueCooldown(baseSkill, skillOverlay);
     baseSkill = this.moveType(baseSkill, skillOverlay);
     baseSkill = this.invincibleDodge(baseSkill, skillOverlay);
-
     baseSkill = this.piercing(baseSkill, skillOverlay);
     baseSkill = this.combo(baseSkill, skillOverlay);
 
@@ -199,13 +198,19 @@ class OverlayManager
     // append the notes.
     baseSkill.note += skillOverlay.note;
 
-    // combine repeats.
-    baseSkill.repeats += (skillOverlay.repeats - 1);
+    // combine repeats if they aren't just 1 (default).
+    if (skillOverlay.repeats !== 1)
+    {
+      baseSkill.repeats += (skillOverlay.repeats - 1);
+    }
 
     // combine speeds.
-    baseSkill.speed += skillOverlay.speed;
+    if (skillOverlay.speed !== 0)
+    {
+      baseSkill.speed += skillOverlay.speed;
+    }
 
-    // if they aren't the same, and aren't 100, then add them.
+    // if they aren't the same, and aren't 100 (default), then add them.
     if (baseSkill.successRate !== skillOverlay.successRate ||
       skillOverlay.successRate !== 100)
     {
@@ -224,20 +229,22 @@ class OverlayManager
       baseSkill.message2 = skillOverlay.message2;
     }
 
-    // overwrite scope.
-    if (baseSkill.scope !== skillOverlay.scope)
+    // overwrite scope if not "none" (0 = default) and not the same.
+    const bothHaveScopes = baseSkill.scope !== 0 && skillOverlay.scope !== 0;
+    const scopesHaveChanged = baseSkill.scope !== skillOverlay.scope;
+    if (bothHaveScopes && scopesHaveChanged)
     {
-      //! TODO: extend, don't overwrite!
+      // TODO: extend, don't overwrite!
       baseSkill.scope = skillOverlay.scope;
     }
 
-    // overwrite mp costs.
+    // overwrite mp costs if not the same.
     if (baseSkill.mpCost !== skillOverlay.mpCost)
     {
       baseSkill.mpCost = skillOverlay.mpCost;
     }
 
-    // overwrite tp costs.
+    // overwrite tp costs if not the same.
     if (baseSkill.tpCost !== skillOverlay.tpCost)
     {
       baseSkill.tpCost = skillOverlay.tpCost;
@@ -246,10 +253,17 @@ class OverlayManager
     // combine the tp gains.
     baseSkill.tpGain += skillOverlay.tpGain;
 
-    // if both hit types are NOT "certain hit", then overwrite them.
+    // if both hit types are NOT "certain hit" (default), then overwrite them.
     if (baseSkill.hitType && skillOverlay.hitType)
     {
       baseSkill.hitType = skillOverlay.hitType;
+    }
+
+    // overwrite the animation if not 0 (default) and it changed.
+    if (baseSkill.animationId !== 0 &&
+      baseSkill.animationId !== skillOverlay.animationId)
+    {
+      baseSkill.animationId = skillOverlay.animationId;
     }
 
     /*

@@ -286,13 +286,17 @@ Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = 
  * Execute an animation of a provided id upon this character.
  * @param {number} animationId The animation id to execute on this character.
  * @param {boolean} parried Whether or not the animation being requested was parried.
- * @param {boolean} preciseParried Whether or not the animation being requested was precise-parried.
  */
-Game_Character.prototype.requestAnimation = function(animationId, parried = false, preciseParried = false)
+Game_Character.prototype.requestAnimation = function(animationId, parried = false)
 {
+  // TODO: remove the parry logic out of this function.
+  // check if we parried.
   if (parried)
   {
-    const parryAnimationId = preciseParried ? 132 : 122;
+    // TODO: extract this.
+    const parryAnimationId = 122;
+
+    // request the animation on this character.
     $gameTemp.requestAnimation([this], parryAnimationId);
   }
   else

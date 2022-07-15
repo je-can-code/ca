@@ -1908,8 +1908,8 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    */
   checkParry(caster, target, action)
   {
-    const isFacing = caster.isFacingTarget(target.getCharacter());
     // cannot parry if not facing target.
+    const isFacing = caster.isFacingTarget(target.getCharacter());
     if (!isFacing) return false;
 
     // if the target battler has 0% GRD, they can't parry.
@@ -1958,10 +1958,10 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     */
     /* eslint-enable */
 
-    // apply the hit bonus to hit.
+    // apply the hit bonus to hit (10% of actual hit).
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
 
-    // calculate the hit rate.
+    // calculate the hit rate (rng + bonus hit).
     const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
 
     // grab the amount of parry ignored.
@@ -2074,7 +2074,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const actionResult = battler.getBattler().result();
 
     // check if we need to perform any sort of countering.
-    const needsCounterParry = actionResult.preciseParried && battler.counterParry().length;
+    const needsCounterParry = actionResult.parried && battler.counterParry().length;
 
     // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
@@ -2344,7 +2344,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     if (result.parried)
     {
       const parryLog = new MapLogBuilder()
-        .setupParry(targetName, casterName, skill.id, result.preciseParried)
+        .setupParry(targetName, casterName, skill.id, result.parried)
         .build();
       $gameTextLog.addLog(parryLog);
       return;
