@@ -198,7 +198,7 @@ class Window_InputFrame extends Window_Frame
   handleMessageWindowInterference()
   {
     // check if the message window is up.
-    if ($gameMessage.isBusy())
+    if ($gameMessage.isBusy() || $gameMap._interpreter.isRunning())
     {
       // check to make sure we haven't closed this window yet.
       if (!this.isClosed())

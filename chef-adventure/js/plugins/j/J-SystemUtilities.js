@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jul 14 2022 17:33:16 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 /*:
  * @target MZ
@@ -107,7 +107,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
   J.UTILS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
 
   // instead of responding with undefined to the console, return the name of the skill.
-  console.log(`[${skillId}] {${this.skill(skillId).name}} was learned.`);
+  //console.log(`[${skillId}] {${this.skill(skillId).name}} was learned.`);
 };
 
 /**

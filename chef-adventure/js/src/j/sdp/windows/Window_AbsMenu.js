@@ -12,7 +12,7 @@ if (J.ABS)
     if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
 
     // The menu shouldn't be accessible if there are no panels to work with.
-    const enabled = $gameSystem.getUnlockedSdps().length;
+    const enabled = true;//$gameSystem.getUnlockedSdps().length;
 
     const sdpCommand = J.SDP.MenuCommand(enabled);
     this._list.splice(this._list.length - 2, 0, sdpCommand);

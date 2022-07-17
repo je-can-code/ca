@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 15:19:44 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -615,7 +615,7 @@ J.SDP.MenuCommand = isEnabled =>
  */
 J.SDP.Aliased = {
   BattleManager: {},
-  DataManager: {},
+  DataManager: new Map(),
   Game_Actor: {},
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
@@ -1457,31 +1457,38 @@ BattleManager.displaySdp = function()
 /**
  * Updates existing save files with the updated SDP plugin metadata.
  */
-J.SDP.Aliased.DataManager.extractSaveContents = DataManager.extractSaveContents;
+J.SDP.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
 DataManager.extractSaveContents = function(contents)
 {
-  const fromPluginSettingsSdp = $gameSystem._j._sdp;
-  const fromSaveFileSdp = contents.system._j._sdp;
-  fromSaveFileSdp._panels.forEach(savedSdp =>
+  // grab the sdp data from the current plugin parameters and the save file.
+  const fromPluginParamsPanels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
+  const fromSaveFilePanels = contents.system._j._sdp._panels;
+
+  // iterate over all the panels in the save file.
+  fromSaveFilePanels.forEach(savedSdp =>
   {
-    const updatedSdp = fromPluginSettingsSdp._panels
-      .find(settingsSdp => settingsSdp.key === savedSdp.key);
-    // if the SDP no longer exists, don't do anything with it.
-    if (!updatedSdp) return;
+    // grab the most updated panel data from plugin parameters that matches this key.
+    const updatedSdp = fromPluginParamsPanels.find(settingsSdp => settingsSdp.key === savedSdp.key);
+
+    // if the panel no longer exists, stop processing.
+    if (!updatedSdp)
+    {
+      console.warn('no SDP found for key', savedSdp.key);
+      return;
+    }
 
     // if it was unlocked before, it stays unlocked.
     if (savedSdp.isUnlocked())
     {
-      if (updatedSdp)
-      {
-        updatedSdp.unlock();
-      }
+      updatedSdp.unlock();
     }
   });
 
-  // update the save file data with the modified plugin settings JAFTING data.
-  contents.system._j._sdp = fromPluginSettingsSdp;
-  J.SDP.Aliased.DataManager.extractSaveContents.call(this, contents);
+  // update the save file data with the modified plugin settings SDP data.
+  contents.system._j._sdp._panels = fromPluginParamsPanels;
+
+  // perform original logic.
+  J.SDP.Aliased.DataManager.get('extractSaveContents').call(this, contents);
 };
 //#endregion DataManager
 
@@ -1948,7 +1955,7 @@ Game_System.prototype.onAfterLoad = function()
 Game_System.prototype.updateSdpsFromPluginMetadata = function()
 {
   // refresh the panel list from the plugin metadata.
-  this._j._sdp._panels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
+  this._j._sdp._panels ??= J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
 };
 
 /**
@@ -1996,7 +2003,11 @@ Game_System.prototype.getUnlockedSdps = function()
   // if we don't have panels to search through, don't do it.
   if (!this.getAllSdps().length) return [];
 
-  return this._j._sdp._panels.filter(panel => panel.isUnlocked());
+  const panels = this.getAllSdps();
+
+  const unlockedPanels = panels.filter(panel => panel.isUnlocked());
+
+  return unlockedPanels;
 };
 
 /**
@@ -2461,7 +2472,7 @@ if (J.ABS)
     if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
 
     // The menu shouldn't be accessible if there are no panels to work with.
-    const enabled = $gameSystem.getUnlockedSdps().length;
+    const enabled = true;//$gameSystem.getUnlockedSdps().length;
 
     const sdpCommand = J.SDP.MenuCommand(enabled);
     this._list.splice(this._list.length - 2, 0, sdpCommand);

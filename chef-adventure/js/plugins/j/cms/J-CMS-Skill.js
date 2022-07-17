@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 13:51:41 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -564,14 +564,22 @@ class Window_SkillDetail extends Window_Base
       // if there are no rewards, then don't even draw the "related" section.
       if (!conditional.skillRewards.length) return;
 
+
       conditional.skillRewards.forEach(skillRewardId =>
       {
+        if (!skillRewardId)
+        {
+          console.warn(conditional);
+          console.log(skillRewardId,  "not a valid skill reward.");
+          return;
+        }
+
         // get the current/required proficiency level for the reward.
         const requiredProficiency = conditional.requirements
           .find(requirement => requirement.skillId === skill.id);
 
         const actorKnowsSkill = actor.isLearnedSkill(skillRewardId);
-        const extendedSkill = OverlayManager.getExtendedSkill(actor, skillRewardId);
+        const extendedSkill = actor.skill(skillRewardId);
         const learnedIcon = actorKnowsSkill ? 91 : 90;
         const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
         const value = `${requiredProficiency.proficiency}`;

@@ -74,7 +74,8 @@ Game_System.prototype.onAfterLoad = function()
 Game_System.prototype.updateRecipesFromPluginMetadata = function()
 {
   // refresh the recipes list from the plugin metadata.
-  this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+  this._j._jafting._recipes ??=
+    J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
 };
 
 /**
@@ -83,7 +84,8 @@ Game_System.prototype.updateRecipesFromPluginMetadata = function()
 Game_System.prototype.updateCategoriesFromPluginMetadata = function()
 {
   // refresh the categories list from the plugin metadata.
-  this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
+  this._j._jafting._categories ??=
+    J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
 };
 
 /**
@@ -202,6 +204,15 @@ Game_System.prototype.lockRecipe = function(key)
 };
 
 /**
+ * Locks all recipes of JAFTING.
+ */
+Game_System.prototype.lockAllRecipes = function()
+{
+  this._j._jafting._recipes.forEach(recipe => recipe.lock());
+  this.setRefreshRequest(true);
+};
+
+/**
  * Gets all defined JAFTING recipes.
  * @returns {JAFTING_Recipe[]}
  */
@@ -268,17 +279,21 @@ Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey)
  */
 Game_System.prototype.getCraftedRecipesByCategory = function(categoryKey)
 {
+  // get all unlocked recipes of a given category.
   const unlocked = this.getUnlockedRecipesByCategory(categoryKey);
+
+  // check to make sure we have at least one before
   if (unlocked.length)
   {
-    const isAvailable = (recipe) =>
-    {
-      if (recipe.maskedUntilCrafted && recipe.crafted) return true;
-      if (!recipe.maskedUntilCrafted) return true;
-      return false;
-    };
-    return unlocked.filter(isAvailable);
+    // a filtering function to determine what is available.
+    const craftedRecipes = unlocked.filter(recipe => recipe.crafted);
+
+    // return what we found.
+    return craftedRecipes;
   }
+
+  console.warn("no recipes have yet been crafted.")
+  return [];
 };
 
 /**

@@ -2,8 +2,7 @@
 /**
  * A simple window that shows a list of categories unlocked.
  */
-class Window_JaftingCraftCategory
-  extends Window_Command
+class Window_JaftingCraftCategory extends Window_Command
 {
   /**
    * @constructor
@@ -53,7 +52,7 @@ class Window_JaftingCraftCategory
   getCategoryDetails()
   {
     // cannot return details for null.
-    if (this.currentIndex() === null || !this._list.length) return null;
+    if (this.currentIndex === null || !this._list.length) return null;
 
     const details = this._list[this.currentIndex].ext;
     return details;

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 13:51:41 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -871,48 +871,49 @@ JAFTING_Recipe.prototype.getRecipeDescription = function()
 J.JAFTING.Aliased.DataManager.extractSaveContents = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
-  const fromPluginSettingsJafting = $gameSystem._j._jafting;
+  // grab the latest data from the plugin parameters for jafting.
+  const fromPluginParamsRecipes =
+    J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+  const fromPluginParamsCategories =
+    J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
+
+  // pull out the jafting data from the save file.
   const fromSaveFileJafting = contents.system._j._jafting;
+
+  // iterate over the save file recipes.
   fromSaveFileJafting._recipes.forEach(savedRecipe =>
   {
-    const updatedRecipe = fromPluginSettingsJafting._recipes
+    // grab the recipe from our plugin parameter data.
+    const updatedRecipe = fromPluginParamsRecipes
       .find(settingsRecipe => settingsRecipe.key === savedRecipe.key);
+
     // if the recipe no longer exists, don't do anything with it.
     if (!updatedRecipe) return;
 
     // if it was unlocked before, it stays unlocked.
-    if (savedRecipe.isUnlocked())
-    {
-      if (updatedRecipe)
-      {
-        updatedRecipe.unlock();
-      }
-    }
+    if (savedRecipe.isUnlocked()) updatedRecipe.unlock();
 
     // if it was crafted before, it stays crafted.
-    if (savedRecipe.hasBeenCrafted())
-    {
-      updatedRecipe.setCrafted();
-    }
+    if (savedRecipe.hasBeenCrafted()) updatedRecipe.setCrafted();
   });
 
   // iterate over all categories from the save file and update the unlock status of each.
   fromSaveFileJafting._categories.forEach(savedCategory =>
   {
-    const updatedCategory = fromPluginSettingsJafting._categories
+    // grab the category from our plugin parameter data.
+    const updatedCategory = fromPluginParamsCategories
       .find(settingsCategory => settingsCategory.key === savedCategory.key);
 
     // if the category no longer exists, don't do anything with it.
     if (!updatedCategory) return;
 
-    if (savedCategory.isUnlocked())
-    {
-      updatedCategory.unlock();
-    }
+    // if it was unlocked before, it stays unlocked.
+    if (savedCategory.isUnlocked()) updatedCategory.unlock();
   });
 
   // update the save file data with the modified plugin settings JAFTING data.
-  contents.system._j._jafting = fromPluginSettingsJafting;
+  contents.system._j._jafting._recipes = fromPluginParamsRecipes;
+  contents.system._j._jafting._categories = fromPluginParamsCategories;
   J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
 //#endregion DataManager
@@ -1030,7 +1031,8 @@ Game_System.prototype.onAfterLoad = function()
 Game_System.prototype.updateRecipesFromPluginMetadata = function()
 {
   // refresh the recipes list from the plugin metadata.
-  this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+  this._j._jafting._recipes ??=
+    J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
 };
 
 /**
@@ -1039,7 +1041,8 @@ Game_System.prototype.updateRecipesFromPluginMetadata = function()
 Game_System.prototype.updateCategoriesFromPluginMetadata = function()
 {
   // refresh the categories list from the plugin metadata.
-  this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
+  this._j._jafting._categories ??=
+    J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
 };
 
 /**
@@ -1158,6 +1161,15 @@ Game_System.prototype.lockRecipe = function(key)
 };
 
 /**
+ * Locks all recipes of JAFTING.
+ */
+Game_System.prototype.lockAllRecipes = function()
+{
+  this._j._jafting._recipes.forEach(recipe => recipe.lock());
+  this.setRefreshRequest(true);
+};
+
+/**
  * Gets all defined JAFTING recipes.
  * @returns {JAFTING_Recipe[]}
  */
@@ -1224,17 +1236,21 @@ Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey)
  */
 Game_System.prototype.getCraftedRecipesByCategory = function(categoryKey)
 {
+  // get all unlocked recipes of a given category.
   const unlocked = this.getUnlockedRecipesByCategory(categoryKey);
+
+  // check to make sure we have at least one before
   if (unlocked.length)
   {
-    const isAvailable = (recipe) =>
-    {
-      if (recipe.maskedUntilCrafted && recipe.crafted) return true;
-      if (!recipe.maskedUntilCrafted) return true;
-      return false;
-    };
-    return unlocked.filter(isAvailable);
+    // a filtering function to determine what is available.
+    const craftedRecipes = unlocked.filter(recipe => recipe.crafted);
+
+    // return what we found.
+    return craftedRecipes;
   }
+
+  console.warn("no recipes have yet been crafted.")
+  return [];
 };
 
 /**
@@ -1912,8 +1928,7 @@ Scene_Map.prototype.closeJaftingMenu = function()
 /**
  * A simple window that shows a list of categories unlocked.
  */
-class Window_JaftingCraftCategory
-  extends Window_Command
+class Window_JaftingCraftCategory extends Window_Command
 {
   /**
    * @constructor
@@ -1963,7 +1978,7 @@ class Window_JaftingCraftCategory
   getCategoryDetails()
   {
     // cannot return details for null.
-    if (this.currentIndex() === null || !this._list.length) return null;
+    if (this.currentIndex === null || !this._list.length) return null;
 
     const details = this._list[this.currentIndex].ext;
     return details;
@@ -2194,12 +2209,14 @@ class Window_JaftingCraftRecipeDetails
   drawRecipeOutputItem(rpgItem, count, x, y)
   {
     const paddedCount = count.padZero(2);
+    const itemCount = ($gameParty.numItems(rpgItem)).padZero(2);
+    const itemNumbers = `${paddedCount}x / (x${itemCount})`
     let {name} = rpgItem;
     if (this.currentRecipe.maskedUntilCrafted && !this.currentRecipe.hasBeenCrafted())
     {
       name = name.replace(/[A-Za-z!-?.]/ig, "?");
     }
-    this.drawTextEx(`${paddedCount}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
+    this.drawTextEx(`${itemNumbers}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
   }
 }
 //#endregion Window_JaftingCraftRecipeDetails

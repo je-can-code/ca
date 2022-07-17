@@ -662,17 +662,17 @@ class Window_PartyFrame extends Window_Base
   handleMessageWindowInterference()
   {
     // check if the message window is up.
-    if ($gameMessage.isBusy())
+    if ($gameMessage.isBusy() || $gameMap._interpreter.isRunning())
     {
       // check to make sure we haven't closed this window yet.
       if (!this.isClosed())
       {
         // hide all the sprites.
         this.hideSprites();
-      }
 
-      // and close the window.
-      this.close();
+        // and close the window.
+        this.close();
+      }
     }
     // otherwise, the message window isn't there.
     else

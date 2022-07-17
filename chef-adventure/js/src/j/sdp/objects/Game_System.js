@@ -53,7 +53,7 @@ Game_System.prototype.onAfterLoad = function()
 Game_System.prototype.updateSdpsFromPluginMetadata = function()
 {
   // refresh the panel list from the plugin metadata.
-  this._j._sdp._panels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
+  this._j._sdp._panels ??= J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
 };
 
 /**
@@ -101,7 +101,11 @@ Game_System.prototype.getUnlockedSdps = function()
   // if we don't have panels to search through, don't do it.
   if (!this.getAllSdps().length) return [];
 
-  return this._j._sdp._panels.filter(panel => panel.isUnlocked());
+  const panels = this.getAllSdps();
+
+  const unlockedPanels = panels.filter(panel => panel.isUnlocked());
+
+  return unlockedPanels;
 };
 
 /**

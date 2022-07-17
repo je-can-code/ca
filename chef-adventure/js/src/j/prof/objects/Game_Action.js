@@ -80,4 +80,76 @@ Game_Action.prototype.skillProficiency = function()
   return 0;
 };
 
+// this stuff only applies to JABS.
+if (J.ABS)
+{
+  /**
+   * Extends {@link Game_Action.onParry}.
+   * Also gains proficiency for the parry if possible.
+   * @param {JABS_Battler} jabsBattler The battler that is parrying.
+   */
+  J.PROF.Aliased.Game_Action.set('onParry', Game_Action.prototype.onParry);
+  Game_Action.prototype.onParry = function(jabsBattler)
+  {
+    // perform original logic.
+    J.PROF.Aliased.Game_Action.get('onParry').call(this, jabsBattler);
+
+    // gain some proficiency from guarding.
+    this.gainProficiencyFromGuarding(jabsBattler);
+  };
+
+  /**
+   * Extends {@link Game_Action.onGuard}.
+   * Also gains proficiency for the guard if possible.
+   * @param {JABS_Battler} jabsBattler The battler that is guarding.
+   */
+  J.PROF.Aliased.Game_Action.set('onGuard', Game_Action.prototype.onGuard);
+  Game_Action.prototype.onGuard = function(jabsBattler)
+  {
+    // perform original logic.
+    J.PROF.Aliased.Game_Action.get('onGuard').call(this, jabsBattler);
+
+    // gain some proficiency from guarding.
+    this.gainProficiencyFromGuarding(jabsBattler);
+  };
+
+  /**
+   * Gains proficiency when guarding.
+   * @param jabsBattler
+   */
+  Game_Action.prototype.gainProficiencyFromGuarding = function(jabsBattler)
+  {
+    // don't gain proficiency if we cannot.
+    if (!this.canGainProficiencyFromGuarding(jabsBattler)) return;
+
+    // handle tp generation from the guard skill.
+    const skillId = jabsBattler.getGuardSkillId();
+
+    // gain some proficiency for the parry skill.
+    jabsBattler.getBattler().increaseSkillProficiency(skillId, 1);
+  };
+
+  /**
+   * Determines whether or not this battle can gain proficiency for the guard skill.
+   * @param {JABS_Battler} jabsBattler The battler that is guarding/parrying.
+   * @returns {boolean} True if we can gain proficiency, false otherwise.
+   */
+  Game_Action.prototype.canGainProficiencyFromGuarding = function(jabsBattler)
+  {
+    // determine whether or not this battler can gain proficiency.
+    const canGainProficiency = jabsBattler.getBattler().canGainProficiency();
+
+    // if the battler is blocked from gaining proficiency don't gain proficiency.
+    if (!canGainProficiency) return false;
+
+    // get the guard skill id.
+    const skillId = jabsBattler.getGuardSkillId();
+
+    // if there is no skill id, don't gain proficiency.
+    if (!skillId) return false;
+
+    // gain proficiency!
+    return true;
+  };
+}
 //#endregion Game_Action

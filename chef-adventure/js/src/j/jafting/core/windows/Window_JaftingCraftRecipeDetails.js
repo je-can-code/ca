@@ -192,12 +192,14 @@ class Window_JaftingCraftRecipeDetails
   drawRecipeOutputItem(rpgItem, count, x, y)
   {
     const paddedCount = count.padZero(2);
+    const itemCount = ($gameParty.numItems(rpgItem)).padZero(2);
+    const itemNumbers = `${paddedCount}x / (x${itemCount})`
     let {name} = rpgItem;
     if (this.currentRecipe.maskedUntilCrafted && !this.currentRecipe.hasBeenCrafted())
     {
       name = name.replace(/[A-Za-z!-?.]/ig, "?");
     }
-    this.drawTextEx(`${paddedCount}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
+    this.drawTextEx(`${itemNumbers}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
   }
 }
 //#endregion Window_JaftingCraftRecipeDetails

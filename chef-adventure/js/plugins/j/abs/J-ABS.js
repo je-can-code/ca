@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jul 14 2022 16:38:00 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -18324,19 +18324,29 @@ Game_Action.prototype.processParry = function(jabsBattler)
   // nullify the result via parry.
   actionResult.parried = true;
 
+  // perform on-parry effects.
+  this.onParry(jabsBattler);
+
   // TODO: pull the parry logic out of the requestanimation function.
   // play the parry animation.
   jabsBattler.getCharacter().requestAnimation(0, true);
 
+  // reset the player's guarding.
+  jabsBattler.setParryWindow(0);
+  jabsBattler.setGuardSkillId(0);
+};
+
+/**
+ * A hook to perform actions on-parry.
+ * @param {JABS_Battler} jabsBattler The battler that is parrying.
+ */
+Game_Action.prototype.onParry = function(jabsBattler)
+{
   // handle tp generation from parrying.
   const guardSkillTp = this.getTpFromGuardSkill(jabsBattler) * 10;
 
   // gain 10x of the tp from the guard skill when parrying.
   jabsBattler.getBattler().gainTp(guardSkillTp);
-
-  // reset the player's guarding.
-  jabsBattler.setParryWindow(0);
-  jabsBattler.setGuardSkillId(0);
 };
 
 /**
@@ -18360,9 +18370,19 @@ Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, orig
 /**
  * Processes the action as a guard, reducing damage along with any
  * additional side effects.
- * @param {JABS_Battler} jabsBattler The battler that is guarding.
+ * @param {JABS_Battler} jabsBattler The battler that is guar1ding.
  */
 Game_Action.prototype.processGuard = function(jabsBattler)
+{
+  // perform on-guard effects.
+  this.onGuard(jabsBattler);
+};
+
+/**
+ * A hook to perform actions on-guard.
+ * @param {JABS_Battler} jabsBattler The battler that is guarding.
+ */
+Game_Action.prototype.onGuard = function(jabsBattler)
 {
   // gain any tp associated with defending.
   const guardSkillTp = this.getTpFromGuardSkill(jabsBattler);
@@ -18402,6 +18422,9 @@ Game_Action.prototype.getTpFromGuardSkill = function(jabsBattler)
 
   // grab the potentially extended guard skill.
   const skill = jabsBattler.getSkill(skillId);
+
+  // if timing is just a hair off, the guarding skill won't be available.
+  if (!skill) return 0;
 
   // return the tp associated with the guard skill.
   return skill.tpGain;
@@ -20492,6 +20515,14 @@ Game_Battler.prototype.ignoreAllParry = function()
   const unparryable = objectsToCheck.some(obj => obj.jabsUnparryable);
 
   return unparryable;
+};
+
+/**
+ * Overwrites {@link Game_Battler.regenerateAll}.
+ * JABS manages its own regeneration, so we don't want this interfering.
+ */
+Game_Battler.prototype.regenerateAll = function()
+{
 };
 //#endregion Game_Battler
 

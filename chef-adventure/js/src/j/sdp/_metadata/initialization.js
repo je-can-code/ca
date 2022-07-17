@@ -205,7 +205,7 @@ J.SDP.MenuCommand = isEnabled =>
  */
 J.SDP.Aliased = {
   BattleManager: {},
-  DataManager: {},
+  DataManager: new Map(),
   Game_Actor: {},
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),

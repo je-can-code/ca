@@ -9,7 +9,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
   J.UTILS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
 
   // instead of responding with undefined to the console, return the name of the skill.
-  console.log(`[${skillId}] {${this.skill(skillId).name}} was learned.`);
+  //console.log(`[${skillId}] {${this.skill(skillId).name}} was learned.`);
 };
 
 /**

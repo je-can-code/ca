@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Jul 08 2022 13:51:41 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -217,10 +217,13 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
     const parsedConditional = JSON.parse(conditionalBlob);
 
     const {key} = parsedConditional;
+    // skip proficiencies that are just headers for visual clarity.
+    if (key.startsWith("===")) return;
+
     const actorIdBlob = JSON.parse(parsedConditional.actorIds);
-    const actorIds = actorIdBlob.map(parseInt);
+    const actorIds = actorIdBlob.map(id => parseInt(id));
     const skillrewardBlob = JSON.parse(parsedConditional.skillRewards);
-    const skillRewards = skillrewardBlob.map(parseInt);
+    const skillRewards = skillrewardBlob.map(id => parseInt(id));
     const reward = parsedConditional.jsRewards;
     const requirements = [];
 
@@ -517,6 +520,78 @@ Game_Action.prototype.skillProficiency = function()
   return 0;
 };
 
+// this stuff only applies to JABS.
+if (J.ABS)
+{
+  /**
+   * Extends {@link Game_Action.onParry}.
+   * Also gains proficiency for the parry if possible.
+   * @param {JABS_Battler} jabsBattler The battler that is parrying.
+   */
+  J.PROF.Aliased.Game_Action.set('onParry', Game_Action.prototype.onParry);
+  Game_Action.prototype.onParry = function(jabsBattler)
+  {
+    // perform original logic.
+    J.PROF.Aliased.Game_Action.get('onParry').call(this, jabsBattler);
+
+    // gain some proficiency from guarding.
+    this.gainProficiencyFromGuarding(jabsBattler);
+  };
+
+  /**
+   * Extends {@link Game_Action.onGuard}.
+   * Also gains proficiency for the guard if possible.
+   * @param {JABS_Battler} jabsBattler The battler that is guarding.
+   */
+  J.PROF.Aliased.Game_Action.set('onGuard', Game_Action.prototype.onGuard);
+  Game_Action.prototype.onGuard = function(jabsBattler)
+  {
+    // perform original logic.
+    J.PROF.Aliased.Game_Action.get('onGuard').call(this, jabsBattler);
+
+    // gain some proficiency from guarding.
+    this.gainProficiencyFromGuarding(jabsBattler);
+  };
+
+  /**
+   * Gains proficiency when guarding.
+   * @param jabsBattler
+   */
+  Game_Action.prototype.gainProficiencyFromGuarding = function(jabsBattler)
+  {
+    // don't gain proficiency if we cannot.
+    if (!this.canGainProficiencyFromGuarding(jabsBattler)) return;
+
+    // handle tp generation from the guard skill.
+    const skillId = jabsBattler.getGuardSkillId();
+
+    // gain some proficiency for the parry skill.
+    jabsBattler.getBattler().increaseSkillProficiency(skillId, 1);
+  };
+
+  /**
+   * Determines whether or not this battle can gain proficiency for the guard skill.
+   * @param {JABS_Battler} jabsBattler The battler that is guarding/parrying.
+   * @returns {boolean} True if we can gain proficiency, false otherwise.
+   */
+  Game_Action.prototype.canGainProficiencyFromGuarding = function(jabsBattler)
+  {
+    // determine whether or not this battler can gain proficiency.
+    const canGainProficiency = jabsBattler.getBattler().canGainProficiency();
+
+    // if the battler is blocked from gaining proficiency don't gain proficiency.
+    if (!canGainProficiency) return false;
+
+    // get the guard skill id.
+    const skillId = jabsBattler.getGuardSkillId();
+
+    // if there is no skill id, don't gain proficiency.
+    if (!skillId) return false;
+
+    // gain proficiency!
+    return true;
+  };
+}
 //#endregion Game_Action
 
 //#region Game_Actor
@@ -910,6 +985,7 @@ Game_Battler.prototype.skillProficiencies = function()
 
 /**
  * Gets the prof of one particular skill for this battler.
+ * @param {number} skillId The id of the skill to get proficiency for.
  * @returns {number}
  */
 Game_Battler.prototype.skillProficiencyBySkillId = function(skillId)

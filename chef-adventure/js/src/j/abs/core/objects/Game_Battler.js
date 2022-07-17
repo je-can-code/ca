@@ -574,4 +574,12 @@ Game_Battler.prototype.ignoreAllParry = function()
 
   return unparryable;
 };
+
+/**
+ * Overwrites {@link Game_Battler.regenerateAll}.
+ * JABS manages its own regeneration, so we don't want this interfering.
+ */
+Game_Battler.prototype.regenerateAll = function()
+{
+};
 //#endregion Game_Battler

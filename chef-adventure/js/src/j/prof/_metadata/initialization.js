@@ -34,10 +34,13 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
     const parsedConditional = JSON.parse(conditionalBlob);
 
     const {key} = parsedConditional;
+    // skip proficiencies that are just headers for visual clarity.
+    if (key.startsWith("===")) return;
+
     const actorIdBlob = JSON.parse(parsedConditional.actorIds);
-    const actorIds = actorIdBlob.map(parseInt);
+    const actorIds = actorIdBlob.map(id => parseInt(id));
     const skillrewardBlob = JSON.parse(parsedConditional.skillRewards);
-    const skillRewards = skillrewardBlob.map(parseInt);
+    const skillRewards = skillrewardBlob.map(id => parseInt(id));
     const reward = parsedConditional.jsRewards;
     const requirements = [];
 
