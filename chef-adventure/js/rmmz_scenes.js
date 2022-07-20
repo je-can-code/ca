@@ -865,6 +865,7 @@ Scene_Map.prototype.onMapTouch = function() {
     const x = $gameMap.canvasToMapX(TouchInput.x);
     const y = $gameMap.canvasToMapY(TouchInput.y);
     $gameTemp.setDestination(x, y);
+
 };
 
 Scene_Map.prototype.isSceneChangeOk = function() {

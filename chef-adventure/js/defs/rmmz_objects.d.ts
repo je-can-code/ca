@@ -3266,6 +3266,12 @@ declare class Game_Followers {
      * @memberof Game_Followers
      */
     hide(): void;
+
+    /**
+     * Returns the current collection of followers.
+     */
+    data(): Game_Follower[];
+
     /**
      * Returns the followers at the specified index.
      *

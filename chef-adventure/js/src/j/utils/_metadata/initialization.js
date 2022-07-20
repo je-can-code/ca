@@ -39,8 +39,10 @@ J.UTILS.Metadata.AutoNewgame = J.UTILS.PluginParameters['autoNewgame'] === 'true
  */
 J.UTILS.Aliased = {
   Game_Actor: new Map(),
+  Game_Temp: new Map(),
   Scene_Base: new Map(),
   Scene_Boot: new Map(),
+  Scene_Map: new Map(),
 };
 
 /**
