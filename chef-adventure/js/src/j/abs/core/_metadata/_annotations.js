@@ -246,6 +246,23 @@
  * that they must wait before they take action. This value is defined by the
  * "Attack Speed" trait, found in the middle of the third page in the trait
  * picker for enemies.
+ * ----------------------------------------------------------------------------
+ * AVAILABLE SKILLS:
+ * Any skills listed in the "Action Patterns" section of an enemy in the
+ * database will be considered an "available skill" for use. To create a skill
+ * that is usable by battlers in JABS (actors or enemies), see the "SETTING UP
+ * YOUR SKILLS" section below.
+ *
+ * NOTE ABOUT CONDITIONS:
+ * Enemies do not currently obey any conditions; they will obey their AI in
+ * combination with skill cooldowns and such.
+ *
+ * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
+ * If you are leveraging my other plugin "J-SkillExtend", then something to
+ * consider is that for a skill to be extended, it must be known to the enemy
+ * in some way. If a skill has a skill extend tag, they will not be available
+ * for enemies to choose as a skill to perform in combat, but it will still
+ * apply any extension effects as applicable.
  *
  * ============================================================================
  * SETTING UP YOUR SKILLS:

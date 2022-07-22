@@ -1,5 +1,68 @@
 //#region Game_Battler
 /**
+ * Adds the `uuid` to the battler class.
+ */
+J.ABS.Aliased.Game_Battler.initMembers = Game_Battler.prototype.initMembers;
+Game_Battler.prototype.initMembers = function()
+{
+  J.ABS.Aliased.Game_Battler.initMembers.call(this);
+  /**
+   * All modifications to the battler lives within this object.
+   * @type {any}
+   */
+  this._j = this._j || {
+    /**
+     * The `uuid` of this battler.
+     * @type {string}
+     */
+    _uuid: J.BASE.Helpers.generateUuid(),
+  };
+
+  /**
+   * All equipped skills on this battler.
+   * @type {JABS_SkillSlotManager}
+   */
+  this._j._equippedSkills = new JABS_SkillSlotManager();
+};
+
+/**
+ * Gets the `uuid` of this battler.
+ * At this level, only returns an empty string.
+ * @returns {string}
+ */
+Game_Battler.prototype.getUuid = function()
+{
+  return this._j._uuid;
+};
+
+/**
+ * Sets the `uuid` of this battler.
+ * @param {string} uuid The `uuid` to assign to this battler.
+ */
+Game_Battler.prototype.setUuid = function(uuid)
+{
+  this._j._uuid = uuid;
+};
+
+/**
+ * Gets the underlying id of the battler from the database.
+ * @returns {number}
+ */
+Game_Battler.prototype.battlerId = function()
+{
+  return 0;
+};
+
+/**
+ * Gets the battler's skill slot manager directly.
+ * @returns {JABS_SkillSlotManager}
+ */
+Game_Battler.prototype.getSkillSlotManager = function()
+{
+  return this._j._equippedSkills;
+};
+
+/**
  * All battlers have a prepare time.
  * At this level, returns default 180 frames.
  * @returns {number}
@@ -290,39 +353,67 @@ Game_Battler.prototype.unlockAllSlots = function()
 };
 
 /**
- * All battlers have a default of no retaliation skills.
+ * Extracts all on-chance-effects from a given collection of checkables with notes.
+ * @param {RegExp} structure The regex structure to parse for.
+ * @param {RPG_Base[]} checkables The list of checkables to parse.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Battler.prototype.getAllOnChanceEffects = function(structure, checkables)
+{
+  // initialize the collection.
+  const onChanceEffects = [];
+
+  // scan all checkables.
+  checkables.forEach(checkable =>
+  {
+    // build concrete on-chance-effects for each instance on the checkable.
+    const onChanceEffectList = J.BASE.Helpers.parseSkillChance(structure, checkable);
+
+    // add it to the collection.
+    onChanceEffects.push(...onChanceEffectList);
+  });
+
+  // return what was found.
+  return onChanceEffects;
+};
+
+/**
+ * Gets all retaliation skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.retaliationSkills = function()
 {
-  const structure = /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const objectsToCheck = this.getAllNotes();
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
+  // get all retaliation skills from the notes.
+  const retaliations = this.getAllOnChanceEffects(J.ABS.RegExp.Retaliate, this.getAllNotes());
 
-  return skills;
+  // return what was found.
+  return retaliations;
 };
 
 /**
- * All battlers have a default of no on-own-defeat skill ids.
+ * Gets all on-own-defeat skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.onOwnDefeatSkillIds = function()
 {
-  return [];
+  // get all on-own-defeat skills from the notes.
+  const onOwnDeaths = this.getAllOnChanceEffects(J.ABS.RegExp.OnOwnDefeat, this.getAllNotes());
+
+  // return what was found.
+  return onOwnDeaths;
 };
 
 /**
- * All battlers have a default of no on-defeating-a-target skill ids.
+ * Gets all on-target-defeat skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.onTargetDefeatSkillIds = function()
 {
-  return [];
+  // get all on-target-defeat skills from the notes.
+  const onTargetKills = this.getAllOnChanceEffects(J.ABS.RegExp.onTargetDefeat, this.getAllNotes());
+
+  // return what was found.
+  return onTargetKills;
 };
 
 /**
@@ -363,69 +454,6 @@ Game_Battler.prototype.extractVisionModifiers = function(referenceData)
   });
 
   return visionMultiplier;
-};
-
-/**
- * Adds the `uuid` to the battler class.
- */
-J.ABS.Aliased.Game_Battler.initMembers = Game_Battler.prototype.initMembers;
-Game_Battler.prototype.initMembers = function()
-{
-  J.ABS.Aliased.Game_Battler.initMembers.call(this);
-  /**
-   * All modifications to the battler lives within this object.
-   * @type {any}
-   */
-  this._j = this._j || {
-    /**
-     * The `uuid` of this battler.
-     * @type {string}
-     */
-    _uuid: J.BASE.Helpers.generateUuid(),
-  };
-
-  /**
-   * All equipped skills on this battler.
-   * @type {JABS_SkillSlotManager}
-   */
-  this._j._equippedSkills = new JABS_SkillSlotManager();
-};
-
-/**
- * Gets the `uuid` of this battler.
- * At this level, only returns an empty string.
- * @returns {string}
- */
-Game_Battler.prototype.getUuid = function()
-{
-  return this._j._uuid;
-};
-
-/**
- * Sets the `uuid` of this battler.
- * @param {string} uuid The `uuid` to assign to this battler.
- */
-Game_Battler.prototype.setUuid = function(uuid)
-{
-  this._j._uuid = uuid;
-};
-
-/**
- * Gets the underlying id of the battler from the database.
- * @returns {number}
- */
-Game_Battler.prototype.battlerId = function()
-{
-  return 0;
-};
-
-/**
- * Gets the battler's skill slot manager directly.
- * @returns {JABS_SkillSlotManager}
- */
-Game_Battler.prototype.getSkillSlotManager = function()
-{
-  return this._j._equippedSkills;
 };
 
 /**
@@ -698,11 +726,6 @@ Game_Battler.prototype.currentHpPercent = function()
   return parseFloat((this.hp / this.mhp).toFixed(2));
 };
 
-Game_Battler.prototype.extractBonusHits = function(notedata)
-{
-  return 0;
-};
-
 /**
  * Checks all states to see if we have anything that grants parry ignore.
  * @returns {boolean}
@@ -724,7 +747,7 @@ Game_Battler.prototype.ignoreAllParry = function()
  * Overwrites {@link Game_Battler.regenerateAll}.
  * JABS manages its own regeneration, so we don't want this interfering.
  */
-Game_Battler.prototype.regenerateAll = function()
+Game_Battler.prototype.regenerateAll = function() 
 {
 };
 //#endregion Game_Battler

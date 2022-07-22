@@ -573,11 +573,22 @@ class OverlayManager
    */
   static piercing(baseSkill, skillOverlay)
   {
+    // grab the overlay data.
+    let overlayData = skillOverlay.jabsPiercingData;
+
+    // check if the overlay data is just the default.
+    if (overlayData.equals([1, 0]))
+    {
+      // replace the default with null so we get the proper kind of overwrite.
+      overlayData = null;
+    }
+
+    // overwrite the value with the new one.
     return this._overwriteAsKvp(
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.PiercingData,
-      skillOverlay.jabsPiercingData);
+      overlayData);
   }
 
   /**

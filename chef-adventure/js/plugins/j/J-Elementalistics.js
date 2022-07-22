@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:30 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Jul 21 2022 16:30:23 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -337,7 +337,7 @@ Game_Action.prototype.getApplicableElements = function(target)
 
 /**
  * Extracts all extra attack elements from a skill's notes.
- * @param {rm.types.UsableItem} referenceData The database object of this action.
+ * @param {RPG_UsableItem} referenceData The database object of this action.
  * @returns {number[]} The additional attack elements.
  */
 Game_Action.extractElementsFromAction = function(referenceData)
@@ -511,8 +511,8 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements)
   const filteredAbsorbedIds = target.elementsAbsorbed().filter(absorbed => attackElements.includes(absorbed));
 
   // translate the ids into rates.
-  const absorbRates = filteredAbsorbedIds.map(attackElementId => this.calculateBoostRate(attackElementId, target),
-    this);
+  const absorbRates = filteredAbsorbedIds
+    .map(attackElementId => this.calculateBoostRate(attackElementId, target), this);
 
   // multiply all the rates together.
   const absorbRate = absorbRates.reduce(reducer, 1);
@@ -552,7 +552,7 @@ Game_Action.prototype.getAntiNullElementIds = function()
 Game_Action.prototype.evalDamageFormula = function(target)
 {
   const item = this.item();
-  const attackElements = Game_Action.extractElementsFromAction(item);
+  const attackElements = Game_Action.extractElementsFromAction(item).concat(item.damage.elementId);
   const absorbedElements = target.elementsAbsorbed();
   const targetAbsorbs = attackElements.some(elementId => absorbedElements.includes(elementId));
 

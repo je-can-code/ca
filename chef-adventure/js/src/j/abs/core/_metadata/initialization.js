@@ -352,7 +352,7 @@ J.ABS.RegExp = {
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
   PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
 
-  // skill/combo-related.
+  // skill-combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   FreeCombo: /<freeCombo>/gi,
   Direct: /<direct>/gi,
@@ -375,6 +375,12 @@ J.ABS.RegExp = {
   // dodge-related.
   MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
   InvincibleDodge: /<invincibleDodge>/gi,
+
+  // counter-related (on-chance-effect template)
+  Retaliate: /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
+
   /* ON SKILLS */
 
   /* ON EQUIPS */
@@ -584,5 +590,6 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 //     }
 //   });
 // });
+
 //#endregion Plugin Command Registration
 //#endregion Introduction

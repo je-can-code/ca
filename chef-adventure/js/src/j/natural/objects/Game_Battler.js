@@ -362,13 +362,13 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
       {
         // extract the captured formula.
         // eslint-disable-next-line prefer-destructuring
-        const result = structure.exec(line)[1];
+        const result = structure.exec(line);
 
         // make sure we had a real formula first.
         if (result)
         {
           // shove it into the formula container.
-          paramGrowthFormulai.push(result);
+          paramGrowthFormulai.push(result[1]);
         }
       });
     }

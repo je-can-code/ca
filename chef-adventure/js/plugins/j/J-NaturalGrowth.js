@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Jul 21 2022 15:33:25 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1318,13 +1318,13 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
       {
         // extract the captured formula.
         // eslint-disable-next-line prefer-destructuring
-        const result = structure.exec(line)[1];
+        const result = structure.exec(line);
 
         // make sure we had a real formula first.
         if (result)
         {
           // shove it into the formula container.
-          paramGrowthFormulai.push(result);
+          paramGrowthFormulai.push(result[1]);
         }
       });
     }

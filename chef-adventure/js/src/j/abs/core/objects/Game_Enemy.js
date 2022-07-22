@@ -27,45 +27,14 @@ Game_Enemy.prototype.battlerId = function()
 };
 
 /**
- * Gets all skills that are executed by this enemy when it is defeated.
- * @returns {JABS_OnChanceEffect}
- */
-Game_Enemy.prototype.onOwnDefeatSkillIds = function()
-{
-  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
-};
-
-/**
- * Gets all skills that are executed by this enemy when it defeats its target.
- * @returns {JABS_OnChanceEffect}
- */
-Game_Enemy.prototype.onTargetDefeatSkillIds = function()
-{
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  return J.BASE.Helpers.parseSkillChance(structure, this.enemy());
-};
-
-/**
  * Gets the current number of bonus hits for this enemy.
  * @returns {number}
  */
 Game_Enemy.prototype.getBonusHits = function()
 {
   let bonusHits = 0;
-  const structure = /<bonusHits:[ ]?(\d+)>/i;
   const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        bonusHits = parseInt(RegExp.$1);
-      }
-    });
-  });
+  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
 
   return bonusHits;
 };

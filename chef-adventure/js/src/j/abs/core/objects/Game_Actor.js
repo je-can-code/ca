@@ -422,42 +422,6 @@ Game_Actor.prototype.performJabsFloorDamage = function()
 };
 
 /**
- * Gets all skills that are executed when this actor defeats a target.
- * @returns {JABS_OnChanceEffect[]}
- */
-Game_Actor.prototype.onTargetDefeatSkillIds = function()
-{
-  const objectsToCheck = this.getCurrentWithNotes();
-  const structure = /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
-};
-
-/**
- * Gets all skills that are executed when this actor is defeated.
- * @returns {JABS_OnChanceEffect[]}
- */
-Game_Actor.prototype.onOwnDefeatSkillIds = function()
-{
-  const objectsToCheck = this.getCurrentWithNotes();
-  const structure = /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const skills = [];
-  objectsToCheck.forEach(obj =>
-  {
-    const innerSkills = J.BASE.Helpers.parseSkillChance(structure, obj);
-    skills.push(...innerSkills);
-  });
-
-  return skills;
-};
-
-/**
  * Disable built-in on-turn-end effects while JABS is active.
  * (built-in effects include regeneration and poison, but those are
  * already handled elsewhere in the engine)
@@ -470,7 +434,6 @@ Game_Actor.prototype.turnEndOnMap = function()
 
   // do normal turn-end things while JABS is disabled.
   J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
-
 };
 
 /**
@@ -485,7 +448,7 @@ Game_Actor.prototype.getUuid = function()
   }
 
   console.warn("no uuid currently available.");
-  return "";
+  return String.empty;
 };
 
 /**

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Jul 21 2022 15:17:40 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -784,11 +784,22 @@ class OverlayManager
    */
   static piercing(baseSkill, skillOverlay)
   {
+    // grab the overlay data.
+    let overlayData = skillOverlay.jabsPiercingData;
+
+    // check if the overlay data is just the default.
+    if (overlayData.equals([1, 0]))
+    {
+      // replace the default with null so we get the proper kind of overwrite.
+      overlayData = null;
+    }
+
+    // overwrite the value with the new one.
     return this._overwriteAsKvp(
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.PiercingData,
-      skillOverlay.jabsPiercingData);
+      overlayData);
   }
 
   /**

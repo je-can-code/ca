@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Jul 21 2022 17:45:02 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1251,6 +1251,36 @@ Game_System.prototype.getCraftedRecipesByCategory = function(categoryKey)
 
   console.warn("no recipes have yet been crafted.")
   return [];
+};
+
+/**
+ * Gets the number of recipes that have been crafted in a particular category.
+ * @param {string} categoryKey The category key to search through.
+ * @returns {number} The number of recipes that have been crafted.
+ */
+Game_System.prototype.getCraftedRecipesCountByCategory = function(categoryKey)
+{
+  return this.getCraftedRecipesByCategory(categoryKey).length;
+};
+
+/**
+ * Gets a specific recipe by its key.
+ * @param {string} recipeKey The key of the recipe to find.
+ * @returns {JAFTING_Recipe|null} The found recipe, or null if it wasn't found.
+ */
+Game_System.prototype.getRecipe = function(recipeKey)
+{
+  // grab all the recipes agailable.
+  const recipes = this.getAllRecipes();
+
+  // if we don't have any recipes, then always null.
+  if (!recipes.length) return null;
+
+  // find the recipe by its key.
+  const foundRecipe = recipes.find(recipe => recipe.key === recipeKey);
+
+  // normalize the return value to null rather than undefined if necessary.
+  return foundRecipe ?? null;
 };
 
 /**
