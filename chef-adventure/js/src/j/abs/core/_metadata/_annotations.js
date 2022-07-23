@@ -39,6 +39,15 @@
  *
  * First and foremost, all tags will be living inside comment event commands:
  *    "Event Commands > Flow Control > Comment"
+ *
+ * NOTE ABOUT PRIORITY OF TAGS:
+ * With the exception of the ENEMY ID tag in an event, all the rest are mostly
+ * optional. If you place the same tags for ENEMY EVENTS in the database, then
+ * they will become the defaults for enemies, where the tags in the ENEMY
+ * EVENTS will act as "overrides". So the priority order looks like this:
+ *    1st: tags in the ENEMY EVENT.
+ *    2nd: tags in the database on that particular enemy.
+ *    3rd: the defaults listed in the plugin parameters.
  * ----------------------------------------------------------------------------
  * ENEMY ID:
  * If you want an event to be tagged as an enemy, then the system needs a way
@@ -110,6 +119,11 @@
  * the AI can perform. These tags should be added alongside wherever you might
  * add the above tags for things like enemy id and sight radius.
  *
+ * NOTE: Enemies have a default AI in the sense that they will still attack
+ * and perform skills, but mostly its just at random if you don't slap some
+ * ai traits on them. Though, skills still can only be used as often as their
+ * cooldown and resources permit.
+ *
  * ----------------------------------------------------------------------------
  * <aiTrait:careful>
  * Enemies with the Careful AI trait will be more calculating about their
@@ -148,12 +162,16 @@
  * present and can utilize their skills. You can also gate healing skills
  * behind requiring a leader to leverage them.
  *
+ * NOTE: Leader/Follower traits have not been heavily tested, use with care!
+ *
  * ----------------------------------------------------------------------------
  * <aiTrait:leader>
  * Enemies with the Leader AI trait are just like normal enemies and will obey
  * their other AI traits, but also they will take over and make decisions on
  * behalf of any available followers in the nearby vicinity using their own
  * AI traits to decide what skills for the follower to use.
+ *
+ * NOTE: Leader/Follower traits have not been heavily tested, use with care!
  *
  * ============================================================================
  * TEAMS:
@@ -177,17 +195,18 @@
  *  Where TEAM is the numeric id to assign.
  *
  * ============================================================================
- * CIRCUMSTANTIALS:
+ * CIRCUMSTANTIAL CONFIG OPTIONS:
  * There are a few more tags that you may want to be aware of that modify the
  * base functionality of how enemies on the map look or act. Add these to the
  * enemy somehow, and the defaults can be changed.
  *
  * ----------------------------------------------------------------------------
- * BATTLER NAME:
- * The name of enemies is shown beneath the battler's character itself. If you
- * want to conceal or reveal this name, you can use the below tags to do that.
- *    <jabsConfig:noName>
- *    <jabsConfig:showName>
+ * IDLING:
+ * By default, enemies will kinda idle about in a 2-tile radius surrounding
+ * wherever they are placed on the map. If you want to change this, or undo
+ * your defaults, there are tags for that!
+ *    <jabsConfig:noIdle>
+ *    <jabsConfig:canIdle>
  *
  * ----------------------------------------------------------------------------
  * HP BAR:
@@ -199,12 +218,19 @@
  *    <jabsConfig:showHpBar>
  *
  * ----------------------------------------------------------------------------
- * IDLING:
- * By default, enemies will kinda idle about in a 2-tile radius surrounding
- * wherever they are placed on the map. If you want to change this, or undo
- * your defaults, there are tags for that!
- *    <jabsConfig:noIdle>
- *    <jabsConfig:canIdle>
+ * BATTLER NAME:
+ * The name of enemies is shown beneath the battler's character itself. If you
+ * want to conceal or reveal this name, you can use the below tags to do that.
+ *    <jabsConfig:noName>
+ *    <jabsConfig:showName>
+ *
+ * ----------------------------------------------------------------------------
+ * INVINCIBLE:
+ * Enemies don't always need to be defeatable. If you want to make an enemy
+ * completely invincible (combat actions will not connect with this enemy), or
+ * disable said invincibility, you can using the tags below.
+ *    <jabsConfig:invincible>
+ *    <jabsConfig:notInvincible>
  *
  * ----------------------------------------------------------------------------
  * INANIMATE:
@@ -214,14 +240,6 @@
  * convenient tag!
  *    <jabsConfig:inanimate>
  *    <jabsConfig:notInanimate>
- *
- * ----------------------------------------------------------------------------
- * INVINCIBLE:
- * Enemies don't always need to be defeatable. If you want to make an enemy
- * completely invincible (combat actions will not connect with this enemy), or
- * disable said invincibility, you can using the tags below.
- *    <jabsConfig:invincible>
- *    <jabsConfig:notInvincible>
  *
  * ============================================================================
  * SETTING UP THE ENEMIES IN THE DATABASE:
@@ -314,6 +332,19 @@
  * that must pass before the battler can use the skill again.
  *    <cooldown:VAL>
  *  Where VAL is the cooldown amount in frames for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * DIRECT:
+ * For a skill with the "direct" tag, there will be no projectile produced.
+ * Instead, the skill will directly target the nearest foe that is within the
+ * caster's PROXIMITY. The skill will still obey other tags like CAST TIME,
+ * RADIUS, HITBOX, and so on. The most common use case I can think of would
+ * probably be to use this tag for healing skills, or skills you don't want to
+ * have a chance at being dodged.
+ *    <direct>
+ *
+ * NOTE ABOUT PARRYING:
+ * A "direct" skill can still be parried if the conditions are met.
  *
  * ----------------------------------------------------------------------------
  * HITBOX:
