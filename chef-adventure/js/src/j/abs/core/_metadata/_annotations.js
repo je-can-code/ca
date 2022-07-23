@@ -41,10 +41,11 @@
  *    "Event Commands > Flow Control > Comment"
  *
  * NOTE ABOUT PRIORITY OF TAGS:
- * With the exception of the ENEMY ID tag in an event, all the rest are mostly
- * optional. If you place the same tags for ENEMY EVENTS in the database, then
- * they will become the defaults for enemies, where the tags in the ENEMY
- * EVENTS will act as "overrides". So the priority order looks like this:
+ * With the exception of the ENEMY ID tag and MOVE SPEED tag in an event, all
+ * the rest are mostly optional. If you place the same tags for ENEMY EVENTS
+ * in the database, then they will become the defaults for enemies, where the
+ * tags in the ENEMY EVENTS will act as "overrides".
+ * So the priority order looks like this:
  *    1st: tags in the ENEMY EVENT.
  *    2nd: tags in the database on that particular enemy.
  *    3rd: the defaults listed in the plugin parameters.
@@ -548,13 +549,6 @@
  * @text Default Enemy Alert Duration
  * @desc The default number of frames an enemy remains alerted (alerted: hit from out of combat).
  * @default 300
- *
- * @param defaultEnemyAiCode
- * @parent enemyDefaultConfigs
- * @type string
- * @text Default Enemy AI Code
- * @desc The default ai code for enemy battlers. Don't change it if you don't understand it!
- * @default 10000000
  *
  * @param defaultEnemyCanIdle
  * @parent enemyDefaultConfigs
