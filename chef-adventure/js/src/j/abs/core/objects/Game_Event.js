@@ -207,18 +207,23 @@ Game_Event.prototype.parseEnemyComments = function()
 
   //  determine our overrides.
   const battlerId = this.getBattlerIdOverrides();
-  let teamId = this.getTeamIdOverrides();
-  const ai = this.getBattlerAiOverrides();
-  const sightRange = this.getSightRangeOverrides();
-  const alertedSightBoost = this.getAlertedSightBoostOverrides();
-  const pursuitRange = this.getPursuitRangeOverrides();
-  const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides();
-  const alertDuration = this.getAlertDurationOverrides();
-  let canIdle = this.getCanIdleOverrides();
-  let showHpBar = this.getShowHpBarOverrides();
-  let showBattlerName = this.getShowBattlerNameOverrides();
-  const isInvincible = this.getInvincibleOverrides();
-  const isInanimate = this.getInanimateOverrides();
+
+  // get the battler data for enemies of this id.
+  const enemyBattler = $gameEnemies.enemy(battlerId);
+
+  // determine the event-page overrides for the various core battler data.
+  let teamId = this.getTeamIdOverrides() ?? enemyBattler.teamId();
+  const ai = this.getBattlerAiOverrides() ?? enemyBattler.ai();
+  const sightRange = this.getSightRangeOverrides() ?? enemyBattler.sightRange();
+  const alertedSightBoost = this.getAlertedSightBoostOverrides() ?? enemyBattler.alertedSightBoost();
+  const pursuitRange = this.getPursuitRangeOverrides() ?? enemyBattler.pursuitRange();
+  const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides() ?? enemyBattler.alertedPursuitBoost();
+  const alertDuration = this.getAlertDurationOverrides() ?? enemyBattler.alertDuration();
+  let canIdle = this.getCanIdleOverrides() ?? enemyBattler.canIdle();
+  let showHpBar = this.getShowHpBarOverrides() ?? enemyBattler.showHpBar();
+  let showBattlerName = this.getShowBattlerNameOverrides() ?? enemyBattler.showBattlerName();
+  const isInvincible = this.getInvincibleOverrides() ?? enemyBattler.isInvincible();
+  const isInanimate = this.getInanimateOverrides() ?? enemyBattler.isInanimate();
 
   // if inanimate, override the overrides with these instead.
   if (isInanimate)
@@ -232,24 +237,23 @@ Game_Event.prototype.parseEnemyComments = function()
     showBattlerName = false;
   }
 
-  // setup the core data and assign it.
-  const enemyBattler = $gameEnemies.enemy(battlerId);
+  // build the core data.
   const battlerCoreData = new JABS_CoreDataBuilder(battlerId)
-    .setTeamId(teamId ?? enemyBattler.teamId())
-    .setBattlerAi(ai ?? enemyBattler.ai())
-    .setSightRange(sightRange ?? enemyBattler.sightRange())
-    .setAlertedSightBoost(alertedSightBoost ?? enemyBattler.alertedSightBoost())
-    .setPursuitRange(pursuitRange ?? enemyBattler.pursuitRange())
-    .setAlertedPursuitBoost(alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost())
-    .setAlertDuration(alertDuration ?? enemyBattler.alertDuration())
-    .setCanIdle(canIdle ?? enemyBattler.canIdle())
-    .setShowHpBar(showHpBar ?? enemyBattler.showHpBar())
-    .setShowBattlerName(showBattlerName ?? enemyBattler.showBattlerName())
-    .setIsInvincible(isInvincible ?? enemyBattler.isInvincible())
-    .setIsInanimate(isInanimate ?? enemyBattler.isInanimate())
+    .setTeamId(teamId)
+    .setBattlerAi(ai)
+    .setSightRange(sightRange)
+    .setAlertedSightBoost(alertedSightBoost)
+    .setPursuitRange(pursuitRange)
+    .setAlertedPursuitBoost(alertedPursuitBoost)
+    .setAlertDuration(alertDuration)
+    .setCanIdle(canIdle)
+    .setShowHpBar(showHpBar)
+    .setShowBattlerName(showBattlerName)
+    .setIsInvincible(isInvincible)
+    .setIsInanimate(isInanimate)
     .build();
 
-  // build the core data based on this.
+  // initialize the core data based on this.
   this.initializeCoreData(battlerCoreData);
 };
 
@@ -267,14 +271,16 @@ Game_Event.prototype.getBattlerIdOverrides = function()
   this.getValidCommentCommands().forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:e|enemy|enemyId):[ ]?([0-9]*)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      battlerId = parseInt(RegExp.$1);
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.EnemyId.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    battlerId = parseInt(regexResult[1]);
   });
 
   // return what we found.
@@ -287,21 +293,23 @@ Game_Event.prototype.getBattlerIdOverrides = function()
  */
 Game_Event.prototype.getTeamIdOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // default team id for an event is an enemy.
   let teamId = 1;
 
   // check all the valid event commands to see if we have an override for team.
   this.getValidCommentCommands().forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:team|teamId):[ ]?([0-9]*)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      teamId = parseInt(RegExp.$1);
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.TeamId.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    teamId = parseInt(regexResult[1]);
   });
 
   // return what we found.
@@ -329,113 +337,50 @@ Game_Event.prototype.getBattlerAiOverrides = function()
     const [comment,] = command.parameters;
 
     // check if this battler has the "careful" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitCareful.test(comment))
     {
       // parse the value out of the regex capture group.
       careful = true;
     }
 
     // check if this battler has the "executor" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(executor)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitExecutor.test(comment))
     {
       // parse the value out of the regex capture group.
       executor = true;
     }
 
     // check if this battler has the "reckless" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(reckless)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitReckless.test(comment))
     {
       // parse the value out of the regex capture group.
       reckless = true;
     }
 
     // check if this battler has the "healer" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(healer)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitHealer.test(comment))
     {
       // parse the value out of the regex capture group.
       healer = true;
     }
 
     // check if this battler has the "follower" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(follower)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitFollower.test(comment))
     {
       // parse the value out of the regex capture group.
       follower = true;
     }
 
     // check if this battler has the "leader" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(leader)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitLeader.test(comment))
     {
       // if the value is present, then it must be
       leader = true;
     }
   });
 
-  // check if we found exactly zero bonus ai traits.
-  if (!careful && !executor && !reckless && !healer && !follower && !leader)
-  {
-    // if we found none, scan for legacy code format.
-    const legacyAi = this.getBattlerAiOverridesLegacy();
-
-    // check if we found an AI built off the legacy code format.
-    if (legacyAi)
-    {
-      // return the legacy AI instead of an empty AI.
-      return legacyAi;
-    }
-
-    // we have absolutely no ai trait overrides.
-    return null;
-  }
-
   // return the overridden battler ai.
   return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
-};
-
-/**
- * Parses out the battler ai based on legacy code format.
- * The basic/defensive traits are no longer valid, and their
- * equivalent ai traits are ignored.
- * @returns {JABS_BattlerAI|null} The legacy-built battler ai, or null if none was found.
- */
-Game_Event.prototype.getBattlerAiOverridesLegacy = function()
-{
-  // all variables gotta start somewhere.
-  let code = String.empty;
-
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
-    // shorthand the comment into a variable.
-      const comment = command.parameters[0];
-
-      // check if this battler has ai traits.
-      if (/<ai:[ ]?([0|1]{8})>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        code = RegExp.$1;
-      }
-    });
-
-  // if we found a legacy AI code, we'll accept that... for now...
-  if (code !== String.empty)
-  {
-    //const basic = parseInt(code[0]) === 1; // no longer a feature.
-    const careful = parseInt(code[1]) === 1;
-    const executor = parseInt(code[2]) === 1;
-    const reckless = parseInt(code[3]) === 1;
-    //const defensive = parseInt(code[4]) === 1; // no longer a feature.
-    const healer = parseInt(code[5]) === 1;
-    const follower = parseInt(code[6]) === 1;
-    const leader = parseInt(code[7]) === 1;
-
-    // build the new AI based on the old code.
-    return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
-  }
-
-  // if we found nothing, thats okay, we just legit have no overrides.
-  return null;
 };
 
 /**
@@ -444,23 +389,24 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
  */
 Game_Event.prototype.getSightRangeOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let sightRange = null;
 
   // check all the valid event commands to see if we have an override for sight.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:s|sight|sightRange):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        sightRange = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.Sight.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    sightRange = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return sightRange;
@@ -472,23 +418,24 @@ Game_Event.prototype.getSightRangeOverrides = function()
  */
 Game_Event.prototype.getAlertedSightBoostOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertedSightBoost = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:as|alertedSight|alertedSightBoost):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertedSightBoost = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertedSightBoost.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertedSightBoost = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return alertedSightBoost;
@@ -500,23 +447,24 @@ Game_Event.prototype.getAlertedSightBoostOverrides = function()
  */
 Game_Event.prototype.getPursuitRangeOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let pursuitRange = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:p|pursuit|pursuitRange):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        pursuitRange = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.Pursuit.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    pursuitRange = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return pursuitRange;
@@ -528,23 +476,24 @@ Game_Event.prototype.getPursuitRangeOverrides = function()
  */
 Game_Event.prototype.getAlertedPursuitBoostOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertedPursuitBoost = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:ap|alertedPursuit|alertedPursuitBoost):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertedPursuitBoost = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertedPursuitBoost.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertedPursuitBoost = parseFloat(regexResult[1]);
+  });
 
   // return what we found.
   return alertedPursuitBoost;
@@ -556,23 +505,24 @@ Game_Event.prototype.getAlertedPursuitBoostOverrides = function()
  */
 Game_Event.prototype.getAlertDurationOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertDuration = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:ad|alertDuration):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertDuration = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertDuration.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertDuration = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return alertDuration;
@@ -587,27 +537,27 @@ Game_Event.prototype.getCanIdleOverrides = function()
   // all variables gotta start somewhere.
   let canIdle = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noIdle)>/i.test(comment))
-      {
+    // check if this battler has the "noIdle" config option.
+    if (J.ABS.RegExp.ConfigNoIdle.test(comment))
+    {
       // parse the value out of the regex capture group.
-        canIdle = false;
-      }
+      canIdle = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(canIdle)>/i.test(comment))
-      {
+
+    // check if this battler has the "canIdle" config option.
+    if (J.ABS.RegExp.ConfigCanIdle.test(comment))
+    {
       // parse the value out of the regex capture group.
-        canIdle = true;
-      }
-    });
+      canIdle = true;
+    }
+  });
 
   // return the truth.
   return canIdle;
@@ -622,32 +572,30 @@ Game_Event.prototype.getShowHpBarOverrides = function()
   // all variables gotta start somewhere.
   let showHpBar = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noHpBar)>/i.test(comment))
-      {
+    // check if this battler has the "noHpBar" config option.
+    if (J.ABS.RegExp.ConfigNoHpBar.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showHpBar = false;
-      }
+      showHpBar = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(showHpBar)>/i.test(comment))
-      {
+    // check if this battler has the "showHpBar" config option.
+    if (J.ABS.RegExp.ConfigShowHpBar.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showHpBar = true;
-      }
-    });
+      showHpBar = true;
+    }
+  });
 
   // return the truth.
   return showHpBar;
 };
-//#endregion overrides
 
 /**
  * Parses out the override for whether or not this battler is inanimate.
@@ -658,27 +606,26 @@ Game_Event.prototype.getInanimateOverrides = function()
   // all variables gotta start somewhere.
   let inanimate = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(inanimate)>/i.test(comment))
-      {
+    // check if this battler has the "notInanimate" config option.
+    if (J.ABS.RegExp.ConfigNotInanimate.test(comment))
+    {
       // parse the value out of the regex capture group.
-        inanimate = true;
-      }
+      inanimate = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(notInanimate)>/i.test(comment))
-      {
+    // check if this battler has the "inanimate" config option.
+    if (J.ABS.RegExp.ConfigInanimate.test(comment))
+    {
       // parse the value out of the regex capture group.
-        inanimate = false;
-      }
-    });
+      inanimate = true;
+    }
+  });
 
   // return the truth.
   return inanimate;
@@ -694,26 +641,25 @@ Game_Event.prototype.getInvincibleOverrides = function()
   let isInvincible = null;
 
   // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(invincible)>/i.test(comment))
-      {
+    // check if this battler has the "invincible" config option.
+    if (J.ABS.RegExp.ConfigInvincible.test(comment))
+    {
       // parse the value out of the regex capture group.
-        isInvincible = true;
-      }
+      isInvincible = true;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(notInvincible)>/i.test(comment))
-      {
+    // check if this battler has the "notInvincible" config option.
+    if (J.ABS.RegExp.ConfigNotInvincible.test(comment))
+    {
       // parse the value out of the regex capture group.
-        isInvincible = false;
-      }
-    });
+      isInvincible = false;
+    }
+  });
 
   // return the truth.
   return isInvincible;
@@ -729,30 +675,30 @@ Game_Event.prototype.getShowBattlerNameOverrides = function()
   let showBattlerName = null;
 
   // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noName)>/i.test(comment))
-      {
+    // check if this battler has the "notInvincible" config option.
+    if (J.ABS.RegExp.ConfigNoName.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showBattlerName = false;
-      }
+      showBattlerName = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(showName)>/i.test(comment))
-      {
+    // check if this battler has the "invincible" config option.
+    if (J.ABS.RegExp.ConfigShowName.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showBattlerName = true;
-      }
-    });
+      showBattlerName = true;
+    }
+  });
 
   // return the truth.
   return showBattlerName;
 };
+//#endregion overrides
 
 /**
  * Binds the initial core battler data to the event.
@@ -782,11 +728,11 @@ Game_Event.prototype.canParseEnemyComments = function()
   // check all the commands to make sure a battler id is among them.
   const hasBattlerId = commentCommandList.some(command =>
   {
-    // grab the comment and check to make sure it matches our notetag-like pattern.
-    const comment = command.parameters[0];
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // check if the comment matches the pattern we expect.
-    return comment.match(/<(?:e|enemyId):[ ]?([0-9]*)>/i);
+    // check to make sure this is at least an enemy of some kind.
+    return J.ABS.RegExp.EnemyId.test(comment);
   });
 
   // if there is no battler id among the comments, then don't parse.
@@ -805,19 +751,20 @@ Game_Event.prototype.getValidCommentCommands = function()
   // don't process if we have no event commands.
   if (this.list().length === 0) return [];
 
+  // the valid regex shape for our tags.
+  const validRegex = /^<[\w :"'.!+\-*/\\]+>$/i;
+
   // otherwise, return the filtered list.
   return this.list().filter(command =>
   {
     // if it is not a comment, then don't include it.
-    const isComment = this.matchesControlCode(command.code);
-    if (!isComment) return false;
+    if (!this.matchesControlCode(command.code)) return false;
 
-    // make sure it has a valid structure.
-    const comment = command.parameters[0];
-    if (!comment.match(/^<[\w :"'.!+\-*/\\]+>$/i)) return false;
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // it is a valid comment worth parsing!
-    return true;
+    // consider this comment valid if it passes, skip it otherwise.
+    return validRegex.test(comment);
   }, this);
 };
 
@@ -829,19 +776,31 @@ Game_Event.prototype.applyCustomMoveSpeed = function()
   // grab the list of valid comments.
   const commentCommandList = this.getValidCommentCommands();
 
+  // initialize the move speed.
+  let moveSpeed = null;
+
   // iterate over the comments.
   commentCommandList.forEach(command =>
   {
-    // check if the comment matches our structure.
-    const comment = command.parameters[0];
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:ms|moveSpeed):[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      this.setMoveSpeed(parseFloat(RegExp.$1));
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.MoveSpeed.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    moveSpeed = parseFloat(regexResult[1]);
   });
+
+  // check if we encountered additional move speed modifiers.
+  if (moveSpeed !== null)
+  {
+    // set the new movespeed.
+    this.setMoveSpeed(moveSpeed);
+  }
 };
 
 /**
@@ -891,11 +850,5 @@ Game_Event.prototype.getBattlerId = function()
   if (!data) return 0;
 
   return data.battlerId();
-};
-
-J.ABS.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
-Game_Event.prototype.moveStraight = function(direction)
-{
-  J.ABS.Aliased.Game_Event.moveStraight.call(this, direction);
 };
 //#endregion Game_Event

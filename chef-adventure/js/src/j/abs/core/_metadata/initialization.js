@@ -431,6 +431,42 @@ J.ABS.RegExp = {
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
   StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
   /* ON STATES */
+
+  /* ON EVENTS (for enemies) */
+  // core concepts.
+  EnemyId: /<enemyId:[ ]?([0-9]*)>/i,
+  TeamId: /<teamId:[ ]?([0-9]*)>/g,
+  Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  PrepareTime: /<prepare:[ ]?([0-9]*)>/i,
+
+  // alert-related.
+  AlertDuration: /<alertDuration:[ ]?([0-9]*)>/i,
+  AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  AlertedPursuitBoost: /<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+
+  // ai traits.
+  AiTraitCareful: /<aiTrait:[ ]?careful>/i,
+  AiTraitExecutor: /<aiTrait:[ ]?executor>/i,
+  AiTraitReckless: /<aiTrait:[ ]?reckless>/i,
+  AiTraitHealer: /<aiTrait:[ ]?healer>/i,
+  AiTraitFollower: /<aiTrait:[ ]?follower>/i,
+  AiTraitLeader: /<aiTrait:[ ]?leader>/i,
+
+  // miscellaneous combat configurables.
+  ConfigNoIdle: /<jabsConfig:[ ]?noIdle>/i,
+  ConfigCanIdle: /<jabsConfig:[ ]?canIdle>/i,
+  ConfigNoHpBar: /<jabsConfig:[ ]?noHpBar>/i,
+  ConfigShowHpBar: /<jabsConfig:[ ]?showHpBar>/i,
+  ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
+  ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
+  ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
+  ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
+  ConfigNoName: /<jabsConfig:[ ]?noName>/i,
+  ConfigShowName: /<jabsConfig:[ ]?showName>/i,
+
+  /* ON EVENTS (for enemies) */
 };
 
 /**

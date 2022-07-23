@@ -2868,6 +2868,12 @@ declare class Game_Character extends Game_CharacterBase {
 }
 
 declare class Game_Enemy extends Game_Battler {
+    /**
+     * Initializes a new enemy battler.
+     * @param enemyId The id of the enemy.
+     * @param x The `x` coordinate- only used in `Scene_Battle`.
+     * @param y The `y` coordinate- only used in `Scene_Battle`.
+     */
     constructor(enemyId: number, x: number, y: number);
     _enemyId: number;
     _letter: string;

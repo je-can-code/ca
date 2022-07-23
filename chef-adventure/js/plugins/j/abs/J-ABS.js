@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jul 21 2022 06:46:05 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Jul 23 2022 07:31:18 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -248,6 +248,23 @@
  * that they must wait before they take action. This value is defined by the
  * "Attack Speed" trait, found in the middle of the third page in the trait
  * picker for enemies.
+ * ----------------------------------------------------------------------------
+ * AVAILABLE SKILLS:
+ * Any skills listed in the "Action Patterns" section of an enemy in the
+ * database will be considered an "available skill" for use. To create a skill
+ * that is usable by battlers in JABS (actors or enemies), see the "SETTING UP
+ * YOUR SKILLS" section below.
+ *
+ * NOTE ABOUT CONDITIONS:
+ * Enemies do not currently obey any conditions; they will obey their AI in
+ * combination with skill cooldowns and such.
+ *
+ * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
+ * If you are leveraging my other plugin "J-SkillExtend", then something to
+ * consider is that for a skill to be extended, it must be known to the enemy
+ * in some way. If a skill has a skill extend tag, they will not be available
+ * for enemies to choose as a skill to perform in combat, but it will still
+ * apply any extension effects as applicable.
  *
  * ============================================================================
  * SETTING UP YOUR SKILLS:
@@ -1289,6 +1306,42 @@ J.ABS.RegExp = {
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
   StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
   /* ON STATES */
+
+  /* ON EVENTS (for enemies) */
+  // core concepts.
+  EnemyId: /<enemyId:[ ]?([0-9]*)>/i,
+  TeamId: /<teamId:[ ]?([0-9]*)>/g,
+  Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  PrepareTime: /<prepare:[ ]?([0-9]*)>/i,
+
+  // alert-related.
+  AlertDuration: /<alertDuration:[ ]?([0-9]*)>/i,
+  AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  AlertedPursuitBoost: /<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+
+  // ai traits.
+  AiTraitCareful: /<aiTrait:[ ]?careful>/i,
+  AiTraitExecutor: /<aiTrait:[ ]?executor>/i,
+  AiTraitReckless: /<aiTrait:[ ]?reckless>/i,
+  AiTraitHealer: /<aiTrait:[ ]?healer>/i,
+  AiTraitFollower: /<aiTrait:[ ]?follower>/i,
+  AiTraitLeader: /<aiTrait:[ ]?leader>/i,
+
+  // miscellaneous combat configurables.
+  ConfigNoIdle: /<jabsConfig:[ ]?noIdle>/i,
+  ConfigCanIdle: /<jabsConfig:[ ]?canIdle>/i,
+  ConfigNoHpBar: /<jabsConfig:[ ]?noHpBar>/i,
+  ConfigShowHpBar: /<jabsConfig:[ ]?showHpBar>/i,
+  ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
+  ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
+  ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
+  ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
+  ConfigNoName: /<jabsConfig:[ ]?noName>/i,
+  ConfigShowName: /<jabsConfig:[ ]?showName>/i,
+
+  /* ON EVENTS (for enemies) */
 };
 
 /**
@@ -14388,6 +14441,810 @@ RPG_Class.prototype.extractJabsBonusHits = function()
 //#endregion bonusHits
 //#endregion RPG_Class
 
+//#region teamId
+/**
+ * The JABS team id for this battler.
+ * This number is the id of the team that this battler will belong to.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsTeamId",
+  {
+    get: function()
+    {
+      return this.getJabsTeamId();
+    },
+  });
+
+/**
+ * Gets the JABS team id for this battler.
+ * @returns {number}
+ */
+RPG_BaseBattler.prototype.getJabsTeamId = function()
+{
+  return this.extractJabsTeamId();
+};
+
+/**
+ * Extracts the JABS team id for this battler from its notes.
+ */
+RPG_BaseBattler.prototype.extractJabsTeamId = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.TeamId, true);
+};
+//#endregion teamId
+
+//#region prepare time
+/**
+ * The JABS prepare time for this battler.
+ * This number represents how many frames must pass before this battler can
+ * decide an action to perform when controlled by the {@link JABS_AiManager}.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsPrepareTime",
+  {
+    get: function()
+    {
+      return this.getJabsPrepareTime();
+    },
+  });
+
+/**
+ * Gets the JABS prepare time for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsPrepareTime = function()
+{
+  return this.extractJabsPrepareTime();
+};
+
+/**
+ * Extracts the JABS prepare time for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsPrepareTime = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.PrepareTime, true);
+};
+//#endregion prepare time
+
+//#region sight range
+/**
+ * The JABS sight range for this battler.
+ * This number represents how many tiles this battler can see before
+ * engaging in combat when controlled by the {@link JABS_AiManager}.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsSightRange",
+  {
+    get: function()
+    {
+      return this.getJabsSightRange();
+    },
+  });
+
+/**
+ * Gets the JABS sight range for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsSightRange = function()
+{
+  return this.extractJabsSightRange();
+};
+
+/**
+ * Extracts the JABS sight range for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsSightRange = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Sight, true);
+};
+//#endregion sight range
+
+//#region pursuit range
+/**
+ * The JABS pursuit range for this battler.
+ * This number represents how many tiles this battler can see after
+ * engaging in combat when controlled by the {@link JABS_AiManager}.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsPursuitRange",
+  {
+    get: function()
+    {
+      return this.getJabsPursuitRange();
+    },
+  });
+
+/**
+ * Gets the JABS pursuit range for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsPursuitRange = function()
+{
+  return this.extractJabsPursuitRange();
+};
+
+/**
+ * Extracts the JABS pursuit range for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsPursuitRange = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
+};
+//#endregion pursuit range
+
+//#region alert duration
+/**
+ * The JABS alert duration for this battler.
+ * This number represents how many frames this battler will remain alerted
+ * when controlled by the {@link JABS_AiManager}.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAlertDuration",
+  {
+    get: function()
+    {
+      return this.getJabsAlertDuration();
+    },
+  });
+
+/**
+ * Gets the JABS alert duration for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsAlertDuration = function()
+{
+  return this.extractJabsAlertDuration();
+};
+
+/**
+ * Extracts the JABS alert duration for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsAlertDuration = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
+};
+//#endregion alert duration
+
+//#region alerted sight boost
+/**
+ * The JABS alerted sight boost for this battler.
+ * This number represents the sight bonus applied while this battler is alerted
+ * outside of combat when controlled by the {@link JABS_AiManager}.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAlertedSightBoost",
+  {
+    get: function()
+    {
+      return this.getJabsAlertedSightBoost();
+    },
+  });
+
+/**
+ * Gets the JABS alerted sight boost for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsAlertedSightBoost = function()
+{
+  return this.extractJabsAlertedSightBoost();
+};
+
+/**
+ * Extracts the JABS alerted sight boost for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsAlertedSightBoost = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedSightBoost, true);
+};
+//#endregion alerted sight boost
+
+//#region alerted pursuit boost
+/**
+ * The JABS alerted pursuit boost for this battler.
+ * This number represents the sight bonus applied while this battler is alerted
+ * inside of combat when controlled by the {@link JABS_AiManager}.
+ *
+ * It is important to note that enemies cannot be alerted during combat, but their
+ * alert duration may spill over into the beginning of combat.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAlertedPursuitBoost",
+  {
+    get: function()
+    {
+      return this.getJabsAlertedPursuitBoost();
+    },
+  });
+
+/**
+ * Gets the JABS alerted pursuit boost for this battler.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.getJabsAlertedPursuitBoost = function()
+{
+  return this.extractJabsAlertedPursuitBoost();
+};
+
+/**
+ * Extracts the JABS alerted pursuit boost for this battler from its notes.
+ * @returns {number|null}
+ */
+RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
+{
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedPursuitBoost, true);
+};
+//#endregion alerted pursuit boost
+
+//#region ai
+/**
+ * The compiled {@link JABS_BattlerAI}.
+ * This defines how this battler's AI will be controlled.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
+  {
+    get: function()
+    {
+      return this.getJabsBattlerAi();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of careful.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsBattlerAi = function()
+{
+  // extract the AI traits out.
+  const careful = this.jabsAiTraitCareful;
+  const executor = this.jabsAiTraitExecutor;
+  const reckless = this.jabsAiTraitReckless;
+  const healer = this.jabsAiTraitHealer;
+  const follower = this.jabsAiTraitFollower;
+  const leader = this.jabsAiTraitLeader;
+
+  // return the compiled battler AI.
+  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+};
+
+//#region ai:careful
+/**
+ * The JABS AI trait of careful.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitCareful",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitCareful();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of careful.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitCareful = function()
+{
+  return this.extractJabsAiTraitCareful();
+};
+
+/**
+ * Extracts the JABS AI trait of careful from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitCareful = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitCareful);
+};
+//#endregion ai:careful
+
+//#region ai:executor
+/**
+ * The JABS AI trait of executor.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitExecutor",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitExecutor();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of executor.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitExecutor = function()
+{
+  return this.extractJabsAiTraitExecutor();
+};
+
+/**
+ * Extracts the JABS AI trait of executor from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitExecutor = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitExecutor);
+};
+//#endregion ai:executor
+
+//#region ai:reckless
+/**
+ * The JABS AI trait of reckless.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitReckless",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitReckless();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of reckless.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitReckless = function()
+{
+  return this.extractJabsAiTraitReckless();
+};
+
+/**
+ * Extracts the JABS AI trait of reckless from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitReckless = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitReckless);
+};
+//#endregion ai:reckless
+
+//#region ai:healer
+/**
+ * The JABS AI trait of healer.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitHealer",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitHealer();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of healer.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitHealer = function()
+{
+  return this.extractJabsAiTraitHealer();
+};
+
+/**
+ * Extracts the JABS AI trait of healer from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitHealer = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitHealer);
+};
+//#endregion ai:healer
+
+//#region ai:follower
+/**
+ * The JABS AI trait of follower.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitFollower",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitFollower();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of follower.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitFollower = function()
+{
+  return this.extractJabsAiTraitFollower();
+};
+
+/**
+ * Extracts the JABS AI trait of follower from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitFollower = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitFollower);
+};
+//#endregion ai:follower
+
+//#region ai:leader
+/**
+ * The JABS AI trait of leader.
+ * This boolean decides whether or not this battler has this AI trait.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsAiTraitLeader",
+  {
+    get: function()
+    {
+      return this.getJabsAiTraitLeader();
+    },
+  });
+
+/**
+ * Checks whether or not this battler has the JABS AI trait of leader.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsAiTraitLeader = function()
+{
+  return this.extractJabsAiTraitLeader();
+};
+
+/**
+ * Extracts the JABS AI trait of leader from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsAiTraitLeader = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitLeader);
+};
+//#endregion ai:leader
+
+//#endregion ai
+
+//#region config
+//#region config:canIdle
+/**
+ * The JABS config option for enabling idling.
+ * This boolean decides whether or not this battler can idle while not engaged in combat.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigCanIdle",
+  {
+    get: function()
+    {
+      return this.getJabsConfigCanIdle();
+    },
+  });
+
+/**
+ * Checks whether or not this battler can idle.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsConfigCanIdle = function()
+{
+  return this.extractJabsConfigCanIdle();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigCanIdle, true);
+};
+//#endregion config:canIdle
+
+//#region config:noIdle
+/**
+ * The JABS config option for disabling idling.
+ * This boolean decides whether or not this battler can idle while not engaged in combat.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoIdle",
+  {
+    get: function()
+    {
+      return this.getJabsConfigNoIdle();
+    },
+  });
+
+/**
+ * Checks whether or not this battler can idle.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.getJabsConfigNoIdle = function()
+{
+  return this.extractJabsConfigNoIdle();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoIdle, true);
+};
+//#endregion config:canIdle
+
+//#region config:showHpBar
+/**
+ * The JABS config option for enabling showing the hp bar.
+ * This boolean decides whether or not this battler will reveal its hp bar under its sprite.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowHpBar",
+  {
+    get: function()
+    {
+      return this.getJabsConfigCanIdle();
+    },
+  });
+
+/**
+ * Checks whether or not this battler can idle.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigCanIdle = function()
+{
+  return this.extractJabsConfigCanIdle();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowHpBar, true);
+};
+//#endregion config:showHpBar
+
+//#region config:noHpBar
+/**
+ * The JABS config option for disabling showing the hp bar.
+ * This boolean decides whether or not this battler will hide its hp bar under its sprite.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoHpBar",
+  {
+    get: function()
+    {
+      return this.getJabsConfigNoIdle();
+    },
+  });
+
+/**
+ * Checks whether or not this battler can idle.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigNoIdle = function()
+{
+  return this.extractJabsConfigNoIdle();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoHpBar, true);
+};
+//#endregion config:noHpBar
+
+//#region config:showName
+/**
+ * The JABS config option for enabling showing the battler's name.
+ * This boolean decides whether or not this battler will reveal its name under its sprite.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowName",
+  {
+    get: function()
+    {
+      return this.getJabsConfigShowName();
+    },
+  });
+
+/**
+ * Checks whether or not this battler's name is visible.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigShowName = function()
+{
+  return this.extractJabsConfigShowName();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigShowName = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowName, true);
+};
+//#endregion config:showName
+
+//#region config:noName
+/**
+ * The JABS config option for disabling showing the battler's name.
+ * This boolean decides whether or not this battler will hide its name under its sprite.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoName",
+  {
+    get: function()
+    {
+      return this.getJabsConfigNoName();
+    },
+  });
+
+/**
+ * Checks whether or not this battler can idle.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigNoName = function()
+{
+  return this.extractJabsConfigNoName();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigNoName = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoName, true);
+};
+//#endregion config:noName
+
+//#region config:invincible
+/**
+ * The JABS config option for enabling invincibility on this battler.
+ * This boolean decides whether or not actions can collide with this battler.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigInvincible",
+  {
+    get: function()
+    {
+      return this.getJabsConfigInvincible();
+    },
+  });
+
+/**
+ * Checks whether or not this battler is invincible.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigInvincible = function()
+{
+  return this.extractJabsConfigInvincible();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigInvincible = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInvincible, true);
+};
+//#endregion config:invincible
+
+//#region config:notInvincible
+/**
+ * The JABS config option for disabling invincibility on this battler.
+ * This boolean decides whether or not actions cannot collide with this battler.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNotInvincible",
+  {
+    get: function()
+    {
+      return this.getJabsConfigNotInvincible();
+    },
+  });
+
+/**
+ * Checks whether or not this battler isn't invincible.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigNotInvincible = function()
+{
+  return this.extractJabsConfigNotInvincible();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigNotInvincible = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInvincible, true);
+};
+//#endregion config:notInvincible
+
+//#region config:inanimate
+/**
+ * The JABS config option for enabling being inanimate for this battler.
+ * This boolean decides whether or not to enable being inanimate
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigInanimate",
+  {
+    get: function()
+    {
+      return this.getJabsConfigInanimate();
+    },
+  });
+
+/**
+ * Checks whether or not this battler is inanimate.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigInanimate = function()
+{
+  return this.extractJabsConfigInanimate();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigInanimate = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInanimate, true);
+};
+//#endregion config:inanimate
+
+//#region config:notInanimate
+/**
+ * The JABS config option for disabling being inanimate for this battler.
+ * This boolean decides whether or not to disable being inanimate.
+ * @returns {boolean|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNotInanimate",
+  {
+    get: function()
+    {
+      return this.getJabsConfigNotInanimate();
+    },
+  });
+
+/**
+ * Checks whether or not this battler isn't inanimate.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.getJabsConfigNotInanimate = function()
+{
+  return this.extractJabsConfigNotInanimate();
+};
+
+/**
+ * Extracts the value from this battler's notes.
+ * @returns {boolean|null}
+ */
+RPG_BaseBattler.prototype.extractJabsConfigNotInanimate = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInanimate, true);
+};
+//#endregion config:notInanimate
+
+//#endregion config
+
 //#region RPG_EquipItem
 //#region skillId
 /**
@@ -21180,42 +22037,83 @@ Game_CharacterBase.prototype.handleDodgeEnd = function(isDodging)
 /**
  * A class for retrieving a particular enemy.
  */
-function Game_Enemies()
-{
-  this.initialize(...arguments);
-}
+// function Game_Enemies()
+// {
+//   this.initialize(...arguments);
+// }
+//
+// /**
+//  * Initializes this `Game_Enemies` class.
+//  */
+// Game_Enemies.prototype.initialize = function()
+// {
+//   this._data = [];
+// };
+//
+// /**
+//  * Looks up and caches an enemy of the given id.
+//  * @param {number} enemyId The id to look up an enemy for.
+//  * @returns {Game_Enemy}
+//  */
+// Game_Enemies.prototype.enemy = function(enemyId)
+// {
+//   // check to make sure there is a matching enemy in the database.
+//   if ($dataEnemies[enemyId])
+//   {
+//     // check if our cache has this enemy entry.
+//     if (!this._data[enemyId])
+//     {
+//       this._data[enemyId] = new Game_Enemy(enemyId, null, null);
+//     }
+//
+//     return this._data[enemyId];
+//   }
+//   return null;
+// };
 
 /**
- * Initializes this `Game_Enemies` class.
+ * A class that acts as a lazy dictionary for {@link Game_Enemy} data.
+ * Do not use the enemies from this class as actual battlers!
  */
-Game_Enemies.prototype.initialize = function()
+class Game_Enemies
 {
-  this._data = [];
-};
+  /**
+   * A simple cache to store enemies by their ids.
+   * @type {Map<number, Game_Enemy>}
+   */
+  #cache = new Map();
 
-/**
- * Looks up and caches an enemy of the given id.
- * @param {number} enemyId The id to look up an enemy for.
- * @returns {Game_Enemy}
- */
-Game_Enemies.prototype.enemy = function(enemyId)
-{
-  // check to make sure there is a matching enemy in the database.
-  if ($dataEnemies[enemyId])
+  /**
+   * Gets the enemy battler data for the enemy id provided.
+   * @param {number} enemyId The enemy id to generate an enemy for.
+   * @returns {Game_Enemy} The enemy battler data.
+   */
+  enemy(enemyId)
   {
-    // check if our cache has this enemy entry.
-    if (!this._data[enemyId])
+    // check if we have the enemy already in the cache.
+    if (this.#cache.has(enemyId))
     {
-      this._data[enemyId] = new Game_Enemy(enemyId, null, null);
+      // return the cached enemy.
+      return this.#cache.get(enemyId);
     }
 
-    return this._data[enemyId];
+    // create the new enemy.
+    const enemy = new Game_Enemy(enemyId, null, null);
+
+    // add the new enemy to the cache.
+    this.#cache.set(enemyId, enemy);
+
+    // return the enemy.
+    return enemy;
   }
-  return null;
-};
+}
 //#endregion Game_Enemies
 
 //#region Game_Enemy
+/**
+ * Extends {@link Game_Enemy.setup}.
+ * Includes JABS skill initialization.
+ */
 J.ABS.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
 Game_Enemy.prototype.setup = function(enemyId, x, y)
 {
@@ -21244,74 +22142,6 @@ Game_Enemy.prototype.battlerId = function()
 };
 
 /**
- * Gets the current number of bonus hits for this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.getBonusHits = function()
-{
-  let bonusHits = 0;
-  const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
-
-  return bonusHits;
-};
-
-/**
- * Gets the enemy's prepare time from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.prepareTime = function()
-{
-  const referenceData = this.enemy();
-
-  const prepareTimeTrait = referenceData.traits
-    .find(trait => trait.code === J.BASE.Traits.ATTACK_SPEED);
-  if (prepareTimeTrait)
-  {
-    return prepareTimeTrait.value;
-  }
-
-  const prepareFromNotes = this.getPrepareTimeFromNotes(referenceData);
-  if (prepareFromNotes)
-  {
-    return prepareFromNotes;
-  }
-
-  return J.ABS.Metadata.DefaultEnemyPrepareTime;
-};
-
-/**
- * Gets the prepare time from the notes of the provided reference data.
- * @param {RPG_Enemy} referenceData
- * @returns {number}
- */
-Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData)
-{
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.PrepareTime]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    let prepareTime = 0;
-    const structure = /<prepare:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        prepareTime = parseInt(RegExp.$1);
-      }
-    });
-
-    return prepareTime;
-  }
-};
-
-/**
  * Gets the enemy's basic attack skill id.
  * This is defined by the first "Attack Skill" trait on an enemy.
  * If there are multiple traits of this kind, only the first found will be used.
@@ -21328,163 +22158,48 @@ Game_Enemy.prototype.basicAttackSkillId = function()
 };
 
 /**
- * Gets the enemy's sight range from their notes.
- * This will be overwritten by values provided from an event.
+ * Gets the current number of bonus hits for this enemy.
  * @returns {number}
  */
-Game_Enemy.prototype.sightRange = function()
+Game_Enemy.prototype.getBonusHits = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemySightRange;
+  // default the bonus hits to 0.
+  let bonusHits = 0;
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Sight];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<s:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // grab all things that have notes.
+  const objectsToCheck = this.getAllNotes();
 
-  return parseInt(val);
+  // accumulate all bonus hits from all objects.
+  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
+
+  // return what we found.
+  return bonusHits;
 };
 
 /**
- * Gets the enemy's boost to sight range when alerted from their notes.
+ * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {number}
  */
-Game_Enemy.prototype.alertedSightBoost = function()
+Game_Enemy.prototype.prepareTime = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertSightBoost];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // find the trait that is for prepare time.
+  const prepareTimeTrait = referenceData.traits.find(trait => trait.code === J.BASE.Traits.ATTACK_SPEED);
 
-  return parseInt(val);
-};
+  // if we found a trait, prefer that first.
+  if (prepareTimeTrait) return prepareTimeTrait.value;
 
-/**
- * Gets the enemy's pursuit range from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.pursuitRange = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyPursuitRange;
+  // grab the prepare time from the notes of the battler.
+  const prepareFromNotes = referenceData.jabsPrepareTime;
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Pursuit];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<p:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // if we found a note, prefer that second.
+  if (prepareFromNotes) return prepareFromNotes;
 
-  return parseInt(val);
-};
-
-/**
- * Gets the enemy's boost to pursuit range when alerted from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.alertedPursuitBoost = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ap:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
-};
-
-/**
- * Gets the enemy's duration for being alerted from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.alertDuration = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyAlertDuration;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertDuration];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
+  // if we don't have a trait or note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyPrepareTime;
 };
 
 /**
@@ -21494,28 +22209,17 @@ Game_Enemy.prototype.alertDuration = function()
  */
 Game_Enemy.prototype.teamId = function()
 {
-  let val = JABS_Battler.enemyTeamId();
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Team];
-  }
-  else
-  {
-    const structure = /<team:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // grab the team id from the battler.
+  const teamId = referenceData.jabsTeamId;
 
-  return parseInt(val);
+  // if they don't have a team id tag, then return the default.
+  if (!teamId) return JABS_Battler.enemyTeamId();
+
+  // return the team id.
+  return referenceData.jabsTeamId;
 };
 
 /**
@@ -21525,113 +22229,134 @@ Game_Enemy.prototype.teamId = function()
  */
 Game_Enemy.prototype.ai = function()
 {
-  let careful = false;
-  let executor = false;
-  let reckless = false;
-  let healer = false;
-  let follower = false;
-  let leader = false;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note =>
-  {
-    // check if this battler has the "careful" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      careful = true;
-    }
+  // grab the battler ai from the battler.
+  const battlerAi = referenceData.jabsBattlerAi;
 
-    // check if this battler has the "executor" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(executor)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      executor = true;
-    }
-
-    // check if this battler has the "reckless" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(reckless)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      reckless = true;
-    }
-
-    // check if this battler has the "healer" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(healer)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      healer = true;
-    }
-
-    // check if this battler has the "follower" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(follower)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      follower = true;
-    }
-
-    // check if this battler has the "leader" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(leader)>/i.test(note))
-    {
-      // if the value is present, then it must be
-      leader = true;
-    }
-  });
-
-  // check if we found exactly zero bonus ai traits.
-  if (!careful && !executor && !reckless && !healer && !follower && !leader)
-  {
-    // if we found none, scan for legacy code format.
-    const legacyAi = this.translateLegacyAi();
-
-    // check if we found an AI built off the legacy code format.
-    if (legacyAi)
-    {
-      // return the legacy AI instead of an empty AI.
-      return legacyAi;
-    }
-  }
-
-  // return what we found, or didn't find.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  // return what we found.
+  return battlerAi;
 };
 
 /**
- * Parses out the battler ai based on legacy code format.
- * The basic/defensive traits are no longer valid, and their
- * equivalent ai traits are ignored.
- * @returns {JABS_BattlerAI|null} The legacy-built battler ai, or null if none was found.
+ * Gets the enemy's sight range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
  */
-Game_Enemy.prototype.translateLegacyAi = function()
+Game_Enemy.prototype.sightRange = function()
 {
-  // all variables gotta start somewhere.
-  let code = J.ABS.Metadata.DefaultEnemyAiCode;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  // check all the valid event commands to see if we have any ai traits.
-  const referenceData = this.enemy();
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note =>
+  // grab the sight range from the notes of the battler.
+  const sightRange = referenceData.jabsSightRange;
+
+  // check if the sight range is a non-null value.
+  if (sightRange !== null)
   {
-    // check if this battler has the "careful" ai trait.
-    if (/<ai:[ ]?([0|1]{8})>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      code = RegExp.$1;
-    }
-  });
+    // return the parsed sight range.
+    return sightRange;
+  }
 
-  // build the new AI based on the old code.
-  return new JABS_BattlerAI(
-    //Boolean(parseInt(code[0]) === 1) || false, // basic, but no longer a feature.
-    Boolean(parseInt(code[1]) === 1) || false, // careful
-    Boolean(parseInt(code[2]) === 1) || false, // executor
-    Boolean(parseInt(code[3]) === 1) || false, // reckless
-    //Boolean(parseInt(code[4]) === 1) || false, // defensive, but no longer a feature.
-    Boolean(parseInt(code[5]) === 1) || false, // healer
-    Boolean(parseInt(code[6]) === 1) || false, // follower
-    Boolean(parseInt(code[7]) === 1) || false, // leader
-  );
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemySightRange;
+};
+
+/**
+ * Gets the enemy's boost to sight range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedSightBoost = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alerted sight boost from the notes of the battler.
+  const alertedSightBoost = referenceData.jabsAlertedSightBoost;
+
+  // check if the alerted sight boost is a non-null value.
+  if (alertedSightBoost !== null)
+  {
+    // return the parsed alerted sight boost.
+    return alertedSightBoost;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+};
+
+/**
+ * Gets the enemy's pursuit range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.pursuitRange = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the pursuit range from the notes of the battler.
+  const pursuitRange = referenceData.jabsPursuitRange;
+
+  // check if the pursuit range is a non-null value.
+  if (pursuitRange !== null)
+  {
+    // return the parsed pursuit range.
+    return pursuitRange;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyPursuitRange;
+};
+
+/**
+ * Gets the enemy's boost to pursuit range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedPursuitBoost = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alerted pursuit boost from the notes of the battler.
+  const alertedSightBoost = referenceData.jabsAlertedPursuitBoost;
+
+  // check if the alerted pursuit boost is a non-null value.
+  if (alertedSightBoost !== null)
+  {
+    // return the parsed alerted pursuit boost.
+    return alertedSightBoost;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
+};
+
+/**
+ * Gets the enemy's duration for being alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertDuration = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alert duration from the notes of the battler.
+  const alertDuration = referenceData.jabsAlertDuration;
+
+  // check if the alert duration is a non-null value.
+  if (alertDuration !== null)
+  {
+    // return the parsed alert duration.
+    return alertDuration;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertDuration
 };
 
 /**
@@ -21641,28 +22366,23 @@ Game_Enemy.prototype.translateLegacyAi = function()
  */
 Game_Enemy.prototype.canIdle = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyCanIdle;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noIdle>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to idle.
+  const canIdle = referenceData.jabsConfigCanIdle;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (canIdle !== null) return canIdle;
+
+  // check if we are disallowed from idling.
+  const cannotIdle = referenceData.jabsConfigNoIdle;
+
+  // if we found a non-null value, return it.
+  if (cannotIdle !== null) return cannotIdle;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyCanIdle;
 };
 
 /**
@@ -21672,28 +22392,23 @@ Game_Enemy.prototype.canIdle = function()
  */
 Game_Enemy.prototype.showHpBar = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyShowHpBar;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noHpBar>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to show the hp bar.
+  const showHpBar = referenceData.jabsConfigShowHpBar;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (showHpBar !== null) return showHpBar;
+
+  // check if we are disallowed from showing the hp bar.
+  const noHpBar = referenceData.jabsConfigNoHpBar;
+
+  // if we found a non-null value, return it.
+  if (noHpBar !== null) return noHpBar;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyShowHpBar;
 };
 
 /**
@@ -21703,28 +22418,23 @@ Game_Enemy.prototype.showHpBar = function()
  */
 Game_Enemy.prototype.showBattlerName = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyShowBattlerName;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoBattlerName])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noName>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to show the battler's name.
+  const showName = referenceData.jabsConfigShowName;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (showName !== null) return showName;
+
+  // check if we are disallowed from showing the battler's name.
+  const noName = referenceData.jabsConfigNoName;
+
+  // if we found a non-null value, return it.
+  if (noName !== null) return noName;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyShowBattlerName;
 };
 
 /**
@@ -21734,59 +22444,49 @@ Game_Enemy.prototype.showBattlerName = function()
  */
 Game_Enemy.prototype.isInvincible = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyIsInvincible;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible])
-  {
-    // if its in the metadata, then grab it from there.
-    val = true;
-  }
-  else
-  {
-    const structure = /<invincible>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = true;
-      }
-    });
-  }
+  // check if we are enabling invincibility.
+  const isInvincible = referenceData.jabsConfigInvincible;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (isInvincible !== null) return isInvincible;
+
+  // check if we are disabling invincibility.
+  const notInvincible = referenceData.jabsConfigNotInvincible;
+
+  // if we found a non-null value, return it.
+  if (notInvincible !== null) return notInvincible;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyIsInvincible;
 };
 
 /**
- * Gets whether or not an enemy is invincible from their notes.
+ * Gets whether or not an enemy is inanimate from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {boolean}
  */
 Game_Enemy.prototype.isInanimate = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyIsInanimate;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate])
-  {
-    // if its in the metadata, then grab it from there.
-    val = true;
-  }
-  else
-  {
-    const structure = /<inanimate>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = true;
-      }
-    });
-  }
+  // check if we are enabling invincibility.
+  const isInanimate = referenceData.jabsConfigInanimate;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (isInanimate !== null) return isInanimate;
+
+  // check if we are disabling invincibility.
+  const notInanimate = referenceData.jabsConfigNotInanimate;
+
+  // if we found a non-null value, return it.
+  if (notInanimate !== null) return notInanimate;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyIsInanimate;
 };
 //#endregion Game_Enemy
 
@@ -21999,18 +22699,23 @@ Game_Event.prototype.parseEnemyComments = function()
 
   //  determine our overrides.
   const battlerId = this.getBattlerIdOverrides();
-  let teamId = this.getTeamIdOverrides();
-  const ai = this.getBattlerAiOverrides();
-  const sightRange = this.getSightRangeOverrides();
-  const alertedSightBoost = this.getAlertedSightBoostOverrides();
-  const pursuitRange = this.getPursuitRangeOverrides();
-  const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides();
-  const alertDuration = this.getAlertDurationOverrides();
-  let canIdle = this.getCanIdleOverrides();
-  let showHpBar = this.getShowHpBarOverrides();
-  let showBattlerName = this.getShowBattlerNameOverrides();
-  const isInvincible = this.getInvincibleOverrides();
-  const isInanimate = this.getInanimateOverrides();
+
+  // get the battler data for enemies of this id.
+  const enemyBattler = $gameEnemies.enemy(battlerId);
+
+  // determine the event-page overrides for the various core battler data.
+  let teamId = this.getTeamIdOverrides() ?? enemyBattler.teamId();
+  const ai = this.getBattlerAiOverrides() ?? enemyBattler.ai();
+  const sightRange = this.getSightRangeOverrides() ?? enemyBattler.sightRange();
+  const alertedSightBoost = this.getAlertedSightBoostOverrides() ?? enemyBattler.alertedSightBoost();
+  const pursuitRange = this.getPursuitRangeOverrides() ?? enemyBattler.pursuitRange();
+  const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides() ?? enemyBattler.alertedPursuitBoost();
+  const alertDuration = this.getAlertDurationOverrides() ?? enemyBattler.alertDuration();
+  let canIdle = this.getCanIdleOverrides() ?? enemyBattler.canIdle();
+  let showHpBar = this.getShowHpBarOverrides() ?? enemyBattler.showHpBar();
+  let showBattlerName = this.getShowBattlerNameOverrides() ?? enemyBattler.showBattlerName();
+  const isInvincible = this.getInvincibleOverrides() ?? enemyBattler.isInvincible();
+  const isInanimate = this.getInanimateOverrides() ?? enemyBattler.isInanimate();
 
   // if inanimate, override the overrides with these instead.
   if (isInanimate)
@@ -22024,24 +22729,23 @@ Game_Event.prototype.parseEnemyComments = function()
     showBattlerName = false;
   }
 
-  // setup the core data and assign it.
-  const enemyBattler = $gameEnemies.enemy(battlerId);
+  // build the core data.
   const battlerCoreData = new JABS_CoreDataBuilder(battlerId)
-    .setTeamId(teamId ?? enemyBattler.teamId())
-    .setBattlerAi(ai ?? enemyBattler.ai())
-    .setSightRange(sightRange ?? enemyBattler.sightRange())
-    .setAlertedSightBoost(alertedSightBoost ?? enemyBattler.alertedSightBoost())
-    .setPursuitRange(pursuitRange ?? enemyBattler.pursuitRange())
-    .setAlertedPursuitBoost(alertedPursuitBoost ?? enemyBattler.alertedPursuitBoost())
-    .setAlertDuration(alertDuration ?? enemyBattler.alertDuration())
-    .setCanIdle(canIdle ?? enemyBattler.canIdle())
-    .setShowHpBar(showHpBar ?? enemyBattler.showHpBar())
-    .setShowBattlerName(showBattlerName ?? enemyBattler.showBattlerName())
-    .setIsInvincible(isInvincible ?? enemyBattler.isInvincible())
-    .setIsInanimate(isInanimate ?? enemyBattler.isInanimate())
+    .setTeamId(teamId)
+    .setBattlerAi(ai)
+    .setSightRange(sightRange)
+    .setAlertedSightBoost(alertedSightBoost)
+    .setPursuitRange(pursuitRange)
+    .setAlertedPursuitBoost(alertedPursuitBoost)
+    .setAlertDuration(alertDuration)
+    .setCanIdle(canIdle)
+    .setShowHpBar(showHpBar)
+    .setShowBattlerName(showBattlerName)
+    .setIsInvincible(isInvincible)
+    .setIsInanimate(isInanimate)
     .build();
 
-  // build the core data based on this.
+  // initialize the core data based on this.
   this.initializeCoreData(battlerCoreData);
 };
 
@@ -22059,14 +22763,16 @@ Game_Event.prototype.getBattlerIdOverrides = function()
   this.getValidCommentCommands().forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:e|enemy|enemyId):[ ]?([0-9]*)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      battlerId = parseInt(RegExp.$1);
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.EnemyId.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    battlerId = parseInt(regexResult[1]);
   });
 
   // return what we found.
@@ -22079,21 +22785,23 @@ Game_Event.prototype.getBattlerIdOverrides = function()
  */
 Game_Event.prototype.getTeamIdOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // default team id for an event is an enemy.
   let teamId = 1;
 
   // check all the valid event commands to see if we have an override for team.
   this.getValidCommentCommands().forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:team|teamId):[ ]?([0-9]*)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      teamId = parseInt(RegExp.$1);
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.TeamId.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    teamId = parseInt(regexResult[1]);
   });
 
   // return what we found.
@@ -22121,113 +22829,50 @@ Game_Event.prototype.getBattlerAiOverrides = function()
     const [comment,] = command.parameters;
 
     // check if this battler has the "careful" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitCareful.test(comment))
     {
       // parse the value out of the regex capture group.
       careful = true;
     }
 
     // check if this battler has the "executor" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(executor)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitExecutor.test(comment))
     {
       // parse the value out of the regex capture group.
       executor = true;
     }
 
     // check if this battler has the "reckless" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(reckless)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitReckless.test(comment))
     {
       // parse the value out of the regex capture group.
       reckless = true;
     }
 
     // check if this battler has the "healer" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(healer)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitHealer.test(comment))
     {
       // parse the value out of the regex capture group.
       healer = true;
     }
 
     // check if this battler has the "follower" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(follower)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitFollower.test(comment))
     {
       // parse the value out of the regex capture group.
       follower = true;
     }
 
     // check if this battler has the "leader" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(leader)>/i.test(comment))
+    if (J.ABS.RegExp.AiTraitLeader.test(comment))
     {
       // if the value is present, then it must be
       leader = true;
     }
   });
 
-  // check if we found exactly zero bonus ai traits.
-  if (!careful && !executor && !reckless && !healer && !follower && !leader)
-  {
-    // if we found none, scan for legacy code format.
-    const legacyAi = this.getBattlerAiOverridesLegacy();
-
-    // check if we found an AI built off the legacy code format.
-    if (legacyAi)
-    {
-      // return the legacy AI instead of an empty AI.
-      return legacyAi;
-    }
-
-    // we have absolutely no ai trait overrides.
-    return null;
-  }
-
   // return the overridden battler ai.
   return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
-};
-
-/**
- * Parses out the battler ai based on legacy code format.
- * The basic/defensive traits are no longer valid, and their
- * equivalent ai traits are ignored.
- * @returns {JABS_BattlerAI|null} The legacy-built battler ai, or null if none was found.
- */
-Game_Event.prototype.getBattlerAiOverridesLegacy = function()
-{
-  // all variables gotta start somewhere.
-  let code = String.empty;
-
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
-    // shorthand the comment into a variable.
-      const comment = command.parameters[0];
-
-      // check if this battler has ai traits.
-      if (/<ai:[ ]?([0|1]{8})>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        code = RegExp.$1;
-      }
-    });
-
-  // if we found a legacy AI code, we'll accept that... for now...
-  if (code !== String.empty)
-  {
-    //const basic = parseInt(code[0]) === 1; // no longer a feature.
-    const careful = parseInt(code[1]) === 1;
-    const executor = parseInt(code[2]) === 1;
-    const reckless = parseInt(code[3]) === 1;
-    //const defensive = parseInt(code[4]) === 1; // no longer a feature.
-    const healer = parseInt(code[5]) === 1;
-    const follower = parseInt(code[6]) === 1;
-    const leader = parseInt(code[7]) === 1;
-
-    // build the new AI based on the old code.
-    return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
-  }
-
-  // if we found nothing, thats okay, we just legit have no overrides.
-  return null;
 };
 
 /**
@@ -22236,23 +22881,24 @@ Game_Event.prototype.getBattlerAiOverridesLegacy = function()
  */
 Game_Event.prototype.getSightRangeOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let sightRange = null;
 
   // check all the valid event commands to see if we have an override for sight.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:s|sight|sightRange):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        sightRange = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.Sight.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    sightRange = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return sightRange;
@@ -22264,23 +22910,24 @@ Game_Event.prototype.getSightRangeOverrides = function()
  */
 Game_Event.prototype.getAlertedSightBoostOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertedSightBoost = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:as|alertedSight|alertedSightBoost):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertedSightBoost = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertedSightBoost.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertedSightBoost = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return alertedSightBoost;
@@ -22292,23 +22939,24 @@ Game_Event.prototype.getAlertedSightBoostOverrides = function()
  */
 Game_Event.prototype.getPursuitRangeOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let pursuitRange = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:p|pursuit|pursuitRange):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        pursuitRange = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.Pursuit.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    pursuitRange = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return pursuitRange;
@@ -22320,23 +22968,24 @@ Game_Event.prototype.getPursuitRangeOverrides = function()
  */
 Game_Event.prototype.getAlertedPursuitBoostOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertedPursuitBoost = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:ap|alertedPursuit|alertedPursuitBoost):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertedPursuitBoost = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertedPursuitBoost.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertedPursuitBoost = parseFloat(regexResult[1]);
+  });
 
   // return what we found.
   return alertedPursuitBoost;
@@ -22348,23 +22997,24 @@ Game_Event.prototype.getAlertedPursuitBoostOverrides = function()
  */
 Game_Event.prototype.getAlertDurationOverrides = function()
 {
-  // all variables gotta start somewhere.
+  // core combat values are null by default.
   let alertDuration = null;
 
   // check all the valid event commands to see if we have an override for this.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:ad|alertDuration):[ ]?([0-9]*)>/i.test(comment))
-      {
-      // parse the value out of the regex capture group.
-        alertDuration = parseInt(RegExp.$1);
-      }
-    });
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.AlertDuration.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    alertDuration = parseInt(regexResult[1]);
+  });
 
   // return what we found.
   return alertDuration;
@@ -22379,27 +23029,27 @@ Game_Event.prototype.getCanIdleOverrides = function()
   // all variables gotta start somewhere.
   let canIdle = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noIdle)>/i.test(comment))
-      {
+    // check if this battler has the "noIdle" config option.
+    if (J.ABS.RegExp.ConfigNoIdle.test(comment))
+    {
       // parse the value out of the regex capture group.
-        canIdle = false;
-      }
+      canIdle = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(canIdle)>/i.test(comment))
-      {
+
+    // check if this battler has the "canIdle" config option.
+    if (J.ABS.RegExp.ConfigCanIdle.test(comment))
+    {
       // parse the value out of the regex capture group.
-        canIdle = true;
-      }
-    });
+      canIdle = true;
+    }
+  });
 
   // return the truth.
   return canIdle;
@@ -22414,32 +23064,30 @@ Game_Event.prototype.getShowHpBarOverrides = function()
   // all variables gotta start somewhere.
   let showHpBar = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noHpBar)>/i.test(comment))
-      {
+    // check if this battler has the "noHpBar" config option.
+    if (J.ABS.RegExp.ConfigNoHpBar.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showHpBar = false;
-      }
+      showHpBar = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(showHpBar)>/i.test(comment))
-      {
+    // check if this battler has the "showHpBar" config option.
+    if (J.ABS.RegExp.ConfigShowHpBar.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showHpBar = true;
-      }
-    });
+      showHpBar = true;
+    }
+  });
 
   // return the truth.
   return showHpBar;
 };
-//#endregion overrides
 
 /**
  * Parses out the override for whether or not this battler is inanimate.
@@ -22450,27 +23098,26 @@ Game_Event.prototype.getInanimateOverrides = function()
   // all variables gotta start somewhere.
   let inanimate = null;
 
-  // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  // check all the valid event commands to see if we have any config options.
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(inanimate)>/i.test(comment))
-      {
+    // check if this battler has the "notInanimate" config option.
+    if (J.ABS.RegExp.ConfigNotInanimate.test(comment))
+    {
       // parse the value out of the regex capture group.
-        inanimate = true;
-      }
+      inanimate = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(notInanimate)>/i.test(comment))
-      {
+    // check if this battler has the "inanimate" config option.
+    if (J.ABS.RegExp.ConfigInanimate.test(comment))
+    {
       // parse the value out of the regex capture group.
-        inanimate = false;
-      }
-    });
+      inanimate = true;
+    }
+  });
 
   // return the truth.
   return inanimate;
@@ -22486,26 +23133,25 @@ Game_Event.prototype.getInvincibleOverrides = function()
   let isInvincible = null;
 
   // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(invincible)>/i.test(comment))
-      {
+    // check if this battler has the "invincible" config option.
+    if (J.ABS.RegExp.ConfigInvincible.test(comment))
+    {
       // parse the value out of the regex capture group.
-        isInvincible = true;
-      }
+      isInvincible = true;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(notInvincible)>/i.test(comment))
-      {
+    // check if this battler has the "notInvincible" config option.
+    if (J.ABS.RegExp.ConfigNotInvincible.test(comment))
+    {
       // parse the value out of the regex capture group.
-        isInvincible = false;
-      }
-    });
+      isInvincible = false;
+    }
+  });
 
   // return the truth.
   return isInvincible;
@@ -22521,30 +23167,30 @@ Game_Event.prototype.getShowBattlerNameOverrides = function()
   let showBattlerName = null;
 
   // check all the valid event commands to see if we have any ai traits.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
+  this.getValidCommentCommands().forEach(command =>
+  {
     // shorthand the comment into a variable.
-      const comment = command.parameters[0];
+    const [comment,] = command.parameters;
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(noName)>/i.test(comment))
-      {
+    // check if this battler has the "notInvincible" config option.
+    if (J.ABS.RegExp.ConfigNoName.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showBattlerName = false;
-      }
+      showBattlerName = false;
+    }
 
-      // check if this is a matching line.
-      if (/<(?:cfg|config|jabsConfig)?:?[ ]?(showName)>/i.test(comment))
-      {
+    // check if this battler has the "invincible" config option.
+    if (J.ABS.RegExp.ConfigShowName.test(comment))
+    {
       // parse the value out of the regex capture group.
-        showBattlerName = true;
-      }
-    });
+      showBattlerName = true;
+    }
+  });
 
   // return the truth.
   return showBattlerName;
 };
+//#endregion overrides
 
 /**
  * Binds the initial core battler data to the event.
@@ -22574,11 +23220,11 @@ Game_Event.prototype.canParseEnemyComments = function()
   // check all the commands to make sure a battler id is among them.
   const hasBattlerId = commentCommandList.some(command =>
   {
-    // grab the comment and check to make sure it matches our notetag-like pattern.
-    const comment = command.parameters[0];
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // check if the comment matches the pattern we expect.
-    return comment.match(/<(?:e|enemyId):[ ]?([0-9]*)>/i);
+    // check to make sure this is at least an enemy of some kind.
+    return J.ABS.RegExp.EnemyId.test(comment);
   });
 
   // if there is no battler id among the comments, then don't parse.
@@ -22597,19 +23243,20 @@ Game_Event.prototype.getValidCommentCommands = function()
   // don't process if we have no event commands.
   if (this.list().length === 0) return [];
 
+  // the valid regex shape for our tags.
+  const validRegex = /^<[\w :"'.!+\-*/\\]+>$/i;
+
   // otherwise, return the filtered list.
   return this.list().filter(command =>
   {
     // if it is not a comment, then don't include it.
-    const isComment = this.matchesControlCode(command.code);
-    if (!isComment) return false;
+    if (!this.matchesControlCode(command.code)) return false;
 
-    // make sure it has a valid structure.
-    const comment = command.parameters[0];
-    if (!comment.match(/^<[\w :"'.!+\-*/\\]+>$/i)) return false;
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // it is a valid comment worth parsing!
-    return true;
+    // consider this comment valid if it passes, skip it otherwise.
+    return validRegex.test(comment);
   }, this);
 };
 
@@ -22621,19 +23268,31 @@ Game_Event.prototype.applyCustomMoveSpeed = function()
   // grab the list of valid comments.
   const commentCommandList = this.getValidCommentCommands();
 
+  // initialize the move speed.
+  let moveSpeed = null;
+
   // iterate over the comments.
   commentCommandList.forEach(command =>
   {
-    // check if the comment matches our structure.
-    const comment = command.parameters[0];
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
 
-    // check if this is a matching line.
-    if (/<(?:ms|moveSpeed):[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i.test(comment))
-    {
-      // parse the value out of the regex capture group.
-      this.setMoveSpeed(parseFloat(RegExp.$1));
-    }
+    // check if the comment matches the regex.
+    const regexResult = J.ABS.RegExp.MoveSpeed.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // parse the value out of the regex capture group.
+    moveSpeed = parseFloat(regexResult[1]);
   });
+
+  // check if we encountered additional move speed modifiers.
+  if (moveSpeed !== null)
+  {
+    // set the new movespeed.
+    this.setMoveSpeed(moveSpeed);
+  }
 };
 
 /**
@@ -22683,12 +23342,6 @@ Game_Event.prototype.getBattlerId = function()
   if (!data) return 0;
 
   return data.battlerId();
-};
-
-J.ABS.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
-Game_Event.prototype.moveStraight = function(direction)
-{
-  J.ABS.Aliased.Game_Event.moveStraight.call(this, direction);
 };
 //#endregion Game_Event
 

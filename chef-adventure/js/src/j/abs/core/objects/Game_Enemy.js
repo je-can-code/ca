@@ -1,4 +1,8 @@
 //#region Game_Enemy
+/**
+ * Extends {@link Game_Enemy.setup}.
+ * Includes JABS skill initialization.
+ */
 J.ABS.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
 Game_Enemy.prototype.setup = function(enemyId, x, y)
 {
@@ -27,74 +31,6 @@ Game_Enemy.prototype.battlerId = function()
 };
 
 /**
- * Gets the current number of bonus hits for this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.getBonusHits = function()
-{
-  let bonusHits = 0;
-  const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
-
-  return bonusHits;
-};
-
-/**
- * Gets the enemy's prepare time from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.prepareTime = function()
-{
-  const referenceData = this.enemy();
-
-  const prepareTimeTrait = referenceData.traits
-    .find(trait => trait.code === J.BASE.Traits.ATTACK_SPEED);
-  if (prepareTimeTrait)
-  {
-    return prepareTimeTrait.value;
-  }
-
-  const prepareFromNotes = this.getPrepareTimeFromNotes(referenceData);
-  if (prepareFromNotes)
-  {
-    return prepareFromNotes;
-  }
-
-  return J.ABS.Metadata.DefaultEnemyPrepareTime;
-};
-
-/**
- * Gets the prepare time from the notes of the provided reference data.
- * @param {RPG_Enemy} referenceData
- * @returns {number}
- */
-Game_Enemy.prototype.getPrepareTimeFromNotes = function(referenceData)
-{
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.PrepareTime])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.PrepareTime]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    let prepareTime = 0;
-    const structure = /<prepare:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        prepareTime = parseInt(RegExp.$1);
-      }
-    });
-
-    return prepareTime;
-  }
-};
-
-/**
  * Gets the enemy's basic attack skill id.
  * This is defined by the first "Attack Skill" trait on an enemy.
  * If there are multiple traits of this kind, only the first found will be used.
@@ -111,163 +47,48 @@ Game_Enemy.prototype.basicAttackSkillId = function()
 };
 
 /**
- * Gets the enemy's sight range from their notes.
- * This will be overwritten by values provided from an event.
+ * Gets the current number of bonus hits for this enemy.
  * @returns {number}
  */
-Game_Enemy.prototype.sightRange = function()
+Game_Enemy.prototype.getBonusHits = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemySightRange;
+  // default the bonus hits to 0.
+  let bonusHits = 0;
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Sight];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<s:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // grab all things that have notes.
+  const objectsToCheck = this.getAllNotes();
 
-  return parseInt(val);
+  // accumulate all bonus hits from all objects.
+  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
+
+  // return what we found.
+  return bonusHits;
 };
 
 /**
- * Gets the enemy's boost to sight range when alerted from their notes.
+ * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {number}
  */
-Game_Enemy.prototype.alertedSightBoost = function()
+Game_Enemy.prototype.prepareTime = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertSightBoost];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // find the trait that is for prepare time.
+  const prepareTimeTrait = referenceData.traits.find(trait => trait.code === J.BASE.Traits.ATTACK_SPEED);
 
-  return parseInt(val);
-};
+  // if we found a trait, prefer that first.
+  if (prepareTimeTrait) return prepareTimeTrait.value;
 
-/**
- * Gets the enemy's pursuit range from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.pursuitRange = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyPursuitRange;
+  // grab the prepare time from the notes of the battler.
+  const prepareFromNotes = referenceData.jabsPrepareTime;
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Pursuit];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<p:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // if we found a note, prefer that second.
+  if (prepareFromNotes) return prepareFromNotes;
 
-  return parseInt(val);
-};
-
-/**
- * Gets the enemy's boost to pursuit range when alerted from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.alertedPursuitBoost = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertPursuitBoost];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ap:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
-};
-
-/**
- * Gets the enemy's duration for being alerted from their notes.
- * This will be overwritten by values provided from an event.
- * @returns {number}
- */
-Game_Enemy.prototype.alertDuration = function()
-{
-  let val = J.ABS.Metadata.DefaultEnemyAlertDuration;
-
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.AlertDuration];
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
+  // if we don't have a trait or note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyPrepareTime;
 };
 
 /**
@@ -277,28 +98,17 @@ Game_Enemy.prototype.alertDuration = function()
  */
 Game_Enemy.prototype.teamId = function()
 {
-  let val = JABS_Battler.enemyTeamId();
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Team];
-  }
-  else
-  {
-    const structure = /<team:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
+  // grab the team id from the battler.
+  const teamId = referenceData.jabsTeamId;
 
-  return parseInt(val);
+  // if they don't have a team id tag, then return the default.
+  if (!teamId) return JABS_Battler.enemyTeamId();
+
+  // return the team id.
+  return referenceData.jabsTeamId;
 };
 
 /**
@@ -308,113 +118,134 @@ Game_Enemy.prototype.teamId = function()
  */
 Game_Enemy.prototype.ai = function()
 {
-  let careful = false;
-  let executor = false;
-  let reckless = false;
-  let healer = false;
-  let follower = false;
-  let leader = false;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note =>
-  {
-    // check if this battler has the "careful" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(careful)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      careful = true;
-    }
+  // grab the battler ai from the battler.
+  const battlerAi = referenceData.jabsBattlerAi;
 
-    // check if this battler has the "executor" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(executor)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      executor = true;
-    }
-
-    // check if this battler has the "reckless" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(reckless)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      reckless = true;
-    }
-
-    // check if this battler has the "healer" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(healer)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      healer = true;
-    }
-
-    // check if this battler has the "follower" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(follower)>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      follower = true;
-    }
-
-    // check if this battler has the "leader" ai trait.
-    if (/<(?:ai|aiTrait):[ ]?(leader)>/i.test(note))
-    {
-      // if the value is present, then it must be
-      leader = true;
-    }
-  });
-
-  // check if we found exactly zero bonus ai traits.
-  if (!careful && !executor && !reckless && !healer && !follower && !leader)
-  {
-    // if we found none, scan for legacy code format.
-    const legacyAi = this.translateLegacyAi();
-
-    // check if we found an AI built off the legacy code format.
-    if (legacyAi)
-    {
-      // return the legacy AI instead of an empty AI.
-      return legacyAi;
-    }
-  }
-
-  // return what we found, or didn't find.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  // return what we found.
+  return battlerAi;
 };
 
 /**
- * Parses out the battler ai based on legacy code format.
- * The basic/defensive traits are no longer valid, and their
- * equivalent ai traits are ignored.
- * @returns {JABS_BattlerAI|null} The legacy-built battler ai, or null if none was found.
+ * Gets the enemy's sight range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
  */
-Game_Enemy.prototype.translateLegacyAi = function()
+Game_Enemy.prototype.sightRange = function()
 {
-  // all variables gotta start somewhere.
-  let code = J.ABS.Metadata.DefaultEnemyAiCode;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  // check all the valid event commands to see if we have any ai traits.
-  const referenceData = this.enemy();
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  notedata.forEach(note =>
+  // grab the sight range from the notes of the battler.
+  const sightRange = referenceData.jabsSightRange;
+
+  // check if the sight range is a non-null value.
+  if (sightRange !== null)
   {
-    // check if this battler has the "careful" ai trait.
-    if (/<ai:[ ]?([0|1]{8})>/i.test(note))
-    {
-      // parse the value out of the regex capture group.
-      code = RegExp.$1;
-    }
-  });
+    // return the parsed sight range.
+    return sightRange;
+  }
 
-  // build the new AI based on the old code.
-  return new JABS_BattlerAI(
-    //Boolean(parseInt(code[0]) === 1) || false, // basic, but no longer a feature.
-    Boolean(parseInt(code[1]) === 1) || false, // careful
-    Boolean(parseInt(code[2]) === 1) || false, // executor
-    Boolean(parseInt(code[3]) === 1) || false, // reckless
-    //Boolean(parseInt(code[4]) === 1) || false, // defensive, but no longer a feature.
-    Boolean(parseInt(code[5]) === 1) || false, // healer
-    Boolean(parseInt(code[6]) === 1) || false, // follower
-    Boolean(parseInt(code[7]) === 1) || false, // leader
-  );
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemySightRange;
+};
+
+/**
+ * Gets the enemy's boost to sight range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedSightBoost = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alerted sight boost from the notes of the battler.
+  const alertedSightBoost = referenceData.jabsAlertedSightBoost;
+
+  // check if the alerted sight boost is a non-null value.
+  if (alertedSightBoost !== null)
+  {
+    // return the parsed alerted sight boost.
+    return alertedSightBoost;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+};
+
+/**
+ * Gets the enemy's pursuit range from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.pursuitRange = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the pursuit range from the notes of the battler.
+  const pursuitRange = referenceData.jabsPursuitRange;
+
+  // check if the pursuit range is a non-null value.
+  if (pursuitRange !== null)
+  {
+    // return the parsed pursuit range.
+    return pursuitRange;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyPursuitRange;
+};
+
+/**
+ * Gets the enemy's boost to pursuit range when alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertedPursuitBoost = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alerted pursuit boost from the notes of the battler.
+  const alertedSightBoost = referenceData.jabsAlertedPursuitBoost;
+
+  // check if the alerted pursuit boost is a non-null value.
+  if (alertedSightBoost !== null)
+  {
+    // return the parsed alerted pursuit boost.
+    return alertedSightBoost;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
+};
+
+/**
+ * Gets the enemy's duration for being alerted from their notes.
+ * This will be overwritten by values provided from an event.
+ * @returns {number}
+ */
+Game_Enemy.prototype.alertDuration = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // grab the alert duration from the notes of the battler.
+  const alertDuration = referenceData.jabsAlertDuration;
+
+  // check if the alert duration is a non-null value.
+  if (alertDuration !== null)
+  {
+    // return the parsed alert duration.
+    return alertDuration;
+  }
+
+  // if we don't have a note, then just return the default.
+  return J.ABS.Metadata.DefaultEnemyAlertDuration
 };
 
 /**
@@ -424,28 +255,23 @@ Game_Enemy.prototype.translateLegacyAi = function()
  */
 Game_Enemy.prototype.canIdle = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyCanIdle;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoIdle])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noIdle>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to idle.
+  const canIdle = referenceData.jabsConfigCanIdle;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (canIdle !== null) return canIdle;
+
+  // check if we are disallowed from idling.
+  const cannotIdle = referenceData.jabsConfigNoIdle;
+
+  // if we found a non-null value, return it.
+  if (cannotIdle !== null) return cannotIdle;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyCanIdle;
 };
 
 /**
@@ -455,28 +281,23 @@ Game_Enemy.prototype.canIdle = function()
  */
 Game_Enemy.prototype.showHpBar = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyShowHpBar;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoHpBar])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noHpBar>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to show the hp bar.
+  const showHpBar = referenceData.jabsConfigShowHpBar;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (showHpBar !== null) return showHpBar;
+
+  // check if we are disallowed from showing the hp bar.
+  const noHpBar = referenceData.jabsConfigNoHpBar;
+
+  // if we found a non-null value, return it.
+  if (noHpBar !== null) return noHpBar;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyShowHpBar;
 };
 
 /**
@@ -486,28 +307,23 @@ Game_Enemy.prototype.showHpBar = function()
  */
 Game_Enemy.prototype.showBattlerName = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyShowBattlerName;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoBattlerName])
-  {
-    // if its in the metadata, then grab it from there.
-    val = false;
-  }
-  else
-  {
-    const structure = /<noName>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = false;
-      }
-    });
-  }
+  // check if we are allowed to show the battler's name.
+  const showName = referenceData.jabsConfigShowName;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (showName !== null) return showName;
+
+  // check if we are disallowed from showing the battler's name.
+  const noName = referenceData.jabsConfigNoName;
+
+  // if we found a non-null value, return it.
+  if (noName !== null) return noName;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyShowBattlerName;
 };
 
 /**
@@ -517,58 +333,48 @@ Game_Enemy.prototype.showBattlerName = function()
  */
 Game_Enemy.prototype.isInvincible = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyIsInvincible;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Invincible])
-  {
-    // if its in the metadata, then grab it from there.
-    val = true;
-  }
-  else
-  {
-    const structure = /<invincible>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = true;
-      }
-    });
-  }
+  // check if we are enabling invincibility.
+  const isInvincible = referenceData.jabsConfigInvincible;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (isInvincible !== null) return isInvincible;
+
+  // check if we are disabling invincibility.
+  const notInvincible = referenceData.jabsConfigNotInvincible;
+
+  // if we found a non-null value, return it.
+  if (notInvincible !== null) return notInvincible;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyIsInvincible;
 };
 
 /**
- * Gets whether or not an enemy is invincible from their notes.
+ * Gets whether or not an enemy is inanimate from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {boolean}
  */
 Game_Enemy.prototype.isInanimate = function()
 {
-  let val = J.ABS.Metadata.DefaultEnemyIsInanimate;
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
 
-  const referenceData = this.enemy();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Inanimate])
-  {
-    // if its in the metadata, then grab it from there.
-    val = true;
-  }
-  else
-  {
-    const structure = /<inanimate>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = true;
-      }
-    });
-  }
+  // check if we are enabling invincibility.
+  const isInanimate = referenceData.jabsConfigInanimate;
 
-  return val;
+  // if we found a non-null value, return it.
+  if (isInanimate !== null) return isInanimate;
+
+  // check if we are disabling invincibility.
+  const notInanimate = referenceData.jabsConfigNotInanimate;
+
+  // if we found a non-null value, return it.
+  if (notInanimate !== null) return notInanimate;
+
+  // if we have no notes regarding this, then return the default.
+  return J.ABS.Metadata.DefaultEnemyIsInanimate;
 };
 //#endregion Game_Enemy
