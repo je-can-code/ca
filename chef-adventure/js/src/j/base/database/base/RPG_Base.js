@@ -55,7 +55,7 @@ class RPG_Base
   constructor(baseItem, index)
   {
     this.#original = baseItem;
-    this.#index = index;
+    this.index = index;
 
     // map the core data that all database objects have.
     this.id = baseItem.id;
@@ -70,7 +70,12 @@ class RPG_Base
    */
   _index()
   {
-    return this.#index;
+    return this.index;
+  }
+
+  _updateIndex(newIndex)
+  {
+    this.index = newIndex;
   }
 
   /**

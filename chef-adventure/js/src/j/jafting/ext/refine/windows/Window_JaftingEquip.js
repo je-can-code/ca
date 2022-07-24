@@ -138,7 +138,7 @@ class Window_JaftingEquip
     equips.forEach(equip =>
     {
       // don't render equipment that are totally unrefinable. That's a tease!
-      if (equip._jafting.unrefinable) return;
+      if (equip.jaftingUnrefinable) return;
 
       const hasDuplicatePrimary = $gameParty.numItems(this.baseSelection) > 1;
       const isBaseSelection = equip === this.baseSelection;
@@ -152,7 +152,7 @@ class Window_JaftingEquip
       let errorText = "";
 
       // if the equipment is completely unable to
-      if (equip._jafting.unrefinable)
+      if (equip.jaftingUnrefinable)
       {
         enabled = false;
         iconIndex = 90;
@@ -169,7 +169,7 @@ class Window_JaftingEquip
         }
 
         // prevent equipment explicitly marked as "not usable as material" from being used.
-        if (equip._jafting.notRefinementMaterial)
+        if (equip.jaftingNotRefinementMaterial)
         {
           enabled = false;
           iconIndex = 90;
@@ -178,11 +178,11 @@ class Window_JaftingEquip
         // or the projected equips combined would result in over the max refined count, then disable it.
         if (this.baseSelection)
         {
-          const primaryHasMaxRefineCount = this.baseSelection._jafting.maxRefineCount > 0;
+          const primaryHasMaxRefineCount = this.baseSelection.jaftingMaxRefineCount > 0;
           if (primaryHasMaxRefineCount)
           {
-            const primaryMaxRefineCount = this.baseSelection._jafting.maxRefineCount
-            const projectedCount = this.baseSelection._jafting.refinedCount + equip._jafting.refinedCount;
+            const primaryMaxRefineCount = this.baseSelection.jaftingMaxRefineCount
+            const projectedCount = this.baseSelection.jaftingRefinedCount + equip.jaftingRefinedCount;
             const overRefinementCount = primaryMaxRefineCount < projectedCount;
             if (overRefinementCount)
             {
@@ -194,7 +194,7 @@ class Window_JaftingEquip
 
           // check the max traits of the base equip and compare with the projected result of this item.
           // if the count is greater than the max (if there is a max), then prevent this item from being used.
-          const baseMaxTraitCount = this.baseSelection._jafting.maxTraitCount;
+          const baseMaxTraitCount = this.baseSelection.jaftingMaxTraitCount;
           const projectedResult = $gameJAFTING.determineRefinementOutput(this.baseSelection, equip);
           const projectedResultTraitCount = $gameJAFTING.parseTraits(projectedResult).length;
           const overMaxTraitCount = baseMaxTraitCount > 0 && projectedResultTraitCount > baseMaxTraitCount;
@@ -210,12 +210,12 @@ class Window_JaftingEquip
       }
       else
       {
-        const equipIsMaxRefined = (equip._jafting.maxRefineCount === 0)
+        const equipIsMaxRefined = (equip.jaftingMaxRefineCount === 0)
           ? false // 0 max refinements means you can refine as much as you want.
-          : equip._jafting.maxRefineCount <= equip._jafting.refinedCount;
-        const equipHasMaxTraits = equip._jafting.maxTraitCount === 0
+          : equip.jaftingMaxRefineCount <= equip.jaftingRefinedCount;
+        const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0
           ? false // 0 max traits means you can have as many as you want.
-          : equip._jafting.maxTraitCount <= $gameJAFTING.parseTraits(equip).length;
+          : equip.jaftingMaxTraitCount <= $gameJAFTING.parseTraits(equip).length;
         if (equipIsMaxRefined)
         {
           enabled = false;
@@ -231,7 +231,7 @@ class Window_JaftingEquip
         }
 
         // prevent equipment explicitly marked as "not usable as base" from being used.
-        if (equip._jafting.notRefinementBase)
+        if (equip.jaftingNotRefinementBase)
         {
           enabled = false;
           iconIndex = 92;

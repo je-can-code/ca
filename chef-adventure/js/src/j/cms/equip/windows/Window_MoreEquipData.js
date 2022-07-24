@@ -7,6 +7,7 @@ class Window_MoreEquipData extends Window_MoreData
   constructor(rect)
   {
     super(rect);
+    this.contentsBack.paintOpacity = 255;
   }
 
   /**
@@ -147,7 +148,7 @@ class Window_MoreEquipData extends Window_MoreData
     const shouldRecurse = (s) => (s && s.jabsComboAction && !s.jabsFreeCombo);
     if (shouldRecurse(skill))
     {
-      const foundComboSkill = skill.jabsComboAction[0];
+      const foundComboSkill = skill.jabsComboSkillId;
       skillIdList.push(foundComboSkill);
       return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
     }

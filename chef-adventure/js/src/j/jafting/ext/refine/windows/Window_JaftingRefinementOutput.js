@@ -91,7 +91,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Sets the resulting equip to the output to allow for the scene to grab the data.
-   * @param {RPG_EquipItem}
+   * @param {RPG_EquipItem} equip The equip to set.
    */
   set outputEquip(equip)
   {
@@ -180,13 +180,13 @@ class Window_JaftingRefinementOutput
 
     if (type === "output")
     {
-      if (equip._jafting.refinedCount === 0)
+      if (equip.jaftingRefinedCount === 0)
       {
         this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${equip.name} +1\\C[0]`, x, lh * 1, 200);
       }
       else
       {
-        const suffix = `+${equip._jafting.refinedCount + 1}`;
+        const suffix = `+${equip.jaftingRefinedCount + 1}`;
         const index = equip.name.lastIndexOf("+");
         if (index > -1)
         {

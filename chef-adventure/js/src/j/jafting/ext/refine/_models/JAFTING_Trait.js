@@ -30,7 +30,7 @@ JAFTING_Trait.prototype.initialize = function(code, dataId, value)
  */
 JAFTING_Trait.divider = function()
 {
-  return {code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1};
+  return RPG_Trait.fromValues(J.BASE.Traits.NO_DISAPPEAR, 3, 1);
 };
 
 /**
@@ -254,6 +254,6 @@ JAFTING_Trait.prototype.translatePartyAbility = function()
  */
 JAFTING_Trait.prototype.convertToRmTrait = function()
 {
-  return {code: this._code, dataId: this._dataId, value: this._value};
+  return RPG_Trait.fromValues(this._code, this._dataId, this._value);
 };
 //#endregion JAFTING_Trait

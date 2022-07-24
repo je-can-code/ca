@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -113,6 +113,7 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+J.JAFTING.EXT_REFINE = {};
 
 //#region version checks
 (() =>
@@ -230,9 +231,19 @@ J.JAFTING.Messages = {
  */
 J.JAFTING.Aliased = {
   ...J.JAFTING.Aliased,
-  Game_Item: {},
+  Game_Item: new Map(),
   Window_JaftingModeMenu: {},
 };
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.JAFTING.EXT_REFINE.RegExp = {};
+J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
+J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
+J.JAFTING.EXT_REFINE.RegExp.Unrefinable = /<unrefinable>/i;
+J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 
 /**
  * A global object for storing data related to JAFTING.
@@ -345,21 +356,19 @@ Game_JAFTING.prototype.initialize = function()
    * This ensures no refined equipment gets overwritten by another refined equipment.
    * @type {number}
    */
-  this._refinementIncrements = this._refinementIncrements || {};
+  this._refinementIncrements ||= {};
 
   /**
    * The refinement increment index for armors.
    * @type {number}
    */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] =
-    this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] || Game_JAFTING.startingIndex;
+  this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] ||= Game_JAFTING.startingIndex;
 
   /**
    * The refinement increment index for weapons.
    * @type {number}
    */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] =
-    this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] || Game_JAFTING.startingIndex;
+  this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] ||= Game_JAFTING.startingIndex;
 };
 
 /**
@@ -475,7 +484,8 @@ Game_JAFTING.prototype.updateDataWeapons = function()
 {
   this.getRefinedWeapons().forEach(weapon =>
   {
-    $dataWeapons[weapon.index] = weapon;
+    const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
+    $dataWeapons[updatedWeapon._key()] = updatedWeapon;
   });
 };
 
@@ -487,7 +497,8 @@ Game_JAFTING.prototype.updateDataArmors = function()
 {
   this.getRefinedArmors().forEach(armor =>
   {
-    $dataArmors[armor.index] = armor;
+    const updatedArmor = new RPG_Armor(armor, armor.index);
+    $dataArmors[updatedArmor._key()] = updatedArmor;
   });
 };
 
@@ -510,7 +521,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
   // copy of primary equip that represents the projected result.
-  const output = JsonEx.makeDeepCopy(base);
+  const output = base._clone();
 
   // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
   if (!baseTraits.length)
@@ -538,14 +549,14 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
     if (!this.isTransferableTrait(output, trait)) return;
 
     // create and add the new trait from the material onto the base.
-    const newTrait = {code: trait._code, dataId: trait._dataId, value: trait._value,};
+    const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
     output.traits.push(newTrait);
   });
 
-  if (material._jafting.refinedCount > 0)
+  if (material.jaftingRefinedCount > 0)
   {
     // the -1 at the end is to accommodate the default of +1 that occurs when an equip is refined.
-    output._jafting.refinedCount += material._jafting.refinedCount - 1;
+    output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
   }
 
   return output;
@@ -560,7 +571,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
  */
 Game_JAFTING.prototype.parseTraits = function(equip)
 {
-  const allTraits = JsonEx.makeDeepCopy(equip.traits);
+  const allTraits = equip._clone().traits;//JsonEx.makeDeepCopy(equip.traits);
   const divider = allTraits.findIndex(trait => trait.code === 63);
   if (divider > -1)
   {
@@ -581,8 +592,8 @@ Game_JAFTING.prototype.parseTraits = function(equip)
 
 /**
  * Determines whether or not a trait should be transfered to the refined base equip.
- * @param {RPG_EquipItem} equip The to-be refined base equip.
- * @param {JAFTING_Trait} newTrait The new trait to be potentially transferred.
+ * @param {RPG_EquipItem} output The to-be refined base equip.
+ * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
  * @returns {boolean}
  */
 Game_JAFTING.prototype.isTransferableTrait = (output, jaftingTrait) =>
@@ -661,8 +672,8 @@ Game_JAFTING.prototype.removeIncompatibleTraits = function(baseTraits, materialT
 /**
  * Compare one trait with a rolling trait list to see if the list has any conflicting
  * traits with it. If so, remove them.
- * @param {JAFTING_Trait} potentialTrait The trait potentially to add if it doesn't already exist.
- * @param {JAFTING_Trait[]} rollingTraitList The trait list to compare against.
+ * @param {JAFTING_Trait} potentialJaftingTrait The trait potentially to add if it doesn't already exist.
+ * @param {JAFTING_Trait[]} rollingJaftingTraitList The trait list to compare against.
  */
 Game_JAFTING.prototype.purgeDuplicateTrait = function(potentialJaftingTrait, rollingJaftingTraitList)
 {
@@ -687,8 +698,8 @@ Game_JAFTING.prototype.purgeDuplicateTrait = function(potentialJaftingTrait, rol
  * in the other list, the traits are removed from their respective lists. This will look
  * in both lists for both codes, so repeating this function for both orders is not necessary.
  * This will also retroactively remove both codes if they somehow live in the same list.
- * @param {JAFTING_Trait[]} primaryTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} secondaryTraitList The secondary list of traits.
+ * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
+ * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
  * @param {number} code One of the codes to compare.
  * @param {number} opposingCode The opposing code to compare.
  * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
@@ -940,8 +951,8 @@ Game_JAFTING.prototype.replaceTrait = function(baseTraitList, materialTraitList,
 
 /**
  * Overwrites all traits from the two lists depending on which is better as applicable.
- * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
+ * @param {JAFTING_Trait[]} baseTraits The primary list of traits.
+ * @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
  * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
  */
 Game_JAFTING.prototype.overwriteAllOverwritableTraits = function(baseTraits, materialTraits)
@@ -1072,9 +1083,9 @@ Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
  */
 Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinementType)
 {
-  equip._jafting.refinedCount++;
-  const suffix = `+${equip._jafting.refinedCount}`;
-  if (equip._jafting.refinedCount === 1)
+  equip.jaftingRefinedCount++;
+  const suffix = `+${equip.jaftingRefinedCount}`;
+  if (equip.jaftingRefinedCount === 1)
   {
     // first time refining, they don't have a name to replace.
     equip.name = `${equip.name} ${suffix}`;
@@ -1095,7 +1106,7 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
 
   // generate the new entry in the database.
   const newIndex = this.getRefinementCounter(refinementType);
-  equip.index = newIndex;
+  equip._updateIndex(newIndex);
   datastore[newIndex] = equip;
 
   // gain the actual item.
@@ -1310,7 +1321,7 @@ JAFTING_Trait.prototype.initialize = function(code, dataId, value)
  */
 JAFTING_Trait.divider = function()
 {
-  return {code: J.BASE.Traits.NO_DISAPPEAR, dataId: 3, value: 1};
+  return RPG_Trait.fromValues(J.BASE.Traits.NO_DISAPPEAR, 3, 1);
 };
 
 /**
@@ -1534,9 +1545,197 @@ JAFTING_Trait.prototype.translatePartyAbility = function()
  */
 JAFTING_Trait.prototype.convertToRmTrait = function()
 {
-  return {code: this._code, dataId: this._dataId, value: this._value};
+  return RPG_Trait.fromValues(this._code, this._dataId, this._value);
 };
 //#endregion JAFTING_Trait
+
+//#region refinedCount
+/**
+ * The number of times this equip has been refined.
+ * @type {number}
+ */
+RPG_EquipItem.prototype.jaftingRefinedCount = 0;
+//#endregion refinedCount
+
+//#region notRefinementBase
+/**
+ * Whether or not this equip is blocked from being used as a base for refinement.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementBase",
+  {
+    get: function()
+    {
+      return this.getJaftingNotRefinementBase();
+    },
+  });
+
+/**
+ * Gets whether or not this equip is blocked from being used as a base for refinement.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
+{
+  return this.extractJaftingNotRefinementBase();
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
+{
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase);
+};
+//#endregion notRefinementBase
+
+//#region notRefinementMaterial
+/**
+ * Whether or not this equip is blocked from being used as a material for refinement.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementMaterial",
+  {
+    get: function()
+    {
+      return this.getJaftingNotRefinementBase();
+    },
+  });
+
+/**
+ * Gets whether or not this equip is blocked from being used as a material for refinement.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
+{
+  return this.extractJaftingNotRefinementMaterial();
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
+{
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial);
+};
+//#endregion notRefinementMaterial
+
+//#region unrefinable
+/**
+ * Whether or not this equip is blocked from being used in refinement at all.
+ * This is equivalent to {@link jaftingNotRefinementBase} and {@link jaftingNotRefinementMaterial}
+ * existing on the same equip.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingUnrefinable",
+  {
+    get: function()
+    {
+      return this.getJaftingUnrefinable();
+    },
+  });
+
+/**
+ * Gets whether or not this equip is blocked from being used as a material for refinement.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.getJaftingUnrefinable = function()
+{
+  // check if the notes say this is explicitly unrefinable.
+  let unrefinable = this.extractJaftingUnrefinable();
+
+  // if the notes didn't have the tag, lets check for the other pair.
+  if (!unrefinable)
+  {
+    // see if this equip cannot be used as both base and material for refinement.
+    const notForBase = this.jaftingNotRefinementBase;
+    const notForMaterial = this.jaftingNotRefinementMaterial;
+
+    // check if it is alternatively unrefinable.
+    if (notForBase && notForMaterial)
+    {
+      // flip the flag.
+      unrefinable = true;
+    }
+  }
+
+  // return our result.
+  return unrefinable;
+};
+
+/**
+ * Extracts the value from the notes.
+ * @returns {boolean}
+ */
+RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
+{
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.Unrefinable);
+};
+//#endregion unrefinable
+
+//#region maxRefineCount
+/**
+ * The maximum number of times this equip can be refined.
+ * @type {number}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxRefineCount",
+  {
+    get: function()
+    {
+      return this.getJaftingMaxRefineCount();
+    },
+  });
+
+/**
+ * Gets how many times this equip can be refined.
+ * @returns {number}
+ */
+RPG_EquipItem.prototype.getJaftingMaxRefineCount = function()
+{
+  return this.extractJaftingMaxRefineCount();
+};
+
+/**
+ * Extracts the value from the notes.
+ */
+RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
+{
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount);
+};
+//#endregion maxRefineCount
+
+//#region maxTraitCount
+/**
+ * The maximum number of traits this equip can be gain as a result of refinement.
+ * This is defined as the number of traits that come after the divider.
+ * @type {number}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxTraitCount",
+  {
+    get: function()
+    {
+      return this.getJaftingMaxTraitCount();
+    },
+  });
+
+/**
+ * Gets how many traits this equip can have from refinement.
+ * @returns {number}
+ */
+RPG_EquipItem.prototype.getJaftingMaxTraitCount = function()
+{
+  return this.extractJaftingMaxTraitCount();
+};
+
+/**
+ * Extracts the value from the notes.
+ */
+RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
+{
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount);
+};
+//#endregion maxRefineCount
 
 //#region DataManager
 
@@ -1577,12 +1776,19 @@ DataManager.makeSaveContents = function()
  *
  * NOTE: This is the first function encountered where I actually extend it _twice_.
  * As such, we accommodated that by numbering it.
+ *
+ * TODO: change this plugin to use EXT_REFINE so there is no collision.
  */
 J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
+  // perform original logic.
   J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
+
+  // grab the jafting contents out.
   $gameJAFTING = contents.jafting;
+
+  // update the weapons & armor.
   $gameJAFTING.updateDataWeapons();
   $gameJAFTING.updateDataArmors();
 };
@@ -1664,11 +1870,16 @@ DataManager.processEquipForRefinement = function(equip, index)
  * Largely overwrites this function to instead leverage an item's index value over
  * it's ID for setting objects to the item slot.
  */
-J.JAFTING.Aliased.Game_Item.setObject = Game_Item.prototype.setObject;
+J.JAFTING.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(item)
 {
-  J.JAFTING.Aliased.Game_Item.setObject.call(this, item);
-  this._itemId = item ? item.index : 0;
+  // perform original logic.
+  J.JAFTING.Aliased.Game_Item.get('setObject').call(this, item);
+
+  // assign the item id to here.
+  this._itemId = item
+    ? item._key()
+    : 0;
 };
 //#endregion Game_Item
 
@@ -2137,11 +2348,11 @@ Scene_Map.prototype.drawRefineHelpText = function()
   const item = this.getHoverForDetails();
   if (item && item.data)
   {
-    if (item.data._jafting.notRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
+    if (item.data.jaftingNotRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
     {
       this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsBase);
     }
-    else if (item.data._jafting.notRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
+    else if (item.data.jaftingNotRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
     {
       this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsMaterial);
     }
@@ -2405,7 +2616,7 @@ class Window_JaftingEquip
     equips.forEach(equip =>
     {
       // don't render equipment that are totally unrefinable. That's a tease!
-      if (equip._jafting.unrefinable) return;
+      if (equip.jaftingUnrefinable) return;
 
       const hasDuplicatePrimary = $gameParty.numItems(this.baseSelection) > 1;
       const isBaseSelection = equip === this.baseSelection;
@@ -2419,7 +2630,7 @@ class Window_JaftingEquip
       let errorText = "";
 
       // if the equipment is completely unable to
-      if (equip._jafting.unrefinable)
+      if (equip.jaftingUnrefinable)
       {
         enabled = false;
         iconIndex = 90;
@@ -2436,7 +2647,7 @@ class Window_JaftingEquip
         }
 
         // prevent equipment explicitly marked as "not usable as material" from being used.
-        if (equip._jafting.notRefinementMaterial)
+        if (equip.jaftingNotRefinementMaterial)
         {
           enabled = false;
           iconIndex = 90;
@@ -2445,11 +2656,11 @@ class Window_JaftingEquip
         // or the projected equips combined would result in over the max refined count, then disable it.
         if (this.baseSelection)
         {
-          const primaryHasMaxRefineCount = this.baseSelection._jafting.maxRefineCount > 0;
+          const primaryHasMaxRefineCount = this.baseSelection.jaftingMaxRefineCount > 0;
           if (primaryHasMaxRefineCount)
           {
-            const primaryMaxRefineCount = this.baseSelection._jafting.maxRefineCount
-            const projectedCount = this.baseSelection._jafting.refinedCount + equip._jafting.refinedCount;
+            const primaryMaxRefineCount = this.baseSelection.jaftingMaxRefineCount
+            const projectedCount = this.baseSelection.jaftingRefinedCount + equip.jaftingRefinedCount;
             const overRefinementCount = primaryMaxRefineCount < projectedCount;
             if (overRefinementCount)
             {
@@ -2461,7 +2672,7 @@ class Window_JaftingEquip
 
           // check the max traits of the base equip and compare with the projected result of this item.
           // if the count is greater than the max (if there is a max), then prevent this item from being used.
-          const baseMaxTraitCount = this.baseSelection._jafting.maxTraitCount;
+          const baseMaxTraitCount = this.baseSelection.jaftingMaxTraitCount;
           const projectedResult = $gameJAFTING.determineRefinementOutput(this.baseSelection, equip);
           const projectedResultTraitCount = $gameJAFTING.parseTraits(projectedResult).length;
           const overMaxTraitCount = baseMaxTraitCount > 0 && projectedResultTraitCount > baseMaxTraitCount;
@@ -2477,12 +2688,12 @@ class Window_JaftingEquip
       }
       else
       {
-        const equipIsMaxRefined = (equip._jafting.maxRefineCount === 0)
+        const equipIsMaxRefined = (equip.jaftingMaxRefineCount === 0)
           ? false // 0 max refinements means you can refine as much as you want.
-          : equip._jafting.maxRefineCount <= equip._jafting.refinedCount;
-        const equipHasMaxTraits = equip._jafting.maxTraitCount === 0
+          : equip.jaftingMaxRefineCount <= equip.jaftingRefinedCount;
+        const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0
           ? false // 0 max traits means you can have as many as you want.
-          : equip._jafting.maxTraitCount <= $gameJAFTING.parseTraits(equip).length;
+          : equip.jaftingMaxTraitCount <= $gameJAFTING.parseTraits(equip).length;
         if (equipIsMaxRefined)
         {
           enabled = false;
@@ -2498,7 +2709,7 @@ class Window_JaftingEquip
         }
 
         // prevent equipment explicitly marked as "not usable as base" from being used.
-        if (equip._jafting.notRefinementBase)
+        if (equip.jaftingNotRefinementBase)
         {
           enabled = false;
           iconIndex = 92;
@@ -2665,7 +2876,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Sets the resulting equip to the output to allow for the scene to grab the data.
-   * @param {RPG_EquipItem}
+   * @param {RPG_EquipItem} equip The equip to set.
    */
   set outputEquip(equip)
   {
@@ -2754,13 +2965,13 @@ class Window_JaftingRefinementOutput
 
     if (type === "output")
     {
-      if (equip._jafting.refinedCount === 0)
+      if (equip.jaftingRefinedCount === 0)
       {
         this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${equip.name} +1\\C[0]`, x, lh * 1, 200);
       }
       else
       {
-        const suffix = `+${equip._jafting.refinedCount + 1}`;
+        const suffix = `+${equip.jaftingRefinedCount + 1}`;
         const index = equip.name.lastIndexOf("+");
         if (index > -1)
         {

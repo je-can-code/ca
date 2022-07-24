@@ -448,15 +448,15 @@ class IconManager
       case 34: // repeat times - stackable.
         return 399;
       case 35: // change basic attack skill - overwrite.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 41: // unlock skill type - one or the other or none.
         return this.skillType(trait._dataId);
       case 42: // lock skill type - one or the other or none.
         return this.skillType(trait._dataId);
       case 43: // learn skill while equipped - one or the other or none.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 44: // unlearn skill while equipped - one or the other or none.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 51: // can use new weapon type - don't add the same twice.
         return this.weaponType(trait._dataId);
       case 52: // can use new armor type - don't add the same twice.

@@ -2,6 +2,7 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+J.JAFTING.EXT_REFINE = {};
 
 //#region version checks
 (() =>
@@ -119,9 +120,19 @@ J.JAFTING.Messages = {
  */
 J.JAFTING.Aliased = {
   ...J.JAFTING.Aliased,
-  Game_Item: {},
+  Game_Item: new Map(),
   Window_JaftingModeMenu: {},
 };
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.JAFTING.EXT_REFINE.RegExp = {};
+J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
+J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
+J.JAFTING.EXT_REFINE.RegExp.Unrefinable = /<unrefinable>/i;
+J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 
 /**
  * A global object for storing data related to JAFTING.

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jul 23 2022 08:37:25 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -15383,7 +15383,6 @@ RPG_EquipItem.prototype.extractJabsExpirationFrames = function()
 };
 //#endregion expiration
 //#endregion RPG_EquipItem
-
 
 //#region RPG_Item
 //#region skillId

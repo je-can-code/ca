@@ -69,21 +69,19 @@ Game_JAFTING.prototype.initialize = function()
    * This ensures no refined equipment gets overwritten by another refined equipment.
    * @type {number}
    */
-  this._refinementIncrements = this._refinementIncrements || {};
+  this._refinementIncrements ||= {};
 
   /**
    * The refinement increment index for armors.
    * @type {number}
    */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] =
-    this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] || Game_JAFTING.startingIndex;
+  this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] ||= Game_JAFTING.startingIndex;
 
   /**
    * The refinement increment index for weapons.
    * @type {number}
    */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] =
-    this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] || Game_JAFTING.startingIndex;
+  this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] ||= Game_JAFTING.startingIndex;
 };
 
 /**
@@ -199,7 +197,8 @@ Game_JAFTING.prototype.updateDataWeapons = function()
 {
   this.getRefinedWeapons().forEach(weapon =>
   {
-    $dataWeapons[weapon.index] = weapon;
+    const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
+    $dataWeapons[updatedWeapon._key()] = updatedWeapon;
   });
 };
 
@@ -211,7 +210,8 @@ Game_JAFTING.prototype.updateDataArmors = function()
 {
   this.getRefinedArmors().forEach(armor =>
   {
-    $dataArmors[armor.index] = armor;
+    const updatedArmor = new RPG_Armor(armor, armor.index);
+    $dataArmors[updatedArmor._key()] = updatedArmor;
   });
 };
 
@@ -234,7 +234,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
   // copy of primary equip that represents the projected result.
-  const output = JsonEx.makeDeepCopy(base);
+  const output = base._clone();
 
   // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
   if (!baseTraits.length)
@@ -262,14 +262,14 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
     if (!this.isTransferableTrait(output, trait)) return;
 
     // create and add the new trait from the material onto the base.
-    const newTrait = {code: trait._code, dataId: trait._dataId, value: trait._value,};
+    const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
     output.traits.push(newTrait);
   });
 
-  if (material._jafting.refinedCount > 0)
+  if (material.jaftingRefinedCount > 0)
   {
     // the -1 at the end is to accommodate the default of +1 that occurs when an equip is refined.
-    output._jafting.refinedCount += material._jafting.refinedCount - 1;
+    output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
   }
 
   return output;
@@ -284,7 +284,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
  */
 Game_JAFTING.prototype.parseTraits = function(equip)
 {
-  const allTraits = JsonEx.makeDeepCopy(equip.traits);
+  const allTraits = equip._clone().traits;//JsonEx.makeDeepCopy(equip.traits);
   const divider = allTraits.findIndex(trait => trait.code === 63);
   if (divider > -1)
   {
@@ -305,8 +305,8 @@ Game_JAFTING.prototype.parseTraits = function(equip)
 
 /**
  * Determines whether or not a trait should be transfered to the refined base equip.
- * @param {RPG_EquipItem} equip The to-be refined base equip.
- * @param {JAFTING_Trait} newTrait The new trait to be potentially transferred.
+ * @param {RPG_EquipItem} output The to-be refined base equip.
+ * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
  * @returns {boolean}
  */
 Game_JAFTING.prototype.isTransferableTrait = (output, jaftingTrait) =>
@@ -385,8 +385,8 @@ Game_JAFTING.prototype.removeIncompatibleTraits = function(baseTraits, materialT
 /**
  * Compare one trait with a rolling trait list to see if the list has any conflicting
  * traits with it. If so, remove them.
- * @param {JAFTING_Trait} potentialTrait The trait potentially to add if it doesn't already exist.
- * @param {JAFTING_Trait[]} rollingTraitList The trait list to compare against.
+ * @param {JAFTING_Trait} potentialJaftingTrait The trait potentially to add if it doesn't already exist.
+ * @param {JAFTING_Trait[]} rollingJaftingTraitList The trait list to compare against.
  */
 Game_JAFTING.prototype.purgeDuplicateTrait = function(potentialJaftingTrait, rollingJaftingTraitList)
 {
@@ -411,8 +411,8 @@ Game_JAFTING.prototype.purgeDuplicateTrait = function(potentialJaftingTrait, rol
  * in the other list, the traits are removed from their respective lists. This will look
  * in both lists for both codes, so repeating this function for both orders is not necessary.
  * This will also retroactively remove both codes if they somehow live in the same list.
- * @param {JAFTING_Trait[]} primaryTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} secondaryTraitList The secondary list of traits.
+ * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
+ * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
  * @param {number} code One of the codes to compare.
  * @param {number} opposingCode The opposing code to compare.
  * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
@@ -664,8 +664,8 @@ Game_JAFTING.prototype.replaceTrait = function(baseTraitList, materialTraitList,
 
 /**
  * Overwrites all traits from the two lists depending on which is better as applicable.
- * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
+ * @param {JAFTING_Trait[]} baseTraits The primary list of traits.
+ * @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
  * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
  */
 Game_JAFTING.prototype.overwriteAllOverwritableTraits = function(baseTraits, materialTraits)
@@ -796,9 +796,9 @@ Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
  */
 Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinementType)
 {
-  equip._jafting.refinedCount++;
-  const suffix = `+${equip._jafting.refinedCount}`;
-  if (equip._jafting.refinedCount === 1)
+  equip.jaftingRefinedCount++;
+  const suffix = `+${equip.jaftingRefinedCount}`;
+  if (equip.jaftingRefinedCount === 1)
   {
     // first time refining, they don't have a name to replace.
     equip.name = `${equip.name} ${suffix}`;
@@ -819,7 +819,7 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
 
   // generate the new entry in the database.
   const newIndex = this.getRefinementCounter(refinementType);
-  equip.index = newIndex;
+  equip._updateIndex(newIndex);
   datastore[newIndex] = equip;
 
   // gain the actual item.

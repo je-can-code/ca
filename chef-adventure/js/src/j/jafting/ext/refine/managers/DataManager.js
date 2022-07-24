@@ -37,12 +37,19 @@ DataManager.makeSaveContents = function()
  *
  * NOTE: This is the first function encountered where I actually extend it _twice_.
  * As such, we accommodated that by numbering it.
+ *
+ * TODO: change this plugin to use EXT_REFINE so there is no collision.
  */
 J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
+  // perform original logic.
   J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
+
+  // grab the jafting contents out.
   $gameJAFTING = contents.jafting;
+
+  // update the weapons & armor.
   $gameJAFTING.updateDataWeapons();
   $gameJAFTING.updateDataArmors();
 };

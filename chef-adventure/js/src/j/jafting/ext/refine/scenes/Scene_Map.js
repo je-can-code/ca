@@ -463,11 +463,11 @@ Scene_Map.prototype.drawRefineHelpText = function()
   const item = this.getHoverForDetails();
   if (item && item.data)
   {
-    if (item.data._jafting.notRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
+    if (item.data.jaftingNotRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
     {
       this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsBase);
     }
-    else if (item.data._jafting.notRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
+    else if (item.data.jaftingNotRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
     {
       this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsMaterial);
     }

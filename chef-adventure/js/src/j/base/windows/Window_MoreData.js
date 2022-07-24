@@ -122,7 +122,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is a weapon or not.
-   * @returns {boolean}  True if this is a weapon, false otherwise.
+   * @returns {boolean} True if this is a weapon, false otherwise.
    */
   weaponSelected()
   {
@@ -131,7 +131,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is an armor or not.
-   * @returns {boolean}  True if this is an armor, false otherwise.
+   * @returns {boolean} True if this is an armor, false otherwise.
    */
   armorSelected()
   {
@@ -140,7 +140,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is an item or not.
-   * @returns {boolean}  True if this is an item, false otherwise.
+   * @returns {boolean} True if this is an item, false otherwise.
    */
   itemSelected()
   {
@@ -149,7 +149,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is a skill or not.
-   * @returns {boolean}  True if this is a skill, false otherwise.
+   * @returns {boolean} True if this is a skill, false otherwise.
    */
   skillSelected()
   {

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 17 2022 12:18:31 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -641,6 +641,18 @@ class RPG_Trait
     this.dataId = trait.dataId;
     this.value = trait.value;
   }
+
+  /**
+   * Constructs a new {@link RPG_Trait} from only its triad of base values.
+   * @param {number} code The code that designates what kind of trait this is.
+   * @param {number} dataId The identifier that further defines the trait.
+   * @param {number} value The value of the trait, for traits that have numeric values.
+   * @returns {RPG_Trait}
+   */
+  static fromValues(code, dataId, value)
+  {
+    return new RPG_Trait({code, dataId, value});
+  }
 }
 //#endregion RPG_Trait
 
@@ -748,7 +760,7 @@ class RPG_Base
   constructor(baseItem, index)
   {
     this.#original = baseItem;
-    this.#index = index;
+    this.index = index;
 
     // map the core data that all database objects have.
     this.id = baseItem.id;
@@ -763,7 +775,12 @@ class RPG_Base
    */
   _index()
   {
-    return this.#index;
+    return this.index;
+  }
+
+  _updateIndex(newIndex)
+  {
+    this.index = newIndex;
   }
 
   /**
@@ -3345,15 +3362,15 @@ class IconManager
       case 34: // repeat times - stackable.
         return 399;
       case 35: // change basic attack skill - overwrite.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 41: // unlock skill type - one or the other or none.
         return this.skillType(trait._dataId);
       case 42: // lock skill type - one or the other or none.
         return this.skillType(trait._dataId);
       case 43: // learn skill while equipped - one or the other or none.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 44: // unlearn skill while equipped - one or the other or none.
-        return $dataSkills[trait._value].iconIndex;
+        return $dataSkills[trait._dataId].iconIndex;
       case 51: // can use new weapon type - don't add the same twice.
         return this.weaponType(trait._dataId);
       case 52: // can use new armor type - don't add the same twice.
@@ -6560,7 +6577,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is a weapon or not.
-   * @returns {boolean}  True if this is a weapon, false otherwise.
+   * @returns {boolean} True if this is a weapon, false otherwise.
    */
   weaponSelected()
   {
@@ -6569,7 +6586,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is an armor or not.
-   * @returns {boolean}  True if this is an armor, false otherwise.
+   * @returns {boolean} True if this is an armor, false otherwise.
    */
   armorSelected()
   {
@@ -6578,7 +6595,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is an item or not.
-   * @returns {boolean}  True if this is an item, false otherwise.
+   * @returns {boolean} True if this is an item, false otherwise.
    */
   itemSelected()
   {
@@ -6587,7 +6604,7 @@ class Window_MoreData
 
   /**
    * Determines whether or not the selected row is a skill or not.
-   * @returns {boolean}  True if this is a skill, false otherwise.
+   * @returns {boolean} True if this is a skill, false otherwise.
    */
   skillSelected()
   {

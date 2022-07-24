@@ -35,5 +35,17 @@ class RPG_Trait
     this.dataId = trait.dataId;
     this.value = trait.value;
   }
+
+  /**
+   * Constructs a new {@link RPG_Trait} from only its triad of base values.
+   * @param {number} code The code that designates what kind of trait this is.
+   * @param {number} dataId The identifier that further defines the trait.
+   * @param {number} value The value of the trait, for traits that have numeric values.
+   * @returns {RPG_Trait}
+   */
+  static fromValues(code, dataId, value)
+  {
+    return new RPG_Trait({code, dataId, value});
+  }
 }
 //#endregion RPG_Trait
