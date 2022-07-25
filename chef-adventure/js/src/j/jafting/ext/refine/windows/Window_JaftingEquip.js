@@ -122,6 +122,7 @@ class Window_JaftingEquip
     if (this.isPrimary)
     {
       // TODO: parameterize this.
+      // omit armor type 5, which is "- materials -".
       equips = equips.filter(equip => equip.atypeId !== 5);
     }
 

@@ -61,7 +61,7 @@
  * be used for preventing the player from sacrificing an equipment that is
  * required for story purposes.
  *
- * <maxRefine:NUM>
+ * <maxRefineCount:NUM>
  * Where NUM is a number that represents how many times this can be refined.
  * Placing this tag onto equipment means it can only be used as a base for
  * refinement NUM number of times.

@@ -73,6 +73,10 @@ class RPG_Base
     return this.index;
   }
 
+  /**
+   * Updates the index of this entry in the database.
+   * @param {number} newIndex The new index to set.
+   */
   _updateIndex(newIndex)
   {
     this.index = newIndex;
@@ -96,18 +100,25 @@ class RPG_Base
   _clone()
   {
     // generate a new instance with the same data as the original.
-    const clone = new this.constructor(this._original(), this._index());
-
-    // check if there is an underlying _j data point.
-    if (this._j)
-    {
-      // clone that too if it exists.
-      clone._j = this._j;
-    }
+    const clone = new this.constructor(this, this._index());
 
     // return the newly created copy.
     return clone;
   }
+
+  /**
+   * Generates an instance of this object off of the values of another.
+   *
+   * This is mostly used for "cloning" based on some other values.
+   * @param {RPG_Base} overrides The overriding object.
+   * @param {number} index The new index.
+   * @returns {this}
+   */
+  _generate(overrides, index)
+  {
+    return new this.constructor(overrides, index);
+  }
+
 
   /**
    * The unique key that is used to register this object against

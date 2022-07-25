@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 24 2022 17:10:09 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -63,7 +63,7 @@
  * be used for preventing the player from sacrificing an equipment that is
  * required for story purposes.
  *
- * <maxRefine:NUM>
+ * <maxRefineCount:NUM>
  * Where NUM is a number that represents how many times this can be refined.
  * Placing this tag onto equipment means it can only be used as a base for
  * refinement NUM number of times.
@@ -232,6 +232,7 @@ J.JAFTING.Messages = {
 J.JAFTING.Aliased = {
   ...J.JAFTING.Aliased,
   Game_Item: new Map(),
+  RPG_Base: new Map(),
   Window_JaftingModeMenu: {},
 };
 
@@ -521,7 +522,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
   // copy of primary equip that represents the projected result.
-  const output = base._clone();
+  const output = base._generate(base, base._index());
 
   // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
   if (!baseTraits.length)
@@ -531,7 +532,10 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   }
   else
   {
+    // determine the divider's index.
     const index = output.traits.findIndex(trait => trait.code === 63);
+
+    // check if we have a valid divider index and there is stuff after the divider.
     if (index > -1 && !!output.traits[index])
     {
       // if we have stuff after the divider, get rid of it.
@@ -571,7 +575,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
  */
 Game_JAFTING.prototype.parseTraits = function(equip)
 {
-  const allTraits = equip._clone().traits;//JsonEx.makeDeepCopy(equip.traits);
+  const allTraits = [...equip.traits];//JsonEx.makeDeepCopy(equip.traits);
   const divider = allTraits.findIndex(trait => trait.code === 63);
   if (divider > -1)
   {
@@ -1169,7 +1173,7 @@ class JAFTING_RefinementData
     }
     else
     {
-      const structure = /<maxRefine:[ ]?(\d+)>/i;
+      const structure = /<maxRefineCount:[ ]?(\d+)>/i;
       this._notes.forEach(note =>
       {
         if (note.match(structure))
@@ -1549,12 +1553,33 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 };
 //#endregion JAFTING_Trait
 
+J.JAFTING.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
+/**
+ * Extends {@link RPG_Base._generate}.
+ *
+ * Also mirrors additional JAFTING-related values to the new object.
+ * @param {RPG_Base} overrides The overriding object.
+ * @param {number} index The new index.
+ * @returns {this}
+ */
+RPG_Base.prototype._generate = function(overrides, index)
+{
+  // perform original logic.
+  const original = J.JAFTING.Aliased.RPG_Base.get('_generate').call(this, overrides, index);
+
+  // update the refined count to the latest.
+  original.jaftingRefinedCount = overrides.jaftingRefinedCount;
+
+  // return the modificaiton.
+  return original;
+};
+
 //#region refinedCount
 /**
  * The number of times this equip has been refined.
  * @type {number}
  */
-RPG_EquipItem.prototype.jaftingRefinedCount = 0;
+RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
 //#endregion refinedCount
 
 //#region notRefinementBase
@@ -1738,17 +1763,6 @@ RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 //#endregion maxRefineCount
 
 //#region DataManager
-
-/**
- * Whether or not the extra data was loaded into the multiple databases.
- */
-DataManager._j ||= {
-  /**
-   * Whether or not the refinement data from the database has been loaded yet.
-   * @type {boolean}
-   */
-  _refinementDataLoaded: false,
-};
 //#region save/load data
 /**
  * Extends the game object creation to include creating the JAFTING manager.
@@ -1793,76 +1807,6 @@ DataManager.extractSaveContents = function(contents)
   $gameJAFTING.updateDataArmors();
 };
 //#endregion save/load data
-
-/**
- * Hooks into the database loading and loads our extra data from notes and such.
- */
-J.JAFTING.Aliased.DataManager.isDatabaseLoaded = DataManager.isDatabaseLoaded;
-DataManager.isDatabaseLoaded = function()
-{
-  // check if the database is loaded.
-  const result = J.JAFTING.Aliased.DataManager.isDatabaseLoaded.call(this);
-  if (result)
-  {
-    // if it is, then load our refinement data from it.
-    this.loadRefinementData();
-  }
-
-  // continue with the loading.
-  return result;
-};
-
-/**
- * Loads the additional required refinement data onto the database objects.
- */
-DataManager.loadRefinementData = function()
-{
-  // check if we have already loaded the refinment data.
-  if (!DataManager._j._refinementDataLoaded)
-  {
-    // load up the weapons and armors refinement data.
-    this.loadWeaponRefinementData();
-    this.loadArmorRefinementData();
-
-    // set the flag to true so we only do this once.
-    this._j._refinementDataLoaded = true;
-  }
-};
-
-/**
- * Loads the refinement data from the notes of weapons.
- */
-DataManager.loadWeaponRefinementData = function()
-{
-  // iterate over every weapon and process their refinement data.
-  $dataWeapons.forEach(DataManager.processEquipForRefinement);
-};
-
-/**
- * Loads the refinement data from the notes of armors.
- */
-DataManager.loadArmorRefinementData = function()
-{
-  $dataArmors.forEach(DataManager.processEquipForRefinement);
-};
-
-/**
- * The processing of adding the refinement data onto the equip.
- * This works for both weapons and armor.
- * @param {RPG_EquipItem} equip The equip to modify.
- * @param {number} index The index of the equip.
- */
-DataManager.processEquipForRefinement = function(equip, index)
-{
-  // the first equip is always null.
-  if (!equip) return;
-
-  // add the JAFTING data onto it.
-  equip._jafting = new JAFTING_RefinementData(equip.note, equip.meta);
-
-  // assign the index for refinement reasons.
-  equip.index = index;
-};
 //#endregion DataManager
 
 //#region Game_Item
@@ -2600,6 +2544,7 @@ class Window_JaftingEquip
     if (this.isPrimary)
     {
       // TODO: parameterize this.
+      // omit armor type 5, which is "- materials -".
       equips = equips.filter(equip => equip.atypeId !== 5);
     }
 
@@ -2936,7 +2881,12 @@ class Window_JaftingRefinementOutput
    */
   drawEquip(equip, x, type)
   {
-    const jaftingTraits = $gameJAFTING.combineBaseParameterTraits($gameJAFTING.parseTraits(equip));
+    if (type === "output")
+    {
+      console.log();
+    }
+    const parsedTraits = $gameJAFTING.parseTraits(equip);
+    const jaftingTraits = $gameJAFTING.combineBaseParameterTraits(parsedTraits);
     this.drawEquipTitle(equip, x, type);
     this.drawEquipTraits(jaftingTraits, x);
   }
@@ -2950,16 +2900,17 @@ class Window_JaftingRefinementOutput
   drawEquipTitle(equip, x, type)
   {
     const lh = this.lineHeight();
+    const cw = 300;
     switch (type)
     {
       case "base":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
         break;
       case "material":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
         break;
       case "output":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
         break;
     }
 
@@ -3027,6 +2978,7 @@ class Window_JaftingRefinementOutput
 
     const result = $gameJAFTING.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
 
+    console.log(result);
     // render the projected merge results.
     this.drawEquip(result, 700, "output");
 

@@ -34,7 +34,7 @@ class JAFTING_RefinementData
     }
     else
     {
-      const structure = /<maxRefine:[ ]?(\d+)>/i;
+      const structure = /<maxRefineCount:[ ]?(\d+)>/i;
       this._notes.forEach(note =>
       {
         if (note.match(structure))

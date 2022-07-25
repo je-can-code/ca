@@ -151,7 +151,12 @@ class Window_JaftingRefinementOutput
    */
   drawEquip(equip, x, type)
   {
-    const jaftingTraits = $gameJAFTING.combineBaseParameterTraits($gameJAFTING.parseTraits(equip));
+    if (type === "output")
+    {
+      console.log();
+    }
+    const parsedTraits = $gameJAFTING.parseTraits(equip);
+    const jaftingTraits = $gameJAFTING.combineBaseParameterTraits(parsedTraits);
     this.drawEquipTitle(equip, x, type);
     this.drawEquipTraits(jaftingTraits, x);
   }
@@ -165,16 +170,17 @@ class Window_JaftingRefinementOutput
   drawEquipTitle(equip, x, type)
   {
     const lh = this.lineHeight();
+    const cw = 300;
     switch (type)
     {
       case "base":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
         break;
       case "material":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
         break;
       case "output":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x, lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
         break;
     }
 
@@ -242,6 +248,7 @@ class Window_JaftingRefinementOutput
 
     const result = $gameJAFTING.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
 
+    console.log(result);
     // render the projected merge results.
     this.drawEquip(result, 700, "output");
 

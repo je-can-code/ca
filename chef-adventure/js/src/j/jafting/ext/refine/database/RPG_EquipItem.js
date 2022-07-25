@@ -3,7 +3,7 @@
  * The number of times this equip has been refined.
  * @type {number}
  */
-RPG_EquipItem.prototype.jaftingRefinedCount = 0;
+RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
 //#endregion refinedCount
 
 //#region notRefinementBase

@@ -121,6 +121,7 @@ J.JAFTING.Messages = {
 J.JAFTING.Aliased = {
   ...J.JAFTING.Aliased,
   Game_Item: new Map(),
+  RPG_Base: new Map(),
   Window_JaftingModeMenu: {},
 };
 

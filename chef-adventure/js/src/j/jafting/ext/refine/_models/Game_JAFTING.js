@@ -234,7 +234,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
   // copy of primary equip that represents the projected result.
-  const output = base._clone();
+  const output = base._generate(base, base._index());
 
   // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
   if (!baseTraits.length)
@@ -244,7 +244,10 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
   }
   else
   {
+    // determine the divider's index.
     const index = output.traits.findIndex(trait => trait.code === 63);
+
+    // check if we have a valid divider index and there is stuff after the divider.
     if (index > -1 && !!output.traits[index])
     {
       // if we have stuff after the divider, get rid of it.
@@ -284,7 +287,7 @@ Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
  */
 Game_JAFTING.prototype.parseTraits = function(equip)
 {
-  const allTraits = equip._clone().traits;//JsonEx.makeDeepCopy(equip.traits);
+  const allTraits = [...equip.traits];//JsonEx.makeDeepCopy(equip.traits);
   const divider = allTraits.findIndex(trait => trait.code === 63);
   if (divider > -1)
   {
