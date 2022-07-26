@@ -5091,14 +5091,21 @@ JABS_Battler.prototype.changeCharacterSprite = function(skill)
   // determine the new action pose sprite name.
   const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
 
+  // stitch the file path together with the sprite url.
+  const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
+
+  // check if the sprite exists.
+  const spriteExists = StorageManager.fileExists(spritePath);
+
   // only actually switch to the other character sprite if it exists.
-  ImageManager
-    .probeCharacter(newCharacterSprite)
-    .then(() =>
-    {
-      ImageManager.loadCharacter(newCharacterSprite);
-      this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
-    })
+  if (spriteExists)
+  {
+    // load the character into cache.
+    ImageManager.loadCharacter(newCharacterSprite);
+
+    // actually set the character.
+    this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
+  }
 };
 
 /**

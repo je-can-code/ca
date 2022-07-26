@@ -246,9 +246,9 @@ class Window_JaftingRefinementOutput
     // don't try to draw the result if the player hasn't made it to the material yet.
     if (!this.primaryEquip || !this.secondaryEquip) return;
 
+    // produce the potential result if confirmed.
     const result = $gameJAFTING.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
 
-    console.log(result);
     // render the projected merge results.
     this.drawEquip(result, 700, "output");
 

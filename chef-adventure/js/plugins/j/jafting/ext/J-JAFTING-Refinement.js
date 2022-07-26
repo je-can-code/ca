@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 24 2022 17:10:09 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Jul 25 2022 15:02:48 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -2976,9 +2976,9 @@ class Window_JaftingRefinementOutput
     // don't try to draw the result if the player hasn't made it to the material yet.
     if (!this.primaryEquip || !this.secondaryEquip) return;
 
+    // produce the potential result if confirmed.
     const result = $gameJAFTING.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
 
-    console.log(result);
     // render the projected merge results.
     this.drawEquip(result, 700, "output");
 
