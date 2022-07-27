@@ -1,9 +1,10 @@
-/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Jul 27 2022 15:37:55 GMT-0700 (Pacific Daylight Time)  */
 
+// TODO: need to sort out enemies and action events for JABS.
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PIXEL] Enables pixel movement.
+ * [v1.0.0 PIXEL] WIP Enables pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -219,7 +220,6 @@ Game_CharacterBase.prototype._lastPosition = function ()
 {
   if (this._posRecords && this._posRecords.length > 0) 
   {
-    //return this._posRecords[0];
     return this._posRecords.at(0);
   }
 
@@ -235,7 +235,6 @@ Game_CharacterBase.prototype._recentPosition = function()
 {
   if (this._posRecords && this._posRecords.length > 0) 
   {
-    //return this._posRecords[this._posRecords.length - 1];
     return this._posRecords.at(-1);
   }
 };
@@ -264,12 +263,18 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers)
 J.ABS.EXT.PIXEL.Aliased.Game_Player.set('checkEventTriggerThere', Game_Player.prototype.checkEventTriggerThere);
 Game_Player.prototype.checkEventTriggerThere = function(triggers)
 {
+  const oldX = this._x;
+  const oldY = this._y;
+
   // round the x,y coordinates.
   this._x = Math.round(this.x);
   this._y = Math.round(this.y);
 
   // perform original logic.
   J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerThere').call(this, triggers);
+
+  this._x = oldX;
+  this._y = oldY;
 };
 
 /**

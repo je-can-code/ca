@@ -986,9 +986,9 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    * used from the map, within an event's custom move routes.
    * @param {JABS_Battler} caster The battler executing the skill.
    * @param {number} skillId The skill to be executed.
-   * @param {boolean} isRetaliation Whether or not this skill is from a retaliation.
-   * @param {number|null} x The target's `x` coordinate, if applicable.
-   * @param {number|null} y The target's `y` coordinate, if applicable.
+   * @param {boolean=} isRetaliation Whether or not this skill is from a retaliation; defaults to false.
+   * @param {number=} x The target's `x` coordinate; defaults to null.
+   * @param {number=} y The target's `y` coordinate; defaults to null.
    */
   forceMapAction(caster, skillId, isRetaliation = false, x = null, y = null)
   {
@@ -1155,6 +1155,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   {
     const eventId = action.getActionId();
     const actionEventData = JsonEx.makeDeepCopy($actionMap.events[eventId]);
+
     actionEventData.x = x ?? caster.getX();
     actionEventData.y = y ?? caster.getY();
     actionEventData.isAction = true;
@@ -1415,6 +1416,12 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const actionEventSprite = new Game_Event(
       J.ABS.DefaultValues.ActionMap,
       newIndex);
+
+    const { x: actionX, y: actionY } = actionEventData;
+    actionEventSprite._realX = actionX;
+    actionEventSprite._realY = actionY;
+    actionEventSprite._x = actionX;
+    actionEventSprite._y = actionY;
 
     // give it a name.
     const skillName = action.getBaseSkill().name;

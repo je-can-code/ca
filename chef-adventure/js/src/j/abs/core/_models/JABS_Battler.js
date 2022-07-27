@@ -888,14 +888,6 @@ JABS_Battler.prototype.setPosePattern = function(pattern)
 JABS_Battler.prototype.updateCooldowns = function()
 {
   this.getBattler().getSkillSlotManager().updateCooldowns();
-
-  /*
-  // update all skill slot cooldowns.
-  Object.keys(this._cooldowns).forEach(key =>
-  {
-    this._cooldowns[key].update();
-  });
-  */
 };
 //#endregion update cooldowns
 
@@ -1000,7 +992,13 @@ JABS_Battler.prototype.updateEngagement = function()
  */
 JABS_Battler.prototype.canUpdateEngagement = function()
 {
-  return (!$jabsEngine.absPause && !this.isPlayer() && !this.isInanimate());
+  if ($jabsEngine.absPause) return false;
+
+  if (this.isPlayer()) return false;
+
+  if (this.isInanimate()) return false;
+
+  return true;
 };
 
 /**
@@ -2883,6 +2881,15 @@ JABS_Battler.prototype.getPursuitRadius = function()
 };
 
 /**
+ * Sets whether or not this battler is engaged.
+ * @param {boolean} isEngaged Whether or not this battler is engaged.
+ */
+JABS_Battler.prototype.setEngaged = function(isEngaged)
+{
+  this._engaged = isEngaged;
+};
+
+/**
  * Whether or not this `JABS_Battler` is currently engaged in battle with a target.
  * @returns {boolean} Whether or not this battler is engaged.
  */
@@ -2900,20 +2907,26 @@ JABS_Battler.prototype.engageTarget = function(target)
   // this battler cannot engage with targets right now.
   if (this.isEngagementLocked()) return;
 
-  this._engaged = true;
-  this.setTarget(target);
+  // enable engagement.
   this.setIdle(false);
+  this.setEngaged(true);
+
+  // setup the target and their aggro.
+  this.setTarget(target);
   this.addUpdateAggro(target.getUuid(), 0);
-  this.showBalloon(J.ABS.Balloons.Exclamation);
+
+  // check if this is an actor-based character.
   if (this.isActor())
   {
     // disable walking through walls while the follower is engaged.
-    this.getCharacter()
-      .setThrough(false);
+    this.getCharacter().setThrough(false);
   }
 
   // if we're alerted, also clear the alert state.
   this.clearAlert();
+
+  // TODO: abstract this.
+  this.showBalloon(J.ABS.Balloons.Exclamation);
 };
 
 /**
@@ -2921,12 +2934,24 @@ JABS_Battler.prototype.engageTarget = function(target)
  */
 JABS_Battler.prototype.disengageTarget = function()
 {
+  // clear any targeting.
   this.setTarget(null);
   this.setAllyTarget(null);
-  this._engaged = false;
+
+  // disable being engaged.
+  this.setEngaged(false);
+
+  // remove leader/follower data.
   this.clearFollowers();
   this.clearLeaderData();
+
+  // forget decided action.
   this.clearDecidedAction();
+
+  // reset all the phases back to default.
+  this.resetPhases();
+
+  // TODO: abstract this.
   this.showBalloon(J.ABS.Balloons.Frustration);
 };
 
@@ -4022,15 +4047,23 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // don't process aggro for inanimate battlers.
   if (this.isInanimate()) return;
 
+  // check if we currently don't have a target.
   if (!this.getTarget())
   {
+    // extract your the current highest aggro.
     const highestAggro = this.getHighestAggro();
+
+    // grab the battler for that uuid.
     const newTarget = $gameMap.getBattlerByUuid(highestAggro.uuid());
+
+    // make sure the battler exists before setting it.
     if (newTarget)
     {
+      // set it.
       this.setTarget(newTarget);
     }
 
+    // stop processing.
     return;
   }
 
@@ -4048,9 +4081,11 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // if there is only 1 aggro remaining
   if (this._aggros.length === 1)
   {
-    const zerothAggroUuid = this._aggros[0].uuid();
     // if there is no target, just stop that shit.
     if (!this.getTarget()) return;
+
+    // grab the uuid of the first aggro in the list.
+    const zerothAggroUuid = this._aggros[0].uuid();
 
     // check to see if the last aggro in the list belongs to the current target.
     if (!(this.getTarget().getUuid() === zerothAggroUuid))
@@ -4068,6 +4103,8 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
         this.removeAggro(zerothAggroUuid);
       }
     }
+
+    // stop processing.
     return;
   }
 
@@ -4078,10 +4115,8 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   const highestAggroTarget = this.getHighestAggro();
 
   // if the current target isn't the highest target, then switch!
-  if (!(highestAggroTarget.uuid() === this.getTarget()
-    .getUuid()))
+  if (!(highestAggroTarget.uuid() === this.getTarget().getUuid()))
   {
-
     // find the new target to change to that has more aggro than the current target.
     const newTarget = $gameMap.getBattlerByUuid(highestAggroTarget.uuid());
 
@@ -4448,10 +4483,20 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
 // eslint-disable-next-line complexity
 JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
 {
+  // grab the item data.
   const item = $dataItems[toolId];
-  const playerBattler = this.getBattler();
-  playerBattler.consumeItem(item);
-  const gameAction = new Game_Action(playerBattler, false);
+
+  // grab this battler.
+  const battler = this.getBattler();
+
+  // force the player to use the item.
+  battler.consumeItem(item);
+
+  // flag the slot for refresh.
+  battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
+
+  // also generate an action based on this tool.
+  const gameAction = new Game_Action(battler, false);
   gameAction.setItem(toolId);
 
   // handle scopes of the tool.
@@ -4508,13 +4553,6 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   // extract the cooldown and skill id from the item.
   const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
 
-
-  // it is an item with a custom cooldown.
-  if (itemCooldown)
-  {
-    if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
-  }
-
   // it was an item with a skill attached.
   if (itemSkillId)
   {
@@ -4526,20 +4564,36 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
     });
   }
 
-  // it was an item, didn't have a skill attached, and didn't have a cooldown.
-  if (!itemCooldown && !itemSkillId && !isLoot)
-  {
-    this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
-  }
-
   // if the last item was consumed, unequip it.
   if (!isLoot && !$gameParty.items().includes(item))
   {
-    playerBattler.setEquippedSkill(JABS_Button.Tool, 0);
+    // remove the item from the slot.
+    //battler.setEquippedSkill(JABS_Button.Tool, 0);
+
+    battler.getSkillSlotManager().clearSlot(JABS_Button.Tool);
+
+    // build a lot for it.
     const log = new MapLogBuilder()
       .setupUsedLastItem(item.id)
       .build();
     $gameTextLog.addLog(log);
+
+    // flag the slot for refresh.
+    //battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
+  }
+  else
+  {
+    // it is an item with a custom cooldown.
+    if (itemCooldown)
+    {
+      if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
+    }
+
+    // it was an item, didn't have a skill attached, and didn't have a cooldown.
+    if (!itemCooldown && !itemSkillId && !isLoot)
+    {
+      this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
+    }
   }
 };
 

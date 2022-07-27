@@ -22,12 +22,18 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers)
 J.ABS.EXT.PIXEL.Aliased.Game_Player.set('checkEventTriggerThere', Game_Player.prototype.checkEventTriggerThere);
 Game_Player.prototype.checkEventTriggerThere = function(triggers)
 {
+  const oldX = this._x;
+  const oldY = this._y;
+
   // round the x,y coordinates.
   this._x = Math.round(this.x);
   this._y = Math.round(this.y);
 
   // perform original logic.
   J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerThere').call(this, triggers);
+
+  this._x = oldX;
+  this._y = oldY;
 };
 
 /**

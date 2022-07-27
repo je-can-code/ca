@@ -1,4 +1,3 @@
-
 //#region JABS_Cooldown
 /**
  * A class representing a skill or item's cooldown data.

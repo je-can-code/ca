@@ -259,11 +259,27 @@ class JABS_AiManager
     // if we're not able to move idly, then do not.
     if (!battler.isIdleActionReady()) return false;
 
-    // 1/5 chance to move idly; if we didn't score, then do not.
-    if ((Math.randomInt(4) + 1) !== 1) return false;
+    // we idle about infrequently.
+    if (!this.shouldMoveIdly()) return false;
 
     // idle about!
     return true;
+  }
+
+  /**
+   * Determines whether or not RNG favored this battler to move.
+   * @returns {boolean} True if we should take a step, false otherwise.
+   */
+  static shouldMoveIdly()
+  {
+    // roll a d100.
+    const chance = (Math.randomInt(100) + 1);
+
+    // need a nat100 to move.
+    const shouldMove = (chance === 100);
+
+    // to move or not to move?
+    return shouldMove;
   }
   //#endregion Phase 0 - Idle Phase
 
@@ -332,7 +348,7 @@ class JABS_AiManager
   static canDecidePhase1Movement(battler)
   {
     // check if the battler is currently moving.
-    if (battler._event.isMoving()) return false;
+    if (battler.getCharacter().isMoving()) return false;
 
     // check if the battler is unable to move.
     if (!battler.canBattlerMove()) return false;
@@ -363,7 +379,7 @@ class JABS_AiManager
 
     // check if we should turn towards the target.
     // NOTE: this prevents 100% always facing the target, preventing perma-parry.
-    if (Math.randomInt(100) < 25)
+    if (Math.randomInt(100) < 40)
     {
       // turn towards the target.
       battler.turnTowardTarget();
@@ -386,6 +402,9 @@ class JABS_AiManager
 
     // check if the distance arbitrarily is too great.
     if (distance > 15) return true;
+
+    // check if the distance is outside of the pursuit radius of this battler.
+    if (battler.getPursuitRadius() < distance) return true;
 
     // do not disengage.
     return false;
@@ -425,6 +444,16 @@ class JABS_AiManager
    */
   static aiPhase2(battler)
   {
+    // check if the distance is invalid or too great.
+    if (this.shouldDisengageTarget(battler))
+    {
+      // just give up on this target.
+      battler.disengageTarget();
+
+      // stop processing.
+      return;
+    }
+
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {

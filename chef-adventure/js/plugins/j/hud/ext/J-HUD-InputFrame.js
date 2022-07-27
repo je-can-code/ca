@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Jul 27 2022 15:09:49 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -7,10 +7,15 @@
  * [v1.0.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @base J-ABS
+ * @base J-Base
  * @base J-HUD
+ * @orderAfter J-ABS
+ * @orderAfter J-Base
  * @orderAfter J-HUD
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Input Frame, which displays the various action keys and their
@@ -449,7 +454,7 @@ class Sprite_InputKeySlot extends Sprite
 
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_SkillSlotIcon|Sprite_SkillName|Sprite_SkillCost|Sprite_ComboGauge>}
+     * @type {Map<string, Sprite_SkillSlotIcon|Sprite_SkillName|Sprite_SkillCost|Sprite_CooldownGauge>}
      */
     this._j._spriteCache = new Map();
   }
@@ -813,7 +818,7 @@ class Sprite_InputKeySlot extends Sprite
     }
 
     // create a new sprite.
-    const sprite = new Sprite_ComboGauge(cooldownData);
+    const sprite = new Sprite_CooldownGauge(cooldownData);
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);

@@ -1,7 +1,8 @@
+// TODO: need to sort out enemies and action events for JABS.
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PIXEL] Enables pixel movement.
+ * [v1.0.0 PIXEL] WIP Enables pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help

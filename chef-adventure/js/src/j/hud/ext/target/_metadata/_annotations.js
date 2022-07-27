@@ -9,10 +9,11 @@
  * @base J-Base
  * @base J-HUD
  * @orderAfter J-ABS
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-HUD
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is an extension of the J-HUD plugin, designed for JABS.
  * It generates a window on the map displaying a given target.
  *
@@ -24,11 +25,6 @@
  * - The enemy's MP gauge.
  * - The enemy's TP gauge.
  *
- * This plugin not only requires two image files for the gauge, but also the
- * following plugins all above this one:
- * - J-BASE   v2.0.0+
- * - J-ABS    v3.0.0+
- * - J-HUD    v2.0.0+
  * ============================================================================
  * SETUP:
  * This plugin creates a window, which contains gauges representing the target

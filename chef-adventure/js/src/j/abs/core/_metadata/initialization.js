@@ -523,13 +523,33 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
  */
 PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
 {
-  const {actorId, skillId, slot, locked} = args;
+  // extract the values out of the various args.
+  const {actorId, skillId, itemId, slot, locked} = args;
+
+  // convert the text option to one of the available slots.
+  const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
+
+  // determine the actor.
   const actor = $gameActors.actor(parseInt(actorId));
-  const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
-  actor.setEquippedSkill(
-    translation,
-    parseInt(skillId),
-    locked === 'true');
+
+  // designate the default assigned id to be the skill id.
+  let assignedId = parseInt(skillId);
+
+  // check if we are assigning to the tool slot and have an item id available.
+  if (itemId !== 0 && skillSlotKey === JABS_Button.Tool)
+  {
+    // overwrite any possible skill id with the item id instead.
+    assignedId = parseInt(itemId);
+  }
+
+  // don't try to assign anything if we don't have an id to assign.
+  if (assignedId === 0) return;
+
+  // determine the locked state of the skill being assigned.
+  const isLocked = locked === 'true';
+
+  // assign the id to the slot.
+  actor.setEquippedSkill(skillSlotKey, assignedId, isLocked);
 });
 
 /**

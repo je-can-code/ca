@@ -5,10 +5,15 @@
  * [v1.0.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @base J-ABS
+ * @base J-Base
  * @base J-HUD
+ * @orderAfter J-ABS
+ * @orderAfter J-Base
  * @orderAfter J-HUD
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Input Frame, which displays the various action keys and their

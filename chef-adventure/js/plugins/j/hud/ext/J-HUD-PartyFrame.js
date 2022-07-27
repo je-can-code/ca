@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 24 2022 13:15:12 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Jul 26 2022 17:52:16 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -7,10 +7,15 @@
  * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @base J-ABS
  * @base J-Base
- * @orderAfter J-BASE
+ * @base J-HUD
+ * @orderAfter J-ABS
+ * @orderAfter J-Base
+ * @orderAfter J-HUD
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Party Frame, which displays the leader and allied members that
@@ -26,30 +31,6 @@
  * - current level
  * - experience gauge
  * - positive/negative state tracking
- * ============================================================================
- * @command hideHud
- * @text Hide HUD
- * @desc Hides the HUD on the map.
- *
- * @command showHud
- * @text Show HUD
- * @desc Shows the HUD on the map.
- *
- * @command hideAllies
- * @text Hide Allies
- * @desc Hides the display of allies in the hud.
- *
- * @command showAllies
- * @text Show Allies
- * @desc Shows allies' data in the hud.
- *
- * @command refreshHud
- * @text Refresh HUD
- * @desc Forcefully refreshes the hud.
- *
- * @command refreshImageCache
- * @text Refresh HUD Image Cache
- * @desc Forcefully refreshes the image cache of the hud. Use when you change face assets for actors.
  */
 
 /**
@@ -91,56 +72,6 @@ J.HUD.EXT_PARTY.Aliased = {
   Scene_Map: new Map(),
 };
 //#endregion introduction
-
-//#region plugin commands
-/**
- * Plugin command for hiding the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideHud", () =>
-{
-  $hudManager.requestHideHud();
-});
-
-/**
- * Plugin command for showing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showHud", () =>
-{
-  $hudManager.requestShowHud();
-});
-
-/**
- * Plugin command for hiding allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideAllies", () =>
-{
-  $hudManager.requestHideAllies();
-});
-
-/**
- * Plugin command for showing allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showAllies", () =>
-{
-  $hudManager.requestShowAllies();
-});
-
-/**
- * Plugin command for refreshing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshHud", () =>
-{
-  $hudManager.requestRefreshHud();
-});
-
-/**
- * Plugin command for refreshing the hud's image cache.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshImageCache", () =>
-{
-  $hudManager.requestRefreshImageCache();
-});
-//#endregion plugin commands
 //#endregion introduction
 
 //#region Scene_Map

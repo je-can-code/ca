@@ -5,38 +5,38 @@ import {
     Game_Player, Game_Screen, Game_SelfSwitches,
     Game_Switches, Game_System, Game_Temp, Game_Timer, Game_Troop, Game_Variables,
 } from "./rmmz_objects";
-import { ImageManager } from "./rmmz_managers";
-import { rm } from "./lunalite-pixi-mz";
+import {ImageManager} from "./rmmz_managers";
+import {rm} from "./lunalite-pixi-mz";
 
 /** @global RPGMaker Plugin's Object */
-declare var $plugins: Array<rm.types.PluginSettings>;
+declare var $plugins: rm.types.PluginSettings[];
 
 /** @global Database Actor data. */
-declare var $dataActors: Array<RPG_Actor>;
+declare var $dataActors: RPG_Actor[];
 
 /** @global Database Class data. */
-declare var $dataClasses: Array<RPG_Class>;
+declare var $dataClasses: RPG_Class[];
 
 /** @global Database Skill data. */
-declare var $dataSkills: Array<RPG_Skill>;
+declare var $dataSkills: RPG_Skill[];
 
 /** @global Database Item data. */
-declare var $dataItems: Array<RPG_Item>;
+declare var $dataItems: RPG_Item[];
 
 /** @global Database Weapon data. */
-declare var $dataWeapons: Array<RPG_Weapon>;
+declare var $dataWeapons: RPG_Weapon[];
 
 /** @global Database Armor data. */
-declare var $dataArmors: Array<RPG_Armor>;
+declare var $dataArmors: RPG_Armor[];
 
 /** @global Database Enemy data. */
-declare var $dataEnemies: Array<RPG_Enemy>;
+declare var $dataEnemies: RPG_Enemy[];
 
 /** @global Database Troop data. */
 declare var $dataTroops: Array<rm.types.Troop>;
 
 /** @global Database State data. */
-declare var $dataStates: Array<RPG_State>;
+declare var $dataStates: RPG_State[];
 
 /** @global Database Animation data. */
 declare var $dataAnimations: Array<rm.types.Animation>;
@@ -51,7 +51,7 @@ declare var $dataCommonEvents: Array<rm.types.CommonEvent>;
 declare var $dataSystem: System;
 
 /** @global Database MapInfo data. */
-declare var $dataMapInfos: Array<MapInfo>;
+declare var $dataMapInfos: MapInfo[];
 
 /** @global Database Map data for the current map. */
 declare var $dataMap: Map;
@@ -139,6 +139,7 @@ declare class Bitmap {
      * @param {number} height The height of the bitmap
      */
     constructor(width?: number, height?: number);
+
     /**
      * The face name of the font.
      *
@@ -150,7 +151,7 @@ declare class Bitmap {
      * The size of the font in pixels.
      *
      * @property fontSize
-     * @type Number
+     * @type {number}
      */
     fontSize: number;
     /**
@@ -185,7 +186,7 @@ declare class Bitmap {
      * The width of the outline of the text.
      *
      * @property outlineWidth
-     * @type Number
+     * @type {number}
      */
     outlineWidth: number;
     /**
@@ -220,14 +221,14 @@ declare class Bitmap {
      * [read-only] The width of the bitmap.
      *
      * @property width
-     * @type Number
+     * @type {number}
      */
     width: number;
     /**
      * [read-only] The height of the bitmap.
      *
      * @property height
-     * @type Number
+     * @type {number}
      */
     height: number;
     /**
@@ -248,7 +249,7 @@ declare class Bitmap {
      * The opacity of the drawing object in the range (0, 255).
      *
      * @property paintOpacity
-     * @type Number
+     * @type {number}
      */
     paintOpacity: number;
     /**
@@ -256,6 +257,7 @@ declare class Bitmap {
      * @type CacheEntry
      */
     cacheEntry: CacheEntry;
+
     /**
      * Checks whether the bitmap is ready to render.
      *
@@ -263,6 +265,7 @@ declare class Bitmap {
      * @return {Boolean} True if the bitmap is ready to render
      */
     isReady(): boolean;
+
     /**
      * Checks whether a loading error has occurred.
      *
@@ -270,74 +273,82 @@ declare class Bitmap {
      * @return {Boolean} True if a loading error has occurred
      */
     isError(): boolean;
+
     /**
      * Resizes the bitmap.
      *
      * @method resize
-     * @param {Number} width The new width of the bitmap
-     * @param {Number} height The new height of the bitmap
+     * @param {number} width The new width of the bitmap
+     * @param {number} height The new height of the bitmap
      */
     resize(width: number, height: number): void;
+
     /**
      * Performs a block transfer.
      *
      * @method blt
      * @param {Bitmap} source The bitmap to draw
-     * @param {Number} sx The x coordinate in the source
-     * @param {Number} sy The y coordinate in the source
-     * @param {Number} sw The width of the source image
-     * @param {Number} sh The height of the source image
-     * @param {Number} dx The x coordinate in the destination
-     * @param {Number} dy The y coordinate in the destination
-     * @param {Number} [dw=sw] The width to draw the image in the destination
-     * @param {Number} [dh=sh] The height to draw the image in the destination
+     * @param {number} sx The x coordinate in the source
+     * @param {number} sy The y coordinate in the source
+     * @param {number} sw The width of the source image
+     * @param {number} sh The height of the source image
+     * @param {number} dx The x coordinate in the destination
+     * @param {number} dy The y coordinate in the destination
+     * @param {number} [dw=sw] The width to draw the image in the destination
+     * @param {number} [dh=sh] The height to draw the image in the destination
      */
     blt(source: Bitmap, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw?: number, dh?: number): void;
+
     /**
      * Returns pixel color at the specified point.
      *
      * @method getPixel
-     * @param {Number} x The x coordinate of the pixel in the bitmap
-     * @param {Number} y The y coordinate of the pixel in the bitmap
+     * @param {number} x The x coordinate of the pixel in the bitmap
+     * @param {number} y The y coordinate of the pixel in the bitmap
      * @return {String} The pixel color (hex format)
      */
     getPixel(x: number, y: number): string;
+
     /**
      * Returns alpha pixel value at the specified point.
      *
      * @method getAlphaPixel
-     * @param {Number} x The x coordinate of the pixel in the bitmap
-     * @param {Number} y The y coordinate of the pixel in the bitmap
+     * @param {number} x The x coordinate of the pixel in the bitmap
+     * @param {number} y The y coordinate of the pixel in the bitmap
      * @return {String} The alpha value
      */
     getAlphaPixel(x: number, y: number): string;
+
     /**
      * Clears the specified rectangle.
      *
      * @method clearRect
-     * @param {Number} x The x coordinate for the upper-left corner
-     * @param {Number} y The y coordinate for the upper-left corner
-     * @param {Number} width The width of the rectangle to clear
-     * @param {Number} height The height of the rectangle to clear
+     * @param {number} x The x coordinate for the upper-left corner
+     * @param {number} y The y coordinate for the upper-left corner
+     * @param {number} width The width of the rectangle to clear
+     * @param {number} height The height of the rectangle to clear
      */
     clearRect(x: number, y: number, width: number, height: number): void;
+
     /**
      * Clears the entire bitmap.
      *
      * @method clear
      */
     clear(): void;
+
     /**
      * Fills the specified rectangle.
      *
      * @method fillRect
-     * @param {Number} x The x coordinate for the upper-left corner
-     * @param {Number} y The y coordinate for the upper-left corner
-     * @param {Number} width The width of the rectangle to clear
-     * @param {Number} height The height of the rectangle to clear
+     * @param {number} x The x coordinate for the upper-left corner
+     * @param {number} y The y coordinate for the upper-left corner
+     * @param {number} width The width of the rectangle to clear
+     * @param {number} height The height of the rectangle to clear
      * @param {String} color The color of the rectangle in CSS format
      */
     fillRect(x: number, y: number, width: number, height: number, color: string): void;
+
     /**
      * Fills the entire bitmap.
      *
@@ -345,71 +356,79 @@ declare class Bitmap {
      * @param {String} color The color of the rectangle in CSS format
      */
     fillAll(color: string): void;
+
     /**
      * Draws the rectangle with a gradation.
      *
      * @method gradientFillRect
-     * @param {Number} x The x coordinate for the upper-left corner
-     * @param {Number} y The y coordinate for the upper-left corner
-     * @param {Number} width The width of the rectangle to clear
-     * @param {Number} height The height of the rectangle to clear
+     * @param {number} x The x coordinate for the upper-left corner
+     * @param {number} y The y coordinate for the upper-left corner
+     * @param {number} width The width of the rectangle to clear
+     * @param {number} height The height of the rectangle to clear
      * @param {String} color1 The start color of the gradation
      * @param {String} color2 The end color of the gradation
      * @param {Boolean} vertical Whether it draws a vertical gradient
      */
     gradientFillRect(x: number, y: number, width: number, height: number, color1: string, color2: string, vertical?: boolean): void;
+
     /**
      * Draw the filled circle.
      *
      * @method drawCircle
-     * @param {Number} x The x coordinate of the center of the circle
-     * @param {Number} y The y coordinate of the center of the circle
-     * @param {Number} radius The radius of the circle
+     * @param {number} x The x coordinate of the center of the circle
+     * @param {number} y The y coordinate of the center of the circle
+     * @param {number} radius The radius of the circle
      * @param {String} color The color of the circle in CSS format
      */
     drawCircle(x: number, y: number, radius: number, color: string): void;
+
     /**
      * Draws the outline text to the bitmap.
      *
      * @method drawText
      * @param {String} text The text that will be drawn
-     * @param {Number} x The x coordinate for the left of the text
-     * @param {Number} y The y coordinate for the top of the text
-     * @param {Number} maxWidth The maximum allowed width of the text
-     * @param {Number} lineHeight The height of the text line
+     * @param {number} x The x coordinate for the left of the text
+     * @param {number} y The y coordinate for the top of the text
+     * @param {number} maxWidth The maximum allowed width of the text
+     * @param {number} lineHeight The height of the text line
      * @param {String} align The alignment of the text
      */
     drawText(text: string, x: number, y: number, maxWidth: number, lineHeight: number, align?: string): void;
+
     /**
      * Returns the width of the specified text.
      *
      * @method measureTextWidth
      * @param {String} text The text to be measured
-     * @return {Number} The width of the text in pixels
+     * @return {number} The width of the text in pixels
      */
     measureTextWidth(text: string): number;
+
     /**
      * Changes the color tone of the entire bitmap.
      *
      * @method adjustTone
-     * @param {Number} r The red strength in the range (-255, 255)
-     * @param {Number} g The green strength in the range (-255, 255)
-     * @param {Number} b The blue strength in the range (-255, 255)
+     * @param {number} r The red strength in the range (-255, 255)
+     * @param {number} g The green strength in the range (-255, 255)
+     * @param {number} b The blue strength in the range (-255, 255)
      */
     adjustTone(r: number, g: number, b: number): void;
+
     /**
      * Rotates the hue of the entire bitmap.
      *
      * @method rotateHue
-     * @param {Number} offset The hue offset in 360 degrees
+     * @param {number} offset The hue offset in 360 degrees
      */
     rotateHue(offset: number): void;
+
     /**
      * Applies a blur effect to the bitmap.
      *
      * @method blur
      */
     blur(): void;
+
     /**
      * Add a callback function that will be called when the bitmap is loaded.
      *
@@ -417,11 +436,13 @@ declare class Bitmap {
      * @param {Function} listner The callback function
      */
     addLoadListener(listner: (bitmap: Bitmap) => void): void;
+
     /**
      * touch the resource
      * @method touch
      */
     touch(): void;
+
     /**
      * Performs a block transfer, using assumption that original image was not modified (no hue)
      *
@@ -437,6 +458,7 @@ declare class Bitmap {
      * @param {number} [dh=sh] The height to draw the image in the destination
      */
     bltImage(source: Bitmap, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw?: number, dh?: number): void;
+
     /**
      * Loads a image file and returns a new bitmap object.
      *
@@ -446,6 +468,7 @@ declare class Bitmap {
      * @return Bitmap
      */
     static load(url: string): Bitmap;
+
     /**
      * Takes a snapshot of the game screen and returns a new bitmap object.
      *
@@ -468,15 +491,18 @@ declare class CacheEntry {
      * @param {string} item - Bitmap, HTML5Audio, WebAudio - whatever you want to store in the cache
      */
     constructor(cache: CacheMap, key: string, item: string);
+
     /**
      * frees the resource
      */
     free(byTTL?: boolean): void;
+
     /**
      * Allocates the resource
      * @returns {CacheEntry}
      */
     allocate(): CacheEntry;
+
     /**
      * Sets the time to live
      * @param {number} ticks TTL in ticks, 0 if not set
@@ -484,7 +510,9 @@ declare class CacheEntry {
      * @returns {CacheEntry}
      */
     setTimeToLive(ticks?: number, seconds?: number): CacheEntry;
+
     isStillAlive(): boolean;
+
     /**
      * makes sure that resource wont freed by Time To Live
      * if resource was already freed by TTL, put it in cache again
@@ -499,18 +527,23 @@ declare class CacheMap {
      * @constructor
      */
     constructor(manager: ImageManager);
+
     /**
      * checks ttl of all elements and removes dead ones
      */
     checkTTL(): void;
+
     /**
      * cache item
      * @param key url of cache element
      * @returns {*|null}
      */
     getItem(key: string): any;
+
     clear(): void;
+
     setItem(key: string, item: any): CacheEntry;
+
     update(ticks: number, delta: number): void;
 }
 
@@ -521,12 +554,13 @@ declare class CacheMap {
  */
 declare class Graphics {
     protected constructor();
+
     /**
      * The total frame count of the game screen.
      *
      * @static
      * @property frameCount
-     * @type Number
+     * @type {number}
      */
     static frameCount: number;
     /**
@@ -534,7 +568,7 @@ declare class Graphics {
      *
      * @static
      * @property BLEND_NORMAL
-     * @type Number
+     * @type {number}
      * @final
      */
     static BLEND_NORMAL: number;
@@ -543,7 +577,7 @@ declare class Graphics {
      *
      * @static
      * @property BLEND_ADD
-     * @type Number
+     * @type {number}
      * @final
      */
     static BLEND_ADD: number;
@@ -552,7 +586,7 @@ declare class Graphics {
      *
      * @static
      * @property BLEND_MULTIPLY
-     * @type Number
+     * @type {number}
      * @final
      */
     static BLEND_MULTIPLY: number;
@@ -561,7 +595,7 @@ declare class Graphics {
      *
      * @static
      * @property BLEND_SCREEN
-     * @type Number
+     * @type {number}
      * @final
      */
     static BLEND_SCREEN: number;
@@ -570,7 +604,7 @@ declare class Graphics {
      *
      * @static
      * @property width
-     * @type Number
+     * @type {number}
      */
     static width: number;
     /**
@@ -578,7 +612,7 @@ declare class Graphics {
      *
      * @static
      * @property height
-     * @type Number
+     * @type {number}
      */
     static height: number;
     /**
@@ -586,7 +620,7 @@ declare class Graphics {
      *
      * @static
      * @property boxWidth
-     * @type Number
+     * @type {number}
      */
     static boxWidth: number;
     /**
@@ -594,7 +628,7 @@ declare class Graphics {
      *
      * @static
      * @property boxHeight
-     * @type Number
+     * @type {number}
      */
     static boxHeight: number;
     /**
@@ -602,20 +636,22 @@ declare class Graphics {
      *
      * @static
      * @property scale
-     * @type Number
+     * @type {number}
      */
     static scale: number;
+
     /**
      * Initializes the graphics system.
      *
      * @static
      * @method initialize
-     * @param {Number} width The width of the game screen
-     * @param {Number} height The height of the game screen
+     * @param {number} width The width of the game screen
+     * @param {number} height The height of the game screen
      * @param {String} type The type of the renderer.
      *                 'canvas', 'webgl', or 'auto'.
      */
     static initialize(width?: number, height?: number, type?: string): void;
+
     /**
      * Marks the beginning of each frame for FPSMeter.
      *
@@ -623,6 +659,7 @@ declare class Graphics {
      * @method tickStart
      */
     static tickStart(): void;
+
     /**
      * Marks the end of each frame for FPSMeter.
      *
@@ -630,6 +667,7 @@ declare class Graphics {
      * @method tickEnd
      */
     static tickEnd(): void;
+
     /**
      * Renders the stage to the game screen.
      *
@@ -638,6 +676,7 @@ declare class Graphics {
      * @param {Stage} stage The stage object to be rendered
      */
     static render(stage?: Stage): void;
+
     /**
      * Checks whether the renderer type is WebGL.
      *
@@ -646,6 +685,7 @@ declare class Graphics {
      * @return {Boolean} True if the renderer type is WebGL
      */
     static isWebGL(): boolean;
+
     /**
      * Checks whether the current browser supports WebGL.
      *
@@ -654,6 +694,7 @@ declare class Graphics {
      * @return {Boolean} True if the current browser supports WebGL.
      */
     static hasWebGL(): boolean;
+
     /**
      * Checks whether the canvas blend mode 'difference' is supported.
      *
@@ -662,6 +703,7 @@ declare class Graphics {
      * @return {Boolean} True if the canvas blend mode 'difference' is supported
      */
     static canUseDifferenceBlend(): boolean;
+
     /**
      * Checks whether the canvas blend mode 'saturation' is supported.
      *
@@ -670,6 +712,7 @@ declare class Graphics {
      * @return {Boolean} True if the canvas blend mode 'saturation' is supported
      */
     static canUseSaturationBlend(): boolean;
+
     /**
      * Sets the source of the "Now Loading" image.
      *
@@ -678,6 +721,7 @@ declare class Graphics {
      * @param {String} Path of image
      */
     static setLoadingImage(src: string): void;
+
     /**
      * Initializes the counter for displaying the "Now Loading" image.
      *
@@ -685,6 +729,7 @@ declare class Graphics {
      * @method startLoading
      */
     static startLoading(): void;
+
     /**
      * Increments the loading counter and displays the "Now Loading" image if necessary.
      *
@@ -692,6 +737,7 @@ declare class Graphics {
      * @method updateLoading
      */
     static updateLoading(): void;
+
     /**
      * Erases the "Now Loading" image.
      *
@@ -699,6 +745,7 @@ declare class Graphics {
      * @method endLoading
      */
     static endLoading(): void;
+
     /**
      * Displays the error text to the screen.
      *
@@ -708,6 +755,7 @@ declare class Graphics {
      * @param {String} message The message of the error
      */
     static printError(name: string, message: string): void;
+
     /**
      * Shows the FPSMeter element.
      *
@@ -715,6 +763,7 @@ declare class Graphics {
      * @method showFps
      */
     static showFps(): void;
+
     /**
      * Hides the FPSMeter element.
      *
@@ -722,6 +771,7 @@ declare class Graphics {
      * @method hideFps
      */
     static hideFps(): void;
+
     /**
      * Loads a font file.
      *
@@ -731,6 +781,7 @@ declare class Graphics {
      * @param {String} url The url of the font file
      */
     static loadFont(name: string, url: string): void;
+
     /**
      * Checks whether the font file is loaded.
      *
@@ -740,6 +791,7 @@ declare class Graphics {
      * @return {Boolean} True if the font file is loaded
      */
     static isFontLoaded(name: string): boolean;
+
     /**
      * Starts playback of a video.
      *
@@ -748,6 +800,7 @@ declare class Graphics {
      * @param {String} src
      */
     static playVideo(src: string): void;
+
     /**
      * Checks whether the video is playing.
      *
@@ -756,6 +809,7 @@ declare class Graphics {
      * @return {Boolean} True if the video is playing
      */
     static isVideoPlaying(): boolean;
+
     /**
      * Checks whether the browser can play the specified video type.
      *
@@ -765,45 +819,51 @@ declare class Graphics {
      * @return {Boolean} True if the browser can play the specified video type
      */
     static canPlayVideoType(type: string): boolean;
+
     /**
      * Converts an x coordinate on the page to the corresponding
      * x coordinate on the canvas area.
      *
      * @static
      * @method pageToCanvasX
-     * @param {Number} x The x coordinate on the page to be converted
-     * @return {Number} The x coordinate on the canvas area
+     * @param {number} x The x coordinate on the page to be converted
+     * @return {number} The x coordinate on the canvas area
      */
     static pageToCanvasX(x: number): number;
+
     /**
      * Converts a y coordinate on the page to the corresponding
      * y coordinate on the canvas area.
      *
      * @static
      * @method pageToCanvasY
-     * @param {Number} y The y coordinate on the page to be converted
-     * @return {Number} The y coordinate on the canvas area
+     * @param {number} y The y coordinate on the page to be converted
+     * @return {number} The y coordinate on the canvas area
      */
     static pageToCanvasY(y: number): number;
+
     /**
      * Checks whether the specified point is inside the game canvas area.
      *
      * @static
      * @method isInsideCanvas
-     * @param {Number} x The x coordinate on the canvas area
-     * @param {Number} y The y coordinate on the canvas area
+     * @param {number} x The x coordinate on the canvas area
+     * @param {number} y The y coordinate on the canvas area
      * @return {Boolean} True if the specified point is inside the game canvas area
      */
     static isInsideCanvas(x: number, y: number): boolean;
+
     /**
      * Calls pixi.js.old garbage collector
      */
     static callGC(): void;
+
     static _renderer: PIXI.AbstractRenderer;
 }
 
 declare class HTML5Audio {
     protected constructor();
+
     _initialized: boolean;
     _unlocked: boolean;
     _audioElement: HTMLAudioElement;
@@ -829,9 +889,10 @@ declare class HTML5Audio {
      * The volume of the audio.
      *
      * @property volume
-     * @type Number
+     * @type {number}
      */
     volume: number;
+
     /**
      * Sets up the Html5 Audio.
      *
@@ -840,6 +901,7 @@ declare class HTML5Audio {
      * @param {String} url The url of the audio file
      */
     setup(url: string): void;
+
     /**
      * Initializes the audio system.
      *
@@ -848,6 +910,7 @@ declare class HTML5Audio {
      * @return {Boolean} True if the audio system is available
      */
     initialize(): void;
+
     /**
      * Clears the audio data.
      *
@@ -855,6 +918,7 @@ declare class HTML5Audio {
      * @method clear
      */
     clear(): void;
+
     /**
      * Set the URL of static se.
      *
@@ -862,6 +926,7 @@ declare class HTML5Audio {
      * @param {String} url
      */
     setStaticSe(url: string): void;
+
     /**
      * Checks whether the audio data is ready to play.
      *
@@ -870,6 +935,7 @@ declare class HTML5Audio {
      * @return {Boolean} True if the audio data is ready to play
      */
     isReady(): boolean;
+
     /**
      * Checks whether a loading error has occurred.
      *
@@ -878,6 +944,7 @@ declare class HTML5Audio {
      * @return {Boolean} True if a loading error has occurred
      */
     isError(): boolean;
+
     /**
      * Checks whether the audio is playing.
      *
@@ -886,15 +953,17 @@ declare class HTML5Audio {
      * @return {Boolean} True if the audio is playing
      */
     isPlaying(): boolean;
+
     /**
      * Plays the audio.
      *
      * @static
      * @method play
      * @param {Boolean} loop Whether the audio data play in a loop
-     * @param {Number} offset The start position to play in seconds
+     * @param {number} offset The start position to play in seconds
      */
     play(loop: boolean, offset: number): void;
+
     /**
      * Stops the audio.
      *
@@ -902,22 +971,25 @@ declare class HTML5Audio {
      * @method stop
      */
     stop(): void;
+
     /**
      * Performs the audio fade-in.
      *
      * @static
      * @method fadeIn
-     * @param {Number} duration Fade-in time in seconds
+     * @param {number} duration Fade-in time in seconds
      */
     fadeIn(duration: number): void;
+
     /**
      * Performs the audio fade-out.
      *
      * @static
      * @method fadeOut
-     * @param {Number} duration Fade-out time in seconds
+     * @param {number} duration Fade-out time in seconds
      */
     fadeOut(duration: number): void;
+
     /**
      * Gets the seek position of the audio.
      *
@@ -929,12 +1001,13 @@ declare class HTML5Audio {
 
 declare class Input {
     protected constructor();
+
     /**
      * The wait time of the key repeat in frames.
      *
      * @static
      * @property keyRepeatWait
-     * @type Number
+     * @type {number}
      */
     static keyRepeatWait: number;
     /**
@@ -942,7 +1015,7 @@ declare class Input {
      *
      * @static
      * @property keyRepeatInterval
-     * @type Number
+     * @type {number}
      */
     static keyRepeatInterval: number;
     /**
@@ -976,7 +1049,7 @@ declare class Input {
      *
      * @static
      * @property dir4
-     * @type Number
+     * @type {number}
      */
     static dir4: number;
     /**
@@ -984,7 +1057,7 @@ declare class Input {
      *
      * @static
      * @property dir8
-     * @type Number
+     * @type {number}
      */
     static dir8: number;
     /**
@@ -992,9 +1065,10 @@ declare class Input {
      *
      * @static
      * @property date
-     * @type Number
+     * @type {number}
      */
     static date: number;
+
     /**
      * Initializes the input system.
      *
@@ -1002,6 +1076,7 @@ declare class Input {
      * @method initialize
      */
     static initialize(): void;
+
     /**
      * Clears all the input data.
      *
@@ -1009,6 +1084,7 @@ declare class Input {
      * @method clear
      */
     static clear(): void;
+
     /**
      * Updates the input data.
      *
@@ -1016,6 +1092,7 @@ declare class Input {
      * @method update
      */
     static update(): void;
+
     /**
      * Checks whether a key is currently pressed down.
      *
@@ -1025,6 +1102,7 @@ declare class Input {
      * @return {Boolean} True if the key is pressed
      */
     static isPressed(keyName: string): boolean;
+
     /**
      * Checks whether a key is just pressed.
      *
@@ -1034,6 +1112,7 @@ declare class Input {
      * @return {Boolean} True if the key is triggered
      */
     static isTriggered(keyName: string): boolean;
+
     /**
      * Checks whether a key is just pressed or a key repeat occurred.
      *
@@ -1043,6 +1122,7 @@ declare class Input {
      * @return {Boolean} True if the key is repeated
      */
     static nisRepeated(keyName: string): boolean;
+
     /**
      * Checks whether a key is kept depressed.
      *
@@ -1061,15 +1141,17 @@ declare class Input {
  */
 declare class JsonEx {
     protected constructor();
+
     /**
      * The maximum depth of objects.
      *
      * @static
      * @property maxDepth
-     * @type Number
+     * @type {number}
      * @default 100
      */
     maxDepth: number;
+
     /**
      * Makes a deep copy of the specified object.
      *
@@ -1079,6 +1161,7 @@ declare class JsonEx {
      * @return {Object} The copied object
      */
     static makeDeepCopy(object: any): any;
+
     /**
      * Converts an object to a JSON string with object information.
      *
@@ -1088,6 +1171,7 @@ declare class JsonEx {
      * @return {String} The JSON string
      */
     static stringify(object: any): string;
+
     /**
      * Parses a JSON string and reconstructs the corresponding object.
      *
@@ -1102,8 +1186,7 @@ declare class JsonEx {
 /**
  * Extends the `Number` class with additional functions.
  */
-declare class Number
-{
+declare class Number {
     /**
      * Makes a number string with leading zeros.
      *
@@ -1127,8 +1210,7 @@ declare class Number
 /**
  * Extends the `Number` class with additional functions.
  */
-declare class String
-{
+declare class String {
     /**
      * Makes a number string with leading zeros.
      *
@@ -1147,12 +1229,13 @@ declare class Rectangle extends PIXI.Rectangle {
      *
      * @class Rectangle
      * @constructor
-     * @param {Number} x The x coordinate for the upper-left corner
-     * @param {Number} y The y coordinate for the upper-left corner
-     * @param {Number} width The width of the rectangle
-     * @param {Number} height The height of the rectangle
+     * @param {number} x The x coordinate for the upper-left corner
+     * @param {number} y The y coordinate for the upper-left corner
+     * @param {number} width The width of the rectangle
+     * @param {number} height The height of the rectangle
      */
     constructor(x?: number, y?: number, width?: number, height?: number);
+
     /**
      * @static
      * @property emptyRectangle
@@ -1169,32 +1252,36 @@ declare class ScreenSprite extends PIXI.Sprite {
      * @constructor
      */
     constructor();
+
     /**
      * The opacity of the sprite (0 to 255).
      *
      * @property opacity
-     * @type Number
+     * @type {number}
      */
     opacity: number;
+
     /**
      * Sets black to the color of the screen sprite.
      *
      * @method setBlack
      */
     setBlack(): void;
+
     /**
      * Sets white to the color of the screen sprite.
      *
      * @method setWhite
      */
     setWhite(): void;
+
     /**
      * Sets the color of the screen sprite by values.
      *
      * @method setColor
-     * @param {Number} r The red value in the range (0, 255)
-     * @param {Number} g The green value in the range (0, 255)
-     * @param {Number} b The blue value in the range (0, 255)
+     * @param {number} r The red value in the range (0, 255)
+     * @param {number} g The green value in the range (0, 255)
+     * @param {number} b The blue value in the range (0, 255)
      */
     setColor(r?: number, g?: number, b?: number): void;
 }
@@ -1207,6 +1294,7 @@ declare class Tilemap extends PIXI.Container {
      * @type Array<PIXI.DisplayObject>
      */
     constructor();
+
     /**
      * The bitmaps used as a tileset.
      *
@@ -1232,7 +1320,7 @@ declare class Tilemap extends PIXI.Container {
      * The animation count for autotiles.
      *
      * @property animationCount
-     * @type Number
+     * @type {number}
      */
     animationCount: number;
     /**
@@ -1253,25 +1341,27 @@ declare class Tilemap extends PIXI.Container {
      * The width of the screen in pixels.
      *
      * @property width
-     * @type Number
+     * @type {number}
      */
     tileWidth: number;
     /**
      * The height of a tile in pixels.
      *
      * @property tileHeight
-     * @type Number
+     * @type {number}
      */
     tileHeight: number;
+
     /**
      * Sets the tilemap data.
      *
      * @method setData
-     * @param {Number} width The width of the map in number of tiles
-     * @param {Number} height The height of the map in number of tiles
+     * @param {number} width The width of the map in number of tiles
+     * @param {number} height The height of the map in number of tiles
      * @param {Array} data The one dimensional array for the map data
      */
     setData(width: number, height: number, data: number[]): void;
+
     /**
      * Checks whether the tileset is ready to render.
      *
@@ -1280,23 +1370,27 @@ declare class Tilemap extends PIXI.Container {
      * @return {Boolean} True if the tilemap is ready
      */
     isReady(): boolean;
+
     /**
      * Updates the tilemap for each frame.
      *
      * @method update
      */
     update(): void;
+
     /**
      * @method updateTransform
      * @private
      */
     updateTransform(): void;
+
     /**
      * Forces to repaint the entire static
      *
      * @method refresh
      */
     refresh(): void;
+
     /**
      * Adds a child to the container.
      *
@@ -1305,15 +1399,17 @@ declare class Tilemap extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container at a specified index.
      *
      * @method addChildAt
      * @param {PIXI.DisplayObject} child The child to add
-     * @param {Number} index The index to place the child in
+     * @param {number} index The index to place the child in
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+
     /**
      * Removes a child from the container.
      *
@@ -1322,20 +1418,23 @@ declare class Tilemap extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Removes a child from the specified index position.
      *
      * @method removeChildAt
-     * @param {Number} index The index to get the child from
+     * @param {number} index The index to get the child from
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChildAt(index: number): PIXI.DisplayObject;
+
     /**
      * Forces to refresh the tileset
      *
      * @method refresh
      */
     refreshTileset(): void;
+
     static TILE_ID_A1: number;
     static TILE_ID_A2: number;
     static TILE_ID_A3: number;
@@ -1349,32 +1448,55 @@ declare class Tilemap extends PIXI.Container {
     static FLOOR_AUTOTILE_TABLE: number[][][];
     static WALL_AUTOTILE_TABLE: number[][][];
     static WATERFALL_AUTOTILE_TABLE: number[][][];
+
     static isVisibleTile(tileId: number): boolean;
+
     static isAutotile(tileId: number): boolean;
+
     static getAutotileKind(tileId: number): number;
+
     static getAutotileShape(tileId: number): number;
+
     static makeAutotileId(kind: number, shape: number): number;
+
     static isSameKindTile(tileID1: number, tileID2: number): boolean;
+
     static isTileA1(tileId: number): boolean;
+
     static isTileA2(tileId: number): boolean;
+
     static isTileA3(tileId: number): boolean;
+
     static isTileA4(tileId: number): boolean;
+
     static isTileA5(tileId: number): boolean;
+
     static isWaterTile(tileId: number): boolean;
+
     static isWaterfallTile(tileId: number): boolean;
+
     static isGroundTile(tileId: number): boolean;
+
     static isShadowingTile(tileId: number): boolean;
+
     static isRoofTile(tileId: number): boolean;
+
     static isWallTopTile(tileId: number): boolean;
+
     static isWallSideTile(tileId: number): boolean;
+
     static isWallTile(tileId: number): boolean;
+
     static isFloorTypeAutotile(tileId: number): boolean;
+
     static isWallTypeAutotile(tileId: number): boolean;
+
     static isWaterfallTypeAutotile(tileId: number): boolean;
 }
 
 declare class ShaderTilemap extends Tilemap {
     protected constructor();
+
     /**
      * PIXI render method
      *
@@ -1382,6 +1504,7 @@ declare class ShaderTilemap extends Tilemap {
      * @param {PIXI.WebGLRenderer} pixi renderer
      */
     renderWebGL(renderer: PIXI.Renderer): void;
+
     /**
      * PIXI render method
      *
@@ -1389,12 +1512,14 @@ declare class ShaderTilemap extends Tilemap {
      * @param {PIXI.CanvasRenderer} pixi renderer
      */
     renderCanvas(renderer: PIXI.CanvasRenderer): void;
+
     /**
      * Forces to repaint the entire tilemap AND update bitmaps list if needed
      *
      * @method refresh
      */
     refresh(): void;
+
     /**
      * Call after you update tileset
      *
@@ -1405,122 +1530,98 @@ declare class ShaderTilemap extends Tilemap {
 
 declare class Sprite extends PIXI.Sprite {
     /**
-     * The basic object that is rendered to the game screen.
-     *
-     * @class Sprite
-     * @constructor
-     * @param {Bitmap} bitmap The image for the sprite
+     * The core object that gets rendered to the screen.
+     * @param {Bitmap} bitmap The image representing the sprite.
      */
     constructor(bitmap?: Bitmap);
+
     /**
      * The image for the sprite.
-     *
-     * @property bitmap
-     * @type Bitmap
      */
     bitmap: Bitmap;
+
     /**
      * The opacity of the sprite.
-     *
-     * @property width
-     * @type Number
      */
     opacity: number;
+
     /**
      * The visibility of the sprite.
-     *
-     * @property visible
-     * @type Boolean
      */
     visible: boolean;
+
     /**
      * The x coordinate of the sprite.
-     *
-     * @property x
-     * @type Number
      */
     x: number;
+
     /**
      * The y coordinate of the sprite.
-     *
-     * @property y
-     * @type Number
      */
     y: number;
+
     /**
      * The origin point of the sprite. (0,0) to (1,1).
-     *
-     * @property anchor
-     * @type Point
      */
     point: PIXI.Point;
+
     /**
      * The scale factor of the sprite.
-     *
-     * @property scale
-     * @type Point
      */
     scale: PIXI.Point;
+
     /**
      * The rotation of the sprite in radians.
-     *
-     * @property rotation
-     * @type Number
      */
     rotation: number;
+
     /**
      * The blend mode to be applied to the sprite.
-     *
-     * @property blendMode
-     * @type Number
      */
     blendMode: number;
+
     /**
      * Sets the filters for the sprite.
-     *
-     * @property filters
-     * @type Array<PIXI.Filter>
      */
     filters: PIXI.Filter[];
+
     /**
-     * [read-only] The array of children of the sprite.
-     *
-     * @property children
-     * @type Array<PIXI.DisplayObject>
+     * The id associated with this sprite.
      */
     spriteId: number;
-    opaque: boolean;
-    voidFilter: PIXI.Filter;
-    initialize(bitmap?: Bitmap): void;
+
     /**
-     * Updates the sprite for each frame.
-     *
-     * @method update
+     * Initializes the sprite with a bitmap if applicable.
+     * @param {Bitmap} bitmap The bitmap to use as a source.
+     */
+    initialize(bitmap?: Bitmap): void;
+
+    /**
+     * Updates the sprite for each and all children sprite each frame.
      */
     update(): void;
-    /**
-     * @method updateTransform
-     * @private
-     */
+
     updateTransform(): void;
+
     /**
-     * Sets the x and y at once.
+     * Updates the x and y to a new {@link Point}.
      *
-     * @method move
-     * @param {Number} x The x coordinate of the sprite
-     * @param {Number} y The y coordinate of the sprite
+     * @param {number} x The x coordinate of the sprite
+     * @param {number} y The y coordinate of the sprite
      */
     move(x: number, y: number): void;
+
     /**
      * Sets the rectagle of the bitmap that the sprite displays.
      *
      * @method setFrame
-     * @param {Number} x The x coordinate of the frame
-     * @param {Number} y The y coordinate of the frame
-     * @param {Number} width The width of the frame
-     * @param {Number} height The height of the frame
+     * @param {number} x The x coordinate of the frame
+     * @param {number} y The y coordinate of the frame
+     * @param {number} width The width of the frame
+     * @param {number} height The height of the frame
      */
     setFrame(x: number, y: number, width: number, height: number): void;
+
     /**
      * Gets the blend color for the sprite.
      *
@@ -1528,66 +1629,56 @@ declare class Sprite extends PIXI.Sprite {
      * @return {Array} The blend color [r, g, b, a]
      */
     getBlendColor(): number[];
+
     /**
      * Sets the blend color for the sprite.
-     *
-     * @method setBlendColor
-     * @param {Array} color The blend color [r, g, b, a]
+     * @param {number[]} color The blend color [r, g, b, a]
      */
     setBlendColor(color: number[]): void;
+
     /**
      * Gets the color tone for the sprite.
-     *
-     * @method getColorTone
-     * @return {Array} The color tone [r, g, b, gray]
+     * @return {number[]} The color tone [r, g, b, gray]
      */
     getColorTone(): number[];
+
     /**
      * Sets the color tone for the sprite.
-     *
-     * @method setColorTone
-     * @param {Array} tone The color tone [r, g, b, gray]
+     * @param {number[]} tone The color tone [r, g, b, gray]
      */
     setColorTone(tone: number[]): void;
+
     /**
      * Adds a child to the container.
-     *
-     * @method addChild
      * @param {PIXI.DisplayObject} child The child to add
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container at a specified index.
-     *
-     * @method addChildAt
      * @param {PIXI.DisplayObject} child The child to add
-     * @param {Number} index The index to place the child in
+     * @param {number} index The index to place the child in
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+
     /**
      * Removes a child from the container.
-     *
-     * @method removeChild
      * @param {PIXI.DisplayObject} child The child to remove
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Removes a child from the specified index position.
-     *
-     * @method removeChildAt
-     * @param {Number} index The index to get the child from
+     * @param {number} index The index to get the child from
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChildAt(index: number): PIXI.DisplayObject;
+
     /**
      * Number of the created objects.
-     *
-     * @static
-     * @property _counter
-     * @type Number
      */
     static _counter: number;
 }
@@ -1600,6 +1691,7 @@ declare class Stage extends PIXI.Container {
      * @constructor
      */
     constructor();
+
     /**
      * Adds a child to the container.
      *
@@ -1608,15 +1700,17 @@ declare class Stage extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container at a specified index.
      *
      * @method addChildAt
      * @param {PIXI.DisplayObject} child The child to add
-     * @param {Number} index The index to place the child in
+     * @param {number} index The index to place the child in
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+
     /**
      * Removes a child from the container.
      *
@@ -1625,11 +1719,12 @@ declare class Stage extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Removes a child from the specified index position.
      *
      * @method removeChildAt
-     * @param {Number} index The index to get the child from
+     * @param {number} index The index to get the child from
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChildAt(index: number): PIXI.DisplayObject;
@@ -1644,6 +1739,7 @@ declare class TilingSprite extends PIXI.TilingSprite {
      * @param {Bitmap} bitmap The image for the tiling sprite
      */
     constructor(bitmap: Bitmap);
+
     /**
      * The origin point of the tiling sprite for scrolling.
      *
@@ -1662,7 +1758,7 @@ declare class TilingSprite extends PIXI.TilingSprite {
      * The opacity of the tiling sprite (0 to 255).
      *
      * @property opacity
-     * @type Number
+     * @type {number}
      */
     opacity: number;
     /**
@@ -1676,49 +1772,55 @@ declare class TilingSprite extends PIXI.TilingSprite {
      * The x coordinate of the tiling sprite.
      *
      * @property x
-     * @type Number
+     * @type {number}
      */
     x: number;
     /**
      * The y coordinate of the tiling sprite.
      *
      * @property y
-     * @type Number
+     * @type {number}
      */
     y: number;
     spriteId: number;
+
     /**
      * Updates the tiling sprite for each frame.
      *
      * @method update
      */
     update(): void;
+
     /**
      * @method updateTransform
      * @private
      */
     updateTransform(): void;
+
     /**
      * Sets the x, y, width, and height all at once.
      *
      * @method move
-     * @param {Number} x The x coordinate of the tiling sprite
-     * @param {Number} y The y coordinate of the tiling sprite
-     * @param {Number} width The width of the tiling sprite
-     * @param {Number} height The height of the tiling sprite
+     * @param {number} x The x coordinate of the tiling sprite
+     * @param {number} y The y coordinate of the tiling sprite
+     * @param {number} width The width of the tiling sprite
+     * @param {number} height The height of the tiling sprite
      */
     move(x?: number, y?: number, width?: number, height?: number): void;
+
     /**
      * Specifies the region of the image that the tiling sprite will use.
      *
      * @method setFrame
-     * @param {Number} x The x coordinate of the frame
-     * @param {Number} y The y coordinate of the frame
-     * @param {Number} width The width of the frame
-     * @param {Number} height The height of the frame
+     * @param {number} x The x coordinate of the frame
+     * @param {number} y The y coordinate of the frame
+     * @param {number} width The width of the frame
+     * @param {number} height The height of the frame
      */
     setFrame(x: number, y: number, width: number, height: number): void;
+
     updateTransformTS(): void;
+
     /**
      * @method generateTilingTexture
      * @param {Boolean} arg
@@ -1735,27 +1837,30 @@ declare class ToneFilter extends PIXI.filters.ColorMatrixFilter {
      * @constructor
      */
     constructor();
+
     /**
      * Changes the hue.
      *
      * @method adjustHue
-     * @param {Number} value The hue value in the range (-360, 360)
+     * @param {number} value The hue value in the range (-360, 360)
      */
     adjustHue(value?: number): void;
+
     /**
      * Changes the saturation.
      *
      * @method adjustSaturation
-     * @param {Number} value The saturation value in the range (-255, 255)
+     * @param {number} value The saturation value in the range (-255, 255)
      */
     adjustSaturation(value?: number): void;
+
     /**
      * Changes the tone.
      *
      * @method adjustTone
-     * @param {Number} r The red strength in the range (-255, 255)
-     * @param {Number} g The green strength in the range (-255, 255)
-     * @param {Number} b The blue strength in the range (-255, 255)
+     * @param {number} r The red strength in the range (-255, 255)
+     * @param {number} g The green strength in the range (-255, 255)
+     * @param {number} b The blue strength in the range (-255, 255)
      */
     adjustTone(r?: number, g?: number, b?: number): void;
 }
@@ -1768,26 +1873,29 @@ declare class ToneSprite extends PIXI.Container {
      * @constructor
      */
     constructor();
+
     /**
      * Clears the tone.
      *
      * @method reset
      */
     clear(): void;
+
     /**
      * Sets the tone.
      *
      * @method setTone
-     * @param {Number} r The red strength in the range (-255, 255)
-     * @param {Number} g The green strength in the range (-255, 255)
-     * @param {Number} b The blue strength in the range (-255, 255)
-     * @param {Number} gray The grayscale level in the range (0, 255)
+     * @param {number} r The red strength in the range (-255, 255)
+     * @param {number} g The green strength in the range (-255, 255)
+     * @param {number} b The blue strength in the range (-255, 255)
+     * @param {number} gray The grayscale level in the range (0, 255)
      */
     setTone(r: number, g: number, b: number, gray: number): void;
 }
 
 declare class TouchInput {
     protected constructor();
+
     static _mousePressed: boolean;
     static _screenPressed: boolean;
     static _pressedTime: number;
@@ -1799,7 +1907,7 @@ declare class TouchInput {
      *
      * @static
      * @property keyRepeatWait
-     * @type Number
+     * @type {number}
      */
     static keyRepeatWait: rm.types.Frames;
     /**
@@ -1807,7 +1915,7 @@ declare class TouchInput {
      *
      * @static
      * @property keyRepeatInterval
-     * @type Number
+     * @type {number}
      */
     static keyRepeatInterval: rm.types.Frames;
     /**
@@ -1815,7 +1923,7 @@ declare class TouchInput {
      *
      * @static
      * @property wheelX
-     * @type Number
+     * @type {number}
      */
     static wheelX: number;
     /**
@@ -1823,7 +1931,7 @@ declare class TouchInput {
      *
      * @static
      * @property wheelY
-     * @type Number
+     * @type {number}
      */
     static wheelY: number;
     /**
@@ -1831,7 +1939,7 @@ declare class TouchInput {
      *
      * @static
      * @property x
-     * @type Number
+     * @type {number}
      */
     static x: number;
     /**
@@ -1839,7 +1947,7 @@ declare class TouchInput {
      *
      * @static
      * @property y
-     * @type Number
+     * @type {number}
      */
     static y: number;
     /**
@@ -1847,9 +1955,10 @@ declare class TouchInput {
      *
      * @static
      * @property date
-     * @type Number
+     * @type {number}
      */
     static date: number;
+
     /**
      * Initializes the touch system.
      *
@@ -1857,6 +1966,7 @@ declare class TouchInput {
      * @method initialize
      */
     static initialize(): void;
+
     /**
      * Clears all the touch data.
      *
@@ -1864,6 +1974,7 @@ declare class TouchInput {
      * @method clear
      */
     static clear(): void;
+
     /**
      * Updates the touch data.
      *
@@ -1871,6 +1982,7 @@ declare class TouchInput {
      * @method update
      */
     static update(): void;
+
     /**
      * Checks whether the mouse button or touchscreen is currently pressed down.
      *
@@ -1879,6 +1991,7 @@ declare class TouchInput {
      * @return {Boolean} True if the mouse button or touchscreen is pressed
      */
     static isPressed(): boolean;
+
     /**
      * Checks whether the left mouse button or touchscreen is just pressed.
      *
@@ -1887,6 +2000,7 @@ declare class TouchInput {
      * @return {Boolean} True if the mouse button or touchscreen is triggered
      */
     static isTriggered(): boolean;
+
     /**
      * Checks whether the left mouse button or touchscreen is just pressed
      * or a pseudo key repeat occurred.
@@ -1896,6 +2010,7 @@ declare class TouchInput {
      * @return {Boolean} True if the mouse button or touchscreen is repeated
      */
     static isRepeated(): boolean;
+
     /**
      * Checks whether the left mouse button or touchscreen is kept depressed.
      *
@@ -1904,6 +2019,7 @@ declare class TouchInput {
      * @return {Boolean} True if the left mouse button or touchscreen is long-pressed
      */
     static isLongPressed(): boolean;
+
     /**
      * Checks whether the right mouse button is just pressed.
      *
@@ -1912,6 +2028,7 @@ declare class TouchInput {
      * @return {Boolean} True if the right mouse button is just pressed
      */
     static isCancelled(): boolean;
+
     /**
      * Checks whether the mouse or a finger on the touchscreen is moved.
      *
@@ -1920,6 +2037,7 @@ declare class TouchInput {
      * @return {Boolean} True if the mouse or a finger on the touchscreen is moved
      */
     static isMoved(): boolean;
+
     /**
      * Checks whether the left mouse button or touchscreen is released.
      *
@@ -1932,6 +2050,7 @@ declare class TouchInput {
 
 declare class Utils {
     protected constructor();
+
     /**
      * The name of the RPG Maker. 'MV' in the current version.
      */
@@ -1945,6 +2064,7 @@ declare class Utils {
      * @final
      */
     static RPGMAKER_VERSION: string;
+
     /**
      * Checks whether the option is in the query string.
      *
@@ -1952,12 +2072,14 @@ declare class Utils {
      * @return {Boolean} True if the option is in the query string
      */
     static isOptionValid(name: string): boolean;
+
     /**
      * Checks whether the platform is NW.js.
      *
      * @return {Boolean} True if the platform is NW.js
      */
     static isNwjs(): boolean;
+
     /**
      * Checks whether the platform is a mobile device.
      *
@@ -1966,6 +2088,7 @@ declare class Utils {
      * @return {Boolean} True if the platform is a mobile device
      */
     static isMobileDevice(): boolean;
+
     /**
      * Checks whether the browser is Mobile Safari.
      *
@@ -1974,18 +2097,21 @@ declare class Utils {
      * @return {Boolean} True if the browser is Mobile Safari
      */
     static isMobileSafari(): boolean;
+
     /**
      * Checks whether the browser is Android Chrome.
      *
      * @return {Boolean} True if the browser is Android Chrome
      */
     static isAndroidChrome(): boolean;
+
     /**
      * Checks whether the browser can read files in the game folder.
      *
      * @return {Boolean} True if the browser can read files in the game folder
      */
     static canReadGameFiles(): boolean;
+
     /**
      * Makes a CSS color string from RGB values.
      *
@@ -1997,8 +2123,11 @@ declare class Utils {
      * @return {String} CSS color string
      */
     static rgbToCssColor(r: number, g: number, b: number): string;
+
     static isSupportPassiveEvent(): boolean;
+
     static generateRuntimeId(): number;
+
     /**
      * Encodes a URI component without escaping slash characters.
      *
@@ -2016,6 +2145,7 @@ declare class Weather extends PIXI.Container {
      * @constructor
      */
     constructor();
+
     /**
      * The type of the weather in ['none', 'rain', 'storm', 'snow'].
      *
@@ -2027,7 +2157,7 @@ declare class Weather extends PIXI.Container {
      * The power of the weather in the range (0, 9).
      *
      * @property power
-     * @type Number
+     * @type {number}
      */
     power: number;
     /**
@@ -2037,6 +2167,7 @@ declare class Weather extends PIXI.Container {
      * @type Point
      */
     origin: Point;
+
     /**
      * Updates the weather for each frame.
      *
@@ -2053,29 +2184,33 @@ declare class WindowLayer extends PIXI.Container {
      * @constructor
      */
     constructor();
+
     /**
      * The width of the window layer in pixels.
      *
      * @property width
-     * @type Number
+     * @type {number}
      */
     voidFilter: PIXI.Filter;
+
     /**
      * Sets the x, y, width, and height all at once.
      *
      * @method move
-     * @param {Number} x The x coordinate of the window layer
-     * @param {Number} y The y coordinate of the window layer
-     * @param {Number} width The width of the window layer
-     * @param {Number} height The height of the window layer
+     * @param {number} x The x coordinate of the window layer
+     * @param {number} y The y coordinate of the window layer
+     * @param {number} width The width of the window layer
+     * @param {number} height The height of the window layer
      */
     move(x: number, y: number, width: number, height: number): void;
+
     /**
      * Updates the window layer for each frame.
      *
      * @method update
      */
     update(): void;
+
     /**
      * Adds a child to the container.
      *
@@ -2084,15 +2219,17 @@ declare class WindowLayer extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container at a specified index.
      *
      * @method addChildAt
      * @param {PIXI.DisplayObject} child The child to add
-     * @param {Number} index The index to place the child in
+     * @param {number} index The index to place the child in
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+
     /**
      * Removes a child from the container.
      *
@@ -2101,20 +2238,23 @@ declare class WindowLayer extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Removes a child from the specified index position.
      *
      * @method removeChildAt
-     * @param {Number} index The index to get the child from
+     * @param {number} index The index to get the child from
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChildAt(index: number): PIXI.DisplayObject;
+
     /**
      * @method _renderCanvas
      * @param {PIXI.CanvasRenderer} renderer
      * @private
      */
     _renderCanvas(renderer: PIXI.CanvasRenderer): void;
+
     /**
      * @method _renderWebGL
      * @param {PIXI.WebGLRenderer} renderer
@@ -2131,6 +2271,7 @@ declare class Window extends PIXI.Container {
      * @type Boolean
      */
     constructor();
+
     /**
      * The origin point of the window for scrolling.
      *
@@ -2184,42 +2325,42 @@ declare class Window extends PIXI.Container {
      * The width of the window in pixels.
      *
      * @property width
-     * @type Number
+     * @type {number}
      */
     padding: number;
     /**
      * The size of the margin for the window background.
      *
      * @property margin
-     * @type Number
+     * @type {number}
      */
     margin: number;
     /**
      * The opacity of the window without contents (0 to 255).
      *
      * @property opacity
-     * @type Number
+     * @type {number}
      */
     opacity: number;
     /**
      * The opacity of the window background (0 to 255).
      *
      * @property backOpacity
-     * @type Number
+     * @type {number}
      */
     backOpacity: number;
     /**
      * The opacity of the window contents (0 to 255).
      *
      * @property contentsOpacity
-     * @type Number
+     * @type {number}
      */
     contentsOpacity: number;
     /**
      * The openness of the window (0 to 255).
      *
      * @property openness
-     * @type Number
+     * @type {number}
      */
     openness: number;
     /**
@@ -2234,22 +2375,25 @@ declare class Window extends PIXI.Container {
      * The rectangle of the content area
      */
     innerRect: Rectangle;
+
     /**
      * Updates the window for each frame.
      *
      * @method update
      */
     update(): void;
+
     /**
      * Sets the x, y, width, and height all at once.
      *
      * @method move
-     * @param {Number} x The x coordinate of the window
-     * @param {Number} y The y coordinate of the window
-     * @param {Number} width The width of the window
-     * @param {Number} height The height of the window
+     * @param {number} x The x coordinate of the window
+     * @param {number} y The y coordinate of the window
+     * @param {number} width The width of the window
+     * @param {number} height The height of the window
      */
     move(x?: number, y?: number, width?: number, height?: number): void;
+
     /**
      * Returns true if the window is completely open (openness == 255).
      *
@@ -2257,6 +2401,7 @@ declare class Window extends PIXI.Container {
      * @return {Boolean}
      */
     isOpen(): boolean;
+
     /**
      * Returns true if the window is completely closed (openness == 0).
      *
@@ -2264,25 +2409,28 @@ declare class Window extends PIXI.Container {
      * @return {Boolean}
      */
     isClosed(): boolean;
+
     /**
      * Sets the position of the command cursor.
      *
      * @method setCursorRect
-     * @param {Number} x The x coordinate of the cursor
-     * @param {Number} y The y coordinate of the cursor
-     * @param {Number} width The width of the cursor
-     * @param {Number} height The height of the cursor
+     * @param {number} x The x coordinate of the cursor
+     * @param {number} y The y coordinate of the cursor
+     * @param {number} width The width of the cursor
+     * @param {number} height The height of the cursor
      */
     setCursorRect(x?: number, y?: number, width?: number, height?: number): void;
+
     /**
      * Changes the color of the background.
      *
      * @method setTone
-     * @param {Number} r The red value in the range (-255, 255)
-     * @param {Number} g The green value in the range (-255, 255)
-     * @param {Number} b The blue value in the range (-255, 255)
+     * @param {number} r The red value in the range (-255, 255)
+     * @param {number} g The green value in the range (-255, 255)
+     * @param {number} b The blue value in the range (-255, 255)
      */
     setTone(r: number, g: number, b: number): void;
+
     /**
      * Adds a child between the background and contents.
      *
@@ -2291,6 +2439,7 @@ declare class Window extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildToBack(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container.
      *
@@ -2299,15 +2448,17 @@ declare class Window extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Adds a child to the container at a specified index.
      *
      * @method addChildAt
      * @param {PIXI.DisplayObject} child The child to add
-     * @param {Number} index The index to place the child in
+     * @param {number} index The index to place the child in
      * @return {PIXI.DisplayObject} The child that was added
      */
     addChildAt(child: PIXI.DisplayObject, index: number): PIXI.DisplayObject;
+
     /**
      * Removes a child from the container.
      *
@@ -2316,41 +2467,48 @@ declare class Window extends PIXI.Container {
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Removes a child from the specified index position.
      *
      * @method removeChildAt
-     * @param {Number} index The index to get the child from
+     * @param {number} index The index to get the child from
      * @return {PIXI.DisplayObject} The child that was removed
      */
     removeChildAt(index: number): PIXI.DisplayObject;
+
     /**
      * Move the cursor position by the given amount
      * @param x
      * @param y
      */
     moveCursorBy(x: number, y: number): void;
+
     /**
      * Moves the inner children by the given amount.
      * @param x
      * @param y
      */
     moveInnerChildrenBy(x: number, y: number): void;
+
     /**
      * Adds a child to the client area.
      * @param child
      * @return DisplayObject
      */
     addInnerChild(child: PIXI.DisplayObject): PIXI.DisplayObject;
+
     /**
      * Draws the window shape into PIXI.Graphics object. Used by WindowLayer.
      * @param graphics
      */
     drawShape(graphics: PIXI.Graphics): void;
+
     /**
      * Destroys the window
      */
     destroy(): void;
+
     /**
      * @method updateTransform
      * @private

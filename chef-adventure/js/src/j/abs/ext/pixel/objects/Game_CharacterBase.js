@@ -130,7 +130,6 @@ Game_CharacterBase.prototype._lastPosition = function ()
 {
   if (this._posRecords && this._posRecords.length > 0) 
   {
-    //return this._posRecords[0];
     return this._posRecords.at(0);
   }
 
@@ -146,7 +145,6 @@ Game_CharacterBase.prototype._recentPosition = function()
 {
   if (this._posRecords && this._posRecords.length > 0) 
   {
-    //return this._posRecords[this._posRecords.length - 1];
     return this._posRecords.at(-1);
   }
 };

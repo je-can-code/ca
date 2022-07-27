@@ -38,7 +38,7 @@
  * @desc Change the size of the margin of the generated Map
  *
  * @arg value
- * @type Number
+ * @type {number}
  * @default 1
  *
  * @command noSeedableRNG
@@ -50,7 +50,7 @@
  * @desc Set a custom Seed for the RNG
  *
  * @arg value
- * @type Number
+ * @type {number}
  * @default 42
  * 
  * @command Create Classical Maze
@@ -62,13 +62,13 @@
  * @arg cutOffDeadEnds
  * @text Cut off Dead Ends
  * @desc Dead Ends are removed to create blank Tiles. Value is number of iterations.
- * @type Number
+ * @type {number}
  * @default 2
  *
  * @arg mergeDeadEnds
  * @text Merge Dead Ends
  * @desc Chance that a new Tunnel is created from a Dead End back to the Maze. Will lead to imperfect Maze.
- * @type Number
+ * @type {number}
  * @default 0.5
  *
  * @arg mode
@@ -164,7 +164,7 @@
  *
  * @arg regionId
  * @text Region Id
- * @type Number
+ * @type {number}
  * @default 6 
  *
  * @command drawDecorations
@@ -179,16 +179,16 @@
  * @desc Draw a specific Asset X times on the Map
  *
  * @arg Id
- * @type Number
+ * @type {number}
  * @desc Id of the Decoration you want to draw.
  *
  * @arg min
- * @type Number
+ * @type {number}
  * @default 1
  * @desc Minimum Number that the Asset should be drawn.
  *
  * @arg max
- * @type Number
+ * @type {number}
  * @default 1
  * @desc Maximum Number that the Asset should be drawn.
  *

@@ -46,7 +46,7 @@ class Sprite_InputKeySlot extends Sprite
 
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_SkillSlotIcon|Sprite_SkillName|Sprite_SkillCost|Sprite_ComboGauge>}
+     * @type {Map<string, Sprite_SkillSlotIcon|Sprite_SkillName|Sprite_SkillCost|Sprite_CooldownGauge>}
      */
     this._j._spriteCache = new Map();
   }
@@ -410,7 +410,7 @@ class Sprite_InputKeySlot extends Sprite
     }
 
     // create a new sprite.
-    const sprite = new Sprite_ComboGauge(cooldownData);
+    const sprite = new Sprite_CooldownGauge(cooldownData);
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);

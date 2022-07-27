@@ -226,6 +226,9 @@ JABS_SkillSlot.prototype.updateCooldown = function()
   this.handleComboReadiness();
 };
 
+/**
+ * Determines readiness for combos based on cooldowns.
+ */
 JABS_SkillSlot.prototype.handleComboReadiness = function()
 {
   // grab this slot's cooldown.

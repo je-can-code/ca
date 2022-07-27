@@ -1217,7 +1217,7 @@ var PIXI = (function (exports) {
 	 * Return the number of listeners listening to a given event.
 	 *
 	 * @param {(String|Symbol)} event The event name.
-	 * @returns {Number} The number of listeners.
+	 * @returns {number} The number of listeners.
 	 * @public
 	 */
 	EventEmitter.prototype.listenerCount = function listenerCount(event) {
@@ -2269,8 +2269,8 @@ var PIXI = (function (exports) {
 		 * Converts a basic code point into a digit/integer.
 		 * @see `digitToBasic()`
 		 * @private
-		 * @param {Number} codePoint The basic numeric code point value.
-		 * @returns {Number} The numeric value of a basic code point (for use in
+		 * @param {number} codePoint The basic numeric code point value.
+		 * @returns {number} The numeric value of a basic code point (for use in
 		 * representing integers) in the range `0` to `base - 1`, or `base` if
 		 * the code point does not represent a value.
 		 */
@@ -2291,8 +2291,8 @@ var PIXI = (function (exports) {
 		 * Converts a digit/integer into a basic code point.
 		 * @see `basicToDigit()`
 		 * @private
-		 * @param {Number} digit The numeric value of a basic code point.
-		 * @returns {Number} The basic code point whose value (when used for
+		 * @param {number} digit The numeric value of a basic code point.
+		 * @returns {number} The basic code point whose value (when used for
 		 * representing integers) is `digit`, which needs to be in the range
 		 * `0` to `base - 1`. If `flag` is non-zero, the uppercase form is
 		 * used; else, the lowercase form is used. The behavior is undefined
@@ -8801,7 +8801,7 @@ var PIXI = (function (exports) {
 	    /**
 	     * This is a tick used to check if an object is no longer being rendered.
 	     *
-	     * @type {Number}
+	     * @type {number}
 	     * @private
 	     */
 	    this.renderId = 0;
@@ -17216,11 +17216,11 @@ var PIXI = (function (exports) {
 	 *
 	 * @static
 	 * @param {string} buffer  the id of the buffer that this attribute will look for
-	 * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+	 * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
 	 * @param {Boolean} [normalized=false] should the data be normalized.
-	 * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
-	 * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {@link PIXI.TYPES} to see the ones available
-	 * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+	 * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
+	 * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {@link PIXI.TYPES} to see the ones available
+	 * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
 	 *
 	 * @returns {PIXI.Attribute} A new {@link PIXI.Attribute} based on the information provided
 	 */
@@ -17480,11 +17480,11 @@ var PIXI = (function (exports) {
 	*
 	* @param {String} id - the name of the attribute (matching up to a shader)
 	* @param {PIXI.Buffer|number[]} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-	* @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+	* @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
 	* @param {Boolean} [normalized=false] should the data be normalized.
-	* @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-	* @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-	* @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+	* @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+	* @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+	* @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
 	*
 	* @return {PIXI.Geometry} returns self, useful for chaining.
 	*/
@@ -18156,7 +18156,7 @@ var PIXI = (function (exports) {
 	         * @property {Float32Array} inputSize
 	         * @property {Float32Array} inputPixel
 	         * @property {Float32Array} inputClamp
-	         * @property {Number} resolution
+	         * @property {number} resolution
 	         * @property {Float32Array} filterArea
 	         * @property {Fload32Array} filterClamp
 	         */
@@ -19184,10 +19184,10 @@ var PIXI = (function (exports) {
 	    /**
 	     * Set the WebGLRenderingContext's viewport.
 	     *
-	     * @param {Number} x - X position of viewport
-	     * @param {Number} y - Y position of viewport
-	     * @param {Number} width - Width of viewport
-	     * @param {Number} height - Height of viewport
+	     * @param {number} x - X position of viewport
+	     * @param {number} y - Y position of viewport
+	     * @param {number} width - Width of viewport
+	     * @param {number} height - Height of viewport
 	     */
 	    FramebufferSystem.prototype.setViewport = function setViewport (x, y, width, height)
 	    {
@@ -19224,10 +19224,10 @@ var PIXI = (function (exports) {
 	    /**
 	     * Clear the color of the context
 	     *
-	     * @param {Number} r - Red value from 0 to 1
-	     * @param {Number} g - Green value from 0 to 1
-	     * @param {Number} b - Blue value from 0 to 1
-	     * @param {Number} a - Alpha value from 0 to 1
+	     * @param {number} r - Red value from 0 to 1
+	     * @param {number} g - Green value from 0 to 1
+	     * @param {number} b - Blue value from 0 to 1
+	     * @param {number} a - Alpha value from 0 to 1
 	     */
 	    FramebufferSystem.prototype.clear = function clear (r, g, b, a)
 	    {
@@ -20082,10 +20082,10 @@ var PIXI = (function (exports) {
 	    /**
 	     * Draw the geometry
 	     *
-	     * @param {Number} type - the type primitive to render
-	     * @param {Number} [size] - the number of elements to be rendered
-	     * @param {Number} [start] - Starting index
-	     * @param {Number} [instanceCount] - the number of instances of the set of elements to execute
+	     * @param {number} type - the type primitive to render
+	     * @param {number} [size] - the number of elements to be rendered
+	     * @param {number} [start] - Starting index
+	     * @param {number} [instanceCount] - the number of instances of the set of elements to execute
 	     */
 	    GeometrySystem.prototype.draw = function draw (type, size, start, instanceCount)
 	    {
@@ -20323,7 +20323,7 @@ var PIXI = (function (exports) {
 	/**
 	 * @private
 	 * @param gl {WebGLRenderingContext} The current WebGL context {WebGLProgram}
-	 * @param type {Number} the type, can be either VERTEX_SHADER or FRAGMENT_SHADER
+	 * @param type {number} the type, can be either VERTEX_SHADER or FRAGMENT_SHADER
 	 * @param vertexSrc {string|string[]} The vertex shader source as an array of strings.
 	 * @return {WebGLShader} the shader
 	 */
@@ -20341,7 +20341,7 @@ var PIXI = (function (exports) {
 	 * @method defaultValue
 	 * @memberof PIXI.glCore.shader
 	 * @param type {String} Type of value
-	 * @param size {Number}
+	 * @param size {number}
 	 * @private
 	 */
 	function defaultValue(type, size)
@@ -20550,7 +20550,7 @@ var PIXI = (function (exports) {
 	 * @method mapSize
 	 * @memberof PIXI.glCore.shader
 	 * @param type {String}
-	 * @return {Number}
+	 * @return {number}
 	 */
 	function mapSize(type)
 	{
@@ -22510,7 +22510,7 @@ var PIXI = (function (exports) {
 	     *
 	     * @param {PIXI.Rectangle} destinationFrame - The destination frame.
 	     * @param {PIXI.Rectangle} sourceFrame - The source frame.
-	     * @param {Number} resolution - Resolution
+	     * @param {number} resolution - Resolution
 	     * @param {boolean} root - If is root
 	     */
 	    ProjectionSystem.prototype.update = function update (destinationFrame, sourceFrame, resolution, root)
@@ -22543,7 +22543,7 @@ var PIXI = (function (exports) {
 	     *
 	     * @param {PIXI.Rectangle} destinationFrame - The destination frame.
 	     * @param {PIXI.Rectangle} sourceFrame - The source frame.
-	     * @param {Number} resolution - Resolution
+	     * @param {number} resolution - Resolution
 	     * @param {boolean} root - If is root
 	     */
 	    ProjectionSystem.prototype.calculateProjection = function calculateProjection (destinationFrame, sourceFrame, resolution, root)

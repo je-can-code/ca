@@ -50,4 +50,54 @@ J.HUD.Aliased = {
  * @type {Hud_Manager}
  */
 var $hudManager = null;
+
+//#region plugin commands
+/**
+ * Plugin command for hiding the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideHud", () =>
+{
+  $hudManager.requestHideHud();
+});
+
+/**
+ * Plugin command for showing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showHud", () =>
+{
+  $hudManager.requestShowHud();
+});
+
+/**
+ * Plugin command for hiding allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideAllies", () =>
+{
+  $hudManager.requestHideAllies();
+});
+
+/**
+ * Plugin command for showing allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showAllies", () =>
+{
+  $hudManager.requestShowAllies();
+});
+
+/**
+ * Plugin command for refreshing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshHud", () =>
+{
+  $hudManager.requestRefreshHud();
+});
+
+/**
+ * Plugin command for refreshing the hud's image cache.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshImageCache", () =>
+{
+  $hudManager.requestRefreshImageCache();
+});
+//#endregion plugin commands
 //#endregion introduction

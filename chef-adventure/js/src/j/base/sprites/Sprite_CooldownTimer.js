@@ -62,7 +62,7 @@ Sprite_CooldownTimer.prototype.updateCooldownText = function()
 
   const cooldownBaseText = baseCooldown > 0
     ? baseCooldown
-    : "✔";
+    : String.empty;
   const cooldownComboText = (cooldownBaseText > 0 && this._j._cooldownData.comboNextActionId !== 0)
     ? "COMBO!"
     : "❌";

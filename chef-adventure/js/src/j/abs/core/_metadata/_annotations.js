@@ -822,13 +822,23 @@
  * The actor to have the skill assigned to.
  * Please don't choose "none", that'll cause the game to crash.
  * @default 1
+ *
  * @arg skillId
  * @type skill
  * @text Choose Skill
  * @desc
  * The skill to be assigned to the actor.
  * You may choose "none" if you want to unassign the slot.
- * @default 1
+ * @default 0
+ *
+ * @arg itemId
+ * @type item
+ * @text Choose Item
+ * @desc
+ * The item to be assigned to the actor.
+ * This is only for use if assigning to the "tool" slot.
+ * @default 0
+ *
  * @arg slot
  * @type select
  * @text Choose Slot
