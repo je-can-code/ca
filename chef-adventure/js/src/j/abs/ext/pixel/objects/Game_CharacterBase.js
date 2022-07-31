@@ -63,6 +63,16 @@ Game_CharacterBase.prototype.isMoving = function ()
 };
 
 /**
+ * Round the x,y coordinates of this character.
+ */
+Game_CharacterBase.prototype.roundCoordinates = function()
+{
+  // round the x,y coordinates.
+  this._x = Math.round(this.x);
+  this._y = Math.round(this.y);
+};
+
+/**
  * Clears/initializes the positional cache for characters on the map.
  */
 Game_CharacterBase.prototype._resetCachePosition = function () 
@@ -87,9 +97,8 @@ Game_CharacterBase.prototype._recordPosition = function ()
   const distance = (a, b) =>
   {
     if (!a || !b) return 0;
-    const x = a.x - b.x;
-    const y = a.y - b.y;
-    return Math.sqrt(x * x + y * y);
+
+    return $gameMap.distance(last.x, last.y, this.x, this.y);
   };
 
   // grab the most recently added point from the collection.
@@ -147,4 +156,40 @@ Game_CharacterBase.prototype._recentPosition = function()
   {
     return this._posRecords.at(-1);
   }
+};
+
+/**
+ * Forcefully relocates this character to a different set of coordinates.
+ * @param {number} x The x coordinate.
+ * @param {number} y The y coordinate.
+ */
+Game_CharacterBase.prototype.relocate = function(x, y)
+{
+  // update the coordinates of this character.
+  this._x = x;
+  this._y = y;
+};
+
+/**
+ * Enables the "pixel moving" state and updates pixel position.
+ */
+Game_CharacterBase.prototype.startPixelMoving = function()
+{
+  // this character is moving.
+  this.setMovePressed(true);
+
+  // update the position for this character.
+  this._recordPosition();
+};
+
+/**
+ * Disables the "pixel moving" state and updates pixel position.
+ */
+Game_CharacterBase.prototype.stopPixelMoving = function()
+{
+  // this character isn't moving.
+  this.setMovePressed(false);
+
+  // update the position for this character.
+  this._recordPosition();
 };

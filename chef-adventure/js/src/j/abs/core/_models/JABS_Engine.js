@@ -2486,36 +2486,39 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     // instantiate the builder for piece-mealing the popup together.
     const textPopBuilder = new TextPopBuilder(0);
 
-    // if the target was completely immune to what you had, then say so.
-    if (targetElementallyImmune)
+    switch (true)
     {
-      textPopBuilder.setValue(`IMMUNE`);
-    }
-    // if you were parried, sorry about your luck.
-    else if (actionResult.parried)
-    {
-      textPopBuilder.setValue(`PARRY!`);
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.hpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.hpDamage)
-        .isHpDamage();
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.mpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.mpDamage)
-        .isMpDamage();
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.tpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.mpDamage)
-        .isTpDamage();
+      // if you were parried, sorry about your luck.
+      case actionResult.parried:
+        textPopBuilder.setValue(`PARRY!`);
+        break;
+      // if you were evaded, how unfortunate.
+      case actionResult.evaded:
+        textPopBuilder.setValue(`DODGE`);
+        break;
+      // if the result is hp damage, treat it as such.
+      case actionResult.hpDamage:
+        textPopBuilder
+          .setValue(actionResult.hpDamage)
+          .isHpDamage();
+        break;
+      // if the result is mp damage, treat it as such.
+      case actionResult.mpDamage:
+        textPopBuilder
+          .setValue(actionResult.mpDamage)
+          .isHpDamage();
+        break;
+      // if the result is tp damage, treat it as such.
+      case actionResult.tpDamage:
+        textPopBuilder
+          .setValue(actionResult.tpDamage)
+          .isHpDamage();
+        break;
+      // if for some reason its something else, they are probably immune.
+      default:
+        textPopBuilder.setValue(`IMMUNE`);
+        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
+        break;
     }
 
     // if we somehow used this without a proper damage type, then just build a default.

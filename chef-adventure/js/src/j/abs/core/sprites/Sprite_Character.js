@@ -35,7 +35,7 @@ Sprite_Character.prototype.initMembers = function()
 
   /**
    * The text sprite displaying the name of this character's battler.
-   * @type {Sprite_Text|null}
+   * @type {Sprite_BaseText|null}
    */
   this._j._battlerName = null;
 
@@ -504,7 +504,7 @@ Sprite_Character.prototype.setupBattlerName = function()
 
 /**
  * Creates the sprite that contains this battler's name.
- * @returns {Sprite_Text} The battlers name, as a sprite.
+ * @returns {Sprite_BaseText} The battlers name, as a sprite.
  */
 Sprite_Character.prototype.createBattlerNameSprite = function()
 {
@@ -512,7 +512,12 @@ Sprite_Character.prototype.createBattlerNameSprite = function()
   const battlerName = this.getBattlerName();
 
   // build the text sprite.
-  const sprite = new Sprite_Text(battlerName, null, -12, "left");
+  const sprite = new Sprite_BaseText()
+    .setText(battlerName)
+    .setFontSize(10)
+    .setAlignment(Sprite_BaseText.Alignments.Left)
+    .setColor("#ffffff");
+  sprite.setText(battlerName);
 
   // relocate the sprite to a better position.
   sprite.move(-30, 8);

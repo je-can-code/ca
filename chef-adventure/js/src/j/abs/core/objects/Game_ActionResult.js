@@ -1,23 +1,37 @@
-
 //#region Game_ActionResult
 /**
- * Injects additional possible results into all `Game_ActionResult`s.
+ * Extends {@link Game_ActionResult.initialize}.
+ * Initializes additional members.
  */
-J.ABS.Aliased.Game_ActionResult.initialize = Game_ActionResult.prototype.initialize;
+J.ABS.Aliased.Game_ActionResult.set('initialize', Game_ActionResult.prototype.initialize);
 Game_ActionResult.prototype.initialize = function()
 {
+  /**
+   * Whether or not the result was parried.
+   * @type {boolean}
+   */
   this.parried = false;
+
+  /**
+   * The amount of damage reduced by guarding.
+   * @type {number}
+   */
   this.reduced = 0;
-  J.ABS.Aliased.Game_ActionResult.initialize.call(this);
+
+  // perform original logic.
+  J.ABS.Aliased.Game_ActionResult.get('initialize').call(this);
 };
 
 /**
  * Extends `.clear()` to include wiping the custom properties.
  */
-J.ABS.Aliased.Game_ActionResult.clear = Game_ActionResult.prototype.clear;
+J.ABS.Aliased.Game_ActionResult.set('clear', Game_ActionResult.prototype.clear);
 Game_ActionResult.prototype.clear = function()
 {
-  J.ABS.Aliased.Game_ActionResult.clear.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_ActionResult.get('clear').call(this);
+
+  // refresh our custom parameters.
   this.parried = false;
   this.reduced = 0;
 };

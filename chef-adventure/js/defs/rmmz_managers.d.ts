@@ -240,24 +240,42 @@ declare class FontManager {
  */
 declare class ImageManager {
     protected constructor();
+
     /**
-     *  returns 32
+     * The standardized icon width.
      */
     static iconWidth: number;
+
     /**
-     * returns 32
+     * The standardized icon height.
      */
     static iconHeight: number;
+
     /**
-     * 144
+     * The standardized face width.
      */
     static faceWidth: number;
+
     /**
-     * returns 144
+     * The standardized face height.
      */
     static faceHeight: number;
+
+    /**
+     * A cache used for storing images.
+     * @type {Map<string, any>}
+     */
     static _cache: { [key: string]: any };
+
+    /**
+     * A cache used for storing important things.
+     * @type {Map<string, any>}
+     */
     static _system: { [key: string]: any };
+
+    /**
+     * An empty bitmap.
+     */
     static _emptyBitmap: Bitmap;
     /**
      * Loads the bitmap from url and returns it.

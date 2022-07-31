@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Jul 26 2022 17:03:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1181,15 +1181,6 @@ Sprite_Character.prototype.initMembers = function()
   this._j._popups._nonDamagePopSprites = [];
 
   J.POPUPS.Aliased.Sprite_Character.get('initMembers').call(this);
-};
-
-/**
- * Gets the underlying `Game_Character` that this sprite represents on the map.
- * @returns {Game_Character}
- */
-Sprite_Character.prototype.character = function()
-{
-  return this._character;
 };
 
 /**

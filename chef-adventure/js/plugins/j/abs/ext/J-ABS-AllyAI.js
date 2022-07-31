@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Jul 26 2022 17:03:25 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1558,7 +1558,6 @@ Game_Follower.prototype.chaseCharacter = function(character)
     // if the battler isn't engaged, still follow the player.
     J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
     this.handleEngagementDistancing();
-    return;
   }
   else
   {
@@ -1611,18 +1610,19 @@ Game_Follower.prototype.jumpToPlayer = function()
  */
 Game_Follower.prototype.handleEngagementDistancing = function()
 {
+  // grab the underlying jabs battler.
   const battler = this.getJabsBattler();
-  if (!battler)
-  {
-    return;
-  }
-  const distanceToPlayer = $gameMap.distance(
-    this._realX,
-    this._realY,
-    $gamePlayer._realX,
-    $gamePlayer._realY);
+
+  // if there is no battler, don't process engagement.
+  if (!battler) return;
+
+  // calculate the distance to the player.
+  const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);
+
+  // check if we are not engaged and not alerted.
   if (!battler.isEngaged() && !battler.isAlerted())
   {
+    // determine if we are close enough to the player to allow engagement.
     if (distanceToPlayer <= Math.round(JABS_Battler.allyRubberbandRange() / 2))
     {
       // if the ally is within range of the player, then re-enable the ability to engage.
@@ -1632,6 +1632,7 @@ Game_Follower.prototype.handleEngagementDistancing = function()
     // if the battler is engaged, make sure they stay within range of the player.
   }
 
+  // determine if we have exceeded the distance allowed to be apart from the player.
   if (distanceToPlayer > JABS_Battler.allyRubberbandRange())
   {
     // when the ally is too far away from the player, disengage and prevent further engagement.

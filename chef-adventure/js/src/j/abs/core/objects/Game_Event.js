@@ -2,7 +2,7 @@
 J.ABS.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
 Game_Event.prototype.initMembers = function()
 {
-  this._j = this._j || {};
+  this._j ||= {};
 
   /**
    * The various parameters extracted from the event on the field.
@@ -740,32 +740,6 @@ Game_Event.prototype.canParseEnemyComments = function()
 
   // we are clear to parse out those comments!
   return true;
-};
-
-/**
- * Gets all valid JABS-shaped comment event commands.
- * @returns {rm.types.EventCommand[]}
- */
-Game_Event.prototype.getValidCommentCommands = function()
-{
-  // don't process if we have no event commands.
-  if (this.list().length === 0) return [];
-
-  // the valid regex shape for our tags.
-  const validRegex = /^<[\w :"'.!+\-*/\\]+>$/i;
-
-  // otherwise, return the filtered list.
-  return this.list().filter(command =>
-  {
-    // if it is not a comment, then don't include it.
-    if (!this.matchesControlCode(command.code)) return false;
-
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
-
-    // consider this comment valid if it passes, skip it otherwise.
-    return validRegex.test(comment);
-  }, this);
 };
 
 /**

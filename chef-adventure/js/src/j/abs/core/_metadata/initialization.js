@@ -475,7 +475,7 @@ J.ABS.Aliased = {
   DataManager: {},
   Game_Actor: new Map(),
   Game_Action: {},
-  Game_ActionResult: {},
+  Game_ActionResult: new Map(),
   Game_Battler: {},
   Game_BattlerBase: {},
   Game_Character: {},

@@ -6111,6 +6111,7 @@ Game_Map.prototype.setup = function(mapId) {
 };
 
 Game_Map.prototype.isEventRunning = function() {
+    this._interpreter.isOnCurrentMap()
     return this._interpreter.isRunning() || this.isAnyEventStarting();
 };
 

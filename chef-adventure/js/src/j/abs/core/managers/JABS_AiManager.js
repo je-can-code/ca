@@ -13,6 +13,20 @@ class JABS_AiManager
     throw new Error("The JABS_AiManager is a static class.");
   }
 
+  static debugActor(message, battler)
+  {
+    if (battler.isEnemy()) return;
+
+    console.log(message, battler);
+  }
+
+  static debugEnemy(message, battler)
+  {
+    if (battler.isActor()) return;
+
+    console.log(message, battler);
+  }
+
   //#region update loop
   /**
    * Handles updating all the logic of the JABS engine.
@@ -379,7 +393,7 @@ class JABS_AiManager
 
     // check if we should turn towards the target.
     // NOTE: this prevents 100% always facing the target, preventing perma-parry.
-    if (Math.randomInt(100) < 40)
+    if (Math.randomInt(100) < 70)
     {
       // turn towards the target.
       battler.turnTowardTarget();
@@ -417,6 +431,8 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
+    this.debugActor("maintaining safe distance", battler);
+
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 
@@ -447,6 +463,8 @@ class JABS_AiManager
     // check if the distance is invalid or too great.
     if (this.shouldDisengageTarget(battler))
     {
+      this.debugActor("phase 2: disengaging", battler);
+
       // just give up on this target.
       battler.disengageTarget();
 
@@ -457,6 +475,8 @@ class JABS_AiManager
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {
+      this.debugActor("phase 2: deciding action", battler);
+
       // make a decision about what to do.
       this.decideAiPhase2Action(battler);
 
@@ -467,6 +487,8 @@ class JABS_AiManager
     // check if we need to reposition.
     if (this.needsRepositioning(battler))
     {
+      this.debugActor("phase 2: repositioning", battler);
+
       // move into a better position based on the decided action.
       this.decideAiPhase2Movement(battler);
 
@@ -477,6 +499,8 @@ class JABS_AiManager
     // check if we're ready to execute actions.
     if (this.needsActionExecution(battler))
     {
+      this.debugActor("phase 2: executing action", battler);
+
       // execute the decided action.
       this.executeAiPhase2Action(battler);
     }
@@ -1260,6 +1284,8 @@ class JABS_AiManager
     // check if we are ready for a phase reset.
     if (this.canResetAiPhases(battler))
     {
+      this.debugActor("phase 3: resetting phases", battler);
+
       // AI loop complete, reset back to phase 1.
       this.resetAiPhases(battler);
     }

@@ -282,10 +282,10 @@ class RPG_Base
       {
         // expose the stringified segments of the array.
         const exposedArray = obj
-        // peel off the outer brackets.
-        .slice(1, obj.length-1)
-        // split string into an array by comma or space+comma.
-        .split(/, |,/);
+          // peel off the outer brackets.
+          .slice(1, obj.length-1)
+          // split string into an array by comma or space+comma.
+          .split(/, |,/);
         return this.#parseObject(exposedArray);
       }
 
@@ -318,7 +318,7 @@ class RPG_Base
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
-    if (!isNaN(parseFloat(str))) return parseFloat(str);
+    if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
 
     // it must just be a word or something.
     return str;
@@ -355,9 +355,9 @@ class RPG_Base
   {
     // split the notes by new lines.
     const formattedNotes = this.note
-    .split(/[\r\n]+/)
+      .split(/[\r\n]+/)
     // filter out invalid note data.
-    .filter(this.invalidNoteFilter, this);
+      .filter(this.invalidNoteFilter, this);
 
     // if we have no length left after filtering, then there is no note data.
     if (formattedNotes.length === 0) return null;

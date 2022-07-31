@@ -2,14 +2,19 @@
 /**
  * Hooks into the initialization to add our members for containing event data.
  */
-J.ESCRIBE.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
+J.ESCRIBE.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
-  this._j = this._j || {};
+  // perform original logic.
+  J.ESCRIBE.Aliased.Game_Event.get('initMembers').call(this);
 
   /**
-   * The various data points for drawing text and icon.
-   * @type {any}
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with escriptions.
    */
   this._j._event = {
     /**
@@ -30,74 +35,128 @@ Game_Event.prototype.initMembers = function()
      */
     _playerNearbyIcon: null,
   };
-  J.ESCRIBE.Aliased.Game_Event.initMembers.call(this);
 };
 
 /**
  * Extends the page settings for events and adds on custom parameters to this event.
  */
-J.ESCRIBE.Aliased.Game_Event.setupPage = Game_Event.prototype.setupPage;
+J.ESCRIBE.Aliased.Game_Event.set('setupPage', Game_Event.prototype.setupPage);
 Game_Event.prototype.setupPage = function()
 {
-  this.parseEventComments();
-  J.ESCRIBE.Aliased.Game_Event.setupPage.call(this);
+  // perform original logic.
+  J.ESCRIBE.Aliased.Game_Event.get('setupPage').call(this);
+
+  // also parse the event comments for the data points we care about.
+  this.parseEscriptionComments();
 };
 
 /**
  * Parses the event comments to discern the describe data, if any.
  */
-Game_Event.prototype.parseEventComments = function()
+Game_Event.prototype.parseEscriptionComments = function()
 {
-  // don't try to do things with actions- they are volatile.
-  if (J.ABS && (this.isAction() || this.isLoot())) return;
+  // if we cannot parse for event comments, then do not.
+  if (!this.canParseEscriptionComments()) return;
 
-  // don't try to parse events that aren't "present".
-  if (this._pageIndex === -1 || this._pageIndex === -2) return;
+  // extract the values from the comments of the event.
+  const text = this.parseEscriptionTextValue();
+  const iconIndex = this.parseEscriptionIconIndexValue();
+  const proximityText = this.parseEscriptionTextProximityValue();
+  const proximityIcon = this.parseEscriptionIconProximityValue();
 
-  // initialize values.
-  let text = "";
-  let iconIndex = -1;
-  let proximityText = -1;
-  let proximityIcon = -1;
-
-  // iterate over all commands to construct the event data.
-  this.list().forEach(command =>
-  {
-    if (this.matchesControlCode(command.code))
-    {
-      const comment = command.parameters[0];
-      switch (true)
-      {
-        case (/<text:([ ^*-.\w]+)>/i.test(comment)): // text
-          text = RegExp.$1;
-          break;
-        case (/<icon:[ ]?([0-9]*)>/i.test(comment)): // icon index
-          iconIndex = parseInt(RegExp.$1);
-          break;
-        case (/<proximityText[:]?(\d+\.?\d*|\.\d+)?>/i.test(comment)): // text proximity only?
-          proximityText = RegExp.$1 ? parseInt(RegExp.$1) : 0;
-          break;
-        case (/<proximityIcon[:]?(\d+\.?\d*|\.\d+)?>/i.test(comment)): // icon proximity only?
-          proximityIcon = RegExp.$1 ? parseInt(RegExp.$1) : 0;
-          break;
-      }
-    }
-  });
-
+  // check if we have valid text or icon values.
   if (text || (iconIndex > -1))
   {
+    // build and set the escribe data.
     const describe = new Escription(text, iconIndex, proximityText, proximityIcon);
-    this._j._event._describe = describe;
+    this.setEscribeData(describe);
   }
+};
+
+/**
+ * Determines whether or not we can parse the comments for escription data.
+ * @returns {boolean} True if we can, false otherwise.
+ */
+Game_Event.prototype.canParseEscriptionComments = function()
+{
+  // don't try to do things with actions- they are volatile.
+  if (J.ABS && (this.isAction() || this.isLoot())) return false;
+
+  // don't try to parse events that aren't "present".
+  if (this._pageIndex === -1 || this._pageIndex === -2) return false;
+
+  // we can parse!
+  return true;
+};
+
+/**
+ * Extracts the escription text value from the comment event commands.
+ * @returns {string|String.empty}
+ */
+Game_Event.prototype.parseEscriptionTextValue = function()
+{
+  // parse out the text.
+  const text = this.extractValueByRegex(J.ESCRIBE.RegExp.Text, String.empty);
+
+  // return what we found.
+  return text;
+};
+
+/**
+ * Extracts the escription icon index value from the comment event commands.
+ * @returns {number|-1}
+ */
+Game_Event.prototype.parseEscriptionIconIndexValue = function()
+{
+  // parse out the icon index.
+  const iconIndex = this.extractValueByRegex(J.ESCRIBE.RegExp.IconIndex, -1);
+
+  // return what we found.
+  return iconIndex;
+};
+
+/**
+ * Extracts the escription text proximity value from the comment event commands.
+ * @returns {number|-1}
+ */
+Game_Event.prototype.parseEscriptionTextProximityValue = function()
+{
+  // initialize variable.
+  const textProximity = this.extractValueByRegex(J.ESCRIBE.RegExp.ProximityText, -1);
+
+  // return what we found.
+  return textProximity;
+};
+
+/**
+ * Extracts the escription icon proximity value from the comment event commands.
+ * @returns {number|-1}
+ */
+Game_Event.prototype.parseEscriptionIconProximityValue = function()
+{
+  // initialize variable.
+  const iconProximity = this.extractValueByRegex(J.ESCRIBE.RegExp.ProximityIcon, -1);
+
+  // return what we found.
+  return iconProximity;
 };
 
 /**
  * Gets the describe data for this event.
  * @returns {Escription}
  */
-Game_Event.prototype.getDescribeData = function()
+Game_Event.prototype.escribeData = function()
 {
   return this._j._event._describe;
+};
+
+/**
+ * Sets the describe data for this event.
+ * @param {Escription} describeData The new describe data.
+ */
+Game_Event.prototype.setEscribeData = function(describeData)
+{
+  this._j._event._describe = describeData;
 };
 
 /**
@@ -142,32 +201,43 @@ Game_Event.prototype.getPlayerNearbyForIcon = function()
  */
 Game_Event.prototype.hasDescribeData = function()
 {
-  const describe = this.getDescribeData();
+  const describe = this.escribeData();
   return !!describe;
 };
 
 /**
  * Gets whether or not this event has a proximity describe associated with it.
- * @returns {boolean}
+ * @returns {boolean} True if there is something with proximity, false otherwise.
  */
 Game_Event.prototype.hasProximityDescribeData = function()
 {
-  const describe = this.getDescribeData();
+  // grab the describe data.
+  const describe = this.escribeData();
+
+  // if we don't have describe data, we don't have any proximity to work with.
   if (!describe) return false;
 
-  const hasProximity = (describe.proximityTextRange() > -1 || describe.proximityIconRange() > -1)
+  // having proximity means text or icon proximity is greater than -1, the default.
+  const hasProximity = (describe.proximityTextRange() > -1 || describe.proximityIconRange() > -1);
+
+  // return our findings.
   return hasProximity;
 };
 
 /**
- * Hooks into the update function for this event to update the describe data.
+ * Extends {@link Game_Event.update}.
+ * Also updates the describe proximity information of the player for the describe data.
  */
-J.ESCRIBE.Aliased.Game_Event.update = Game_Event.prototype.update;
+J.ESCRIBE.Aliased.Game_Event.set('update', Game_Event.prototype.update);
 Game_Event.prototype.update = function()
 {
-  J.ESCRIBE.Aliased.Game_Event.update.call(this);
+  // perform original logic.
+  J.ESCRIBE.Aliased.Game_Event.get('update').call(this);
+
+  // check if this event has describe data.
   if (this.hasProximityDescribeData())
   {
+    // update the proximity information for each.
     this.updateDescribeTextProximity();
     this.updateDescribeIconProximity();
   }
@@ -178,16 +248,22 @@ Game_Event.prototype.update = function()
  */
 Game_Event.prototype.updateDescribeTextProximity = function()
 {
-  const describe = this.getDescribeData();
+  // grab the describe data.
+  const describe = this.escribeData();
+
   // don't update for text if text proximity isn't being used.
   if (describe.proximityTextRange() < 0) return;
 
+  // check if we're in proximity for the text.
   if (describe.proximityTextRange() >= this.distanceFromPlayer())
   {
+    // enable the visibility of the text.
     this.setPlayerNearbyForText(true);
   }
+  // we are not in proximity.
   else
   {
+    // disable the visibility of the text.
     this.setPlayerNearbyForText(false);
   }
 };
@@ -197,26 +273,45 @@ Game_Event.prototype.updateDescribeTextProximity = function()
  */
 Game_Event.prototype.updateDescribeIconProximity = function()
 {
-  const describe = this.getDescribeData();
+  // grab the describe data.
+  const describe = this.escribeData();
+
   // don't update for text if icon proximity isn't being used.
   if (describe.proximityIconRange() < 0) return;
 
+  // check if we're in proximity for the icon.
   if (describe.proximityIconRange() >= this.distanceFromPlayer())
   {
+    // enable the visibility of the icon.
     this.setPlayerNearbyForIcon(true);
   }
+  // we are not in proximity.
   else
   {
+    // disable the visibility of the icon.
     this.setPlayerNearbyForIcon(false);
   }
 };
 
 /**
  * Gets the distance in tiles between this event and the player.
+ *
+ * Uses pythagorean theorum.
  * @returns {number} The distance.
  */
 Game_Event.prototype.distanceFromPlayer = function()
 {
-  return Math.abs($gamePlayer.x - this.x) + Math.abs($gamePlayer.y - this.y);
+  // calculate A-squared and B-squared.
+  const a = Math.pow(($gamePlayer.x - this.x), 2);
+  const b = Math.pow(($gamePlayer.y - this.y), 2);
+
+  // the distance is C-squared, but we want the not-squared value.
+  const distance = (Math.sqrt(a + b));
+
+  // make sure the distance only goes out three decimals.
+  const constrainedDistance = parseFloat((distance).toFixed(3));
+
+  // return the calculated value.
+  return constrainedDistance;
 };
 //#endregion Game_Event

@@ -158,7 +158,7 @@ class Sprite_BaseText extends Sprite
     this._j._testBitmap.fontBold = this.isBold();
 
     // and return the measured text width.
-    return this._j._testBitmap.measureTextWidth(this._j._text) * 2;
+    return this._j._testBitmap.measureTextWidth(this._j._text);
   }
 
   /**
@@ -184,6 +184,7 @@ class Sprite_BaseText extends Sprite
    * Assigns text to this sprite.
    * If the text has changed, it reloads the bitmap.
    * @param {string} text The text to assign to this sprite.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setText(text)
   {
@@ -214,6 +215,7 @@ class Sprite_BaseText extends Sprite
    * Sets the color of this sprite's text.
    * This should be a hexcode.
    * @param {string} color The hex color for this text.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setColor(color)
   {
@@ -265,6 +267,7 @@ class Sprite_BaseText extends Sprite
    * Sets the alignment of this sprite's text.
    * The alignment set must be one of the three valid options.
    * @param {Sprite_BaseText.Alignments} alignment The alignment to set.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setAlignment(alignment)
   {
@@ -309,6 +312,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the bold for this sprite's text.
    * @param {boolean} bold True if we're using bold, false otherwise.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setBold(bold)
   {
@@ -334,6 +338,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the italics for this sprite's text.
    * @param {boolean} italics True if we're using italics, false otherwise.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setItalics(italics)
   {
@@ -361,6 +366,7 @@ class Sprite_BaseText extends Sprite
    * This will not work if you set it to a font that you don't have
    * in the `/font` folder.
    * @param {string} fontFace The precise name of the font to change the text to.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setFontFace(fontFace)
   {
@@ -386,6 +392,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the font size to the designated number.
    * @param {number} fontSize The size of the font.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setFontSize(fontSize)
   {

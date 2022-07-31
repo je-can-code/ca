@@ -85,7 +85,7 @@ J.OTIB.Metadata = {
  */
 J.OTIB.Aliased = {
   DataManager: {},
-  Game_Actor: {},
-  Game_Battler: {},
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
 };
 //#endregion Introduction

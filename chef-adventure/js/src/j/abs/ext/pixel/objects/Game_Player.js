@@ -1,6 +1,6 @@
 /**
  * Overwrites {@link Game_Player.checkEventTriggerHere}.
- * Rounds the coordinates for the player to determine which events to start.
+ * Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
  * @param {number[]} triggers The numeric triggers for this event.
  */
 Game_Player.prototype.checkEventTriggerHere = function(triggers)
@@ -8,14 +8,18 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers)
   // check if we can start an event at the current location.
   if (this.canStartLocalEvents()) 
   {
+    // round the x,y coordinates.
+    const roundX = Math.round(this.x);
+    const roundY = Math.round(this.y);
+
     // start the event with the rounded coordinates.
-    this.startMapEvent(Math.round(this.x), Math.round(this.y), triggers, false);
+    this.startMapEvent(roundX, roundY, triggers, false);
   }
 };
 
 /**
  * Extends {@link checkEventTriggerThere}.
- * Includes the rounding of the x,y coordinates when checking event triggers.
+ * Includes the rounding of the x,y coordinates when checking event triggers for things infront of you.
  * @param {number[]} triggers The triggers associated with checking the event at the location.
  * TODO: does this actually need to round?
  */
@@ -114,12 +118,8 @@ Game_Player.prototype.moveByInput = function()
         // grab the collectino of followers.
         const followers = this._followers._data;
 
-        // iterate over each one of the followers.
-        for (const follower of followers) 
-        {
-          // also reset their positions.
-          follower._resetCachePosition();
-        }
+        // also reset their positions.
+        followers.forEach(follower => follower._resetCachePosition());
       }
 
       // flag that movement was not successful.
@@ -139,7 +139,7 @@ Game_Player.prototype.moveByInput = function()
       if (this.isMovementSucceeded()) 
       {
         // move the followers with the player.
-        this._followersMove(0);
+        this.processFollowersPixelMoving();
 
         // flag that we're holding the button.
         this.setMovePressed(true);
@@ -147,8 +147,8 @@ Game_Player.prototype.moveByInput = function()
       // we haven't succeeded in moving.
       else 
       {
-        // don't actually move the followers.
-        this._followersMove(2);
+        // halt the followers pixel movement.
+        this.stopFollowersPixelMoving();
 
         // toggle the input to false since we're not pushing the button.
         this.setMovePressed(false);
@@ -160,38 +160,10 @@ Game_Player.prototype.moveByInput = function()
       // stop processing.
       return;
     }
-    // check if we're running by means of point-click movement.
-    else if ($gameTemp.isDestinationValid()) 
-    {
-      // round the x,y coordinates.
-      this._x = Math.round(this._x);
-      this._y = Math.round(this._y);
-
-      // grab the coordinates for the point-click movement.
-      const x = $gameTemp.destinationX();
-      const y = $gameTemp.destinationY();
-
-      // determine the direction to face for this movement.
-      direction = this.findDirectionTo(x, y);
-
-      // check to make sure the point-click movement resulted in a valid direction.
-      if (direction > 0) 
-      {
-        // actually perform the move for the player.
-        this.executeMove(direction);
-      }
-
-      // move the followers to the nearest rounded x,y coordinates.
-      this._followersMove(1);
-
-      // stop processing.
-      return;
-    }
   }
 
-  // TODO: update this stupid 0/1/2 pattern inside _followersMove().
   // don't actually move the followers.
-  this._followersMove(2);
+  this.stopFollowersPixelMoving();
 
   // toggle the input to false since we're not pushing the button.
   this.setMovePressed(false);
@@ -248,7 +220,7 @@ Game_Player.prototype._moveByInput = function(direction)
         if (leftTest(1)) 
         {
           this.setMovementSuccess(true);
-          const dis = this.distancePerFrame() / Math.SQRT2;
+          const dis = this.diagonalDistancePerFrame();
           this._y += dis;
           this._x -= dis;
           if (Math.round(this._y) > roundY || Math.round(this._x) < roundX) 
@@ -476,104 +448,54 @@ Game_Player.prototype._moveByInput = function(direction)
 };
 
 /**
- * The meat and potatoes for pixel movement for followers.
- * @param {0|1|2} move 0 = should move, 1 = round x,y coordinates, else = do nothing.
+ * Processes the pixel movement for followers.
  */
-Game_Player.prototype._followersMove = function(move)
+Game_Player.prototype.processFollowersPixelMoving = function()
 {
   // update the position for the player.
   this._recordPosition();
 
   // grab all the followers the player has.
-  const followers = this._followers._data;
+  const followers = this._followers._data//.reverse();
 
-  // if the parameter passed is 0, then we move.
-  if (move === 0)
+  // iterate over all the followers to do movement things.
+  followers.forEach((follower, index) =>
   {
-    // iterate over each of the followers leveraging their index.
-    for (let i = followers.length - 1; i >= 0; i--) 
+    // grab the battler from the follower.
+    const battler = follower.getJabsBattler();
+
+    // check if we have a battler.
+    if (battler)
     {
-      // determine who the previous character was in the sequence.
-      const precedingCharacter = i > 0
-        ? followers.at(i-1)
-        : $gamePlayer;
-
-      // grab the most recently added tracking for the previous character in the train.
-      const last = precedingCharacter._lastPosition();
-
-      // check if we even have a last coordinate.
-      if (last) 
-      {
-        // grab the given follower at the provided index.
-        const follower = followers.at(i);
-
-        // check if the follower is facing up/down.
-        const isFacingVertically = Math.abs(last.y - follower._y) > Math.abs(last.x - follower._x);
-
-        // if they are facing up or down, then we'll need to set their direction to such.
-        if (isFacingVertically)
-        {
-          // check if the follower should be facing down.
-          if (last.y > follower._y) 
-          {
-            // face the follower down.
-            follower.setDirection(2);
-          }
-          // check if the follower should be facing up.
-          else if (last.y < follower._y) 
-          {
-            // face the follower up.
-            follower.setDirection(8);
-          }
-        }
-        // we aren't facing vertically, so it must be horizontal facing instead.
-        else
-        {
-          // check if the follower should be facing right.
-          if (last.x > follower._x) 
-          {
-            // face the follower right.
-            follower.setDirection(6);
-          }
-          // check if the follower should be facing left.
-          else if (last.x < follower._x) 
-          {
-            // face thef ollower left.
-            follower.setDirection(4);
-          }
-        }
-
-        // update the follower's coordintes to be pixel-perfect.
-        follower._x = last.x;
-        follower._y = last.y;
-
-        // flag the follower as holding the button.
-        follower.setMovePressed(true);
-
-        // update the followers new position.
-        follower._recordPosition();
-      }
+      // stop processing if the battler is engaged or alerted.
+      if (battler.isEngaged() || battler.isAlerted()) return;
     }
-  }
-  // the parameter wasn't 0, we must not be moving.
-  else
-  {
-    // iterate over the followers.
-    for (const follower of followers)
+
+    // determine who the previous character was in the sequence.
+    const precedingCharacter = index > 0
+      ? followers.at(index - 1)
+      : $gamePlayer;
+
+    // update the follower's direction.
+    follower.pixelFaceCharacter(precedingCharacter);
+
+    const last = precedingCharacter._lastPosition();
+    if (last)
     {
-      // if the parameter passed is 1, then just round the x,y coordinates.
-      if (move === 1)
-      {
-        // round the x,y coordinates.
-        follower._x = Math.round(follower.x);
-        follower._y = Math.round(follower.y);
-      }
-
-      // this follower isn't moving.
-      follower.setMovePressed(false);
-
-      // update the position for this follower.
-      follower._recordPosition();
+      // move the follower to the new location.
+      follower.relocate(last.x, last.y);
     }
-  }
+
+    // flag the follower as holding the button.
+    follower.startPixelMoving();
+  });
+};
+
+/**
+ * Stops the pixel movement for followers.
+ */
+Game_Player.prototype.stopFollowersPixelMoving = function()
+{
+  // iterate over the followers and halt their pixel movement.
+  this._followers._data.forEach(follower => follower.stopPixelMoving());
 };

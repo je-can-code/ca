@@ -37,12 +37,20 @@ J.ESCRIBE.Metadata = {
 };
 
 /**
+ * All regular expressions used by this plugin.
+ */
+J.ESCRIBE.RegExp = {
+  Text: /<text:([ ^*-.\w]+)>/i,
+  IconIndex: /<icon:[ ]?(\d+)>/i,
+  ProximityText: /<proximityText:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  ProximityIcon: /<proximityIcon:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+};
+
+/**
  * The collection of all aliased classes for extending.
  */
 J.ESCRIBE.Aliased = {
-  Game_Character: {},
-  Game_Event: {},
-  Game_Player: {},
-  Sprite_Character: {},
+  Game_Event: new Map(),
+  Sprite_Character: new Map(),
 };
 //#endregion Introduction

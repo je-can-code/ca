@@ -33,15 +33,6 @@ Sprite_Character.prototype.initMembers = function()
 };
 
 /**
- * Gets the underlying `Game_Character` that this sprite represents on the map.
- * @returns {Game_Character}
- */
-Sprite_Character.prototype.character = function()
-{
-  return this._character;
-};
-
-/**
  * Determines whether or not this character has damage pops.
  * @returns {boolean} True if we have any, false otherwise.
  */

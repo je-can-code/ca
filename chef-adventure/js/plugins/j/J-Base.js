@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Jul 27 2022 14:49:07 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -232,6 +232,25 @@ J.BASE.Traits = {
 };
 
 /**
+ * All regular expressions used by this plugin.
+ */
+J.BASE.RegExp = {};
+
+/**
+ * The definition of what a parsable comment in an event looks like.
+ * This enforces a structure that enables the following tags to be valid:
+ *  <pre>
+ *    <someBooleanKey>
+ *    <someKeyWithNumberValue:123>
+ *    <someKeyWithArrayAndSingleNumberValue:[123]>
+ *    <someKeyWithArrayAndManyNumberValues:[123,456]>
+ *    <someKeyWithStringValue:someValue>
+ *  </pre>
+ * @type {RegExp}
+ */
+J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.BASE.Aliased = {
@@ -285,7 +304,7 @@ J.BASE.Helpers.modVariable = function(variableId, amount)
 };
 
 /**
- * Provides a random integer within the range
+ * Provides a random integer within the range.
  * @param {number} min The lower bound for random numbers (inclusive).
  * @param {number} max The upper bound for random numbers (exclusive).
  */
@@ -298,7 +317,7 @@ J.BASE.Helpers.getRandomNumber = function(min, max)
  * Translates the id and type into a proper `RPG::Item`.
  * @param {number} id The id of the item in the database.
  * @param {string} type An abbreviation for the type of item this is.
- * @returns {object} The `RPG::Item` of the correct id and type.
+ * @returns {RPG_BaseItem} The `RPG::Item` of the correct id and type.
  */
 J.BASE.Helpers.translateItem = function(id, type)
 {
@@ -389,6 +408,106 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
       stringifiedStructure.indexOf(openChar) + 1,
       stringifiedStructure.indexOf(closeChar));
 };
+
+/**
+ * Parses a object into whatever its given data type is.
+ * @param {any} obj The unknown object to parse.
+ * @returns {any|null}
+ */
+J.BASE.Helpers.parseObject = function(obj)
+{
+  // do not attempt to parse if the input is null.
+  if (obj === null || obj === undefined) return null;
+
+  // check if the object to parse is a string.
+  if (typeof obj === "string")
+  {
+    // check if the string is an unparsed array.
+    if (obj.startsWith("[") && obj.endsWith("]"))
+    {
+      // expose the stringified segments of the array.
+      return this.parseArrayFromString(obj);
+    }
+
+    // no check for special string values.
+    return this.parseString(obj);
+  }
+
+  // check if the object to parse is a collection.
+  if (Array.isArray(obj))
+  {
+    // iterate over the array and parse each item.
+    return obj.map(this.parseObject, this);
+  }
+
+  // number, boolean, or otherwise unidentifiable object.
+  return obj;
+}
+
+/**
+ * Parses a presumed array by peeling off the `[` and `]` and parsing the
+ * exposed insides.
+ *
+ * This does not handle multiple nested arrays properly.
+ * @param {string} strArr An string presumed to be an array.
+ * @returns {any} The parsed exposed insides of the string array.
+ */
+J.BASE.Helpers.parseArrayFromString = function(strArr)
+{
+  // expose the stringified segments of the array.
+  const exposedArray = strArr
+    // peel off the outer brackets.
+    .slice(1, strArr.length-1)
+    // split string into an array by comma or space+comma.
+    .split(/, |,/);
+
+  // grab the index of any possible inner arrays.
+  const innerArrayStartIndex = exposedArray.findIndex(element => element.startsWith("["));
+
+  // check if we found an opening inner array bracket.
+  if (innerArrayStartIndex > -1)
+  {
+    // grab the last closing inner array bracket.
+    const outerArrayEndIndex = exposedArray.findLastIndex(element => element.endsWith("]"));
+
+    // slice the array contents that we believe is an inner array.
+    const slicedArrayString = exposedArray
+      .slice(innerArrayStartIndex, outerArrayEndIndex+1)
+      .toString();
+
+    // convert the inner array contents into a proper array.
+    const innerArray = this.parseArrayFromString(slicedArrayString);
+
+    // splice the inner array into the original array replacing all elements.
+    exposedArray.splice(
+      innerArrayStartIndex,
+      ((outerArrayEndIndex+1) - innerArrayStartIndex),
+      innerArray);
+  }
+
+  // with the content exposed, attempt to continue parsing.
+  return this.parseObject(exposedArray);
+};
+
+/**
+ * Parses a metadata object from a string into possibly a boolean or number.
+ * If the conversion to those fail, then it'll proceed as a string.
+ * @param {string} str The string object to parse.
+ * @returns {boolean|number|string}
+ */
+J.BASE.Helpers.parseString = function(str)
+{
+  // check if its actually boolean true.
+  if (str.toLowerCase() === "true") return true;
+  // check if its actually boolean false.
+  else if (str.toLowerCase() === "false") return false;
+
+  // check if its actually a number.
+  if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
+
+  // it must just be a word or something.
+  return str;
+}
 
 /**
  * An empty static constant string variable.
@@ -987,10 +1106,10 @@ class RPG_Base
       {
         // expose the stringified segments of the array.
         const exposedArray = obj
-        // peel off the outer brackets.
-        .slice(1, obj.length-1)
-        // split string into an array by comma or space+comma.
-        .split(/, |,/);
+          // peel off the outer brackets.
+          .slice(1, obj.length-1)
+          // split string into an array by comma or space+comma.
+          .split(/, |,/);
         return this.#parseObject(exposedArray);
       }
 
@@ -1023,7 +1142,7 @@ class RPG_Base
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
-    if (!isNaN(parseFloat(str))) return parseFloat(str);
+    if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
 
     // it must just be a word or something.
     return str;
@@ -1060,9 +1179,9 @@ class RPG_Base
   {
     // split the notes by new lines.
     const formattedNotes = this.note
-    .split(/[\r\n]+/)
+      .split(/[\r\n]+/)
     // filter out invalid note data.
-    .filter(this.invalidNoteFilter, this);
+      .filter(this.invalidNoteFilter, this);
 
     // if we have no length left after filtering, then there is no note data.
     if (formattedNotes.length === 0) return null;
@@ -4422,6 +4541,24 @@ Game_Battler.prototype.onStateAdded = function(stateId)
 };
 //#endregion Game_Battler
 
+/**
+ * Determines if this character is actually a player.
+ * @returns {boolean}
+ */
+Game_Character.prototype.isPlayer = function()
+{
+  return false;
+};
+
+/**
+ * Determines if this character is actually an event.
+ * @returns {boolean}
+ */
+Game_Character.prototype.isEvent = function()
+{
+  return false;
+};
+
 //#region Game_Enemy
 /**
  * The underlying database data for this enemy.
@@ -4527,13 +4664,91 @@ Game_Enemy.prototype.getCurrentWithNotes = function()
 
 //#region Game_Event
 /**
+ * Gets all valid-shaped comment event commands.
+ * @returns {rm.types.EventCommand[]}
+ */
+Game_Event.prototype.getValidCommentCommands = function()
+{
+  // don't process if we have no event commands.
+  if (this.list().length === 0) return [];
+
+  // otherwise, return the filtered list.
+  return this.list().filter(command =>
+  {
+    // if it is not a comment, then don't include it.
+    if (!this.matchesControlCode(command.code)) return false;
+
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
+
+    // consider this comment valid if it passes, skip it otherwise.
+    return J.BASE.RegExp.ParsableComment.test(comment);
+  }, this);
+};
+
+/**
  * Detects whether or not the event code is one that matches the "comment" code.
  * @param {number} code The code to match.
  * @returns {boolean}
  */
 Game_Event.prototype.matchesControlCode = function(code)
 {
-  return (code === 108 || code === 408);
+  // valid comment codes.
+  const controlCodes = [
+    108,  // 108 maps to the first line of a comment.
+    408   // 408 maps to all additional indented comment lines after the 108 line.
+  ];
+
+  // return whether or not the code is valid.
+  return controlCodes.includes(code);
+};
+
+/**
+ * Extracts a value out of an event's comments based on the provided structure.
+ * If there are multiple matches in the comments, only the last one will be returned.
+ * @param {RegExp} structure The regex to find values for.
+ * @param {any=} defaultValue The default value to start with; defaults to null.
+ * @param {boolean=} andParse Whether or not to parse the results; defaults to true.
+ * @returns {any} The last found value, or the default if nothing was found.
+ */
+Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = null, andParse = true)
+{
+  // initalize to the provided default.
+  let val = defaultValue;
+
+  // iterate over all valid comments.
+  this.getValidCommentCommands().forEach(command =>
+  {
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
+
+    // check if the comment matches the regex.
+    const regexResult = structure.exec(comment);
+
+    // if the comment didn't match, then don't try to parse it.
+    if (!regexResult) return;
+
+    // extract the regex capture group.
+    [,val] = regexResult;
+  });
+
+  // if we did not find anything, return the default.
+  if (val === defaultValue) return val;
+
+  // if we are not parsing, then return the raw findings.
+  if (!andParse) return val;
+
+  // return the parsed result instead.
+  return J.BASE.Helpers.parseObject(val);
+};
+
+/**
+ * Determines if this character is actually an event.
+ * @returns {boolean}
+ */
+Game_Event.prototype.isEvent = function()
+{
+  return true;
 };
 //#endregion Game_Event
 
@@ -4678,6 +4893,17 @@ Game_Party.prototype.numItems = function(item)
     : 0;
 };
 //#endregion Game_Party
+
+//#region Game_Player
+/**
+ * Determines if this character is actually a player.
+ * @returns {boolean}
+ */
+Game_Player.prototype.isPlayer = function()
+{
+  return true;
+};
+//#endregion Game_Player
 
 //#region Sprite_ActorValue
 /**
@@ -5017,7 +5243,7 @@ class Sprite_BaseText extends Sprite
     this._j._testBitmap.fontBold = this.isBold();
 
     // and return the measured text width.
-    return this._j._testBitmap.measureTextWidth(this._j._text) * 2;
+    return this._j._testBitmap.measureTextWidth(this._j._text);
   }
 
   /**
@@ -5043,6 +5269,7 @@ class Sprite_BaseText extends Sprite
    * Assigns text to this sprite.
    * If the text has changed, it reloads the bitmap.
    * @param {string} text The text to assign to this sprite.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setText(text)
   {
@@ -5073,6 +5300,7 @@ class Sprite_BaseText extends Sprite
    * Sets the color of this sprite's text.
    * This should be a hexcode.
    * @param {string} color The hex color for this text.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setColor(color)
   {
@@ -5124,6 +5352,7 @@ class Sprite_BaseText extends Sprite
    * Sets the alignment of this sprite's text.
    * The alignment set must be one of the three valid options.
    * @param {Sprite_BaseText.Alignments} alignment The alignment to set.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setAlignment(alignment)
   {
@@ -5168,6 +5397,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the bold for this sprite's text.
    * @param {boolean} bold True if we're using bold, false otherwise.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setBold(bold)
   {
@@ -5193,6 +5423,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the italics for this sprite's text.
    * @param {boolean} italics True if we're using italics, false otherwise.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setItalics(italics)
   {
@@ -5220,6 +5451,7 @@ class Sprite_BaseText extends Sprite
    * This will not work if you set it to a font that you don't have
    * in the `/font` folder.
    * @param {string} fontFace The precise name of the font to change the text to.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setFontFace(fontFace)
   {
@@ -5245,6 +5477,7 @@ class Sprite_BaseText extends Sprite
   /**
    * Sets the font size to the designated number.
    * @param {number} fontSize The size of the font.
+   * @returns {this} Returns `this` for fluent-chaining.
    */
   setFontSize(fontSize)
   {
@@ -5274,6 +5507,36 @@ class Sprite_BaseText extends Sprite
   }
 }
 //#endregion Sprite_BaseText
+
+/**
+ * Gets the underlying `Game_Character` that this sprite represents on the map.
+ * @returns {Game_Character}
+ */
+Sprite_Character.prototype.character = function()
+{
+  return this._character;
+};
+
+/**
+ * Gets whether or not the underlying {@link Game_Character} is erased.
+ * If there is no underlying character, then it is still considered erased.
+ * @returns {boolean}
+ */
+Sprite_Character.prototype.isErased = function()
+{
+  // grab the underlying character for this sprite.
+  const character = this.character();
+
+  // if we don't have a character, then it must certainly be erased.
+  if (!character)
+  {
+    console.warn('attempted to check erasure status on a non-existing character:', this);
+    return true;
+  }
+
+  // return the erasure status.
+  return character._erased;
+};
 
 /**
  * A simple calculated gauge representing the current cooldown of an action.
@@ -6352,136 +6615,6 @@ Sprite_StateTimer.prototype.fontFace = function()
   return $gameSystem.numberFontFace();
 };
 //#endregion Sprite_StateTimer
-
-//#region Sprite_Text
-/**
- * A sprite that displays some static text.
- */
-function Sprite_Text()
-{
-  this.initialize(...arguments);
-}
-
-Sprite_Text.prototype = Object.create(Sprite.prototype);
-Sprite_Text.prototype.constructor = Sprite_Text;
-Sprite_Text.prototype.initialize = function(
-  text, color = null, fontSizeMod = 0, alignment = "center", widthMod = 0, heightMod = 0
-)
-{
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(text, color, fontSizeMod, alignment, widthMod, heightMod);
-  this.loadBitmap();
-};
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {string} text The static text to display for this sprite.
- * @param {any} color The color of the text.
- * @param {number} fontSizeMod The font size modifier for this instance of text.
- * @param {string} alignment The alignment of this sprite's text.
- * @param {number} widthMod The bitmap width modifier for this sprite.
- * @param {number} heightMod The bitmap height modifier for this sprite.
- */
-Sprite_Text.prototype.initMembers = function(
-  text, color, fontSizeMod, alignment, widthMod, heightMod
-)
-{
-  this._j = {
-    _text: text,
-    _color: color,
-    _fontSizeMod: fontSizeMod,
-    _alignment: alignment,
-    _widthMod: widthMod,
-    _heightMod: heightMod,
-  };
-};
-
-Sprite_Text.prototype.setText = function(newText)
-{
-  this.bitmap.clear();
-
-  this._j._text = newText;
-
-  this.loadBitmap();
-};
-
-/**
- * Loads the bitmap into the sprite.
- */
-Sprite_Text.prototype.loadBitmap = function()
-{
-  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
-  this.bitmap.fontFace = this.fontFace();
-  this.bitmap.fontSize = this.fontSize();
-  this.bitmap.textColor = this.textColor();
-  this.bitmap.drawText(
-    this._j._text,
-    0, 0,
-    this.bitmapWidth(), this.bitmapHeight(),
-    this.textAlignment());
-};
-
-/**
- * Hooks into the update to call the superclass update.
- */
-Sprite_Text.prototype.update = function()
-{
-  Sprite.prototype.update.call(this);
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_Text.prototype.bitmapWidth = function()
-{
-  return 128 + this._j._widthMod;
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_Text.prototype.bitmapHeight = function()
-{
-  return 24 + this._j._heightMod;
-};
-
-/**
- * Determines the font size for text in this sprite.
- */
-Sprite_Text.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
-};
-
-/**
- * Determines the font face for text in this sprite.
- */
-Sprite_Text.prototype.fontFace = function()
-{
-  return $gameSystem.mainFontFace();
-};
-
-/**
- * Determines the font color for text in this sprite.
- * If no color is designated, then the default (white) is used.
- * @returns {number}
- */
-Sprite_Text.prototype.textColor = function()
-{
-  return this._j._color
-    ? ColorManager.textColor(this._j._color)
-    : ColorManager.normalColor();
-};
-
-/**
- * Determines the alignment for text in this sprite.
- * @returns {string}
- */
-Sprite_Text.prototype.textAlignment = function()
-{
-  return this._j._alignment;
-};
-//#endregion Sprite_Text
 
 //#region TileMap
 /**

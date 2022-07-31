@@ -350,7 +350,14 @@ Game_Action.prototype.percDamageReduction = function(baseDamage, jabsBattler)
  */
 Game_Action.prototype.itemHit = function()
 {
-  return (this.item().successRate * 0.01 * (this.subject().hit));
+  // success is a multiplier against the hitrate.
+  const successFactor = this.item().successRate * 0.01;
+
+  // calculate the hitrate factor.
+  const hitRate = successFactor * this.subject().hit;
+
+  // return the hitrate factor.
+  return hitRate;
 };
 
 /**
@@ -377,7 +384,7 @@ Game_Action.prototype.itemEva = function(target)
 J.ABS.Aliased.Game_Action.apply = Game_Action.prototype.apply;
 Game_Action.prototype.apply = function(target)
 {
-  if ($jabsEngine._absEnabled)
+  if ($jabsEngine.absEnabled)
   {
     this.applySkill(target);
   }
@@ -406,16 +413,27 @@ Game_Action.prototype.applySkill = function(target)
   result.drain = this.isDrain();
   if (result.isHit())
   {
+    // check if there is a damage formula.
     if (this.item().damage.type > 0)
     {
+      // determine if its a critical hit.
       result.critical = Math.random() < this.itemCri(target);
+
+      // calculate the damage.
       const value = this.makeDamageValue(target, result.critical);
+
+      // actually apply the damage to the target.
       this.executeDamage(target, value);
     }
 
     // add the subject who is applying the state as a parameter for tracking purposes.
     this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
+
+    // applies on-cast/on-hit effects, like gaining TP or producing on-cast states.
     this.applyItemUserEffect(target);
+
+    // applies common events that may be a part of a skill's effect.
+    this.applyGlobal();
   }
 
   // also update the last target hit.
@@ -430,9 +448,16 @@ Game_Action.prototype.applySkill = function(target)
  */
 Game_Action.prototype.calculateHitSuccess = function(target)
 {
+  // hit rate gets a bonus between 0-1.
   const hitRate = Math.random() + this.itemHit();
+
+  // grab the evade rate of the target based on the action.
   const evadeRate = this.itemEva(target);
+
+  // determine the success.
   const success = (hitRate - evadeRate) > 0;
+
+  // return our outcome.
   return success;
 };
 //#endregion Game_Action

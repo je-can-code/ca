@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Jul 26 2022 17:52:16 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -880,7 +880,7 @@ class Window_PartyFrame extends Window_Base
   handleMessageWindowInterference()
   {
     // check if the message window is up.
-    if ($gameMessage.isBusy() || $gameMap._interpreter.isRunning())
+    if ($gameMessage.isBusy() || $gameMap.isEventRunning())
     {
       // check to make sure we haven't closed this window yet.
       if (!this.isClosed())

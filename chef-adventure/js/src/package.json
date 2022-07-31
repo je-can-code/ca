@@ -33,8 +33,8 @@
     "once:utils": "node utils/combine.js ./j/utils ../plugins/j J-SystemUtilities.js",
     "watch:utils": "nodemon -L utils/combine.js ./j/utils ../plugins/j J-SystemUtilities.js",
 
-    "once:base": "node utils/combine.js ./j/base ../plugins/j J-Base.js",
-    "watch:base": "nodemon -L utils/combine.js ./j/base ../plugins/j J-Base.js",
+    "once:base": "node utils/combine.js ./j/_base ../plugins/j J-Base.js",
+    "watch:base": "nodemon -L utils/combine.js ./j/_base ../plugins/j J-Base.js",
 
     "once:sdp": "node utils/combine.js ./j/sdp ../plugins/j J-SDP.js",
     "watch:sdp": "nodemon -L utils/combine.js ./j/sdp ../plugins/j J-SDP.js",

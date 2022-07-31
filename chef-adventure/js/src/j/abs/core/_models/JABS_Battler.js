@@ -1238,7 +1238,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
   if (this.getCharacter()._erased) return;
 
   // if we are dying, self-destruct.
-  if (this.isDying() && !$gameMap._interpreter.isRunning())
+  if (this.isDying() && !$gameMap.isEventRunning())
   {
     this.destroy();
   }
@@ -4265,13 +4265,12 @@ JABS_Battler.prototype.resetOneAggro = function(uuid, forced = false)
 JABS_Battler.prototype.resetAllAggro = function(uuid, forced = false)
 {
   // if the aggro is locked, don't adjust it.
-  if (this.getBattler()
-    .isAggroLocked() && !forced)
-  {
-    return;
-  }
+  if (this.getBattler().isAggroLocked() && !forced) return;
 
+  // reset the aggro of the battler that triggered this reset to prevent pursuit.
   this.resetOneAggro(uuid, forced);
+
+  // and reset all aggros this battler has.
   this._aggros.forEach(aggro => aggro.resetAggro(forced));
 };
 

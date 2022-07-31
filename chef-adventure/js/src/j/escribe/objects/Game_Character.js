@@ -2,6 +2,7 @@
 /**
  * Creates the method for overwriting by subclasses.
  * At this level, it will return false for non-events.
+ * @abstract
  * @returns {boolean}
  */
 Game_Character.prototype.hasDescribeData = function()
@@ -12,7 +13,7 @@ Game_Character.prototype.hasDescribeData = function()
 /**
  * Creates the method for overwriting by subclasses.
  * At this level, it will return null for non-events.
- * @returns {boolean}
+ * @returns {null}
  */
 Game_Character.prototype.getDescribeData = function()
 {
@@ -23,8 +24,7 @@ Game_Character.prototype.getDescribeData = function()
  * Creates the method for overwriting by subclasses.
  * At this level, it will do nothing.
  */
-Game_Character.prototype.parseEventComments = function()
+Game_Character.prototype.parseEscriptionComments = function()
 {
-  // do nothing.
 };
 //#endregion Game_Character

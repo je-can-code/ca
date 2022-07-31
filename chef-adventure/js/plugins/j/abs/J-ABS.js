@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Jul 27 2022 15:37:53 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:24:27 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -1385,7 +1385,7 @@ J.ABS.Aliased = {
   DataManager: {},
   Game_Actor: new Map(),
   Game_Action: {},
-  Game_ActionResult: {},
+  Game_ActionResult: new Map(),
   Game_Battler: {},
   Game_BattlerBase: {},
   Game_Character: {},
@@ -3525,7 +3525,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
   if (this.getCharacter()._erased) return;
 
   // if we are dying, self-destruct.
-  if (this.isDying() && !$gameMap._interpreter.isRunning())
+  if (this.isDying() && !$gameMap.isEventRunning())
   {
     this.destroy();
   }
@@ -6552,13 +6552,12 @@ JABS_Battler.prototype.resetOneAggro = function(uuid, forced = false)
 JABS_Battler.prototype.resetAllAggro = function(uuid, forced = false)
 {
   // if the aggro is locked, don't adjust it.
-  if (this.getBattler()
-    .isAggroLocked() && !forced)
-  {
-    return;
-  }
+  if (this.getBattler().isAggroLocked() && !forced) return;
 
+  // reset the aggro of the battler that triggered this reset to prevent pursuit.
   this.resetOneAggro(uuid, forced);
+
+  // and reset all aggros this battler has.
   this._aggros.forEach(aggro => aggro.resetAggro(forced));
 };
 
@@ -11557,36 +11556,39 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     // instantiate the builder for piece-mealing the popup together.
     const textPopBuilder = new TextPopBuilder(0);
 
-    // if the target was completely immune to what you had, then say so.
-    if (targetElementallyImmune)
+    switch (true)
     {
-      textPopBuilder.setValue(`IMMUNE`);
-    }
-    // if you were parried, sorry about your luck.
-    else if (actionResult.parried)
-    {
-      textPopBuilder.setValue(`PARRY!`);
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.hpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.hpDamage)
-        .isHpDamage();
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.mpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.mpDamage)
-        .isMpDamage();
-    }
-    // if the result is tp damage, treat it as such.
-    else if (actionResult.tpDamage)
-    {
-      textPopBuilder
-        .setValue(actionResult.mpDamage)
-        .isTpDamage();
+      // if you were parried, sorry about your luck.
+      case actionResult.parried:
+        textPopBuilder.setValue(`PARRY!`);
+        break;
+      // if you were evaded, how unfortunate.
+      case actionResult.evaded:
+        textPopBuilder.setValue(`DODGE`);
+        break;
+      // if the result is hp damage, treat it as such.
+      case actionResult.hpDamage:
+        textPopBuilder
+          .setValue(actionResult.hpDamage)
+          .isHpDamage();
+        break;
+      // if the result is mp damage, treat it as such.
+      case actionResult.mpDamage:
+        textPopBuilder
+          .setValue(actionResult.mpDamage)
+          .isHpDamage();
+        break;
+      // if the result is tp damage, treat it as such.
+      case actionResult.tpDamage:
+        textPopBuilder
+          .setValue(actionResult.tpDamage)
+          .isHpDamage();
+        break;
+      // if for some reason its something else, they are probably immune.
+      default:
+        textPopBuilder.setValue(`IMMUNE`);
+        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
+        break;
     }
 
     // if we somehow used this without a proper damage type, then just build a default.
@@ -17831,6 +17833,20 @@ class JABS_AiManager
     throw new Error("The JABS_AiManager is a static class.");
   }
 
+  static debugActor(message, battler)
+  {
+    if (battler.isEnemy()) return;
+
+    console.log(message, battler);
+  }
+
+  static debugEnemy(message, battler)
+  {
+    if (battler.isActor()) return;
+
+    console.log(message, battler);
+  }
+
   //#region update loop
   /**
    * Handles updating all the logic of the JABS engine.
@@ -18197,7 +18213,7 @@ class JABS_AiManager
 
     // check if we should turn towards the target.
     // NOTE: this prevents 100% always facing the target, preventing perma-parry.
-    if (Math.randomInt(100) < 40)
+    if (Math.randomInt(100) < 70)
     {
       // turn towards the target.
       battler.turnTowardTarget();
@@ -18235,6 +18251,8 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
+    this.debugActor("maintaining safe distance", battler);
+
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 
@@ -18265,6 +18283,8 @@ class JABS_AiManager
     // check if the distance is invalid or too great.
     if (this.shouldDisengageTarget(battler))
     {
+      this.debugActor("phase 2: disengaging", battler);
+
       // just give up on this target.
       battler.disengageTarget();
 
@@ -18275,6 +18295,8 @@ class JABS_AiManager
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {
+      this.debugActor("phase 2: deciding action", battler);
+
       // make a decision about what to do.
       this.decideAiPhase2Action(battler);
 
@@ -18285,6 +18307,8 @@ class JABS_AiManager
     // check if we need to reposition.
     if (this.needsRepositioning(battler))
     {
+      this.debugActor("phase 2: repositioning", battler);
+
       // move into a better position based on the decided action.
       this.decideAiPhase2Movement(battler);
 
@@ -18295,6 +18319,8 @@ class JABS_AiManager
     // check if we're ready to execute actions.
     if (this.needsActionExecution(battler))
     {
+      this.debugActor("phase 2: executing action", battler);
+
       // execute the decided action.
       this.executeAiPhase2Action(battler);
     }
@@ -19078,6 +19104,8 @@ class JABS_AiManager
     // check if we are ready for a phase reset.
     if (this.canResetAiPhases(battler))
     {
+      this.debugActor("phase 3: resetting phases", battler);
+
       // AI loop complete, reset back to phase 1.
       this.resetAiPhases(battler);
     }
@@ -19501,7 +19529,14 @@ Game_Action.prototype.percDamageReduction = function(baseDamage, jabsBattler)
  */
 Game_Action.prototype.itemHit = function()
 {
-  return (this.item().successRate * 0.01 * (this.subject().hit));
+  // success is a multiplier against the hitrate.
+  const successFactor = this.item().successRate * 0.01;
+
+  // calculate the hitrate factor.
+  const hitRate = successFactor * this.subject().hit;
+
+  // return the hitrate factor.
+  return hitRate;
 };
 
 /**
@@ -19528,7 +19563,7 @@ Game_Action.prototype.itemEva = function(target)
 J.ABS.Aliased.Game_Action.apply = Game_Action.prototype.apply;
 Game_Action.prototype.apply = function(target)
 {
-  if ($jabsEngine._absEnabled)
+  if ($jabsEngine.absEnabled)
   {
     this.applySkill(target);
   }
@@ -19557,16 +19592,27 @@ Game_Action.prototype.applySkill = function(target)
   result.drain = this.isDrain();
   if (result.isHit())
   {
+    // check if there is a damage formula.
     if (this.item().damage.type > 0)
     {
+      // determine if its a critical hit.
       result.critical = Math.random() < this.itemCri(target);
+
+      // calculate the damage.
       const value = this.makeDamageValue(target, result.critical);
+
+      // actually apply the damage to the target.
       this.executeDamage(target, value);
     }
 
     // add the subject who is applying the state as a parameter for tracking purposes.
     this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
+
+    // applies on-cast/on-hit effects, like gaining TP or producing on-cast states.
     this.applyItemUserEffect(target);
+
+    // applies common events that may be a part of a skill's effect.
+    this.applyGlobal();
   }
 
   // also update the last target hit.
@@ -19581,33 +19627,54 @@ Game_Action.prototype.applySkill = function(target)
  */
 Game_Action.prototype.calculateHitSuccess = function(target)
 {
+  // hit rate gets a bonus between 0-1.
   const hitRate = Math.random() + this.itemHit();
+
+  // grab the evade rate of the target based on the action.
   const evadeRate = this.itemEva(target);
+
+  // determine the success.
   const success = (hitRate - evadeRate) > 0;
+
+  // return our outcome.
   return success;
 };
 //#endregion Game_Action
 
-
 //#region Game_ActionResult
 /**
- * Injects additional possible results into all `Game_ActionResult`s.
+ * Extends {@link Game_ActionResult.initialize}.
+ * Initializes additional members.
  */
-J.ABS.Aliased.Game_ActionResult.initialize = Game_ActionResult.prototype.initialize;
+J.ABS.Aliased.Game_ActionResult.set('initialize', Game_ActionResult.prototype.initialize);
 Game_ActionResult.prototype.initialize = function()
 {
+  /**
+   * Whether or not the result was parried.
+   * @type {boolean}
+   */
   this.parried = false;
+
+  /**
+   * The amount of damage reduced by guarding.
+   * @type {number}
+   */
   this.reduced = 0;
-  J.ABS.Aliased.Game_ActionResult.initialize.call(this);
+
+  // perform original logic.
+  J.ABS.Aliased.Game_ActionResult.get('initialize').call(this);
 };
 
 /**
  * Extends `.clear()` to include wiping the custom properties.
  */
-J.ABS.Aliased.Game_ActionResult.clear = Game_ActionResult.prototype.clear;
+J.ABS.Aliased.Game_ActionResult.set('clear', Game_ActionResult.prototype.clear);
 Game_ActionResult.prototype.clear = function()
 {
-  J.ABS.Aliased.Game_ActionResult.clear.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_ActionResult.get('clear').call(this);
+
+  // refresh our custom parameters.
   this.parried = false;
   this.reduced = 0;
 };
@@ -22646,7 +22713,7 @@ Game_Enemy.prototype.isInanimate = function()
 J.ABS.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
 Game_Event.prototype.initMembers = function()
 {
-  this._j = this._j || {};
+  this._j ||= {};
 
   /**
    * The various parameters extracted from the event on the field.
@@ -23384,32 +23451,6 @@ Game_Event.prototype.canParseEnemyComments = function()
 
   // we are clear to parse out those comments!
   return true;
-};
-
-/**
- * Gets all valid JABS-shaped comment event commands.
- * @returns {rm.types.EventCommand[]}
- */
-Game_Event.prototype.getValidCommentCommands = function()
-{
-  // don't process if we have no event commands.
-  if (this.list().length === 0) return [];
-
-  // the valid regex shape for our tags.
-  const validRegex = /^<[\w :"'.!+\-*/\\]+>$/i;
-
-  // otherwise, return the filtered list.
-  return this.list().filter(command =>
-  {
-    // if it is not a comment, then don't include it.
-    if (!this.matchesControlCode(command.code)) return false;
-
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
-
-    // consider this comment valid if it passes, skip it otherwise.
-    return validRegex.test(comment);
-  }, this);
 };
 
 /**
@@ -25486,7 +25527,7 @@ Sprite_Character.prototype.initMembers = function()
 
   /**
    * The text sprite displaying the name of this character's battler.
-   * @type {Sprite_Text|null}
+   * @type {Sprite_BaseText|null}
    */
   this._j._battlerName = null;
 
@@ -25955,7 +25996,7 @@ Sprite_Character.prototype.setupBattlerName = function()
 
 /**
  * Creates the sprite that contains this battler's name.
- * @returns {Sprite_Text} The battlers name, as a sprite.
+ * @returns {Sprite_BaseText} The battlers name, as a sprite.
  */
 Sprite_Character.prototype.createBattlerNameSprite = function()
 {
@@ -25963,7 +26004,12 @@ Sprite_Character.prototype.createBattlerNameSprite = function()
   const battlerName = this.getBattlerName();
 
   // build the text sprite.
-  const sprite = new Sprite_Text(battlerName, null, -12, "left");
+  const sprite = new Sprite_BaseText()
+    .setText(battlerName)
+    .setFontSize(10)
+    .setAlignment(Sprite_BaseText.Alignments.Left)
+    .setColor("#ffffff");
+  sprite.setText(battlerName);
 
   // relocate the sprite to a better position.
   sprite.move(-30, 8);

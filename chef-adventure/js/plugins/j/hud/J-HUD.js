@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Jul 26 2022 17:52:13 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -921,7 +921,7 @@ class Window_Frame extends Window_Base
     /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
     /* eslint-enable max-len */

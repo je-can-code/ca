@@ -93,9 +93,6 @@ Game_Action.prototype.applyItemUserEffect = function(target)
   // perform original logic.
   J.EXTEND.Aliased.Game_Action.get('applyItemUserEffect').call(this, target);
 
-  // ABS engines handle the timing differently, but in turn-based this would be fine.
-  if (J.ABS) return;
-
   // apply our on-cast self-states if we have any.
   this.applyOnCastSelfStates();
 };
