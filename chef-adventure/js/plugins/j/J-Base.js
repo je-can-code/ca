@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Aug 01 2022 13:46:15 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -108,46 +108,6 @@ J.BASE.Notetags = {
   AlertDuration: "ad",
   AlertSightBoost: "as",
   AlertPursuitBoost: "ap",
-};
-
-/**
- * The various collision shapes an attack can be for JABS.
- */
-J.BASE.Shapes = {
-  /**
-   * A rhombus (aka diamond) shaped hitbox.
-   */
-  Rhombus: "rhombus",
-
-  /**
-   * A square around the target hitbox.
-   */
-  Square: "square",
-
-  /**
-   *  A square in front of the target hitbox.
-   */
-  FrontSquare: "frontsquare",
-
-  /**
-   * A line from the target hitbox.
-   */
-  Line: "line",
-
-  /**
-   * An arc shape hitbox in front of the action.
-   */
-  Arc: "arc",
-
-  /**
-   * A wall in front of the target hitbox.
-   */
-  Wall: "wall",
-
-  /**
-   * A cross from the target hitbox.
-   */
-  Cross: "cross"
 };
 
 /**

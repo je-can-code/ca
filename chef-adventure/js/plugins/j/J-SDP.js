@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Aug 01 2022 04:47:35 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -10,10 +10,10 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @base J-ControlledDrops
+ * @base J-DropsControl
  * @orderAfter J-ABS
- * @orderAfter J-BASE
- * @orderAfter J-DropControl
+ * @orderAfter J-Base
+ * @orderAfter J-DropsControl
  * @help
  * ============================================================================
  * This plugin is a form of "stat distribution"- an alternative to the standard

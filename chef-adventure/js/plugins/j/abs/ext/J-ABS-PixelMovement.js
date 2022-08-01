@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Jul 31 2022 13:15:28 GMT-0700 (Pacific Daylight Time)  */
 
 // TODO: need to sort out enemies and action events for JABS.
 /*:
@@ -92,19 +92,198 @@ Game_Character.prototype.processMoveCommand = function(command)
   J.ABS.EXT.PIXEL.Aliased.Game_Character.get('processMoveCommand').call(this, command);
 };
 
+/**
+ * Determine the distance per frame when moving diagonally.
+ * It is reduced thanks to the power of math.
+ * @returns {number} The distance in pixels to move.
+ */
 Game_Character.prototype.diagonalDistancePerFrame = function()
 {
   return this.distancePerFrame() / Math.SQRT2;
 };
 
-Game_Character.prototype.setRealX = function(realX)
+/**
+ * Moves this character in the given direction a given distance in pixels.
+ *
+ * This is used in tandem with movement control and not intended to move characters otherwise.
+ * @param {1|2|3|4|6|7|8|9} direction The direction to move.
+ * @param {number} distance The number of pixels to move.
+ */
+Game_Character.prototype.movePixelDistance = function(direction, distance)
 {
-  this._realX = realX;
+  // define the direction types.
+  const straightDirections = [2, 4, 6, 8];
+  const diagonalDirections = [1, 3, 7, 9];
+
+  // check what kind of direction it was.
+  const isStraight = straightDirections.includes(direction);
+  const isDiagonal = diagonalDirections.includes(direction);
+
+  // let us check if the direction was straight.
+  if (isStraight)
+  {
+    // move straight.
+    this.moveStraightDistance(direction, distance);
+  }
+
+  // if not straight, then let us check if the direction was diagonal.
+  else if (isDiagonal)
+  {
+    // move diagonally.
+    this.moveDiagonalDistance(direction, distance);
+  }
 };
 
-Game_Character.prototype.setRealY = function(realY)
+/**
+ * Moves this character one of the four cardinal directions a given distance in pixels.
+ * @param {2|4|6|8} direction The straight direction to move.
+ * @param {number} pixelDistance The number of pixels to move in that direction.
+ */
+Game_Character.prototype.moveStraightDistance = function(direction, pixelDistance)
 {
-  this._realY = realY;
+  switch (direction)
+  {
+    case 2:
+      this.moveStraight2Down(pixelDistance);
+      break;
+    case 4:
+      this.moveStraight4Left(pixelDistance);
+      break;
+    case 6:
+      this.moveStraight6Right(pixelDistance);
+      break;
+    case 8:
+      this.moveStraight8Up(pixelDistance);
+      break;
+    default:
+      console.warn('attempted to move an invalid straight direction: ', direction);
+      break;
+  }
+};
+
+/**
+ * Moves this character one one of the four cardinal directions.
+ * @param {1|3|7|9} direction The straight direction to move.
+ * @param {number} pixelDistance The number of pixels to move in that direction.
+ */
+Game_Character.prototype.moveDiagonalDistance = function(direction, pixelDistance)
+{
+  switch (direction)
+  {
+    case 1:
+      this.moveDiag1DownLeft(pixelDistance);
+      break;
+    case 3:
+      this.moveDiag3DownRight(pixelDistance);
+      break;
+    case 7:
+      this.moveDiag7UpLeft(pixelDistance);
+      break;
+    case 9:
+      this.moveDiag9UpRight(pixelDistance);
+      break;
+    default:
+      console.warn('attempted to move an invalid straight direction: ', direction);
+      break;
+  }
+};
+
+/**
+ * Move straight down the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveStraight2Down = function(pixelDistance)
+{
+  this._y += pixelDistance;
+};
+
+/**
+ * Move straight left the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveStraight4Left = function(pixelDistance)
+{
+  this._x -= pixelDistance;
+};
+
+/**
+ * Move straight right the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveStraight6Right = function(pixelDistance)
+{
+  this._x += pixelDistance;
+};
+
+/**
+ * Move straight up the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveStraight8Up = function(pixelDistance)
+{
+  this._y -= pixelDistance;
+};
+
+/**
+ * Move diagonally down-left the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveDiag1DownLeft = function(pixelDistance)
+{
+  this._x -= pixelDistance;
+  this._y += pixelDistance
+};
+
+/**
+ * Move diagonally down-right the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveDiag3DownRight = function(pixelDistance)
+{
+  this._x += pixelDistance;
+  this._y += pixelDistance
+};
+
+/**
+ * Move diagonally up-left the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveDiag7UpLeft = function(pixelDistance)
+{
+  this._x -= pixelDistance;
+  this._y -= pixelDistance
+};
+
+/**
+ * Move diagonally up-right the given distance.
+ * @param {number} pixelDistance The distance in pixels.
+ */
+Game_Character.prototype.moveDiag9UpRight = function(pixelDistance)
+{
+  this._x += pixelDistance;
+  this._y -= pixelDistance
+};
+
+Game_Character.prototype.canPassStraight = function(direction, distance, offset = 0)
+{
+  // round the x,y coordinates.
+  const roundX = Math.round(this._x);
+  const roundY = Math.round(this._y);
+
+  // switch on direction.
+  switch (direction)
+  {
+    case 2: // down.
+      return this.canPass(roundX + offset, Math.floor(this._y + distance), 2);
+    case 4: // left.
+      return this.canPass(Math.ceil(this._x - distance), roundY + offset, 4);
+    case 6: // right.
+      return this.canPass(Math.floor(this._x + distance), roundY + offset, 6);
+    case 8: // up.
+      return this.canPass(roundX + offset, Math.ceil(this._y - distance), 8);
+    default:
+      return false;
+  }
 };
 
 /**
@@ -522,56 +701,50 @@ Game_Player.prototype.moveByInput = function()
 // eslint-disable-next-line complexity
 Game_Player.prototype._moveByInput = function(direction)
 {
+  // establish a local variable for the direction.
+  let innerDirection = direction;
+
+  // calculate distance to move.
+  const straightDistance = this.distancePerFrame();
+  const diagonalDistance = this.diagonalDistancePerFrame();
+
+  // shorthand test methods for checking if we can move in a given direction any further.
+  const downTest = (offset = 0) => this.canPassStraight(2, straightDistance, offset);
+  const upTest = (offset = 0) => this.canPassStraight(8, straightDistance, offset);
+  const leftTest = (offset = 0) => this.canPassStraight(4, straightDistance, offset);
+  const rightTest = (offset = 0) => this.canPassStraight(6, straightDistance, offset);
+
+  // determine available directions for movement.
+  const canLeft = leftTest();
+  const canDown = downTest();
+  const canRight = rightTest();
+  const canUp = upTest();
+  const offsetCanUpRight = rightTest(-1);
+  const offsetCanDownRight = rightTest(1);
+  const offsetCanUpLeft = leftTest(-1);
+  const offsetCanDownLeft = leftTest(1);
+
   // round the x,y coordinates.
   const roundX = Math.round(this._x);
   const roundY = Math.round(this._y);
 
-  // determine the pixel distance per frame.
-  const distencePerFrame = this.distancePerFrame();
-
-  // shorthand test methods for checking if we can move in a given direction any further.
-  const downTest = (offset = 0) => 
-  {
-    return this.canPass(roundX + offset, Math.floor(this._y + distencePerFrame), 2);
-  }
-  const upTest = (offset = 0) => 
-  {
-    return this.canPass(roundX + offset, Math.ceil(this._y - distencePerFrame), 8);
-  }
-  const leftTest = (offset = 0) => 
-  {
-    return this.canPass(Math.ceil(this._x - distencePerFrame), roundY + offset, 4);
-  }
-  const rightTest = (offset = 0) => 
-  {
-    return this.canPass(Math.floor(this._x + distencePerFrame), roundY + offset, 6);
-  }
-
-  // shorthand methods for performing a step.
-  const walkStep = () => 
-  {
-    this.increaseSteps();
-    this.checkEventTriggerHere([1, 2]);
-  }
-
-  // TODO: refactor this?
   // switch on the direction given.
   switch (direction) 
   {
-    case 1: {
-      const canLeft = leftTest(), canDown = downTest();
-      if (canLeft && canDown) 
+    case 1:
+      if (canLeft && canDown)
       {
-        if (leftTest(1)) 
+        if (offsetCanDownLeft)
         {
+          // flag this as a successful movement.
           this.setMovementSuccess(true);
-          const dis = this.diagonalDistancePerFrame();
-          this._y += dis;
-          this._x -= dis;
-          if (Math.round(this._y) > roundY || Math.round(this._x) < roundX) 
-          {
-            walkStep();
-          }
+
+          // actually execute the movement.
+          this.movePixelDistance(innerDirection, diagonalDistance);
+
+          // handle stepping if we crossed the line.
+          this.handleStepByDirection(innerDirection);
+
           return 2;
         }
         else if (this.x - roundX < roundY - this.y) 
@@ -596,21 +769,20 @@ Game_Player.prototype._moveByInput = function(direction)
         direction = 2;
       }
       break;
-    }
-    case 3: {
-      const canRight = rightTest(), canDown = downTest();
-      if (canRight && canDown) 
+    case 3:
+      if (canRight && canDown)
       {
-        if (rightTest(1)) 
+        if (offsetCanDownRight)
         {
+          // flag this as a successful movement.
           this.setMovementSuccess(true);
-          const dis = this.distancePerFrame() / Math.SQRT2;
-          this._y += dis;
-          this._x += dis;
-          if (Math.round(this._y) > roundY || Math.round(this._x) > roundX) 
-          {
-            walkStep();
-          }
+
+          // actually execute the movement.
+          this.movePixelDistance(innerDirection, diagonalDistance);
+
+          // handle stepping if we crossed the line.
+          this.handleStepByDirection(innerDirection);
+
           return 2;
         }
         else if (roundX - this.x < roundY - this.y) 
@@ -635,21 +807,20 @@ Game_Player.prototype._moveByInput = function(direction)
         direction = 2;
       }
       break;
-    }
-    case 7: {
-      const canLeft = leftTest(), canUp = upTest();
-      if (canLeft && canUp) 
+    case 7:
+      if (canLeft && canUp)
       {
-        if (leftTest(-1)) 
+        if (offsetCanUpLeft)
         {
+          // flag this as a successful movement.
           this.setMovementSuccess(true);
-          const dis = this.distancePerFrame() / Math.SQRT2;
-          this._y -= dis;
-          this._x -= dis;
-          if (Math.round(this._y) < roundY || Math.round(this._x) < roundX) 
-          {
-            walkStep();
-          }
+
+          // actually execute the movement.
+          this.movePixelDistance(innerDirection, diagonalDistance);
+
+          // handle stepping if we crossed the line.
+          this.handleStepByDirection(innerDirection);
+
           return 8;
         }
         else if (this.x - roundX < this.y - roundY) 
@@ -671,31 +842,30 @@ Game_Player.prototype._moveByInput = function(direction)
       }
       else 
       {
-        direction = 8;
+        innerDirection = 8;
       }
       break;
-    }
-    case 9: {
-      const canRight = rightTest(), canUp = upTest();
-      if (canRight && canUp) 
+    case 9:
+      if (canRight && canUp)
       {
-        if (rightTest(-1)) 
+        if (offsetCanUpRight)
         {
+          // flag this as a successful movement.
           this.setMovementSuccess(true);
-          const dis = this.distancePerFrame() / Math.SQRT2;
-          this._y -= dis;
-          this._x += dis;
-          if (Math.round(this._y) < roundY || Math.round(this._x) > roundX) 
-          {
-            walkStep();
-          }
+
+          // actually execute the movement.
+          this.movePixelDistance(innerDirection, diagonalDistance);
+
+          // handle stepping if we crossed the line.
+          this.handleStepByDirection(innerDirection);
+
           return 8;
         }
-        else if (roundX - this.x < this.y - roundY) 
+        else if (roundX - this.x < this.y - roundY)
         {
           return this._moveByInput(6);
         }
-        else 
+        else
         {
           return this._moveByInput(8);
         }
@@ -710,86 +880,143 @@ Game_Player.prototype._moveByInput = function(direction)
       }
       else 
       {
-        direction = 8;
+        innerDirection = 8;
       }
       break;
-    }
-    case 2: {
-      if (downTest()) 
+    case 2:
+      if (canDown)
       {
+        // flag this as a successful movement.
         this.setMovementSuccess(true);
-        this._y += this.distancePerFrame();
-        if (Math.round(this._y) > roundY) 
-        {
-          walkStep();
-        }
-        if (this._x > roundX && !downTest(1) ||
-          this._x < roundX && !downTest(-1)) 
+
+        // actually execute the movement.
+        this.movePixelDistance(innerDirection, straightDistance);
+
+        // handle stepping if we crossed the line.
+        this.handleStepByDirection(innerDirection);
+
+        if (this._x > roundX && !downTest(1) || this._x < roundX && !downTest(-1))
         {
           this._x = roundX;
         }
-        return direction;
+
+        return innerDirection;
       }
       break;
-    }
-    case 8: {
-      if (upTest()) 
+    case 8:
+      if (canUp)
       {
+        // flag this as a successful movement.
         this.setMovementSuccess(true);
-        this._y -= this.distancePerFrame();
-        if (Math.round(this._y) < roundY) 
-        {
-          walkStep();
-        }
-        if (this._x > roundX && !upTest(1) ||
-          this._x < roundX && !upTest(-1)) 
+
+        // actually execute the movement.
+        this.movePixelDistance(innerDirection, straightDistance);
+
+        // handle stepping if we crossed the line.
+        this.handleStepByDirection(innerDirection);
+
+        // check if we need to adjust our coordinates.
+        if (this._x > roundX && !upTest(1) || this._x < roundX && !upTest(-1))
         {
           this._x = roundX;
         }
-        return direction;
+
+        // return the direction.
+        return innerDirection;
       }
       break;
-    }
-    case 4: {
-      if (leftTest()) 
+    case 4:
+      if (canLeft)
       {
+        // flag this as a successful movement.
         this.setMovementSuccess(true);
-        this._x -= this.distancePerFrame();
-        if (Math.round(this._x) < roundX) 
-        {
-          walkStep();
-        }
-        if (this._y > roundY && !leftTest(1) ||
-          this._y < roundY && !leftTest(-1)) 
+
+        // actually execute the movement.
+        this.movePixelDistance(innerDirection, straightDistance);
+
+        // handle stepping if we crossed the line.
+        this.handleStepByDirection(innerDirection);
+
+        if (this._y > roundY && !leftTest(1) || this._y < roundY && !leftTest(-1))
         {
           this._y = roundY;
         }
-        return direction;
+
+        return innerDirection;
       }
       break;
-    }
-    case 6: {
-      if (rightTest()) 
+    case 6:
+      if (canRight)
       {
+        // flag this as a successful movement.
         this.setMovementSuccess(true);
-        this._x += this.distancePerFrame();
-        if (Math.round(this._x) > roundX) 
-        {
-          walkStep();
-        }
-        if (this._y > roundY && !rightTest(1) ||
-          this._y < roundY && !rightTest(-1)) 
+
+        // actually execute the movement.
+        this.movePixelDistance(innerDirection, straightDistance);
+
+        // handle stepping if we crossed the line.
+        this.handleStepByDirection(innerDirection);
+
+        if (this._y > roundY && !rightTest(1) || this._y < roundY && !rightTest(-1))
         {
           this._y = roundY;
         }
-        return direction;
+
+        return innerDirection;
       }
       break;
-    }
   }
 
   // return the calculated direction.
-  return direction;
+  return innerDirection;
+};
+
+Game_Player.prototype.handleOnStepEffects = function()
+{
+  this.increaseSteps();
+  this.checkEventTriggerHere([1, 2]);
+};
+
+/**
+ * Handles the stepping based on the direction.
+ * @param direction
+ */
+Game_Player.prototype.handleStepByDirection = function(direction)
+{
+  // round the x,y coordinates.
+  const roundX = Math.round(this._x);
+  const roundY = Math.round(this._y);
+
+  // switch on direction.
+  switch (direction)
+  {
+    case 1: // down-left.
+      if (Math.round(this._y) > roundY || Math.round(this._x) < roundX) this.handleOnStepEffects();
+      break;
+    case 3: // down-right.
+      if (Math.round(this._y) > roundY || Math.round(this._x) > roundX) this.handleOnStepEffects();
+      break;
+    case 7: // up-left.
+      if (Math.round(this._y) < roundY || Math.round(this._x) < roundX) this.handleOnStepEffects();
+      break;
+    case 9: // up-right.
+      if (Math.round(this._y) < roundY || Math.round(this._x) > roundX) this.handleOnStepEffects();
+      break;
+    case 2: // down.
+      if (Math.round(this._y) > roundY) this.handleOnStepEffects();
+      break;
+    case 4: // left.
+      if (Math.round(this._x) < roundX) this.handleOnStepEffects();
+      break;
+    case 6: // right.
+      if (Math.round(this._x) > roundX) this.handleOnStepEffects();
+      break;
+    case 8: // up.
+      if (Math.round(this._y) < roundY) this.handleOnStepEffects();
+      break;
+    default:
+      break;
+  }
 };
 
 /**

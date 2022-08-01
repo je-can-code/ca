@@ -270,43 +270,96 @@ J.ABS.Directions = {
 
   /**
    * Represents the UP direction, or 8.
+   * @type {8}
    */
   UP: 8,
 
   /**
    * Represents the RIGTH direction, or 6.
+   * @type {6}
    */
   RIGHT: 6,
 
   /**
    * Represents the LEFT direction, or 4.
+   * @type {4}
    */
   LEFT: 4,
 
   /**
    * Represents the DOWN direction, or 2.
+   * @type {2}
    */
   DOWN: 2,
 
   /**
    * Represents the diagonal LOWER LEFT direction, or 1.
+   * @type {1}
    */
   LOWERLEFT: 1,
 
   /**
    * Represents the diagonal LOWER RIGHT direction, or 3.
+   * @type {3}
    */
   LOWERRIGHT: 3,
 
   /**
    * Represents the diagonal UPPER LEFT direction, or 7.
+   * @type {7}
    */
   UPPERLEFT: 7,
 
   /**
    * Represents the diagonal UPPER RIGHT direction, or 9.
+   * @type {9}
    */
   UPPERRIGHT: 9,
+};
+
+/**
+ * The various collision shapes an attack can be.
+ */
+J.ABS.Shapes = {
+  /**
+   * A circle shaped hitbox.
+   */
+  Circle: "circle",
+
+  /**
+   * A rhombus (aka diamond) shaped hitbox.
+   */
+  Rhombus: "rhombus",
+
+  /**
+   * A square around the target hitbox.
+   */
+  Square: "square",
+
+  /**
+   *  A square in front of the target hitbox.
+   */
+  FrontSquare: "frontsquare",
+
+  /**
+   * A line from the target hitbox.
+   */
+  Line: "line",
+
+  /**
+   * An arc shape hitbox in front of the action.
+   */
+  Arc: "arc",
+
+  /**
+   * A wall in front of the target hitbox.
+   */
+  Wall: "wall",
+
+  /**
+   * A cross from the target hitbox.
+   */
+  Cross: "cross"
 };
 
 /**
@@ -339,10 +392,10 @@ J.ABS.RegExp = {
   UniqueCooldown: /<uniqueCooldown>/gi,
 
   // projectile-related.
-  Range: /<radius:[ ]?(\d+)>/gi,
+  Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Proximity: /<proximity:[ ]?(\d+)>/gi,
   Projectile: /<projectile:[ ]?([12348])>/gi,
-  Shape: /<hitbox:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
   Duration: /<duration:[ ]?(\d+)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
   DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,

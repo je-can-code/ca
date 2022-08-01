@@ -663,7 +663,7 @@ class OverlayManager
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.Range,
-      skillOverlay.jabsRange);
+      skillOverlay.jabsRadius);
   }
 
   /**

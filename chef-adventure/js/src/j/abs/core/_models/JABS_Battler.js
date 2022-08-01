@@ -1475,7 +1475,7 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.getCharacter().setDodgeBoost(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
-  this._dodgeSteps = skill.jabsRange;
+  this._dodgeSteps = skill.jabsRadius;
 
   // set the direction to be dodging in (front/back/specified).
   this._dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);

@@ -6,11 +6,11 @@
  * context of collision with targets.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsRange",
+Object.defineProperty(RPG_Skill.prototype, "jabsRadius",
   {
     get: function()
     {
-      return this.getJabsRange();
+      return this.getJabsRadius();
     },
   });
 
@@ -18,15 +18,15 @@ Object.defineProperty(RPG_Skill.prototype, "jabsRange",
  * Gets the JABS range for this skill.
  * @returns {number}
  */
-RPG_Skill.prototype.getJabsRange = function()
+RPG_Skill.prototype.getJabsRadius = function()
 {
-  return this.extractJabsRange();
+  return this.extractJabsRadius();
 };
 
 /**
  * Extracts the JABS range for this skill from its notes.
  */
-RPG_Skill.prototype.extractJabsRange = function()
+RPG_Skill.prototype.extractJabsRadius = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Range, true);
 };

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:24:27 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Aug 01 2022 16:35:07 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -1180,43 +1180,96 @@ J.ABS.Directions = {
 
   /**
    * Represents the UP direction, or 8.
+   * @type {8}
    */
   UP: 8,
 
   /**
    * Represents the RIGTH direction, or 6.
+   * @type {6}
    */
   RIGHT: 6,
 
   /**
    * Represents the LEFT direction, or 4.
+   * @type {4}
    */
   LEFT: 4,
 
   /**
    * Represents the DOWN direction, or 2.
+   * @type {2}
    */
   DOWN: 2,
 
   /**
    * Represents the diagonal LOWER LEFT direction, or 1.
+   * @type {1}
    */
   LOWERLEFT: 1,
 
   /**
    * Represents the diagonal LOWER RIGHT direction, or 3.
+   * @type {3}
    */
   LOWERRIGHT: 3,
 
   /**
    * Represents the diagonal UPPER LEFT direction, or 7.
+   * @type {7}
    */
   UPPERLEFT: 7,
 
   /**
    * Represents the diagonal UPPER RIGHT direction, or 9.
+   * @type {9}
    */
   UPPERRIGHT: 9,
+};
+
+/**
+ * The various collision shapes an attack can be.
+ */
+J.ABS.Shapes = {
+  /**
+   * A circle shaped hitbox.
+   */
+  Circle: "circle",
+
+  /**
+   * A rhombus (aka diamond) shaped hitbox.
+   */
+  Rhombus: "rhombus",
+
+  /**
+   * A square around the target hitbox.
+   */
+  Square: "square",
+
+  /**
+   *  A square in front of the target hitbox.
+   */
+  FrontSquare: "frontsquare",
+
+  /**
+   * A line from the target hitbox.
+   */
+  Line: "line",
+
+  /**
+   * An arc shape hitbox in front of the action.
+   */
+  Arc: "arc",
+
+  /**
+   * A wall in front of the target hitbox.
+   */
+  Wall: "wall",
+
+  /**
+   * A cross from the target hitbox.
+   */
+  Cross: "cross"
 };
 
 /**
@@ -1249,10 +1302,10 @@ J.ABS.RegExp = {
   UniqueCooldown: /<uniqueCooldown>/gi,
 
   // projectile-related.
-  Range: /<radius:[ ]?(\d+)>/gi,
+  Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Proximity: /<proximity:[ ]?(\d+)>/gi,
   Projectile: /<projectile:[ ]?([12348])>/gi,
-  Shape: /<hitbox:[ ]?(rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
   Duration: /<duration:[ ]?(\d+)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
   DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
@@ -2097,7 +2150,7 @@ class JABS_Action
    */
   getRange()
   {
-    return this.getBaseSkill().jabsRange;
+    return this.getBaseSkill().jabsRadius;
   }
 
   /**
@@ -3762,7 +3815,7 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.getCharacter().setDodgeBoost(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
-  this._dodgeSteps = skill.jabsRange;
+  this._dodgeSteps = skill.jabsRadius;
 
   // set the direction to be dodging in (front/back/specified).
   this._dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
@@ -11567,27 +11620,30 @@ class JABS_Engine // eslint-disable-line no-unused-vars
         textPopBuilder.setValue(`DODGE`);
         break;
       // if the result is hp damage, treat it as such.
-      case actionResult.hpDamage:
+      case actionResult.hpDamage !== 0:
         textPopBuilder
           .setValue(actionResult.hpDamage)
           .isHpDamage();
         break;
       // if the result is mp damage, treat it as such.
-      case actionResult.mpDamage:
+      case actionResult.mpDamage !== 0:
         textPopBuilder
           .setValue(actionResult.mpDamage)
           .isHpDamage();
         break;
       // if the result is tp damage, treat it as such.
-      case actionResult.tpDamage:
+      case actionResult.tpDamage !== 0:
         textPopBuilder
           .setValue(actionResult.tpDamage)
           .isHpDamage();
         break;
       // if for some reason its something else, they are probably immune.
       default:
-        textPopBuilder.setValue(`IMMUNE`);
-        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
+        textPopBuilder
+          .setValue(actionResult.hpDamage)
+          .isHpDamage();
+        globalThis.failedTextPopActionResult = actionResult;
+        console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
         break;
     }
 
@@ -11667,8 +11723,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const targetsHit = [];
 
     const allyTarget = casterJabsBattler.getAllyTarget();
-    if (allyTarget && action.getAction()
-      .isForOne())
+    if (allyTarget && action.getAction().isForOne())
     {
       if (allyTarget.canActionConnect() && allyTarget.isWithinScope(action, allyTarget, hitOne))
       {
@@ -11677,64 +11732,59 @@ class JABS_Engine // eslint-disable-line no-unused-vars
       }
     }
 
-    battlers
-      .filter(battler =>
-      {
-      // this battler is untargetable.
-        if (!battler.canActionConnect()) return false;
+    battlers.filter(battler =>
+    {
+    // this battler is untargetable.
+      if (!battler.canActionConnect()) return false;
 
-        // the action's scopes don't meet the criteria for this target.
-        // excludes the "single"-hitonce check.
-        if (!battler.isWithinScope(action, battler)) return false;
+      // the action's scopes don't meet the criteria for this target.
+      // excludes the "single"-hitonce check.
+      if (!battler.isWithinScope(action, battler)) return false;
 
-        // if the attacker is an enemy, do not consider inanimate targets.
-        if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
+      // if the attacker is an enemy, do not consider inanimate targets.
+      if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
 
-        // this battler is potentially hit-able.
-        return true;
-      })
-      .forEach(battler =>
-      {
+      // this battler is potentially hit-able.
+      return true;
+    })
+    .forEach(battler =>
+    {
       // this time, it is effectively checking for the single-scope.
-        if (!battler.isWithinScope(action, battler, hitOne)) return;
+      if (!battler.isWithinScope(action, battler, hitOne)) return;
 
-        // if the action is a direct-targeting action,
-        // then only check distance between the caster and target.
-        if (action.isDirectAction())
+      // if the action is a direct-targeting action,
+      // then only check distance between the caster and target.
+      if (action.isDirectAction())
+      {
+        if (action.getAction().isForUser())
         {
-          if (action.getAction()
-            .isForUser())
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-            return;
-          }
-          const maxDistance = action.getProximity();
-          const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
-          if (distance <= maxDistance)
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-          }
+          targetsHit.push(battler);
+          hitOne = true;
+          return;
+        }
+        const maxDistance = action.getProximity();
+        const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
+        if (distance <= maxDistance)
+        {
+          targetsHit.push(battler);
+          hitOne = true;
+        }
 
-        // if the action is a standard projectile-based action,
-        // then check to see if this battler is now in range.
-        }
-        else
+      // if the action is a standard projectile-based action,
+      // then check to see if this battler is now in range.
+      }
+      else
+      {
+        const sprite = battler.getCharacter();
+        const actionDirection = actionSprite.direction();
+        const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
+        if (result)
         {
-          const sprite = battler.getCharacter();
-          let dx = actionSprite.x - sprite.x;
-          let dy = actionSprite.y - sprite.y;
-          dx = dx >= 0 ? Math.max(dx, 0) : Math.min(dx, 0);
-          dy = dy >= 0 ? Math.max(dy, 0) : Math.min(dy, 0);
-          const result = this.isTargetWithinRange(caster.direction(), dx, dy, range, shape);
-          if (result)
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-          }
+          targetsHit.push(battler);
+          hitOne = true;
         }
-      });
+      }
+    });
 
     return targetsHit;
   }
@@ -11742,32 +11792,58 @@ class JABS_Engine // eslint-disable-line no-unused-vars
   /**
    * Determines collision of a given shape vs coordinates.
    * @param {number} facing The direction the caster is facing.
-   * @param {number} dx The distance between target and X value.
-   * @param {number} dy The distance between target and Y value.
+   * @param {Game_Event|Game_Player|Game_Character} targetCharacter The target being hit.
+   * @param {Game_Event} actionEvent The action sprite against the target.
    * @param {number} range How big the collision shape is.
    * @param {string} shape The collision formula based on shape.
    */
-  isTargetWithinRange(facing, dx, dy, range, shape)
+  isTargetWithinRange(facing, targetCharacter, actionEvent, range, shape)
   {
     switch (shape)
     {
-      case J.BASE.Shapes.Rhombus:
-        return this.collisionRhombus(Math.abs(dx), Math.abs(dy), range);
-      case J.BASE.Shapes.Square:
-        return this.collisionSquare(Math.abs(dx), Math.abs(dy), range);
-      case J.BASE.Shapes.FrontSquare:
-        return this.collisionFrontSquare(dx, dy, range, facing);
-      case J.BASE.Shapes.Line:
-        return this.collisionLine(dx, dy, range, facing);
-      case J.BASE.Shapes.Arc:
-        return this.collisionArc(dx, dy, range, facing);
-      case J.BASE.Shapes.Wall:
-        return this.collisionWall(dx, dy, range, facing);
-      case J.BASE.Shapes.Cross:
-        return this.collisionCross(dx, dy, range);
+      // shapes that do not care about direction.
+      case J.ABS.Shapes.Circle:
+        return this.collisionCircle(targetCharacter, actionEvent, range);
+      case J.ABS.Shapes.Rhombus:
+        return this.collisionRhombus(targetCharacter, actionEvent, range);
+      case J.ABS.Shapes.Square:
+        return this.collisionSquare(targetCharacter, actionEvent, range);
+      case J.ABS.Shapes.Cross:
+        return this.collisionCross(targetCharacter, actionEvent, range);
+
+      // shapes that require action direction.
+      case J.ABS.Shapes.FrontSquare:
+        return this.collisionFrontSquare(targetCharacter, actionEvent, range, facing);
+      case J.ABS.Shapes.Line:
+        return this.collisionLine(targetCharacter, actionEvent, range, facing);
+      case J.ABS.Shapes.Arc:
+        return this.collisionFrontRhombus(targetCharacter, actionEvent, range, facing);
+      case J.ABS.Shapes.Wall:
+        return this.collisionWall(targetCharacter, actionEvent, range, facing);
       default:
         return false;
     }
+  }
+
+  /**
+   * A cirlce-shaped collision.
+   * Range determines the radius of the circle.
+   * This has no specific type of use- it is a circle.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
+   * @param {number} range How big the collision shape is.
+   * @returns {boolean}
+   */
+  collisionCircle(target, action, range)
+  {
+    // calculate the distance between the target and action.
+    const distance = $gameMap.distance(target.x, target.y, action.x, action.y);
+    
+    // determine whether or not the target is within range of being hit.
+    const inRange = distance <= range;
+
+    // return the result.
+    return inRange;
   }
 
   /**
@@ -11775,13 +11851,25 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    * Range determines the size of the rhombus surrounding the action.
    * This is typically used for AOE around the caster type skills, but could also
    * be used for very large objects, or as an explosion radius.
-   * @param {number} absDx The absolute value of the distance between target and actions' `X` value.
-   * @param {number} absDy The absolute value of the distance between target and actions' `Y` value.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
    * @param {number} range How big the collision shape is.
+   * @returns {boolean}
    */
-  collisionRhombus(absDx, absDy, range)
+  collisionRhombus(target, action, range)
   {
-    return (absDx + absDy) <= range;
+    // calculate the absolute x and y distances.
+    const dx = Math.abs($gameMap.deltaX(target.x, action.x));
+    const dy = Math.abs($gameMap.deltaY(target.y, action.y));
+
+    // the maximum distance the rhombus reaches is the combined x and y distances.
+    const distance = dx + dy;
+
+    // determine whether or not the target is within range of being hit.
+    const inRange = distance <= range;
+
+    // return the result.
+    return inRange;
   }
 
   /**
@@ -11789,15 +11877,28 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    * Range determines the size of the square around the action.
    * The use cases for this are similar to that of rhombus, but instead of a diamond-shaped
    * hitbox, its a plain ol' square.
-   * @param {number} absDx The absolute value of the distance between target and actions' `X` value.
-   * @param {number} absDy The absolute value of the distance between target and actions' `Y` value.
-   * @param {number} range How big the collision square is.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
+   * @param {number} range How big the collision shape is.
+   * @returns {boolean}
    */
-  collisionSquare(absDx, absDy, range)
+  collisionSquare(target, action, range)
   {
-    const inHorzRange = absDx <= range;
-    const inVertRange = absDy <= range;
-    return inHorzRange && inVertRange;
+    // calculate the absolute x and y distances.
+    const dx = Math.abs($gameMap.deltaX(target.x, action.x));
+    const dy = Math.abs($gameMap.deltaY(target.y, action.y));
+
+    // determine if we're in horizontal range.
+    const inHorzRange = dx <= range;
+
+    // determine if we're in vertical range.
+    const inVertRange = dy <= range;
+
+    // determine whether or not the target is within range of being hit.
+    const inRange = inHorzRange && inVertRange;
+
+    // return the result.
+    return inRange;
   }
 
   /**
@@ -11805,141 +11906,229 @@ class JABS_Engine // eslint-disable-line no-unused-vars
    * Range determines the size of the square infront of the action.
    * For when you want a square that doesn't affect targets behind the action. It would be
    * more accurate to call this a "half-square", really.
-   * @param {number} dx The distance between target and actions' `X` value.
-   * @param {number} dy The distance between target and actions' `Y` value.
-   * @param {number} range How big the collision square is.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
+   * @param {number} range How big the collision shape is.
    * @param {number} facing The direction the caster is facing at time of cast.
+   * @returns {boolean}
    */
-  collisionFrontSquare(dx, dy, range, facing)
+  collisionFrontSquare(target, action, range, facing)
   {
-    const inHorzRange = Math.abs(dx) <= range;
-    const inVertRange = Math.abs(dy) <= range;
-    let isFacing = true;
+    // determine whether or not the target is within range of being hit.
+    const inSquareRange = this.collisionSquare(target, action, range);
 
+    // if they don't even collide in the full square, they won't collide in the frontsquare.
+    if (!inSquareRange) return false;
+
+    // calculate the non-absolute x and y distances.
+    const dx = $gameMap.deltaX(target.x, action.x);
+    const dy = $gameMap.deltaY(target.y, action.y);
+
+    // default to being infront, we always are!
+    let inFront = true;
+
+    // switch on caster's direction.
+    // NOTE: this switch also ensures the action doesn't connect with targets behind it.
     switch (facing)
     {
+      // infront when facing down means there should be positive Y distance.
       case J.ABS.Directions.DOWN:
-        isFacing = dy <= 0;
+        inFront = dy >= 0;
         break;
+      // infront when facing left means there should be negative X distance.
       case J.ABS.Directions.LEFT:
-        isFacing = dx >= 0;
+        inFront = dx <= 0;
         break;
+      // infront when facing right means there should be positive X distance.
       case J.ABS.Directions.RIGHT:
-        isFacing = dx <= 0;
+        inFront = dx >= 0;
         break;
+      // infront when facing up means there should be negative Y distance.
       case J.ABS.Directions.UP:
-        isFacing = dy >= 0;
+        inFront = dy <= 0;
         break;
     }
 
-    return inHorzRange && inVertRange && isFacing;
+    // determine whether or not the target is within range of being hit.
+    const inRange = inSquareRange && inFront;
+
+    // return the result.
+    return inRange;
   }
 
   /**
    * A line-shaped collision.
    * Range the distance of the of the line.
    * This is typically used for spears and other stabby attacks.
-   * @param {number} dx The distance between target and X value.
-   * @param {number} dy The distance between target and Y value.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
    * @param {number} range How big the collision shape is.
    * @param {number} facing The direction the caster is facing at time of cast.
+   * @returns {boolean}
    */
-  collisionLine(dx, dy, range, facing)
+  collisionLine(target, action, range, facing)
   {
-    let result = false;
+    // calculate the non-absolute x and y distances.
+    const dx = $gameMap.deltaX(target.x, action.x);
+    const dy = $gameMap.deltaY(target.y, action.y);
+
+    // default to not hitting.
+    let inRange = false;
+
+    // some wiggle room rather than being precisely 0 distance for lines.
+    // TODO: accommodate a new <size:#> tag for defining width of the line.
+    const upDownBuffer = (dx <= 0.5) && (dx >= -0.5);
+    const leftRightBuffer = (dy <= 0.5) && (dy >= -0.5);
+
+    // switch on caster's direction.
     switch (facing)
     {
       case J.ABS.Directions.DOWN:
-        result = (dx === 0) && (dy >= 0) && (dy <= range);
-        break;
-      case J.ABS.Directions.UP:
-        result = (dx === 0) && (dy <= 0) && (dy >= -range);
-        break;
-      case J.ABS.Directions.RIGHT:
-        result = (dy === 0) && (dx >= 0) && (dx <= range);
+        inRange = upDownBuffer && (dy >= 0) && (dy <= range);
         break;
       case J.ABS.Directions.LEFT:
-        result = (dy === 0) && (dx <= 0) && (dx >= -range);
+        inRange = leftRightBuffer && (dx <= 0) && (dx >= -range);
+        break;
+      case J.ABS.Directions.RIGHT:
+        inRange = leftRightBuffer && (dx >= 0) && (dx <= range);
+        break;
+      case J.ABS.Directions.UP:
+        inRange = upDownBuffer && (dy <= 0) && (dy >= -range);
         break;
     }
 
-    return result;
+    // return the result.
+    return inRange;
   }
 
   /**
    * An arc-shaped collision.
    * Range determines the reach and area of arc.
    * This is what could be considered a standard 180 degree slash-shape, the basic attack.
-   * @param {number} dx The distance between target and X value.
-   * @param {number} dy The distance between target and Y value.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
    * @param {number} range How big the collision shape is.
    * @param {number} facing The direction the caster is facing at time of cast.
+   * @returns {boolean}
    */
-  collisionArc(dx, dy, range, facing)
+  collisionFrontRhombus(target, action, range, facing)
   {
-    const inRange = (Math.abs(dx) + Math.abs(dy)) <= range;
-    let isFacing = true;
+    // determine whether or not the target is within range of being hit.
+    const inRhombusRange = this.collisionRhombus(target, action, range);
+
+    // if they don't even collide in the full rhombus, they won't collide in the frontrhombus.
+    if (!inRhombusRange) return false;
+
+    // calculate the non-absolute x and y distances.
+    const dx = $gameMap.deltaX(target.x, action.x);
+    const dy = $gameMap.deltaY(target.y, action.y);
+
+    // default to being infront, we always are!
+    let inFront = true;
+
+    // switch on caster's direction.
+    // NOTE: this switch also ensures the action doesn't connect with targets behind it.
     switch (facing)
     {
+      // infront when facing down means there should be positive Y distance.
       case J.ABS.Directions.DOWN:
-        isFacing = dy <= 0;
+        inFront = dy >= 0;
         break;
-      case J.ABS.Directions.UP:
-        isFacing = dy >= 0;
-        break;
-      case J.ABS.Directions.RIGHT:
-        isFacing = dx <= 0;
-        break;
+      // infront when facing left means there should be negative X distance.
       case J.ABS.Directions.LEFT:
-        isFacing = dx >= 0;
+        inFront = dx <= 0;
+        break;
+      // infront when facing right means there should be positive X distance.
+      case J.ABS.Directions.RIGHT:
+        inFront = dx >= 0;
+        break;
+      // infront when facing up means there should be negative Y distance.
+      case J.ABS.Directions.UP:
+        inFront = dy <= 0;
         break;
     }
 
-    return inRange && isFacing;
+    // determine whether or not the target is within range of being hit.
+    const inRange = inRhombusRange && inFront;
+
+    // return the result.
+    return inRange;
   }
 
   /**
    * A wall-shaped collision.
    * Range determines how wide the wall is.
    * Typically used for hitting targets to the side of the caster.
-   * @param {number} dx The distance between target and X value.
-   * @param {number} dy The distance between target and Y value.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
    * @param {number} range How big the collision shape is.
    * @param {number} facing The direction the caster is facing at time of cast.
+   * @returns {boolean}
    */
-  collisionWall(dx, dy, range, facing)
+  collisionWall(target, action, range, facing)
   {
-    let result = false;
+    // calculate the non-absolute x and y distances.
+    const dx = $gameMap.deltaX(target.x, action.x);
+    const dy = $gameMap.deltaY(target.y, action.y);
+
+    // some wiggle room rather than being precisely 0 distance for lines.
+    // TODO: accommodate a new <size:#> tag for defining width of the wall.
+    const leftRightBuffer = (dx <= 0.5) && (dx >= -0.5);
+    const upDownBuffer = (dy <= 0.5) && (dy >= -0.5);
+
+    // default to not hitting.
+    let inRange = false;
+
     switch (facing)
     {
+      // when facing up or down, the Y distance should be minimal.
       case J.ABS.Directions.DOWN:
       case J.ABS.Directions.UP:
-        result = Math.abs(dx) <= range && dy === 0;
+        inRange = (Math.abs(dx) <= range) && upDownBuffer;
         break;
+      // when facing left or right, the X distance should be minimal.
       case J.ABS.Directions.RIGHT:
       case J.ABS.Directions.LEFT:
-        result = Math.abs(dy) <= range && dx === 0;
+        inRange = (Math.abs(dy) <= range) && leftRightBuffer;
         break;
     }
 
-    return result;
+    // return the result.
+    return inRange;
   }
 
   /**
    * A cross shaped collision.
    * Range determines how far the cross reaches from the action.
    * Think bomb explosions from the game bomberman.
-   * @param {number} dx The distance between target and X value.
-   * @param {number} dy The distance between target and Y value.
+   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
+   * @param {Game_Event} action The action sprite against the target.
    * @param {number} range How big the collision shape is.
+   * @returns {boolean}
    */
-  collisionCross(dx, dy, range)
+  collisionCross(target, action, range)
   {
-    const inVertRange = Math.abs(dy) <= range && dx === 0;
-    const inHorzRange = Math.abs(dx) <= range && dy === 0;
-    return inVertRange || inHorzRange;
-  }
+    // calculate the non-absolute x and y distances.
+    const dx = $gameMap.deltaX(target.x, action.x);
+    const dy = $gameMap.deltaY(target.y, action.y);
 
+    // some wiggle room rather than being precisely 0 distance for lines.
+    // TODO: accommodate a new <size:#> tag for defining width of the wall.
+    const leftRightBuffer = (dx <= 0.5) && (dx >= -0.5);
+    const upDownBuffer = (dy <= 0.5) && (dy >= -0.5);
+
+    // determine if we are in vertical range.
+    const inVertRange = Math.abs(dy) <= range && leftRightBuffer;
+
+    // determine if we are in horizontal range.
+    const inHorzRange = Math.abs(dx) <= range && upDownBuffer;
+
+    // determine whether or not the target is within range of being hit.
+    const inRange = inVertRange && inHorzRange;
+
+    // return the result.
+    return inRange;
+  }
   //#endregion collision
   //#endregion functional
 
@@ -15592,11 +15781,11 @@ RPG_Item.prototype.extractJabsExpirationFrames = function()
  * context of collision with targets.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsRange",
+Object.defineProperty(RPG_Skill.prototype, "jabsRadius",
   {
     get: function()
     {
-      return this.getJabsRange();
+      return this.getJabsRadius();
     },
   });
 
@@ -15604,15 +15793,15 @@ Object.defineProperty(RPG_Skill.prototype, "jabsRange",
  * Gets the JABS range for this skill.
  * @returns {number}
  */
-RPG_Skill.prototype.getJabsRange = function()
+RPG_Skill.prototype.getJabsRadius = function()
 {
-  return this.extractJabsRange();
+  return this.extractJabsRadius();
 };
 
 /**
  * Extracts the JABS range for this skill from its notes.
  */
-RPG_Skill.prototype.extractJabsRange = function()
+RPG_Skill.prototype.extractJabsRadius = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Range, true);
 };
@@ -18251,7 +18440,6 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
-    this.debugActor("maintaining safe distance", battler);
 
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
@@ -18283,7 +18471,6 @@ class JABS_AiManager
     // check if the distance is invalid or too great.
     if (this.shouldDisengageTarget(battler))
     {
-      this.debugActor("phase 2: disengaging", battler);
 
       // just give up on this target.
       battler.disengageTarget();
@@ -18295,7 +18482,6 @@ class JABS_AiManager
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {
-      this.debugActor("phase 2: deciding action", battler);
 
       // make a decision about what to do.
       this.decideAiPhase2Action(battler);
@@ -18307,7 +18493,6 @@ class JABS_AiManager
     // check if we need to reposition.
     if (this.needsRepositioning(battler))
     {
-      this.debugActor("phase 2: repositioning", battler);
 
       // move into a better position based on the decided action.
       this.decideAiPhase2Movement(battler);
@@ -18319,8 +18504,6 @@ class JABS_AiManager
     // check if we're ready to execute actions.
     if (this.needsActionExecution(battler))
     {
-      this.debugActor("phase 2: executing action", battler);
-
       // execute the decided action.
       this.executeAiPhase2Action(battler);
     }
@@ -19104,8 +19287,6 @@ class JABS_AiManager
     // check if we are ready for a phase reset.
     if (this.canResetAiPhases(battler))
     {
-      this.debugActor("phase 3: resetting phases", battler);
-
       // AI loop complete, reset back to phase 1.
       this.resetAiPhases(battler);
     }

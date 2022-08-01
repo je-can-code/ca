@@ -8,10 +8,10 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @base J-ControlledDrops
+ * @base J-DropsControl
  * @orderAfter J-ABS
- * @orderAfter J-BASE
- * @orderAfter J-DropControl
+ * @orderAfter J-Base
+ * @orderAfter J-DropsControl
  * @help
  * ============================================================================
  * This plugin is a form of "stat distribution"- an alternative to the standard

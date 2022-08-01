@@ -536,7 +536,7 @@ class JABS_Action
    */
   getRange()
   {
-    return this.getBaseSkill().jabsRange;
+    return this.getBaseSkill().jabsRadius;
   }
 
   /**
