@@ -431,21 +431,21 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
-
+    // TODO: update this in the pixel movement because its kinda janky.
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 
-    // check if the battler is "close".
-    if (JABS_Battler.isClose(distance))
+    // if we are safe, then do nothing.
+    if (JABS_Battler.isSafe(distance)) return;
+
+    switch (true)
     {
-      // move away from the target.
-      battler.moveAwayFromTarget();
-    }
-    // check if the battler is "far".
-    else if (JABS_Battler.isFar(distance))
-    {
-      // move intelligently towards the target (uses careful pathfinding).
-      battler.smartMoveTowardTarget();
+      case JABS_Battler.isClose(distance):
+        battler.smartMoveAwayFromTarget();
+        break;
+      case JABS_Battler.isFar(distance):
+        battler.smartMoveTowardTarget();
+        break;
     }
   }
   //#endregion Phase 1 - Pre-Action Movement Phase

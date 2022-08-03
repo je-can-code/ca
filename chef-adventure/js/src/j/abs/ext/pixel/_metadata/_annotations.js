@@ -1,4 +1,3 @@
-// TODO: need to sort out enemies and action events for JABS.
 /*:
  * @target MZ
  * @plugindesc
@@ -13,4 +12,6 @@
  * - 1.0.0
  *    The initial release.
  * ==============================================================================
+ * As a courtesy, the plugin started as:
+ * https://github.com/gsioteam/rmmz_movement
  */

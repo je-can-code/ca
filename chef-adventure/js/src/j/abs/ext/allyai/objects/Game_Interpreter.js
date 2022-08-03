@@ -12,8 +12,7 @@ Game_Interpreter.prototype.command205 = function(params)
   const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
 
   // then check the player's lock status and set all followers to be the same.
-  $gamePlayer.followers()
-    .setDirectionFixAll($gamePlayer.isDirectionFixed());
+  $gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
   $gamePlayer.jumpFollowersToMe();
   return result;
 };

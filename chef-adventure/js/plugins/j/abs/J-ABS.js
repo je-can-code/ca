@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Mon Aug 01 2022 16:35:07 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Aug 02 2022 17:37:34 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2868,13 +2868,17 @@ JABS_Battler.createPlayer = function()
   return new JABS_Battler($gamePlayer, battler, coreData);
 };
 
+JABS_Battler.closeDistance = 1.2;
+
+JABS_Battler.farDistance = 5.8;
+
 /**
  * Determines if the battler is close to the target based on distance.
  * @param {number} distance The distance away from the target.
  */
 JABS_Battler.isClose = function(distance)
 {
-  return distance <= 1.7;
+  return distance <= JABS_Battler.closeDistance;
 };
 
 /**
@@ -2883,7 +2887,7 @@ JABS_Battler.isClose = function(distance)
  */
 JABS_Battler.isSafe = function(distance)
 {
-  return (distance > 1.7) && (distance <= 3.5);
+  return (distance > JABS_Battler.closeDistance) && (distance <= JABS_Battler.farDistance);
 };
 
 /**
@@ -2892,7 +2896,7 @@ JABS_Battler.isSafe = function(distance)
  */
 JABS_Battler.isFar = function(distance)
 {
-  return distance > 3.5;
+  return distance > JABS_Battler.farDistance;
 };
 
 /**
@@ -5280,6 +5284,9 @@ JABS_Battler.prototype.disengageTarget = function()
 
   // disable being engaged.
   this.setEngaged(false);
+
+  // disable the alert when disengaging.
+  this.clearAlert();
 
   // remove leader/follower data.
   this.clearFollowers();
@@ -11642,8 +11649,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
         textPopBuilder
           .setValue(actionResult.hpDamage)
           .isHpDamage();
-        globalThis.failedTextPopActionResult = actionResult;
-        console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
+        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
         break;
     }
 
@@ -18440,21 +18446,21 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
-
+    // TODO: update this in the pixel movement because its kinda janky.
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 
-    // check if the battler is "close".
-    if (JABS_Battler.isClose(distance))
+    // if we are safe, then do nothing.
+    if (JABS_Battler.isSafe(distance)) return;
+
+    switch (true)
     {
-      // move away from the target.
-      battler.moveAwayFromTarget();
-    }
-    // check if the battler is "far".
-    else if (JABS_Battler.isFar(distance))
-    {
-      // move intelligently towards the target (uses careful pathfinding).
-      battler.smartMoveTowardTarget();
+      case JABS_Battler.isClose(distance):
+        battler.smartMoveAwayFromTarget();
+        break;
+      case JABS_Battler.isFar(distance):
+        battler.smartMoveTowardTarget();
+        break;
     }
   }
   //#endregion Phase 1 - Pre-Action Movement Phase
@@ -22075,51 +22081,12 @@ Game_Character.prototype.isMovementSucceeded = function()
   }
 };
 
-/**
- * Determines if a numeric directional input is diagonal.
- * @param {number} direction The direction to check.
- * @returns {boolean} True if the input is diagonal, false otherwise.
- */
-Game_Character.prototype.isDiagonalDirection = function(direction)
-{
-  return [1, 3, 7, 9].contains(direction);
-};
-
-/**
- * Determines if a numeric directional input is straight.
- * @param {number} direction The direction to check.
- * @returns {boolean} True if the input is straight, false otherwise.
- */
-Game_Character.prototype.isStraightDirection = function(direction)
-{
-  return [2, 4, 6, 8].contains(direction);
-};
-
-/**
- * Determines the horz/vert directions to move based on a diagonal direction.
- * @param {number} direction The diagonal-only numeric direction to move.
- */
-Game_Character.prototype.getDiagonalDirections = function(direction)
-{
-  switch (direction)
-  {
-    case 1:
-      return [4, 2];
-    case 3:
-      return [6, 2];
-    case 7:
-      return [4, 8];
-    case 9:
-      return [6, 8];
-  }
-};
-
+/* eslint-disable */
 /**
  * Intelligently determines the next step to take on a path to the destination `x,y`.
  * @param {number} goalX The `x` coordinate trying to be reached.
  * @param {number} goalY The `y` coordinate trying to be reached.
  */
-/* eslint-disable */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {
   const searchLimit = this.searchLimit();
@@ -22146,7 +22113,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 
   while (nodeList.length > 0)
   {
-    var bestIndex = 0;
+    let bestIndex = 0;
     for (var i = 0; i < nodeList.length; i++)
     {
       if (nodeList[i].f < nodeList[bestIndex].f)
@@ -22193,8 +22160,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
         directions = [j, j];
       }
 
-      const horz = directions[0];
-      const vert = directions[1];
+      const [horz, vert] = directions;
       const x2 = $gameMap.roundXWithDirection(x1, horz);
       const y2 = $gameMap.roundYWithDirection(y1, vert);
       const pos2 = y2 * mapWidth + x2;

@@ -2519,8 +2519,7 @@ class JABS_Engine // eslint-disable-line no-unused-vars
         textPopBuilder
           .setValue(actionResult.hpDamage)
           .isHpDamage();
-        globalThis.failedTextPopActionResult = actionResult;
-        console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
+        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
         break;
     }
 

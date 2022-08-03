@@ -6,7 +6,7 @@
 Game_Follower.prototype.pixelFaceCharacter = function(otherCharacter = $gamePlayer)
 {
   // grab the most recently added tracking for the previous character in the train.
-  const otherPosition = otherCharacter._lastPosition();
+  const otherPosition = otherCharacter.oldestPositionalRecord();
 
   // do not update direction if we don't know the preceding character's previous position.
   if (!otherPosition) return;

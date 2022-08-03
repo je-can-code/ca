@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Aug 02 2022 08:45:40 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1725,8 +1725,7 @@ Game_Interpreter.prototype.command205 = function(params)
   const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
 
   // then check the player's lock status and set all followers to be the same.
-  $gamePlayer.followers()
-    .setDirectionFixAll($gamePlayer.isDirectionFixed());
+  $gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
   $gamePlayer.jumpFollowersToMe();
   return result;
 };

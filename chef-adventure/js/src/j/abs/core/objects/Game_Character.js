@@ -319,51 +319,13 @@ Game_Character.prototype.isMovementSucceeded = function()
   }
 };
 
-/**
- * Determines if a numeric directional input is diagonal.
- * @param {number} direction The direction to check.
- * @returns {boolean} True if the input is diagonal, false otherwise.
- */
-Game_Character.prototype.isDiagonalDirection = function(direction)
-{
-  return [1, 3, 7, 9].contains(direction);
-};
-
-/**
- * Determines if a numeric directional input is straight.
- * @param {number} direction The direction to check.
- * @returns {boolean} True if the input is straight, false otherwise.
- */
-Game_Character.prototype.isStraightDirection = function(direction)
-{
-  return [2, 4, 6, 8].contains(direction);
-};
-
-/**
- * Determines the horz/vert directions to move based on a diagonal direction.
- * @param {number} direction The diagonal-only numeric direction to move.
- */
-Game_Character.prototype.getDiagonalDirections = function(direction)
-{
-  switch (direction)
-  {
-    case 1:
-      return [4, 2];
-    case 3:
-      return [6, 2];
-    case 7:
-      return [4, 8];
-    case 9:
-      return [6, 8];
-  }
-};
-
+/* eslint-disable */
 /**
  * Intelligently determines the next step to take on a path to the destination `x,y`.
  * @param {number} goalX The `x` coordinate trying to be reached.
  * @param {number} goalY The `y` coordinate trying to be reached.
+ * @returns {1|2|3|4|6|7|8|9} The direction decided.
  */
-/* eslint-disable */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {
   const searchLimit = this.searchLimit();
@@ -390,7 +352,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 
   while (nodeList.length > 0)
   {
-    var bestIndex = 0;
+    let bestIndex = 0;
     for (var i = 0; i < nodeList.length; i++)
     {
       if (nodeList[i].f < nodeList[bestIndex].f)
@@ -437,8 +399,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
         directions = [j, j];
       }
 
-      const horz = directions[0];
-      const vert = directions[1];
+      const [horz, vert] = directions;
       const x2 = $gameMap.roundXWithDirection(x1, horz);
       const y2 = $gameMap.roundYWithDirection(y1, vert);
       const pos2 = y2 * mapWidth + x2;

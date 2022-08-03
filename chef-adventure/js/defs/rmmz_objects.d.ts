@@ -2545,7 +2545,7 @@ declare class Game_CharacterBase {
     setTileImage(tileId: number): void;
     checkEventTriggerTouchFront(d: number): void;
     checkEventTriggerTouch(x: number, y: number): boolean;
-    isMovementSucceeded(x: number, y: number): boolean;
+    isMovementSucceeded(): boolean;
     setMovementSuccess(success: boolean): void;
     moveStraight(d: number): void;
     moveDiagonally(horz: number, vert: number): void;

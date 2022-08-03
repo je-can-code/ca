@@ -528,13 +528,17 @@ JABS_Battler.createPlayer = function()
   return new JABS_Battler($gamePlayer, battler, coreData);
 };
 
+JABS_Battler.closeDistance = 1.2;
+
+JABS_Battler.farDistance = 5.8;
+
 /**
  * Determines if the battler is close to the target based on distance.
  * @param {number} distance The distance away from the target.
  */
 JABS_Battler.isClose = function(distance)
 {
-  return distance <= 1.7;
+  return distance <= JABS_Battler.closeDistance;
 };
 
 /**
@@ -543,7 +547,7 @@ JABS_Battler.isClose = function(distance)
  */
 JABS_Battler.isSafe = function(distance)
 {
-  return (distance > 1.7) && (distance <= 3.5);
+  return (distance > JABS_Battler.closeDistance) && (distance <= JABS_Battler.farDistance);
 };
 
 /**
@@ -552,7 +556,7 @@ JABS_Battler.isSafe = function(distance)
  */
 JABS_Battler.isFar = function(distance)
 {
-  return distance > 3.5;
+  return distance > JABS_Battler.farDistance;
 };
 
 /**
@@ -2940,6 +2944,9 @@ JABS_Battler.prototype.disengageTarget = function()
 
   // disable being engaged.
   this.setEngaged(false);
+
+  // disable the alert when disengaging.
+  this.clearAlert();
 
   // remove leader/follower data.
   this.clearFollowers();
