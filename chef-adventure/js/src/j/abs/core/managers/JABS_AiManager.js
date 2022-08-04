@@ -431,7 +431,6 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
-    // TODO: update this in the pixel movement because its kinda janky.
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 

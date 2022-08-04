@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Aug 02 2022 14:46:17 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Aug 04 2022 07:22:45 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -480,10 +480,11 @@ Object.defineProperty(String, "empty", { writable: false });
  * This uses `.forEach()` under the covers, so build your functions accordingly.
  * @param {number} times
  * @param {Function} func The function
+ * @param {undefined|any=} thisArg What represents "this" in the `.forEach()`; defaults to undefined.
  */
-Number.prototype.iterate = function(times, func)
+Array.iterate = function(times, func, thisArg = undefined)
 {
-  [...Array(times)].forEach(func);
+  [...Array(times)].forEach(func, thisArg);
 };
 //#endregion Helpers
 

@@ -1,3 +1,6 @@
+import { RPG_EnemyAction } from '../src/j/_base/database/_data/RPG_EnemyAction.js';
+import { RPG_Trait } from '../src/j/_base/database/_data/RPG_Trait.js';
+
 declare class Game_Action {
     /**
      *

@@ -433,9 +433,10 @@ Object.defineProperty(String, "empty", { writable: false });
  * This uses `.forEach()` under the covers, so build your functions accordingly.
  * @param {number} times
  * @param {Function} func The function
+ * @param {undefined|any=} thisArg What represents "this" in the `.forEach()`; defaults to undefined.
  */
-Number.prototype.iterate = function(times, func)
+Array.iterate = function(times, func, thisArg = undefined)
 {
-  [...Array(times)].forEach(func);
+  [...Array(times)].forEach(func, thisArg);
 };
 //#endregion Helpers

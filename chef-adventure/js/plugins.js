@@ -7,7 +7,7 @@ var $plugins =
 {"name":"others/MOG_CharacterMotion","status":true,"description":"(v1.0) Sistema de animações dos sprites dos personagens.","parameters":{}},
 {"name":"others/MOG_Weather_EX","status":true,"description":"(v1.3) Adiciona novos efeitos de climas.","parameters":{"Battle Weather":"true","/":""}},
 {"name":"others/PluginCommonBase","status":true,"description":"Plugin Analysis Common Base","parameters":{}},
-{"name":"others/RegionBase","status":true,"description":"Region Base Plugin","parameters":{"regionList":"[\"{\\\"id\\\":\\\"10\\\",\\\"name\\\":\\\"no-movement\\\",\\\"collisionForPlayer\\\":\\\"[\\\\\\\"collision_all\\\\\\\"]\\\",\\\"collisionForEvent\\\":\\\"[\\\\\\\"collision_all\\\\\\\"]\\\",\\\"through\\\":\\\"false\\\",\\\"tileAttribute\\\":\\\"[]\\\",\\\"commonEvent\\\":\\\"\\\",\\\"switchId\\\":\\\"\\\",\\\"traitsId\\\":\\\"\\\",\\\"note\\\":\\\"\\\"}\"]","terrainTagList":"[]"}},
+{"name":"others/RegionBase","status":false,"description":"Region Base Plugin","parameters":{"regionList":"[\"{\\\"id\\\":\\\"10\\\",\\\"name\\\":\\\"no-movement\\\",\\\"collisionForPlayer\\\":\\\"[\\\\\\\"collision_all\\\\\\\"]\\\",\\\"collisionForEvent\\\":\\\"[\\\\\\\"collision_all\\\\\\\"]\\\",\\\"through\\\":\\\"false\\\",\\\"tileAttribute\\\":\\\"[]\\\",\\\"commonEvent\\\":\\\"\\\",\\\"switchId\\\":\\\"\\\",\\\"traitsId\\\":\\\"\\\",\\\"note\\\":\\\"\\\"}\"]","terrainTagList":"[]"}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/J-Base","status":true,"description":"[v2.1.0 BASE] The base class for all J plugins.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
@@ -17,9 +17,13 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/abs/ext/J-ABS-AllyAI","status":true,"description":"[v1.0.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.","parameters":{"menuConfigs":"","jabsMenuAllyAiCommandName":"Assign Ally AI","jabsMenuAllyAiCommandIconIndex":"2564","jabsMenuAllyAiCommandSwitchId":"101","partyConfigs":"","partyWidePassiveText":"Passive Enabled","partyWidePassiveIconIndex":"4","partyWideAggressiveText":"Aggressive Enabled","partyWideAggressiveIconIndex":"15","aiModeConfigs":"","aiModeEquipped":"91","aiModeNotEquipped":"95","aiModeDoNothing":"Do Nothing","aiModeOnlyAttack":"Only Attack","aiModeVariety":"Variety","aiModeFullForce":"Full Force","aiModeSupport":"Support"}},
 {"name":"j/abs/ext/J-ABS-InputManager","status":true,"description":"[v1.0.0 INPUT] A manager for overseeing the input of JABS.","parameters":{}},
+{"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
+{"name":"j/abs/ext/J-ABS-Diagonals","status":true,"description":"[v1.0.0 DIAG] Fixes diagonal movement for projectiles and characters.","parameters":{}},
+{"name":"j/abs/ext/J-ABS-PixelMovement","status":false,"description":"[v1.0.0 PIXEL] WIP Enables pixel movement.","parameters":{}},
+{"name":"others/Cyclone-Movement","status":true,"description":"Adds new movement features to the game v1.01.01\r\n\r\n<pluginName:CycloneMovement>","parameters":{"stepCount":"4","collisionStepCount":"4","followerStepsBehind":"4","triggerAllEvents":"false","ignoreEmptyEvents":"true","autoLeaveVehicles":"false","diagonalPathfinding":"true","disableMouseMovement":"false","maxOffset":"0.75","sidestepEvents":"false"}},
+{"name":"j/abs/ext/J-ABS-CycloneAdapter","status":true,"description":"[v1.0.0 CYCLE] An adapter to accommodate Cyclone-Movement in JABS.","parameters":{}},
 {"name":"j/abs/ext/J-ABS-Speed","status":true,"description":"[v1.0.0 MOVE] Enable modifying move speeds.","parameters":{}},
-{"name":"j/abs/ext/J-ABS-Diagonals","status":false,"description":"[v1.0.0 DIAG] Fixes diagonal movement for projectiles and characters.","parameters":{}},
-{"name":"j/abs/ext/J-ABS-PixelMovement","status":true,"description":"[v1.0.0 PIXEL] WIP Enables pixel movement.","parameters":{}},
+{"name":"others/SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/abs/ext/J-ABS-Timing","status":true,"description":"[v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.","parameters":{}},
 {"name":"j/abs/ext/J-ABS-Charge","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{"defaults":"","defaultChargingAnimId":"0","defaultTierCompleteAnimId":"0","useTierCompleteSE":"false","allowTierCompleteSEandAnim":"false"}},
@@ -66,7 +70,5 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"kame/KMS_AreaEvent","status":true,"description":"[v0.1 AREA] Expand the trigger area for events on map.","parameters":{}},
 {"name":"others/umc_Lighting_mz","status":true,"description":"v1.47 Basic-but-optimized lighting plugin.","parameters":{"defaultPlayerLightRadius":"250"}},
-{"name":"others/SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}},
-{"name":"others/ShopScene_Extension","status":true,"description":"Shop screen expansion v1.0.4","parameters":{"ActorCharacterSpace":"24","ActorCharacterBeginOfs":"32","MaxVisibleActors":"4","EnableActorArrow":"true","VisibleEquipMode":"1","StatusWidth":"352"}},
-{"name":"others/Cyclone-Movement","status":false,"description":"Adds new movement features to the game v1.01.01\r\n\r\n<pluginName:CycloneMovement>","parameters":{"stepCount":"4","collisionStepCount":"4","followerStepsBehind":"3","triggerAllEvents":"false","ignoreEmptyEvents":"true","autoLeaveVehicles":"false","diagonalPathfinding":"true","disableMouseMovement":"false","maxOffset":"0.75","sidestepEvents":"false"}}
+{"name":"others/ShopScene_Extension","status":true,"description":"Shop screen expansion v1.0.4","parameters":{"ActorCharacterSpace":"24","ActorCharacterBeginOfs":"32","MaxVisibleActors":"4","EnableActorArrow":"true","VisibleEquipMode":"1","StatusWidth":"352"}}
 ];

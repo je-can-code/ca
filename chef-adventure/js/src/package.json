@@ -120,6 +120,9 @@
     "once:jabs-charge": "node utils/combine.js ./j/abs/ext/charge ../plugins/j/abs/ext J-ABS-Charge.js",
     "watch:jabs-charge": "nodemon -L utils/combine.js ./j/abs/ext/charge ../plugins/j/abs/ext J-ABS-Charge.js",
 
+    "once:jabs-cycle": "node utils/combine.js ./j/abs/ext/cycle ../plugins/j/abs/ext J-ABS-CycloneAdapter.js",
+    "watch:jabs-cycle": "nodemon -L utils/combine.js ./j/abs/ext/cycle ../plugins/j/abs/ext J-ABS-CycloneAdapter.js",
+
     "once:jabs-danger": "node utils/combine.js ./j/abs/ext/danger ../plugins/j/abs/ext J-ABS-DangerIndicator.js",
     "watch:jabs-danger": "nodemon -L utils/combine.js ./j/abs/ext/danger ../plugins/j/abs/ext J-ABS-DangerIndicator.js",
 

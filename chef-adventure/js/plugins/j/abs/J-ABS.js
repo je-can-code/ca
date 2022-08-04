@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Aug 02 2022 17:37:34 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Aug 04 2022 08:34:44 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2868,9 +2868,18 @@ JABS_Battler.createPlayer = function()
   return new JABS_Battler($gamePlayer, battler, coreData);
 };
 
-JABS_Battler.closeDistance = 1.2;
+// TODO: parameterize this on a per-enemy basis?
+/**
+ * If a battler is less than this distance from the target, they are considered "close".
+ * @type {number}
+ */
+JABS_Battler.closeDistance = 3.0;
 
-JABS_Battler.farDistance = 5.8;
+/**
+ * If a battler is more than this distance from the target, they are considered "far".
+ * @type {number}
+ */
+JABS_Battler.farDistance = 5.0;
 
 /**
  * Determines if the battler is close to the target based on distance.
@@ -3747,10 +3756,10 @@ JABS_Battler.prototype.clearAlert = function()
 {
   this.setAlerted(false);
   this._alertedCounter = 0;
-  if (!this.isEngaged())
-  {
-    this.showBalloon(J.ABS.Balloons.Silence);
-  }
+  // if (!this.isEngaged())
+  // {
+  //   this.showBalloon(J.ABS.Balloons.Silence);
+  // }
 };
 //#endregion timers
 
@@ -5299,7 +5308,7 @@ JABS_Battler.prototype.disengageTarget = function()
   this.resetPhases();
 
   // TODO: abstract this.
-  this.showBalloon(J.ABS.Balloons.Frustration);
+  //this.showBalloon(J.ABS.Balloons.Frustration);
 };
 
 /**
@@ -18446,7 +18455,6 @@ class JABS_AiManager
    */
   static maintainSafeDistance(battler)
   {
-    // TODO: update this in the pixel movement because its kinda janky.
     // calculate the distance to this battler's current target.
     const distance = battler.distanceToCurrentTarget();
 
@@ -22086,6 +22094,7 @@ Game_Character.prototype.isMovementSucceeded = function()
  * Intelligently determines the next step to take on a path to the destination `x,y`.
  * @param {number} goalX The `x` coordinate trying to be reached.
  * @param {number} goalY The `y` coordinate trying to be reached.
+ * @returns {1|2|3|4|6|7|8|9} The direction decided.
  */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {

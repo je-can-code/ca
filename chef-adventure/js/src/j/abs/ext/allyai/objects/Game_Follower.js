@@ -4,48 +4,200 @@
  * while this follower is engaged.
  * @param {Game_Character} character The character this follower is following.
  */
-J.ALLYAI.Aliased.Game_Follower.chaseCharacter = Game_Follower.prototype.chaseCharacter;
+J.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
 Game_Follower.prototype.chaseCharacter = function(character)
 {
-  // if we're just a ghost follower, or a dead battler, follow like a good little default follower.
-  const battler = this.getJabsBattler();
-  if (!this.isVisible() || battler.isDead())
+  // if this isn't a valid battler or followers aren't being shown, then don't control them.
+  if (!this.canObeyJabsAi())
   {
-    J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
-    return;
-  }
-
-  if (!battler.isEngaged() && !battler.isAlerted())
-  {
-    // if the battler isn't engaged, still follow the player.
-    J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
-    this.handleEngagementDistancing();
-  }
-  else
-  {
-    // if the battler is engaged, make sure they stay within range of the player.
-    this.handleEngagementDistancing();
-  }
-};
-
-/**
- * OVERWRITE Removed the forced direction-fix upon followers when the player is guarding.
- */
-J.ALLYAI.Aliased.Game_Follower.update = Game_Follower.prototype.update;
-Game_Follower.prototype.update = function()
-{
-  // check to make sure we're working with valid followers.
-  if (!this.isVisible())
-  {
-    // perform original logic if we are not.
-    J.ALLYAI.Aliased.Game_Follower.update.call(this);
+    // perform original logic.
+    J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 
     // stop processing.
     return;
   }
 
+  // let the AI handle the chasing.
+  this.obeyJabsAi(character);
+};
+
+/**
+ * Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.
+ * @returns {boolean} True if this follower should be controlled, false otherwise.
+ */
+Game_Follower.prototype.canObeyJabsAi = function()
+{
+  // if we are not visible, then we should not be controlled by JABS AI.
+  if (!this.isVisible()) return false;
+
+  // if we do not have a JABS battler, then we should not be controlled by JABS AI.
+  if (!this.getJabsBattler()) return false;
+
+  // lets get controlled!
+  return true;
+};
+
+/**
+ * Determines how this character should move in consideration of JABS' own AI manager.
+ * @param {Game_Character} character The character being chased.
+ */
+Game_Follower.prototype.obeyJabsAi = function(character)
+{
+  // check if we should be doing dead ai things.
+  if (this.shouldObeyJabsDeadAi())
+  {
+    // handle dead jabs ai logic.
+    this.handleJabsDeadAi(character);
+  }
+
+  // check if we should be doing combat ai things.
+  if (this.shouldObeyJabsCombatAi())
+  {
+    // handle combat jabs ai logic.
+    this.handleJabsCombatAi(character);
+  }
+};
+
+/**
+ * Determines whether or not this follower should be obeying the JABS DEAD AI.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.shouldObeyJabsDeadAi = function()
+{
+  // Are we dead?
+  const isDead = this.getJabsBattler().isDead();
+
+  // return the diagnostic.
+  return isDead;
+};
+
+/**
+ * Handles the repeated actions for when a battler is dead.
+ *
+ * If this follower is dead, this will be the only JABS AI available to follow.
+ *
+ * Some ideas are in the TODOs below:
+ * - TODO: Add option for character sprite change.
+ * - TODO: Add option for follow (default) or stay.
+ * - TODO: Add option for character motion effects, try integration with moghunters?
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsDeadAi = function(character)
+{
+  // TODO: handle logic for repeating whilst dead.
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+};
+
+/**
+ * Determines whether or not this follower should be obeying the JABS COMBAT AI.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.shouldObeyJabsCombatAi = function()
+{
+  // you cannot be dead and also in combat.
+  if (this.shouldObeyJabsDeadAi()) return false;
+
+  // lets get to fighting!
+  return true;
+};
+
+/**
+ * Handles the flow of logic for the movement of this character while available
+ * to do combat things according to the {@link JABS_AiManager}.
+ * @param character
+ */
+Game_Follower.prototype.handleJabsCombatAi = function(character)
+{
+  // determine if this follower is in combat somehow.
+  if (this.isInCombat())
+  {
+    // do active combat things!
+    this.handleJabsCombatActiveAi(character);
+  }
+  // we are not actively engaged in any form of combat.
+  else
+  {
+    // do non-combat things.
+    this.handleJabsCombatInactiveAi(character);
+  }
+};
+
+/**
+ * Determines whether or not this battler is considered "in combat".
+ * If a battler is "in combat", their movement is given to the JABS AI for combat purposes.
+ * Default things that should allow movement include already being engaged in combat, or
+ * having been alerted by a foe.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.isInCombat = function()
+{
+  // grab the battler data.
+  const battler = this.getJabsBattler();
+
+  // check if we are "in combat" in some way.
+  const isInCombat = (battler.isEngaged() || battler.isAlerted());
+
+  // return the result.
+  return isInCombat;
+};
+
+/**
+ * Handles the follower logic of things to do while this battler is in active combat.
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsCombatActiveAi = function(character)
+{
+  // the battler is engaged, the AI will handle the movement.
+  this.handleEngagementDistancing();
+
+  // movement is relinquished to the jabs-ai-manager-senpai!
+};
+
+/**
+ * Handles the repeated actions for when a battler is dead.
+ *
+ * If this follower is combat-ready but not alerted or engaged, they will just follow defaults.
+ *
+ * TODO: consider rapidly looping this when the character is far away?
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsCombatInactiveAi = function(character)
+{
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+};
+
+/**
+ * Extends {@link Game_Follower.update}.
+ * If this follower should be controlled by JABS AI, then modify the way it updates.
+ */
+J.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
+Game_Follower.prototype.update = function()
+{
+  // check if this follower should be obeying jabs ai.
+  if (!this.canObeyJabsAi())
+  {
+    // perform original logic if we are not.
+    J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+
+    // stop processing.
+    return;
+  }
+
+  // update for the ally ai instead.
+  this.updateAllyAi();
+};
+
+/**
+ * A slightly modified update for followers controlled by JABS AI.
+ */
+Game_Follower.prototype.updateAllyAi = function()
+{
+  // TODO: rewrite this entirely.
   // perform superclass logic.
-  Game_Character.prototype.update.call(this);
+  J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+  //Game_Character.prototype.update.call(this);
 
   // update the various parameters accordingly for followers.
   this.setMoveSpeed($gamePlayer.realMoveSpeed());
@@ -54,7 +206,10 @@ Game_Follower.prototype.update = function()
   this.setWalkAnime($gamePlayer.hasWalkAnime());
   this.setStepAnime($gamePlayer.hasStepAnime());
   this.setTransparent($gamePlayer.isTransparent());
-  this.handleEngagementDistancing();
+  // skip direction fix lock.
+
+  // also handle engagement distancing.
+  //this.handleEngagementDistancing();
 };
 
 /**
@@ -104,4 +259,6 @@ Game_Follower.prototype.handleEngagementDistancing = function()
     this.jumpToPlayer();
   }
 };
+
+// TODO: refactor handleEngagementDistancing().
 //#endregion Game_Follower

@@ -528,9 +528,18 @@ JABS_Battler.createPlayer = function()
   return new JABS_Battler($gamePlayer, battler, coreData);
 };
 
-JABS_Battler.closeDistance = 1.2;
+// TODO: parameterize this on a per-enemy basis?
+/**
+ * If a battler is less than this distance from the target, they are considered "close".
+ * @type {number}
+ */
+JABS_Battler.closeDistance = 3.0;
 
-JABS_Battler.farDistance = 5.8;
+/**
+ * If a battler is more than this distance from the target, they are considered "far".
+ * @type {number}
+ */
+JABS_Battler.farDistance = 5.0;
 
 /**
  * Determines if the battler is close to the target based on distance.
@@ -1407,10 +1416,10 @@ JABS_Battler.prototype.clearAlert = function()
 {
   this.setAlerted(false);
   this._alertedCounter = 0;
-  if (!this.isEngaged())
-  {
-    this.showBalloon(J.ABS.Balloons.Silence);
-  }
+  // if (!this.isEngaged())
+  // {
+  //   this.showBalloon(J.ABS.Balloons.Silence);
+  // }
 };
 //#endregion timers
 
@@ -2959,7 +2968,7 @@ JABS_Battler.prototype.disengageTarget = function()
   this.resetPhases();
 
   // TODO: abstract this.
-  this.showBalloon(J.ABS.Balloons.Frustration);
+  //this.showBalloon(J.ABS.Balloons.Frustration);
 };
 
 /**

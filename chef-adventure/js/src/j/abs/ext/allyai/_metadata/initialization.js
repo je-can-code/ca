@@ -81,7 +81,7 @@ J.ALLYAI.Aliased = {
   Game_Actor: {},
   Game_BattleMap: {},
   Game_Battler: {},
-  Game_Follower: {},
+  Game_Follower: new Map(),
   Game_Followers: {},
   Game_Interpreter: {},
   Game_Map: {},

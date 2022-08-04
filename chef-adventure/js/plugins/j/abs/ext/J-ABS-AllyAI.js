@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Aug 02 2022 08:45:40 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Aug 04 2022 06:57:28 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -274,7 +274,7 @@ J.ALLYAI.Aliased = {
   Game_Actor: {},
   Game_BattleMap: {},
   Game_Battler: {},
-  Game_Follower: {},
+  Game_Follower: new Map(),
   Game_Followers: {},
   Game_Interpreter: {},
   Game_Map: {},
@@ -289,125 +289,6 @@ J.ALLYAI.Aliased = {
 };
 //#endregion plugin setup and configuration
 //#endregion Introduction
-
-//#region JABS_AiManager
-J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
-/**
- * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
- * @param {JABS_Battler} battler The batter to decide for.
- */
-JABS_AiManager.aiPhase0 = function(battler)
-{
-  // check if this is an enemy's ai being managed.
-  if (battler.isEnemy())
-  {
-    // perform original logic for enemies.
-    J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
-  }
-  // it must be an ally.
-  else
-  {
-    // process ally idle phase.
-    this.allyAiPhase0(battler);
-  }
-};
-
-/**
- * Decides what to do for allies in their idle phase.
- * @param {JABS_Battler} allyBattler The ally battler.
- */
-JABS_AiManager.allyAiPhase0 = function(allyBattler)
-{
-  // check if we can perform phase 0 things.
-  if (!this.canPerformAllyPhase0(allyBattler)) return;
-
-  // phase 0 for allies is just seeking for alerters if necessary.
-  this.seekForAlerter(allyBattler);
-};
-
-/**
- * Determines whether or not the ally can do phase 0 things.
- * @param {JABS_Battler} allyBattler The ally battler.
- * @returns {boolean} True if this ally can do phae 0 things, false otherwise.
- */
-JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
-{
-  // if we are not alerted, do not idle.
-  if (!allyBattler.isAlerted()) return false;
-
-  // if we are in active motion, do not idle.
-  if (!allyBattler.getCharacter().isStopping()) return false;
-
-  // perform!
-  return true;
-};
-
-/**
- * Extend the action decision phase to also handle ally decision-making.
- * @param {JABS_Battler} battler The battler deciding the action.
- */
-J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
-JABS_AiManager.decideAiPhase2Action = function(battler)
-{
-  if (battler.isEnemy())
-  {
-    J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
-  }
-  else
-  {
-    this.decideAllyAiPhase2Action(battler);
-  }
-};
-
-/**
- * The ally battler decides what action to take.
- * Based on it's AI traits, it will make a decision on an action to take.
- * @param {JABS_Battler} jabsBattler The ally battler deciding the action.
- */
-JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
-{
-  // grab the battler as a variable.
-  const battler = jabsBattler.getBattler();
-
-  // get all slots that have skills in them.
-  const validSkillSlots = battler.getValidSkillSlotsForAlly();
-
-  // convert the slots into their respective skill ids.
-  const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
-
-  // decide the action based on the ally ai mode currently assigned.
-  const decidedSkillId = jabsBattler.getAllyAiMode().decideAction(
-    currentlyEquippedSkillIds,
-    jabsBattler,
-    jabsBattler.getTarget());
-
-  // check if we have a skill and can pay its cost.
-  if (!decidedSkillId)
-  {
-    // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
-    jabsBattler.resetPhases();
-    return;
-  }
-
-  // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
-  // check if the skill id is actually a mobility skill.
-  if (JABS_Battler.isDodgeSkillById(decidedSkillId))
-  {
-    // restart the decision-making process.
-    jabsBattler.resetPhases();
-    return;
-  }
-
-  // determine the slot to apply the cooldown to.
-  const decidedSkillSlot = battler.findSlotForSkillId(decidedSkillId);
-
-  // build the cooldown from the skill.
-  const cooldownKey = decidedSkillSlot.key;
-
-  // setup the action for use!
-  this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
-};
-//#endregion JABS_AiManager
 
 //#region JABS_AllyAI
 /**
@@ -1446,6 +1327,125 @@ JABS_Engine.prototype.performPartyCycling = function()
 };
 //#endregion JABS_Engine
 
+//#region JABS_AiManager
+J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
+/**
+ * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
+ * @param {JABS_Battler} battler The batter to decide for.
+ */
+JABS_AiManager.aiPhase0 = function(battler)
+{
+  // check if this is an enemy's ai being managed.
+  if (battler.isEnemy())
+  {
+    // perform original logic for enemies.
+    J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
+  }
+  // it must be an ally.
+  else
+  {
+    // process ally idle phase.
+    this.allyAiPhase0(battler);
+  }
+};
+
+/**
+ * Decides what to do for allies in their idle phase.
+ * @param {JABS_Battler} allyBattler The ally battler.
+ */
+JABS_AiManager.allyAiPhase0 = function(allyBattler)
+{
+  // check if we can perform phase 0 things.
+  if (!this.canPerformAllyPhase0(allyBattler)) return;
+
+  // phase 0 for allies is just seeking for alerters if necessary.
+  this.seekForAlerter(allyBattler);
+};
+
+/**
+ * Determines whether or not the ally can do phase 0 things.
+ * @param {JABS_Battler} allyBattler The ally battler.
+ * @returns {boolean} True if this ally can do phae 0 things, false otherwise.
+ */
+JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
+{
+  // if we are not alerted, do not idle.
+  if (!allyBattler.isAlerted()) return false;
+
+  // if we are in active motion, do not idle.
+  if (!allyBattler.getCharacter().isStopping()) return false;
+
+  // perform!
+  return true;
+};
+
+/**
+ * Extend the action decision phase to also handle ally decision-making.
+ * @param {JABS_Battler} battler The battler deciding the action.
+ */
+J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
+JABS_AiManager.decideAiPhase2Action = function(battler)
+{
+  if (battler.isEnemy())
+  {
+    J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
+  }
+  else
+  {
+    this.decideAllyAiPhase2Action(battler);
+  }
+};
+
+/**
+ * The ally battler decides what action to take.
+ * Based on it's AI traits, it will make a decision on an action to take.
+ * @param {JABS_Battler} jabsBattler The ally battler deciding the action.
+ */
+JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
+{
+  // grab the battler as a variable.
+  const battler = jabsBattler.getBattler();
+
+  // get all slots that have skills in them.
+  const validSkillSlots = battler.getValidSkillSlotsForAlly();
+
+  // convert the slots into their respective skill ids.
+  const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
+
+  // decide the action based on the ally ai mode currently assigned.
+  const decidedSkillId = jabsBattler.getAllyAiMode().decideAction(
+    currentlyEquippedSkillIds,
+    jabsBattler,
+    jabsBattler.getTarget());
+
+  // check if we have a skill and can pay its cost.
+  if (!decidedSkillId)
+  {
+    // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
+    jabsBattler.resetPhases();
+    return;
+  }
+
+  // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
+  // check if the skill id is actually a mobility skill.
+  if (JABS_Battler.isDodgeSkillById(decidedSkillId))
+  {
+    // restart the decision-making process.
+    jabsBattler.resetPhases();
+    return;
+  }
+
+  // determine the slot to apply the cooldown to.
+  const decidedSkillSlot = battler.findSlotForSkillId(decidedSkillId);
+
+  // build the cooldown from the skill.
+  const cooldownKey = decidedSkillSlot.key;
+
+  // setup the action for use!
+  this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
+};
+//#endregion JABS_AiManager
+
 //#region Game_Actor
 /**
  * Adds in the jabs tracking object for ally ai.
@@ -1542,48 +1542,200 @@ Game_Actor.prototype.getDefaultAllyAI = function()
  * while this follower is engaged.
  * @param {Game_Character} character The character this follower is following.
  */
-J.ALLYAI.Aliased.Game_Follower.chaseCharacter = Game_Follower.prototype.chaseCharacter;
+J.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
 Game_Follower.prototype.chaseCharacter = function(character)
 {
-  // if we're just a ghost follower, or a dead battler, follow like a good little default follower.
-  const battler = this.getJabsBattler();
-  if (!this.isVisible() || battler.isDead())
+  // if this isn't a valid battler or followers aren't being shown, then don't control them.
+  if (!this.canObeyJabsAi())
   {
-    J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
-    return;
-  }
-
-  if (!battler.isEngaged() && !battler.isAlerted())
-  {
-    // if the battler isn't engaged, still follow the player.
-    J.ALLYAI.Aliased.Game_Follower.chaseCharacter.call(this, character);
-    this.handleEngagementDistancing();
-  }
-  else
-  {
-    // if the battler is engaged, make sure they stay within range of the player.
-    this.handleEngagementDistancing();
-  }
-};
-
-/**
- * OVERWRITE Removed the forced direction-fix upon followers when the player is guarding.
- */
-J.ALLYAI.Aliased.Game_Follower.update = Game_Follower.prototype.update;
-Game_Follower.prototype.update = function()
-{
-  // check to make sure we're working with valid followers.
-  if (!this.isVisible())
-  {
-    // perform original logic if we are not.
-    J.ALLYAI.Aliased.Game_Follower.update.call(this);
+    // perform original logic.
+    J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 
     // stop processing.
     return;
   }
 
+  // let the AI handle the chasing.
+  this.obeyJabsAi(character);
+};
+
+/**
+ * Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.
+ * @returns {boolean} True if this follower should be controlled, false otherwise.
+ */
+Game_Follower.prototype.canObeyJabsAi = function()
+{
+  // if we are not visible, then we should not be controlled by JABS AI.
+  if (!this.isVisible()) return false;
+
+  // if we do not have a JABS battler, then we should not be controlled by JABS AI.
+  if (!this.getJabsBattler()) return false;
+
+  // lets get controlled!
+  return true;
+};
+
+/**
+ * Determines how this character should move in consideration of JABS' own AI manager.
+ * @param {Game_Character} character The character being chased.
+ */
+Game_Follower.prototype.obeyJabsAi = function(character)
+{
+  // check if we should be doing dead ai things.
+  if (this.shouldObeyJabsDeadAi())
+  {
+    // handle dead jabs ai logic.
+    this.handleJabsDeadAi(character);
+  }
+
+  // check if we should be doing combat ai things.
+  if (this.shouldObeyJabsCombatAi())
+  {
+    // handle combat jabs ai logic.
+    this.handleJabsCombatAi(character);
+  }
+};
+
+/**
+ * Determines whether or not this follower should be obeying the JABS DEAD AI.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.shouldObeyJabsDeadAi = function()
+{
+  // Are we dead?
+  const isDead = this.getJabsBattler().isDead();
+
+  // return the diagnostic.
+  return isDead;
+};
+
+/**
+ * Handles the repeated actions for when a battler is dead.
+ *
+ * If this follower is dead, this will be the only JABS AI available to follow.
+ *
+ * Some ideas are in the TODOs below:
+ * - TODO: Add option for character sprite change.
+ * - TODO: Add option for follow (default) or stay.
+ * - TODO: Add option for character motion effects, try integration with moghunters?
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsDeadAi = function(character)
+{
+  // TODO: handle logic for repeating whilst dead.
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+};
+
+/**
+ * Determines whether or not this follower should be obeying the JABS COMBAT AI.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.shouldObeyJabsCombatAi = function()
+{
+  // you cannot be dead and also in combat.
+  if (this.shouldObeyJabsDeadAi()) return false;
+
+  // lets get to fighting!
+  return true;
+};
+
+/**
+ * Handles the flow of logic for the movement of this character while available
+ * to do combat things according to the {@link JABS_AiManager}.
+ * @param character
+ */
+Game_Follower.prototype.handleJabsCombatAi = function(character)
+{
+  // determine if this follower is in combat somehow.
+  if (this.isInCombat())
+  {
+    // do active combat things!
+    this.handleJabsCombatActiveAi(character);
+  }
+  // we are not actively engaged in any form of combat.
+  else
+  {
+    // do non-combat things.
+    this.handleJabsCombatInactiveAi(character);
+  }
+};
+
+/**
+ * Determines whether or not this battler is considered "in combat".
+ * If a battler is "in combat", their movement is given to the JABS AI for combat purposes.
+ * Default things that should allow movement include already being engaged in combat, or
+ * having been alerted by a foe.
+ * @returns {boolean}
+ */
+Game_Follower.prototype.isInCombat = function()
+{
+  // grab the battler data.
+  const battler = this.getJabsBattler();
+
+  // check if we are "in combat" in some way.
+  const isInCombat = (battler.isEngaged() || battler.isAlerted());
+
+  // return the result.
+  return isInCombat;
+};
+
+/**
+ * Handles the follower logic of things to do while this battler is in active combat.
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsCombatActiveAi = function(character)
+{
+  // the battler is engaged, the AI will handle the movement.
+  this.handleEngagementDistancing();
+
+  // movement is relinquished to the jabs-ai-manager-senpai!
+};
+
+/**
+ * Handles the repeated actions for when a battler is dead.
+ *
+ * If this follower is combat-ready but not alerted or engaged, they will just follow defaults.
+ *
+ * TODO: consider rapidly looping this when the character is far away?
+ * @param {Game_Character} character The character being "followed".
+ */
+Game_Follower.prototype.handleJabsCombatInactiveAi = function(character)
+{
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+};
+
+/**
+ * Extends {@link Game_Follower.update}.
+ * If this follower should be controlled by JABS AI, then modify the way it updates.
+ */
+J.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
+Game_Follower.prototype.update = function()
+{
+  // check if this follower should be obeying jabs ai.
+  if (!this.canObeyJabsAi())
+  {
+    // perform original logic if we are not.
+    J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+
+    // stop processing.
+    return;
+  }
+
+  // update for the ally ai instead.
+  this.updateAllyAi();
+};
+
+/**
+ * A slightly modified update for followers controlled by JABS AI.
+ */
+Game_Follower.prototype.updateAllyAi = function()
+{
+  // TODO: rewrite this entirely.
   // perform superclass logic.
-  Game_Character.prototype.update.call(this);
+  J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+  //Game_Character.prototype.update.call(this);
 
   // update the various parameters accordingly for followers.
   this.setMoveSpeed($gamePlayer.realMoveSpeed());
@@ -1592,7 +1744,10 @@ Game_Follower.prototype.update = function()
   this.setWalkAnime($gamePlayer.hasWalkAnime());
   this.setStepAnime($gamePlayer.hasStepAnime());
   this.setTransparent($gamePlayer.isTransparent());
-  this.handleEngagementDistancing();
+  // skip direction fix lock.
+
+  // also handle engagement distancing.
+  //this.handleEngagementDistancing();
 };
 
 /**
@@ -1642,6 +1797,8 @@ Game_Follower.prototype.handleEngagementDistancing = function()
     this.jumpToPlayer();
   }
 };
+
+// TODO: refactor handleEngagementDistancing().
 //#endregion Game_Follower
 
 //#region Game_Followers
@@ -1721,12 +1878,20 @@ Game_Followers.prototype.setDirectionFixAll = function(isFixed)
 J.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
 Game_Interpreter.prototype.command205 = function(params)
 {
+  // if param[0] is -1, that is the player!
+  // TODO: only jump to player if the player moves!
   // execute the move route command.
   const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
 
-  // then check the player's lock status and set all followers to be the same.
-  $gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
-  $gamePlayer.jumpFollowersToMe();
+  // check if we have a result and also the target is to move the character.
+  if (result && params[0] === -1)
+  {
+    // then check the player's lock status and set all followers to be the same.
+    $gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
+    $gamePlayer.jumpFollowersToMe();
+  }
+
+  // return the outcome.
   return result;
 };
 //#endregion Game_Interpreter
