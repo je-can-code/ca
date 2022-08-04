@@ -209,7 +209,7 @@ Game_Follower.prototype.updateAllyAi = function()
   // skip direction fix lock.
 
   // also handle engagement distancing.
-  //this.handleEngagementDistancing();
+  this.handleEngagementDistancing();
 };
 
 /**
@@ -227,11 +227,11 @@ Game_Follower.prototype.jumpToPlayer = function()
  */
 Game_Follower.prototype.handleEngagementDistancing = function()
 {
+  // don't manage engagement distancing if they are not valid JABS battlers ready for combat.
+  if (!this.canObeyJabsAi()) return;
+
   // grab the underlying jabs battler.
   const battler = this.getJabsBattler();
-
-  // if there is no battler, don't process engagement.
-  if (!battler) return;
 
   // calculate the distance to the player.
   const distanceToPlayer = $gameMap.distance(this._realX, this._realY, $gamePlayer._realX, $gamePlayer._realY);

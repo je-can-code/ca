@@ -84,7 +84,7 @@ Game_Character.prototype.repeatingMovementCount = function()
 
 /**
  * Sets the repeating movement count to a given number.
- * @param {number} count The number of times to repeat the movement command.
+ * @param {number=} count The number of times to repeat the movement command; defaults to stepcount.
  */
 Game_Character.prototype.initializeRepeatingMovementCount = function(count = CycloneMovement.stepCount)
 {
