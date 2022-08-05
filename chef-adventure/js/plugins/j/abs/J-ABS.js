@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Thu Aug 04 2022 08:34:44 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Fri Aug 05 2022 06:09:18 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.0 JABS] Enables combat to be carried out on the map.
+ * [v3.1.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -995,7 +995,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = `J-ABS`;
-J.ABS.Metadata.Version = '3.0.0';
+J.ABS.Metadata.Version = '3.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -6503,11 +6503,17 @@ JABS_Battler.prototype.getAllAggros = function()
 
 /**
  * Gets the highest aggro currently tracked by this battler.
+ * If the top two highest aggros are the same, this will add +1 to one of them
+ * and use that instead to prevent infinite looping.
  * @returns {JABS_Aggro}
  */
 JABS_Battler.prototype.getHighestAggro = function()
 {
-  return this._aggros.sort((a, b) =>
+  // grab the aggros.
+  const aggros = this.getAllAggros();
+
+  // sort them by their aggro rating.
+  aggros.sort((a, b) =>
   {
     if (a.aggro < b.aggro)
     {
@@ -6519,7 +6525,20 @@ JABS_Battler.prototype.getHighestAggro = function()
     }
 
     return 0;
-  })[0];
+  });
+
+  // grab the first and second highest aggros.
+  const [highestAggro,secondHighestAggro,] = aggros;
+
+  // check if the top two aggros are the same.
+  if (highestAggro.aggro === secondHighestAggro.aggro)
+  {
+    // modify the first one by 1 to actually be higher.
+    highestAggro.modAggro(1, true);
+  }
+
+  // return the result.
+  return highestAggro;
 };
 
 /**

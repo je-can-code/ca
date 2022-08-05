@@ -4163,11 +4163,17 @@ JABS_Battler.prototype.getAllAggros = function()
 
 /**
  * Gets the highest aggro currently tracked by this battler.
+ * If the top two highest aggros are the same, this will add +1 to one of them
+ * and use that instead to prevent infinite looping.
  * @returns {JABS_Aggro}
  */
 JABS_Battler.prototype.getHighestAggro = function()
 {
-  return this._aggros.sort((a, b) =>
+  // grab the aggros.
+  const aggros = this.getAllAggros();
+
+  // sort them by their aggro rating.
+  aggros.sort((a, b) =>
   {
     if (a.aggro < b.aggro)
     {
@@ -4179,7 +4185,20 @@ JABS_Battler.prototype.getHighestAggro = function()
     }
 
     return 0;
-  })[0];
+  });
+
+  // grab the first and second highest aggros.
+  const [highestAggro,secondHighestAggro,] = aggros;
+
+  // check if the top two aggros are the same.
+  if (highestAggro.aggro === secondHighestAggro.aggro)
+  {
+    // modify the first one by 1 to actually be higher.
+    highestAggro.modAggro(1, true);
+  }
+
+  // return the result.
+  return highestAggro;
 };
 
 /**

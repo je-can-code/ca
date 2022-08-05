@@ -11,7 +11,7 @@ null,
 {"id":9,"expanded":false,"name":"Cave - 6 - ranged","order":45,"parentId":3,"scrollX":803,"scrollY":791},
 {"id":10,"expanded":false,"name":"Cave - 7","order":46,"parentId":3,"scrollX":1492.2857142857142,"scrollY":1374},
 {"id":11,"expanded":true,"name":"Cave - 8a","order":47,"parentId":3,"scrollX":1492.2857142857142,"scrollY":1125.4285714285713},
-{"id":12,"expanded":true,"name":"Map","order":61,"parentId":0,"scrollX":1506,"scrollY":1273.7142857142856},
+{"id":12,"expanded":false,"name":"Map","order":61,"parentId":0,"scrollX":1506,"scrollY":1273.7142857142856},
 {"id":13,"expanded":true,"name":"REGION: Western Erocia","order":63,"parentId":14,"scrollX":1492.2857142857142,"scrollY":1125.4285714285713},
 {"id":14,"expanded":true,"name":"Adventurer's Fork","order":62,"parentId":12,"scrollX":1492.2857142857142,"scrollY":1126.2857142857142},
 {"id":15,"expanded":false,"name":"Cave - 8b","order":48,"parentId":11,"scrollX":848,"scrollY":640},
@@ -223,5 +223,5 @@ null,
 {"id":221,"expanded":false,"name":"Jafting Oasis","order":14,"parentId":1,"scrollX":870.5,"scrollY":656.5},
 {"id":222,"expanded":false,"name":"Weaponry Oasis","order":15,"parentId":1,"scrollX":870.5,"scrollY":656.5},
 {"id":223,"expanded":false,"name":"Escribe Oasis","order":16,"parentId":1,"scrollX":0,"scrollY":0},
-{"id":224,"expanded":false,"name":"Pixel Oasis","order":17,"parentId":1,"scrollX":0,"scrollY":0}
+{"id":224,"expanded":false,"name":"Pixel Oasis","order":17,"parentId":1,"scrollX":1492.2857142857142,"scrollY":1126.2857142857142}
 ]

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Aug 04 2022 18:25:59 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -403,29 +403,10 @@ Game_Event.prototype.getPlayerNearbyForIcon = function()
  * Gets whether or not this event has non-empty describe data.
  * @returns {boolean}
  */
-Game_Event.prototype.hasDescribeData = function()
+Game_Event.prototype.hasEscribeData = function()
 {
   const describe = this.escribeData();
   return !!describe;
-};
-
-/**
- * Gets whether or not this event has a proximity describe associated with it.
- * @returns {boolean} True if there is something with proximity, false otherwise.
- */
-Game_Event.prototype.hasProximityDescribeData = function()
-{
-  // grab the describe data.
-  const describe = this.escribeData();
-
-  // if we don't have describe data, we don't have any proximity to work with.
-  if (!describe) return false;
-
-  // having proximity means text or icon proximity is greater than -1, the default.
-  const hasProximity = (describe.proximityTextRange() > -1 || describe.proximityIconRange() > -1);
-
-  // return our findings.
-  return hasProximity;
 };
 
 /**
@@ -448,6 +429,25 @@ Game_Event.prototype.update = function()
 };
 
 /**
+ * Gets whether or not this event has a proximity describe associated with it.
+ * @returns {boolean} True if there is something with proximity, false otherwise.
+ */
+Game_Event.prototype.hasProximityDescribeData = function()
+{
+  // grab the describe data.
+  const describe = this.escribeData();
+
+  // if we don't have describe data, we don't have any proximity to work with.
+  if (!describe) return false;
+
+  // having proximity means text or icon proximity is greater than -1, the default.
+  const hasProximity = (describe.proximityTextRange() > -1 || describe.proximityIconRange() > -1);
+
+  // return our findings.
+  return hasProximity;
+};
+
+/**
  * Updates whether or not the player is within proximity for the describe text to be visible.
  */
 Game_Event.prototype.updateDescribeTextProximity = function()
@@ -455,7 +455,7 @@ Game_Event.prototype.updateDescribeTextProximity = function()
   // grab the describe data.
   const describe = this.escribeData();
 
-  // don't update for text if text proximity isn't being used.
+  // the player is always "nearby" when there is no text range.
   if (describe.proximityTextRange() < 0) return;
 
   // check if we're in proximity for the text.
@@ -480,7 +480,7 @@ Game_Event.prototype.updateDescribeIconProximity = function()
   // grab the describe data.
   const describe = this.escribeData();
 
-  // don't update for text if icon proximity isn't being used.
+  // the player is always "nearby" when there is no icon range.
   if (describe.proximityIconRange() < 0) return;
 
   // check if we're in proximity for the icon.
@@ -505,12 +505,8 @@ Game_Event.prototype.updateDescribeIconProximity = function()
  */
 Game_Event.prototype.distanceFromPlayer = function()
 {
-  // calculate A-squared and B-squared.
-  const a = Math.pow(($gamePlayer.x - this.x), 2);
-  const b = Math.pow(($gamePlayer.y - this.y), 2);
-
-  // the distance is C-squared, but we want the not-squared value.
-  const distance = (Math.sqrt(a + b));
+  // calculate the distance.
+  const distance = $gameMap.distance($gamePlayer.x, $gamePlayer.y, this.x, this.y);
 
   // make sure the distance only goes out three decimals.
   const constrainedDistance = parseFloat((distance).toFixed(3));
