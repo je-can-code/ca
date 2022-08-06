@@ -234,7 +234,7 @@ Sprite_Character.prototype.hasCharacterEscriptionData = function()
   if (!character) return false;
 
   // return the character's escription data.
-  return character.hasDescribeData();
+  return character.hasEscribeData();
 };
 
 /**

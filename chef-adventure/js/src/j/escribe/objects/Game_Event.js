@@ -1,4 +1,5 @@
 //#region Game_Event
+//#region properties
 /**
  * Hooks into the initialization to add our members for containing event data.
  */
@@ -36,6 +37,74 @@ Game_Event.prototype.initMembers = function()
     _playerNearbyIcon: null,
   };
 };
+
+/**
+ * Gets the describe data for this event.
+ * @returns {Escription}
+ */
+Game_Event.prototype.escribeData = function()
+{
+  return this._j._event._describe;
+};
+
+/**
+ * Sets the describe data for this event.
+ * @param {Escription} describeData The new describe data.
+ */
+Game_Event.prototype.setEscribeData = function(describeData)
+{
+  this._j._event._describe = describeData;
+};
+
+/**
+ * Sets whether or not the player is witin the proximity to see the describe text.
+ * @param {boolean} nearby True if the player is nearby, false otherwise.
+ */
+Game_Event.prototype.setPlayerNearbyForText = function(nearby)
+{
+  this._j._event._playerNearbyText = nearby;
+};
+
+/**
+ * Gets whether or not the player is witin the proximity to see the describe text.
+ * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
+ */
+Game_Event.prototype.getPlayerNearbyForText = function()
+{
+  return this._j._event._playerNearbyText;
+};
+
+/**
+ * Sets whether or not the player is witin the proximity to see the describe icon.
+ * @param {boolean} nearby True if the player is nearby, false otherwise.
+ */
+Game_Event.prototype.setPlayerNearbyForIcon = function(nearby)
+{
+  this._j._event._playerNearbyIcon = nearby;
+};
+
+/**
+ * Gets whether or not the player is witin the proximity to see the describe icon.
+ * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
+ */
+Game_Event.prototype.getPlayerNearbyForIcon = function()
+{
+  return this._j._event._playerNearbyIcon;
+};
+
+/**
+ * Gets whether or not this event has non-empty describe data.
+ * @returns {boolean}
+ */
+Game_Event.prototype.hasEscribeData = function()
+{
+  // grab the describe data.
+  const describe = this.escribeData();
+
+  // return whether or not it is valid.
+  return !!describe;
+};
+//#endregion properties
 
 /**
  * Extends the page settings for events and adds on custom parameters to this event.
@@ -142,67 +211,22 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function()
 };
 
 /**
- * Gets the describe data for this event.
- * @returns {Escription}
+ * Extends {@link Game_Event.update}.
+ * Also updates the describe proximity information of the player for the describe data.
  */
-Game_Event.prototype.escribeData = function()
+J.ESCRIBE.Aliased.Game_Event.set('update', Game_Event.prototype.update);
+Game_Event.prototype.update = function()
 {
-  return this._j._event._describe;
-};
+  // perform original logic.
+  J.ESCRIBE.Aliased.Game_Event.get('update').call(this);
 
-/**
- * Sets the describe data for this event.
- * @param {Escription} describeData The new describe data.
- */
-Game_Event.prototype.setEscribeData = function(describeData)
-{
-  this._j._event._describe = describeData;
-};
-
-/**
- * Sets whether or not the player is witin the proximity to see the describe text.
- * @param {boolean} nearby True if the player is nearby, false otherwise.
- */
-Game_Event.prototype.setPlayerNearbyForText = function(nearby)
-{
-  this._j._event._playerNearbyText = nearby;
-};
-
-/**
- * Gets whether or not the player is witin the proximity to see the describe text.
- * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
- */
-Game_Event.prototype.getPlayerNearbyForText = function()
-{
-  return this._j._event._playerNearbyText;
-};
-
-/**
- * Sets whether or not the player is witin the proximity to see the describe icon.
- * @param {boolean} nearby True if the player is nearby, false otherwise.
- */
-Game_Event.prototype.setPlayerNearbyForIcon = function(nearby)
-{
-  this._j._event._playerNearbyIcon = nearby;
-};
-
-/**
- * Gets whether or not the player is witin the proximity to see the describe icon.
- * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
- */
-Game_Event.prototype.getPlayerNearbyForIcon = function()
-{
-  return this._j._event._playerNearbyIcon;
-};
-
-/**
- * Gets whether or not this event has non-empty describe data.
- * @returns {boolean}
- */
-Game_Event.prototype.hasDescribeData = function()
-{
-  const describe = this.escribeData();
-  return !!describe;
+  // check if this event has describe data.
+  if (this.hasProximityDescribeData())
+  {
+    // update the proximity information for each.
+    this.updateDescribeTextProximity();
+    this.updateDescribeIconProximity();
+  }
 };
 
 /**
@@ -222,25 +246,6 @@ Game_Event.prototype.hasProximityDescribeData = function()
 
   // return our findings.
   return hasProximity;
-};
-
-/**
- * Extends {@link Game_Event.update}.
- * Also updates the describe proximity information of the player for the describe data.
- */
-J.ESCRIBE.Aliased.Game_Event.set('update', Game_Event.prototype.update);
-Game_Event.prototype.update = function()
-{
-  // perform original logic.
-  J.ESCRIBE.Aliased.Game_Event.get('update').call(this);
-
-  // check if this event has describe data.
-  if (this.hasProximityDescribeData())
-  {
-    // update the proximity information for each.
-    this.updateDescribeTextProximity();
-    this.updateDescribeIconProximity();
-  }
 };
 
 /**
@@ -301,12 +306,8 @@ Game_Event.prototype.updateDescribeIconProximity = function()
  */
 Game_Event.prototype.distanceFromPlayer = function()
 {
-  // calculate A-squared and B-squared.
-  const a = Math.pow(($gamePlayer.x - this.x), 2);
-  const b = Math.pow(($gamePlayer.y - this.y), 2);
-
-  // the distance is C-squared, but we want the not-squared value.
-  const distance = (Math.sqrt(a + b));
+  // calculate the distance to the player.
+  const distance = $gameMap.distance($gamePlayer.x, $gamePlayer.y, this.x, this.y);
 
   // make sure the distance only goes out three decimals.
   const constrainedDistance = parseFloat((distance).toFixed(3));

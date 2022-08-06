@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Aug 04 2022 18:25:59 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Aug 06 2022 06:27:37 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -178,19 +178,9 @@ Escription.prototype.proximityIconRange = function()
  * @abstract
  * @returns {boolean}
  */
-Game_Character.prototype.hasDescribeData = function()
+Game_Character.prototype.hasEscribeData = function()
 {
   return false;
-};
-
-/**
- * Creates the method for overwriting by subclasses.
- * At this level, it will return null for non-events.
- * @returns {null}
- */
-Game_Character.prototype.getDescribeData = function()
-{
-  return null;
 };
 
 /**
@@ -203,6 +193,7 @@ Game_Character.prototype.parseEscriptionComments = function()
 //#endregion Game_Character
 
 //#region Game_Event
+//#region properties
 /**
  * Hooks into the initialization to add our members for containing event data.
  */
@@ -240,6 +231,74 @@ Game_Event.prototype.initMembers = function()
     _playerNearbyIcon: null,
   };
 };
+
+/**
+ * Gets the describe data for this event.
+ * @returns {Escription}
+ */
+Game_Event.prototype.escribeData = function()
+{
+  return this._j._event._describe;
+};
+
+/**
+ * Sets the describe data for this event.
+ * @param {Escription} describeData The new describe data.
+ */
+Game_Event.prototype.setEscribeData = function(describeData)
+{
+  this._j._event._describe = describeData;
+};
+
+/**
+ * Sets whether or not the player is witin the proximity to see the describe text.
+ * @param {boolean} nearby True if the player is nearby, false otherwise.
+ */
+Game_Event.prototype.setPlayerNearbyForText = function(nearby)
+{
+  this._j._event._playerNearbyText = nearby;
+};
+
+/**
+ * Gets whether or not the player is witin the proximity to see the describe text.
+ * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
+ */
+Game_Event.prototype.getPlayerNearbyForText = function()
+{
+  return this._j._event._playerNearbyText;
+};
+
+/**
+ * Sets whether or not the player is witin the proximity to see the describe icon.
+ * @param {boolean} nearby True if the player is nearby, false otherwise.
+ */
+Game_Event.prototype.setPlayerNearbyForIcon = function(nearby)
+{
+  this._j._event._playerNearbyIcon = nearby;
+};
+
+/**
+ * Gets whether or not the player is witin the proximity to see the describe icon.
+ * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
+ */
+Game_Event.prototype.getPlayerNearbyForIcon = function()
+{
+  return this._j._event._playerNearbyIcon;
+};
+
+/**
+ * Gets whether or not this event has non-empty describe data.
+ * @returns {boolean}
+ */
+Game_Event.prototype.hasEscribeData = function()
+{
+  // grab the describe data.
+  const describe = this.escribeData();
+
+  // return whether or not it is valid.
+  return !!describe;
+};
+//#endregion properties
 
 /**
  * Extends the page settings for events and adds on custom parameters to this event.
@@ -346,70 +405,6 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function()
 };
 
 /**
- * Gets the describe data for this event.
- * @returns {Escription}
- */
-Game_Event.prototype.escribeData = function()
-{
-  return this._j._event._describe;
-};
-
-/**
- * Sets the describe data for this event.
- * @param {Escription} describeData The new describe data.
- */
-Game_Event.prototype.setEscribeData = function(describeData)
-{
-  this._j._event._describe = describeData;
-};
-
-/**
- * Sets whether or not the player is witin the proximity to see the describe text.
- * @param {boolean} nearby True if the player is nearby, false otherwise.
- */
-Game_Event.prototype.setPlayerNearbyForText = function(nearby)
-{
-  this._j._event._playerNearbyText = nearby;
-};
-
-/**
- * Gets whether or not the player is witin the proximity to see the describe text.
- * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
- */
-Game_Event.prototype.getPlayerNearbyForText = function()
-{
-  return this._j._event._playerNearbyText;
-};
-
-/**
- * Sets whether or not the player is witin the proximity to see the describe icon.
- * @param {boolean} nearby True if the player is nearby, false otherwise.
- */
-Game_Event.prototype.setPlayerNearbyForIcon = function(nearby)
-{
-  this._j._event._playerNearbyIcon = nearby;
-};
-
-/**
- * Gets whether or not the player is witin the proximity to see the describe icon.
- * @returns {boolean} True if the player is close enough to see the describe text, false otherwise.
- */
-Game_Event.prototype.getPlayerNearbyForIcon = function()
-{
-  return this._j._event._playerNearbyIcon;
-};
-
-/**
- * Gets whether or not this event has non-empty describe data.
- * @returns {boolean}
- */
-Game_Event.prototype.hasEscribeData = function()
-{
-  const describe = this.escribeData();
-  return !!describe;
-};
-
-/**
  * Extends {@link Game_Event.update}.
  * Also updates the describe proximity information of the player for the describe data.
  */
@@ -455,7 +450,7 @@ Game_Event.prototype.updateDescribeTextProximity = function()
   // grab the describe data.
   const describe = this.escribeData();
 
-  // the player is always "nearby" when there is no text range.
+  // don't update for text if text proximity isn't being used.
   if (describe.proximityTextRange() < 0) return;
 
   // check if we're in proximity for the text.
@@ -480,7 +475,7 @@ Game_Event.prototype.updateDescribeIconProximity = function()
   // grab the describe data.
   const describe = this.escribeData();
 
-  // the player is always "nearby" when there is no icon range.
+  // don't update for text if icon proximity isn't being used.
   if (describe.proximityIconRange() < 0) return;
 
   // check if we're in proximity for the icon.
@@ -505,7 +500,7 @@ Game_Event.prototype.updateDescribeIconProximity = function()
  */
 Game_Event.prototype.distanceFromPlayer = function()
 {
-  // calculate the distance.
+  // calculate the distance to the player.
   const distance = $gameMap.distance($gamePlayer.x, $gamePlayer.y, this.x, this.y);
 
   // make sure the distance only goes out three decimals.
@@ -752,7 +747,7 @@ Sprite_Character.prototype.hasCharacterEscriptionData = function()
   if (!character) return false;
 
   // return the character's escription data.
-  return character.hasDescribeData();
+  return character.hasEscribeData();
 };
 
 /**
@@ -967,6 +962,7 @@ Sprite_Character.prototype.createDescribeIconSprite = function()
 
   // build the sprite.
   const sprite = new Sprite_Icon(describeIconIndex);
+  sprite.setIconHeight(48);
   const x = _realX - (ImageManager.iconWidth / 2) - 4;
   let y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
 

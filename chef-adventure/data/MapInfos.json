@@ -2,7 +2,7 @@
 null,
 {"id":1,"expanded":true,"name":"Test Oasis","order":3,"parentId":0,"scrollX":1492.2857142857142,"scrollY":1125.4285714285713},
 {"id":2,"expanded":false,"name":"_ActionMap","order":1,"parentId":0,"scrollX":733,"scrollY":649},
-{"id":3,"expanded":true,"name":"DUNGEON: Crossover","order":39,"parentId":77,"scrollX":850.5,"scrollY":649},
+{"id":3,"expanded":false,"name":"DUNGEON: Crossover","order":39,"parentId":77,"scrollX":850.5,"scrollY":649},
 {"id":4,"expanded":false,"name":"Cave - 1 - START","order":40,"parentId":3,"scrollX":870.5,"scrollY":656.5},
 {"id":5,"expanded":true,"name":"Cave - 2 - attacking","order":41,"parentId":3,"scrollX":878.5,"scrollY":783.5},
 {"id":6,"expanded":false,"name":"Cave - 3 - skills","order":42,"parentId":3,"scrollX":870.5,"scrollY":783.5},

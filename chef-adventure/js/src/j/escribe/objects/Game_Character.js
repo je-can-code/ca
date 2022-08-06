@@ -5,19 +5,9 @@
  * @abstract
  * @returns {boolean}
  */
-Game_Character.prototype.hasDescribeData = function()
+Game_Character.prototype.hasEscribeData = function()
 {
   return false;
-};
-
-/**
- * Creates the method for overwriting by subclasses.
- * At this level, it will return null for non-events.
- * @returns {null}
- */
-Game_Character.prototype.getDescribeData = function()
-{
-  return null;
 };
 
 /**
