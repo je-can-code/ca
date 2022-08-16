@@ -1,13 +1,12 @@
 //=============================================================================
-// main.js v1.4.4
+// main.js v1.5.0
 //=============================================================================
 
 const scriptUrls = [
     "js/libs/pixi.js",
     "js/libs/pako.min.js",
     "js/libs/localforage.min.js",
-    //"js/libs/effekseer.min.js",
-    "js/libs/effekseer.js",
+    "js/libs/effekseer.min.js",
     "js/libs/vorbisdecoder.js",
     "js/rmmz_core.js",
     "js/rmmz_managers.js",

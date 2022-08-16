@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_scenes.js v1.4.4
+// rmmz_scenes.js v1.5.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -659,7 +659,7 @@ Scene_Map.prototype.create = function() {
     if (this._transfer) {
         DataManager.loadMapData($gamePlayer.newMapId());
         this.onTransfer();
-    } else if (!$dataMap || $dataMap.id !== $gameMap.mapId()) {
+    } else {
         DataManager.loadMapData($gameMap.mapId());
     }
 };
@@ -865,7 +865,6 @@ Scene_Map.prototype.onMapTouch = function() {
     const x = $gameMap.canvasToMapX(TouchInput.x);
     const y = $gameMap.canvasToMapY(TouchInput.y);
     $gameTemp.setDestination(x, y);
-
 };
 
 Scene_Map.prototype.isSceneChangeOk = function() {
@@ -2269,10 +2268,7 @@ Scene_Save.prototype.executeSave = function(savefileId) {
     $gameSystem.onBeforeSave();
     DataManager.saveGame(savefileId)
         .then(() => this.onSaveSuccess())
-        .catch((ex) => {
-            this.onSaveFailure();
-            console.log(ex);
-        });
+        .catch(() => this.onSaveFailure());
 };
 
 Scene_Save.prototype.onSaveSuccess = function() {
