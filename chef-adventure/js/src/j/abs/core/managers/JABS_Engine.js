@@ -3,7 +3,7 @@
  * This class is the engine that manages JABS and how `JABS_Action`s interact
  * with the `JABS_Battler`s on the map.
  */
-class JABS_Engine // eslint-disable-line no-unused-vars
+class JABS_Engine
 {
   /**
    * @constructor
@@ -1691,6 +1691,17 @@ class JABS_Engine // eslint-disable-line no-unused-vars
     const result = target.getBattler().result();
     if (!result.isHit() && !result.parried) return;
 
+    // it was a hit, so process the on-hit effects.
+    this.processOnHitEffects(action, target);
+  }
+
+  /**
+   * Processes the various on-hit effects against the target.
+   * @param {JABS_Action} action The `JABS_Action` containing the action data.
+   * @param {JABS_Battler} target The target having the action applied against.
+   */
+  processOnHitEffects(action, target)
+  {
     // grab some shorthand variables for local use.
     const caster = action.getCaster();
     const targetCharacter = target.getCharacter();
@@ -1698,6 +1709,8 @@ class JABS_Engine // eslint-disable-line no-unused-vars
 
     // get the animation id associated with this skill.
     const targetAnimationId = this.getAnimationId(skill, caster);
+
+    const result = target.getBattler().result();
 
     // if the skill should animate on the target, then animate as normal.
     targetCharacter.requestAnimation(targetAnimationId, result.parried);

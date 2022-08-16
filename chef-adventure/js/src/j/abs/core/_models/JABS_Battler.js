@@ -2653,6 +2653,15 @@ JABS_Battler.prototype.isEnemy = function()
 };
 
 /**
+ * Whether or not this battler is based on an event.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isEvent = function()
+{
+  return (this.getCharacter() instanceof Game_Event);
+};
+
+/**
  * Compares the user with a provided target team to see if they are the same.
  * @param {number} targetTeam The id of the team to check.
  * @returns {boolean} True if the user and target are on the same team, false otherwise.

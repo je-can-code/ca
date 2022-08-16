@@ -2709,7 +2709,17 @@ declare class Game_Character extends Game_CharacterBase {
      * @memberof Game_Character
      */
     processMoveCommand(command: rm.types.MoveCommand): void;
+
+    /**
+     * Determines the delta of the target x coordinate from this character's current x.
+     * @param x
+     */
     deltaXFrom(x: number): number;
+
+    /**
+     * Determines the delta of the target y coordinate from this character's current y.
+     * @param y
+     */
     deltaYFrom(y: number): number;
     /**
      * Move's the game character at random.

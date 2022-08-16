@@ -141,6 +141,9 @@
     "once:jabs-timing": "node utils/combine.js ./j/abs/ext/timing ../plugins/j/abs/ext J-ABS-Timing.js",
     "watch:jabs-timing": "nodemon -L utils/combine.js ./j/abs/ext/timing ../plugins/j/abs/ext J-ABS-Timing.js",
 
+    "once:jabs-tools": "node utils/combine.js ./j/abs/ext/tools ../plugins/j/abs/ext J-ABS-Tools.js",
+    "watch:jabs-tools": "nodemon -L utils/combine.js ./j/abs/ext/tools ../plugins/j/abs/ext J-ABS-Tools.js",
+
     "once:jabs-star": "node utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js",
     "watch:jabs-star": "nodemon -L utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js"
   }
