@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Aug 16 2022 12:02:35 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Aug 17 2022 07:17:35 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -1878,7 +1878,14 @@ class JABS_Action
    */
   getCaster()
   {
-    return this._caster;
+    // grab the caster's uuid.
+    const uuid = this._caster.getUuid();
+
+    // determine the real caster, but fallback to the designated caster.
+    const caster = $gameMap.getBattlerByUuid(uuid) ?? this._caster;
+
+    // return the result.
+    return caster;
   }
 
   /**
@@ -22034,12 +22041,6 @@ Game_Character.prototype.setMapBattler = function(uuid)
   actionSpriteProperties.battlerUuid = uuid;
 };
 
-Game_Character.prototype.clearMapBattler = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.battlerUuid = String.empty;
-};
-
 /**
  * Gets whether or not this character has a `JABS_Battler` attached to it.
  */
@@ -23686,15 +23687,6 @@ Game_Event.prototype.applyCustomMoveSpeed = function()
 };
 
 /**
- * Get the move speed of the current active page on this event.
- * @returns {number}
- */
-Game_Event.prototype.getEventCurrentMovespeed = function()
-{
-  return this.event().pages[this.findProperPageIndex()].moveSpeed;
-};
-
-/**
  * Gets the core battler data for this event.
  * @returns {JABS_BattlerCoreData}
  */
@@ -23732,6 +23724,38 @@ Game_Event.prototype.getBattlerId = function()
   if (!data) return 0;
 
   return data.battlerId();
+};
+
+/**
+ * Get the {@link JABS_Battler} who generated this action.
+ * @returns {JABS_Battler|null} The caster, or null if this isn't an action.
+ */
+Game_Event.prototype.getCaster = function()
+{
+  // if this isn't an action, then there is no caster.
+  if (!this.isAction()) return null;
+
+  // grab the underlying action.
+  const jabsAction = this.getMapActionData();
+
+  // return the caster.
+  return jabsAction.getCaster();
+};
+
+/**
+ * Moves this event to be at the same coordinates as the caster.
+ * If there is no caster, it will do nothing.
+ */
+Game_Event.prototype.existOnCaster = function()
+{
+  // grab the caster.
+  const caster = this.getCaster();
+
+  // if for whatever reason we have no caster, then do not follow.
+  if (!caster) return;
+
+  // exist ontop of the caster.
+  this.locate(caster.getX(), caster.getY());
 };
 //#endregion Game_Event
 

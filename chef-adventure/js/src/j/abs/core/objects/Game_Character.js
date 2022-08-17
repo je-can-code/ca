@@ -223,12 +223,6 @@ Game_Character.prototype.setMapBattler = function(uuid)
   actionSpriteProperties.battlerUuid = uuid;
 };
 
-Game_Character.prototype.clearMapBattler = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.battlerUuid = String.empty;
-};
-
 /**
  * Gets whether or not this character has a `JABS_Battler` attached to it.
  */

@@ -264,7 +264,14 @@ class JABS_Action
    */
   getCaster()
   {
-    return this._caster;
+    // grab the caster's uuid.
+    const uuid = this._caster.getUuid();
+
+    // determine the real caster, but fallback to the designated caster.
+    const caster = $gameMap.getBattlerByUuid(uuid) ?? this._caster;
+
+    // return the result.
+    return caster;
   }
 
   /**
