@@ -287,9 +287,13 @@
  * SETTING UP YOUR SKILLS:
  * In addition to setting up your enemies, you'll need to setup skills as well.
  * There are a huge variety of tags to be used, but there are a few that you'll
- * probably include on most skills, and we'll go over those below.
+ * probably include on most skills.
  *
- * NOTE: This is not a comprehensive list of all tags for skills.
+ * NOTE ABOUT THROUGH:
+ * I would strongly encourage when building actions on the action map, to set
+ * your action events to have "through" checked. Otherwise, they may get stuck
+ * on various events or terrains unexpectedly- especially if using any kind of
+ * pixel movement plugins/adapters.
  *
  * ----------------------------------------------------------------------------
  * ACTION ID:
@@ -306,15 +310,42 @@
  *    <duration:FRAMES>
  *  Where FRAMES is the amount of time in frames this event will exist.
  *
- * NOTE ABOUT PIERCING:
- * Skills that have a "pierce" tag, will disappear as soon as all hits connect.
+ * NOTE ABOUT HIT COUNT:
+ * When a skill has hit it's maximum number of times (once by default, or as
+ * many times as defined by the "pierce" tag), it will disappear.
  *
  * NOTE ABOUT MIN DURATION:
- * Skills still have a minimum duration of 8 frames.
+ * Skills still have an arbitrary minimum duration of 8 frames.
+ *
+ * ----------------------------------------------------------------------------
+ * COOLDOWN MANAGEMENT:
+ * In interest of not letting the player endlessly spam their skills, you'll
+ * probably want to introduce cooldowns to their skills. There are two tags for
+ * handling that you'll probably want to use.
+ *
+ * COOLDOWN:
+ * The cooldown is the primary tag to handle cooldowns. This tag defines an
+ * amount of time in frames that must pass before the battler can use the skill
+ * again.
+ *    <cooldown:VAL>
+ *  Where VAL is the cooldown amount in frames for this skill.
+ *
+ * NOTE ABOUT SLOTS ON COOLDOWN:
+ * JABS permits the assignment of the same skill to multiple slots on a single
+ * battler. By default, when using a skill with a cooldown, if any other skills
+ * are equipped that share the same skill ID, they too will go on cooldown for
+ * the same amount as defined in the skill. However, you can change this
+ * functionality by using the next tag.
+ *
+ * UNIQUE COOLDOWN:
+ * Using the "unique cooldown" tag on a skill will force each slot a skill is
+ * equipped to to handle their cooldown independently, even if the skill shares
+ * the same skill ID as another slot.
+ *    <uniqueCooldown>
  *
  * ----------------------------------------------------------------------------
  * RADIUS:
- * The radius represents how big the "shape" of this skill using tiles as the
+ * The radius represents how big the "hitbox" of this skill using tiles as the
  * measurement. This must be a positive integer value.
  *    <radius:VAL>
  *  Where VAL is the radius value for this skill.
@@ -326,13 +357,6 @@
  * interaction with "direct" skills.
  *    <proximity:VAL>
  *  Where VAL is the proximity value for this skill.
- *
- * ----------------------------------------------------------------------------
- * COOLDOWN:
- * The cooldown is probably what you think it is: an amount of time in frames
- * that must pass before the battler can use the skill again.
- *    <cooldown:VAL>
- *  Where VAL is the cooldown amount in frames for this skill.
  *
  * ----------------------------------------------------------------------------
  * DIRECT:
@@ -348,15 +372,53 @@
  * A "direct" skill can still be parried if the conditions are met.
  *
  * ----------------------------------------------------------------------------
+ * PROJECTILE:
+ * The "projectile" value will define how many projectiles will be fired when
+ * the skill is executed. This works a bit differently than you probably think.
+ * The values available for this are:
+ *  1: A single projectile that will fire forward.
+ *  2: Two projectiles in a V shape firing forward.
+ *  3: Three projectiles in a W shape firing forward.
+ *  4: Four projectiles, one in each of the cardinal directions.
+ *  8: Eight projectiles, one in each of the cardinal and diagonal directions.
+ *
+ *    <projectile:VAL>
+ *  Where VAL is one of the valid numeric values listed above.
+ *
+ * NOTE ABOUT PROJECTILE MOTION:
+ * I would strongly encourage when building your actions on the action map,
+ * to use "turn X degrees" instead of "turn X direction", as they can mess up
+ * the illusion of the projectiles obeying the direction they were fired in.
+ * In that same vein, I'd also encourage using "1 step forward/backward" in
+ * place of "Move up/down/left/right" for the same reason.
+ *
+ * NOTE ABOUT DIAGONALS:
+ * I would also encourage using my "J-ABS-Diagonals" plugin to gain access to
+ * more precise rotation within the custom move routes among other things.
+ *
+ * NOTE ABOUT FUTURE PLANS:
+ * There is developer dreams to refine the projectile functionality into
+ * something a bit cleaner, so this is tentative to change.
+ *
+ * ----------------------------------------------------------------------------
  * HITBOX:
  * The hitbox defines the shape of the hitbox for this skill (surprise!).
  * The value for this must be selected from the given list, and each can
  * interact a bit differently with the "radius" tag.
  *
- * NOTE:
+ * NOTE ABOUT COLLISION:
  * It is important to remember that while the hitbox defines the shape of
  * collision, the hitbox is always centered on the action event (with some
  * exceptions), and can definitely be moving.
+ *
+ * NOTE ABOUT PROJECTILES:
+ * If this skill has multiple projectiles, ALL projectiles will share the same
+ * hitbox.
+ *
+ * CIRCLE:
+ * The "circle" hitbox is just what you'd think: a circle that grows in size
+ * the greater the radius.
+ *    <hitbox:circle>
  *
  * RHOMBUS:
  * The "rhombus" hitbox is effectively a diamond that grows in size the
@@ -413,6 +475,13 @@
  *  Where VAL is the animation id to repeatedly loop while casting.
  *
  * ----------------------------------------------------------------------------
+ * SELF ANIMATION:
+ * The "self animation" is simply a numeric value that represents an animation
+ * that will play on the caster when the skill hits a target.
+ *    <selfAnimationId:VAL>
+ *  Where VAL is the animation id to execute once finished casting.
+ *
+ * ----------------------------------------------------------------------------
  * PIERCING:
  * The "pierce" tag is a tag that enables a skill to hit multiple targets
  * multiple times, potentially with a delay between each hit.
@@ -420,15 +489,51 @@
  *  Where TIMES is the maximum number of times this skill can pierce.
  *  Where DELAY is the number of frames between each hit.
  *
- * NOTE: The most a skill can hit via "pierce" is once per frame. If the DELAY
+ * NOTE ABOUT HIT FREQUENCY:
+ * The most a skill can hit via "pierce" is once per frame. If the DELAY
  * is set to 0, then it will hit each frame that the skill's hitbox collides
  * with the target.
  *
- * NOTE: The "repeats" field from the database is added onto the TIMES value,
+ * NOTE ABOUT SKILL REPEATS:
+ * The "repeats" field from the database is added onto the TIMES value,
  * even if there is no "pierce" tag on the skill, meaning if you omit the
  * "pierce" tag and add "5 repeats" via the database editor, the skill will
  * effectively have this tag on it:
  *    <pierce:[6,0]>
+ *
+ * ----------------------------------------------------------------------------
+ * KNOCKBACK:
+ * The "knockback" tag defines how many tiles the target will be knocked back
+ * when hit by this skill.
+ *    <knockback:VAL>
+ *  Where VAL is distance the target will be knocked back.
+ *
+ * ----------------------------------------------------------------------------
+ * DELAY:
+ * The "delay" tag is a bit of a tricky one that allows a skill to exist on the
+ * map for a duration of time before triggering. The simplest example of this
+ * would be like a time bomb, or a time landmine. If you want an action to
+ * persist indefinitely, you can set the DURATION to -1 and it will not
+ * disappear until it is touched.
+ *    <delay:[DURATION,TOUCHABLE]>
+ *  Where DURATION is number of frames to exist on the map before detonating.
+ *  Where TOUCHABLE a boolean defining whether or not it triggers when touched.
+ *
+ * EXAMPLE:
+ *    <delay:[300,true]>
+ * As an example, the above tag would result in an action that was placed where
+ * the caster was at time of skill execution, and sit there for 300 frames
+ * (which is roughly 5 seconds). If an enemy touched this action, the action
+ * would trigger.
+ *
+ * NOTE ABOUT TOUCHING:
+ * "touched" is a term used loosely. To "touch" an action, you simply need to
+ * collide with it, which can be deceiving if its a bomb with a large hitbox.
+ *
+ * WARNING ABOUT INDEFINITE DELAY:
+ * If the DURATION is set to -1, don't forget to set the TOUCHABLE to "true"!
+ * If you do not, the action will sit there forever and never trigger due to
+ * not being touchable.
  *
  * ----------------------------------------------------------------------------
  * POSE SUFFIX:
@@ -451,6 +556,526 @@
  *
  * WARNING:
  * This is not a highly tested feature of JABS and may not work as intended.
+ *
+ * ----------------------------------------------------------------------------
+ * COMBOS:
+ * This is a somewhat broad topic encompassing multiple tags, but "comboing"
+ * can also be a feature of JABS if desired.
+ *
+ * COMBO ACTION:
+ * The "combo action" tag will define what skill can be followed when using
+ * this skill. This will cause a skill to temporarily be replaced by the
+ * COMBOSKILLID in the tag, and be executable after LINKTIME frames.
+ *    <combo:[COMBO_SKILL_ID,LINK_TIME]>
+ *  Where COMBO_SKILL_ID is the skill ID that will be combo'd into.
+ *  Where LINK_TIME is the number of frames until the combo is available.
+ *
+ * If a skill has a combo tag on it like this, the cooldown of the skill must
+ * have a longer cooldown than the LINK_TIME frames, otherwise it will never be
+ * usable. After the original skill's cooldown time expires (as in, the skill
+ * that initiated the combo), it will undo all subsequent combo effects and
+ * return back to the original skill. Keep in mind that with each subsequent
+ * combo action executed, the remaining cooldown gets extended by the LINK_TIME
+ * frames amount, allowing the combo to continue.
+ *
+ * This sounds complicated, but take a look at the sample project for examples
+ * and play around with it a bit to gain a firmer grasp on it.
+ *
+ * EXAMPLE:
+ *      <combo:[2,10]>
+ * As an example, if skill contained the above tag and a battler used this
+ * this skill, their skill would become skill ID 2, and be usable after
+ * 10 frames (roughly 1/6 of a second).
+ *
+ * NOTE ABOUT FOLLOW-UP COMBOS:
+ * In order for a combo action to become available, it REQUIRES the skill to
+ * connect with a target. However, if you want a skill to not require hitting
+ * anything and instead become available as soon as the skill is executed,
+ * then check the next tag.
+ *
+ * FREECOMBO:
+ * In some cases, you may want a skill to not have a requirement to hit
+ * anything in order to combo. In these cases, there is another tag to add to
+ * your skill that you want to freely combo into another.
+ *    <freeCombo>
+ *
+ * Using this will instantly make the next combo skill available to execute.
+ *
+ * NOTE ABOUT COMBOS AND AI:
+ * In the current state, enemies and allies controlled by AI will not be able
+ * to combo, even if the conditions are otherwise met. I simply did not code
+ * this ability due to the way enemies/allies use AI to choose their skills.
+ * It is on the wishlist of items to implement.
+ *
+ * ----------------------------------------------------------------------------
+ * GUARDING:
+ * Guarding is a first-class citizen of functionality in JABS! If you want a
+ * skill to be considered a guard skill, there are a variety of tags you can
+ * use to build full-featured defending fun.
+ *
+ * NOTE ABOUT GUARD SKILL TYPES:
+ * It is important to note that a skill must have the "Guard Skill Type" id in
+ * order for it to be even recognized as a guard skill. That is defined by you
+ * in the plugin parameters.
+ *
+ * GUARD:
+ * The most basic of guarding requires the "guard" tag. This is a tag made up
+ * of a pair of values to define damage reduction/amplification.
+ *    <guard:[FLAT,PERCENT]>
+ *  Where FLAT is the flat amount to modify damage by.
+ *  Where PERCENT is the percent amount to modify damage by.
+ *
+ * The FLAT and PERCENT values should likely be negative most of the time,
+ * unless your intent is to make it so that guarding increases damage instead.
+ *
+ * EXAMPLE:
+ *      <guard:[-10,-25]>
+ * As an example, if a guard skill contained the above tag, then the damage
+ * would be reduced by a flat 10 and then reduced by 25%.
+ * This order favors the player, because we want our players to have fun!
+ *
+ * PARRY:
+ * Parrying as a functionality is a means to completely mitigate an incoming
+ * attack if the player guards at "just the right time". Using this tag, you
+ * can define how large the window is for "just the right time".
+ *    <parry:VAL>
+ *  Where VAL is the number of frames parrying is available.
+ *
+ * The window of "just the right time" always starts when guarding starts and
+ * counts down VAL number of frames until zero. The parry window is visually
+ * identified by its unique blue flash on the guarding battler.
+ *
+ * NOTE ABOUT CONSECUTIVE PARRIES:
+ * Do be aware that upon successful parry, all guarding stops automatically
+ * and the parry window is immediately ended. However, the character will
+ * still be in "pivot mode", where they can rotate in place. To guard or
+ * parry again, you will need to release the button and press it again.
+ *
+ * COUNTER-GUARD/COUNTER-PARRY:
+ * In addition to just guarding to reduce damage and/or parrying to mitigate,
+ * you can define guard skills that can have a chance (or always) result in
+ * retaliating with a skill in response to being hit while guarding or
+ * parrying.
+ *    <counterGuard:[SKILL,CHANCE]>
+ *  Where SKILL is the skill ID to potentially counter with when guarding.
+ *  Where CHANCE is the percent chance to execute the SKILL per hit guarded.
+ *
+ *    <counterParry:[SKILL,CHANCE]>
+ *  Where SKILL is the skill ID to potentially counter with when parrying.
+ *  Where CHANCE is the percent chance to execute the SKILL on-parry.
+ *
+ * NOTE ABOUT COUNTER PRIORITIES:
+ * Counter-parrying takes precedence over counter-guarding. If both
+ * counter-guard and counter-parry are available on the same battler and RNG
+ * favors you, only counter-parry will be executed.
+ *
+ * UNPARRYABLE:
+ * Should the need arise that you need a particular skill skip the possibility
+ * of being parried (like for an important skill that should always hit), then
+ * we have a tag for that too.
+ *    <unparryable>
+ *
+ * Using this tag will make a skill simply unable to be parried, even should
+ * all requirements be met.
+ *
+ * ============================================================================
+ * USING SKILLS:
+ * Now that you've spent all this time setting up skills with a massive pile of
+ * tags, you'll probably want to execute them to chop up your trash mobs!
+ * Fortunately for you, that is relatively straight forward. There are two ways
+ * to do this.
+ *
+ * NOTE ABOUT SKILL USABILITY:
+ * In addition to the default RMMZ skill usage requirements (cost etc), it is
+ * extremely important to note that the battler MUST know the skill in order to
+ * execute it. That sounds silly, but given the nature of being able to equip
+ * gear that uses a skill (potentially without having ever learned it), this is
+ * an important fact to be aware of- especially in the mainhand/offhand slots.
+ *
+ * A LITTLE ABOUT SKILL SLOTS FIRST:
+ * JABS makes use of what is called "skill slots". There are eight of them, all
+ * of which I arbitrarily just made up.
+ * - mainhand
+ * - offhand
+ * - tool
+ * - dodge
+ * - combat skill 1
+ * - combat skill 2
+ * - combat skill 3
+ * - combat skill 4
+ *
+ * ----------------------------------------------------------------------------
+ * MAINHAND AND OFFHAND SLOTS:
+ * The "mainhand" and "offhand" slots are typically slots the player does not
+ * assign directly. They are instead autoassigned via equipment. Normally, the
+ * weapon slot will translate to your mainhand slot, and the shield will define
+ * your offhand slot. If the actor is dual-wielding, then the second weapon
+ * slot will fill the offhand slot instead. In order to designate what skills
+ * the equipment grant to the actor, you'll use the "skill ID" tag:
+ *    <skillId:SKILL_ID>
+ *  Where SKILL_ID is the skill to be assigned to the equip slot.
+ *
+ * The usability of the skill in the equip slot is defined by the skill itself.
+ * If you want the shield to have an attack skill of some kind, then you can
+ * assign it as such. However, ONLY THE OFFHAND CAN DEFINE A GUARD SKILL. So
+ * keep that in mind.
+ *
+ * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
+ * Should you find yourself the need to have certain items/skills that should
+ * never appear in the assignment menu for a given slot, use this tag:
+ *    <hideFromJabsMenu>
+ *
+ * This hiding applies to "dodge" and "combat" skills, as well as "tools".
+ * Anything hidden from the quick menu will still be revealed in the main menu.
+ *
+ * ----------------------------------------------------------------------------
+ * TOOL SLOT:
+ * The "tool" slot is always player-assigned (or via plugin commands if you
+ * want). The "tool" slot represents usable items. These can be potions, bombs,
+ * or whatever else you want. Similar to equipment, you'll only need assign a
+ * SKILL_ID to them and they become usable with the given effects defined in
+ * the database:
+ *    <skillId:SKILL_ID>
+ *  Where SKILL_ID is the skill to be performed by the tool slot.
+ *
+ * ----------------------------------------------------------------------------
+ * DODGE SLOT:
+ * The "dodge" slot is also always player-assigned. This slot represents a
+ * unique "mobility" type skill (normally), where there are additional tags
+ * that can help define how the player moves when executing the skill. Keep
+ * in mind that in order for a skill to be identified as a "dodge" skill, it
+ * will not only need some tags below, but also need to be a part of the skill
+ * type that is defined in the plugin parameters for "dodge skill type".
+ *
+ * DODGE MOVETYPE:
+ * The "move type" defines one of three kinds of movetypes available for the
+ * dodge skill.
+ *    <moveType:TYPE>
+ *  Where TYPE is one of "forward", "backward", or "directional".
+ *
+ * The "forward move type" will force the dodge skill to move the player in
+ * the same direction they are facing.
+ *
+ * The "backward move type" will force the dodge skill to move the player in
+ * the opposite direction they are facing.
+ *
+ * The "directional move type" will grant the player the ability to move in
+ * whatever direction they are pressing when the skill is executed.
+ *
+ * DODGE INVINCIBILITY:
+ * Normally when performing a dodge skill, the player is simply being
+ * forcefully moved by the skill, but are still susceptible to interruption by
+ * enemy attacks if they collide with something. If you want the player to
+ * instead be invincible for the duration of the movement, then you can use
+ * this tag.
+ *    <invincibleDodge>
+ *
+ * DODGE DISTANCE:
+ * Sometimes you may want the player to only dodge a couple steps, maybe other
+ * times you'll want them to be able to dodge across the map. In either case,
+ * if you want to define this distance, you'll use the "radius" tag that is
+ * already used to define distance for skills:
+ *    <radius:DISTANCE>
+ *  Where DISTANCE is the number of tiles to be forcefully moved.
+ *
+ * ----------------------------------------------------------------------------
+ * COMBAT SKILL SLOTS:
+ * There are four combat skill slots available, and all four are assigned by
+ * the player. They are designed to be swappable anytime from the quickmenu
+ * from whatever skills the player currently knows and also have been setup.
+ * Using all the various tags you've learned about above (and below), those are
+ * the skills that can be designated as "combat skills".
+ *
+ * ============================================================================
+ * AGGRO MANAGEMENT:
+ * When it comes to AI and allies and enemies all taking swings at eachother,
+ * sometimes certain allies should be grabbing the attention of enemies and
+ * vice versa. Thus we have an aggro system- a numeric representation of how
+ * mad a battler is at another. Any AI-controlled battler will always target
+ * the battler with the highest aggro value in relation to them.
+ *
+ * It is worth noting that there are a bundle of plugin parameter tags that
+ * revolve around defaults of aggro generation, so do be sure to review them.
+ *
+ * Additionally, there are a few basics that are simply the way this system
+ * functions. There is no way to change this without going into the code and
+ * manually changing it, so pay attention!
+ *
+ * Aggro always starts with the base amount defined in the plugin params.
+ * Aggro accumulates the HP then MP then TP damage calculations next.
+ * Aggro accumulates the HP Drain next (MP/TP not considered!)
+ * Aggro accumulates the amount when parried if applicable next.
+ *  (the target parrying also aggros the attacker!)
+ * Aggro then accumulates any bonus aggro from tags described below.
+ * Aggro then multiplies any bonus rates from tags described below.
+ * Aggro then multiplies iteratively over every attacker state from tags below.
+ * Aggro then multiplies iteratively over every target state from tags below.
+ * Aggro then multiplies based on the attacker's TGR stat.
+ * Aggro then multiplies based on the player-unique multiplier if applicable.
+ *
+ * By default, you don't need to do anything special to utilize this system,
+ * but if you want to manipulate it in any way, like making skills that will
+ * generate more aggro than others, or lock aggro, or reduce aggro, then you
+ * will want to leverage the following tags.
+ *
+ * ----------------------------------------------------------------------------
+ * AGGRO TAGS FOR SKILLS:
+ * There are a couple of tags that you can place on skills to affect aggro.
+ * They will influence how much or little a skill will affect the aggro
+ * generation based on the above aggro logic.
+ *
+ * BONUS AGGRO:
+ * As suggested, this tag will cause skills to generate additional aggro. This
+ * can also be used to reduce aggro if you opt to make the amount negative.
+ *    <aggro:VAL>
+ *  Where VAL is the numeric amount of aggro to gain (or lose).
+ *
+ * AGGRO MULTIPLIER:
+ * The aggro multiplier tag can be used to make skills still use all the same
+ * formulas, but then just pile on an extra multiplier atop that to further
+ * amplify aggro.
+ *    <aggroMultiplier:VAL>
+ *  Where VAL is a decimal multiplier against aggro.
+ *
+ * NOTE ABOUT DEFAULT AGGRO MULTIPLIERS:
+ * The default is 1.0 if unspecified, so when adding a multiplier to skills,
+ * you'll probably want it to be some fractional number between ~0.1 and ~10.
+ *
+ * ----------------------------------------------------------------------------
+ * AGGRO TAGS FOR STATES:
+ * There are also a couple of tags that you can place on states to affect
+ * aggro. These will be in effect for the duration of the state on the battler.
+ *
+ * AGGRO LOCK:
+ * To lock a battler's aggro means it cannot be changed while the state is
+ * applied to the battler. They can still influence other battler's aggro, but
+ * they themselves cannot have their aggro adjusted by any means.
+ *    <aggroLock>
+ *
+ * AGGRO OUT AMPLIFIER:
+ * As the title suggests, applying this tag to a state will cause all aggro
+ * this battler generates to be multiplied by a given amount.
+ *    <aggroOutAmp:VAL>
+ *  Where VAL is the decimal multiplier against outgoing aggro.
+ *
+ * AGGRO IN AMPLIFIER:
+ * Similar to the AGGRO OUT AMPLIFIER, applying this tag to a state will cause
+ * all received aggro for this battler to be multiplied by a given amount.
+ *    <aggroInAmp:VAL>
+ *  Where VAL is the decimal multiplier against incoming aggro.
+ *
+ * ============================================================================
+ * CONFIGURING LOOT:
+ * After a hard day of chopping up trash mobs, you should be a benevolent RMMZ
+ * developer and reward your player with loot. Any droppable item that is
+ * listed in the database can be dropped and subsequently collected. However,
+ * the setup is kind of clumsy by default. I would encourage using another of
+ * my plugins called "J-DropsControl". Regardless if you do or don't, there
+ * are a couple of tags you may want to consider using in tandem with the
+ * plugin parameters for loot drops.
+ *
+ * ----------------------------------------------------------------------------
+ * USE ON PICKUP:
+ * The "heart" drop, made iconic by the Zelda franchise, is an item that when
+ * picked up, will immediately heal for a given amount. Should you also want to
+ * create such functionality, you can use the "use on pickup" tag. Simply add
+ * the tag to an ITEM that can be dropped from a foe on defeat, and when the
+ * player collects the loot, it will instead be immediately performed as if
+ * using the item on oneself.
+ *    <useOnPickup>
+ *
+ * While I use the classic "heart" drop from Zelda as an example, it does not
+ * have to be a healing item that is immediately used. Get creative!
+ *
+ * ----------------------------------------------------------------------------
+ * EXPIRATION:
+ * In the plugin parameters, you can set the default duration for which an loot
+ * drop can persist on the map after being dropped. While it could be set for
+ * loot to persist indefinitely, if you should ever need to make a particular
+ * loot drop only last for a designated amount of time, then this is the tag
+ * for you.
+ *    <expires:DURATION>
+ *  Where DURATION is the number of frames to persist after being dropped.
+ *
+ * NOTE ABOUT MAP TRANSFERS:
+ * All loot is erased upon transfering maps. This is an intended functionality.
+ * If you want to demand the player collect loot, you should consider either
+ * locking the player on the map or forcing the item into the player's
+ * inventory via eventing.
+ *
+ * ============================================================================
+ * SETTING UP STATES:
+ * States are obviously an important part of any good RPG! So naturally, when
+ * you go about building states with JABS, there are a few additional details
+ * that you should understand when it comes to their setup and functionality.
+ * There is one tag for defining what is a "negative" state, and four tags
+ * for locking core functionality on a battler. Additionally, there are a host
+ * of other tags that grant other useful functionality. Read on to learn more!
+ *
+ * ----------------------------------------------------------------------------
+ * NEGATIVE:
+ * Functionally, a state being "negative" does not impact how it operates, but
+ * it does influence how the AI perceives the states and considers actions when
+ * attempting to heal (like by trying to purge states). Thus, if you want a
+ * state to be considered negative and thus AI-controlled battlers will attempt
+ * to heal this state when using either <aiTrait:healer> or setting ally AI to
+ * "support", then add this tag to the state.
+ *    <negative>
+ *
+ * ----------------------------------------------------------------------------
+ * ROOTED:
+ * A state with the "rooted" tag will lock the battler's movement.
+ *    <rooted>
+ *
+ * ----------------------------------------------------------------------------
+ * DISARMED:
+ * A state with the "disarmed" tag will lock the battler's basic attacks.
+ * Basic attacks are considered either the main or offhand for actor battlers,
+ * and the "basic attack" traited skill for enemy battlers.
+ *    <disarmed>
+ *
+ * ----------------------------------------------------------------------------
+ * MUTED:
+ * A state with the "muted" tag will lock the battler's combat actions.
+ * Combat actions are considered either the four extra equippable slots for
+ * actor battlers, and any non-basic-attack skills for enemy battlers.
+ *    <muted>
+ *
+ * ----------------------------------------------------------------------------
+ * PARALYZED:
+ * A state with the "paralyzed" tag will lock everything about a battler.
+ * It is functionally the same as being "rooted", "disarmed", and "muted", all
+ * at the same time.
+ *    <paralyzed>
+ *
+ * ----------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
+ * SLIP DAMAGE:
+ * For those unfamiliar with the term, "slip damage" is an alternative naming
+ * for "damage over time". There are three types of tags for each of the three
+ * categories of slip damage. It is important to note that the values you place
+ * in the value portion of these tags equals "this much per 5 seconds". See the
+ * examples for more details on that. But if you want to think about math, then
+ * just consider it that the tick value you see will be about 1/20 of that VAL.
+ * And that the tick happens 4 times per second.
+ *
+ * ----------------------------------------------------------------------------
+ * SLIP DAMAGE AS A CONCEPT:
+ * Battlers have three pools of parameters that are conventionally replenished
+ * or diminished by some means or another, those being hp/mp/tp. Slip damage in
+ * the context of JABS revolves around manipulation of these three parameters.
+ *
+ * NEGATIVE SLIP DAMAGE:
+ * When the aim of a state is to diminish a target's pools, use negative slip
+ * damage. Common examples of this are:
+ * - Poison for reducing HP steadily for a time.
+ * - Forgetful for reducing MP steadily for a time.
+ * - Exhaustion for reducing TP steadily for a time.
+ *
+ * POSITIVE SLIP DAMAGE:
+ * When the aim of a state is to replenish a target's pools, use positive slip
+ * damage. Common examples of this are:
+ * - Regenerate for increasing HP steadily for a time.
+ * - Zen for increasing MP steadily for a time.
+ * - Focused for increasing TP steadily for a time.
+ *
+ * With this in mind, the tags are grouped into three categories, and named with
+ * clarity in mind when reading the tag. This means there are three permutations
+ * of three categories of ways slip damage is applied. You can read about them
+ * in the three subsections below.
+ *
+ * IMPORTANT NOTE ABOUT DAMAGE FREQUENCY:
+ * IT is important to note that the values in all three categories of damage
+ * application are assumed to be the amount of damage/healing applied over the
+ * spread of five seconds. The amount is spread over a total of 20 ticks per
+ * five seconds, translating to four ticks per second. This was an arbitrary
+ * decision, but important to comprehend the magic formula of which each tick
+ * will translate to based on the amount you enter as VAL in the values of the
+ * tags below:
+ *    VAL / 20 = AMOUNT_PER_TICK
+ *
+ * FLAT:
+ * Flat damage is just that, a fixed amount of unmitigatable damage or healing
+ * against the given parameter.
+ *    <hpFlat:VAL>
+ *    <mpFlat:VAL>
+ *    <tpFlat:VAL>
+ *  Where VAL is the amount to lose per 5.
+ *
+ * PERCENT:
+ * Percent damage will eat a portion of the battler's max value per tick.
+ * Use this tag with care, because it adds up fast!
+ *    <hpPercent:VAL>
+ *    <mpPercent:VAL>
+ *    <tpPercent:VAL>
+ *  Where VAL is the % of max value to lose per 5.
+ *
+ * FORMULA:
+ * Formula-driven damage allows you to build formulas that can potentially
+ * scale with a battler's stats. Similar to the damage formula you define in
+ * skills, you can define a similar formula within the brackets to deal
+ * formula-based damage with every tick. This formula will have access to the
+ * one afflicted with the state as "a", the one who applied the state as "b",
+ * the collection of variables as "v", and the state object itself as "s".
+ *    <hpFormula:[FORMULA]>
+ *    <mpFormula:[FORMULA]>
+ *    <tpFormula:[FORMULA]>
+ *  Where FORMULA is the damage-like formula to calculate VAL to lose per 5.
+ *
+ * EXAMPLES:
+ *    <hpFlat:-100>
+ *  A battler with this tag would lose 100 HP over five seconds, at the rate of
+ *  5 damage per tick.
+ *
+ *    <mpPercent:50>
+ *  A battler would lose 50% of their max MP over five seconds, at the rate of
+ *  2.5% damage per tick.
+ *
+ *    <tpFormula:[(a.atk * 2)]>
+ *  A battler would gain TP equal to "200% of own attack" over five seconds, at
+ * the rate of 10% healing per tick.
+ *
+ *    <hpPercent:80>
+ *  A battler would gain 80% of their max HP over five seconds, at the rate of
+ *  4% healing per tick.
+ *
+ *    <mpFormula:[a.mdf + b.mdf]>
+ *  A battler would gain MP equal to "100% of my own and the afflicter's magic
+ *  defense" over five seconds, at the rate of 5% healing per tick.
+ *
+ *    <tpFlat:-20>
+ *  A battler would lose 20 TP over five seconds, at the rate of exactly
+ *  1 damage per tick.
+ *
+ * NOTE ABOUT VAL OUTPUT:
+ * Making the output VAL a multiple of 20x is an easy mental and visual way to
+ * control the damage or healing by increments of 1. For example, having the
+ * healing output change between 20 to 40 to 60 to 80 would visually be
+ * outputed as seeing popups change from 1, to 2, to 3, to 4, and onward. The
+ * same concept applies if the output is negative.
+ *
+ * STATE DURATIONS:
+ * After all that talk about manipulation of health and stuff via states, you
+ * might be saying "you've told me that everything is outputed as per five
+ * seconds, but how do I specify how long they last?". To accommodate the fact
+ * that I wanted governance over durations to be accessible, I opted to
+ * repurposes the "stepstoRemove" property on states, which is the "Remove by
+ * Walking" number box in the database editor. The number entered into that box
+ * will be the number of frames that a state will persist. Considering RMMZ
+ * runs natively at roughly 60 frames per second, you can assume that if you
+ * make a state duration last 300 frames, that it will roughly afflict the
+ * battler with exactly as much as you specify in the VAL output of the slip
+ * damage or other effects.
+ *
+ * NOTE ABOUT FRAMES PER SECOND:
+ * I do say "roughly" a number of times in the section above. That is because
+ * while the engine assumes you'll be running at 60 frames per second, the
+ * reality is that it teeters somewhere between 30 and 60 depending on the
+ * level of action and how powerful your computer is, etc. This means that
+ * even though the state may be designated to last 300 frames, and you convert
+ * that in your head to 5 seconds, it may actually be longer than 5 seconds if
+ * your frames per second are spending a lot of time below 60.
+ * Keep that in mind when designing states.
  *
  * ============================================================================
  * @param baseConfigs

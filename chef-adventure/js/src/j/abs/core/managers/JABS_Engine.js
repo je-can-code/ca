@@ -2067,16 +2067,15 @@ class JABS_Engine
     if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
-    if (action.getCaster().isSameTeam(targetBattler.getTeam()))
-    {
-      return;
-    }
+    if (action.getCaster().isSameTeam(targetBattler.getTeam())) return;
 
+    // check if the target battler is an actor.
     if (targetBattler.isActor())
     {
       // handle player retaliations.
       this.handleActorRetaliation(targetBattler);
     }
+    // they must be an enemy.
     else
     {
       // handle non-player retaliations.

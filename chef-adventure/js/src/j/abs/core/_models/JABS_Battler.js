@@ -679,7 +679,7 @@ JABS_Battler.isItemVisibleInToolMenu = function(item)
   // invalid items are not visible in the item menu.
   if (!item) return false;
 
-  // explicitly hidden skills are not visible in the item menu.
+  // explicitly hidden items are not visible in the item menu.
   if (item.metaAsBoolean("hideFromJabsMenu")) return false;
 
   // non-items or non-always-occasion items are not visible in the item menu.

@@ -396,6 +396,7 @@ J.ABS.RegExp = {
   Proximity: /<proximity:[ ]?(\d+)>/gi,
   Projectile: /<projectile:[ ]?([12348])>/gi,
   Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Direct: /<direct>/gi,
   Duration: /<duration:[ ]?(\d+)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
   DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
@@ -407,11 +408,10 @@ J.ABS.RegExp = {
   // skill-combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   FreeCombo: /<freeCombo>/gi,
-  Direct: /<direct>/gi,
 
   // aggro-related.
-  BonusAggro: /<aggro:[ ]?(\d+)>/gi,
-  AggroMultiplier: /<aggroMultiplier:[ ]?(\d+)>/gi,
+  BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
+  AggroMultiplier: /<aggroMultiplier:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 
   // hits-related.
   Unparryable: /<unparryable>/gi,
@@ -432,7 +432,6 @@ J.ABS.RegExp = {
   Retaliate: /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/gi,
   OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
   onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
-
   /* ON SKILLS */
 
   /* ON EQUIPS */
@@ -464,8 +463,8 @@ J.ABS.RegExp = {
 
   // aggro-related.
   AggroLock: /<aggroLock>/gi,
-  AggroOutAmp: /<aggroOutAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
-  AggroInAmp: /<aggroInAmp:[ ]?[+]?([-]?\d+[.]?\d+)?>/gi,
+  AggroOutAmp: /<aggroOutAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+  AggroInAmp: /<aggroInAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 
   // slip hp/mp/tp effects.
   SlipHpFlat: /<hpFlat:[ ]?(-?\d+)>/gi,
