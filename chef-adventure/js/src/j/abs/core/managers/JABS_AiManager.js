@@ -5,6 +5,12 @@
 class JABS_AiManager
 {
   /**
+   * A collection of all battlers being managed by this manager.
+   * @type {Map<string, JABS_Battler>}
+   */
+  static battlers = new Map();
+
+  /**
    * Constructor.
    * This is a static class.
    */
@@ -13,19 +19,526 @@ class JABS_AiManager
     throw new Error("The JABS_AiManager is a static class.");
   }
 
-  static debugActor(message, battler)
+  //#region get battlers
+  /**
+   * Gets all battlers as an array for iterative purposes.
+   * @returns {JABS_Battler[]} The currently tracked battlers.
+   */
+  static getAllBattlers()
   {
-    if (battler.isEnemy()) return;
-
-    console.log(message, battler);
+    // return an array form of the battlers.
+    return Array
+      .from(this.battlers.values());
   }
 
-  static debugEnemy(message, battler)
+  /**
+   * Find a battler by its uuid.
+   * @param {string} uuid The uuid of the battler to find.
+   * @returns {JABS_Battler|undefined}
+   */
+  static getBattlerByUuid(uuid)
   {
-    if (battler.isActor()) return;
-
-    console.log(message, battler);
+    // return what is found by that uuid.
+    return this.battlers.get(uuid);
   }
+
+  /**
+   * Finds a battler by its {@link Game_Event.eventId}.
+   * @param {number} eventId The event id to find a battler for.
+   * @returns {JABS_Battler|undefined}
+   */
+  static getBattlerByEventId(eventId)
+  {
+    // find the battler with the matching event id.
+    return this.getAllBattlers()
+      .find(battler => battler.getCharacter().eventId() === eventId);
+  }
+
+  /**
+   * Gets all battlers within a given distance from given battler.
+   * @param {JABS_Battler} user The target to get battlers within range of.
+   * @param {number} maxRange The maximum range to check for battlers within.
+   * @returns {JABS_Battler[]}
+   */
+  static getBattlersWithinRange(user, maxRange)
+  {
+    // find all battlers that are within the max range.
+    return this.getAllBattlers()
+      .filter(battler => user.distanceToDesignatedTarget(battler) <= maxRange);
+  }
+
+  /**
+   * Gets all followers that the given leader battler has.
+   * @param {JABS_Battler} leaderBattler
+   * @returns {JABS_Battler[]}
+   */
+  static getLeaderFollowers(leaderBattler)
+  {
+    // if we're not able to lead, then you have no followers.
+    if (!leaderBattler.getAiMode().leader) return [];
+
+    // determine all nearby battlers.
+    const nearbyBattlers = this.getBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
+
+    // the filter function for determining if a battler is a follower to this leader.
+    /** @param battler {JABS_Battler} */
+    const filtering = battler =>
+    {
+      // grab the ai of the nearby battler.
+      const { follower, leader } = battler.getAiMode();
+
+      // check if they can become a follower to the designated leader.
+      const canLead = !battler.hasLeader() || (leaderBattler.getUuid() === battler.getLeader());
+
+      // if i am a follower, not a leader, and can be lead, then lead me.
+      return (follower && !leader && canLead);
+    };
+
+    // return the filtered nearby battlers that are followers.
+    return nearbyBattlers.filter(filtering);
+  }
+
+  /**
+   * Gets all battlers in order from closest to farthest in relation
+   * to the given origin battler.
+   * @param {JABS_Battler} originBattler The origin battler to sort all other battlers by.
+   * @returns {JABS_Battler[]}
+   */
+  static getAllBattlersDistanceSortedFromBattler(originBattler)
+  {
+    // grab all the battlers available.
+    const battlers = this.getAllBattlers();
+
+    // return them sorted, closest to farthest.
+    return this.#sortBattlersByDistanceFromBattlerAscending(battlers, originBattler);
+  }
+
+  /**
+   * Gets all battlers that are of an opposing team to the selected battler.
+   * @param {JABS_Battler} selectedBattler The battler to get the opposing battlers list for.
+   * @returns {JABS_Battler[]} All opposing battlers being tracked.
+   */
+  static getOpposingBattlers(selectedBattler)
+  {
+    // grab all the battlers available.
+    const battlers = this.getAllBattlers();
+
+    // return the opposing battlers.
+    return this.#filterBattlersByOpposingTeam(battlers, selectedBattler);
+  }
+
+  /**
+   * Gets all opposing battlers to the selected battler within a given range.
+   * @param {JABS_Battler} selectedBattler The selected battler to compare range and opposition with.
+   * @param {number} maxRange The maximum range from the selected battler; inclusive.
+   * @returns {JABS_Battler[]} The double-filtered list of opposing battlers within range.
+   */
+  static getOpposingBattlersWithinRange(selectedBattler, maxRange)
+  {
+    // grab all opposing battlers available.
+    const opposingBattlers = this.getOpposingBattlers(selectedBattler);
+
+    // return the range-filtered opposing battlers.
+    return this.#filterBattlersByRangeFromBattler(opposingBattlers, selectedBattler, maxRange);
+  }
+
+  /**
+   * Gets the closest opposing battler in the selected battler's sight range.
+   * @param {JABS_Battler} selectedBattler The battler to find the closest opponent for.
+   * @returns {JABS_Battler|null} The closest battler, or null if no opponent is in sight.
+   */
+  static getClosestOpposingBattler(selectedBattler)
+  {
+    // grab all opposing battlers within the selected battlers sight.
+    const battlers = this.getOpposingBattlersWithinRange(
+      selectedBattler,
+      selectedBattler.getSightRadius());
+
+    // if we have no visible opposing battlers, then there is no closest.
+    if (!battlers.length) return null;
+
+    // sort the closest battler out.
+    const [closestBattler,] = this.#sortBattlersByDistanceFromBattlerAscending(
+      battlers,
+      selectedBattler);
+
+    // return the closest we found.
+    return closestBattler;
+  }
+
+  /**
+   * Gets all battlers that are of an allied team to the selected battler.
+   * @param {JABS_Battler} selectedBattler The battler to get the allied battlers list for.
+   * @returns {JABS_Battler[]} All allied battlers being tracked.
+   */
+  static getAlliedBattlers(selectedBattler)
+  {
+    // grab all the battlers available.
+    const battlers = this.getAllBattlers();
+
+    // return the allied battlers.
+    return this.#filterBattlersByAlliedTeam(battlers, selectedBattler);
+  }
+
+  /**
+   * Gets all allied battlers to the selected battler within a given range.
+   * @param {JABS_Battler} selectedBattler The selected battler to compare range and alliance with.
+   * @param {number} maxRange The maximum range from the selected battler; inclusive.
+   * @returns {JABS_Battler[]} The double-filtered list of allied battlers within range.
+   */
+  static getAlliedBattlersWithinRange(selectedBattler, maxRange)
+  {
+    // grab all allied battlers available.
+    const alliedBattlers = this.getAlliedBattlers();
+
+    // return the range-filtered allied battlers.
+    return this.#filterBattlersByRangeFromBattler(alliedBattlers, selectedBattler, maxRange);
+  }
+
+  /**
+   * Gets all battlers that use {@link Game_Actor} for their battler.
+   * @returns {JABS_Battler[]}
+   */
+  static getActorBattlers()
+  {
+    // filter on whether or not the battler is a {@link Game_Actor}.
+    return this.getAllBattlers()
+      .filter(battler => battler.isActor());
+  }
+
+  /**
+   * Gets all battlers that use {@link Game_Enemy} for their battler.
+   * @returns {JABS_Battler[]}
+   */
+  static getEnemyBattlers()
+  {
+    // filter on whether or not the battler is a {@link Game_Enemy}.
+    return this.getAllBattlers()
+      .filter(battler => battler.isEnemy());
+  }
+
+  /**
+   * Filters the battlers based on whether or not the battler is on an opposing
+   * team from the selected battler.
+   * @param {JABS_Battler[]} battlers The battlers to be filtered by team opposition.
+   * @param {JABS_Battler} selectedBattler The battler to compare for team opposition.
+   * @returns {JABS_Battler[]} The filtered list of only opposing battlers.
+   */
+  static #filterBattlersByOpposingTeam(battlers, selectedBattler)
+  {
+    // a filter function for determining whether or not the battler is of the opposing team.
+    const filtering = battler => {
+      // neutral battlers are never an opposition.
+      if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
+
+      // check if the selected battler is not the same team as the target battler's team.
+      const isOpposingTeam = !selectedBattler.isSameTeam(battler.getTeam());
+
+      // return what we found.
+      return isOpposingTeam;
+    };
+
+    // return the battlers filtered by team opposition of the selected battler.
+    return battlers.filter(filtering);
+  }
+
+  /**
+   * Filters the battlers based on whether or not the battler is on an allied
+   * team from the selected battler.
+   * @param {JABS_Battler[]} battlers The battlers to be filtered by team alliance.
+   * @param {JABS_Battler} selectedBattler The battler to compare for team alliance.
+   * @returns {JABS_Battler[]} The filtered list of only allied battlers.
+   */
+  static #filterBattlersByAlliedTeam(battlers, selectedBattler)
+  {
+    // a filter function for determining whether or not the battler is of the same team.
+    const filtering = battler => {
+      // neutral battlers are never an ally.
+      if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
+
+      // check if the selected battler is the same team as the target battler's team.
+      const isSameTeam = selectedBattler.isSameTeam(battler.getTeam());
+
+      // return what we found.
+      return isSameTeam;
+    };
+
+    // return the battlers filtered by team alliance of the selected battler.
+    return battlers.filter(filtering);
+  }
+
+  /**
+   * Filters the battlers based on whether or not they are within the maximum range from the origin battler.
+   * @param {JABS_Battler[]} battlers The battlers to be filtered by team opposition.
+   * @param {JABS_Battler} originBattler The battler to filter by maximum range from.
+   * @param {number} maxRange The maximum range from the origin battler; inclusive.
+   * @returns {JABS_Battler[]} The filtered list of only battlers within the max range from the origin.
+   */
+  static #filterBattlersByRangeFromBattler(battlers, originBattler, maxRange)
+  {
+    // a filter function for removing battlers outside of a given range.
+    const filtering = battler => {
+      // grab the distance from the origin battler to the given battler.
+      const distance = originBattler.distanceToDesignatedTarget(battler);
+
+      // whether or not the battler is in range.
+      const inRange = distance <= maxDistance;
+
+      // return the result.
+      return inRange;
+    };
+
+    // return the battlers filtered by maximum range.
+    return battlers.filter(filtering);
+  }
+
+  /**
+   * Sorts the battlers in order from closest to farthest from the origin battler.
+   * @param {JABS_Battler[]} battlers The collection of battlers to sort.
+   * @param {JABS_Battler} originBattler The origin battler to check distance against.
+   * @returns {JABS_Battler[]} The battlers sorted from closest to farthest.
+   */
+  static #sortBattlersByDistanceFromBattlerAscending(battlers, originBattler)
+  {
+    // a compare function for comparing the distance between two battlers.
+    const comparing = (battlerA, battlerB) => {
+      const distanceA = originBattler.distanceToDesignatedTarget(battlerA);
+      const distanceB = originBattler.distanceToDesignatedTarget(battlerB);
+      return distanceA - distanceB;
+    };
+
+    // return the battlers sorted by distance from closest to farthest.
+    return battlers.sort(comparing);
+  }
+  //#endregion get battlers
+
+  //#region manage battlers
+  /**
+   * Adds a battler to tracking.
+   * @param {JABS_Battler} battler The battler to add to tracking.
+   */
+  static addOrUpdateBattler(battler)
+  {
+    // grab the key, aka the uuid of the battler.
+    const key = battler.getUuid();
+
+    // check if the battler already is being tracked.
+    if (this.battlers.has(key))
+    {
+      // if it is, just update the battler data.
+      this.updateBattler(key, battler);
+    }
+    // the battler isn't being tracked.
+    else
+    {
+      // just add the battler anew.
+      this.addBattler(battler);
+    }
+  }
+
+  /**
+   * Adds a battler to tracking based on the battler's own uuid.
+   * @param {JABS_Battler} battler The battler to add to tracking.
+   */
+  static addBattler(battler)
+  {
+    // grab the key, aka the uuid of the battler.
+    const key = battler.getUuid();
+
+    // update the battler key with the newest battler.
+    this.battlers.set(key, battler);
+  }
+
+  /**
+   * Updates a given key in the battler tracking with new battler data.
+   * @param {string} key The key of the battler to replace the slot of.
+   * @param {JABS_Battler} battler The updated battler data.
+   */
+  static updateBattler(key, battler)
+  {
+    console.log(`updating: `, key, this.battlers.get(key), `>>>`, battler);
+
+    // update the battler key with the newest battler.
+    this.battlers.set(key, battler);
+  }
+
+  /**
+   * Adds a collection of battlers to tracking.
+   * @param {JABS_Battler} battlers The battler to add to tracking.
+   */
+  static addOrUpdateBattlers(battlers)
+  {
+    battlers.forEach(this.addOrUpdateBattler, this);
+  }
+
+  /**
+   * Removes a battler from tracking.
+   * @param {JABS_Battler} battler The battler to remove from tracking.
+   */
+  static removeBattler(battler)
+  {
+    // grab the key, aka the uuid of the battler.
+    const key = battler.getUuid();
+
+    // check if the battler is currently being tracked.
+    if (this.battlers.has(key))
+    {
+      // remove battler from tracking.
+      this.battlers.delete(key);
+    }
+  }
+
+  /**
+   * Removes a collection of battlers from tracking.
+   * @param {JABS_Battler[]} battlers The battler to remove from tracking.
+   */
+  static removeBattlers(battlers)
+  {
+    battlers.forEach(this.removeBattler, this);
+  }
+
+  /**
+   * Clears the currently tracked battlers.
+   */
+  static clearBattlers()
+  {
+    this.battlers.clear();
+  }
+
+  /**
+   * Converts an event into an enemy if possible.
+   * @param {Game_Event} event The event to potentially convert.
+   * @returns {JABS_Battler|null} A battler if the event had one available, null otherwise.
+   */
+  static convertEventToBattler(event)
+  {
+    // verify we can conver the event to a battler.
+    if (!this.canConvertEventToBattler(event))
+    {
+      // if the battler has no id, it is likely being hidden/transformed to non-battler.
+      event.setMapBattler(String.empty);
+
+      // null is the default for non-enemies.
+      return null;
+    }
+
+    // create the underlying battler associated with the event.
+    const battler = new Game_Enemy(
+      event.getBattlerId(),
+      null,
+      null);
+
+    // create the battler with the new data.
+    const jabsBattler = new JABS_Battler(
+      event,
+      battler,
+      event.getBattlerCoreData());
+
+    // update the battler with the latest uuid.
+    event.setMapBattler(jabsBattler.getUuid());
+
+    // return the newly created battler.
+    return jabsBattler;
+  }
+
+  /**
+   * Converts a collection of events into enemies if possible.
+   * @param {Game_Event[]} events The events to potentially convert to battlers.
+   * @returns {JABS_Battler[]} The converted collection of battlers (possibly empty).
+   */
+  static convertEventsToBattlers(events)
+  {
+    return events
+      .map(event => this.convertEventToBattler(event))
+      .filter(event => !!event);
+  }
+
+  /**
+   * Determines whether or not the event can be converted into a battler.
+   * @param {Game_Event} event The event to potentially convert.
+   * @returns {boolean} True if the event is convertable, false otherwise.
+   */
+  static canConvertEventToBattler(event)
+  {
+    // if the event isn't a JABS battler, then don't try to convert it.
+    if (!event.isJabsBattler()) return false;
+
+    // convert it!
+    return true;
+  }
+
+  /**
+   * Converts a collection of followers into allies if possible.
+   * @param {Game_Follower[]} followers The followers to potentially convert to battlers.
+   * @returns {JABS_Battler[]} The converted collection of battlers (possibly empty).
+   */
+  static convertFollowersToBattlers(followers)
+  {
+    return $gamePlayer.followers().data()
+      .map(this.convertFollowerToBattler, this)
+      .filter(follower => !!follower);
+  }
+
+  /**
+   * Converts an follower into an ally if possible.
+   * @param {Game_Follower} follower The follower to potentially convert.
+   * @returns {JABS_Battler|null} A battler if the follower had one available, null otherwise.
+   */
+  static convertFollowerToBattler(follower)
+  {
+    // verify we can conver the follower to a battler.
+    if (!this.canConvertFollowerToBattler(follower))
+    {
+      // if the battler has no id, it is likely being hidden/transformed to non-battler.
+      follower.setMapBattler(String.empty);
+
+      // null is the default.
+      return null;
+    }
+
+    // grab the battler of the follower.
+    const battler = follower.actor();
+
+    // create a builder to step through for this battler.
+    const builder = new JABS_CoreDataBuilder(0);
+
+    // set the battler.
+    builder.setBattler(battler);
+
+    // check if we're using the danger indicators.
+    if (J.DANGER)
+    {
+      // never show the danger indicator for allies.
+      builder.setShowDangerIndicator(false)
+    }
+
+    // build the core data.
+    const coreData = builder.build();
+
+    // instantiate the battler.
+    const jabsBattler = new JABS_Battler(follower, battler, coreData);
+
+    // assign the map battler to the follower.
+    follower.setMapBattler(jabsBattler.getUuid());
+
+    // return the built ally map battler.
+    return jabsBattler;
+  }
+
+  /**
+   * Determines whether or not the follower can be converted into a battler.
+   * @param {Game_Follower} follower The follower to potentially convert.
+   * @returns {boolean} True if the follower is convertable, false otherwise.
+   */
+  static canConvertFollowerToBattler(follower)
+  {
+    // if a follower is not visible, then there is no underlying battler.
+    if (!follower.isVisible()) return false;
+
+    // convert it!
+    return true;
+  }
+  //#endregion manage battlers
 
   //#region update loop
   /**
@@ -65,9 +578,9 @@ class JABS_AiManager
   static manageAi()
   {
     // grab all available battlers within a fixed range.
-    const battlers = $gameMap.getBattlersWithinRange(
-      $jabsEngine.getPlayer1(),
-      J.ABS.Metadata.MaxAiUpdateRange);
+    const battlers = this.getAllBattlers();
+    //const battlers = $gameMap.getBattlersWithinRange($jabsEngine.getPlayer1(),99);
+    //J.ABS.Metadata.MaxAiUpdateRange
 
     // if we have no battlers, then do not process AI.
     if (!battlers.length) return;
@@ -664,7 +1177,7 @@ class JABS_AiManager
   static decideActionsForFollowers(leader)
   {
     // grab all nearby followers.
-    const nearbyFollowers = $gameMap.getNearbyFollowers(leader);
+    const nearbyFollowers = this.getLeaderFollowers(leader);
 
     // iterate over each found follower.
     nearbyFollowers.forEach(follower => this.decideActionForFollower(leader, follower));

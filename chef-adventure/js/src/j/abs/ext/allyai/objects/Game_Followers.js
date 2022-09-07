@@ -3,11 +3,16 @@
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.show = Game_Followers.prototype.show;
+J.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
 Game_Followers.prototype.show = function()
 {
-  J.ALLYAI.Aliased.Game_Followers.show.call(this);
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Followers.get('show').call(this);
+
+  // update all allies when choosing "show" as an event command.
   $gameMap.updateAllies();
+
+  // refresh the JABS menu.
   $jabsEngine.requestJabsMenuRefresh = true;
 };
 
@@ -15,11 +20,16 @@ Game_Followers.prototype.show = function()
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.hide = Game_Followers.prototype.hide;
+J.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
 Game_Followers.prototype.hide = function()
 {
-  J.ALLYAI.Aliased.Game_Followers.hide.call(this);
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Followers.get('hide').call(this);
+
+  // update all allies when choosing "hide" as an event command.
   $gameMap.updateAllies();
+
+  // refresh the JABS menu.
   $jabsEngine.requestJabsMenuRefresh = true;
 };
 
@@ -29,22 +39,27 @@ Game_Followers.prototype.hide = function()
  */
 Game_Followers.prototype.jumpAll = function()
 {
-  if ($gamePlayer.isJumping())
+  // don't make all the followers jump if the player isn't jumping.
+  if (!$gamePlayer.isJumping()) return;
+
+  // iterate over each follower to make them jump as-needed.
+  for (const follower of this._data)
   {
-    for (const follower of this._data)
-    {
-      // skip followers that don't exist.
-      if (!follower || !follower.isVisible()) return;
+    // skip followers that don't exist.
+    if (!follower || !follower.isVisible()) return;
 
-      // don't jump to the player when the player gets hit.
-      const battler = follower.getJabsBattler();
-      if (battler.isEngaged()) return;
+    // grab the follower's battler.
+    const battler = follower.getJabsBattler();
 
-      // if not engaged, then jumping to the player is OK.
-      const sx = $gamePlayer.deltaXFrom(follower.x);
-      const sy = $gamePlayer.deltaYFrom(follower.y);
-      follower.jump(sx, sy);
-    }
+    // don't jump if engaged.
+    if (battler.isEngaged()) return;
+
+    // determine coordinates to jump to.
+    const sx = $gamePlayer.deltaXFrom(follower.x);
+    const sy = $gamePlayer.deltaYFrom(follower.y);
+
+    // jump!
+    follower.jump(sx, sy);
   }
 };
 

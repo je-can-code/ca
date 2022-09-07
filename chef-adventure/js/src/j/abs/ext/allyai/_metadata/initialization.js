@@ -79,13 +79,13 @@ J.ALLYAI.MenuCommand = (isEnabled) =>
  */
 J.ALLYAI.Aliased = {
   Game_Actor: {},
-  Game_BattleMap: {},
+  Game_BattleMap: new Map(),
   Game_Battler: {},
   Game_Follower: new Map(),
-  Game_Followers: {},
+  Game_Followers: new Map(),
   Game_Interpreter: {},
-  Game_Map: {},
-  Game_Party: {},
+  Game_Map: new Map(),
+  Game_Party: new Map(),
   Game_Player: {},
   Game_Switches: {},
   JABS_AiManager: new Map(),

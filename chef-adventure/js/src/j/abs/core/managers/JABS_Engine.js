@@ -342,19 +342,6 @@ class JABS_Engine
   }
 
   /**
-   * Checks for how many living enemies there are present on the map.
-   * "Enemies" is defined as "number of `Game_Battler`s that are `Game_Enemy`s".
-   * @returns {boolean} True if there are any living enemies on this map, false otherwise.
-   */
-  anyLivingEnemies()
-  {
-    const anyEnemies = $gameMap
-      .getBattlers()
-      .find(battler => battler.isEnemy() && !battler.isInanimate());
-    return !!anyEnemies;
-  }
-
-  /**
    * Determines the animation id for this particular attack.
    * -1 as an animation id represents "use normal attack", but enemies don't have that!
    * So for the case of enemies, it'll instead return the default.
@@ -390,20 +377,27 @@ class JABS_Engine
 
       // just return the default attack animation id.
       return J.ABS.DefaultValues.AttackAnimationId;
-
-
     }
 
     return animationId;
   }
 
   /**
-   * Returns the `JABS_Battler` associated with the player.
+   * Gets the {@link JABS_Battler} associated with the player.
    * @returns {JABS_Battler} The battler associated with the player.
    */
   getPlayer1()
   {
     return this._player1;
+  }
+
+  /**
+   * Sets the battler associated with the player.
+   * @param {JABS_Battler} battler The battler to set as player.
+   */
+  setPlayer1(battler)
+  {
+    this._player1 = battler;
   }
 
   /**
@@ -415,10 +409,25 @@ class JABS_Engine
     if (!this.canInitializePlayer1()) return;
 
     // create a new player object.
-    this._player1 = JABS_Battler.createPlayer();
+    this.refreshPlayer1Data();
+  }
+
+  /**
+   * Updates player 1 with a new player based off the current data.
+   */
+  refreshPlayer1Data()
+  {
+    // created a battler for player1.
+    const player1 = JABS_Battler.createPlayer();
+
+    // create a new player object.
+    this.setPlayer1(player1);
 
     // assign the uuid to the player.
-    $gamePlayer.setMapBattler(this._player1.getUuid());
+    $gamePlayer.setMapBattler(player1.getUuid());
+
+    // update player 1 in the tracker.
+    JABS_AiManager.addOrUpdateBattler(player1);
   }
 
   /**
@@ -637,7 +646,7 @@ class JABS_Engine
     if (!this.canUpdateAiBattlers()) return;
 
     // grab all "visible" battlers to the player.
-    const visibleBattlers = $gameMap.getBattlersWithinRange(
+    const visibleBattlers = JABS_AiManager.getBattlersWithinRange(
       this.getPlayer1(),
       30,
       false);
@@ -750,43 +759,120 @@ class JABS_Engine
    */
   performPartyCycling()
   {
-    // check if we can party cycle.
-    if ($gameParty._actors.length === 1) return;
+    // if we cannot party cycle, then do not.
+    if (!this.canPerformPartyCycling()) return;
 
+    // a hook for things to do immediately before party cycling.
+    this.prePartyCycling();
+
+    // the management of party rearrangement during party cycling.
+    this.handlePartyCycleMemberChanges();
+
+    // perform hook for party cycling.
+    this.onPartyCycling();
+
+    // perform hook for post party cycling.
+    this.postPartyCycling();
+  }
+
+  /**
+   * Determines whether or not party cycling can be performed with any of the
+   * current members of the party.
+   * @returns {boolean} True if party cycling can be performed, false otherwise.
+   */
+  canPerformPartyCycling()
+  {
     // determine which battler in the party is the next living battler.
     const nextAllyIndex = $gameParty._actors.findIndex(this.canCycleToAlly);
 
-    // can't cycle if there are no living/valid members.
-    if (nextAllyIndex === -1)
-    {
-      console.warn('No members available to cycle to.');
-      return;
-    }
+    // if we have no next ally index, we cannot party cycle.
+    if (nextAllyIndex === -1) return false;
+
+    // lets party cycle!
+    return true;
+  }
+
+  /**
+   * A hook for things to do prior to party cycling.
+   */
+  prePartyCycling()
+  {
+    // do nothing.
+  }
+
+  /**
+   * Handles the shift or changes in party line up when party cycling.
+   */
+  handlePartyCycleMemberChanges()
+  {
+    // determine which battler in the party is the next living battler.
+    const nextAllyIndex = $gameParty._actors.findIndex(this.canCycleToAlly);
 
     // swap to the next party member in the sequence.
-    $gameParty._actors = $gameParty._actors.concat($gameParty._actors.splice(0, nextAllyIndex));
-    $gamePlayer.refresh();
-    $gamePlayer.requestAnimation(40, false);
+    $gameParty.swapLeaderWithFollower(nextAllyIndex);
+
+    // also trigger an update against the new leader.
+    $gameParty.leader().onBattlerDataChange();
 
     // recreate the JABS player battler and set it to the player character.
-    this._player1 = JABS_Battler.createPlayer();
-    const newPlayer = this.getPlayer1().getCharacter();
-    newPlayer.setMapBattler(this._player1.getUuid());
+    this.refreshPlayer1Data();
+  }
 
+  /**
+   * A hook for things to do upon party cycling successfully.
+   */
+  onPartyCycling()
+  {
+    // perform the various effects for party cycling.
+    this.partyCyclingEffects();
+  }
+
+  /**
+   * The various effects of party cycling, such as animations and logging.
+   */
+  partyCyclingEffects()
+  {
+    // perform the party cycle animation.
+    this.partyCycleAnimation();
+
+    // handle the party cycle logging.
+    this.partyCycleLogging();
+  }
+
+  /**
+   * Handle the animation for party cycling.
+   */
+  partyCycleAnimation()
+  {
+    // grab the current player 1.
+    const player1 = this.getPlayer1();
+
+    // perform the party cycle animation.
+    player1.getCharacter().requestAnimation(40);
+  }
+
+  /**
+   * Handle logging for party cycling.
+   */
+  partyCycleLogging()
+  {
+    // if we are not logging, then do not.
+    if (!J.LOG) return;
+
+    // grab the current player 1.
+    const player1 = this.getPlayer1();
+
+    // build and write the log.
+    const log = new MapLogBuilder()
+      .setupPartyCycle(player1.battlerName())
+      .build();
+    $gameTextLog.addLog(log);
+  }
+
+  postPartyCycling()
+  {
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
     this.requestPartyRotation = true;
-
-    // if the log is present, then do log things.
-    if (J.LOG)
-    {
-      const log = new MapLogBuilder()
-        .setupPartyCycle(this.getPlayer1().battlerName())
-        .build();
-      $gameTextLog.addLog(log);
-    }
-
-    // also trigger an update against the switching player.
-    this.getPlayer1().getBattler().onBattlerDataChange();
 
     // request a map-wide sprite refresh on cycling.
     this.requestSpriteRefresh = true;
@@ -2606,7 +2692,7 @@ class JABS_Engine
     const caster = casterJabsBattler.getCharacter();
 
     /**  @type {JABS_Battler[]} */
-    const battlers = $gameMap.getAllBattlersDistanceSortedFromPlayer(casterJabsBattler);
+    const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
     let hitOne = false;
     const targetsHit = [];
 
@@ -3407,7 +3493,7 @@ class JABS_Engine
    */
   battlerLevelup(uuid)
   {
-    const battler = $gameMap.getBattlerByUuid(uuid);
+    const battler = JABS_AiManager.getBattlerByUuid(uuid);
     if (battler)
     {
       const character = battler.getCharacter();
@@ -3488,7 +3574,7 @@ class JABS_Engine
    */
   battlerSkillLearn(skill, uuid)
   {
-    const battler = $gameMap.getBattlerByUuid(uuid);
+    const battler = JABS_AiManager.getBattlerByUuid(uuid);
     if (battler)
     {
       const character = battler.getCharacter();

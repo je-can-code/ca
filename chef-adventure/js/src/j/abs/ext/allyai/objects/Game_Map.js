@@ -1,14 +1,33 @@
 //#region Game_Map
 /**
- * Parses out all enemies from the array of events on the map.
- * @param {Game_Event[]} evs An array of events.
+ * Extends {@link Game_Map.parseBattlers}.
+ * Also parses ally battlers as well as events.
  * @returns {JABS_Battler[]}
  */
-J.ALLYAI.Aliased.Game_Map.parseBattlers = Game_Map.prototype.parseBattlers;
+J.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
 Game_Map.prototype.parseBattlers = function()
 {
-  const mapBattlers = J.ALLYAI.Aliased.Game_Map.parseBattlers.call(this);
-  return mapBattlers.concat(this.parseAllyBattlers());
+  // perform original logic.
+  const originalParsedBattlers = J.ALLYAI.Aliased.Game_Map.get('parseBattlers').call(this);
+
+  // also parse ally battlers.
+  const parsedAllyBattlers = this.parseAllyBattlers();
+
+  // combine all battlers.
+  const parsedBattlers = originalParsedBattlers.concat(parsedAllyBattlers);
+
+  // return the combined conversion.
+  return parsedBattlers;
+};
+
+/**
+ * Parses all followers that are active into their battler form.
+ * @returns {JABS_Battler[]}
+ */
+Game_Map.prototype.parseAllyBattlers = function()
+{
+  return JABS_AiManager
+    .convertFollowersToBattlers($gamePlayer.followers().data());
 };
 
 /**
@@ -18,7 +37,8 @@ Game_Map.prototype.parseBattlers = function()
  */
 Game_Map.prototype.getFollowerBattlers = function()
 {
-  return this._j._allBattlers.filter(battler => battler.isActor());
+  return JABS_AiManager.getAllBattlers()
+    .filter(battler => battler.isFollower());
 };
 
 /**
@@ -35,15 +55,13 @@ Game_Map.prototype.updateAllies = function()
 
   // then re-add the updated ones.
   const allies = this.parseAllyBattlers();
-  this.addBattlers(allies);
-};
 
-Game_Map.prototype.addBattlers = function(battlers)
-{
-  // don't bother processing if the addition is empty.
-  if (!battlers.length) return;
-
-  this._j._allBattlers.splice(0, 0, ...battlers);
+  // check to make sure we have allies.
+  if (allies.length)
+  {
+    // add any parsed allies.
+    JABS_AiManager.addOrUpdateBattlers(allies);
+  }
 };
 
 /**
@@ -52,79 +70,10 @@ Game_Map.prototype.addBattlers = function(battlers)
  */
 Game_Map.prototype.removeBattlers = function(battlers)
 {
-  // disengage and destroy all battlers.
-  battlers.forEach(battler =>
-  {
-    this.removeBattler(battler, true);
-  });
-};
+  // disengage all battlers.
+  battlers.forEach(battler => battler.disengageTarget());
 
-/**
- * Purges a single battler from tracking.
- * @param battler {JABS_Battler} The battler to be removed.
- * @param hold {boolean} Whether or not to hold the sprite.
- */
-Game_Map.prototype.removeBattler = function(battler, hold = false)
-{
-  // disengage before destroying.
-  battler.disengageTarget();
-  // but do hold onto the event/sprite, because its a follower.
-  $gameMap.destroyBattler(battler, hold);
-};
-
-/**
- * Parses all followers that are active into their battler form.
- * @returns {JABS_Battler[]}
- */
-Game_Map.prototype.parseAllyBattlers = function()
-{
-  const followers = this.getActiveFollowers();
-  return followers.map(this.convertOneFollower, this);
-};
-
-/**
- * Gets all followers that are active.
- * @returns {Game_Follower[]}
- */
-Game_Map.prototype.getActiveFollowers = function()
-{
-  const followers = $gamePlayer.followers().data();
-  return followers.filter(follower => follower.isVisible());
-};
-
-/**
- * Converts a single follower into a `JABS_Battler`.
- * @param {Game_Follower} follower The follower to convert into a battler.
- * @returns {JABS_Battler}
- */
-Game_Map.prototype.convertOneFollower = function(follower)
-{
-  // grab the battler of the follower.
-  const battler = follower.actor();
-
-  // create a builder to step through for this battler.
-  const builder = new JABS_CoreDataBuilder(0);
-
-  // set the battler.
-  builder.setBattler(battler);
-
-  // check if we're using the danger indicators.
-  if (J.DANGER)
-  {
-    // never show the danger indicator for allies.
-    builder.setShowDangerIndicator(false)
-  }
-
-  // build the core data.
-  const coreData = builder.build();
-
-  // instantiate the battler.
-  const mapBattler = new JABS_Battler(follower, battler, coreData);
-
-  // assign the map battler to the follower.
-  follower.setMapBattler(mapBattler.getUuid());
-
-  // return the built ally map battler.
-  return mapBattler;
+  // remove them from tracking.
+  JABS_AiManager.removeBattlers(battlers);
 };
 //#endregion Game_Map

@@ -672,7 +672,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
  * Registers a plugin command for dealing arbitrary damage to an enemy based
  * on the event id associated with the target.
  */
-// PluginManager. registerCommand(J.ABS.Metadata.Name, "HP Damage to Enemy", args =>
+// PluginManager.registerCommand(J.ABS.Metadata.Name, "HP Damage to Enemy", args =>
 // {
 //   // extract the event ids and damage from the plugin args.
 //   const { eventIds, dmg } = args;

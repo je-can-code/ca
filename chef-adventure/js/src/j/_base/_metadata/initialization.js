@@ -203,6 +203,20 @@ J.BASE.Helpers.generateUuid = function()
 };
 
 /**
+ * Generates a vastly shorter version of the `uuid`.
+ * @returns {string} The `uuid`.
+ */
+J.BASE.Helpers.shortUuid = function()
+{
+  return 'xxx-xxx'
+  .replace(/[xy]/g, c =>
+  {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
+/**
  * Updates the value of a numeric variable by a given amount.
  *
  * NOTE: This assumes the variable contains only a number.

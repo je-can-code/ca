@@ -201,7 +201,7 @@ Game_Character.prototype.getActionUuid = function()
 Game_Character.prototype.getJabsBattler = function()
 {
   const uuid = this.getJabsBattlerUuid();
-  return $gameMap.getBattlerByUuid(uuid);
+  return JABS_AiManager.getBattlerByUuid(uuid);
 };
 
 /**
@@ -232,7 +232,7 @@ Game_Character.prototype.hasJabsBattler = function()
   const uuid = asp.battlerUuid;
   if (!uuid) return false;
 
-  const battler = $gameMap.getBattlerByUuid(uuid);
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
   if (!battler) return false;
 
   return true;
@@ -299,6 +299,20 @@ Game_Character.prototype.requestAnimation = function(animationId, parried = fals
   }
 };
 
+/**
+ * Whether or not this character is a follower.
+ * @returns {boolean} True if this is a follower, false otherwise.
+ */
+Game_Character.prototype.isFollower = function()
+{
+  return false;
+};
+
+/**
+ * Extends {@link Game_Character.isMovementSucceeded}.
+ * Includes handling for battlers being move-locked by JABS.
+ * @returns {boolean}
+ */
 J.ABS.Aliased.Game_Character.isMovementSucceeded = Game_Character.prototype.isMovementSucceeded;
 Game_Character.prototype.isMovementSucceeded = function()
 {
@@ -307,10 +321,8 @@ Game_Character.prototype.isMovementSucceeded = function()
   {
     return false;
   }
-  else
-  {
-    return J.ABS.Aliased.Game_Character.isMovementSucceeded.call(this);
-  }
+
+  return J.ABS.Aliased.Game_Character.isMovementSucceeded.call(this);
 };
 
 /* eslint-disable */

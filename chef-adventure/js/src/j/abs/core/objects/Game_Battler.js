@@ -5,17 +5,18 @@
 J.ABS.Aliased.Game_Battler.initMembers = Game_Battler.prototype.initMembers;
 Game_Battler.prototype.initMembers = function()
 {
+  // perform original logic.
   J.ABS.Aliased.Game_Battler.initMembers.call(this);
+
   /**
    * All modifications to the battler lives within this object.
-   * @type {any}
    */
   this._j = this._j || {
     /**
      * The `uuid` of this battler.
      * @type {string}
      */
-    _uuid: J.BASE.Helpers.generateUuid(),
+    _uuid: J.BASE.Helpers.shortUuid(),
   };
 
   /**
@@ -32,7 +33,9 @@ Game_Battler.prototype.initMembers = function()
  */
 Game_Battler.prototype.getUuid = function()
 {
-  return this._j._uuid;
+  const modifiedUuid = `${this.name()}_${this._j._uuid}`;
+  return modifiedUuid;
+  //return this._j._uuid;
 };
 
 /**

@@ -268,7 +268,7 @@ class JABS_Action
     const uuid = this._caster.getUuid();
 
     // determine the real caster, but fallback to the designated caster.
-    const caster = $gameMap.getBattlerByUuid(uuid) ?? this._caster;
+    const caster = JABS_AiManager.getBattlerByUuid(uuid) ?? this._caster;
 
     // return the result.
     return caster;

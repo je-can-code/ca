@@ -522,7 +522,7 @@ Game_Actor.prototype.onRevive = function()
 Game_Actor.prototype.stopDying = function()
 {
   // grab the battler that is revived.
-  const jabsBattler = $gameMap.getBattlerByUuid(this.getUuid());
+  const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 
   // validate the existance of the battler before using.
   if (!jabsBattler) return;

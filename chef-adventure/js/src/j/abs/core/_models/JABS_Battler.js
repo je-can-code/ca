@@ -989,10 +989,13 @@ JABS_Battler.prototype.updateEngagement = function()
   if (!this.canUpdateEngagement()) return;
 
   // grab the nearest target to this battler.
-  const [target, distance] = this.closestEnemyTarget();
+  const target = JABS_AiManager.getClosestOpposingBattler(this);
 
   // if we're unable to engage the target, do not engage.
   if (!this.canEngageTarget(target)) return;
+
+  // determine the distance to the target from this battler.
+  const distance = this.distanceToDesignatedTarget(target);
 
   // process engagement handling.
   this.handleEngagement(target, distance);
@@ -1005,12 +1008,16 @@ JABS_Battler.prototype.updateEngagement = function()
  */
 JABS_Battler.prototype.canUpdateEngagement = function()
 {
+  // if JABS is paused, we do not update engagement.
   if ($jabsEngine.absPause) return false;
 
+  // the player cannot engage.
   if (this.isPlayer()) return false;
 
+  // inanimate battlers cannot engage.
   if (this.isInanimate()) return false;
 
+  // engage!
   return true;
 };
 
@@ -2038,33 +2045,6 @@ JABS_Battler.prototype.applySlipEffect = function(amount, type)
 //#endregion regeneration
 
 /**
- * Determines the closest enemy target.
- * @returns {[JABS_Battler, number]}
- */
-JABS_Battler.prototype.closestEnemyTarget = function()
-{
-  const battlers = $gameMap.getOpposingBattlersWithinRange(this, this.getSightRadius());
-  let currentClosest = null;
-  let closestDistanceYet = 1000;
-  battlers.forEach(battler =>
-  {
-    // don't engage same team and don't engage self
-    if (this.isSameTeam(battler.getTeam())) return;
-    if (this.getUuid() === battler.getUuid()) return;
-
-    const distance = this.distanceToDesignatedTarget(battler);
-    if (distance < closestDistanceYet)
-    {
-      // track and capture the closest
-      closestDistanceYet = distance;
-      currentClosest = battler;
-    }
-  })
-
-  return [currentClosest, closestDistanceYet];
-};
-
-/**
  * Gets whether or not this battler's movement is locked.
  * @returns {boolean} True if the battler's movement is locked, false otherwise.
  */
@@ -2223,20 +2203,32 @@ JABS_Battler.prototype.battlerName = function()
  */
 JABS_Battler.prototype.hasEventActions = function()
 {
-  // allies and the player don't have event commands.
-  if (this.isActor()) return false;
+  // only events can have event commands.
+  if (!this.isEvent()) return false;
 
   const event = this.getCharacter();
   return event._pageIndex !== -1;
 };
 
 /**
- * Destroys this battler and removes it from the current battle map.
+ * Destroys this battler by removing it from tracking and erasing the character.
  */
 JABS_Battler.prototype.destroy = function()
 {
+  // set the battler as invincible to prevent further hitting.
   this.setInvincible();
-  $gameMap.destroyBattler(this);
+
+  // remove the battler from tracking.
+  JABS_AiManager.removeBattler(this);
+
+  // grab the character.
+  const character = this.getCharacter();
+
+  // erase the underlying character.
+  character.erase();
+
+  // flag the sprite for removal.
+  character.setActionSpriteNeedsRemoving();
 };
 
 /**
@@ -2289,6 +2281,7 @@ JABS_Battler.prototype.setDying = function(dying)
  */
 JABS_Battler.prototype.inPursuitRange = function(target, distance)
 {
+  // grab the current pursuit radius.
   let pursuitRadius = this.getPursuitRadius();
 
   // apply the modification from the actor, if any.
@@ -2297,6 +2290,7 @@ JABS_Battler.prototype.inPursuitRange = function(target, distance)
   // apply the multiplier to the base.
   pursuitRadius *= visionMultiplier;
 
+  // return whether or not we're in range.
   return (distance <= pursuitRadius);
 };
 
@@ -2312,10 +2306,10 @@ JABS_Battler.prototype.inSightRange = function(target, distance)
   const sightRadius = this.getSightRadius();
 
   // apply the modification from the actor, if any.
-  const modifiedSight = this.applyVisionMultiplier(target);
+  const modifiedSight = this.applyVisionMultiplier(target, sightRadius);
 
   // determine whether or not the target is in sight.
-  const isInSightRange = (distance <= sightRadius);
+  const isInSightRange = (distance <= modifiedSight);
 
   // return the answer.
   return isInSightRange;
@@ -2407,7 +2401,7 @@ JABS_Battler.prototype.getLeaderBattler = function()
 {
   if (this._leaderUuid)
   {
-    return $gameMap.getBattlerByUuid(this._leaderUuid);
+    return JABS_AiManager.getBattlerByUuid(this._leaderUuid);
   }
 
   return null;
@@ -2420,7 +2414,7 @@ JABS_Battler.prototype.getLeaderBattler = function()
  */
 JABS_Battler.prototype.setLeader = function(newLeader)
 {
-  const leader = $gameMap.getBattlerByUuid(newLeader);
+  const leader = JABS_AiManager.getBattlerByUuid(newLeader);
   if (leader)
   {
     this._leaderUuid = newLeader;
@@ -2462,7 +2456,7 @@ JABS_Battler.prototype.getFollowerByUuid = function(followerUuid)
   const foundUuid = this._followers.find(uuid => uuid === followerUuid);
   if (foundUuid)
   {
-    return $gameMap.getBattlerByUuid(foundUuid);
+    return JABS_AiManager.getBattlerByUuid(foundUuid);
   }
 
   return null;
@@ -2532,7 +2526,7 @@ JABS_Battler.prototype.clearLeader = function()
     // in some instances, "this" may not be alive anymore so handle that.
     if (!uuid) return;
 
-    const leader = $gameMap.getBattlerByUuid(leaderUuid);
+    const leader = JABS_AiManager.getBattlerByUuid(leaderUuid);
     if (!leader) return;
 
     leader.removeFollowerByUuid(uuid);
@@ -2641,6 +2635,15 @@ JABS_Battler.prototype.isPlayer = function()
 JABS_Battler.prototype.isActor = function()
 {
   return (this.isPlayer() || this.getBattler() instanceof Game_Actor)
+};
+
+/**
+ * Whether or not this battler is based on a follower.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isFollower = function()
+{
+  return (this.getCharacter() instanceof Game_Follower);
 };
 
 /**
@@ -3124,7 +3127,7 @@ JABS_Battler.prototype.isDead = function()
   { // has no battler.
     return true;
   }
-  else if (!$gameMap.battlerExists(this))
+  else if (!JABS_AiManager.getBattlerByUuid(battler.getUuid()))
   { // battler isn't on the map.
     return true;
   }
@@ -3369,7 +3372,7 @@ JABS_Battler.prototype.getLeaderAiMode = function()
   // if we don't have a leader, don't.
   if (!this.hasLeader()) return null;
 
-  const leader = $gameMap.getBattlerByUuid(this.getLeader());
+  const leader = JABS_AiManager.getBattlerByUuid(this.getLeader());
   if (!leader) return null;
 
   return leader.getAiMode();
@@ -3908,7 +3911,7 @@ JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
  */
 JABS_Battler.prototype.getAllNearbyAllies = function()
 {
-  return $gameMap.getAllyBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
+  return JABS_AiManager.getAlliedBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
 };
 
 /**
@@ -4078,8 +4081,10 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
     // extract your the current highest aggro.
     const highestAggro = this.getHighestAggro();
 
+    console.log(highestAggro, this);
+
     // grab the battler for that uuid.
-    const newTarget = $gameMap.getBattlerByUuid(highestAggro.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggro.uuid());
 
     // make sure the battler exists before setting it.
     if (newTarget)
@@ -4116,7 +4121,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
     if (!(this.getTarget().getUuid() === zerothAggroUuid))
     {
       // if it doesn't, then get that battler.
-      const newTarget = $gameMap.getBattlerByUuid(zerothAggroUuid);
+      const newTarget = JABS_AiManager.getBattlerByUuid(zerothAggroUuid);
       if (newTarget)
       {
         // then switch to that target!
@@ -4143,7 +4148,7 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   if (!(highestAggroTarget.uuid() === this.getTarget().getUuid()))
   {
     // find the new target to change to that has more aggro than the current target.
-    const newTarget = $gameMap.getBattlerByUuid(highestAggroTarget.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTarget.uuid());
 
     // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
     if (!newTarget)
@@ -4216,7 +4221,7 @@ JABS_Battler.prototype.getHighestAggro = function()
  */
 JABS_Battler.prototype.removeAggroIfTargetDead = function(uuid)
 {
-  const battler = $gameMap.getBattlerByUuid(uuid);
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
   if (!battler || battler.isDead())
   {
     this.removeAggro(uuid);
@@ -4743,7 +4748,7 @@ JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
  */
 JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 {
-  const battlers = $gameMap.getEnemyBattlers();
+  const battlers = JABS_AiManager.getEnemyBattlers();
   battlers.forEach(jabsBattler =>
   {
     // grab the battler being affected by this item.

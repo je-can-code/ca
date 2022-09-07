@@ -23,15 +23,6 @@
  * you too can have a functional ABS, aka JABS!
  *
  * ============================================================================
- * FIRST TIME SETUP, THE ACTION MAP:
- * If you're not using the demo as a base, then you'll need to add a new map to
- * your project where all the "action events" will live. These events represent
- * the visual components of skills executed on the map and are mapped by adding
- * a tag to the skills that associate your skill with the designated event on
- * the action map. Once you've created the map, you'll need to take note of the
- * map id and align it in the plugin parameters with the "Action Map Id" param.
- *
- * ============================================================================
  * SETTING UP YOUR ENEMY EVENTS:
  * There are a lot of potential tags that you can place all across the database
  * to accomplish various goals, so lets get started with setting up an enemy
@@ -282,6 +273,15 @@
  * in some way. If a skill has a skill extend tag, they will not be available
  * for enemies to choose as a skill to perform in combat, but it will still
  * apply any extension effects as applicable.
+ *
+ * ============================================================================
+ * FIRST TIME SETUP, THE ACTION MAP:
+ * If you're not using the demo as a base, then you'll need to add a new map to
+ * your project where all the "action events" will live. These events represent
+ * the visual components of skills executed on the map and are mapped by adding
+ * a tag to the skills that associate your skill with the designated event on
+ * the action map. Once you've created the map, you'll need to take note of the
+ * map id and align it in the plugin parameters with the "Action Map Id" param.
  *
  * ============================================================================
  * SETTING UP YOUR SKILLS:

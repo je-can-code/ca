@@ -6,12 +6,11 @@ Version: 3.0.0
 Documentation Last Updated: 15/4/2022
 
 Requires:
-- J-BASE
-- _jabsManagers
-- _jabsModels
-- _jabsObjects
-- _jabsScenes
-- _jabsWindows
+- J-Base
+
+Recommended:
+- J-HUD
+- J-
 ```
 [Goto the plugin directory](/chef-adventure/js/plugins/j/jabs).
 

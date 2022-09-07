@@ -107,7 +107,7 @@ class JABS_BattlerAI
     if (healer)
     {
       // get nearby allies with the leader's modified sight range of both battlers.
-      const allies = $gameMap.getBattlersWithinRange(leaderBattler, modifiedSightRadius);
+      const allies = JABS_AiManager.getAlliedBattlersWithinRange(leaderBattler, modifiedSightRadius);
 
       // prioritize healing when self or allies are low on hp.
       if (healer)
@@ -158,7 +158,7 @@ class JABS_BattlerAI
     // don't do things if we have no skills to work with.
     if (!skillsToUse || !skillsToUse.length) return [];
 
-    const allies = $gameMap.getAllyBattlersWithinRange(user, user.getSightRadius());
+    const allies = JABS_AiManager.getAlliedBattlersWithinRange(user, user.getSightRadius());
 
     // prioritize healing when self or allies are low on hp.
     if (this.healer)

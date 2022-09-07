@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Aug 04 2022 07:22:45 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Sep 07 2022 07:24:51 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -247,6 +247,20 @@ J.BASE.Helpers.generateUuid = function()
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+};
+
+/**
+ * Generates a vastly shorter version of the `uuid`.
+ * @returns {string} The `uuid`.
+ */
+J.BASE.Helpers.shortUuid = function()
+{
+  return 'xxx-xxx'
+  .replace(/[xy]/g, c =>
+  {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 };
 
 /**
@@ -4670,7 +4684,7 @@ Game_Enemy.prototype.getCurrentWithNotes = function()
 Game_Event.prototype.getValidCommentCommands = function()
 {
   // don't process if we have no event commands.
-  if (this.list().length === 0) return [];
+  if (!this || !this.list() || this.list().length === 0) return [];
 
   // otherwise, return the filtered list.
   return this.list().filter(command =>

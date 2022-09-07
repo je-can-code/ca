@@ -2,13 +2,36 @@
 /**
  * Extends initialization to include the ally AI configurations.
  */
-J.ALLYAI.Aliased.Game_Party.initialize = Game_Party.prototype.initialize;
+J.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
-  J.ALLYAI.Aliased.Game_Party.initialize.call(this);
-  this._j = this._j || {};
-  this._j._allyAI = this._j._allyAI || {};
-  this._j._allyAI._aggroPassiveToggle = this._j._allyAI._aggroPassiveToggle || false;
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Party.get('initialize').call(this);
+
+  // initialize our ally ai members.
+  this.initAllyAi();
+};
+
+/**
+ * Initializes additional properties associated with ally ai.
+ */
+Game_Party.prototype.initAllyAi = function()
+{
+  /**
+   * All encompassing object for storing my custom properties.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with ally ai.
+   */
+  this._j._allyAI ||= {};
+
+  /**
+   * Whether or not the party will engage without the player's engagement.
+   * @type {boolean}
+   */
+  this._j._allyAI._aggroPassiveToggle ||= false;
 };
 
 /**
@@ -39,22 +62,30 @@ Game_Party.prototype.becomePassive = function()
 };
 
 /**
- * When adding party members, also update your allies.
+ * Extends {@link Game_Party.addActor}.
+ * Also updates allies to accommodate the addition of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.addActor = Game_Party.prototype.addActor;
+J.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
 Game_Party.prototype.addActor = function(actorId)
 {
-  J.ALLYAI.Aliased.Game_Party.addActor.call(this, actorId);
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Party.get('addActor').call(this, actorId);
+
+  // update all allies when adding an actor to the party.
   $gameMap.updateAllies();
 };
 
 /**
- * When removing party members, also update your allies.
+ * Extends {@link Game_Party.removeActor}.
+ * Also updates allies to accommodate the removal of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.removeActor = Game_Party.prototype.removeActor;
+J.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
 Game_Party.prototype.removeActor = function(actorId)
 {
-  J.ALLYAI.Aliased.Game_Party.removeActor.call(this, actorId);
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Party.get('removeActor').call(this, actorId);
+
+  // update all allies when removing an actor from the party.
   $gameMap.updateAllies();
 };
 //#endregion Game_Party
