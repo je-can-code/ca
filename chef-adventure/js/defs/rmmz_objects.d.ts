@@ -4340,13 +4340,20 @@ declare class Game_Map {
     roundYWithDirection(y: number, d: number): number;
     deltaX(x1: number, x2: number): number;
     deltaY(y1: number, y2: number): number;
+
+    /**
+     * Calculates the distance between sets of x,y coordinates.
+     * @param {number} x1 The first x coordinate.
+     * @param {number} y1 The first y coordinate.
+     * @param {number} x2 The second x coordinate.
+     * @param {number} y2 The second y coordinate.
+     */
     distance(x1: number, y1: number, x2: number, y2: number): number;
     /**
      * Converts the x coordinate from canvas to map coordinate x.
      *
      * @param {number} x
      * @returns {number}
-     * @memberof Game_Map
      */
     canvasToMapX(x: number): number;
     /**
@@ -4354,7 +4361,6 @@ declare class Game_Map {
      *
      * @param {number} y
      * @returns {number}
-     * @memberof Game_Map
      */
     canvasToMapY(y: number): number;
     /**

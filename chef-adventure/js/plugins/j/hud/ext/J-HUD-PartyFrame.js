@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Sep 10 2022 09:25:43 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -786,7 +786,7 @@ class Window_PartyFrame extends Window_Base
   /**
    * Creates the timer sprite for a given state.
    * @param {Game_Actor} actor The actor to draw the state data for.
-   * @param {JABS_TrackedState} trackedState The tracked state data for this state.
+   * @param {JABS_State} trackedState The tracked state data for this state.
    * @returns {Sprite_StateTimer} The state timer sprite.
    */
   getOrCreateStateTimer(actor, trackedState)
@@ -1056,10 +1056,12 @@ class Window_PartyFrame extends Window_Base
     // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      // grab all the states and sort them into negative/positive buckets.
-      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
-      const positiveStates = trackedStates.filter(this.filterPositiveStates);
-      const negativeStates = trackedStates.filter(this.filterNegativeStates);
+      // shorthand the leader's uuid for retrieving data.
+      const uuid = leader.getUuid();
+
+      // grab the positive and negative states for rendering.
+      const positiveStates = $jabsEngine.getPositiveJabsStatesByUuid(uuid);
+      const negativeStates = $jabsEngine.getNegativeJabsStatesByUuid(uuid);
 
       // iterate over all the negative states and draw them.
       negativeStates.forEach((negativeTrackedState, index) =>
@@ -1090,15 +1092,21 @@ class Window_PartyFrame extends Window_Base
     // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
-      trackedStates.forEach(trackedState =>
+      // grab all of this battler's states.
+      const jabsStates = $jabsEngine.getJabsStatesByUuid(leader.getUuid());
+
+      // convert them to a proper array.
+      const states = Array.from(jabsStates.values());
+
+      // iterate over each state to hide them as-needed.
+      states.forEach(state =>
       {
         // if the tracked state isn't expired, don't bother.
-        if (!trackedState.isExpired()) return;
+        if (!state.expired) return;
 
         // make the keys for the sprites in question.
-        const iconKey = this.makeStateIconSpriteKey(leader, trackedState.stateId);
-        const timerKey = this.makeStateTimerSpriteKey(leader, trackedState.stateId);
+        const iconKey = this.makeStateIconSpriteKey(leader, state.stateId);
+        const timerKey = this.makeStateTimerSpriteKey(leader, state.stateId);
 
         // skip trying if they don't exist.
         if (!this._hudSprites.has(iconKey) || !this._hudSprites.has(timerKey)) return;
@@ -1115,45 +1123,9 @@ class Window_PartyFrame extends Window_Base
   }
 
   /**
-   * The filter function for determining positive states.
-   * @param {JABS_TrackedState} trackedState The state to categorize.
-   * @returns {boolean} True if it is positive, false otherwise.
-   */
-  filterPositiveStates(trackedState)
-  {
-    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
-
-    const state = trackedState.battler.state(trackedState.stateId);
-    if (state.jabsNegative)
-    {
-      return false
-    }
-
-    return true;
-  }
-
-  /**
-   * The filter function for determining negative states.
-   * @param {JABS_TrackedState} trackedState The state to categorize.
-   * @returns {boolean} True if it is negative, false otherwise.
-   */
-  filterNegativeStates(trackedState)
-  {
-    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
-
-    const state = trackedState.battler.state(trackedState.stateId);
-    if (state.jabsNegative)
-    {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Draws a single state onto the hud.
    * @param {Game_Actor} actor The actor to draw the state for.
-   * @param {JABS_TrackedState} trackedState The state afflicted on the character to draw.
+   * @param {JABS_State} trackedState The state afflicted on the character to draw.
    * @param {number} ox The origin x coordinate.
    * @param {number} y The y coordinate.
    */

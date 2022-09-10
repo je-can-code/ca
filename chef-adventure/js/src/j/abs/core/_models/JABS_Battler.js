@@ -754,6 +754,7 @@ JABS_Battler.prototype.processQueuedActions = function()
   // if we cannot process actions, then do not.
   if (!this.canProcessQueuedActions()) return;
 
+  // gather the most recent decided action.
   const decidedActions = this.getDecidedAction();
 
   // execute the action.
@@ -1789,7 +1790,9 @@ JABS_Battler.prototype.shouldProcessState = function(state)
   const battler = this.getBattler();
 
   // grab the state we're working with.
-  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
+
+  // validate the state exists.
   if (!trackedState)
   {
     // when loading a file that was saved with a state, we encounter a weird issue
@@ -1830,7 +1833,7 @@ JABS_Battler.prototype.stateSlipHp = function(state)
   if (hpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -1885,7 +1888,7 @@ JABS_Battler.prototype.stateSlipMp = function(state)
   if (mpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -1940,7 +1943,7 @@ JABS_Battler.prototype.stateSlipTp = function(state)
   if (tpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -3821,7 +3824,7 @@ JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
   if (this.isEnemy())
   {
     // grab the enemy basic attack.
-    const [basicAttackSkillId] = this.getEnemyBasicAttack();
+    const basicAttackSkillId = this.getEnemyBasicAttack();
 
     // check if the chosen skill is the enemy's basic attack.
     return (skillId === basicAttackSkillId);
@@ -3923,8 +3926,7 @@ JABS_Battler.prototype.getAllyAiMode = function()
   // enemies do not have ally ai.
   if (this.isEnemy()) return null;
 
-  return this.getBattler()
-    .getAllyAI();
+  return this.getBattler().getAllyAI();
 };
 
 /**
@@ -3983,6 +3985,7 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
+  // grab the battler for reference.
   const battler = this.getBattler();
 
   // filter out any "extend" skills as far as this collection is concerned.
@@ -4008,14 +4011,12 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 };
 
 /**
- * Retrieves the `[skillId, rating]` of the basic attack for this enemy.
- * @returns {[number, number]} The `[skillId, rating]` of the basic attack.
+ * Retrieves the skillId of the basic attack for this enemy.
+ * @returns {number} The skillId of the basic attack.
  */
 JABS_Battler.prototype.getEnemyBasicAttack = function()
 {
-  const battler = this.getBattler();
-  const basicAttackSkill = battler.basicAttackSkillId();
-  return [basicAttackSkill, 5];
+  return this.getBattler().basicAttackSkillId();
 };
 
 /**
@@ -4028,7 +4029,7 @@ JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
   const skills = this.getSkillIdsFromEnemy();
 
   // grab this enemy's basic attack.
-  const [basicAttackSkillId] = this.getEnemyBasicAttack();
+  const basicAttackSkillId = this.getEnemyBasicAttack();
 
   // add the basic attack to the list of skills.
   skills.push(basicAttackSkillId);

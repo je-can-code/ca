@@ -1,36 +1,5 @@
 //#region Game_Map
 /**
- * Hooks into `Game_Map.initialize()` to add the JABS object for tracking
- * all things related to the ABS system.
- */
-J.ABS.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Map.get('initialize').call(this);
-
-  // initialize jabs properties.
-  this.initJabsMembers();
-};
-
-/**
- * Initializes properties of this class related to JABS.
- */
-Game_Map.prototype.initJabsMembers = function()
-{
-  /**
-   * The over-arching J object to contain all additional plugin parameters.
-   */
-  this._j ||= {};
-
-  /**
-   * A tracking list of all current battlers on this map.
-   * @type {JABS_Battler[]}
-   */
-  this._j._allBattlers = [];
-};
-
-/**
  * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
  */
 J.ABS.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);

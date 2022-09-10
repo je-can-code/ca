@@ -5,7 +5,7 @@
 class JABS_BattlerAI
 {
   /**
-   * @constructor
+   * Constructor.
    * @param {boolean} careful Add pathfinding pursuit and more.
    * @param {boolean} executor Add weakpoint targeting.
    * @param {boolean} reckless Add skill spamming over attacking.
@@ -63,21 +63,6 @@ class JABS_BattlerAI
   }
 
   /**
-   * Checks whether or not this AI has any bonus ai traits.
-   * @returns {boolean} True if there is at least one bonus trait, false otherwise.
-   */
-  hasBonusAiTraits()
-  {
-    return (
-      this.careful ||
-      this.executor ||
-      this.reckless ||
-      this.healer ||
-      this.follower ||
-      this.leader);
-  }
-
-  /**
    * Decides an action for the designated follower based on the leader's ai.
    * @param {JABS_Battler} leaderBattler The leader deciding the action.
    * @param {JABS_Battler} followerBattler The follower executing the decided action.
@@ -86,8 +71,9 @@ class JABS_BattlerAI
   decideActionForFollower(leaderBattler, followerBattler)
   {
     // grab the basic attack skill id for this battler.
-    const [basicAttackSkillId] = followerBattler.getEnemyBasicAttack();
+    const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
 
+    // start with the follower's own list of skills.
     let skillsToUse = followerBattler.getSkillIdsFromEnemy();
 
     // if the enemy has no skills, then just basic attack.
@@ -247,7 +233,7 @@ class JABS_BattlerAI
     }
 
     // always at least basic attack.
-    return user.getEnemyBasicAttack()[0];
+    return user.getEnemyBasicAttack();
   }
 
   /**

@@ -550,13 +550,13 @@ Game_Battler.prototype.removeState = function(stateId)
   J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
 
   // query for the state to remove from the engine.
-  const stateTracker = $jabsEngine.findStateTrackerByBattlerAndState(this, stateId);
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
 
   // check if we found anything.
-  if (stateTracker)
+  if (trackedState)
   {
     // expire the found state if it is being removed.
-    stateTracker.expired = true;
+    trackedState.expired = true;
   }
 };
 
@@ -593,17 +593,14 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
     duration += attacker.getStateDurationBoost(duration, this);
   }
 
-  // build a new state tracker based on the given data.
-  const stateTracker = new JABS_TrackedState({
-    battler: this,
-    stateId: stateId,
-    iconIndex: state.iconIndex,
-    duration: duration,
-    source: attacker
-  });
+  // TODO: get this from the state?
+  const stacks = 1;
+
+  // build the new state.
+  const jabsState = new JABS_State(this, stateId, state.iconIndex, duration, stacks, attacker);
 
   // add the state to the engine's tracker.
-  $jabsEngine.addStateTracker(stateTracker);
+  $jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
 };
 
 /**

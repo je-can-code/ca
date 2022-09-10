@@ -1,6 +1,6 @@
 //#region JABS_AiManager
 /**
- * This static class manages all ai-controlled battlers while on the map.
+ * This static class tracks and manages all {@link JABS_Battler}s on the map.
  */
 class JABS_AiManager
 {
@@ -189,7 +189,7 @@ class JABS_AiManager
   static getAlliedBattlersWithinRange(selectedBattler, maxRange)
   {
     // grab all allied battlers available.
-    const alliedBattlers = this.getAlliedBattlers();
+    const alliedBattlers = this.getAlliedBattlers(selectedBattler);
 
     // return the range-filtered allied battlers.
     return this.#filterBattlersByRangeFromBattler(alliedBattlers, selectedBattler, maxRange);
@@ -282,7 +282,7 @@ class JABS_AiManager
       const distance = originBattler.distanceToDesignatedTarget(battler);
 
       // whether or not the battler is in range.
-      const inRange = distance <= maxDistance;
+      const inRange = distance <= maxRange;
 
       // return the result.
       return inRange;
@@ -690,7 +690,6 @@ class JABS_AiManager
       {
         // if stopped and alerted, then go try to find the one triggering the alert.
         this.seekForAlerter(battler);
-        return;
       }
       // check if we aren't idle, and also aren't home.
       else if (!isIdle && !battler.isHome())
@@ -835,9 +834,6 @@ class JABS_AiManager
     {
       // move around as-necessary.
       this.decideAiMovement(battler);
-
-      // stop processing.
-      return;
     }
 
     // otherwise, we must be processing a movement command from before.
@@ -1353,7 +1349,7 @@ class JABS_AiManager
   static decideFollowerAiBySelf(battler)
   {
     // only basic attacks for this battler.
-    const [basicAttackSkillId] = battler.getEnemyBasicAttack();
+    const basicAttackSkillId = battler.getEnemyBasicAttack();
 
     // construct the skill from the battler's perspective.
     const skill = battler.getSkill(basicAttackSkillId);
@@ -1562,11 +1558,8 @@ class JABS_AiManager
     // 50% chance of just using the basic attack instead.
     if (Math.randomInt(2) === 0)
     {
-      // grab this enemy's basic attack.
-      const [basicAttackSkillId] = battler.getEnemyBasicAttack();
-
       // overwrite the random skill with the basic attack.
-      skillId = basicAttackSkillId;
+      skillId = battler.getEnemyBasicAttack();
     }
 
     // check if we decided on a skill.

@@ -160,7 +160,6 @@ class JABS_Action
         : 0;
     }
 
-
     // handle other bonus hits for basic attacks.
     const isBasicAttack = [JABS_Button.Mainhand, JABS_Button.Offhand].includes(this.getCooldownType());
     pierceCount += this._caster.getAdditionalHits(this._baseSkill, isBasicAttack);

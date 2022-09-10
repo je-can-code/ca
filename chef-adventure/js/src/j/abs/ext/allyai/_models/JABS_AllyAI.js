@@ -754,12 +754,12 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
         // ...and check each ally and see if they have it yet.
         nearbyAllies.forEach(ally =>
         {
-
           // see if the state for this ally is expired or about to expire.
-          const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(ally.getBattler(), effect.dataId);
+          const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(ally.getUuid(), effect.dataId);
           if (!trackedState || trackedState.isAboutToExpire())
           {
-            ready = true; // stop looking and use the below skill and target ally.
+            // stop looking and use the below skill and target ally.
+            ready = true;
             bestSkillId = skillId;
             chosenAlly = ally;
           }

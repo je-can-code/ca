@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Sep 07 2022 07:24:30 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Sep 10 2022 10:00:52 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2398,7 +2398,6 @@ class JABS_Action
         : 0;
     }
 
-
     // handle other bonus hits for basic attacks.
     const isBasicAttack = [JABS_Button.Mainhand, JABS_Button.Offhand].includes(this.getCooldownType());
     pierceCount += this._caster.getAdditionalHits(this._baseSkill, isBasicAttack);
@@ -3725,6 +3724,7 @@ JABS_Battler.prototype.processQueuedActions = function()
   // if we cannot process actions, then do not.
   if (!this.canProcessQueuedActions()) return;
 
+  // gather the most recent decided action.
   const decidedActions = this.getDecidedAction();
 
   // execute the action.
@@ -4760,7 +4760,9 @@ JABS_Battler.prototype.shouldProcessState = function(state)
   const battler = this.getBattler();
 
   // grab the state we're working with.
-  const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
+
+  // validate the state exists.
   if (!trackedState)
   {
     // when loading a file that was saved with a state, we encounter a weird issue
@@ -4801,7 +4803,7 @@ JABS_Battler.prototype.stateSlipHp = function(state)
   if (hpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -4856,7 +4858,7 @@ JABS_Battler.prototype.stateSlipMp = function(state)
   if (mpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -4911,7 +4913,7 @@ JABS_Battler.prototype.stateSlipTp = function(state)
   if (tpPerFiveFormula)
   {
     // pull the state associated with the battler.
-    const trackedState = $jabsEngine.findStateTrackerByBattlerAndState(battler, state.id);
+    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 
     // variables for contextual eval().
     const a = trackedState.source;  // the one who applied the state.
@@ -6792,7 +6794,7 @@ JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
   if (this.isEnemy())
   {
     // grab the enemy basic attack.
-    const [basicAttackSkillId] = this.getEnemyBasicAttack();
+    const basicAttackSkillId = this.getEnemyBasicAttack();
 
     // check if the chosen skill is the enemy's basic attack.
     return (skillId === basicAttackSkillId);
@@ -6894,8 +6896,7 @@ JABS_Battler.prototype.getAllyAiMode = function()
   // enemies do not have ally ai.
   if (this.isEnemy()) return null;
 
-  return this.getBattler()
-    .getAllyAI();
+  return this.getBattler().getAllyAI();
 };
 
 /**
@@ -6954,6 +6955,7 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
+  // grab the battler for reference.
   const battler = this.getBattler();
 
   // filter out any "extend" skills as far as this collection is concerned.
@@ -6979,14 +6981,12 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 };
 
 /**
- * Retrieves the `[skillId, rating]` of the basic attack for this enemy.
- * @returns {[number, number]} The `[skillId, rating]` of the basic attack.
+ * Retrieves the skillId of the basic attack for this enemy.
+ * @returns {number} The skillId of the basic attack.
  */
 JABS_Battler.prototype.getEnemyBasicAttack = function()
 {
-  const battler = this.getBattler();
-  const basicAttackSkill = battler.basicAttackSkillId();
-  return [basicAttackSkill, 5];
+  return this.getBattler().basicAttackSkillId();
 };
 
 /**
@@ -6999,7 +6999,7 @@ JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
   const skills = this.getSkillIdsFromEnemy();
 
   // grab this enemy's basic attack.
-  const [basicAttackSkillId] = this.getEnemyBasicAttack();
+  const basicAttackSkillId = this.getEnemyBasicAttack();
 
   // add the basic attack to the list of skills.
   skills.push(basicAttackSkillId);
@@ -8269,7 +8269,7 @@ JABS_Battler.prototype.isShowingAnimation = function()
 class JABS_BattlerAI
 {
   /**
-   * @constructor
+   * Constructor.
    * @param {boolean} careful Add pathfinding pursuit and more.
    * @param {boolean} executor Add weakpoint targeting.
    * @param {boolean} reckless Add skill spamming over attacking.
@@ -8327,21 +8327,6 @@ class JABS_BattlerAI
   }
 
   /**
-   * Checks whether or not this AI has any bonus ai traits.
-   * @returns {boolean} True if there is at least one bonus trait, false otherwise.
-   */
-  hasBonusAiTraits()
-  {
-    return (
-      this.careful ||
-      this.executor ||
-      this.reckless ||
-      this.healer ||
-      this.follower ||
-      this.leader);
-  }
-
-  /**
    * Decides an action for the designated follower based on the leader's ai.
    * @param {JABS_Battler} leaderBattler The leader deciding the action.
    * @param {JABS_Battler} followerBattler The follower executing the decided action.
@@ -8350,8 +8335,9 @@ class JABS_BattlerAI
   decideActionForFollower(leaderBattler, followerBattler)
   {
     // grab the basic attack skill id for this battler.
-    const [basicAttackSkillId] = followerBattler.getEnemyBasicAttack();
+    const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
 
+    // start with the follower's own list of skills.
     let skillsToUse = followerBattler.getSkillIdsFromEnemy();
 
     // if the enemy has no skills, then just basic attack.
@@ -8511,7 +8497,7 @@ class JABS_BattlerAI
     }
 
     // always at least basic attack.
-    return user.getEnemyBasicAttack()[0];
+    return user.getEnemyBasicAttack();
   }
 
   /**
@@ -11452,6 +11438,296 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function()
 };
 //#endregion JABS_SkillSlotManager
 
+//#region JABS_State
+/**
+ * A class for handling the state data in the context of JABS.
+ */
+class JABS_State
+{
+  //#region properties
+  /**
+   * The list of rulesets available for how to handle reapplication of a state.
+   */
+  static reapplicationType = {
+    /**
+     * "Refresh" will refresh the duration of a state when reapplied.
+     */
+    Refresh: "refresh",
+
+    /**
+     * "Extend" will add the remaining duration onto the new duration when reapplied.
+     */
+    Extend: "extend",
+
+    /**
+     * "Stack" will add an additional stack of the state when reapplied.
+     */
+    Stack: "stack",
+  }
+
+  /**
+   * The battler being afflicted with this state.
+   * @type {Game_Battler}
+   */
+  battler = null;
+
+  /**
+   * The id of the state being tracked.
+   * @type {number}
+   */
+  stateId = 0;
+
+  /**
+   * The icon index of the state being tracked (for visual purposes).
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * The current duration of the state being tracked. Decrements over time.
+   * @type {number}
+   */
+  duration = 0;
+
+  /**
+   * The base duration.
+   * Used for reapplication and stacking purposes.
+   * @type {number}
+   */
+  #baseDuration = 0;
+
+  /**
+   * The number of frames that defines "recently applied".
+   * @type {number}
+   */
+  #recentlyAppliedCounter = 0;
+
+  /**
+   * Whether or not this tracked state is identified as `expired`.
+   * Expired states do not apply to the battler, but are kept in the tracking collection
+   * to grant the ability to refresh the state duration or whatever we choose to do.
+   * @type {boolean}
+   */
+  expired = true;
+
+  /**
+   * The source that caused this state. Usually this is an opposing battler. If no source is specified,
+   * then the afflicted battler is the source.
+   * @type {Game_Battler}
+   */
+  source = null;
+
+  /**
+   * The number of stacks of this state applied to the tracker.
+   * @type {number}
+   */
+  stackCount = 0;
+  //#endregion properties
+
+  /**
+   * Constructor.
+   * @param {Game_Battler} battler The battler afflicted.
+   * @param {number} stateId The id of the state being applied to the battler.
+   * @param {number} iconIndex The icon index associated with the state.
+   * @param {number} duration The duration in frames that this state will remain.
+   * @param {number=} startingStacks The number of stacks to start out with; defaults to 1.
+   * @param {Game_Battler=} source The battler who afflicted the state; defaults to self.
+   */
+  constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler)
+  {
+    // initialize the values of the tracker.
+    this.battler = battler;
+    this.stateId = stateId;
+    this.iconIndex = iconIndex;
+    this.duration = duration;
+    this.stackCount = startingStacks;
+    this.source = source;
+
+    // mirror the duration as base duration for stacks.
+    this.setBaseDuration(duration);
+    this.refreshRecentlyAppliedCounter();
+
+    // set the state to be active.
+    this.expired = false;
+  }
+
+  /**
+   * Updates the base duration to a new value.
+   * @param {number} newBaseDuration The new base duration value.
+   */
+  setBaseDuration(newBaseDuration)
+  {
+    // updates the underlying base duration as well.
+    this.#baseDuration = newBaseDuration;
+  }
+
+  /**
+   * Refresh the recently applied counter.
+   */
+  refreshRecentlyAppliedCounter()
+  {
+    // reset the recently applied counter.
+    this.#recentlyAppliedCounter = 6;
+  }
+
+  /**
+   * The update loop for this tracked state.
+   * Handles decrementing the counter and removing the state as applicable.
+   */
+  update()
+  {
+    // countdown the recently applied timer for this state.
+    this.decrementRecentlyAppliedCounter();
+
+    // countdown if there is still time left to be counted down.
+    this.decrementCounter();
+
+    // remove stacks as-needed.
+    this.decrementStacks();
+
+    // check if we should remove this state from the battler.
+    if (this.shouldRemoveFromBattler())
+    {
+      // actually remove the state from the battler.
+      this.removeFromBattler();
+    }
+  }
+
+  /**
+   * Decrements the duration as-needed.
+   */
+  decrementCounter()
+  {
+    // check if we still have time left on the clock.
+    if (this.duration > 0)
+    {
+      // decrement the timer.
+      this.duration--;
+    }
+  }
+
+  /**
+   * Decrements the recently applied counter as-needed.
+   */
+  decrementRecentlyAppliedCounter()
+  {
+    // check if we still have any counter left.
+    if (this.#recentlyAppliedCounter > 0)
+    {
+      // decrement it as-needed.
+      this.#recentlyAppliedCounter--;
+    }
+  }
+
+  /**
+   * Decrement the stack counter as-needed.
+   */
+  decrementStacks()
+  {
+    // check if we are at 0 duration and have stacks remaining.
+    if (this.duration <= 0 && this.stackCount > 0)
+    {
+      // decrement the stack counter.
+      this.stackCount--;
+
+      // check if we STILL have stacks remaining.
+      if (this.stackCount > 0)
+      {
+        // reset the duration to the initial duration.
+        this.refreshDuration();
+      }
+    }
+  }
+
+  /**
+   * Refreshes the duration of the state based on its original duration.
+   * This does not refresh the recently applied counter.
+   */
+  refreshDuration()
+  {
+    // refresh the duration.
+    this.duration = this.#baseDuration;
+
+    // unexpire the tracker.
+    this.expired = false;
+  }
+
+  /**
+   * Increments the stack counter as high as the limit allows.
+   */
+  incrementStacks()
+  {
+    // grab the max number of stacks for this state.
+    // TODO: abstract this.
+    const maxStacks = 5;
+
+    // check if we still have room to add more stacks.
+    if (this.stackCount < maxStacks)
+    {
+      // increment the stack counter.
+      this.stackCount++;
+    }
+  }
+
+  /**
+   * Removes this tracked state from the afflicted battler.
+   */
+  removeFromBattler()
+  {
+    // actually remove the state from the battler.
+    this.battler.removeState(this.stateId);
+
+    // expire it, too.
+    this.expired = true;
+  }
+
+  /**
+   * Whether or not we should remove this state from the battler.
+   * @returns {boolean} True if it should be removed, false otherwise.
+   */
+  shouldRemoveFromBattler()
+  {
+    // if there is still time on the clock, we shouldn't remove it.
+    if (this.duration > 0) return false;
+
+    // if the state afflicted is death, we shouldn't remove it.
+    if (this.stateId === this.battler.deathStateId()) return false;
+
+    // if the battler isn't afflicted with it, we shouldn't remove it.
+    if (!this.battler.isStateAffected(this.stateId)) return false;
+
+    // if there are any stacks remaining, we shouldn't remove it.
+    if (this.stackCount > 0) return false;
+
+    // purge it!
+    return true;
+  }
+
+  /**
+   * Determines whether or not this state is about to expire.
+   * @returns {boolean} True if it is about to expire, false otherwise.
+   */
+  isAboutToExpire()
+  {
+    // define the threshold for when a state is "about to expire".
+    const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
+
+    // return whether or not the current duration is less than that.
+    return (this.duration <= aboutToExpireThreshold);
+  }
+
+  /**
+   * Determines whether or not this state was recently applied.
+   * @returns {boolean} True if it was recently applied, false otherwise.
+   */
+  wasRecentlyApplied()
+  {
+    // return whether or not this state has been recently applied.
+    return (this.#recentlyAppliedCounter >= 0);
+  }
+}
+//#endregion JABS_State
+
 //#region JABS_Timer
 /**
  * A reusable timer with some nifty functions.
@@ -11703,121 +11979,6 @@ class JABS_Timer
   }
 }
 //#endregion JABS_Timer
-
-//#region JABS_TrackedState
-/**
- * A class containing the tracked data for a particular state and battler.
- *
- * This class enables JABS to keep tabs on state durations as well as their effects.
- * Since most effects in-battle aren't directly replicatable on the map as easily,
- * this acts as an interface between the state and JABS, of which JABS owns.
- */
-function JABS_TrackedState()
-{
-  this.initialize(...arguments);
-}
-JABS_TrackedState.prototype = {};
-JABS_TrackedState.prototype.constructor = JABS_TrackedState;
-
-/**
- * @constructor
- * @param {Game_Battler} battler The battler afflicted with this state.
- * @param {number} stateId The id of the state being tracked.
- * @param {number} iconIndex The icon index of the state being tracked.
- * @param {number} duration The duration of the state being tracked.
- * @param {Game_Battler} source The origin that applied this state to the battler.
- */
-JABS_TrackedState.prototype.initialize = function({battler, stateId, iconIndex, duration, source})
-{
-  /**
-   * The battler being afflicted with this state.
-   * @type {Game_Battler}
-   */
-  this.battler = battler;
-
-  /**
-   * The id of the state being tracked.
-   * @type {number}
-   */
-  this.stateId = stateId;
-
-  /**
-   * The icon index of the state being tracked (for visual purposes).
-   * @type {number}
-   */
-  this.iconIndex = iconIndex;
-
-  /**
-   * The current duration of the state being tracked. Decrements over time.
-   * @type {number}
-   */
-  this.duration = duration;
-
-  /**
-   * Whether or not this tracked state is identified as `expired`.
-   * Expired states do not apply to the battler, but are kept in the tracking collection
-   * to grant the ability to refresh the state duration or whatever we choose to do.
-   * @type {boolean}
-   */
-  this.expired = false;
-
-  /**
-   * The source that caused this state. Usually this is an opposing battler. If no source is specified,
-   * then the afflicted battler is the source.
-   * @type {Game_Battler}
-   */
-  this.source = source ?? battler;
-};
-
-/**
- * Updates this tracked state over time. If the duration reaches 0, then the state
- * is removed and this tracked state becomes `expired`.
- */
-JABS_TrackedState.prototype.update = function()
-{
-  if (this.duration > 0)
-  {
-    this.duration--;
-  }
-  else if (this.duration === 0 && this.stateId !== this.battler.deathStateId())
-  {
-    this.removeStateFromBattler();
-  }
-};
-
-/**
- * Performs the removal of the state from the battler and sets the `expired` to true.
- */
-JABS_TrackedState.prototype.removeStateFromBattler = function()
-{
-  const index = this.battler
-    .states()
-    .findIndex(state => state.id === this.stateId);
-  if (index > -1)
-  {
-    this.battler.removeState(this.stateId);
-    this.expired = true;
-  }
-};
-
-/**
- * Gets whether or not this tracked state is `expired`.
- * @returns {boolean}
- */
-JABS_TrackedState.prototype.isExpired = function()
-{
-  return this.expired;
-};
-
-/**
- * Gets whether or not this tracked state is about to 'expire'.
- * @returns {boolean}
- */
-JABS_TrackedState.prototype.isAboutToExpire = function()
-{
-  return this.duration <= 90;
-};
-//#endregion JABS_TrackedState
 
 //#region RPG_BaseBattler
 //#region bonusHits
@@ -15141,7 +15302,7 @@ Input.keyMapper = {
 
 //#region JABS_AiManager
 /**
- * This static class manages all ai-controlled battlers while on the map.
+ * This static class tracks and manages all {@link JABS_Battler}s on the map.
  */
 class JABS_AiManager
 {
@@ -15330,7 +15491,7 @@ class JABS_AiManager
   static getAlliedBattlersWithinRange(selectedBattler, maxRange)
   {
     // grab all allied battlers available.
-    const alliedBattlers = this.getAlliedBattlers();
+    const alliedBattlers = this.getAlliedBattlers(selectedBattler);
 
     // return the range-filtered allied battlers.
     return this.#filterBattlersByRangeFromBattler(alliedBattlers, selectedBattler, maxRange);
@@ -15423,7 +15584,7 @@ class JABS_AiManager
       const distance = originBattler.distanceToDesignatedTarget(battler);
 
       // whether or not the battler is in range.
-      const inRange = distance <= maxDistance;
+      const inRange = distance <= maxRange;
 
       // return the result.
       return inRange;
@@ -15831,7 +15992,6 @@ class JABS_AiManager
       {
         // if stopped and alerted, then go try to find the one triggering the alert.
         this.seekForAlerter(battler);
-        return;
       }
       // check if we aren't idle, and also aren't home.
       else if (!isIdle && !battler.isHome())
@@ -15976,9 +16136,6 @@ class JABS_AiManager
     {
       // move around as-necessary.
       this.decideAiMovement(battler);
-
-      // stop processing.
-      return;
     }
 
     // otherwise, we must be processing a movement command from before.
@@ -16494,7 +16651,7 @@ class JABS_AiManager
   static decideFollowerAiBySelf(battler)
   {
     // only basic attacks for this battler.
-    const [basicAttackSkillId] = battler.getEnemyBasicAttack();
+    const basicAttackSkillId = battler.getEnemyBasicAttack();
 
     // construct the skill from the battler's perspective.
     const skill = battler.getSkill(basicAttackSkillId);
@@ -16703,11 +16860,8 @@ class JABS_AiManager
     // 50% chance of just using the basic attack instead.
     if (Math.randomInt(2) === 0)
     {
-      // grab this enemy's basic attack.
-      const [basicAttackSkillId] = battler.getEnemyBasicAttack();
-
       // overwrite the random skill with the basic attack.
-      skillId = basicAttackSkillId;
+      skillId = battler.getEnemyBasicAttack();
     }
 
     // check if we decided on a skill.
@@ -17300,6 +17454,12 @@ class JABS_Engine
      * @type {JABS_TrackedState[]}
      */
     this._jabsStateTracker = [];
+
+    /**
+     * A collection of all ongoing states that are affecting battlers on the map.
+     * @type {Map<string, Map<number, JABS_TrackedState>>}
+     */
+    this._jabsStates = new Map();
   }
 
   /**
@@ -17324,8 +17484,9 @@ class JABS_Engine
    */
   event(uuid)
   {
-    const results = this._activeActions.filter(eventData => eventData.uniqueId === uuid);
-    return results[0];
+    return this._activeActions
+      .filter(eventData => eventData.uniqueId === uuid)
+      .at(0);
   }
 
   /**
@@ -17458,7 +17619,7 @@ class JABS_Engine
   update()
   {
     // update the player and things related to the player.
-    this.updatePlayer();
+    this.updatePlayers();
 
     // update the AI of non-player battlers.
     this.updateAiBattlers();
@@ -17473,22 +17634,52 @@ class JABS_Engine
     this.updateInput();
   }
 
+  /**
+   * Updates all battlers registered as "players" to JABS.
+   * "Players" are battlers that are always polling for actions rather
+   * than only as a part of {@link JABS_AiManager.aiPhase2}.
+   */
+  updatePlayers()
+  {
+    // grab all the players to update.
+    const players = this.getPlayers();
+
+    // update all of them.
+    players.forEach(this.updatePlayer, this);
+  }
+
+  /**
+   * Gets all players that are observed as "players" to JABS.
+   * @returns {JABS_Battler[]}
+   */
+  getPlayers()
+  {
+    // initialize our player collection.
+    const players = [];
+
+    // add the only player we know about: player 1.
+    players.push(this.getPlayer1());
+
+    // return that collection.
+    return players;
+  }
+
   //#region update player
   /**
-   * Cycles through and updates all things related to the player.
+   * Updates this player's current state.
    */
-  updatePlayer()
+  updatePlayer(player)
   {
     // if we cannot update the player, then do not.
-    if (!this.canUpdatePlayer()) return;
-
-    // grab the player.
-    const player = this.getPlayer1();
+    if (!this.canUpdatePlayer(player)) return;
 
     // if the player is dead, handle player defeat.
     if (player.isDead())
     {
+      // handle the defeat of the player gracefully.
       this.handleDefeatedPlayer();
+
+      // stop processing.
       return;
     }
 
@@ -17503,35 +17694,285 @@ class JABS_Engine
    * Determines whether or not we can update the player battler.
    * @returns {boolean}
    */
-  canUpdatePlayer()
+  canUpdatePlayer(player)
   {
-    // grab the player.
-    const player = this.getPlayer1();
-
     // if we don't have a player, do not update.
     if (player === null) return false;
 
     // update!
     return true;
   }
-  //#region state tracking
 
+  //#region state tracking
   /**
-   * Gets the collection of all JABS states that affect battlers on the map.
-   * @returns {JABS_TrackedState[]}
+   * Gets all ongoing states organized by the uuid of a battler being the key,
+   * and a map of all states applied to the battler as the value.
+   * @returns {Map<string, Map<number, JABS_State>>}
    */
   getJabsStates()
   {
-    return this._jabsStateTracker;
+    return this._jabsStates;
   }
 
   /**
-   * Add a new JABS state to the tracker.
-   * @param {JABS_TrackedState} newJabsState The JABS state to add.
+   * Gets the collection of states that are currently tracked for a given battler's uuid.
+   * @param {string} uuid The uuid of the battler to get tracked states for.
+   * @returns {Map<number, JABS_State>} The currently tracked states for the given battler.
    */
-  addJabsState(newJabsState)
+  getJabsStatesByUuid(uuid)
   {
-    this._jabsStateTracker.push(newJabsState);
+    // grab a reference to the state tracker.
+    const jabsStates = this.getJabsStates();
+
+    // check if the battler has never yet been afflicted with a state.
+    if (!jabsStates.has(uuid))
+    {
+      // initialize this battler.
+      jabsStates.set(uuid, new Map());
+    }
+
+    // return what exists by that uuid.
+    return jabsStates.get(uuid);
+  }
+
+  /**
+   * Gets all positive states currently tracked for a given battler.
+   * @param {string} uuid The uuid of the battler to find positive states for.
+   * @returns {JABS_State[]} An array of positive tracked states.
+   */
+  getPositiveJabsStatesByUuid(uuid)
+  {
+    // a filter function defining what is a "positive" state.
+    /** @param {JABS_State} trackedState */
+    const filtering = trackedState =>
+    {
+      // if the state is expired, it is not positive.
+      if (trackedState.expired) return false;
+
+      // if the state is the battler's death state, then it is not positive.
+      if (trackedState.stateId === trackedState.battler.deathStateId()) return false;
+
+      // grab the state for reference.
+      const state = trackedState.battler.state(trackedState.stateId);
+
+      // if it is flagged as a negative state, then it is explicitly negative.
+      if (state.jabsNegative) return false;
+
+      // it is positive!
+      return true;
+    };
+
+    // grab all of this battler's states.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // convert them to a proper array.
+    const states = Array.from(jabsStates.values());
+
+    // return our positive-only filtered states.
+    return states.filter(filtering);
+  }
+
+  /**
+   * Gets all negative states currently tracked for a given battler.
+   * @param {string} uuid The uuid of the battler to find negative states for.
+   * @returns {JABS_State[]} An array of negative tracked states.
+   */
+  getNegativeJabsStatesByUuid(uuid)
+  {
+    // a filter function defining what is a "negative" state.
+    const filtering = trackedState =>
+    {
+      // if the state is expired, it is not negative.
+      if (trackedState.expired) return false;
+
+      // if the state is the battler's death state, then it is not negative.
+      if (trackedState.stateId === trackedState.battler.deathStateId()) return false;
+
+      // grab the state for reference.
+      const state = trackedState.battler.state(trackedState.stateId);
+
+      // if it is not flagged as a negative state, then it is implicitly positive.
+      if (!state.jabsNegative) return false;
+
+      // it is negative!
+      return true;
+    };
+
+    // grab all of this battler's states.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // convert them to a proper array.
+    const states = Array.from(jabsStates.values());
+
+    // return our negative-only filtered states.
+    return states.filter(filtering);
+  }
+
+  /**
+   * Checks whether or not if a given battler has a given state.
+   * @param {string} uuid The battler's uuid to check a state for.
+   * @param {number} stateId The state id to check if a battler is afflicted with.
+   * @returns {boolean} True if the battler is currently afflicted with the given state, false otherwise.
+   */
+  hasJabsStateByUuid(uuid, stateId)
+  {
+    // grabs a list of tracked states the battler is currently afflicted with.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // checks whether or not the state in question has already been applied to the battler.
+    return jabsStates.has(stateId);
+  }
+
+  /**
+   * Gets a tracked state applied against a specific battler.
+   * @param {string} uuid The uuid of the battler to find the state for.
+   * @param {number} stateId The id of the state to find.
+   * @returns {JABS_State|undefined} The tracked state data, or undefined if the battler isn't afflicted.
+   */
+  getJabsStateByUuidAndStateId(uuid, stateId)
+  {
+    // grabs a list of tracked states the battler is currently afflicted with.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // return the tracked state by that id.
+    return jabsStates.get(stateId);
+  }
+
+  /**
+   * Adds anew or updates an existing application of a given state on the given battler.
+   * @param {string} uuid The uuid of the battler.
+   * @param {JABS_State} jabsState The state in to add or update.
+   */
+  addOrUpdateStateByUuid(uuid, jabsState)
+  {
+    // check if the battler has the given state.
+    if (this.hasJabsStateByUuid(uuid, jabsState.stateId))
+    {
+      // reapply the state if its already applied.
+      this.updateJabsStateByUuid(uuid, jabsState);
+
+      // stop processing.
+      return;
+    }
+
+    // add the state anew.
+    this.addJabsStateByUuid(uuid, jabsState);
+  }
+
+  /**
+   * Updates the jabs state applied to a given battler.
+   * @param {string} uuid The uuid of the battler.
+   * @param {JABS_State} newJabsState The state in to update.
+   */
+  updateJabsStateByUuid(uuid, newJabsState)
+  {
+    // get the states afflicted upon this battler.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // grab the tracked state being updated.
+    const oldJabsState = jabsStates.get(newJabsState.stateId);
+
+    // the type of update to perform on the state.
+    // TODO: get this from plugin params?
+    const updateType = JABS_State.reapplicationType.Extend;
+
+    // handle the state tracker data update.
+    this.handleJabsStateUpdate(updateType, oldJabsState, newJabsState);
+  }
+
+  /**
+   * Handles the refresh/extend/stack of the tracked state data.
+   * @param {string} updateType The type of update to perform on the state.
+   * @param {JABS_State} jabsState The previous tracked state data.
+   * @param {JABS_State} newJabsState The new tracked state data.
+   */
+  handleJabsStateUpdate(updateType, jabsState, newJabsState)
+  {
+    switch (updateType)
+    {
+      case JABS_State.reapplicationType.Refresh:
+        this.refreshJabsState(jabsState, newJabsState);
+        break;
+      case JABS_State.reapplicationType.Extend:
+        this.extendJabsState(jabsState, newJabsState);
+        break;
+      case JABS_State.reapplicationType.Stack:
+        this.stackJabsState(jabsState, newJabsState);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * Refreshes a jabs state with the new duration (typically the same as before).
+   * This enables refreshing of a state when afflicted with the same state twice.
+   * @param {JABS_State} jabsState The previous tracked state data.
+   * @param {JABS_State} newJabsState The new tracked state data.
+   */
+  refreshJabsState(jabsState, newJabsState)
+  {
+    // don't refresh the state if it was just applied.
+    if (jabsState.wasRecentlyApplied()) return;
+
+    // refresh the duration to new max.
+    jabsState.duration = newJabsState.duration;
+
+    // undo expiration if it was expired.
+    jabsState.expired = false;
+  }
+
+  /**
+   * Extends a jabs state with the newly added duration.
+   * This permits states to last longer and longer if reapplied repeatedly.
+   * @param {JABS_State} jabsState The previous tracked state data.
+   * @param {JABS_State} newJabsState The new tracked state data.
+   */
+  extendJabsState(jabsState, newJabsState)
+  {
+    // don't refresh the state if it was just applied.
+    if (jabsState.wasRecentlyApplied()) return;
+
+    // refresh the duration to new max.
+    jabsState.duration += newJabsState.duration;
+
+    // undo expiration if it was expired.
+    jabsState.expired = false;
+  }
+
+  /**
+   * Adds a stack of the given state onto the running tally for this state if available.
+   * Also refreshes duration.
+   * @param {JABS_State} jabsState The previous tracked state data.
+   * @param {JABS_State} newJabsState The new tracked state data.
+   */
+  stackJabsState(jabsState, newJabsState)
+  {
+    // don't refresh the state if it was just applied.
+    if (jabsState.wasRecentlyApplied()) return;
+
+    // increment the stack of the state.
+    jabsState.incrementStacks();
+
+    // update the underlying base duration to the latest stack's duration.
+    jabsState.setBaseDuration(newJabsState.duration);
+
+    // refresh the state as well.
+    this.refreshJabsState(jabsState, newJabsState);
+  }
+
+  /**
+   * Adds the state tracker anew of a given state on the given battler.
+   * @param {string} uuid The uuid of the battler.
+   * @param {JABS_TrackedState} jabsState The state in to add.
+   */
+  addJabsStateByUuid(uuid, jabsState)
+  {
+    // get the states afflicted upon this battler.
+    const jabsStates = this.getJabsStatesByUuid(uuid);
+
+    // set the state anew.
+    jabsStates.set(jabsState.stateId, jabsState);
   }
 
   /**
@@ -17539,124 +17980,36 @@ class JABS_Engine
    */
   updateJabsStates()
   {
-    // iterate over all JABS-managed states.
-    this.getJabsStates()
-    // execute the update against it.
-      .forEach(this.updateJabsState, this);
+    // grab all the battlers and their states being tracked.
+    const allBattlersAndStates = this.getJabsStates();
 
-    if (this._jabsStateTracker.length > 200)
+    // iterate over all the battlers and their states.
+    allBattlersAndStates.forEach(battlerAndStates =>
     {
-      this._jabsStateTracker.pop();
-    }
-  }
+      // grab a proper array of the tracked states for this battler.
+      const jabsStates = Array.from(battlerAndStates.values());
 
-  /**
-   * Updates a single JABS state.
-   * @param {JABS_TrackedState} jabsState The JABS state to update.
-   */
-  updateJabsState(jabsState)
-  {
-    jabsState.update();
-  }
-
-  /**
-   * Adds a state tracker to the collection.
-   * @param {JABS_TrackedState} newTrackedState The state tracker to add.
-   */
-  addStateTracker(newTrackedState)
-  {
-    // attempt to reapply the state.
-    const reapplied = this.reapplyState(newTrackedState);
-
-    // if reapplied, do not add another copy of the state... or should we?
-    if (reapplied) return;
-
-    // if not reapplied, then add the state to the tracker.
-    this.addJabsState(newTrackedState);
-  }
-
-  /**
-   * Reapply the state to the same battler afflicted with the same state.
-   * This refreshes the duration only.
-   * @param {JABS_TrackedState} newTrackedState The state tracker to add.
-   * @returns {boolean} True if the state was reapplied, false otherwise.
-   */
-  reapplyState(newTrackedState)
-  {
-    // seek the index of the same state on the same battler.
-    const index = this._jabsStateTracker
-      .findIndex(trackedState =>
-      // check if the battlers are the same.
-        trackedState.battler === newTrackedState.battler &&
-      // check if the state ids are the same.
-      trackedState.stateId === newTrackedState.stateId);
-
-    // track if it was reapplied or not.
-    let reapplied = false;
-
-    // check to make sure we have to consider reapplication.
-    if (index > -1)
-    {
-      // grab the data from the state tracker.
-      const data = this._jabsStateTracker[index];
-
-      // refresh the duration to new max.
-      data.duration = newTrackedState.duration;
-
-      // undo expiration if it was expired.
-      data.expired = false;
-
-      // flag that this was reapplied.
-      reapplied = true;
-    }
-
-    // return the flag.
-    return reapplied;
-  }
-
-  /**
-   * Gets all tracked states for a given battler.
-   * @param {Game_Battler} battler The battler to find tracked states for.
-   * @returns {JABS_TrackedState[]}
-   */
-  getStateTrackerByBattler(battler)
-  {
-    return this._jabsStateTracker.filter(trackedState => trackedState.battler === battler);
-  }
-
-  /**
-   * Finds the tracked state associated with a specific battler and a state id.
-   * @param {Game_Battler} battler The battler to find a state for.
-   * @param {number} stateId The state id to find on the given battler.
-   * @returns {JABS_TrackedState}
-   */
-  findStateTrackerByBattlerAndState(battler, stateId)
-  {
-    return this.getStateTrackerByBattler(battler)
-      .find(trackedState =>
-        trackedState.battler === battler &&
-      trackedState.stateId === stateId);
+      // iterate over each of them and update them.
+      jabsStates.forEach(jabsState => jabsState.update());
+    });
   }
   //#endregion state tracking
   //#endregion update player
 
   //#region update ai battlers
   /**
-   * Cycles through and updates all things related to battlers other than the player.
+   * Updates all battler's
    */
   updateAiBattlers()
   {
     // if we cannot update the battlers controlled by AI, then do not.
     if (!this.canUpdateAiBattlers()) return;
 
-    // grab all "visible" battlers to the player.
-    const visibleBattlers = JABS_AiManager.getBattlersWithinRange(
-      this.getPlayer1(),
-      30,
-      false);
+    // grab all on-screen battlers to the player.
+    const onScreenBattlers = JABS_AiManager.getBattlersWithinRange(this.getPlayer1(), 30);
 
     // update each of them.
-    visibleBattlers.forEach(this.performAiBattlerUpdate, this);
+    onScreenBattlers.forEach(this.performAiBattlerUpdate, this);
   }
 
   /**
@@ -17873,6 +18226,9 @@ class JABS_Engine
     $gameTextLog.addLog(log);
   }
 
+  /**
+   * Handle actions to perform after party cycling, such as flagging the engine for refresh.
+   */
   postPartyCycling()
   {
     // request the scene overlord to take notice and react accordingly (refresh hud etc).
@@ -19001,15 +19357,6 @@ class JABS_Engine
   }
 
   /**
-   * Resets the combo action for the given battler.
-   * @param {JABS_Battler} caster The caster of the combo attack.
-   */
-  resetComboAction(caster)
-  {
-    console.log('should cancel combo action!');
-  }
-
-  /**
    * Calculates whether or not the attack was parried.
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
@@ -20118,19 +20465,23 @@ class JABS_Engine
    */
   handleDefeatedTarget(target, caster)
   {
+    // handle on-defeat effects, but before the battler is actually removed.
     this.predefeatHandler(target, caster);
+
+    // switch over all the options.
     switch (true)
     {
+      // handle a dying player.
       case (target.isPlayer()):
         this.handleDefeatedPlayer();
         break;
+      // handle a dying actor.
       case (target.isActor() && !target.isPlayer() && !target.isDying()):
         this.handleDefeatedAlly(target);
         break;
+      // handle a dying enemy.
       case (target.isEnemy()):
         this.handleDefeatedEnemy(target, caster);
-        break;
-      default:
         break;
     }
 
@@ -20163,7 +20514,10 @@ class JABS_Engine
    */
   handleDefeatedPlayer()
   {
+    // the party will party cycle upon death of the player.
     this.performPartyCycling();
+
+    // if there are no other members, then this will automatically gameover.
   }
 
   /**
@@ -22841,13 +23195,13 @@ Game_Battler.prototype.removeState = function(stateId)
   J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
 
   // query for the state to remove from the engine.
-  const stateTracker = $jabsEngine.findStateTrackerByBattlerAndState(this, stateId);
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
 
   // check if we found anything.
-  if (stateTracker)
+  if (trackedState)
   {
     // expire the found state if it is being removed.
-    stateTracker.expired = true;
+    trackedState.expired = true;
   }
 };
 
@@ -22884,17 +23238,16 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
     duration += attacker.getStateDurationBoost(duration, this);
   }
 
-  // build a new state tracker based on the given data.
-  const stateTracker = new JABS_TrackedState({
-    battler: this,
-    stateId: stateId,
-    iconIndex: state.iconIndex,
-    duration: duration,
-    source: attacker
-  });
+  // TODO: get this from the state?
+  const stacks = 1;
+
+  console.log(duration);
+
+  // build the new state.
+  const jabsState = new JABS_State(this, stateId, state.iconIndex, duration, stacks, attacker);
 
   // add the state to the engine's tracker.
-  $jabsEngine.addStateTracker(stateTracker);
+  $jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
 };
 
 /**
@@ -25225,37 +25578,6 @@ Game_Interpreter.prototype.command352 = function()
 //#endregion Game_Interpreter
 
 //#region Game_Map
-/**
- * Hooks into `Game_Map.initialize()` to add the JABS object for tracking
- * all things related to the ABS system.
- */
-J.ABS.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Map.get('initialize').call(this);
-
-  // initialize jabs properties.
-  this.initJabsMembers();
-};
-
-/**
- * Initializes properties of this class related to JABS.
- */
-Game_Map.prototype.initJabsMembers = function()
-{
-  /**
-   * The over-arching J object to contain all additional plugin parameters.
-   */
-  this._j ||= {};
-
-  /**
-   * A tracking list of all current battlers on this map.
-   * @type {JABS_Battler[]}
-   */
-  this._j._allBattlers = [];
-};
-
 /**
  * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
  */
