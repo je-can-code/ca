@@ -63,7 +63,7 @@ var $plugins =
 {"name":"j/J-OneTimeItemBoost","status":true,"description":"[v1.0.0 OTIB] Enables items to grant a one time item boost, permanently.","parameters":{"OTIBs":"[]"}},
 {"name":"j/J-PassiveSkills","status":true,"description":"[v1.0.0 PASSIVE] Grants skills the ability to provide passive state effects.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
-{"name":"j/J-SystemUtilities","status":true,"description":"[v1.0.0 UTIL] Various system utilities.","parameters":{"autoNewgame":"true"}},
+{"name":"j/J-SystemUtilities","status":true,"description":"[v1.0.0 UTIL] Various system utilities.","parameters":{"autoNewgame":"false"}},
 {"name":"j/J-CA-Mods","status":true,"description":"Mods exclusive to Chef Adventure.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"casper/CGMZ_Core","status":true,"description":"Core CGMZ Plugin, should be placed above all other CGMZ Plugins.","parameters":{"Check for Updates":"false","Dev Tools on Start":"false","Show FPS Counter":"false","Fullscreen":"false","Simulate Production Env":"false"}},
