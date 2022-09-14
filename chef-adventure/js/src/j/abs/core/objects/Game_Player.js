@@ -4,13 +4,18 @@
  */
 Game_Player.prototype.isDashButtonPressed = function()
 {
+  // define the baseline for whether or not the player is dashing.
   const shift = Input.isPressed(J.ABS.Input.Dash);
+
+  // figure out if we're inverting the baseline.
   if (ConfigManager.alwaysDash)
   {
+    // invert the baseline.
     return !shift;
   }
   else
   {
+    // keep with the baseline.
     return shift;
   }
 };
@@ -18,9 +23,11 @@ Game_Player.prototype.isDashButtonPressed = function()
 /**
  * While JABS is enabled, don't try to interact with events if they are enemies.
  */
-J.ABS.Aliased.Game_Player.startMapEvent = Game_Player.prototype.startMapEvent;
+J.ABS.Aliased.Game_Player.set('startMapEvent', Game_Player.prototype.startMapEvent);
 Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
 {
+  // this is mostly the same logic as the original, except if JABS is enabled...
+  // we skip detection of battle.
   if ($jabsEngine.absEnabled)
   {
     if (!$gameMap.isEventRunning())
@@ -28,7 +35,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
       for (const event of $gameMap.eventsXy(x, y))
       {
         if (
-          !event._erased &&
+          !event.isErased() &&
           event.isTriggerIn(triggers) &&
           event.isNormalPriority() === normal &&
           !event.getJabsBattler()
@@ -41,60 +48,82 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
   }
   else
   {
-    J.ABS.Aliased.Game_Player.startMapEvent.call(this, x, y, triggers, normal);
+    // perform original logic.
+    J.ABS.Aliased.Game_Player.get('startMapEvent').call(this, x, y, triggers, normal);
   }
-
 };
 
 /**
  * If the Abs menu is pulled up, the player shouldn't be able to move.
  */
-J.ABS.Aliased.Game_Player.canMove = Game_Player.prototype.canMove;
+J.ABS.Aliased.Game_Player.set('canMove', Game_Player.prototype.canMove);
 Game_Player.prototype.canMove = function()
 {
+  // check if something related to JABS is causing the player to stop moving.
   const isMenuRequested = $jabsEngine.requestAbsMenu;
   const isAbsPaused = $jabsEngine.absPause;
   const isPlayerCasting = $jabsEngine.getPlayer1().isCasting();
-  if (isMenuRequested || isAbsPaused || isPlayerCasting)
+
+  // any of these will prevent the player from moving.
+  const jabsDeniesMovement = (isMenuRequested || isAbsPaused || isPlayerCasting);
+
+  // check if JABS is denying movement.
+  if (jabsDeniesMovement)
   {
+    // decline movement.
     return false;
   }
+  // JABS isn't denying movement.
   else
   {
-    return J.ABS.Aliased.Game_Player.canMove.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Player.get('canMove').call(this);
   }
 };
 
-J.ABS.Aliased.Game_Player.isDebugThrough = Game_Player.prototype.isDebugThrough;
+J.ABS.Aliased.Game_Player.set('isDebugThrough', Game_Player.prototype.isDebugThrough);
 Game_Player.prototype.isDebugThrough = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
+    // the debug button is changed while JABS is active.
     return Input.isPressed(J.ABS.Input.Debug) && $gameTemp.isPlaytest();
   }
+  // JABS is not enabled.
   else
   {
-    return J.ABS.Aliased.Game_Player.isDebugThrough.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Player.get('isDebugThrough').call(this);
   }
 };
 
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
-J.ABS.Aliased.Game_Player.refresh = Game_Player.prototype.refresh;
+J.ABS.Aliased.Game_Player.set('refresh', Game_Player.prototype.refresh);
 Game_Player.prototype.refresh = function()
 {
-  J.ABS.Aliased.Game_Player.refresh.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Player.get('refresh').call(this);
+
+  // initialize the player when the player is refreshed.
+  // TODO: consider using $jabsEngine.refreshPlayer1(); ?
   $jabsEngine.initializePlayer1();
 };
 
 /**
  * Checks whether or not the player is picking up loot drops.
  */
-J.ABS.Aliased.Game_Player.updateMove = Game_Player.prototype.updateMove;
+J.ABS.Aliased.Game_Player.set('updateMove', Game_Player.prototype.updateMove);
 Game_Player.prototype.updateMove = function()
 {
-  J.ABS.Aliased.Game_Player.updateMove.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Player.get('updateMove').call(this);
+
+  // monitor for loot while moving about as the player.
+
+  // TODO: lift this to Game_Character or something if wanting others to collect loot.
   this.checkForLoot();
 };
 
@@ -105,7 +134,7 @@ Game_Player.prototype.updateMove = function()
 Game_Player.prototype.checkForLoot = function()
 {
   // get all the loot drops on the map.
-  const lootDrops = $gameMap.getLootDrops();
+  const lootDrops = $gameMap.getJabsLootDrops();
 
   // make sure we have any loot to work with before processing.
   if (lootDrops.length)
@@ -130,12 +159,19 @@ Game_Player.prototype.processLootCollection = function(lootDrops)
     // don't pick it up if we cannot pick it up.
     if (!this.canCollectLoot(lootDrop)) return;
 
+    // grab the underlying loot drop.
+    const jabsLootDrop = lootDrop.getJabsLoot();
+
     // check if the loot is to be used immediately on-pickup.
-    if (lootDrop.isUseOnPickupLoot())
+    if (jabsLootDrop.useOnPickup)
     {
       // use and remove it from tracking if it is.
-      this.useOnPickup(lootDrop.getLootData().lootData);
+      this.useOnPickup(jabsLootDrop.lootData);
+
+      // remove the loot drop from the map.
       this.removeLoot(lootDrop);
+
+      // stop processing the loot.
       return;
     }
 
@@ -150,10 +186,15 @@ Game_Player.prototype.processLootCollection = function(lootDrops)
   this.pickupLootCollection(lootCollected);
 };
 
+/**
+ * Determines whether or not the player can collect this event's loot.
+ * @param {Game_Event} lootEvent The event potentially containing loot.
+ * @returns {boolean} True if it can be collected, false otherwise.
+ */
 Game_Player.prototype.canCollectLoot = function(lootEvent)
 {
   // we cannot collect loot events that have already been erased.
-  if (lootEvent._erased) return false;
+  if (lootEvent.isErased()) return false;
 
   // we cannot collect loot that isn't close enough.
   if (!this.isTouchingLoot(lootEvent)) return false;
@@ -174,7 +215,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   lootCollected.forEach(loot =>
   {
     // get the underlying loot item.
-    const {lootData} = loot.getLootData();
+    const {lootData} = loot.getJabsLoot();
 
     // store the loot on-pickup.
     this.storeOnPickup(lootData);
@@ -211,7 +252,7 @@ Game_Player.prototype.isTouchingLoot = function(lootDrop)
 Game_Player.prototype.pickupLoot = function(lootEvent)
 {
   // extract the loot data.
-  const lootMetadata = lootEvent.getLootData();
+  const lootMetadata = lootEvent.getJabsLoot();
   const {lootData} = lootMetadata;
   lootMetadata.useOnPickup
     ? this.useOnPickup(lootData)

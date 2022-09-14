@@ -51,7 +51,7 @@ class JABS_Engine
   }
 
   /**
-   * Checks whether or not we have a need to request the ABS-specific menu.
+   * Checks whether or not we have a need to request the JABS quick menu.
    * @returns {boolean} True if menu requested, false otherwise.
    */
   get requestAbsMenu()
@@ -290,16 +290,8 @@ class JABS_Engine
     this._absPause = false;
 
     /**
-     * A collection of all ongoing states in the context of how they
-     * interact with the battlers on the map. This is typically kept in-sync with
-     * the individual battlers.
-     * @type {JABS_TrackedState[]}
-     */
-    this._jabsStateTracker = [];
-
-    /**
      * A collection of all ongoing states that are affecting battlers on the map.
-     * @type {Map<string, Map<number, JABS_TrackedState>>}
+     * @type {Map<string, Map<number, JABS_State>>}
      */
     this._jabsStates = new Map();
   }
@@ -321,6 +313,8 @@ class JABS_Engine
 
   /**
    * Finds the event metadata associated with the given `uuid`.
+   * This is used when a given event has an underlying action associated with it and
+   * we want that action data.
    * @param {string} uuid The `uuid` to find.
    * @returns {rm.types.Event} The event associated with the `uuid`.
    */
@@ -408,6 +402,26 @@ class JABS_Engine
   }
 
   /**
+   * Determine whether or not the underlying {@link Game_Battler} is actually player 1.
+   * @param {Game_Battler} battler The battler to compare.
+   * @returns {boolean} True if this battler is currently player 1, false otherwise.
+   */
+  isBattlerPlayer1(battler)
+  {
+    // grab player 1.
+    const player1 = this.getPlayer1();
+
+    // if we currently have no player 1, then it must be false.
+    if (!player1) return false;
+
+    // if they are not the same battler, then they are not.
+    if (player1.getBattler() !== battler) return false;
+
+    // they are the same!
+    return true;
+  }
+
+  /**
    * Initializes the player properties associated with this battle map.
    */
   initializePlayer1()
@@ -431,7 +445,7 @@ class JABS_Engine
     this.setPlayer1(player1);
 
     // assign the uuid to the player.
-    $gamePlayer.setMapBattler(player1.getUuid());
+    $gamePlayer.setJabsBattlerUuid(player1.getUuid());
 
     // update player 1 in the tracker.
     JABS_AiManager.addOrUpdateBattler(player1);
@@ -794,6 +808,7 @@ class JABS_Engine
     if (jabsState.wasRecentlyApplied()) return;
 
     // increment the stack of the state.
+    // TODO: get stack count bonus from new state data.
     jabsState.incrementStacks();
 
     // update the underlying base duration to the latest stack's duration.
@@ -904,7 +919,7 @@ class JABS_Engine
     if (target.isDying()) return false;
 
     // do not re-handle defeated targets.
-    if (target.isEnemy() && target.getCharacter()._erased) return false;
+    if (target.isEnemy() && target.getCharacter().isErased()) return false;
 
     // target is defeated!
     return true;
@@ -1739,7 +1754,7 @@ class JABS_Engine
     actionEventSprite.setDirection(action.direction());
     actionEventSprite.setCustomDirection(action.direction());
     actionEventSprite.setCastedDirection($gamePlayer.direction());
-    actionEventSprite.setMapActionData(action);
+    actionEventSprite.setJabsAction(action);
 
     // overwrites the "start" of the event for this event to be nothing.
     // this prevents the player from accidentally interacting with the
@@ -1780,7 +1795,7 @@ class JABS_Engine
     // generate a new event to visually represent the loot drop and flag it for adding.
     const eventId = $dataMap.events.length - 1;
     const lootEvent = new Game_Event($gameMap.mapId(), eventId);
-    lootEvent.setLootData(jabsLootData);
+    lootEvent.setJabsLoot(jabsLootData);
     lootEvent.setLootNeedsAdding();
 
     // add loot event to map.

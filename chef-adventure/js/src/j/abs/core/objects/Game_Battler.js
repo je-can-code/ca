@@ -1,41 +1,62 @@
 //#region Game_Battler
 /**
- * Adds the `uuid` to the battler class.
+ * Extends {@link Game_Battler.initMembers}.
+ * Includes JABS parameter initialization.
  */
-J.ABS.Aliased.Game_Battler.initMembers = Game_Battler.prototype.initMembers;
+J.ABS.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.initMembers.call(this);
+  J.ABS.Aliased.Game_Battler.get('initMembers').call(this);
+
+  // initialize our custom members.
+  this.initJabsMembers();
+};
+
+/**
+ * Initializes additional parameters related to JABS for this battler.
+ */
+Game_Battler.prototype.initJabsMembers = function()
+{
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
 
   /**
-   * All modifications to the battler lives within this object.
+   * A grouping of all properties associated with JABS.
    */
-  this._j = this._j || {
-    /**
-     * The `uuid` of this battler.
-     * @type {string}
-     */
-    _uuid: J.BASE.Helpers.shortUuid(),
-  };
+  this._j._abs ||= {};
+
+  /**
+   * The unique identifier of this battler.
+   * This is typically 6 characters long, including two pairs of 3 characters.
+   * The characters used are one of the 16 available hexadecimal characters.
+   * This includes `0-9` and `A-F`.
+   * An example might be something like `a40-1f7`.
+   * @type {string}
+   */
+  this._j._abs._uuid = J.BASE.Helpers.shortUuid();
 
   /**
    * All equipped skills on this battler.
    * @type {JABS_SkillSlotManager}
    */
-  this._j._equippedSkills = new JABS_SkillSlotManager();
+  this._j._abs._equippedSkills = new JABS_SkillSlotManager();
 };
 
 /**
  * Gets the `uuid` of this battler.
- * At this level, only returns an empty string.
+ * The default uuid for battlers is their name and the uuid connected by a hyphen.
  * @returns {string}
  */
 Game_Battler.prototype.getUuid = function()
 {
-  const modifiedUuid = `${this.name()}_${this._j._uuid}`;
+  // build the custom uuid including the name.
+  const modifiedUuid = `${this.name()}_${this._j._abs._uuid}`;
+
+  // return the name-based uuid.
   return modifiedUuid;
-  //return this._j._uuid;
 };
 
 /**
@@ -44,7 +65,7 @@ Game_Battler.prototype.getUuid = function()
  */
 Game_Battler.prototype.setUuid = function(uuid)
 {
-  this._j._uuid = uuid;
+  this._j._abs._uuid = uuid;
 };
 
 /**
@@ -62,7 +83,7 @@ Game_Battler.prototype.battlerId = function()
  */
 Game_Battler.prototype.getSkillSlotManager = function()
 {
-  return this._j._equippedSkills;
+  return this._j._abs._equippedSkills;
 };
 
 /**
@@ -475,14 +496,14 @@ Game_Battler.prototype.isAggroLocked = function()
  * @param {number} stateId The state id to potentially apply.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.addState = Game_Battler.prototype.addState;
+J.ABS.Aliased.Game_Battler.set('addState', Game_Battler.prototype.addState);
 Game_Battler.prototype.addState = function(stateId, attacker)
 {
   // if we're missing an attacker or the engine is disabled, perform as usual.
   if (!attacker || !$jabsEngine._absEnabled)
   {
     // perform original logic.
-    J.ABS.Aliased.Game_Battler.addState.call(this, stateId);
+    J.ABS.Aliased.Game_Battler.get('addState').call(this, stateId);
 
     // stop processing this state.
     return;
@@ -514,11 +535,11 @@ Game_Battler.prototype.addState = function(stateId, attacker)
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
+J.ABS.Aliased.Game_Battler.set('addNewState', Game_Battler.prototype.addNewState);
 Game_Battler.prototype.addNewState = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('addNewState').call(this, stateId);
 
   // add the jabs state.
   this.addJabsState(stateId, attacker);
@@ -529,11 +550,11 @@ Game_Battler.prototype.addNewState = function(stateId, attacker)
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.resetStateCounts = Game_Battler.prototype.resetStateCounts;
+J.ABS.Aliased.Game_Battler.set('resetStateCounts', Game_Battler.prototype.resetStateCounts);
 Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.resetStateCounts.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('resetStateCounts').call(this, stateId);
 
   // add the state to the battler.
   this.addJabsState(stateId, attacker);
@@ -543,11 +564,11 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
  * Extends `removeState()` to also expire the state in the JABS state tracker.
  * @param {number} stateId
  */
-J.ABS.Aliased.Game_Battler.removeState = Game_Battler.prototype.removeState;
+J.ABS.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState);
 Game_Battler.prototype.removeState = function(stateId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('removeState').call(this, stateId);
 
   // query for the state to remove from the engine.
   const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
@@ -563,7 +584,7 @@ Game_Battler.prototype.removeState = function(stateId)
 /**
  * Adds a particular state to become tracked by the tracker for this battler.
  * @param {number} stateId The state id to track.
- * @param {Game_Battler} attacker The battler who is applying this state.
+ * @param {Game_Battler|Game_Actor|Game_Enemy} attacker The battler who is applying this state.
  */
 Game_Battler.prototype.addJabsState = function(stateId, attacker)
 {
@@ -612,47 +633,6 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
 Game_Battler.prototype.getStateDurationBoost = function(baseDuration, attacker)
 {
   return 0;
-};
-
-/**
- * Gets the numeric representation of this battler's strength.
- * @returns {number}
- */
-Game_Battler.prototype.getPowerLevel = function()
-{
-  let powerLevel = 0;
-  let counter = 2;
-  // skip HP/MP
-  const bparams = [2, 3, 4, 5, 6, 7];
-  const xparams = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
-  const sparams = [18, 19, 20, 21, 22, 23, 24, 25];
-  while (counter < 28)
-  {
-    if (bparams.includes(counter))
-    {
-      powerLevel += this.param(counter);
-    }
-
-    if (xparams.includes(counter))
-    {
-      powerLevel += this.xparam(counter - 8) * 100;
-    }
-
-    if (sparams.includes(counter))
-    {
-      powerLevel += (this.sparam(counter - 18) * 100 - 100);
-    }
-
-    counter++;
-  }
-
-  if (Number.isNaN(powerLevel))
-  {
-    console.warn('what happened');
-  }
-
-  powerLevel += (this.level ** 2);
-  return Math.round(powerLevel);
 };
 
 /**

@@ -1,28 +1,37 @@
-
 //#region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
-J.ABS.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.ABS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
-  J.ABS.Aliased.Scene_Map.initialize.call(this);
-  this._j = this._j || {};
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('initialize').call(this);
+
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  // initialize custom class members.
   this.initJabsMembers();
 };
 
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
-J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.ABS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
+    // initialize player 1.
     $jabsEngine.initializePlayer1();
   }
 
-  J.ABS.Aliased.Scene_Map.onMapLoaded.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('onMapLoaded').call(this);
 };
 
 /**
@@ -53,21 +62,34 @@ Scene_Map.prototype.initJabsMenu = function()
 /**
  * Create the Hud with all the rest of the windows.
  */
-J.ABS.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
+J.ABS.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
+  // generate the JABS quick menu.
   this.createJabsAbsMenu();
-  J.ABS.Aliased.Scene_Map.createAllWindows.call(this);
+
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('createAllWindows').call(this);
 };
 
 /**
  * Update the `JABS_BattlerManager` while updating the regular scene map.
  */
-J.ABS.Aliased.Scene_Map.update = Scene_Map.prototype.update;
+J.ABS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
-  J.ABS.Aliased.Scene_Map.update.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('update').call(this);
 
+  // update JABS.
+  this.updateJabs();
+};
+
+/**
+ * Frame-updates associated with the JABS engine.
+ */
+Scene_Map.prototype.updateJabs = function()
+{
   // if the ABS is disabled, then don't update it.
   if (!$jabsEngine.absEnabled) return;
 
@@ -127,13 +149,13 @@ Scene_Map.prototype.hideAllJabsWindows = function()
 /**
  * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
-J.ABS.Aliased.Scene_Map.callMenu = Scene_Map.prototype.callMenu;
+J.ABS.Aliased.Scene_Map.set('callMenu', Scene_Map.prototype.callMenu);
 Scene_Map.prototype.callMenu = function()
 {
-  // if the ABS is disabled, then allow the menu to be called.
+  // if the ABS is disabled, then allow the menu to be called normally.
   if (!$jabsEngine.absEnabled)
   {
-    J.ABS.Aliased.Scene_Map.callMenu.call(this);
+    J.ABS.Aliased.Scene_Map.get('callMenu').call(this);
   }
 };
 

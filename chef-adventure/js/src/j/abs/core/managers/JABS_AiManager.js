@@ -356,8 +356,6 @@ class JABS_AiManager
    */
   static updateBattler(key, battler)
   {
-    console.log(`updating: `, key, this.battlers.get(key), `>>>`, battler);
-
     // update the battler key with the newest battler.
     this.battlers.set(key, battler);
   }
@@ -416,7 +414,7 @@ class JABS_AiManager
     if (!this.canConvertEventToBattler(event))
     {
       // if the battler has no id, it is likely being hidden/transformed to non-battler.
-      event.setMapBattler(String.empty);
+      event.setJabsBattlerUuid(String.empty);
 
       // null is the default for non-enemies.
       return null;
@@ -435,7 +433,7 @@ class JABS_AiManager
       event.getBattlerCoreData());
 
     // update the battler with the latest uuid.
-    event.setMapBattler(jabsBattler.getUuid());
+    event.setJabsBattlerUuid(jabsBattler.getUuid());
 
     // return the newly created battler.
     return jabsBattler;
@@ -490,7 +488,7 @@ class JABS_AiManager
     if (!this.canConvertFollowerToBattler(follower))
     {
       // if the battler has no id, it is likely being hidden/transformed to non-battler.
-      follower.setMapBattler(String.empty);
+      follower.setJabsBattlerUuid(String.empty);
 
       // null is the default.
       return null;
@@ -519,7 +517,7 @@ class JABS_AiManager
     const jabsBattler = new JABS_Battler(follower, battler, coreData);
 
     // assign the map battler to the follower.
-    follower.setMapBattler(jabsBattler.getUuid());
+    follower.setJabsBattlerUuid(jabsBattler.getUuid());
 
     // return the built ally map battler.
     return jabsBattler;

@@ -264,9 +264,9 @@ Game_Event.prototype.turnRightOrLeft45 = function()
  */
 Game_Event.prototype.homeIntoTarget = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const target = this.getMapActionData().getCaster().getTarget();
+    const target = this.getJabsAction().getCaster().getTarget();
     this.homeIntoTargetBattler(target);
   }
   else if (this.isJabsBattler())
@@ -287,9 +287,9 @@ Game_Event.prototype.homeIntoTarget = function()
  */
 Game_Event.prototype.homeIntoLastHit = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const lastHit = this.getMapActionData().getCaster().getBattlerLastHit();
+    const lastHit = this.getJabsAction().getCaster().getBattlerLastHit();
     this.homeIntoLastHitBattler(lastHit);
   }
   else if (this.isJabsBattler())
@@ -365,9 +365,9 @@ Game_Event.prototype.homeIntoBattler = function(battler)
  */
 Game_Event.prototype.seekTarget = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const target = this.getMapActionData().getCaster().getTarget();
+    const target = this.getJabsAction().getCaster().getTarget();
     this.seekTargetBattler(target);
   }
   else if (this.isJabsBattler())
@@ -388,9 +388,9 @@ Game_Event.prototype.seekTarget = function()
  */
 Game_Event.prototype.seekLastHit = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const lastHit = this.getMapActionData().getCaster().getBattlerLastHit();
+    const lastHit = this.getJabsAction().getCaster().getBattlerLastHit();
     this.seekLastHitBattler(lastHit);
   }
   else if (this.isJabsBattler())

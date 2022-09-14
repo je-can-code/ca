@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Sep 10 2022 10:00:52 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Sep 14 2022 07:10:35 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2059,32 +2059,28 @@ J.ABS.RegExp = {
  * A collection of all aliased methods for this plugin.
  */
 J.ABS.Aliased = {
-  DataManager: {},
+  DataManager: new Map(),
   Game_Actor: new Map(),
-  Game_Action: {},
+  Game_Action: new Map(),
   Game_ActionResult: new Map(),
-  Game_Battler: {},
-  Game_BattlerBase: {},
-  Game_Character: {},
-  Game_CharacterBase: {},
+  Game_Battler: new Map(),
+  Game_Character: new Map(),
+  Game_CharacterBase: new Map(),
   Game_Enemy: new Map(),
-  Game_Event: {},
-  Game_Follower: {},
-  Game_Followers: {},
+  Game_Event: new Map(),
   Game_Interpreter: {},
   Game_Map: new Map(),
   Game_Party: new Map(),
-  Game_Player: {},
-  Game_Unit: {},
+  Game_Player: new Map(),
+  Game_Unit: new Map(),
   RPG_Actor: new Map(),
   RPG_Enemy: new Map(),
   RPG_Skill: new Map(),
-  Scene_Load: {},
-  Scene_Map: {},
-  Spriteset_Map: {},
+  Scene_Load: new Map(),
+  Scene_Map: new Map(),
+  Spriteset_Map: new Map(),
   Sprite_Character: new Map(),
-  Sprite_Damage: {},
-  Sprite_Gauge: {},
+  Sprite_Gauge: new Map(),
 };
 //#endregion Plugin setup & configuration
 
@@ -3139,17 +3135,19 @@ JABS_Battler.prototype.initGeneralInfo = function()
    */
   this._movementLock = false;
 
-  /**
-   * Whether or not this battler is waiting.
-   * @type {boolean} True if battler is waiting, false otherwise.
-   */
-  this._waiting = false;
+  // /**
+  //  * Whether or not this battler is waiting.
+  //  * @type {boolean} True if battler is waiting, false otherwise.
+  //  */
+  // this._waiting = false;
+  //
+  // /**
+  //  * The counter for how long this battler is waiting.
+  //  * @type {number}
+  //  */
+  // this._waitCounter = 0;
 
-  /**
-   * The counter for how long this battler is waiting.
-   * @type {number}
-   */
-  this._waitCounter = 0;
+  this._waitTimer = new JABS_Timer(0);
 };
 
 /**
@@ -3716,6 +3714,7 @@ JABS_Battler.prototype.update = function()
   this.updateDeathHandling();
 };
 
+//#region queued player actions
 /**
  * Process any queued actions and execute them.
  */
@@ -3749,13 +3748,13 @@ JABS_Battler.prototype.canProcessQueuedActions = function()
   // check if we're still casting actions.
   if (this.isCasting()) return false;
 
-  // check if we're not a player.
-  // check also if we're not in position.
+  // validate that non-players are in-position.
   if (!this.isPlayer() && !this.isInPosition()) return false;
 
   // we can process all the actions!
   return true;
 };
+//#endregion queued player actions
 
 //#region update pose effects
 /**
@@ -3894,10 +3893,12 @@ JABS_Battler.prototype.updateTimers = function()
 JABS_Battler.prototype.processWaitTimer = function()
 {
   // if waiting, update the wait timer.
-  if (this.isWaiting())
-  {
-    this.countdownWait();
-  }
+  // if (this.isWaiting())
+  // {
+  //   this.countdownWait();
+  // }
+
+  this._waitTimer.update();
 };
 
 /**
@@ -4110,10 +4111,7 @@ JABS_Battler.prototype.handleDodgeCancel = function()
   if (!this.shouldCancelDodge()) return;
 
   // end the dodging.
-  this.setDodging(false);
-
-  // set the dodge steps to 0.
-  this._dodgeSteps = 0;
+  this.endDodge();
 };
 
 /**
@@ -4129,6 +4127,9 @@ JABS_Battler.prototype.shouldCancelDodge = function()
   return false;
 };
 
+/**
+ * Handles the forced movement while dodging.
+ */
 JABS_Battler.prototype.handleDodgeMovement = function()
 {
   // if we cannot dodge move, do not.
@@ -4151,10 +4152,10 @@ JABS_Battler.prototype.canDodgeMove = function()
   if (!this.canBattlerMove()) return false;
 
   // if we are out of dodge steps, don't dodge move.
-  if (this._dodgeSteps <= 0) return false;
+  if (this.getDodgeSteps() <= 0) return false;
 
   // if we are not dodging, don't dodge move.
-  if (!this._dodging) return false;
+  if (!this.isDodging()) return false;
 
   // we can dodge move!
   return true;
@@ -4191,7 +4192,7 @@ JABS_Battler.prototype.handleDodgeEnd = function()
 JABS_Battler.prototype.shouldEndDodge = function()
 {
   // if we are out of dodge steps and we're done moving, end the dodge.
-  if (this._dodgeSteps <= 0 && !this.getCharacter().isMoving()) return true;
+  if (this.getDodgeSteps() <= 0 && !this.getCharacter().isMoving()) return true;
 
   // KEEP DODGING.
   return false;
@@ -4206,7 +4207,7 @@ JABS_Battler.prototype.endDodge = function()
   this.setDodging(false);
 
   // set dodge steps to 0 regardless of what they are.
-  this._dodgeSteps = 0;
+  this.setDodgeSteps(0);
 
   // disable the invincibility from dodging.
   this.setInvincible(false);
@@ -4226,7 +4227,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
   if (this.isWaiting()) return;
 
   // if the event is erased officially, ignore it.
-  if (this.getCharacter()._erased) return;
+  if (this.getCharacter().isErased()) return;
 
   // if we are dying, self-destruct.
   if (this.isDying() && !$gameMap.isEventRunning())
@@ -4238,13 +4239,13 @@ JABS_Battler.prototype.updateDeathHandling = function()
 //#endregion updates
 
 //#region update helpers
-
 //#region timers
 /**
  * Counts down the duration for this battler's wait time.
  */
 JABS_Battler.prototype.countdownWait = function()
 {
+  // TODO: this function should be removed.
   if (this._waitCounter > 0)
   {
     this._waitCounter--;
@@ -4265,17 +4266,23 @@ JABS_Battler.prototype.countdownWait = function()
  */
 JABS_Battler.prototype.setWaitCountdown = function(wait)
 {
-  this._waitCounter = wait;
-  if (this._waitCounter > 0)
-  {
-    this._waiting = true;
-  }
+  // reset the wait timer to start over.
+  this._waitTimer.reset();
 
-  if (this._waitCounter <= 0)
-  {
-    this._waiting = false;
-    this._waitCounter = 0;
-  }
+  // set the wait timer's max to a new time.
+  this._waitTimer.setMaxTime(wait);
+
+  // this._waitCounter = wait;
+  // if (this._waitCounter > 0)
+  // {
+  //   this._waiting = true;
+  // }
+  //
+  // if (this._waitCounter <= 0)
+  // {
+  //   this._waiting = false;
+  //   this._waitCounter = 0;
+  // }
 };
 
 /**
@@ -4284,7 +4291,8 @@ JABS_Battler.prototype.setWaitCountdown = function(wait)
  */
 JABS_Battler.prototype.isWaiting = function()
 {
-  return this._waiting;
+  return !this._waitTimer.isTimerComplete();
+  // return this._waiting;
 };
 
 /**
@@ -4415,9 +4423,36 @@ JABS_Battler.prototype.isDodging = function()
  * Sets whether or not this battler is dodging.
  * @param {boolean} dodging Whether or not the battler is dodging (default = true).
  */
-JABS_Battler.prototype.setDodging = function(dodging = true)
+JABS_Battler.prototype.setDodging = function(dodging)
 {
   this._dodging = dodging;
+};
+
+/**
+ * Sets the direction that the battler will be moved when dodging.
+ * @param {2|4|6|8|1|3|7|9} direction The numeric direction to be moved.
+ */
+JABS_Battler.prototype.setDodgeDirection = function(direction)
+{
+  this._dodgeDirection = direction;
+};
+
+/**
+ * Gets the number of dodge steps remaining to be stepped whilst dodging.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getDodgeSteps = function()
+{
+  return this._dodgeSteps;
+};
+
+/**
+ * Sets the number of steps that will be force-moved when dodging.
+ * @param {number} stepCount The number of steps to dodge.
+ */
+JABS_Battler.prototype.setDodgeSteps = function(stepCount)
+{
+  this._dodgeSteps = stepCount;
 };
 
 /**
@@ -4462,14 +4497,16 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.setInvincible(skill.jabsInvincibleDodge);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
+  // TODO: get dodge modifier from skill.
   const dodgeSpeedBonus = 2;
-  this.getCharacter().setDodgeBoost(dodgeSpeedBonus);
+  this.getCharacter().setDodgeModifier(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
-  this._dodgeSteps = skill.jabsRadius;
+  this.setDodgeSteps(skill.jabsRadius);
 
   // set the direction to be dodging in (front/back/specified).
-  this._dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  const dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  this.setDodgeDirection(dodgeDirection);
 
   // pay whatever costs are associated with the skill.
   this.getBattler().paySkillCost(skill);
@@ -7322,7 +7359,7 @@ JABS_Battler.prototype.canActionConnect = function()
 
   // precise timing allows for battlers to hit other battlers the instant they
   // meet event conditions, and that is not grounds to hit enemies.
-  if (this.getCharacter().isAction())
+  if (this.getCharacter().isJabsAction())
   {
     return false;
   }
@@ -11654,18 +11691,22 @@ class JABS_State
 
   /**
    * Increments the stack counter as high as the limit allows.
+   * @param {number} stackIncrease The number of stacks to increase; defaults to 1.
    */
-  incrementStacks()
+  incrementStacks(stackIncrease = 1)
   {
     // grab the max number of stacks for this state.
-    // TODO: abstract this.
+    // TODO: get this from the state data.
     const maxStacks = 5;
 
     // check if we still have room to add more stacks.
     if (this.stackCount < maxStacks)
     {
-      // increment the stack counter.
-      this.stackCount++;
+      // project the new stack count.
+      const projectedStackCount = this.stackCount + stackIncrease;
+
+      // increment the stack counter within threshold.
+      this.stackCount = Math.min(maxStacks, projectedStackCount);
     }
   }
 
@@ -15101,13 +15142,14 @@ var $gameEnemies = null;
 var $actionMap = null;
 
 /**
- * Extends `createGameObjects()` to include creation of our global game objects
+ * Extends {@link DataManager.createGameObjects}.
+ * Includes creation of our global game objects.
  */
-J.ABS.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.ABS.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.ABS.Aliased.DataManager.createGameObjects.call(this);
+  J.ABS.Aliased.DataManager.get('createGameObjects').call(this);
 
   // update the skill master map to have data.
   DataManager.getSkillMasterMap();
@@ -15658,8 +15700,6 @@ class JABS_AiManager
    */
   static updateBattler(key, battler)
   {
-    console.log(`updating: `, key, this.battlers.get(key), `>>>`, battler);
-
     // update the battler key with the newest battler.
     this.battlers.set(key, battler);
   }
@@ -15718,7 +15758,7 @@ class JABS_AiManager
     if (!this.canConvertEventToBattler(event))
     {
       // if the battler has no id, it is likely being hidden/transformed to non-battler.
-      event.setMapBattler(String.empty);
+      event.setJabsBattlerUuid(String.empty);
 
       // null is the default for non-enemies.
       return null;
@@ -15737,7 +15777,7 @@ class JABS_AiManager
       event.getBattlerCoreData());
 
     // update the battler with the latest uuid.
-    event.setMapBattler(jabsBattler.getUuid());
+    event.setJabsBattlerUuid(jabsBattler.getUuid());
 
     // return the newly created battler.
     return jabsBattler;
@@ -15792,7 +15832,7 @@ class JABS_AiManager
     if (!this.canConvertFollowerToBattler(follower))
     {
       // if the battler has no id, it is likely being hidden/transformed to non-battler.
-      follower.setMapBattler(String.empty);
+      follower.setJabsBattlerUuid(String.empty);
 
       // null is the default.
       return null;
@@ -15821,7 +15861,7 @@ class JABS_AiManager
     const jabsBattler = new JABS_Battler(follower, battler, coreData);
 
     // assign the map battler to the follower.
-    follower.setMapBattler(jabsBattler.getUuid());
+    follower.setJabsBattlerUuid(jabsBattler.getUuid());
 
     // return the built ally map battler.
     return jabsBattler;
@@ -17209,7 +17249,7 @@ class JABS_Engine
   }
 
   /**
-   * Checks whether or not we have a need to request the ABS-specific menu.
+   * Checks whether or not we have a need to request the JABS quick menu.
    * @returns {boolean} True if menu requested, false otherwise.
    */
   get requestAbsMenu()
@@ -17448,16 +17488,8 @@ class JABS_Engine
     this._absPause = false;
 
     /**
-     * A collection of all ongoing states in the context of how they
-     * interact with the battlers on the map. This is typically kept in-sync with
-     * the individual battlers.
-     * @type {JABS_TrackedState[]}
-     */
-    this._jabsStateTracker = [];
-
-    /**
      * A collection of all ongoing states that are affecting battlers on the map.
-     * @type {Map<string, Map<number, JABS_TrackedState>>}
+     * @type {Map<string, Map<number, JABS_State>>}
      */
     this._jabsStates = new Map();
   }
@@ -17479,6 +17511,8 @@ class JABS_Engine
 
   /**
    * Finds the event metadata associated with the given `uuid`.
+   * This is used when a given event has an underlying action associated with it and
+   * we want that action data.
    * @param {string} uuid The `uuid` to find.
    * @returns {rm.types.Event} The event associated with the `uuid`.
    */
@@ -17566,6 +17600,26 @@ class JABS_Engine
   }
 
   /**
+   * Determine whether or not the underlying {@link Game_Battler} is actually player 1.
+   * @param {Game_Battler} battler The battler to compare.
+   * @returns {boolean} True if this battler is currently player 1, false otherwise.
+   */
+  isBattlerPlayer1(battler)
+  {
+    // grab player 1.
+    const player1 = this.getPlayer1();
+
+    // if we currently have no player 1, then it must be false.
+    if (!player1) return false;
+
+    // if they are not the same battler, then they are not.
+    if (player1.getBattler() !== battler) return false;
+
+    // they are the same!
+    return true;
+  }
+
+  /**
    * Initializes the player properties associated with this battle map.
    */
   initializePlayer1()
@@ -17589,7 +17643,7 @@ class JABS_Engine
     this.setPlayer1(player1);
 
     // assign the uuid to the player.
-    $gamePlayer.setMapBattler(player1.getUuid());
+    $gamePlayer.setJabsBattlerUuid(player1.getUuid());
 
     // update player 1 in the tracker.
     JABS_AiManager.addOrUpdateBattler(player1);
@@ -17952,6 +18006,7 @@ class JABS_Engine
     if (jabsState.wasRecentlyApplied()) return;
 
     // increment the stack of the state.
+    // TODO: get stack count bonus from new state data.
     jabsState.incrementStacks();
 
     // update the underlying base duration to the latest stack's duration.
@@ -17964,7 +18019,7 @@ class JABS_Engine
   /**
    * Adds the state tracker anew of a given state on the given battler.
    * @param {string} uuid The uuid of the battler.
-   * @param {JABS_TrackedState} jabsState The state in to add.
+   * @param {JABS_State} jabsState The state in to add.
    */
   addJabsStateByUuid(uuid, jabsState)
   {
@@ -18062,7 +18117,7 @@ class JABS_Engine
     if (target.isDying()) return false;
 
     // do not re-handle defeated targets.
-    if (target.isEnemy() && target.getCharacter()._erased) return false;
+    if (target.isEnemy() && target.getCharacter().isErased()) return false;
 
     // target is defeated!
     return true;
@@ -18897,7 +18952,7 @@ class JABS_Engine
     actionEventSprite.setDirection(action.direction());
     actionEventSprite.setCustomDirection(action.direction());
     actionEventSprite.setCastedDirection($gamePlayer.direction());
-    actionEventSprite.setMapActionData(action);
+    actionEventSprite.setJabsAction(action);
 
     // overwrites the "start" of the event for this event to be nothing.
     // this prevents the player from accidentally interacting with the
@@ -18938,7 +18993,7 @@ class JABS_Engine
     // generate a new event to visually represent the loot drop and flag it for adding.
     const eventId = $dataMap.events.length - 1;
     const lootEvent = new Game_Event($gameMap.mapId(), eventId);
-    lootEvent.setLootData(jabsLootData);
+    lootEvent.setJabsLoot(jabsLootData);
     lootEvent.setLootNeedsAdding();
 
     // add loot event to map.
@@ -21053,20 +21108,59 @@ Game_Action.prototype.itemPar = function(target)
 /**
  * Rounds the result of the damage calculations when executing skills.
  */
-J.ABS.Aliased.Game_Action.makeDamageValue = Game_Action.prototype.makeDamageValue;
+J.ABS.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
 Game_Action.prototype.makeDamageValue = function(target, critical)
 {
-  let base = J.ABS.Aliased.Game_Action.makeDamageValue.call(this, target, critical);
+  // perform original logic.
+  let base = J.ABS.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
 
-  const player = $jabsEngine.getPlayer1();
-  const isPlayer = player.getBattler() === target;
-  if (isPlayer)
+  // check if the player is the target.
+  if ($jabsEngine.isBattlerPlayer1(target))
   {
     // currently, only the player can properly defend like this.
-    base = this.handleGuardEffects(base, player);
+    base = this.handleGuardEffects(base, $jabsEngine.getPlayer1());
   }
 
+  // return the damage output.
   return base;
+};
+
+/**
+ * Handles all guard-related effects, such as parrying or guarding.
+ * @param {number} damage The amount of damage before damage reductions.
+ * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
+ * @returns {number} The amount of damage after damage reductions from guarding.
+ */
+Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
+{
+  // check if the battler is parrying; parrying takes priority over guarding.
+  if (jabsBattler.parrying())
+  {
+    // process the parry functionality.
+    this.processParry(jabsBattler);
+
+    // calculate the reduced amount from guarding.
+    const parryReducedDamage = this.calculateParryDamageReduction(jabsBattler, damage);
+
+    // return the reduced amount.
+    return parryReducedDamage;
+  }
+
+  // check if the battler is guarding.
+  if (jabsBattler.guarding())
+  {
+    // process the guard functionality.
+    this.processGuard(jabsBattler);
+
+    // calculate the reduced amount from guarding.
+    const guardReducedDamage = this.calculateGuardDamageReduction(jabsBattler, damage);
+
+    // return the reduced amount.
+    return guardReducedDamage;
+  }
+
+  // if there was no guarding or parrying happen, just return the original damage.
+  return damage;
 };
 
 /**
@@ -21119,60 +21213,20 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
  * Intercepts the action result and prevents adding states entirely if precise-parried
  * by the player.
  */
-J.ABS.Aliased.Game_Action.itemEffectAddState = Game_Action.prototype.itemEffectAddState;
+J.ABS.Aliased.Game_Action.set('itemEffectAddState', Game_Action.prototype.itemEffectAddState);
 Game_Action.prototype.itemEffectAddState = function(target, effect)
 {
-  const player = $jabsEngine.getPlayer1();
-  const isPlayer = player.getBattler() === target;
-  if (isPlayer)
+  if ($jabsEngine.isBattlerPlayer1(target))
   {
     // if it is the player, peek at the result before applying.
-    const result = player.getBattler().result();
+    const result = $jabsEngine.getPlayer1().getBattler().result();
 
     // if the player precise-parried the action, no status effects applied.
     if (result.parried) return;
   }
 
   // if the precise-parry-state-prevention wasn't successful, apply as usual.
-  J.ABS.Aliased.Game_Action.itemEffectAddState.call(this, target, effect);
-};
-
-/**
- * Handles all guard-related effects, such as parrying or guarding.
- * @param {number} damage The amount of damage before damage reductions.
- * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
- * @returns {number} The amount of damage after damage reductions from guarding.
- */
-Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
-{
-  // check if the battler is parrying; parrying takes priority over guarding.
-  if (jabsBattler.parrying())
-  {
-    // process the parry functionality.
-    this.processParry(jabsBattler);
-
-    // calculate the reduced amount from guarding.
-    const parryReducedDamage = this.calculateParryDamageReduction(jabsBattler, damage);
-
-    // return the reduced amount.
-    return parryReducedDamage;
-  }
-
-  // check if the battler is guarding.
-  if (jabsBattler.guarding())
-  {
-    // process the guard functionality.
-    this.processGuard(jabsBattler);
-
-    // calculate the reduced amount from guarding.
-    const guardReducedDamage = this.calculateGuardDamageReduction(jabsBattler, damage);
-
-    // return the reduced amount.
-    return guardReducedDamage;
-  }
-
-  // if there was no guarding or parrying happen, just return the original damage.
-  return damage;
+  J.ABS.Aliased.Game_Action.get('itemEffectAddState').call(this, target, effect);
 };
 
 /**
@@ -21384,16 +21438,20 @@ Game_Action.prototype.itemEva = function(target)
 /**
  * OVERWRITE Adjusts how a skill is applied against the target in the context of JABS.
  */
-J.ABS.Aliased.Game_Action.apply = Game_Action.prototype.apply;
+J.ABS.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target)
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
-    this.applySkill(target);
+    // let JABS handle this.
+    this.applyJabsSkill(target);
   }
+  // JABS is not enabled.
   else
   {
-    J.ABS.Aliased.Game_Action.apply.call(this, target);
+    // perform original logic.
+    J.ABS.Aliased.Game_Action.get('apply').call(this, target);
   }
 };
 
@@ -21405,8 +21463,9 @@ Game_Action.prototype.apply = function(target)
  * "Missed" is no longer a possibility. It is false 100% of the time.
  * @param {Game_Battler} target The target the skill is being applied to.
  */
-Game_Action.prototype.applySkill = function(target)
+Game_Action.prototype.applyJabsSkill = function(target)
 {
+  // all the normal stuff that happens with Game_Action.apply() logic.
   const result = target.result();
   this.subject().clearResult();
   result.clear();
@@ -21414,6 +21473,8 @@ Game_Action.prototype.applySkill = function(target)
   result.evaded = !this.calculateHitSuccess(target);
   result.physical = this.isPhysical();
   result.drain = this.isDrain();
+
+  // validate we landed a hit.
   if (result.isHit())
   {
     // check if there is a damage formula.
@@ -21514,23 +21575,22 @@ Game_ActionResult.prototype.isHit = function()
 
 //#region Game_Actor
 /**
- * Adds in the jabs tracking object for equipped skills.
+ * Extends {@link #initJabsMembers}.
+ * Includes additional actor-specific members.
  */
-J.ABS.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
+J.ABS.Aliased.Game_Actor.set('initJabsMembers', Game_Actor.prototype.initJabsMembers);
+Game_Actor.prototype.initJabsMembers = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('initMembers').call(this);
+  Game_Battler.prototype.initJabsMembers.call(this);
 
   /**
-   * The master reference to the `_j` object containing all plugin properties.
-   * @type {{}}
+   * The over-arching J object to contain all additional plugin parameters.
    */
   this._j ||= {};
 
   /**
-   * The master reference to all JABS-related added properties on this class.
-   * @type {{}}
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 
@@ -21562,6 +21622,228 @@ Game_Actor.prototype.setup = function(actorId)
 
   // execute the first refresh for JABS-related things.
   this.jabsRefresh();
+};
+
+/**
+ * Refreshes aspects associated with this battler in the context of JABS.
+ */
+Game_Actor.prototype.jabsRefresh = function()
+{
+  // refresh the currently equipped skills to ensure they are still valid.
+  this.refreshBasicAttackSkills();
+
+  // refresh the bonus hits to ensure they are still accurate.
+  this.refreshBonusHits();
+};
+
+//#region JABS basic attack skills
+/**
+ * Initializes the JABS equipped skills based on equipment.
+ */
+Game_Actor.prototype.initAbsSkills = function()
+{
+  // setup the skill slots for the first time.
+  this.getSkillSlotManager().setupSlots(this);
+
+  // update them with data.
+  this.refreshBasicAttackSkills();
+};
+
+/**
+ * Refreshes the JABS skills that are currently equipped.
+ * If any are no longer valid, they will be removed.
+ */
+Game_Actor.prototype.refreshBasicAttackSkills = function()
+{
+  // don't refresh if setup hasn't been completed.
+  if (!this.canRefreshBasicAttackSkills()) return;
+
+  // update the mainhand skill slot.
+  this.updateMainhandSkill();
+
+  // update the offhand skill slot.
+  this.updateOffhandSkill();
+
+  // remove all unequippable skills from their slots.
+  this.removeInvalidSkills();
+};
+
+/**
+ * Determines whether or not basic attack skills can be refreshed.
+ * @returns {boolean} True if they can be refreshed, false otherwise.
+ */
+Game_Actor.prototype.canRefreshBasicAttackSkills = function()
+{
+  // don't refresh if the initialization hasn'te ven been completed.
+  if (!this.getSkillSlotManager()) return false;
+
+  // don't refresh if setup hasn't been completed.
+  if (!this.getSkillSlotManager().isSetupComplete()) return false;
+
+  // refresh!
+  return true;
+};
+
+/**
+ * Updates the mainhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateMainhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const mainhandSkill = this.getMainhandSkill();
+
+  // update the main and offhand skill slots.
+  this.setEquippedSkill(JABS_Button.Mainhand, mainhandSkill);
+};
+
+/**
+ * Gets the mainhand skill for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getMainhandSkill = function()
+{
+  // grab the mainhand of the actor.
+  const [mainhand,] = this.equips();
+
+  // default the mainhand skill to 0.
+  let mainhandSkill = 0;
+
+  // check if we have something in our mainhand.
+  if (mainhand)
+  {
+    // assign the skill id tag from the mainhand.
+    mainhandSkill = mainhand.jabsSkillId ?? 0;
+  }
+
+  // return what we found.
+  return mainhandSkill
+};
+
+/**
+ * Updates the offhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateOffhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const offhandSkill = this.getOffhandSkill();
+
+  // update the offhand skill slot.
+  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
+};
+
+/**
+ * Gets the offhand skill for this actor.
+ *
+ * Takes into consideration the possibility of an offhand override
+ * from the mainhand or some states.
+ * @returns {number} The offhand skill id.
+ */
+Game_Actor.prototype.getOffhandSkill = function()
+{
+  // grab the offhand skill override if one exists.
+  const offhandOverride = this.offhandSkillOverride();
+
+  // check if there is an offhand override skill to use instead.
+  if (offhandOverride)
+  {
+    // return the override.
+    return offhandOverride;
+  }
+
+  // grab the offhand of the actor.
+  const [,offhand] = this.equips();
+
+  // default the offhand skill to 0.
+  let offhandSkill = 0;
+
+  // check if we have something in our offhand.
+  if (offhand)
+  {
+    // assign the skill id tag from the offhand.
+    offhandSkill = offhand.jabsSkillId ?? 0;
+  }
+
+  // return what we found.
+  return offhandSkill;
+};
+
+/**
+ * Gets the offhand skill id override if one exists from
+ * any states.
+ * @returns {number}
+ */
+Game_Actor.prototype.offhandSkillOverride = function()
+{
+  // default to override of skill id 0.
+  let overrideSkillId = 0;
+
+  // grab all states to start.
+  const objectsToCheck = [...this.states()];
+
+  // grab the weapon of the actor.
+  const [weapon,] = this.equips();
+
+  // check if we have a weapon.
+  if (weapon)
+  {
+    // add the weapon on for possible offhand overrides.
+    objectsToCheck.unshift(weapon);
+  }
+
+  // iterate over all sources.
+  objectsToCheck.forEach(obj =>
+  {
+    // check if we have an offhand skill id override.
+    if (obj.jabsOffhandSkillId)
+    {
+      // assign it if we do.
+      overrideSkillId = obj.jabsOffhandSkillId;
+    }
+  });
+
+  // return the last override skill found, if any.
+  return overrideSkillId;
+};
+
+/**
+ * Automatically removes all skills that are no longer available.
+ * This most commonly will occur when a skill is bound to equipment that is
+ * no longer equipped to the character. Skills that are "forced" will not be removed.
+ */
+Game_Actor.prototype.removeInvalidSkills = function()
+{
+  // grab all the slots this actor has.
+  const slots = this.getSkillSlotManager().getAllSlots();
+
+  // iterate over each of them.
+  slots.forEach(skillSlot =>
+  {
+    // check if we currently know this skill.
+    if (!this.hasSkill(skillSlot.id))
+    {
+      // remove it if we don't.
+      skillSlot.autoclear();
+    }
+  });
+};
+//#endregion JABS basic attack skills
+
+//#region JABS battler properties
+/**
+ * Actors have fixed `uuid`s, and thus it can be calculated as-is.
+ * @returns {string}
+ */
+Game_Actor.prototype.getUuid = function()
+{
+  // validate we have an actor.
+  if (this.actor())
+  {
+    // return the actor's constant uuid.
+    return `actor-${this.actorId()}`;
+  }
+
+  console.warn("no uuid currently available for this actor.", this);
+  return String.empty;
 };
 
 /**
@@ -21851,31 +22133,6 @@ Game_Actor.prototype.isInanimate = function()
 };
 
 /**
- * Gets whether or not there are notes that indicate skills should be autoassigned
- * when leveling up.
- * @returns {boolean}
- */
-Game_Actor.prototype.autoAssignOnLevelup = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<autoAssignSkills>/i;
-  let autoAssign = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        autoAssign = true;
-      }
-    });
-  });
-
-  return autoAssign;
-};
-
-/**
  * The team id of this actor.
  * Defaults to the default ally team id.
  * @returns {number}
@@ -21905,91 +22162,9 @@ Game_Actor.prototype.teamId = function()
 
   return parseInt(val);
 };
+//#endregion JABS battler properties
 
-/**
- * Replaces the map damage with JABS' version of the map damage.
- */
-J.ABS.Aliased.Game_Actor.set('performMapDamage', Game_Actor.prototype.performMapDamage);
-Game_Actor.prototype.performMapDamage = function()
-{
-  // check if JABS is disabled.
-  if (!$jabsEngine.absEnabled)
-  {
-    // perform original logic.
-    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
-  }
-  // JABS is definitely enabled.
-  else
-  {
-    // let JABS handle it.
-    this.performJabsFloorDamage();
-  }
-};
-
-/**
- * Handles how an actor is treated when they are taking floor damage on the map.
- */
-Game_Actor.prototype.performJabsFloorDamage = function()
-{
-  // just flash the screen, the damage is applied by other means.
-  $gameScreen.startFlashForDamage();
-};
-
-/**
- * Disable built-in on-turn-end effects while JABS is active.
- * (built-in effects include regeneration and poison, but those are
- * already handled elsewhere in the engine)
- */
-J.ABS.Aliased.Game_Actor.set('turnEndOnMap', Game_Actor.prototype.turnEndOnMap);
-Game_Actor.prototype.turnEndOnMap = function()
-{
-  // if JABS is enabled, the fun never stops!
-  if (!$jabsEngine.absEnabled) return;
-
-  // do normal turn-end things while JABS is disabled.
-  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
-};
-
-/**
- * Actors have fixed `uuid`s, and thus it can be calculated as-is.
- * @returns {string}
- */
-Game_Actor.prototype.getUuid = function()
-{
-  if (this.actor())
-  {
-    return `actor-${this.actorId()}`;
-  }
-
-  console.warn("no uuid currently available.");
-  return String.empty;
-};
-
-/**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
- */
-Game_Actor.prototype.switchLocked = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
-
-  return switchLocked;
-};
-
+//#region ondeath management
 /**
  * Gets whether or not this actor needs a death effect.
  * @returns {boolean}
@@ -22044,19 +22219,9 @@ Game_Actor.prototype.stopDying = function()
   // turn off the dying effect.
   jabsBattler.setDying(false);
 };
+//#endregion ondeath management
 
-/**
- * Initializes the JABS equipped skills based on equipment.
- */
-Game_Actor.prototype.initAbsSkills = function()
-{
-  // setup the skill slots for the first time.
-  this.getSkillSlotManager().setupSlots(this);
-
-  // update them with data.
-  this.refreshBasicAttackSkills();
-};
-
+//#region JABS skill slot access
 /**
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
@@ -22139,205 +22304,9 @@ Game_Actor.prototype.getUpgradableSkillSlots = function()
       return true;
     });
 };
+//#endregion JABS skill slot access
 
-/**
- * Refreshes the JABS skills that are currently equipped.
- * If any are no longer valid, they will be removed.
- */
-Game_Actor.prototype.refreshBasicAttackSkills = function()
-{
-  // don't refresh if setup hasn't been completed.
-  if (!this.canRefreshBasicAttackSkills()) return;
-
-  // update the mainhand skill slot.
-  this.updateMainhandSkill();
-
-  // update the offhand skill slot.
-  this.updateOffhandSkill();
-
-  // remove all unequippable skills from their slots.
-  this.removeInvalidSkills();
-
-};
-
-Game_Actor.prototype.canRefreshBasicAttackSkills = function()
-{
-  // don't refresh if setup hasn't been completed.
-  if (!this.getSkillSlotManager().isSetupComplete()) return false;
-
-  // refresh!
-  return true;
-};
-
-/**
- * Gets the mainhand skill for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getMainhandSkill = function()
-{
-  // grab the mainhand of the actor.
-  const [mainhand,] = this.equips();
-
-  // default the mainhand skill to 0.
-  let mainhandSkill = 0;
-
-  // check if we have something in our mainhand.
-  if (mainhand)
-  {
-    // assign the skill id tag from the mainhand.
-    mainhandSkill = mainhand.jabsSkillId ?? 0;
-  }
-
-  // return what we found.
-  return mainhandSkill
-};
-
-/**
- * Updates the mainhand skill slot with the most up-to-date value.
- */
-Game_Actor.prototype.updateMainhandSkill = function()
-{
-  // determine the current main and offhand skills.
-  const mainhandSkill = this.getMainhandSkill();
-
-  // update the main and offhand skill slots.
-  this.setEquippedSkill(JABS_Button.Mainhand, mainhandSkill);
-};
-
-/**
- * Gets the offhand skill for this actor.
- *
- * Takes into consideration the possibility of an offhand override
- * from the mainhand or some states.
- * @returns {number} The offhand skill id.
- */
-Game_Actor.prototype.getOffhandSkill = function()
-{
-  // grab the offhand skill override if one exists.
-  const offhandOverride = this.offhandSkillOverride();
-
-  // check if there is an offhand override skill to use instead.
-  if (offhandOverride)
-  {
-    // return the override.
-    return offhandOverride;
-  }
-
-  // grab the offhand of the actor.
-  const [,offhand] = this.equips();
-
-  // default the offhand skill to 0.
-  let offhandSkill = 0;
-
-  // check if we have something in our offhand.
-  if (offhand)
-  {
-    // assign the skill id tag from the offhand.
-    offhandSkill = offhand.jabsSkillId ?? 0;
-  }
-
-  // return what we found.
-  return offhandSkill;
-};
-
-/**
- * Updates the offhand skill slot with the most up-to-date value.
- */
-Game_Actor.prototype.updateOffhandSkill = function()
-{
-  // determine the current main and offhand skills.
-  const offhandSkill = this.getOffhandSkill();
-
-  // update the offhand skill slot.
-  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
-};
-
-/**
- * Gets the offhand skill id override if one exists from
- * any states.
- * @returns {number}
- */
-Game_Actor.prototype.offhandSkillOverride = function()
-{
-  // default to override of skill id 0.
-  let overrideSkillId = 0;
-
-  // grab all states to start.
-  const objectsToCheck = [...this.states()];
-
-  // grab the weapon of the actor.
-  const [weapon,] = this.equips();
-
-  // check if we have a weapon.
-  if (weapon)
-  {
-    // add the weapon on for possible offhand overrides.
-    objectsToCheck.unshift(weapon);
-  }
-
-  // iterate over all sources.
-  objectsToCheck.forEach(obj =>
-  {
-    // check if we have an offhand skill id override.
-    if (obj.jabsOffhandSkillId)
-    {
-      // assign it if we do.
-      overrideSkillId = obj.jabsOffhandSkillId;
-    }
-  });
-
-  // return the last override skill found, if any.
-  return overrideSkillId;
-};
-
-/**
- * Automatically removes all skills that are no longer available.
- * This most commonly will occur when a skill is bound to equipment that is
- * no longer equipped to the character. Skills that are "forced" will not be removed.
- */
-Game_Actor.prototype.removeInvalidSkills = function()
-{
-  // grab all the slots this actor has.
-  const slots = this.getSkillSlotManager().getAllSlots();
-
-  // iterate over each of them.
-  slots.forEach(skillSlot =>
-  {
-    // check if we currently know this skill.
-    if (!this.hasSkill(skillSlot.id))
-    {
-      // remove it if we don't.
-      skillSlot.autoclear();
-    }
-  });
-};
-
-/**
- * Extends {@link #onBattlerDataChange}.
- * Adds a hook for performing actions when the battler's data hase changed.
- */
-J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
-Game_Actor.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
-
-  // update JABS-related things.
-  this.jabsRefresh();
-};
-
-/**
- * Refreshes aspects associated with this battler in the context of JABS.
- */
-Game_Actor.prototype.jabsRefresh = function()
-{
-  // refresh the currently equipped skills to ensure they are still valid.
-  this.refreshBasicAttackSkills();
-
-  // refresh the bonus hits to ensure they are still accurate.
-  this.refreshBonusHits();
-};
-
+//#region leveling
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
  */
@@ -22396,7 +22365,9 @@ Game_Actor.prototype.jabsLevelDown = function()
   // this is the leader so refresh the battler sprite!
   $jabsEngine.requestSpriteRefresh = true;
 };
+//#endregion leveling
 
+//#region learning
 /**
  * A hook for performing actions when a battler learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
@@ -22460,6 +22431,31 @@ Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
 };
 
 /**
+ * Gets whether or not there are notes that indicate skills should be autoassigned
+ * when leveling up.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.autoAssignOnLevelup = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<autoAssignSkills>/i;
+  let autoAssign = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        autoAssign = true;
+      }
+    });
+  });
+
+  return autoAssign;
+};
+
+/**
  * If the actor has a tag/note somewhere for auto-assignment, then this will
  * attempt to automatically slot the learned skill into an otherwise empty
  * skill slot.
@@ -22483,7 +22479,9 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
     this.setEquippedSkill(slotKey, skillId);
   }
 };
+//#endregion learning
 
+//#region bonus hits
 /**
  * Updates the bonus hit count for this actor based on equipment.
  *
@@ -22523,7 +22521,9 @@ Game_Actor.prototype.getBonusHits = function()
 {
   return this._j._abs._bonusHits;
 };
+//#endregion bonus hits
 
+//#region state durations
 /**
  * Determines the various state duration boosts available to this actor.
  * @param {number} baseDuration The base duration of the state.
@@ -22641,46 +22641,153 @@ Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDura
   // return our evaluated amounts.
   return formulaDurationBoost;
 };
+//#endregion state durations
+
+//#region map damage
+/**
+ * Replaces the map damage with JABS' version of the map damage.
+ */
+J.ABS.Aliased.Game_Actor.set('performMapDamage', Game_Actor.prototype.performMapDamage);
+Game_Actor.prototype.performMapDamage = function()
+{
+  // check if JABS is disabled.
+  if (!$jabsEngine.absEnabled)
+  {
+    // perform original logic.
+    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
+  }
+  // JABS is definitely enabled.
+  else
+  {
+    // let JABS handle it.
+    this.performJabsFloorDamage();
+  }
+};
+
+/**
+ * Handles how an actor is treated when they are taking floor damage on the map.
+ */
+Game_Actor.prototype.performJabsFloorDamage = function()
+{
+  // just flash the screen, the damage is applied by other means.
+  $gameScreen.startFlashForDamage();
+};
+//#endregion map damage
+
+/**
+ * Extends {@link #onBattlerDataChange}.
+ * Adds a hook for performing actions when the battler's data hase changed.
+ */
+J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+
+  // update JABS-related things.
+  this.jabsRefresh();
+};
+
+/**
+ * Checks all possible places for whether or not the actor is able to
+ * be switched to.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.switchLocked = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<noSwitch>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
+};
+
+/**
+ * Disable built-in on-turn-end effects while JABS is active.
+ * (built-in effects include regeneration and poison, but those are
+ * already handled elsewhere in the engine)
+ */
+J.ABS.Aliased.Game_Actor.set('turnEndOnMap', Game_Actor.prototype.turnEndOnMap);
+Game_Actor.prototype.turnEndOnMap = function()
+{
+  // if JABS is enabled, the fun never stops!
+  if (!$jabsEngine.absEnabled) return;
+
+  // do normal turn-end things while JABS is disabled.
+  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
+};
 //#endregion Game_Actor
 
 //#region Game_Battler
 /**
- * Adds the `uuid` to the battler class.
+ * Extends {@link Game_Battler.initMembers}.
+ * Includes JABS parameter initialization.
  */
-J.ABS.Aliased.Game_Battler.initMembers = Game_Battler.prototype.initMembers;
+J.ABS.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.initMembers.call(this);
+  J.ABS.Aliased.Game_Battler.get('initMembers').call(this);
+
+  // initialize our custom members.
+  this.initJabsMembers();
+};
+
+/**
+ * Initializes additional parameters related to JABS for this battler.
+ */
+Game_Battler.prototype.initJabsMembers = function()
+{
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
 
   /**
-   * All modifications to the battler lives within this object.
+   * A grouping of all properties associated with JABS.
    */
-  this._j = this._j || {
-    /**
-     * The `uuid` of this battler.
-     * @type {string}
-     */
-    _uuid: J.BASE.Helpers.shortUuid(),
-  };
+  this._j._abs ||= {};
+
+  /**
+   * The unique identifier of this battler.
+   * This is typically 6 characters long, including two pairs of 3 characters.
+   * The characters used are one of the 16 available hexadecimal characters.
+   * This includes `0-9` and `A-F`.
+   * An example might be something like `a40-1f7`.
+   * @type {string}
+   */
+  this._j._abs._uuid = J.BASE.Helpers.shortUuid();
 
   /**
    * All equipped skills on this battler.
    * @type {JABS_SkillSlotManager}
    */
-  this._j._equippedSkills = new JABS_SkillSlotManager();
+  this._j._abs._equippedSkills = new JABS_SkillSlotManager();
 };
 
 /**
  * Gets the `uuid` of this battler.
- * At this level, only returns an empty string.
+ * The default uuid for battlers is their name and the uuid connected by a hyphen.
  * @returns {string}
  */
 Game_Battler.prototype.getUuid = function()
 {
-  const modifiedUuid = `${this.name()}_${this._j._uuid}`;
+  // build the custom uuid including the name.
+  const modifiedUuid = `${this.name()}_${this._j._abs._uuid}`;
+
+  // return the name-based uuid.
   return modifiedUuid;
-  //return this._j._uuid;
 };
 
 /**
@@ -22689,7 +22796,7 @@ Game_Battler.prototype.getUuid = function()
  */
 Game_Battler.prototype.setUuid = function(uuid)
 {
-  this._j._uuid = uuid;
+  this._j._abs._uuid = uuid;
 };
 
 /**
@@ -22707,7 +22814,7 @@ Game_Battler.prototype.battlerId = function()
  */
 Game_Battler.prototype.getSkillSlotManager = function()
 {
-  return this._j._equippedSkills;
+  return this._j._abs._equippedSkills;
 };
 
 /**
@@ -23120,14 +23227,14 @@ Game_Battler.prototype.isAggroLocked = function()
  * @param {number} stateId The state id to potentially apply.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.addState = Game_Battler.prototype.addState;
+J.ABS.Aliased.Game_Battler.set('addState', Game_Battler.prototype.addState);
 Game_Battler.prototype.addState = function(stateId, attacker)
 {
   // if we're missing an attacker or the engine is disabled, perform as usual.
   if (!attacker || !$jabsEngine._absEnabled)
   {
     // perform original logic.
-    J.ABS.Aliased.Game_Battler.addState.call(this, stateId);
+    J.ABS.Aliased.Game_Battler.get('addState').call(this, stateId);
 
     // stop processing this state.
     return;
@@ -23159,11 +23266,11 @@ Game_Battler.prototype.addState = function(stateId, attacker)
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.addNewState = Game_Battler.prototype.addNewState;
+J.ABS.Aliased.Game_Battler.set('addNewState', Game_Battler.prototype.addNewState);
 Game_Battler.prototype.addNewState = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.addNewState.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('addNewState').call(this, stateId);
 
   // add the jabs state.
   this.addJabsState(stateId, attacker);
@@ -23174,11 +23281,11 @@ Game_Battler.prototype.addNewState = function(stateId, attacker)
  * @param {number} stateId The state id to track.
  * @param {Game_Battler} attacker The battler who is applying this state.
  */
-J.ABS.Aliased.Game_Battler.resetStateCounts = Game_Battler.prototype.resetStateCounts;
+J.ABS.Aliased.Game_Battler.set('resetStateCounts', Game_Battler.prototype.resetStateCounts);
 Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.resetStateCounts.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('resetStateCounts').call(this, stateId);
 
   // add the state to the battler.
   this.addJabsState(stateId, attacker);
@@ -23188,11 +23295,11 @@ Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
  * Extends `removeState()` to also expire the state in the JABS state tracker.
  * @param {number} stateId
  */
-J.ABS.Aliased.Game_Battler.removeState = Game_Battler.prototype.removeState;
+J.ABS.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState);
 Game_Battler.prototype.removeState = function(stateId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.removeState.call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('removeState').call(this, stateId);
 
   // query for the state to remove from the engine.
   const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
@@ -23208,7 +23315,7 @@ Game_Battler.prototype.removeState = function(stateId)
 /**
  * Adds a particular state to become tracked by the tracker for this battler.
  * @param {number} stateId The state id to track.
- * @param {Game_Battler} attacker The battler who is applying this state.
+ * @param {Game_Battler|Game_Actor|Game_Enemy} attacker The battler who is applying this state.
  */
 Game_Battler.prototype.addJabsState = function(stateId, attacker)
 {
@@ -23241,8 +23348,6 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
   // TODO: get this from the state?
   const stacks = 1;
 
-  console.log(duration);
-
   // build the new state.
   const jabsState = new JABS_State(this, stateId, state.iconIndex, duration, stacks, attacker);
 
@@ -23259,47 +23364,6 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
 Game_Battler.prototype.getStateDurationBoost = function(baseDuration, attacker)
 {
   return 0;
-};
-
-/**
- * Gets the numeric representation of this battler's strength.
- * @returns {number}
- */
-Game_Battler.prototype.getPowerLevel = function()
-{
-  let powerLevel = 0;
-  let counter = 2;
-  // skip HP/MP
-  const bparams = [2, 3, 4, 5, 6, 7];
-  const xparams = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
-  const sparams = [18, 19, 20, 21, 22, 23, 24, 25];
-  while (counter < 28)
-  {
-    if (bparams.includes(counter))
-    {
-      powerLevel += this.param(counter);
-    }
-
-    if (xparams.includes(counter))
-    {
-      powerLevel += this.xparam(counter - 8) * 100;
-    }
-
-    if (sparams.includes(counter))
-    {
-      powerLevel += (this.sparam(counter - 18) * 100 - 100);
-    }
-
-    counter++;
-  }
-
-  if (Number.isNaN(powerLevel))
-  {
-    console.warn('what happened');
-  }
-
-  powerLevel += (this.level ** 2);
-  return Math.round(powerLevel);
 };
 
 /**
@@ -23403,157 +23467,127 @@ Game_Battler.prototype.regenerateAll = function()
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
-J.ABS.Aliased.Game_Character.initMembers = Game_Character.prototype.initMembers;
+J.ABS.Aliased.Game_Character.set('initMembers', Game_Character.prototype.initMembers);
 Game_Character.prototype.initMembers = function()
 {
-  this._j = this._j || {};
-  J.ABS.Aliased.Game_Character.initMembers.call(this);
-  this.initActionSpriteProperties();
-  this.initLootSpriteProperties();
+  // perform original logic.
+  J.ABS.Aliased.Game_Character.get('initMembers').call(this);
+
+  // initialize our custom members.
+  this.initJabsMembers();
 };
 
 /**
+ * Initialize any custom JABS properties for this character.
+ */
+Game_Character.prototype.initJabsMembers = function()
+{
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
+
+  // initialize the custom properties.
+  this.initJabsActionMembers();
+  this.initJabsLootMembers();
+};
+
+// TODO: cleanup the getters/setters for action sprites.
+/**
  * Initializes the action sprite properties for this character.
  */
-Game_Character.prototype.initActionSpriteProperties = function()
+Game_Character.prototype.initJabsActionMembers = function()
 {
-  this._j._action = {
-    actionData: null,
-    needsAdding: false,
-    needsRemoving: false,
-    battlerUuid: String.empty,
-  }
+  /**
+   * The block of all action-related data associated with this character.
+   */
+  this._j._abs._action = {};
+
+  /**
+   * The actual action for this character.
+   * @type {JABS_Action|null}
+   */
+  this._j._abs._action.actionData = null;
+
+  /**
+   * Whether or not this action needs to be added to the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._action.needsAdding = false;
+
+  /**
+   * Whether or not this action needs to be removed from the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._action.needsRemoving = false;
+
+  /**
+   * The uuid for this character.
+   * @type {string|String.empty}
+   */
+  this._j._abs._action.battlerUuid = String.empty;
 };
 
 /**
  * Initializes the loot sprite properties.
  */
-Game_Character.prototype.initLootSpriteProperties = function()
+Game_Character.prototype.initJabsLootMembers = function()
 {
-  this._j._loot = {
-    _needsAdding: false,
-    _needsRemoving: false,
-    _data: null,
-  };
+  /**
+   * The block of all loot-related data associated with this character.
+   */
+  this._j._abs._loot = {};
+
+  /**
+   * Whether or not this loot needs to be added to the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._loot._needsAdding = false;
+
+  /**
+   * Whether or not this loot needs to be removed from the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._loot._needsRemoving = false;
+
+  /**
+   * The underlying loot data.
+   * @type {JABS_LootDrop|null}
+   */
+  this._j._abs._loot._data = null;
+};
+
+//#region JABS action
+/**
+ * If the event has a `JABS_Action` associated with it, return that.
+ * @returns {JABS_Action}
+ */
+Game_Character.prototype.getJabsAction = function()
+{
+  return this._j._abs._action.actionData;
 };
 
 /**
- * Gets the loot sprite properties for this event.
- * @returns {object}
+ * Binds a `JABS_Action` to this character.
+ * @param {JABS_Action} action The action to assign to this character.
  */
-Game_Character.prototype.getLootSpriteProperties = function()
+Game_Character.prototype.setJabsAction = function(action)
 {
-  return this._j._loot;
-};
-
-/**
- * Whether or not this character is/has loot.
- */
-Game_Character.prototype.isLoot = function()
-{
-  return !!this.getLootData();
-};
-
-/**
- * Gets whether or not this loot needs rendering onto the map.
- * @returns {boolean} True if needing rendering, false otherwise.
- */
-Game_Character.prototype.getLootNeedsAdding = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._needsAdding;
-};
-
-/**
- * Sets the loot to need rendering onto the map.
- * @param {boolean} needsAdding Whether or not this loot needs adding.
- */
-Game_Character.prototype.setLootNeedsAdding = function(needsAdding = true)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._needsAdding = needsAdding;
-};
-
-/**
- * Gets whether or not this loot object is flagged for removal.
- */
-Game_Character.prototype.getLootNeedsRemoving = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._needsRemoving;
-};
-
-/**
- * Sets the loot object to be flagged for removal.
- * @param {boolean} needsRemoving True if we want to remove the loot, false otherwise.
- */
-Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._needsRemoving = needsRemoving;
-};
-
-/**
- * Gets the loot data for this character/event.
- * @returns {JABS_LootDrop}
- */
-Game_Character.prototype.getLootData = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._data;
-};
-
-/**
- * Gets whether or not this loot data is use-on-pickup or not.
- * @returns {boolean}
- */
-Game_Character.prototype.isUseOnPickupLoot = function()
-{
-  return this.getLootData().useOnPickup;
-};
-
-/**
- * Sets the loot data to the provided loot.
- * @param {object} data The loot data to assign to this character/event.
- */
-Game_Character.prototype.setLootData = function(data)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._data = data;
-};
-
-/**
- * Gets all action sprite properties for this event.
- */
-Game_Character.prototype.getActionSpriteProperties = function()
-{
-  return this._j._action;
+  this._j._abs._action.actionData = action;
 };
 
 /**
  * Gets whether or not this character is an action.
  * @returns {boolean} True if this is an action, false otherwise.
  */
-Game_Character.prototype.isAction = function()
+Game_Character.prototype.isJabsAction = function()
 {
-  return !!this.getMapActionData();
-};
-
-/**
- * If the event has a `JABS_Action` associated with it, return that.
- * @returns {JABS_Action}
- */
-Game_Character.prototype.getMapActionData = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  if (actionSpriteProperties.actionData)
-  {
-    return actionSpriteProperties.actionData;
-  }
-  else
-  {
-    return null;
-  }
+  return !!this.getJabsAction();
 };
 
 /**
@@ -23563,80 +23597,33 @@ Game_Character.prototype.getMapActionData = function()
 Game_Character.prototype.getJabsActionNeedsRemoving = function()
 {
   // if it is not an action, don't remove whatever it is.
-  if (!this.isAction()) return false;
+  if (!this.isJabsAction()) return false;
 
   // return whether or not the removal is needed.
-  return this.getMapActionData().getNeedsRemoval();
+  return this.getJabsAction().getNeedsRemoval();
 };
 
 /**
- * Gets the `uuid` of this event's underlying action, if it exists.
- * @returns {string}
+ * Gets the `uuid` of the underlying {@link JABS_Action}.
+ * @return {string|String.empty} The uuid when there is an action, {@link String.empty} otherwise.
  */
-Game_Character.prototype.getMapActionUuid = function()
+Game_Character.prototype.getJabsActionUuid = function()
 {
-  const actionData = this.getMapActionData();
-  if (actionData)
+  // grab the underlying action data.
+  const jabsAction = this.getJabsAction();
+
+  // validate we have the action data.
+  if (jabsAction)
   {
-    return actionData.getUuid();
+    // return the underlying uuid of the action.
+    return jabsAction.getUuid();
   }
+  // there is no action data.
   else
   {
-    return null;
+    // there is no uuid.
+    return String.empty;
   }
-};
-
-/**
- * Gets the `uuid` of this `JABS_Battler`.
- */
-Game_Character.prototype.getActionUuid = function()
-{
-  const jabsAction = this.getMapActionData();
-  return jabsAction.getUuid();
-};
-
-/**
- * Gets the `JABS_Battler` associated with this character.
- * @returns {JABS_Battler}
- */
-Game_Character.prototype.getJabsBattler = function()
-{
-  const uuid = this.getJabsBattlerUuid();
-  return JABS_AiManager.getBattlerByUuid(uuid);
-};
-
-/**
- * Gets the `uuid` of this `JABS_Battler`.
- */
-Game_Character.prototype.getJabsBattlerUuid = function()
-{
-  const asp = this.getActionSpriteProperties();
-  return asp.battlerUuid;
-};
-
-/**
- * Sets the provided `JABS_Battler` to this character.
- * @param {string} uuid The uuid of the `JABS_Battler` to set to this character.
- */
-Game_Character.prototype.setMapBattler = function(uuid)
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.battlerUuid = uuid;
-};
-
-/**
- * Gets whether or not this character has a `JABS_Battler` attached to it.
- */
-Game_Character.prototype.hasJabsBattler = function()
-{
-  const asp = this.getActionSpriteProperties();
-  const uuid = asp.battlerUuid;
-  if (!uuid) return false;
-
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (!battler) return false;
-
-  return true;
 };
 
 /**
@@ -23644,8 +23631,7 @@ Game_Character.prototype.hasJabsBattler = function()
  */
 Game_Character.prototype.getActionSpriteNeedsAdding = function()
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsAdding;
+  return this._j._abs._action.needsAdding;
 };
 
 /**
@@ -23654,17 +23640,16 @@ Game_Character.prototype.getActionSpriteNeedsAdding = function()
  */
 Game_Character.prototype.setActionSpriteNeedsAdding = function(addSprite = true)
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.needsAdding = addSprite;
+  this._j._abs._action.needsAdding = addSprite;
 };
 
+// TODO: remove getter/setter for sprite removal, shift responsibility to action?
 /**
  * Gets the `needsRemoving` property from the `actionSpriteProperties` for this event.
  */
 Game_Character.prototype.getActionSpriteNeedsRemoving = function()
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsRemoving;
+  return this._j._abs._action.needsRemoving;
 };
 
 /**
@@ -23673,9 +23658,132 @@ Game_Character.prototype.getActionSpriteNeedsRemoving = function()
  */
 Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = true)
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsRemoving = removeSprite;
+  this._j._abs._action.needsRemoving = removeSprite;
 };
+//#endregion JABS action
+
+//#region JABS battler
+/**
+ * Gets the `uuid` of this `JABS_Battler`.
+ */
+Game_Character.prototype.getJabsBattlerUuid = function()
+{
+  return this._j._abs._action.battlerUuid;
+};
+
+/**
+ * Sets the provided `JABS_Battler` to this character.
+ * @param {string} uuid The uuid of the `JABS_Battler` to set to this character.
+ */
+Game_Character.prototype.setJabsBattlerUuid = function(uuid)
+{
+  this._j._abs._action.battlerUuid = uuid;
+};
+
+/**
+ * Gets whether or not this character has a `JABS_Battler` attached to it.
+ */
+Game_Character.prototype.hasJabsBattler = function()
+{
+  // grab the uuid of the battler.
+  const uuid = this.getJabsBattlerUuid();
+
+  // if we have no uuid, then this character does not have a battler.
+  if (!uuid) return false;
+
+  // grab the tracked battler by its uuid.
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+
+  // if there is no tracked battler, then this character doesn't have a battler.
+  if (!battler)
+  {
+    // clear the battler so we don't check again.
+    this.setJabsBattlerUuid(String.empty);
+
+    // there is no battler on this character.
+    return false;
+  }
+
+  // we have a battler!
+  return true;
+};
+
+/**
+ * Gets the `JABS_Battler` associated with this character.
+ * @returns {JABS_Battler}
+ */
+Game_Character.prototype.getJabsBattler = function()
+{
+  // grab the uuid of this character.
+  const uuid = this.getJabsBattlerUuid();
+
+  // return the tracked battler.
+  return JABS_AiManager.getBattlerByUuid(uuid);
+};
+//#endregion JABS battler
+
+//#region JABS loot
+/**
+ * Gets the loot data for this character/event.
+ * @returns {JABS_LootDrop}
+ */
+Game_Character.prototype.getJabsLoot = function()
+{
+  return this._j._abs._loot._data;
+};
+
+/**
+ * Sets the loot data to the provided loot.
+ * @param {object} data The loot data to assign to this character/event.
+ */
+Game_Character.prototype.setJabsLoot = function(data)
+{
+  this._j._abs._loot._data = data;
+};
+
+/**
+ * Whether or not this character is/has loot.
+ */
+Game_Character.prototype.isJabsLoot = function()
+{
+  return !!this.getJabsLoot();
+};
+
+/**
+ * Gets whether or not this loot needs rendering onto the map.
+ * @returns {boolean} True if needing rendering, false otherwise.
+ */
+Game_Character.prototype.getLootNeedsAdding = function()
+{
+  return this._j._abs._loot._needsAdding;
+};
+
+/**
+ * Sets the loot to need rendering onto the map.
+ * @param {boolean} needsAdding Whether or not this loot needs adding.
+ */
+Game_Character.prototype.setLootNeedsAdding = function(needsAdding = true)
+{
+  this._j._abs._loot._needsAdding = needsAdding;
+};
+
+/**
+ * Gets whether or not this loot object is flagged for removal.
+ */
+Game_Character.prototype.getLootNeedsRemoving = function()
+{
+  return this._j._abs._loot._needsRemoving;
+};
+
+/**
+ * Sets the loot object to be flagged for removal.
+ * @param {boolean} needsRemoving True if we want to remove the loot, false otherwise.
+ */
+Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
+{
+  this._j._abs._loot._needsRemoving = needsRemoving;
+};
+//#endregion JABS loot
 
 /**
  * Execute an animation of a provided id upon this character.
@@ -23701,29 +23809,25 @@ Game_Character.prototype.requestAnimation = function(animationId, parried = fals
 };
 
 /**
- * Whether or not this character is a follower.
- * @returns {boolean} True if this is a follower, false otherwise.
- */
-Game_Character.prototype.isFollower = function()
-{
-  return false;
-};
-
-/**
  * Extends {@link Game_Character.isMovementSucceeded}.
  * Includes handling for battlers being move-locked by JABS.
  * @returns {boolean}
  */
-J.ABS.Aliased.Game_Character.isMovementSucceeded = Game_Character.prototype.isMovementSucceeded;
+J.ABS.Aliased.Game_Character.set('isMovementSucceeded', Game_Character.prototype.isMovementSucceeded);
 Game_Character.prototype.isMovementSucceeded = function()
 {
+  // grab the underlying battler.
   const battler = this.getJabsBattler();
+
+  // validate we have a battler and that they can move.
   if (battler && !battler.canBattlerMove())
   {
+    // if we have a battler that also cannot move, then movement never succeeds.
     return false;
   }
 
-  return J.ABS.Aliased.Game_Character.isMovementSucceeded.call(this);
+  // otherwise, perform original logic.
+  return J.ABS.Aliased.Game_Character.get('isMovementSucceeded').call(this);
 };
 
 /* eslint-disable */
@@ -23922,35 +24026,94 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 
 //#region Game_CharacterBase
 /**
- * Extends the `initMembers()` to allow custom move speeds and dashing.
+ * Extends the {@link Game_CharacterBase.initMembers}.
+ * Allows custom move speeds and dashing.
  */
-J.ABS.Aliased.Game_CharacterBase.initMembers = Game_CharacterBase.prototype.initMembers;
+J.ABS.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase.prototype.initMembers);
 Game_CharacterBase.prototype.initMembers = function()
 {
-  J.ABS.Aliased.Game_CharacterBase.initMembers.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_CharacterBase.get('initMembers').call(this);
 
   /**
-   * The real
-   * @type {number}
-   * @private
+   * The over-arching J object to contain all additional plugin parameters.
    */
-  this._realMoveSpeed = 4;
-  this._wasDodging = false;
-  this._dodgeBoost = 0;
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
+
+  /**
+   * The calculated move speed of this character based on possible dodge modifications.
+   * This defaults to "normal" aka `4`.
+   * @type {number}
+   */
+  this._j._abs._realMoveSpeed = 4;
+
+  /**
+   * The modification of which this character receives when dodging.
+   * @type {number}
+   */
+  this._j._abs._dodgeBoost = 0;
 };
 
 /**
- * OVERWRITE Replaces the "real move speed" value to return
- * our custom real move speed instead, along with dash boosts as necessary.
+ * Gets the current true move speed associated with this character.
+ * @returns {number}
+ */
+Game_CharacterBase.prototype.getRealMoveSpeed = function()
+{
+  return this._j._abs._realMoveSpeed;
+};
+
+/**
+ * Overwrites {@link Game_CharacterBase.realMoveSpeed}.
+ * Replaces the value to return our custom real move speed instead, along with dash boosts.
  * @returns {number}
  */
 Game_CharacterBase.prototype.realMoveSpeed = function()
 {
-  const dashBoost = (this.isDashing()
+  // start with a baseline move speed.
+  let moveSpeed = this.getRealMoveSpeed();
+
+  // grab the dash boost based on whether or not the character is currently dashing.
+  if (this.isDashing())
+  {
+    moveSpeed += this.getDashSpeedBoost();
+  }
+
+  // get the dodge boost based on whether or not the character is currently dodging.
+  if (this.isDodging())
+  {
+    moveSpeed += this.getDodgeSpeedModifier();
+  }
+
+  // return the calculation.
+  return moveSpeed;
+};
+
+/**
+ * Calculate the current dash speed boost based on whether or not this character is dashing.
+ * @returns {number}
+ */
+Game_CharacterBase.prototype.getDashSpeedBoost = function()
+{
+  return (this.isDashing()
     ? this.dashSpeed()
     : 0);
-  const realMoveSpeed = this._realMoveSpeed + dashBoost;
-  return realMoveSpeed;
+};
+
+/**
+ * Calculate the current dodge speed modifier based on whether or not this character is dodging.
+ * @returns {number}
+ */
+Game_CharacterBase.prototype.getDodgeSpeedModifier = function()
+{
+  return (this.isDodging()
+    ? this.dodgeModifier()
+    : 0);
 };
 
 /**
@@ -23962,35 +24125,35 @@ Game_CharacterBase.prototype.dashSpeed = function()
 };
 
 /**
- * Extends the `setMoveSpeed()` to also modify custom move speeds.
+ * Extends {@link Game_CharacterBase.setMoveSpeed}.
+ * Also modifies custom move speeds.
  */
-J.ABS.Aliased.Game_CharacterBase.setMoveSpeed = Game_CharacterBase.prototype.setMoveSpeed;
+J.ABS.Aliased.Game_CharacterBase.set('setMoveSpeed', Game_CharacterBase.prototype.setMoveSpeed);
 Game_CharacterBase.prototype.setMoveSpeed = function(moveSpeed)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_CharacterBase.setMoveSpeed.call(this, moveSpeed);
+  J.ABS.Aliased.Game_CharacterBase.get('setMoveSpeed').call(this, moveSpeed);
 
   // set the underlying real move speed to this.
-  this._realMoveSpeed = moveSpeed;
+  this._j._abs._realMoveSpeed = moveSpeed;
+};
+
+/**
+ * Gets the current value of the dodge boost for this character.
+ * @returns {number}
+ */
+Game_CharacterBase.prototype.dodgeModifier = function()
+{
+  return this._j._abs._dodgeBoost;
 };
 
 /**
  * Sets the boost gained when dodging to a specified amount.
  * @param {number} dodgeMoveSpeed The boost gained when dodging.
  */
-Game_CharacterBase.prototype.setDodgeBoost = function(dodgeMoveSpeed)
+Game_CharacterBase.prototype.setDodgeModifier = function(dodgeMoveSpeed)
 {
-  this._dodgeBoost = dodgeMoveSpeed;
-};
-
-/**
- * Extends the update to allow for custom values while dashing.
- */
-J.ABS.Aliased.Game_CharacterBase.update = Game_CharacterBase.prototype.update;
-Game_CharacterBase.prototype.update = function()
-{
-  J.ABS.Aliased.Game_CharacterBase.update.call(this);
-  this.updateDodging();
+  this._j._abs._dodgeBoost = dodgeMoveSpeed;
 };
 
 /**
@@ -23998,50 +24161,8 @@ Game_CharacterBase.prototype.update = function()
  */
 Game_CharacterBase.prototype.isDodging = function()
 {
-  const player = $jabsEngine.getPlayer1();
-  return player.isDodging();
-};
-
-/**
- * Alters the speed when dodging (and when dodging is finished).
- */
-Game_CharacterBase.prototype.updateDodging = function()
-{
-  // get the current state of the player's dodge.
-  const isDodging = this.isDodging();
-
-  this.handleDodgeStart(isDodging);
-  this.handleDodgeEnd(isDodging);
-
-  this._wasDodging = isDodging;
-};
-
-/**
- * Handles the start of dodging, if necessary.
- * If the player's current dodge state is active, then modify the move speed accordingly.
- * @param {boolean} isDodging True if the player is dodging right now, false otherwise.
- */
-Game_CharacterBase.prototype.handleDodgeStart = function(isDodging)
-{
-  // if are currently dodging, update our move speed to the dodge speed instead.
-  if (!this._wasDodging && isDodging)
-  {
-    this.setMoveSpeed(this._moveSpeed + this._dodgeBoost);
-  }
-};
-
-/**
- * Handles the end of dodging, if necessary.
- * If the player's current dodge state is inactive, then return the move speed to normal.
- * @param {boolean} isDodging True if the player is dodging right now, false otherwise.
- */
-Game_CharacterBase.prototype.handleDodgeEnd = function(isDodging)
-{
-  // if we are no longer doding, but were before, reduce the move speed back to normal.
-  if (this._wasDodging && !isDodging)
-  {
-    this.setMoveSpeed(this._moveSpeed - this._dodgeBoost);
-  }
+  // TODO: update to accommodate the designated player if applicable.
+  return $jabsEngine.getPlayer1().isDodging();
 };
 //#endregion Game_CharacterBase
 
@@ -24503,10 +24624,18 @@ Game_Enemy.prototype.isInanimate = function()
 //#endregion Game_Enemy
 
 //#region Game_Event
-J.ABS.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
+J.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
   this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
 
   /**
    * The various parameters extracted from the event on the field.
@@ -24514,29 +24643,22 @@ Game_Event.prototype.initMembers = function()
    * their `JABS_Battler` can be constructed.
    * @type {JABS_BattlerCoreData}
    */
-  this._j._battlerData = null;
+  this._j._abs._battlerData = null;
 
   /**
    * The initial direction this event is facing.
    */
-  this._j._initialDirection = 0;
+  this._j._abs._initialDirection = 0;
 
   /**
    * The direction the player was facing when the skill was executed.
    * Only applicable to action events.
    * @type {number}
    */
-  this._j._castedDirection = 0;
-  J.ABS.Aliased.Game_Event.initMembers.call(this);
-};
+  this._j._abs._castedDirection = 0;
 
-/**
- * Binds a `JABS_Action` to a `Game_Event`.
- * @param {JABS_Action} action The action to assign to this `Game_Event`.
- */
-Game_Event.prototype.setMapActionData = function(action)
-{
-  this._j._action.actionData = action;
+  // perform original logic.
+  J.ABS.Aliased.Game_Event.get('initMembers').call(this);
 };
 
 /**
@@ -24548,7 +24670,7 @@ Game_Event.prototype.setCustomDirection = function(direction)
   // don't turn if direction is fixed.
   if (this.isDirectionFixed()) return;
 
-  this._j._initialDirection = direction;
+  this._j._abs._initialDirection = direction;
 };
 
 /**
@@ -24557,7 +24679,7 @@ Game_Event.prototype.setCustomDirection = function(direction)
  */
 Game_Event.prototype.getCustomDirection = function()
 {
-  return this._j._initialDirection;
+  return this._j._abs._initialDirection;
 };
 
 /**
@@ -24569,7 +24691,7 @@ Game_Event.prototype.setCastedDirection = function(direction)
   // don't turn if direction is fixed.
   if (this.isDirectionFixed()) return;
 
-  this._j._castedDirection = direction;
+  this._j._abs._castedDirection = direction;
 };
 
 /**
@@ -24578,38 +24700,47 @@ Game_Event.prototype.setCastedDirection = function(direction)
  */
 Game_Event.prototype.getCastedDirection = function()
 {
-  return this._j._castedDirection;
+  return this._j._abs._castedDirection;
 };
 
 /**
  * Modifies the `.event` method of `Game_Event` to return the data from the
  * $actionMap if it isn't a normal event.
  */
-J.ABS.Aliased.Game_Event.event = Game_Event.prototype.event;
+J.ABS.Aliased.Game_Event.set('event', Game_Event.prototype.event);
 Game_Event.prototype.event = function()
 {
-  if (this.isAction())
+  // check if this is actually an action.
+  if (this.isJabsAction())
   {
-    return $jabsEngine.event(this.getMapActionUuid());
+    // return the action's data instead.
+    return $jabsEngine.event(this.getJabsActionUuid());
   }
 
-  return J.ABS.Aliased.Game_Event.event.call(this);
+  // return the underlying event data.
+  return J.ABS.Aliased.Game_Event.get('event').call(this);
 };
 
 /**
  * Adds an extra catch so that if there is a failure, then the failure is
  * silently ignored because bad timing is just bad luck!
  */
-J.ABS.Aliased.Game_Event.findProperPageIndex = Game_Event.prototype.findProperPageIndex;
+J.ABS.Aliased.Game_Event.set('findProperPageIndex', Game_Event.prototype.findProperPageIndex);
 Game_Event.prototype.findProperPageIndex = function()
 {
   try
   {
-    const test = J.ABS.Aliased.Game_Event.findProperPageIndex.call(this);
+    // check original logic to see if we can return this.
+    const test = J.ABS.Aliased.Game_Event.get('findProperPageIndex').call(this);
+
+    // validate the index is indeed a proper event page index.
     if (Number.isInteger(test)) return test;
   }
   catch (err)
   {
+    console.trace();
+    console.error(`could not find page index for this event.`, err, this);
+
     return -1;
   }
 };
@@ -24618,25 +24749,50 @@ Game_Event.prototype.findProperPageIndex = function()
  * OVERWRITE When an map battler is hidden by something like a switch or some
  * other condition, unveil it upon meeting such conditions.
  */
-J.ABS.Aliased.Game_Event.refresh = Game_Event.prototype.refresh;
+J.ABS.Aliased.Game_Event.set('refresh', Game_Event.prototype.refresh);
 Game_Event.prototype.refresh = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
-    // don't refresh loot.
-    if (this.isLoot()) return;
-
-    const newPageIndex = this._erased ? -1 : this.findProperPageIndex();
-    if (this._pageIndex !== newPageIndex)
-    {
-      this._pageIndex = newPageIndex;
-      this.setupPage();
-      this.transformBattler();
-    }
+    // let JABS take care of the event refresh.
+    this.jabsEventRefresh();
   }
+  // JABS isn't enabled.
   else
   {
-    J.ABS.Aliased.Game_Event.refresh.call(this);
+    // perform original logic.
+    J.ABS.Aliased.Game_Event.get('refresh').call(this);
+  }
+};
+
+/**
+ * Replaces {@link Game_Event.refresh}.
+ * Safely handles battler transformation and page index reassignment.
+ *
+ * Sometimes the page index reassignment can get out of hand and requires guardrails.
+ */
+Game_Event.prototype.jabsEventRefresh = function()
+{
+  // don't refresh loot.
+  if (this.isJabsLoot()) return;
+
+  // grab the current page index.
+  const newPageIndex = this.isErased()
+    ? -1
+    : this.findProperPageIndex();
+
+  // check if the page index changed.
+  if (this._pageIndex !== newPageIndex)
+  {
+    // update the page index.
+    this._pageIndex = newPageIndex;
+
+    // run the page setup.
+    this.setupPage();
+
+    // also transform the battler if applicable.
+    this.transformBattler();
   }
 };
 
@@ -24645,20 +24801,22 @@ Game_Event.prototype.refresh = function()
  * error propping up where an attempt to update an event that is no longer
  * available for updating causing the game to crash.
  */
-J.ABS.Aliased.Game_Event.page = Game_Event.prototype.page;
+J.ABS.Aliased.Game_Event.set('page', Game_Event.prototype.page);
 Game_Event.prototype.page = function()
 {
+  // check to make sure we have an event to build a page from first.
   if (this.event())
   {
-    return J.ABS.Aliased.Game_Event.page.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Event.get('page').call(this);
   }
 
-  /*
   console.log($dataMap.events);
   console.log($gameMap._events);
   console.warn(this);
   console.warn('that thing happened again, you should probably look into this.');
-  */
+
+  // return null because... something went awry.
   return null;
 };
 
@@ -24679,11 +24837,11 @@ Game_Event.prototype.transformBattler = function()
 /**
  * Extends the pagesettings for events and adds on custom parameters to this event.
  */
-J.ABS.Aliased.Game_Event.setupPageSettings = Game_Event.prototype.setupPageSettings;
+J.ABS.Aliased.Game_Event.set('setupPageSettings', Game_Event.prototype.setupPageSettings);
 Game_Event.prototype.setupPageSettings = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Event.setupPageSettings.call(this);
+  J.ABS.Aliased.Game_Event.get('setupPageSettings').call(this);
 
   // parse the comments on the event to potentially transform it into a battler.
   this.parseEnemyComments();
@@ -24759,6 +24917,39 @@ Game_Event.prototype.parseEnemyComments = function()
 
   // initialize the core data based on this.
   this.initializeCoreData(battlerCoreData);
+};
+
+/**
+ * Checks to see if this event [page] can have its comments parsed to
+ * transform it into a `JABS_Battler`.
+ * @returns {boolean} True if the event can be parsed, false otherwise.
+ */
+Game_Event.prototype.canParseEnemyComments = function()
+{
+  // if somehow it is less than -1, then do not. Weird things happen.
+  if (this.findProperPageIndex() < -1) return false;
+
+  // grab the event command list for analysis.
+  const commentCommandList = this.getValidCommentCommands();
+
+  // if we do not have a list of comments to parse, then do not.
+  if (!commentCommandList.length) return false;
+
+  // check all the commands to make sure a battler id is among them.
+  const hasBattlerId = commentCommandList.some(command =>
+  {
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
+
+    // check to make sure this is at least an enemy of some kind.
+    return J.ABS.RegExp.EnemyId.test(comment);
+  });
+
+  // if there is no battler id among the comments, then don't parse.
+  if (!hasBattlerId) return false;
+
+  // we are clear to parse out those comments!
+  return true;
 };
 
 //#region overrides
@@ -25214,39 +25405,6 @@ Game_Event.prototype.initializeCoreData = function(battlerCoreData)
 };
 
 /**
- * Checks to see if this event [page] can have its comments parsed to
- * transform it into a `JABS_Battler`.
- * @returns {boolean} True if the event can be parsed, false otherwise.
- */
-Game_Event.prototype.canParseEnemyComments = function()
-{
-  // if somehow it is less than -1, then do not. Weird things happen.
-  if (this.findProperPageIndex() < -1) return false;
-
-  // grab the event command list for analysis.
-  const commentCommandList = this.getValidCommentCommands();
-
-  // if we do not have a list of comments to parse, then do not.
-  if (!commentCommandList.length) return false;
-
-  // check all the commands to make sure a battler id is among them.
-  const hasBattlerId = commentCommandList.some(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
-
-    // check to make sure this is at least an enemy of some kind.
-    return J.ABS.RegExp.EnemyId.test(comment);
-  });
-
-  // if there is no battler id among the comments, then don't parse.
-  if (!hasBattlerId) return false;
-
-  // we are clear to parse out those comments!
-  return true;
-};
-
-/**
  * Applies the custom move speed if available.
  */
 Game_Event.prototype.applyCustomMoveSpeed = function()
@@ -25287,7 +25445,7 @@ Game_Event.prototype.applyCustomMoveSpeed = function()
  */
 Game_Event.prototype.getBattlerCoreData = function()
 {
-  return this._j._battlerData;
+  return this._j._abs._battlerData;
 };
 
 /**
@@ -25296,7 +25454,7 @@ Game_Event.prototype.getBattlerCoreData = function()
  */
 Game_Event.prototype.setBattlerCoreData = function(data)
 {
-  this._j._battlerData = data;
+  this._j._abs._battlerData = data;
 };
 
 /**
@@ -25305,8 +25463,7 @@ Game_Event.prototype.setBattlerCoreData = function(data)
  */
 Game_Event.prototype.isJabsBattler = function()
 {
-  const data = this.getBattlerCoreData();
-  return !!data;
+  return !!this.getBattlerCoreData();
 };
 
 /**
@@ -25328,10 +25485,10 @@ Game_Event.prototype.getBattlerId = function()
 Game_Event.prototype.getCaster = function()
 {
   // if this isn't an action, then there is no caster.
-  if (!this.isAction()) return null;
+  if (!this.isJabsAction()) return null;
 
   // grab the underlying action.
-  const jabsAction = this.getMapActionData();
+  const jabsAction = this.getJabsAction();
 
   // return the caster.
   return jabsAction.getCaster();
@@ -25340,6 +25497,8 @@ Game_Event.prototype.getCaster = function()
 /**
  * Moves this event to be at the same coordinates as the caster.
  * If there is no caster, it will do nothing.
+ *
+ * This is designed to be used from within a custom move route.
  */
 Game_Event.prototype.existOnCaster = function()
 {
@@ -25660,7 +25819,7 @@ Game_Map.prototype.refreshOneBattler = function(event)
   const newBattler = JABS_AiManager.convertEventToBattler(event);
 
   // check if we have a new battler based on the refreshed event.
-  if (newBattler && !event._erased)
+  if (newBattler && !event.isErased())
   {
     // add the new battler data.
     JABS_AiManager.addOrUpdateBattler(newBattler);
@@ -25764,7 +25923,7 @@ Game_Map.prototype.actionEvents = function()
   const filtering = event =>
   {
     // the only thing that matters is if we explicitly flagged it as an action.
-    if (event.isAction) return true;
+    if (event.isJabsAction()) return true;
 
     // it must not be a real action.
     return false;
@@ -25848,7 +26007,7 @@ Game_Map.prototype.lootEvents = function()
   const filtering = event =>
   {
     // only check if they are loot.
-    if (event.isLoot()) return true;
+    if (event.isJabsLoot()) return true;
 
     // it must not be loot.
     return false;
@@ -25874,10 +26033,10 @@ Game_Map.prototype.clearLeaderDataByUuid = function(followerUuid)
 /**
  * Retrieves all events that are identified as loot on the map currently.
  */
-Game_Map.prototype.getLootDrops = function()
+Game_Map.prototype.getJabsLootDrops = function()
 {
   return this.events()
-    .filter(event => event.isLoot());
+    .filter(event => event.isJabsLoot());
 };
 
 /**
@@ -25919,16 +26078,16 @@ Game_Map.prototype.removeEvent = function(eventToRemove)
 Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 {
   // don't process if this event isn't an action.
-  if (!actionToRemove.isAction()) return;
+  if (!actionToRemove.isJabsAction()) return;
 
   // get the relevant metadatas for the action.
-  const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getActionUuid());
+  const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getJabsActionUuid());
 
   // all removed events get erased.
   actionToRemove.erase();
 
   // command the battle map to cleanup the jabs action.
-  $jabsEngine.cleanupAction(actionToRemove.getMapActionData());
+  $jabsEngine.cleanupAction(actionToRemove.getJabsAction());
 
   // and also to cleanup the current list of active jabs action events.
   $jabsEngine.clearActionEvents();
@@ -25948,10 +26107,10 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 Game_Map.prototype.handleLootEventRemoval = function(lootToRemove)
 {
   // don't process if this event isn't an action.
-  if (!lootToRemove.isLoot()) return;
+  if (!lootToRemove.isJabsLoot()) return;
 
   // get the relevant metadatas for the loot.
-  const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getLootData().uuid);
+  const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getJabsLoot().uuid);
 
   // iterate over each of the metadatas for deletion.
   lootMetadatas.forEach(lootMetadata =>
@@ -26079,8 +26238,7 @@ Game_Party.prototype.initJabsPartyData = function()
   this._j ||= {};
 
   /**
-   * The master reference to all JABS-related added properties on this class.
-   * @type {{}}
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 
@@ -26153,13 +26311,18 @@ Game_Party.prototype.swapLeaderWithFollower = function(newIndex)
  */
 Game_Player.prototype.isDashButtonPressed = function()
 {
+  // define the baseline for whether or not the player is dashing.
   const shift = Input.isPressed(J.ABS.Input.Dash);
+
+  // figure out if we're inverting the baseline.
   if (ConfigManager.alwaysDash)
   {
+    // invert the baseline.
     return !shift;
   }
   else
   {
+    // keep with the baseline.
     return shift;
   }
 };
@@ -26167,9 +26330,11 @@ Game_Player.prototype.isDashButtonPressed = function()
 /**
  * While JABS is enabled, don't try to interact with events if they are enemies.
  */
-J.ABS.Aliased.Game_Player.startMapEvent = Game_Player.prototype.startMapEvent;
+J.ABS.Aliased.Game_Player.set('startMapEvent', Game_Player.prototype.startMapEvent);
 Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
 {
+  // this is mostly the same logic as the original, except if JABS is enabled...
+  // we skip detection of battle.
   if ($jabsEngine.absEnabled)
   {
     if (!$gameMap.isEventRunning())
@@ -26177,7 +26342,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
       for (const event of $gameMap.eventsXy(x, y))
       {
         if (
-          !event._erased &&
+          !event.isErased() &&
           event.isTriggerIn(triggers) &&
           event.isNormalPriority() === normal &&
           !event.getJabsBattler()
@@ -26190,60 +26355,82 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
   }
   else
   {
-    J.ABS.Aliased.Game_Player.startMapEvent.call(this, x, y, triggers, normal);
+    // perform original logic.
+    J.ABS.Aliased.Game_Player.get('startMapEvent').call(this, x, y, triggers, normal);
   }
-
 };
 
 /**
  * If the Abs menu is pulled up, the player shouldn't be able to move.
  */
-J.ABS.Aliased.Game_Player.canMove = Game_Player.prototype.canMove;
+J.ABS.Aliased.Game_Player.set('canMove', Game_Player.prototype.canMove);
 Game_Player.prototype.canMove = function()
 {
+  // check if something related to JABS is causing the player to stop moving.
   const isMenuRequested = $jabsEngine.requestAbsMenu;
   const isAbsPaused = $jabsEngine.absPause;
   const isPlayerCasting = $jabsEngine.getPlayer1().isCasting();
-  if (isMenuRequested || isAbsPaused || isPlayerCasting)
+
+  // any of these will prevent the player from moving.
+  const jabsDeniesMovement = (isMenuRequested || isAbsPaused || isPlayerCasting);
+
+  // check if JABS is denying movement.
+  if (jabsDeniesMovement)
   {
+    // decline movement.
     return false;
   }
+  // JABS isn't denying movement.
   else
   {
-    return J.ABS.Aliased.Game_Player.canMove.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Player.get('canMove').call(this);
   }
 };
 
-J.ABS.Aliased.Game_Player.isDebugThrough = Game_Player.prototype.isDebugThrough;
+J.ABS.Aliased.Game_Player.set('isDebugThrough', Game_Player.prototype.isDebugThrough);
 Game_Player.prototype.isDebugThrough = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
+    // the debug button is changed while JABS is active.
     return Input.isPressed(J.ABS.Input.Debug) && $gameTemp.isPlaytest();
   }
+  // JABS is not enabled.
   else
   {
-    return J.ABS.Aliased.Game_Player.isDebugThrough.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Player.get('isDebugThrough').call(this);
   }
 };
 
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
-J.ABS.Aliased.Game_Player.refresh = Game_Player.prototype.refresh;
+J.ABS.Aliased.Game_Player.set('refresh', Game_Player.prototype.refresh);
 Game_Player.prototype.refresh = function()
 {
-  J.ABS.Aliased.Game_Player.refresh.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Player.get('refresh').call(this);
+
+  // initialize the player when the player is refreshed.
+  // TODO: consider using $jabsEngine.refreshPlayer1(); ?
   $jabsEngine.initializePlayer1();
 };
 
 /**
  * Checks whether or not the player is picking up loot drops.
  */
-J.ABS.Aliased.Game_Player.updateMove = Game_Player.prototype.updateMove;
+J.ABS.Aliased.Game_Player.set('updateMove', Game_Player.prototype.updateMove);
 Game_Player.prototype.updateMove = function()
 {
-  J.ABS.Aliased.Game_Player.updateMove.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Game_Player.get('updateMove').call(this);
+
+  // monitor for loot while moving about as the player.
+
+  // TODO: lift this to Game_Character or something if wanting others to collect loot.
   this.checkForLoot();
 };
 
@@ -26254,7 +26441,7 @@ Game_Player.prototype.updateMove = function()
 Game_Player.prototype.checkForLoot = function()
 {
   // get all the loot drops on the map.
-  const lootDrops = $gameMap.getLootDrops();
+  const lootDrops = $gameMap.getJabsLootDrops();
 
   // make sure we have any loot to work with before processing.
   if (lootDrops.length)
@@ -26279,12 +26466,19 @@ Game_Player.prototype.processLootCollection = function(lootDrops)
     // don't pick it up if we cannot pick it up.
     if (!this.canCollectLoot(lootDrop)) return;
 
+    // grab the underlying loot drop.
+    const jabsLootDrop = lootDrop.getJabsLoot();
+
     // check if the loot is to be used immediately on-pickup.
-    if (lootDrop.isUseOnPickupLoot())
+    if (jabsLootDrop.useOnPickup)
     {
       // use and remove it from tracking if it is.
-      this.useOnPickup(lootDrop.getLootData().lootData);
+      this.useOnPickup(jabsLootDrop.lootData);
+
+      // remove the loot drop from the map.
       this.removeLoot(lootDrop);
+
+      // stop processing the loot.
       return;
     }
 
@@ -26299,10 +26493,15 @@ Game_Player.prototype.processLootCollection = function(lootDrops)
   this.pickupLootCollection(lootCollected);
 };
 
+/**
+ * Determines whether or not the player can collect this event's loot.
+ * @param {Game_Event} lootEvent The event potentially containing loot.
+ * @returns {boolean} True if it can be collected, false otherwise.
+ */
 Game_Player.prototype.canCollectLoot = function(lootEvent)
 {
   // we cannot collect loot events that have already been erased.
-  if (lootEvent._erased) return false;
+  if (lootEvent.isErased()) return false;
 
   // we cannot collect loot that isn't close enough.
   if (!this.isTouchingLoot(lootEvent)) return false;
@@ -26323,7 +26522,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   lootCollected.forEach(loot =>
   {
     // get the underlying loot item.
-    const {lootData} = loot.getLootData();
+    const {lootData} = loot.getJabsLoot();
 
     // store the loot on-pickup.
     this.storeOnPickup(lootData);
@@ -26360,7 +26559,7 @@ Game_Player.prototype.isTouchingLoot = function(lootDrop)
 Game_Player.prototype.pickupLoot = function(lootEvent)
 {
   // extract the loot data.
-  const lootMetadata = lootEvent.getLootData();
+  const lootMetadata = lootEvent.getJabsLoot();
   const {lootData} = lootMetadata;
   lootMetadata.useOnPickup
     ? this.useOnPickup(lootData)
@@ -26403,24 +26602,26 @@ Game_Player.prototype.removeLoot = function(lootEvent)
 
 //#region Game_Unit
 /**
- * OVERWRITE If Jabs is enabled, then you are always "in battle"!
- * Otherwise, it is dependent on the default method.
+ * Overwrites {@link Game_Unit.inBattle}.
+ * If JABS is enabled, combat is always active.
+ *
+ * TODO: update this to be on a timer based on last hit target + any engaged enemies?
  */
-J.ABS.Aliased.Game_Unit.inBattle = Game_Unit.prototype.inBattle;
+J.ABS.Aliased.Game_Unit.set('inBattle', Game_Unit.prototype.inBattle);
 Game_Unit.prototype.inBattle = function()
 {
   return $jabsEngine.absEnabled
     ? true
-    : J.ABS.Aliased.Game_Unit.inBattle.call(this);
+    : J.ABS.Aliased.Game_Unit.get('inBattle').call(this);
 }
 //#endregion Game_Unit
 
 //#region Scene_Load
 /**
- * OVERWRITE When loading, the map needs to be refreshed to load the enemies
- * properly.
+ * Overwrites {@link Scene_Load.reloadMapIfUpdated}.
+ * When loading, the map needs to be refreshed to load the enemies properly.
  */
-J.ABS.Aliased.Scene_Load.reloadMapIfUpdated = Scene_Load.prototype.reloadMapIfUpdated;
+J.ABS.Aliased.Scene_Load.set('reloadMapIfUpdated', Scene_Load.prototype.reloadMapIfUpdated);
 Scene_Load.prototype.reloadMapIfUpdated = function()
 {
   if ($jabsEngine.absEnabled)
@@ -26433,36 +26634,46 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
   }
   else
   {
-    J.ABS.Aliased.Scene_Load.reloadMapIfUpdated.call(this);
+    // perform original logic.
+    J.ABS.Aliased.Scene_Load.get('reloadMapIfUpdated').call(this);
   }
 };
 //#endregion Scene_Load
-
 
 //#region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
-J.ABS.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.ABS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
-  J.ABS.Aliased.Scene_Map.initialize.call(this);
-  this._j = this._j || {};
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('initialize').call(this);
+
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  // initialize custom class members.
   this.initJabsMembers();
 };
 
 /**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
-J.ABS.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.ABS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
+    // initialize player 1.
     $jabsEngine.initializePlayer1();
   }
 
-  J.ABS.Aliased.Scene_Map.onMapLoaded.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('onMapLoaded').call(this);
 };
 
 /**
@@ -26493,21 +26704,34 @@ Scene_Map.prototype.initJabsMenu = function()
 /**
  * Create the Hud with all the rest of the windows.
  */
-J.ABS.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
+J.ABS.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
+  // generate the JABS quick menu.
   this.createJabsAbsMenu();
-  J.ABS.Aliased.Scene_Map.createAllWindows.call(this);
+
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('createAllWindows').call(this);
 };
 
 /**
  * Update the `JABS_BattlerManager` while updating the regular scene map.
  */
-J.ABS.Aliased.Scene_Map.update = Scene_Map.prototype.update;
+J.ABS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
-  J.ABS.Aliased.Scene_Map.update.call(this);
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('update').call(this);
 
+  // update JABS.
+  this.updateJabs();
+};
+
+/**
+ * Frame-updates associated with the JABS engine.
+ */
+Scene_Map.prototype.updateJabs = function()
+{
   // if the ABS is disabled, then don't update it.
   if (!$jabsEngine.absEnabled) return;
 
@@ -26567,13 +26791,13 @@ Scene_Map.prototype.hideAllJabsWindows = function()
 /**
  * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
-J.ABS.Aliased.Scene_Map.callMenu = Scene_Map.prototype.callMenu;
+J.ABS.Aliased.Scene_Map.set('callMenu', Scene_Map.prototype.callMenu);
 Scene_Map.prototype.callMenu = function()
 {
-  // if the ABS is disabled, then allow the menu to be called.
+  // if the ABS is disabled, then allow the menu to be called normally.
   if (!$jabsEngine.absEnabled)
   {
-    J.ABS.Aliased.Scene_Map.callMenu.call(this);
+    J.ABS.Aliased.Scene_Map.get('callMenu').call(this);
   }
 };
 
@@ -26971,7 +27195,7 @@ Sprite_Character.prototype.initMembers = function()
   this._j ||= {};
 
   /**
-   * The battle-related sprites and such are maintained within this umbrella.
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 
@@ -27062,7 +27286,7 @@ Sprite_Character.prototype.update = function()
     this.updateBattlerName();
   }
 
-  /// only update the loot components if they have been initialized.
+  // only update the loot components if they have been initialized.
   if (this.isLootReady())
   {
     // update the battler's name, if any.
@@ -27111,10 +27335,10 @@ Sprite_Character.prototype.getBattler = function()
 Sprite_Character.prototype.isJabsBattler = function()
 {
   // if the character doesn't exist, or they are a vehicle, they aren't a battler.
-  if (!this._character || this._character instanceof Game_Vehicle) return false;
+  if (!this.character() || this.character() instanceof Game_Vehicle) return false;
 
   // return whether or not this has a battler attached to it.
-  return !!this._character.hasJabsBattler();
+  return !!this.character().hasJabsBattler();
 };
 
 /**
@@ -27632,7 +27856,7 @@ Sprite_Character.prototype.createLootSprite = function()
  */
 Sprite_Character.prototype.getLootData = function()
 {
-  return this._character.getLootData();
+  return this._character.getJabsLoot();
 };
 
 /**
@@ -27679,7 +27903,7 @@ Sprite_Character.prototype.deleteLootSprite = function()
  */
 Sprite_Character.prototype.isLoot = function()
 {
-  return this._character.isLoot();
+  return this._character.isJabsLoot();
 };
 
 /**
@@ -27865,10 +28089,11 @@ Sprite_Character.prototype.shouldSwingDown = function()
  * Due to JABS' slip effects, we have fractional hp/mp/tp values.
  * This rounds up the values for the sprite gauge if they are a number.
  */
-J.ABS.Aliased.Sprite_Gauge.currentValue = Sprite_Gauge.prototype.currentValue;
+J.ABS.Aliased.Sprite_Gauge.set('currentValue', Sprite_Gauge.prototype.currentValue);
 Sprite_Gauge.prototype.currentValue = function()
 {
-  const base = J.ABS.Aliased.Sprite_Gauge.currentValue.call(this);
+  // perform original logic.
+  const base = J.ABS.Aliased.Sprite_Gauge.get('currentValue').call(this);
 
   // if we somehow ended up with NaN, then just let them deal with it.
   if (isNaN(base)) return base;
@@ -27882,11 +28107,11 @@ Sprite_Gauge.prototype.currentValue = function()
 /**
  * Hooks into the `update` function to also update any active action sprites.
  */
-J.ABS.Aliased.Spriteset_Map.spritesetUpdate = Spriteset_Map.prototype.update;
+J.ABS.Aliased.Spriteset_Map.set('update', Spriteset_Map.prototype.update);
 Spriteset_Map.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Spriteset_Map.spritesetUpdate.call(this);
+  J.ABS.Aliased.Spriteset_Map.get('update').call(this);
 
   // perform jabs-related sprite updates.
   this.updateJabsSprites();
@@ -27982,7 +28207,7 @@ Spriteset_Map.prototype.addActionSprites = function()
 Spriteset_Map.prototype.addActionSprite = function(actionEvent)
 {
   // get the underlying character associated with this action.
-  const character = actionEvent.getMapActionData().getActionSprite();
+  const character = actionEvent.getJabsAction().getActionSprite();
 
   // generate the new sprite based on the action's character.
   const sprite = new Sprite_Character(character);

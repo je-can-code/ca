@@ -2,157 +2,127 @@
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
-J.ABS.Aliased.Game_Character.initMembers = Game_Character.prototype.initMembers;
+J.ABS.Aliased.Game_Character.set('initMembers', Game_Character.prototype.initMembers);
 Game_Character.prototype.initMembers = function()
 {
-  this._j = this._j || {};
-  J.ABS.Aliased.Game_Character.initMembers.call(this);
-  this.initActionSpriteProperties();
-  this.initLootSpriteProperties();
+  // perform original logic.
+  J.ABS.Aliased.Game_Character.get('initMembers').call(this);
+
+  // initialize our custom members.
+  this.initJabsMembers();
 };
 
 /**
+ * Initialize any custom JABS properties for this character.
+ */
+Game_Character.prototype.initJabsMembers = function()
+{
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
+
+  // initialize the custom properties.
+  this.initJabsActionMembers();
+  this.initJabsLootMembers();
+};
+
+// TODO: cleanup the getters/setters for action sprites.
+/**
  * Initializes the action sprite properties for this character.
  */
-Game_Character.prototype.initActionSpriteProperties = function()
+Game_Character.prototype.initJabsActionMembers = function()
 {
-  this._j._action = {
-    actionData: null,
-    needsAdding: false,
-    needsRemoving: false,
-    battlerUuid: String.empty,
-  }
+  /**
+   * The block of all action-related data associated with this character.
+   */
+  this._j._abs._action = {};
+
+  /**
+   * The actual action for this character.
+   * @type {JABS_Action|null}
+   */
+  this._j._abs._action.actionData = null;
+
+  /**
+   * Whether or not this action needs to be added to the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._action.needsAdding = false;
+
+  /**
+   * Whether or not this action needs to be removed from the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._action.needsRemoving = false;
+
+  /**
+   * The uuid for this character.
+   * @type {string|String.empty}
+   */
+  this._j._abs._action.battlerUuid = String.empty;
 };
 
 /**
  * Initializes the loot sprite properties.
  */
-Game_Character.prototype.initLootSpriteProperties = function()
+Game_Character.prototype.initJabsLootMembers = function()
 {
-  this._j._loot = {
-    _needsAdding: false,
-    _needsRemoving: false,
-    _data: null,
-  };
+  /**
+   * The block of all loot-related data associated with this character.
+   */
+  this._j._abs._loot = {};
+
+  /**
+   * Whether or not this loot needs to be added to the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._loot._needsAdding = false;
+
+  /**
+   * Whether or not this loot needs to be removed from the map visually.
+   * @type {boolean}
+   */
+  this._j._abs._loot._needsRemoving = false;
+
+  /**
+   * The underlying loot data.
+   * @type {JABS_LootDrop|null}
+   */
+  this._j._abs._loot._data = null;
+};
+
+//#region JABS action
+/**
+ * If the event has a `JABS_Action` associated with it, return that.
+ * @returns {JABS_Action}
+ */
+Game_Character.prototype.getJabsAction = function()
+{
+  return this._j._abs._action.actionData;
 };
 
 /**
- * Gets the loot sprite properties for this event.
- * @returns {object}
+ * Binds a `JABS_Action` to this character.
+ * @param {JABS_Action} action The action to assign to this character.
  */
-Game_Character.prototype.getLootSpriteProperties = function()
+Game_Character.prototype.setJabsAction = function(action)
 {
-  return this._j._loot;
-};
-
-/**
- * Whether or not this character is/has loot.
- */
-Game_Character.prototype.isLoot = function()
-{
-  return !!this.getLootData();
-};
-
-/**
- * Gets whether or not this loot needs rendering onto the map.
- * @returns {boolean} True if needing rendering, false otherwise.
- */
-Game_Character.prototype.getLootNeedsAdding = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._needsAdding;
-};
-
-/**
- * Sets the loot to need rendering onto the map.
- * @param {boolean} needsAdding Whether or not this loot needs adding.
- */
-Game_Character.prototype.setLootNeedsAdding = function(needsAdding = true)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._needsAdding = needsAdding;
-};
-
-/**
- * Gets whether or not this loot object is flagged for removal.
- */
-Game_Character.prototype.getLootNeedsRemoving = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._needsRemoving;
-};
-
-/**
- * Sets the loot object to be flagged for removal.
- * @param {boolean} needsRemoving True if we want to remove the loot, false otherwise.
- */
-Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._needsRemoving = needsRemoving;
-};
-
-/**
- * Gets the loot data for this character/event.
- * @returns {JABS_LootDrop}
- */
-Game_Character.prototype.getLootData = function()
-{
-  const loot = this.getLootSpriteProperties();
-  return loot._data;
-};
-
-/**
- * Gets whether or not this loot data is use-on-pickup or not.
- * @returns {boolean}
- */
-Game_Character.prototype.isUseOnPickupLoot = function()
-{
-  return this.getLootData().useOnPickup;
-};
-
-/**
- * Sets the loot data to the provided loot.
- * @param {object} data The loot data to assign to this character/event.
- */
-Game_Character.prototype.setLootData = function(data)
-{
-  const loot = this.getLootSpriteProperties();
-  loot._data = data;
-};
-
-/**
- * Gets all action sprite properties for this event.
- */
-Game_Character.prototype.getActionSpriteProperties = function()
-{
-  return this._j._action;
+  this._j._abs._action.actionData = action;
 };
 
 /**
  * Gets whether or not this character is an action.
  * @returns {boolean} True if this is an action, false otherwise.
  */
-Game_Character.prototype.isAction = function()
+Game_Character.prototype.isJabsAction = function()
 {
-  return !!this.getMapActionData();
-};
-
-/**
- * If the event has a `JABS_Action` associated with it, return that.
- * @returns {JABS_Action}
- */
-Game_Character.prototype.getMapActionData = function()
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  if (actionSpriteProperties.actionData)
-  {
-    return actionSpriteProperties.actionData;
-  }
-  else
-  {
-    return null;
-  }
+  return !!this.getJabsAction();
 };
 
 /**
@@ -162,80 +132,33 @@ Game_Character.prototype.getMapActionData = function()
 Game_Character.prototype.getJabsActionNeedsRemoving = function()
 {
   // if it is not an action, don't remove whatever it is.
-  if (!this.isAction()) return false;
+  if (!this.isJabsAction()) return false;
 
   // return whether or not the removal is needed.
-  return this.getMapActionData().getNeedsRemoval();
+  return this.getJabsAction().getNeedsRemoval();
 };
 
 /**
- * Gets the `uuid` of this event's underlying action, if it exists.
- * @returns {string}
+ * Gets the `uuid` of the underlying {@link JABS_Action}.
+ * @return {string|String.empty} The uuid when there is an action, {@link String.empty} otherwise.
  */
-Game_Character.prototype.getMapActionUuid = function()
+Game_Character.prototype.getJabsActionUuid = function()
 {
-  const actionData = this.getMapActionData();
-  if (actionData)
+  // grab the underlying action data.
+  const jabsAction = this.getJabsAction();
+
+  // validate we have the action data.
+  if (jabsAction)
   {
-    return actionData.getUuid();
+    // return the underlying uuid of the action.
+    return jabsAction.getUuid();
   }
+  // there is no action data.
   else
   {
-    return null;
+    // there is no uuid.
+    return String.empty;
   }
-};
-
-/**
- * Gets the `uuid` of this `JABS_Battler`.
- */
-Game_Character.prototype.getActionUuid = function()
-{
-  const jabsAction = this.getMapActionData();
-  return jabsAction.getUuid();
-};
-
-/**
- * Gets the `JABS_Battler` associated with this character.
- * @returns {JABS_Battler}
- */
-Game_Character.prototype.getJabsBattler = function()
-{
-  const uuid = this.getJabsBattlerUuid();
-  return JABS_AiManager.getBattlerByUuid(uuid);
-};
-
-/**
- * Gets the `uuid` of this `JABS_Battler`.
- */
-Game_Character.prototype.getJabsBattlerUuid = function()
-{
-  const asp = this.getActionSpriteProperties();
-  return asp.battlerUuid;
-};
-
-/**
- * Sets the provided `JABS_Battler` to this character.
- * @param {string} uuid The uuid of the `JABS_Battler` to set to this character.
- */
-Game_Character.prototype.setMapBattler = function(uuid)
-{
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.battlerUuid = uuid;
-};
-
-/**
- * Gets whether or not this character has a `JABS_Battler` attached to it.
- */
-Game_Character.prototype.hasJabsBattler = function()
-{
-  const asp = this.getActionSpriteProperties();
-  const uuid = asp.battlerUuid;
-  if (!uuid) return false;
-
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (!battler) return false;
-
-  return true;
 };
 
 /**
@@ -243,8 +166,7 @@ Game_Character.prototype.hasJabsBattler = function()
  */
 Game_Character.prototype.getActionSpriteNeedsAdding = function()
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsAdding;
+  return this._j._abs._action.needsAdding;
 };
 
 /**
@@ -253,17 +175,16 @@ Game_Character.prototype.getActionSpriteNeedsAdding = function()
  */
 Game_Character.prototype.setActionSpriteNeedsAdding = function(addSprite = true)
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  actionSpriteProperties.needsAdding = addSprite;
+  this._j._abs._action.needsAdding = addSprite;
 };
 
+// TODO: remove getter/setter for sprite removal, shift responsibility to action?
 /**
  * Gets the `needsRemoving` property from the `actionSpriteProperties` for this event.
  */
 Game_Character.prototype.getActionSpriteNeedsRemoving = function()
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsRemoving;
+  return this._j._abs._action.needsRemoving;
 };
 
 /**
@@ -272,9 +193,132 @@ Game_Character.prototype.getActionSpriteNeedsRemoving = function()
  */
 Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = true)
 {
-  const actionSpriteProperties = this.getActionSpriteProperties();
-  return actionSpriteProperties.needsRemoving = removeSprite;
+  this._j._abs._action.needsRemoving = removeSprite;
 };
+//#endregion JABS action
+
+//#region JABS battler
+/**
+ * Gets the `uuid` of this `JABS_Battler`.
+ */
+Game_Character.prototype.getJabsBattlerUuid = function()
+{
+  return this._j._abs._action.battlerUuid;
+};
+
+/**
+ * Sets the provided `JABS_Battler` to this character.
+ * @param {string} uuid The uuid of the `JABS_Battler` to set to this character.
+ */
+Game_Character.prototype.setJabsBattlerUuid = function(uuid)
+{
+  this._j._abs._action.battlerUuid = uuid;
+};
+
+/**
+ * Gets whether or not this character has a `JABS_Battler` attached to it.
+ */
+Game_Character.prototype.hasJabsBattler = function()
+{
+  // grab the uuid of the battler.
+  const uuid = this.getJabsBattlerUuid();
+
+  // if we have no uuid, then this character does not have a battler.
+  if (!uuid) return false;
+
+  // grab the tracked battler by its uuid.
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+
+  // if there is no tracked battler, then this character doesn't have a battler.
+  if (!battler)
+  {
+    // clear the battler so we don't check again.
+    this.setJabsBattlerUuid(String.empty);
+
+    // there is no battler on this character.
+    return false;
+  }
+
+  // we have a battler!
+  return true;
+};
+
+/**
+ * Gets the `JABS_Battler` associated with this character.
+ * @returns {JABS_Battler}
+ */
+Game_Character.prototype.getJabsBattler = function()
+{
+  // grab the uuid of this character.
+  const uuid = this.getJabsBattlerUuid();
+
+  // return the tracked battler.
+  return JABS_AiManager.getBattlerByUuid(uuid);
+};
+//#endregion JABS battler
+
+//#region JABS loot
+/**
+ * Gets the loot data for this character/event.
+ * @returns {JABS_LootDrop}
+ */
+Game_Character.prototype.getJabsLoot = function()
+{
+  return this._j._abs._loot._data;
+};
+
+/**
+ * Sets the loot data to the provided loot.
+ * @param {object} data The loot data to assign to this character/event.
+ */
+Game_Character.prototype.setJabsLoot = function(data)
+{
+  this._j._abs._loot._data = data;
+};
+
+/**
+ * Whether or not this character is/has loot.
+ */
+Game_Character.prototype.isJabsLoot = function()
+{
+  return !!this.getJabsLoot();
+};
+
+/**
+ * Gets whether or not this loot needs rendering onto the map.
+ * @returns {boolean} True if needing rendering, false otherwise.
+ */
+Game_Character.prototype.getLootNeedsAdding = function()
+{
+  return this._j._abs._loot._needsAdding;
+};
+
+/**
+ * Sets the loot to need rendering onto the map.
+ * @param {boolean} needsAdding Whether or not this loot needs adding.
+ */
+Game_Character.prototype.setLootNeedsAdding = function(needsAdding = true)
+{
+  this._j._abs._loot._needsAdding = needsAdding;
+};
+
+/**
+ * Gets whether or not this loot object is flagged for removal.
+ */
+Game_Character.prototype.getLootNeedsRemoving = function()
+{
+  return this._j._abs._loot._needsRemoving;
+};
+
+/**
+ * Sets the loot object to be flagged for removal.
+ * @param {boolean} needsRemoving True if we want to remove the loot, false otherwise.
+ */
+Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
+{
+  this._j._abs._loot._needsRemoving = needsRemoving;
+};
+//#endregion JABS loot
 
 /**
  * Execute an animation of a provided id upon this character.
@@ -300,29 +344,25 @@ Game_Character.prototype.requestAnimation = function(animationId, parried = fals
 };
 
 /**
- * Whether or not this character is a follower.
- * @returns {boolean} True if this is a follower, false otherwise.
- */
-Game_Character.prototype.isFollower = function()
-{
-  return false;
-};
-
-/**
  * Extends {@link Game_Character.isMovementSucceeded}.
  * Includes handling for battlers being move-locked by JABS.
  * @returns {boolean}
  */
-J.ABS.Aliased.Game_Character.isMovementSucceeded = Game_Character.prototype.isMovementSucceeded;
+J.ABS.Aliased.Game_Character.set('isMovementSucceeded', Game_Character.prototype.isMovementSucceeded);
 Game_Character.prototype.isMovementSucceeded = function()
 {
+  // grab the underlying battler.
   const battler = this.getJabsBattler();
+
+  // validate we have a battler and that they can move.
   if (battler && !battler.canBattlerMove())
   {
+    // if we have a battler that also cannot move, then movement never succeeds.
     return false;
   }
 
-  return J.ABS.Aliased.Game_Character.isMovementSucceeded.call(this);
+  // otherwise, perform original logic.
+  return J.ABS.Aliased.Game_Character.get('isMovementSucceeded').call(this);
 };
 
 /* eslint-disable */

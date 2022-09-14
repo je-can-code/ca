@@ -11,7 +11,7 @@ Sprite_Character.prototype.initMembers = function()
   this._j ||= {};
 
   /**
-   * The battle-related sprites and such are maintained within this umbrella.
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 
@@ -102,7 +102,7 @@ Sprite_Character.prototype.update = function()
     this.updateBattlerName();
   }
 
-  /// only update the loot components if they have been initialized.
+  // only update the loot components if they have been initialized.
   if (this.isLootReady())
   {
     // update the battler's name, if any.
@@ -151,10 +151,10 @@ Sprite_Character.prototype.getBattler = function()
 Sprite_Character.prototype.isJabsBattler = function()
 {
   // if the character doesn't exist, or they are a vehicle, they aren't a battler.
-  if (!this._character || this._character instanceof Game_Vehicle) return false;
+  if (!this.character() || this.character() instanceof Game_Vehicle) return false;
 
   // return whether or not this has a battler attached to it.
-  return !!this._character.hasJabsBattler();
+  return !!this.character().hasJabsBattler();
 };
 
 /**
@@ -672,7 +672,7 @@ Sprite_Character.prototype.createLootSprite = function()
  */
 Sprite_Character.prototype.getLootData = function()
 {
-  return this._character.getLootData();
+  return this._character.getJabsLoot();
 };
 
 /**
@@ -719,7 +719,7 @@ Sprite_Character.prototype.deleteLootSprite = function()
  */
 Sprite_Character.prototype.isLoot = function()
 {
-  return this._character.isLoot();
+  return this._character.isJabsLoot();
 };
 
 /**

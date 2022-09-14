@@ -24,8 +24,7 @@ Game_Party.prototype.initJabsPartyData = function()
   this._j ||= {};
 
   /**
-   * The master reference to all JABS-related added properties on this class.
-   * @type {{}}
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 

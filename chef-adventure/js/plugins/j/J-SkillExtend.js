@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 13 2022 14:24:24 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -874,7 +874,7 @@ class OverlayManager
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.Range,
-      skillOverlay.jabsRange);
+      skillOverlay.jabsRadius);
   }
 
   /**

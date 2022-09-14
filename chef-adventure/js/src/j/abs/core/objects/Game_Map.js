@@ -81,7 +81,7 @@ Game_Map.prototype.refreshOneBattler = function(event)
   const newBattler = JABS_AiManager.convertEventToBattler(event);
 
   // check if we have a new battler based on the refreshed event.
-  if (newBattler && !event._erased)
+  if (newBattler && !event.isErased())
   {
     // add the new battler data.
     JABS_AiManager.addOrUpdateBattler(newBattler);
@@ -185,7 +185,7 @@ Game_Map.prototype.actionEvents = function()
   const filtering = event =>
   {
     // the only thing that matters is if we explicitly flagged it as an action.
-    if (event.isAction) return true;
+    if (event.isJabsAction()) return true;
 
     // it must not be a real action.
     return false;
@@ -269,7 +269,7 @@ Game_Map.prototype.lootEvents = function()
   const filtering = event =>
   {
     // only check if they are loot.
-    if (event.isLoot()) return true;
+    if (event.isJabsLoot()) return true;
 
     // it must not be loot.
     return false;
@@ -295,10 +295,10 @@ Game_Map.prototype.clearLeaderDataByUuid = function(followerUuid)
 /**
  * Retrieves all events that are identified as loot on the map currently.
  */
-Game_Map.prototype.getLootDrops = function()
+Game_Map.prototype.getJabsLootDrops = function()
 {
   return this.events()
-    .filter(event => event.isLoot());
+    .filter(event => event.isJabsLoot());
 };
 
 /**
@@ -340,16 +340,16 @@ Game_Map.prototype.removeEvent = function(eventToRemove)
 Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 {
   // don't process if this event isn't an action.
-  if (!actionToRemove.isAction()) return;
+  if (!actionToRemove.isJabsAction()) return;
 
   // get the relevant metadatas for the action.
-  const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getActionUuid());
+  const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getJabsActionUuid());
 
   // all removed events get erased.
   actionToRemove.erase();
 
   // command the battle map to cleanup the jabs action.
-  $jabsEngine.cleanupAction(actionToRemove.getMapActionData());
+  $jabsEngine.cleanupAction(actionToRemove.getJabsAction());
 
   // and also to cleanup the current list of active jabs action events.
   $jabsEngine.clearActionEvents();
@@ -369,10 +369,10 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 Game_Map.prototype.handleLootEventRemoval = function(lootToRemove)
 {
   // don't process if this event isn't an action.
-  if (!lootToRemove.isLoot()) return;
+  if (!lootToRemove.isJabsLoot()) return;
 
   // get the relevant metadatas for the loot.
-  const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getLootData().uuid);
+  const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getJabsLoot().uuid);
 
   // iterate over each of the metadatas for deletion.
   lootMetadatas.forEach(lootMetadata =>

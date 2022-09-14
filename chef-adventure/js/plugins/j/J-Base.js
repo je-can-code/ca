@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Sep 07 2022 07:24:51 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 13 2022 14:24:25 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -256,11 +256,11 @@ J.BASE.Helpers.generateUuid = function()
 J.BASE.Helpers.shortUuid = function()
 {
   return 'xxx-xxx'
-  .replace(/[xy]/g, c =>
-  {
-    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+    .replace(/[xy]/g, c =>
+    {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
 };
 
 /**
@@ -4518,7 +4518,7 @@ Game_Battler.prototype.onStateAdded = function(stateId)
 
 /**
  * Determines if this character is actually a player.
- * @returns {boolean}
+ * @returns {boolean} True if this is a player, false otherwise.
  */
 Game_Character.prototype.isPlayer = function()
 {
@@ -4527,9 +4527,28 @@ Game_Character.prototype.isPlayer = function()
 
 /**
  * Determines if this character is actually an event.
- * @returns {boolean}
+ * @returns {boolean} True if this is an event, false otherwise.
  */
 Game_Character.prototype.isEvent = function()
+{
+  return false;
+};
+
+/**
+ * Determines if this character is actually a follower.
+ * @returns {boolean} True if this is a follower, false otherwise.
+ */
+Game_Character.prototype.isFollower = function()
+{
+  return false;
+};
+
+/**
+ * Determines whether or not this character is currently erased.
+ * Non-events cannot be erased.
+ * @returns {boolean}
+ */
+Game_Character.prototype.isErased = function()
 {
   return false;
 };
@@ -4763,6 +4782,16 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
 Game_Event.prototype.isEvent = function()
 {
   return true;
+};
+
+/**
+ * Determines whether or not this character is currently erased.
+ * Non-events cannot be erased.
+ * @returns {boolean}
+ */
+Game_Event.prototype.isErased = function()
+{
+  return this._erased;
 };
 //#endregion Game_Event
 
@@ -5549,7 +5578,7 @@ Sprite_Character.prototype.isErased = function()
   }
 
   // return the erasure status.
-  return character._erased;
+  return character.isErased();
 };
 
 /**

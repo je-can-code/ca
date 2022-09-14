@@ -25,5 +25,5 @@ Sprite_Character.prototype.isErased = function()
   }
 
   // return the erasure status.
-  return character._erased;
+  return character.isErased();
 };

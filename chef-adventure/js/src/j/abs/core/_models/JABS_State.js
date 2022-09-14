@@ -214,18 +214,22 @@ class JABS_State
 
   /**
    * Increments the stack counter as high as the limit allows.
+   * @param {number} stackIncrease The number of stacks to increase; defaults to 1.
    */
-  incrementStacks()
+  incrementStacks(stackIncrease = 1)
   {
     // grab the max number of stacks for this state.
-    // TODO: abstract this.
+    // TODO: get this from the state data.
     const maxStacks = 5;
 
     // check if we still have room to add more stacks.
     if (this.stackCount < maxStacks)
     {
-      // increment the stack counter.
-      this.stackCount++;
+      // project the new stack count.
+      const projectedStackCount = this.stackCount + stackIncrease;
+
+      // increment the stack counter within threshold.
+      this.stackCount = Math.min(maxStacks, projectedStackCount);
     }
   }
 

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 13 2022 14:24:25 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Initialization
 /*:
@@ -394,9 +394,9 @@ Game_Event.prototype.turnRightOrLeft45 = function()
  */
 Game_Event.prototype.homeIntoTarget = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const target = this.getMapActionData().getCaster().getTarget();
+    const target = this.getJabsAction().getCaster().getTarget();
     this.homeIntoTargetBattler(target);
   }
   else if (this.isJabsBattler())
@@ -417,9 +417,9 @@ Game_Event.prototype.homeIntoTarget = function()
  */
 Game_Event.prototype.homeIntoLastHit = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const lastHit = this.getMapActionData().getCaster().getBattlerLastHit();
+    const lastHit = this.getJabsAction().getCaster().getBattlerLastHit();
     this.homeIntoLastHitBattler(lastHit);
   }
   else if (this.isJabsBattler())
@@ -495,9 +495,9 @@ Game_Event.prototype.homeIntoBattler = function(battler)
  */
 Game_Event.prototype.seekTarget = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const target = this.getMapActionData().getCaster().getTarget();
+    const target = this.getJabsAction().getCaster().getTarget();
     this.seekTargetBattler(target);
   }
   else if (this.isJabsBattler())
@@ -518,9 +518,9 @@ Game_Event.prototype.seekTarget = function()
  */
 Game_Event.prototype.seekLastHit = function()
 {
-  if (this.isAction())
+  if (this.isJabsAction())
   {
-    const lastHit = this.getMapActionData().getCaster().getBattlerLastHit();
+    const lastHit = this.getJabsAction().getCaster().getBattlerLastHit();
     this.seekLastHitBattler(lastHit);
   }
   else if (this.isJabsBattler())

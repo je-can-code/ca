@@ -3031,6 +3031,12 @@ declare class Game_Event extends Game_Character {
     _moveType: rm.types.MoveType;
     _trigger: rm.types.EventTrigger;
     _starting: boolean;
+
+    /**
+     * Whether or not this event is currently erased.
+     * Erased events do not get updated or rendered.
+     * @type {boolean}
+     */
     _erased: boolean;
     _pageIndex: number;
     _originalPattern: rm.types.CharacterPattern;

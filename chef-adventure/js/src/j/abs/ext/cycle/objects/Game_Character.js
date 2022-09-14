@@ -112,7 +112,7 @@ J.ABS.EXT.CYCLE.Aliased.Game_Character.set('updateRoutineMove', Game_Character.p
 Game_Character.prototype.updateRoutineMove = function()
 {
   // check if this is an action, as they obey default logic.
-  if (this.isAction())
+  if (this.isJabsAction())
   {
     // perform original logic.
     J.ABS.EXT.CYCLE.Aliased.Game_Character.get('updateRoutineMove').call(this);

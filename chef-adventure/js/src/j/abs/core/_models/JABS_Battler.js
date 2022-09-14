@@ -170,16 +170,12 @@ JABS_Battler.prototype.initGeneralInfo = function()
   this._movementLock = false;
 
   /**
-   * Whether or not this battler is waiting.
-   * @type {boolean} True if battler is waiting, false otherwise.
+   * The timer that designates the "wait" for this battler.
+   * While this timer is active, this battler will "wait" until it completes
+   * before taking any action.
+   * @type {JABS_Timer}
    */
-  this._waiting = false;
-
-  /**
-   * The counter for how long this battler is waiting.
-   * @type {number}
-   */
-  this._waitCounter = 0;
+  this._waitTimer = new JABS_Timer(0);
 };
 
 /**
@@ -746,6 +742,7 @@ JABS_Battler.prototype.update = function()
   this.updateDeathHandling();
 };
 
+//#region queued player actions
 /**
  * Process any queued actions and execute them.
  */
@@ -779,13 +776,13 @@ JABS_Battler.prototype.canProcessQueuedActions = function()
   // check if we're still casting actions.
   if (this.isCasting()) return false;
 
-  // check if we're not a player.
-  // check also if we're not in position.
+  // validate that non-players are in-position.
   if (!this.isPlayer() && !this.isInPosition()) return false;
 
   // we can process all the actions!
   return true;
 };
+//#endregion queued player actions
 
 //#region update pose effects
 /**
@@ -923,11 +920,7 @@ JABS_Battler.prototype.updateTimers = function()
  */
 JABS_Battler.prototype.processWaitTimer = function()
 {
-  // if waiting, update the wait timer.
-  if (this.isWaiting())
-  {
-    this.countdownWait();
-  }
+  this._waitTimer.update();
 };
 
 /**
@@ -1140,10 +1133,7 @@ JABS_Battler.prototype.handleDodgeCancel = function()
   if (!this.shouldCancelDodge()) return;
 
   // end the dodging.
-  this.setDodging(false);
-
-  // set the dodge steps to 0.
-  this._dodgeSteps = 0;
+  this.endDodge();
 };
 
 /**
@@ -1159,6 +1149,9 @@ JABS_Battler.prototype.shouldCancelDodge = function()
   return false;
 };
 
+/**
+ * Handles the forced movement while dodging.
+ */
 JABS_Battler.prototype.handleDodgeMovement = function()
 {
   // if we cannot dodge move, do not.
@@ -1181,10 +1174,10 @@ JABS_Battler.prototype.canDodgeMove = function()
   if (!this.canBattlerMove()) return false;
 
   // if we are out of dodge steps, don't dodge move.
-  if (this._dodgeSteps <= 0) return false;
+  if (this.getDodgeSteps() <= 0) return false;
 
   // if we are not dodging, don't dodge move.
-  if (!this._dodging) return false;
+  if (!this.isDodging()) return false;
 
   // we can dodge move!
   return true;
@@ -1221,7 +1214,7 @@ JABS_Battler.prototype.handleDodgeEnd = function()
 JABS_Battler.prototype.shouldEndDodge = function()
 {
   // if we are out of dodge steps and we're done moving, end the dodge.
-  if (this._dodgeSteps <= 0 && !this.getCharacter().isMoving()) return true;
+  if (this.getDodgeSteps() <= 0 && !this.getCharacter().isMoving()) return true;
 
   // KEEP DODGING.
   return false;
@@ -1236,7 +1229,7 @@ JABS_Battler.prototype.endDodge = function()
   this.setDodging(false);
 
   // set dodge steps to 0 regardless of what they are.
-  this._dodgeSteps = 0;
+  this.setDodgeSteps(0);
 
   // disable the invincibility from dodging.
   this.setInvincible(false);
@@ -1256,7 +1249,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
   if (this.isWaiting()) return;
 
   // if the event is erased officially, ignore it.
-  if (this.getCharacter()._erased) return;
+  if (this.getCharacter().isErased()) return;
 
   // if we are dying, self-destruct.
   if (this.isDying() && !$gameMap.isEventRunning())
@@ -1268,26 +1261,7 @@ JABS_Battler.prototype.updateDeathHandling = function()
 //#endregion updates
 
 //#region update helpers
-
 //#region timers
-/**
- * Counts down the duration for this battler's wait time.
- */
-JABS_Battler.prototype.countdownWait = function()
-{
-  if (this._waitCounter > 0)
-  {
-    this._waitCounter--;
-    return;
-  }
-
-  if (this._waitCounter <= 0)
-  {
-    this._waiting = false;
-    this._waitCounter = 0;
-  }
-};
-
 /**
  * Sets the battler's wait duration to a number. If this number is greater than
  * zero, then the battler must wait before doing anything else.
@@ -1295,17 +1269,11 @@ JABS_Battler.prototype.countdownWait = function()
  */
 JABS_Battler.prototype.setWaitCountdown = function(wait)
 {
-  this._waitCounter = wait;
-  if (this._waitCounter > 0)
-  {
-    this._waiting = true;
-  }
+  // reset the wait timer to start over.
+  this._waitTimer.reset();
 
-  if (this._waitCounter <= 0)
-  {
-    this._waiting = false;
-    this._waitCounter = 0;
-  }
+  // set the wait timer's max to a new time.
+  this._waitTimer.setMaxTime(wait);
 };
 
 /**
@@ -1314,7 +1282,7 @@ JABS_Battler.prototype.setWaitCountdown = function(wait)
  */
 JABS_Battler.prototype.isWaiting = function()
 {
-  return this._waiting;
+  return !this._waitTimer.isTimerComplete();
 };
 
 /**
@@ -1445,9 +1413,36 @@ JABS_Battler.prototype.isDodging = function()
  * Sets whether or not this battler is dodging.
  * @param {boolean} dodging Whether or not the battler is dodging (default = true).
  */
-JABS_Battler.prototype.setDodging = function(dodging = true)
+JABS_Battler.prototype.setDodging = function(dodging)
 {
   this._dodging = dodging;
+};
+
+/**
+ * Sets the direction that the battler will be moved when dodging.
+ * @param {2|4|6|8|1|3|7|9} direction The numeric direction to be moved.
+ */
+JABS_Battler.prototype.setDodgeDirection = function(direction)
+{
+  this._dodgeDirection = direction;
+};
+
+/**
+ * Gets the number of dodge steps remaining to be stepped whilst dodging.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getDodgeSteps = function()
+{
+  return this._dodgeSteps;
+};
+
+/**
+ * Sets the number of steps that will be force-moved when dodging.
+ * @param {number} stepCount The number of steps to dodge.
+ */
+JABS_Battler.prototype.setDodgeSteps = function(stepCount)
+{
+  this._dodgeSteps = stepCount;
 };
 
 /**
@@ -1492,14 +1487,16 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.setInvincible(skill.jabsInvincibleDodge);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
+  // TODO: get dodge modifier from skill.
   const dodgeSpeedBonus = 2;
-  this.getCharacter().setDodgeBoost(dodgeSpeedBonus);
+  this.getCharacter().setDodgeModifier(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
-  this._dodgeSteps = skill.jabsRadius;
+  this.setDodgeSteps(skill.jabsRadius);
 
   // set the direction to be dodging in (front/back/specified).
-  this._dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  const dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  this.setDodgeDirection(dodgeDirection);
 
   // pay whatever costs are associated with the skill.
   this.getBattler().paySkillCost(skill);
@@ -4352,7 +4349,7 @@ JABS_Battler.prototype.canActionConnect = function()
 
   // precise timing allows for battlers to hit other battlers the instant they
   // meet event conditions, and that is not grounds to hit enemies.
-  if (this.getCharacter().isAction())
+  if (this.getCharacter().isJabsAction())
   {
     return false;
   }

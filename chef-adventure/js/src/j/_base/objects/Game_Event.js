@@ -86,4 +86,14 @@ Game_Event.prototype.isEvent = function()
 {
   return true;
 };
+
+/**
+ * Determines whether or not this character is currently erased.
+ * Non-events cannot be erased.
+ * @returns {boolean}
+ */
+Game_Event.prototype.isErased = function()
+{
+  return this._erased;
+};
 //#endregion Game_Event

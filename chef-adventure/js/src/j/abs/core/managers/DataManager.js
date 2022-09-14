@@ -24,13 +24,14 @@ var $gameEnemies = null;
 var $actionMap = null;
 
 /**
- * Extends `createGameObjects()` to include creation of our global game objects
+ * Extends {@link DataManager.createGameObjects}.
+ * Includes creation of our global game objects.
  */
-J.ABS.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.ABS.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.ABS.Aliased.DataManager.createGameObjects.call(this);
+  J.ABS.Aliased.DataManager.get('createGameObjects').call(this);
 
   // update the skill master map to have data.
   DataManager.getSkillMasterMap();

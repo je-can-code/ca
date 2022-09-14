@@ -99,8 +99,8 @@ J.CAMods.Aliased = {
 J.CAMods.Aliased.Game_Action.getAntiNullElementIds = Game_Action.prototype.getAntiNullElementIds;
 Game_Action.prototype.getAntiNullElementIds = function()
 {
-  // elements that should bypass and count despite being 
-  return [25, 26, 27];
+  // elements that should bypass and count despite being tools.
+  return [25, 26, 27, 28];
 };
 //#endregion Game_Action
 
@@ -509,21 +509,6 @@ Game_Party.prototype.extraDropSources = function()
   return extraSources;
 };
 //#endregion Game_Party
-
-//#region Game_Player
-/**
- * Extends the distance the player can move per frame by 12%.
- * CA only.
- * @return {number} The modified distance per frame to move.
- */
-J.CAMods.Aliased.Game_Player.distancePerFrame = Game_Player.prototype.distancePerFrame;
-Game_Player.prototype.distancePerFrame = function()
-{
-  const base = J.CAMods.Aliased.Game_Player.distancePerFrame.call(this);
-  const caOnlyBonus = 1.12;
-  return (base * caOnlyBonus);
-};
-//#endregion Game_Player
 //#endregion Game objects
 
 //#region Scene objects

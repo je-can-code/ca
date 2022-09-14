@@ -38,11 +38,11 @@ class JABS_Timer
 
   /**
    * Constructor.
-   * @param {number} timerMax The max duration of this timer.
+   * @param {number=} timerMax The max duration of this timer.
    * @param {boolean=} stopCounting Whether or not to stop counting after completing; defaults to true.
    * @param {Function|null=} callback EXPERIMENTAL. A callback function for completion of this timer.
    */
-  constructor(timerMax, stopCounting = true, callback = null)
+  constructor(timerMax = 0, stopCounting = true, callback = null)
   {
     this._timerMax = timerMax;
     this._stopCounting = stopCounting;

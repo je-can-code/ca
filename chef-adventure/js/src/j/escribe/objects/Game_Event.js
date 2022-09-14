@@ -17,25 +17,25 @@ Game_Event.prototype.initMembers = function()
   /**
    * A grouping of all properties associated with escriptions.
    */
-  this._j._event = {
-    /**
-     * The describe data for this event.
-     * @type {Escription}
-     */
-    _describe: null,
+  this._j._event ||= {};
 
-    /**
-     * Whether or not the player is in-proximity for the text.
-     * @type {boolean}
-     */
-    _playerNearbyText: null,
+  /**
+   * The describe data for this event.
+   * @type {Escription}
+   */
+  this._j._event._describe = null;
 
-    /**
-     * Whether or not the player is in-proximity for the icon.
-     * @type {boolean}
-     */
-    _playerNearbyIcon: null,
-  };
+  /**
+   * Whether or not the player is in-proximity for the text.
+   * @type {boolean}
+   */
+  this._j._event._playerNearbyText = null;
+
+  /**
+   * Whether or not the player is in-proximity for the icon.
+   * @type {boolean}
+   */
+  this._j._event._playerNearbyIcon = null;
 };
 
 /**
@@ -149,7 +149,7 @@ Game_Event.prototype.parseEscriptionComments = function()
 Game_Event.prototype.canParseEscriptionComments = function()
 {
   // don't try to do things with actions- they are volatile.
-  if (J.ABS && (this.isAction() || this.isLoot())) return false;
+  if (J.ABS && (this.isJabsAction() || this.isJabsLoot())) return false;
 
   // don't try to parse events that aren't "present".
   if (this._pageIndex === -1 || this._pageIndex === -2) return false;

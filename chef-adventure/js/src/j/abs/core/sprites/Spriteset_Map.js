@@ -2,11 +2,11 @@
 /**
  * Hooks into the `update` function to also update any active action sprites.
  */
-J.ABS.Aliased.Spriteset_Map.spritesetUpdate = Spriteset_Map.prototype.update;
+J.ABS.Aliased.Spriteset_Map.set('update', Spriteset_Map.prototype.update);
 Spriteset_Map.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Spriteset_Map.spritesetUpdate.call(this);
+  J.ABS.Aliased.Spriteset_Map.get('update').call(this);
 
   // perform jabs-related sprite updates.
   this.updateJabsSprites();
@@ -102,7 +102,7 @@ Spriteset_Map.prototype.addActionSprites = function()
 Spriteset_Map.prototype.addActionSprite = function(actionEvent)
 {
   // get the underlying character associated with this action.
-  const character = actionEvent.getMapActionData().getActionSprite();
+  const character = actionEvent.getJabsAction().getActionSprite();
 
   // generate the new sprite based on the action's character.
   const sprite = new Sprite_Character(character);

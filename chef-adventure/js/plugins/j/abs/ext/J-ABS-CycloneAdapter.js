@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Aug 04 2022 08:28:10 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 13 2022 14:24:25 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -70,6 +70,20 @@ J.ABS.EXT.CYCLE.Aliased = {
   JABS_Battler: new Map(),
 };
 //#endregion Introduction
+
+/**
+ * Sets the number of steps that will be force-moved when dodging.
+ * @param {number} stepCount The number of steps to dodge.
+ */
+J.ABS.EXT.CYCLE.Aliased.JABS_Battler.set('setDodgeSteps', JABS_Battler.prototype.setDodgeSteps);
+JABS_Battler.prototype.setDodgeSteps = function(stepCount)
+{
+  // modify the step count because pixel movement makes it move multiplicatively per-step.
+  const modifiedStepCount = (stepCount * CycloneMovement.stepCount);
+
+  // perform original logic- but with the modified step count.
+  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('setDodgeSteps').call(this, modifiedStepCount);
+};
 
 /**
  * A collection of all command codes that are associated with movement of the character.
@@ -157,7 +171,7 @@ Game_Character.prototype.repeatingMovementCount = function()
 
 /**
  * Sets the repeating movement count to a given number.
- * @param {number} count The number of times to repeat the movement command.
+ * @param {number=} count The number of times to repeat the movement command; defaults to stepcount.
  */
 Game_Character.prototype.initializeRepeatingMovementCount = function(count = CycloneMovement.stepCount)
 {
@@ -185,7 +199,7 @@ J.ABS.EXT.CYCLE.Aliased.Game_Character.set('updateRoutineMove', Game_Character.p
 Game_Character.prototype.updateRoutineMove = function()
 {
   // check if this is an action, as they obey default logic.
-  if (this.isAction())
+  if (this.isJabsAction())
   {
     // perform original logic.
     J.ABS.EXT.CYCLE.Aliased.Game_Character.get('updateRoutineMove').call(this);
@@ -336,8 +350,6 @@ Game_Follower.prototype.isDoingJabsAllyAiThings = function()
   // we must be doing JABS AI things!
   return true;
 };
-
-
 
 //#region Game_Player
 /**

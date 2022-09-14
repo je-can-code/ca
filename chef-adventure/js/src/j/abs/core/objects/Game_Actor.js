@@ -1,22 +1,21 @@
 //#region Game_Actor
 /**
- * Adds in the jabs tracking object for equipped skills.
+ * Extends {@link #initJabsMembers}.
+ * Includes additional actor-specific members.
  */
-J.ABS.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
+J.ABS.Aliased.Game_Actor.set('initJabsMembers', Game_Actor.prototype.initJabsMembers);
+Game_Actor.prototype.initJabsMembers = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('initMembers').call(this);
+  Game_Battler.prototype.initJabsMembers.call(this);
 
   /**
-   * The master reference to the `_j` object containing all plugin properties.
-   * @type {{}}
+   * The over-arching J object to contain all additional plugin parameters.
    */
   this._j ||= {};
 
   /**
-   * The master reference to all JABS-related added properties on this class.
-   * @type {{}}
+   * A grouping of all properties associated with JABS.
    */
   this._j._abs ||= {};
 
@@ -48,6 +47,228 @@ Game_Actor.prototype.setup = function(actorId)
 
   // execute the first refresh for JABS-related things.
   this.jabsRefresh();
+};
+
+/**
+ * Refreshes aspects associated with this battler in the context of JABS.
+ */
+Game_Actor.prototype.jabsRefresh = function()
+{
+  // refresh the currently equipped skills to ensure they are still valid.
+  this.refreshBasicAttackSkills();
+
+  // refresh the bonus hits to ensure they are still accurate.
+  this.refreshBonusHits();
+};
+
+//#region JABS basic attack skills
+/**
+ * Initializes the JABS equipped skills based on equipment.
+ */
+Game_Actor.prototype.initAbsSkills = function()
+{
+  // setup the skill slots for the first time.
+  this.getSkillSlotManager().setupSlots(this);
+
+  // update them with data.
+  this.refreshBasicAttackSkills();
+};
+
+/**
+ * Refreshes the JABS skills that are currently equipped.
+ * If any are no longer valid, they will be removed.
+ */
+Game_Actor.prototype.refreshBasicAttackSkills = function()
+{
+  // don't refresh if setup hasn't been completed.
+  if (!this.canRefreshBasicAttackSkills()) return;
+
+  // update the mainhand skill slot.
+  this.updateMainhandSkill();
+
+  // update the offhand skill slot.
+  this.updateOffhandSkill();
+
+  // remove all unequippable skills from their slots.
+  this.removeInvalidSkills();
+};
+
+/**
+ * Determines whether or not basic attack skills can be refreshed.
+ * @returns {boolean} True if they can be refreshed, false otherwise.
+ */
+Game_Actor.prototype.canRefreshBasicAttackSkills = function()
+{
+  // don't refresh if the initialization hasn'te ven been completed.
+  if (!this.getSkillSlotManager()) return false;
+
+  // don't refresh if setup hasn't been completed.
+  if (!this.getSkillSlotManager().isSetupComplete()) return false;
+
+  // refresh!
+  return true;
+};
+
+/**
+ * Updates the mainhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateMainhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const mainhandSkill = this.getMainhandSkill();
+
+  // update the main and offhand skill slots.
+  this.setEquippedSkill(JABS_Button.Mainhand, mainhandSkill);
+};
+
+/**
+ * Gets the mainhand skill for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getMainhandSkill = function()
+{
+  // grab the mainhand of the actor.
+  const [mainhand,] = this.equips();
+
+  // default the mainhand skill to 0.
+  let mainhandSkill = 0;
+
+  // check if we have something in our mainhand.
+  if (mainhand)
+  {
+    // assign the skill id tag from the mainhand.
+    mainhandSkill = mainhand.jabsSkillId ?? 0;
+  }
+
+  // return what we found.
+  return mainhandSkill
+};
+
+/**
+ * Updates the offhand skill slot with the most up-to-date value.
+ */
+Game_Actor.prototype.updateOffhandSkill = function()
+{
+  // determine the current main and offhand skills.
+  const offhandSkill = this.getOffhandSkill();
+
+  // update the offhand skill slot.
+  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
+};
+
+/**
+ * Gets the offhand skill for this actor.
+ *
+ * Takes into consideration the possibility of an offhand override
+ * from the mainhand or some states.
+ * @returns {number} The offhand skill id.
+ */
+Game_Actor.prototype.getOffhandSkill = function()
+{
+  // grab the offhand skill override if one exists.
+  const offhandOverride = this.offhandSkillOverride();
+
+  // check if there is an offhand override skill to use instead.
+  if (offhandOverride)
+  {
+    // return the override.
+    return offhandOverride;
+  }
+
+  // grab the offhand of the actor.
+  const [,offhand] = this.equips();
+
+  // default the offhand skill to 0.
+  let offhandSkill = 0;
+
+  // check if we have something in our offhand.
+  if (offhand)
+  {
+    // assign the skill id tag from the offhand.
+    offhandSkill = offhand.jabsSkillId ?? 0;
+  }
+
+  // return what we found.
+  return offhandSkill;
+};
+
+/**
+ * Gets the offhand skill id override if one exists from
+ * any states.
+ * @returns {number}
+ */
+Game_Actor.prototype.offhandSkillOverride = function()
+{
+  // default to override of skill id 0.
+  let overrideSkillId = 0;
+
+  // grab all states to start.
+  const objectsToCheck = [...this.states()];
+
+  // grab the weapon of the actor.
+  const [weapon,] = this.equips();
+
+  // check if we have a weapon.
+  if (weapon)
+  {
+    // add the weapon on for possible offhand overrides.
+    objectsToCheck.unshift(weapon);
+  }
+
+  // iterate over all sources.
+  objectsToCheck.forEach(obj =>
+  {
+    // check if we have an offhand skill id override.
+    if (obj.jabsOffhandSkillId)
+    {
+      // assign it if we do.
+      overrideSkillId = obj.jabsOffhandSkillId;
+    }
+  });
+
+  // return the last override skill found, if any.
+  return overrideSkillId;
+};
+
+/**
+ * Automatically removes all skills that are no longer available.
+ * This most commonly will occur when a skill is bound to equipment that is
+ * no longer equipped to the character. Skills that are "forced" will not be removed.
+ */
+Game_Actor.prototype.removeInvalidSkills = function()
+{
+  // grab all the slots this actor has.
+  const slots = this.getSkillSlotManager().getAllSlots();
+
+  // iterate over each of them.
+  slots.forEach(skillSlot =>
+  {
+    // check if we currently know this skill.
+    if (!this.hasSkill(skillSlot.id))
+    {
+      // remove it if we don't.
+      skillSlot.autoclear();
+    }
+  });
+};
+//#endregion JABS basic attack skills
+
+//#region JABS battler properties
+/**
+ * Actors have fixed `uuid`s, and thus it can be calculated as-is.
+ * @returns {string}
+ */
+Game_Actor.prototype.getUuid = function()
+{
+  // validate we have an actor.
+  if (this.actor())
+  {
+    // return the actor's constant uuid.
+    return `actor-${this.actorId()}`;
+  }
+
+  console.warn("no uuid currently available for this actor.", this);
+  return String.empty;
 };
 
 /**
@@ -337,31 +558,6 @@ Game_Actor.prototype.isInanimate = function()
 };
 
 /**
- * Gets whether or not there are notes that indicate skills should be autoassigned
- * when leveling up.
- * @returns {boolean}
- */
-Game_Actor.prototype.autoAssignOnLevelup = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<autoAssignSkills>/i;
-  let autoAssign = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        autoAssign = true;
-      }
-    });
-  });
-
-  return autoAssign;
-};
-
-/**
  * The team id of this actor.
  * Defaults to the default ally team id.
  * @returns {number}
@@ -391,91 +587,9 @@ Game_Actor.prototype.teamId = function()
 
   return parseInt(val);
 };
+//#endregion JABS battler properties
 
-/**
- * Replaces the map damage with JABS' version of the map damage.
- */
-J.ABS.Aliased.Game_Actor.set('performMapDamage', Game_Actor.prototype.performMapDamage);
-Game_Actor.prototype.performMapDamage = function()
-{
-  // check if JABS is disabled.
-  if (!$jabsEngine.absEnabled)
-  {
-    // perform original logic.
-    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
-  }
-  // JABS is definitely enabled.
-  else
-  {
-    // let JABS handle it.
-    this.performJabsFloorDamage();
-  }
-};
-
-/**
- * Handles how an actor is treated when they are taking floor damage on the map.
- */
-Game_Actor.prototype.performJabsFloorDamage = function()
-{
-  // just flash the screen, the damage is applied by other means.
-  $gameScreen.startFlashForDamage();
-};
-
-/**
- * Disable built-in on-turn-end effects while JABS is active.
- * (built-in effects include regeneration and poison, but those are
- * already handled elsewhere in the engine)
- */
-J.ABS.Aliased.Game_Actor.set('turnEndOnMap', Game_Actor.prototype.turnEndOnMap);
-Game_Actor.prototype.turnEndOnMap = function()
-{
-  // if JABS is enabled, the fun never stops!
-  if (!$jabsEngine.absEnabled) return;
-
-  // do normal turn-end things while JABS is disabled.
-  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
-};
-
-/**
- * Actors have fixed `uuid`s, and thus it can be calculated as-is.
- * @returns {string}
- */
-Game_Actor.prototype.getUuid = function()
-{
-  if (this.actor())
-  {
-    return `actor-${this.actorId()}`;
-  }
-
-  console.warn("no uuid currently available.");
-  return String.empty;
-};
-
-/**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
- */
-Game_Actor.prototype.switchLocked = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
-
-  return switchLocked;
-};
-
+//#region ondeath management
 /**
  * Gets whether or not this actor needs a death effect.
  * @returns {boolean}
@@ -530,19 +644,9 @@ Game_Actor.prototype.stopDying = function()
   // turn off the dying effect.
   jabsBattler.setDying(false);
 };
+//#endregion ondeath management
 
-/**
- * Initializes the JABS equipped skills based on equipment.
- */
-Game_Actor.prototype.initAbsSkills = function()
-{
-  // setup the skill slots for the first time.
-  this.getSkillSlotManager().setupSlots(this);
-
-  // update them with data.
-  this.refreshBasicAttackSkills();
-};
-
+//#region JABS skill slot access
 /**
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
@@ -625,205 +729,9 @@ Game_Actor.prototype.getUpgradableSkillSlots = function()
       return true;
     });
 };
+//#endregion JABS skill slot access
 
-/**
- * Refreshes the JABS skills that are currently equipped.
- * If any are no longer valid, they will be removed.
- */
-Game_Actor.prototype.refreshBasicAttackSkills = function()
-{
-  // don't refresh if setup hasn't been completed.
-  if (!this.canRefreshBasicAttackSkills()) return;
-
-  // update the mainhand skill slot.
-  this.updateMainhandSkill();
-
-  // update the offhand skill slot.
-  this.updateOffhandSkill();
-
-  // remove all unequippable skills from their slots.
-  this.removeInvalidSkills();
-
-};
-
-Game_Actor.prototype.canRefreshBasicAttackSkills = function()
-{
-  // don't refresh if setup hasn't been completed.
-  if (!this.getSkillSlotManager().isSetupComplete()) return false;
-
-  // refresh!
-  return true;
-};
-
-/**
- * Gets the mainhand skill for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getMainhandSkill = function()
-{
-  // grab the mainhand of the actor.
-  const [mainhand,] = this.equips();
-
-  // default the mainhand skill to 0.
-  let mainhandSkill = 0;
-
-  // check if we have something in our mainhand.
-  if (mainhand)
-  {
-    // assign the skill id tag from the mainhand.
-    mainhandSkill = mainhand.jabsSkillId ?? 0;
-  }
-
-  // return what we found.
-  return mainhandSkill
-};
-
-/**
- * Updates the mainhand skill slot with the most up-to-date value.
- */
-Game_Actor.prototype.updateMainhandSkill = function()
-{
-  // determine the current main and offhand skills.
-  const mainhandSkill = this.getMainhandSkill();
-
-  // update the main and offhand skill slots.
-  this.setEquippedSkill(JABS_Button.Mainhand, mainhandSkill);
-};
-
-/**
- * Gets the offhand skill for this actor.
- *
- * Takes into consideration the possibility of an offhand override
- * from the mainhand or some states.
- * @returns {number} The offhand skill id.
- */
-Game_Actor.prototype.getOffhandSkill = function()
-{
-  // grab the offhand skill override if one exists.
-  const offhandOverride = this.offhandSkillOverride();
-
-  // check if there is an offhand override skill to use instead.
-  if (offhandOverride)
-  {
-    // return the override.
-    return offhandOverride;
-  }
-
-  // grab the offhand of the actor.
-  const [,offhand] = this.equips();
-
-  // default the offhand skill to 0.
-  let offhandSkill = 0;
-
-  // check if we have something in our offhand.
-  if (offhand)
-  {
-    // assign the skill id tag from the offhand.
-    offhandSkill = offhand.jabsSkillId ?? 0;
-  }
-
-  // return what we found.
-  return offhandSkill;
-};
-
-/**
- * Updates the offhand skill slot with the most up-to-date value.
- */
-Game_Actor.prototype.updateOffhandSkill = function()
-{
-  // determine the current main and offhand skills.
-  const offhandSkill = this.getOffhandSkill();
-
-  // update the offhand skill slot.
-  this.setEquippedSkill(JABS_Button.Offhand, offhandSkill);
-};
-
-/**
- * Gets the offhand skill id override if one exists from
- * any states.
- * @returns {number}
- */
-Game_Actor.prototype.offhandSkillOverride = function()
-{
-  // default to override of skill id 0.
-  let overrideSkillId = 0;
-
-  // grab all states to start.
-  const objectsToCheck = [...this.states()];
-
-  // grab the weapon of the actor.
-  const [weapon,] = this.equips();
-
-  // check if we have a weapon.
-  if (weapon)
-  {
-    // add the weapon on for possible offhand overrides.
-    objectsToCheck.unshift(weapon);
-  }
-
-  // iterate over all sources.
-  objectsToCheck.forEach(obj =>
-  {
-    // check if we have an offhand skill id override.
-    if (obj.jabsOffhandSkillId)
-    {
-      // assign it if we do.
-      overrideSkillId = obj.jabsOffhandSkillId;
-    }
-  });
-
-  // return the last override skill found, if any.
-  return overrideSkillId;
-};
-
-/**
- * Automatically removes all skills that are no longer available.
- * This most commonly will occur when a skill is bound to equipment that is
- * no longer equipped to the character. Skills that are "forced" will not be removed.
- */
-Game_Actor.prototype.removeInvalidSkills = function()
-{
-  // grab all the slots this actor has.
-  const slots = this.getSkillSlotManager().getAllSlots();
-
-  // iterate over each of them.
-  slots.forEach(skillSlot =>
-  {
-    // check if we currently know this skill.
-    if (!this.hasSkill(skillSlot.id))
-    {
-      // remove it if we don't.
-      skillSlot.autoclear();
-    }
-  });
-};
-
-/**
- * Extends {@link #onBattlerDataChange}.
- * Adds a hook for performing actions when the battler's data hase changed.
- */
-J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
-Game_Actor.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
-
-  // update JABS-related things.
-  this.jabsRefresh();
-};
-
-/**
- * Refreshes aspects associated with this battler in the context of JABS.
- */
-Game_Actor.prototype.jabsRefresh = function()
-{
-  // refresh the currently equipped skills to ensure they are still valid.
-  this.refreshBasicAttackSkills();
-
-  // refresh the bonus hits to ensure they are still accurate.
-  this.refreshBonusHits();
-};
-
+//#region leveling
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
  */
@@ -882,7 +790,9 @@ Game_Actor.prototype.jabsLevelDown = function()
   // this is the leader so refresh the battler sprite!
   $jabsEngine.requestSpriteRefresh = true;
 };
+//#endregion leveling
 
+//#region learning
 /**
  * A hook for performing actions when a battler learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
@@ -946,6 +856,31 @@ Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
 };
 
 /**
+ * Gets whether or not there are notes that indicate skills should be autoassigned
+ * when leveling up.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.autoAssignOnLevelup = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<autoAssignSkills>/i;
+  let autoAssign = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        autoAssign = true;
+      }
+    });
+  });
+
+  return autoAssign;
+};
+
+/**
  * If the actor has a tag/note somewhere for auto-assignment, then this will
  * attempt to automatically slot the learned skill into an otherwise empty
  * skill slot.
@@ -969,7 +904,9 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
     this.setEquippedSkill(slotKey, skillId);
   }
 };
+//#endregion learning
 
+//#region bonus hits
 /**
  * Updates the bonus hit count for this actor based on equipment.
  *
@@ -1009,7 +946,9 @@ Game_Actor.prototype.getBonusHits = function()
 {
   return this._j._abs._bonusHits;
 };
+//#endregion bonus hits
 
+//#region state durations
 /**
  * Determines the various state duration boosts available to this actor.
  * @param {number} baseDuration The base duration of the state.
@@ -1126,5 +1065,91 @@ Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDura
 
   // return our evaluated amounts.
   return formulaDurationBoost;
+};
+//#endregion state durations
+
+//#region map damage
+/**
+ * Replaces the map damage with JABS' version of the map damage.
+ */
+J.ABS.Aliased.Game_Actor.set('performMapDamage', Game_Actor.prototype.performMapDamage);
+Game_Actor.prototype.performMapDamage = function()
+{
+  // check if JABS is disabled.
+  if (!$jabsEngine.absEnabled)
+  {
+    // perform original logic.
+    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
+  }
+  // JABS is definitely enabled.
+  else
+  {
+    // let JABS handle it.
+    this.performJabsFloorDamage();
+  }
+};
+
+/**
+ * Handles how an actor is treated when they are taking floor damage on the map.
+ */
+Game_Actor.prototype.performJabsFloorDamage = function()
+{
+  // just flash the screen, the damage is applied by other means.
+  $gameScreen.startFlashForDamage();
+};
+//#endregion map damage
+
+/**
+ * Extends {@link #onBattlerDataChange}.
+ * Adds a hook for performing actions when the battler's data hase changed.
+ */
+J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+
+  // update JABS-related things.
+  this.jabsRefresh();
+};
+
+/**
+ * Checks all possible places for whether or not the actor is able to
+ * be switched to.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.switchLocked = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<noSwitch>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
+};
+
+/**
+ * Disable built-in on-turn-end effects while JABS is active.
+ * (built-in effects include regeneration and poison, but those are
+ * already handled elsewhere in the engine)
+ */
+J.ABS.Aliased.Game_Actor.set('turnEndOnMap', Game_Actor.prototype.turnEndOnMap);
+Game_Actor.prototype.turnEndOnMap = function()
+{
+  // if JABS is enabled, the fun never stops!
+  if (!$jabsEngine.absEnabled) return;
+
+  // do normal turn-end things while JABS is disabled.
+  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
 };
 //#endregion Game_Actor

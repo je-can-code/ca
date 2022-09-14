@@ -21,6 +21,9 @@ JABS_Engine.prototype.updateInput = function()
   // perform original logic.
   J.ABS.EXT_INPUT.Aliased.JABS_Engine.get('updateInput').call(this);
 
+  // don't update if we aren't allowed to update.
+  if (!this.canUpdateInput()) return;
+
   // update the input.
   $jabsController1.update();
 };

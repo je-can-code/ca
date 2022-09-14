@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jul 31 2022 11:23:06 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 13 2022 14:24:25 GMT-0700 (Pacific Daylight Time)  */
 
 /*:
  * @target MZ
@@ -862,7 +862,7 @@ Game_Troop.prototype.getRemainingEnemyCount = function()
 Game_Troop.prototype.updateRemainingEnemyCount = function() 
 {
   // update the remaining enemy count.
-  this._remainingEnemyCount = $gameMap.getOpposingBattlers($jabsEngine.getPlayer1()).length;
+  this._remainingEnemyCount = JABS_AiManager.getOpposingBattlers($jabsEngine.getPlayer1()).length;
 };
 
 /**

@@ -50,20 +50,59 @@ Game_Action.prototype.itemPar = function(target)
 /**
  * Rounds the result of the damage calculations when executing skills.
  */
-J.ABS.Aliased.Game_Action.makeDamageValue = Game_Action.prototype.makeDamageValue;
+J.ABS.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
 Game_Action.prototype.makeDamageValue = function(target, critical)
 {
-  let base = J.ABS.Aliased.Game_Action.makeDamageValue.call(this, target, critical);
+  // perform original logic.
+  let base = J.ABS.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
 
-  const player = $jabsEngine.getPlayer1();
-  const isPlayer = player.getBattler() === target;
-  if (isPlayer)
+  // check if the player is the target.
+  if ($jabsEngine.isBattlerPlayer1(target))
   {
     // currently, only the player can properly defend like this.
-    base = this.handleGuardEffects(base, player);
+    base = this.handleGuardEffects(base, $jabsEngine.getPlayer1());
   }
 
+  // return the damage output.
   return base;
+};
+
+/**
+ * Handles all guard-related effects, such as parrying or guarding.
+ * @param {number} damage The amount of damage before damage reductions.
+ * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
+ * @returns {number} The amount of damage after damage reductions from guarding.
+ */
+Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
+{
+  // check if the battler is parrying; parrying takes priority over guarding.
+  if (jabsBattler.parrying())
+  {
+    // process the parry functionality.
+    this.processParry(jabsBattler);
+
+    // calculate the reduced amount from guarding.
+    const parryReducedDamage = this.calculateParryDamageReduction(jabsBattler, damage);
+
+    // return the reduced amount.
+    return parryReducedDamage;
+  }
+
+  // check if the battler is guarding.
+  if (jabsBattler.guarding())
+  {
+    // process the guard functionality.
+    this.processGuard(jabsBattler);
+
+    // calculate the reduced amount from guarding.
+    const guardReducedDamage = this.calculateGuardDamageReduction(jabsBattler, damage);
+
+    // return the reduced amount.
+    return guardReducedDamage;
+  }
+
+  // if there was no guarding or parrying happen, just return the original damage.
+  return damage;
 };
 
 /**
@@ -116,60 +155,20 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
  * Intercepts the action result and prevents adding states entirely if precise-parried
  * by the player.
  */
-J.ABS.Aliased.Game_Action.itemEffectAddState = Game_Action.prototype.itemEffectAddState;
+J.ABS.Aliased.Game_Action.set('itemEffectAddState', Game_Action.prototype.itemEffectAddState);
 Game_Action.prototype.itemEffectAddState = function(target, effect)
 {
-  const player = $jabsEngine.getPlayer1();
-  const isPlayer = player.getBattler() === target;
-  if (isPlayer)
+  if ($jabsEngine.isBattlerPlayer1(target))
   {
     // if it is the player, peek at the result before applying.
-    const result = player.getBattler().result();
+    const result = $jabsEngine.getPlayer1().getBattler().result();
 
     // if the player precise-parried the action, no status effects applied.
     if (result.parried) return;
   }
 
   // if the precise-parry-state-prevention wasn't successful, apply as usual.
-  J.ABS.Aliased.Game_Action.itemEffectAddState.call(this, target, effect);
-};
-
-/**
- * Handles all guard-related effects, such as parrying or guarding.
- * @param {number} damage The amount of damage before damage reductions.
- * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
- * @returns {number} The amount of damage after damage reductions from guarding.
- */
-Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
-{
-  // check if the battler is parrying; parrying takes priority over guarding.
-  if (jabsBattler.parrying())
-  {
-    // process the parry functionality.
-    this.processParry(jabsBattler);
-
-    // calculate the reduced amount from guarding.
-    const parryReducedDamage = this.calculateParryDamageReduction(jabsBattler, damage);
-
-    // return the reduced amount.
-    return parryReducedDamage;
-  }
-
-  // check if the battler is guarding.
-  if (jabsBattler.guarding())
-  {
-    // process the guard functionality.
-    this.processGuard(jabsBattler);
-
-    // calculate the reduced amount from guarding.
-    const guardReducedDamage = this.calculateGuardDamageReduction(jabsBattler, damage);
-
-    // return the reduced amount.
-    return guardReducedDamage;
-  }
-
-  // if there was no guarding or parrying happen, just return the original damage.
-  return damage;
+  J.ABS.Aliased.Game_Action.get('itemEffectAddState').call(this, target, effect);
 };
 
 /**
@@ -381,16 +380,20 @@ Game_Action.prototype.itemEva = function(target)
 /**
  * OVERWRITE Adjusts how a skill is applied against the target in the context of JABS.
  */
-J.ABS.Aliased.Game_Action.apply = Game_Action.prototype.apply;
+J.ABS.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target)
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
-    this.applySkill(target);
+    // let JABS handle this.
+    this.applyJabsSkill(target);
   }
+  // JABS is not enabled.
   else
   {
-    J.ABS.Aliased.Game_Action.apply.call(this, target);
+    // perform original logic.
+    J.ABS.Aliased.Game_Action.get('apply').call(this, target);
   }
 };
 
@@ -402,8 +405,9 @@ Game_Action.prototype.apply = function(target)
  * "Missed" is no longer a possibility. It is false 100% of the time.
  * @param {Game_Battler} target The target the skill is being applied to.
  */
-Game_Action.prototype.applySkill = function(target)
+Game_Action.prototype.applyJabsSkill = function(target)
 {
+  // all the normal stuff that happens with Game_Action.apply() logic.
   const result = target.result();
   this.subject().clearResult();
   result.clear();
@@ -411,6 +415,8 @@ Game_Action.prototype.applySkill = function(target)
   result.evaded = !this.calculateHitSuccess(target);
   result.physical = this.isPhysical();
   result.drain = this.isDrain();
+
+  // validate we landed a hit.
   if (result.isHit())
   {
     // check if there is a damage formula.

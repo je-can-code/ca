@@ -1,9 +1,9 @@
 //#region Scene_Load
 /**
- * OVERWRITE When loading, the map needs to be refreshed to load the enemies
- * properly.
+ * Overwrites {@link Scene_Load.reloadMapIfUpdated}.
+ * When loading, the map needs to be refreshed to load the enemies properly.
  */
-J.ABS.Aliased.Scene_Load.reloadMapIfUpdated = Scene_Load.prototype.reloadMapIfUpdated;
+J.ABS.Aliased.Scene_Load.set('reloadMapIfUpdated', Scene_Load.prototype.reloadMapIfUpdated);
 Scene_Load.prototype.reloadMapIfUpdated = function()
 {
   if ($jabsEngine.absEnabled)
@@ -16,7 +16,8 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
   }
   else
   {
-    J.ABS.Aliased.Scene_Load.reloadMapIfUpdated.call(this);
+    // perform original logic.
+    J.ABS.Aliased.Scene_Load.get('reloadMapIfUpdated').call(this);
   }
 };
 //#endregion Scene_Load

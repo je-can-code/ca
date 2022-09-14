@@ -1,8 +1,16 @@
 //#region Game_Event
-J.ABS.Aliased.Game_Event.initMembers = Game_Event.prototype.initMembers;
+J.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
   this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
 
   /**
    * The various parameters extracted from the event on the field.
@@ -10,29 +18,22 @@ Game_Event.prototype.initMembers = function()
    * their `JABS_Battler` can be constructed.
    * @type {JABS_BattlerCoreData}
    */
-  this._j._battlerData = null;
+  this._j._abs._battlerData = null;
 
   /**
    * The initial direction this event is facing.
    */
-  this._j._initialDirection = 0;
+  this._j._abs._initialDirection = 0;
 
   /**
    * The direction the player was facing when the skill was executed.
    * Only applicable to action events.
    * @type {number}
    */
-  this._j._castedDirection = 0;
-  J.ABS.Aliased.Game_Event.initMembers.call(this);
-};
+  this._j._abs._castedDirection = 0;
 
-/**
- * Binds a `JABS_Action` to a `Game_Event`.
- * @param {JABS_Action} action The action to assign to this `Game_Event`.
- */
-Game_Event.prototype.setMapActionData = function(action)
-{
-  this._j._action.actionData = action;
+  // perform original logic.
+  J.ABS.Aliased.Game_Event.get('initMembers').call(this);
 };
 
 /**
@@ -44,7 +45,7 @@ Game_Event.prototype.setCustomDirection = function(direction)
   // don't turn if direction is fixed.
   if (this.isDirectionFixed()) return;
 
-  this._j._initialDirection = direction;
+  this._j._abs._initialDirection = direction;
 };
 
 /**
@@ -53,7 +54,7 @@ Game_Event.prototype.setCustomDirection = function(direction)
  */
 Game_Event.prototype.getCustomDirection = function()
 {
-  return this._j._initialDirection;
+  return this._j._abs._initialDirection;
 };
 
 /**
@@ -65,7 +66,7 @@ Game_Event.prototype.setCastedDirection = function(direction)
   // don't turn if direction is fixed.
   if (this.isDirectionFixed()) return;
 
-  this._j._castedDirection = direction;
+  this._j._abs._castedDirection = direction;
 };
 
 /**
@@ -74,38 +75,47 @@ Game_Event.prototype.setCastedDirection = function(direction)
  */
 Game_Event.prototype.getCastedDirection = function()
 {
-  return this._j._castedDirection;
+  return this._j._abs._castedDirection;
 };
 
 /**
  * Modifies the `.event` method of `Game_Event` to return the data from the
  * $actionMap if it isn't a normal event.
  */
-J.ABS.Aliased.Game_Event.event = Game_Event.prototype.event;
+J.ABS.Aliased.Game_Event.set('event', Game_Event.prototype.event);
 Game_Event.prototype.event = function()
 {
-  if (this.isAction())
+  // check if this is actually an action.
+  if (this.isJabsAction())
   {
-    return $jabsEngine.event(this.getMapActionUuid());
+    // return the action's data instead.
+    return $jabsEngine.event(this.getJabsActionUuid());
   }
 
-  return J.ABS.Aliased.Game_Event.event.call(this);
+  // return the underlying event data.
+  return J.ABS.Aliased.Game_Event.get('event').call(this);
 };
 
 /**
  * Adds an extra catch so that if there is a failure, then the failure is
  * silently ignored because bad timing is just bad luck!
  */
-J.ABS.Aliased.Game_Event.findProperPageIndex = Game_Event.prototype.findProperPageIndex;
+J.ABS.Aliased.Game_Event.set('findProperPageIndex', Game_Event.prototype.findProperPageIndex);
 Game_Event.prototype.findProperPageIndex = function()
 {
   try
   {
-    const test = J.ABS.Aliased.Game_Event.findProperPageIndex.call(this);
+    // check original logic to see if we can return this.
+    const test = J.ABS.Aliased.Game_Event.get('findProperPageIndex').call(this);
+
+    // validate the index is indeed a proper event page index.
     if (Number.isInteger(test)) return test;
   }
   catch (err)
   {
+    console.trace();
+    console.error(`could not find page index for this event.`, err, this);
+
     return -1;
   }
 };
@@ -114,25 +124,50 @@ Game_Event.prototype.findProperPageIndex = function()
  * OVERWRITE When an map battler is hidden by something like a switch or some
  * other condition, unveil it upon meeting such conditions.
  */
-J.ABS.Aliased.Game_Event.refresh = Game_Event.prototype.refresh;
+J.ABS.Aliased.Game_Event.set('refresh', Game_Event.prototype.refresh);
 Game_Event.prototype.refresh = function()
 {
+  // check if JABS is enabled.
   if ($jabsEngine.absEnabled)
   {
-    // don't refresh loot.
-    if (this.isLoot()) return;
-
-    const newPageIndex = this._erased ? -1 : this.findProperPageIndex();
-    if (this._pageIndex !== newPageIndex)
-    {
-      this._pageIndex = newPageIndex;
-      this.setupPage();
-      this.transformBattler();
-    }
+    // let JABS take care of the event refresh.
+    this.jabsEventRefresh();
   }
+  // JABS isn't enabled.
   else
   {
-    J.ABS.Aliased.Game_Event.refresh.call(this);
+    // perform original logic.
+    J.ABS.Aliased.Game_Event.get('refresh').call(this);
+  }
+};
+
+/**
+ * Replaces {@link Game_Event.refresh}.
+ * Safely handles battler transformation and page index reassignment.
+ *
+ * Sometimes the page index reassignment can get out of hand and requires guardrails.
+ */
+Game_Event.prototype.jabsEventRefresh = function()
+{
+  // don't refresh loot.
+  if (this.isJabsLoot()) return;
+
+  // grab the current page index.
+  const newPageIndex = this.isErased()
+    ? -1
+    : this.findProperPageIndex();
+
+  // check if the page index changed.
+  if (this._pageIndex !== newPageIndex)
+  {
+    // update the page index.
+    this._pageIndex = newPageIndex;
+
+    // run the page setup.
+    this.setupPage();
+
+    // also transform the battler if applicable.
+    this.transformBattler();
   }
 };
 
@@ -141,20 +176,22 @@ Game_Event.prototype.refresh = function()
  * error propping up where an attempt to update an event that is no longer
  * available for updating causing the game to crash.
  */
-J.ABS.Aliased.Game_Event.page = Game_Event.prototype.page;
+J.ABS.Aliased.Game_Event.set('page', Game_Event.prototype.page);
 Game_Event.prototype.page = function()
 {
+  // check to make sure we have an event to build a page from first.
   if (this.event())
   {
-    return J.ABS.Aliased.Game_Event.page.call(this);
+    // perform original logic.
+    return J.ABS.Aliased.Game_Event.get('page').call(this);
   }
 
-  /*
   console.log($dataMap.events);
   console.log($gameMap._events);
   console.warn(this);
   console.warn('that thing happened again, you should probably look into this.');
-  */
+
+  // return null because... something went awry.
   return null;
 };
 
@@ -175,11 +212,11 @@ Game_Event.prototype.transformBattler = function()
 /**
  * Extends the pagesettings for events and adds on custom parameters to this event.
  */
-J.ABS.Aliased.Game_Event.setupPageSettings = Game_Event.prototype.setupPageSettings;
+J.ABS.Aliased.Game_Event.set('setupPageSettings', Game_Event.prototype.setupPageSettings);
 Game_Event.prototype.setupPageSettings = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Event.setupPageSettings.call(this);
+  J.ABS.Aliased.Game_Event.get('setupPageSettings').call(this);
 
   // parse the comments on the event to potentially transform it into a battler.
   this.parseEnemyComments();
@@ -255,6 +292,39 @@ Game_Event.prototype.parseEnemyComments = function()
 
   // initialize the core data based on this.
   this.initializeCoreData(battlerCoreData);
+};
+
+/**
+ * Checks to see if this event [page] can have its comments parsed to
+ * transform it into a `JABS_Battler`.
+ * @returns {boolean} True if the event can be parsed, false otherwise.
+ */
+Game_Event.prototype.canParseEnemyComments = function()
+{
+  // if somehow it is less than -1, then do not. Weird things happen.
+  if (this.findProperPageIndex() < -1) return false;
+
+  // grab the event command list for analysis.
+  const commentCommandList = this.getValidCommentCommands();
+
+  // if we do not have a list of comments to parse, then do not.
+  if (!commentCommandList.length) return false;
+
+  // check all the commands to make sure a battler id is among them.
+  const hasBattlerId = commentCommandList.some(command =>
+  {
+    // shorthand the comment into a variable.
+    const [comment,] = command.parameters;
+
+    // check to make sure this is at least an enemy of some kind.
+    return J.ABS.RegExp.EnemyId.test(comment);
+  });
+
+  // if there is no battler id among the comments, then don't parse.
+  if (!hasBattlerId) return false;
+
+  // we are clear to parse out those comments!
+  return true;
 };
 
 //#region overrides
@@ -710,39 +780,6 @@ Game_Event.prototype.initializeCoreData = function(battlerCoreData)
 };
 
 /**
- * Checks to see if this event [page] can have its comments parsed to
- * transform it into a `JABS_Battler`.
- * @returns {boolean} True if the event can be parsed, false otherwise.
- */
-Game_Event.prototype.canParseEnemyComments = function()
-{
-  // if somehow it is less than -1, then do not. Weird things happen.
-  if (this.findProperPageIndex() < -1) return false;
-
-  // grab the event command list for analysis.
-  const commentCommandList = this.getValidCommentCommands();
-
-  // if we do not have a list of comments to parse, then do not.
-  if (!commentCommandList.length) return false;
-
-  // check all the commands to make sure a battler id is among them.
-  const hasBattlerId = commentCommandList.some(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
-
-    // check to make sure this is at least an enemy of some kind.
-    return J.ABS.RegExp.EnemyId.test(comment);
-  });
-
-  // if there is no battler id among the comments, then don't parse.
-  if (!hasBattlerId) return false;
-
-  // we are clear to parse out those comments!
-  return true;
-};
-
-/**
  * Applies the custom move speed if available.
  */
 Game_Event.prototype.applyCustomMoveSpeed = function()
@@ -783,7 +820,7 @@ Game_Event.prototype.applyCustomMoveSpeed = function()
  */
 Game_Event.prototype.getBattlerCoreData = function()
 {
-  return this._j._battlerData;
+  return this._j._abs._battlerData;
 };
 
 /**
@@ -792,7 +829,7 @@ Game_Event.prototype.getBattlerCoreData = function()
  */
 Game_Event.prototype.setBattlerCoreData = function(data)
 {
-  this._j._battlerData = data;
+  this._j._abs._battlerData = data;
 };
 
 /**
@@ -801,8 +838,7 @@ Game_Event.prototype.setBattlerCoreData = function(data)
  */
 Game_Event.prototype.isJabsBattler = function()
 {
-  const data = this.getBattlerCoreData();
-  return !!data;
+  return !!this.getBattlerCoreData();
 };
 
 /**
@@ -824,10 +860,10 @@ Game_Event.prototype.getBattlerId = function()
 Game_Event.prototype.getCaster = function()
 {
   // if this isn't an action, then there is no caster.
-  if (!this.isAction()) return null;
+  if (!this.isJabsAction()) return null;
 
   // grab the underlying action.
-  const jabsAction = this.getMapActionData();
+  const jabsAction = this.getJabsAction();
 
   // return the caster.
   return jabsAction.getCaster();
@@ -836,6 +872,8 @@ Game_Event.prototype.getCaster = function()
 /**
  * Moves this event to be at the same coordinates as the caster.
  * If there is no caster, it will do nothing.
+ *
+ * This is designed to be used from within a custom move route.
  */
 Game_Event.prototype.existOnCaster = function()
 {
