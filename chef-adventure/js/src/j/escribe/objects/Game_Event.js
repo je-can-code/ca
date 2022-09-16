@@ -168,8 +168,6 @@ Game_Event.prototype.refreshEscription = function()
 {
   // also parse the event comments for the data points we care about.
   this.parseEscriptionComments();
-
-  console.log(`refresh escription for event ${this.eventId()}: `, this);
 };
 
 /**

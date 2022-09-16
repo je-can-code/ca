@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Sep 16 2022 07:30:26 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Fri Sep 16 2022 07:52:45 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -56,7 +56,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -362,8 +362,6 @@ Game_Event.prototype.refreshEscription = function()
 {
   // also parse the event comments for the data points we care about.
   this.parseEscriptionComments();
-
-  console.log(`refresh escription for event ${this.eventId()}: `, this);
 };
 
 /**
