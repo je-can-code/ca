@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Sep 14 2022 07:43:42 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Thu Sep 15 2022 07:14:15 GMT-0700 (Pacific Daylight Time)  */
 
 //#region introduction
 /*:
@@ -123,6 +123,7 @@ JABS_Battler.createPlayer = function()
  */
 class JABS_Button
 {
+  //#region functionality
   /**
    * The "start" key.
    * Used for bringing up the JABS menu on the map.
@@ -136,7 +137,9 @@ class JABS_Button
    * @type {string}
    */
   static Select = "Select";
+  //#endregion functionality
 
+  //#region primary
   /**
    * The "main", "A" button, or "Z" key.
    * Used for executing the mainhand action.
@@ -164,7 +167,9 @@ class JABS_Button
    * @type {string}
    */
   static Dodge = "Dodge";
+  //#endregion primary
 
+  //#region mobility
   /**
    * The "strafe", "L2" button, or "Left Ctrl" key.
    * Used for locking the direction faced while the input is held.
@@ -185,7 +190,9 @@ class JABS_Button
    * @type {string}
    */
   static Guard = "Guard";
+  //#endregion mobility
 
+  //#region L1 + buttons
   /**
    * The `L1 + A` or 1 key.
    * Executes combat skill 1.
@@ -213,20 +220,57 @@ class JABS_Button
    * @type {string}
    */
   static CombatSkill4 = "CombatSkill4";
+  //#endregion  L1 + buttons
 
   /**
-   * Gets all inputs that are available for assignment
-   * in one way or another.
+   * Gets all assignable buttons used for JABS.
    * @returns {string[]} A collection of JABS-input keys' identifiers.
    */
   static assignableInputs()
   {
-    return [
+    // the valid set of assignable inputs.
+    const okInputs = [
       // primary
       this.Mainhand,
       this.Offhand,
       this.Tool,
       this.Dodge,
+
+      // L1 + buttons
+      this.CombatSkill1,
+      this.CombatSkill2,
+      this.CombatSkill3,
+      this.CombatSkill4,
+    ];
+
+    // a filter function for ensuring only the correct inputs are accepted.
+    const filtering = buttonInput => !okInputs.includes(buttonInput);
+
+    // return the filtered buttons.
+    return this.allButtons().filter(filtering);
+  }
+
+  /**
+   * Gets all currently available buttons used for JABS.
+   * @returns {string[]} A collection of JABS-input key's identifiers.
+   */
+  static allButtons()
+  {
+    return [
+      // functionality
+      this.Menu,
+      this.Select,
+
+      // primary
+      this.Mainhand,
+      this.Offhand,
+      this.Tool,
+      this.Dodge,
+
+      // mobility
+      this.Strafe,
+      this.Rotate,
+      this.Guard,
 
       // L1 + buttons
       this.CombatSkill1,

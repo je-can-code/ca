@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Sep 14 2022 07:10:35 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Sep 14 2022 15:22:07 GMT-0700 (Pacific Daylight Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -3135,18 +3135,12 @@ JABS_Battler.prototype.initGeneralInfo = function()
    */
   this._movementLock = false;
 
-  // /**
-  //  * Whether or not this battler is waiting.
-  //  * @type {boolean} True if battler is waiting, false otherwise.
-  //  */
-  // this._waiting = false;
-  //
-  // /**
-  //  * The counter for how long this battler is waiting.
-  //  * @type {number}
-  //  */
-  // this._waitCounter = 0;
-
+  /**
+   * The timer that designates the "wait" for this battler.
+   * While this timer is active, this battler will "wait" until it completes
+   * before taking any action.
+   * @type {JABS_Timer}
+   */
   this._waitTimer = new JABS_Timer(0);
 };
 
@@ -3892,12 +3886,6 @@ JABS_Battler.prototype.updateTimers = function()
  */
 JABS_Battler.prototype.processWaitTimer = function()
 {
-  // if waiting, update the wait timer.
-  // if (this.isWaiting())
-  // {
-  //   this.countdownWait();
-  // }
-
   this._waitTimer.update();
 };
 
@@ -4241,25 +4229,6 @@ JABS_Battler.prototype.updateDeathHandling = function()
 //#region update helpers
 //#region timers
 /**
- * Counts down the duration for this battler's wait time.
- */
-JABS_Battler.prototype.countdownWait = function()
-{
-  // TODO: this function should be removed.
-  if (this._waitCounter > 0)
-  {
-    this._waitCounter--;
-    return;
-  }
-
-  if (this._waitCounter <= 0)
-  {
-    this._waiting = false;
-    this._waitCounter = 0;
-  }
-};
-
-/**
  * Sets the battler's wait duration to a number. If this number is greater than
  * zero, then the battler must wait before doing anything else.
  * @param {number} wait The duration for this battler to wait.
@@ -4271,18 +4240,6 @@ JABS_Battler.prototype.setWaitCountdown = function(wait)
 
   // set the wait timer's max to a new time.
   this._waitTimer.setMaxTime(wait);
-
-  // this._waitCounter = wait;
-  // if (this._waitCounter > 0)
-  // {
-  //   this._waiting = true;
-  // }
-  //
-  // if (this._waitCounter <= 0)
-  // {
-  //   this._waiting = false;
-  //   this._waitCounter = 0;
-  // }
 };
 
 /**
@@ -4292,7 +4249,6 @@ JABS_Battler.prototype.setWaitCountdown = function(wait)
 JABS_Battler.prototype.isWaiting = function()
 {
   return !this._waitTimer.isTimerComplete();
-  // return this._waiting;
 };
 
 /**
@@ -11809,11 +11765,11 @@ class JABS_Timer
 
   /**
    * Constructor.
-   * @param {number} timerMax The max duration of this timer.
+   * @param {number=} timerMax The max duration of this timer.
    * @param {boolean=} stopCounting Whether or not to stop counting after completing; defaults to true.
    * @param {Function|null=} callback EXPERIMENTAL. A callback function for completion of this timer.
    */
-  constructor(timerMax, stopCounting = true, callback = null)
+  constructor(timerMax = 0, stopCounting = true, callback = null)
   {
     this._timerMax = timerMax;
     this._stopCounting = stopCounting;

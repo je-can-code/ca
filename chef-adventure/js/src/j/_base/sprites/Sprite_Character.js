@@ -1,6 +1,7 @@
 /**
- * Gets the underlying `Game_Character` that this sprite represents on the map.
- * @returns {Game_Character}
+ * Gets the underlying `Game_Character` or its appropriate subclass that this
+ * sprite represents on the map.
+ * @returns {Game_Character|Game_Player|Game_Event|Game_Vehicle|Game_Follower}
  */
 Sprite_Character.prototype.character = function()
 {

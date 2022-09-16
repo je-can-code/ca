@@ -40,7 +40,6 @@ class Sprite_Icon extends Sprite
      */
     this._j._isReady = false;
 
-
     /**
      * The icon index that this sprite represents.
      * @type {number}

@@ -237,6 +237,42 @@ Sprite_Character.prototype.hasCharacterEscriptionData = function()
   return character.hasEscribeData();
 };
 
+Sprite_Character.prototype.needsEscribeAdding = function()
+{
+  // grab the character.
+  const character = this.character();
+
+  // you cannot escribe non-existant characters.
+  if (!character) return false;
+
+  // you cannot escribe non-events.
+  if (!character.isEvent()) return false;
+
+  // if the character isn't an event, then there is no data.
+  if (!(character instanceof Game_Event)) return false;
+
+  // return whether or not the character needs escription adding.
+  return character.needsEscribeAdding();
+};
+
+Sprite_Character.prototype.needsEscribeRemoval = function()
+{
+  // grab the character.
+  const character = this.character();
+
+  // if we no longer have a character and previously had escribe data, remove it.
+  if ((this.escribeTextData() || this.escribeIconData()) && !character) return true;
+
+  // if we no longer have a character, then remove it.
+  if (!character) return true;
+
+  // you cannot escribe non-events.
+  if (!character.isEvent()) return false;
+
+  // return whether or not the character needs escription removal.
+  return character.needsEscribeRemoval();
+};
+
 /**
  * Gets this sprite's underlying character's escription data.
  * @returns {Escription|null}
@@ -303,7 +339,7 @@ Sprite_Character.prototype.isEmptyCharacter = function()
 /**
  * Parses the event comments on the character that belongs to this sprite.
  */
-Sprite_Character.prototype.parseCharacterEventComments = function()
+Sprite_Character.prototype.refreshCharacterEscription = function()
 {
   // grab the character.
   const character = this.character();
@@ -311,8 +347,11 @@ Sprite_Character.prototype.parseCharacterEventComments = function()
   // if there is no character, then there is no data.
   if (!character) return;
 
+  // you cannot escribe non-events.
+  if (!character.isEvent()) return;
+
   // parse the comments if there are any.
-  character.parseEscriptionComments();
+  character.refreshEscription();
 };
 //#endregion helpers
 
@@ -328,24 +367,30 @@ Sprite_Character.prototype.setCharacterBitmap = function()
   J.ESCRIBE.Aliased.Sprite_Character.get('setCharacterBitmap').call(this);
 
   // parse all the comments from the underlying sprite's character.
-  this.parseCharacterEventComments();
+  this.refreshCharacterEscription();
 
   // check if they have describe data after parsing.
   if (this.hasCharacterEscriptionData())
   {
     // then also setup their escription sprites.
-    this.setupDescribeSprites();
+    this.setupEscribeSprites();
   }
 };
 
 /**
  * Sets up the visual components of the describe for this event.
  */
-Sprite_Character.prototype.setupDescribeSprites = function()
+Sprite_Character.prototype.setupEscribeSprites = function()
 {
-  // setup the escription.
+  // setup the escription text and icon.
   this.setupDescribeText();
   this.setupDescribeIcon();
+
+  // grab the character.
+  const character = this.character();
+
+  // acknowledge the addition of the escribe data.
+  character.acknowledgeEscribeAddition();
 };
 
 /**
@@ -357,7 +402,7 @@ Sprite_Character.prototype.setupDescribeText = function()
   if (this.children.includes(this.escriptionTextSprite()))
   {
     // destroy it before creating anew.
-    this.escriptionTextSprite().destroy();
+    this.removeEscriptionTextData();
   }
 
   // create the sprite.
@@ -382,15 +427,15 @@ Sprite_Character.prototype.createDescribeTextSprite = function()
   this.setEscriptionText(describeText);
   this.setEscriptionTextProximity(describe.proximityTextRange());
 
+  // extract the x and character name from the underlying character.
+  const { _realX, _characterName } = this.character();
+
   // build the text sprite.
   const sprite = new Sprite_BaseText()
     .setText(describeText)
     .setFontSize(14)
     .setAlignment(Sprite_BaseText.Alignments.Center)
     .setColor("#ffffff");
-
-  // extract the x and character name from the underlying character.
-  const { _realX, _characterName } = this.character();
 
   // determine the location of the sprite.
   const x = _realX - (sprite.width / 2);
@@ -419,7 +464,7 @@ Sprite_Character.prototype.setupDescribeIcon = function()
   if (this.children.includes(this.escriptionIconSprite()))
   {
     // destroy it before creating anew.
-    this.escriptionIconSprite().destroy();
+    this.removeEscriptionIconData();
   }
 
   // create the sprite.
@@ -445,18 +490,15 @@ Sprite_Character.prototype.createDescribeIconSprite = function()
   this.setEscriptionIconProximity(describe.proximityIconRange());
 
   // extract the x and character name from the underlying character.
-  const { _realX, _characterName } = this.character();
+  const { _characterName } = this.character();
+
+  // determine the location of the sprite.
+  const x = 0 - (ImageManager.iconWidth / 2) - 4;
+  let y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
+  y -= 32;
 
   // build the sprite.
   const sprite = new Sprite_Icon(describeIconIndex);
-  const x = _realX - (ImageManager.iconWidth / 2) - 4;
-  let y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
-
-  // shift the sprite up a bit if we have text, too.
-  if (this.escriptionText())
-  {
-    y -= 24;
-  }
 
   // relocate the sprite.
   sprite.move(x, y);
@@ -473,6 +515,26 @@ Sprite_Character.prototype.createDescribeIconSprite = function()
 };
 //#endregion setup describe sprites
 
+/**
+ * Refreshes the escription data for the underlying character's escription data.
+ */
+Sprite_Character.prototype.refreshEscriptionIfNeeded = function()
+{
+  // check if this sprite needs to remove the escription data.
+  if (this.needsEscribeRemoval())
+  {
+    // remove it.
+    this.removeEscriptions();
+  }
+
+  // check if this sprite needs to be added based on its escription data.
+  if (this.needsEscribeAdding())
+  {
+    // add it.
+    this.setupEscribeSprites();
+  }
+};
+
 //#region update describe sprites
 /**
  * Hooks into the update function to update our describe sprites.
@@ -483,27 +545,108 @@ Sprite_Character.prototype.update = function()
   // perform original logic.
   J.ESCRIBE.Aliased.Sprite_Character.get('update').call(this);
 
+  // manage the updates of the escriptions.
+  this.updateEscriptions();
+};
+
+/**
+ * The update loop for managing the addition/removal/visibility of escriptions.
+ */
+Sprite_Character.prototype.updateEscriptions = function()
+{
+  // refresh the escription data tracked on this sprite.
+  this.refreshEscriptionIfNeeded();
+
   // check if the character has escribe data.
   if (this.hasCharacterEscriptionData())
   {
     // update the escription as-needed.
-    this.updateDescribe();
+    this.updateEscribe();
   }
+};
+
+/**
+ * Removes all escription data from this character sprite.
+ */
+Sprite_Character.prototype.removeEscriptions = function()
+{
+  // remove the text data.
+  this.removeEscriptionTextData();
+
+  // remove the icon data.
+  this.removeEscriptionIconData();
+
+  // grab the character.
+  const character = this.character();
+
+  // validate we have one before working on it.
+  if (character)
+  {
+    // acknowledge the removal.
+    character.acknowledgeEscribeRemoval();
+  }
+};
+
+/**
+ * Removes all escription text data.
+ */
+Sprite_Character.prototype.removeEscriptionTextData = function()
+{
+  // check if we already have the sprite.
+  if (this.escriptionTextSprite())
+  {
+    // destroy it before removal.
+    this.escriptionTextSprite().destroy();
+  }
+
+  // set the sprite back to null.
+  this.setEscriptionTextSprite(null);
+
+  // set the text to blank.
+  this.setEscriptionText(String.empty);
+
+  // set the proximity back to -1.
+  this.setEscriptionTextProximity(-1);
+};
+
+/**
+ * Removes all escription icon data.
+ */
+Sprite_Character.prototype.removeEscriptionIconData = function()
+{
+  // check if we already have the sprite.
+  if (this.escriptionIconSprite())
+  {
+    // destroy it before removal.
+    this.escriptionIconSprite().destroy();
+  }
+
+  // set the sprite back to null.
+  this.setEscriptionIconSprite(null);
+
+  // set the icon index back to default -1.
+  this.setEscriptionIconIndex(-1);
+
+  // set the proximity back to -1.
+  this.setEscriptionIconProximity(-1);
 };
 
 /**
  * Updates all describe sprites where applicable.
  */
-Sprite_Character.prototype.updateDescribe = function()
+Sprite_Character.prototype.updateEscribe = function()
 {
-  this.updateTextDescribe();
-  this.updateIconDescribe();
+  // update the text escribe data.
+  this.updateTextEscribe();
+
+  // update the icon escribe data.
+  this.updateIconEscribe();
 };
 
 /**
  * Manages the visibility of the describe text on this sprite's event.
  */
-Sprite_Character.prototype.updateTextDescribe = function()
+Sprite_Character.prototype.updateTextEscribe = function()
 {
   // don't try to update text without any text.
   if (!this.escriptionText()) return;
@@ -513,18 +656,18 @@ Sprite_Character.prototype.updateTextDescribe = function()
 
   if (this.characterCanSeeText())
   {
-    this.fadeInDescribeText();
+    this.fadeInEscribeText();
   }
   else
   {
-    this.fadeOutDescribeText();
+    this.fadeOutEscribeText();
   }
 };
 
 /**
  * Fades out the describe text.
  */
-Sprite_Character.prototype.fadeOutDescribeText = function()
+Sprite_Character.prototype.fadeOutEscribeText = function()
 {
   const sprite = this.escriptionTextSprite();
   if (sprite.opacity === 0) return;
@@ -541,7 +684,7 @@ Sprite_Character.prototype.fadeOutDescribeText = function()
 /**
  * Fades in the describe text.
  */
-Sprite_Character.prototype.fadeInDescribeText = function()
+Sprite_Character.prototype.fadeInEscribeText = function()
 {
   const sprite = this.escriptionTextSprite();
   if (sprite.opacity === 255) return;
@@ -558,7 +701,7 @@ Sprite_Character.prototype.fadeInDescribeText = function()
 /**
  * Manages visibility of the describe icon on this sprite's event.
  */
-Sprite_Character.prototype.updateIconDescribe = function()
+Sprite_Character.prototype.updateIconEscribe = function()
 {
   // don't try to update icon without any icon.
   if (this.escriptionIconIndex() < 0) return;
@@ -568,18 +711,18 @@ Sprite_Character.prototype.updateIconDescribe = function()
 
   if (this.characterCanSeeIcon())
   {
-    this.fadeInDescribeIcon();
+    this.fadeInEscribeIcon();
   }
   else
   {
-    this.fadeOutDescribeIcon();
+    this.fadeOutEscribeIcon();
   }
 };
 
 /**
  * Fades in the describe icon.
  */
-Sprite_Character.prototype.fadeOutDescribeIcon = function()
+Sprite_Character.prototype.fadeOutEscribeIcon = function()
 {
   const sprite = this.escriptionIconSprite();
   if (sprite.opacity === 0) return;
@@ -596,7 +739,7 @@ Sprite_Character.prototype.fadeOutDescribeIcon = function()
 /**
  * Fades out the describe icon.
  */
-Sprite_Character.prototype.fadeInDescribeIcon = function()
+Sprite_Character.prototype.fadeInEscribeIcon = function()
 {
   const sprite = this.escriptionIconSprite();
   if (sprite.opacity === 255) return;

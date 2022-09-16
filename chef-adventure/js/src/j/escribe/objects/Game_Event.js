@@ -36,6 +36,18 @@ Game_Event.prototype.initMembers = function()
    * @type {boolean}
    */
   this._j._event._playerNearbyIcon = null;
+
+  /**
+   * Whether or not the escription needs adding.
+   * @type {boolean}
+   */
+  this._j._event._needsAdding = false;
+
+  /**
+   * Whether or not the escription needs removal.
+   * @type {boolean}
+   */
+  this._j._event._needsRemoval = false;
 };
 
 /**
@@ -104,6 +116,36 @@ Game_Event.prototype.hasEscribeData = function()
   // return whether or not it is valid.
   return !!describe;
 };
+
+Game_Event.prototype.needsEscribeAdding = function()
+{
+  return this._j._event._needsAdding;
+};
+
+Game_Event.prototype.flagForEscribeAddition = function()
+{
+  this._j._event._needsAdding = true;
+};
+
+Game_Event.prototype.acknowledgeEscribeAddition = function()
+{
+  this._j._event._needsAdding = false;
+};
+
+Game_Event.prototype.needsEscribeRemoval = function()
+{
+  return this._j._event._needsRemoval;
+};
+
+Game_Event.prototype.flagForEscribeRemoval = function()
+{
+  this._j._event._needsRemoval = true;
+};
+
+Game_Event.prototype.acknowledgeEscribeRemoval = function()
+{
+  this._j._event._needsRemoval = false;
+};
 //#endregion properties
 
 /**
@@ -115,8 +157,19 @@ Game_Event.prototype.setupPage = function()
   // perform original logic.
   J.ESCRIBE.Aliased.Game_Event.get('setupPage').call(this);
 
+  // refresh the escription data for this event page.
+  this.refreshEscription();
+};
+
+/**
+ * Refreshes the escription data for this event based on the current page.
+ */
+Game_Event.prototype.refreshEscription = function()
+{
   // also parse the event comments for the data points we care about.
   this.parseEscriptionComments();
+
+  console.log(`refresh escription for event ${this.eventId()}: `, this);
 };
 
 /**
@@ -139,6 +192,18 @@ Game_Event.prototype.parseEscriptionComments = function()
     // build and set the escribe data.
     const describe = new Escription(text, iconIndex, proximityText, proximityIcon);
     this.setEscribeData(describe);
+
+    // flag for adding/updating this escribe data.
+    this.flagForEscribeAddition();
+  }
+  // we don't have valid text or icons.
+  else
+  {
+    // remove the escribe data.
+    this.setEscribeData(null);
+
+    // flag for removal if there is currently escribe data.
+    this.flagForEscribeRemoval();
   }
 };
 
@@ -220,12 +285,17 @@ Game_Event.prototype.update = function()
   // perform original logic.
   J.ESCRIBE.Aliased.Game_Event.get('update').call(this);
 
+  if (this.eventId() === 3)
+  {
+    console.log();
+  }
+
   // check if this event has describe data.
-  if (this.hasProximityDescribeData())
+  if (this.hasProximityEscriptionData())
   {
     // update the proximity information for each.
-    this.updateDescribeTextProximity();
-    this.updateDescribeIconProximity();
+    this.updateEscribeTextProximity();
+    this.updateEscribeIconProximity();
   }
 };
 
@@ -233,7 +303,7 @@ Game_Event.prototype.update = function()
  * Gets whether or not this event has a proximity describe associated with it.
  * @returns {boolean} True if there is something with proximity, false otherwise.
  */
-Game_Event.prototype.hasProximityDescribeData = function()
+Game_Event.prototype.hasProximityEscriptionData = function()
 {
   // grab the describe data.
   const describe = this.escribeData();
@@ -251,7 +321,7 @@ Game_Event.prototype.hasProximityDescribeData = function()
 /**
  * Updates whether or not the player is within proximity for the describe text to be visible.
  */
-Game_Event.prototype.updateDescribeTextProximity = function()
+Game_Event.prototype.updateEscribeTextProximity = function()
 {
   // grab the describe data.
   const describe = this.escribeData();
@@ -276,7 +346,7 @@ Game_Event.prototype.updateDescribeTextProximity = function()
 /**
  * Updates whether or not the player is within proximity for the describe icon to be visible.
  */
-Game_Event.prototype.updateDescribeIconProximity = function()
+Game_Event.prototype.updateEscribeIconProximity = function()
 {
   // grab the describe data.
   const describe = this.escribeData();
@@ -296,23 +366,5 @@ Game_Event.prototype.updateDescribeIconProximity = function()
     // disable the visibility of the icon.
     this.setPlayerNearbyForIcon(false);
   }
-};
-
-/**
- * Gets the distance in tiles between this event and the player.
- *
- * Uses pythagorean theorum.
- * @returns {number} The distance.
- */
-Game_Event.prototype.distanceFromPlayer = function()
-{
-  // calculate the distance to the player.
-  const distance = $gameMap.distance($gamePlayer.x, $gamePlayer.y, this.x, this.y);
-
-  // make sure the distance only goes out three decimals.
-  const constrainedDistance = parseFloat((distance).toFixed(3));
-
-  // return the calculated value.
-  return constrainedDistance;
 };
 //#endregion Game_Event
