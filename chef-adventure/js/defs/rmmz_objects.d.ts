@@ -4961,26 +4961,27 @@ declare class Game_Party extends Game_Unit {
      * @memberof Game_Party
      */
     reviveBattleMembers(): void;
-    items(): rm.types.Item[];
+
     /**
-     * Returns the weapons of the party.
+     * Returns the items of the party.
+     */
+    items(): RPG_Item[];
+    /**
+     * Gets all weapons the party owns.
      *
      * @returns {RPG_Weapon[]}
-     * @memberof Game_Party
      */
-    weapons(): rm.types.Weapon[];
+    weapons(): RPG_Weapon[];
     /**
-     * Returns the party's armor.
+     * Gets all armors the party owns.
      *
      * @returns {RPG_Armor[]}
-     * @memberof Game_Party
      */
-    armors(): rm.types.Armor[];
+    armors(): RPG_Armor[];
     /**
      * Returns the party's equippable items.
      *
      * @returns {RPG_EquipItem[]}
-     * @memberof Game_Party
      */
     equipItems(): RPG_EquipItem[];
     /**

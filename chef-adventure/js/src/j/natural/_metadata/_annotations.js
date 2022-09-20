@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 NATURAL] Enables level-based growth of all parameters.
+ * [v2.0.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -10,11 +10,12 @@
  * ============================================================================
  * OVERVIEW:
  * This plugin enables "Natural Growth", aka formulaic parameter growth, for
- * actors. This "Natural Growth" enables temporary/permanent stat growth while
+ * battlers. This "Natural Growth" enables temporary/permanent stat growth while
  * various tags are applied.
  *
  * Integrates with others of mine plugins:
  * - J-CriticalFactors; enables natural growths of CDM/CDR.
+ * - J-Passives; updates with relic gain as well.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
@@ -177,11 +178,14 @@
  * Custom Parameters:
  * - mtp (max tp)
  *
- * ==============================================================================
+ * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Buff tracking has been refactored to be more compatible with J-Passives.
+ *    Fixed issues with buffs/growths not being tracked correctly.
  * - 1.0.0
  *    Initial release.
- * ==============================================================================
+ * ============================================================================
  * @param actorBaseTp
  * @type number
  * @min 0

@@ -390,7 +390,7 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
   J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, forcing);
 
   // determine if the equips array changed from what it was before original logic.
-  const isChanged = !oldEquips.equals(this._equips);
+  const isChanged = this.haveEquipsChanged(oldEquips);
 
   // check if we did actually have change.
   if (isChanged)
@@ -398,6 +398,41 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
     // triggers the on-equip-change hook.
     this.onEquipChange();
   }
+};
+
+/**
+ * Determines whether or not the equips have changed since before.
+ * @param {Game_Item[]} oldEquips The old equips collection.
+ * @returns {boolean} True if there was a change in equips, false otherwise.
+ */
+Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
+{
+  // if the equip lengths are different, then we definitely have change.
+  if (oldEquips.length !== this._equips.length) return true;
+
+  // default to no change.
+  let hasDifferentEquips = false;
+
+  // iterate over all the old equips to compare with new.
+  oldEquips.forEach((oldEquip, index) =>
+  {
+    // check if their item id is the same.
+    const sameItemId = oldEquip.itemId() === this._equips[index].itemId();
+
+    // check if their equip type is the same.
+    const sameType = oldEquip._dataClass === this._equips[index]._dataClass;
+
+    // check if their underlying item is the same.
+    const sameInnerItem = oldEquip._item === this._equips[index]._item;
+
+    // if all three are the same, then no change.
+    if (sameItemId && sameType && sameInnerItem) return;
+
+    // something changed.
+    hasDifferentEquips = true;
+  });
+
+  return hasDifferentEquips;
 };
 
 /**

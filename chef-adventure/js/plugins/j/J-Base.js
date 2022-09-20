@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Sep 15 2022 08:10:48 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 20 2022 08:03:47 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -3026,7 +3026,6 @@ class IconManager
   /**
    * The constructor is not designed to be called.
    * This is a static class.
-   * @constructor
    */
   constructor()
   {
@@ -3625,6 +3624,118 @@ ImageManager.loadBitmapPromise = function(filename, directory)
 ImageManager.iconColumns = 16;
 
 //#endregion ImageManager
+
+/**
+ * A static class that handles retrieval of names of various types in the database.
+ */
+class NamesManager
+{
+  /**
+   * The constructor is not designed to be called.
+   * This is a static class.
+   */
+  constructor()
+  {
+    throw new Error("The TypesManager is a static class.");
+  }
+
+  /**
+   * Gets the armor type name from the database.
+   * @param {number} id The 1-based index of the armor type to get the name of.
+   * @returns {string} The name of the armor type.
+   */
+  static armorTypeName(id)
+  {
+    // return the armor type name.
+    return this.#getTypeNameByIdAndType(id, $dataSystem.armorTypes);
+  }
+
+  /**
+   * Gets the weapon type name from the database.
+   * @param {number} id The 1-based index of the weapon type to get the name of.
+   * @returns {string} The name of the weapon type.
+   */
+  static weaponTypeName(id)
+  {
+    // return the weapon type name.
+    return this.#getTypeNameByIdAndType(id, $dataSystem.weaponTypes);
+  }
+
+  /**
+   * Gets the skill type name from the database.
+   * @param {number} id The 1-based index of the skill type to get the name of.
+   * @returns {string} The name of the skill type.
+   */
+  static skillTypeName(id)
+  {
+    // return the skill type name.
+    return this.#getTypeNameByIdAndType(id, $dataSystem.skillTypes);
+  }
+
+  /**
+   * Gets the equip type name from the database.
+   * @param {number} id The 1-based index of the equip type to get the name of.
+   * @returns {string} The name of the equip type.
+   */
+  static equipTypeName(id)
+  {
+    // return the equip type name.
+    return this.#getTypeNameByIdAndType(id, $dataSystem.equipTypes);
+  }
+
+  /**
+   * Gets the equip type name from the database.
+   * @param {number} id The 1-based index of the equip type to get the name of.
+   * @returns {string} The name of the equip type.
+   */
+  static elementName(id)
+  {
+    // return the element name.
+    return this.#getTypeNameByIdAndType(id, $dataSystem.elements);
+  }
+
+  /**
+   * Gets a type name by its type collect and index.
+   * @param {number} id The 1-based index to get the type name of.
+   * @param {string[]} type The collection of names for a given type.
+   * @returns {string|String.empty} The requested type name, or an empty string if invalid.
+   */
+  static #getTypeNameByIdAndType(id, type)
+  {
+    // if the type is invalid, return an empty string and check the logs.
+    if (!this.#isValidTypeId(id, type)) return String.empty;
+
+    // return what we found.
+    return type.at(id);
+  }
+
+
+  /**
+   * Determines whether or not the id is a valid index for types.
+   * @param {number} id The 1-based index of the type to get the name of.
+   * @param {string[]} types The array of types to extract the name from.
+   * @returns {boolean} True if we can get the name, false otherwise.
+   */
+  static #isValidTypeId(id, types)
+  {
+    // check if the id was zero, then it was probably a mistake for 1.
+    if (id === 0)
+    {
+      console.error(`requested type id of [0] is always blank, and thus invalid.`);
+      return false;
+    }
+
+    // check if the id was higher than the number of types even available.
+    if (id >= types.length)
+    {
+      console.error(`requested type id of [${id}] is higher than the number of types.`);
+      return false;
+    }
+
+    // get the name!
+    return true;
+  }
+}
 
 //#region RPGManager
 /**
@@ -4315,7 +4426,7 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
   J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, forcing);
 
   // determine if the equips array changed from what it was before original logic.
-  const isChanged = !oldEquips.equals(this._equips);
+  const isChanged = this.haveEquipsChanged(oldEquips);
 
   // check if we did actually have change.
   if (isChanged)
@@ -4323,6 +4434,41 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
     // triggers the on-equip-change hook.
     this.onEquipChange();
   }
+};
+
+/**
+ * Determines whether or not the equips have changed since before.
+ * @param {Game_Item[]} oldEquips The old equips collection.
+ * @returns {boolean} True if there was a change in equips, false otherwise.
+ */
+Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
+{
+  // if the equip lengths are different, then we definitely have change.
+  if (oldEquips.length !== this._equips.length) return true;
+
+  // default to no change.
+  let hasDifferentEquips = false;
+
+  // iterate over all the old equips to compare with new.
+  oldEquips.forEach((oldEquip, index) =>
+  {
+    // check if their item id is the same.
+    const sameItemId = oldEquip.itemId() === this._equips[index].itemId();
+
+    // check if their equip type is the same.
+    const sameType = oldEquip._dataClass === this._equips[index]._dataClass;
+
+    // check if their underlying item is the same.
+    const sameInnerItem = oldEquip._item === this._equips[index]._item;
+
+    // if all three are the same, then no change.
+    if (sameItemId && sameType && sameInnerItem) return;
+
+    // something changed.
+    hasDifferentEquips = true;
+  });
+
+  return hasDifferentEquips;
 };
 
 /**
@@ -4514,7 +4660,53 @@ Game_Battler.prototype.onStateAdded = function(stateId)
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
+
+/**
+ * Gets all states on the battler.
+ * This can include other states from other plugins, too.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.allStates = function()
+{
+  // initialize our state collection.
+  const states = [];
+
+  // add in all base states.
+  states.push(...this.states());
+
+  // return that combined collection.
+  return states;
+};
 //#endregion Game_Battler
+
+//#region Game_BattlerBase
+/**
+ * Returns a list of known base parameter ids.
+ * @returns {number[]}
+ */
+Game_BattlerBase.prototype.knownBaseParameterIds = function()
+{
+  return [0, 1, 2, 3, 4, 5, 6, 7];
+};
+
+/**
+ * Returns a list of known sp-parameter ids.
+ * @returns {number[]}
+ */
+Game_BattlerBase.prototype.knownSpParameterIds = function()
+{
+  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+};
+
+/**
+ * Returns a list of known ex-parameter ids.
+ * @returns {number[]}
+ */
+Game_BattlerBase.prototype.knownExParameterIds = function()
+{
+  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+};
+//#endregion Game_BattlerBase
 
 /**
  * Determines if this character is actually a player.
@@ -4950,6 +5142,39 @@ Game_Party.prototype.numItems = function(item)
     ? container[item._key()] || 0
     // or just zero if we have no container.
     : 0;
+};
+
+/**
+ * Get all items, including duplicates based on quantity.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Party.prototype.allItemsQuantified = function()
+{
+  // grab a distinct list of all items in our possession.
+  const allItemsDistinct = this.allItems();
+
+  // initialize our collection.
+  const allItemsRepeated = [];
+
+  // iterate over the distinct items.
+  allItemsDistinct.forEach(baseItem =>
+  {
+    // get the number of items we have.
+    let count = this.numItems(baseItem) ?? 0;
+
+    // countdown while we still have some.
+    while (count > 0)
+    {
+      // add a copy of the item in.
+      allItemsRepeated.push(baseItem);
+
+      // decrement the counter.
+      count--;
+    }
+  }, this);
+
+  // return our quantified list.
+  return allItemsRepeated;
 };
 //#endregion Game_Party
 
@@ -5568,8 +5793,9 @@ class Sprite_BaseText extends Sprite
 //#endregion Sprite_BaseText
 
 /**
- * Gets the underlying `Game_Character` that this sprite represents on the map.
- * @returns {Game_Character}
+ * Gets the underlying `Game_Character` or its appropriate subclass that this
+ * sprite represents on the map.
+ * @returns {Game_Character|Game_Player|Game_Event|Game_Vehicle|Game_Follower}
  */
 Sprite_Character.prototype.character = function()
 {
@@ -6149,7 +6375,6 @@ class Sprite_Icon extends Sprite
      * @type {boolean}
      */
     this._j._isReady = false;
-
 
     /**
      * The icon index that this sprite represents.

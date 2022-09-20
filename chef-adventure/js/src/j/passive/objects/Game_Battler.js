@@ -132,15 +132,15 @@ Game_Battler.prototype.passiveSkillStates = function()
 };
 
 /**
- * Gets all states on the battler, including passive skill states.
+ * Extends {@link #allStates}.
+ * Includes states from passive skills as well.
  * @returns {RPG_State[]}
  */
+J.PASSIVE.Aliased.Game_Battler.set('allStates', Game_Battler.prototype.allStates);
 Game_Battler.prototype.allStates = function()
 {
-  const states = [];
-
-  // add in all base states.
-  states.push(...this.states());
+  // get all original states.
+  const states = J.PASSIVE.Aliased.Game_Battler.get('allStates').call(this);
 
   // add in all passive skill states.
   states.push(...this.passiveSkillStates());

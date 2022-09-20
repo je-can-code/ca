@@ -20,13 +20,16 @@ Game_Actor.prototype.initMembers = function()
 J.PASSIVE.Aliased.Game_Actor.set('traitObjects', Game_Actor.prototype.traitObjects);
 Game_Actor.prototype.traitObjects = function()
 {
+  // perform original logic.
   const originalObjects = J.PASSIVE.Aliased.Game_Actor.get('traitObjects').call(this);
 
-  // injects all state objects provided into the list of considered trait objects.
-  // this enforces them to be considered permanently, so long as the skill has
-  // not been .forgetSkill()-ed.
-  const passiveSkillStates = this.sourcesToPassiveSkillStates(originalObjects);
-  originalObjects.push(...passiveSkillStates);
+  // add our passive skill states.
+  originalObjects.push(...this.sourcesToPassiveSkillStates(originalObjects));
+
+  // add our passive items/weapons/armors states.
+  originalObjects.push(...$gameParty.passiveStates());
+
+  // add our passive items/weapons/armors states.
   return originalObjects;
 };
 
@@ -57,7 +60,7 @@ Game_Actor.prototype.forgetSkill = function(skillId)
 };
 
 /**
- * Extends `getCurrentWithNotes` to include passive skill states.
+ * Extends `getAllNotes` to include passive skill states.
  * @returns {RPG_BaseItem[]}
  */
 J.PASSIVE.Aliased.Game_Actor.set('getAllNotes', Game_Actor.prototype.getAllNotes);
@@ -67,7 +70,10 @@ Game_Actor.prototype.getAllNotes = function()
   const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getAllNotes').call(this);
 
   // then add all those currently applied passive skill states, too.
-  objectsWithNotes.push(...this.passiveSkillStates())
+  objectsWithNotes.push(...this.passiveSkillStates());
+
+  // also apply the party's effects.
+  objectsWithNotes.push(...$gameParty.passiveStates());
 
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;
@@ -84,7 +90,10 @@ Game_Actor.prototype.getCurrentWithNotes = function()
   const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getCurrentWithNotes').call(this);
 
   // then add all those currently applied passive skill states, too.
-  objectsWithNotes.push(...this.passiveSkillStates())
+  objectsWithNotes.push(...this.passiveSkillStates());
+
+  // also apply the party's effects.
+  objectsWithNotes.push(...$gameParty.passiveStates());
 
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;

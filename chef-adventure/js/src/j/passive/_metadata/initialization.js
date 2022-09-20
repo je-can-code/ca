@@ -20,14 +20,15 @@ J.PASSIVE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.1.0',
 };
 
 /**
  * All regular expressions used by this plugin.
  */
 J.PASSIVE.RegExp = {
-  PassiveStateId: /<passive:[ ]?(\[[\d, ]+])>/gi
+  PassiveStateIds: /<passive:[ ]?(\[[\d, ]+])>/gi,
+  UniquePassiveStateIds: /<uniquePassive:[ ]?(\[[\d, ]+])>/gi,
 };
 
 J.PASSIVE.Aliased = {
@@ -36,5 +37,6 @@ J.PASSIVE.Aliased = {
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
   Game_Enemy: new Map(),
+  Game_Party: new Map(),
 };
 //#endregion Introduction

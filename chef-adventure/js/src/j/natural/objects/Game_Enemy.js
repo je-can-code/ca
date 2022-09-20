@@ -1,5 +1,45 @@
 //#region Game_Enemy
 /**
+ * Extends {@link Game_Enemy.setup}.
+ * Includes parameter buff initialization.
+ */
+J.NATURAL.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
+Game_Enemy.prototype.setup = function(enemyId, x, y)
+{
+  // perform original logic.
+  J.NATURAL.Aliased.Game_Enemy.get('setup').call(this, enemyId, x, y);
+
+  // initialize the parameter buffs on this battler.
+  this.refreshAllParameterBuffs();
+};
+
+/**
+ * Extends {@link #onBattlerDataChange}.
+ * Also refreshes all natural parameter buff values on the battler.
+ */
+J.NATURAL.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
+Game_Enemy.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.NATURAL.Aliased.Game_Enemy.get('onBattlerDataChange').call(this);
+
+  // refresh all our buffs, something could've changed.
+  this.refreshAllParameterBuffs();
+};
+
+//#region max tp
+/**
+ * Gets the base max tp for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBaseMaxTp = function()
+{
+  return J.NATURAL.Metadata.BaseTpMaxEnemies;
+};
+//#endregion max tp
+
+//#region b params
+/**
  * Extends `.paramBase()` to include any additional growth bonuses as part of the base.
  */
 J.NATURAL.Aliased.Game_Enemy.set('paramBase', Game_Enemy.prototype.paramBase);
@@ -22,17 +62,17 @@ Game_Enemy.prototype.paramBase = function(paramId)
  */
 Game_Enemy.prototype.paramBaseNaturalBonuses = function(paramId)
 {
-  // get original value.
-  const baseParam = J.NATURAL.Aliased.Game_Enemy.get('paramBase').call(this, paramId);
-
   // determine the structure for this parameter.
   const structures = this.getRegexByParamId(paramId);
 
   // if there is no regexp, then don't try to do things.
   if (!structures) return 0;
 
+  // get original value.
+  const baseParam = J.NATURAL.Aliased.Game_Enemy.get('paramBase').call(this, paramId);
+
   // destructure into the plus and rate regexp structures.
-  const paramNaturalBonuses = this.getParamBaseNaturalBonuses(paramId, structures, baseParam);
+  const paramNaturalBonuses = this.getParamBaseNaturalBonuses(paramId, baseParam);
 
   // return result.
   return (paramNaturalBonuses);
@@ -42,22 +82,20 @@ Game_Enemy.prototype.paramBaseNaturalBonuses = function(paramId)
  * Gets all natural growths for this base parameter.
  * Enemies only have buffs.
  * @param {number} paramId The parameter id in question.
- * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
  * @param {number} baseParam The base parameter.
  * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
  */
-Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, structures, baseParam)
+Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 {
-  // destructure into the plus and rate regexp structures.
-  const [plusStructure, rateStructure] = structures;
-
   // determine temporary buff for this param.
-  const paramBuff = this.getParamBuff(baseParam, plusStructure, rateStructure);
+  const paramBuff = this.calculateBParamBuff(paramId, baseParam);
 
   // return result.
   return paramBuff;
 };
+//#endregion b params
 
+//#region ex params
 /**
  * Extends `.xparam()` to include any additional growth bonuses.
  */
@@ -106,16 +144,15 @@ Game_Enemy.prototype.xparamNaturalBonuses = function(xparamId)
  */
 Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, structures, baseParam)
 {
-  // destructure into the plus and rate regexp structures.
-  const [plusStructure, rateStructure] = structures;
-
   // determine temporary buff for this param.
-  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
+  const paramBuff = this.calculateExParamBuff(baseParam, xparamId);
 
   // return result.
   return paramBuff;
 };
+//#endregion ex params
 
+//#region sp params
 /**
  * Extends `.sparam()` to include any additional growth bonuses.
  */
@@ -165,22 +202,11 @@ Game_Enemy.prototype.sparamNaturalBonuses = function(sparamId)
  */
 Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, baseParam)
 {
-  // destructure into the plus and rate regexp structures.
-  const [plusStructure, rateStructure] = structures;
-
   // determine temporary buff for this param.
-  const paramBuff = this.getSXParamBuff(baseParam, plusStructure, rateStructure);
+  const paramBuff = this.calculateSpParamBuff(baseParam, sparamId);
 
   // return result.
   return paramBuff;
 };
-
-/**
- * Gets the base max tp for this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.getBaseMaxTp = function()
-{
-  return J.NATURAL.Metadata.BaseTpMaxEnemies;
-};
+//#endregion sp params
 //#endregion Game_Enemy

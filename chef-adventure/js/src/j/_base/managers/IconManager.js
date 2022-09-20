@@ -7,7 +7,6 @@ class IconManager
   /**
    * The constructor is not designed to be called.
    * This is a static class.
-   * @constructor
    */
   constructor()
   {

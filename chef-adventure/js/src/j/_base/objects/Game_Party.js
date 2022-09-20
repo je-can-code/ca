@@ -138,4 +138,37 @@ Game_Party.prototype.numItems = function(item)
     // or just zero if we have no container.
     : 0;
 };
+
+/**
+ * Get all items, including duplicates based on quantity.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Party.prototype.allItemsQuantified = function()
+{
+  // grab a distinct list of all items in our possession.
+  const allItemsDistinct = this.allItems();
+
+  // initialize our collection.
+  const allItemsRepeated = [];
+
+  // iterate over the distinct items.
+  allItemsDistinct.forEach(baseItem =>
+  {
+    // get the number of items we have.
+    let count = this.numItems(baseItem) ?? 0;
+
+    // countdown while we still have some.
+    while (count > 0)
+    {
+      // add a copy of the item in.
+      allItemsRepeated.push(baseItem);
+
+      // decrement the counter.
+      count--;
+    }
+  }, this);
+
+  // return our quantified list.
+  return allItemsRepeated;
+};
 //#endregion Game_Party

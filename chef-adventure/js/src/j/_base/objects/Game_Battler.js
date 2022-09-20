@@ -142,4 +142,21 @@ Game_Battler.prototype.onStateAdded = function(stateId)
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
+
+/**
+ * Gets all states on the battler.
+ * This can include other states from other plugins, too.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.allStates = function()
+{
+  // initialize our state collection.
+  const states = [];
+
+  // add in all base states.
+  states.push(...this.states());
+
+  // return that combined collection.
+  return states;
+};
 //#endregion Game_Battler

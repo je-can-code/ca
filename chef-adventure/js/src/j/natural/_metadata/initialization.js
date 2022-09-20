@@ -20,7 +20,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '2.0.0',
 };
 
 /**
@@ -36,8 +36,8 @@ J.NATURAL.Metadata.BaseTpMaxEnemies = Number(J.NATURAL.PluginParameters['enemyBa
 J.NATURAL.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
-  Game_BattlerBase: new Map(),
   Game_Enemy: new Map(),
+  Game_Party: new Map(),
 };
 
 /**
