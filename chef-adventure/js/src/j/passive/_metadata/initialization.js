@@ -31,6 +31,9 @@ J.PASSIVE.RegExp = {
   UniquePassiveStateIds: /<uniquePassive:[ ]?(\[[\d, ]+])>/gi,
 };
 
+/**
+ * The collection of all aliased classes for extending.
+ */
 J.PASSIVE.Aliased = {
   DataManager: new Map(),
   Game_Actor: new Map(),

@@ -174,9 +174,10 @@ J.BASE.Aliased = {
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
+  Game_Temp: new Map(),
   Scene_Load: new Map(),
   SoundManager: new Map(),
-  Window_Base: {},
+  Window_Base: new Map(),
   Window_Command: {},
   Window_Selectable: {},
 };

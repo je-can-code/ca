@@ -3,14 +3,14 @@
  * Extends the `.encounterStep()` function to modify by difficulty.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Map.set("encounterStep", Game_Map.prototype.encounterStep);
+J.DIFFICULTY.Aliased.Game_Map.set("encounterStep", Game_Map.prototype.encounterStep);
 Game_Map.prototype.encounterStep = function()
 {
   // grab the original value.
-  const originalValue = J.DIFF.Aliased.Game_Map.get("encounterStep").call(this);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Map.get("encounterStep").call(this);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
   const multiplier = appliedDifficulty.encounters / 100;

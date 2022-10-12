@@ -2311,14 +2311,13 @@ declare class Window extends PIXI.Container {
      * The image used as a window skin.
      *
      * @property windowskin
-     * @type Bitmap
+     * @type {Bitmap}
      */
     windowskin: Bitmap;
     /**
      * The bitmap used for the window contents.
      *
-     * @property contents
-     * @type Bitmap
+     * @type {Bitmap}
      */
     contents: Bitmap;
     /**

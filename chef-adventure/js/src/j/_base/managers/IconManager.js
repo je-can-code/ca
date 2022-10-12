@@ -28,7 +28,7 @@ class IconManager
    */
   static proficiencyBoost()
   {
-    return 125;
+    return 979;
   }
 
   /**
@@ -37,7 +37,7 @@ class IconManager
    */
   static movespeed()
   {
-    return 140;
+    return 978;
   }
 
   /**
@@ -46,7 +46,7 @@ class IconManager
    */
   static maxTp()
   {
-    return 34;
+    return 930;
   }
 
   /**
@@ -59,21 +59,21 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 32; // mhp
+        return 928; // mhp
       case  1:
-        return 33; // mmp
+        return 929; // mmp
       case  2:
-        return 35; // atk
+        return 931; // atk
       case  3:
-        return 36; // def
+        return 932; // def
       case  4:
-        return 37; // mat
+        return 933; // mat
       case  5:
-        return 38; // mdf
+        return 934; // mdf
       case  6:
-        return 39; // agi
+        return 935; // agi
       case  7:
-        return 40; // luk
+        return 936; // luk
     }
   }
 
@@ -87,25 +87,25 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 102; // hit
+        return 944; // hit
       case  1:
-        return 82; // eva (parry boost)
+        return 945; // eva (parry boost)
       case  2:
-        return 127; // cri
+        return 946; // cri
       case  3:
-        return 81; // cev
+        return 947; // cev
       case  4:
-        return 71; // mev
+        return 948; // mev
       case  5:
-        return 222; // mrf
+        return 949; // mrf
       case  6:
-        return 15; // cnt (autocounter)
+        return 950; // cnt (autocounter)
       case  7:
-        return 2153; // hrg
+        return 951; // hrg
       case  8:
-        return 2245; // mrg
+        return 952; // mrg
       case  9:
-        return 13; // trg
+        return 953; // trg
     }
   }
 
@@ -119,25 +119,25 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 14; // trg (aggro)
+        return 960;  // trg (aggro)
       case  1:
-        return 128; // grd (parry)
+        return 961; // grd (parry)
       case  2:
-        return 84; // rec
+        return 962;  // rec
       case  3:
-        return 209; // pha
+        return 963; // pha
       case  4:
-        return 189; // mcr (mp cost)
+        return 964; // mcr (mp cost)
       case  5:
-        return 126; // tcr (tp cost)
+        return 965; // tcr (tp cost)
       case  6:
-        return 129; // pdr
+        return 966; // pdr
       case  7:
-        return 147; // mdr
+        return 967; // mdr
       case  8:
-        return 141; // fdr
+        return 968; // fdr
       case  9:
-        return 156; // exr
+        return 969; // exr
     }
   }
 
@@ -292,6 +292,8 @@ class IconManager
         return 218; // tool crush
       case 27:
         return 1904;// tool ignite
+      case 28:
+        return 119; // tool overload
       default:
         return 93;  // a question mark for the unknown.
     }
@@ -468,7 +470,7 @@ class IconManager
         return 462;
       case 61: // action times percent boost - stackable.
         return 76;
-      case 63: // the collase, also known as the divider between transferable traits.
+      case 63: // the collapse, also known as the divider between transferable traits.
         return 25;
       case 62: // special flag - don't add the same twice.
         return this.specialFlag(trait._dataId);

@@ -6143,7 +6143,12 @@ declare class Game_System {
     onBattleWin(): void;
     onBattleEscape(): void;
     onBeforeSave(): void;
+
+    /**
+     * Hook for performing logic immediately after a save file's contents have been loaded.
+     */
     onAfterLoad(): void;
+
     /**
      * Returns the total play time.
      *

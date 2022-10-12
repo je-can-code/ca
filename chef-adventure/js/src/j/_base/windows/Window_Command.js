@@ -69,13 +69,14 @@ Window_Command.prototype.commandColor = function(index)
 };
 
 /**
- * An overload for the `addCommand()` function that adds additional metadata to a command.
+ * Overwrites {@link #addCommand}.
+ * Adds additional metadata to a command.
  * @param {string} name The visible name of this command.
  * @param {string} symbol The symbol for this command.
- * @param {boolean} enabled Whether or not this command is enabled.
- * @param {object} ext The extra data for this command.
- * @param {number} icon The icon index for this command.
- * @param {number} color The color index for this command.
+ * @param {boolean=} enabled Whether or not this command is enabled; defaults to true.
+ * @param {object=} ext The extra data for this command; defaults to null.
+ * @param {number=} icon The icon index for this command; defaults to 0.
+ * @param {number=} color The color index for this command; defaults to 0.
  */
 Window_Command.prototype.addCommand = function(
   name,
@@ -87,5 +88,28 @@ Window_Command.prototype.addCommand = function(
 )
 {
   this._list.push({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Identical to {@link #addCommand}, except that this adds the new command to
+ * the front of the list. This results in vertical lists having a new item prepended to
+ * the top, and in horizontal lists having a new item prepended to the left.
+ * @param {string} name The visible name of this command.
+ * @param {string} symbol The symbol for this command.
+ * @param {boolean=} enabled Whether or not this command is enabled; defaults to true.
+ * @param {object=} ext The extra data for this command; defaults to null.
+ * @param {number=} icon The icon index for this command; defaults to 0.
+ * @param {number=} color The color index for this command; defaults to 0.
+ */
+Window_Command.prototype.shiftCommand = function(
+  name,
+  symbol,
+  enabled = true,
+  ext = null,
+  icon = 0,
+  color = 0,
+)
+{
+  this._list.unshift({name, symbol, enabled, ext, icon, color});
 };
 //#endregion Window_Command

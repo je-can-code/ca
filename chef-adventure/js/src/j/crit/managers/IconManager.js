@@ -26,9 +26,9 @@ IconManager.critParam = function(paramId)
   switch (paramId)
   {
     case 0:
-      return 2225;    // cdm
+      return 976;    // cdm
     case 1:
-      return 2708;    // cdr
+      return 977;    // cdr
   }
 };
 //#endregion IconManager

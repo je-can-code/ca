@@ -2,9 +2,11 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 MSG] Gives access to more text codes in windows.
+ * [v1.1.0 MESSAGE] Gives access to more text codes in windows.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @base J-Base
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * This plugin extends the variety of text codes available in windows.
@@ -25,12 +27,21 @@
  * icon as well. This is because enemies don't have icons assigned to them.
  *
  * NEW TEXT CODES AVAILABLE:
+ *  From their own respectively named tabs
  *  \Weapon[ID]
  *  \Armor[ID]
  *  \Item[ID]
  *  \State[ID]
  *  \Skill[ID]
  *  \Enemy[ID]
+ *
+ *  From the "Types" tab:
+ *  \element[ID]
+ *  \equipType[ID]
+ *  \weaponType[ID]
+ *  \armorType[ID]
+ *  \skillType[ID]
+ *
  * Where ID is the id of the entry in the database.
  *
  * NEW TEXT CODES EXAMPLES:
@@ -63,5 +74,14 @@
  *  "so it is \*gilbert\*. We finally meet \_at last\_."
  * In the passage above, the word "gilbert" would be bolded.
  * In the passage above, the words "at least" would be italicized.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Implemented element, the four "types" from database data.
+ *    Added plugin dependency of J-Base.
+ * - 1.0.0
+ *    Initial release.
+ *    Implemented style toggles for bold and italics.
+ *    Implemented weapon/armor/item/state/skill/enemy names from database data.
  * ============================================================================
  */

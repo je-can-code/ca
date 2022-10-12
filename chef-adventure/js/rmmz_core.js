@@ -1148,15 +1148,13 @@ Point.prototype.initialize = function(x, y) {
 /**
  * The rectangle class.
  *
- * @class
- * @extends PIXI.Rectangle
- * @param {number} x - The x coordinate for the upper-left corner.
- * @param {number} y - The y coordinate for the upper-left corner.
- * @param {number} width - The width of the rectangle.
- * @param {number} height - The height of the rectangle.
+ * @param {number} x The `ox` coordinate.
+ * @param {number} y The `oy` coordinate.
+ * @param {number} width The width of the rectangle.
+ * @param {number} height The height of the rectangle.
  */
-function Rectangle() {
-    this.initialize(...arguments);
+function Rectangle(x, y, width, height) {
+    this.initialize(x, y, width, height);
 }
 
 Rectangle.prototype = Object.create(PIXI.Rectangle.prototype);
@@ -1169,10 +1167,6 @@ Rectangle.prototype.initialize = function(x, y, width, height) {
 //-----------------------------------------------------------------------------
 /**
  * The basic object that represents an image.
- *
- * @class
- * @param {number} width - The width of the bitmap.
- * @param {number} height - The height of the bitmap.
  */
 function Bitmap() {
     this.initialize(...arguments);
@@ -3541,8 +3535,7 @@ Object.defineProperty(Window.prototype, "windowskin", {
 /**
  * The bitmap used for the window contents.
  *
- * @type Bitmap
- * @name Window#contents
+ * @type {Bitmap}
  */
 Object.defineProperty(Window.prototype, "contents", {
     get: function() {

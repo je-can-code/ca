@@ -3,14 +3,14 @@
  * Extends the `.param(paramId)` function to modify by difficulty.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Enemy.set("param", Game_Enemy.prototype.param);
+J.DIFFICULTY.Aliased.Game_Enemy.set("param", Game_Enemy.prototype.param);
 Game_Enemy.prototype.param = function(paramId)
 {
   // grab the original value.
-  const originalValue = J.DIFF.Aliased.Game_Enemy.get("param").call(this, paramId);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("param").call(this, paramId);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
   const multiplier = appliedDifficulty.bparams[paramId] / 100;
@@ -24,14 +24,14 @@ Game_Enemy.prototype.param = function(paramId)
  * @param {number} sparamId The s-parameter id.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Enemy.set("sparam", Game_Enemy.prototype.sparam);
+J.DIFFICULTY.Aliased.Game_Enemy.set("sparam", Game_Enemy.prototype.sparam);
 Game_Enemy.prototype.sparam = function(sparamId)
 {
   // grab the original value.
-  const originalValue = J.DIFF.Aliased.Game_Enemy.get("sparam").call(this, sparamId);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("sparam").call(this, sparamId);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
   const multiplier = appliedDifficulty.sparams[sparamId] / 100;
@@ -45,13 +45,13 @@ Game_Enemy.prototype.sparam = function(sparamId)
  * @param {number} xparamId The x-parameter id.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Enemy.set("xparam", Game_Enemy.prototype.xparam);
+J.DIFFICULTY.Aliased.Game_Enemy.set("xparam", Game_Enemy.prototype.xparam);
 Game_Enemy.prototype.xparam = function(xparamId)
 {
-  const originalValue = J.DIFF.Aliased.Game_Enemy.get("xparam").call(this, xparamId);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("xparam").call(this, xparamId);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
   const multiplier = appliedDifficulty.xparams[xparamId] / 100;
@@ -64,14 +64,14 @@ Game_Enemy.prototype.xparam = function(xparamId)
  * Extends the `.exp()` function to modify by difficulty.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Enemy.set("exp", Game_Enemy.prototype.exp);
+J.DIFFICULTY.Aliased.Game_Enemy.set("exp", Game_Enemy.prototype.exp);
 Game_Enemy.prototype.exp = function()
 {
   // grab the original value.
-  const originalValue = J.DIFF.Aliased.Game_Enemy.get("exp").call(this);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("exp").call(this);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
   const multiplier = appliedDifficulty.exp / 100;
@@ -84,14 +84,14 @@ Game_Enemy.prototype.exp = function()
  * Extends the `.gold()` function to modify by difficulty.
  * @returns {number}
  */
-J.DIFF.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
+J.DIFFICULTY.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
 Game_Enemy.prototype.gold = function()
 {
   // grab the original value.
-  const originalValue = J.DIFF.Aliased.Game_Enemy.get("gold").call(this);
+  const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("gold").call(this);
 
   // grab the currently applied difficulty.
-  const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
   const multiplier = appliedDifficulty.gold / 100;
@@ -108,14 +108,14 @@ if (J.DROPS)
    * Extends the `.getBaseDropRate()` function to modify by difficulty.
    * @returns {number}
    */
-  J.DIFF.Aliased.Game_Enemy.set("getBaseDropRate", Game_Enemy.prototype.getBaseDropRate);
+  J.DIFFICULTY.Aliased.Game_Enemy.set("getBaseDropRate", Game_Enemy.prototype.getBaseDropRate);
   Game_Enemy.prototype.getBaseDropRate = function()
   {
     // grab the original value.
-    const originalValue = J.DIFF.Aliased.Game_Enemy.get("getBaseDropRate").call(this);
+    const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("getBaseDropRate").call(this);
 
     // grab the currently applied difficulty.
-    const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+    const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
     const multiplier = appliedDifficulty.drops / 100;
@@ -132,14 +132,14 @@ if (J.SDP)
    * Extends the `.sdpPoints()` function to modify by difficulty.
    * @returns {number}
    */
-  J.DIFF.Aliased.Game_Enemy.set("sdpPoints", Game_Enemy.prototype.sdpPoints);
+  J.DIFFICULTY.Aliased.Game_Enemy.set("sdpPoints", Game_Enemy.prototype.sdpPoints);
   Game_Enemy.prototype.sdpPoints = function()
   {
     // grab the original value.
-    const originalValue = J.DIFF.Aliased.Game_Enemy.get("sdpPoints").call(this);
+    const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("sdpPoints").call(this);
 
     // grab the currently applied difficulty.
-    const appliedDifficulty = $gameSystem.getAppliedDifficulty();
+    const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
     const multiplier = appliedDifficulty.sdp / 100;

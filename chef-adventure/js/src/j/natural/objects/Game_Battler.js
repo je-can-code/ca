@@ -508,7 +508,7 @@ J.NATURAL.Aliased.Game_Battler.set('paramBase', Game_Battler.prototype.paramBase
 Game_Battler.prototype.refreshBParamBuffs = function()
 {
   // a collection of known base parameter ids.
-  const paramIds = this.knownBaseParameterIds();
+  const paramIds = Game_BattlerBase.knownBaseParameterIds();
 
   // iterate over all of the known base parameter ids.
   paramIds.forEach(paramId =>
@@ -540,7 +540,7 @@ J.NATURAL.Aliased.Game_Battler.set('xparam', Game_Battler.prototype.xparam);
 Game_Battler.prototype.refreshXParamBuffs = function()
 {
   // a collection of known ex parameter ids.
-  const paramIds = this.knownExParameterIds();
+  const paramIds = Game_BattlerBase.knownExParameterIds();
 
   // iterate over all of the known ex parameter ids.
   paramIds.forEach(paramId =>
@@ -572,7 +572,7 @@ J.NATURAL.Aliased.Game_Battler.set('sparam', Game_Battler.prototype.sparam);
 Game_Battler.prototype.refreshSParamBuffs = function()
 {
   // a collection of known sp parameter ids.
-  const paramIds = this.knownSpParameterIds();
+  const paramIds = Game_BattlerBase.knownSpParameterIds();
 
   // iterate over all of the known sp parameter ids.
   paramIds.forEach(paramId =>

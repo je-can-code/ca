@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 13 2022 14:24:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Sep 27 2022 07:28:54 GMT-0700 (Pacific Daylight Time)  */
 
 /*:
  * @target MZ
@@ -148,25 +148,24 @@ Game_Player.prototype.battler = function()
 };
 
 /**
- * Extends {@link Game_Temp.initialize}.
- * Initializes all members of this class and adds our custom members.
- */
-J.UTILS.Aliased.Game_Temp.set('initialize', Game_Temp.prototype.initialize);
-Game_Temp.prototype.initialize = function()
-{
-  // perform original logic.
-  J.UTILS.Aliased.Game_Temp.get('initialize').call(this);
-
-  this.initMembers();
-};
-
-/**
+ * Extends {@link Game_Temp.prototype.initMembers}.
  * Intializes all additional members of this class.
  */
+J.UTILS.Aliased.Game_Temp.set('initMembers', Game_Temp.prototype.initMembers);
 Game_Temp.prototype.initMembers = function()
 {
-  this._j = {};
-  this._j._utils = {};
+  // perform original logic.
+  J.UTILS.Aliased.Game_Temp.get('initMembers').call(this);
+
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._utils ||= {};
 
   /**
    * Whether or not to use the click-to-log-event functionality.

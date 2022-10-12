@@ -45,7 +45,7 @@ Game_Party.prototype.initPassiveItemStates = function()
  * Gets all passive states ids currently applied to the party.
  * @returns {number[]}
  */
-Game_Party.prototype.getPassiveStatesTracker = function()
+Game_Party.prototype.passiveStateIds = function()
 {
   return this._j._passive._states;
 };

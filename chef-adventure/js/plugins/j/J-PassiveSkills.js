@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 20 2022 08:37:19 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Sep 21 2022 15:31:46 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -100,7 +100,7 @@
  * ============================================================================
  * CHANGELOG:
  * - 1.1.0
- *    Added passives for items as well.
+ *    Added passives for items/weapons/armors as well.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -139,6 +139,9 @@ J.PASSIVE.RegExp = {
   UniquePassiveStateIds: /<uniquePassive:[ ]?(\[[\d, ]+])>/gi,
 };
 
+/**
+ * The collection of all aliased classes for extending.
+ */
 J.PASSIVE.Aliased = {
   DataManager: new Map(),
   Game_Actor: new Map(),
@@ -648,7 +651,7 @@ Game_Party.prototype.initPassiveItemStates = function()
  * Gets all passive states ids currently applied to the party.
  * @returns {number[]}
  */
-Game_Party.prototype.getPassiveStatesTracker = function()
+Game_Party.prototype.passiveStateIds = function()
 {
   return this._j._passive._states;
 };

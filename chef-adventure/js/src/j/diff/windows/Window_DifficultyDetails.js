@@ -1,17 +1,28 @@
 //#region Window_DifficultyDetails
-class Window_DifficultyDetails extends Window_Base
+class Window_DifficultyDetails extends Window_Base 
 {
+  /**
+   * The difficulty being hovered over from the list.
+   * @type {DifficultyLayer}
+   */
+  hoveredDifficulty = null;
+
   /**
    * @constructor
    * @param {Rectangle} rect The rectangle that represents this window.
    */
-  constructor(rect)
+  constructor(rect) 
   {
+    // construct parent class.
     super(rect);
-    this.initMembers();
+
+    // refresh this window.
     this.refresh();
   }
 
+  /**
+   * The types of comparison that are valid when comparing parameter values.
+   */
   static ComparisonTypes = {
     SAME: "same",
     EASIER: "easier",
@@ -19,15 +30,34 @@ class Window_DifficultyDetails extends Window_Base
   };
 
   /**
-   * Initializes all members of this window.
+   * Gets the difficulty currently applied to the player.
+   * @returns {DifficultyLayer}
    */
-  initMembers()
+  getAppliedDifficulty()
   {
-    /**
-     * The difficulty being hovered over from the list.
-     * @type {Difficulty}
-     */
-    this.hoveredDifficulty = null;
+    return $gameTemp.getAppliedDifficulty();
+  }
+
+  /**
+   * Gets the difficulty currently being hovered over in the list.
+   * @returns {DifficultyLayer}
+   */
+  getHoveredDifficulty()
+  {
+    return this.hoveredDifficulty;
+  }
+
+  /**
+   * Sets the hovered difficulty.
+   * @param {DifficultyLayer} difficulty The new hovered difficulty.
+   */
+  setHoveredDifficulty(difficulty)
+  {
+    if (this.hoveredDifficulty !== difficulty)
+    {
+      this.hoveredDifficulty = difficulty;
+      this.refresh();
+    }
   }
 
   /**
@@ -43,157 +73,118 @@ class Window_DifficultyDetails extends Window_Base
   }
 
   /**
-   * Gets the difficulty currently applied to the player.
-   * @returns {Difficulty}
-   */
-  getAppliedDifficulty()
-  {
-    return $gameSystem.getAppliedDifficulty();
-  }
-
-  /**
-   * Gets the difficulty currently being hovered over in the list.
-   * @returns {Difficulty}
-   */
-  getHoveredDifficulty()
-  {
-    return this.hoveredDifficulty;
-  }
-
-  /**
-   * Sets the hovered difficulty.
-   * @param {Difficulty} difficulty The new hovered difficulty.
-   */
-  setHoveredDifficulty(difficulty)
-  {
-    if (this.hoveredDifficulty !== difficulty)
-    {
-      this.hoveredDifficulty = difficulty;
-      this.refresh();
-    }
-  }
-
-  /**
    * Draws the information of the compared difficulties.
    */
-  drawDifficultyInfo()
+  drawDifficultyInfo() 
   {
-    if (this.getAppliedDifficulty())
+    // check if the difficulty info can be drawn right now.
+    if (this.canDrawDifficultyInfo())
     {
-      this.drawComparedDifficulties();
+      // draw the difficulty.
+      this.drawDifficulty();
     }
   }
 
   /**
-   * Draws the comparison between two difficulties, the one applied and the one being hovered
-   * over by the cursor in the list.
+   * Determines whether or not the difficulty info can be drawn.
+   * @returns {boolean}
    */
-  drawComparedDifficulties()
+  canDrawDifficultyInfo()
+  {
+    // we cannot draw difficulty info if we don't have at least an applied difficulty.
+    if (!this.getAppliedDifficulty()) return false;
+
+    // draw the difficulty info!
+    return true;
+  }
+
+  /**
+   * Draws a single difficulty layer and all its relevant information.
+   */
+  drawDifficulty()
   {
     // remove any residual formatting.
     this.resetFontSettings();
 
     // get the difficulties.
-    const appliedDifficulty = this.getAppliedDifficulty();
     const hoveredDifficulty = this.getHoveredDifficulty();
 
     // draw the names.
-    this.drawComparedDifficultyNames(0, 0, 600, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyName(0, 0, 600, hoveredDifficulty);
+
 
     // establish some baselines for coordinates.
     const lh = this.lineHeight();
     const ox = 0;
-    const oy = lh * 3;
+    const oy = lh * 2;
     const bonusesOy = lh * 14;
 
     // draw all parameters.
-    this.drawBParams(ox+40, oy, appliedDifficulty, hoveredDifficulty);
-    this.drawSParams(ox+400, oy, appliedDifficulty, hoveredDifficulty);
-    this.drawXParams(ox+800, oy, appliedDifficulty, hoveredDifficulty);
+    this.drawBParams(ox + 40, oy, hoveredDifficulty);
+    this.drawSParams(ox + 320, oy, hoveredDifficulty);
+    this.drawXParams(ox + 600, oy, hoveredDifficulty);
 
     // draw all bonus difficulty modifiers.
-    this.drawDifficultyBonuses(ox+40, bonusesOy, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyBonuses(ox + 40, bonusesOy, hoveredDifficulty);
   }
 
   /**
-   * Draws the names of the two difficulties being compared.
+   * Draws the difficulty name with its icon.
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
+   * @param {DifficultyLayer} difficulty The currently applied difficulty.
    */
-  drawComparedDifficultyNames(x, y, w, appliedDifficulty, hoveredDifficulty)
+  drawDifficultyName(x, y, w, difficulty)
   {
-    const lh = this.lineHeight();
-    const modifiedX = x + 100;
+    // draw the icon for the difficulty.
+    this.drawIcon(difficulty.iconIndex, x, y);
 
-    const currentY = lh * 0;
-    this.drawText("Current:", x, currentY, w, "left");
-    this.drawComparedDifficultyName(modifiedX, currentY, w, appliedDifficulty.iconIndex, appliedDifficulty.name);
-
-    //this.drawText("→", x+150, y, w, "left");
-
-    const hoveredY = lh * 1;
-    this.drawText("Hovered:", x, hoveredY, w, "left");
-    this.drawComparedDifficultyName(modifiedX, hoveredY, w, hoveredDifficulty.iconIndex, hoveredDifficulty.name);
-  }
-
-  /**
-   * Draws the difficulty name at the designated location with its icon.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {number} iconIndex The index of the icon for the difficulty.
-   * @param {string} difficultyName The name for the difficulty.
-   */
-  drawComparedDifficultyName(x, y, w, iconIndex, difficultyName)
-  {
-    this.drawIcon(iconIndex, x, y);
-    this.drawText(`${difficultyName}`, x+32, y, w, "left");
+    // draw the name of the difficulty.
+    this.drawText(`${difficulty.name}`, x + 32, y, w, "left");
   }
 
   /**
    * Draws all the b-parameters.
    * @param {number} x The x coordinate.
    * @param {number} oy The origin y coordinate.
-   * @param {Difficulty} appliedDifficulty The applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The hovered/potential difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawBParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
+  drawBParams(x, oy, difficultyLayer)
   {
+    // if we have no difficulty, then do not draw.
+    if (!difficultyLayer) return;
+
+    // shorthand the height.
     const lh = this.lineHeight();
-    const {bparams} = appliedDifficulty;
-    const hoveredBparams = hoveredDifficulty.bparams ?? [];
-    bparams.forEach((bparam, index) =>
+
+    // iterate over each of the params.
+    difficultyLayer.bparams.forEach((bparam, index) =>
     {
       // determine the x:y for the applied rate.
       const paramY = (index * lh) + oy;
-      const parameterWidth = 120;
+      const paramWidth = 120;
 
       // get the icon index.
       const paramIconIndex = IconManager.param(index);
 
-      // get the current param rate we're drawing.
-      const appliedParamRate = bparam;
-
       // get the param name.
       const paramName = TextManager.param(index);
 
-      // get the potential param rate to draw.
-      const hoveredParamRate = hoveredBparams[index] ?? bparam;
+      // get the current param rate we're drawing.
+      const paramValue = bparam;
 
       // determine if bigger is better for this parameter.
       const biggerIsBetter = this.biggerIsBetterBParameters(index);
 
-      this.drawComparedParameters(
+      // draw the parameter.
+      this.drawDifficultyParam(
         x,
         paramY,
-        parameterWidth,
+        paramWidth,
         paramIconIndex,
         paramName,
-        appliedParamRate,
-        hoveredParamRate,
+        paramValue,
         biggerIsBetter);
     });
   }
@@ -202,19 +193,22 @@ class Window_DifficultyDetails extends Window_Base
    * Draws all the s-parameters.
    * @param {number} x The x coordinate.
    * @param {number} oy The origin y coordinate.
-   * @param {Difficulty} appliedDifficulty The applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The hovered/potential difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawSParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
+  drawSParams(x, oy, difficultyLayer)
   {
+    // if we have no difficulty, then do not draw.
+    if (!difficultyLayer) return;
+
+    // shorthand the height.
     const lh = this.lineHeight();
-    const {sparams} = appliedDifficulty;
-    const hoveredSparams = hoveredDifficulty.sparams ?? [];
-    sparams.forEach((sparam, index) =>
+
+    // iterate over each of the params.
+    difficultyLayer.sparams.forEach((sparam, index) =>
     {
       // determine the x:y for the rate.
       const paramY = (index * lh) + oy;
-      const parameterWidth = 120;
+      const paramWidth = 120;
 
       // get the icon index.
       const paramIconIndex = IconManager.sparam(index);
@@ -223,22 +217,19 @@ class Window_DifficultyDetails extends Window_Base
       const paramName = TextManager.sparam(index);
 
       // get the current xparam rate we're drawing.
-      const appliedParamRate = sparam;
-
-      // get the potential xparam rate to draw.
-      const hoveredParamRate = hoveredSparams[index] ?? sparam;
+      const paramValue = sparam;
 
       // determine if bigger is better for this parameter.
       const biggerIsBetter = this.biggerIsBetterSParameters(index);
 
-      this.drawComparedParameters(
+      // draw the parameter.
+      this.drawDifficultyParam(
         x,
         paramY,
-        parameterWidth,
+        paramWidth,
         paramIconIndex,
         paramName,
-        appliedParamRate,
-        hoveredParamRate,
+        paramValue,
         biggerIsBetter);
     });
   }
@@ -247,19 +238,22 @@ class Window_DifficultyDetails extends Window_Base
    * Draws all the x-parameters.
    * @param {number} x The x coordinate.
    * @param {number} oy The origin y coordinate.
-   * @param {Difficulty} appliedDifficulty The applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The hovered/potential difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawXParams(x, oy, appliedDifficulty, hoveredDifficulty = null)
+  drawXParams(x, oy, difficultyLayer)
   {
+    // if we have no difficulty, then do not draw.
+    if (!difficultyLayer) return;
+
+    // shorthand the height.
     const lh = this.lineHeight();
-    const {xparams} = appliedDifficulty;
-    const hoveredXparams = hoveredDifficulty.xparams ?? [];
-    xparams.forEach((xparam, index) =>
+
+    // iterate over each of the params.
+    difficultyLayer.xparams.forEach((xparam, index) =>
     {
       // determine the x:y for the rate.
       const paramY = (index * lh) + oy;
-      const parameterWidth = 120;
+      const paramWidth = 120;
 
       // get the icon index.
       const paramIconIndex = IconManager.xparam(index);
@@ -268,22 +262,19 @@ class Window_DifficultyDetails extends Window_Base
       const paramName = TextManager.xparam(index);
 
       // get the current param rate we're drawing.
-      const appliedParamRate = xparam;
-
-      // get the potential param rate to draw.
-      const hoveredParamRate = hoveredXparams[index] ?? xparam;
+      const paramValue = xparam;
 
       // determine if bigger is better for this parameter.
       const biggerIsBetter = this.biggerIsBetterXParameters(index);
 
-      this.drawComparedParameters(
+      // draw the parameter.
+      this.drawDifficultyParam(
         x,
         paramY,
-        parameterWidth,
+        paramWidth,
         paramIconIndex,
         paramName,
-        appliedParamRate,
-        hoveredParamRate,
+        paramValue,
         biggerIsBetter);
     });
   }
@@ -292,28 +283,37 @@ class Window_DifficultyDetails extends Window_Base
    * Draws all difficulty bonuses.
    * @param {number} x The x coordinate.
    * @param {number} oy The origin y coordinate.
-   * @param {Difficulty} appliedDifficulty The applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The hovered/potential difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawDifficultyBonuses(x, oy, appliedDifficulty, hoveredDifficulty = null)
+  drawDifficultyBonuses(x, oy, difficultyLayer)
   {
+    // if we have no difficulty, then do not draw.
+    if (!difficultyLayer) return;
+
+    // shorthand the height.
     const lh = this.lineHeight();
+
+    // all bonuses have the same width.
     const w = 120;
 
+    // coordinate exp.
     const expRateY = oy + (lh * 0);
-    this.drawDifficultyBonusExperience(x, expRateY, w, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyBonusExperience(x, expRateY, w, difficultyLayer);
 
+    // coordinate gold.
     const goldRateY = oy + (lh * 1);
-    this.drawDifficultyBonusGold(x, goldRateY, w, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyBonusGold(x, goldRateY, w, difficultyLayer);
 
+    // coordinate sdp.
     const sdpRateY = oy + (lh * 2);
-    this.drawDifficultyBonusSdp(x, sdpRateY, w, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyBonusSdp(x, sdpRateY, w, difficultyLayer);
 
+    // coordinate drops.
     const dropsRateY = oy + (lh * 3);
-    this.drawDifficultyBonusDrops(x, dropsRateY, w, appliedDifficulty, hoveredDifficulty);
+    this.drawDifficultyBonusDrops(x, dropsRateY, w, difficultyLayer);
 
-    const encountersRateY = oy + (lh * 4);
-    this.drawDifficultyBonusEncounters(x, encountersRateY, w, appliedDifficulty, hoveredDifficulty);
+    //const encountersRateY = oy + (lh * 4);
+    //this.drawDifficultyBonusEncounters(x, encountersRateY, w, difficultyLayer);
   }
 
   /**
@@ -321,16 +321,21 @@ class Window_DifficultyDetails extends Window_Base
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawDifficultyBonusExperience(x, y, w, appliedDifficulty, hoveredDifficulty)
+  drawDifficultyBonusExperience(x, y, w, difficultyLayer)
   {
+    // determine the icon for this bonus.
     const rateIconIndex = 87;
+
+    // determine the name for this bonus.
     const rateName = "EXP RATE";
-    const appliedRate = appliedDifficulty.exp;
-    const hoveredRate = hoveredDifficulty.exp ?? appliedRate;
-    this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
+
+    // grab the rate.
+    const { exp } = difficultyLayer;
+
+    // draw the parameter.
+    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, exp, true);
   }
 
   /**
@@ -338,33 +343,21 @@ class Window_DifficultyDetails extends Window_Base
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawDifficultyBonusGold(x, y, w, appliedDifficulty, hoveredDifficulty)
+  drawDifficultyBonusGold(x, y, w, difficultyLayer)
   {
+    // determine the icon for this bonus.
     const rateIconIndex = 2048;
-    const rateName = "GOLD RATE";
-    const appliedRate = appliedDifficulty.gold;
-    const hoveredRate = hoveredDifficulty.gold ?? appliedRate;
-    this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
-  }
 
-  /**
-   * Draws the bonus data for sdp acquired by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
-   */
-  drawDifficultyBonusSdp(x, y, w, appliedDifficulty, hoveredDifficulty)
-  {
-    const rateIconIndex = 445;
-    const rateName = "SDP RATE";
-    const appliedRate = appliedDifficulty.sdp;
-    const hoveredRate = hoveredDifficulty.sdp ?? appliedRate;
-    this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
+    // determine the name for this bonus.
+    const rateName = "GOLD RATE";
+
+    // grab the rate.
+    const { gold } = difficultyLayer;
+
+    // draw the parameter.
+    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, gold, true);
   }
 
   /**
@@ -372,16 +365,21 @@ class Window_DifficultyDetails extends Window_Base
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawDifficultyBonusDrops(x, y, w, appliedDifficulty, hoveredDifficulty)
+  drawDifficultyBonusDrops(x, y, w, difficultyLayer)
   {
+    // determine the icon for this bonus.
     const rateIconIndex = 208;
+
+    // determine the name for this bonus.
     const rateName = "DROP RATE";
-    const appliedRate = appliedDifficulty.drops;
-    const hoveredRate = hoveredDifficulty.drops ?? appliedRate;
-    this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
+
+    // grab the rate.
+    const { drops } = difficultyLayer;
+
+    // draw the parameter.
+    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, drops, true);
   }
 
   /**
@@ -389,169 +387,99 @@ class Window_DifficultyDetails extends Window_Base
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {Difficulty} appliedDifficulty The currently applied difficulty.
-   * @param {Difficulty} hoveredDifficulty The potential/hovered difficulty.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawDifficultyBonusEncounters(x, y, w, appliedDifficulty, hoveredDifficulty)
+  drawDifficultyBonusEncounters(x, y, w, difficultyLayer)
   {
+    // determine the icon for this bonus.
     const rateIconIndex = 914;
+
+    // determine the name for this bonus.
     const rateName = "ENCOUNTER RATE";
-    const appliedRate = appliedDifficulty.encounters;
-    const hoveredRate = hoveredDifficulty.encounters ?? appliedRate;
-    this.drawComparedParameters(x, y, w, rateIconIndex, rateName, appliedRate, hoveredRate, true);
+
+    // grab the rate.
+    const { encounters } = difficultyLayer;
+
+    // draw the parameter.
+    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, encounters, true);
   }
 
   /**
-   * Draws a pair of two compared parameters at the designated coordinates.
+   * Draws the bonus data for sdp acquired by the player.
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    * @param {number} w The width of the text.
-   * @param {number} paramIconIndex The icon index for the parameter.
-   * @param {string} paramName The name of this parameter.
-   * @param {number} appliedParameter The applied parameter- on the left.
-   * @param {number} hoveredParameter The hovered/potential parameter- on the right.
-   * @param {boolean} biggerIsBetter Whether or not bigger is better.
+   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
    */
-  drawComparedParameters(x, y, w, paramIconIndex, paramName, appliedParameter, hoveredParameter, biggerIsBetter)
+  drawDifficultyBonusSdp(x, y, w, difficultyLayer)
   {
+    // determine the icon for this bonus.
+    const rateIconIndex = 445;
+
+    // determine the name for this bonus.
+    const rateName = "SDP RATE";
+
+    // grab the rate.
+    const { sdp } = difficultyLayer;
+
+    // draw the parameter.
+    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, sdp, true);
+  }
+
+  /**
+   * Draws a single parameter in the context of difficulty modifiers.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The width of the text.
+   * @param {number} paramIconIndex The icon index to render with the modifier.
+   * @param {string} paramName The name of the parameter.
+   * @param {number} paramValue The value of the modifier.
+   * @param {boolean} biggerIsBetter True if bigger is better, false otherwise.
+   */
+  drawDifficultyParam(x, y, w, paramIconIndex, paramName, paramValue, biggerIsBetter)
+  {
+    // reset font for this text.
+    this.resetFontSettings();
+
     // draw the icon.
-    this.drawComparedIcon(x, y, paramIconIndex);
+    this.drawIcon(paramIconIndex, x-40, y);
 
     // draw the param name.
-    this.drawComparedParamName(x, y, w, paramName);
-
-    // draw the applied parameter- on the left.
-    this.drawComparedAppliedParameter(x+150, y, w, appliedParameter);
-
-    // draw the symbol representing the change- in the center.
-    this.drawComparisonSymbol(x+150, y, w, appliedParameter, hoveredParameter, biggerIsBetter);
-
-    // draw the hovered parameter- on the right.
-    this.drawComparedHoveredParameter(x+150, y, w, appliedParameter, hoveredParameter, biggerIsBetter);
-  }
-
-  /**
-   * Draws the icon for the parameter.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} paramIconIndex The icon index for the parameter.
-   */
-  drawComparedIcon(x, y, paramIconIndex)
-  {
-    // draw the icon first.
-    this.drawIcon(paramIconIndex, x-40, y);
-  }
-
-  /**
-   * Draws the name for the parameter.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {string} paramName The name of this parameter.
-   */
-  drawComparedParamName(x, y, w, paramName)
-  {
     this.drawText(paramName, x, y, w, "left");
-  }
 
-  /**
-   * Draws the currently applied parameter value.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {number} appliedParameter The value of the currently applied parameter.
-   */
-  drawComparedAppliedParameter(x, y, w, appliedParameter)
-  {
-    // reset font for this text.
-    this.resetFontSettings();
+    // determine the compared color against the default.
+    const comparedColor = this.getComparedColor(biggerIsBetter, paramValue, 100);
 
-    // draw the currently applied rate.
-    this.drawText(`${appliedParameter}`, x, y, w, "left");
+    // change the text color.
+    this.changeTextColor(comparedColor);
 
-    // cleanup font settings.
-    this.resetFontSettings();
-  }
+    // initialize the parameter value's sign to indicate increase/decrease from default.
+    let paramSign = String.empty;
 
-  /**
-   * Draws the comparison symbol for two compared parameters.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {number} appliedParameter The applied parameter- on the left.
-   * @param {number} hoveredParameter The hovered/potential parameter- on the right.
-   * @param {boolean} biggerIsBetter Whether or not bigger is better.
-   */
-  drawComparisonSymbol(x, y, w, appliedParameter, hoveredParameter, biggerIsBetter)
-  {
-    // reset font for this text.
-    this.resetFontSettings();
+    // check if greater than default.
+    if (paramValue > 100)
+    {
+      // add a plus.
+      paramSign = `+`;
+    }
 
-    // draw the symbol representing the change.
-    const comparisonSymbol = this.getComparisonSymbol(biggerIsBetter, appliedParameter, hoveredParameter);
-    this.drawText(`${comparisonSymbol}`, x, y, w, "center");
+    // draw the currently applied rate with its sign if applicable.
+    this.drawText(`${paramSign}${paramValue-100}`, x+150, y, w, "left");
 
     // cleanup font settings.
     this.resetFontSettings();
-  }
-
-  /**
-   * Draws the hovered/potential parameter on the left.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {number} appliedParameter The applied parameter- on the left.
-   * @param {number} hoveredParameter The hovered/potential parameter- on the right.
-   * @param {boolean} biggerIsBetter Whether or not bigger is better.
-   */
-  drawComparedHoveredParameter(x, y, w, appliedParameter, hoveredParameter, biggerIsBetter)
-  {
-    // swap the color to indicate at-a-glance the impact of this difficulty change.
-    const hoveredColor = this.getComparedColor(biggerIsBetter, appliedParameter, hoveredParameter);
-    this.changeTextColor(hoveredColor);
-
-    // draw the currently hovered rate.
-    this.drawText(`${hoveredParameter}`, x, y, w, "right");
-
-    // cleanup font settings.
-    this.resetFontSettings();
-  }
-
-  /**
-   * Gets the symbol displayed between two compared parameters to indicate whether there is no
-   * change, the change makes it easier, or the change makes it harder.
-   * @param {boolean} biggerIsBetter Whether or not a bigger parameter is better.
-   * @param {number} appliedParameter The currently applied parameter.
-   * @param {number} targetParameter The potential parameter to change to.
-   * @returns {string} A single character representing this change; could also just be a string.
-   */
-  getComparisonSymbol(biggerIsBetter, appliedParameter, targetParameter)
-  {
-    return "→";
-
-    // TODO: maybe implement this someday.
-    // const comparison = this.determineComparisonType(biggerIsBetter, appliedParameter, targetParameter);
-    // switch (comparison)
-    // {
-    //   case Window_DifficultyDetails.ComparisonTypes.SAME:
-    //     return '=';
-    //   case Window_DifficultyDetails.ComparisonTypes.EASIER:
-    //     return '😀';
-    //   case Window_DifficultyDetails.ComparisonTypes.HARDER:
-    //     return '😡';
-    // }
   }
 
   /**
    * Gets the text color for the compared/hovered parameter value.
    * @param {boolean} biggerIsBetter Whether or not a bigger parameter is better.
-   * @param {number} appliedParameter The currently applied parameter.
-   * @param {number} targetParameter The potential parameter to change to.
+   * @param {number} paramValue The currently applied parameter.
+   * @param {number} comparisonValue The potential parameter to change to.
    * @returns {string} The color string.
    */
-  getComparedColor(biggerIsBetter, appliedParameter, targetParameter)
+  getComparedColor(biggerIsBetter, paramValue, comparisonValue)
   {
-    const comparison = this.determineComparisonType(biggerIsBetter, appliedParameter, targetParameter);
+    const comparison = this.determineComparisonType(biggerIsBetter, paramValue, comparisonValue);
     switch (comparison)
     {
       case Window_DifficultyDetails.ComparisonTypes.SAME:
@@ -569,15 +497,15 @@ class Window_DifficultyDetails extends Window_Base
    * parameter was changed to the next parameter. In most cases, reducing a parameter would make it
    * easier, so the boolean is typically set to false- but not always.
    * @param {boolean} biggerIsBetter Whether or not a bigger parameter is better.
-   * @param {number} appliedParameter The currently applied parameter.
-   * @param {number} targetParameter The potential parameter to change to.
+   * @param {number} baseValue The currently applied parameter.
+   * @param {number} comparisonValue The potential parameter to change to.
    * @returns {Window_DifficultyDetails.ComparisonTypes} One of "SAME", "EASIER", or "HARDER".
    */
-  determineComparisonType(biggerIsBetter, appliedParameter, targetParameter)
+  determineComparisonType(biggerIsBetter, baseValue, comparisonValue)
   {
-    const isSame = (appliedParameter === targetParameter);
-    const targetParameterBigger = (appliedParameter < targetParameter);
-    const isImprovement = (biggerIsBetter === targetParameterBigger);
+    const isSame = (baseValue === comparisonValue);
+    const baseIsBigger = (baseValue > comparisonValue);
+    const isImprovement = (biggerIsBetter === baseIsBigger);
     if (isSame)
     {
       return Window_DifficultyDetails.ComparisonTypes.SAME;
@@ -613,7 +541,7 @@ class Window_DifficultyDetails extends Window_Base
       false, // luk
     ];
 
-    return biggerIsBetterBParameters[bparamId] ?? false;
+    return biggerIsBetterBParameters.at(bparamId) ?? false;
   }
 
   /**

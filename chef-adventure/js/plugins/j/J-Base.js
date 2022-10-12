@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 20 2022 08:03:47 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Oct 11 2022 16:16:18 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -221,9 +221,10 @@ J.BASE.Aliased = {
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
+  Game_Temp: new Map(),
   Scene_Load: new Map(),
   SoundManager: new Map(),
-  Window_Base: {},
+  Window_Base: new Map(),
   Window_Command: {},
   Window_Selectable: {},
 };
@@ -2534,6 +2535,121 @@ ColorManager.longParam = function(paramId)
       return 0;
   }
 };
+
+/**
+ *
+ * @param {number} elementId The element id to get a color for.
+ * @returns {rm.types.Color}
+ */
+// eslint-disable-next-line
+ColorManager.element = function(elementId)
+{
+  switch (elementId)
+  {
+    case -1:    // inherits element from parent.
+      return this.textColor(0);
+    case 0:     // true
+      return this.textColor(17);
+    case 1:     // cut
+      return this.textColor(7);
+    case 2:     // poke
+      return this.textColor(8);
+    case 3:     // blunt
+      return this.textColor(25);
+    case 4:     // heat
+      return this.textColor(18);
+    case 5:     // liquid
+      return this.textColor(23);
+    case 6:     // air
+      return this.textColor(8);
+    case 7:     // ground
+      return this.textColor(25);
+    case 8:     // energy
+      return this.textColor(6);
+    case 9:     // void
+      return this.textColor(26);
+    case 10:    // typeless
+      return this.textColor(0);
+    case 11:    // vs undead
+      return this.textColor(2);
+    case 12:    // vs reptile
+      return this.textColor(2);
+    case 13:    // vs aquatic
+      return this.textColor(2);
+    case 14:    // vs slime
+      return this.textColor(2);
+    case 15:    // vs plants
+      return this.textColor(2);
+    case 16:    // vs beast
+      return this.textColor(2);
+    case 17:    // vs insect
+      return this.textColor(2);
+    case 18:    // vs humanoid
+      return this.textColor(2);
+    case 19:    // vs construct
+      return this.textColor(2);
+    case 20:    // vs deity
+      return this.textColor(2);
+    case 21:    // x weaponry
+      return this.textColor(27);
+    case 22:    // x flying
+      return this.textColor(27);
+    case 23:    // x shields
+      return this.textColor(27);
+    case 24:    // x aura
+      return this.textColor(27);
+    case 25:    // tool shatter
+      return this.textColor(20);
+    case 26:    // tool crush
+      return this.textColor(20);
+    case 27:    // tool ignite
+      return this.textColor(20);
+    case 28:    // tool overload
+      return this.textColor(20);
+    default:
+      return this.textColor(0);
+  }
+};
+
+/**
+ * Gets the color index of the given skill type.
+ * @param {number} skillTypeId The id to get the color for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.skillType = function(skillTypeId)
+{
+  return this.textColor(1);
+};
+
+/**
+ * Gets the color index of the given weapon type.
+ * @param {number} weaponTypeId The id to get the color for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.weaponType = function(weaponTypeId)
+{
+  return this.textColor(2);
+};
+
+/**
+ * Gets the color index of the given armor type.
+ * @param {number} armorTypeId The id to get the color for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.armorType = function(armorTypeId)
+{
+  return this.textColor(3);
+};
+
+/**
+ * Gets the color index of the given equip type.
+ * @param {number} equipTypeId The id to get the color for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.equipType = function(equipTypeId)
+{
+  return this.textColor(4);
+};
 //#endregion ColorManager
 
 //#region DataManager
@@ -3047,7 +3163,7 @@ class IconManager
    */
   static proficiencyBoost()
   {
-    return 125;
+    return 979;
   }
 
   /**
@@ -3056,7 +3172,7 @@ class IconManager
    */
   static movespeed()
   {
-    return 140;
+    return 978;
   }
 
   /**
@@ -3065,7 +3181,7 @@ class IconManager
    */
   static maxTp()
   {
-    return 34;
+    return 930;
   }
 
   /**
@@ -3078,21 +3194,21 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 32; // mhp
+        return 928; // mhp
       case  1:
-        return 33; // mmp
+        return 929; // mmp
       case  2:
-        return 35; // atk
+        return 931; // atk
       case  3:
-        return 36; // def
+        return 932; // def
       case  4:
-        return 37; // mat
+        return 933; // mat
       case  5:
-        return 38; // mdf
+        return 934; // mdf
       case  6:
-        return 39; // agi
+        return 935; // agi
       case  7:
-        return 40; // luk
+        return 936; // luk
     }
   }
 
@@ -3106,25 +3222,25 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 102; // hit
+        return 944; // hit
       case  1:
-        return 82; // eva (parry boost)
+        return 945; // eva (parry boost)
       case  2:
-        return 127; // cri
+        return 946; // cri
       case  3:
-        return 81; // cev
+        return 947; // cev
       case  4:
-        return 71; // mev
+        return 948; // mev
       case  5:
-        return 222; // mrf
+        return 949; // mrf
       case  6:
-        return 15; // cnt (autocounter)
+        return 950; // cnt (autocounter)
       case  7:
-        return 2153; // hrg
+        return 951; // hrg
       case  8:
-        return 2245; // mrg
+        return 952; // mrg
       case  9:
-        return 13; // trg
+        return 953; // trg
     }
   }
 
@@ -3138,25 +3254,25 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 14; // trg (aggro)
+        return 960;  // trg (aggro)
       case  1:
-        return 128; // grd (parry)
+        return 961; // grd (parry)
       case  2:
-        return 84; // rec
+        return 962;  // rec
       case  3:
-        return 209; // pha
+        return 963; // pha
       case  4:
-        return 189; // mcr (mp cost)
+        return 964; // mcr (mp cost)
       case  5:
-        return 126; // tcr (tp cost)
+        return 965; // tcr (tp cost)
       case  6:
-        return 129; // pdr
+        return 966; // pdr
       case  7:
-        return 147; // mdr
+        return 967; // mdr
       case  8:
-        return 141; // fdr
+        return 968; // fdr
       case  9:
-        return 156; // exr
+        return 969; // exr
     }
   }
 
@@ -3311,6 +3427,8 @@ class IconManager
         return 218; // tool crush
       case 27:
         return 1904;// tool ignite
+      case 28:
+        return 119; // tool overload
       default:
         return 93;  // a question mark for the unknown.
     }
@@ -3487,7 +3605,7 @@ class IconManager
         return 462;
       case 61: // action times percent boost - stackable.
         return 76;
-      case 63: // the collase, also known as the divider between transferable traits.
+      case 63: // the collapse, also known as the divider between transferable traits.
         return 25;
       case 62: // special flag - don't add the same twice.
         return this.specialFlag(trait._dataId);
@@ -3624,118 +3742,6 @@ ImageManager.loadBitmapPromise = function(filename, directory)
 ImageManager.iconColumns = 16;
 
 //#endregion ImageManager
-
-/**
- * A static class that handles retrieval of names of various types in the database.
- */
-class NamesManager
-{
-  /**
-   * The constructor is not designed to be called.
-   * This is a static class.
-   */
-  constructor()
-  {
-    throw new Error("The TypesManager is a static class.");
-  }
-
-  /**
-   * Gets the armor type name from the database.
-   * @param {number} id The 1-based index of the armor type to get the name of.
-   * @returns {string} The name of the armor type.
-   */
-  static armorTypeName(id)
-  {
-    // return the armor type name.
-    return this.#getTypeNameByIdAndType(id, $dataSystem.armorTypes);
-  }
-
-  /**
-   * Gets the weapon type name from the database.
-   * @param {number} id The 1-based index of the weapon type to get the name of.
-   * @returns {string} The name of the weapon type.
-   */
-  static weaponTypeName(id)
-  {
-    // return the weapon type name.
-    return this.#getTypeNameByIdAndType(id, $dataSystem.weaponTypes);
-  }
-
-  /**
-   * Gets the skill type name from the database.
-   * @param {number} id The 1-based index of the skill type to get the name of.
-   * @returns {string} The name of the skill type.
-   */
-  static skillTypeName(id)
-  {
-    // return the skill type name.
-    return this.#getTypeNameByIdAndType(id, $dataSystem.skillTypes);
-  }
-
-  /**
-   * Gets the equip type name from the database.
-   * @param {number} id The 1-based index of the equip type to get the name of.
-   * @returns {string} The name of the equip type.
-   */
-  static equipTypeName(id)
-  {
-    // return the equip type name.
-    return this.#getTypeNameByIdAndType(id, $dataSystem.equipTypes);
-  }
-
-  /**
-   * Gets the equip type name from the database.
-   * @param {number} id The 1-based index of the equip type to get the name of.
-   * @returns {string} The name of the equip type.
-   */
-  static elementName(id)
-  {
-    // return the element name.
-    return this.#getTypeNameByIdAndType(id, $dataSystem.elements);
-  }
-
-  /**
-   * Gets a type name by its type collect and index.
-   * @param {number} id The 1-based index to get the type name of.
-   * @param {string[]} type The collection of names for a given type.
-   * @returns {string|String.empty} The requested type name, or an empty string if invalid.
-   */
-  static #getTypeNameByIdAndType(id, type)
-  {
-    // if the type is invalid, return an empty string and check the logs.
-    if (!this.#isValidTypeId(id, type)) return String.empty;
-
-    // return what we found.
-    return type.at(id);
-  }
-
-
-  /**
-   * Determines whether or not the id is a valid index for types.
-   * @param {number} id The 1-based index of the type to get the name of.
-   * @param {string[]} types The array of types to extract the name from.
-   * @returns {boolean} True if we can get the name, false otherwise.
-   */
-  static #isValidTypeId(id, types)
-  {
-    // check if the id was zero, then it was probably a mistake for 1.
-    if (id === 0)
-    {
-      console.error(`requested type id of [0] is always blank, and thus invalid.`);
-      return false;
-    }
-
-    // check if the id was higher than the number of types even available.
-    if (id >= types.length)
-    {
-      console.error(`requested type id of [${id}] is higher than the number of types.`);
-      return false;
-    }
-
-    // get the name!
-    return true;
-  }
-}
 
 //#region RPGManager
 /**
@@ -4032,6 +4038,131 @@ TextManager.longParam = function(paramId)
       return String.empty;
   }
 };
+
+/**
+ * Gets the armor type name from the database.
+ * @param {number} id The 1-based index of the armor type to get the name of.
+ * @returns {string} The name of the armor type.
+ */
+TextManager.armorType = function(id)
+{
+  // return the armor type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.armorTypes);
+};
+
+/**
+ * Gets the weapon type name from the database.
+ * @param {number} id The 1-based index of the weapon type to get the name of.
+ * @returns {string} The name of the weapon type.
+ */
+TextManager.weaponType = function(id)
+{
+  // return the weapon type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.weaponTypes);
+};
+
+/**
+ * Gets the skill type name from the database.
+ * @param {number} id The 1-based index of the skill type to get the name of.
+ * @returns {string} The name of the skill type.
+ */
+TextManager.skillType = function(id)
+{
+  // return the skill type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.skillTypes);
+};
+
+/**
+ * Gets the equip type name from the database.
+ * @param {number} id The 1-based index of the equip type to get the name of.
+ * @returns {string} The name of the equip type.
+ */
+TextManager.equipType = function(id)
+{
+  // return the equip type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.equipTypes);
+};
+
+/**
+ * Gets the element name from the database.
+ * `-1` and `0` are special cases,
+ * the former being for weapon attack elements,
+ * the latter being for "none" element.
+ * @param {number} id The index of the element to get the name of.
+ * @returns {string} The name of the element type.
+ */
+TextManager.element = function(id)
+{
+  switch (true)
+  {
+    case (id === -1):
+      return this.weaponElementsName();
+    case (id === 0):
+      return this.neutralElementName();
+    default:
+      return this.getTypeNameByIdAndType(id, $dataSystem.elements);
+  }
+};
+
+/**
+ * The name for the element which is governed by all elements currently
+ * applied to your weapon.
+ * @returns {string}
+ */
+TextManager.weaponElementsName = function()
+{
+  return '(Basic Attack)';
+};
+
+/**
+ * The name for the element which is supposed to be "None" in the database,
+ * @returns {string}
+ */
+TextManager.neutralElementName = function()
+{
+  return 'Neutral';
+};
+
+/**
+ * Gets a type name by its type collect and index.
+ * @param {number} id The 1-based index to get the type name of.
+ * @param {string[]} type The collection of names for a given type.
+ * @returns {string|String.empty} The requested type name, or an empty string if invalid.
+ */
+TextManager.getTypeNameByIdAndType = function(id, type)
+{
+  // if the type is invalid, return an empty string and check the logs.
+  if (!this.isValidTypeId(id, type)) return String.empty;
+
+  // return what we found.
+  return type.at(id);
+};
+
+/**
+ * Determines whether or not the id is a valid index for types.
+ * @param {number} id The 1-based index of the type to get the name of.
+ * @param {string[]} types The array of types to extract the name from.
+ * @returns {boolean} True if we can get the name, false otherwise.
+ */
+TextManager.isValidTypeId = function(id, types)
+{
+  // check if the id was zero, then it was probably a mistake for 1.
+  if (id === 0 && types !== $dataSystem.elements)
+  {
+    console.error(`requested type id of [0] is always blank, and thus invalid.`);
+    return false;
+  }
+
+  // check if the id was higher than the number of types even available.
+  if (id >= types.length)
+  {
+    console.error(`requested type id of [${id}] is higher than the number of types.`);
+    return false;
+  }
+
+  // get the name!
+  return true;
+}
 //#endregion TextManager
 
 //#region Game_Actor
@@ -4684,7 +4815,7 @@ Game_Battler.prototype.allStates = function()
  * Returns a list of known base parameter ids.
  * @returns {number[]}
  */
-Game_BattlerBase.prototype.knownBaseParameterIds = function()
+Game_BattlerBase.knownBaseParameterIds = function()
 {
   return [0, 1, 2, 3, 4, 5, 6, 7];
 };
@@ -4693,7 +4824,7 @@ Game_BattlerBase.prototype.knownBaseParameterIds = function()
  * Returns a list of known sp-parameter ids.
  * @returns {number[]}
  */
-Game_BattlerBase.prototype.knownSpParameterIds = function()
+Game_BattlerBase.knownSpParameterIds = function()
 {
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 };
@@ -4702,7 +4833,7 @@ Game_BattlerBase.prototype.knownSpParameterIds = function()
  * Returns a list of known ex-parameter ids.
  * @returns {number[]}
  */
-Game_BattlerBase.prototype.knownExParameterIds = function()
+Game_BattlerBase.knownExParameterIds = function()
 {
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 };
@@ -5188,6 +5319,29 @@ Game_Player.prototype.isPlayer = function()
   return true;
 };
 //#endregion Game_Player
+
+//#region Game_Temp
+/**
+ * Extends {@link Game_Temp.initialize}.
+ * Initializes all members of this class and adds our custom members.
+ */
+J.BASE.Aliased.Game_Temp.set('initialize', Game_Temp.prototype.initialize);
+Game_Temp.prototype.initialize = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Temp.get('initialize').call(this);
+
+  // initialize our class members.
+  this.initMembers();
+};
+
+/**
+ * A hook for initializing temporary members in {@link Game_Temp}.
+ */
+Game_Temp.prototype.initMembers = function()
+{
+};
+//#endregion Game_Temp
 
 //#region Sprite_ActorValue
 /**
@@ -6937,6 +7091,141 @@ Window_Base.prototype.drawVerticalLine = function(x, y, height, width = 2)
 {
   this.drawRect(x, y, width, height);
 };
+
+/**
+ * Clears the bitmaps associated with the window if available.
+ */
+Window_Base.prototype.clearContent = function()
+{
+  // check if we have a bitmap to clear.
+  if (this.contents)
+  {
+    // clear it.
+    this.contents.clear();
+  }
+
+  // check if we have a background to clear.
+  if (this.contentsBack)
+  {
+    // clear it, too.
+    this.contentsBack.clear();
+  }
+};
+
+/**
+ * Refreshes the window by clearing its bitmaps and redrawing the content.
+ */
+Window_Base.prototype.refresh = function()
+{
+  // clears the existing bitmaps' content.
+  this.clearContent();
+
+  // redraws all the content.
+  this.drawContent();
+};
+
+/**
+ * Draws the content of this window.
+ */
+Window_Base.prototype.drawContent = function()
+{
+  // implement.
+};
+
+/**
+ * Extends {@link Window_Base.resetFontSettings}.
+ * Also resets bold and italics.
+ */
+J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetFontSettings);
+Window_Base.prototype.resetFontSettings = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Window_Base.get('resetFontSettings').call(this);
+
+  // also reset the italics/bold back to false.
+  this.resetFontFormatting();
+};
+
+/**
+ * Resets bold and italics for this bitmap.
+ */
+Window_Base.prototype.resetFontFormatting = function()
+{
+  this.contents.fontItalic = false;
+  this.contents.fontBold = false;
+};
+
+/**
+ * Gets the minimum font size.
+ * @returns {number}
+ */
+Window_Base.prototype.minimumFontSize = function()
+{
+  return 8;
+};
+
+/**
+ * Gets the maximum font size.
+ * @returns {number}
+ */
+Window_Base.prototype.maximumFontSize = function()
+{
+  return 96;
+};
+
+/**
+ * Clamps a font size value to fit within the min and max font size.
+ * @param {number} fontSize The font size to normalize.
+ * @returns {number}
+ */
+Window_Base.prototype.normalizeFontSize = function(fontSize)
+{
+  // calculate the projected font size.
+  let projectedFontSize = fontSize;
+
+  // clamp our minimum value.
+  projectedFontSize = Math.max(this.minimumFontSize(), projectedFontSize);
+
+  // clamp our maximum value.
+  projectedFontSize = Math.min(this.maximumFontSize(), projectedFontSize);
+
+  // return our acceptale font size value.
+  return projectedFontSize;
+};
+
+/**
+ * Modify the font size by a given amount.
+ * Will clamp the value between the min and max font sizes.
+ * @param {number} amount The amount to add to the font size to change it.
+ */
+Window_Base.prototype.modFontSize = function(amount)
+{
+  // calculate the projected font size.
+  const projectedFontSize = this.contents.fontSize + amount;
+
+  // normalize the font size.
+  const normalizedFontSize = this.normalizeFontSize(projectedFontSize);
+
+  // assign the projected size as the real size.
+  this.contents.fontSize = normalizedFontSize;
+};
+
+/**
+ * Sets the font size to a given amount.
+ * Will clamp the value between the min and max font sizes.
+ * @param {number} fontSize The new potential font size to change it to.
+ */
+Window_Base.prototype.setFontSize = function(fontSize)
+{
+  // calculate the projected font size.
+  const projectedFontSize = fontSize;
+
+  // normalize the font size.
+  const normalizedFontSize = this.normalizeFontSize(projectedFontSize);
+
+  // set the font size to the new size.
+  this.contents.fontSize = normalizedFontSize;
+};
 //#endregion Window_Base
 
 //#region Window_Command
@@ -7010,13 +7299,14 @@ Window_Command.prototype.commandColor = function(index)
 };
 
 /**
- * An overload for the `addCommand()` function that adds additional metadata to a command.
+ * Overwrites {@link #addCommand}.
+ * Adds additional metadata to a command.
  * @param {string} name The visible name of this command.
  * @param {string} symbol The symbol for this command.
- * @param {boolean} enabled Whether or not this command is enabled.
- * @param {object} ext The extra data for this command.
- * @param {number} icon The icon index for this command.
- * @param {number} color The color index for this command.
+ * @param {boolean=} enabled Whether or not this command is enabled; defaults to true.
+ * @param {object=} ext The extra data for this command; defaults to null.
+ * @param {number=} icon The icon index for this command; defaults to 0.
+ * @param {number=} color The color index for this command; defaults to 0.
  */
 Window_Command.prototype.addCommand = function(
   name,
@@ -7028,6 +7318,29 @@ Window_Command.prototype.addCommand = function(
 )
 {
   this._list.push({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Identical to {@link #addCommand}, except that this adds the new command to
+ * the front of the list. This results in vertical lists having a new item prepended to
+ * the top, and in horizontal lists having a new item prepended to the left.
+ * @param {string} name The visible name of this command.
+ * @param {string} symbol The symbol for this command.
+ * @param {boolean=} enabled Whether or not this command is enabled; defaults to true.
+ * @param {object=} ext The extra data for this command; defaults to null.
+ * @param {number=} icon The icon index for this command; defaults to 0.
+ * @param {number=} color The color index for this command; defaults to 0.
+ */
+Window_Command.prototype.shiftCommand = function(
+  name,
+  symbol,
+  enabled = true,
+  ext = null,
+  icon = 0,
+  color = 0,
+)
+{
+  this._list.unshift({name, symbol, enabled, ext, icon, color});
 };
 //#endregion Window_Command
 

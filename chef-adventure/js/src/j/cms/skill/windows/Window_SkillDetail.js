@@ -429,7 +429,7 @@ class Window_SkillDetail extends Window_Base
     attackElements.push(...Game_Action.extractElementsFromAction(skill));
     attackElements.forEach(attackElement =>
     {
-      const elementName = $dataSystem.elements[attackElement] ?? `(Basic Attack)`;
+      const elementName = TextManager.element(attackElement) ?? `(Basic Attack)`;
       const iconIndex = IconManager.element(attackElement);
       const paramName = `\\I[${iconIndex}]\\C[6]${elementName}\\C[0]`;
       elementParams.push(new JCMS_ParameterKvp(paramName))

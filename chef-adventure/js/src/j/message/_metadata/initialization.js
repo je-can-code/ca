@@ -6,12 +6,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.MSG = {};
+J.MESSAGE = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.MSG.Metadata =
+J.MESSAGE.Metadata =
   {
     /**
      * The name of this plugin.
@@ -21,13 +21,13 @@ J.MSG.Metadata =
     /**
      * The version of this plugin.
      */
-    Version: '1.0.0',
+    Version: '1.1.0',
   };
 
 /**
  * A collection of all base aliases.
  */
-J.MSG.Aliased =
+J.MESSAGE.Aliased =
   {
     Window_Base: new Map(),
   };

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 20 2022 08:37:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Oct 03 2022 15:00:37 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -425,8 +425,6 @@ Game_Actor.prototype.onBattlerDataChange = function()
 
   // refresh all our buffs, something could've changed.
   this.refreshAllParameterBuffs();
-
-  console.log('refreshed all parameter buffs on this battler!');
 };
 
 //#region max tp
@@ -778,7 +776,7 @@ Game_Actor.prototype.applyNaturalMaxTpGrowths = function()
 Game_Actor.prototype.applyNaturalBparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownBaseParameterIds();
+  const paramIds = Game_BattlerBase.knownBaseParameterIds();
 
   // iterate over the known base parameter ids.
   paramIds.forEach(paramId =>
@@ -830,7 +828,7 @@ Game_Actor.prototype.getGrowthRegexByBparamId = function(paramId)
 Game_Actor.prototype.applyNaturalXparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownExParameterIds();
+  const paramIds = Game_BattlerBase.knownExParameterIds();
 
   // iterate over the known ex parameter ids.
   paramIds.forEach(paramId =>
@@ -884,7 +882,7 @@ Game_Actor.prototype.getGrowthRegexByXparamId = function(xparamId)
 Game_Actor.prototype.applyNaturalSparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownSpParameterIds();
+  const paramIds = Game_BattlerBase.knownSpParameterIds();
 
   // iterate over the known sp parameter ids.
   paramIds.forEach(paramId =>
@@ -1451,7 +1449,7 @@ J.NATURAL.Aliased.Game_Battler.set('paramBase', Game_Battler.prototype.paramBase
 Game_Battler.prototype.refreshBParamBuffs = function()
 {
   // a collection of known base parameter ids.
-  const paramIds = this.knownBaseParameterIds();
+  const paramIds = Game_BattlerBase.knownBaseParameterIds();
 
   // iterate over all of the known base parameter ids.
   paramIds.forEach(paramId =>
@@ -1483,7 +1481,7 @@ J.NATURAL.Aliased.Game_Battler.set('xparam', Game_Battler.prototype.xparam);
 Game_Battler.prototype.refreshXParamBuffs = function()
 {
   // a collection of known ex parameter ids.
-  const paramIds = this.knownExParameterIds();
+  const paramIds = Game_BattlerBase.knownExParameterIds();
 
   // iterate over all of the known ex parameter ids.
   paramIds.forEach(paramId =>
@@ -1515,7 +1513,7 @@ J.NATURAL.Aliased.Game_Battler.set('sparam', Game_Battler.prototype.sparam);
 Game_Battler.prototype.refreshSParamBuffs = function()
 {
   // a collection of known sp parameter ids.
-  const paramIds = this.knownSpParameterIds();
+  const paramIds = Game_BattlerBase.knownSpParameterIds();
 
   // iterate over all of the known sp parameter ids.
   paramIds.forEach(paramId =>

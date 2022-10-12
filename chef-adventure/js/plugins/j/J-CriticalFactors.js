@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 13 2022 14:24:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Tue Oct 11 2022 16:16:10 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -280,9 +280,9 @@ IconManager.critParam = function(paramId)
   switch (paramId)
   {
     case 0:
-      return 2225;    // cdm
+      return 976;    // cdm
     case 1:
-      return 2708;    // cdr
+      return 977;    // cdr
   }
 };
 //#endregion IconManager

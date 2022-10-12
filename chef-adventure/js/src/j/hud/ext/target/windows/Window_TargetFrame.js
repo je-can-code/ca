@@ -471,7 +471,7 @@ class Window_TargetFrame extends Window_Base
   drawTargetName(x, y)
   {
     let name = `\\FS[24]${this.targetName()}`;
-    if (J.MSG)
+    if (J.MESSAGE)
     {
       name = `\\*`+ name;
     }

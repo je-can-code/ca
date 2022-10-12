@@ -2,8 +2,9 @@
 /**
  * A class governing a single difficulty and the way it impacts the game parameters.
  */
-class Difficulty
+class DifficultyMetadata
 {
+  //#region properties
   /**
    * The name of the difficulty, visually to the player.
    * @type {string}
@@ -29,6 +30,14 @@ class Difficulty
   iconIndex = 0;
 
   /**
+   * The cost required to enable this difficulty.
+   * @type {number}
+   */
+  cost = 0;
+  //#endregion properties
+
+  //#region params
+  /**
    * The base/b-parameter multipliers.
    * The array aligns percent multipliers against the matching index's parameters.
    * @type {[number, number, number, number, number, number, number, number]}
@@ -48,7 +57,9 @@ class Difficulty
    * @type {[number, number, number, number, number, number, number, number, number, number]}
    */
   xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  //#endregion params
 
+  //#region bonuses
   /**
    * The bonus multiplier for experience earned by the player.
    * @type {number}
@@ -78,9 +89,18 @@ class Difficulty
    * @type {number}
    */
   encounters = 100;
+  //#endregion bonuses
+
+  //#region access
+  /**
+   * Whether or not this difficulty is enabled.
+   * When a difficulty is enabled, its global effects are applied.
+   * @type {boolean}
+   */
+  enabled = false;
 
   /**
-   * Whether or not this difficulty is unlocked and available for selection.
+   * Whether or not this difficulty is unlocked and can be enabled/disabled.
    * @type {boolean}
    */
   unlocked = true;
@@ -90,88 +110,6 @@ class Difficulty
    * @type {boolean}
    */
   hidden = false;
-
-  /**
-   * Gets the b-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  bparam(paramId)
-  {
-    return this.bparams[paramId];
-  }
-
-  /**
-   * Gets the s-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  sparam(paramId)
-  {
-    return this.sparams[paramId];
-  }
-
-  /**
-   * Gets the x-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  xparam(paramId)
-  {
-    return this.xparams[paramId];
-  }
-
-  /**
-   * Determines whether or not this difficulty is unlocked.
-   * @returns {boolean}
-   */
-  isUnlocked()
-  {
-    return this.unlocked;
-  }
-
-  /**
-   * Locks this difficulty, making it unavailable for the player to select.
-   */
-  lock()
-  {
-    this.unlocked = false;
-  }
-
-  /**
-   * Unlocks this difficulty, making it available for the player to select.
-   */
-  unlock()
-  {
-    this.unlocked = true;
-  }
-
-  /**
-   * Determines whether or not this difficulty is hidden in the list.
-   * @returns {boolean}
-   */
-  isHidden()
-  {
-    return this.hidden;
-  }
-
-  /**
-   * Hides this difficulty, making it no longer listed in the difficulty list.
-   */
-  hide()
-  {
-    this.hidden = true;
-  }
-
-  /**
-   * Unhides this difficulty, making it visible in the dififculty list.
-   */
-  unhide()
-  {
-    this.hidden = false;
-  }
+  //#endregion access
 }
 //#endregion Difficulty

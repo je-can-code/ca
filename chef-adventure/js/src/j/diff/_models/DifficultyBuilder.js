@@ -8,15 +8,21 @@ class DifficultyBuilder
   #key = String.empty;
   #description = String.empty;
   #iconIndex = 0;
+  #cost = 0;
+
   #bparams = [100, 100, 100, 100, 100, 100, 100, 100];
   #sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
   #xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
   #exp = 100;
   #gold = 100;
   #sdp = 100;
   #drops = 100;
   #encounters = 100;
+
+  #enabled = false;
   #unlocked = true;
+  #hidden = false;
 
   /**
    * Constructor.
@@ -31,25 +37,38 @@ class DifficultyBuilder
 
   /**
    * Builds the difficulty with its current configuration.
-   * @returns {Difficulty}
+   * @returns {DifficultyMetadata}
    */
   build()
   {
-    const difficulty = new Difficulty();
+    // start the difficulty here.
+    const difficulty = new DifficultyMetadata();
+
+    // assign the core data.
     difficulty.name = this.#name;
     difficulty.key = this.#key;
     difficulty.description = this.#description;
     difficulty.iconIndex = this.#iconIndex;
+    difficulty.cost = this.#cost;
+
+    // assign the parameters.
     difficulty.bparams = this.#bparams;
     difficulty.sparams = this.#sparams;
     difficulty.xparams = this.#xparams;
+
+    // assign the bonuses.
     difficulty.exp = this.#exp;
     difficulty.gold = this.#gold;
     difficulty.sdp = this.#sdp;
     difficulty.drops = this.#drops;
     difficulty.encounters = this.#encounters;
-    difficulty.unlocked = this.#unlocked;
 
+    // assign the access booleans.
+    difficulty.enabled = this.#enabled;
+    difficulty.unlocked = this.#unlocked;
+    difficulty.hidden = this.#hidden;
+
+    // return the built product.
     return difficulty;
   }
 
@@ -77,9 +96,27 @@ class DifficultyBuilder
     return this;
   }
 
+  setCost(cost)
+  {
+    this.#cost = cost;
+    return this;
+  }
+
   setBparam(paramId, value)
   {
     this.#bparams[paramId] = value;
+    return this;
+  }
+
+  modBparam(paramId, value)
+  {
+    this.#bparams[paramId] += value;
+    return this;
+  }
+
+  setBparams(value)
+  {
+    this.#bparams = value;
     return this;
   }
 
@@ -89,9 +126,33 @@ class DifficultyBuilder
     return this;
   }
 
+  modSparam(paramId, value)
+  {
+    this.#sparams[paramId] += value;
+    return this;
+  }
+
+  setSparams(value)
+  {
+    this.#sparams = value;
+    return this;
+  }
+
   setXparam(paramId, value)
   {
     this.#xparams[paramId] = value;
+    return this;
+  }
+
+  modXparam(paramId, value)
+  {
+    this.#xparams[paramId] += value;
+    return this;
+  }
+
+  setXparams(value)
+  {
+    this.#xparams = value;
     return this;
   }
 
@@ -128,6 +189,18 @@ class DifficultyBuilder
   setUnlocked(unlocked)
   {
     this.#unlocked = unlocked;
+    return this;
+  }
+
+  setEnabled(enabled)
+  {
+    this.#enabled = enabled;
+    return this;
+  }
+
+  setHidden(hidden)
+  {
+    this.#hidden = hidden;
     return this;
   }
 }

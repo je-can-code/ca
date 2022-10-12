@@ -488,44 +488,12 @@ declare class PluginManager {
     static loadScript(name: string): void;
     static onError(e: Event): void;
     /**
-     * Regsters a new plugin command in MZ using a lambda expression
-     * The Variable of the lambda should be transformed into the appropriate
-     * typed def struct for your use case for your command.
-     * Example Syntax For Commented Parameters
-     *
-     *```js
-     * //Should be in comment
-     * @command PluginCommandFunctionName
-     * @text My Plugin Command
-     * @desc Plugin Command Description Text
-     * @arg Actors
-     * @text Which Actors?
-     * @type actor[]
-     * @desc Select which Actor ID(s) to affect.
-     * @default ["1"]
-     * @arg State
-     * @text State
-     * @type state
-     * @desc Which State to apply?
-     * @default 1
-     * PluginManager.registerCommand("TestPlugin", "PluginCommandFunctionName", args => {
-     * // Get Arguments
-     * const actorIds = JSON.parse(args.Actors);
-     * const stateId = args.State;
-     * // Use the arguments
-     * for (const actorId of actorIds) {
-     * const actor = $gameParty.members().find(member => member.actorId() === Number(actorId));
-     * if (actor) {
-     * actor.addState(stateId);
-     * }
-     * }
-     * });
-     * ```
+     * Registers a new plugin command in MZ using a function expression.
      * @param pluginName
      * @param commandName
-     * @param lambda
+     * @param func
      */
-    static registerCommand(pluginName: string, commandName: string, lambda: (arg0: any) => void): void;
+    static registerCommand(pluginName: string, commandName: string, func: (arg0: any) => void): void;
 }
 
 /**

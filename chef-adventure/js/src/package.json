@@ -84,8 +84,8 @@
     "once:log": "node utils/combine.js ./j/log ../plugins/j J-Log.js",
     "watch:log": "nodemon -L utils/combine.js ./j/log ../plugins/j J-Log.js",
 
-    "once:msg": "node utils/combine.js ./j/msg ../plugins/j J-MessageTextCodes.js",
-    "watch:msg": "nodemon -L utils/combine.js ./j/msg ../plugins/j J-MessageTextCodes.js",
+    "once:message": "node utils/combine.js ./j/message ../plugins/j J-MessageTextCodes.js",
+    "watch:message": "nodemon -L utils/combine.js ./j/message ../plugins/j J-MessageTextCodes.js",
 
     "once:natural": "node utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",
     "watch:natural": "nodemon -L utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",

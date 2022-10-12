@@ -98,7 +98,7 @@
  * ============================================================================
  * CHANGELOG:
  * - 1.1.0
- *    Added passives for items as well.
+ *    Added passives for items/weapons/armors as well.
  * - 1.0.0
  *    Initial release.
  * ============================================================================

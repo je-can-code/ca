@@ -25,8 +25,6 @@ Game_Actor.prototype.onBattlerDataChange = function()
 
   // refresh all our buffs, something could've changed.
   this.refreshAllParameterBuffs();
-
-  console.log('refreshed all parameter buffs on this battler!');
 };
 
 //#region max tp
@@ -378,7 +376,7 @@ Game_Actor.prototype.applyNaturalMaxTpGrowths = function()
 Game_Actor.prototype.applyNaturalBparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownBaseParameterIds();
+  const paramIds = Game_BattlerBase.knownBaseParameterIds();
 
   // iterate over the known base parameter ids.
   paramIds.forEach(paramId =>
@@ -430,7 +428,7 @@ Game_Actor.prototype.getGrowthRegexByBparamId = function(paramId)
 Game_Actor.prototype.applyNaturalXparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownExParameterIds();
+  const paramIds = Game_BattlerBase.knownExParameterIds();
 
   // iterate over the known ex parameter ids.
   paramIds.forEach(paramId =>
@@ -484,7 +482,7 @@ Game_Actor.prototype.getGrowthRegexByXparamId = function(xparamId)
 Game_Actor.prototype.applyNaturalSparamGrowths = function()
 {
   // grab all known base parameter ids.
-  const paramIds = this.knownSpParameterIds();
+  const paramIds = Game_BattlerBase.knownSpParameterIds();
 
   // iterate over the known sp parameter ids.
   paramIds.forEach(paramId =>

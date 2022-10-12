@@ -1331,7 +1331,7 @@ declare class Window_Command extends Window_Selectable {
     /**
      * Returns the ext property of the command at the current index.
      *
-     * @returns {(any | object)}
+     * @returns {any}
      * @memberof Window_Command
      */
     currentExt(): any;

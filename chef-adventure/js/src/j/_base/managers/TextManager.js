@@ -180,4 +180,129 @@ TextManager.longParam = function(paramId)
       return String.empty;
   }
 };
+
+/**
+ * Gets the armor type name from the database.
+ * @param {number} id The 1-based index of the armor type to get the name of.
+ * @returns {string} The name of the armor type.
+ */
+TextManager.armorType = function(id)
+{
+  // return the armor type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.armorTypes);
+};
+
+/**
+ * Gets the weapon type name from the database.
+ * @param {number} id The 1-based index of the weapon type to get the name of.
+ * @returns {string} The name of the weapon type.
+ */
+TextManager.weaponType = function(id)
+{
+  // return the weapon type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.weaponTypes);
+};
+
+/**
+ * Gets the skill type name from the database.
+ * @param {number} id The 1-based index of the skill type to get the name of.
+ * @returns {string} The name of the skill type.
+ */
+TextManager.skillType = function(id)
+{
+  // return the skill type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.skillTypes);
+};
+
+/**
+ * Gets the equip type name from the database.
+ * @param {number} id The 1-based index of the equip type to get the name of.
+ * @returns {string} The name of the equip type.
+ */
+TextManager.equipType = function(id)
+{
+  // return the equip type name.
+  return this.getTypeNameByIdAndType(id, $dataSystem.equipTypes);
+};
+
+/**
+ * Gets the element name from the database.
+ * `-1` and `0` are special cases,
+ * the former being for weapon attack elements,
+ * the latter being for "none" element.
+ * @param {number} id The index of the element to get the name of.
+ * @returns {string} The name of the element type.
+ */
+TextManager.element = function(id)
+{
+  switch (true)
+  {
+    case (id === -1):
+      return this.weaponElementsName();
+    case (id === 0):
+      return this.neutralElementName();
+    default:
+      return this.getTypeNameByIdAndType(id, $dataSystem.elements);
+  }
+};
+
+/**
+ * The name for the element which is governed by all elements currently
+ * applied to your weapon.
+ * @returns {string}
+ */
+TextManager.weaponElementsName = function()
+{
+  return '(Basic Attack)';
+};
+
+/**
+ * The name for the element which is supposed to be "None" in the database,
+ * @returns {string}
+ */
+TextManager.neutralElementName = function()
+{
+  return 'Neutral';
+};
+
+/**
+ * Gets a type name by its type collect and index.
+ * @param {number} id The 1-based index to get the type name of.
+ * @param {string[]} type The collection of names for a given type.
+ * @returns {string|String.empty} The requested type name, or an empty string if invalid.
+ */
+TextManager.getTypeNameByIdAndType = function(id, type)
+{
+  // if the type is invalid, return an empty string and check the logs.
+  if (!this.isValidTypeId(id, type)) return String.empty;
+
+  // return what we found.
+  return type.at(id);
+};
+
+/**
+ * Determines whether or not the id is a valid index for types.
+ * @param {number} id The 1-based index of the type to get the name of.
+ * @param {string[]} types The array of types to extract the name from.
+ * @returns {boolean} True if we can get the name, false otherwise.
+ */
+TextManager.isValidTypeId = function(id, types)
+{
+  // check if the id was zero, then it was probably a mistake for 1.
+  if (id === 0 && types !== $dataSystem.elements)
+  {
+    console.error(`requested type id of [0] is always blank, and thus invalid.`);
+    return false;
+  }
+
+  // check if the id was higher than the number of types even available.
+  if (id >= types.length)
+  {
+    console.error(`requested type id of [${id}] is higher than the number of types.`);
+    return false;
+  }
+
+  // get the name!
+  return true;
+}
 //#endregion TextManager

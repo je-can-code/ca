@@ -9,7 +9,7 @@ Game_Action.prototype.apply = function(target)
 
   const result = target.result();
 
-  // we only process prof gains for actors- for now.
+  // determine if the battler can increase proficiency against the target.
   if (this.canIncreaseProficiency(target))
   {
     this.increaseProficiency(result.critical);
