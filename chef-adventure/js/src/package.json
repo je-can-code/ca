@@ -93,8 +93,8 @@
     "once:otib": "node utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
     "watch:otib": "nodemon -L utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
 
-    "once:passive": "node utils/combine.js ./j/passive ../plugins/j J-PassiveSkills.js",
-    "watch:passive": "nodemon -L utils/combine.js ./j/passive ../plugins/j J-PassiveSkills.js",
+    "once:passive": "node utils/combine.js ./j/passive ../plugins/j J-Passive.js",
+    "watch:passive": "nodemon -L utils/combine.js ./j/passive ../plugins/j J-Passive.js",
 
     "once:popups": "node utils/combine.js ./j/popups ../plugins/j J-TextPops.js",
     "watch:popups": "nodemon -L utils/combine.js ./j/popups ../plugins/j J-TextPops.js",

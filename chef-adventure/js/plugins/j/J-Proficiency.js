@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 13 2022 14:24:25 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -449,7 +449,7 @@ Game_Action.prototype.apply = function(target)
 
   const result = target.result();
 
-  // we only process prof gains for actors- for now.
+  // determine if the battler can increase proficiency against the target.
   if (this.canIncreaseProficiency(target))
   {
     this.increaseProficiency(result.critical);

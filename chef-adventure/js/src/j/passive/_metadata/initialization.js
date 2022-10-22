@@ -15,7 +15,7 @@ J.PASSIVE.Metadata = {
   /**
    * The name of this plugin.
    */
-  Name: `J-PassiveSkills`,
+  Name: `J-Passive`,
 
   /**
    * The version of this plugin.

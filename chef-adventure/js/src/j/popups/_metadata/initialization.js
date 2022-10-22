@@ -16,7 +16,7 @@ J.POPUPS.Metadata =
     /**
      * The name of this plugin.
      */
-    Name: `J-ABS-TextPops`,
+    Name: `J-TextPops`,
 
     /**
      * The version of this plugin.

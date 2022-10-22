@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Oct 11 2022 16:16:18 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Oct 17 2022 16:31:17 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -222,6 +222,7 @@ J.BASE.Aliased = {
   Game_Enemy: new Map(),
   Game_Party: new Map(),
   Game_Temp: new Map(),
+  Game_System: new Map(),
   Scene_Load: new Map(),
   SoundManager: new Map(),
   Window_Base: new Map(),
@@ -5319,6 +5320,27 @@ Game_Player.prototype.isPlayer = function()
   return true;
 };
 //#endregion Game_Player
+
+/**
+ * Extends {@link Game_System.initialize}.
+ * Initializes all members of this class and adds our custom members.
+ */
+J.BASE.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
+Game_System.prototype.initialize = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_System.get('initialize').call(this);
+
+  // initialize our class members.
+  this.initMembers();
+};
+
+/**
+ * A hook for initializing additional members in {@link Game_System}.
+ */
+Game_System.prototype.initMembers = function()
+{
+};
 
 //#region Game_Temp
 /**

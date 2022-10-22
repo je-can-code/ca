@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Sep 13 2022 14:24:24 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -610,7 +610,7 @@ class Window_SkillDetail extends Window_Base
     attackElements.push(...Game_Action.extractElementsFromAction(skill));
     attackElements.forEach(attackElement =>
     {
-      const elementName = $dataSystem.elements[attackElement] ?? `(Basic Attack)`;
+      const elementName = TextManager.element(attackElement) ?? `(Basic Attack)`;
       const iconIndex = IconManager.element(attackElement);
       const paramName = `\\I[${iconIndex}]\\C[6]${elementName}\\C[0]`;
       elementParams.push(new JCMS_ParameterKvp(paramName))

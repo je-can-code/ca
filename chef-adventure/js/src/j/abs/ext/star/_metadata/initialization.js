@@ -20,7 +20,7 @@ J.STAR = {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.0.0';
+  const requiredJabsVersion = '3.1.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -70,4 +70,8 @@ J.STAR.Aliased = {
   Game_Player: new Map(),
   Game_Troop: new Map(),
   Scene_Map: new Map(),
+};
+
+J.STAR.Regexp = {
+  BattleMapId: /<battleMapId:(\d+)>/gi,
 };
