@@ -89,6 +89,9 @@ JABS_Battler.prototype.canShowTargetFrame = function()
   // if this isn't an enemy, then they don't show the target frame.
   if (!this.isEnemy()) return false;
 
+  // if there isn't an event or character remaining, don't bother.
+  if (!this.getCharacter() || this.getCharacter().isErased()) return false;
+
   // check the event to see if we can show the target frame.
   const hiddenByEvent = !this.getCharacter().canShowTargetFrame();
 

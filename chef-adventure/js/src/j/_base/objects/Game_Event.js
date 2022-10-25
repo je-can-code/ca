@@ -6,7 +6,7 @@
 Game_Event.prototype.getValidCommentCommands = function()
 {
   // don't process if we have no event commands.
-  if (!this || !this.list() || this.list().length === 0) return [];
+  if (!this || !this.page().list || !this.list() || this.list().length === 0) return [];
 
   // otherwise, return the filtered list.
   return this.list().filter(command =>

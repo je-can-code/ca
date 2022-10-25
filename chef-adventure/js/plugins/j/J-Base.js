@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Mon Oct 17 2022 16:31:17 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Oct 22 2022 12:18:37 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -5027,7 +5027,7 @@ Game_Enemy.prototype.getCurrentWithNotes = function()
 Game_Event.prototype.getValidCommentCommands = function()
 {
   // don't process if we have no event commands.
-  if (!this || !this.list() || this.list().length === 0) return [];
+  if (!this || !this.page().list || !this.list() || this.list().length === 0) return [];
 
   // otherwise, return the filtered list.
   return this.list().filter(command =>
