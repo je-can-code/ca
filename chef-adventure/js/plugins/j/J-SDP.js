@@ -1,12 +1,11 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Oct 30 2022 09:14:43 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 SDP] Enables the SDP system, allowing for distribution of points into panels that
- * contain various stats.
+ * [v1.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -102,6 +101,14 @@
  * An actor with something equipped/applied that has both of the above tags
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
+ * CHANGELOG:
+ * - 1.2.0
+ *    Update to include Max TP as a valid panel parameter.
+ * - 1.1.0
+ *    Update to accommodate J-CriticalFactors.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
  *
  * @param SDPconfigs
  * @text SDP SETUP
@@ -173,6 +180,7 @@
  * @desc The actor to modify the points of.
  * @arg sdpPoints
  * @type number
+ * @min -99999999
  * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  *
  * @command Modify party SDP points
@@ -180,6 +188,7 @@
  * @desc Adds or removes a designated amount of points from all members of the current party.
  * @arg sdpPoints
  * @type number
+ * @min -99999999
  * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 /*~struct~SDPStruct:
@@ -308,6 +317,14 @@
  * @value 0
  * @option Max MP
  * @value 1
+ * @option Max TP
+ * @value 30
+ * @option HP Regen
+ * @value 15
+ * @option MP Regen
+ * @value 16
+ * @option TP Regen
+ * @value 17
  * @option Power
  * @value 2
  * @option Endurance
@@ -326,6 +343,10 @@
  * @value 9
  * @option Crit Chance
  * @value 10
+ * @option Crit Damage Multiplier
+ * @value 28
+ * @option Crit Damage Reduction
+ * @value 29
  * @option Crit Evasion
  * @value 11
  * @option Magic Evasion
@@ -334,12 +355,6 @@
  * @value 13
  * @option Counter Rate
  * @value 14
- * @option HP Regen
- * @value 15
- * @option MP Regen
- * @value 16
- * @option TP Regen
- * @value 17
  * @option Targeting Rate
  * @value 18
  * @option Guard Rate
@@ -348,6 +363,8 @@
  * @value 20
  * @option Pharmacy Rate
  * @value 21
+ * @option Experience Rate
+ * @value 27
  * @option MP Cost Reduction
  * @value 22
  * @option TP Cost Reduction
@@ -358,12 +375,6 @@
  * @value 25
  * @option Floor DMG Reduction
  * @value 26
- * @option Experience Rate
- * @value 27
- * @option Crit Damage Multiplier
- * @value 28
- * @option Crit Damage Reduction
- * @value 29
  * @default 0
  *
  * @param perRank
@@ -436,7 +447,7 @@ J.SDP = {};
  */
 J.SDP.Metadata = {
   /**
-   * The version of this plugin.
+   * The name of this plugin.
    */
   Name: `J-SDP`,
 };
@@ -616,7 +627,7 @@ J.SDP.MenuCommand = isEnabled =>
 J.SDP.Aliased = {
   BattleManager: {},
   DataManager: new Map(),
-  Game_Actor: {},
+  Game_Actor: new Map(),
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: {},
@@ -1496,14 +1507,16 @@ DataManager.extractSaveContents = function(contents)
 /**
  * Adds new properties to the actors that manage the SDP system.
  */
-J.SDP.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
+J.SDP.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
-  J.SDP.Aliased.Game_Actor.initMembers.call(this);
+  // perform original logic.
+  J.SDP.Aliased.Game_Actor.get('initMembers').call(this);
+
   /**
    * The J object where all my additional properties live.
    */
-  this._j = this._j || {};
+  this._j ||= {};
 
   /**
    * A grouping of all properties associated with the SDP system.
@@ -1520,8 +1533,6 @@ Game_Actor.prototype.initMembers = function()
      * @type {PanelRanking[]}
      */
     _ranks: [],
-
-    _sdpBoosts: {},
   };
 };
 
@@ -1736,10 +1747,12 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
 /**
  * Extends the base parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.param = Game_Actor.prototype.param;
+J.SDP.Aliased.Game_Actor.set("param", Game_Actor.prototype.param);
 Game_Actor.prototype.param = function(paramId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.param.call(this, paramId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("param").call(this, paramId);
+
   const panelModifications = this.getSdpBonusForCoreParam(paramId, baseParam);
   const result = baseParam + panelModifications;
   return result;
@@ -1748,10 +1761,12 @@ Game_Actor.prototype.param = function(paramId)
 /**
  * Extends the ex-parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.xparam = Game_Actor.prototype.xparam;
+J.SDP.Aliased.Game_Actor.set("xparam", Game_Actor.prototype.xparam);
 Game_Actor.prototype.xparam = function(xparamId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.xparam.call(this, xparamId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("xparam").call(this, xparamId);
+
   const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
   const result = baseParam + panelModifications;
   return result;
@@ -1760,13 +1775,90 @@ Game_Actor.prototype.xparam = function(xparamId)
 /**
  * Extends the sp-parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.sparam = Game_Actor.prototype.sparam;
+J.SDP.Aliased.Game_Actor.set("sparam", Game_Actor.prototype.sparam);
 Game_Actor.prototype.sparam = function(sparamId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.sparam.call(this, sparamId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("sparam").call(this, sparamId);
+
   const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + panelModifications;
   return result;
+};
+
+/**
+ * Extends {@link #maxTp}.
+ * Includes bonuses from panels as well.
+ * @returns {number}
+ */
+J.SDP.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
+Game_Actor.prototype.maxTp = function()
+{
+  // perform original logic.
+  const baseMaxTp = J.SDP.Aliased.Game_Actor.get("maxTp").call(this);
+
+  // calculate the bonus max tp from the panels.
+  const bonusMaxTpFromSdp = this.maxTpSdpBonuses(baseMaxTp);
+
+  // combine the two for the total max tp.
+  const result = bonusMaxTpFromSdp + baseMaxTp;
+
+  // return our calculations.
+  return result;
+};
+
+/**
+ * Calculates the bonuses for Max TP from the actor's currently ranked SDPs.
+ * @param {number} baseMaxTp The base max TP for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
+{
+  // grab the current rankings of panels for the party.
+  const panelRankings = this.getAllSdpRankings();
+
+  // if we have no rankings, then there is no bonuses from SDP.
+  if (!panelRankings.length) return 0;
+
+  // initialize the modifier to 0.
+  let panelModifications = 0;
+
+  // iterate over each ranking this actor has.
+  panelRankings.forEach(panelRanking =>
+  {
+    // get the corresponding SDP's panel parameters.
+    const panelParameters = $gameSystem
+      .getSdpByKey(panelRanking.key)
+      .getPanelParameterById(30); // TODO: generalize this whole thing.
+
+    // validate we have any parameters from this panel.
+    if (panelParameters.length)
+    {
+      // iterate over each panel parameter.
+      panelParameters.forEach(panelParameter =>
+      {
+        // extract the relevant details.
+        const { perRank, isFlat } = panelParameter;
+        const { currentRank } = panelRanking;
+
+        // check if the panel parameter growth is flat.
+        if (isFlat)
+        {
+          // add it additively.
+          panelModifications += currentRank * perRank;
+        }
+        // the panel parameter growth is percent.
+        else
+        {
+          // add the percent of the base parameter.
+          panelModifications += Math.floor(baseMaxTp * (currentRank * perRank) / 100);
+        }
+      });
+    }
+  });
+
+  // return the modifier.
+  return panelModifications;
 };
 //#endregion Game_Actor
 
