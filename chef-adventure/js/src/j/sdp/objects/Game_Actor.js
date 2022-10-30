@@ -2,14 +2,16 @@
 /**
  * Adds new properties to the actors that manage the SDP system.
  */
-J.SDP.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
+J.SDP.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
-  J.SDP.Aliased.Game_Actor.initMembers.call(this);
+  // perform original logic.
+  J.SDP.Aliased.Game_Actor.get('initMembers').call(this);
+
   /**
    * The J object where all my additional properties live.
    */
-  this._j = this._j || {};
+  this._j ||= {};
 
   /**
    * A grouping of all properties associated with the SDP system.
@@ -26,8 +28,6 @@ Game_Actor.prototype.initMembers = function()
      * @type {PanelRanking[]}
      */
     _ranks: [],
-
-    _sdpBoosts: {},
   };
 };
 
@@ -242,10 +242,12 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
 /**
  * Extends the base parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.param = Game_Actor.prototype.param;
+J.SDP.Aliased.Game_Actor.set("param", Game_Actor.prototype.param);
 Game_Actor.prototype.param = function(paramId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.param.call(this, paramId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("param").call(this, paramId);
+
   const panelModifications = this.getSdpBonusForCoreParam(paramId, baseParam);
   const result = baseParam + panelModifications;
   return result;
@@ -254,10 +256,12 @@ Game_Actor.prototype.param = function(paramId)
 /**
  * Extends the ex-parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.xparam = Game_Actor.prototype.xparam;
+J.SDP.Aliased.Game_Actor.set("xparam", Game_Actor.prototype.xparam);
 Game_Actor.prototype.xparam = function(xparamId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.xparam.call(this, xparamId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("xparam").call(this, xparamId);
+
   const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
   const result = baseParam + panelModifications;
   return result;
@@ -266,12 +270,89 @@ Game_Actor.prototype.xparam = function(xparamId)
 /**
  * Extends the sp-parameters with the SDP bonuses.
  */
-J.SDP.Aliased.Game_Actor.sparam = Game_Actor.prototype.sparam;
+J.SDP.Aliased.Game_Actor.set("sparam", Game_Actor.prototype.sparam);
 Game_Actor.prototype.sparam = function(sparamId)
 {
-  const baseParam = J.SDP.Aliased.Game_Actor.sparam.call(this, sparamId);
+  // perform original logic.
+  const baseParam = J.SDP.Aliased.Game_Actor.get("sparam").call(this, sparamId);
+
   const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + panelModifications;
   return result;
+};
+
+/**
+ * Extends {@link #maxTp}.
+ * Includes bonuses from panels as well.
+ * @returns {number}
+ */
+J.SDP.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
+Game_Actor.prototype.maxTp = function()
+{
+  // perform original logic.
+  const baseMaxTp = J.SDP.Aliased.Game_Actor.get("maxTp").call(this);
+
+  // calculate the bonus max tp from the panels.
+  const bonusMaxTpFromSdp = this.maxTpSdpBonuses(baseMaxTp);
+
+  // combine the two for the total max tp.
+  const result = bonusMaxTpFromSdp + baseMaxTp;
+
+  // return our calculations.
+  return result;
+};
+
+/**
+ * Calculates the bonuses for Max TP from the actor's currently ranked SDPs.
+ * @param {number} baseMaxTp The base max TP for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
+{
+  // grab the current rankings of panels for the party.
+  const panelRankings = this.getAllSdpRankings();
+
+  // if we have no rankings, then there is no bonuses from SDP.
+  if (!panelRankings.length) return 0;
+
+  // initialize the modifier to 0.
+  let panelModifications = 0;
+
+  // iterate over each ranking this actor has.
+  panelRankings.forEach(panelRanking =>
+  {
+    // get the corresponding SDP's panel parameters.
+    const panelParameters = $gameSystem
+      .getSdpByKey(panelRanking.key)
+      .getPanelParameterById(30); // TODO: generalize this whole thing.
+
+    // validate we have any parameters from this panel.
+    if (panelParameters.length)
+    {
+      // iterate over each panel parameter.
+      panelParameters.forEach(panelParameter =>
+      {
+        // extract the relevant details.
+        const { perRank, isFlat } = panelParameter;
+        const { currentRank } = panelRanking;
+
+        // check if the panel parameter growth is flat.
+        if (isFlat)
+        {
+          // add it additively.
+          panelModifications += currentRank * perRank;
+        }
+        // the panel parameter growth is percent.
+        else
+        {
+          // add the percent of the base parameter.
+          panelModifications += Math.floor(baseMaxTp * (currentRank * perRank) / 100);
+        }
+      });
+    }
+  });
+
+  // return the modifier.
+  return panelModifications;
 };
 //#endregion Game_Actor

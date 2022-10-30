@@ -3,8 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 SDP] Enables the SDP system, allowing for distribution of points into panels that
- * contain various stats.
+ * [v1.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -100,6 +99,14 @@
  * An actor with something equipped/applied that has both of the above tags
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
+ * CHANGELOG:
+ * - 1.2.0
+ *    Update to include Max TP as a valid panel parameter.
+ * - 1.1.0
+ *    Update to accommodate J-CriticalFactors.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
  *
  * @param SDPconfigs
  * @text SDP SETUP
@@ -171,6 +178,7 @@
  * @desc The actor to modify the points of.
  * @arg sdpPoints
  * @type number
+ * @min -99999999
  * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  *
  * @command Modify party SDP points
@@ -178,6 +186,7 @@
  * @desc Adds or removes a designated amount of points from all members of the current party.
  * @arg sdpPoints
  * @type number
+ * @min -99999999
  * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 /*~struct~SDPStruct:
@@ -306,6 +315,14 @@
  * @value 0
  * @option Max MP
  * @value 1
+ * @option Max TP
+ * @value 30
+ * @option HP Regen
+ * @value 15
+ * @option MP Regen
+ * @value 16
+ * @option TP Regen
+ * @value 17
  * @option Power
  * @value 2
  * @option Endurance
@@ -324,6 +341,10 @@
  * @value 9
  * @option Crit Chance
  * @value 10
+ * @option Crit Damage Multiplier
+ * @value 28
+ * @option Crit Damage Reduction
+ * @value 29
  * @option Crit Evasion
  * @value 11
  * @option Magic Evasion
@@ -332,12 +353,6 @@
  * @value 13
  * @option Counter Rate
  * @value 14
- * @option HP Regen
- * @value 15
- * @option MP Regen
- * @value 16
- * @option TP Regen
- * @value 17
  * @option Targeting Rate
  * @value 18
  * @option Guard Rate
@@ -346,6 +361,8 @@
  * @value 20
  * @option Pharmacy Rate
  * @value 21
+ * @option Experience Rate
+ * @value 27
  * @option MP Cost Reduction
  * @value 22
  * @option TP Cost Reduction
@@ -356,12 +373,6 @@
  * @value 25
  * @option Floor DMG Reduction
  * @value 26
- * @option Experience Rate
- * @value 27
- * @option Crit Damage Multiplier
- * @value 28
- * @option Crit Damage Reduction
- * @value 29
  * @default 0
  *
  * @param perRank

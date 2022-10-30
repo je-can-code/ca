@@ -26,7 +26,7 @@ J.SDP = {};
  */
 J.SDP.Metadata = {
   /**
-   * The version of this plugin.
+   * The name of this plugin.
    */
   Name: `J-SDP`,
 };
@@ -206,7 +206,7 @@ J.SDP.MenuCommand = isEnabled =>
 J.SDP.Aliased = {
   BattleManager: {},
   DataManager: new Map(),
-  Game_Actor: {},
+  Game_Actor: new Map(),
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: {},
