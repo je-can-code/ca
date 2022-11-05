@@ -1,5 +1,14 @@
 //#region Game_Enemy
 /**
+ * Gets the battler id of this enemy from the database.
+ * @returns {number}
+ */
+Game_Enemy.prototype.battlerId = function()
+{
+  return this.enemyId();
+};
+
+/**
  * The underlying database data for this enemy.
  * @returns {RPG_Enemy}
  */
@@ -9,14 +18,25 @@ Game_Enemy.prototype.databaseData = function()
 };
 
 /**
- * The underlying database data for this battler.
- *
- * This allows operations to be performed against both actor and enemy indifferently.
- * @returns {number}
+ * All sources this enemy battler has available to it.
+ * @returns {(RPG_Enemy|RPG_State|RPG_Skill)[]}
  */
-Game_Enemy.prototype.battlerId = function()
+Game_Enemy.prototype.getNotesSources = function()
 {
-  return this.enemyId();
+  // get the super-classes' note sources as a baseline.
+  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
+
+  // the list of note sources unique to enemies.
+  const enemyUniqueNoteSources = [
+    // add the actor's skills to the source list.
+    ...this.skills(),
+  ];
+
+  // combine the two source lists.
+  const combinedNoteSources = baseNoteSources.concat(enemyUniqueNoteSources);
+
+  // return our combination.
+  return combinedNoteSources;
 };
 
 /**
@@ -52,17 +72,17 @@ Game_Enemy.prototype.skills = function()
 {
   // grab the actions for the enemy.
   const actions = this.enemy().actions
-  .map(action => this.skill(action.skillId), this);
+    .map(action => this.skill(action.skillId), this);
 
   // grab any additional skills added via traits.
   const skillTraits = this.traitObjects()
-  .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
-  .map(skillTrait => this.skill(skillTrait.dataId), this);
+    .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
+    .map(skillTrait => this.skill(skillTrait.dataId), this);
 
   // combine the two arrays of skills.
   return actions
-  .concat(skillTraits)
-  .sort();
+    .concat(skillTraits)
+    .sort();
 };
 
 /**
@@ -73,30 +93,5 @@ Game_Enemy.prototype.skills = function()
 Game_Enemy.prototype.hasSkill = function(skillId)
 {
   return this.skills().some(skill => skill.id === skillId);
-};
-
-/**
- * Gets all objects with notes available to enemies.
- * @returns {RPG_Enemy[]}
- */
-Game_Enemy.prototype.getAllNotes = function()
-{
-  const objectsWithNotes = [];
-  objectsWithNotes.push(this.enemy());
-  objectsWithNotes.push(...this.skills());
-  objectsWithNotes.push(...this.states());
-  return objectsWithNotes;
-};
-
-/**
- * Gets all objects with notes available to enemies.
- * @returns {RPG_BaseItem[]}
- */
-Game_Enemy.prototype.getCurrentWithNotes = function()
-{
-  const objectsWithNotes = [];
-  objectsWithNotes.push(this.enemy());
-  objectsWithNotes.push(...this.states());
-  return objectsWithNotes;
 };
 //#endregion Game_Enemy

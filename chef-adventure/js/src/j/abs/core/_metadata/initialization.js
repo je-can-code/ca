@@ -84,8 +84,8 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.Metadata = {};
-J.ABS.Metadata.Name = `J-ABS`;
-J.ABS.Metadata.Version = '3.1.0';
+J.ABS.Metadata.Name = 'J-ABS';
+J.ABS.Metadata.Version = '3.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -492,6 +492,9 @@ J.ABS.RegExp = {
   MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   PrepareTime: /<prepare:[ ]?([0-9]*)>/i,
 
+  // bonus concepts.
+  VisionMultiplier: /<visionMultiplier:[ ]?(-?[\d]+)>/i,
+
   // alert-related.
   AlertDuration: /<alertDuration:[ ]?([0-9]*)>/i,
   AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -516,7 +519,6 @@ J.ABS.RegExp = {
   ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
   ConfigNoName: /<jabsConfig:[ ]?noName>/i,
   ConfigShowName: /<jabsConfig:[ ]?showName>/i,
-
   /* ON EVENTS (for enemies) */
 };
 

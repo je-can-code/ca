@@ -39,12 +39,19 @@ Game_Battler.prototype.initJabsMembers = function()
   this._j._abs._uuid = J.BASE.Helpers.shortUuid();
 
   /**
+   * The number of bonus hits this actor currently has.
+   * @type {number}
+   */
+  this._j._abs._bonusHits = 0;
+
+  /**
    * All equipped skills on this battler.
    * @type {JABS_SkillSlotManager}
    */
   this._j._abs._equippedSkills = new JABS_SkillSlotManager();
 };
 
+//#region JABS battler properties
 /**
  * Gets the `uuid` of this battler.
  * The default uuid for battlers is their name and the uuid connected by a hyphen.
@@ -75,15 +82,6 @@ Game_Battler.prototype.setUuid = function(uuid)
 Game_Battler.prototype.battlerId = function()
 {
   return 0;
-};
-
-/**
- * Gets the battler's skill slot manager directly.
- * @returns {JABS_SkillSlotManager}
- */
-Game_Battler.prototype.getSkillSlotManager = function()
-{
-  return this._j._abs._equippedSkills;
 };
 
 /**
@@ -147,6 +145,35 @@ Game_Battler.prototype.alertedSightBoost = function()
 Game_Battler.prototype.pursuitRange = function()
 {
   return 6;
+};
+
+/**
+ * A multiplier against the vision of an enemy target.
+ * This may increase/decrease the sight and pursuit range of an enemy attempting to
+ * perceive the actor.
+ * @returns {number}
+ */
+Game_Battler.prototype.getVisionModifier = function()
+{
+  // grab all the notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // define the base vision rate for this battler.
+  const baseVisionRate = 100;
+
+  // get the vision multiplier from anything this battler has available.
+  const visionMultiplier = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    structure);
+
+  // calculate the multiplier.
+  const totalVisionMultiplier = baseVisionRate + visionMultiplier;
+
+  // constrain the multiplier to never go below 0.
+  const constrainedVisionMultiplier = Math.max((totalVisionMultiplier / 100), 0);
+
+  // return our constrainted multiplier.
+  return constrainedVisionMultiplier;
 };
 
 /**
@@ -238,6 +265,27 @@ Game_Battler.prototype.isInvincible = function()
 Game_Battler.prototype.isInanimate = function()
 {
   return false;
+};
+
+/**
+ * Gets whether or not the aggro is locked for this battler.
+ * Locked aggro means their aggro cannot be modified in any way.
+ * @returns {boolean}
+ */
+Game_Battler.prototype.isAggroLocked = function()
+{
+  return this.states().some(state => state.jabsAggroLock ?? false);
+};
+//#endregion JABS battler properties
+
+//#region JABS skill slot management
+/**
+ * Gets the battler's skill slot manager directly.
+ * @returns {JABS_SkillSlotManager}
+ */
+Game_Battler.prototype.getSkillSlotManager = function()
+{
+  return this._j._abs._equippedSkills;
 };
 
 /**
@@ -375,40 +423,22 @@ Game_Battler.prototype.unlockAllSlots = function()
 {
   this.getSkillSlotManager().unlockAllSlots();
 };
+//#endregion JABS skill slot management
 
-/**
- * Extracts all on-chance-effects from a given collection of checkables with notes.
- * @param {RegExp} structure The regex structure to parse for.
- * @param {RPG_Base[]} checkables The list of checkables to parse.
- * @returns {JABS_OnChanceEffect[]}
- */
-Game_Battler.prototype.getAllOnChanceEffects = function(structure, checkables)
-{
-  // initialize the collection.
-  const onChanceEffects = [];
-
-  // scan all checkables.
-  checkables.forEach(checkable =>
-  {
-    // build concrete on-chance-effects for each instance on the checkable.
-    const onChanceEffectList = J.BASE.Helpers.parseSkillChance(structure, checkable);
-
-    // add it to the collection.
-    onChanceEffects.push(...onChanceEffectList);
-  });
-
-  // return what was found.
-  return onChanceEffects;
-};
-
+//#region on-chance effects
 /**
  * Gets all retaliation skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Battler.prototype.retaliationSkills = function()
 {
+  // get all things that have notes.
+  const objectsToCheck = this.getAllNotes();
+
   // get all retaliation skills from the notes.
-  const retaliations = this.getAllOnChanceEffects(J.ABS.RegExp.Retaliate, this.getAllNotes());
+  const retaliations = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    objectsToCheck,
+    J.ABS.RegExp.Retaliate);
 
   // return what was found.
   return retaliations;
@@ -420,8 +450,13 @@ Game_Battler.prototype.retaliationSkills = function()
  */
 Game_Battler.prototype.onOwnDefeatSkillIds = function()
 {
+  // get all things that have notes.
+  const objectsToCheck = this.getAllNotes();
+
   // get all on-own-defeat skills from the notes.
-  const onOwnDeaths = this.getAllOnChanceEffects(J.ABS.RegExp.OnOwnDefeat, this.getAllNotes());
+  const onOwnDeaths = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    objectsToCheck,
+    J.ABS.RegExp.OnOwnDefeat);
 
   // return what was found.
   return onOwnDeaths;
@@ -433,63 +468,20 @@ Game_Battler.prototype.onOwnDefeatSkillIds = function()
  */
 Game_Battler.prototype.onTargetDefeatSkillIds = function()
 {
+  // get all things that have notes.
+  const objectsToCheck = this.getAllNotes();
+
   // get all on-target-defeat skills from the notes.
-  const onTargetKills = this.getAllOnChanceEffects(J.ABS.RegExp.onTargetDefeat, this.getAllNotes());
+  const onTargetKills = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    objectsToCheck,
+    J.ABS.RegExp.onTargetDefeat);
 
   // return what was found.
   return onTargetKills;
 };
+//#endregion on-chance effects
 
-/**
- * A multiplier against the vision of an enemy target.
- * This may increase/decrease the sight and pursuit range of an enemy attempting to
- * perceive the actor.
- * @returns {number}
- */
-Game_Battler.prototype.getVisionModifier = function()
-{
-  let visionMultiplier = 100;
-  const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => (visionMultiplier += this.extractVisionModifiers(obj)));
-
-  return Math.max((visionMultiplier / 100), 0);
-};
-
-/**
- * Gets all modifiers related to vision from this database object.
- * @param referenceData
- * @returns {number}
- */
-Game_Battler.prototype.extractVisionModifiers = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return 0;
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<visionMultiplier:[ ]?(-?[\d]+)>/i;
-  let visionMultiplier = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const multiplier = parseInt(RegExp.$1);
-      visionMultiplier += multiplier;
-    }
-  });
-
-  return visionMultiplier;
-};
-
-/**
- * Gets whether or not the aggro is locked for this battler.
- * Locked aggro means their aggro cannot be modified in any way.
- * @returns {boolean}
- */
-Game_Battler.prototype.isAggroLocked = function()
-{
-  return this.states().some(state => state.jabsAggroLock ?? false);
-};
-
+//#region JABS state management
 /**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
@@ -588,37 +580,35 @@ Game_Battler.prototype.removeState = function(stateId)
  */
 Game_Battler.prototype.addJabsState = function(stateId, attacker)
 {
+  // reassign the incoming parameter because we are good developers.
+  let assailant = attacker;
+
   // check if we're missing an actor due to external application of state.
   if (!attacker)
   {
+    console.error('There should always be an attacker when adding JABS states!');
+
     // assign the attacker to be oneself if none otherwise exists.
-    attacker = this;
+    assailant = this;
   }
 
   // grab the state from the attacker's perspective.
-  const state = attacker.state(stateId);
+  const state = assailant.state(stateId);
 
-  // grab the duration out of the state.
-  let duration = state.stepsToRemove;
+  // extract the base duration and icon index.
+  const { stepsToRemove: baseDuration, iconIndex } = state;
 
-  // check if we should extend our incoming positive states.
-  if (this.isActor() && !state.jabsNegative)
-  {
-    // extend our incoming positive states!
-    duration += this.getStateDurationBoost(duration, attacker);
-  }
-  // check if we should extend our outgoing negative states.
-  else if (this.isEnemy() && attacker && attacker.isActor() && state.jabsNegative)
-  {
-    // extend our outgoing negative states!
-    duration += attacker.getStateDurationBoost(duration, this);
-  }
+  // extend our states per the one applying the states.
+  const bonusDuration = assailant.getStateDurationBoost(baseDuration);
+
+  // calculate the total duration of the state.
+  const totalDuration = baseDuration + bonusDuration;
 
   // TODO: get this from the state?
   const stacks = 1;
 
   // build the new state.
-  const jabsState = new JABS_State(this, stateId, state.iconIndex, duration, stacks, attacker);
+  const jabsState = new JABS_State(this, stateId, iconIndex, totalDuration, stacks, assailant);
 
   // add the state to the engine's tracker.
   $jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
@@ -627,84 +617,143 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
 /**
  * Determines the various state duration boosts available to this battler.
  * @param {number} baseDuration The base duration of the state.
- * @param {Game_Battler} attacker The attacker- for use with formulai.
- * @returns {number}
+ * @returns {number} The number of bonus frames to add to the duration of negative states.
  */
-Game_Battler.prototype.getStateDurationBoost = function(baseDuration, attacker)
+Game_Battler.prototype.getStateDurationBoost = function(baseDuration)
 {
-  return 0;
+  // TODO: update annotations file with new regex and usage?
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // sum together all the state duration boost flat modifiers.
+  const flat = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.ABS.RegExp.StateDurationFlatPlus);
+
+  // calculate the flat duration boost.
+  const percent = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.ABS.RegExp.StateDurationPercentPlus);
+
+  // calculate the percent duration boost.
+  const percentBoost = Math.round(baseDuration * (percent / 100));
+
+  // calculate the formulai duration boost.
+  const formulaiBoost = RPGManager.getResultsFromAllNotesByRegex(
+    objectsToCheck,
+    J.ABS.RegExp.StateDurationFormulaPlus,
+    baseDuration,
+    this);
+
+  // sum the boosts together to get the total boost.
+  const durationBoost = flat + percentBoost + formulaiBoost;
+
+  // format it kindly because javascript floating point numbers suck.
+  const formattedDurationBoost = parseFloat(durationBoost.toFixed(2));
+
+  // return the total state duration boost.
+  return formattedDurationBoost;
+};
+//#endregion JABS state management
+
+//#region JABS bonus hits
+/**
+ * Updates the bonus hit count for this actor based on equipment.
+ *
+ * NOTE:
+ * This is explicitly not using `this.getAllNotes()` so that we can
+ * also parse out the repeats from all the relevant sources as well.
+ */
+Game_Battler.prototype.refreshBonusHits = function()
+{
+  // default to zero bonus hits.
+  let bonusHits = 0;
+
+  // collection of collections of sources from which bonus hits may reside.
+  const sourceCollections = this.getBonusHitsSources();
+
+  // iterate over the source collections.
+  sourceCollections.forEach(sourceCollection =>
+  {
+    // add up all the bonus hits available.
+    bonusHits += this.getBonusHitsFromSources(sourceCollection);
+  });
+
+  // set the bonus hits to the total amount found everywhere.
+  this.setBonusHits(bonusHits);
 };
 
 /**
- * Gets the current number of bonus hits for this actor.
- * At the Game_Battler level will always return 0.
+ * Gets all collections of sources that will be scanned for bonus hits.
+ * @returns {RPG_BaseItem[][]}
+ */
+Game_Battler.prototype.getBonusHitsSources = function()
+{
+  return [
+    this.states(),
+    [this.databaseData()],
+  ];
+};
+
+/**
+ * Gets the bonus hits for this battler.
  * @returns {number}
  */
 Game_Battler.prototype.getBonusHits = function()
 {
-  return 0;
+  return this._j._abs._bonusHits;
+};
+
+/**
+ * Sets the bonus hits to the given value.
+ * @param {number} bonusHits The new bonus hits value.
+ */
+Game_Battler.prototype.setBonusHits = function(bonusHits)
+{
+  this._j._abs._bonusHits = bonusHits;
 };
 
 /**
  * Extracts all bonus hits from a collection of traited sources.
- * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]} sources The collection to iterate over.
+ * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]|RPG_Skill[]} sources The collection to iterate over.
  * @returns {number}
  */
-Game_Battler.prototype.getBonusHitsFromTraitedSources = function(sources)
+Game_Battler.prototype.getBonusHitsFromSources = function(sources)
 {
   // set this counter to zero.
   let bonusHits = 0;
 
-  // build the reducer for adding repeat traits up as bonus hits.
-  const reducer = (previousValue, currentValue) => previousValue + currentValue.value;
+  // reducer function for adding repeat traits up as bonus hits.
+  const addHitsReducer = (runningTotal, trait) => runningTotal + trait.value;
+
+  // filter function for getting only "attack repeats" traits off this item.
   const isHitsTrait = trait => trait.code === J.BASE.Traits.ATTACK_REPEATS;
 
-  // iterate over all equips.
-  sources.forEach(source =>
+  // foreach function for collecting bonus hits from the given source.
+  const collectBonusHitsForEacher = source =>
   {
     // if the slot is empty, don't process it.
     if (!source) return;
 
     // grab the bonus hits from
     bonusHits += source.jabsBonusHits;
+
+    // stop processing if the source has no traits.
+    if (!source.traits) return;
+
+    // also grab from traits if applicable.
     bonusHits += source.traits
       .filter(isHitsTrait)
-      .reduce(reducer, 0);
-  });
+      .reduce(addHitsReducer, 0);
+  }
+
+  // iterate over all equips.
+  sources.forEach(collectBonusHitsForEacher);
 
   // return the bonus hits from some traited sources.
   return bonusHits;
 };
-
-/**
- * Extracts all bonus hits from a collection of non-traited sources.
- * @param {RPG_Skill[]|RPG_Item[]} sources The collection to iterate over.
- * @returns {number}
- */
-Game_Battler.prototype.getBonusHitsFromNonTraitedSources = function(sources)
-{
-  // set this counter to zero.
-  let bonusHits = 0;
-
-  // iterate over all non-traited sources.
-  sources.forEach(source =>
-  {
-    // grab the bonus hits from the source.
-    bonusHits += source.jabsBonusHits;
-  });
-
-  // return the bonus hits from non-traited sources.
-  return bonusHits;
-};
-
-/**
- * Gets the current health percent of this battler.
- * @returns {number}
- */
-Game_Battler.prototype.currentHpPercent = function()
-{
-  return parseFloat((this.hp / this.mhp).toFixed(2));
-};
+//#endregion JABS bonus hits
 
 /**
  * Checks all states to see if we have anything that grants parry ignore.
@@ -712,22 +761,15 @@ Game_Battler.prototype.currentHpPercent = function()
  */
 Game_Battler.prototype.ignoreAllParry = function()
 {
-  const objectsToCheck = this.states();
-  if (J.PASSIVE)
-  {
-    objectsToCheck.push(...this.passiveSkillStates());
-  }
+  // grab all the notes.
+  const objectsToCheck = this.getAllNotes();
 
-  const unparryable = objectsToCheck.some(obj => obj.jabsUnparryable);
+  // check if any of the note objects possibly could be granting ignore parry.
+  const unparryable = RPGManager.checkForBooleanFromAllNotesByRegex(
+    objectsToCheck,
+    J.ABS.RegExp.Unparryable) ?? false;
 
+  // return what we found.
   return unparryable;
-};
-
-/**
- * Overwrites {@link Game_Battler.regenerateAll}.
- * JABS manages its own regeneration, so we don't want this interfering.
- */
-Game_Battler.prototype.regenerateAll = function() 
-{
 };
 //#endregion Game_Battler

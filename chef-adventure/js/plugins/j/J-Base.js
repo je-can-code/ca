@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Oct 22 2022 12:18:37 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Nov 05 2022 07:08:21 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1344,6 +1344,9 @@ class RPG_Base
 
     // establish a variable to be used as "b" in the formula- the base parameter value.
     const b = baseParam;
+
+    // establish a variable to be used as "v" in the formula- access to variables if needed.
+    const v = $gameVariables._data;
 
     // iterate over each valid line of the note.
     lines.forEach(line =>
@@ -3755,6 +3758,7 @@ class RPGManager
    * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
    * @param {RegExp} structure The RegExp structure to find values for.
    * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   * @returns {number|null} A number if "nullIfEmpty=false", null otherwise.
    */
   static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
   {
@@ -3793,7 +3797,7 @@ class RPGManager
    * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
    * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
    * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-   * @returns {number} The calculated result from all formula summed together.
+   * @returns {number|null} The calculated result from all formula summed together.
    */
   static getResultsFromAllNotesByRegex(
     databaseDatas,
@@ -3829,6 +3833,31 @@ class RPGManager
     // return the value, or 0.
     return val;
   }
+
+  /**
+   * Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
+   * @param {RPG_Base[]} databaseDatas The list of database objects to parse.
+   * @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+   * @returns {JABS_OnChanceEffect[]}
+   */
+  static getOnChanceEffectsFromDatabaseObjects(databaseDatas, structure)
+  {
+    // initialize the collection.
+    const onChanceEffects = [];
+
+    // scan all checkables.
+    databaseDatas.forEach(checkable =>
+    {
+      // build concrete on-chance-effects for each instance on the checkable.
+      const onChanceEffectList = J.BASE.Helpers.parseSkillChance(structure, checkable);
+
+      // add it to the collection.
+      onChanceEffects.push(...onChanceEffectList);
+    });
+
+    // return what was found.
+    return onChanceEffects;
+  };
 }
 //#endregion RPGManager
 
@@ -4280,59 +4309,31 @@ Game_Actor.prototype.isLeader = function()
 };
 
 /**
- * Gets all objects with notes on them currently for this actor.
- * This is very similar to the `traitObjects()` function.
- * @returns {RPG_BaseItem[]}
+ * All sources this actor battler has available to it.
+ * @returns {(RPG_Actor|RPG_State|RPG_Class|RPG_Skill|RPG_EquipItem)[]}
  */
-Game_Actor.prototype.getAllNotes = function()
+Game_Actor.prototype.getNotesSources = function()
 {
-  // initialize the collection.
-  const objectsWithNotes = [];
+  // get the super-classes' note sources as a baseline.
+  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
 
-  // get the actor object.
-  objectsWithNotes.push(this.databaseData());
+  // the list of note sources unique to actors.
+  const actorUniqueNoteSources = [
+    // add the actor's class to the source list.
+    this.currentClass(),
 
-  // get their current class object.
-  objectsWithNotes.push(this.currentClass());
+    // add the actor's skills to the source list.
+    ...this.skills(),
 
-  // get all their skill objects.
-  objectsWithNotes.push(...this.skills());
+    // add all of the actor's valid equips to the source list.
+    ...this.equips().filter(equip => !!equip),
+  ];
 
-  // get all their non-null equip objects.
-  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+  // combine the two source lists.
+  const combinedNoteSources = baseNoteSources.concat(actorUniqueNoteSources);
 
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return that potentially massive combination.
-  return objectsWithNotes;
-};
-
-/**
- * Gets all things except skills that can possibly have notes on it at the
- * present moment. Skills are omitted on purpose.
- * @returns {RPG_BaseItem[]}
- */
-Game_Actor.prototype.getCurrentWithNotes = function()
-{
-  const objectsWithNotes = [];
-
-  // get the actor object.
-  objectsWithNotes.push(this.actor());
-
-  // SKIP SKILLS.
-
-  // get their current class object.
-  objectsWithNotes.push(this.currentClass());
-
-  // get all their non-null equip objects.
-  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
-
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return that potentially slightly-less massive combination.
-  return objectsWithNotes;
+  // return our combination.
+  return combinedNoteSources;
 };
 
 /**
@@ -4661,17 +4662,6 @@ Game_Battler.prototype.skill = function(skillId)
 };
 
 /**
- * Gets the state associated with the given state id.
- * By abstracting this, we can modify the underlying state before it reaches its destination.
- * @param {number} stateId The state id to get data for.
- * @returns {RPG_State}
- */
-Game_Battler.prototype.state = function(stateId)
-{
-  return $dataStates[stateId];
-};
-
-/**
  * The underlying database data for this battler.
  *
  * This allows operations to be performed against both actor and enemy indifferently.
@@ -4696,23 +4686,32 @@ Game_Battler.prototype.databaseData = function()
 /**
  * Gets everything that this battler has with notes on it.
  * All battlers have their own database data, along with all their states.
- * Actors get their class, skills, and equips added.
- * Enemies get just their skills added.
- * @returns {RPG_BaseItem[]}
+ * Actors also get their class, skills, and equips added.
+ * Enemies also get their skills added.
+ * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
  */
 Game_Battler.prototype.getAllNotes = function()
 {
   // initialize the container.
-  const objectsWithNotes = [];
+  const objectsWithNotes = this.getNotesSources();
 
-  // get the actor object.
-  objectsWithNotes.push(this.databaseData());
-
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return this combined collection of trait objects.
+  // return this combined collection of note-containing objects.
   return objectsWithNotes;
+};
+
+/**
+ * Gets all database objects from which notes can be derived for this battler.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Battler.prototype.getNotesSources = function()
+{
+  return [
+    // add the actor/enemy to the source list.
+    this.databaseData(),
+
+    // add all currently applied states to the source list.
+    ...this.allStates(),
+  ];
 };
 
 /**
@@ -4723,6 +4722,28 @@ Game_Battler.prototype.getAllNotes = function()
  */
 Game_Battler.prototype.onBattlerDataChange = function()
 {
+};
+
+//#region state management
+/**
+ * Gets the state associated with the given state id.
+ * By abstracting this, we can modify the underlying state before it reaches its destination.
+ * @param {number} stateId The state id to get data for.
+ * @returns {RPG_State}
+ */
+Game_Battler.prototype.state = function(stateId)
+{
+  return $dataStates[stateId];
+};
+
+/**
+ * Overwrites {@link #states}.
+ * Returns all states from the view of this battler.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.states = function()
+{
+  return this._states.map(stateId => this.state(stateId), this);
 };
 
 /**
@@ -4808,6 +4829,16 @@ Game_Battler.prototype.allStates = function()
 
   // return that combined collection.
   return states;
+};
+//#endregion state management
+
+/**
+ * Gets the current health percent of this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.currentHpPercent = function()
+{
+  return parseFloat((this.hp / this.mhp).toFixed(2));
 };
 //#endregion Game_Battler
 
@@ -4918,6 +4949,15 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
 
 //#region Game_Enemy
 /**
+ * Gets the battler id of this enemy from the database.
+ * @returns {number}
+ */
+Game_Enemy.prototype.battlerId = function()
+{
+  return this.enemyId();
+};
+
+/**
  * The underlying database data for this enemy.
  * @returns {RPG_Enemy}
  */
@@ -4927,14 +4967,25 @@ Game_Enemy.prototype.databaseData = function()
 };
 
 /**
- * The underlying database data for this battler.
- *
- * This allows operations to be performed against both actor and enemy indifferently.
- * @returns {number}
+ * All sources this enemy battler has available to it.
+ * @returns {(RPG_Enemy|RPG_State|RPG_Skill)[]}
  */
-Game_Enemy.prototype.battlerId = function()
+Game_Enemy.prototype.getNotesSources = function()
 {
-  return this.enemyId();
+  // get the super-classes' note sources as a baseline.
+  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
+
+  // the list of note sources unique to enemies.
+  const enemyUniqueNoteSources = [
+    // add the actor's skills to the source list.
+    ...this.skills(),
+  ];
+
+  // combine the two source lists.
+  const combinedNoteSources = baseNoteSources.concat(enemyUniqueNoteSources);
+
+  // return our combination.
+  return combinedNoteSources;
 };
 
 /**
@@ -4970,17 +5021,17 @@ Game_Enemy.prototype.skills = function()
 {
   // grab the actions for the enemy.
   const actions = this.enemy().actions
-  .map(action => this.skill(action.skillId), this);
+    .map(action => this.skill(action.skillId), this);
 
   // grab any additional skills added via traits.
   const skillTraits = this.traitObjects()
-  .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
-  .map(skillTrait => this.skill(skillTrait.dataId), this);
+    .filter(trait => trait.code === J.BASE.Traits.ADD_SKILL)
+    .map(skillTrait => this.skill(skillTrait.dataId), this);
 
   // combine the two arrays of skills.
   return actions
-  .concat(skillTraits)
-  .sort();
+    .concat(skillTraits)
+    .sort();
 };
 
 /**
@@ -4991,31 +5042,6 @@ Game_Enemy.prototype.skills = function()
 Game_Enemy.prototype.hasSkill = function(skillId)
 {
   return this.skills().some(skill => skill.id === skillId);
-};
-
-/**
- * Gets all objects with notes available to enemies.
- * @returns {RPG_Enemy[]}
- */
-Game_Enemy.prototype.getAllNotes = function()
-{
-  const objectsWithNotes = [];
-  objectsWithNotes.push(this.enemy());
-  objectsWithNotes.push(...this.skills());
-  objectsWithNotes.push(...this.states());
-  return objectsWithNotes;
-};
-
-/**
- * Gets all objects with notes available to enemies.
- * @returns {RPG_BaseItem[]}
- */
-Game_Enemy.prototype.getCurrentWithNotes = function()
-{
-  const objectsWithNotes = [];
-  objectsWithNotes.push(this.enemy());
-  objectsWithNotes.push(...this.states());
-  return objectsWithNotes;
 };
 //#endregion Game_Enemy
 

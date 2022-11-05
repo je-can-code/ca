@@ -187,9 +187,13 @@ Game_Battler.prototype.skillsIdsFromSelf = function()
 Game_Battler.prototype.skillsIdsFromTraits = function(traitObjects)
 {
   return traitObjects
+  // concat all the traits from the various database objects.
     .reduce((r, obj) => r.concat(obj.traits), [])
+  // concat the list of what types of traits these are.
     .reduce((r, trait) => r.concat(trait.dataId), [])
+  // filter all the traits by the "add skill" trait.
     .filter(trait => trait.code === Game_BattlerBase.TRAIT_SKILL_ADD)
+  // add all the objects together for a full list of skill ids.
     .reduce((r, obj) => r.concat(obj.traits), []);
 };
 

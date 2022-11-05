@@ -59,7 +59,7 @@ Game_Enemy.prototype.strictElements = function()
  */
 Game_Enemy.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getCurrentWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData =>
   {

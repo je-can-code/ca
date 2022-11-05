@@ -11,6 +11,9 @@ Game_Enemy.prototype.setup = function(enemyId, x, y)
 
   // initialize the combat skills for the battler.
   this.initAbsSkills();
+
+  // execute the first refresh for JABS-related things.
+  this.jabsRefresh();
 };
 
 /**
@@ -22,14 +25,29 @@ Game_Enemy.prototype.initAbsSkills = function()
 };
 
 /**
- * Gets the battler id of this enemy from the database.
- * @returns {number}
+ * Refreshes aspects associated with this battler in the context of JABS.
  */
-Game_Enemy.prototype.battlerId = function()
+Game_Enemy.prototype.jabsRefresh = function()
 {
-  return this.enemyId();
+  // refresh the bonus hits to ensure they are still accurate.
+  this.refreshBonusHits();
 };
 
+/**
+ * Extends {@link #onBattlerDataChange}.
+ * Adds a hook for performing actions when the battler's data hase changed.
+ */
+J.ABS.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
+Game_Enemy.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Enemy.get('onBattlerDataChange').call(this);
+
+  // update JABS-related things.
+  this.jabsRefresh();
+};
+
+//#region JABS basic attack skills
 /**
  * Gets the enemy's basic attack skill id.
  * This is defined by the first "Attack Skill" trait on an enemy.
@@ -45,26 +63,9 @@ Game_Enemy.prototype.basicAttackSkillId = function()
   // if we didn't find one, return the default instead.
   return basicAttackSkillId ?? J.ABS.Metadata.DefaultEnemyAttackSkillId;
 };
+//#endregion JABS basic attack skills
 
-/**
- * Gets the current number of bonus hits for this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.getBonusHits = function()
-{
-  // default the bonus hits to 0.
-  let bonusHits = 0;
-
-  // grab all things that have notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // accumulate all bonus hits from all objects.
-  objectsToCheck.forEach(obj => bonusHits += obj.jabsBonusHits ?? 0);
-
-  // return what we found.
-  return bonusHits;
-};
-
+//#region JABS battler properties
 /**
  * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.
@@ -377,4 +378,26 @@ Game_Enemy.prototype.isInanimate = function()
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyIsInanimate;
 };
+//#endregion JABS battler properties
+
+//#region JABS bonus hits
+/**
+ * Gets all collections of sources that will be scanned for bonus hits.
+ *
+ * For enemies, this includes:
+ *   - All applied states
+ *   - The enemy's own data
+ * @returns {RPG_BaseItem[][]}
+ */
+Game_Enemy.prototype.getBonusHitsSources = function()
+{
+  return [
+    // states may contain bonus hits.
+    this.states(),
+
+    // the enemy itself may contain bonus hits.
+    [this.databaseData()],
+  ];
+};
+//#endregion JABS bonus hits
 //#endregion Game_Enemy

@@ -241,7 +241,7 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 /**
  * The compiled {@link JABS_BattlerAI}.
  * This defines how this battler's AI will be controlled.
- * @type {boolean}
+ * @type {JABS_BattlerAI}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
   {
@@ -253,7 +253,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
 
 /**
  * Checks whether or not this battler has the JABS AI trait of careful.
- * @returns {boolean}
+ * @returns {JABS_BattlerAI}
  */
 RPG_BaseBattler.prototype.getJabsBattlerAi = function()
 {

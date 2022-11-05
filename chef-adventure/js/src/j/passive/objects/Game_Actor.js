@@ -78,24 +78,4 @@ Game_Actor.prototype.getAllNotes = function()
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;
 };
-
-/**
- * Extends `getCurrentWithNotes` to include passive skill states.
- * @returns {RPG_BaseItem[]}
- */
-J.PASSIVE.Aliased.Game_Actor.set('getCurrentWithNotes', Game_Actor.prototype.getCurrentWithNotes);
-Game_Actor.prototype.getCurrentWithNotes = function()
-{
-  // perform the origina logic to retrieve the objects with notes.
-  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getCurrentWithNotes').call(this);
-
-  // then add all those currently applied passive skill states, too.
-  objectsWithNotes.push(...this.passiveSkillStates());
-
-  // also apply the party's effects.
-  objectsWithNotes.push(...$gameParty.passiveStates());
-
-  // return that potentially slightly-less massive combination.
-  return objectsWithNotes;
-};
 //#endregion Game_Actor

@@ -29,6 +29,12 @@ J.SDP.Metadata = {
    * The name of this plugin.
    */
   Name: `J-SDP`,
+
+  /**
+   * The version of this plugin.
+   * @type {number}
+   */
+  Version: '1.2.1',
 };
 
 /**
@@ -142,11 +148,6 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
 J.SDP.PluginParameters = PluginManager.parameters(J.SDP.Metadata.Name);
 J.SDP.Metadata = {
   ...J.SDP.Metadata,
-  /**
-   * The version of this plugin.
-   * @type {number}
-   */
-  Version: '1.2.0',
 
   /**
    * The translated SDPs from the plugin parameters.

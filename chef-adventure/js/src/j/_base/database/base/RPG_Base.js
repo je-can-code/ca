@@ -544,6 +544,9 @@ class RPG_Base
     // establish a variable to be used as "b" in the formula- the base parameter value.
     const b = baseParam;
 
+    // establish a variable to be used as "v" in the formula- access to variables if needed.
+    const v = $gameVariables._data;
+
     // iterate over each valid line of the note.
     lines.forEach(line =>
     {

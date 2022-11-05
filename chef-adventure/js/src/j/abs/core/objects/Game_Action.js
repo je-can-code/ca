@@ -118,8 +118,7 @@ Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
   {
     let chance = effect.value1;
     chance *= target.stateRate(stateId);
-    chance *= this.subject()
-      .attackStatesRate(stateId);
+    chance *= this.subject().attackStatesRate(stateId);
     chance *= this.lukEffectRate(target);
     if (Math.random() < chance)
     {

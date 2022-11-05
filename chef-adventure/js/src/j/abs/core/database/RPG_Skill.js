@@ -1032,40 +1032,6 @@ RPG_Skill.prototype.extractJabsUnparryable = function()
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
 };
 //#endregion RPG_Skill
-
-//#region RPG_State
-/**
- * Whether or not the battler afflicted with this state is unparryable in
- * any action it takes.
- * @type {boolean}
- */
-Object.defineProperty(RPG_State.prototype, "jabsUnparryable",
-  {
-    get: function()
-    {
-      return this.getJabsUnparryable();
-    },
-  });
-
-/**
- * Gets whether or not this state will provide the unparryable status
- * to its afflictee.
- * @returns {boolean|null}
- */
-RPG_State.prototype.getJabsUnparryable = function()
-{
-  return this.extractJabsUnparryable();
-};
-
-/**
- * Extracts the boolean from the notes.
- * @returns {boolean|null}
- */
-RPG_State.prototype.extractJabsUnparryable = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
-};
-//#endregion RPG_State
 //#endregion unparryable
 
 //#region selfAnimation

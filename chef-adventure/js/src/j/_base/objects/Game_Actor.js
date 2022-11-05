@@ -112,59 +112,31 @@ Game_Actor.prototype.isLeader = function()
 };
 
 /**
- * Gets all objects with notes on them currently for this actor.
- * This is very similar to the `traitObjects()` function.
- * @returns {RPG_BaseItem[]}
+ * All sources this actor battler has available to it.
+ * @returns {(RPG_Actor|RPG_State|RPG_Class|RPG_Skill|RPG_EquipItem)[]}
  */
-Game_Actor.prototype.getAllNotes = function()
+Game_Actor.prototype.getNotesSources = function()
 {
-  // initialize the collection.
-  const objectsWithNotes = [];
+  // get the super-classes' note sources as a baseline.
+  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
 
-  // get the actor object.
-  objectsWithNotes.push(this.databaseData());
+  // the list of note sources unique to actors.
+  const actorUniqueNoteSources = [
+    // add the actor's class to the source list.
+    this.currentClass(),
 
-  // get their current class object.
-  objectsWithNotes.push(this.currentClass());
+    // add the actor's skills to the source list.
+    ...this.skills(),
 
-  // get all their skill objects.
-  objectsWithNotes.push(...this.skills());
+    // add all of the actor's valid equips to the source list.
+    ...this.equips().filter(equip => !!equip),
+  ];
 
-  // get all their non-null equip objects.
-  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
+  // combine the two source lists.
+  const combinedNoteSources = baseNoteSources.concat(actorUniqueNoteSources);
 
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return that potentially massive combination.
-  return objectsWithNotes;
-};
-
-/**
- * Gets all things except skills that can possibly have notes on it at the
- * present moment. Skills are omitted on purpose.
- * @returns {RPG_BaseItem[]}
- */
-Game_Actor.prototype.getCurrentWithNotes = function()
-{
-  const objectsWithNotes = [];
-
-  // get the actor object.
-  objectsWithNotes.push(this.actor());
-
-  // SKIP SKILLS.
-
-  // get their current class object.
-  objectsWithNotes.push(this.currentClass());
-
-  // get all their non-null equip objects.
-  objectsWithNotes.push(...this.equips().filter(equip => !!equip));
-
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return that potentially slightly-less massive combination.
-  return objectsWithNotes;
+  // return our combination.
+  return combinedNoteSources;
 };
 
 /**

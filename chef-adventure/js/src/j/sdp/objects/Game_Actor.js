@@ -16,19 +16,31 @@ Game_Actor.prototype.initMembers = function()
   /**
    * A grouping of all properties associated with the SDP system.
    */
-  this._j._sdp = {
-    /**
-     * The points that this current actor has.
-     * @type {number}
-     */
-    _points: 0,
+  this._j._sdp ||= {}
 
-    /**
-     * A collection of the ranks for each panel that have had points invested.
-     * @type {PanelRanking[]}
-     */
-    _ranks: [],
-  };
+  /**
+   * The accumulative total number of points this actor has ever gained.
+   * @type {number}
+   */
+  this._j._sdp._pointsEverGained = 0;
+
+  /**
+   * The accumulative total number of points this actor has ever spent.
+   * @type {number}
+   */
+  this._j._sdp._pointsSpent = 0;
+
+  /**
+   * The points that this current actor has.
+   * @type {number}
+   */
+  this._j._sdp._points = 0;
+
+  /**
+   * A collection of the ranks for each panel that have had points invested.
+   * @type {PanelRanking[]}
+   */
+  this._j._sdp._ranks = [];
 };
 
 /**
@@ -71,6 +83,50 @@ Game_Actor.prototype.getAllSdpRankings = function()
 };
 
 /**
+ * Gets the accumulative total of points this actor has ever gained.
+ * @returns {number}
+ */
+Game_Actor.prototype.getAccumulatedTotalSdpPoints = function()
+{
+  return this._j._sdp._pointsEverGained;
+};
+
+/**
+ * Increase the amount of accumulated total points for this actor by a given amount.
+ * This amount should never be reduced.
+ * @param {number} points The number of points to increase the total by.
+ */
+Game_Actor.prototype.modAccumulatedTotalSdpPoints = function(points)
+{
+  // ensure the points are positive- you cannot decrease the accumulative total.
+  if (points > 0)
+  {
+    // add the points to the accumulative total.
+    this._j._sdp._pointsEverGained += points;
+  }
+};
+
+/**
+ * Gets the accumulative total of points this actor has ever spent.
+ * @returns {number}
+ */
+Game_Actor.prototype.getAccumulatedSpentSdpPoints = function()
+{
+  return this._j._sdp._pointsEverGained;
+};
+
+/**
+ * Increase the amount of accumulated spent points for this actor by a given amount.
+ * This number is designed to not be reduced except when refunding.
+ * @param {number} points The number of points to increase the spent by.
+ */
+Game_Actor.prototype.modAccumulatedSpentSdpPoints = function(points)
+{
+  // add the points to the accumulative spent.
+  this._j._sdp._pointsSpent += points;
+};
+
+/**
  * Gets the amount of SDP points this actor has.
  */
 Game_Actor.prototype.getSdpPoints = function()
@@ -87,6 +143,7 @@ Game_Actor.prototype.getSdpPoints = function()
  */
 Game_Actor.prototype.modSdpPoints = function(points)
 {
+  // initialize the gained points.
   let gainedSdpPoints = points;
 
   // if the modification is a positive amount...
@@ -94,6 +151,9 @@ Game_Actor.prototype.modSdpPoints = function(points)
   {
     // then add apply the multiplier to the gained points.
     gainedSdpPoints = Math.round(gainedSdpPoints * this.sdpMultiplier());
+
+    // add to the running accumulative total.
+    this.modAccumulatedTotalSdpPoints(gainedSdpPoints);
   }
 
   // add the points onto the actor.

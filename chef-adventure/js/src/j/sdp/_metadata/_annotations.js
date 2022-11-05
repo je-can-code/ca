@@ -100,6 +100,9 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Update to add tracking for total gained sdp points.
+ *    Update to add tracking for total spent sdp points.
  * - 1.2.0
  *    Update to include Max TP as a valid panel parameter.
  * - 1.1.0

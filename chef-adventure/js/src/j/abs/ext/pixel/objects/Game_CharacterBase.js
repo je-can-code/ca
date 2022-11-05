@@ -1006,6 +1006,7 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y)
   return events.length > 0;
 };
 
-Game_Character.prototype.searchLimit = function() {
+Game_Character.prototype.searchLimit = function()
+{
   return 40;
 };

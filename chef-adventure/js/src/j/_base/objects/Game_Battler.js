@@ -11,17 +11,6 @@ Game_Battler.prototype.skill = function(skillId)
 };
 
 /**
- * Gets the state associated with the given state id.
- * By abstracting this, we can modify the underlying state before it reaches its destination.
- * @param {number} stateId The state id to get data for.
- * @returns {RPG_State}
- */
-Game_Battler.prototype.state = function(stateId)
-{
-  return $dataStates[stateId];
-};
-
-/**
  * The underlying database data for this battler.
  *
  * This allows operations to be performed against both actor and enemy indifferently.
@@ -46,23 +35,32 @@ Game_Battler.prototype.databaseData = function()
 /**
  * Gets everything that this battler has with notes on it.
  * All battlers have their own database data, along with all their states.
- * Actors get their class, skills, and equips added.
- * Enemies get just their skills added.
- * @returns {RPG_BaseItem[]}
+ * Actors also get their class, skills, and equips added.
+ * Enemies also get their skills added.
+ * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
  */
 Game_Battler.prototype.getAllNotes = function()
 {
   // initialize the container.
-  const objectsWithNotes = [];
+  const objectsWithNotes = this.getNotesSources();
 
-  // get the actor object.
-  objectsWithNotes.push(this.databaseData());
-
-  // get any currently applied normal states.
-  objectsWithNotes.push(...this.states());
-
-  // return this combined collection of trait objects.
+  // return this combined collection of note-containing objects.
   return objectsWithNotes;
+};
+
+/**
+ * Gets all database objects from which notes can be derived for this battler.
+ * @returns {RPG_BaseItem[]}
+ */
+Game_Battler.prototype.getNotesSources = function()
+{
+  return [
+    // add the actor/enemy to the source list.
+    this.databaseData(),
+
+    // add all currently applied states to the source list.
+    ...this.allStates(),
+  ];
 };
 
 /**
@@ -73,6 +71,28 @@ Game_Battler.prototype.getAllNotes = function()
  */
 Game_Battler.prototype.onBattlerDataChange = function()
 {
+};
+
+//#region state management
+/**
+ * Gets the state associated with the given state id.
+ * By abstracting this, we can modify the underlying state before it reaches its destination.
+ * @param {number} stateId The state id to get data for.
+ * @returns {RPG_State}
+ */
+Game_Battler.prototype.state = function(stateId)
+{
+  return $dataStates[stateId];
+};
+
+/**
+ * Overwrites {@link #states}.
+ * Returns all states from the view of this battler.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.states = function()
+{
+  return this._states.map(stateId => this.state(stateId), this);
 };
 
 /**
@@ -158,5 +178,15 @@ Game_Battler.prototype.allStates = function()
 
   // return that combined collection.
   return states;
+};
+//#endregion state management
+
+/**
+ * Gets the current health percent of this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.currentHpPercent = function()
+{
+  return parseFloat((this.hp / this.mhp).toFixed(2));
 };
 //#endregion Game_Battler

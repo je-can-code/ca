@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Oct 30 2022 09:14:43 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Nov 05 2022 08:53:36 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -102,6 +102,9 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Update to add tracking for total gained sdp points.
+ *    Update to add tracking for total spent sdp points.
  * - 1.2.0
  *    Update to include Max TP as a valid panel parameter.
  * - 1.1.0
@@ -450,6 +453,12 @@ J.SDP.Metadata = {
    * The name of this plugin.
    */
   Name: `J-SDP`,
+
+  /**
+   * The version of this plugin.
+   * @type {number}
+   */
+  Version: '1.2.1',
 };
 
 /**
@@ -563,11 +572,6 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
 J.SDP.PluginParameters = PluginManager.parameters(J.SDP.Metadata.Name);
 J.SDP.Metadata = {
   ...J.SDP.Metadata,
-  /**
-   * The version of this plugin.
-   * @type {number}
-   */
-  Version: '1.2.0',
 
   /**
    * The translated SDPs from the plugin parameters.
@@ -1521,19 +1525,31 @@ Game_Actor.prototype.initMembers = function()
   /**
    * A grouping of all properties associated with the SDP system.
    */
-  this._j._sdp = {
-    /**
-     * The points that this current actor has.
-     * @type {number}
-     */
-    _points: 0,
+  this._j._sdp ||= {}
 
-    /**
-     * A collection of the ranks for each panel that have had points invested.
-     * @type {PanelRanking[]}
-     */
-    _ranks: [],
-  };
+  /**
+   * The accumulative total number of points this actor has ever gained.
+   * @type {number}
+   */
+  this._j._sdp._pointsEverGained = 0;
+
+  /**
+   * The accumulative total number of points this actor has ever spent.
+   * @type {number}
+   */
+  this._j._sdp._pointsSpent = 0;
+
+  /**
+   * The points that this current actor has.
+   * @type {number}
+   */
+  this._j._sdp._points = 0;
+
+  /**
+   * A collection of the ranks for each panel that have had points invested.
+   * @type {PanelRanking[]}
+   */
+  this._j._sdp._ranks = [];
 };
 
 /**
@@ -1576,6 +1592,50 @@ Game_Actor.prototype.getAllSdpRankings = function()
 };
 
 /**
+ * Gets the accumulative total of points this actor has ever gained.
+ * @returns {number}
+ */
+Game_Actor.prototype.getAccumulatedTotalSdpPoints = function()
+{
+  return this._j._sdp._pointsEverGained;
+};
+
+/**
+ * Increase the amount of accumulated total points for this actor by a given amount.
+ * This amount should never be reduced.
+ * @param {number} points The number of points to increase the total by.
+ */
+Game_Actor.prototype.modAccumulatedTotalSdpPoints = function(points)
+{
+  // ensure the points are positive- you cannot decrease the accumulative total.
+  if (points > 0)
+  {
+    // add the points to the accumulative total.
+    this._j._sdp._pointsEverGained += points;
+  }
+};
+
+/**
+ * Gets the accumulative total of points this actor has ever spent.
+ * @returns {number}
+ */
+Game_Actor.prototype.getAccumulatedSpentSdpPoints = function()
+{
+  return this._j._sdp._pointsEverGained;
+};
+
+/**
+ * Increase the amount of accumulated spent points for this actor by a given amount.
+ * This number is designed to not be reduced except when refunding.
+ * @param {number} points The number of points to increase the spent by.
+ */
+Game_Actor.prototype.modAccumulatedSpentSdpPoints = function(points)
+{
+  // add the points to the accumulative spent.
+  this._j._sdp._pointsSpent += points;
+};
+
+/**
  * Gets the amount of SDP points this actor has.
  */
 Game_Actor.prototype.getSdpPoints = function()
@@ -1592,6 +1652,7 @@ Game_Actor.prototype.getSdpPoints = function()
  */
 Game_Actor.prototype.modSdpPoints = function(points)
 {
+  // initialize the gained points.
   let gainedSdpPoints = points;
 
   // if the modification is a positive amount...
@@ -1599,6 +1660,9 @@ Game_Actor.prototype.modSdpPoints = function(points)
   {
     // then add apply the multiplier to the gained points.
     gainedSdpPoints = Math.round(gainedSdpPoints * this.sdpMultiplier());
+
+    // add to the running accumulative total.
+    this.modAccumulatedTotalSdpPoints(gainedSdpPoints);
   }
 
   // add the points onto the actor.
@@ -2243,8 +2307,7 @@ Scene_Menu.prototype.commandSdp = function()
 //#endregion Scene_Menu
 
 //#region Scene_SDP
-class Scene_SDP
-  extends Scene_MenuBase
+class Scene_SDP extends Scene_MenuBase
 {
   constructor()
   {
@@ -2525,16 +2588,37 @@ class Scene_SDP
    */
   onUpgradeConfirm()
   {
+    // grab the panel we're working with.
     const panel = this._j._currentPanel;
+
+    // grab the actor we're working with.
     const actor = this._j._currentActor;
+
+    // get the panel ranking from the actor.
     const panelRanking = actor.getSdpByKey(panel.key);
+
+    // determine the cost to rank up the panel.
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);
+
+    // reduce the points by a negative variant of the amount.
     actor.modSdpPoints(-panelRankupCost);
+
+    // rank up the panel.
     actor.rankUpPanel(panel.key);
+
+    // update the total spent points for this actor.
+    actor.modAccumulatedSpentSdpPoints(panelRankupCost);
+
+    // refresh all the windows after upgrading the panel.
     this.refreshAllWindows();
+
+    // update the detail window to use the current actor.
     this._j._sdpDetailsWindow.setActor(this._j._currentActor);
 
+    // close the confirmation window.
     this._j._sdpConfirmationWindow.close();
+
+    // refocus back to the list window.
     this._j._sdpListWindow.activate();
   }
 

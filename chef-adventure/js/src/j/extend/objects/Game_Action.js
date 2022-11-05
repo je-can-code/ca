@@ -152,7 +152,7 @@ Game_Action.prototype.applyStates = function(target, stateChances)
       if (stateChance.shouldTrigger())
       {
         // ...then we apply the given state.
-        target.addState(stateChance.skillId);
+        target.addState(stateChance.skillId, this.subject());
       }
     });
   }

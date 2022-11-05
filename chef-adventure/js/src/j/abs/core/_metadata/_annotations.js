@@ -2,11 +2,11 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.0 JABS] Enables combat to be carried out on the map.
+ * [v3.1.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * OVERVIEW:
@@ -22,6 +22,72 @@
  * slap some tags on the various everything across the entire RMMZ editor, and
  * you too can have a functional ABS, aka JABS!
  *
+ * ============================================================================
+ * Due to the sheer length of instruction provided below, the changelog for
+ * JABS lives at the top instead of the bottom like the rest of my plugins.
+ *
+ * CHANGELOG:
+ * - 3.1.1
+ *    Retroactively added this CHANGELOG.
+ * - 3.1.0
+ *    Optimized battler tracking and management.
+ *    Optimized state tracking and management.
+ *    Optimized integrations with my other plugins.
+ *    Added proper guidance in the plugin description.
+ *    Added state duration modifiers functionality.
+ *    Fixed "ignore all parry" tag.
+ *    Added "Skill Charging" as JABS extension.
+ *    Added "Casting Modifiers" as JABS extension.
+ *    Added "Map Tools" as JABS extension.
+ *    Added "Cyclone-Movement" adapter as JABS extension.
+ *    Updated distance-centric tags to now allow for decimals (like "range").
+ *    Added "circle" hitbox.
+ *    Updated hitbox logic.
+ *    Updated tags surrounding enemy event configuration.
+ *    Updated tags surrounding AI definition for enemies.
+ *    Optimized AI decision-making capabilities based on AI traits.
+ * - 3.0.0
+ *    Extracted "Text Pops" as a JABS extension plugin.
+ *    Extracted "Input Management" as a JABS extension plugin.
+ *    Extracted "Diagonal Movements" as a JABS extension plugin.
+ *    Extracted "Movespeed Modifiers" as a JABS extension plugin.
+ *    Integrated "Ally AI" as JABS extension.
+ *    Added Aggro functionality.
+ *    Added skill delay functionality (like bombs).
+ *    Adjusted numerous data points to be customizable in plugin parameters.
+ *    Further optimized "under-the-hood" parts of JABS.
+ * - 2.3.1
+ *    Updated loot drop functionality to be less wonky.
+ *    Other miscellaneous bugfixes.
+ * - 2.3.0
+ *    Updated plugin parameters format to be cleaner.
+ *    Added "Danger Indicator" functionality (see indicator on enemies on map).
+ *    Added "Battler Name" functionality (see names of enemies on map).
+ *    Other miscellaneous bugfixes.
+ * - 2.2.0
+ *    Added 2 new AI types: "leader" and "follower".
+ *    Shifted tag location for enemies from event notebox to comment format.
+ *    Other miscellaneous bugfixes.
+ * - 2.1.0
+ *    Implemented party cycling between members of the party.
+ *    Added refresh command for JABS quick menu.
+ *    Added "bonus hits" functionality.
+ *    Disabled native RMMZ regeneration.
+ *    Modified dash functionality to be controlled by JABS instead.
+ *    Enemies now perform their active event page upon defeat.
+ *    Disabled on-hit effects against targets that parry.
+ *    Added "counter-guard" and "counter-parry" functionality.
+ *    Added visual indicator for "action decided" for AI-controlled battlers.
+ *    Excessive number of bugfixes.
+ * - 2.0.0
+ *    Added guarding functionality.
+ *    Added counterattack functionality.
+ *    Added projectile count modifiers.
+ *    Enemy loot is now dropped on the ground.
+ *    Added movespeed modifier functionality (for player only).
+ *    Greatly optimized "under-the-hood" parts of JABS.
+ * - 1.0.0
+ *    The initial release.
  * ============================================================================
  * SETTING UP YOUR ENEMY EVENTS:
  * There are a lot of potential tags that you can place all across the database
@@ -985,7 +1051,7 @@
  * in the three subsections below.
  *
  * IMPORTANT NOTE ABOUT DAMAGE FREQUENCY:
- * IT is important to note that the values in all three categories of damage
+ * It is important to note that the values in all three categories of damage
  * application are assumed to be the amount of damage/healing applied over the
  * spread of five seconds. The amount is spread over a total of 20 ticks per
  * five seconds, translating to four ticks per second. This was an arbitrary
@@ -1076,6 +1142,48 @@
  * that in your head to 5 seconds, it may actually be longer than 5 seconds if
  * your frames per second are spending a lot of time below 60.
  * Keep that in mind when designing states.
+ * ============================================================================
+ * STATE DURATION EXTENSIONS:
+ * In some cases, you may want the player to acquire armor or have states to
+ * apply modifiers to how long states last. To accomplish this functionality,
+ * we have another trio of tags that can modify the duration of states applied
+ * by a given battler.
+ *
+ * NOTE ABOUT SCOPE OF USE:
+ * This is for outgoing state duration only!
+ * This does NOT extend or reduce state durations for incoming states.
+ *
+ * NOTE ABOUT POSITIVE OR NEGATIVE:
+ * Any of the below values can be positive or negative and will modify the
+ * base duration accordingly.
+ *
+ * NOTE ABOUT MULTIPLE TAGS:
+ * All tags are summed up into their respective groups and added together
+ * from all available note-containing sources applicable to the battler.
+ *
+ * FLAT:
+ * Flat state duration boosts are exactly as you might suspect, a flat number
+ * of frames that will be added to the base duration.
+ *    <stateDurationFlat: VAL>
+ *  Where VAL is the number of frames to add onto the base duration.
+ *
+ * PERCENT:
+ * Percent state duration boosts are also what you might expect: a percent
+ * modifier of the base duration added to the base duration.
+ *    <stateDurationPerc: VAL>
+ *  Where VAL is the % of base duration to be added onto the base duration.
+ *
+ * FORMULA:
+ * For more complex scenarios, you may want to use a formula to calculate the
+ * bonus state duration to be added to the base duration.
+ *    <stateDurationForm:[FORMULA]>
+ *  Where FORMULA is the damage-like formula to calculate VAL to add onto
+ *  the base duration.
+ *
+ *  Within the FORMULA, there are pre-defined variables available for use:
+ *    - "a": which represents the battler afflicted with the state.
+ *    - "b": which represents the base duration of the state.
+ *    - "v": which represents access to the variable store.
  *
  * ============================================================================
  * @param baseConfigs

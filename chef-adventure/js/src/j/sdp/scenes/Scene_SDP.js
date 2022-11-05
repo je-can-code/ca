@@ -1,6 +1,5 @@
 //#region Scene_SDP
-class Scene_SDP
-  extends Scene_MenuBase
+class Scene_SDP extends Scene_MenuBase
 {
   constructor()
   {
@@ -281,16 +280,37 @@ class Scene_SDP
    */
   onUpgradeConfirm()
   {
+    // grab the panel we're working with.
     const panel = this._j._currentPanel;
+
+    // grab the actor we're working with.
     const actor = this._j._currentActor;
+
+    // get the panel ranking from the actor.
     const panelRanking = actor.getSdpByKey(panel.key);
+
+    // determine the cost to rank up the panel.
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);
+
+    // reduce the points by a negative variant of the amount.
     actor.modSdpPoints(-panelRankupCost);
+
+    // rank up the panel.
     actor.rankUpPanel(panel.key);
+
+    // update the total spent points for this actor.
+    actor.modAccumulatedSpentSdpPoints(panelRankupCost);
+
+    // refresh all the windows after upgrading the panel.
     this.refreshAllWindows();
+
+    // update the detail window to use the current actor.
     this._j._sdpDetailsWindow.setActor(this._j._currentActor);
 
+    // close the confirmation window.
     this._j._sdpConfirmationWindow.close();
+
+    // refocus back to the list window.
     this._j._sdpListWindow.activate();
   }
 

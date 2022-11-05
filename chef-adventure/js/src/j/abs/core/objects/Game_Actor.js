@@ -20,12 +20,6 @@ Game_Actor.prototype.initJabsMembers = function()
   this._j._abs ||= {};
 
   /**
-   * The number of bonus hits this actor currently has.
-   * @type {number}
-   */
-  this._j._abs._bonusHits = 0;
-
-  /**
    * Whether or not the death effect has been performed.
    * The death effect is defined as "death animation".
    * @type {boolean}
@@ -59,6 +53,20 @@ Game_Actor.prototype.jabsRefresh = function()
 
   // refresh the bonus hits to ensure they are still accurate.
   this.refreshBonusHits();
+};
+
+/**
+ * Extends {@link #onBattlerDataChange}.
+ * Adds a hook for performing actions when the battler's data hase changed.
+ */
+J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+
+  // update JABS-related things.
+  this.jabsRefresh();
 };
 
 //#region JABS basic attack skills
@@ -279,16 +287,6 @@ Game_Actor.prototype.getUuid = function()
 Game_Actor.prototype.prepareTime = function()
 {
   return 1;
-};
-
-/**
- * Gets the skill id for this actor.
- * Actors don't use this functionality, they have equipped skills instead.
- * @returns {null}
- */
-Game_Actor.prototype.skillId = function()
-{
-  return null;
 };
 
 /**
@@ -586,6 +584,31 @@ Game_Actor.prototype.teamId = function()
   }
 
   return parseInt(val);
+};
+
+/**
+ * Checks all possible places for whether or not the actor is able to
+ * be switched to.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.switchLocked = function()
+{
+  const objectsToCheck = this.getAllNotes();
+  const structure = /<noSwitch>/i;
+  let switchLocked = false;
+  objectsToCheck.forEach(obj =>
+  {
+    const notedata = obj.note.split(/[\r\n]+/);
+    notedata.forEach(line =>
+    {
+      if (line.match(structure))
+      {
+        switchLocked = true;
+      }
+    });
+  });
+
+  return switchLocked;
 };
 //#endregion JABS battler properties
 
@@ -906,169 +929,36 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 };
 //#endregion learning
 
-//#region bonus hits
+//#region JABS bonus hits
 /**
- * Updates the bonus hit count for this actor based on equipment.
+ * Gets all collections of sources that will be scanned for bonus hits.
  *
- * NOTE:
- * This is explicitly not using `this.getAllNotes()` so that we can
- * also parse out the repeats from all the relevant sources as well.
+ * For actors, this includes:
+ *   - All applied states
+ *   - The actor's own data
+ *   - All of the actor's equips
+ *   - The actor's applied class
+ * @returns {RPG_BaseItem[][]}
  */
-Game_Actor.prototype.refreshBonusHits = function()
+Game_Actor.prototype.getBonusHitsSources = function()
 {
-  // default to zero bonus hits.
-  let bonusHits = 0;
+  return [
+    // states may contain bonus hits.
+    this.states(),
 
-  // iterate over all equips.
-  bonusHits += this.getBonusHitsFromTraitedSources(this.equips());
+    // the actor itself may contain bonus hits.
+    [this.databaseData()],
 
-  // iterate over all states.
-  bonusHits += this.getBonusHitsFromTraitedSources(this.states());
+    // the equipment may contain bonus hits.
+    this.equips(),
 
-  // add your own actor data as a source.
-  bonusHits += this.getBonusHitsFromTraitedSources([this.actor()]);
-
-  // add your own class data as a source.
-  bonusHits += this.getBonusHitsFromTraitedSources([this.currentClass()]);
-
-  // iterate over all skills learned; concept as "passive skills", not bonus hits per skill.
-  bonusHits += this.getBonusHitsFromNonTraitedSources(this.skills());
-
-  // set the bonus hits to the total amount found everywhere.
-  this._j._abs._bonusHits = bonusHits;
+    // the class may contain bonus hits.
+    [this.currentClass()],
+  ];
 };
+//#endregion JABS bonus hits
 
-/**
- * Gets the current number of bonus hits for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getBonusHits = function()
-{
-  return this._j._abs._bonusHits;
-};
-//#endregion bonus hits
-
-//#region state durations
-/**
- * Determines the various state duration boosts available to this actor.
- * @param {number} baseDuration The base duration of the state.
- * @param {Game_Battler} attacker The attacker- for use with formulai.
- * @returns {number}
- */
-Game_Actor.prototype.getStateDurationBoost = function(baseDuration, attacker)
-{
-  // initialize the running tally.
-  let durationBoost = 0;
-
-  // grab all the things to check.
-  const objectsToCheck = this.getAllNotes();
-
-  // iterate over each of the things to check.
-  objectsToCheck.forEach(obj =>
-  {
-    // add the flat boosts.
-    durationBoost += this.getStateDurationFlatPlus(obj);
-
-    // add the percent boosts, using the base duration.
-    durationBoost += this.getStateDurationPercPlus(obj, baseDuration);
-
-    // add the formula-driven boosts, using the base duration and the attacker.
-    durationBoost += this.getStateDurationFormulaPlus(obj, baseDuration, attacker);
-  });
-
-  // reduce to 2 decimal places.
-  const fixedDurationBoost = parseFloat(durationBoost.toFixed(2));
-
-  // return our calculated state duration boosts.
-  return fixedDurationBoost;
-};
-
-/**
- * Gets the combined amount of flat state duration boosts from all sources.
- * @param {RPG_BaseItem} noteObject The database object.
- * @returns {number}
- */
-Game_Actor.prototype.getStateDurationFlatPlus = function(noteObject)
-{
-  // determine the structure.
-  const structure = J.ABS.RegExp.StateDurationFlatPlus;
-
-  // extract the amount from the object.
-  const flatDurationBoost = noteObject.getNumberFromNotesByRegex(structure);
-
-  // return was found.
-  return flatDurationBoost;
-};
-
-/**
- * Gets the combined amount of percent-based state duration boosts from all sources.
- * @param {RPG_BaseItem} noteObject The database object.
- * @param {number} baseDuration The base duration of the state.
- * @returns {number}
- */
-Game_Actor.prototype.getStateDurationPercPlus = function(noteObject, baseDuration)
-{
-  // determine the structure.
-  const structure = J.ABS.RegExp.StateDurationPercentPlus;
-
-  // extract the amount from the object.
-  const percDurationBoost = noteObject.getNumberFromNotesByRegex(structure);
-
-  // perform the calculation.
-  const calculatedBoost = Math.round(baseDuration * (percDurationBoost / 100));
-
-  // return the calculated amount.
-  return calculatedBoost;
-};
-
-/**
- * Gets the combined amount of formula-based state duration boosts from all sources.
- * @param {RPG_BaseItem} noteObject The database object.
- * @param {number} baseDuration The base duration of the state.
- * @param {Game_Actor|Game_Enemy} attacker The attacker applying the state.
- * @returns {number}
- */
-Game_Actor.prototype.getStateDurationFormulaPlus = function(noteObject, baseDuration, attacker)
-{
-  // determine the structure.
-  const structure = J.ABS.RegExp.StateDurationFormulaPlus;
-
-  // get the note data from this skill.
-  const lines = noteObject.getFilteredNotesByRegex(structure);
-
-  // if we have no matching notes, then short circuit.
-  if (!lines.length)
-  {
-    // return null or 0 depending on provided options.
-    return 0;
-  }
-
-  // initialize the base boost.
-  let formulaDurationBoost = 0;
-
-  // establish some variables for eval scope access.
-  const a = this;  // the one who applied the state.
-  const b = attacker; // this battler, afflicted by the state.
-  const v = $gameVariables._data; // access to variables if you need it.
-  const d = baseDuration;
-
-  // iterate over each valid line of the note.
-  lines.forEach(line =>
-  {
-    // extract the captured formula.
-    // eslint-disable-next-line prefer-destructuring
-    const result = structure.exec(line)[1];
-
-    // regular parse it and add it to the running total.
-    formulaDurationBoost += JSON.parse(eval(result));
-  });
-
-  // return our evaluated amounts.
-  return formulaDurationBoost;
-};
-//#endregion state durations
-
-//#region map damage
+//#region map effects
 /**
  * Replaces the map damage with JABS' version of the map damage.
  */
@@ -1097,46 +987,6 @@ Game_Actor.prototype.performJabsFloorDamage = function()
   // just flash the screen, the damage is applied by other means.
   $gameScreen.startFlashForDamage();
 };
-//#endregion map damage
-
-/**
- * Extends {@link #onBattlerDataChange}.
- * Adds a hook for performing actions when the battler's data hase changed.
- */
-J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
-Game_Actor.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
-
-  // update JABS-related things.
-  this.jabsRefresh();
-};
-
-/**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
- */
-Game_Actor.prototype.switchLocked = function()
-{
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
-
-  return switchLocked;
-};
 
 /**
  * Disable built-in on-turn-end effects while JABS is active.
@@ -1152,4 +1002,5 @@ Game_Actor.prototype.turnEndOnMap = function()
   // do normal turn-end things while JABS is disabled.
   J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
 };
+//#endregion map effects
 //#endregion Game_Actor
