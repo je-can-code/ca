@@ -23,6 +23,25 @@
  * you too can have a functional ABS, aka JABS!
  *
  * ============================================================================
+ * INTEGRATIONS:
+ * In addition to JABS, I've written a suite(20+) of other plugins that add
+ * new systems or modify existing systems.
+ *
+ * All plugins I have written are highly compatible with eachother, and JABS.
+ * Many of them were written to compliment JABS, such as the HUD or Ally AI.
+ *
+ * If you find issue with how my plugins are interacting with one another, feel
+ * free to reach out and let me know and I'll see if I can fix it.
+ *
+ * If you find issue with how JABS is interacting with someone elses' plugin,
+ * I encourage you communicate with that plugin author to have them reach out
+ * to me and we shall discuss the problem and try to come to a solution if one
+ * exists for the problem.
+ *
+ * As an alternative to the above, you are also welcome to file an issue
+ * against my github repository describing the issue and how to reproduce it
+ * minimally, and I will look into it when possible.
+ * ============================================================================
  * Due to the sheer length of instruction provided below, the changelog for
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *

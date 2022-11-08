@@ -164,7 +164,7 @@ Game_Battler.prototype.getVisionModifier = function()
   // get the vision multiplier from anything this battler has available.
   const visionMultiplier = RPGManager.getSumFromAllNotesByRegex(
     objectsToCheck,
-    structure);
+    J.ABS.RegExp.VisionMultiplier);
 
   // calculate the multiplier.
   const totalVisionMultiplier = baseVisionRate + visionMultiplier;
@@ -586,9 +586,7 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
   // check if we're missing an actor due to external application of state.
   if (!attacker)
   {
-    console.error('There should always be an attacker when adding JABS states!');
-
-    // assign the attacker to be oneself if none otherwise exists.
+    // typically, this condition occurs when an enemy applies to an actor.
     assailant = this;
   }
 

@@ -29,6 +29,17 @@ Game_Actor.prototype.onBattlerDataChange = function()
 
 //#region max tp
 /**
+ * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+ * formulas and apply rates from tags, etc.
+ * @returns {number}
+ */
+Game_Actor.prototype.maxTp = function()
+{
+  // calculate our actual max tp.
+  return this.actualMaxTp();
+};
+
+/**
  * Gets all natural bonuses for max tp.
  * Actors have growths as well as buffs.
  * @param {number} baseParam The base max tp value.

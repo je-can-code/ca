@@ -29,6 +29,17 @@ Game_Enemy.prototype.onBattlerDataChange = function()
 
 //#region max tp
 /**
+ * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+ * formulas and apply rates from tags, etc.
+ * @returns {number}
+ */
+Game_Enemy.prototype.maxTp = function()
+{
+  // calculate our actual max tp.
+  return this.actualMaxTp();
+};
+
+/**
  * Gets the base max tp for this enemy.
  * @returns {number}
  */

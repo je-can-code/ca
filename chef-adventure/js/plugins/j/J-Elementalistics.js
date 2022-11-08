@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Fri Nov 04 2022 16:06:14 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -898,7 +898,7 @@ Game_Enemy.prototype.strictElements = function()
  */
 Game_Enemy.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getCurrentWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData =>
   {

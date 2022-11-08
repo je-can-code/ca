@@ -2887,8 +2887,7 @@ class JABS_Engine
    */
   getCollisionTargets(action)
   {
-    if (action.getAction()
-      .isForUser())
+    if (action.getAction().isForUser())
     {
       return [action.getCaster()];
     }
@@ -2899,7 +2898,6 @@ class JABS_Engine
     const casterJabsBattler = action.getCaster();
     const caster = casterJabsBattler.getCharacter();
 
-    /**  @type {JABS_Battler[]} */
     const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
     let hitOne = false;
     const targetsHit = [];
@@ -2914,59 +2912,60 @@ class JABS_Engine
       }
     }
 
-    battlers.filter(battler =>
-    {
-    // this battler is untargetable.
-      if (!battler.canActionConnect()) return false;
+    battlers
+      .filter(battler =>
+      {
+        // this battler is untargetable.
+        if (!battler.canActionConnect()) return false;
 
-      // the action's scopes don't meet the criteria for this target.
-      // excludes the "single"-hitonce check.
-      if (!battler.isWithinScope(action, battler)) return false;
+        // the action's scopes don't meet the criteria for this target.
+        // excludes the "single"-hitonce check.
+        if (!battler.isWithinScope(action, battler)) return false;
 
-      // if the attacker is an enemy, do not consider inanimate targets.
-      if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
+        // if the attacker is an enemy, do not consider inanimate targets.
+        if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
 
-      // this battler is potentially hit-able.
-      return true;
-    })
-    .forEach(battler =>
-    {
+        // this battler is potentially hit-able.
+        return true;
+      })
+      .forEach(battler =>
+      {
       // this time, it is effectively checking for the single-scope.
-      if (!battler.isWithinScope(action, battler, hitOne)) return;
+        if (!battler.isWithinScope(action, battler, hitOne)) return;
 
-      // if the action is a direct-targeting action,
-      // then only check distance between the caster and target.
-      if (action.isDirectAction())
-      {
-        if (action.getAction().isForUser())
+        // if the action is a direct-targeting action,
+        // then only check distance between the caster and target.
+        if (action.isDirectAction())
         {
-          targetsHit.push(battler);
-          hitOne = true;
-          return;
-        }
-        const maxDistance = action.getProximity();
-        const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
-        if (distance <= maxDistance)
-        {
-          targetsHit.push(battler);
-          hitOne = true;
-        }
+          if (action.getAction().isForUser())
+          {
+            targetsHit.push(battler);
+            hitOne = true;
+            return;
+          }
+          const maxDistance = action.getProximity();
+          const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
+          if (distance <= maxDistance)
+          {
+            targetsHit.push(battler);
+            hitOne = true;
+          }
 
-      // if the action is a standard projectile-based action,
-      // then check to see if this battler is now in range.
-      }
-      else
-      {
-        const sprite = battler.getCharacter();
-        const actionDirection = actionSprite.direction();
-        const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
-        if (result)
-        {
-          targetsHit.push(battler);
-          hitOne = true;
+          // if the action is a standard projectile-based action,
+          // then check to see if this battler is now in range.
         }
-      }
-    });
+        else
+        {
+          const sprite = battler.getCharacter();
+          const actionDirection = actionSprite.direction();
+          const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
+          if (result)
+          {
+            targetsHit.push(battler);
+            hitOne = true;
+          }
+        }
+      });
 
     return targetsHit;
   }

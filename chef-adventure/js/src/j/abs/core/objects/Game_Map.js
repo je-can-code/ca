@@ -442,7 +442,7 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
   const triggers = [0, 1, 2];
 
   // look over events directly infront of the player.
-  for (const event of $gameMap.eventsXy(x2, y2))
+  for (const event of this.eventsXy(x2, y2))
   {
     // if the player is mashing the button at an enemy, let them continue.
     if (event.isJabsBattler()) return false;

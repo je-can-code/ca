@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sat Nov 05 2022 07:23:15 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -278,26 +278,6 @@ Game_Actor.prototype.getAllNotes = function()
   // return that potentially slightly-less massive combination.
   return objectsWithNotes;
 };
-
-/**
- * Extends `getCurrentWithNotes` to include passive skill states.
- * @returns {RPG_BaseItem[]}
- */
-J.PASSIVE.Aliased.Game_Actor.set('getCurrentWithNotes', Game_Actor.prototype.getCurrentWithNotes);
-Game_Actor.prototype.getCurrentWithNotes = function()
-{
-  // perform the origina logic to retrieve the objects with notes.
-  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getCurrentWithNotes').call(this);
-
-  // then add all those currently applied passive skill states, too.
-  objectsWithNotes.push(...this.passiveSkillStates());
-
-  // also apply the party's effects.
-  objectsWithNotes.push(...$gameParty.passiveStates());
-
-  // return that potentially slightly-less massive combination.
-  return objectsWithNotes;
-};
 //#endregion Game_Actor
 
 //#region Game_Battler
@@ -489,9 +469,13 @@ Game_Battler.prototype.skillsIdsFromSelf = function()
 Game_Battler.prototype.skillsIdsFromTraits = function(traitObjects)
 {
   return traitObjects
+  // concat all the traits from the various database objects.
     .reduce((r, obj) => r.concat(obj.traits), [])
+  // concat the list of what types of traits these are.
     .reduce((r, trait) => r.concat(trait.dataId), [])
+  // filter all the traits by the "add skill" trait.
     .filter(trait => trait.code === Game_BattlerBase.TRAIT_SKILL_ADD)
+  // add all the objects together for a full list of skill ids.
     .reduce((r, obj) => r.concat(obj.traits), []);
 };
 

@@ -848,7 +848,6 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
  * formulas and apply rates from tags, etc.
  * @returns {number}
  */
-J.NATURAL.Aliased.Game_Battler.set("maxTp", Game_Battler.prototype.maxTp);
 Game_Battler.prototype.maxTp = function()
 {
   // calculate our actual max tp.

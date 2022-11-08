@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Wed Nov 02 2022 15:59:26 GMT-0700 (Pacific Daylight Time)  */
 
 //#region Introduction
 /*:
@@ -1134,7 +1134,7 @@ Game_Action.prototype.applyStates = function(target, stateChances)
       if (stateChance.shouldTrigger())
       {
         // ...then we apply the given state.
-        target.addState(stateChance.skillId);
+        target.addState(stateChance.skillId, this.subject());
       }
     });
   }
