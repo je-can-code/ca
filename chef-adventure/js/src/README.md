@@ -2,7 +2,7 @@
 Welcome to the `SOURCE`.
 
 ## NOTES FOR SELF
-- create "retaliate with X ailment" for all ailments, multiple tiers of success.
+- create premade "retaliate with X ailment" for all ailments, multiple tiers of success.
 
 ## DETAILS
 This `/src` folder contains all the source files for the various plugins that live in this project.

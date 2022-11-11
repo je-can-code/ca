@@ -96,20 +96,4 @@ Game_Event.prototype.isErased = function()
 {
   return this._erased;
 };
-
-/**
- * Gets the distance in tiles between this event and the player.
- * @returns {number} The distance.
- */
-Game_Event.prototype.distanceFromPlayer = function()
-{
-  // calculate the distance to the player.
-  const distance = $gameMap.distance($gamePlayer.x, $gamePlayer.y, this.x, this.y);
-
-  // make sure the distance only goes out three decimals.
-  const constrainedDistance = parseFloat((distance).toFixed(3));
-
-  // return the calculated value.
-  return constrainedDistance;
-};
 //#endregion Game_Event

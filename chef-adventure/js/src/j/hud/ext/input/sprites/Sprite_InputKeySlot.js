@@ -395,7 +395,7 @@ class Sprite_InputKeySlot extends Sprite
    * Creates a combo gauge sprite for the given input key and caches it.
    * @param {JABS_Cooldown} cooldownData The cooldown data for a given skill slot.
    * @param {JABS_Button} inputType The type of input for this key.
-   * @returns {Sprite_CooldownTimer}
+   * @returns {Sprite_CooldownGauge}
    */
   getOrCreateInputKeyComboGaugeSprite(cooldownData, inputType)
   {

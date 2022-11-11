@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 06 2022 07:18:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Nov 11 2022 15:45:46 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -28240,7 +28240,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent)
   const spriteIndex = this._characterSprites.findIndex(sprite =>
   {
     // if the character doesn't match the event, then keep looking.
-    if (sprite._character !== actionEvent) return false;
+    if (sprite.character() !== actionEvent) return false;
 
     // we found a match!
     return true;
@@ -28284,7 +28284,7 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent)
   const spriteIndex = this._characterSprites.findIndex(sprite =>
   {
     // if the character doesn't match the event, then keep looking.
-    if (sprite._character !== lootEvent) return false;
+    if (sprite.character() !== lootEvent) return false;
 
     // we found a match!
     return true;

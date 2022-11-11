@@ -172,7 +172,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent)
   const spriteIndex = this._characterSprites.findIndex(sprite =>
   {
     // if the character doesn't match the event, then keep looking.
-    if (sprite._character !== actionEvent) return false;
+    if (sprite.character() !== actionEvent) return false;
 
     // we found a match!
     return true;
@@ -216,7 +216,7 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent)
   const spriteIndex = this._characterSprites.findIndex(sprite =>
   {
     // if the character doesn't match the event, then keep looking.
-    if (sprite._character !== lootEvent) return false;
+    if (sprite.character() !== lootEvent) return false;
 
     // we found a match!
     return true;

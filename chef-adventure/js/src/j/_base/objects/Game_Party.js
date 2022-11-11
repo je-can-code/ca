@@ -1,6 +1,7 @@
 //#region Game_Party
 /**
- * OVERWRITE Replaces item gain and management with index-based management instead.
+ * Overwrites {@link #gainItem}.
+ * Replaces item gain and management with index-based management instead.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
  * @param {number} amount The amount to modify the quantity by.
  * @param {boolean} includeEquip Whether or not to include equipped items for equipment.

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Mon Nov 07 2022 17:49:27 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -428,6 +428,17 @@ Game_Actor.prototype.onBattlerDataChange = function()
 };
 
 //#region max tp
+/**
+ * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+ * formulas and apply rates from tags, etc.
+ * @returns {number}
+ */
+Game_Actor.prototype.maxTp = function()
+{
+  // calculate our actual max tp.
+  return this.actualMaxTp();
+};
+
 /**
  * Gets all natural bonuses for max tp.
  * Actors have growths as well as buffs.
@@ -1789,7 +1800,6 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
  * formulas and apply rates from tags, etc.
  * @returns {number}
  */
-J.NATURAL.Aliased.Game_Battler.set("maxTp", Game_Battler.prototype.maxTp);
 Game_Battler.prototype.maxTp = function()
 {
   // calculate our actual max tp.
@@ -1914,6 +1924,17 @@ Game_Enemy.prototype.onBattlerDataChange = function()
 };
 
 //#region max tp
+/**
+ * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+ * formulas and apply rates from tags, etc.
+ * @returns {number}
+ */
+Game_Enemy.prototype.maxTp = function()
+{
+  // calculate our actual max tp.
+  return this.actualMaxTp();
+};
+
 /**
  * Gets the base max tp for this enemy.
  * @returns {number}

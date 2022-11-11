@@ -12,7 +12,7 @@
  * Please be sure this is above all other J-* plugins, and keep it up to date!
  * ----------------------------------------------------------------------------
  * While this plugin doesn't do a whole lot all by itself, it contains a number
- * of central functionalities that are used by ALL of my plugins.
+ * of centralized functionalities that are used by ALL of my plugins.
  * ----------------------------------------------------------------------------
  * If you are not a dev, you can stop reading if you want (or read on to learn
  * more about the code underneath).
@@ -25,6 +25,13 @@
  * DEV THINGS ADDED:
  * - many *-Manager type classes were added, and existing ones were extended.
  * - the concept of "long param" was utilized for iterating over parameters.
+ * - "implemented" a class layer for many database objects.
+ * - added various lifecycle hooks to battlers and states.
+ * - rewrites the way items are managed and processed.
+ * - adds a number of functions to retrieve data that was otherwise "private".
+ * - adds an API for retrieving specific regex-based comments from an event.
+ * - adds an API for getting all notes associated with given battlers.
+ * - adds a few reusable sprites for convenience, like faces, icons, and text.
  *
  * ============================================================================
  * CHANGELOG:

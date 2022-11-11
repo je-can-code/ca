@@ -1,6 +1,6 @@
 //#region Sprite_StateTimer
 /**
- * A sprite that displays some static text.
+ * A sprite that displays some the remaining duration for a state in seconds with one decimal point.
  */
 function Sprite_StateTimer()
 {
