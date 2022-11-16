@@ -7,7 +7,7 @@
 * @url https://github.com/je-can-code/ca
 * @base J-Base
 * @base J-MessageTextCodes
-* @orderAfter J-BASE
+* @orderAfter J-Base
 * @orderAfter J-ABS
 * @orderAfter J-MessageTextCodes
 * @help
@@ -27,7 +27,7 @@
 * Controller/keyboard support for the log window is not supported.
 *
 * This plugin has two dependencies that all must be present to work:
-* - J-BASE (used for drawing the logs properly onto the window)
+* - J-Base (used for drawing the logs properly onto the window)
 * - J-MessageTextCodes (used for translating text codes in logging)
 * The MZ editor will inform you where this plugin needs to be relative to the
 * other plugins (above/below/etc).

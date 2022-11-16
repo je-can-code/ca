@@ -7,7 +7,7 @@
  * @url https://github.com/je-can-code/ca
  * @base J-Base
  * @base J-JAFTING
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-JAFTING
  * @help
  * ============================================================================

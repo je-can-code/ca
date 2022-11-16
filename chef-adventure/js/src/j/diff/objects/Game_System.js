@@ -46,6 +46,11 @@ Game_System.prototype.initDifficultyMembers = function()
   this._j._difficulty._layerPoints = 0;
 };
 
+Game_System.prototype.callDifficultyLayerScene = function()
+{
+  SceneManager.push(Scene_Difficulty);
+};
+
 /**
  * Extends {@link #onAfterLoad}.
  * Updates the list of all available difficulties from the latest plugin metadata.

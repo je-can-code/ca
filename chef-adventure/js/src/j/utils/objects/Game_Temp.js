@@ -49,3 +49,21 @@ Game_Temp.prototype.disableClickToLogEvent = function()
 {
   this._j._utils._useClickToLogEvent = false;
 };
+
+Game_Temp.prototype.getAllArmorNames = function()
+{
+  const mapping = armor =>
+  {
+    if (!armor) return;
+
+    if (armor.name.startsWith('===')) return;
+
+    return {
+      key: armor._key(),
+      name: armor.name,
+      description: armor.description
+    };
+  }
+
+  return $dataArmors.map(mapping);
+};

@@ -46,31 +46,44 @@ Game_Actor.prototype.initMembers = function()
 /**
  * Adds a new panel ranking for tracking the progress of a given panel.
  * @param {string} key The less-friendly unique key that represents this SDP.
+ * @return {PanelRanking} The created panel ranking.
  */
-Game_Actor.prototype.addNewPanelRanking = function(key)
+Game_Actor.prototype.getOrCreateSdpRankByKey = function(key)
 {
-  const ranking = this.getSdpByKey(key);
-  if (ranking)
+  // grab all the rankings this actor has.
+  const rankings = this.getAllSdpRankings();
+
+  // a find function for grabbing the appropriate sdp ranking by its key.
+  const finding = panelRank => panelRank.key === key;
+
+  // find the sdp ranking.
+  const existingRanking = rankings.find(finding);
+
+  // check if we already have the ranking.
+  if (existingRanking)
   {
-    console.warn(`panel rankings are already being tracked for key: "${key}".`);
-    return;
+    // return what already exists, no need to recreate it!
+    return existingRanking;
   }
 
-  const panelRanking = new PanelRanking(key, this.actorId());
-  this._j._sdp._ranks.push(panelRanking);
+  // build a new sdp ranking.
+  const newRanking = new PanelRanking(key, this.actorId());
+
+  // add it to the running list.
+  rankings.push(newRanking);
+
+  // return the newly created ranking.
+  return newRanking;
 };
 
 /**
  * Searches for a ranking in a given panel based on key and returns it.
  * @param {string} key The key of the panel we seek.
- * @returns {PanelRanking} The panel if found, `null` otherwise.
+ * @returns {PanelRanking} The sdp ranking.
  */
-Game_Actor.prototype.getSdpByKey = function(key)
+Game_Actor.prototype.getSdpRankByKey = function(key)
 {
-  // don't try to search if there are no rankings at this time.
-  if (!this._j._sdp._ranks.length) return null;
-
-  return this._j._sdp._ranks.find(panelRanking => panelRanking.key === key);
+  return this.getOrCreateSdpRankByKey(key);
 };
 
 /**
@@ -215,7 +228,7 @@ Game_Actor.prototype.extractSdpMultiplier = function(referenceData)
  */
 Game_Actor.prototype.rankUpPanel = function(panelKey)
 {
-  this.getSdpByKey(panelKey).rankUp();
+  this.getSdpRankByKey(panelKey).rankUp();
 };
 
 /**
@@ -235,7 +248,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(paramId);
     if (panelParameters.length)
     {
@@ -276,7 +289,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
     if (panelParameters.length)
     {
@@ -383,7 +396,7 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(30); // TODO: generalize this whole thing.
 
     // validate we have any parameters from this panel.

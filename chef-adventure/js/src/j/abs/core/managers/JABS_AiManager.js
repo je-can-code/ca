@@ -11,6 +11,12 @@ class JABS_AiManager
   static battlers = new Map();
 
   /**
+   * The maximum update range for AI to be cognizant of eachother.
+   * @type {number}
+   */
+  static maxAiRange = J.ABS.Metadata.MaxAiUpdateRange;
+
+  /**
    * Constructor.
    * This is a static class.
    */
@@ -108,6 +114,21 @@ class JABS_AiManager
   {
     // grab all the battlers available.
     const battlers = this.getAllBattlers();
+
+    // return them sorted, closest to farthest.
+    return this.#sortBattlersByDistanceFromBattlerAscending(battlers, originBattler);
+  }
+
+  /**
+   * Gets all battlers within a given distance from given battler, sorted closest to farthest.
+   * @param {JABS_Battler} originBattler The target to get battlers within range of.
+   * @param {number} maxRange The maximum range to check for battlers within.
+   * @returns {JABS_Battler[]}
+   */
+  static getAllBattlersWithinRangeSortedByDistance(originBattler, maxRange)
+  {
+    // find all battlers that are within the max range.
+    const battlers = this.getBattlersWithinRange(originBattler, maxRange);
 
     // return them sorted, closest to farthest.
     return this.#sortBattlersByDistanceFromBattlerAscending(battlers, originBattler);
@@ -227,7 +248,8 @@ class JABS_AiManager
   static #filterBattlersByOpposingTeam(battlers, selectedBattler)
   {
     // a filter function for determining whether or not the battler is of the opposing team.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // neutral battlers are never an opposition.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
@@ -252,7 +274,8 @@ class JABS_AiManager
   static #filterBattlersByAlliedTeam(battlers, selectedBattler)
   {
     // a filter function for determining whether or not the battler is of the same team.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // neutral battlers are never an ally.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
@@ -277,7 +300,8 @@ class JABS_AiManager
   static #filterBattlersByRangeFromBattler(battlers, originBattler, maxRange)
   {
     // a filter function for removing battlers outside of a given range.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // grab the distance from the origin battler to the given battler.
       const distance = originBattler.distanceToDesignatedTarget(battler);
 
@@ -301,7 +325,8 @@ class JABS_AiManager
   static #sortBattlersByDistanceFromBattlerAscending(battlers, originBattler)
   {
     // a compare function for comparing the distance between two battlers.
-    const comparing = (battlerA, battlerB) => {
+    const comparing = (battlerA, battlerB) => 
+    {
       const distanceA = originBattler.distanceToDesignatedTarget(battlerA);
       const distanceB = originBattler.distanceToDesignatedTarget(battlerB);
       return distanceA - distanceB;
@@ -576,9 +601,10 @@ class JABS_AiManager
   static manageAi()
   {
     // grab all available battlers within a fixed range.
-    const battlers = this.getAllBattlers();
-    //const battlers = $gameMap.getBattlersWithinRange($jabsEngine.getPlayer1(),99);
-    //J.ABS.Metadata.MaxAiUpdateRange
+    //const battlers = this.getAllBattlers();
+    const battlers = this.getAllBattlersWithinRangeSortedByDistance(
+      $jabsEngine.getPlayer1(),
+      J.ABS.Metadata.MaxAiUpdateRange);
 
     // if we have no battlers, then do not process AI.
     if (!battlers.length) return;

@@ -796,7 +796,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceCount",
   {
     get: function()
     {
-      return this.jabsPiercingData[0];
+      return this.jabsPiercingData.at(0);
     },
   });
 
@@ -808,7 +808,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay",
   {
     get: function()
     {
-      return this.jabsPiercingData[1];
+      return Math.max(this.jabsPiercingData.at(1), 5);
     },
   });
 

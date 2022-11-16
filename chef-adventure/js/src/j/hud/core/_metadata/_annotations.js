@@ -9,7 +9,7 @@
  * @base J-Base
  * @base J-HUD
  * @orderAfter J-ABS
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-HUD
  * @help
  * ============================================================================

@@ -12,6 +12,13 @@ Window_Command.prototype.drawItem = function(index)
   commandName = this.handleIcon(commandName, index);
 
   this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
+
+  const rightText = this.commandRightText(index)
+  if (rightText)
+  {
+    const textWidth = this.textWidth(rightText);
+    this.drawText(rightText, rect.width - textWidth, rect.y, textWidth, "right");
+  }
 };
 
 /**
@@ -55,7 +62,7 @@ Window_Command.prototype.handleIcon = function(command, index)
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this._list[index].icon;
+  return this._list.at(index).icon;
 };
 
 /**
@@ -65,7 +72,21 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this._list[index].color;
+  return this._list.at(index).color;
+};
+
+Window_Command.prototype.commandRightText = function(index)
+{
+  return this._list.at(index).rightText;
+};
+
+/**
+ * Gets all commands currently in this list.
+ * @returns {BuiltWindowCommand[]}
+ */
+Window_Command.prototype.commandList = function()
+{
+  return this._list;
 };
 
 /**
@@ -88,6 +109,15 @@ Window_Command.prototype.addCommand = function(
 )
 {
   this._list.push({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Adds a pre-built command using the {@link BuiltWindowCommand} implementation.
+ * @param {BuiltWindowCommand} command The command to be added.
+ */
+Window_Command.prototype.addBuiltCommand = function(command)
+{
+  this._list.push(command);
 };
 
 /**

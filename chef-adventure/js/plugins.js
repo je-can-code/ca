@@ -44,6 +44,7 @@ var $plugins =
 {"name":"j/jafting/ext/J-JAFTING-Refinement","status":true,"description":"[v1.0.0 JAFT-REFINE] Extends JAFTING to include refinement.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/cms/J-CMS-Equip","status":true,"description":"[v1.0.0 CMS_E] A redesign of the equip menu.","parameters":{}},
+{"name":"j/cms/J-CMS-Main","status":true,"description":"[v1.0.0 CMS_M] A redesign of the main menu.","parameters":{}},
 {"name":"j/cms/J-CMS-Status","status":true,"description":"[v1.0.0 CMS_S] A redesign of the status menu.","parameters":{}},
 {"name":"j/cms/J-CMS-Skill","status":true,"description":"[v1.0.0 CMS_K] A redesign of the skill menu.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},

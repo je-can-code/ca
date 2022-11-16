@@ -124,7 +124,7 @@ class RPG_Base
    * The unique key that is used to register this object against
    * its corresponding container when the party has one or more of these
    * in their possession. By default, this is just the index of the item's entry
-   * from the databse, but you can change it if you need a more unique means
+   * from the database, but you can change it if you need a more unique means
    * of identifying things.
    * @returns {any}
    */

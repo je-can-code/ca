@@ -11,3 +11,24 @@ JABS_Battler.prototype.setDodgeSteps = function(stepCount)
   // perform original logic- but with the modified step count.
   J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('setDodgeSteps').call(this, modifiedStepCount);
 };
+
+/**
+ * Extends {@link #destroy}.
+ * Reloads the collision table in case the enemy was a part of the tileset.
+ */
+J.ABS.EXT.CYCLE.Aliased.JABS_Battler.set('destroy', JABS_Battler.prototype.destroy);
+JABS_Battler.prototype.destroy = function()
+{
+  // before destruction, check if the battler was not an actor.
+  const isNotActor = !this.getBattler().isActor();
+
+  // perform original logic.
+  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('destroy').call(this);
+
+  // check if the defeated battler was not an actor.
+  if (isNotActor)
+  {
+    // reload the collision table.
+    CycloneMovement.loadDefaultCollisionTable();
+  }
+};

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
 
 //#region introduction
 /* eslint-disable */
@@ -9,7 +9,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter _diffModels
  * @help
  * ============================================================================
@@ -1803,6 +1803,11 @@ Game_System.prototype.initDifficultyMembers = function()
    * @type {number}
    */
   this._j._difficulty._layerPoints = 0;
+};
+
+Game_System.prototype.callDifficultyLayerScene = function()
+{
+  SceneManager.push(Scene_Difficulty);
 };
 
 /**

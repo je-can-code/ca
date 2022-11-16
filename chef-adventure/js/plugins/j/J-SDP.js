@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Nov 05 2022 08:53:36 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:26:14 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -1160,7 +1160,7 @@ PanelRanking.prototype.initMembers = function()
  */
 PanelRanking.prototype.rankUp = function()
 {
-  const panel = $gameSystem.getSdpByKey(this.key);
+  const panel = $gameSystem.getSdpRankByKey(this.key);
   const {maxRank} = panel;
   if (this.currentRank < maxRank)
   {
@@ -1192,7 +1192,7 @@ PanelRanking.prototype.performRankupEffects = function(newRank)
 {
   const a = $gameActors.actor(this.actorId);
   const rewardEffects = $gameSystem
-    .getSdpByKey(this.key)
+    .getSdpRankByKey(this.key)
     .getPanelRewardsByRank(newRank);
   if (rewardEffects.length > 0)
   {
@@ -1555,31 +1555,44 @@ Game_Actor.prototype.initMembers = function()
 /**
  * Adds a new panel ranking for tracking the progress of a given panel.
  * @param {string} key The less-friendly unique key that represents this SDP.
+ * @return {PanelRanking} The created panel ranking.
  */
-Game_Actor.prototype.addNewPanelRanking = function(key)
+Game_Actor.prototype.getOrCreateSdpRankByKey = function(key)
 {
-  const ranking = this.getSdpByKey(key);
-  if (ranking)
+  // grab all the rankings this actor has.
+  const rankings = this.getAllSdpRankings();
+
+  // a find function for grabbing the appropriate sdp ranking by its key.
+  const finding = panelRank => panelRank.key === key;
+
+  // find the sdp ranking.
+  const existingRanking = rankings.find(finding);
+
+  // check if we already have the ranking.
+  if (existingRanking)
   {
-    console.warn(`panel rankings are already being tracked for key: "${key}".`);
-    return;
+    // return what already exists, no need to recreate it!
+    return existingRanking;
   }
 
-  const panelRanking = new PanelRanking(key, this.actorId());
-  this._j._sdp._ranks.push(panelRanking);
+  // build a new sdp ranking.
+  const newRanking = new PanelRanking(key, this.actorId());
+
+  // add it to the running list.
+  rankings.push(newRanking);
+
+  // return the newly created ranking.
+  return newRanking;
 };
 
 /**
  * Searches for a ranking in a given panel based on key and returns it.
  * @param {string} key The key of the panel we seek.
- * @returns {PanelRanking} The panel if found, `null` otherwise.
+ * @returns {PanelRanking} The sdp ranking.
  */
-Game_Actor.prototype.getSdpByKey = function(key)
+Game_Actor.prototype.getSdpRankByKey = function(key)
 {
-  // don't try to search if there are no rankings at this time.
-  if (!this._j._sdp._ranks.length) return null;
-
-  return this._j._sdp._ranks.find(panelRanking => panelRanking.key === key);
+  return this.getOrCreateSdpRankByKey(key);
 };
 
 /**
@@ -1724,7 +1737,7 @@ Game_Actor.prototype.extractSdpMultiplier = function(referenceData)
  */
 Game_Actor.prototype.rankUpPanel = function(panelKey)
 {
-  this.getSdpByKey(panelKey).rankUp();
+  this.getSdpRankByKey(panelKey).rankUp();
 };
 
 /**
@@ -1744,7 +1757,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(paramId);
     if (panelParameters.length)
     {
@@ -1785,7 +1798,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
     if (panelParameters.length)
     {
@@ -1892,7 +1905,7 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpByKey(panelRanking.key)
+      .getSdpRankByKey(panelRanking.key)
       .getPanelParameterById(30); // TODO: generalize this whole thing.
 
     // validate we have any parameters from this panel.
@@ -1970,7 +1983,7 @@ Game_Enemy.prototype.canDropSdp = function()
   if (!this.hasSdpDropData()) return false;
 
   // grab the panel for shorthand reference below.
-  const panel = $gameSystem.getSdpByKey(this.enemy().sdpDropKey);
+  const panel = $gameSystem.getSdpRankByKey(this.enemy().sdpDropKey);
 
   // if the enemy has a panel that isn't defined, then don't drop it.
   if (!panel)
@@ -2128,7 +2141,7 @@ Game_System.prototype.getAllSdps = function()
  * @param {string} key The less-friendly unique key that represents this SDP.
  * @returns {StatDistributionPanel}
  */
-Game_System.prototype.getSdpByKey = function(key)
+Game_System.prototype.getSdpRankByKey = function(key)
 {
   // if we don't have panels to search through, don't do it.
   if (!this.getAllSdps().length) return null;
@@ -2181,7 +2194,7 @@ Game_System.prototype.getUnlockedSdpsCount = function()
  */
 Game_System.prototype.unlockSdp = function(key)
 {
-  const panel = this.getSdpByKey(key);
+  const panel = this.getSdpRankByKey(key);
   if (panel)
   {
     panel.unlock();
@@ -2208,7 +2221,7 @@ Game_System.prototype.unlockAllSdps = function()
  */
 Game_System.prototype.lockSdp = function(key)
 {
-  const panel = this.getSdpByKey(key);
+  const panel = this.getSdpRankByKey(key);
   if (panel)
   {
     panel.lock();
@@ -2236,7 +2249,7 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
   }
 
   // make sure the actor has ranks in the panel and return the rank.
-  const panelRanking = actor.getSdpByKey(key);
+  const panelRanking = actor.getSdpRankByKey(key);
   if (panelRanking)
   {
     return panelRanking.currentRank;
@@ -2477,6 +2490,7 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpListWindow = new Window_SDP_List(rect);
     this._j._sdpListWindow.setHandler('cancel', this.popScene.bind(this));
     this._j._sdpListWindow.setHandler('ok', this.onSelectPanel.bind(this));
+    this._j._sdpListWindow.setHandler('more', this.onFilterPanels.bind(this));
     this._j._sdpListWindow.setHandler('pagedown', this.cycleMembers.bind(this, true));
     this._j._sdpListWindow.setHandler('pageup', this.cycleMembers.bind(this, false));
     this._j._sdpListWindow.setActor($gameParty.menuActor());
@@ -2543,7 +2557,6 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.hide();
     this.addWindow(this._j._sdpConfirmationWindow);
   }
-
   //#endregion SDP window creation
 
   /**
@@ -2567,6 +2580,30 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.show();
     this._j._sdpConfirmationWindow.open();
     this._j._sdpConfirmationWindow.activate();
+  }
+
+  onFilterPanels()
+  {
+    const usingFilter = this._j._sdpListWindow.usingNoMaxPanelsFilter();
+
+    if (usingFilter)
+    {
+      console.log('showing all panels.');
+      this._j._sdpListWindow.setNoMaxPanelsFilter(false);
+    }
+    else
+    {
+      console.log('filtering out maxed panels.');
+      this._j._sdpListWindow.setNoMaxPanelsFilter(true);
+    }
+
+    this.refreshAllWindows();
+
+    if (this._j._sdpListWindow.index() > this._j._sdpListWindow.commandList().length)
+    {
+      this._j._sdpListWindow.select(this._j._sdpListWindow.commandList().length - 1);
+      console.log('too far!');
+    }
   }
 
   /**
@@ -2595,7 +2632,7 @@ class Scene_SDP extends Scene_MenuBase
     const actor = this._j._currentActor;
 
     // get the panel ranking from the actor.
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
 
     // determine the cost to rank up the panel.
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);
@@ -2825,7 +2862,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const actor = this.currentActor;
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
     const lh = this.lineHeight();
     const ox = 360;
     this.drawText(`Rank:`, ox, lh * 0, 200, "left");
@@ -2869,7 +2906,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const actor = this.currentActor;
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
     const rankUpCost = panel.rankUpCost(panelRanking.currentRank);
     const lh = this.lineHeight();
     const ox = 560;
@@ -3185,23 +3222,21 @@ class Window_SDP_Help
 class Window_SDP_List extends Window_Command
 {
   /**
+   * The currently selected actor. Used for comparing points to cost to see if
+   * the panel in the list window should be enabled or disabled.
+   * @type {Game_Actor}
+   */
+  currentActor = null;
+
+  filterNoMaxedPanels = false;
+
+  /**
    * @constructor
    * @param {Rectangle} rect The rectangle that represents this window.
    */
   constructor(rect)
   {
     super(rect);
-    this.initMembers();
-  }
-
-  initMembers()
-  {
-    /**
-     * The currently selected actor. Used for comparing points to cost to see if
-     * the panel in the list window should be enabled or disabled.
-     * @type {Game_Actor}
-     */
-    this.currentActor = null;
   }
 
   /**
@@ -3212,6 +3247,24 @@ class Window_SDP_List extends Window_Command
   {
     this.currentActor = actor;
     this.refresh();
+  }
+
+  /**
+   * Gets whether or not the no-max-panels filter is enabled.
+   * @returns {boolean}
+   */
+  usingNoMaxPanelsFilter()
+  {
+    return this.filterNoMaxedPanels;
+  }
+
+  /**
+   * Sets whether or not the panel list should filter out already-maxed panels.
+   * @param {boolean} useFilter True to filter out maxed panels, false otherwise.
+   */
+  setNoMaxPanelsFilter(useFilter)
+  {
+    this.filterNoMaxedPanels = useFilter;
   }
 
   /**
@@ -3231,30 +3284,69 @@ class Window_SDP_List extends Window_Command
     const actor = this.currentActor;
     if (!panels.length || !actor) return;
 
-    const points = actor.getSdpPoints();
-
     // add all panels to the list.
     panels.forEach(panel =>
     {
-      const panelRanking = actor.getSdpByKey(panel.key);
-      // if this actor is missing any rankings for the panel, just make one.
-      if (!panelRanking) actor.addNewPanelRanking(panel.key);
+      // construct the SDP command.
+      const command = this.makeCommand(panel);
 
-      const {currentRank} = actor.getSdpByKey(panel.key);
-      const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
-      const isMaxRank = panel.maxRank === currentRank;
-      const enabled = hasEnoughPoints && !isMaxRank;
-      this.addCommand(panel.name, panel.key, enabled, panel, panel.iconIndex, panel.rarity);
+      // if the command is invalid, do not add it.
+      if (!command) return;
 
-      /*
-        common: 0
-        uncommon: 3
-        rare: 23
-        epic: 31
-        legendary: 21
-        godly: 25
-      */
-    });
+      // add the command.
+      this.addBuiltCommand(command);
+    }, this);
+  }
+
+  /**
+   * Builds a single command for the SDP list based on a given panel.
+   * @param {StatDistributionPanel} panel The panel to build a command for.
+   * @returns {BuiltWindowCommand}
+   */
+  makeCommand(panel)
+  {
+    const actor = this.currentActor;
+    const points = actor.getSdpPoints();
+    const { name, key, iconIndex, rarity: colorIndex, maxRank } = panel;
+
+    // get the ranking for a given panel by its key.
+    const panelRanking = actor.getSdpRankByKey(key);
+
+    // grab the current rank of the panel.
+    const { currentRank } = panelRanking;
+
+    // check if we're at max rank already.
+    const isMaxRank = maxRank === currentRank;
+
+    // check if the panel is max rank AND we're using the no max panels filter.
+    if (isMaxRank && this.usingNoMaxPanelsFilter())
+    {
+      // don't render this panel.
+      return null;
+    }
+
+    // check if we have enough points to rank up this panel.
+    const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
+
+    // determine whether or not the command is enabled.
+    const enabled = hasEnoughPoints && !isMaxRank;
+
+    // build the right text out.
+    const rightText = isMaxRank
+      ? "DONE"
+      : `${currentRank} / ${maxRank}`;
+
+    // construct the SDP command.
+    const command = new WindowCommandBuilder(name)
+      .setSymbol(key)
+      .setEnabled(enabled)
+      .setExtensionData(panel)
+      .setIconIndex(iconIndex)
+      .setColorIndex(colorIndex)
+      .setRightText(rightText)
+      .build();
+
+    return command;
   }
 }
 //#endregion Window_SDP_List

@@ -1293,7 +1293,7 @@ declare namespace rm.types {
 		 */
 		id: number;
         /**
-         * The level of this enemy; added by the `J-BASE` plugin.
+         * The level of this enemy; added by the `J-Base` plugin.
          * @type {number}
          */
         level: number;

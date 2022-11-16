@@ -176,6 +176,17 @@ JABS_Battler.prototype.initGeneralInfo = function()
    * @type {JABS_Timer}
    */
   this._waitTimer = new JABS_Timer(0);
+
+  /**
+   * The timer that designates the duration between engagement updates.
+   * This is not a publicly exposed timer, statically defined at 30 frames per update.
+   *
+   * This is because engagement calculations are the most expensive
+   * update to perform on a per-frame basis by a longshot in the entirety of JABS
+   * due to the number of mathematical distance calculations performed.
+   * @type {JABS_Timer}
+   */
+  this._engagementTimer = new JABS_Timer(15);
 };
 
 /**
@@ -913,6 +924,7 @@ JABS_Battler.prototype.updateTimers = function()
   this.processParryTimer();
   this.processLastHitTimer();
   this.processCastingTimer();
+  this.processEngagementTimer();
 };
 
 /**
@@ -971,6 +983,17 @@ JABS_Battler.prototype.processCastingTimer = function()
     this.countdownCastTime();
   }
 };
+
+/**
+ * Updates the timer for "engagement".
+ *
+ * This is an important timer that prevents recalculating distances for all
+ * battlers on the map every frame.
+ */
+JABS_Battler.prototype.processEngagementTimer = function()
+{
+  this._engagementTimer.update();
+};
 //#endregion update timers
 
 //#region update engagement
@@ -993,6 +1016,9 @@ JABS_Battler.prototype.updateEngagement = function()
 
   // process engagement handling.
   this.handleEngagement(target, distance);
+
+  // reset the engagement timer.
+  this._engagementTimer.reset();
 };
 
 /**
@@ -1010,6 +1036,9 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 
   // inanimate battlers cannot engage.
   if (this.isInanimate()) return false;
+
+  // if the engagement timer is not ready, we cannot update.
+  if (!this._engagementTimer.isTimerComplete()) return false;
 
   // engage!
   return true;
@@ -2313,6 +2342,24 @@ JABS_Battler.prototype.inSightRange = function(target, distance)
 
   // return the answer.
   return isInSightRange;
+};
+
+/**
+ * Determines whether or not this battler is "out of range" of a given target.
+ * At or beyond the designated range usually results in dropping cognition of one another.
+ * @param {JABS_Battler} target The target to check if within range of.
+ * @returns {boolean} True if this battler is out of range of the target, false otherwise.
+ */
+JABS_Battler.prototype.outOfRange = function(target)
+{
+  // if the target is invalid, then they are out of range.
+  if (!target) return true;
+
+  // if they are actually out of update range, then they are out of range.
+  if (this.distanceToDesignatedTarget(target) > JABS_AiManager.maxAiRange) return true;
+
+  // they are not out of range.
+  return false;
 };
 
 /**
@@ -4091,13 +4138,12 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
       this.setTarget(newTarget);
     }
 
-    // stop processing.
+    // stop processing .
     return;
   }
 
-  // if the target is dead, disengage and end combat.
-  // TODO: is this a race condition?
-  this.removeAggroIfTargetDead(this.getTarget().getUuid());
+  // if the target is no longer valid, disengage and end combat.
+  this.removeAggroIfInvalid(this.getTarget().getUuid());
 
   // if there is no aggros remaining, disengage.
   if (this._aggros.length === 0)
@@ -4184,8 +4230,8 @@ JABS_Battler.prototype.getHighestAggro = function()
   // grab the aggros.
   const aggros = this.getAllAggros();
 
-  // sort them by their aggro rating.
-  aggros.sort((a, b) =>
+  // a sorting function for determining the highest aggro from a collection.
+  const sorting = (a, b) =>
   {
     if (a.aggro < b.aggro)
     {
@@ -4197,10 +4243,13 @@ JABS_Battler.prototype.getHighestAggro = function()
     }
 
     return 0;
-  });
+  };
+
+  // sort them by their aggro rating.
+  aggros.sort(sorting);
 
   // grab the first and second highest aggros.
-  const [highestAggro,secondHighestAggro,] = aggros;
+  const [ highestAggro, secondHighestAggro, ] = aggros;
 
   // check if the top two aggros are the same.
   if (highestAggro.aggro === secondHighestAggro.aggro)
@@ -4214,16 +4263,40 @@ JABS_Battler.prototype.getHighestAggro = function()
 };
 
 /**
- * If the target is dead, removes it's aggro.
- * @param uuid
+ * If the target is invalid somehow, then stop tracking its aggro.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
  */
-JABS_Battler.prototype.removeAggroIfTargetDead = function(uuid)
+JABS_Battler.prototype.removeAggroIfInvalid = function(uuid)
 {
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (!battler || battler.isDead())
+  // check if any of the captured conditions are true.
+  if (this.isAggroInvalid(uuid))
   {
+    // remove the aggro from this battler's tracking.
     this.removeAggro(uuid);
   }
+};
+
+/**
+ * Determines whether or not this battler's aggro against a given target is invalid.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
+ * @returns {boolean} True if the aggro is invalid, false otherwise.
+ */
+JABS_Battler.prototype.isAggroInvalid = function(uuid)
+{
+  // grab the battler from tracking.
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+
+  // if the battler doesn't exist, then the aggro is invalid.
+  if (!battler) return true;
+
+  // if the battler is actually dead, then the aggro is invalid.
+  if (battler.isDead()) return true;
+
+  // if the battler is too far from this battler, then the aggro is invalid.
+  if (battler.outOfRange(this)) return true;
+
+  // the aggro must be valid.
+  return false;
 };
 
 /**

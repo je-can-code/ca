@@ -70,7 +70,7 @@ Game_System.prototype.getAllSdps = function()
  * @param {string} key The less-friendly unique key that represents this SDP.
  * @returns {StatDistributionPanel}
  */
-Game_System.prototype.getSdpByKey = function(key)
+Game_System.prototype.getSdpRankByKey = function(key)
 {
   // if we don't have panels to search through, don't do it.
   if (!this.getAllSdps().length) return null;
@@ -123,7 +123,7 @@ Game_System.prototype.getUnlockedSdpsCount = function()
  */
 Game_System.prototype.unlockSdp = function(key)
 {
-  const panel = this.getSdpByKey(key);
+  const panel = this.getSdpRankByKey(key);
   if (panel)
   {
     panel.unlock();
@@ -150,7 +150,7 @@ Game_System.prototype.unlockAllSdps = function()
  */
 Game_System.prototype.lockSdp = function(key)
 {
-  const panel = this.getSdpByKey(key);
+  const panel = this.getSdpRankByKey(key);
   if (panel)
   {
     panel.lock();
@@ -178,7 +178,7 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
   }
 
   // make sure the actor has ranks in the panel and return the rank.
-  const panelRanking = actor.getSdpByKey(key);
+  const panelRanking = actor.getSdpRankByKey(key);
   if (panelRanking)
   {
     return panelRanking.currentRank;

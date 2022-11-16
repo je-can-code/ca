@@ -349,7 +349,7 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
   actionToRemove.erase();
 
   // command the battle map to cleanup the jabs action.
-  $jabsEngine.cleanupAction(actionToRemove.getJabsAction());
+  actionToRemove.getJabsAction().cleanup();
 
   // and also to cleanup the current list of active jabs action events.
   $jabsEngine.clearActionEvents();

@@ -142,7 +142,7 @@ class Scene_SDP extends Scene_MenuBase
   {
   }
 
-  //#region SDP window creation
+  //#region window creation
   /**
    * Creates all windows associated with the SDP scene.
    */
@@ -169,6 +169,7 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpListWindow = new Window_SDP_List(rect);
     this._j._sdpListWindow.setHandler('cancel', this.popScene.bind(this));
     this._j._sdpListWindow.setHandler('ok', this.onSelectPanel.bind(this));
+    this._j._sdpListWindow.setHandler('more', this.onFilterPanels.bind(this));
     this._j._sdpListWindow.setHandler('pagedown', this.cycleMembers.bind(this, true));
     this._j._sdpListWindow.setHandler('pageup', this.cycleMembers.bind(this, false));
     this._j._sdpListWindow.setActor($gameParty.menuActor());
@@ -235,7 +236,6 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.hide();
     this.addWindow(this._j._sdpConfirmationWindow);
   }
-
   //#endregion SDP window creation
 
   /**
@@ -259,6 +259,28 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.show();
     this._j._sdpConfirmationWindow.open();
     this._j._sdpConfirmationWindow.activate();
+  }
+
+  onFilterPanels()
+  {
+    const sdpListWindow = this._j._sdpListWindow;
+    const usingFilter = sdpListWindow.usingNoMaxPanelsFilter();
+
+    if (usingFilter)
+    {
+      sdpListWindow.setNoMaxPanelsFilter(false);
+    }
+    else
+    {
+      sdpListWindow.setNoMaxPanelsFilter(true);
+    }
+
+    this.refreshAllWindows();
+
+    if (sdpListWindow.index() > sdpListWindow.commandList().length)
+    {
+      sdpListWindow.select(sdpListWindow.commandList().length - 1);
+    }
   }
 
   /**
@@ -287,7 +309,7 @@ class Scene_SDP extends Scene_MenuBase
     const actor = this._j._currentActor;
 
     // get the panel ranking from the actor.
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
 
     // determine the cost to rank up the panel.
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);

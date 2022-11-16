@@ -123,7 +123,7 @@ if (J.SDP)
     panelRankings.forEach(panelRanking =>
     {
       // grab our panel by its key.
-      const panel = $gameSystem.getSdpByKey(panelRanking.key);
+      const panel = $gameSystem.getSdpRankByKey(panelRanking.key);
 
       // protect our players against changed keys mid-save file!
       if (!panel) return;

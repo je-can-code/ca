@@ -6,6 +6,12 @@
 class JABS_Engine
 {
   /**
+   * A cached collection of actions keyed by their uuids.
+   * @type {JABS_Timer, JABS_Action}
+   */
+  cachedActions = new Map();
+
+  /**
    * @constructor
    */
   constructor()
@@ -297,6 +303,20 @@ class JABS_Engine
   }
 
   /**
+   * Gets all currently tracked actions on the map.
+   * @returns {JABS_Action[]}
+   */
+  getAllActionEvents()
+  {
+    return this._actionEvents;
+  }
+
+  setAllActionEvents(actionEvents)
+  {
+    this._actionEvents = actionEvents;
+  }
+
+  /**
    * Adds a new `JABS_Action` to this battle map for tracking.
    * The additional metadata is optional, omitted when executing direct actions.
    * @param {JABS_Action} actionEvent The `JABS_Action` to add.
@@ -304,7 +324,13 @@ class JABS_Engine
    */
   addActionEvent(actionEvent, actionEventData)
   {
-    this._actionEvents.push(actionEvent);
+    // grab the current collection of actions.
+    const actions = this.getAllActionEvents();
+
+    // add the new event to the list.
+    actions.push(actionEvent);
+
+    // if the event is a physical event on the map, track that data too.
     if (actionEventData)
     {
       this._activeActions.push(actionEventData);
@@ -331,15 +357,21 @@ class JABS_Engine
    */
   clearActionEvents()
   {
-    const actionEvents = this._actionEvents;
+    // grab the current collection of actions.
+    const actionEvents = this.getAllActionEvents();
+
+    // filter out the events that are on track for removal.
     const updatedActionEvents = actionEvents.filter(action => !action.getNeedsRemoval());
 
+    // check if we have any events that are in need of removal.
     if (actionEvents.length !== updatedActionEvents.length)
     {
+      // request a refresh of the map.
       this.requestClearMap = true;
     }
 
-    this._actionEvents = updatedActionEvents;
+    // update the action events to be the filtered events.
+    this.setAllActionEvents(updatedActionEvents);
   }
 
   /**
@@ -1122,161 +1154,18 @@ class JABS_Engine
 
   //#region update actions
   /**
-   * Updates all `JABS_Action`s currently on the battle map. This includes checking for collision,
-   * checking piercing information, and applying effects against the map.
+   * Updates all tracked actions currently on the battle map.
    */
   updateActions()
   {
-    const actionEvents = this._actionEvents;
-    if (!actionEvents.length) return;
+    // grab the current collection of actions.
+    const actionEvents = this.getAllActionEvents();
 
-    actionEvents.forEach(this.updateAction, this);
-  }
+    // if we have no actions currently tracked, then do not process them.
+    if (actionEvents.length === 0) return;
 
-  /**
-   * Updates a single `JABS_Action` that is active on the map.
-   * @param {JABS_Action} action The action being updated.
-   */
-  updateAction(action)
-  {
-    // decrement the delay timer prior to action countdown.
-    action.countdownDelay();
-
-    // if we're still delaying and not triggering by touch...
-    if (!this.canUpdateAction(action)) return;
-
-    // if the delay is completed, decrement the action timer.
-    if (action.isDelayCompleted())
-    {
-      action.countdownDuration();
-    }
-
-    // if the duration of the action expires, remove it.
-    if (this.canCleanupAction(action))
-    {
-      this.cleanupAction(action);
-      return;
-    }
-
-    // if there is a delay between hits, count down on it.
-    if (!this.canActionPierce(action))
-    {
-      action.modPiercingDelay();
-      return;
-    }
-
-    // determine targets that this action collided with.
-    this.processActionCollision(action);
-  }
-
-  /**
-   * Determines if the action can be updated.
-   * @param {JABS_Action} action The action to potentially update.
-   * @returns {boolean} True if the action can be updated, false otherwise.
-   */
-  canUpdateAction(action)
-  {
-    // if the event is a trigger action using delay, but hasn't completed, do not update.
-    if (!action.triggerOnTouch() && !action.isDelayCompleted()) return false;
-
-    // update!
-    return true;
-  }
-
-  /**
-   * Determines whether or not to cleanup the action.
-   * @param {JABS_Action} action The action to potentially cleanup.
-   * @returns {boolean} True if the action should be cleaned up, false otherwise.
-   */
-  canCleanupAction(action)
-  {
-    // if the action is expired, then cleanup.
-    if (action.isActionExpired()) return true;
-
-    // if the action has run out of piercing hits, then cleanup.
-    if (action.getPiercingTimes() <= 0) return true;
-
-    // not ready for cleanup.
-    return false;
-  }
-
-  /**
-   * Cleans up a `JABS_Action`.
-   * @param {JABS_Action} action The action to be cleaned up.
-   */
-  cleanupAction(action)
-  {
-    // if the minimum duration hasn't passed, do not cleanup.
-    if (!action.getDuration() >= JABS_Action.getMinimumDuration()) return;
-
-    // execute the action's pre-cleanup logic.
-    action.preCleanupHook();
-
-    // flag the action for removal.
-    action.setNeedsRemoval();
-
-    // clear out stale action events.
-    this.clearActionEvents();
-  }
-
-  /**
-   * Determines whether or not the action is ready to hit again.
-   * @param {JABS_Action} action The action to potentially pierce.
-   * @returns {boolean} True if the action can hit again, false otherwise.
-   */
-  canActionPierce(action)
-  {
-    // if the action has a remaining piercing delay, do not trigger.
-    if (action.getPiercingDelay() > 0) return false;
-
-    // hit again!
-    return true;
-  }
-
-  /**
-   * Executes all effects of when an action collides with one or more targets.
-   * @param {JABS_Action} action The action to process.
-   */
-  processActionCollision(action)
-  {
-    // if we cannot process action collision, then do not collide.
-    if (!this.canProcessActionCollision(action)) return;
-
-    // iterate over all targets found.
-    this.getCollisionTargets(action)
-    // apply the battle effects of the action against each target.
-      .forEach(target => this.applyPrimaryBattleEffects(action, target), this);
-
-    // execute any additional post-collision processing.
-    this.handleActionPostCollision(action);
-  }
-
-  /**
-   * Determines whether or not this action can collide with targets.
-   * @param {JABS_Action} action The action to process.
-   * @returns {boolean} True if we can collide with targets, false otherwise.
-   */
-  canProcessActionCollision(action)
-  {
-    // check if we have any collision targets.
-    if (this.getCollisionTargets(action).length === 0) return false;
-
-    // we have collision targets!
-    return true;
-  }
-
-  /**
-   * Handles any post-collision processing, such as ending delays.
-   * @param {JABS_Action} action The action that just collided.
-   */
-  handleActionPostCollision(action)
-  {
-    // if we were delaying, end the delay.
-    action.endDelay();
-
-    // if the target can pierce enemies, adjust those values.
-    action.resetPiercingDelay();
-    action.modPiercingTimes();
+    // update each of the actions.
+    actionEvents.forEach(action => action.update());
   }
   //#endregion update actions
   //#endregion update
@@ -2896,7 +2785,6 @@ class JABS_Engine
     const range = action.getRange();
     const shape = action.getShape();
     const casterJabsBattler = action.getCaster();
-    const caster = casterJabsBattler.getCharacter();
 
     const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
     let hitOne = false;

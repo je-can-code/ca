@@ -6,7 +6,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * This plugin scales various data points based on the difference between the

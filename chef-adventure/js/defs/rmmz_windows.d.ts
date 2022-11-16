@@ -1790,7 +1790,7 @@ declare class Window_SkillList extends Window_Selectable {
     setStypeId(stypeId: RPG_SkillTypeIdA): void;
     /**
      * Returns the current skill at the window index
-     * loaded from the databse.
+     * loaded from the database.
      *
      * @returns {RPG_Skill}
      * @memberof Window_SkillList

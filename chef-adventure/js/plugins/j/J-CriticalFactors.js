@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:41 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -7,7 +7,7 @@
  * [v1.0.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/ca
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-SDP
  * @orderAfter J-NaturalGrowths
  * @help
@@ -573,7 +573,7 @@ if (J.SDP)
     panelRankings.forEach(panelRanking =>
     {
       // grab our panel by its key.
-      const panel = $gameSystem.getSdpByKey(panelRanking.key);
+      const panel = $gameSystem.getSdpRankByKey(panelRanking.key);
 
       // protect our players against changed keys mid-save file!
       if (!panel) return;

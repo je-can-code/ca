@@ -66,9 +66,11 @@ J.ABS.EXT.TOOLS.Metadata = {
  */
 J.ABS.EXT.TOOLS.Aliased = {
   Game_Character: new Map(),
+  Game_CharacterBase: new Map(),
   Game_Event: new Map(),
   Game_Follower: new Map(),
   Game_Player: new Map(),
+  Game_System: new Map(),
   JABS_Engine: new Map(),
   JABS_Battler: new Map(),
 };

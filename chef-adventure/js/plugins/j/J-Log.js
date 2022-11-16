@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
 
 //#region introduction
 /*:
@@ -9,7 +9,7 @@
 * @url https://github.com/je-can-code/ca
 * @base J-Base
 * @base J-MessageTextCodes
-* @orderAfter J-BASE
+* @orderAfter J-Base
 * @orderAfter J-ABS
 * @orderAfter J-MessageTextCodes
 * @help
@@ -29,7 +29,7 @@
 * Controller/keyboard support for the log window is not supported.
 *
 * This plugin has two dependencies that all must be present to work:
-* - J-BASE (used for drawing the logs properly onto the window)
+* - J-Base (used for drawing the logs properly onto the window)
 * - J-MessageTextCodes (used for translating text codes in logging)
 * The MZ editor will inform you where this plugin needs to be relative to the
 * other plugins (above/below/etc).

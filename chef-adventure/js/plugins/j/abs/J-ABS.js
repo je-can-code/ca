@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Nov 11 2022 15:45:46 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Nov 16 2022 07:23:58 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2449,6 +2449,36 @@ class JABS_Action
    */
   initMembers()
   {
+    // initialize core functionality data.
+    this.initVisuals();
+
+    // initialize duration and expiration related data.
+    this.initDuration();
+
+    // initialize delay-related data.
+    this.initDelay();
+
+    // initialize piercing-related data.
+    this.initPiercing();
+  }
+
+  initVisuals()
+  {
+    /**
+     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
+     * @type {Game_Event}
+     */
+    this._actionSprite = null;
+
+    /**
+     * The animation id to be performed on the action itself upon execution.
+     * @type {number}
+     */
+    this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
+  }
+
+  initDuration()
+  {
     /**
      * The current timer on this particular action.
      * @type {number}
@@ -2460,25 +2490,25 @@ class JABS_Action
      * @type {boolean}
      */
     this._needsRemoval = false;
+  }
 
-    /**
-     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
-     * @type {Game_Event}
-     */
-    this._actionSprite = null;
-
+  initDelay()
+  {
     /**
      * The duration remaining before this will action will autotrigger.
-     * @type {number}
+     * @type {JABS_Timer}
      */
-    this._delayDuration = this._baseSkill.jabsDelayDuration ?? 0;
+    this._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
 
     /**
      * Whether or not this action will trigger when an enemy touches it.
      * @type {boolean}
      */
     this._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
+  }
 
+  initPiercing()
+  {
     /**
      * The remaining number of times this action can pierce a target.
      * @type {number}
@@ -2497,11 +2527,7 @@ class JABS_Action
      */
     this._currentPierceDelay = 0;
 
-    /**
-     * The animation id to be performed on the action itself upon execution.
-     * @type {number}
-     */
-    this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
+    this._pierceDelay = new JABS_Timer(this._basePierceDelay);
   }
 
   /**
@@ -2691,7 +2717,7 @@ class JABS_Action
   }
 
   /**
-   * Gets the durations remaining on this `JABS_Action`.
+   * Gets the duration in frames that this action has persisted on the map.
    */
   getDuration()
   {
@@ -2775,10 +2801,7 @@ class JABS_Action
    */
   countdownDelay()
   {
-    if (this._delayDuration > 0)
-    {
-      this._delayDuration--;
-    }
+    this._delayDuration.update();
   }
 
   /**
@@ -2789,7 +2812,7 @@ class JABS_Action
    */
   isDelayCompleted()
   {
-    return this._delayDuration <= 0 && !this.isEndlessDelay();
+    return this._delayDuration.isTimerComplete() && !this.isEndlessDelay();
   }
 
   /**
@@ -2797,7 +2820,7 @@ class JABS_Action
    */
   endDelay()
   {
-    this._delayDuration = 0;
+    this._delayDuration.forceComplete();
   }
 
   /**
@@ -2806,7 +2829,7 @@ class JABS_Action
    */
   isEndlessDelay()
   {
-    return this._delayDuration === -1;
+    return this._delayDuration.getMaxTime() === -1;
   }
 
   /**
@@ -2832,13 +2855,15 @@ class JABS_Action
   }
 
   /**
-   * Modifies the piercing times counter of this action by an amount (default = 1). If an action
-   * reaches zero or less times, then it also sets it up for removal.
-   * @param {number} decrement The number to decrement the times counter by for this action.
+   * Reduces the pierce times count of this action by 1.
+   *
+   * If an action reaches zero or less, then it also sets it up for removal.
+   * @param {number=} decrement The amount to reduce the pierce times count by; defaults to 1.
    */
-  modPiercingTimes(decrement = 1)
+  decrementPierceTimes(decrement = 1)
   {
-    this._pierceTimesLeft -= decrement;
+    // reduce pierce
+    this._pierceTimesLeft -= decremenet;
     if (this._pierceTimesLeft <= 0)
     {
       this.setNeedsRemoval();
@@ -2846,31 +2871,183 @@ class JABS_Action
   }
 
   /**
-   * Gets the delay between hits for this action.
-   * @returns {number} The number of frames between repeated hits.
+   * Determines whether or not this action is ready to pierce another target.
+   * @return {boolean} True if the timer for pierce delay is completed, false otherwise.
    */
-  getPiercingDelay()
+  isPierceReady()
   {
-    return this._currentPierceDelay;
+    return this._pierceDelay.isTimerComplete();
   }
 
   /**
-   * Modifies the piercing delay by this amount (default = 1). If a negative number is
-   * provided, then this will increase the delay by that amount instead.
-   * @param {number} decrement The amount to modify the delay by.
+   * Counts down the pierce delay timer for this action.
    */
-  modPiercingDelay(decrement = 1)
+  countdownPierceDelay()
   {
-    this._currentPierceDelay -= decrement;
+    this._pierceDelay.update();
   }
 
   /**
-   * Resets the piercing delay of this action back to it's base.
+   * Resets the pierce delay timer for this action.
    */
-  resetPiercingDelay()
+  resetPierceDelay()
   {
-    this._currentPierceDelay = this._basePierceDelay;
+    this._pierceDelay.reset();
   }
+
+  //#region update
+  /**
+   * The overarching update logic for the action.
+   */
+  update()
+  {
+    // handle the updates before the main updates.
+    this.preUpdate();
+
+    // handle the main updating for the action.
+    this.mainUpdate();
+
+    // handle the updates after the main updates.
+    this.postUpdate();
+  }
+
+  /**
+   * An event hook for logic to perform before the main update of an action.
+   * This includes by default the countdown for delayed activation of actions.
+   */
+  preUpdate()
+  {
+    // decrement the delay timer prior to action countdown.
+    this.countdownDelay();
+  }
+
+  /**
+   * The main update logic for an action.
+   * this includes handling the delay countdown, cleanup, the piercing, and collision.
+   */
+  mainUpdate()
+  {
+    // if we're still delaying and not triggering by touch...
+    if (!this.canMainUpdate()) return;
+
+    // if the delay is completed, decrement the action timer.
+    if (this.isDelayCompleted())
+    {
+      // countdown the overall duration timer of this action.
+      this.countdownDuration();
+    }
+
+    // if the duration of the action expires, remove it.
+    if (this.isReadyForCleanup())
+    {
+      // execute this action's cleanup.
+      this.cleanup();
+
+      // stop processing the action.
+      return;
+    }
+
+    // check if this action is ready to pierce another target.
+    if (!this.isPierceReady())
+    {
+      // countdown the pierce timer if not ready.
+      this.countdownPierceDelay();
+
+      // stop processing the action.
+      return;
+    }
+
+    // determine targets that this action collided with.
+    this.processCollision();
+  }
+
+  /**
+   * Determines whether or not it is valid to perform the main update of the action.
+   * @returns {boolean} True if the action should update, false otherwise.
+   */
+  canMainUpdate()
+  {
+    // if the event is a trigger action using delay, but hasn't completed, do not update.
+    if (!this.triggerOnTouch() && !this.isDelayCompleted()) return false;
+
+    // update.
+    return true;
+  }
+
+  /**
+   * Determines whether or not to cleanup the action.
+   * @returns {boolean} True if the action should be cleaned up, false otherwise.
+   */
+  isReadyForCleanup()
+  {
+    // if we haven't at least passed the minimum duration, then do not cleanup.
+    if (this.getDuration() < JABS_Action.getMinimumDuration()) return false;
+
+    // if the action is expired, then cleanup.
+    if (this.isActionExpired()) return true;
+
+    // if the action has run out of piercing hits, then cleanup.
+    if (this.getPiercingTimes() <= 0) return true;
+
+    // not ready for cleanup.
+    return false;
+  }
+
+  /**
+   * Cleans up this action and removes it from tracking if applicable.
+   */
+  cleanup()
+  {
+    // execute the action's pre-cleanup logic.
+    this.preCleanupHook();
+
+    // flag the action for removal.
+    this.setNeedsRemoval();
+
+    // clear out stale action events.
+    $jabsEngine.clearActionEvents();
+  }
+
+  /**
+   * Handles collision in the context of this action against in-range battlers.
+   */
+  processCollision()
+  {
+    // grab all available collision targets.
+    const collisionTargets = $jabsEngine.getCollisionTargets(this);
+
+    // check if we have any collision targets.
+    if (collisionTargets.length === 0) return;
+
+    // apply the battle effects of the action against each target.
+    collisionTargets.forEach(target => $jabsEngine.applyPrimaryBattleEffects(this, target), this);
+
+    // perform post-collision action things.
+    this.onCollision();
+  }
+
+  /**
+   * An event hook fired when this action collides with a target.
+   */
+  onCollision()
+  {
+    // end the delay if there was one.
+    this.endDelay();
+
+    // reset the pierce delay back to default.
+    this.resetPierceDelay();
+
+    // reduce the pierce counts by one.
+    this.decrementPierceTimes();
+  }
+
+  /**
+   * An event hook for logic to perform after the main update of an action.
+   */
+  postUpdate()
+  {
+  }
+  //#endregion update
 
   /**
    * Gets whether or not this action is a direct-targeting action.
@@ -3271,6 +3448,17 @@ JABS_Battler.prototype.initGeneralInfo = function()
    * @type {JABS_Timer}
    */
   this._waitTimer = new JABS_Timer(0);
+
+  /**
+   * The timer that designates the duration between engagement updates.
+   * This is not a publicly exposed timer, statically defined at 30 frames per update.
+   *
+   * This is because engagement calculations are the most expensive
+   * update to perform on a per-frame basis by a longshot in the entirety of JABS
+   * due to the number of mathematical distance calculations performed.
+   * @type {JABS_Timer}
+   */
+  this._engagementTimer = new JABS_Timer(15);
 };
 
 /**
@@ -4008,6 +4196,7 @@ JABS_Battler.prototype.updateTimers = function()
   this.processParryTimer();
   this.processLastHitTimer();
   this.processCastingTimer();
+  this.processEngagementTimer();
 };
 
 /**
@@ -4066,6 +4255,17 @@ JABS_Battler.prototype.processCastingTimer = function()
     this.countdownCastTime();
   }
 };
+
+/**
+ * Updates the timer for "engagement".
+ *
+ * This is an important timer that prevents recalculating distances for all
+ * battlers on the map every frame.
+ */
+JABS_Battler.prototype.processEngagementTimer = function()
+{
+  this._engagementTimer.update();
+};
 //#endregion update timers
 
 //#region update engagement
@@ -4088,6 +4288,9 @@ JABS_Battler.prototype.updateEngagement = function()
 
   // process engagement handling.
   this.handleEngagement(target, distance);
+
+  // reset the engagement timer.
+  this._engagementTimer.reset();
 };
 
 /**
@@ -4105,6 +4308,9 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 
   // inanimate battlers cannot engage.
   if (this.isInanimate()) return false;
+
+  // if the engagement timer is not ready, we cannot update.
+  if (!this._engagementTimer.isTimerComplete()) return false;
 
   // engage!
   return true;
@@ -5408,6 +5614,24 @@ JABS_Battler.prototype.inSightRange = function(target, distance)
 
   // return the answer.
   return isInSightRange;
+};
+
+/**
+ * Determines whether or not this battler is "out of range" of a given target.
+ * At or beyond the designated range usually results in dropping cognition of one another.
+ * @param {JABS_Battler} target The target to check if within range of.
+ * @returns {boolean} True if this battler is out of range of the target, false otherwise.
+ */
+JABS_Battler.prototype.outOfRange = function(target)
+{
+  // if the target is invalid, then they are out of range.
+  if (!target) return true;
+
+  // if they are actually out of update range, then they are out of range.
+  if (this.distanceToDesignatedTarget(target) > JABS_AiManager.maxAiRange) return true;
+
+  // they are not out of range.
+  return false;
 };
 
 /**
@@ -7186,13 +7410,12 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
       this.setTarget(newTarget);
     }
 
-    // stop processing.
+    // stop processing .
     return;
   }
 
-  // if the target is dead, disengage and end combat.
-  // TODO: is this a race condition?
-  this.removeAggroIfTargetDead(this.getTarget().getUuid());
+  // if the target is no longer valid, disengage and end combat.
+  this.removeAggroIfInvalid(this.getTarget().getUuid());
 
   // if there is no aggros remaining, disengage.
   if (this._aggros.length === 0)
@@ -7279,8 +7502,8 @@ JABS_Battler.prototype.getHighestAggro = function()
   // grab the aggros.
   const aggros = this.getAllAggros();
 
-  // sort them by their aggro rating.
-  aggros.sort((a, b) =>
+  // a sorting function for determining the highest aggro from a collection.
+  const sorting = (a, b) =>
   {
     if (a.aggro < b.aggro)
     {
@@ -7292,10 +7515,13 @@ JABS_Battler.prototype.getHighestAggro = function()
     }
 
     return 0;
-  });
+  };
+
+  // sort them by their aggro rating.
+  aggros.sort(sorting);
 
   // grab the first and second highest aggros.
-  const [highestAggro,secondHighestAggro,] = aggros;
+  const [ highestAggro, secondHighestAggro, ] = aggros;
 
   // check if the top two aggros are the same.
   if (highestAggro.aggro === secondHighestAggro.aggro)
@@ -7309,16 +7535,40 @@ JABS_Battler.prototype.getHighestAggro = function()
 };
 
 /**
- * If the target is dead, removes it's aggro.
- * @param uuid
+ * If the target is invalid somehow, then stop tracking its aggro.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
  */
-JABS_Battler.prototype.removeAggroIfTargetDead = function(uuid)
+JABS_Battler.prototype.removeAggroIfInvalid = function(uuid)
 {
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (!battler || battler.isDead())
+  // check if any of the captured conditions are true.
+  if (this.isAggroInvalid(uuid))
   {
+    // remove the aggro from this battler's tracking.
     this.removeAggro(uuid);
   }
+};
+
+/**
+ * Determines whether or not this battler's aggro against a given target is invalid.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
+ * @returns {boolean} True if the aggro is invalid, false otherwise.
+ */
+JABS_Battler.prototype.isAggroInvalid = function(uuid)
+{
+  // grab the battler from tracking.
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+
+  // if the battler doesn't exist, then the aggro is invalid.
+  if (!battler) return true;
+
+  // if the battler is actually dead, then the aggro is invalid.
+  if (battler.isDead()) return true;
+
+  // if the battler is too far from this battler, then the aggro is invalid.
+  if (battler.outOfRange(this)) return true;
+
+  // the aggro must be valid.
+  return false;
 };
 
 /**
@@ -11861,6 +12111,14 @@ class JABS_State
 class JABS_Timer
 {
   /**
+   * A key or name for this timer.
+   * This is not strictly enforced by the timer, so this is for
+   * developer convenience if needed.
+   * @type {string}
+   */
+  _key = String.empty;
+
+  /**
    * The counter on this timer that ticks up to the max.
    * @type {number}
    */
@@ -11894,6 +12152,8 @@ class JABS_Timer
 
   /**
    * Constructor.
+   *
+   * NOTE: A key is not required, but can be set with setters.
    * @param {number=} timerMax The max duration of this timer.
    * @param {boolean=} stopCounting Whether or not to stop counting after completing; defaults to true.
    * @param {Function|null=} callback EXPERIMENTAL. A callback function for completion of this timer.
@@ -11903,6 +12163,24 @@ class JABS_Timer
     this._timerMax = timerMax;
     this._stopCounting = stopCounting;
     this._callback = callback;
+  }
+
+  /**
+   * Gets the key of this timer, if one was set.
+   * @returns {string|String.empty}
+   */
+  getKey()
+  {
+    return this._key;
+  }
+
+  /**
+   * Sets the key of this timer to the given value.
+   * @param {string} key The new key or name for this timer.
+   */
+  setKey(key)
+  {
+    this._key = key;
   }
 
   /**
@@ -13990,7 +14268,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceCount",
   {
     get: function()
     {
-      return this.jabsPiercingData[0];
+      return this.jabsPiercingData.at(0);
     },
   });
 
@@ -14002,7 +14280,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay",
   {
     get: function()
     {
-      return this.jabsPiercingData[1];
+      return Math.max(this.jabsPiercingData.at(1), 5);
     },
   });
 
@@ -15406,6 +15684,12 @@ class JABS_AiManager
   static battlers = new Map();
 
   /**
+   * The maximum update range for AI to be cognizant of eachother.
+   * @type {number}
+   */
+  static maxAiRange = J.ABS.Metadata.MaxAiUpdateRange;
+
+  /**
    * Constructor.
    * This is a static class.
    */
@@ -15503,6 +15787,21 @@ class JABS_AiManager
   {
     // grab all the battlers available.
     const battlers = this.getAllBattlers();
+
+    // return them sorted, closest to farthest.
+    return this.#sortBattlersByDistanceFromBattlerAscending(battlers, originBattler);
+  }
+
+  /**
+   * Gets all battlers within a given distance from given battler, sorted closest to farthest.
+   * @param {JABS_Battler} originBattler The target to get battlers within range of.
+   * @param {number} maxRange The maximum range to check for battlers within.
+   * @returns {JABS_Battler[]}
+   */
+  static getAllBattlersWithinRangeSortedByDistance(originBattler, maxRange)
+  {
+    // find all battlers that are within the max range.
+    const battlers = this.getBattlersWithinRange(originBattler, maxRange);
 
     // return them sorted, closest to farthest.
     return this.#sortBattlersByDistanceFromBattlerAscending(battlers, originBattler);
@@ -15622,7 +15921,8 @@ class JABS_AiManager
   static #filterBattlersByOpposingTeam(battlers, selectedBattler)
   {
     // a filter function for determining whether or not the battler is of the opposing team.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // neutral battlers are never an opposition.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
@@ -15647,7 +15947,8 @@ class JABS_AiManager
   static #filterBattlersByAlliedTeam(battlers, selectedBattler)
   {
     // a filter function for determining whether or not the battler is of the same team.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // neutral battlers are never an ally.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
@@ -15672,7 +15973,8 @@ class JABS_AiManager
   static #filterBattlersByRangeFromBattler(battlers, originBattler, maxRange)
   {
     // a filter function for removing battlers outside of a given range.
-    const filtering = battler => {
+    const filtering = battler => 
+    {
       // grab the distance from the origin battler to the given battler.
       const distance = originBattler.distanceToDesignatedTarget(battler);
 
@@ -15696,7 +15998,8 @@ class JABS_AiManager
   static #sortBattlersByDistanceFromBattlerAscending(battlers, originBattler)
   {
     // a compare function for comparing the distance between two battlers.
-    const comparing = (battlerA, battlerB) => {
+    const comparing = (battlerA, battlerB) => 
+    {
       const distanceA = originBattler.distanceToDesignatedTarget(battlerA);
       const distanceB = originBattler.distanceToDesignatedTarget(battlerB);
       return distanceA - distanceB;
@@ -15971,9 +16274,10 @@ class JABS_AiManager
   static manageAi()
   {
     // grab all available battlers within a fixed range.
-    const battlers = this.getAllBattlers();
-    //const battlers = $gameMap.getBattlersWithinRange($jabsEngine.getPlayer1(),99);
-    //J.ABS.Metadata.MaxAiUpdateRange
+    //const battlers = this.getAllBattlers();
+    const battlers = this.getAllBattlersWithinRangeSortedByDistance(
+      $jabsEngine.getPlayer1(),
+      J.ABS.Metadata.MaxAiUpdateRange);
 
     // if we have no battlers, then do not process AI.
     if (!battlers.length) return;
@@ -17255,6 +17559,12 @@ class JABS_AiManager
 class JABS_Engine
 {
   /**
+   * A cached collection of actions keyed by their uuids.
+   * @type {JABS_Timer, JABS_Action}
+   */
+  cachedActions = new Map();
+
+  /**
    * @constructor
    */
   constructor()
@@ -17546,6 +17856,20 @@ class JABS_Engine
   }
 
   /**
+   * Gets all currently tracked actions on the map.
+   * @returns {JABS_Action[]}
+   */
+  getAllActionEvents()
+  {
+    return this._actionEvents;
+  }
+
+  setAllActionEvents(actionEvents)
+  {
+    this._actionEvents = actionEvents;
+  }
+
+  /**
    * Adds a new `JABS_Action` to this battle map for tracking.
    * The additional metadata is optional, omitted when executing direct actions.
    * @param {JABS_Action} actionEvent The `JABS_Action` to add.
@@ -17553,7 +17877,13 @@ class JABS_Engine
    */
   addActionEvent(actionEvent, actionEventData)
   {
-    this._actionEvents.push(actionEvent);
+    // grab the current collection of actions.
+    const actions = this.getAllActionEvents();
+
+    // add the new event to the list.
+    actions.push(actionEvent);
+
+    // if the event is a physical event on the map, track that data too.
     if (actionEventData)
     {
       this._activeActions.push(actionEventData);
@@ -17580,15 +17910,21 @@ class JABS_Engine
    */
   clearActionEvents()
   {
-    const actionEvents = this._actionEvents;
+    // grab the current collection of actions.
+    const actionEvents = this.getAllActionEvents();
+
+    // filter out the events that are on track for removal.
     const updatedActionEvents = actionEvents.filter(action => !action.getNeedsRemoval());
 
+    // check if we have any events that are in need of removal.
     if (actionEvents.length !== updatedActionEvents.length)
     {
+      // request a refresh of the map.
       this.requestClearMap = true;
     }
 
-    this._actionEvents = updatedActionEvents;
+    // update the action events to be the filtered events.
+    this.setAllActionEvents(updatedActionEvents);
   }
 
   /**
@@ -18371,161 +18707,18 @@ class JABS_Engine
 
   //#region update actions
   /**
-   * Updates all `JABS_Action`s currently on the battle map. This includes checking for collision,
-   * checking piercing information, and applying effects against the map.
+   * Updates all tracked actions currently on the battle map.
    */
   updateActions()
   {
-    const actionEvents = this._actionEvents;
-    if (!actionEvents.length) return;
+    // grab the current collection of actions.
+    const actionEvents = this.getAllActionEvents();
 
-    actionEvents.forEach(this.updateAction, this);
-  }
+    // if we have no actions currently tracked, then do not process them.
+    if (actionEvents.length === 0) return;
 
-  /**
-   * Updates a single `JABS_Action` that is active on the map.
-   * @param {JABS_Action} action The action being updated.
-   */
-  updateAction(action)
-  {
-    // decrement the delay timer prior to action countdown.
-    action.countdownDelay();
-
-    // if we're still delaying and not triggering by touch...
-    if (!this.canUpdateAction(action)) return;
-
-    // if the delay is completed, decrement the action timer.
-    if (action.isDelayCompleted())
-    {
-      action.countdownDuration();
-    }
-
-    // if the duration of the action expires, remove it.
-    if (this.canCleanupAction(action))
-    {
-      this.cleanupAction(action);
-      return;
-    }
-
-    // if there is a delay between hits, count down on it.
-    if (!this.canActionPierce(action))
-    {
-      action.modPiercingDelay();
-      return;
-    }
-
-    // determine targets that this action collided with.
-    this.processActionCollision(action);
-  }
-
-  /**
-   * Determines if the action can be updated.
-   * @param {JABS_Action} action The action to potentially update.
-   * @returns {boolean} True if the action can be updated, false otherwise.
-   */
-  canUpdateAction(action)
-  {
-    // if the event is a trigger action using delay, but hasn't completed, do not update.
-    if (!action.triggerOnTouch() && !action.isDelayCompleted()) return false;
-
-    // update!
-    return true;
-  }
-
-  /**
-   * Determines whether or not to cleanup the action.
-   * @param {JABS_Action} action The action to potentially cleanup.
-   * @returns {boolean} True if the action should be cleaned up, false otherwise.
-   */
-  canCleanupAction(action)
-  {
-    // if the action is expired, then cleanup.
-    if (action.isActionExpired()) return true;
-
-    // if the action has run out of piercing hits, then cleanup.
-    if (action.getPiercingTimes() <= 0) return true;
-
-    // not ready for cleanup.
-    return false;
-  }
-
-  /**
-   * Cleans up a `JABS_Action`.
-   * @param {JABS_Action} action The action to be cleaned up.
-   */
-  cleanupAction(action)
-  {
-    // if the minimum duration hasn't passed, do not cleanup.
-    if (!action.getDuration() >= JABS_Action.getMinimumDuration()) return;
-
-    // execute the action's pre-cleanup logic.
-    action.preCleanupHook();
-
-    // flag the action for removal.
-    action.setNeedsRemoval();
-
-    // clear out stale action events.
-    this.clearActionEvents();
-  }
-
-  /**
-   * Determines whether or not the action is ready to hit again.
-   * @param {JABS_Action} action The action to potentially pierce.
-   * @returns {boolean} True if the action can hit again, false otherwise.
-   */
-  canActionPierce(action)
-  {
-    // if the action has a remaining piercing delay, do not trigger.
-    if (action.getPiercingDelay() > 0) return false;
-
-    // hit again!
-    return true;
-  }
-
-  /**
-   * Executes all effects of when an action collides with one or more targets.
-   * @param {JABS_Action} action The action to process.
-   */
-  processActionCollision(action)
-  {
-    // if we cannot process action collision, then do not collide.
-    if (!this.canProcessActionCollision(action)) return;
-
-    // iterate over all targets found.
-    this.getCollisionTargets(action)
-    // apply the battle effects of the action against each target.
-      .forEach(target => this.applyPrimaryBattleEffects(action, target), this);
-
-    // execute any additional post-collision processing.
-    this.handleActionPostCollision(action);
-  }
-
-  /**
-   * Determines whether or not this action can collide with targets.
-   * @param {JABS_Action} action The action to process.
-   * @returns {boolean} True if we can collide with targets, false otherwise.
-   */
-  canProcessActionCollision(action)
-  {
-    // check if we have any collision targets.
-    if (this.getCollisionTargets(action).length === 0) return false;
-
-    // we have collision targets!
-    return true;
-  }
-
-  /**
-   * Handles any post-collision processing, such as ending delays.
-   * @param {JABS_Action} action The action that just collided.
-   */
-  handleActionPostCollision(action)
-  {
-    // if we were delaying, end the delay.
-    action.endDelay();
-
-    // if the target can pierce enemies, adjust those values.
-    action.resetPiercingDelay();
-    action.modPiercingTimes();
+    // update each of the actions.
+    actionEvents.forEach(action => action.update());
   }
   //#endregion update actions
   //#endregion update
@@ -20145,7 +20338,6 @@ class JABS_Engine
     const range = action.getRange();
     const shape = action.getShape();
     const casterJabsBattler = action.getCaster();
-    const caster = casterJabsBattler.getCharacter();
 
     const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
     let hitOne = false;
@@ -22481,6 +22673,8 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
 
 /**
  * If a skill that was upgraded is equipped currently, upgrade it.
+ * "Upgrading" a skill is defined as "has the yanfly tag for hiding if another
+ * skill id happens to be learned", in which case it'll replace that slot.
  * @param {number} skillId The skill id to upgrade.
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
@@ -22539,17 +22733,17 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
  */
 Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 {
-  if (this.autoAssignOnLevelup())
-  {
-    const emptySlots = this.getEmptySecondarySkills();
-    if (!emptySlots.length)
-    {
-      return;
-    }
+  // if we are not auto-assigning, then do not.
+  if (!this.autoAssignOnLevelup()) return;
 
-    const slotKey = emptySlots[0].key;
-    this.setEquippedSkill(slotKey, skillId);
+  const emptySlots = this.getEmptySecondarySkills();
+  if (!emptySlots.length)
+  {
+    return;
   }
+
+  const slotKey = emptySlots[0].key;
+  this.setEquippedSkill(slotKey, skillId);
 };
 //#endregion learning
 
@@ -26050,7 +26244,7 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
   actionToRemove.erase();
 
   // command the battle map to cleanup the jabs action.
-  $jabsEngine.cleanupAction(actionToRemove.getJabsAction());
+  actionToRemove.getJabsAction().cleanup();
 
   // and also to cleanup the current list of active jabs action events.
   $jabsEngine.clearActionEvents();

@@ -8,7 +8,7 @@
  * @base J-ABS
  * @base J-Base
  * @orderAfter J-ABS
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-ABS-AllyAI
  * @orderBefore J-HUD
  * @help

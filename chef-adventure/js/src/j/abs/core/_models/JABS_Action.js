@@ -86,6 +86,36 @@ class JABS_Action
    */
   initMembers()
   {
+    // initialize core functionality data.
+    this.initVisuals();
+
+    // initialize duration and expiration related data.
+    this.initDuration();
+
+    // initialize delay-related data.
+    this.initDelay();
+
+    // initialize piercing-related data.
+    this.initPiercing();
+  }
+
+  initVisuals()
+  {
+    /**
+     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
+     * @type {Game_Event}
+     */
+    this._actionSprite = null;
+
+    /**
+     * The animation id to be performed on the action itself upon execution.
+     * @type {number}
+     */
+    this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
+  }
+
+  initDuration()
+  {
     /**
      * The current timer on this particular action.
      * @type {number}
@@ -97,25 +127,25 @@ class JABS_Action
      * @type {boolean}
      */
     this._needsRemoval = false;
+  }
 
-    /**
-     * The `Game_Event` this `JABS_Action` is bound to. Represents the visual aspect on the map.
-     * @type {Game_Event}
-     */
-    this._actionSprite = null;
-
+  initDelay()
+  {
     /**
      * The duration remaining before this will action will autotrigger.
-     * @type {number}
+     * @type {JABS_Timer}
      */
-    this._delayDuration = this._baseSkill.jabsDelayDuration ?? 0;
+    this._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
 
     /**
      * Whether or not this action will trigger when an enemy touches it.
      * @type {boolean}
      */
     this._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
+  }
 
+  initPiercing()
+  {
     /**
      * The remaining number of times this action can pierce a target.
      * @type {number}
@@ -134,11 +164,7 @@ class JABS_Action
      */
     this._currentPierceDelay = 0;
 
-    /**
-     * The animation id to be performed on the action itself upon execution.
-     * @type {number}
-     */
-    this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
+    this._pierceDelay = new JABS_Timer(this._basePierceDelay);
   }
 
   /**
@@ -328,7 +354,7 @@ class JABS_Action
   }
 
   /**
-   * Gets the durations remaining on this `JABS_Action`.
+   * Gets the duration in frames that this action has persisted on the map.
    */
   getDuration()
   {
@@ -412,10 +438,7 @@ class JABS_Action
    */
   countdownDelay()
   {
-    if (this._delayDuration > 0)
-    {
-      this._delayDuration--;
-    }
+    this._delayDuration.update();
   }
 
   /**
@@ -426,7 +449,7 @@ class JABS_Action
    */
   isDelayCompleted()
   {
-    return this._delayDuration <= 0 && !this.isEndlessDelay();
+    return this._delayDuration.isTimerComplete() && !this.isEndlessDelay();
   }
 
   /**
@@ -434,7 +457,7 @@ class JABS_Action
    */
   endDelay()
   {
-    this._delayDuration = 0;
+    this._delayDuration.forceComplete();
   }
 
   /**
@@ -443,7 +466,7 @@ class JABS_Action
    */
   isEndlessDelay()
   {
-    return this._delayDuration === -1;
+    return this._delayDuration.getMaxTime() === -1;
   }
 
   /**
@@ -469,13 +492,15 @@ class JABS_Action
   }
 
   /**
-   * Modifies the piercing times counter of this action by an amount (default = 1). If an action
-   * reaches zero or less times, then it also sets it up for removal.
-   * @param {number} decrement The number to decrement the times counter by for this action.
+   * Reduces the pierce times count of this action by 1.
+   *
+   * If an action reaches zero or less, then it also sets it up for removal.
+   * @param {number=} decrement The amount to reduce the pierce times count by; defaults to 1.
    */
-  modPiercingTimes(decrement = 1)
+  decrementPierceTimes(decrement = 1)
   {
-    this._pierceTimesLeft -= decrement;
+    // reduce pierce
+    this._pierceTimesLeft -= decremenet;
     if (this._pierceTimesLeft <= 0)
     {
       this.setNeedsRemoval();
@@ -483,31 +508,183 @@ class JABS_Action
   }
 
   /**
-   * Gets the delay between hits for this action.
-   * @returns {number} The number of frames between repeated hits.
+   * Determines whether or not this action is ready to pierce another target.
+   * @return {boolean} True if the timer for pierce delay is completed, false otherwise.
    */
-  getPiercingDelay()
+  isPierceReady()
   {
-    return this._currentPierceDelay;
+    return this._pierceDelay.isTimerComplete();
   }
 
   /**
-   * Modifies the piercing delay by this amount (default = 1). If a negative number is
-   * provided, then this will increase the delay by that amount instead.
-   * @param {number} decrement The amount to modify the delay by.
+   * Counts down the pierce delay timer for this action.
    */
-  modPiercingDelay(decrement = 1)
+  countdownPierceDelay()
   {
-    this._currentPierceDelay -= decrement;
+    this._pierceDelay.update();
   }
 
   /**
-   * Resets the piercing delay of this action back to it's base.
+   * Resets the pierce delay timer for this action.
    */
-  resetPiercingDelay()
+  resetPierceDelay()
   {
-    this._currentPierceDelay = this._basePierceDelay;
+    this._pierceDelay.reset();
   }
+
+  //#region update
+  /**
+   * The overarching update logic for the action.
+   */
+  update()
+  {
+    // handle the updates before the main updates.
+    this.preUpdate();
+
+    // handle the main updating for the action.
+    this.mainUpdate();
+
+    // handle the updates after the main updates.
+    this.postUpdate();
+  }
+
+  /**
+   * An event hook for logic to perform before the main update of an action.
+   * This includes by default the countdown for delayed activation of actions.
+   */
+  preUpdate()
+  {
+    // decrement the delay timer prior to action countdown.
+    this.countdownDelay();
+  }
+
+  /**
+   * The main update logic for an action.
+   * this includes handling the delay countdown, cleanup, the piercing, and collision.
+   */
+  mainUpdate()
+  {
+    // if we're still delaying and not triggering by touch...
+    if (!this.canMainUpdate()) return;
+
+    // if the delay is completed, decrement the action timer.
+    if (this.isDelayCompleted())
+    {
+      // countdown the overall duration timer of this action.
+      this.countdownDuration();
+    }
+
+    // if the duration of the action expires, remove it.
+    if (this.isReadyForCleanup())
+    {
+      // execute this action's cleanup.
+      this.cleanup();
+
+      // stop processing the action.
+      return;
+    }
+
+    // check if this action is ready to pierce another target.
+    if (!this.isPierceReady())
+    {
+      // countdown the pierce timer if not ready.
+      this.countdownPierceDelay();
+
+      // stop processing the action.
+      return;
+    }
+
+    // determine targets that this action collided with.
+    this.processCollision();
+  }
+
+  /**
+   * Determines whether or not it is valid to perform the main update of the action.
+   * @returns {boolean} True if the action should update, false otherwise.
+   */
+  canMainUpdate()
+  {
+    // if the event is a trigger action using delay, but hasn't completed, do not update.
+    if (!this.triggerOnTouch() && !this.isDelayCompleted()) return false;
+
+    // update.
+    return true;
+  }
+
+  /**
+   * Determines whether or not to cleanup the action.
+   * @returns {boolean} True if the action should be cleaned up, false otherwise.
+   */
+  isReadyForCleanup()
+  {
+    // if we haven't at least passed the minimum duration, then do not cleanup.
+    if (this.getDuration() < JABS_Action.getMinimumDuration()) return false;
+
+    // if the action is expired, then cleanup.
+    if (this.isActionExpired()) return true;
+
+    // if the action has run out of piercing hits, then cleanup.
+    if (this.getPiercingTimes() <= 0) return true;
+
+    // not ready for cleanup.
+    return false;
+  }
+
+  /**
+   * Cleans up this action and removes it from tracking if applicable.
+   */
+  cleanup()
+  {
+    // execute the action's pre-cleanup logic.
+    this.preCleanupHook();
+
+    // flag the action for removal.
+    this.setNeedsRemoval();
+
+    // clear out stale action events.
+    $jabsEngine.clearActionEvents();
+  }
+
+  /**
+   * Handles collision in the context of this action against in-range battlers.
+   */
+  processCollision()
+  {
+    // grab all available collision targets.
+    const collisionTargets = $jabsEngine.getCollisionTargets(this);
+
+    // check if we have any collision targets.
+    if (collisionTargets.length === 0) return;
+
+    // apply the battle effects of the action against each target.
+    collisionTargets.forEach(target => $jabsEngine.applyPrimaryBattleEffects(this, target), this);
+
+    // perform post-collision action things.
+    this.onCollision();
+  }
+
+  /**
+   * An event hook fired when this action collides with a target.
+   */
+  onCollision()
+  {
+    // end the delay if there was one.
+    this.endDelay();
+
+    // reset the pierce delay back to default.
+    this.resetPierceDelay();
+
+    // reduce the pierce counts by one.
+    this.decrementPierceTimes();
+  }
+
+  /**
+   * An event hook for logic to perform after the main update of an action.
+   */
+  postUpdate()
+  {
+  }
+  //#endregion update
 
   /**
    * Gets whether or not this action is a direct-targeting action.

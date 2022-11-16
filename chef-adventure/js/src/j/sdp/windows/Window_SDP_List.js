@@ -5,23 +5,21 @@
 class Window_SDP_List extends Window_Command
 {
   /**
+   * The currently selected actor. Used for comparing points to cost to see if
+   * the panel in the list window should be enabled or disabled.
+   * @type {Game_Actor}
+   */
+  currentActor = null;
+
+  filterNoMaxedPanels = false;
+
+  /**
    * @constructor
    * @param {Rectangle} rect The rectangle that represents this window.
    */
   constructor(rect)
   {
     super(rect);
-    this.initMembers();
-  }
-
-  initMembers()
-  {
-    /**
-     * The currently selected actor. Used for comparing points to cost to see if
-     * the panel in the list window should be enabled or disabled.
-     * @type {Game_Actor}
-     */
-    this.currentActor = null;
   }
 
   /**
@@ -32,6 +30,24 @@ class Window_SDP_List extends Window_Command
   {
     this.currentActor = actor;
     this.refresh();
+  }
+
+  /**
+   * Gets whether or not the no-max-panels filter is enabled.
+   * @returns {boolean}
+   */
+  usingNoMaxPanelsFilter()
+  {
+    return this.filterNoMaxedPanels;
+  }
+
+  /**
+   * Sets whether or not the panel list should filter out already-maxed panels.
+   * @param {boolean} useFilter True to filter out maxed panels, false otherwise.
+   */
+  setNoMaxPanelsFilter(useFilter)
+  {
+    this.filterNoMaxedPanels = useFilter;
   }
 
   /**
@@ -51,30 +67,69 @@ class Window_SDP_List extends Window_Command
     const actor = this.currentActor;
     if (!panels.length || !actor) return;
 
-    const points = actor.getSdpPoints();
-
     // add all panels to the list.
     panels.forEach(panel =>
     {
-      const panelRanking = actor.getSdpByKey(panel.key);
-      // if this actor is missing any rankings for the panel, just make one.
-      if (!panelRanking) actor.addNewPanelRanking(panel.key);
+      // construct the SDP command.
+      const command = this.makeCommand(panel);
 
-      const {currentRank} = actor.getSdpByKey(panel.key);
-      const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
-      const isMaxRank = panel.maxRank === currentRank;
-      const enabled = hasEnoughPoints && !isMaxRank;
-      this.addCommand(panel.name, panel.key, enabled, panel, panel.iconIndex, panel.rarity);
+      // if the command is invalid, do not add it.
+      if (!command) return;
 
-      /*
-        common: 0
-        uncommon: 3
-        rare: 23
-        epic: 31
-        legendary: 21
-        godly: 25
-      */
-    });
+      // add the command.
+      this.addBuiltCommand(command);
+    }, this);
+  }
+
+  /**
+   * Builds a single command for the SDP list based on a given panel.
+   * @param {StatDistributionPanel} panel The panel to build a command for.
+   * @returns {BuiltWindowCommand}
+   */
+  makeCommand(panel)
+  {
+    const actor = this.currentActor;
+    const points = actor.getSdpPoints();
+    const { name, key, iconIndex, rarity: colorIndex, maxRank } = panel;
+
+    // get the ranking for a given panel by its key.
+    const panelRanking = actor.getSdpRankByKey(key);
+
+    // grab the current rank of the panel.
+    const { currentRank } = panelRanking;
+
+    // check if we're at max rank already.
+    const isMaxRank = maxRank === currentRank;
+
+    // check if the panel is max rank AND we're using the no max panels filter.
+    if (isMaxRank && this.usingNoMaxPanelsFilter())
+    {
+      // don't render this panel.
+      return null;
+    }
+
+    // check if we have enough points to rank up this panel.
+    const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
+
+    // determine whether or not the command is enabled.
+    const enabled = hasEnoughPoints && !isMaxRank;
+
+    // build the right text out.
+    const rightText = isMaxRank
+      ? "DONE"
+      : `${currentRank} / ${maxRank}`;
+
+    // construct the SDP command.
+    const command = new WindowCommandBuilder(name)
+      .setSymbol(key)
+      .setEnabled(enabled)
+      .setExtensionData(panel)
+      .setIconIndex(iconIndex)
+      .setColorIndex(colorIndex)
+      .setRightText(rightText)
+      .build();
+
+    return command;
   }
 }
 //#endregion Window_SDP_List

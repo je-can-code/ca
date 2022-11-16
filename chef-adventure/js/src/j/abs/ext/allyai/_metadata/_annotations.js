@@ -8,7 +8,7 @@
  * @base J-Base
  * @base J-ABS
  * @orderBefore J-ABS-InputManager
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-ABS
  * @help
  * ============================================================================

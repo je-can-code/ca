@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:41 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -197,6 +197,24 @@ Game_Temp.prototype.enableClickToLogEvent = function()
 Game_Temp.prototype.disableClickToLogEvent = function()
 {
   this._j._utils._useClickToLogEvent = false;
+};
+
+Game_Temp.prototype.getAllArmorNames = function()
+{
+  const mapping = armor =>
+  {
+    if (!armor) return;
+
+    if (armor.name.startsWith('===')) return;
+
+    return {
+      key: armor._key(),
+      name: armor.name,
+      description: armor.description
+    };
+  }
+
+  return $dataArmors.map(mapping);
 };
 
 //#region Scene_Base

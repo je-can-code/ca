@@ -857,6 +857,8 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
 
 /**
  * If a skill that was upgraded is equipped currently, upgrade it.
+ * "Upgrading" a skill is defined as "has the yanfly tag for hiding if another
+ * skill id happens to be learned", in which case it'll replace that slot.
  * @param {number} skillId The skill id to upgrade.
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
@@ -915,17 +917,17 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
  */
 Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 {
-  if (this.autoAssignOnLevelup())
-  {
-    const emptySlots = this.getEmptySecondarySkills();
-    if (!emptySlots.length)
-    {
-      return;
-    }
+  // if we are not auto-assigning, then do not.
+  if (!this.autoAssignOnLevelup()) return;
 
-    const slotKey = emptySlots[0].key;
-    this.setEquippedSkill(slotKey, skillId);
+  const emptySlots = this.getEmptySecondarySkills();
+  if (!emptySlots.length)
+  {
+    return;
   }
+
+  const slotKey = emptySlots[0].key;
+  this.setEquippedSkill(slotKey, skillId);
 };
 //#endregion learning
 

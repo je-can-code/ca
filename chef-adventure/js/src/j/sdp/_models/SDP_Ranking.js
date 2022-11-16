@@ -56,7 +56,7 @@ PanelRanking.prototype.initMembers = function()
  */
 PanelRanking.prototype.rankUp = function()
 {
-  const panel = $gameSystem.getSdpByKey(this.key);
+  const panel = $gameSystem.getSdpRankByKey(this.key);
   const {maxRank} = panel;
   if (this.currentRank < maxRank)
   {
@@ -88,7 +88,7 @@ PanelRanking.prototype.performRankupEffects = function(newRank)
 {
   const a = $gameActors.actor(this.actorId);
   const rewardEffects = $gameSystem
-    .getSdpByKey(this.key)
+    .getSdpRankByKey(this.key)
     .getPanelRewardsByRank(newRank);
   if (rewardEffects.length > 0)
   {

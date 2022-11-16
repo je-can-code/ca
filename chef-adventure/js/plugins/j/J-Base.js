@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Nov 11 2022 15:51:51 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:24:58 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -942,7 +942,7 @@ class RPG_Base
    * The unique key that is used to register this object against
    * its corresponding container when the party has one or more of these
    * in their possession. By default, this is just the index of the item's entry
-   * from the databse, but you can change it if you need a more unique means
+   * from the database, but you can change it if you need a more unique means
    * of identifying things.
    * @returns {any}
    */
@@ -4227,6 +4227,305 @@ TextManager.isValidTypeId = function(id, types)
 }
 //#endregion TextManager
 
+/**
+ * An implementation of a class surrounding the data for a singular window command.
+ */
+class BuiltWindowCommand
+{
+  //#region properties
+  /**
+   * The name of the command.
+   * This is what visibly shows up in the list of commands.
+   * @type {string}
+   */
+  #name = String.empty;
+
+  /**
+   * The text that will be right-aligned for this command.
+   * @type {string}
+   */
+  #rightText = String.empty;
+
+  /**
+   * The symbol of this command.
+   * This is normally invisible and used for connecting this command
+   * to an event hook for logical processing.
+   * @type {string}
+   */
+  #key = String.empty;
+
+  /**
+   * Whether or not this command is enabled.
+   * @type {boolean}
+   */
+  #enabled = true;
+
+  /**
+   * The underlying data associated with this command.
+   * Usually populated with whatever this command represents data-wise.
+   * @type {null|any}
+   */
+  #extensionData = null;
+
+  /**
+   * The index of the icon that will be rendered on the left side of this command.
+   * @type {number}
+   */
+  #iconIndex = 0;
+
+  /**
+   * The text color index this command will be rendered with.
+   * @type {number}
+   */
+  #colorIndex = 0;
+  //#endregion properties
+
+  constructor(
+    name,
+    symbol,
+    enabled = true,
+    extensionData = null,
+    iconIndex = 0,
+    colorIndex = 0,
+    rightText = String.empty)
+  {
+    this.#name = name;
+    this.#key = symbol;
+    this.#enabled = enabled;
+    this.#extensionData = extensionData;
+    this.#iconIndex = iconIndex;
+    this.#colorIndex = colorIndex;
+    this.#rightText = rightText;
+  }
+
+  //#region getters
+  /**
+   * Gets the name for this command.
+   * @returns {string}
+   */
+  get name()
+  {
+    return this.#name;
+  }
+
+  /**
+   * Gets the right-aligned text for this command.
+   * @returns {string}
+   */
+  get rightText()
+  {
+    return this.#rightText;
+  }
+
+  /**
+   * Gets the symbol for this command.
+   * @returns {string}
+   */
+  get symbol()
+  {
+    return this.#key;
+  }
+
+  /**
+   * Gets whether or not this command is enabled.
+   * @returns {boolean}
+   */
+  get enabled()
+  {
+    return this.#enabled;
+  }
+
+  /**
+   * Gets the underlying extension data for this command, if any is available.
+   * @returns {*|null}
+   */
+  get ext()
+  {
+    return this.#extensionData;
+  }
+
+  /**
+   * Gets the icon index of this command, if one is available.
+   * @returns {number}
+   */
+  get icon()
+  {
+    return this.#iconIndex;
+  }
+
+  /**
+   * Gets the color index of this command, if one is available.
+   * @returns {number}
+   */
+  get color()
+  {
+    return this.#colorIndex;
+  }
+  //#endregion getters
+}
+
+/**
+ * A builder class for constructing {@link BuiltWindowCommand}.
+ */
+class WindowCommandBuilder
+{
+  //#region properties
+  /**
+   * The name of the command.
+   * This is what visibly shows up in the list of commands.
+   * @type {string}
+   */
+  #name = String.empty;
+
+  /**
+   * The text that will be right-aligned for this command.
+   * @type {string}
+   */
+  #rightText = String.empty;
+
+  /**
+   * The symbol of this command.
+   * This is normally invisible and used for connecting this command
+   * to an event hook for logical processing.
+   * @type {string}
+   */
+  #key = String.empty;
+
+  /**
+   * Whether or not this command is enabled.
+   * @type {boolean}
+   */
+  #enabled = true;
+
+  /**
+   * The underlying data associated with this command.
+   * Usually populated with whatever this command represents data-wise.
+   * @type {null|any}
+   */
+  #extensionData = null;
+
+  /**
+   * The index of the icon that will be rendered on the left side of this command.
+   * @type {number}
+   */
+  #iconIndex = 0;
+
+  /**
+   * The text color index this command will be rendered with.
+   * @type {number}
+   */
+  #colorIndex = 0;
+  //#endregion properties
+
+  /**
+   * Start by defining the name, and chain additional setter methods to
+   * build out this window command.
+   * @param {string} name The name of the command.
+   */
+  constructor(name)
+  {
+    this.setName(name);
+  }
+
+  /**
+   * Builds a {@link BuiltWindowCommand} based on the current state of this builder.
+   * @returns {BuiltWindowCommand}
+   */
+  build()
+  {
+    // construct the command.
+    const command = new BuiltWindowCommand(
+      this.#name,
+      this.#key,
+      this.#enabled,
+      this.#extensionData,
+      this.#iconIndex,
+      this.#colorIndex,
+      this.#rightText
+    );
+
+    // return the built command.
+    return command;
+  }
+
+  /**
+   * Sets the name of this command.
+   * @param {string} name The name of this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setName(name)
+  {
+    this.#name = name;
+    return this;
+  }
+
+  /**
+   * Sets the right-aligned text of this command.
+   * @param {string} rightText The right-text of this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setRightText(rightText)
+  {
+    this.#rightText = rightText;
+    return this;
+  }
+
+  /**
+   * Sets the key (symbol) of this command.
+   * @param {string} symbol The key of this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setSymbol(symbol)
+  {
+    this.#key = symbol;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this command is enabled.
+   * @param {boolean} enabled Whether or not this command is enabled.
+   * @returns {this} This builder for fluent-building.
+   */
+  setEnabled(enabled)
+  {
+    this.#enabled = enabled;
+    return this;
+  }
+
+  /**
+   * Sets the underlying extension data for this command.
+   * @param {any} ext The underlying extension data for this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setExtensionData(ext)
+  {
+    this.#extensionData = ext;
+    return this;
+  }
+
+  /**
+   * Sets the icon index for this command.
+   * @param {number} iconIndex The index of the icon for this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setIconIndex(iconIndex)
+  {
+    this.#iconIndex = iconIndex;
+    return this;
+  }
+
+  /**
+   * Sets the color index for this command.
+   * @param {number} colorIndex The index of the color for this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setColorIndex(colorIndex)
+  {
+    this.#colorIndex = colorIndex;
+    return this;
+  }
+}
+
 //#region Game_Actor
 /**
  * Gets the parameter value from the "long" parameter id.
@@ -6603,6 +6902,13 @@ Window_Command.prototype.drawItem = function(index)
   commandName = this.handleIcon(commandName, index);
 
   this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
+
+  const rightText = this.commandRightText(index)
+  if (rightText)
+  {
+    const textWidth = this.textWidth(rightText);
+    this.drawText(rightText, rect.width - textWidth, rect.y, textWidth, "right");
+  }
 };
 
 /**
@@ -6646,7 +6952,7 @@ Window_Command.prototype.handleIcon = function(command, index)
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this._list[index].icon;
+  return this._list.at(index).icon;
 };
 
 /**
@@ -6656,7 +6962,21 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this._list[index].color;
+  return this._list.at(index).color;
+};
+
+Window_Command.prototype.commandRightText = function(index)
+{
+  return this._list.at(index).rightText;
+};
+
+/**
+ * Gets all commands currently in this list.
+ * @returns {BuiltWindowCommand[]}
+ */
+Window_Command.prototype.commandList = function()
+{
+  return this._list;
 };
 
 /**
@@ -6679,6 +6999,15 @@ Window_Command.prototype.addCommand = function(
 )
 {
   this._list.push({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Adds a pre-built command using the {@link BuiltWindowCommand} implementation.
+ * @param {BuiltWindowCommand} command The command to be added.
+ */
+Window_Command.prototype.addBuiltCommand = function(command)
+{
+  this._list.push(command);
 };
 
 /**

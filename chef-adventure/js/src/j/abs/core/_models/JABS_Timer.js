@@ -5,6 +5,14 @@
 class JABS_Timer
 {
   /**
+   * A key or name for this timer.
+   * This is not strictly enforced by the timer, so this is for
+   * developer convenience if needed.
+   * @type {string}
+   */
+  _key = String.empty;
+
+  /**
    * The counter on this timer that ticks up to the max.
    * @type {number}
    */
@@ -38,6 +46,8 @@ class JABS_Timer
 
   /**
    * Constructor.
+   *
+   * NOTE: A key is not required, but can be set with setters.
    * @param {number=} timerMax The max duration of this timer.
    * @param {boolean=} stopCounting Whether or not to stop counting after completing; defaults to true.
    * @param {Function|null=} callback EXPERIMENTAL. A callback function for completion of this timer.
@@ -47,6 +57,24 @@ class JABS_Timer
     this._timerMax = timerMax;
     this._stopCounting = stopCounting;
     this._callback = callback;
+  }
+
+  /**
+   * Gets the key of this timer, if one was set.
+   * @returns {string|String.empty}
+   */
+  getKey()
+  {
+    return this._key;
+  }
+
+  /**
+   * Sets the key of this timer to the given value.
+   * @param {string} key The new key or name for this timer.
+   */
+  setKey(key)
+  {
+    this._key = key;
   }
 
   /**

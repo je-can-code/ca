@@ -6,7 +6,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * This is not officially released and thus has no/incomplete documentation.

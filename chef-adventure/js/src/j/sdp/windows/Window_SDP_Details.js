@@ -89,7 +89,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const actor = this.currentActor;
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
     const lh = this.lineHeight();
     const ox = 360;
     this.drawText(`Rank:`, ox, lh * 0, 200, "left");
@@ -133,7 +133,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const actor = this.currentActor;
-    const panelRanking = actor.getSdpByKey(panel.key);
+    const panelRanking = actor.getSdpRankByKey(panel.key);
     const rankUpCost = panel.rankUpCost(panelRanking.currentRank);
     const lh = this.lineHeight();
     const ox = 560;
