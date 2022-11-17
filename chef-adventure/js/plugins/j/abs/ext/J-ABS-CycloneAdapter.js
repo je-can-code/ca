@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Nov 09 2022 15:03:22 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -83,6 +83,27 @@ JABS_Battler.prototype.setDodgeSteps = function(stepCount)
 
   // perform original logic- but with the modified step count.
   J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('setDodgeSteps').call(this, modifiedStepCount);
+};
+
+/**
+ * Extends {@link #destroy}.
+ * Reloads the collision table in case the enemy was a part of the tileset.
+ */
+J.ABS.EXT.CYCLE.Aliased.JABS_Battler.set('destroy', JABS_Battler.prototype.destroy);
+JABS_Battler.prototype.destroy = function()
+{
+  // before destruction, check if the battler was not an actor.
+  const isNotActor = !this.getBattler().isActor();
+
+  // perform original logic.
+  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('destroy').call(this);
+
+  // check if the defeated battler was not an actor.
+  if (isNotActor)
+  {
+    // reload the collision table.
+    CycloneMovement.loadDefaultCollisionTable();
+  }
 };
 
 /**

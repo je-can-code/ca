@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:21:33 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -156,9 +156,11 @@ J.ABS.EXT.TOOLS.Metadata = {
  */
 J.ABS.EXT.TOOLS.Aliased = {
   Game_Character: new Map(),
+  Game_CharacterBase: new Map(),
   Game_Event: new Map(),
   Game_Follower: new Map(),
   Game_Player: new Map(),
+  Game_System: new Map(),
   JABS_Engine: new Map(),
   JABS_Battler: new Map(),
 };
@@ -704,6 +706,60 @@ Game_Battler.prototype.isGapClosable = function()
 };
 
 /**
+ * Extends {@link Game_CharacterBase.initMembers}.
+ * Also initializes our new members.
+ */
+J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase.prototype.initMembers);
+Game_CharacterBase.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.get('initMembers').call(this);
+
+  // initialize our class members.
+  this.initToolsMembers();
+};
+
+Game_CharacterBase.prototype.initToolsMembers = function()
+{
+  /**
+   * The over-arching object that contains all properties for this plugin.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the tools extension.
+   */
+  this._j._tools ||= {};
+
+  /**
+   * A grouping of all properties associated with the grab and throw tool functionality.
+   */
+  this._j._tools._grabThrow ||= {};
+
+  this._j._tools._grabThrow._grab ||= {};
+
+  this._j._tools._grabThrow._grab._enabled = false;
+
+  this._j._tools._grabThrow._grab._wait = new JABS_Timer(0);
+
+  this._j._tools._grabThrow._grab._check = false;
+
+  this._j._tools._grabThrow._throw ||= {};
+
+  this._j._tools._grabThrow._throw._enabled = false;
+
+  this._j._tools._grabThrow._throw._through = false;
+
+  this._j._tools._grabThrow._throw._directionFixAlways = false; // TODO: from plugin params.
+
+  this._j._tools._grabThrow._throw._directionFix = false;
+
+  this._j._tools._grabThrow._throw._range = 0;
+
+  this._j._tools._grabThrow._throw._wait = new JABS_Timer(0);
+};
+
+/**
  * Determines whether or not this event has any gap close target overrides.
  * @returns {boolean} True if this event has a gap close override, false otherwise.
  */
@@ -729,3 +785,65 @@ Game_Event.prototype.isGapClosable = function()
   // return what we found.
   return gapCloseTarget;
 };
+
+
+
+/**
+ * Extends {@link Game_System.initMembers}.
+ * Also initializes our new members.
+ */
+J.ABS.EXT.TOOLS.Aliased.Game_System.set('initMembers', Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.ABS.EXT.TOOLS.Aliased.Game_System.get('initMembers').call(this);
+
+  // initialize our class members.
+  this.initToolsMembers();
+};
+
+Game_System.prototype.initToolsMembers = function()
+{
+  /**
+   * The over-arching object that contains all properties for this plugin.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the tools extension.
+   */
+  this._j._tools ||= {};
+
+  /**
+   * Whether or not the grab and throw functionality is currently enabled.
+   * @type {boolean}
+   */
+  this._j._tools._grabThrowEnabled = true; // TODO: parameterize this.
+};
+
+/**
+ * Gets whether or not grab and throw functionality is enabled.
+ * @returns {boolean}
+ */
+Game_System.prototype.isGrabThrowEnabled = function()
+{
+  return this._j._tools._grabThrowEnabled;
+};
+
+/**
+ * Sets whether or not grab and throw functionality is enabled.
+ * @param {boolean} isEnabled
+ */
+Game_System.prototype.setGrabThrowEnabled = function(isEnabled)
+{
+  this._j._tools._grabThrowEnabled = isEnabled;
+};
+
+/**
+ * Toggles whether or not grab and throw functionality is enabled.
+ */
+Game_System.prototype.toggleGrabThrowEnabled = function()
+{
+  this._j._tools._grabThrowEnabled = !this.isGrabThrowEnabled();
+};
+

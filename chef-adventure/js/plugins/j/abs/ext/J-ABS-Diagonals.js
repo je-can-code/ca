@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
 
 //#region Initialization
 /*:
@@ -9,7 +9,7 @@
  * @url https://github.com/je-can-code/ca
  * @base J-Base
  * @base J-ABS
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-ABS
  * @help
  * ============================================================================

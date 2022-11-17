@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Oct 12 2022 15:51:02 GMT-0700 (Pacific Daylight Time)  */
+/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -7,7 +7,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * OVERVIEW:
@@ -39,7 +39,7 @@ J.STAR = {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.0.0';
+  const requiredJabsVersion = '3.1.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -89,6 +89,10 @@ J.STAR.Aliased = {
   Game_Player: new Map(),
   Game_Troop: new Map(),
   Scene_Map: new Map(),
+};
+
+J.STAR.Regexp = {
+  BattleMapId: /<battleMapId:(\d+)>/gi,
 };
 
 /**
