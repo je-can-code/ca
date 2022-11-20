@@ -295,7 +295,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", ar
 });
 
 /**
- * Plugin command for calling the hiding one or many difficulties.
+ * Plugin command for hiding one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args =>
 {
@@ -308,7 +308,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args
 });
 
 /**
- * Plugin command for calling the unhiding one or many difficulties.
+ * Plugin command for unhiding one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", args =>
 {
@@ -321,7 +321,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", ar
 });
 
 /**
- * Plugin command for calling the enabling one or many difficulties.
+ * Plugin command for enabling one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", args =>
 {
@@ -334,7 +334,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", ar
 });
 
 /**
- * Plugin command for calling the disabling one or many difficulties.
+ * Plugin command for disabling one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", args =>
 {
@@ -344,6 +344,16 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", a
   {
     DifficultyManager.disableDifficulty(key);
   });
+});
+
+/**
+ * Plugin command for modifying the max layer points.
+ */
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args =>
+{
+  const { amount } = args;
+  const parsedAmount = parseInt(amount);
+  $gameSystem.modLayerPointMax(parsedAmount);
 });
 //#endregion plugin commands
 //#endregion introduction

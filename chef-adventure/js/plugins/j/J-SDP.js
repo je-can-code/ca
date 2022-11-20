@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:26:14 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Nov 19 2022 09:06:59 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -2436,15 +2436,7 @@ class Scene_SDP extends Scene_MenuBase
       this._j._index = this._j._sdpListWindow.index();
       this._j._currentPanel = this._j._sdpListWindow._list[this._j._index].ext;
       this._j._sdpDetailsWindow.setPanel(this._j._currentPanel);
-      const msg = this._j._currentPanel.description.split("|");
-      if (msg.length > 1)
-      {
-        this._j._sdpHelpWindow.setText(`${msg[0]}\n${msg[1]}`);
-      }
-      else
-      {
-        this._j._sdpHelpWindow.setText(`${this._j._currentPanel.description}`);
-      }
+      this._j._sdpHelpWindow.setText(`${this._j._currentPanel.description}`);
     }
   }
 
@@ -2463,7 +2455,7 @@ class Scene_SDP extends Scene_MenuBase
   {
   }
 
-  //#region SDP window creation
+  //#region window creation
   /**
    * Creates all windows associated with the SDP scene.
    */
@@ -2584,25 +2576,23 @@ class Scene_SDP extends Scene_MenuBase
 
   onFilterPanels()
   {
-    const usingFilter = this._j._sdpListWindow.usingNoMaxPanelsFilter();
+    const sdpListWindow = this._j._sdpListWindow;
+    const usingFilter = sdpListWindow.usingNoMaxPanelsFilter();
 
     if (usingFilter)
     {
-      console.log('showing all panels.');
-      this._j._sdpListWindow.setNoMaxPanelsFilter(false);
+      sdpListWindow.setNoMaxPanelsFilter(false);
     }
     else
     {
-      console.log('filtering out maxed panels.');
-      this._j._sdpListWindow.setNoMaxPanelsFilter(true);
+      sdpListWindow.setNoMaxPanelsFilter(true);
     }
 
     this.refreshAllWindows();
 
-    if (this._j._sdpListWindow.index() > this._j._sdpListWindow.commandList().length)
+    if (sdpListWindow.index() > sdpListWindow.commandList().length)
     {
-      this._j._sdpListWindow.select(this._j._sdpListWindow.commandList().length - 1);
-      console.log('too far!');
+      sdpListWindow.select(sdpListWindow.commandList().length - 1);
     }
   }
 

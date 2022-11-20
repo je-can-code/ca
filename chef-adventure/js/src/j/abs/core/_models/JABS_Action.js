@@ -500,7 +500,7 @@ class JABS_Action
   decrementPierceTimes(decrement = 1)
   {
     // reduce pierce
-    this._pierceTimesLeft -= decremenet;
+    this._pierceTimesLeft -= decrement;
     if (this._pierceTimesLeft <= 0)
     {
       this.setNeedsRemoval();

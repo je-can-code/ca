@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 DIFFICULTY] A layered difficulty system.
+ * [v1.0.0 DIFFICULTY] A layered difficulty system.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -73,7 +73,28 @@
  * @type string[]
  * @desc The unique keys for the difficulties that will be unhidden.
  *
+ * @command enableDifficulty
+ * @text Enable Difficulty
+ * @desc Enables a difficulty, applying its effects.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be enabled.
  *
+ * @command disableDifficulty
+ * @text Disable Difficulty
+ * @desc Disables a difficulty, rendering its effects inactive.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be disabled.
+ *
+ * @command modifyLayerMax
+ * @text Modify Layer Max
+ * @desc Modifies the maximum difficulty layer points by the given amount.
+ * @arg amount
+ * @type number
+ * @desc The amount to modify the max layer points by. This can be negative.
+ * @min -999999
+ * @max 999999
  */
 /*~struct~DifficultyStruct:
  * @param key

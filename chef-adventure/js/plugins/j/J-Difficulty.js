@@ -1,11 +1,11 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Nov 19 2022 17:40:00 GMT-0800 (Pacific Standard Time)  */
 
 //#region introduction
 /* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 DIFFICULTY] A layered difficulty system.
+ * [v1.0.0 DIFFICULTY] A layered difficulty system.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -75,7 +75,28 @@
  * @type string[]
  * @desc The unique keys for the difficulties that will be unhidden.
  *
+ * @command enableDifficulty
+ * @text Enable Difficulty
+ * @desc Enables a difficulty, applying its effects.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be enabled.
  *
+ * @command disableDifficulty
+ * @text Disable Difficulty
+ * @desc Disables a difficulty, rendering its effects inactive.
+ * @arg keys
+ * @type string[]
+ * @desc The unique keys for the difficulties that will be disabled.
+ *
+ * @command modifyLayerMax
+ * @text Modify Layer Max
+ * @desc Modifies the maximum difficulty layer points by the given amount.
+ * @arg amount
+ * @type number
+ * @desc The amount to modify the max layer points by. This can be negative.
+ * @min -999999
+ * @max 999999
  */
 /*~struct~DifficultyStruct:
  * @param key
@@ -596,7 +617,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", ar
 });
 
 /**
- * Plugin command for calling the hiding one or many difficulties.
+ * Plugin command for hiding one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args =>
 {
@@ -609,7 +630,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args
 });
 
 /**
- * Plugin command for calling the unhiding one or many difficulties.
+ * Plugin command for unhiding one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", args =>
 {
@@ -622,7 +643,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", ar
 });
 
 /**
- * Plugin command for calling the enabling one or many difficulties.
+ * Plugin command for enabling one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", args =>
 {
@@ -635,7 +656,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", ar
 });
 
 /**
- * Plugin command for calling the disabling one or many difficulties.
+ * Plugin command for disabling one or many difficulties.
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", args =>
 {
@@ -645,6 +666,16 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", a
   {
     DifficultyManager.disableDifficulty(key);
   });
+});
+
+/**
+ * Plugin command for modifying the max layer points.
+ */
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args =>
+{
+  const { amount } = args;
+  const parsedAmount = parseInt(amount);
+  $gameSystem.modLayerPointMax(parsedAmount);
 });
 //#endregion plugin commands
 //#endregion introduction

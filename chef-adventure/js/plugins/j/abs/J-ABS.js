@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Nov 16 2022 07:23:58 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Nov 18 2022 14:23:43 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2863,7 +2863,7 @@ class JABS_Action
   decrementPierceTimes(decrement = 1)
   {
     // reduce pierce
-    this._pierceTimesLeft -= decremenet;
+    this._pierceTimesLeft -= decrement;
     if (this._pierceTimesLeft <= 0)
     {
       this.setNeedsRemoval();
@@ -6766,7 +6766,9 @@ JABS_Battler.prototype.smartMoveTowardAllyTarget = function()
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y)
 {
   const character = this.getCharacter();
-  const nextDir = character.findDiagonalDirectionTo(x, y);
+  const nextDir = CycloneMovement
+    ? character.findDirectionTo(x, y)
+    : character.findDiagonalDirectionTo(x, y);
 
   if (character.isDiagonalDirection(nextDir))
   {

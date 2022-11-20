@@ -3494,7 +3494,9 @@ JABS_Battler.prototype.smartMoveTowardAllyTarget = function()
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y)
 {
   const character = this.getCharacter();
-  const nextDir = character.findDiagonalDirectionTo(x, y);
+  const nextDir = CycloneMovement
+    ? character.findDirectionTo(x, y)
+    : character.findDiagonalDirectionTo(x, y);
 
   if (character.isDiagonalDirection(nextDir))
   {

@@ -115,15 +115,7 @@ class Scene_SDP extends Scene_MenuBase
       this._j._index = this._j._sdpListWindow.index();
       this._j._currentPanel = this._j._sdpListWindow._list[this._j._index].ext;
       this._j._sdpDetailsWindow.setPanel(this._j._currentPanel);
-      const msg = this._j._currentPanel.description.split("|");
-      if (msg.length > 1)
-      {
-        this._j._sdpHelpWindow.setText(`${msg[0]}\n${msg[1]}`);
-      }
-      else
-      {
-        this._j._sdpHelpWindow.setText(`${this._j._currentPanel.description}`);
-      }
+      this._j._sdpHelpWindow.setText(`${this._j._currentPanel.description}`);
     }
   }
 

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Nov 18 2022 14:23:40 GMT-0800 (Pacific Standard Time)  */
 
 //#region Initialization
 /*:
@@ -473,8 +473,11 @@ Game_Event.prototype.homeIntoLastHitBattler = function(lastHit)
  */
 Game_Event.prototype.homeIntoBattler = function(battler)
 {
+  const [x, y] = [battler.getX(), battler.getY()];
   // get the next direction to the last hit, diagonal directions included.
-  const nextDir = this.findDiagonalDirectionTo(battler.getX(), battler.getY());
+  const nextDir = CycloneMovement
+    ? this.findDirectionTo(x, y)
+    : this.findDiagonalDirectionTo(x, y);
   this.setCustomDirection(nextDir);
   if (this.isStraightDirection(nextDir))
   {
@@ -576,7 +579,12 @@ Game_Event.prototype.seekTargetBattler = function(target)
 Game_Event.prototype.seekBattler = function(battler)
 {
   const currDir = this.getCustomDirection();
-  const finalDir = this.findDiagonalDirectionTo(battler.getX(), battler.getY());
+  const [x, y] = [battler.getX(), battler.getY()];
+  // get the next direction to the last hit, diagonal directions included.
+  const finalDir = CycloneMovement
+    ? this.findDirectionTo(x, y)
+    : this.findDiagonalDirectionTo(x, y);
+
   this.gradualRotateToDirection(currDir, finalDir);
   this.moveStraight(this.direction());
 };
