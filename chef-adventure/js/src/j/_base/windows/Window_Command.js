@@ -1,41 +1,161 @@
 //#region Window_Command
 /**
- * OVERWRITE Draws the color and icon along with the item itself in the command window.
+ * Gets all commands currently in this list.
+ * @returns {BuiltWindowCommand[]}
+ */
+Window_Command.prototype.commandList = function()
+{
+  return this._list ?? [];
+};
+
+/**
+ * Get the unmodified line height, which should always be `36`.
+ * @returns {36}
+ */
+Window_Command.prototype.originalLineHeight = function()
+{
+  return Window_Base.prototype.lineHeight.call(this);
+};
+
+/**
+ * Handles things that must occur before every command drawn, such as
+ * clearing any residual text color assignments and changing the text opacity
+ * accordingly to the command's enabled status.
+ * @param {number} index The index of the command to predraw for.
+ */
+Window_Command.prototype.preDrawItem = function(index)
+{
+  // clear any changes to text color.
+  this.resetTextColor();
+
+  // update the text opacity based on whether or not the command is enabled.
+  this.changePaintOpacity(this.isCommandEnabled(index));
+};
+
+/**
+ * Overwrites {@link #drawItem}.
+ * Renders the text along with any additional data that is available to the command.
  */
 Window_Command.prototype.drawItem = function(index)
 {
-  const rect = this.itemLineRect(index);
-  this.resetTextColor();
-  this.changePaintOpacity(this.isCommandEnabled(index));
-  let commandName = `${this.commandName(index)}`;
-  commandName = this.handleColor(commandName, index);
-  commandName = this.handleIcon(commandName, index);
+  // handles the setup that occurs before each item drawn.
+  this.preDrawItem(index);
 
-  this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
+  // grab the rectangle for the line item.
+  const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
 
+  // build the command name.
+  let commandName = this.buildCommandName(index);
+
+  // grab the right text for this command.
   const rightText = this.commandRightText(index)
+
+  // grab the subtext for this command.
+  const subtexts = this.commandSubtext(index);
+
+  // calculate the x of the command name.
+  const commandNameX = rectX + 4;
+
+  // initialize the y of the command name.
+  let commandNameY = rectY;
+
+  // check if we have any subtext.
+  if (subtexts.length > 0)
+  {
+    // bolden the text if we have subtext to make it stand out.
+    commandName = this.boldenText(commandName);
+
+    // move the command name up a bit if we have subtext.
+    commandNameY -= this.subtextLineHeight();
+  }
+
+  // render the command name.
+  this.drawTextEx(commandName, commandNameX, commandNameY, rectWidth);
+
+  // check if the right text exists.
   if (rightText)
   {
+    // determine the text width so we can properly align it.
     const textWidth = this.textWidth(rightText);
-    this.drawText(rightText, rect.width - textWidth, rect.y, textWidth, "right");
+
+    // determine the x coordinate for the right text.
+    const rightTextX = rectWidth - this.textWidth(rightText);
+    
+    // render the right-aligned text.
+    this.drawText(rightText, rightTextX, rectY, textWidth, "right");
+  }
+
+  // check if we have any subtext available.
+  if (subtexts.length > 0)
+  {
+    // iterate over each of the subtexts.
+    subtexts.forEach((subtext, subtextIndex) =>
+    {
+      // the real index starts 1 line past the command name itself.
+      const realSubtextIndex = (subtextIndex + 0);
+
+      // calculate the x coordinate for all subtext.
+      const subtextX = rectX + 64;
+
+      // calculate the new y coordinate for the line.
+      const subtextY = rectY + (realSubtextIndex * this.subtextLineHeight()) + 2;
+
+      // italicize the subtext line.
+      const italicsSubtext = this.italicizeText(subtext);
+
+      // render the subtext line.
+      this.drawTextEx(italicsSubtext, subtextX, subtextY, rectWidth);
+    }, this);
   }
 };
 
 /**
- * Wraps the command in color if a color index is provided.
- * @param {string} command The comman as raw text.
- * @param {number} index The index of this command in the window.
+ * Builds the name of the command at the given index.
+ * @param {number} index The index to build a name for.
+ * @returns {string} The built name.
+ */
+Window_Command.prototype.buildCommandName = function(index)
+{
+  // initialize the command name to the default based on index.
+  let commandName = `${this.commandName(index)}`;
+
+  // prepend the color for the command if applicable.
+  commandName = this.handleColor(commandName, index);
+
+  // prepend the icon for the command if applicable.
+  commandName = this.handleIcon(commandName, index);
+
+  // return what we have.
+  return commandName;
+};
+
+/**
+ * Gets the subtext for the command at the given index.
+ * @param {number} index The index to get subtext for.
+ * @returns {string[]} The subtext if available, an empty array otherwise.
+ */
+Window_Command.prototype.commandSubtext = function(index)
+{
+  return this.commandList().at(index).subText ?? [];
+};
+
+/**
+ * The line height explicitly used for subtext.
+ * @returns {number}
+ */
+Window_Command.prototype.subtextLineHeight = function()
+{
+  return 20;
+};
+
+/**
+ * Gets the right-aligned text for this command.
+ * @param {number} index The index to get the right-text for.
  * @returns {string}
  */
-Window_Command.prototype.handleColor = function(command, index)
+Window_Command.prototype.commandRightText = function(index)
 {
-  const commandColor = this.commandColor(index);
-  if (commandColor)
-  {
-    return `\\C[${commandColor}]${command}\\C[0]`;
-  }
-
-  return command;
+  return this.commandList().at(index).rightText;
 };
 
 /**
@@ -56,13 +176,30 @@ Window_Command.prototype.handleIcon = function(command, index)
 };
 
 /**
+ * Wraps the command in color if a color index is provided.
+ * @param {string} command The comman as raw text.
+ * @param {number} index The index of this command in the window.
+ * @returns {string}
+ */
+Window_Command.prototype.handleColor = function(command, index)
+{
+  const commandColor = this.commandColor(index);
+  if (commandColor)
+  {
+    return `\\C[${commandColor}]${command}\\C[0]`;
+  }
+
+  return command;
+};
+
+/**
  * Retrieves the icon for the given command in the window if it exists.
  * @param {number} index the index of the command.
  * @returns {number} The icon index for the command, or 0 if it doesn't exist.
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this._list.at(index).icon;
+  return this.commandList().at(index).icon;
 };
 
 /**
@@ -72,21 +209,7 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this._list.at(index).color;
-};
-
-Window_Command.prototype.commandRightText = function(index)
-{
-  return this._list.at(index).rightText;
-};
-
-/**
- * Gets all commands currently in this list.
- * @returns {BuiltWindowCommand[]}
- */
-Window_Command.prototype.commandList = function()
-{
-  return this._list;
+  return this.commandList().at(index).color;
 };
 
 /**
@@ -108,7 +231,7 @@ Window_Command.prototype.addCommand = function(
   color = 0,
 )
 {
-  this._list.push({name, symbol, enabled, ext, icon, color});
+  this.commandList().push({name, symbol, enabled, ext, icon, color});
 };
 
 /**
@@ -117,7 +240,7 @@ Window_Command.prototype.addCommand = function(
  */
 Window_Command.prototype.addBuiltCommand = function(command)
 {
-  this._list.push(command);
+  this.commandList().push(command);
 };
 
 /**
@@ -131,7 +254,7 @@ Window_Command.prototype.addBuiltCommand = function(command)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.shiftCommand = function(
+Window_Command.prototype.prependCommand = function(
   name,
   symbol,
   enabled = true,
@@ -140,6 +263,17 @@ Window_Command.prototype.shiftCommand = function(
   color = 0,
 )
 {
-  this._list.unshift({name, symbol, enabled, ext, icon, color});
+  this.commandList().unshift({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Adds a pre-built command using the {@link BuiltWindowCommand} implementation to
+ * the front of the list. This results in vertical lists having a new item prepended
+ * to the top, and in horizontal lists having a new item prepended to the left.
+ * @param {BuiltWindowCommand} command The command to be prepended.
+ */
+Window_Command.prototype.prependBuiltCommand = function(command)
+{
+  this.commandList().unshift(command);
 };
 //#endregion Window_Command

@@ -12,6 +12,12 @@ class WindowCommandBuilder
   #name = String.empty;
 
   /**
+   * Additional lines of text to render below the main command name.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -75,7 +81,8 @@ class WindowCommandBuilder
       this.#extensionData,
       this.#iconIndex,
       this.#colorIndex,
-      this.#rightText
+      this.#rightText,
+      this.#lines
     );
 
     // return the built command.
@@ -90,6 +97,39 @@ class WindowCommandBuilder
   setName(name)
   {
     this.#name = name;
+    return this;
+  }
+
+  /**
+   * Adds a single line of subtext to this command.
+   * @param {string} line The line of subtext to add.
+   * @returns {this} This builder for fluent-building.
+   */
+  addSubTextLine(line)
+  {
+    this.#lines.push(line);
+    return this;
+  }
+
+  /**
+   * Adds multiple lines of subtext to this command.
+   * @param {string[]} lines The lines of subtext to add.
+   * @returns {this} This builder for fluent-building.
+   */
+  addSubTextLines(lines)
+  {
+    this.#lines.push(...lines);
+    return this;
+  }
+
+  /**
+   * Sets the subtext to be the given lines.
+   * @param {string[]} lines The lines of subtext to set.
+   * @returns {this} This builder for fluent-building.
+   */
+  setSubtextLines(lines)
+  {
+    this.#lines = lines;
     return this;
   }
 

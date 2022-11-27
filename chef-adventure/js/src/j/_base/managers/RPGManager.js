@@ -124,5 +124,10 @@ class RPGManager
     // scan all the database datas.
     return databaseDatas.some(regexMatchExists);
   }
+
+  static getArrayOfArraysFromDatabaseObjects(databaseDatas, structure)
+  {
+
+  }
 }
 //#endregion RPGManager

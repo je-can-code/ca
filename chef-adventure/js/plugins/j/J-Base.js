@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Nov 19 2022 08:56:29 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Nov 26 2022 17:55:40 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -246,13 +246,35 @@ J.BASE.Aliased = {
   Window_Command: {},
   Window_Selectable: {},
 };
-//#endregion Introduction
 
 //#region Helpers
 /**
  * The helper functions used commonly throughout my plugins.
  */
 J.BASE.Helpers = {};
+
+/**
+ * Quick and dirty semver without having access to the full nodejs ecosystem.
+ * Checks to ensure the version meets the required version- same as `semver.satisfies()`.
+ * Double tilda is shorthand for `parseInt()`.
+ * @param {string} currentVersion String representation of the version being checked.
+ * @param {string} minimumVersion String representation of the minimum required version.
+ * @returns {boolean}
+ */
+J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
+{
+  const currentVersionParts = currentVersion.split('.');
+  const minimumVersionParts = minimumVersion.split('.');
+  for (const i in currentVersionParts)
+  {
+    const a = ~~currentVersionParts[i];
+    const b = ~~minimumVersionParts[i];
+    if (a > b) return true;
+    if (a < b) return false;
+  }
+
+  return true; // must be the same
+};
 
 /**
  * Generates a `uuid`- a universally unique identifier- for this battler.
@@ -323,29 +345,6 @@ J.BASE.Helpers.translateItem = function(id, type)
     case "a":
       return $dataArmors[id];
   }
-};
-
-/**
- * Quick and dirty semver without having access to the full nodejs ecosystem.
- * Checks to ensure the version meets the required version- same as `semver.satisfies()`.
- * Double tilda is shorthand for `parseInt()`.
- * @param {string} currentVersion String representation of the version being checked.
- * @param {string} minimumVersion String representation of the minimum required version.
- * @returns {boolean}
- */
-J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
-{
-  const currentVersionParts = currentVersion.split('.');
-  const minimumVersionParts = minimumVersion.split('.');
-  for (const i in currentVersionParts)
-  {
-    const a = ~~currentVersionParts[i];
-    const b = ~~minimumVersionParts[i];
-    if (a > b) return true;
-    if (a < b) return false;
-  }
-
-  return true; // must be the same
 };
 
 /**
@@ -519,6 +518,21 @@ Array.iterate = function(times, func, thisArg = undefined)
 {
   [...Array(times)].forEach(func, thisArg);
 };
+
+/**
+ * Masks all characters of a given string with the given masking character.
+ * @param {string} stringToMask The string to mask behind the maskingCharacter.
+ * @param {string=} maskingCharacter The character to mask with; defaults to "?".
+ * @returns {string} The masked string.
+ */
+J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
+{
+  // the regexp for what to mask.
+  const structure = /[A-Za-z\-()*!?'"=@,.]/ig;
+
+  // return the masked string content.
+  return stringToMask.replace(structure, maskingCharacter);
+};
 //#endregion Helpers
 
 //#region RPG_ClassLearning
@@ -592,12 +606,12 @@ class RPG_DropItem
    * Constructor.
    * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
    */
-  constructor(enemyDropItem)
+  constructor({ dataId, denominator, kind })
   {
     // map the enemy drop to this object.
-    this.dataId = enemyDropItem.dataId;
-    this.denominator = enemyDropItem.denominator;
-    this.kind = enemyDropItem.kind;
+    this.dataId = dataId;
+    this.denominator = denominator;
+    this.kind = kind;
   }
 }
 //#endregion RPG_DropItem
@@ -1391,10 +1405,10 @@ class RPG_Base
    *
    * If the optional flag `nullIfEmpty` receives true passed in, then the result of
    * this will be `null` instead of the default empty string as an indicator we didn't find
-   * anything from the notes of this skill.
+   * anything from the notes of this database object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} nullIfEmpty Whether or not to return an empty string if not found, or null.
-   * @returns {number|null} The found value from the notes of this object, or empty/null.
+   * @returns {string|null} The found value from the notes of this object, or empty/null.
    */
   getStringFromNotesByRegex(structure, nullIfEmpty = false)
   {
@@ -1436,7 +1450,59 @@ class RPG_Base
   }
 
   /**
-   * Gets whether or not there is a matching regex tag on this skill.
+   * Gets all strings based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is a string value.
+   * If multiple tags are found, only the last one will be returned.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default empty array as an indicator we didn't find
+   * anything from the notes of this database object.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return an empty array if not found, or null.
+   * @returns {string[]|null} The found strings from the notes of this object, or empty/null.
+   */
+  getStringsFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the collection of values.
+    const val = [];
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val.push(RegExp.$1);
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want an empty string or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  }
+
+  /**
+   * Gets whether or not there is a matching regex tag on this database entry.
    *
    * Do be aware of the fact that with this type of tag, we are checking only
    * for existence, not the value. As such, it will be `true` if found, and `false` if
@@ -2918,6 +2984,7 @@ DataManager.rewriteEnemyData = function()
   });
 
   // OVERWRITE the $dataEnemies object with this new enemies array!
+  /** @type {RPG_Enemy[]} */
   $dataEnemies = classifiedEnemies;
 };
 
@@ -3153,6 +3220,46 @@ DataManager.isArmor = function(unidentified)
   return unidentified && ('atypeId' in unidentified);
 };
 //#endregion DataManager
+
+//#region Graphics
+/**
+ * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.
+ * When combined with {@link Graphics.verticalPadding}, the origin x,y can be easily
+ * determined.
+ * @returns {number} Always positive.
+ */
+Object.defineProperty(Graphics, "horizontalPadding",
+  {
+    get: function()
+    {
+      return Math.abs(this.width - this.boxWidth);
+    }
+  });
+
+/**
+ * The vertical padding between {@link Graphics.height} and {@link Graphics.boxHeight}.
+ * @returns {number} Always positive.
+ */
+Object.defineProperty(Graphics, "verticalPadding",
+  {
+    get: function()
+    {
+      return Math.abs(this.height - this.boxHeight);
+    }
+  });
+
+/**
+ * The origin x and y coordinates of the "box" width and height values.
+ * @returns {[number, number]} A destructurable array of the box's ox and oy coordinates.
+ */
+Object.defineProperty(Graphics, "boxOrigin",
+  {
+    get: function()
+    {
+      return [this.horizontalPadding, this.verticalPadding];
+    }
+  });
+//#endregion Graphics
 
 //#region IconManager
 /**
@@ -3890,6 +3997,11 @@ class RPGManager
     // scan all the database datas.
     return databaseDatas.some(regexMatchExists);
   }
+
+  static getArrayOfArraysFromDatabaseObjects(databaseDatas, structure)
+  {
+
+  }
 }
 //#endregion RPGManager
 
@@ -4241,6 +4353,12 @@ class BuiltWindowCommand
   #name = String.empty;
 
   /**
+   * Additional lines of text to render below the main command name.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -4287,7 +4405,8 @@ class BuiltWindowCommand
     extensionData = null,
     iconIndex = 0,
     colorIndex = 0,
-    rightText = String.empty)
+    rightText = String.empty,
+    lines = [])
   {
     this.#name = name;
     this.#key = symbol;
@@ -4296,6 +4415,7 @@ class BuiltWindowCommand
     this.#iconIndex = iconIndex;
     this.#colorIndex = colorIndex;
     this.#rightText = rightText;
+    this.#lines = lines;
   }
 
   //#region getters
@@ -4306,6 +4426,15 @@ class BuiltWindowCommand
   get name()
   {
     return this.#name;
+  }
+
+  /**
+   * Gets the extra lines that provide subtext to this command.
+   * @returns {string[]}
+   */
+  get subText()
+  {
+    return this.#lines;
   }
 
   /**
@@ -4378,6 +4507,12 @@ class WindowCommandBuilder
   #name = String.empty;
 
   /**
+   * Additional lines of text to render below the main command name.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -4441,7 +4576,8 @@ class WindowCommandBuilder
       this.#extensionData,
       this.#iconIndex,
       this.#colorIndex,
-      this.#rightText
+      this.#rightText,
+      this.#lines
     );
 
     // return the built command.
@@ -4456,6 +4592,39 @@ class WindowCommandBuilder
   setName(name)
   {
     this.#name = name;
+    return this;
+  }
+
+  /**
+   * Adds a single line of subtext to this command.
+   * @param {string} line The line of subtext to add.
+   * @returns {this} This builder for fluent-building.
+   */
+  addSubTextLine(line)
+  {
+    this.#lines.push(line);
+    return this;
+  }
+
+  /**
+   * Adds multiple lines of subtext to this command.
+   * @param {string[]} lines The lines of subtext to add.
+   * @returns {this} This builder for fluent-building.
+   */
+  addSubTextLines(lines)
+  {
+    this.#lines.push(...lines);
+    return this;
+  }
+
+  /**
+   * Sets the subtext to be the given lines.
+   * @param {string[]} lines The lines of subtext to set.
+   * @returns {this} This builder for fluent-building.
+   */
+  setSubtextLines(lines)
+  {
+    this.#lines = lines;
     return this;
   }
 
@@ -5403,6 +5572,29 @@ Game_Enemy.prototype.skills = function()
 Game_Enemy.prototype.hasSkill = function(skillId)
 {
   return this.skills().some(skill => skill.id === skillId);
+};
+
+/**
+ * Extends {@link #die}.
+ * Adds a toggle of the death effects.
+ */
+J.BASE.Aliased.Game_Enemy.set('die', Game_Enemy.prototype.die);
+Game_Enemy.prototype.die = function()
+{
+  // perform original effects.
+  J.BASE.Aliased.Game_Enemy.get('die').call(this);
+
+  // perform on-death effects.
+  this.onDeath();
+};
+
+/**
+ * An event hook fired when this enemy dies.
+ */
+Game_Enemy.prototype.onDeath = function()
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
 };
 //#endregion Game_Enemy
 
@@ -6725,6 +6917,31 @@ Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 
 //#region Window_Base
 /**
+ * All alignments available for {@link Window_Base.prototype.drawText}.
+ */
+Window_Base.TextAlignments = {
+  /**
+   * The "left" text alignment.
+   * This is the default and not normally required to be set.
+   */
+  Left: "left",
+
+  /**
+   * The "center" text alignment.
+   * This requires the full width of the area attempting to be centered within
+   * be provided (such as the whole window's width).
+   */
+  Center: "center",
+
+  /**
+   * The "right" text alignment.
+   * It is encouraged to use {@link Window_Base.prototype.textWidth} to define the
+   * width parameter in order to properly right-align.
+   */
+  Right: "right"
+};
+
+/**
  * Draws a horizontal "line" with the given parameters.
  *
  * The origin coordinate is always the upper left corner.
@@ -6890,42 +7107,162 @@ Window_Base.prototype.setFontSize = function(fontSize)
 
 //#region Window_Command
 /**
- * OVERWRITE Draws the color and icon along with the item itself in the command window.
+ * Gets all commands currently in this list.
+ * @returns {BuiltWindowCommand[]}
+ */
+Window_Command.prototype.commandList = function()
+{
+  return this._list ?? [];
+};
+
+/**
+ * Get the unmodified line height, which should always be `36`.
+ * @returns {36}
+ */
+Window_Command.prototype.originalLineHeight = function()
+{
+  return Window_Base.prototype.lineHeight.call(this);
+};
+
+/**
+ * Handles things that must occur before every command drawn, such as
+ * clearing any residual text color assignments and changing the text opacity
+ * accordingly to the command's enabled status.
+ * @param {number} index The index of the command to predraw for.
+ */
+Window_Command.prototype.preDrawItem = function(index)
+{
+  // clear any changes to text color.
+  this.resetTextColor();
+
+  // update the text opacity based on whether or not the command is enabled.
+  this.changePaintOpacity(this.isCommandEnabled(index));
+};
+
+/**
+ * Overwrites {@link #drawItem}.
+ * Renders the text along with any additional data that is available to the command.
  */
 Window_Command.prototype.drawItem = function(index)
 {
-  const rect = this.itemLineRect(index);
-  this.resetTextColor();
-  this.changePaintOpacity(this.isCommandEnabled(index));
-  let commandName = `${this.commandName(index)}`;
-  commandName = this.handleColor(commandName, index);
-  commandName = this.handleIcon(commandName, index);
+  // handles the setup that occurs before each item drawn.
+  this.preDrawItem(index);
 
-  this.drawTextEx(commandName, rect.x + 4, rect.y, rect.width);
+  // grab the rectangle for the line item.
+  const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
 
+  // build the command name.
+  let commandName = this.buildCommandName(index);
+
+  // grab the right text for this command.
   const rightText = this.commandRightText(index)
+
+  // grab the subtext for this command.
+  const subtexts = this.commandSubtext(index);
+
+  // calculate the x of the command name.
+  const commandNameX = rectX + 4;
+
+  // initialize the y of the command name.
+  let commandNameY = rectY;
+
+  // check if we have any subtext.
+  if (subtexts.length > 0)
+  {
+    // bolden the text if we have subtext to make it stand out.
+    commandName = this.boldenText(commandName);
+
+    // move the command name up a bit if we have subtext.
+    commandNameY -= this.subtextLineHeight();
+  }
+
+  // render the command name.
+  this.drawTextEx(commandName, commandNameX, commandNameY, rectWidth);
+
+  // check if the right text exists.
   if (rightText)
   {
+    // determine the text width so we can properly align it.
     const textWidth = this.textWidth(rightText);
-    this.drawText(rightText, rect.width - textWidth, rect.y, textWidth, "right");
+
+    // determine the x coordinate for the right text.
+    const rightTextX = rectWidth - this.textWidth(rightText);
+    
+    // render the right-aligned text.
+    this.drawText(rightText, rightTextX, rectY, textWidth, "right");
+  }
+
+  // check if we have any subtext available.
+  if (subtexts.length > 0)
+  {
+    // iterate over each of the subtexts.
+    subtexts.forEach((subtext, subtextIndex) =>
+    {
+      // the real index starts 1 line past the command name itself.
+      const realSubtextIndex = (subtextIndex + 0);
+
+      // calculate the x coordinate for all subtext.
+      const subtextX = rectX + 64;
+
+      // calculate the new y coordinate for the line.
+      const subtextY = rectY + (realSubtextIndex * this.subtextLineHeight()) + 2;
+
+      // italicize the subtext line.
+      const italicsSubtext = this.italicizeText(subtext);
+
+      // render the subtext line.
+      this.drawTextEx(italicsSubtext, subtextX, subtextY, rectWidth);
+    }, this);
   }
 };
 
 /**
- * Wraps the command in color if a color index is provided.
- * @param {string} command The comman as raw text.
- * @param {number} index The index of this command in the window.
+ * Builds the name of the command at the given index.
+ * @param {number} index The index to build a name for.
+ * @returns {string} The built name.
+ */
+Window_Command.prototype.buildCommandName = function(index)
+{
+  // initialize the command name to the default based on index.
+  let commandName = `${this.commandName(index)}`;
+
+  // prepend the color for the command if applicable.
+  commandName = this.handleColor(commandName, index);
+
+  // prepend the icon for the command if applicable.
+  commandName = this.handleIcon(commandName, index);
+
+  // return what we have.
+  return commandName;
+};
+
+/**
+ * Gets the subtext for the command at the given index.
+ * @param {number} index The index to get subtext for.
+ * @returns {string[]} The subtext if available, an empty array otherwise.
+ */
+Window_Command.prototype.commandSubtext = function(index)
+{
+  return this.commandList().at(index).subText ?? [];
+};
+
+/**
+ * The line height explicitly used for subtext.
+ * @returns {number}
+ */
+Window_Command.prototype.subtextLineHeight = function()
+{
+  return 20;
+};
+
+/**
+ * Gets the right-aligned text for this command.
+ * @param {number} index The index to get the right-text for.
  * @returns {string}
  */
-Window_Command.prototype.handleColor = function(command, index)
+Window_Command.prototype.commandRightText = function(index)
 {
-  const commandColor = this.commandColor(index);
-  if (commandColor)
-  {
-    return `\\C[${commandColor}]${command}\\C[0]`;
-  }
-
-  return command;
+  return this.commandList().at(index).rightText;
 };
 
 /**
@@ -6946,13 +7283,30 @@ Window_Command.prototype.handleIcon = function(command, index)
 };
 
 /**
+ * Wraps the command in color if a color index is provided.
+ * @param {string} command The comman as raw text.
+ * @param {number} index The index of this command in the window.
+ * @returns {string}
+ */
+Window_Command.prototype.handleColor = function(command, index)
+{
+  const commandColor = this.commandColor(index);
+  if (commandColor)
+  {
+    return `\\C[${commandColor}]${command}\\C[0]`;
+  }
+
+  return command;
+};
+
+/**
  * Retrieves the icon for the given command in the window if it exists.
  * @param {number} index the index of the command.
  * @returns {number} The icon index for the command, or 0 if it doesn't exist.
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this._list.at(index).icon;
+  return this.commandList().at(index).icon;
 };
 
 /**
@@ -6962,21 +7316,7 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this._list.at(index).color;
-};
-
-Window_Command.prototype.commandRightText = function(index)
-{
-  return this._list.at(index).rightText;
-};
-
-/**
- * Gets all commands currently in this list.
- * @returns {BuiltWindowCommand[]}
- */
-Window_Command.prototype.commandList = function()
-{
-  return this._list;
+  return this.commandList().at(index).color;
 };
 
 /**
@@ -6998,7 +7338,7 @@ Window_Command.prototype.addCommand = function(
   color = 0,
 )
 {
-  this._list.push({name, symbol, enabled, ext, icon, color});
+  this.commandList().push({name, symbol, enabled, ext, icon, color});
 };
 
 /**
@@ -7007,7 +7347,7 @@ Window_Command.prototype.addCommand = function(
  */
 Window_Command.prototype.addBuiltCommand = function(command)
 {
-  this._list.push(command);
+  this.commandList().push(command);
 };
 
 /**
@@ -7021,7 +7361,7 @@ Window_Command.prototype.addBuiltCommand = function(command)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.shiftCommand = function(
+Window_Command.prototype.prependCommand = function(
   name,
   symbol,
   enabled = true,
@@ -7030,7 +7370,18 @@ Window_Command.prototype.shiftCommand = function(
   color = 0,
 )
 {
-  this._list.unshift({name, symbol, enabled, ext, icon, color});
+  this.commandList().unshift({name, symbol, enabled, ext, icon, color});
+};
+
+/**
+ * Adds a pre-built command using the {@link BuiltWindowCommand} implementation to
+ * the front of the list. This results in vertical lists having a new item prepended
+ * to the top, and in horizontal lists having a new item prepended to the left.
+ * @param {BuiltWindowCommand} command The command to be prepended.
+ */
+Window_Command.prototype.prependBuiltCommand = function(command)
+{
+  this.commandList().unshift(command);
 };
 //#endregion Window_Command
 

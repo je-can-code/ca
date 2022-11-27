@@ -42,6 +42,7 @@
     "once:log": "node utils/combine.js ./j/log ../plugins/j J-Log.js",
     "once:message": "node utils/combine.js ./j/message ../plugins/j J-MessageTextCodes.js",
     "once:natural": "node utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",
+    "once:omni": "node utils/combine.js ./j/omni ../plugins/j J-Omnipedia.js",
     "once:otib": "node utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
     "once:passive": "node utils/combine.js ./j/passive ../plugins/j J-Passive.js",
     "once:popups": "node utils/combine.js ./j/popups ../plugins/j J-TextPops.js",

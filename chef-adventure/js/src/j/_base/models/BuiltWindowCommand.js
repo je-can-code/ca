@@ -12,6 +12,12 @@ class BuiltWindowCommand
   #name = String.empty;
 
   /**
+   * Additional lines of text to render below the main command name.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -58,7 +64,8 @@ class BuiltWindowCommand
     extensionData = null,
     iconIndex = 0,
     colorIndex = 0,
-    rightText = String.empty)
+    rightText = String.empty,
+    lines = [])
   {
     this.#name = name;
     this.#key = symbol;
@@ -67,6 +74,7 @@ class BuiltWindowCommand
     this.#iconIndex = iconIndex;
     this.#colorIndex = colorIndex;
     this.#rightText = rightText;
+    this.#lines = lines;
   }
 
   //#region getters
@@ -77,6 +85,15 @@ class BuiltWindowCommand
   get name()
   {
     return this.#name;
+  }
+
+  /**
+   * Gets the extra lines that provide subtext to this command.
+   * @returns {string[]}
+   */
+  get subText()
+  {
+    return this.#lines;
   }
 
   /**

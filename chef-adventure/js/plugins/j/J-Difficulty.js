@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Nov 19 2022 17:40:00 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Nov 24 2022 11:06:18 GMT-0800 (Pacific Standard Time)  */
 
 //#region introduction
 /* eslint-disable */
@@ -1907,36 +1907,64 @@ Game_System.prototype.registerDifficultyConfig = function(difficultyConfig)
   }
 };
 
+/**
+ * Gets the number of max layer points the player has.
+ * @returns {number}
+ */
 Game_System.prototype.getLayerPointMax = function()
 {
   return this._j._difficulty._layerPointMax;
 };
 
+/**
+ * Sets the max layer points to a designated amount.
+ * @param {number} layerPointMax The new max layer point value.
+ */
 Game_System.prototype.setLayerPointMax = function(layerPointMax)
 {
   this._j._difficulty._layerPointMax = layerPointMax;
 };
 
+/**
+ * Modifies the max layer points by a given amount.
+ * @param {number} modifier The modifier against the max layer points.
+ */
 Game_System.prototype.modLayerPointMax = function(modifier)
 {
   this._j._difficulty._layerPointMax += modifier;
 };
 
+/**
+ * Gets the number of current layer points the player has available.
+ * @returns {number}
+ */
 Game_System.prototype.getLayerPoints = function()
 {
   return this._j._difficulty._layerPoints;
 };
 
-Game_System.prototype.setLayerPoints = function(layerPointMax)
+/**
+ * Sets the current number of layer points the player has available.
+ * @param {number} layerPoints The new amount of layer points for the player.
+ */
+Game_System.prototype.setLayerPoints = function(layerPoints)
 {
-  this._j._difficulty._layerPoints = layerPointMax;
+  this._j._difficulty._layerPoints = layerPoints;
 };
 
+/**
+ * Modifies the current layer points by a given amount.
+ * @param {number} modifier The modifier against the current layer points.
+ */
 Game_System.prototype.modLayerPoints = function(modifier)
 {
   this._j._difficulty._layerPoints += modifier;
 };
 
+/**
+ * Gets the remaining number of layer points available.
+ * @returns {number}
+ */
 Game_System.prototype.getRemainingLayerPoints = function()
 {
   return (this.getLayerPointMax() - this.getLayerPoints());
@@ -3458,7 +3486,7 @@ class Window_DifficultyList extends Window_Command
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // slide the applied difficulty command above all others.
-    this.shiftCommand(
+    this.prependCommand(
       `\\I[${appliedDifficulty.iconIndex}]${appliedDifficulty.name}`,
       appliedDifficulty.key,
       false,// enabled

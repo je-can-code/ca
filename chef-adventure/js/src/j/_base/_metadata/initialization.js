@@ -182,13 +182,35 @@ J.BASE.Aliased = {
   Window_Command: {},
   Window_Selectable: {},
 };
-//#endregion Introduction
 
 //#region Helpers
 /**
  * The helper functions used commonly throughout my plugins.
  */
 J.BASE.Helpers = {};
+
+/**
+ * Quick and dirty semver without having access to the full nodejs ecosystem.
+ * Checks to ensure the version meets the required version- same as `semver.satisfies()`.
+ * Double tilda is shorthand for `parseInt()`.
+ * @param {string} currentVersion String representation of the version being checked.
+ * @param {string} minimumVersion String representation of the minimum required version.
+ * @returns {boolean}
+ */
+J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
+{
+  const currentVersionParts = currentVersion.split('.');
+  const minimumVersionParts = minimumVersion.split('.');
+  for (const i in currentVersionParts)
+  {
+    const a = ~~currentVersionParts[i];
+    const b = ~~minimumVersionParts[i];
+    if (a > b) return true;
+    if (a < b) return false;
+  }
+
+  return true; // must be the same
+};
 
 /**
  * Generates a `uuid`- a universally unique identifier- for this battler.
@@ -259,29 +281,6 @@ J.BASE.Helpers.translateItem = function(id, type)
     case "a":
       return $dataArmors[id];
   }
-};
-
-/**
- * Quick and dirty semver without having access to the full nodejs ecosystem.
- * Checks to ensure the version meets the required version- same as `semver.satisfies()`.
- * Double tilda is shorthand for `parseInt()`.
- * @param {string} currentVersion String representation of the version being checked.
- * @param {string} minimumVersion String representation of the minimum required version.
- * @returns {boolean}
- */
-J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
-{
-  const currentVersionParts = currentVersion.split('.');
-  const minimumVersionParts = minimumVersion.split('.');
-  for (const i in currentVersionParts)
-  {
-    const a = ~~currentVersionParts[i];
-    const b = ~~minimumVersionParts[i];
-    if (a > b) return true;
-    if (a < b) return false;
-  }
-
-  return true; // must be the same
 };
 
 /**
@@ -454,5 +453,20 @@ Object.defineProperty(String, "empty", { writable: false });
 Array.iterate = function(times, func, thisArg = undefined)
 {
   [...Array(times)].forEach(func, thisArg);
+};
+
+/**
+ * Masks all characters of a given string with the given masking character.
+ * @param {string} stringToMask The string to mask behind the maskingCharacter.
+ * @param {string=} maskingCharacter The character to mask with; defaults to "?".
+ * @returns {string} The masked string.
+ */
+J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
+{
+  // the regexp for what to mask.
+  const structure = /[A-Za-z\-()*!?'"=@,.]/ig;
+
+  // return the masked string content.
+  return stringToMask.replace(structure, maskingCharacter);
 };
 //#endregion Helpers

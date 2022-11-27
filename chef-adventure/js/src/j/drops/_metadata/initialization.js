@@ -23,6 +23,16 @@ J.DROPS.Metadata = {
   Version: '1.0.0',
 };
 
+/**
+ * All regular expressions used by this plugin.
+ */
+J.DROPS.RegExp = {
+  BaseDrop: /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i,
+}
+
+/**
+ * The collection of all aliased classes for extending.
+ */
 J.DROPS.Aliased = {
   Game_Enemy: new Map(),
 };

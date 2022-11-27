@@ -26,6 +26,9 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
     }
   }, this);
 
+  // TODO: we can optimize this data extraction, right?
+  // const test = referenceData.getArraysFromNotesByRegex(J.DROPS.RegExp.BaseDrop, true);
+
   // return the found extra drops.
   return extraDrops;
 };
@@ -38,7 +41,7 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
 Game_Battler.prototype.extractExtraDrop = function(line)
 {
   // the regex structure for extra drops.
-  const structure = /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i;
+  const structure = J.DROPS.RegExp.BaseDrop;
 
   // if we have a relevant note tag...
   if (line.match(structure))
@@ -59,15 +62,13 @@ Game_Battler.prototype.extractExtraDrop = function(line)
     }
 
     // ...and build the drop result based on the note data.
-    const result =
-      {
-        kind,
-        dataId: parseInt(RegExp.$2),
-        denominator: parseInt(RegExp.$3)
-      };
+    const dropItem = new RPG_DropItemBuilder()
+      .setId(RegExp.$2)
+      .setChance(RegExp.$3)
+      .build();
 
     // return the built drop result.
-    return result;
+    return dropItem;
   }
 
   // if we didn't find anything on this line, then return a null.

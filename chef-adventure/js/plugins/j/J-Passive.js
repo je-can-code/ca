@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Nov 20 2022 10:49:22 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -260,23 +260,30 @@ Game_Actor.prototype.forgetSkill = function(skillId)
 };
 
 /**
- * Extends `getAllNotes` to include passive skill states.
+ * Extends {@link #getNotesSources}.
+ * Includes passive skill states from this actor and also the party.
  * @returns {RPG_BaseItem[]}
  */
-J.PASSIVE.Aliased.Game_Actor.set('getAllNotes', Game_Actor.prototype.getAllNotes);
-Game_Actor.prototype.getAllNotes = function()
+J.PASSIVE.Aliased.Game_Actor.set('getNotesSources', Game_Actor.prototype.getNotesSources);
+Game_Actor.prototype.getNotesSources = function()
 {
-  // perform the origina logic to retrieve the objects with notes.
-  const objectsWithNotes = J.PASSIVE.Aliased.Game_Actor.get('getAllNotes').call(this);
+  // perform original logic to get notes.
+  const originalSources = J.PASSIVE.Aliased.Game_Actor.get('getNotesSources').call(this);
 
-  // then add all those currently applied passive skill states, too.
-  objectsWithNotes.push(...this.passiveSkillStates());
+  // newly defined sources for passives.
+  const passiveSources = [
+    // then add all those currently applied passive skill states, too.
+    ...this.passiveSkillStates(),
 
-  // also apply the party's effects.
-  objectsWithNotes.push(...$gameParty.passiveStates());
+    // also apply the party's effects.
+    ...$gameParty.passiveStates(),
+  ];
 
-  // return that potentially slightly-less massive combination.
-  return objectsWithNotes;
+  // combine the sources.
+  const combinedSources = originalSources.concat(passiveSources);
+
+  // return the combination.
+  return combinedSources
 };
 //#endregion Game_Actor
 
@@ -585,6 +592,30 @@ Game_Battler.prototype.hasPassiveState = function(stateId)
 Game_Enemy.prototype.skillIdsFromSelf = function()
 {
   return this.skills().map(skill => skill.id);
+};
+
+/**
+ * Extends {@link #getNotesSources}.
+ * Includes passive skill states from this enemy.
+ * @returns {RPG_BaseItem[]}
+ */
+J.PASSIVE.Aliased.Game_Enemy.set('getNotesSources', Game_Enemy.prototype.getNotesSources);
+Game_Enemy.prototype.getNotesSources = function()
+{
+  // perform original logic to get notes.
+  const originalSources = J.PASSIVE.Aliased.Game_Enemy.get('getNotesSources').call(this);
+
+  // newly defined sources for passives.
+  const passiveSources = [
+    // then add all those currently applied passive skill states, too.
+    ...this.passiveSkillStates(),
+  ];
+
+  // combine the sources.
+  const combinedSources = originalSources.concat(passiveSources);
+
+  // return the combination.
+  return combinedSources
 };
 //#endregion Game_Enemy
 

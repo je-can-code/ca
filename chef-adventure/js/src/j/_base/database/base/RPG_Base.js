@@ -573,10 +573,10 @@ class RPG_Base
    *
    * If the optional flag `nullIfEmpty` receives true passed in, then the result of
    * this will be `null` instead of the default empty string as an indicator we didn't find
-   * anything from the notes of this skill.
+   * anything from the notes of this database object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} nullIfEmpty Whether or not to return an empty string if not found, or null.
-   * @returns {number|null} The found value from the notes of this object, or empty/null.
+   * @returns {string|null} The found value from the notes of this object, or empty/null.
    */
   getStringFromNotesByRegex(structure, nullIfEmpty = false)
   {
@@ -618,7 +618,59 @@ class RPG_Base
   }
 
   /**
-   * Gets whether or not there is a matching regex tag on this skill.
+   * Gets all strings based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is a string value.
+   * If multiple tags are found, only the last one will be returned.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default empty array as an indicator we didn't find
+   * anything from the notes of this database object.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return an empty array if not found, or null.
+   * @returns {string[]|null} The found strings from the notes of this object, or empty/null.
+   */
+  getStringsFromNotesByRegex(structure, nullIfEmpty = false)
+  {
+    // get the note data from this skill.
+    const fromNote = this.notedata();
+
+    // initialize the collection of values.
+    const val = [];
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate the note data array.
+    fromNote.forEach(note =>
+    {
+      // check if this line matches the given regex structure.
+      if (note.match(structure))
+      {
+        // parse the value out of the regex capture group.
+        val.push(RegExp.$1);
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want an empty string or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  }
+
+  /**
+   * Gets whether or not there is a matching regex tag on this database entry.
    *
    * Do be aware of the fact that with this type of tag, we are checking only
    * for existence, not the value. As such, it will be `true` if found, and `false` if

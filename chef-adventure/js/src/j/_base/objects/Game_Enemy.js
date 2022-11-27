@@ -94,4 +94,27 @@ Game_Enemy.prototype.hasSkill = function(skillId)
 {
   return this.skills().some(skill => skill.id === skillId);
 };
+
+/**
+ * Extends {@link #die}.
+ * Adds a toggle of the death effects.
+ */
+J.BASE.Aliased.Game_Enemy.set('die', Game_Enemy.prototype.die);
+Game_Enemy.prototype.die = function()
+{
+  // perform original effects.
+  J.BASE.Aliased.Game_Enemy.get('die').call(this);
+
+  // perform on-death effects.
+  this.onDeath();
+};
+
+/**
+ * An event hook fired when this enemy dies.
+ */
+Game_Enemy.prototype.onDeath = function()
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
+};
 //#endregion Game_Enemy

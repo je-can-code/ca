@@ -1,5 +1,30 @@
 //#region Window_Base
 /**
+ * All alignments available for {@link Window_Base.prototype.drawText}.
+ */
+Window_Base.TextAlignments = {
+  /**
+   * The "left" text alignment.
+   * This is the default and not normally required to be set.
+   */
+  Left: "left",
+
+  /**
+   * The "center" text alignment.
+   * This requires the full width of the area attempting to be centered within
+   * be provided (such as the whole window's width).
+   */
+  Center: "center",
+
+  /**
+   * The "right" text alignment.
+   * It is encouraged to use {@link Window_Base.prototype.textWidth} to define the
+   * width parameter in order to properly right-align.
+   */
+  Right: "right"
+};
+
+/**
  * Draws a horizontal "line" with the given parameters.
  *
  * The origin coordinate is always the upper left corner.

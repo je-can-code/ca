@@ -952,7 +952,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration",
 
 /**
  * Gets the JABS pose suffix data for this skill.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Skill.prototype.getJabsPoseData = function()
 {
@@ -961,7 +961,7 @@ RPG_Skill.prototype.getJabsPoseData = function()
 
 /**
  * Extracts the JABS pose suffix data for this skill from its notes.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Skill.prototype.extractJabsPoseData = function()
 {

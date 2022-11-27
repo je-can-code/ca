@@ -338,6 +338,10 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState)
 
 /**
  * Toggles the italics for the rolling text state.
+ *
+ * This does not apply to {@link Window_Base.prototype.drawTextEx}, but alternatively
+ * you can interpolate `"\_"` before and after the text desired to be italics to
+ * achieve the same effect.
  * @param {boolean} force Optional. If provided, will force one way or the other.
  */
 Window_Base.prototype.toggleItalics = function(force = null)
@@ -346,12 +350,36 @@ Window_Base.prototype.toggleItalics = function(force = null)
 };
 
 /**
+ * Wraps the given text with the message code for italics.
+ * @param {string} text The text to italicize.
+ * @returns {`\\_${text}\\_`} The italicized text.
+ */
+Window_Base.prototype.italicizeText = function(text)
+{
+  return `\\_${text}\\_`;
+};
+
+/**
  * Toggles the bold for the rolling text state.
+ *
+ * This does not apply to {@link Window_Base.prototype.drawTextEx}, but alternatively
+ * you can interpolate `"\*"` before and after the text desired to be bold to
+ * achieve the same effect.
  * @param {boolean} force Optional. If provided, will force one way or the other.
  */
 Window_Base.prototype.toggleBold = function(force = null)
 {
   this.contents.fontBold = force ?? !this.contents.fontBold;
+};
+
+/**
+ * Wraps the given text with the message code for bold.
+ * @param {string} text The text to bolden.
+ * @returns {`\\*${text}\\*`}
+ */
+Window_Base.prototype.boldenText = function(text)
+{
+  return `\\*${text}\\*`;
 };
 //#endregion bold and italics
 //#endregion Window_Base

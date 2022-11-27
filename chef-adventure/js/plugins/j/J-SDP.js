@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Nov 19 2022 09:06:59 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Nov 22 2022 06:49:31 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -1273,6 +1273,38 @@ PanelRankupReward.prototype.initialize = function(rankRequired, effect)
 };
 //#endregion SDP_RankupReward
 
+//#region RPG_Item
+/**
+ * The SDP key of this item.
+ * @type {string}
+ */
+Object.defineProperty(RPG_DropItem.prototype, "sdpKey",
+  {
+    get: function()
+    {
+      return this.getSdpKey();
+    },
+  });
+
+/**
+ * Gets the SDP key of this item.
+ * @returns {string}
+ */
+RPG_DropItem.prototype.getSdpKey = function()
+{
+  return this._sdpKey;
+};
+
+/**
+ * Gets the key of this item.
+ * @param {string} key The key of the SDP.
+ */
+RPG_DropItem.prototype.setSdpKey = function(key)
+{
+  this._sdpKey = key;
+};
+//#endregion RPG_Item
+
 //#region RPG_Enemy
 //#region sdpPoints
 /**
@@ -1381,38 +1413,6 @@ RPG_Enemy.prototype.extractSdpDropData = function()
 };
 //#endregion sdpDropData
 //#endregion RPG_Enemy
-
-//#region RPG_Item
-/**
- * The SDP key of this item.
- * @type {string}
- */
-Object.defineProperty(RPG_DropItem.prototype, "sdpKey",
-  {
-    get: function()
-    {
-      return this.getSdpKey();
-    },
-  });
-
-/**
- * Gets the SDP key of this item.
- * @returns {string}
- */
-RPG_DropItem.prototype.getSdpKey = function()
-{
-  return this._sdpKey;
-};
-
-/**
- * Gets the key of this item.
- * @param {string} key The key of the SDP.
- */
-RPG_DropItem.prototype.setSdpKey = function(key)
-{
-  this._sdpKey = key;
-};
-//#endregion RPG_Item
 
 //#region BattleManager
 /**
@@ -2009,15 +2009,8 @@ Game_Enemy.prototype.makeSdpDrop = function()
   // grab all the data points to build the SDP drop.
   const [key, chance, itemId] = this.getSdpDropData();
 
-  // create an anonymous object representing the drop data.
-  const drop = {
-    kind: 1,
-    dataId: itemId,
-    denominator: chance
-  };
-
   // build the sdp drop item.
-  const sdpDrop = new RPG_DropItem(drop);
+  const sdpDrop = new RPG_DropItemBuilder().itemLoot(itemId, chance);
 
   // assign the drop item the key for the panel.
   sdpDrop.setSdpKey(key);

@@ -89,7 +89,7 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpDropItemId",
 
 /**
  * Gets the SDP data for this enemy.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Enemy.prototype.getSdpDropData = function()
 {
@@ -98,7 +98,7 @@ RPG_Enemy.prototype.getSdpDropData = function()
 
 /**
  * Extracts the value from the notes.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Enemy.prototype.extractSdpDropData = function()
 {

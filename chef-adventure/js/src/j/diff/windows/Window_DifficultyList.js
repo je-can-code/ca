@@ -37,7 +37,7 @@ class Window_DifficultyList extends Window_Command
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // slide the applied difficulty command above all others.
-    this.shiftCommand(
+    this.prependCommand(
       `\\I[${appliedDifficulty.iconIndex}]${appliedDifficulty.name}`,
       appliedDifficulty.key,
       false,// enabled

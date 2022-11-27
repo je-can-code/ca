@@ -57,15 +57,8 @@ Game_Enemy.prototype.makeSdpDrop = function()
   // grab all the data points to build the SDP drop.
   const [key, chance, itemId] = this.getSdpDropData();
 
-  // create an anonymous object representing the drop data.
-  const drop = {
-    kind: 1,
-    dataId: itemId,
-    denominator: chance
-  };
-
   // build the sdp drop item.
-  const sdpDrop = new RPG_DropItem(drop);
+  const sdpDrop = new RPG_DropItemBuilder().itemLoot(itemId, chance);
 
   // assign the drop item the key for the panel.
   sdpDrop.setSdpKey(key);

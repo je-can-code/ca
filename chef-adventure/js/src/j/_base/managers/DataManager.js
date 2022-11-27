@@ -243,6 +243,7 @@ DataManager.rewriteEnemyData = function()
   });
 
   // OVERWRITE the $dataEnemies object with this new enemies array!
+  /** @type {RPG_Enemy[]} */
   $dataEnemies = classifiedEnemies;
 };
 
