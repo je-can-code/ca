@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Dec 04 2022 13:20:46 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Dec 04 2022 13:32:26 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -77,7 +77,7 @@ J.OMNI.RegExp = {};
 J.OMNI.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,'"]+)>/i;
+J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
 //#endregion Metadata
 
 //#region MonsterpediaObservations
@@ -2716,7 +2716,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id } = observations;
+    const { id, numberDefeated } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2761,7 +2761,7 @@ class Window_MonsterpediaDetail extends Window_Base
       } = drop;
 
       // determine if we know this drop.
-      const isDropKnown = observations.isDropKnown(dropType, dropId);
+      const isDropKnown = observations.isDropKnown(dropType, dropId) || numberDefeated > 100;
 
       // the icon is determined by whether or not we know of this drop.
       const dropIcon = isDropKnown

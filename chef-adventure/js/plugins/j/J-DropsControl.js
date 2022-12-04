@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Nov 22 2022 16:47:22 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 03 2022 18:08:58 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -192,7 +192,7 @@ J.DROPS.Metadata = {
  * All regular expressions used by this plugin.
  */
 J.DROPS.RegExp = {
-  BaseDrop: /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i,
+  ExtraDrop: /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i,
 }
 
 /**
@@ -204,31 +204,40 @@ J.DROPS.Aliased = {
 //#endregion Introduction
 
 /**
+ * Translates this drop item into its corresponding implemented class.
+ * @returns {RPG_Item|RPG_Weapon|RPG_Armor}
+ */
+RPG_DropItem.prototype.toImplementation = function()
+{
+  // define the source to pull the item from.
+  let source = [];
+
+  // pivot on the kind of drop item this is.
+  switch (this.kind)
+  {
+    case RPG_DropItem.Types.Item:
+      source = $dataItems;
+      break;
+    case RPG_DropItem.Types.Weapon:
+      source = $dataWeapons;
+      break;
+    case RPG_DropItem.Types.Armor:
+      source = $dataArmors;
+      break;
+    default:
+      throw new Error(`This drop item is missing properties to fulfill this request.`, this);
+  }
+
+  // return the id of the drop item from its corresponding source.
+  return source.at(this.dataId);
+};
+
+/**
  * A builder class for simply developing {@link RPG_DropItem}s.
  */
 class RPG_DropItemBuilder
 {
   //#region properties
-  /**
-   * The various types of {@link RPG_DropItem} that can be produced.
-   */
-  static Types = {
-    /**
-     * The drop item type that maps to "items" in the database.
-     */
-    Item: 1,
-
-    /**
-     * The drop item type that maps to "weapons" in the database.
-     */
-    Weapon: 2,
-
-    /**
-     * The drop item type that maps to "armors" in the database.
-     */
-    Armor: 3,
-  }
-
   /**
    * The current id mapping to the entry in the database for this drop.
    * @type {number}
@@ -236,7 +245,7 @@ class RPG_DropItemBuilder
   #id = 0;
 
   /**
-   * The type id mapping to one of the given {@link RPG_DropItemBuilder.Types} that represent
+   * The type id mapping to one of the given {@link RPG_DropItem.Types} that represent
    * the type of drop this is.
    * @type {number}
    */
@@ -326,7 +335,7 @@ class RPG_DropItemBuilder
    */
   itemLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Item);
+    this.setType(RPG_DropItem.Types.Item);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();
@@ -340,7 +349,7 @@ class RPG_DropItemBuilder
    */
   weaponLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Weapon);
+    this.setType(RPG_DropItem.Types.Weapon);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();
@@ -354,13 +363,44 @@ class RPG_DropItemBuilder
    */
   armorLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Armor);
+    this.setType(RPG_DropItem.Types.Armor);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();
   }
   //#endregion builders
 }
+
+/**
+ * Gets the list of original drop items from the enemy in the database.
+ *
+ * This double-checks the actual drop items associated with an enemy in the
+ * database as you can have invalid drop items if you set a drop up with a
+ * denominator, but then changed your mind and flipped the drop type to "None".
+ * @returns {RPG_DropItem[]}
+ */
+RPG_Enemy.prototype.originalDropItems = function()
+{
+  return this.dropItems
+    .filter(this.validDropItemFilter, this);
+};
+
+/**
+ * Determines whether or not a drop item is a valid drop.
+ * @param {RPG_DropItem} dropItem The potential drop to check.
+ * @returns {boolean} True if the drop is valid, false otherwise.
+ */
+RPG_Enemy.prototype.validDropItemFilter = function(dropItem)
+{
+  // if the drop item itself is falsey, it is not valid.
+  if (!dropItem) return false;
+
+  // if the drop item lacks an id or drop type, it is not valid.
+  if (!dropItem.dataId || !dropItem.kind) return false;
+
+  // the item is valid!
+  return true;
+};
 
 //#region Game_Actor
 /**
@@ -446,72 +486,28 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
  */
 Game_Battler.prototype.extractExtraDrops = function(referenceData)
 {
-  // initialize the extra drops collection.
-  const extraDrops = [];
+  // get the drops found on this enemy.
+  const moreDrops = referenceData.getArraysFromNotesByRegex(J.DROPS.RegExp.ExtraDrop, true) ?? [];
 
-  // get the note data associated with the database object.
-  const notedata = referenceData.note.split(/[\r\n]+/);
-
-  // iterate over each line of the note and check if we have extra drops.
-  notedata.forEach(line =>
+  // a mapping function to build proper drop items from the arrays.
+  const mapper = drop =>
   {
-    // extract the relevant drop from this line.
-    const extraDrop = this.extractExtraDrop(line);
+    // deconstruct the array into drop properties.
+    const [ dropType, dropId, chance ] = drop;
 
-    // if there was a drop found on this line...
-    if (extraDrop)
-    {
-      // ...then add it to the running collection.
-      extraDrops.push(extraDrop);
-    }
-  }, this);
+    // build the new drop item.
+    return new RPG_DropItemBuilder()
+      .setType(RPG_DropItem.TypeFromLetter(dropType))
+      .setId(dropId)
+      .setChance(chance)
+      .build();
+  };
 
-  const test = referenceData.getArraysFromNotesByRegex(J.DROPS.RegExp.BaseDrop, true);
+  // map the converted drops.
+  const convertedDrops = moreDrops.map(mapper, this);
 
   // return the found extra drops.
-  return extraDrops;
-};
-
-/**
- * Extracts the extra drop from a single note line, if one is present.
- * @param {string} line The line from a note to extract from.
- * @returns {RPG_DropItem|null}
- */
-Game_Battler.prototype.extractExtraDrop = function(line)
-{
-  // the regex structure for extra drops.
-  const structure = J.DROPS.RegExp.BaseDrop;
-
-  // if we have a relevant note tag...
-  if (line.match(structure))
-  {
-    // ...identify the categorical "kind" of drop it is...
-    let kind = 0;
-    switch (RegExp.$1)
-    {
-      case ("i" || "item"):
-        kind = 1;
-        break;
-      case ("w" || "weapon"):
-        kind = 2;
-        break;
-      case ("a" || "armor"):
-        kind = 3;
-        break;
-    }
-
-    // ...and build the drop result based on the note data.
-    const dropItem = new RPG_DropItemBuilder()
-      .setId(RegExp.$2)
-      .setChance(RegExp.$3)
-      .build();
-
-    // return the built drop result.
-    return dropItem;
-  }
-
-  // if we didn't find anything on this line, then return a null.
-  return null;
+  return convertedDrops;
 };
 //#endregion Game_Battler
 
@@ -594,9 +590,20 @@ Game_Enemy.prototype.makeDropItems = function()
  */
 Game_Enemy.prototype.getDropItems = function()
 {
-  const drops = [...this.enemy().dropItems];
-  drops.push(...this.extraDrops());
-  return drops;
+  // validate the original drop items from the enemy in the database.
+  const databaseDropItems = this.enemy().originalDropItems();
+
+  // initialize the drops to be the enemy's own valid drop items from the database.
+  const allDropItems = [...databaseDropItems];
+
+  // grab any extra drops available.
+  const extraDropItems = this.extraDrops();
+
+  // add the extra drops found.
+  allDropItems.push(...extraDropItems);
+
+  // return what we found.
+  return allDropItems;
 };
 
 /**
@@ -606,14 +613,23 @@ Game_Enemy.prototype.getDropItems = function()
  */
 Game_Enemy.prototype.extraDrops = function()
 {
+  // initialize our extra drops collection.
   const extraDrops = [];
-  const objectsToCheck = this.dropSources();
-  objectsToCheck.forEach(obj =>
+
+  // grab all sources that things can drop from.
+  const sources = this.dropSources();
+
+  // iterate over each of the sources.
+  sources.forEach(source =>
   {
-    const drops = this.extractExtraDrops(obj);
+    // extract the drops from the source.
+    const drops = this.extractExtraDrops(source);
+
+    // add what was found.
     extraDrops.push(...drops);
   });
 
+  // return all the extras.
   return extraDrops;
 };
 
@@ -624,9 +640,13 @@ Game_Enemy.prototype.extraDrops = function()
  */
 Game_Enemy.prototype.dropSources = function()
 {
+  // initialize our sources tracking.
   const sources = [];
+
+  // add the enemy's own self to the list of sources.
   sources.push(this.enemy());
 
+  // return what we found.
   return sources;
 };
 

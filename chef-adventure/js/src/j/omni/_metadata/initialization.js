@@ -46,5 +46,5 @@ J.OMNI.RegExp = {};
 J.OMNI.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,'"]+)>/i;
+J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
 //#endregion Metadata

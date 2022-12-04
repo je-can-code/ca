@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Nov 24 2022 11:06:18 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Dec 04 2022 10:03:21 GMT-0800 (Pacific Standard Time)  */
 
 //#region introduction
 /* eslint-disable */
@@ -3181,10 +3181,10 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonusExperience(x, y, w, difficultyLayer)
   {
     // determine the icon for this bonus.
-    const rateIconIndex = 87;
+    const rateIconIndex = IconManager.rewardParam(0);
 
     // determine the name for this bonus.
-    const rateName = "EXP RATE";
+    const rateName = `${TextManager.rewardParam(0)} RATE`;
 
     // grab the rate.
     const { exp } = difficultyLayer;
@@ -3203,10 +3203,10 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonusGold(x, y, w, difficultyLayer)
   {
     // determine the icon for this bonus.
-    const rateIconIndex = 2048;
+    const rateIconIndex = IconManager.rewardParam(1);
 
     // determine the name for this bonus.
-    const rateName = "GOLD RATE";
+    const rateName = `${TextManager.rewardParam(1)} RATE`;
 
     // grab the rate.
     const { gold } = difficultyLayer;
@@ -3225,10 +3225,10 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonusDrops(x, y, w, difficultyLayer)
   {
     // determine the icon for this bonus.
-    const rateIconIndex = 208;
+    const rateIconIndex = IconManager.rewardParam(2);
 
     // determine the name for this bonus.
-    const rateName = "DROP RATE";
+    const rateName = `${TextManager.rewardParam(2)} RATE`;
 
     // grab the rate.
     const { drops } = difficultyLayer;
@@ -3247,10 +3247,10 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonusEncounters(x, y, w, difficultyLayer)
   {
     // determine the icon for this bonus.
-    const rateIconIndex = 914;
+    const rateIconIndex = IconManager.rewardParam(3);
 
     // determine the name for this bonus.
-    const rateName = "ENCOUNTER RATE";
+    const rateName = `${TextManager.rewardParam(3)} RATE`;
 
     // grab the rate.
     const { encounters } = difficultyLayer;
@@ -3269,10 +3269,10 @@ class Window_DifficultyDetails extends Window_Base
   drawDifficultyBonusSdp(x, y, w, difficultyLayer)
   {
     // determine the icon for this bonus.
-    const rateIconIndex = 445;
+    const rateIconIndex = IconManager.rewardParam(4);
 
     // determine the name for this bonus.
-    const rateName = "SDP RATE";
+    const rateName = `${TextManager.rewardParam(4)} RATE`;
 
     // grab the rate.
     const { sdp } = difficultyLayer;

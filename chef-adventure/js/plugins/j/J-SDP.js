@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Nov 22 2022 06:49:31 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Dec 04 2022 12:23:54 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -102,6 +102,8 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Updated sdp drop production to use drop item builder.
  * - 1.2.1
  *    Update to add tracking for total gained sdp points.
  *    Update to add tracking for total spent sdp points.
@@ -1303,12 +1305,21 @@ RPG_DropItem.prototype.setSdpKey = function(key)
 {
   this._sdpKey = key;
 };
+
+/**
+ * Checks whether or not this drop item is a stat distribution panel drop.
+ * @returns {boolean} True if this is a panel drop, false otherwise.
+ */
+RPG_DropItem.prototype.isSdpDrop = function()
+{
+  return !!this._sdpKey;
+};
 //#endregion RPG_Item
 
 //#region RPG_Enemy
 //#region sdpPoints
 /**
- * The expiration time in frames for this loot drop.
+ * The number of SDP points this enemy will yield upon defeat.
  * @type {number|null}
  */
 Object.defineProperty(RPG_Enemy.prototype, "sdpPoints",
@@ -1396,7 +1407,7 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpDropItemId",
 
 /**
  * Gets the SDP data for this enemy.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Enemy.prototype.getSdpDropData = function()
 {
@@ -1405,7 +1416,7 @@ RPG_Enemy.prototype.getSdpDropData = function()
 
 /**
  * Extracts the value from the notes.
- * @returns {number|null}
+ * @returns {[string, number, number]|null}
  */
 RPG_Enemy.prototype.extractSdpDropData = function()
 {
