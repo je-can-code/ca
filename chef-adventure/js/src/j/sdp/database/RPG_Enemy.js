@@ -1,7 +1,7 @@
 //#region RPG_Enemy
 //#region sdpPoints
 /**
- * The expiration time in frames for this loot drop.
+ * The number of SDP points this enemy will yield upon defeat.
  * @type {number|null}
  */
 Object.defineProperty(RPG_Enemy.prototype, "sdpPoints",

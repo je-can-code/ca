@@ -37,6 +37,7 @@ J.OMNI.Aliased.DataManager = new Map();
 J.OMNI.Aliased.Game_Enemy = new Map();
 J.OMNI.Aliased.Game_Party = new Map();
 J.OMNI.Aliased.Game_System = new Map();
+J.OMNI.Aliased.JABS_Engine = new Map();
 
 /**
  * All regular expressions used by this plugin.

@@ -9,15 +9,33 @@ class Scene_Omnipedia extends Scene_MenuBase
     SceneManager.push(this);
   }
 
+  /**
+   * Unlocks everything in the monsterpedia.
+   */
   static unlockAllMonsterpediaEntries()
   {
+    // iterate over every enemy.
     $dataEnemies.forEach(enemy =>
     {
+      // skip null enemies.
       if (!enemy) return;
 
+      // grab the database data of the enemy.
       const gameEnemy = $gameEnemies.enemy(enemy.id);
 
+      // update their respective monsterpedia observations.
       gameEnemy.updateMonsterpediaObservation();
+
+      // grab their observations.
+      const observations = $gameParty.getOrCreateMonsterpediaObservationsById(enemy.id);
+
+      // grab all drops available from this enemy.
+      const allDrops = gameEnemy.getDropItems();
+
+      // iterate over each potential drop and add it as being observed.
+      allDrops.forEach(drop => observations.addKnownDrop(drop.kind, drop.dataId), this);
+
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(id => observations.addKnownElementalistic(id), this);
     });
   }
 
@@ -562,13 +580,16 @@ class Scene_Omnipedia extends Scene_MenuBase
     // update the tracker with the new window.
     this.setMonsterpediaDetailWindow(window);
 
+    // populate all image sprites used in this window.
+    window.populateImageCache();
+
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
 
   /**
    * Sets up and defines the monsterpedia detail window.
-   * @returns {Window_OmnipediaList}
+   * @returns {Window_MonsterpediaDetail}
    */
   buildMonsterpediaDetailWindow()
   {

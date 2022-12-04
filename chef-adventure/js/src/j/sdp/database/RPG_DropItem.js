@@ -28,4 +28,13 @@ RPG_DropItem.prototype.setSdpKey = function(key)
 {
   this._sdpKey = key;
 };
+
+/**
+ * Checks whether or not this drop item is a stat distribution panel drop.
+ * @returns {boolean} True if this is a panel drop, false otherwise.
+ */
+RPG_DropItem.prototype.isSdpDrop = function()
+{
+  return !!this._sdpKey;
+};
 //#endregion RPG_Item

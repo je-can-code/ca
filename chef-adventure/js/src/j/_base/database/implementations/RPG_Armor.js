@@ -11,6 +11,12 @@ class RPG_Armor extends RPG_EquipItem
    * @type {number}
    */
   atypeId = 1;
+
+  /**
+   * The type of item this is. Armors are always type 3.
+   * @type {3}
+   */
+  kind = 3;
   //#endregion properties
 
   /**

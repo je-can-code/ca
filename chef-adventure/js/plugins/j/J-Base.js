@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Nov 26 2022 17:55:40 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Dec 04 2022 13:18:30 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -528,10 +528,10 @@ Array.iterate = function(times, func, thisArg = undefined)
 J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
 {
   // the regexp for what to mask.
-  const structure = /[A-Za-z\-()*!?'"=@,.]/ig;
+  const structure = /[0-9A-Za-z\-()*!?'"=@,.]/ig;
 
   // return the masked string content.
-  return stringToMask.replace(structure, maskingCharacter);
+  return stringToMask.toString().replace(structure, maskingCharacter);
 };
 //#endregion Helpers
 
@@ -581,6 +581,74 @@ class RPG_ClassLearning
  */
 class RPG_DropItem
 {
+  /**
+   * The various types of {@link RPG_DropItem} that can be produced.
+   */
+  static Types = {
+    /**
+     * The drop item type that maps to "items" in the database.
+     */
+    Item: 1,
+
+    /**
+     * The drop item type that maps to "weapons" in the database.
+     */
+    Weapon: 2,
+
+    /**
+     * The drop item type that maps to "armors" in the database.
+     */
+    Armor: 3,
+  }
+
+  /**
+   * Translates a letter or word drop item type into its numeric counterpart.
+   * @param {i|item|w|weapon|a|armor} letter The letter to translate.
+   * @returns {number} The numeric drop item type.
+   */
+  static TypeFromLetter = letter =>
+  {
+    // pivot on the lowercase version of the letter.
+    switch (letter.toLowerCase())
+    {
+      // "i" for "item".
+      case ('i'||'item'): return this.Types.Item;
+
+      // "w" for "weapon".
+      case ('w'||'weapon'): return this.Types.Weapon;
+
+      // "a" for "armor".
+      case ('a'||'armor'): return this.Types.Armor;
+
+      // don't use this with invalid item types.
+      default: throw new Error(`invalid item type letter provided: [${letter}].`);
+    }
+  }
+
+  /**
+   * Translates a number/kind drop item type into its letter counterpart.
+   * @param {1|2|3} number The number to translate.
+   * @returns {number} The letter drop item type.
+   */
+  static TypeFromNumber = number =>
+  {
+    // pivot on the number.
+    switch (number)
+    {
+      // "1" for "item".
+      case 1: return 'i';
+
+      // "2" for "weapon".
+      case 2: return 'w';
+
+      // "3" for "armor".
+      case 3: return 'a';
+
+      // don't use this with invalid item types.
+      default: throw new Error(`invalid item type number provided: [${number}].`);
+    }
+  }
+
   //#region properties
   /**
    * The id of the underlying item's entry in the database.
@@ -2065,6 +2133,12 @@ class RPG_Armor extends RPG_EquipItem
    * @type {number}
    */
   atypeId = 1;
+
+  /**
+   * The type of item this is. Armors are always type 3.
+   * @type {3}
+   */
+  kind = 3;
   //#endregion properties
 
   /**
@@ -2242,6 +2316,12 @@ class RPG_Item extends RPG_UsableItem
    * @type {number}
    */
   price = 0;
+
+  /**
+   * The type of item this is. Items are always type 1.
+   * @type {1}
+   */
+  kind = 1;
   //#endregion properties
 
   /**
@@ -2540,6 +2620,12 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {number}
    */
   wtypeId = 1;
+
+  /**
+   * The type of item this is. Weapons are always type 2.
+   * @type {2}
+   */
+  kind = 2;
   //#endregion properties
 
   /**
@@ -3277,6 +3363,15 @@ class IconManager
   }
 
   /**
+   * Gets the iconIndex for levels.
+   * @returns {number}
+   */
+  static level()
+  {
+    return 86;
+  }
+
+  /**
    * Gets the `iconIndex` for SDP Multiplier.
    * @returns {number}
    */
@@ -3310,6 +3405,28 @@ class IconManager
   static maxTp()
   {
     return 930;
+  }
+
+  /**
+   * Gets the iconIndex for a given reward parameter.
+   * @param {number} paramId The param id to get the icon index for.
+   * @returns {number}
+   */
+  static rewardParam(paramId)
+  {
+    switch (paramId)
+    {
+      case  0:
+        return 87; // exp
+      case  1:
+        return 2048; // gold
+      case  2:
+        return 208; // drops
+      case  3:
+        return 914; // encounters
+      case  4:
+        return 445; // sdp
+    }
   }
 
   /**
@@ -3382,11 +3499,11 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 960;  // trg (aggro)
+        return 960; // trg (aggro)
       case  1:
         return 961; // grd (parry)
       case  2:
-        return 962;  // rec
+        return 962; // rec
       case  3:
         return 963; // pha
       case  4:
@@ -3474,13 +3591,13 @@ class IconManager
       case 27:
         return this.sparam(paramId - 18); // exr
       case 30:
-        return this.maxTp();
+        return this.maxTp(); // mtp
       case 31:
-        return this.movespeed();
+        return this.movespeed(); // move
       case 32:
-        return this.proficiencyBoost();
+        return this.proficiencyBoost(); // prof
       case 33:
-        return this.sdpMultiplier();
+        return this.sdpMultiplier(); // sdp
       default:
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
@@ -3813,7 +3930,7 @@ class IconManager
 
   /**
    * Gets the icon representing the team id provided.
-   * @param {string} teamId The team id.
+   * @param {number} teamId The team id.
    * @returns {number} The corresponding icon index.
    */
   static team(teamId)
@@ -4068,6 +4185,28 @@ TextManager.maxTp = function()
 };
 
 /**
+ * Gets the name of the reward parameter.
+ * @param {number} paramId The paramId to get the reward text for.
+ * @returns {string}
+ */
+TextManager.rewardParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0:
+      return this.exp; // exp
+    case  1:
+      return this.currencyUnit; // gold
+    case  2:
+      return "DROPS"; // drops
+    case  3:
+      return "ENCOUNTERS"; // encounters
+    case  4:
+      return "SDP"; // sdp
+  }
+};
+
+/**
  * Gets the name of the given sp-parameter.
  * @param {number} sParamId The id of the sp-param to get a name for.
  * @returns {string} The name of the parameter.
@@ -4109,11 +4248,11 @@ TextManager.xparam = function(xParamId)
   switch (xParamId)
   {
     case 0:
-      return "Accuracy";// J.Param.HIT_text;
+      return "Accuracy"; //J.Param.HIT_text;
     case 1:
-      return "Parry Extend";//J.Param.EVA_text;
+      return "Parry Extend"; //J.Param.EVA_text;
     case 2:
-      return "Crit Strike"; //J.Param.CRI_text;
+      return "Crit Rate"; //J.Param.CRI_text;
     case 3:
       return "Crit Dodge"; //J.Param.CEV_text;
     case 4:
@@ -4200,13 +4339,13 @@ TextManager.longParam = function(paramId)
     case 27:
       return this.sparam(paramId - 18); // exr
     case 30:
-      return this.maxTp();              // max tp
+      return this.maxTp(); // max tp
     case 31:
-      return this.movespeed();          // move speed boost
+      return this.movespeed(); // move speed boost
     case 32:
-      return this.proficiencyBonus();   // proficiency boost
+      return this.proficiencyBonus(); // proficiency boost
     case 33:
-      return this.sdpMultiplier();      // sdp multiplier
+      return this.sdpMultiplier(); // sdp multiplier
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -5369,6 +5508,18 @@ Game_BattlerBase.knownExParameterIds = function()
 {
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 };
+
+/**
+ * Gets the maximum tp/tech for this battler.
+ */
+Object.defineProperty(Game_BattlerBase.prototype, "mtp",
+  {
+    get: function() 
+    {
+      return this.maxTp();
+    },
+    configurable: true
+  });
 //#endregion Game_BattlerBase
 
 /**
@@ -5476,6 +5627,45 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
       return [6, 8];
   }
 };
+
+//#region Game_Enemies
+/**
+ * A class that acts as a lazy dictionary for {@link Game_Enemy} data.
+ * Do not use the enemies from this class as actual battlers!
+ */
+class Game_Enemies
+{
+  /**
+   * A simple cache to store enemies by their ids.
+   * @type {Map<number, Game_Enemy>}
+   */
+  #cache = new Map();
+
+  /**
+   * Gets the enemy battler data for the enemy id provided.
+   * @param {number} enemyId The enemy id to generate an enemy for.
+   * @returns {Game_Enemy} The enemy battler data.
+   */
+  enemy(enemyId)
+  {
+    // check if we have the enemy already in the cache.
+    if (this.#cache.has(enemyId))
+    {
+      // return the cached enemy.
+      return this.#cache.get(enemyId);
+    }
+
+    // create the new enemy.
+    const enemy = new Game_Enemy(enemyId, 0, 0);
+
+    // add the new enemy to the cache.
+    this.#cache.set(enemyId, enemy);
+
+    // return the enemy.
+    return enemy;
+  }
+}
+//#endregion Game_Enemies
 
 //#region Game_Enemy
 /**

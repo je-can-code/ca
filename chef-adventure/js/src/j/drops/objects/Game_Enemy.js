@@ -77,9 +77,20 @@ Game_Enemy.prototype.makeDropItems = function()
  */
 Game_Enemy.prototype.getDropItems = function()
 {
-  const drops = [...this.enemy().dropItems];
-  drops.push(...this.extraDrops());
-  return drops;
+  // validate the original drop items from the enemy in the database.
+  const databaseDropItems = this.enemy().originalDropItems();
+
+  // initialize the drops to be the enemy's own valid drop items from the database.
+  const allDropItems = [...databaseDropItems];
+
+  // grab any extra drops available.
+  const extraDropItems = this.extraDrops();
+
+  // add the extra drops found.
+  allDropItems.push(...extraDropItems);
+
+  // return what we found.
+  return allDropItems;
 };
 
 /**
@@ -89,14 +100,23 @@ Game_Enemy.prototype.getDropItems = function()
  */
 Game_Enemy.prototype.extraDrops = function()
 {
+  // initialize our extra drops collection.
   const extraDrops = [];
-  const objectsToCheck = this.dropSources();
-  objectsToCheck.forEach(obj =>
+
+  // grab all sources that things can drop from.
+  const sources = this.dropSources();
+
+  // iterate over each of the sources.
+  sources.forEach(source =>
   {
-    const drops = this.extractExtraDrops(obj);
+    // extract the drops from the source.
+    const drops = this.extractExtraDrops(source);
+
+    // add what was found.
     extraDrops.push(...drops);
   });
 
+  // return all the extras.
   return extraDrops;
 };
 
@@ -107,9 +127,13 @@ Game_Enemy.prototype.extraDrops = function()
  */
 Game_Enemy.prototype.dropSources = function()
 {
+  // initialize our sources tracking.
   const sources = [];
+
+  // add the enemy's own self to the list of sources.
   sources.push(this.enemy());
 
+  // return what we found.
   return sources;
 };
 

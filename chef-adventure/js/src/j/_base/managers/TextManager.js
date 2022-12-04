@@ -36,6 +36,28 @@ TextManager.maxTp = function()
 };
 
 /**
+ * Gets the name of the reward parameter.
+ * @param {number} paramId The paramId to get the reward text for.
+ * @returns {string}
+ */
+TextManager.rewardParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0:
+      return this.exp; // exp
+    case  1:
+      return this.currencyUnit; // gold
+    case  2:
+      return "DROPS"; // drops
+    case  3:
+      return "ENCOUNTERS"; // encounters
+    case  4:
+      return "SDP"; // sdp
+  }
+};
+
+/**
  * Gets the name of the given sp-parameter.
  * @param {number} sParamId The id of the sp-param to get a name for.
  * @returns {string} The name of the parameter.
@@ -77,11 +99,11 @@ TextManager.xparam = function(xParamId)
   switch (xParamId)
   {
     case 0:
-      return "Accuracy";// J.Param.HIT_text;
+      return "Accuracy"; //J.Param.HIT_text;
     case 1:
-      return "Parry Extend";//J.Param.EVA_text;
+      return "Parry Extend"; //J.Param.EVA_text;
     case 2:
-      return "Crit Strike"; //J.Param.CRI_text;
+      return "Crit Rate"; //J.Param.CRI_text;
     case 3:
       return "Crit Dodge"; //J.Param.CEV_text;
     case 4:
@@ -168,13 +190,13 @@ TextManager.longParam = function(paramId)
     case 27:
       return this.sparam(paramId - 18); // exr
     case 30:
-      return this.maxTp();              // max tp
+      return this.maxTp(); // max tp
     case 31:
-      return this.movespeed();          // move speed boost
+      return this.movespeed(); // move speed boost
     case 32:
-      return this.proficiencyBonus();   // proficiency boost
+      return this.proficiencyBonus(); // proficiency boost
     case 33:
-      return this.sdpMultiplier();      // sdp multiplier
+      return this.sdpMultiplier(); // sdp multiplier
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;

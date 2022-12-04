@@ -14,6 +14,15 @@ class IconManager
   }
 
   /**
+   * Gets the iconIndex for levels.
+   * @returns {number}
+   */
+  static level()
+  {
+    return 86;
+  }
+
+  /**
    * Gets the `iconIndex` for SDP Multiplier.
    * @returns {number}
    */
@@ -47,6 +56,28 @@ class IconManager
   static maxTp()
   {
     return 930;
+  }
+
+  /**
+   * Gets the iconIndex for a given reward parameter.
+   * @param {number} paramId The param id to get the icon index for.
+   * @returns {number}
+   */
+  static rewardParam(paramId)
+  {
+    switch (paramId)
+    {
+      case  0:
+        return 87; // exp
+      case  1:
+        return 2048; // gold
+      case  2:
+        return 208; // drops
+      case  3:
+        return 914; // encounters
+      case  4:
+        return 445; // sdp
+    }
   }
 
   /**
@@ -119,11 +150,11 @@ class IconManager
     switch (paramId)
     {
       case  0:
-        return 960;  // trg (aggro)
+        return 960; // trg (aggro)
       case  1:
         return 961; // grd (parry)
       case  2:
-        return 962;  // rec
+        return 962; // rec
       case  3:
         return 963; // pha
       case  4:
@@ -211,13 +242,13 @@ class IconManager
       case 27:
         return this.sparam(paramId - 18); // exr
       case 30:
-        return this.maxTp();
+        return this.maxTp(); // mtp
       case 31:
-        return this.movespeed();
+        return this.movespeed(); // move
       case 32:
-        return this.proficiencyBoost();
+        return this.proficiencyBoost(); // prof
       case 33:
-        return this.sdpMultiplier();
+        return this.sdpMultiplier(); // sdp
       default:
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
@@ -550,7 +581,7 @@ class IconManager
 
   /**
    * Gets the icon representing the team id provided.
-   * @param {string} teamId The team id.
+   * @param {number} teamId The team id.
    * @returns {number} The corresponding icon index.
    */
   static team(teamId)

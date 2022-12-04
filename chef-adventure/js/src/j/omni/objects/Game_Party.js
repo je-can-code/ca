@@ -70,6 +70,7 @@ Game_Party.prototype.getSavedMonsterpediaObservations = function()
 
 /**
  * Gets the cache of monsterpedia observations.
+ * The cache is keyed by enemyId.
  * @returns {Map<number, MonsterpediaObservations>}
  */
 Game_Party.prototype.getMonsterpediaObservationsCache = function()
@@ -175,6 +176,7 @@ Game_Party.prototype.translateMonsterpediaSaveablesToCache = function()
 /**
  * Gets or creates the monsterpedia observations for a given enemyId.
  * @param {number} enemyId The id of the enemy to find observations for.
+ * @returns {MonsterpediaObservations} The observation for that enemyId.
  */
 Game_Party.prototype.getOrCreateMonsterpediaObservationsById = function(enemyId)
 {

@@ -17,6 +17,12 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {number}
    */
   wtypeId = 1;
+
+  /**
+   * The type of item this is. Weapons are always type 2.
+   * @type {2}
+   */
+  kind = 2;
   //#endregion properties
 
   /**

@@ -13,9 +13,12 @@ Game_Enemy.prototype.getMonsterPediaObservations = function()
  * Extends {@link #onDeath}.
  * Also updates the monsterpedia observations for this enemy.
  */
-J.OMNI.Aliased.Game_Enemy.set('die', Game_Enemy.prototype.die);
+J.OMNI.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
 Game_Enemy.prototype.onDeath = function()
 {
+  // perform original logic.
+  J.OMNI.Aliased.Game_Enemy.get('onDeath').call(this);
+
   // increment the counter for how many times we've defeated this enemy.
   this.updateMonsterpediaObservation();
 };
@@ -103,5 +106,61 @@ Game_Enemy.prototype.learnMonsterpediaParameters = function()
 
   // project the parameters of the enemy.
   observations.knowsParameters = true;
+};
+
+/**
+ * Extends {@link #makeDropItems}.
+ * Also observes each drop dropped for monsterpedia purposes.
+ */
+J.OMNI.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
+Game_Enemy.prototype.makeDropItems = function()
+{
+  // perform original logic to retrieve original drops.
+  const drops = J.OMNI.Aliased.Game_Enemy.get('makeDropItems').call(this);
+
+  // validate we have drops.
+  if (drops.length)
+  {
+    // observe the drops.
+    drops.forEach(this.observeDrop, this);
+  }
+
+  // return all earned loot!
+  return drops;
+};
+
+/**
+ * Observes a given drop, and records it in the monsterpedia if applicable.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} drop The drop to observe.
+ */
+Game_Enemy.prototype.observeDrop = function(drop)
+{
+  // grab the observations of this monster.
+  const observations = this.getMonsterPediaObservations();
+
+  // extract the drop data.
+  const { kind: dropType, id: dropId } = drop;
+
+  // don't process the drop if its already known.
+  if (observations.isDropKnown(dropType, dropId)) return;
+
+  // observe the drop.
+  observations.addKnownDrop(dropType, dropId);
+};
+
+/**
+ * Observes a given element, and records it in the monsterpedia if applicable.
+ * @param {number} elementId The element id to observe.
+ */
+Game_Enemy.prototype.observeElement = function(elementId)
+{
+  // grab the observations of this monster.
+  const observations = this.getMonsterPediaObservations();
+
+  // don't process the element if its already known.
+  if (observations.isElementalisticKnown(elementId)) return;
+
+  // observe the element.
+  observations.addKnownElementalistic(elementId);
 };
 //#endregion Game_Enemy

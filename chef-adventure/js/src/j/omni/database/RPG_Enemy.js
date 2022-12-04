@@ -49,7 +49,7 @@ Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription",
   {
     get: function()
     {
-      return this.getMonsterFamilyIconIndex();
+      return this.getMonsterpediaDescription();
     },
   });
 

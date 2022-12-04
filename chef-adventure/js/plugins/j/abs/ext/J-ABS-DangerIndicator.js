@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 03 2022 10:45:32 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -325,6 +325,41 @@ Game_Battler.prototype.getPowerLevel = function()
   return Math.round(powerLevel);
 };
 
+/**
+ * Determines the iconIndex that indicates the danger level relative to the player and enemy.
+ * @returns {number} The icon index of the danger indicator icon.
+ */
+Game_Battler.prototype.getDangerIndicatorIcon = function()
+{
+  // if the sprite belongs to the player, then don't do it.
+  const player = $jabsEngine.getPlayer1().getBattler();
+  if (player === this) return -1;
+
+  // get the corresponding power levels.
+  const bpl = this.getPowerLevel();
+  const ppl = player.getPowerLevel();
+
+  switch (true)
+  {
+    case (bpl < ppl * 0.5):
+      return J.DANGER.DangerIndicatorIcons.Worthless;
+    case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
+      return J.DANGER.DangerIndicatorIcons.Simple;
+    case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
+      return J.DANGER.DangerIndicatorIcons.Easy;
+    case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
+      return J.DANGER.DangerIndicatorIcons.Average;
+    case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
+      return J.DANGER.DangerIndicatorIcons.Hard;
+    case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
+      return J.DANGER.DangerIndicatorIcons.Grueling;
+    case (bpl > ppl * 1.5):
+      return J.DANGER.DangerIndicatorIcons.Deadly;
+    default:
+      return -1;
+  }
+};
+
 //#region Game_Enemy
 /**
  * Gets whether or not an enemy has a visible danger indicator from their notes.
@@ -536,29 +571,8 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
   const player = $jabsEngine.getPlayer1().getBattler();
   if (player === battler) return -1;
 
-  // get the corresponding power levels.
-  const bpl = battler.getPowerLevel();
-  const ppl = player.getPowerLevel();
-
-  switch (true)
-  {
-    case (bpl < ppl * 0.5):
-      return J.DANGER.DangerIndicatorIcons.Worthless;
-    case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
-      return J.DANGER.DangerIndicatorIcons.Simple;
-    case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
-      return J.DANGER.DangerIndicatorIcons.Easy;
-    case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
-      return J.DANGER.DangerIndicatorIcons.Average;
-    case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
-      return J.DANGER.DangerIndicatorIcons.Hard;
-    case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Grueling;
-    case (bpl > ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Deadly;
-    default:
-      return -1;
-  }
+  // calculate the icon.
+  return battler.getDangerIndicatorIcon();
 };
 
 /**

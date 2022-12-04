@@ -96,29 +96,8 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
   const player = $jabsEngine.getPlayer1().getBattler();
   if (player === battler) return -1;
 
-  // get the corresponding power levels.
-  const bpl = battler.getPowerLevel();
-  const ppl = player.getPowerLevel();
-
-  switch (true)
-  {
-    case (bpl < ppl * 0.5):
-      return J.DANGER.DangerIndicatorIcons.Worthless;
-    case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
-      return J.DANGER.DangerIndicatorIcons.Simple;
-    case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
-      return J.DANGER.DangerIndicatorIcons.Easy;
-    case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
-      return J.DANGER.DangerIndicatorIcons.Average;
-    case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
-      return J.DANGER.DangerIndicatorIcons.Hard;
-    case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Grueling;
-    case (bpl > ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Deadly;
-    default:
-      return -1;
-  }
+  // calculate the icon.
+  return battler.getDangerIndicatorIcon();
 };
 
 /**

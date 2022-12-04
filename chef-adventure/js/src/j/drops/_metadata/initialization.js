@@ -27,7 +27,7 @@ J.DROPS.Metadata = {
  * All regular expressions used by this plugin.
  */
 J.DROPS.RegExp = {
-  BaseDrop: /<drops:[ ]?\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)]>/i,
+  ExtraDrop: /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i,
 }
 
 /**

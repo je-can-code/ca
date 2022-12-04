@@ -23,6 +23,12 @@ class RPG_Item extends RPG_UsableItem
    * @type {number}
    */
   price = 0;
+
+  /**
+   * The type of item this is. Items are always type 1.
+   * @type {1}
+   */
+  kind = 1;
   //#endregion properties
 
   /**

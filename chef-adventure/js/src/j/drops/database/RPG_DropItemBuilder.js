@@ -5,33 +5,13 @@ class RPG_DropItemBuilder
 {
   //#region properties
   /**
-   * The various types of {@link RPG_DropItem} that can be produced.
-   */
-  static Types = {
-    /**
-     * The drop item type that maps to "items" in the database.
-     */
-    Item: 1,
-
-    /**
-     * The drop item type that maps to "weapons" in the database.
-     */
-    Weapon: 2,
-
-    /**
-     * The drop item type that maps to "armors" in the database.
-     */
-    Armor: 3,
-  }
-
-  /**
    * The current id mapping to the entry in the database for this drop.
    * @type {number}
    */
   #id = 0;
 
   /**
-   * The type id mapping to one of the given {@link RPG_DropItemBuilder.Types} that represent
+   * The type id mapping to one of the given {@link RPG_DropItem.Types} that represent
    * the type of drop this is.
    * @type {number}
    */
@@ -121,7 +101,7 @@ class RPG_DropItemBuilder
    */
   itemLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Item);
+    this.setType(RPG_DropItem.Types.Item);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();
@@ -135,7 +115,7 @@ class RPG_DropItemBuilder
    */
   weaponLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Weapon);
+    this.setType(RPG_DropItem.Types.Weapon);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();
@@ -149,7 +129,7 @@ class RPG_DropItemBuilder
    */
   armorLoot(databaseId, percentChance)
   {
-    this.setType(RPG_DropItemBuilder.Types.Armor);
+    this.setType(RPG_DropItem.Types.Armor);
     this.setId(databaseId);
     this.setChance(percentChance);
     return this.build();

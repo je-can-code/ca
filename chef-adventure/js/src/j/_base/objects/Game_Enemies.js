@@ -26,7 +26,7 @@ class Game_Enemies
     }
 
     // create the new enemy.
-    const enemy = new Game_Enemy(enemyId, null, null);
+    const enemy = new Game_Enemy(enemyId, 0, 0);
 
     // add the new enemy to the cache.
     this.#cache.set(enemyId, enemy);
