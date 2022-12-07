@@ -33,18 +33,5 @@ J.OMNI.PluginParameters = PluginManager.parameters(J.OMNI.Metadata.Name);
  * A collection of all aliased methods for this plugin.
  */
 J.OMNI.Aliased = {};
-J.OMNI.Aliased.DataManager = new Map();
-J.OMNI.Aliased.Game_Enemy = new Map();
 J.OMNI.Aliased.Game_Party = new Map();
-J.OMNI.Aliased.Game_System = new Map();
-J.OMNI.Aliased.JABS_Engine = new Map();
-
-/**
- * All regular expressions used by this plugin.
- */
-J.OMNI.RegExp = {};
-J.OMNI.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
-J.OMNI.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
-J.OMNI.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
 //#endregion Metadata

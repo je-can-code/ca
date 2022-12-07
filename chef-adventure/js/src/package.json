@@ -42,7 +42,6 @@
     "once:log": "node utils/combine.js ./j/log ../plugins/j J-Log.js",
     "once:message": "node utils/combine.js ./j/message ../plugins/j J-MessageTextCodes.js",
     "once:natural": "node utils/combine.js ./j/natural ../plugins/j J-NaturalGrowth.js",
-    "once:omni": "node utils/combine.js ./j/omni ../plugins/j J-Omnipedia.js",
     "once:otib": "node utils/combine.js ./j/otib ../plugins/j J-OneTimeItemBoost.js",
     "once:passive": "node utils/combine.js ./j/passive ../plugins/j J-Passive.js",
     "once:popups": "node utils/combine.js ./j/popups ../plugins/j J-TextPops.js",
@@ -74,6 +73,12 @@
     "once:jabs-speed": "node utils/combine.js ./j/abs/ext/speed ../plugins/j/abs/ext J-ABS-Speed.js",
     "once:jabs-timing": "node utils/combine.js ./j/abs/ext/timing ../plugins/j/abs/ext J-ABS-Timing.js",
     "once:jabs-tools": "node utils/combine.js ./j/abs/ext/tools ../plugins/j/abs/ext J-ABS-Tools.js",
-    "once:jabs-star": "node utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js"
+    "once:jabs-star": "node utils/combine.js ./j/abs/ext/star ../plugins/j/abs/ext J-ABS-Star.js",
+
+    "once:omni": "node utils/combine.js ./j/omni/core ../plugins/j/omni J-Omnipedia.js",
+    "once:omni-monster": "node utils/combine.js ./j/omni/ext/monster ../plugins/j/omni/ext J-Omni-Monsters.js",
+    "once:omni-item": "node utils/combine.js ./j/omni/ext/item ../plugins/j/omni/ext J-Omni-Itempedia.js",
+    "once:omni-weapon": "node utils/combine.js ./j/omni/ext/weapon ../plugins/j/omni/ext J-Omni-Weaponpedia.js",
+    "once:omni-armor": "node utils/combine.js ./j/omni/ext/armor ../plugins/j/omni/ext J-Omni-Armorpedia.js"
   }
 }

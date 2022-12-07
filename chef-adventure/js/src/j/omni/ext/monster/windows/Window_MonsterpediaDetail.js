@@ -1059,7 +1059,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id } = observations;
+    const { id, knowsParameters } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -1093,11 +1093,15 @@ class Window_MonsterpediaDetail extends Window_Base
 
     const { name, iconIndex } = $dataItems.at(sdpItemId);
 
+    const panelName = knowsParameters
+      ? name
+      : J.BASE.Helpers.maskString(name);
+
     this.drawEnemyParameter(
       x,
       y,
       iconIndex,
-      name,
+      panelName,
       dropText,
       false,
       0,

@@ -1,19 +1,14 @@
 //#region Game_Party
-J.OMNI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function()
-{
-  // perform original logic.
-  J.OMNI.Aliased.Game_Party.get('initialize').call(this);
-
-  // initialize all omnipedia-related members.
-  this.initOmnipediaMembers();
-};
-
 /**
- * Initializes all members related to the omnipedia.
+ * Extends {@link #initOmnipediaMembers}.
+ * Includes monsterpedia members.
  */
+J.OMNI.EXT.MONSTER.Aliased.Game_Party.set('initOmnipediaMembers', Game_Party.prototype.initOmnipediaMembers);
 Game_Party.prototype.initOmnipediaMembers = function()
 {
+  // perform original logic.
+  J.OMNI.EXT.MONSTER.Aliased.Game_Party.get('initOmnipediaMembers').call(this);
+
   // initialize the monsterpedia.
   this.initMonsterpediaMembers();
 };

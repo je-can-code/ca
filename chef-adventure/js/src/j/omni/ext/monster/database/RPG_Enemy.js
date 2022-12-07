@@ -17,7 +17,7 @@ Object.defineProperty(RPG_Enemy.prototype, "hideFromMonsterpedia",
  */
 RPG_Enemy.prototype.shouldHideFromMonsterpedia = function()
 {
-  return this.getBooleanFromNotesByRegex(J.OMNI.RegExp.HideFromMonsterpedia);
+  return this.getBooleanFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia);
 };
 
 /**
@@ -38,7 +38,7 @@ Object.defineProperty(RPG_Enemy.prototype, "monsterFamilyIcon",
  */
 RPG_Enemy.prototype.getMonsterFamilyIconIndex = function()
 {
-  return this.getNumberFromNotesByRegex(J.OMNI.RegExp.MonsterpediaFamilyIcon);
+  return this.getNumberFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon);
 };
 
 /**
@@ -59,6 +59,6 @@ Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription",
  */
 RPG_Enemy.prototype.getMonsterpediaDescription = function()
 {
-  return this.getStringsFromNotesByRegex(J.OMNI.RegExp.MonsterpediaDescription);
+  return this.getStringsFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
 };
 //#endregion RPG_Enemy

@@ -1,4 +1,7 @@
 //#region Window_OmnipediaList
+/**
+ * A window displaying the list of pedias available.
+ */
 class Window_OmnipediaList extends Window_Command
 {
   /**
@@ -19,6 +22,7 @@ class Window_OmnipediaList extends Window_Command
     // grab all the omnipedia listings available.
     const commands = this.buildCommands();
 
+    // add all the built commands.
     commands.forEach(this.addBuiltCommand, this);
   }
 
@@ -29,13 +33,7 @@ class Window_OmnipediaList extends Window_Command
    */
   buildCommands()
   {
-    const monsterpediaCommand = new WindowCommandBuilder("Monsterpedia")
-      .setSymbol("monster-pedia")
-      .addSubTextLine("Your standard fare in monsterologies across the universe.")
-      .addSubTextLine("It is adapted to the local monsterology of Erocia.")
-      .setIconIndex(14)
-      .build();
-
+    /*
     const weaponpediaCommand = new WindowCommandBuilder("Weapon-pedia")
       .setSymbol("weapon-pedia")
       .addSubTextLine("It has your weapon information in it, duh.")
@@ -56,15 +54,16 @@ class Window_OmnipediaList extends Window_Command
       .addSubTextLine("You can review various details about consumables.")
       .setIconIndex(208)
       .build();
+     */
 
-    return [
-      monsterpediaCommand,
-      itempediaCommand,
-      weaponpediaCommand,
-      armorpediaCommand,
-    ];
+    return [];
   }
 
+  /**
+   * Overwrites {@link #itemHeight}.
+   * Makes the command rows bigger so there can be additional lines.
+   * @returns {number}
+   */
   itemHeight()
   {
     return this.lineHeight() * 2;

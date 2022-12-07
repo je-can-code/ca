@@ -4,11 +4,11 @@
  * @param {JABS_Action} action The `JABS_Action` containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
-J.OMNI.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects);
+J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects);
 JABS_Engine.prototype.processOnHitEffects = function(action, target)
 {
   // perform original logic.
-  J.OMNI.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
+  J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
 
   // check if the target is an enemy.
   if (target.isEnemy())

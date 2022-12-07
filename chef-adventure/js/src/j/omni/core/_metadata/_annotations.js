@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [vWIP OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.0.0 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base

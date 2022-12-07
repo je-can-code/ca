@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Dec 04 2022 13:18:30 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 07 2022 06:31:36 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -240,7 +240,7 @@ J.BASE.Aliased = {
   Game_Party: new Map(),
   Game_Temp: new Map(),
   Game_System: new Map(),
-  Scene_Load: new Map(),
+  Scene_Base: new Map(),
   SoundManager: new Map(),
   Window_Base: new Map(),
   Window_Command: {},
@@ -6118,6 +6118,14 @@ Game_Temp.prototype.initMembers = function()
 {
 };
 //#endregion Game_Temp
+
+/**
+ * Pushes this current scene onto the stack, forcing it into action.
+ */
+Scene_Base.prototype.callScene = function()
+{
+  SceneManager.push(this);
+};
 
 //#region Sprite_BaseText
 /**

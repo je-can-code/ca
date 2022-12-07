@@ -1,26 +1,30 @@
-/*  BUNDLED TIME: Sun Dec 04 2022 13:32:26 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 07 2022 06:58:01 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [vWIP OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.0.0 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
+ * @base J-ABS
+ * @base J-DropsControl
+ * @base J-Elementalistics
+ * @base J-SDP
+ * @base J-Omnipedia
  * @help
  * ============================================================================
  * OVERVIEW:
- * This plugin enables a new scene called the "Omnipedia".
- * This scene is designed with extendability in mind, and can/will/does
- * contain a number of other sub-datasets, such as:
- * - Bestiary
- * - Items
- * - Weapons
- * - Armors
+ * This plugin extends the Omnipedia by adding a new entry: The Monsterpedia.
  *
- * Integrates with others of mine plugins:
- * - J-ControlledDrops; enables viewing of dropped loot in the bestiary.
+ * Due to rendering a large amount of data, there are a number of other plugins
+ * required to use this plugin:
+ * - J-Base : always required for my plugins.
+ * - J-ABS : enables the tracking of most data points.
+ * - J-ControlledDrops : renders loot drop data and tracking.
+ * - J-Elementalistics : renders elemental data and tracking.
+ * - J-SDP : renders SDP points earned and panel drop rate.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -35,49 +39,68 @@
  */
 var J = J || {};
 
+//#region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '2.1.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//#endregion version check
+
+/**
+ * The over-arching extensions collection for this plugin.
+ */
+J.OMNI.EXT ||= {};
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.OMNI = {};
+J.OMNI.EXT.MONSTER = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.OMNI.Metadata = {};
+J.OMNI.EXT.MONSTER.Metadata = {};
 
 /**
  * The name of this plugin.
  */
-J.OMNI.Metadata.Name = 'J-Omnipedia';
+J.OMNI.EXT.MONSTER.Metadata.Name = 'J-Omni-Monsterpedia';
 
 /**
  * The version of this plugin.
  */
-J.OMNI.Metadata.Version = '1.0.0';
+J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.0';
 
 /**
- * The actual `plugin parameters` extracted from RMMZ.
+ * The plugin parameters for this plugin.
  */
-J.OMNI.PluginParameters = PluginManager.parameters(J.OMNI.Metadata.Name);
+J.OMNI.EXT.MONSTER.PluginParameters = PluginManager.parameters(J.OMNI.EXT.MONSTER.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.OMNI.Aliased = {};
-J.OMNI.Aliased.DataManager = new Map();
-J.OMNI.Aliased.Game_Enemy = new Map();
-J.OMNI.Aliased.Game_Party = new Map();
-J.OMNI.Aliased.Game_System = new Map();
-J.OMNI.Aliased.JABS_Engine = new Map();
+J.OMNI.EXT.MONSTER.Aliased = {};
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy = new Map();
+J.OMNI.EXT.MONSTER.Aliased.Game_Party = new Map();
+J.OMNI.EXT.MONSTER.Aliased.Game_System = new Map();
+J.OMNI.EXT.MONSTER.Aliased.JABS_Engine = new Map();
+J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia = new Map();
+J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList = new Map();
 
 /**
  * All regular expressions used by this plugin.
  */
-J.OMNI.RegExp = {};
-J.OMNI.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
-J.OMNI.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
-J.OMNI.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-J.OMNI.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
+J.OMNI.EXT.MONSTER.RegExp = {};
+J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
+J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
+J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
+J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
 //#endregion Metadata
 
 //#region MonsterpediaObservations
@@ -245,7 +268,7 @@ Object.defineProperty(RPG_Enemy.prototype, "hideFromMonsterpedia",
  */
 RPG_Enemy.prototype.shouldHideFromMonsterpedia = function()
 {
-  return this.getBooleanFromNotesByRegex(J.OMNI.RegExp.HideFromMonsterpedia);
+  return this.getBooleanFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia);
 };
 
 /**
@@ -266,7 +289,7 @@ Object.defineProperty(RPG_Enemy.prototype, "monsterFamilyIcon",
  */
 RPG_Enemy.prototype.getMonsterFamilyIconIndex = function()
 {
-  return this.getNumberFromNotesByRegex(J.OMNI.RegExp.MonsterpediaFamilyIcon);
+  return this.getNumberFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon);
 };
 
 /**
@@ -287,7 +310,7 @@ Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription",
  */
 RPG_Enemy.prototype.getMonsterpediaDescription = function()
 {
-  return this.getStringsFromNotesByRegex(J.OMNI.RegExp.MonsterpediaDescription);
+  return this.getStringsFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
 };
 //#endregion RPG_Enemy
 
@@ -297,11 +320,11 @@ RPG_Enemy.prototype.getMonsterpediaDescription = function()
  * @param {JABS_Action} action The `JABS_Action` containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
-J.OMNI.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects);
+J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects);
 JABS_Engine.prototype.processOnHitEffects = function(action, target)
 {
   // perform original logic.
-  J.OMNI.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
+  J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
 
   // check if the target is an enemy.
   if (target.isEnemy())
@@ -370,11 +393,11 @@ Game_Enemy.prototype.getMonsterPediaObservations = function()
  * Extends {@link #onDeath}.
  * Also updates the monsterpedia observations for this enemy.
  */
-J.OMNI.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
 Game_Enemy.prototype.onDeath = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Game_Enemy.get('onDeath').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('onDeath').call(this);
 
   // increment the counter for how many times we've defeated this enemy.
   this.updateMonsterpediaObservation();
@@ -469,11 +492,11 @@ Game_Enemy.prototype.learnMonsterpediaParameters = function()
  * Extends {@link #makeDropItems}.
  * Also observes each drop dropped for monsterpedia purposes.
  */
-J.OMNI.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
 Game_Enemy.prototype.makeDropItems = function()
 {
   // perform original logic to retrieve original drops.
-  const drops = J.OMNI.Aliased.Game_Enemy.get('makeDropItems').call(this);
+  const drops = J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('makeDropItems').call(this);
 
   // validate we have drops.
   if (drops.length)
@@ -523,21 +546,16 @@ Game_Enemy.prototype.observeElement = function(elementId)
 //#endregion Game_Enemy
 
 //#region Game_Party
-J.OMNI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function()
-{
-  // perform original logic.
-  J.OMNI.Aliased.Game_Party.get('initialize').call(this);
-
-  // initialize all omnipedia-related members.
-  this.initOmnipediaMembers();
-};
-
 /**
- * Initializes all members related to the omnipedia.
+ * Extends {@link #initOmnipediaMembers}.
+ * Includes monsterpedia members.
  */
+J.OMNI.EXT.MONSTER.Aliased.Game_Party.set('initOmnipediaMembers', Game_Party.prototype.initOmnipediaMembers);
 Game_Party.prototype.initOmnipediaMembers = function()
 {
+  // perform original logic.
+  J.OMNI.EXT.MONSTER.Aliased.Game_Party.get('initOmnipediaMembers').call(this);
+
   // initialize the monsterpedia.
   this.initMonsterpediaMembers();
 };
@@ -731,43 +749,13 @@ Game_Party.prototype.getOrCreateMonsterpediaObservationsById = function(enemyId)
 
 //#region Game_System
 /**
- * Calls the omnipedia scene if possible.
- * @param {boolean=} force Whether or not to force-call the scene; defaults to false.
- */
-Game_System.prototype.callOmnipediaScene = function(force = false)
-{
-  // check if the omnipedia scene can be called.
-  if (this.canCallOmnipediaScene() || force)
-  {
-    // call it.
-    Scene_Omnipedia.callScene();
-  }
-  // cannot call the omnipedia scene.
-  else
-  {
-    // sorry!
-    SoundManager.playBuzzer();
-  }
-};
-
-/**
- * Determines whether or not the omnipedia scene can be called.
- * @returns {boolean}
- */
-Game_System.prototype.canCallOmnipediaScene = function()
-{
-  // peek at the omnipedia!
-  return true;
-};
-
-/**
  * Update the saved data with the running cache.
  */
-J.OMNI.Aliased.Game_System.set('onBeforeSave', Game_System.prototype.onBeforeSave);
+J.OMNI.EXT.MONSTER.Aliased.Game_System.set('onBeforeSave', Game_System.prototype.onBeforeSave);
 Game_System.prototype.onBeforeSave = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Game_System.get('onBeforeSave').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onBeforeSave').call(this);
 
   // update the cache into saveable data.
   $gameParty.synchronizeMonsterpediaDataBeforeSave();
@@ -776,22 +764,24 @@ Game_System.prototype.onBeforeSave = function()
 /**
  * Setup the caches to work with from the saved data.
  */
-J.OMNI.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+J.OMNI.EXT.MONSTER.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onAfterLoad').call(this);
 
   // update the savable data into the cache.
   $gameParty.synchronizeMonsterpediaAfterLoad();
 };
 //#endregion Game_System
 
-//#region Scene_Omnipedia
-class Scene_Omnipedia extends Scene_MenuBase
+/**
+ * A scene containing access to all available and implemented pedia entries.
+ */
+class Scene_Monsterpedia extends Scene_MenuBase
 {
   /**
-   * Calls this scene to start processing.
+   * Pushes this current scene onto the stack, forcing it into action.
    */
   static callScene()
   {
@@ -799,12 +789,12 @@ class Scene_Omnipedia extends Scene_MenuBase
   }
 
   /**
-   * Unlocks everything in the monsterpedia.
+   * A debug function that unlocks everything in the monsterpedia.
    */
   static unlockAllMonsterpediaEntries()
   {
-    // iterate over every enemy.
-    $dataEnemies.forEach(enemy =>
+    // an iterator function for unlocking all observations associated with all monsters in the database.
+    const forEacher = enemy =>
     {
       // skip null enemies.
       if (!enemy) return;
@@ -824,8 +814,12 @@ class Scene_Omnipedia extends Scene_MenuBase
       // iterate over each potential drop and add it as being observed.
       allDrops.forEach(drop => observations.addKnownDrop(drop.kind, drop.dataId), this);
 
+      // iterate over all standard elements in the context of CA.
       [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(id => observations.addKnownElementalistic(id), this);
-    });
+    };
+
+    // iterate over every enemy.
+    $dataEnemies.forEach(forEacher, this);
   }
 
   /**
@@ -847,7 +841,7 @@ class Scene_Omnipedia extends Scene_MenuBase
   initialize()
   {
     // perform original logic.
-    super.initialize(this);
+    super.initialize();
 
     // also initialize our scene properties.
     this.initMembers();
@@ -861,11 +855,8 @@ class Scene_Omnipedia extends Scene_MenuBase
     // initialize the root-namespace definition members.
     this.initCoreMembers();
 
-    // initialize the main omnipedia base list of pedias.
+    // initialize the monsterpedia members.
     this.initPrimaryMembers();
-
-    // initialize the nested pedias listed within the omnipedia.
-    this.initSecondaryMembers();
   }
 
   /**
@@ -890,34 +881,6 @@ class Scene_Omnipedia extends Scene_MenuBase
    * what the pedia entails.
    */
   initPrimaryMembers()
-  {
-    /**
-     * The window that shows the list of available pedias.
-     * @type {Window_OmnipediaList}
-     */
-    this._j._omni._pediaList = null;
-
-    /**
-     * The window that displays at the top while the omnipedia list is active.
-     * @type {Window_OmnipediaListHeader}
-     */
-    this._j._omni._pediaListHeader = null;
-  }
-
-  /**
-   * The secondary properties of the scene are the individual pedia property namespace setup,
-   * such as the Monsterpedia.
-   */
-  initSecondaryMembers()
-  {
-    // initialize the monsterpedia members.
-    this.initMonsterpediaMembers();
-  }
-
-  /**
-   * Initializes all members of the monsterpedia.
-   */
-  initMonsterpediaMembers()
   {
     /**
      * A grouping of all properties associated with the monsterpedia.
@@ -945,15 +908,7 @@ class Scene_Omnipedia extends Scene_MenuBase
   }
   //#endregion init
 
-  //#region start
-  start()
-  {
-    super.start();
-
-    // on-ready logic goes here.
-  }
-  //#endregion start
-
+  //#region create
   /**
    * Initialize all resources required for this scene.
    */
@@ -962,283 +917,23 @@ class Scene_Omnipedia extends Scene_MenuBase
     // perform original logic.
     super.create();
 
+    // create the various display objects on the screen.
+    this.createDisplayObjects();
+  }
+
+  /**
+   * Creates the display objects for this scene.
+   */
+  createDisplayObjects()
+  {
     // create all our windows.
     this.createAllWindows();
   }
 
   /**
-   * Creates all windows associated with this scene.
+   * Creates all monsterpedia windows.
    */
   createAllWindows()
-  {
-    // create all root windows for the main listing.
-    this.createOmnipediaRootWindows();
-
-    // create all monsterpedia windows.
-    this.createMonsterpediaWindows();
-  }
-
-  //#region windows management
-  //#region root windows
-  /**
-   * Creates the root-level omnipedia windows.
-   */
-  createOmnipediaRootWindows()
-  {
-    // create the root omnipedia list of pedias.
-    this.createOmnipediaListWindow();
-
-    // create the header window.
-    this.createOmnipediaListHeaderWindow();
-  }
-
-  //#region header window
-  /**
-   * Creates a header window for the omnipedia list.
-   */
-  createOmnipediaListHeaderWindow()
-  {
-    // create the window.
-    const window = this.buildOmnipediaListHeaderWindow();
-
-    // update the tracker with the new window.
-    this.setOmnipediaListHeaderWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the omnipedia list header window.
-   * @returns {Window_OmnipediaListHeader}
-   */
-  buildOmnipediaListHeaderWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.omnipediaListHeaderRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_OmnipediaListHeader(rectangle);
-
-    window.refresh();
-
-    // return the built and configured omnipedia list window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the omnipedia list header window.
-   * @returns {Rectangle}
-   */
-  omnipediaListHeaderRectangle()
-  {
-    // define the width of the list.
-    const width = 1000;
-
-    // determine the x based on the width.
-    const x = (Graphics.boxWidth / 2) - (width * 0.5);
-
-    // define the height of the rectangle.
-    const height = 100;
-
-    // arbitrarily decide the y.
-    const y = 100;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
-  }
-
-  /**
-   * Gets the currently tracked omnipedia list header window.
-   * @returns {Window_OmnipediaListHeader}
-   */
-  getOmnipediaListHeaderWindow()
-  {
-    return this._j._omni._pediaListHeader;
-  }
-
-  /**
-   * Set the currently tracked omnipedia list header window to the given window.
-   * @param {Window_OmnipediaListHeader} listHeaderWindow The omnipedia list header window to track.
-   */
-  setOmnipediaListHeaderWindow(listHeaderWindow)
-  {
-    this._j._omni._pediaListHeader = listHeaderWindow;
-  }
-
-  /**
-   * Opens the root header window.
-   */
-  openRootHeaderWindow()
-  {
-    // grab the root header window.
-    const rootHeaderWindow = this.getOmnipediaListHeaderWindow();
-
-    // open and show the root header window.
-    rootHeaderWindow.open();
-    rootHeaderWindow.show();
-  }
-
-  /**
-   * Closes the root header window.
-   */
-  closeRootHeaderWindow()
-  {
-    // grab the root header window.
-    const rootHeaderWindow = this.getOmnipediaListHeaderWindow();
-
-    // close and hide the root header window.
-    rootHeaderWindow.close();
-    rootHeaderWindow.hide();
-  }
-  //#endregion header window
-
-  //#region list window
-  /**
-   * Creates the list of pedias available to the player to peruse.
-   */
-  createOmnipediaListWindow()
-  {
-    // create the window.
-    const window = this.buildOmnipediaListWindow();
-
-    // update the tracker with the new window.
-    this.setOmnipediaListWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the omnipedia listing window.
-   * @returns {Window_OmnipediaList}
-   */
-  buildOmnipediaListWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.omnipediaListRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_OmnipediaList(rectangle);
-
-    // assign cancel functionality.
-    window.setHandler('cancel', this.popScene.bind(this));
-
-    // assign on-select functionality.
-    window.setHandler('ok', this.onRootPediaSelection.bind(this));
-
-    // return the built and configured omnipedia list window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the omnipedia list command window.
-   * @returns {Rectangle}
-   */
-  omnipediaListRectangle()
-  {
-    // define the width of the list.
-    const width = 800;
-
-    // calculate the X for where the origin of the list window should be.
-    const x = (Graphics.boxWidth / 2) - (width * 0.5);
-
-    // define the height of the list.
-    const height = 400;
-
-    // calculate the Y for where the origin of the list window should be.
-    const y = (Graphics.boxHeight / 2) - (height * 0.5);
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
-  }
-
-  /**
-   * Gets the currently tracked omnipedia list window.
-   * @returns {Window_OmnipediaList}
-   */
-  getOmnipediaListWindow()
-  {
-    return this._j._omni._pediaList;
-  }
-
-  /**
-   * Set the currently tracked omnipedia list window to the given window.
-   * @param {Window_OmnipediaList} listWindow The omnipedia list window to track.
-   */
-  setOmnipediaListWindow(listWindow)
-  {
-    this._j._omni._pediaList = listWindow;
-  }
-
-  /**
-   * Opens the root list window and activates it.
-   */
-  openRootListWindow()
-  {
-    // grab the root omnipedia list window.
-    const rootListWindow = this.getOmnipediaListWindow();
-
-    // open, show, and activate the root list window.
-    rootListWindow.open();
-    rootListWindow.show();
-    rootListWindow.activate();
-  }
-
-  /**
-   * Closes the root list window.
-   */
-  closeRootListWindow()
-  {
-    // grab the root omnipedia list window.
-    const rootListWindow = this.getOmnipediaListWindow();
-
-    // close and deactivate the root list window.
-    rootListWindow.close();
-    rootListWindow.deactivate();
-  }
-
-  /**
-   * Gets the current symbol of the root omnipedia.
-   * This is effectively the currently highlighted selection's key of that window.
-   * @returns {string}
-   */
-  getRootOmnipediaKey()
-  {
-    return this.getOmnipediaListWindow().currentSymbol();
-  }
-  //#endregion list window
-
-  /**
-   * Opens all windows associated with the root omnipedia.
-   */
-  openRootPediaWindows()
-  {
-    // open the root list window.
-    this.openRootListWindow();
-
-    // open the root header window.
-    this.openRootHeaderWindow();
-  }
-
-  /**
-   * Closes all windows associated with the root omnipedia.
-   */
-  closeRootPediaWindows()
-  {
-    // close the list window.
-    this.closeRootListWindow();
-
-    // close the header window.
-    this.closeRootHeaderWindow();
-  }
-  //#endregion root windows
-
-  //#region monsterpedia windows
-  /**
-   * Creates all windows for the monsterpedia.
-   */
-  createMonsterpediaWindows()
   {
     // create the list of monsters that have been perceived.
     this.createMonsterpediaListWindow();
@@ -1246,11 +941,30 @@ class Scene_Omnipedia extends Scene_MenuBase
     // create the detail of a highlighted monster that has been perceived.
     this.createMonsterpediaDetailWindow();
 
-    // by default we do not start on the monsterpedia.
-    this.closeMonsterpediaWindows();
+    // grab the list window for refreshing.
+    const listWindow = this.getMonsterpediaListWindow();
+
+    // initial refresh the detail window by way of force-changing the index.
+    listWindow.onIndexChange();
   }
 
-  //#region monsterpedia list window
+  /**
+   * Overwrites {@link Scene_MenuBase.prototype.createBackground}.
+   * Changes the filter to a different type from {@link PIXI.filters}.
+   */
+  createBackground()
+  {
+    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.5);
+    this._backgroundSprite = new Sprite();
+    this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
+    this._backgroundSprite.filters = [this._backgroundFilter];
+    this.addChild(this._backgroundSprite);
+    this.setBackgroundOpacity(192);
+  }
+  //#endregion create
+
+  //#region windows
+  //#region list window
   /**
    * Creates the list of monsters the player has perceived.
    */
@@ -1258,10 +972,10 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // create the window.
     const window = this.buildMonsterpediaListWindow();
-
+  
     // update the tracker with the new window.
     this.setMonsterpediaListWindow(window);
-
+  
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
@@ -1274,19 +988,19 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // define the rectangle of the window.
     const rectangle = this.monsterpediaListRectangle();
-
+  
     // create the window with the rectangle.
     const window = new Window_MonsterpediaList(rectangle);
-
+  
     // assign cancel functionality.
     window.setHandler('cancel', this.onCancelMonsterpedia.bind(this));
-
+  
     // assign on-select functionality.
     window.setHandler('ok', this.onMonsterpediaListSelection.bind(this));
-
+  
     // overwrite the onIndexChange hook with our local onMonsterpediaIndexChange hook.
     window.onIndexChange = this.onMonsterpediaIndexChange.bind(this);
-
+  
     // return the built and configured omnipedia list window.
     return window;
   }
@@ -1299,20 +1013,20 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // the list window's origin coordinates are the box window's origin as well.
     const [x, y] = Graphics.boxOrigin;
-
+  
     // define the width of the list.
     const width = 400;
-
+  
     // define the height of the list.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
-
+  
     // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
 
   /**
    * Gets the currently tracked monsterpedia list window.
-   * @returns {Window_OmnipediaList}
+   * @returns {Window_MonsterpediaList}
    */
   getMonsterpediaListWindow()
   {
@@ -1327,37 +1041,9 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     this._j._omni._monster._pediaList = listWindow;
   }
+  //#endregion list window
 
-  /**
-   * Opens the monsterpedia list window.
-   */
-  openMonsterpediaListWindow()
-  {
-    // grab the monsterpedia list window.
-    const pediaListWindow = this.getMonsterpediaListWindow();
-
-    // open, show, and activate the monsterpedia list.
-    pediaListWindow.open();
-    pediaListWindow.show();
-    pediaListWindow.activate();
-  }
-
-  /**
-   * Closes the monsterpedia list window.
-   */
-  closeMonsterpediaListWindow()
-  {
-    // grab the monsterpedia list window.
-    const pediaListWindow = this.getMonsterpediaListWindow();
-
-    // close, hide, and deactivate the monsterpedia list.
-    pediaListWindow.close();
-    pediaListWindow.hide();
-    pediaListWindow.deactivate();
-  }
-  //#endregion monsterpedia list window
-
-  //#region monsterpedia detail window
+  //#region detail window
   /**
    * Creates the detail of a single monster the player has perceived.
    */
@@ -1365,13 +1051,13 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // create the window.
     const window = this.buildMonsterpediaDetailWindow();
-
+  
     // update the tracker with the new window.
     this.setMonsterpediaDetailWindow(window);
-
+  
     // populate all image sprites used in this window.
     window.populateImageCache();
-
+  
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
@@ -1384,10 +1070,10 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // define the rectangle of the window.
     const rectangle = this.monsterpediaDetailRectangle();
-
+  
     // create the window with the rectangle.
     const window = new Window_MonsterpediaDetail(rectangle);
-
+  
     // return the built and configured omnipedia list window.
     return window;
   }
@@ -1400,19 +1086,19 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // grab the monsterpedia list window.
     const listWindow = this.getMonsterpediaListWindow();
-
+  
     // calculate the X for where the origin of the list window should be.
     const x = listWindow.x + listWindow.width;
-
+  
     // calculate the Y for where the origin of the list window should be.
     const y = Graphics.verticalPadding;
-
+  
     // define the width of the list.
     const width = Graphics.boxWidth - listWindow.width - (Graphics.horizontalPadding * 2);
-
+  
     // define the height of the list.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
-
+  
     // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
@@ -1460,87 +1146,10 @@ class Scene_Omnipedia extends Scene_MenuBase
     window.close();
     window.hide();
   }
-  //#endregion monsterpedia detail window
-
-  /**
-   * Opens all windows associated with the monsterpedia.
-   */
-  openMonsterpediaWindows()
-  {
-    // open the monsterpedia list window.
-    this.openMonsterpediaListWindow();
-
-    // open the monsterpedia detail window.
-    this.openMonsterpediaDetailWindow();
-  }
-
-  /**
-   * Closes all windows associated with the monsterpedia.
-   */
-  closeMonsterpediaWindows()
-  {
-    // close the monsterpedia list window.
-    this.closeMonsterpediaListWindow();
-
-    // close the monsterpedia detail window.
-    this.closeMonsterpediaDetailWindow();
-  }
-  //#endregion monsterpedia windows
-  //#endregion windows management
+  //#endregion detail window
+  //#endregion windows
 
   //#region actions
-  //#region root actions
-  /**
-   * When a choice is made, execute this logic.
-   */
-  onRootPediaSelection()
-  {
-    // grab which pedia was selected.
-    const currentSelection = this.getRootOmnipediaKey();
-
-    // determine which of the pedias to open.
-    switch (currentSelection)
-    {
-      case "monster-pedia":
-        this.monsterpediaSelected();
-        break;
-      default:
-        this.invalidSelected(currentSelection);
-        break;
-    }
-  }
-
-  /**
-   * Switch to the monsterpedia when selected from the root omnipedia list.
-   */
-  monsterpediaSelected()
-  {
-    // close the root omnipedia windows.
-    this.closeRootPediaWindows();
-
-    // open up the monsterpedia windows.
-    this.openMonsterpediaWindows();
-
-    // grab the monsterpedia's list window.
-    const monsterpediaListWindow = this.getMonsterpediaListWindow();
-
-    // initial refresh the detail window by way of force-changing the index.
-    monsterpediaListWindow.onIndexChange();
-  }
-
-  /**
-   * When an invalid selection occurs from the root omnipedia list, do nothing.
-   * @param {any} currentSelection The given selection that was invalid.
-   */
-  invalidSelected(currentSelection)
-  {
-    console.warn(`The invalid symbol of: [${currentSelection.toString()}] was selected.`);
-    SoundManager.playBuzzer();
-    this.getOmnipediaListWindow().activate();
-  }
-  //#endregion root actions
-
-  //#region monsterpedia actions
   /**
    * Synchronize the detail window with the list window of the monsterpedia.
    */
@@ -1548,16 +1157,16 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     // grab the list window.
     const listWindow = this.getMonsterpediaListWindow();
-
+  
     // grab the detail window.
     const detailWindow = this.getMonsterpediaDetailWindow();
-
+  
     // grab the highlighted enemy's extra data, their observations.
     const highlightedEnemyObservations = listWindow.currentExt();
-
+  
     // sync the detail window with the currently-highlighted enemy.
     detailWindow.setObservations(highlightedEnemyObservations);
-
+  
     // refresh the window for the content update.
     detailWindow.refresh();
   }
@@ -1568,9 +1177,9 @@ class Scene_Omnipedia extends Scene_MenuBase
   onMonsterpediaListSelection()
   {
     const listWindow = this.getMonsterpediaListWindow();
-
+  
     console.log(`monster selected index: [${listWindow.index()}].`);
-
+  
     listWindow.activate();
   }
 
@@ -1579,15 +1188,50 @@ class Scene_Omnipedia extends Scene_MenuBase
    */
   onCancelMonsterpedia()
   {
-    // close the monsterpedia windows.
-    this.closeMonsterpediaWindows();
-
-    // open and activate the root omnipedia windows.
-    this.openRootPediaWindows();
+    // revert to the previous scene.
+    SceneManager.pop();
   }
-  //#endregion monsterpedia actions
   //#endregion actions
 }
+
+//#region Scene_Omnipedia
+//#region root actions
+/**
+ * Extends {@link #onRootPediaSelection}.
+ * When the monsterpedia is selected, open the monsterpedia.
+ */
+J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia.set('onRootPediaSelection', Scene_Omnipedia.prototype.onRootPediaSelection);
+Scene_Omnipedia.prototype.onRootPediaSelection = function()
+{
+  // grab which pedia was selected.
+  const currentSelection = this.getRootOmnipediaKey();
+
+  // check if the current selection is the monsterpedia.
+  if (currentSelection === "monster-pedia")
+  {
+    // execute the monsterpedia.
+    this.monsterpediaSelected();
+  }
+  // the current selection is not the monsterpedia.
+  else
+  {
+    // possibly activate other choices.
+    J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia.get('onRootPediaSelection').call(this);
+  }
+}
+
+/**
+ * Switch to the monsterpedia when selected from the root omnipedia list.
+ */
+Scene_Omnipedia.prototype.monsterpediaSelected = function()
+{
+  // close the root omnipedia windows.
+  this.closeRootPediaWindows();
+
+  // call the monsterpedia scene.
+  Scene_Monsterpedia.callScene();
+}
+//#endregion root actions
 //#endregion Scene_Omnipedia
 
 class Window_MonsterpediaDetail extends Window_Base
@@ -2651,7 +2295,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id } = observations;
+    const { id, knowsParameters } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2685,11 +2329,15 @@ class Window_MonsterpediaDetail extends Window_Base
 
     const { name, iconIndex } = $dataItems.at(sdpItemId);
 
+    const panelName = knowsParameters
+      ? name
+      : J.BASE.Helpers.maskString(name);
+
     this.drawEnemyParameter(
       x,
       y,
       iconIndex,
-      name,
+      panelName,
       dropText,
       false,
       0,
@@ -3105,159 +2753,27 @@ class Window_MonsterpediaList extends Window_Command
 }
 //#endregion Window_MonsterpediaList
 
-//#region Window_OmnipediaList
-class Window_OmnipediaList extends Window_Command
+/**
+ * Extends {@link #buildCommands}.
+ * Adds the monsterpedia command to the list of commands in the omnipedia.
+ */
+J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.set('buildCommands', Window_OmnipediaList.prototype.buildCommands);
+Window_OmnipediaList.prototype.buildCommands = function()
 {
-  /**
-   * Constructor.
-   * @param {Rectangle} rect The rectangle that represents this window.
-   */
-  constructor(rect)
-  {
-    super(rect);
-  }
+  // perform original logic.
+  const previousCommands = J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.get('buildCommands').call(this);
 
-  /**
-   * Implements {@link #makeCommandList}.
-   * Creates the command list of omnipedia entries available for this window.
-   */
-  makeCommandList()
-  {
-    // grab all the omnipedia listings available.
-    const commands = this.buildCommands();
+  // build the monsterpedia command.
+  const monsterpediaCommand = new WindowCommandBuilder("Monsterpedia")
+    .setSymbol("monster-pedia")
+    .addSubTextLine("Your standard fare in monsterologies across the universe.")
+    .addSubTextLine("It is adapted to the local monsterology of Erocia.")
+    .setIconIndex(14)
+    .build();
 
-    commands.forEach(this.addBuiltCommand, this);
-  }
-
-  /**
-   * Builds all commands for this command window.
-   * Adds all omnipedia commands to the list that are available.
-   * @returns {BuiltWindowCommand[]}
-   */
-  buildCommands()
-  {
-    const monsterpediaCommand = new WindowCommandBuilder("Monsterpedia")
-      .setSymbol("monster-pedia")
-      .addSubTextLine("Your standard fare in monsterologies across the universe.")
-      .addSubTextLine("It is adapted to the local monsterology of Erocia.")
-      .setIconIndex(14)
-      .build();
-
-    const weaponpediaCommand = new WindowCommandBuilder("Weapon-pedia")
-      .setSymbol("weapon-pedia")
-      .addSubTextLine("It has your weapon information in it, duh.")
-      .addSubTextLine("You can review various weapon attributes within.")
-      .setIconIndex(112)
-      .build();
-
-    const armorpediaCommand = new WindowCommandBuilder("Armor-pedia")
-      .setSymbol("armor-pedia")
-      .addSubTextLine("Your armor information is in this thing.")
-      .addSubTextLine("You can review various armor attributes within.")
-      .setIconIndex(482)
-      .build();
-
-    const itempediaCommand = new WindowCommandBuilder("Item-pedia")
-      .setSymbol("item-pedia")
-      .addSubTextLine("Your item data is all stored in here.")
-      .addSubTextLine("You can review various details about consumables.")
-      .setIconIndex(208)
-      .build();
-
-    return [
-      monsterpediaCommand,
-      itempediaCommand,
-      weaponpediaCommand,
-      armorpediaCommand,
-    ];
-  }
-
-  itemHeight()
-  {
-    return this.lineHeight() * 2;
-  }
-}
-//#endregion Window_OmnipediaList
-
-//#region Window_OmnipediaListHeader
-class Window_OmnipediaListHeader extends Window_Base
-{
-  /**
-   * Constructor.
-   * @param {Rectangle} rect The rectangle that represents this window.
-   */
-  constructor(rect)
-  {
-    super(rect);
-  }
-
-  /**
-   * Implements {@link Window_Base.drawContent}.
-   * Draws a header and some detail for the omnipedia list header.
-   */
-  drawContent()
-  {
-    // define the origin x,y coordinates.
-    const [x, y] = [0, 0];
-
-    // shorthand the lineHeight.
-    const lh = this.lineHeight();
-
-    // draw the header.
-    this.drawHeader(x, y);
-
-    // draw the detail under the header.
-    const detailY = y + (lh * 1);
-    this.drawDetail(x, detailY);
-  }
-
-  /**
-   * Draws the header text.
-   * @param {number} x The base x coordinate for this section.
-   * @param {number} y The base y coordinate for this section.
-   */
-  drawHeader(x, y)
-  {
-    // make the font size nice and big.
-    this.modFontSize(10);
-
-    // define the text for this section.
-    const headerText = `The Omnipedia`;
-
-    // when using "center"-alignment, you center across the width of the window.
-    const headerTextWidth = this.width;
-
-    // enable italics.
-    this.toggleBold(true);
-
-    // render the headline title text.
-    this.drawText(headerText, x, y, headerTextWidth, "center");
-
-    // reset any lingering font settings.
-    this.resetFontSettings();
-  }
-
-  /**
-   * Draws the detail text.
-   * @param {number} x The base x coordinate for this section.
-   * @param {number} y The base y coordinate for this section.
-   */
-  drawDetail(x, y)
-  {
-    // define the text for this section.
-    const detailText = `Where you can find a pedia for everything.`;
-
-    // when using "center"-alignment, you center across the width of the window.
-    const detailTextWidth = this.width;
-
-    // enable italics.
-    this.toggleItalics(true);
-
-    // render the headline title text.
-    this.drawText(detailText, x, y, detailTextWidth, "center");
-
-    // reset any lingering font settings.
-    this.resetFontSettings();
-  }
-}
-//#endregion Window_OmnipediaListHeader
+  // return all the commands.
+  return [
+    ...previousCommands,
+    monsterpediaCommand
+  ];
+};

@@ -13,11 +13,11 @@ Game_Enemy.prototype.getMonsterPediaObservations = function()
  * Extends {@link #onDeath}.
  * Also updates the monsterpedia observations for this enemy.
  */
-J.OMNI.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
 Game_Enemy.prototype.onDeath = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Game_Enemy.get('onDeath').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('onDeath').call(this);
 
   // increment the counter for how many times we've defeated this enemy.
   this.updateMonsterpediaObservation();
@@ -112,11 +112,11 @@ Game_Enemy.prototype.learnMonsterpediaParameters = function()
  * Extends {@link #makeDropItems}.
  * Also observes each drop dropped for monsterpedia purposes.
  */
-J.OMNI.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
 Game_Enemy.prototype.makeDropItems = function()
 {
   // perform original logic to retrieve original drops.
-  const drops = J.OMNI.Aliased.Game_Enemy.get('makeDropItems').call(this);
+  const drops = J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('makeDropItems').call(this);
 
   // validate we have drops.
   if (drops.length)
