@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 08 2022 17:17:37 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -255,18 +255,6 @@ J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety']
 J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
 J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
 
-J.ALLYAI.MenuCommand = (isEnabled) =>
-{
-  return {
-    name: J.ALLYAI.Metadata.AllyAiCommandName,
-    symbol: 'ally-ai',
-    enabled: isEnabled,
-    ext: null,
-    icon: J.ALLYAI.Metadata.AllyAiCommandIconIndex,
-    color: 3,
-  };
-};
-
 /**
  * A collection of all aliased methods for this plugin.
  */
@@ -284,7 +272,7 @@ J.ALLYAI.Aliased = {
   JABS_AiManager: new Map(),
   JABS_Battler: {},
   Scene_Map: {},
-  Window_AbsMenu: {},
+  Window_AbsMenu: new Map(),
   Window_AbsMenuSelect: {},
 };
 //#endregion plugin setup and configuration
@@ -2248,22 +2236,48 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
 
 //#region Window_AbsMenu
 /**
- * Extends the JABS quick menu to include ally ai management.
+ * Extends {@link #buildCommands}.
+ * Adds the ally ai management command at the end of the list.
+ * @returns {BuiltWindowCommand[]}
  */
-J.ALLYAI.Aliased.Window_AbsMenu.makeCommandList = Window_AbsMenu.prototype.makeCommandList;
-Window_AbsMenu.prototype.makeCommandList = function()
+J.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+Window_AbsMenu.prototype.buildCommands = function()
 {
-  J.ALLYAI.Aliased.Window_AbsMenu.makeCommandList.call(this);
-  if (!$dataSystem) return;
+  // perform original logic to get base commands.
+  const originalCommands = J.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
 
   // if the switch is disabled, then the command won't even appear in the menu.
-  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return;
+  if (!this.canAddAllyAiCommand()) return originalCommands;
 
   // if followers aren't being used, then this command will be disabled.
-  const enabled = $gamePlayer.followers()
-    .isVisible();
-  const newCommand = J.ALLYAI.MenuCommand(enabled);
-  this._list.splice(this._list.length - 2, 0, newCommand);
+  const enabled = $gamePlayer.followers().isVisible();
+
+  // build the command.
+  const command = new WindowCommandBuilder(J.ALLYAI.Metadata.AllyAiCommandName)
+    .setSymbol('ally-ai')
+    .setEnabled(enabled)
+    .setIconIndex(J.ALLYAI.Metadata.AllyAiCommandIconIndex)
+    .setColorIndex(27)
+    .build();
+
+  // add the new command.
+  originalCommands.push(command);
+
+  // return the updated command list.
+  return originalCommands;
+};
+
+/**
+ * Determines whether or not the ally ai management command can be added to the JABS menu.
+ * @returns {boolean} True if the command should be added, false otherwise.
+ */
+Window_AbsMenu.prototype.canAddAllyAiCommand = function()
+{
+  // if the necessary switch isn't ON, don't render the command at all.
+  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
+
+  // render the command!
+  return true;
 };
 //#endregion Window_AbsMenu
 

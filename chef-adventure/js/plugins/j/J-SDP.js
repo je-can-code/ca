@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Dec 04 2022 12:23:54 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 08 2022 16:38:19 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -609,22 +609,11 @@ J.SDP.Metadata = {
    * @type {boolean}
    */
   JabsShowBoth: J.SDP.PluginParameters['Show In Both'] === "true",
-};
 
-/**
- * The default shape of the menu command.
- * @param {boolean} isEnabled Whether or not the command is enabled.
- */
-J.SDP.MenuCommand = isEnabled =>
-{
-  return {
-    name: "Distribute",
-    symbol: "sdp-menu",
-    enabled: isEnabled,
-    ext: null,
-    icon: J.SDP.Metadata.JabsMenuIcon,
-    color: 1,
-  }
+  /**
+   * The command name for the SDP command.
+   */
+  CommandName: "Distribute",
 };
 
 /**
@@ -638,10 +627,10 @@ J.SDP.Aliased = {
   Game_Enemy: new Map(),
   Game_Switches: {},
   Game_System: new Map(),
-  Scene_Map: {},
-  Scene_Menu: {},
-  Window_AbsMenu: {},
-  Window_MenuCommand: {},
+  Scene_Map: new Map(),
+  Scene_Menu: new Map(),
+  Window_AbsMenu: new Map(),
+  Window_MenuCommand: new Map(),
 };
 
 /**
@@ -659,7 +648,7 @@ J.SDP.RegExp = {
  */
 PluginManager.registerCommand(J.SDP.Metadata.Name, "Call SDP Menu", () =>
 {
-  SceneManager.push(Scene_SDP);
+  Scene_SDP.callScene();
 });
 
 /**
@@ -2287,11 +2276,17 @@ Game_Troop.prototype.sdpTotal = function()
 /**
  * Adds the functionality for calling the SDP menu from the JABS quick menu.
  */
-J.SDP.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
+J.SDP.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.createJabsAbsMenuMainWindow);
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
-  J.SDP.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
-  this._j._absMenu._mainWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
+  // perform original logic.
+  J.SDP.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow').call(this);
+
+  // grab the list window.
+  const mainMenuWindow = this.getJabsMainListWindow();
+
+  // add an additional handler for the new menu.
+  mainMenuWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
 };
 
 /**
@@ -2299,7 +2294,7 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
  */
 Scene_Map.prototype.commandSdp = function()
 {
-  SceneManager.push(Scene_SDP);
+  Scene_SDP.callScene();
 };
 //#endregion Scene_Map
 
@@ -2307,10 +2302,13 @@ Scene_Map.prototype.commandSdp = function()
 /**
  * Hooks into the command window creation of the menu to add functionality for the SDP menu.
  */
-J.SDP.Aliased.Scene_Menu.createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+J.SDP.Aliased.Scene_Menu.set('createCommandWindow', Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function()
 {
-  J.SDP.Aliased.Scene_Menu.createCommandWindow.call(this);
+  // perform original logic.
+  J.SDP.Aliased.Scene_Menu.get('createCommandWindow').call(this);
+
+  // add an additional handler for the new menu.
   this._commandWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
 };
 
@@ -2319,13 +2317,21 @@ Scene_Menu.prototype.createCommandWindow = function()
  */
 Scene_Menu.prototype.commandSdp = function()
 {
-  SceneManager.push(Scene_SDP);
+  Scene_SDP.callScene();
 };
 //#endregion Scene_Menu
 
 //#region Scene_SDP
 class Scene_SDP extends Scene_MenuBase
 {
+  /**
+   * Calls this scene.
+   */
+  static callScene()
+  {
+    SceneManager.push(this);
+  }
+
   constructor()
   {
     super();
@@ -2669,20 +2675,48 @@ class Scene_SDP extends Scene_MenuBase
 if (J.ABS)
 {
   /**
-   * Extends the make command list for the JABS quick menu to include SDP, if it meets the conditions.
+   * Extends {@link #buildCommands}.
+   * Adds the sdp command at the end of the list.
+   * @returns {BuiltWindowCommand[]}
    */
-  J.SDP.Aliased.Window_AbsMenu.makeCommandList = Window_AbsMenu.prototype.makeCommandList;
-  Window_AbsMenu.prototype.makeCommandList = function()
+  J.SDP.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+  Window_AbsMenu.prototype.buildCommands = function()
   {
-    J.SDP.Aliased.Window_AbsMenu.makeCommandList.call(this);
+    // perform original logic to get the base commands.
+    const originalCommands = J.SDP.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+
     // if the SDP switch is not ON, then this menu command is not present.
-    if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
+    if (!this.canAddSdpCommand()) return originalCommands;
 
-    // The menu shouldn't be accessible if there are no panels to work with.
-    const enabled = true;//$gameSystem.getUnlockedSdps().length;
+    // The menu shouldn't be accessible if there are no panels to work with?
+    const enabled = $gameSystem.getAllSdps().length > 0;
 
-    const sdpCommand = J.SDP.MenuCommand(enabled);
-    this._list.splice(this._list.length - 2, 0, sdpCommand);
+    // build the command.
+    const command = new WindowCommandBuilder(J.SDP.Metadata.CommandName)
+      .setSymbol("sdp-menu")
+      .setEnabled(enabled)
+      .setIconIndex(J.SDP.Metadata.JabsMenuIcon)
+      .setColorIndex(1)
+      .build();
+
+    // add the new command.
+    originalCommands.push(command);
+
+    // return the updated command list.
+    return originalCommands;
+  };
+
+  /**
+   * Determines whether or not the sdp command can be added to the JABS menu.
+   * @returns {boolean} True if the command should be added, false otherwise.
+   */
+  Window_AbsMenu.prototype.canAddSdpCommand = function()
+  {
+    // if the necessary switch isn't ON, don't render the command at all.
+    if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return false;
+
+    // render the command!
+    return true;
   };
 }
 //#endregion Window_AbsMenu
@@ -2691,29 +2725,57 @@ if (J.ABS)
 /**
  * Extends the make command list for the main menu to include SDP, if it meets the conditions.
  */
-J.SDP.Aliased.Window_MenuCommand.makeCommandList = Window_MenuCommand.prototype.makeCommandList;
+J.SDP.Aliased.Window_MenuCommand.set('makeCommandList', Window_MenuCommand.prototype.makeCommandList);
 Window_MenuCommand.prototype.makeCommandList = function()
 {
-  J.SDP.Aliased.Window_MenuCommand.makeCommandList.call(this);
-  // if the SDP switch is not ON, then this menu command is not present.
-  if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return;
+  // perform original logic.
+  J.SDP.Aliased.Window_MenuCommand.get('makeCommandList').call(this);
 
-  // if we're using JABS but not allowing to show this command in both menus, then skip.
-  if (J.ABS && !J.SDP.Metadata.JabsShowBoth) return;
+  // if we cannot add the command, then do not.
+  if (!this.canAddSdpCommand()) return;
 
   // The menu shouldn't be accessible if there are no panels to work with.
   const enabled = $gameSystem.getUnlockedSdps().length;
 
-  const sdpCommand = J.SDP.MenuCommand(enabled);
-  const lastCommand = this._list[this._list.length - 1];
+  // build the command.
+  const command = new WindowCommandBuilder(J.SDP.Metadata.CommandName)
+    .setSymbol("sdp-menu")
+    .setEnabled(enabled)
+    .setIconIndex(J.SDP.Metadata.JabsMenuIcon)
+    .setColorIndex(1)
+    .build();
+
+  // determine what the last command is.
+  const lastCommand = this._list.at(-1);
+
+  // check if the last command is the "End Game" command.
   if (lastCommand.symbol === "gameEnd")
   {
-    this._list.splice(this._list.length - 2, 0, sdpCommand);
+    // add it before the "End Game" command.
+    this._list.splice(this._list.length - 2, 0, command);
   }
+  // the last command is something else.
   else
   {
-    this._list.splice(this._list.length - 1, 0, sdpCommand);
+    // just add it to the end.
+    this.addBuiltCommand(command);
   }
+};
+
+/**
+ * Determines whether or not the sdp command can be added to the JABS menu.
+ * @returns {boolean} True if the command should be added, false otherwise.
+ */
+Window_MenuCommand.prototype.canAddSdpCommand = function()
+{
+  // if the necessary switch isn't ON, don't render the command at all.
+  if (!$gameSwitches.value(J.SDP.Metadata.Switch)) return false;
+
+  // if we're using JABS but not allowing to show this command in both menus, then skip.
+  if (J.ABS && !J.SDP.Metadata.JabsShowBoth) return false;
+
+  // render the command!
+  return true;
 };
 //#endregion Window_MenuCommand
 
