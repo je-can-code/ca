@@ -48,6 +48,14 @@ J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.0';
 J.OMNI.EXT.MONSTER.PluginParameters = PluginManager.parameters(J.OMNI.EXT.MONSTER.Metadata.Name);
 
 /**
+ * The various data points that define the command for the Omnipedia.
+ */
+J.OMNI.EXT.MONSTER.Metadata.Command = {};
+J.OMNI.EXT.MONSTER.Metadata.Command.Name = "Monsterpedia";
+J.OMNI.EXT.MONSTER.Metadata.Command.Symbol = "monster-pedia";
+J.OMNI.EXT.MONSTER.Metadata.Command.IconIndex = 14;
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.OMNI.EXT.MONSTER.Aliased = {};

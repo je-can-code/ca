@@ -284,35 +284,6 @@ J.BASE.Helpers.translateItem = function(id, type)
 };
 
 /**
- * Parses out a skill chance based on the regex from the reference data.
- * @param {RegExp} structure The RegExp expression to match.
- * @param {RPG_BaseItem} referenceData The reference data to parse.
- * @returns {JABS_OnChanceEffect[]}
- */
-J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const skills = [];
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      const skillChance = new JABS_OnChanceEffect(
-        parseInt(data[0]),
-        parseInt(data[1]),
-        J.BASE.Helpers.getKeyFromRegexp(structure));
-      skills.push(skillChance);
-    }
-  });
-
-  return skills;
-};
-
-/**
  * Extracts the key portion from a tag.
  * Captures everything between the `<` and `:`.
  *

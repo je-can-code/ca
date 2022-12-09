@@ -4854,62 +4854,154 @@ JABS_Battler.prototype.createToolLog = function(item)
 
 /**
  * Executes the pre-defeat processing for a battler.
- * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
  */
 JABS_Battler.prototype.performPredefeatEffects = function(victor)
 {
+  // handle death animations first.
+  this.handleOnDeathAnimations();
+
+  // handle the skills executed when this battler is defeated.
+  this.handleOnOwnDefeatSkills(victor);
+
+  // handle skills executed when the victor defeats a target.
+  this.handleOnTargetDefeatSkills(victor);
+};
+
+/**
+ * Handles the on-death animations associated with this battler.
+ */
+JABS_Battler.prototype.handleOnDeathAnimations = function()
+{
+  // grab the loser battler.
   const battler = this.getBattler();
-  if (this.isActor() && battler.needsDeathEffect())
-  {
-    this.showAnimation(152);
-    battler.toggleDeathEffect();
-  }
-  else if (this.isEnemy())
-  {
-    this.showAnimation(151);
-  }
 
-  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
-  if (onOwnDefeatSkills.length)
+  // check if this is an actor with a death effect.
+  if (battler.isActor() && battler.needsDeathEffect())
   {
-    onOwnDefeatSkills.forEach(onDefeatSkill =>
-    {
-      if (onDefeatSkill.shouldTrigger())
-      {
-        $jabsEngine.forceMapAction(this, onDefeatSkill.skillId, false);
-      }
-    });
+    // perform the actor death animation.
+    this.handleActorOnDeathAnimation();
   }
-
-  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
-  if (onTargetDefeatSkills.length)
+  // if not actor, then check for an enemy.
+  else if (battler.isEnemy())
   {
-    onTargetDefeatSkills.forEach(onDefeatSkill =>
-    {
-      const castFromTarget = onDefeatSkill.appearOnTarget();
-      if (onDefeatSkill.shouldTrigger())
-      {
-        if (castFromTarget)
-        {
-          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false, this.getX(), this.getY());
-        }
-        else
-        {
-          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false);
-        }
-      }
-    });
+    // perform the enemy death animation.
+    this.handleEnemyOnDeathAnimation();
   }
 };
 
 /**
+ * Handles the on-death animation for actors.
+ * Since actors will persist as followers after defeat, they require additional
+ * logic to prevent the repeated loop of death animation.
+ */
+JABS_Battler.prototype.handleActorOnDeathAnimation = function()
+{
+  // perform the actor death animation.
+  this.showAnimation(152);
+
+  // flag the death effect as "performed".
+  this.getBattler().toggleDeathEffect();
+};
+
+/**
+ * Handle the on-death animation for enemies.
+ * Since they are instantly removed after, their logic doesn't require
+ * toggling of battler death effects.
+ */
+JABS_Battler.prototype.handleEnemyOnDeathAnimation = function()
+{
+  // perform the enemy death animation.
+  this.showAnimation(151);
+};
+
+/**
+ * Handles the execution of any on-own-defeat skills the defeated battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
+{
+  // grab the loser battler.
+  const battler = this.getBattler();
+
+  // grab all of the loser battler's on-death skills to execute.
+  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
+
+  // iterate over each of the on-death skills.
+  onOwnDefeatSkills.forEach(onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-own-death skill.
+    if (shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(this, skillId, false, victor.getX(), victor.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(this, skillId, false);
+      }
+    }
+  });
+};
+
+/**
+ * Handles the execution of any on-target-defeat skills the victorious battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
+{
+  // grab all of the victor battler's on-target-defeat skills.
+  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
+
+  // iterate over each the on-target-defeat skills.
+  onTargetDefeatSkills.forEach(onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-target-defeat skill.
+    if (shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(victor, skillId, false, this.getX(), this.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(victor, skillId, false);
+      }
+    }
+  });
+};
+
+/**
  * Executes the post-defeat processing for a defeated battler.
- * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
  */
 JABS_Battler.prototype.performPostdefeatEffects = function(victor)
 {
+  // check if the defeated battler is an actor.
   if (this.isActor())
   {
+    // flag them for death.
     this.setDying(true);
   }
 };

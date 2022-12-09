@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 07 2022 17:37:58 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -178,6 +178,7 @@
  * ============================================================================
  */
 
+//#region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -191,23 +192,32 @@ J.EXTEND = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.EXTEND.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-SkillExtend`,
+J.EXTEND.Metadata = {};
 
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
+/**
+ * The name of this plugin.
+ */
+J.EXTEND.Metadata.Name = `J-SkillExtend`;
 
-J.EXTEND.Aliased = {
-  Game_Action: new Map(),
-  Game_Item: new Map(),
-};
-//#endregion Introduction
+/**
+ * The version of this plugin.
+ */
+J.EXTEND.Metadata.Version = '1.0.0';
+
+/**
+ * A collection of all aliased methods for this plugin.
+ */
+J.EXTEND.Aliased = {};
+J.EXTEND.Aliased.Game_Action = new Map();
+J.EXTEND.Aliased.Game_Item = new Map();
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.EXTEND.RegExp = {};
+J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+//#endregion Metadata
 
 //#region OverlayManager
 /**
@@ -910,7 +920,6 @@ class OverlayManager
 
     // strip out all tags that match the regex.
     baseSkill.deleteNotedata(structure);
-    //baseSkill.note = baseSkill.note.replace(structure, String.empty);
 
     // determine the key from the regex.
     const key = J.BASE.Helpers.getKeyFromRegexp(structure);
@@ -982,31 +991,44 @@ class OverlayManager
 
 //#region Game_Action
 /**
- * Basically replaces `setSkill()` with setting the skill to instead set our extended skill.
+ * Overwrites {@link #setSkill}.
+ * If a caster is available to this action, then update the udnerlying skill with
+ * the overlayed skill instead.
  */
 J.EXTEND.Aliased.Game_Action.set('setSkill', Game_Action.prototype.setSkill);
 Game_Action.prototype.setSkill = function(skillId)
 {
+  // check if we are missing a caster.
   if (!this.subject())
   {
+    // perform original logic.
     J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
+
+    // stop processing.
     return;
   }
 
-  // assign the overlayed skill to the object instead.
+  // build the extended skill.
   const skillToSet = OverlayManager.getExtendedSkill(this.subject(), skillId);
+
+  // assign the overlayed skill to the object instead.
   this._item.setObject(skillToSet);
 };
 
 /**
- * Basically replaces `setItemObject()` with setting the skill to instead set our extended skill.
+ * Overwrites {@link #setItemObject}.
+ * If a caster is available to this action, then update the underlying item with the data.
  */
 J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
 Game_Action.prototype.setItemObject = function(itemObject)
 {
+  // check if we are missing a caster.
   if (!this.subject())
   {
+    // perform original logic.
     J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemObject);
+
+    // stop processing.
     return;
   }
 
@@ -1015,7 +1037,8 @@ Game_Action.prototype.setItemObject = function(itemObject)
 };
 
 /**
- * Extends `apply()` to include applying states to one-self.
+ * Extends {@link #apply}.
+ * Also applies on-hit states.
  */
 J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target)
@@ -1037,37 +1060,26 @@ Game_Action.prototype.applyOnHitSelfStates = function()
 };
 
 /**
- * Gets all possible states that could be self-inflicted
- * when this skill hits a target.
+ * Gets all possible states that could be self-inflicted when this skill hits a target.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Action.prototype.onHitSelfStates = function()
 {
-  const sources = [];
-
-  // get the skill and its overlays.
-  sources.push(this.item());
-
-  if (J.PASSIVE)
-  {
-    sources.push(...this.subject().allStates());
-  }
-
-  const structure = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const stateChances = [];
+  // grab all the self-state sources.
+  const sources = this.selfStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  sources.forEach(obj =>
-  {
-    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
-    stateChances.push(...chances);
-  });
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    sources,
+    J.EXTEND.RegExp.OnHitSelfState);
 
+  // return what we found.
   return stateChances;
 };
 
 /**
- * Extends the `applyItemUserEffect()` function with additional on-cast effects.
+ * Extends {@link #applyItemUserEffect}.
+ * Also applies on-cast states.
  */
 J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.applyItemUserEffect);
 Game_Action.prototype.applyItemUserEffect = function(target)
@@ -1089,38 +1101,45 @@ Game_Action.prototype.applyOnCastSelfStates = function()
 };
 
 /**
- * Gets all possible states that could be self-inflicted
- * when casting this skill.
+ * Gets all possible states that could be self-inflicted when casting this skill.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Action.prototype.onCastSelfStates = function()
 {
-  const sources = [];
-
-  // get the skill and its overlays.
-  sources.push(this.item());
-
-  if (J.PASSIVE)
-  {
-    sources.push(...this.subject().allStates());
-  }
-
-  const structure = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const stateChances = [];
+  // grab all the self-state sources.
+  const sources = this.selfStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  sources.forEach(obj =>
-  {
-    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
-    stateChances.push(...chances);
-  });
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    sources,
+    J.EXTEND.RegExp.OnCastSelfState);
 
+  // return what we found.
   return stateChances;
 };
 
 /**
+ * All sources to derive self-applied states from.
+ * @returns {(RPG_UsableItem|RPG_State)[]}
+ */
+Game_Action.prototype.selfStateSources = function()
+{
+  // define the sources for this action.
+  const sources = [
+    // this action itself is a source (the underlying item/skill).
+    this.item(),
+
+    // the caster's states also apply as a source.
+    ...this.subject().allStates(),
+  ];
+
+  // return what we found.
+  return sources;
+};
+
+/**
  * Applies the given states to the target.
- * @param target {Game_Actor|Game_Enemy} The targe to apply states to.
+ * @param target {Game_Actor|Game_Enemy} The target to apply states to.
  * @param stateChances {JABS_OnChanceEffect[]} The various states to potentially apply.
  */
 Game_Action.prototype.applyStates = function(target, stateChances)
@@ -1130,11 +1149,14 @@ Game_Action.prototype.applyStates = function(target, stateChances)
     // iterate over each of them and see if we should apply them.
     stateChances.forEach(stateChance =>
     {
-      // if the RNG favors this caster...
-      if (stateChance.shouldTrigger())
+      // extract the data points from the on-chance effect.
+      const { shouldTrigger, skillId } = stateChance;
+
+      // roll the dice to see if the on-chance effect applies.
+      if (shouldTrigger())
       {
-        // ...then we apply the given state.
-        target.addState(stateChance.skillId, this.subject());
+        // apply the given state to the caster, with the caster as the attacker.
+        target.addState(skillId, this.subject());
       }
     });
   }

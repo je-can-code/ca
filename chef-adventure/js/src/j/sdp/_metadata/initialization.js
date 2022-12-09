@@ -183,22 +183,11 @@ J.SDP.Metadata = {
    * @type {boolean}
    */
   JabsShowBoth: J.SDP.PluginParameters['Show In Both'] === "true",
-};
 
-/**
- * The default shape of the menu command.
- * @param {boolean} isEnabled Whether or not the command is enabled.
- */
-J.SDP.MenuCommand = isEnabled =>
-{
-  return {
-    name: "Distribute",
-    symbol: "sdp-menu",
-    enabled: isEnabled,
-    ext: null,
-    icon: J.SDP.Metadata.JabsMenuIcon,
-    color: 1,
-  }
+  /**
+   * The command name for the SDP command.
+   */
+  CommandName: "Distribute",
 };
 
 /**
@@ -212,10 +201,10 @@ J.SDP.Aliased = {
   Game_Enemy: new Map(),
   Game_Switches: {},
   Game_System: new Map(),
-  Scene_Map: {},
-  Scene_Menu: {},
-  Window_AbsMenu: {},
-  Window_MenuCommand: {},
+  Scene_Map: new Map(),
+  Scene_Menu: new Map(),
+  Window_AbsMenu: new Map(),
+  Window_MenuCommand: new Map(),
 };
 
 /**
@@ -233,7 +222,7 @@ J.SDP.RegExp = {
  */
 PluginManager.registerCommand(J.SDP.Metadata.Name, "Call SDP Menu", () =>
 {
-  SceneManager.push(Scene_SDP);
+  Scene_SDP.callScene();
 });
 
 /**

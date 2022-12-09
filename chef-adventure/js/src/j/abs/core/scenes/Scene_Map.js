@@ -47,16 +47,127 @@ Scene_Map.prototype.initJabsMembers = function()
  */
 Scene_Map.prototype.initJabsMenu = function()
 {
+  /**
+   * The over-arching container for all things relating to the JABS menu.
+   */
   this._j._absMenu = {};
+
+  /**
+   * The current focus that represents which submenu is selected.
+   * @type {string|null}
+   */
   this._j._absMenu._windowFocus = null;
+
+  /**
+   * The type of equip that is being equipped.
+   * @type {string|null}
+   */
   this._j._absMenu._equipType = null;
+
+  /**
+   * The primary list window of commands within the JABS menu.
+   * @type {Window_AbsMenu|null}
+   */
   this._j._absMenu._mainWindow = null;
+
+  /**
+   * The window containing the list of equippable combat skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._skillWindow = null;
+
+  /**
+   * The window containing the list of equippable tools.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._toolWindow = null;
+
+  /**
+   * The window containing the list of equippable dodge skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._dodgeWindow = null;
+
+  /**
+   * The window containing the currently equipped combat skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipSkillWindow = null;
+
+  /**
+   * The window containing the currently equipped tool.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipToolWindow = null;
+
+  /**
+   * The window containing the currently equipped dodge skill.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipDodgeWindow = null;
+};
+
+/**
+ * Gets the main list window of the JABS menu.
+ * @returns {Window_AbsMenu|null}
+ */
+Scene_Map.prototype.getJabsMainListWindow = function()
+{
+  return this._j._absMenu._mainWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable combat skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsCombatSkillEquippablesListWindow = function()
+{
+  return this._j._absMenu._skillWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable tools.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsToolEquippablesListWindow = function()
+{
+  return this._j._absMenu._toolWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable dodge skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsDodgeSkillEquippablesListWindow = function()
+{
+  return this._j._absMenu._dodgeWindow;
+};
+
+/**
+ * Gets the window containing the list of equipped combat skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedCombatSkillsWindow = function()
+{
+  return this._j._absMenu._equipSkillWindow;
+};
+
+/**
+ * Gets the window containing the equipped tool.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedToolWindow = function()
+{
+  return this._j._absMenu._equipToolWindow;
+};
+
+/**
+ * Gets the window containing the equipped dodge skill.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedDodgeSkillWindow = function()
+{
+  return this._j._absMenu._equipDodgeWindow;
 };
 
 /**
@@ -183,11 +294,7 @@ Scene_Map.prototype.createJabsAbsMenu = function()
  */
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
-  const w = 400;
-  const h = 334;
-  const x = Graphics.boxWidth - w;
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
+  const rect = this.jabsAbsMenuMainWindowRectangle();
   const mainMenu = new Window_AbsMenu(rect);
   mainMenu.setHandler("skill-assign", this.commandSkill.bind(this));
   mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
@@ -198,6 +305,20 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
   this._j._absMenu._mainWindow.close();
   this._j._absMenu._mainWindow.hide();
   this.addWindow(this._j._absMenu._mainWindow);
+};
+
+/**
+ * Get the rectangle associated with the main list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsAbsMenuMainWindowRectangle = function()
+{
+  const commandHeight = 36;
+  const w = 400;
+  const h = commandHeight * 8;
+  const x = Graphics.boxWidth - w;
+  const y = 200;
+  return new Rectangle(x, y, w, h);
 };
 
 /**

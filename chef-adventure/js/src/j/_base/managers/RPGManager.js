@@ -100,7 +100,7 @@ class RPGManager
     databaseDatas.forEach(databaseData =>
     {
       // build concrete on-chance-effects for each instance on the checkable.
-      const onChanceEffectList = J.BASE.Helpers.parseSkillChance(structure, databaseData);
+      const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
 
       // add it to the collection.
       onChanceEffects.push(...onChanceEffectList);
@@ -108,6 +108,40 @@ class RPGManager
 
     // return what was found.
     return onChanceEffects;
+  }
+
+  /**
+   * Collects all {@link JABS_OnChanceEffect}s from a single database objects.
+   * @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
+   * @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+   * @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
+   */
+  static getOnChanceEffectsFromDatabaseObject(databaseData, structure)
+  {
+    // scan the object for matching on-chance data based on the given regex.
+    const foundDatas = databaseData.getArraysFromNotesByRegex(structure);
+
+    // if we found no data, then don't bother.
+    if (!foundDatas) return [];
+
+    // determine the key based on the regexp provided.
+    const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+
+    // a mapper function for mapping array data points to an on-chance effect.
+    const mapper = data =>
+    {
+      // extract the data points from the array found.
+      const [skillId, chance] = data;
+
+      // return the built on-chance effect with the given data.
+      return new JABS_OnChanceEffect(skillId, chance, key);
+    };
+
+    // map all the found on-chance effects.
+    const mappedOnChanceEffects = foundDatas.map(mapper, this);
+
+    // return what we found.
+    return mappedOnChanceEffects;
   }
 
   /**
@@ -123,11 +157,6 @@ class RPGManager
 
     // scan all the database datas.
     return databaseDatas.some(regexMatchExists);
-  }
-
-  static getArrayOfArraysFromDatabaseObjects(databaseDatas, structure)
-  {
-
   }
 }
 //#endregion RPGManager

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 07 2022 06:31:36 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 07 2022 17:24:14 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -345,35 +345,6 @@ J.BASE.Helpers.translateItem = function(id, type)
     case "a":
       return $dataArmors[id];
   }
-};
-
-/**
- * Parses out a skill chance based on the regex from the reference data.
- * @param {RegExp} structure The RegExp expression to match.
- * @param {RPG_BaseItem} referenceData The reference data to parse.
- * @returns {JABS_OnChanceEffect[]}
- */
-J.BASE.Helpers.parseSkillChance = function(structure, referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const skills = [];
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      const skillChance = new JABS_OnChanceEffect(
-        parseInt(data[0]),
-        parseInt(data[1]),
-        J.BASE.Helpers.getKeyFromRegexp(structure));
-      skills.push(skillChance);
-    }
-  });
-
-  return skills;
 };
 
 /**
@@ -4090,7 +4061,7 @@ class RPGManager
     databaseDatas.forEach(databaseData =>
     {
       // build concrete on-chance-effects for each instance on the checkable.
-      const onChanceEffectList = J.BASE.Helpers.parseSkillChance(structure, databaseData);
+      const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
 
       // add it to the collection.
       onChanceEffects.push(...onChanceEffectList);
@@ -4098,6 +4069,40 @@ class RPGManager
 
     // return what was found.
     return onChanceEffects;
+  }
+
+  /**
+   * Collects all {@link JABS_OnChanceEffect}s from a single database objects.
+   * @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
+   * @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+   * @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
+   */
+  static getOnChanceEffectsFromDatabaseObject(databaseData, structure)
+  {
+    // scan the object for matching on-chance data based on the given regex.
+    const foundDatas = databaseData.getArraysFromNotesByRegex(structure);
+
+    // if we found no data, then don't bother.
+    if (!foundDatas) return [];
+
+    // determine the key based on the regexp provided.
+    const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+
+    // a mapper function for mapping array data points to an on-chance effect.
+    const mapper = data =>
+    {
+      // extract the data points from the array found.
+      const [skillId, chance] = data;
+
+      // return the built on-chance effect with the given data.
+      return new JABS_OnChanceEffect(skillId, chance, key);
+    };
+
+    // map all the found on-chance effects.
+    const mappedOnChanceEffects = foundDatas.map(mapper, this);
+
+    // return what we found.
+    return mappedOnChanceEffects;
   }
 
   /**
@@ -4113,11 +4118,6 @@ class RPGManager
 
     // scan all the database datas.
     return databaseDatas.some(regexMatchExists);
-  }
-
-  static getArrayOfArraysFromDatabaseObjects(databaseDatas, structure)
-  {
-
   }
 }
 //#endregion RPGManager

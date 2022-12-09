@@ -1,6 +1,14 @@
 //#region Scene_SDP
 class Scene_SDP extends Scene_MenuBase
 {
+  /**
+   * Calls this scene.
+   */
+  static callScene()
+  {
+    SceneManager.push(this);
+  }
+
   constructor()
   {
     super();

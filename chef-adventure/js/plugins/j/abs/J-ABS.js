@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Sun Dec 04 2022 12:54:23 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 08 2022 17:17:35 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.1 JABS] Enables combat to be carried out on the map.
+ * [v3.1.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -48,6 +48,9 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.1.2
+ *    Refactored some of the JABS menu in a non-breaking way.
+ *    Optimized/centralized note tag retrieval in many cases.
  * - 3.1.1
  *    Retroactively added this CHANGELOG.
  * - 3.1.0
@@ -1660,7 +1663,7 @@
 //=================================================================================================
 /* eslint-enable max-len */
 
-//#region Introduction
+//#region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -1747,7 +1750,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.1.1';
+J.ABS.Metadata.Version = '3.1.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2359,7 +2362,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 // });
 
 //#endregion Plugin Command Registration
-//#endregion Introduction
+//#endregion Metadata
 
 //#region JABS_Action
 /**
@@ -8126,62 +8129,154 @@ JABS_Battler.prototype.createToolLog = function(item)
 
 /**
  * Executes the pre-defeat processing for a battler.
- * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
  */
 JABS_Battler.prototype.performPredefeatEffects = function(victor)
 {
+  // handle death animations first.
+  this.handleOnDeathAnimations();
+
+  // handle the skills executed when this battler is defeated.
+  this.handleOnOwnDefeatSkills(victor);
+
+  // handle skills executed when the victor defeats a target.
+  this.handleOnTargetDefeatSkills(victor);
+};
+
+/**
+ * Handles the on-death animations associated with this battler.
+ */
+JABS_Battler.prototype.handleOnDeathAnimations = function()
+{
+  // grab the loser battler.
   const battler = this.getBattler();
-  if (this.isActor() && battler.needsDeathEffect())
-  {
-    this.showAnimation(152);
-    battler.toggleDeathEffect();
-  }
-  else if (this.isEnemy())
-  {
-    this.showAnimation(151);
-  }
 
-  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
-  if (onOwnDefeatSkills.length)
+  // check if this is an actor with a death effect.
+  if (battler.isActor() && battler.needsDeathEffect())
   {
-    onOwnDefeatSkills.forEach(onDefeatSkill =>
-    {
-      if (onDefeatSkill.shouldTrigger())
-      {
-        $jabsEngine.forceMapAction(this, onDefeatSkill.skillId, false);
-      }
-    });
+    // perform the actor death animation.
+    this.handleActorOnDeathAnimation();
   }
-
-  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
-  if (onTargetDefeatSkills.length)
+  // if not actor, then check for an enemy.
+  else if (battler.isEnemy())
   {
-    onTargetDefeatSkills.forEach(onDefeatSkill =>
-    {
-      const castFromTarget = onDefeatSkill.appearOnTarget();
-      if (onDefeatSkill.shouldTrigger())
-      {
-        if (castFromTarget)
-        {
-          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false, this.getX(), this.getY());
-        }
-        else
-        {
-          $jabsEngine.forceMapAction(victor, onDefeatSkill.skillId, false);
-        }
-      }
-    });
+    // perform the enemy death animation.
+    this.handleEnemyOnDeathAnimation();
   }
 };
 
 /**
+ * Handles the on-death animation for actors.
+ * Since actors will persist as followers after defeat, they require additional
+ * logic to prevent the repeated loop of death animation.
+ */
+JABS_Battler.prototype.handleActorOnDeathAnimation = function()
+{
+  // perform the actor death animation.
+  this.showAnimation(152);
+
+  // flag the death effect as "performed".
+  this.getBattler().toggleDeathEffect();
+};
+
+/**
+ * Handle the on-death animation for enemies.
+ * Since they are instantly removed after, their logic doesn't require
+ * toggling of battler death effects.
+ */
+JABS_Battler.prototype.handleEnemyOnDeathAnimation = function()
+{
+  // perform the enemy death animation.
+  this.showAnimation(151);
+};
+
+/**
+ * Handles the execution of any on-own-defeat skills the defeated battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
+{
+  // grab the loser battler.
+  const battler = this.getBattler();
+
+  // grab all of the loser battler's on-death skills to execute.
+  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
+
+  // iterate over each of the on-death skills.
+  onOwnDefeatSkills.forEach(onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-own-death skill.
+    if (shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(this, skillId, false, victor.getX(), victor.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(this, skillId, false);
+      }
+    }
+  });
+};
+
+/**
+ * Handles the execution of any on-target-defeat skills the victorious battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
+{
+  // grab all of the victor battler's on-target-defeat skills.
+  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
+
+  // iterate over each the on-target-defeat skills.
+  onTargetDefeatSkills.forEach(onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-target-defeat skill.
+    if (shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(victor, skillId, false, this.getX(), this.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(victor, skillId, false);
+      }
+    }
+  });
+};
+
+/**
  * Executes the post-defeat processing for a defeated battler.
- * @param {JABS_Battler} victor The `JABS_Battler` that defeated this battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
  */
 JABS_Battler.prototype.performPostdefeatEffects = function(victor)
 {
+  // check if the defeated battler is an actor.
   if (this.isActor())
   {
+    // flag them for death.
     this.setDying(true);
   }
 };
@@ -10790,6 +10885,30 @@ class JABS_LootDrop
  */
 class JABS_OnChanceEffect
 {
+  /**
+   * The skill id associated with this on-chance effect.
+   * @type {number}
+   */
+  skillId = 0;
+
+  /**
+   * The percent chance of success as an integer between 0-99.
+   * @type {number}
+   */
+  chance = 0;
+
+  /**
+   * The key that this on-chance effect was derived from.
+   * @type {string}
+   */
+  key = String.empty;
+
+  /**
+   * Constructor.
+   * @param {number} skillId The id of the skill associated with this on-chance effect.
+   * @param {number} chance A number between 1-100 representing the percent chance of success.
+   * @param {string} key The key associated with this on-chance effect.
+   */
   constructor(skillId, chance, key)
   {
     this.skillId = skillId;
@@ -10798,12 +10917,22 @@ class JABS_OnChanceEffect
   }
 
   /**
-   * Gets the underlying skill.
+   * Gets the underlying skill for this on-chance effect.
+   * If a battler is provided, then the skill of the battler's perception will be used instead.
+   * @param {Game_Battler|Game_Actor|Game_Enemy=} battler The target perceiving the skill; defaults to none.
    * @returns {RPG_Skill}
    */
-  baseSkill()
+  baseSkill(battler = null)
   {
-    return $dataSkills[this.skillId];
+    // check if a battler was provided.
+    if (battler)
+    {
+      // return the battler's perception of this skill.
+      return battler.skill(this.skillId);
+    }
+
+    // no battler, just use the database version of the skill.
+    return $dataSkills.at(this.skillId);
   }
 
   /**
@@ -10813,8 +10942,12 @@ class JABS_OnChanceEffect
    */
   appearOnTarget()
   {
+    // grab the underlying skill for this on-chance effect.
     const skill = this.baseSkill();
-    return !!skill.meta["onDefeatedTarget"];
+
+    //
+    return skill.getBooleanFromNotesByRegex(/<onDefeatedTarget>/gi);
+    //return !!skill.meta["onDefeatedTarget"];
   }
 
   /**
@@ -10825,6 +10958,9 @@ class JABS_OnChanceEffect
    */
   shouldTrigger(rollForPositive = 1, rollForNegative = 0)
   {
+    // 0% chance skills should never trigger.
+    if (this.chance === 0) return false;
+
     // default fail.
     let success = false;
 
@@ -10851,6 +10987,9 @@ class JABS_OnChanceEffect
       // keep rolling for negative while we have negative rerolls and are still successful.
       while (rollForNegative && success)
       {
+        // roll for effect!
+        const chance = Math.randomInt(100) + 1;
+
         // check if the roll meets the chance criteria.
         if (chance <= this.chance)
         {
@@ -10860,8 +10999,8 @@ class JABS_OnChanceEffect
         // we didn't meet the chance criteria this time.
         else
         {
-          // undo our success :(
-          success = false;
+          // undo our success and stop rolling :(
+          return false;
         }
 
         // decrement the negative reroll counter.
@@ -19282,19 +19421,19 @@ class JABS_Engine
     this.preExecuteSkillEffects(action, target);
 
     // get whether or not this action was unparryable.
-    let isUnparryable = (action.isUnparryable());
+    let isUnparryable = action.isUnparryable();
 
-    // if the target is a player and also dashing...
+    // check if the target is a player and also dashing.
     if (target.isPlayer() && target.getCharacter().isDashButtonPressed())
     {
-      // they cannot parry anything.
+      // dashing players cannot parry anything, making the action unparryable.
       isUnparryable = true;
     }
 
     // check whether or not this action was parried.
     const caster = action.getCaster();
     const isParried = isUnparryable
-      ? false // parry is cancelled because the skill ignores it.
+      ? false // parry is cancelled.
       : this.checkParry(caster, target, action);
 
     // check if the action was parried instead.
@@ -19662,22 +19801,16 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
    * @param {JABS_Action} action The action being executed.
-   * @returns {boolean}
+   * @returns {boolean} True if the action was parried, false otherwise.
    */
   checkParry(caster, target, action)
   {
     // cannot parry if not facing target.
-    const isFacing = caster.isFacingTarget(target.getCharacter());
-    if (!isFacing) return false;
+    if (!this.isParryPossible(caster, target)) return false;
 
-    // if the target battler has 0% GRD, they can't parry.
+    // grab the caster and target battlers.
     const targetBattler = target.getBattler();
-    if (targetBattler.grd === 0) return false;
-
     const casterBattler = caster.getBattler();
-
-    // if the attacker has a state that ignores all parry, then skip parrying.
-    if (casterBattler.ignoreAllParry()) return false;
 
     /* eslint-disable */
     /*
@@ -19725,11 +19858,32 @@ class JABS_Engine
     // grab the amount of parry ignored.
     const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) / 100;
 
-    // calculate the parry rate.
-    const parry = parseFloat((targetBattler.grd - 1 - parryIgnored).toFixed(3));
+    // calculate the target's parry rate.
+    const targetGuardRate = (targetBattler.grd - 1) - parryIgnored;
+
+    // truncate the parry rate to 3 places.
+    const parry = parseFloat((targetGuardRate).toFixed(3));
 
     // return whether or not the hit was successful.
     return hit < parry;
+  }
+
+
+  isParryPossible(caster, target)
+  {
+    // cannot parry if not facing target.
+    const isFacing = caster.isFacingTarget(target.getCharacter());
+    if (!isFacing) return false;
+
+    // if the target battler has 0 GRD, they can't parry.
+    if (target.getBattler().grd === 0) return false;
+
+
+    // if the attacker has a state that ignores all parry, then skip parrying.
+    if (caster.getBattler().ignoreAllParry()) return false;
+
+    // parrying is possible!
+    return true;
   }
 
   /**
@@ -26772,16 +26926,127 @@ Scene_Map.prototype.initJabsMembers = function()
  */
 Scene_Map.prototype.initJabsMenu = function()
 {
+  /**
+   * The over-arching container for all things relating to the JABS menu.
+   */
   this._j._absMenu = {};
+
+  /**
+   * The current focus that represents which submenu is selected.
+   * @type {string|null}
+   */
   this._j._absMenu._windowFocus = null;
+
+  /**
+   * The type of equip that is being equipped.
+   * @type {string|null}
+   */
   this._j._absMenu._equipType = null;
+
+  /**
+   * The primary list window of commands within the JABS menu.
+   * @type {Window_AbsMenu|null}
+   */
   this._j._absMenu._mainWindow = null;
+
+  /**
+   * The window containing the list of equippable combat skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._skillWindow = null;
+
+  /**
+   * The window containing the list of equippable tools.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._toolWindow = null;
+
+  /**
+   * The window containing the list of equippable dodge skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._dodgeWindow = null;
+
+  /**
+   * The window containing the currently equipped combat skills.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipSkillWindow = null;
+
+  /**
+   * The window containing the currently equipped tool.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipToolWindow = null;
+
+  /**
+   * The window containing the currently equipped dodge skill.
+   * @type {Window_AbsMenuSelect|null}
+   */
   this._j._absMenu._equipDodgeWindow = null;
+};
+
+/**
+ * Gets the main list window of the JABS menu.
+ * @returns {Window_AbsMenu|null}
+ */
+Scene_Map.prototype.getJabsMainListWindow = function()
+{
+  return this._j._absMenu._mainWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable combat skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsCombatSkillEquippablesListWindow = function()
+{
+  return this._j._absMenu._skillWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable tools.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsToolEquippablesListWindow = function()
+{
+  return this._j._absMenu._toolWindow;
+};
+
+/**
+ * Gets the window containing the list of equippable dodge skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsDodgeSkillEquippablesListWindow = function()
+{
+  return this._j._absMenu._dodgeWindow;
+};
+
+/**
+ * Gets the window containing the list of equipped combat skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedCombatSkillsWindow = function()
+{
+  return this._j._absMenu._equipSkillWindow;
+};
+
+/**
+ * Gets the window containing the equipped tool.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedToolWindow = function()
+{
+  return this._j._absMenu._equipToolWindow;
+};
+
+/**
+ * Gets the window containing the equipped dodge skill.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedDodgeSkillWindow = function()
+{
+  return this._j._absMenu._equipDodgeWindow;
 };
 
 /**
@@ -26908,11 +27173,7 @@ Scene_Map.prototype.createJabsAbsMenu = function()
  */
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
-  const w = 400;
-  const h = 334;
-  const x = Graphics.boxWidth - w;
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
+  const rect = this.jabsAbsMenuMainWindowRectangle();
   const mainMenu = new Window_AbsMenu(rect);
   mainMenu.setHandler("skill-assign", this.commandSkill.bind(this));
   mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
@@ -26923,6 +27184,20 @@ Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
   this._j._absMenu._mainWindow.close();
   this._j._absMenu._mainWindow.hide();
   this.addWindow(this._j._absMenu._mainWindow);
+};
+
+/**
+ * Get the rectangle associated with the main list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsAbsMenuMainWindowRectangle = function()
+{
+  const commandHeight = 36;
+  const w = 400;
+  const h = commandHeight * 8;
+  const x = Graphics.boxWidth - w;
+  const y = 200;
+  return new Rectangle(x, y, w, h);
 };
 
 /**
@@ -28467,12 +28742,56 @@ class Window_AbsMenu extends Window_Command
    */
   makeCommandList()
   {
-    // to adjust the icons, change the number that is the last parameter of these commands.
-    this.addCommand(J.ABS.Metadata.EquipCombatSkillsText, "skill-assign", true, null, 77);
-    this.addCommand(J.ABS.Metadata.EquipDodgeSkillsText, "dodge-assign", true, null, 82);
-    this.addCommand(J.ABS.Metadata.EquipToolsText, "item-assign", true, null, 83);
-    this.addCommand(J.ABS.Metadata.MainMenuText, "main-menu", true, null, 189);
-    this.addCommand(J.ABS.Metadata.CancelText, "cancel", true, null, 73);
+    const commands = this.buildCommands();
+
+    // build all the commands.
+    commands.forEach(this.addBuiltCommand, this);
+  }
+
+  /**
+   * Builds all commands that exist in the JABS menu.
+   * @returns {BuiltWindowCommand[]}
+   */
+  buildCommands()
+  {
+    // build the main menu command.
+    const mainMenuCommand = new WindowCommandBuilder(J.ABS.Metadata.MainMenuText)
+      .setSymbol('main-menu')
+      .setEnabled(true)
+      .setIconIndex(189)
+      .build();
+
+    // build the combat skills command.
+    const combatSkillsCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipCombatSkillsText)
+      .setSymbol('skill-assign')
+      .setEnabled(true)
+      .setIconIndex(77)
+      .setColorIndex(10)
+      .build();
+
+    // build the dodge skill command.
+    const dodgeSkillCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipDodgeSkillsText)
+      .setSymbol('dodge-assign')
+      .setEnabled(true)
+      .setIconIndex(82)
+      .setColorIndex(24)
+      .build();
+
+    // build the tool command.
+    const toolCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipToolsText)
+      .setSymbol('item-assign')
+      .setEnabled(true)
+      .setIconIndex(83)
+      .setColorIndex(17)
+      .build();
+
+    // return the built commands.
+    return [
+      mainMenuCommand,
+      combatSkillsCommand,
+      dodgeSkillCommand,
+      toolCommand,
+    ];
   }
 
   /**

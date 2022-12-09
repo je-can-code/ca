@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 07 2022 06:44:05 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 08 2022 18:01:26 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -61,10 +61,37 @@ J.OMNI.Metadata.Version = '1.0.0';
 J.OMNI.PluginParameters = PluginManager.parameters(J.OMNI.Metadata.Name);
 
 /**
+ * The various data points that define the command for the Omnipedia.
+ */
+J.OMNI.Metadata.Command = {};
+J.OMNI.Metadata.Command.Name = "The Omnipedia";
+J.OMNI.Metadata.Command.Symbol = "omni-menu";
+J.OMNI.Metadata.Command.IconIndex = 232;
+J.OMNI.Metadata.Command.ColorIndex = 5;
+
+/**
+ * The id of the switch that will represent whether or not the command
+ * should be visible in the JABS menu.
+ * @type {number}
+ */
+J.OMNI.Metadata.InJabsMenuSwitch = 102;
+
+/**
+ * The id of the switch that will represent whether or not the command
+ * should be visible in the main menu.
+ * @type {number}
+ */
+J.OMNI.Metadata.InMainMenuSwitch = 102;
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.OMNI.Aliased = {};
 J.OMNI.Aliased.Game_Party = new Map();
+J.OMNI.Aliased.Scene_Map = new Map();
+J.OMNI.Aliased.Scene_Menu = new Map();
+J.OMNI.Aliased.Window_AbsMenu = new Map();
+J.OMNI.Aliased.Window_MenuCommand = new Map();
 //#endregion Metadata
 
 J.OMNI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
@@ -115,6 +142,56 @@ Game_System.prototype.canCallOmnipediaScene = function()
   return true;
 };
 //#endregion Game_System
+
+//#region Scene_Map
+/**
+ * Extends {@link #createJabsAbsMenuMainWindow}.
+ * Adds additional handling in the list for the omnipedia command.
+ */
+J.OMNI.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.createJabsAbsMenuMainWindow);
+Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
+{
+  // perform original logic.
+  J.OMNI.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow').call(this);
+
+  // grab the list window.
+  const mainMenuWindow = this.getJabsMainListWindow();
+
+  // add an additional handler for the new menu.
+  mainMenuWindow.setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
+};
+
+/**
+ * Calls forth the omnipedia scene.
+ */
+Scene_Map.prototype.commandOmnipedia = function()
+{
+  Scene_Omnipedia.callScene();
+};
+//#endregion Scene_Map
+
+//#region Scene_Menu
+/**
+ * Hooks into the command window creation of the menu to add functionality for the SDP menu.
+ */
+J.OMNI.Aliased.Scene_Menu.set('createCommandWindow', Scene_Menu.prototype.createCommandWindow);
+Scene_Menu.prototype.createCommandWindow = function()
+{
+  // perform original logic.
+  J.OMNI.Aliased.Scene_Menu.get('createCommandWindow').call(this);
+
+  // add an additional handler for the new menu.
+  this._commandWindow.setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
+};
+
+/**
+ * Calls forth the omnipedia scene.
+ */
+Scene_Menu.prototype.commandOmnipedia = function()
+{
+  Scene_Omnipedia.callScene();
+};
+//#endregion Scene_Menu
 
 //#region Scene_Omnipedia
 /**
@@ -505,6 +582,104 @@ class Scene_Omnipedia extends Scene_MenuBase
   //#endregion actions
 }
 //#endregion Scene_Omnipedia
+
+//#region Window_AbsMenu
+if (J.ABS)
+{
+  /**
+   * Extends {@link #buildCommands}.
+   * Adds the sdp command at the end of the list.
+   * @returns {BuiltWindowCommand[]}
+   */
+  J.OMNI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+  Window_AbsMenu.prototype.buildCommands = function()
+  {
+    // perform original logic to get the base commands.
+    const originalCommands = J.OMNI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+
+    // if the switch is not ON, then this command is not present.
+    if (!this.canAddOmnipediaCommand()) return originalCommands;
+
+    // build the command.
+    const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name)
+      .setSymbol(J.OMNI.Metadata.Command.Symbol)
+      .setIconIndex(J.OMNI.Metadata.Command.IconIndex)
+      .setColorIndex(J.OMNI.Metadata.Command.ColorIndex)
+      .build();
+
+    // add the new command.
+    originalCommands.push(command);
+
+    // return the updated command list.
+    return originalCommands;
+  };
+
+  /**
+   * Determines whether or not the sdp command can be added to the JABS menu.
+   * @returns {boolean} True if the command should be added, false otherwise.
+   */
+  Window_AbsMenu.prototype.canAddOmnipediaCommand = function()
+  {
+    // if the necessary switch isn't ON, don't render the command at all.
+    if (!$gameSwitches.value(J.OMNI.Metadata.InJabsMenuSwitch)) return false;
+
+    // render the command!
+    return true;
+  };
+}
+//#endregion Window_AbsMenu
+
+//#region Window_MenuCommand
+/**
+ * Extends {@link #makeCommandList}.
+ * Also adds the omnipedia command.
+ */
+J.OMNI.Aliased.Window_MenuCommand.set('makeCommandList', Window_MenuCommand.prototype.makeCommandList);
+Window_MenuCommand.prototype.makeCommandList = function()
+{
+  // perform original logic.
+  J.OMNI.Aliased.Window_MenuCommand.get('makeCommandList').call(this);
+
+  // if we cannot add the command, then do not.
+  if (!this.canAddOmnipediaCommand()) return;
+
+  // build the command.
+  const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name)
+    .setSymbol(J.OMNI.Metadata.Command.Symbol)
+    .setIconIndex(J.OMNI.Metadata.Command.IconIndex)
+    .setColorIndex(J.OMNI.Metadata.Command.ColorIndex)
+    .build();
+
+  // determine what the last command is.
+  const lastCommand = this._list.at(-1);
+
+  // check if the last command is the "End Game" command.
+  if (lastCommand.symbol === "gameEnd")
+  {
+    // add it before the "End Game" command.
+    this._list.splice(this._list.length - 2, 0, command);
+  }
+  // the last command is something else.
+  else
+  {
+    // just add it to the end.
+    this.addBuiltCommand(command);
+  }
+};
+
+/**
+ * Determines whether or not the sdp command can be added to the JABS menu.
+ * @returns {boolean} True if the command should be added, false otherwise.
+ */
+Window_MenuCommand.prototype.canAddOmnipediaCommand = function()
+{
+  // if the necessary switch isn't ON, don't render the command at all.
+  if (!$gameSwitches.value(J.OMNI.Metadata.InMainMenuSwitch)) return false;
+
+  // render the command!
+  return true;
+};
+//#endregion Window_MenuCommand
 
 //#region Window_OmnipediaList
 /**

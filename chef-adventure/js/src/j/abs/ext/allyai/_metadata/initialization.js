@@ -62,18 +62,6 @@ J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety']
 J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
 J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
 
-J.ALLYAI.MenuCommand = (isEnabled) =>
-{
-  return {
-    name: J.ALLYAI.Metadata.AllyAiCommandName,
-    symbol: 'ally-ai',
-    enabled: isEnabled,
-    ext: null,
-    icon: J.ALLYAI.Metadata.AllyAiCommandIconIndex,
-    color: 3,
-  };
-};
-
 /**
  * A collection of all aliased methods for this plugin.
  */
@@ -91,7 +79,7 @@ J.ALLYAI.Aliased = {
   JABS_AiManager: new Map(),
   JABS_Battler: {},
   Scene_Map: {},
-  Window_AbsMenu: {},
+  Window_AbsMenu: new Map(),
   Window_AbsMenuSelect: {},
 };
 //#endregion plugin setup and configuration

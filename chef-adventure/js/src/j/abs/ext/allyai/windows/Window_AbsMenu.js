@@ -1,20 +1,46 @@
 //#region Window_AbsMenu
 /**
- * Extends the JABS quick menu to include ally ai management.
+ * Extends {@link #buildCommands}.
+ * Adds the ally ai management command at the end of the list.
+ * @returns {BuiltWindowCommand[]}
  */
-J.ALLYAI.Aliased.Window_AbsMenu.makeCommandList = Window_AbsMenu.prototype.makeCommandList;
-Window_AbsMenu.prototype.makeCommandList = function()
+J.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+Window_AbsMenu.prototype.buildCommands = function()
 {
-  J.ALLYAI.Aliased.Window_AbsMenu.makeCommandList.call(this);
-  if (!$dataSystem) return;
+  // perform original logic to get base commands.
+  const originalCommands = J.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
 
   // if the switch is disabled, then the command won't even appear in the menu.
-  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return;
+  if (!this.canAddAllyAiCommand()) return originalCommands;
 
   // if followers aren't being used, then this command will be disabled.
-  const enabled = $gamePlayer.followers()
-    .isVisible();
-  const newCommand = J.ALLYAI.MenuCommand(enabled);
-  this._list.splice(this._list.length - 2, 0, newCommand);
+  const enabled = $gamePlayer.followers().isVisible();
+
+  // build the command.
+  const command = new WindowCommandBuilder(J.ALLYAI.Metadata.AllyAiCommandName)
+    .setSymbol('ally-ai')
+    .setEnabled(enabled)
+    .setIconIndex(J.ALLYAI.Metadata.AllyAiCommandIconIndex)
+    .setColorIndex(27)
+    .build();
+
+  // add the new command.
+  originalCommands.push(command);
+
+  // return the updated command list.
+  return originalCommands;
+};
+
+/**
+ * Determines whether or not the ally ai management command can be added to the JABS menu.
+ * @returns {boolean} True if the command should be added, false otherwise.
+ */
+Window_AbsMenu.prototype.canAddAllyAiCommand = function()
+{
+  // if the necessary switch isn't ON, don't render the command at all.
+  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
+
+  // render the command!
+  return true;
 };
 //#endregion Window_AbsMenu

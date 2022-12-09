@@ -31,12 +31,56 @@ class Window_AbsMenu extends Window_Command
    */
   makeCommandList()
   {
-    // to adjust the icons, change the number that is the last parameter of these commands.
-    this.addCommand(J.ABS.Metadata.EquipCombatSkillsText, "skill-assign", true, null, 77);
-    this.addCommand(J.ABS.Metadata.EquipDodgeSkillsText, "dodge-assign", true, null, 82);
-    this.addCommand(J.ABS.Metadata.EquipToolsText, "item-assign", true, null, 83);
-    this.addCommand(J.ABS.Metadata.MainMenuText, "main-menu", true, null, 189);
-    this.addCommand(J.ABS.Metadata.CancelText, "cancel", true, null, 73);
+    const commands = this.buildCommands();
+
+    // build all the commands.
+    commands.forEach(this.addBuiltCommand, this);
+  }
+
+  /**
+   * Builds all commands that exist in the JABS menu.
+   * @returns {BuiltWindowCommand[]}
+   */
+  buildCommands()
+  {
+    // build the main menu command.
+    const mainMenuCommand = new WindowCommandBuilder(J.ABS.Metadata.MainMenuText)
+      .setSymbol('main-menu')
+      .setEnabled(true)
+      .setIconIndex(189)
+      .build();
+
+    // build the combat skills command.
+    const combatSkillsCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipCombatSkillsText)
+      .setSymbol('skill-assign')
+      .setEnabled(true)
+      .setIconIndex(77)
+      .setColorIndex(10)
+      .build();
+
+    // build the dodge skill command.
+    const dodgeSkillCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipDodgeSkillsText)
+      .setSymbol('dodge-assign')
+      .setEnabled(true)
+      .setIconIndex(82)
+      .setColorIndex(24)
+      .build();
+
+    // build the tool command.
+    const toolCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipToolsText)
+      .setSymbol('item-assign')
+      .setEnabled(true)
+      .setIconIndex(83)
+      .setColorIndex(17)
+      .build();
+
+    // return the built commands.
+    return [
+      mainMenuCommand,
+      combatSkillsCommand,
+      dodgeSkillCommand,
+      toolCommand,
+    ];
   }
 
   /**

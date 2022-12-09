@@ -1,4 +1,4 @@
-//#region Introduction
+//#region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -85,7 +85,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.1.1';
+J.ABS.Metadata.Version = '3.1.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -697,4 +697,4 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 // });
 
 //#endregion Plugin Command Registration
-//#endregion Introduction
+//#endregion Metadata

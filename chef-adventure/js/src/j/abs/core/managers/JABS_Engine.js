@@ -1727,19 +1727,19 @@ class JABS_Engine
     this.preExecuteSkillEffects(action, target);
 
     // get whether or not this action was unparryable.
-    let isUnparryable = (action.isUnparryable());
+    let isUnparryable = action.isUnparryable();
 
-    // if the target is a player and also dashing...
+    // check if the target is a player and also dashing.
     if (target.isPlayer() && target.getCharacter().isDashButtonPressed())
     {
-      // they cannot parry anything.
+      // dashing players cannot parry anything, making the action unparryable.
       isUnparryable = true;
     }
 
     // check whether or not this action was parried.
     const caster = action.getCaster();
     const isParried = isUnparryable
-      ? false // parry is cancelled because the skill ignores it.
+      ? false // parry is cancelled.
       : this.checkParry(caster, target, action);
 
     // check if the action was parried instead.
@@ -2107,22 +2107,16 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
    * @param {JABS_Action} action The action being executed.
-   * @returns {boolean}
+   * @returns {boolean} True if the action was parried, false otherwise.
    */
   checkParry(caster, target, action)
   {
     // cannot parry if not facing target.
-    const isFacing = caster.isFacingTarget(target.getCharacter());
-    if (!isFacing) return false;
+    if (!this.isParryPossible(caster, target)) return false;
 
-    // if the target battler has 0% GRD, they can't parry.
+    // grab the caster and target battlers.
     const targetBattler = target.getBattler();
-    if (targetBattler.grd === 0) return false;
-
     const casterBattler = caster.getBattler();
-
-    // if the attacker has a state that ignores all parry, then skip parrying.
-    if (casterBattler.ignoreAllParry()) return false;
 
     /* eslint-disable */
     /*
@@ -2170,11 +2164,32 @@ class JABS_Engine
     // grab the amount of parry ignored.
     const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) / 100;
 
-    // calculate the parry rate.
-    const parry = parseFloat((targetBattler.grd - 1 - parryIgnored).toFixed(3));
+    // calculate the target's parry rate.
+    const targetGuardRate = (targetBattler.grd - 1) - parryIgnored;
+
+    // truncate the parry rate to 3 places.
+    const parry = parseFloat((targetGuardRate).toFixed(3));
 
     // return whether or not the hit was successful.
     return hit < parry;
+  }
+
+
+  isParryPossible(caster, target)
+  {
+    // cannot parry if not facing target.
+    const isFacing = caster.isFacingTarget(target.getCharacter());
+    if (!isFacing) return false;
+
+    // if the target battler has 0 GRD, they can't parry.
+    if (target.getBattler().grd === 0) return false;
+
+
+    // if the attacker has a state that ignores all parry, then skip parrying.
+    if (caster.getBattler().ignoreAllParry()) return false;
+
+    // parrying is possible!
+    return true;
   }
 
   /**

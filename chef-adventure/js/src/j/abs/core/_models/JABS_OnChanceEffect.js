@@ -4,6 +4,30 @@
  */
 class JABS_OnChanceEffect
 {
+  /**
+   * The skill id associated with this on-chance effect.
+   * @type {number}
+   */
+  skillId = 0;
+
+  /**
+   * The percent chance of success as an integer between 0-99.
+   * @type {number}
+   */
+  chance = 0;
+
+  /**
+   * The key that this on-chance effect was derived from.
+   * @type {string}
+   */
+  key = String.empty;
+
+  /**
+   * Constructor.
+   * @param {number} skillId The id of the skill associated with this on-chance effect.
+   * @param {number} chance A number between 1-100 representing the percent chance of success.
+   * @param {string} key The key associated with this on-chance effect.
+   */
   constructor(skillId, chance, key)
   {
     this.skillId = skillId;
@@ -12,12 +36,22 @@ class JABS_OnChanceEffect
   }
 
   /**
-   * Gets the underlying skill.
+   * Gets the underlying skill for this on-chance effect.
+   * If a battler is provided, then the skill of the battler's perception will be used instead.
+   * @param {Game_Battler|Game_Actor|Game_Enemy=} battler The target perceiving the skill; defaults to none.
    * @returns {RPG_Skill}
    */
-  baseSkill()
+  baseSkill(battler = null)
   {
-    return $dataSkills[this.skillId];
+    // check if a battler was provided.
+    if (battler)
+    {
+      // return the battler's perception of this skill.
+      return battler.skill(this.skillId);
+    }
+
+    // no battler, just use the database version of the skill.
+    return $dataSkills.at(this.skillId);
   }
 
   /**
@@ -27,8 +61,12 @@ class JABS_OnChanceEffect
    */
   appearOnTarget()
   {
+    // grab the underlying skill for this on-chance effect.
     const skill = this.baseSkill();
-    return !!skill.meta["onDefeatedTarget"];
+
+    //
+    return skill.getBooleanFromNotesByRegex(/<onDefeatedTarget>/gi);
+    //return !!skill.meta["onDefeatedTarget"];
   }
 
   /**
@@ -39,6 +77,9 @@ class JABS_OnChanceEffect
    */
   shouldTrigger(rollForPositive = 1, rollForNegative = 0)
   {
+    // 0% chance skills should never trigger.
+    if (this.chance === 0) return false;
+
     // default fail.
     let success = false;
 
@@ -65,6 +106,9 @@ class JABS_OnChanceEffect
       // keep rolling for negative while we have negative rerolls and are still successful.
       while (rollForNegative && success)
       {
+        // roll for effect!
+        const chance = Math.randomInt(100) + 1;
+
         // check if the roll meets the chance criteria.
         if (chance <= this.chance)
         {
@@ -74,8 +118,8 @@ class JABS_OnChanceEffect
         // we didn't meet the chance criteria this time.
         else
         {
-          // undo our success :(
-          success = false;
+          // undo our success and stop rolling :(
+          return false;
         }
 
         // decrement the negative reroll counter.

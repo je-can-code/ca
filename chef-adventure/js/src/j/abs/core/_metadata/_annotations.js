@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.1 JABS] Enables combat to be carried out on the map.
+ * [v3.1.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -46,6 +46,9 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.1.2
+ *    Refactored some of the JABS menu in a non-breaking way.
+ *    Optimized/centralized note tag retrieval in many cases.
  * - 3.1.1
  *    Retroactively added this CHANGELOG.
  * - 3.1.0
