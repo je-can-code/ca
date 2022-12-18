@@ -180,7 +180,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const lh = this.lineHeight();
-    const {panelParameters} = panel;
+    const { panelParameters } = panel;
     this.drawParameterHeaderRow(120);
     panelParameters.forEach((parameter, index) =>
     {
@@ -209,8 +209,8 @@ class Window_SDP_Details extends Window_Base
    */
   drawParameterDetailsRow(panelParameter, y)
   {
-    const {parameterId, perRank, isFlat, isCore} = panelParameter;
-    const {name, value, iconIndex, smallerIsBetter, isPercentValue} = this.translateParameter(parameterId);
+    const { parameterId, perRank, isFlat, isCore } = panelParameter;
+    const { name, value, iconIndex, smallerIsBetter, isPercentValue } = this.translateParameter(parameterId);
     const ox = 20;
     const rw = 200;
     const isPositive = perRank >= 0 ? '+' : String.empty;

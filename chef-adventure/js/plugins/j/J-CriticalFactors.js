@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -636,6 +636,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._cdrRate = 0;
 };
 
+//#region properties
 /**
  * Gets the permanent flat bonus for CDM.
  * @returns {number}
@@ -707,6 +708,7 @@ Game_Battler.prototype.modCdrRate = function(amount)
 {
   this._j._natural._cdrRate += amount;
 };
+//#endregion properties
 
 /**
  * Gets the base multiplier for this battler's critical hits.

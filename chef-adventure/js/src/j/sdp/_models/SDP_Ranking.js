@@ -57,7 +57,7 @@ PanelRanking.prototype.initMembers = function()
 PanelRanking.prototype.rankUp = function()
 {
   const panel = $gameSystem.getSdpRankByKey(this.key);
-  const {maxRank} = panel;
+  const { maxRank } = panel;
   if (this.currentRank < maxRank)
   {
     this.currentRank++;

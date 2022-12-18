@@ -73,7 +73,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
   return arr.map(el =>
   {
     const kvp = JSON.parse(el);
-    const {elementId, iconIndex} = kvp;
+    const { elementId, iconIndex } = kvp;
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
@@ -85,7 +85,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.1.2';
+J.ABS.Metadata.Version = '3.2.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -527,6 +527,7 @@ J.ABS.RegExp = {
  */
 J.ABS.Aliased = {
   DataManager: new Map(),
+
   Game_Actor: new Map(),
   Game_Action: new Map(),
   Game_ActionResult: new Map(),
@@ -539,12 +540,16 @@ J.ABS.Aliased = {
   Game_Map: new Map(),
   Game_Party: new Map(),
   Game_Player: new Map(),
+  Game_Switches: new Map(),
   Game_Unit: new Map(),
+
   RPG_Actor: new Map(),
   RPG_Enemy: new Map(),
   RPG_Skill: new Map(),
+
   Scene_Load: new Map(),
   Scene_Map: new Map(),
+
   Spriteset_Map: new Map(),
   Sprite_Character: new Map(),
   Sprite_Gauge: new Map(),
@@ -574,7 +579,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
 PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
 {
   // extract the values out of the various args.
-  const {actorId, skillId, itemId, slot, locked} = args;
+  const { actorId, skillId, itemId, slot, locked } = args;
 
   // convert the text option to one of the available slots.
   const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
@@ -614,7 +619,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", arg
     return;
   }
 
-  const {Slot} = args;
+  const { Slot } = args;
   const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
   leader.unlockSlot(translation);
 });

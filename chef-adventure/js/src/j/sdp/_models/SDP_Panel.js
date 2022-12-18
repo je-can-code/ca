@@ -145,7 +145,7 @@ StatDistributionPanel.prototype.rankUpCost = function(currentRank)
  */
 StatDistributionPanel.prototype.getPanelParameterById = function(paramId)
 {
-  const {panelParameters} = this;
+  const { panelParameters } = this;
   return panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
 };
 
@@ -156,7 +156,7 @@ StatDistributionPanel.prototype.getPanelParameterById = function(paramId)
  */
 StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank)
 {
-  const {panelRewards} = this;
+  const { panelRewards } = this;
   return panelRewards.filter(reward => reward.rankRequired === rank);
 };
 

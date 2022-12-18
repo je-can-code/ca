@@ -788,7 +788,7 @@ class Window_StatusParameters extends Window_Base
       {
         colorIndex = 3; // green
       }
-      const {iconIndex} = state;
+      const { iconIndex } = state;
       this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }

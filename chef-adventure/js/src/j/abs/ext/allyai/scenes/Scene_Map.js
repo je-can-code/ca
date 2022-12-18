@@ -135,10 +135,16 @@ Scene_Map.prototype.commandAggroPassiveToggle = function()
  */
 Scene_Map.prototype.commandEquipMemberAi = function()
 {
+  // grab the new ally AI mode from the window.
   const newMode = this._j._absMenu._allyAiEquipWindow.currentExt();
-  const allyAi = $gameActors.actor(this.getAllyAiActorId())
-    .getAllyAI();
-  allyAi.changeMode(newMode);
+
+  // grab the current ally AI.
+  const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
+
+  // change the mode of the AI to the new one by its key.
+  allyAi.changeMode(newMode.key);
+
+  // refresh the ally AI window to reflect the change.
   this._j._absMenu._allyAiEquipWindow.refresh();
 };
 

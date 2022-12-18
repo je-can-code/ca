@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 17 2022 08:05:09 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -89,7 +89,7 @@ J.ESCRIBE.Metadata = {
  * All regular expressions used by this plugin.
  */
 J.ESCRIBE.RegExp = {
-  Text: /<text:([ ^*-.\w]+)>/i,
+  Text: /<text:(.+)>/i,
   IconIndex: /<icon:[ ]?(\d+)>/i,
   ProximityText: /<proximityText:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   ProximityIcon: /<proximityIcon:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,

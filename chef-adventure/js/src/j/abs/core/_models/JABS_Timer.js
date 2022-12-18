@@ -160,7 +160,7 @@ class JABS_Timer
     // don't mess with time that isn't finished.
     if (!this.isTimerComplete()) return;
 
-    // normalize only applies to "should stop counting"
+    // normalize only applies to "should stop counting".
     if (!this.shouldStopCounting()) return;
 
     // reset the time to the max time.

@@ -239,9 +239,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 
 //#region ai
 /**
- * The compiled {@link JABS_BattlerAI}.
+ * The compiled {@link JABS_EnemyAI}.
  * This defines how this battler's AI will be controlled.
- * @type {JABS_BattlerAI}
+ * @type {JABS_EnemyAI}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
   {
@@ -253,7 +253,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
 
 /**
  * Checks whether or not this battler has the JABS AI trait of careful.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 RPG_BaseBattler.prototype.getJabsBattlerAi = function()
 {
@@ -266,7 +266,7 @@ RPG_BaseBattler.prototype.getJabsBattlerAi = function()
   const leader = this.jabsAiTraitLeader;
 
   // return the compiled battler AI.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
 //#region ai:careful

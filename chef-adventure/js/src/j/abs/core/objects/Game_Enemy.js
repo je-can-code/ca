@@ -115,7 +115,7 @@ Game_Enemy.prototype.teamId = function()
 /**
  * Gets the enemy's ai from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 Game_Enemy.prototype.ai = function()
 {

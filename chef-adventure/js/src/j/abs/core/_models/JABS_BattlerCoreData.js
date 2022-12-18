@@ -15,7 +15,7 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * Initializes this battler data object.
  * @param {number} battlerId This enemy id.
  * @param {number} teamId This battler's team id.
- * @param {JABS_BattlerAI} battlerAI This battler's converted AI.
+ * @param {JABS_EnemyAI} battlerAI This battler's converted AI.
  * @param {number} sightRange The sight range.
  * @param {number} alertedSightBoost The boost to sight range while alerted.
  * @param {number} pursuitRange The pursuit range.
@@ -57,7 +57,7 @@ JABS_BattlerCoreData.prototype.initialize = function({
 
   /**
    * The converted-from-binary AI of this battler.
-   * @type {JABS_BattlerAI}
+   * @type {JABS_EnemyAI}
    */
   this._battlerAI = battlerAI;
 
@@ -155,7 +155,7 @@ JABS_BattlerCoreData.prototype.team = function()
 
 /**
  * Gets this battler's AI.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 JABS_BattlerCoreData.prototype.ai = function()
 {

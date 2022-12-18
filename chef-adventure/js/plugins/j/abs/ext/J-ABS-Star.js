@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:43 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 16 2022 18:58:11 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -811,7 +811,7 @@ Game_Player.prototype.executeEncounter = function()
 
 Game_Player.prototype.reserveOriginTransfer = function()
 {
-  const {mapId, x, y} = BattleManager.origin();
+  const { mapId, x, y } = BattleManager.origin();
   this.reserveTransfer(mapId, x, y);
 };
 

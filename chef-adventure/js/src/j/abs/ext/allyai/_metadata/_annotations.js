@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
+ * [v1.1.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -29,7 +29,6 @@
  *
  *
  * ============================================================================
- *
  * The modes available to swap between for your allies are below.
  *
  * - Do Nothing (do-nothing):
@@ -79,6 +78,19 @@
  * - When an ally is defeated, party-cycling will skip over them and they will
  *   follow the player like a normal non-battler follower.
  *
+ * ============================================================================
+ * CHANGELOG:
+ *
+ * - 1.1.0
+ *    Retroactively added this CHANGELOG.
+ *    Upgraded AI to be able to leverage combos (enemy AI, too).
+ *    Refactored code surrounding AI action decision-making.
+ *    Refactored code surrounding ally AI assignment from command windows.
+ *    Refactored code surrounding battler access and management.
+ *    Refactored ally AI targeting.
+ *    Removed dead code.
+ * - 1.0.0
+ *    The initial release.
  * ============================================================================
  * @param menuConfigs
  * @text MENU DETAILS

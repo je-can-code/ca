@@ -202,7 +202,7 @@ Game_Actor.prototype.executeJsRewards = function(conditional)
 
   const a = this;         // the actor reference.
   const c = conditional;  // the conditional reference.
-  const {jsRewards} = c;
+  const { jsRewards } = c;
   try
   {
     eval(jsRewards);

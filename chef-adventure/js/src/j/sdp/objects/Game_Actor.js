@@ -254,7 +254,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
     {
       panelParameters.forEach(panelParameter =>
       {
-        const {perRank} = panelParameter;
+        const { perRank } = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {
@@ -295,7 +295,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
     {
       panelParameters.forEach(panelParameter =>
       {
-        const {perRank} = panelParameter;
+        const { perRank } = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {

@@ -15,7 +15,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.0.0';
+  const requiredJabsVersion = '3.2.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -35,7 +35,7 @@ J.ALLYAI = {};
  */
 J.ALLYAI.Metadata = {};
 J.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ALLYAI.Metadata.Version = '1.0.0';
+J.ALLYAI.Metadata.Version = '1.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -66,7 +66,7 @@ J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport']
  * A collection of all aliased methods for this plugin.
  */
 J.ALLYAI.Aliased = {
-  Game_Actor: {},
+  Game_Actor: new Map(),
   Game_BattleMap: new Map(),
   Game_Battler: {},
   Game_Follower: new Map(),
@@ -75,12 +75,20 @@ J.ALLYAI.Aliased = {
   Game_Map: new Map(),
   Game_Party: new Map(),
   Game_Player: {},
-  Game_Switches: {},
+
   JABS_AiManager: new Map(),
-  JABS_Battler: {},
+  JABS_Battler: new Map(),
+
   Scene_Map: {},
+
   Window_AbsMenu: new Map(),
-  Window_AbsMenuSelect: {},
+  Window_AbsMenuSelect: new Map(),
 };
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.ALLYAI.RegExp = {};
+J.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
 //#endregion plugin setup and configuration
 //#endregion Introduction

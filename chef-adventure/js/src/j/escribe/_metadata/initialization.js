@@ -40,7 +40,7 @@ J.ESCRIBE.Metadata = {
  * All regular expressions used by this plugin.
  */
 J.ESCRIBE.RegExp = {
-  Text: /<text:([ ^*-.\w]+)>/i,
+  Text: /<text:(.+)>/i,
   IconIndex: /<icon:[ ]?(\d+)>/i,
   ProximityText: /<proximityText:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   ProximityIcon: /<proximityIcon:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,

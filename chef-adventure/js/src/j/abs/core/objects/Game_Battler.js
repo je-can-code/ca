@@ -206,11 +206,11 @@ Game_Battler.prototype.teamId = function()
 
 /**
  * All battlers have a default AI.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 Game_Battler.prototype.ai = function()
 {
-  return new JABS_BattlerAI();
+  return new JABS_EnemyAI();
 };
 
 /**
@@ -769,5 +769,12 @@ Game_Battler.prototype.ignoreAllParry = function()
 
   // return what we found.
   return unparryable;
+};
+
+/**
+ * Disables native RMMZ regeneration.
+ */
+Game_Battler.prototype.regenerateAll = function()
+{
 };
 //#endregion Game_Battler

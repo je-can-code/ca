@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 07 2022 17:24:14 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 16 2022 18:58:11 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -1007,7 +1007,7 @@ class RPG_Base
 
   //#region meta
   /**
-   * Gets the metadata of a given key from this skill as whatever value RMMZ stored it as.
+   * Gets the metadata of a given key from this entry as whatever value RMMZ stored it as.
    * Only returns null if there was no underlying data associated with the provided key.
    * @param {string} key The key to the metadata.
    * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
@@ -1030,7 +1030,7 @@ class RPG_Base
   /**
    * Gets the value of the given key from this entry's meta object.
    * @param key
-   * @returns {string|number|boolean|*}
+   * @returns {string|number|boolean|undefined}
    */
   #getMeta(key)
   {
@@ -1038,7 +1038,7 @@ class RPG_Base
   }
 
   /**
-   * Deletes the metadata key from the underlying object entirely.
+   * Deletes the metadata key from the entry entirely.
    * @param key
    */
   deleteMetadata(key)
@@ -1068,7 +1068,7 @@ class RPG_Base
   }
 
   /**
-   * Gets the metadata of a given key from this skill as a number.
+   * Gets the metadata of a given key from this entry as a number.
    * Only returns `null` if the underlying data wasn't a number or numeric string.
    * @param {string} key The key to the metadata.
    * @returns {boolean|null} The number value, or null if the number wasn't valid.
@@ -1121,7 +1121,7 @@ class RPG_Base
    * Retrieves the metadata for a given key on this skill.
    * This is mostly designed for providing intellisense.
    * @param {string} key The key to the metadata.
-   * @returns {null|*}
+   * @returns {any|null}
    */
   metaAsObject(key)
   {
@@ -3965,6 +3965,74 @@ ImageManager.iconColumns = 16;
  */
 class RPGManager
 {
+  /**
+   * A quick and re-usable means of rolling for a chance of success.
+   * This will roll `rollForPositive` times in an effort to get a successful roll.
+   * If success is found and `rollsForNegative` is greater than 0, additional rolls of success will
+   * be required or the negative rolls will undo the success.
+   * @param {number} percentOfSuccess The percent chance of success.
+   * @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+   * @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+   * @returns {boolean} True if success, false otherwise.
+   */
+  static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0)
+  {
+    // 0% chance skills should never trigger.
+    if (percentOfSuccess <= 0) return false;
+
+    // default fail.
+    let success = false;
+
+    // keep rolling for positive while we have positive rolls and aren't already successful.
+    while (rollForPositive && !success)
+    {
+      // roll for effect!
+      const chance = Math.randomInt(100) + 1;
+
+      // check if the roll meets the chance criteria.
+      if (chance <= percentOfSuccess)
+      {
+        // flag for success!
+        success = true;
+      }
+
+      // decrement the positive roll counter.
+      // eslint-disable-next-line no-param-reassign
+      rollForPositive--;
+    }
+
+    // if successful and we have negative rerolls, lets get fight RNG for success!
+    if (success && rollForNegative)
+    {
+      // keep rolling for negative while we have negative rerolls and are still successful.
+      while (rollForNegative && success)
+      {
+        // roll for effect!
+        const chance = Math.randomInt(100) + 1;
+
+        // check if the roll meets the chance criteria.
+        if (chance <= percentOfSuccess)
+        {
+          // we keep our flag! (this time...)
+          success = true;
+        }
+        // we didn't meet the chance criteria this time.
+        else
+        {
+          // undo our success and stop rolling :(
+          return false;
+        }
+
+        // decrement the negative reroll counter.
+        // eslint-disable-next-line no-param-reassign
+        rollForNegative--;
+      }
+    }
+
+    // return our successes (or failure).
+    return success;
+  }
+
   /**
    * Gets the sum of all values from the notes of a collection of database objects.
    * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.

@@ -43,7 +43,7 @@ BattleManager.displayRewards = function()
 
 BattleManager.displaySdp = function()
 {
-  const {sdp} = this._rewards;
+  const { sdp } = this._rewards;
   if (sdp > 0)
   {
     const text = `${sdp} ${J.SDP.Metadata.VictoryText}`;

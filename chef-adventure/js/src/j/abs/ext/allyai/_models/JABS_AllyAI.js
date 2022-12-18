@@ -7,7 +7,7 @@ function JABS_AllyAI()
   this.initialize(...arguments);
 }
 
-JABS_AllyAI.prototype = {};
+JABS_AllyAI.prototype = Object.create(JABS_AI.prototype);
 JABS_AllyAI.prototype.constructor = JABS_AllyAI;
 
 //#region statics
@@ -103,7 +103,7 @@ JABS_AllyAI.prototype.initMembers = function()
 //#region mode
 /**
  * Gets the current mode this ally's AI is set to.
- * @returns {{key: string, name: string}}
+ * @returns {string}
  */
 JABS_AllyAI.prototype.getMode = function()
 {
@@ -116,7 +116,7 @@ JABS_AllyAI.prototype.getMode = function()
  */
 JABS_AllyAI.prototype.changeMode = function(newMode)
 {
-  if (!JABS_AllyAI.validateMode(newMode.key))
+  if (!JABS_AllyAI.validateMode(newMode))
   {
     console.error(`Attempted to assign ally ai mode: [${newMode}], but is not a valid ai mode.`);
     return;
@@ -128,43 +128,49 @@ JABS_AllyAI.prototype.changeMode = function(newMode)
 
 //#region decide action
 /**
- * Decides a skill id based on this ally's current AI mode.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} attacker The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler to use the skill against.
- * @returns {number}
+ * Decides an action based on this battler's AI, the target, and the given available skills.
+ * @param {JABS_Battler} user The battler of the AI deciding a skill.
+ * @param {JABS_Battler} target The target battler to decide an action against.
+ * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
+ * @returns {number|null} The skill id chosen to use, or null if none were valid choices for this AI.
  */
-JABS_AllyAI.prototype.decideAction = function(availableSkills, attacker, target)
+JABS_AllyAI.prototype.decideAction = function(user, target ,availableSkills)
 {
-  const currentMode = this.getMode().key;
+  // filter out the unusable or invalid skills.
+  const usableSkills = this.filterUncastableSkills(user, availableSkills);
+
+  // determine which AI mode the ally is assigned.
+  const currentMode = this.getMode();
+
+  // pivot on the ai mode selected to decide what skill to use.
   switch (currentMode)
   {
     case JABS_AllyAI.modes.DO_NOTHING.key:
-      return this.decideDoNothing(attacker);
+      return this.decideDoNothing(user);
     case JABS_AllyAI.modes.BASIC_ATTACK.key:
-      return this.decideBasicAttack(availableSkills, attacker);
+      return this.decideBasicAttack(usableSkills, user);
     case JABS_AllyAI.modes.VARIETY.key:
-      return this.decideVariety(availableSkills, attacker, target);
+      return this.decideVariety(usableSkills, user, target);
     case JABS_AllyAI.modes.FULL_FORCE.key:
-      return this.decideFullForce(availableSkills, attacker, target);
+      return this.decideFullForce(usableSkills, user, target);
     case JABS_AllyAI.modes.SUPPORT.key:
-      const decided = this.decideSupport(availableSkills, attacker);
-      return decided;
+      return this.decideSupport(usableSkills, user);
+    default:
+      return usableSkills.at(0);
   }
-
-  console.log(currentMode);
-  console.warn(`The currently selected AI mode of [${currentMode}] is not yet implemented.`);
-  return availableSkills[0];
 };
 
 //#region do-nothing
 /**
- * Decides to do nothing and waits 0.25 seconds before doing anything else.
+ * Decides to do nothing and waits a short amount of time before doing anything else.
  * @returns {null}
  */
 JABS_AllyAI.prototype.decideDoNothing = function(attacker)
 {
-  attacker.setWaitCountdown(15);
+  // forces a short wait before thinking about what to do next.
+  attacker.setWaitCountdown(20);
+
+  // return nothing to indicate no action should be taken.
   return null;
 };
 //#endregion do-nothing
@@ -172,19 +178,26 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
 //#region basic-attack
 /**
  * Decides a skill id based on the ai mode of "basic attack only".
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} attacker The battler choosing the skill.
+ * @param {number[]} usableSkills The skill ids available to choose from.
+ * @param {JABS_Battler} user The battler choosing the skill.
  * @returns {number|null}
  */
-JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
+JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
 {
+  // check first if we should follow with the next hit of the combo.
+  if (this.shouldFollowWithCombo(user))
+  {
+    // we're doing the next combo in the chain!
+    return this.followWithCombo(user);
+  }
+
   // determine which skill of the skills available is the mainhand skill.
-  const mainBasicAttackSkillId = availableSkills
-    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Mainhand);
+  const mainBasicAttackSkillId = usableSkills
+    .find(id => user.getBattler().findSlotForSkillId(id).key === JABS_Button.Mainhand);
 
   // determine which skill of the skills available is the offhand skill.
-  const offhandBasicAttackSkillId = availableSkills
-    .find(id => attacker.getBattler().findSlotForSkillId(id).key === JABS_Button.Offhand);
+  const offhandBasicAttackSkillId = usableSkills
+    .find(id => user.getBattler().findSlotForSkillId(id).key === JABS_Button.Offhand);
 
   // if we have neither basic attack skills, then do not process.
   if (!mainBasicAttackSkillId && !offhandBasicAttackSkillId) return null;
@@ -193,7 +206,7 @@ JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
   if (mainBasicAttackSkillId && offhandBasicAttackSkillId)
   {
     // a 70% chance to use mainhand, 30% chance to use offhand by default.
-    return this.decideMainOrOffhand()
+    return RPGManager.chanceIn100(70)
       ? mainBasicAttackSkillId
       : offhandBasicAttackSkillId;
   }
@@ -211,18 +224,6 @@ JABS_AllyAI.prototype.decideBasicAttack = function(availableSkills, attacker)
     return mainBasicAttackSkillId;
   }
 };
-
-/**
- * A small weighted chance for deciding whether to use mainhand or offhand skills
- * for the basic attack decision.
- * @returns {boolean} True if we should use mainhand, false if we should use offhand.
- */
-JABS_AllyAI.prototype.decideMainOrOffhand = function()
-{
-  const randomFromTen = Math.ceil(Math.random() * 10);
-  const chanceForMain = 7;
-  return randomFromTen <= chanceForMain;
-};
 //#endregion basic-attack
 
 //#region variety
@@ -231,24 +232,34 @@ JABS_AllyAI.prototype.decideMainOrOffhand = function()
  * If no allies are in danger, then simply chooses a random skill.
  * Will learn over time which skills are effective and ineffective against targets.
  * May use a support skill if allies are below half health.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} attacker The battler choosing the skill.
+ * @param {number[]} usableSkills The skill ids available to choose from.
+ * @param {JABS_Battler} user The battler choosing the skill.
  * @param {JABS_Battler} target The targeted battler to use the skill against.
  * @returns {number}
  */
-JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target)
+JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
 {
+  // check first if we should follow with the next hit of the combo.
+  if (this.shouldFollowWithCombo(user))
+  {
+    // we're doing the next combo in the chain!
+    return this.followWithCombo(user);
+  }
+
+  // initialize the chosen skill id.
   let chosenSkillId = 0;
-  let tempAvailableSkills = availableSkills;
+
+  // locally capture the list of usable skills for modification.
+  let tempAvailableSkills = usableSkills;
 
   // check if any nearby allies are "in danger".
-  const nearbyAllies = attacker.getAllNearbyAllies();
+  const nearbyAllies = user.getAllNearbyAllies();
   const anyAlliesInDanger = nearbyAllies.some(battler => battler.getBattler().currentHpPercent() < 0.6);
 
-  // if they are, 50:50 chance to instead prioritize a support action.
+  // if they are allies in danger, 50:50 chance to instead prioritize a support action.
   if (anyAlliesInDanger && Math.randomInt(2) === 0)
   {
-    return this.decideSupport(availableSkills, attacker);
+    return this.decideSupport(usableSkills, user);
   }
 
   // grab all memories that this battler has of the target.
@@ -257,17 +268,13 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
   // filter all available skills down to what we recall as effective.
   if (memoriesOfTarget.length)
   {
-    tempAvailableSkills = tempAvailableSkills.filter(skillId =>
-    {
-      const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
-      return (priorMemory && priorMemory.wasEffective());
-    });
+    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills);
   }
 
   // if no skill was effective, or there were no memories, just pick a random skill and call it good.
   if (tempAvailableSkills.length === 0)
   {
-    chosenSkillId = availableSkills[Math.randomInt(availableSkills.length)];
+    chosenSkillId = usableSkills.at(Math.randomInt(usableSkills.length));
   }
 
   // if the memories yielded a single effective skill, then 50/50 between that and a random skill.
@@ -275,7 +282,7 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
   {
     chosenSkillId = Math.randomInt(2) === 0
       ? tempAvailableSkills[0]
-      : availableSkills[Math.randomInt(availableSkills.length)];
+      : usableSkills[Math.randomInt(usableSkills.length)];
   }
 
   // if there were multiple memories of effective skills against the target, then randomly pick one.
@@ -284,13 +291,7 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
     chosenSkillId = tempAvailableSkills[Math.randomInt(tempAvailableSkills.length)];
   }
 
-  // if the skill actually is a dodge skill, we don't support that yet.
-  if (JABS_Battler.isDodgeSkillById(chosenSkillId))
-  {
-    // replace the dodge skill id with 0 to force them to rechoose.
-    return this.decideBasicAttack(availableSkills, attacker);
-  }
-
+  // return the decided skill id.
   return chosenSkillId;
 };
 //#endregion variety
@@ -300,105 +301,72 @@ JABS_AllyAI.prototype.decideVariety = function(availableSkills, attacker, target
  * Decides a skill id based on the ai mode of "full-force".
  * Always looks to choose the skill that will deal the most damage.
  * If we developed effective memories, then we may leverage those instead.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} attacker The battler choosing the skill.
+ * @param {number[]} usableSkills The skill ids available to choose from.
+ * @param {JABS_Battler} user The battler choosing the skill.
  * @param {JABS_Battler} target The targeted battler to use the skill against.
  * @returns {number}
  */
-JABS_AllyAI.prototype.decideFullForce = function(availableSkills, attacker, target)
+JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
 {
-  let chosenSkillId;
-  let tempAvailableSkills = availableSkills;
+  // check first if we should follow with the next hit of the combo.
+  if (this.shouldFollowWithCombo(user))
+  {
+    // we're doing the next combo in the chain!
+    return this.followWithCombo(user);
+  }
+
+  let chosenSkillId = 0;
+  let tempAvailableSkills = usableSkills;
+
+  // determine the strongest skill available that this user can execute.
+  const strongestSkillId = this.determineStrongestSkill(usableSkills, user, target);
 
   // grab all memories that this battler has of the target.
   const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
 
-  // filter all available skills down to what we recall as effective- if we have memories at all.
+  // check to make sure we have memories before analyzing them.
   if (memoriesOfTarget.length)
   {
-    tempAvailableSkills = tempAvailableSkills.filter(skillId =>
-    {
-      const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
-      return (priorMemory && priorMemory.wasEffective());
-    });
+    // filter the available skills by what was remembered to be effective.
+    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills);
   }
 
-  // if no skill was effective, or there were no memories, just pick a random skill and call it good.
+  // check if we have no known effective skills.
   if (tempAvailableSkills.length === 0)
   {
-    chosenSkillId = this.determineStrongestSkill(availableSkills, attacker, target);
+    // if we no longer have any skills to pick from after filtering, then pick the strongest.
+    chosenSkillId = this.determineStrongestSkill(usableSkills, user, target);
   }
+  // we found exactly 1 effective skill.
   else if (tempAvailableSkills.length === 1)
   {
-    // determine the strongest skill available.
-    const strongestSkillId = this.determineStrongestSkill(availableSkills, attacker, target);
+    // grab the known effective skill.
+    const knownEffectiveSkill = tempAvailableSkills.at(0);
 
-    // compare the freshly calculated strongest skill with one that was proven to be effective.
-    if (strongestSkillId === tempAvailableSkills[0])
+    // check if the strongest skill available is also the already-known effective skill.
+    if (strongestSkillId === knownEffectiveSkill)
     {
       // if the strongest skill that was just calculated is the effective skill, then just use that.
       chosenSkillId = strongestSkillId;
     }
+    // the strongest skill is different than the known effective skill.
     else
     {
-      // if it wasn't the effective skill, then either use that or use the newly calculated skill.
-      chosenSkillId = Math.randomInt(2) === 0
+      // 50% chance of picking either the strongest or the already-known effective skill.
+      chosenSkillId = RPGManager.chanceIn100(50)
         ? strongestSkillId
-        : tempAvailableSkills[0];
+        : knownEffectiveSkill;
     }
   }
+  // we have more than 1 effective skill to work with.
   else
   {
     // if we have multiple previously proven-effective skills, then just pick one of those.
-    chosenSkillId = tempAvailableSkills[Math.randomInt(tempAvailableSkills.length)];
+    chosenSkillId = tempAvailableSkills.at(Math.randomInt(tempAvailableSkills.length));
   }
 
+  // return the chosen skill.
   return chosenSkillId;
-};
-
-/**
- * Determines which skill would deal the greatest amount of damage to the target.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} attacker The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler to use the skill against.
- * @returns {number}
- */
-JABS_AllyAI.prototype.determineStrongestSkill = function(availableSkills, attacker, target)
-{
-  let strongestSkillId = 0;
-  let highestDamage = 0;
-  let biggestCritDamage = 0;
-  availableSkills.forEach(skillId =>
-  {
-    const skill = attacker.getSkill(skillId);
-
-    // setup a game action for testing damage.
-    const testAction = new Game_Action(attacker.getBattler(), false);
-    testAction.setItemObject(skill);
-
-    // test the base and crit damage values for this skill against the target.
-    const baseDamageValue = testAction.makeDamageValue(target.getBattler(), false);
-    const critDamageValue = testAction.makeDamageValue(target.getBattler(), true);
-
-    // we live risky- if the crit damage is bigger due to crit damage modifiers, then try that.
-    if (critDamageValue > biggestCritDamage)
-    {
-      strongestSkillId = skillId;
-      highestDamage = baseDamageValue;
-      biggestCritDamage = critDamageValue;
-      return;
-    }
-
-    // if the crit isn't modified, then just go based on best base damage.
-    if (baseDamageValue > highestDamage)
-    {
-      strongestSkillId = skillId;
-      highestDamage = baseDamageValue;
-      biggestCritDamage = critDamageValue;
-    }
-  });
-
-  return strongestSkillId;
 };
 //#endregion full-force
 
@@ -407,38 +375,47 @@ JABS_AllyAI.prototype.determineStrongestSkill = function(availableSkills, attack
  * Decides a skill id based on this ally's current AI mode.
  * This mode prioritizes keeping allies alive.
  * Support priorities = cleansing > healing > buffing.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} healer The battler choosing the skill.
+ * @param {number[]} usableSkills The skill ids available to choose from.
+ * @param {JABS_Battler} user The battler choosing the skill.
  * @returns {number} The chosen support skill id to perform.
  */
-JABS_AllyAI.prototype.decideSupport = function(availableSkills, healer)
+JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
 {
+  // check first if we should follow with the next hit of the combo.
+  if (this.shouldFollowWithCombo(user))
+  {
+    // we're doing the next combo in the chain!
+    return this.followWithCombo(user);
+  }
+
+  // initialize our support skill id.
   let supportSkillId = 0;
 
-  // if any have status ailments, prioritize that (including death).
+  // first priority is cleansing status ailments, including death, from allies.
+  supportSkillId = this.decideSupportCleansing(usableSkills, user);
+
+  // check if there was no need for cleansing.
   if (!supportSkillId)
   {
-    supportSkillId = this.decideSupportCleansing(availableSkills, healer);
+    // prioritize recovering missing health for allies.
+    supportSkillId = this.decideSupportHealing(usableSkills, user);
   }
 
-  // then check the health of allies and prioritize that.
+  // check if there was no need for healing.
   if (!supportSkillId)
   {
-    supportSkillId = this.decideSupportHealing(availableSkills, healer);
+    // prioritize status buffing on allies.
+    supportSkillId = this.decideSupportBuffing(usableSkills, user);
   }
 
-  // lastly, if neither status nor health are necessary, check for and apply buffs/states.
+  // check if there was no need for any healing.
   if (!supportSkillId)
   {
-    supportSkillId = this.decideSupportBuffing(availableSkills, healer);
+    // do nothing.
+    return this.decideDoNothing(user);
   }
 
-  // if we still have no skill decided, then just do nothing.
-  if (!supportSkillId)
-  {
-    return this.decideDoNothing(healer);
-  }
-
+  // return the chosen skill id.
   return supportSkillId;
 };
 
@@ -779,6 +756,31 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
 //#endregion support-buffing
 //#endregion support
 
+/**
+ * Overwrites {@link #aiComboChanceModifier}.
+ * Adjusts the bonus combo chance modifier based on the selected ally AI mode.
+ * @returns {number}
+ */
+JABS_AllyAI.prototype.aiComboChanceModifier = function()
+{
+  // determine which AI mode the ally is assigned.
+  const currentMode = this.getMode().key;
+
+  // modify the combo chance based on the selected AI mode.
+  switch (currentMode)
+  {
+    case JABS_AllyAI.modes.BASIC_ATTACK.key:
+      return 30;
+    case JABS_AllyAI.modes.VARIETY.key:
+      return 20;
+    case JABS_AllyAI.modes.FULL_FORCE.key:
+      return 50;
+    case JABS_AllyAI.modes.SUPPORT.key:
+      return 10;
+    default:
+      return 0;
+  }
+}
 //#endregion decide action
 
 //#region battle memory
@@ -829,6 +831,28 @@ JABS_AllyAI.prototype.updateMemory = function(newMemory)
   let memory = this.getMemory(newMemory.battlerId, newMemory.skillId);
   memory = newMemory;
   this.memory.sort();
+};
+
+JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills)
+{
+  // a filtering function for filtering out unknown or ineffective skill ids.
+  const filtering = skillId =>
+  {
+    // grab the prior memory based on the skill id.
+    const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
+
+    // if there was no prior memory, then this skill isn't known to be effective.
+    if (!priorMemory) return false;
+
+    // if the memory exists and was effective, then include this skill.
+    if (priorMemory.wasEffective()) return true;
+
+    // the memory existed, but wasn't effective, so disclude this skill.
+    return false;
+  };
+
+  // return the filtered list of skills.
+  return usableSkills.filter(filtering);
 };
 //#endregion battle memory
 //#endregion JABS_AllyAI

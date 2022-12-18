@@ -1,50 +1,97 @@
 //#region Game_Actor
 /**
- * Adds in the jabs tracking object for ally ai.
+ * Extends {@link #initMembers}.
+ * Also tracks JABS ally AI.
  */
-J.ALLYAI.Aliased.Game_Actor.initMembers = Game_Actor.prototype.initMembers;
+J.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
-  J.ALLYAI.Aliased.Game_Actor.initMembers.call(this);
-  this._j = this._j || {};
-  /**
-   * The current ally ai configuration for this actor.
-   * @type {JABS_AllyAI}
-   */
-  this._j._allyAi = this._j._allyAi || null;
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Actor.get('initMembers').call(this);
+
+  // init the additional members.
+  this.initAllyAiMembers();
 };
 
-J.ALLYAI.Aliased.Game_Actor.setup = Game_Actor.prototype.setup;
+/**
+ * Initializes all members associated with the JABS extension of Ally AI.
+ */
+Game_Actor.prototype.initAllyAiMembers = function()
+{
+  /**
+   * The over-arching J object to contain all additional plugin parameters.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with JABS.
+   */
+  this._j._abs ||= {};
+
+  /**
+   * A grouping of all properties associated with the ally AI extension.
+   */
+  this._j._abs._allyAi ||= {};
+
+  /**
+   * The currently selected Ally AI mode.
+   * @type {JABS_AllyAI|null}
+   */
+  this._j._abs._allyAi._mode = new JABS_AllyAI(JABS_AllyAI.modes.VARIETY);
+};
+
+/**
+ * Extends {@link #setup}.
+ * Also initializes ally AI.
+ */
+J.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
-  J.ALLYAI.Aliased.Game_Actor.setup.call(this, actorId);
-  this.initializeAllyAI();
+  // perform original logic.
+  J.ALLYAI.Aliased.Game_Actor.get('setup').call(this, actorId);
+
+  // also initialize the ally's AI.
+  this.initAllyAI();
 };
 
 /**
  * Initializes the ally ai for this battler.
  */
-Game_Actor.prototype.initializeAllyAI = function()
+Game_Actor.prototype.initAllyAI = function()
 {
-  if (!this.getAllyAI())
-  {
-    const defaultAllyAiMode = this.getDefaultAllyAI();
-    this._j._allyAi = new JABS_AllyAI(defaultAllyAiMode);
-  }
+  // grab the default ally AI mode for this actor.
+  const defaultAllyAiMode = this.getDefaultAllyAI();
+
+  // update the ally AI mode with the default.
+  this.setAllyAIMode(defaultAllyAiMode);
 };
 
 /**
- * Gets the currently configured ally ai.
+ * Get the current ally AI mode for this ally.
  * @returns {JABS_AllyAI}
  */
 Game_Actor.prototype.getAllyAI = function()
 {
-  return this._j._allyAi;
+  if (!this._j._abs._allyAi)
+  {
+    this.initAllyAiMembers();
+  }
+
+  return this._j._abs._allyAi._mode;
+}
+
+/**
+ * Set the current ally AI mode for this ally.
+ * @param {JABS_AllyAI} mode The mode to set.
+ */
+Game_Actor.prototype.setAllyAIMode = function(mode)
+{
+  this._j._abs._allyAi._mode.changeMode(mode);
 };
 
 /**
- * Gets the default ally ai mode that is defined in the actor's notes
- * (or actor's class's notes).
+ * Gets the default ally AI mode associated with an actor.
+ * The priority for the AI mode is class > actor > default.
  * @returns {string}
  */
 Game_Actor.prototype.getDefaultAllyAI = function()
@@ -52,38 +99,23 @@ Game_Actor.prototype.getDefaultAllyAI = function()
   // if there is no actor id, then don't try this yet.
   if (!this._actorId) return null;
 
-  let defaultAllyAi = JABS_AllyAI.modes.VARIETY;
-  const structure = /<defaultAi:([-. \w+]*)>/i;
-  const actorData = this.actor();
+  // extract the ally ai mode from the actor.
+  const actorMode = this.actor().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
 
-  // check the actor's notes first.
-  const notedata = actorData.note.split(/[\r\n]+/);
-  notedata.forEach(note =>
+  // extract the ally ai mode from the class.
+  const classMode = this.currentClass().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
+
+  // priority is class > actor > default, for ally ai mode.
+  const allyAiMode = classMode ?? actorMode;
+
+  // validate the mode provided.
+  if (JABS_AllyAI.validateMode(allyAiMode))
   {
-    if (note.match(structure))
-    {
-      if (JABS_AllyAI.validateMode(RegExp.$1))
-      {
-        defaultAllyAi = RegExp.$1;
-      }
-    }
-  });
+    // if validation succeeds, then return what was in the notes.
+    return allyAiMode;
+  }
 
-  // then check the class notes in case there is a more granular ai assignment.
-  const {classId} = actorData;
-  const classData = $dataClasses[classId];
-  const classNotedata = classData.note.split(/[\r\n]+/);
-  classNotedata.forEach(note =>
-  {
-    if (note.match(structure))
-    {
-      if (JABS_AllyAI.validateMode(RegExp.$1))
-      {
-        defaultAllyAi = RegExp.$1;
-      }
-    }
-  });
-
-  return JABS_AllyAI.validateMode(defaultAllyAi);
+  // return the default of "variety" for ally ai.
+  return JABS_AllyAI.modes.VARIETY.key;
 };
 //#endregion Game_Actor

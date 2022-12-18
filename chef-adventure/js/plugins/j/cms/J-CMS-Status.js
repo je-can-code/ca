@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -1155,7 +1155,7 @@ class Window_StatusParameters extends Window_Base
       {
         colorIndex = 3; // green
       }
-      const {iconIndex} = state;
+      const { iconIndex } = state;
       this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }

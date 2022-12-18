@@ -33,7 +33,7 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
   {
     const parsedConditional = JSON.parse(conditionalBlob);
 
-    const {key} = parsedConditional;
+    const { key } = parsedConditional;
     // skip proficiencies that are just headers for visual clarity.
     if (key.startsWith("===")) return;
 

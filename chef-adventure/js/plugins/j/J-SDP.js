@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 08 2022 16:38:19 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 17 2022 13:04:28 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /* eslint-disable */
@@ -625,7 +625,7 @@ J.SDP.Aliased = {
   Game_Actor: new Map(),
   JABS_Engine: new Map(),
   Game_Enemy: new Map(),
-  Game_Switches: {},
+  Game_Switches: new Map(),
   Game_System: new Map(),
   Scene_Map: new Map(),
   Scene_Menu: new Map(),
@@ -952,7 +952,7 @@ StatDistributionPanel.prototype.rankUpCost = function(currentRank)
  */
 StatDistributionPanel.prototype.getPanelParameterById = function(paramId)
 {
-  const {panelParameters} = this;
+  const { panelParameters } = this;
   return panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
 };
 
@@ -963,7 +963,7 @@ StatDistributionPanel.prototype.getPanelParameterById = function(paramId)
  */
 StatDistributionPanel.prototype.getPanelRewardsByRank = function(rank)
 {
-  const {panelRewards} = this;
+  const { panelRewards } = this;
   return panelRewards.filter(reward => reward.rankRequired === rank);
 };
 
@@ -1152,7 +1152,7 @@ PanelRanking.prototype.initMembers = function()
 PanelRanking.prototype.rankUp = function()
 {
   const panel = $gameSystem.getSdpRankByKey(this.key);
-  const {maxRank} = panel;
+  const { maxRank } = panel;
   if (this.currentRank < maxRank)
   {
     this.currentRank++;
@@ -1459,7 +1459,7 @@ BattleManager.displayRewards = function()
 
 BattleManager.displaySdp = function()
 {
-  const {sdp} = this._rewards;
+  const { sdp } = this._rewards;
   if (sdp > 0)
   {
     const text = `${sdp} ${J.SDP.Metadata.VictoryText}`;
@@ -1763,7 +1763,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
     {
       panelParameters.forEach(panelParameter =>
       {
-        const {perRank} = panelParameter;
+        const { perRank } = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {
@@ -1804,7 +1804,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
     {
       panelParameters.forEach(panelParameter =>
       {
-        const {perRank} = panelParameter;
+        const { perRank } = panelParameter;
         const curRank = panelRanking.currentRank;
         if (!panelParameter.isFlat)
         {
@@ -2046,21 +2046,6 @@ Game_Enemy.prototype.sdpPoints = function()
   return this.enemy().sdpPoints;
 };
 //#endregion Game_Enemy
-
-//#region Game_Switches
-/**
- * Hooks into the `onChange` function for updating the JABS quick menu when switches change.
- */
-J.SDP.Aliased.Game_Switches.onChange = Game_Switches.prototype.onChange;
-Game_Switches.prototype.onChange = function()
-{
-  $gameMap.requestRefresh();
-  if (J.ABS)
-  {
-    $jabsEngine.requestJabsMenuRefresh = true;
-  }
-};
-//#endregion Game_Switches
 
 //#region Game_System
 /**
@@ -3009,7 +2994,7 @@ class Window_SDP_Details extends Window_Base
   {
     const panel = this.currentPanel;
     const lh = this.lineHeight();
-    const {panelParameters} = panel;
+    const { panelParameters } = panel;
     this.drawParameterHeaderRow(120);
     panelParameters.forEach((parameter, index) =>
     {
@@ -3038,8 +3023,8 @@ class Window_SDP_Details extends Window_Base
    */
   drawParameterDetailsRow(panelParameter, y)
   {
-    const {parameterId, perRank, isFlat, isCore} = panelParameter;
-    const {name, value, iconIndex, smallerIsBetter, isPercentValue} = this.translateParameter(parameterId);
+    const { parameterId, perRank, isFlat, isCore } = panelParameter;
+    const { name, value, iconIndex, smallerIsBetter, isPercentValue } = this.translateParameter(parameterId);
     const ox = 20;
     const rw = 200;
     const isPositive = perRank >= 0 ? '+' : String.empty;

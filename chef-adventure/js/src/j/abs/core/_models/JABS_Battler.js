@@ -97,9 +97,9 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
   this._alertDuration = battlerCoreData.alertDuration();
 
   /**
-   * The `JABS_BattlerAI` of this battler.
+   * The `JABS_EnemyAI` of this battler.
    * Only utilized by AI (duh).
-   * @type {JABS_BattlerAI}
+   * @type {JABS_EnemyAI}
    */
   this._aiMode = battlerCoreData.ai();
 
@@ -199,6 +199,12 @@ JABS_Battler.prototype.initBattleInfo = function()
    * @type {number}
    */
   this._lastUsedSkillId = 0;
+
+  /**
+   * The key of the slot that was last performed.
+   * @type {string}
+   */
+  this._lastUsedSlot = String.empty;
 
   /**
    * The current phase of AI battling that this battler is in.
@@ -768,8 +774,14 @@ JABS_Battler.prototype.processQueuedActions = function()
   // execute the action.
   $jabsEngine.executeMapActions(this, decidedActions);
 
+  // determine the core action associated with the action collection.
+  const lastUsedSkill = decidedActions.at(0);
+
   // set the last skill used to be the skill we just used.
-  this.setLastUsedSkillId(decidedActions[0].getBaseSkill().id);
+  this.setLastUsedSkillId(lastUsedSkill.getBaseSkill().id);
+
+  // set the last slot used to be the slot of the skill we just used.
+  this.setLastUsedSlot(lastUsedSkill.getCooldownType());
 
   // clear the queued action.
   this.clearDecidedAction();
@@ -1039,6 +1051,12 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 
   // if the engagement timer is not ready, we cannot update.
   if (!this._engagementTimer.isTimerComplete()) return false;
+
+  // if we're already engaged, no need to further update engagement- its confusing.
+  if (this.isEngaged()) return false;
+
+  // if we are unable to alter engagement, don't update engagement.
+  if (this.isEngagementLocked()) return false;
 
   // engage!
   return true;
@@ -1692,7 +1710,7 @@ JABS_Battler.prototype.processNaturalHpRegen = function()
   if (battler.hp < battler.mhp)
   {
     // extract the regens rates.
-    const {hrg, rec} = battler;
+    const { hrg, rec } = battler;
 
     // calculate the bonus.
     const naturalHp5 = ((hrg * 100) * 0.05) * rec;
@@ -1714,7 +1732,7 @@ JABS_Battler.prototype.processNaturalMpRegen = function()
   if (battler.mp < battler.mmp)
   {
     // extract the regens rates.
-    const {mrg, rec} = battler;
+    const { mrg, rec } = battler;
 
     // calculate the bonus.
     const naturalMp5 = ((mrg * 100) * 0.05) * rec;
@@ -1736,7 +1754,7 @@ JABS_Battler.prototype.processNaturalTpRegen = function()
   if (battler.tp < battler.maxTp())
   {
     // extract the regens rates.
-    const {trg, rec} = battler;
+    const { trg, rec } = battler;
 
     // calculate the bonus.
     const naturalTp5 = ((trg * 100) * 0.05) * rec;
@@ -1756,7 +1774,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
   const battler = this.getBattler();
 
   // default the regenerations to the battler's innate regens.
-  const {rec} = battler;
+  const { rec } = battler;
   const regens = [0, 0, 0];
 
   // process each state for slip actions.
@@ -3403,7 +3421,7 @@ JABS_Battler.prototype.getY = function()
 
 /**
  * Retrieves the AI associated with this battler.
- * @returns {JABS_BattlerAI} This battler's AI.
+ * @returns {JABS_EnemyAI} This battler's AI.
  */
 JABS_Battler.prototype.getAiMode = function()
 {
@@ -3412,7 +3430,7 @@ JABS_Battler.prototype.getAiMode = function()
 
 /**
  * Gets this follower's leader's AI.
- * @returns {JABS_BattlerAI} This battler's leader's AI.
+ * @returns {JABS_EnemyAI} This battler's leader's AI.
  */
 JABS_Battler.prototype.getLeaderAiMode = function()
 {
@@ -3547,8 +3565,10 @@ JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
  */
 JABS_Battler.prototype.getCooldown = function(cooldownKey)
 {
+  // grab the slot of the given key.
   const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
 
+  // check that there is a skill slot.
   if (!skillSlot)
   {
     console.warn('omg');
@@ -3798,29 +3818,32 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // build the cooldown key based on the skill data.
-  const cooldownKey = this.getCooldownKeyBySkillId(chosenSkillId);
+  let skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
 
   // check to make sure we have a key.
-  if (!cooldownKey)
+  if (!skillSlotKey)
   {
-    // if somehow we have no key, then this skill clearly isn't ready.
+    // if there is no key, then this skill clearly isn't ready.
     return false;
   }
 
   // grab the cooldown itself.
-  const cooldown = this.getCooldown(cooldownKey);
+  const cooldown = this.getCooldown(skillSlotKey);
 
   // check if the skill was actually a remembered effective skill from a follower.
   if (!cooldown)
   {
     // please stop trying to cast your follower's skills.
-    console.warn(this, cooldownKey);
+    console.warn(this, skillSlotKey);
     console.trace();
     return false;
   }
 
+  // check if the chosen skill is actually a combo for this slot.
+  let isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
+
   // check if the base is off cooldown yet.
-  if (!cooldown.isBaseReady())
+  if (!isCombo && !cooldown.isBaseReady())
   {
     // cooldown is not ready yet.
     return false;
@@ -3954,6 +3977,24 @@ JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
 };
 
 /**
+ * Gets the key of the last used slot.
+ * @returns {string}
+ */
+JABS_Battler.prototype.getLastUsedSlot = function()
+{
+  return this._lastUsedSlot;
+};
+
+/**
+ * Sets the last used slot to the given slot key.
+ * @param {string} slotKey The key of the last slot used.
+ */
+JABS_Battler.prototype.setLastUsedSlot = function(slotKey)
+{
+  this._lastUsedSlot = slotKey;
+};
+
+/**
  * Gets all allies to this battler within a large range.
  * (Not map-wide because that could result in unexpected behavior)
  * @returns {JABS_Battler[]}
@@ -4026,34 +4067,80 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
 };
 
 /**
+ * Determines whether or not at least one slot has a combo skill id pending.
+ * @returns {boolean} True if at least one slot's combo skill id is pending, false otherwise.
+ */
+JABS_Battler.prototype.hasComboReady = function()
+{
+  return this.getBattler()
+    .getSkillSlotManager()
+    .getAllSlots()
+    .some(slot => slot.comboId !== 0);
+};
+
+/**
  * Gets all skills that are available to this enemy battler.
+ * These skills disclude "extend" skills and non-combo-starter skills.
  * @returns {number[]} The skill ids available to this enemy.
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
-  // grab the battler for reference.
-  const battler = this.getBattler();
+  // grab the database data for this enemy.
+  const battlerActions = this.getBattler().enemy().actions;
 
-  // filter out any "extend" skills as far as this collection is concerned.
+  // a filter function for building the skill to check if it should be filtered.
   const filtering = action =>
   {
-    // grab the skill from the database.
-    const skill = battler.skill(action.skillId);
+    // determine the skill of this action.
+    const skill = this.getBattler().skill(action.skillId);
 
-    // determine if the skill is an extend skill or not.
-    const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+    // determine if we're keeping it.
+    const keep = this.aiSkillFilter(skill);
 
-    // filter out the extend skills.
-    return !isExtendSkill;
+    // return what we found out.
+    return keep;
   };
 
-  // grab the database data for this enemy.
-  const battlerData = this.getBattler().enemy();
+  // determine the valid actions available for this enemy.
+  const validActions = battlerActions.filter(filtering, this);
 
-  // return the filtered result of skills.
-  return battlerData.actions
-    .filter(filtering)
-    .map(action => action.skillId);
+  // extract all the skill ids of the actions.
+  const validSkillIds = validActions.map(action => action.skillId);
+
+  // return the list of filtered skill ids this battler can use.
+  return validSkillIds;
+};
+
+/**
+ * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.
+ * @param {RPG_Skill} skill The skill being verified.
+ * @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
+ */
+JABS_Battler.prototype.aiSkillFilter = function(skill)
+{
+  // extract the combo data points.
+  const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion, isSkillExtender } = skill;
+
+  // this skill is explicitly excluded from the skill pool.
+  if (jabsAiSkillExclusion) return false;
+
+  // skill extender skills are excluded from the skill pool.
+  if (isSkillExtender) return false;
+
+  // determine if this skill is a combo action.
+  const isCombo = !!jabsComboAction;
+
+  // determine if this skill is a combo starter.
+  const isComboStarter = !!jabsComboStarter;
+
+  // we can only include combo starter combo skills.
+  const isNonComboStarterSkill = (isCombo && !isComboStarter);
+
+  // combo skills that are not combo starters are excluded from the skill pool.
+  if (isNonComboStarterSkill) return false;
+
+  // valid skill!
+  return true;
 };
 
 /**
@@ -4122,16 +4209,14 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // don't process aggro for inanimate battlers.
   if (this.isInanimate()) return;
 
+  // extract the uuid of the current highest aggro.
+  const highestAggroUuid = this.getHighestAggro().uuid();
+
   // check if we currently don't have a target.
   if (!this.getTarget())
   {
-    // extract your the current highest aggro.
-    const highestAggro = this.getHighestAggro();
-
-    console.log(highestAggro, this);
-
     // grab the battler for that uuid.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggro.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroUuid);
 
     // make sure the battler exists before setting it.
     if (newTarget)
@@ -4147,21 +4232,23 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // if the target is no longer valid, disengage and end combat.
   this.removeAggroIfInvalid(this.getTarget().getUuid());
 
+  const allAggros = this.getAggrosSortedHighestToLowest();
+
   // if there is no aggros remaining, disengage.
-  if (this._aggros.length === 0)
+  if (allAggros.length === 0)
   {
     this.disengageTarget();
     return;
   }
 
   // if there is only 1 aggro remaining
-  if (this._aggros.length === 1)
+  if (allAggros.length === 1)
   {
     // if there is no target, just stop that shit.
     if (!this.getTarget()) return;
 
     // grab the uuid of the first aggro in the list.
-    const zerothAggroUuid = this._aggros[0].uuid();
+    const zerothAggroUuid = allAggros.at(0).uuid();
 
     // check to see if the last aggro in the list belongs to the current target.
     if (!(this.getTarget().getUuid() === zerothAggroUuid))
@@ -4187,20 +4274,42 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // if you still don't have a target but have multiple aggros, then just give up.
   if (!this.getTarget()) return;
 
+  // filtered aggros containing only aggros of enemies that are nearby.
+  const filteredAggros = allAggros.filter(aggro =>
+  {
+    // the battler associated with the aggro.
+    const potentialTarget = JABS_AiManager.getBattlerByUuid(aggro.uuid());
+
+    // if the target is invalid somehow, then it is not a valid aggro.
+    if (!potentialTarget) return false;
+
+    // if the target is too far away, don't consider it.
+    if (this.getPursuitRadius() < this.distanceToDesignatedTarget(potentialTarget)) return false;
+
+    // this aggro target is fine!
+    return true;
+  });
+
+  // all aggro'd targets are too far, don't adjust targets.
+  if (filteredAggros.length === 0) return;
+
   // find the highest aggro target currently being tracked.
-  const highestAggroTarget = this.getHighestAggro();
+  const highestAggroTargetUuid = filteredAggros.at(0).uuid();
+
+  // grab the current target of this battler at the moment.
+  const currentTargetUuid = this.getTarget().getUuid();
 
   // if the current target isn't the highest target, then switch!
-  if (!(highestAggroTarget.uuid() === this.getTarget().getUuid()))
+  if (highestAggroTargetUuid !== currentTargetUuid)
   {
     // find the new target to change to that has more aggro than the current target.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTarget.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTargetUuid);
 
     // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
     if (!newTarget)
     {
       // get the index to remove...
-      this.removeAggro(highestAggroTarget.uuid());
+      this.removeAggro(highestAggroTargetUuid);
     }
     else
     {
@@ -4229,9 +4338,43 @@ JABS_Battler.prototype.getAllAggros = function()
  */
 JABS_Battler.prototype.getHighestAggro = function()
 {
-  // grab the aggros.
-  const aggros = this.getAllAggros();
+  // grab the aggros pre-sorted.
+  const sortedAggros = this.getAggrosSortedHighestToLowest();
 
+  // validate we have aggros.
+  if (sortedAggros.length === 0)
+  {
+    // no aggros means no highest.
+    return null;
+  }
+
+  // check if we only have a single aggro tracked.
+  if (sortedAggros.length === 1)
+  {
+    // return that one aggro.
+    return sortedAggros.at(0);
+  }
+
+  // otherwise, grab the first and second highest aggros.
+  const [ highestAggro, secondHighestAggro, ] = sortedAggros;
+
+  // check if the top two aggros are the same.
+  if (highestAggro.aggro === secondHighestAggro.aggro)
+  {
+    // modify the first one by 1 to actually be higher.
+    highestAggro.modAggro(1, true);
+  }
+
+  // return the result.
+  return highestAggro;
+};
+
+/**
+ * Gets all the aggros for this battler, sorted from highest to lowest.
+ * @returns {JABS_Aggro[]}
+ */
+JABS_Battler.prototype.getAggrosSortedHighestToLowest = function()
+{
   // a sorting function for determining the highest aggro from a collection.
   const sorting = (a, b) =>
   {
@@ -4247,21 +4390,14 @@ JABS_Battler.prototype.getHighestAggro = function()
     return 0;
   };
 
+  // grab the aggros.
+  const aggros = this.getAllAggros();
+
   // sort them by their aggro rating.
   aggros.sort(sorting);
 
-  // grab the first and second highest aggros.
-  const [ highestAggro, secondHighestAggro, ] = aggros;
-
-  // check if the top two aggros are the same.
-  if (highestAggro.aggro === secondHighestAggro.aggro)
-  {
-    // modify the first one by 1 to actually be higher.
-    highestAggro.modAggro(1, true);
-  }
-
-  // return the result.
-  return highestAggro;
+  // return the sorted aggros.
+  return aggros;
 };
 
 /**

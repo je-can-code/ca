@@ -160,11 +160,11 @@ class JABS_Action
 
     /**
      * The current pierce delay in frames.
-     * @type {number}
+     * @type {JABS_Timer}
      */
-    this._currentPierceDelay = 0;
-
     this._pierceDelay = new JABS_Timer(this._basePierceDelay);
+
+    this._pierceDelay.setCurrentTime(this._pierceDelay.getMaxTime() - 1);
   }
 
   /**

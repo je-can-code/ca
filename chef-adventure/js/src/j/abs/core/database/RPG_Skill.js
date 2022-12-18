@@ -721,6 +721,68 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboAction",
   });
 
 /**
+ * Whether or not this skill can be used to engage in a combo.
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter",
+  {
+    get: function()
+    {
+      return this.getJabsComboStarter();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the combo starter.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getJabsComboStarter = function()
+{
+  return this.metaAsBoolean('comboStarter');
+};
+
+/**
+ * Whether or not this skill is a "skill extend" skill.
+ * @returns {boolean} True if this is a "skill extend" skill, false otherwise.
+ */
+Object.defineProperty(RPG_Skill.prototype, "isSkillExtender",
+  {
+    get: function()
+    {
+      return !!this.getSkillExtender();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the JABS AI skill exclusion tag.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getSkillExtender = function()
+{
+  return this.metadata('skillExtend');
+};
+
+/**
+ * Whether or not this skill can be chosen at all by the JABS AI.
+ * Combo skills can still be executed as they are chosen by different means.
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion",
+  {
+    get: function()
+    {
+      return this.getAiSkillExclusion();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the JABS AI skill exclusion tag.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getAiSkillExclusion = function()
+{
+  return this.metaAsBoolean('aiSkillExclusion');
+};
+
+/**
  * The JABS combo skill id that this skill can lead into if the skill is learned
  * by the caster.
  * @type {number|null}

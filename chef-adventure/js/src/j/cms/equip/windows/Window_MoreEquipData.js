@@ -74,7 +74,7 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addHitsCommand()
   {
-    const {bonusHits} = this.item._j;
+    const { bonusHits } = this.item._j;
     const isWeapon = this.item.etypeId === 1;
     if (bonusHits || isWeapon)
     {
@@ -91,8 +91,8 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addSkillCommands()
   {
-    const {skillId} = this.item._j;
-    const {actor} = this;
+    const { skillId } = this.item._j;
+    const { actor } = this;
     if (skillId)
     {
       const baseAttackskill = OverlayManager.getExtendedSkill(actor, skillId);
@@ -122,7 +122,7 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addSpeedBoostCommand()
   {
-    const {speedBoost} = this.item._j;
+    const { speedBoost } = this.item._j;
     if (speedBoost)
     {
       const speedBoostCommand = `Speed Boost: ${speedBoost}`;

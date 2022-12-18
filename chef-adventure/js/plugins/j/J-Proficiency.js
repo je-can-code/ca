@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Nov 13 2022 11:16:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
 
 //#region Introduction
 /*:
@@ -216,7 +216,7 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
   {
     const parsedConditional = JSON.parse(conditionalBlob);
 
-    const {key} = parsedConditional;
+    const { key } = parsedConditional;
     // skip proficiencies that are just headers for visual clarity.
     if (key.startsWith("===")) return;
 
@@ -798,7 +798,7 @@ Game_Actor.prototype.executeJsRewards = function(conditional)
 
   const a = this;         // the actor reference.
   const c = conditional;  // the conditional reference.
-  const {jsRewards} = c;
+  const { jsRewards } = c;
   try
   {
     eval(jsRewards);

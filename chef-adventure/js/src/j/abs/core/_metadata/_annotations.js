@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.2 JABS] Enables combat to be carried out on the map.
+ * [v3.2.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -46,6 +46,10 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.0
+ *    Fixed bug where actions couldn't connect if the attacker was too close.
+ *    Upgraded AI to be able to leverage combos (ally AI, too).
+ *    Refactored code surrounding AI action decision-making.
  * - 3.1.2
  *    Refactored some of the JABS menu in a non-breaking way.
  *    Optimized/centralized note tag retrieval in many cases.

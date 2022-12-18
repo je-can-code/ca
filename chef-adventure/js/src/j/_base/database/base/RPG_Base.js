@@ -136,7 +136,7 @@ class RPG_Base
 
   //#region meta
   /**
-   * Gets the metadata of a given key from this skill as whatever value RMMZ stored it as.
+   * Gets the metadata of a given key from this entry as whatever value RMMZ stored it as.
    * Only returns null if there was no underlying data associated with the provided key.
    * @param {string} key The key to the metadata.
    * @returns {any|null} The value as RMMZ translated it, or null if the value didn't exist.
@@ -159,7 +159,7 @@ class RPG_Base
   /**
    * Gets the value of the given key from this entry's meta object.
    * @param key
-   * @returns {string|number|boolean|*}
+   * @returns {string|number|boolean|undefined}
    */
   #getMeta(key)
   {
@@ -167,7 +167,7 @@ class RPG_Base
   }
 
   /**
-   * Deletes the metadata key from the underlying object entirely.
+   * Deletes the metadata key from the entry entirely.
    * @param key
    */
   deleteMetadata(key)
@@ -197,7 +197,7 @@ class RPG_Base
   }
 
   /**
-   * Gets the metadata of a given key from this skill as a number.
+   * Gets the metadata of a given key from this entry as a number.
    * Only returns `null` if the underlying data wasn't a number or numeric string.
    * @param {string} key The key to the metadata.
    * @returns {boolean|null} The number value, or null if the number wasn't valid.
@@ -250,7 +250,7 @@ class RPG_Base
    * Retrieves the metadata for a given key on this skill.
    * This is mostly designed for providing intellisense.
    * @param {string} key The key to the metadata.
-   * @returns {null|*}
+   * @returns {any|null}
    */
   metaAsObject(key)
   {

@@ -1617,10 +1617,10 @@ declare class Game_Actor extends Game_Battler {
     /**
      * Returns the database information of the actor.
      *
-     * @returns {Actor}
+     * @returns {RPG_Actor}
      * @memberof Game_Actor
      */
-    actor(): rm.types.Actor;
+    actor(): RPG_Actor;
     /**
      * Returns the actor's name.
      * @return String

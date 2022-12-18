@@ -46,6 +46,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._cdrRate = 0;
 };
 
+//#region properties
 /**
  * Gets the permanent flat bonus for CDM.
  * @returns {number}
@@ -117,6 +118,7 @@ Game_Battler.prototype.modCdrRate = function(amount)
 {
   this._j._natural._cdrRate += amount;
 };
+//#endregion properties
 
 /**
  * Gets the base multiplier for this battler's critical hits.

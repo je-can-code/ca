@@ -215,7 +215,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   lootCollected.forEach(loot =>
   {
     // get the underlying loot item.
-    const {lootData} = loot.getJabsLoot();
+    const { lootData } = loot.getJabsLoot();
 
     // store the loot on-pickup.
     this.storeOnPickup(lootData);
@@ -253,7 +253,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 {
   // extract the loot data.
   const lootMetadata = lootEvent.getJabsLoot();
-  const {lootData} = lootMetadata;
+  const { lootData } = lootMetadata;
   lootMetadata.useOnPickup
     ? this.useOnPickup(lootData)
     : this.storeOnPickup(lootData);

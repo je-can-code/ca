@@ -388,7 +388,7 @@ Game_Event.prototype.getTeamIdOverrides = function()
 
 /**
  * Parses out the battler ai including their bonus ai traits.
- * @returns {JABS_BattlerAI} The constructed battler AI.
+ * @returns {JABS_EnemyAI} The constructed battler AI.
  */
 Game_Event.prototype.getBattlerAiOverrides = function()
 {
@@ -450,7 +450,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   });
 
   // return the overridden battler ai.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
 /**

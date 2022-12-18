@@ -2,10 +2,13 @@
 /**
  * Extends the initialization to include the actor id for ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.initialize = Window_AbsMenuSelect.prototype.initialize;
+J.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
 Window_AbsMenuSelect.prototype.initialize = function(rect, type)
 {
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.initialize.call(this, rect, type);
+  // perform original logic.
+  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize').call(this, rect, type);
+
+  // TODO: init properly.
   this._j._chosenActorId = 0;
 };
 
@@ -30,10 +33,13 @@ Window_AbsMenuSelect.prototype.getActorId = function()
 /**
  * Extends the JABS quick menu select to also handle ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.makeCommandList = Window_AbsMenuSelect.prototype.makeCommandList;
+J.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
 Window_AbsMenuSelect.prototype.makeCommandList = function()
 {
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.makeCommandList.call(this);
+  // perform original logic.
+  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList').call(this);
+
+  // pivot on the menu type.
   switch (this._j._menuType)
   {
     case "ai-party-list":
@@ -50,19 +56,38 @@ Window_AbsMenuSelect.prototype.makeCommandList = function()
  */
 Window_AbsMenuSelect.prototype.makeAllyList = function()
 {
-  const party = $gameParty.allMembers();
-  party.forEach(member =>
+  // an iterator function for building all the actor commands for changing ally AI.
+  const forEacher = member =>
   {
-    this.addCommand(member.name(), "party-member", true, member.actorId());
-  });
+    // build the command for this member of the party.
+    const command = new WindowCommandBuilder(member.name())
+      .setSymbol("party-member")
+      .setExtensionData(member.actorId())
+      .build();
 
+    // add the built command to the list.
+    this.addBuiltCommand(command);
+  };
+
+  // build all the commands.
+  $gameParty.allMembers().forEach(forEacher, this);
+
+  // define the icons for passive/aggressive ally AI aggro settings.
   const aggroPassiveCommandName = $gameParty.isAggro()
     ? J.ALLYAI.Metadata.PartyAiAggressiveText
     : J.ALLYAI.Metadata.PartyAiPassiveText;
   const aggroPassiveCommandIcon = $gameParty.isAggro()
     ? J.ALLYAI.Metadata.PartyAiAggressiveIconIndex
     : J.ALLYAI.Metadata.PartyAiPassiveIconIndex;
-  this.addCommand(aggroPassiveCommandName, "aggro-passive-toggle", true, null, aggroPassiveCommandIcon);
+
+  // build the command for toggling ally AI aggro.
+  const command = new WindowCommandBuilder(aggroPassiveCommandName)
+    .setSymbol("aggro-passive-toggle")
+    .setIconIndex(aggroPassiveCommandIcon)
+    .build();
+
+  // add the aggro toggle command.
+  this.addBuiltCommand(command);
 };
 
 /**
@@ -70,19 +95,44 @@ Window_AbsMenuSelect.prototype.makeAllyList = function()
  */
 Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
 {
+  // grab the currently selected actor.
   const currentActor = $gameActors.actor(this.getActorId());
+
+  // if there is no actor, then there is no AI.
   if (!currentActor) return;
 
+  // grab all available ally AI modes.
   const modes = JABS_AllyAI.getModes();
+
+  // grab the currently selected AI.
   const currentAi = currentActor.getAllyAI();
 
-  modes.forEach(mode =>
+  // an iterator function for building all ally AI modes as commands.
+  const forEacher = mode =>
   {
-    const isEquipped = currentAi.getMode().key === mode.key;
+    // extract some data from this ally AI mode.
+    const { key, name } = mode;
+
+    // check if the currently selected ally AI mode is this command.
+    const isEquipped = currentAi.getMode() === key;
+
+    // build the icon based on whether or not its equipped.
     const iconIndex = isEquipped
       ? J.ALLYAI.Metadata.AiModeEquippedIconIndex
       : J.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
-    this.addCommand(mode.name, "select-ai", true, mode, iconIndex);
-  });
+
+    // build the command.
+    const command = new WindowCommandBuilder(name)
+    .setSymbol("select-ai")
+    .setIconIndex(iconIndex)
+    .setExtensionData(mode)
+    .build();
+
+    // add the command to the list.
+    this.addBuiltCommand(command);
+  };
+
+  // iterate over each mode and rebuild the commands.
+  modes.forEach(forEacher, this);
 };
 //#endregion Window_AbsMenuSelect

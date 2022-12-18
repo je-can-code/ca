@@ -262,8 +262,13 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
  */
 JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
 {
+  // define the invalid skill slots that allies shouldn't use skills from.
+  const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
+
+  // return the filtered list of slots with skills that aren't invalid.
   return this.getEquippedSlots()
-    .filter(skillSlot => skillSlot.key !== JABS_Button.Tool);
+    // exclude the invalid skill slots.
+    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
 };
 
 /**
@@ -284,8 +289,20 @@ JABS_SkillSlotManager.prototype.getSkillSlotByKey = function(key)
  */
 JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind)
 {
-  return this.getEquippedSlots()
+  // check if the skill to find is the base skill of a slot.
+  let foundSlot = this.getEquippedSlots()
     .find(skillSlot => skillSlot.id === skillIdToFind);
+
+  // validate we found a slot for the skill.
+  if (!foundSlot)
+  {
+    // check if the skill id is actually the combo skill of one of the slots.
+    foundSlot = this.getEquippedSlots()
+      .find(skillSlot => skillSlot.comboId === skillIdToFind);
+  }
+
+  // return the found slot.
+  return foundSlot;
 };
 
 /**

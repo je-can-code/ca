@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Thu Dec 08 2022 17:17:35 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 17 2022 17:41:33 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.2 JABS] Enables combat to be carried out on the map.
+ * [v3.2.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -48,6 +48,10 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.0
+ *    Fixed bug where actions couldn't connect if the attacker was too close.
+ *    Upgraded AI to be able to leverage combos (ally AI, too).
+ *    Refactored code surrounding AI action decision-making.
  * - 3.1.2
  *    Refactored some of the JABS menu in a non-breaking way.
  *    Optimized/centralized note tag retrieval in many cases.
@@ -1738,7 +1742,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
   return arr.map(el =>
   {
     const kvp = JSON.parse(el);
-    const {elementId, iconIndex} = kvp;
+    const { elementId, iconIndex } = kvp;
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
@@ -1750,7 +1754,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.1.2';
+J.ABS.Metadata.Version = '3.2.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2192,6 +2196,7 @@ J.ABS.RegExp = {
  */
 J.ABS.Aliased = {
   DataManager: new Map(),
+
   Game_Actor: new Map(),
   Game_Action: new Map(),
   Game_ActionResult: new Map(),
@@ -2204,12 +2209,16 @@ J.ABS.Aliased = {
   Game_Map: new Map(),
   Game_Party: new Map(),
   Game_Player: new Map(),
+  Game_Switches: new Map(),
   Game_Unit: new Map(),
+
   RPG_Actor: new Map(),
   RPG_Enemy: new Map(),
   RPG_Skill: new Map(),
+
   Scene_Load: new Map(),
   Scene_Map: new Map(),
+
   Spriteset_Map: new Map(),
   Sprite_Character: new Map(),
   Sprite_Gauge: new Map(),
@@ -2239,7 +2248,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
 PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
 {
   // extract the values out of the various args.
-  const {actorId, skillId, itemId, slot, locked} = args;
+  const { actorId, skillId, itemId, slot, locked } = args;
 
   // convert the text option to one of the available slots.
   const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
@@ -2279,7 +2288,7 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", arg
     return;
   }
 
-  const {Slot} = args;
+  const { Slot } = args;
   const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
   leader.unlockSlot(translation);
 });
@@ -2526,11 +2535,11 @@ class JABS_Action
 
     /**
      * The current pierce delay in frames.
-     * @type {number}
+     * @type {JABS_Timer}
      */
-    this._currentPierceDelay = 0;
-
     this._pierceDelay = new JABS_Timer(this._basePierceDelay);
+
+    this._pierceDelay.setCurrentTime(this._pierceDelay.getMaxTime() - 1);
   }
 
   /**
@@ -3273,6 +3282,190 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
 };
 //#endregion JABS_Aggro
 
+//region JABS_AI
+/**
+ * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.
+ */
+class JABS_AI
+{
+  /**
+   * Decides an action based on this battler's AI, the target, and the given available skills.
+   * @param {JABS_Battler} user The battler of the AI deciding a skill.
+   * @param {JABS_Battler} target The target battler to decide an action against.
+   * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
+   * @returns {number|null} The skill id chosen to use, or null if none were valid choices for this AI.
+   */
+  // eslint-disable-next-line no-unused-vars
+  decideAction(user, target, availableSkills)
+  {
+    return 0;
+  }
+
+  /**
+   * Determines whether or not the attacker should continue with their combo.
+   * @param {JABS_Battler} user The user potentially pursuing a combo skill.
+   * @returns {boolean} True if the user should follow with combo, false otherwise.
+   */
+  shouldFollowWithCombo(user)
+  {
+    // if the AI-controlled battler has no combos ready, they don't combo.
+    if (!user.hasComboReady()) return false;
+
+    // grab the combo skill id from the last used skill slot.
+    const comboSkillId = user.getComboNextActionId(user.getLastUsedSlot());
+
+    // if the battler doesn't meet the criteria to perform the skill, then don't combo.
+    if (!user.canExecuteSkill(comboSkillId)) return false;
+
+    // determine this AI's chance to perform a combo, conditions allowing.
+    const comboChance = this.determineComboChance();
+
+    // roll the dice and determine your fate!!
+    const comboRng = RPGManager.chanceIn100(comboChance);
+
+    // return combo rngesus's determination in life.
+    return comboRng;
+  }
+
+  /**
+   * Calculates the chance for combos based on this AI's traits.
+   * @returns {number} The integer percent chance to perform the combo skill if available.
+   */
+  determineComboChance()
+  {
+    // determine the base combo chance.
+    const baseChance = this.baseComboChance();
+
+    // determine the modifier based on this ai for comboing.
+    const modifierChance = this.aiComboChanceModifier();
+
+    // sum the two chance rates together.
+    const comboChance = (baseChance + modifierChance);
+
+    // return whether or not we will combo.
+    return comboChance;
+  }
+
+  /**
+   * Gets the base percent chance for whether or not to perform a combo skill.
+   * @returns {number}
+   */
+  baseComboChance()
+  {
+    return 50;
+  }
+
+  /**
+   * Gets the combo skill id of the next
+   * @param {JABS_Battler} user The user following with a combo.
+   * @returns {number}
+   */
+  followWithCombo(user)
+  {
+    // grab the combo skill id from the last used skill slot.
+    const comboSkillId = user.getComboNextActionId(user.getLastUsedSlot());
+
+    // return what we found.
+    return comboSkillId;
+  }
+
+  /**
+   * Gets the modifier percent chance, based on the AI of this battler,
+   * as to whether or not to perform a combo skill.
+   * @returns {number}
+   */
+  aiComboChanceModifier()
+  {
+    return 0;
+  }
+
+  /**
+   * Determines whether or not the parameter provided is a valid skill id.
+   * @param {number|number[]|null} skillId The skill id or ids to validate.
+   * @returns {boolean} True if it is a single skill id, false otherwise.
+   */
+  isSkillIdValid(skillId)
+  {
+    // if the skill id is something falsy like 0/null/undefined, not valid.
+    if (!skillId) return false;
+
+    // if the skill id somehow managed to become many skill ids, not valid.
+    if (Array.isArray(skillId)) return false;
+
+    // skill id is valid!
+    return true;
+  }
+
+  /**
+   * Filters out skills that cannot be executed at this time by the battler.
+   * This prevents the user from continuously picking a skill they cannot execute.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @returns {number[]}
+   */
+  filterUncastableSkills(user, skillsToUse)
+  {
+    // check to make sure we have skills to filter.
+    if (!skillsToUse || !skillsToUse.length) return [];
+
+    // filter the skills by whether or not they can be executed.
+    return skillsToUse.filter(user.canExecuteSkill, user);
+  }
+
+  /**
+   * Determines which skill would deal the greatest amount of damage to the target.
+   * @param {number[]} usableSkills The skill ids available to choose from.
+   * @param {JABS_Battler} user The battler choosing the skill.
+   * @param {JABS_Battler} target The targeted battler to use the skill against.
+   * @returns {number}
+   */
+  determineStrongestSkill(usableSkills, user, target)
+  {
+    // initialize tracking for data points that determine skill strength.
+    let strongestSkillId = 0;
+    let highestDamage = 0;
+    let biggestCritDamage = 0;
+
+    // an iterator function for calculating projected damage for each skill to find the strongest.
+    const forEacher = skillId =>
+    {
+      const skill = user.getSkill(skillId);
+
+      // setup a game action for testing damage.
+      const testAction = new Game_Action(user.getBattler(), false);
+      testAction.setItemObject(skill);
+
+      // test the base and crit damage values for this skill against the target.
+      const baseDamageValue = testAction.makeDamageValue(target.getBattler(), false);
+      const critDamageValue = testAction.makeDamageValue(target.getBattler(), true);
+
+      // we live risky- if the crit damage is bigger due to crit damage modifiers, then try that.
+      if (critDamageValue > biggestCritDamage)
+      {
+        strongestSkillId = skillId;
+        highestDamage = baseDamageValue;
+        biggestCritDamage = critDamageValue;
+        return;
+      }
+
+      // if the crit isn't modified, then just go based on best base damage.
+      if (baseDamageValue > highestDamage)
+      {
+        strongestSkillId = skillId;
+        highestDamage = baseDamageValue;
+        biggestCritDamage = critDamageValue;
+      }
+    };
+
+    // iterate over each skill id to see which is the strongest.
+    usableSkills.forEach(forEacher, this);
+
+    // return the strongest found skill id.
+    return strongestSkillId;
+  };
+}
+//endregion JABS_AI
+
 //#region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
@@ -3372,9 +3565,9 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
   this._alertDuration = battlerCoreData.alertDuration();
 
   /**
-   * The `JABS_BattlerAI` of this battler.
+   * The `JABS_EnemyAI` of this battler.
    * Only utilized by AI (duh).
-   * @type {JABS_BattlerAI}
+   * @type {JABS_EnemyAI}
    */
   this._aiMode = battlerCoreData.ai();
 
@@ -3474,6 +3667,12 @@ JABS_Battler.prototype.initBattleInfo = function()
    * @type {number}
    */
   this._lastUsedSkillId = 0;
+
+  /**
+   * The key of the slot that was last performed.
+   * @type {string}
+   */
+  this._lastUsedSlot = String.empty;
 
   /**
    * The current phase of AI battling that this battler is in.
@@ -4043,8 +4242,14 @@ JABS_Battler.prototype.processQueuedActions = function()
   // execute the action.
   $jabsEngine.executeMapActions(this, decidedActions);
 
+  // determine the core action associated with the action collection.
+  const lastUsedSkill = decidedActions.at(0);
+
   // set the last skill used to be the skill we just used.
-  this.setLastUsedSkillId(decidedActions[0].getBaseSkill().id);
+  this.setLastUsedSkillId(lastUsedSkill.getBaseSkill().id);
+
+  // set the last slot used to be the slot of the skill we just used.
+  this.setLastUsedSlot(lastUsedSkill.getCooldownType());
 
   // clear the queued action.
   this.clearDecidedAction();
@@ -4314,6 +4519,12 @@ JABS_Battler.prototype.canUpdateEngagement = function()
 
   // if the engagement timer is not ready, we cannot update.
   if (!this._engagementTimer.isTimerComplete()) return false;
+
+  // if we're already engaged, no need to further update engagement- its confusing.
+  if (this.isEngaged()) return false;
+
+  // if we are unable to alter engagement, don't update engagement.
+  if (this.isEngagementLocked()) return false;
 
   // engage!
   return true;
@@ -4967,7 +5178,7 @@ JABS_Battler.prototype.processNaturalHpRegen = function()
   if (battler.hp < battler.mhp)
   {
     // extract the regens rates.
-    const {hrg, rec} = battler;
+    const { hrg, rec } = battler;
 
     // calculate the bonus.
     const naturalHp5 = ((hrg * 100) * 0.05) * rec;
@@ -4989,7 +5200,7 @@ JABS_Battler.prototype.processNaturalMpRegen = function()
   if (battler.mp < battler.mmp)
   {
     // extract the regens rates.
-    const {mrg, rec} = battler;
+    const { mrg, rec } = battler;
 
     // calculate the bonus.
     const naturalMp5 = ((mrg * 100) * 0.05) * rec;
@@ -5011,7 +5222,7 @@ JABS_Battler.prototype.processNaturalTpRegen = function()
   if (battler.tp < battler.maxTp())
   {
     // extract the regens rates.
-    const {trg, rec} = battler;
+    const { trg, rec } = battler;
 
     // calculate the bonus.
     const naturalTp5 = ((trg * 100) * 0.05) * rec;
@@ -5031,7 +5242,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
   const battler = this.getBattler();
 
   // default the regenerations to the battler's innate regens.
-  const {rec} = battler;
+  const { rec } = battler;
   const regens = [0, 0, 0];
 
   // process each state for slip actions.
@@ -6678,7 +6889,7 @@ JABS_Battler.prototype.getY = function()
 
 /**
  * Retrieves the AI associated with this battler.
- * @returns {JABS_BattlerAI} This battler's AI.
+ * @returns {JABS_EnemyAI} This battler's AI.
  */
 JABS_Battler.prototype.getAiMode = function()
 {
@@ -6687,7 +6898,7 @@ JABS_Battler.prototype.getAiMode = function()
 
 /**
  * Gets this follower's leader's AI.
- * @returns {JABS_BattlerAI} This battler's leader's AI.
+ * @returns {JABS_EnemyAI} This battler's leader's AI.
  */
 JABS_Battler.prototype.getLeaderAiMode = function()
 {
@@ -6822,8 +7033,10 @@ JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
  */
 JABS_Battler.prototype.getCooldown = function(cooldownKey)
 {
+  // grab the slot of the given key.
   const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
 
+  // check that there is a skill slot.
   if (!skillSlot)
   {
     console.warn('omg');
@@ -7073,29 +7286,32 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // build the cooldown key based on the skill data.
-  const cooldownKey = this.getCooldownKeyBySkillId(chosenSkillId);
+  let skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
 
   // check to make sure we have a key.
-  if (!cooldownKey)
+  if (!skillSlotKey)
   {
-    // if somehow we have no key, then this skill clearly isn't ready.
+    // if there is no key, then this skill clearly isn't ready.
     return false;
   }
 
   // grab the cooldown itself.
-  const cooldown = this.getCooldown(cooldownKey);
+  const cooldown = this.getCooldown(skillSlotKey);
 
   // check if the skill was actually a remembered effective skill from a follower.
   if (!cooldown)
   {
     // please stop trying to cast your follower's skills.
-    console.warn(this, cooldownKey);
+    console.warn(this, skillSlotKey);
     console.trace();
     return false;
   }
 
+  // check if the chosen skill is actually a combo for this slot.
+  let isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
+
   // check if the base is off cooldown yet.
-  if (!cooldown.isBaseReady())
+  if (!isCombo && !cooldown.isBaseReady())
   {
     // cooldown is not ready yet.
     return false;
@@ -7229,6 +7445,24 @@ JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
 };
 
 /**
+ * Gets the key of the last used slot.
+ * @returns {string}
+ */
+JABS_Battler.prototype.getLastUsedSlot = function()
+{
+  return this._lastUsedSlot;
+};
+
+/**
+ * Sets the last used slot to the given slot key.
+ * @param {string} slotKey The key of the last slot used.
+ */
+JABS_Battler.prototype.setLastUsedSlot = function(slotKey)
+{
+  this._lastUsedSlot = slotKey;
+};
+
+/**
  * Gets all allies to this battler within a large range.
  * (Not map-wide because that could result in unexpected behavior)
  * @returns {JABS_Battler[]}
@@ -7301,34 +7535,80 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
 };
 
 /**
+ * Determines whether or not at least one slot has a combo skill id pending.
+ * @returns {boolean} True if at least one slot's combo skill id is pending, false otherwise.
+ */
+JABS_Battler.prototype.hasComboReady = function()
+{
+  return this.getBattler()
+    .getSkillSlotManager()
+    .getAllSlots()
+    .some(slot => slot.comboId !== 0);
+};
+
+/**
  * Gets all skills that are available to this enemy battler.
+ * These skills disclude "extend" skills and non-combo-starter skills.
  * @returns {number[]} The skill ids available to this enemy.
  */
 JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 {
-  // grab the battler for reference.
-  const battler = this.getBattler();
+  // grab the database data for this enemy.
+  const battlerActions = this.getBattler().enemy().actions;
 
-  // filter out any "extend" skills as far as this collection is concerned.
+  // a filter function for building the skill to check if it should be filtered.
   const filtering = action =>
   {
-    // grab the skill from the database.
-    const skill = battler.skill(action.skillId);
+    // determine the skill of this action.
+    const skill = this.getBattler().skill(action.skillId);
 
-    // determine if the skill is an extend skill or not.
-    const isExtendSkill = skill.meta && skill.meta['skillExtend'];
+    // determine if we're keeping it.
+    const keep = this.aiSkillFilter(skill);
 
-    // filter out the extend skills.
-    return !isExtendSkill;
+    // return what we found out.
+    return keep;
   };
 
-  // grab the database data for this enemy.
-  const battlerData = this.getBattler().enemy();
+  // determine the valid actions available for this enemy.
+  const validActions = battlerActions.filter(filtering, this);
 
-  // return the filtered result of skills.
-  return battlerData.actions
-    .filter(filtering)
-    .map(action => action.skillId);
+  // extract all the skill ids of the actions.
+  const validSkillIds = validActions.map(action => action.skillId);
+
+  // return the list of filtered skill ids this battler can use.
+  return validSkillIds;
+};
+
+/**
+ * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.
+ * @param {RPG_Skill} skill The skill being verified.
+ * @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
+ */
+JABS_Battler.prototype.aiSkillFilter = function(skill)
+{
+  // extract the combo data points.
+  const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion, isSkillExtender } = skill;
+
+  // this skill is explicitly excluded from the skill pool.
+  if (jabsAiSkillExclusion) return false;
+
+  // skill extender skills are excluded from the skill pool.
+  if (isSkillExtender) return false;
+
+  // determine if this skill is a combo action.
+  const isCombo = !!jabsComboAction;
+
+  // determine if this skill is a combo starter.
+  const isComboStarter = !!jabsComboStarter;
+
+  // we can only include combo starter combo skills.
+  const isNonComboStarterSkill = (isCombo && !isComboStarter);
+
+  // combo skills that are not combo starters are excluded from the skill pool.
+  if (isNonComboStarterSkill) return false;
+
+  // valid skill!
+  return true;
 };
 
 /**
@@ -7397,16 +7677,14 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // don't process aggro for inanimate battlers.
   if (this.isInanimate()) return;
 
+  // extract the uuid of the current highest aggro.
+  const highestAggroUuid = this.getHighestAggro().uuid();
+
   // check if we currently don't have a target.
   if (!this.getTarget())
   {
-    // extract your the current highest aggro.
-    const highestAggro = this.getHighestAggro();
-
-    console.log(highestAggro, this);
-
     // grab the battler for that uuid.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggro.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroUuid);
 
     // make sure the battler exists before setting it.
     if (newTarget)
@@ -7422,21 +7700,23 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // if the target is no longer valid, disengage and end combat.
   this.removeAggroIfInvalid(this.getTarget().getUuid());
 
+  const allAggros = this.getAggrosSortedHighestToLowest();
+
   // if there is no aggros remaining, disengage.
-  if (this._aggros.length === 0)
+  if (allAggros.length === 0)
   {
     this.disengageTarget();
     return;
   }
 
   // if there is only 1 aggro remaining
-  if (this._aggros.length === 1)
+  if (allAggros.length === 1)
   {
     // if there is no target, just stop that shit.
     if (!this.getTarget()) return;
 
     // grab the uuid of the first aggro in the list.
-    const zerothAggroUuid = this._aggros[0].uuid();
+    const zerothAggroUuid = allAggros.at(0).uuid();
 
     // check to see if the last aggro in the list belongs to the current target.
     if (!(this.getTarget().getUuid() === zerothAggroUuid))
@@ -7462,20 +7742,42 @@ JABS_Battler.prototype.adjustTargetByAggro = function()
   // if you still don't have a target but have multiple aggros, then just give up.
   if (!this.getTarget()) return;
 
+  // filtered aggros containing only aggros of enemies that are nearby.
+  const filteredAggros = allAggros.filter(aggro =>
+  {
+    // the battler associated with the aggro.
+    const potentialTarget = JABS_AiManager.getBattlerByUuid(aggro.uuid());
+
+    // if the target is invalid somehow, then it is not a valid aggro.
+    if (!potentialTarget) return false;
+
+    // if the target is too far away, don't consider it.
+    if (this.getPursuitRadius() < this.distanceToDesignatedTarget(potentialTarget)) return false;
+
+    // this aggro target is fine!
+    return true;
+  });
+
+  // all aggro'd targets are too far, don't adjust targets.
+  if (filteredAggros.length === 0) return;
+
   // find the highest aggro target currently being tracked.
-  const highestAggroTarget = this.getHighestAggro();
+  const highestAggroTargetUuid = filteredAggros.at(0).uuid();
+
+  // grab the current target of this battler at the moment.
+  const currentTargetUuid = this.getTarget().getUuid();
 
   // if the current target isn't the highest target, then switch!
-  if (!(highestAggroTarget.uuid() === this.getTarget().getUuid()))
+  if (highestAggroTargetUuid !== currentTargetUuid)
   {
     // find the new target to change to that has more aggro than the current target.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTarget.uuid());
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTargetUuid);
 
     // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
     if (!newTarget)
     {
       // get the index to remove...
-      this.removeAggro(highestAggroTarget.uuid());
+      this.removeAggro(highestAggroTargetUuid);
     }
     else
     {
@@ -7504,9 +7806,43 @@ JABS_Battler.prototype.getAllAggros = function()
  */
 JABS_Battler.prototype.getHighestAggro = function()
 {
-  // grab the aggros.
-  const aggros = this.getAllAggros();
+  // grab the aggros pre-sorted.
+  const sortedAggros = this.getAggrosSortedHighestToLowest();
 
+  // validate we have aggros.
+  if (sortedAggros.length === 0)
+  {
+    // no aggros means no highest.
+    return null;
+  }
+
+  // check if we only have a single aggro tracked.
+  if (sortedAggros.length === 1)
+  {
+    // return that one aggro.
+    return sortedAggros.at(0);
+  }
+
+  // otherwise, grab the first and second highest aggros.
+  const [ highestAggro, secondHighestAggro, ] = sortedAggros;
+
+  // check if the top two aggros are the same.
+  if (highestAggro.aggro === secondHighestAggro.aggro)
+  {
+    // modify the first one by 1 to actually be higher.
+    highestAggro.modAggro(1, true);
+  }
+
+  // return the result.
+  return highestAggro;
+};
+
+/**
+ * Gets all the aggros for this battler, sorted from highest to lowest.
+ * @returns {JABS_Aggro[]}
+ */
+JABS_Battler.prototype.getAggrosSortedHighestToLowest = function()
+{
   // a sorting function for determining the highest aggro from a collection.
   const sorting = (a, b) =>
   {
@@ -7522,21 +7858,14 @@ JABS_Battler.prototype.getHighestAggro = function()
     return 0;
   };
 
+  // grab the aggros.
+  const aggros = this.getAllAggros();
+
   // sort them by their aggro rating.
   aggros.sort(sorting);
 
-  // grab the first and second highest aggros.
-  const [ highestAggro, secondHighestAggro, ] = aggros;
-
-  // check if the top two aggros are the same.
-  if (highestAggro.aggro === secondHighestAggro.aggro)
-  {
-    // modify the first one by 1 to actually be higher.
-    highestAggro.modAggro(1, true);
-  }
-
-  // return the result.
-  return highestAggro;
+  // return the sorted aggros.
+  return aggros;
 };
 
 /**
@@ -8731,511 +9060,6 @@ JABS_Battler.prototype.isShowingAnimation = function()
 //#endregion utility helpers
 //#endregion JABS_Battler
 
-//#region JABS_BattlerAI
-/**
- * An object representing the structure of the `JABS_Battler` AI.
- */
-class JABS_BattlerAI
-{
-  /**
-   * Constructor.
-   * @param {boolean} careful Add pathfinding pursuit and more.
-   * @param {boolean} executor Add weakpoint targeting.
-   * @param {boolean} reckless Add skill spamming over attacking.
-   * @param {boolean} healer Prioritize healing if health is low.
-   * @param {boolean} follower Only attacks alone, obeys leaders.
-   * @param {boolean} leader Enables ally coordination.
-   */
-  constructor(
-    careful = false,
-    executor = false,
-    reckless = false,
-    healer = false,
-    follower = false,
-    leader = false
-  )
-  {
-    /**
-     * An ai trait that prevents this user from executing skills that are
-     * elementally ineffective against their target.
-     */
-    this.careful = careful;
-
-    /**
-     * An ai trait that encourages this user to always use the strongest
-     * available skill.
-     */
-    this.executor = executor;
-
-    /**
-     * An ai trait that forces this user to always use skills if possible.
-     */
-    this.reckless = reckless;
-
-    /**
-     * An ai trait that prioritizes healing allies.
-     * If combined with smart, the most effective healing skill will be used.
-     * If combined with reckless, the healer will spam healing.
-     * If combined with smart AND reckless, the healer will only use the biggest
-     * healing spells available.
-     */
-    this.healer = healer;
-
-    /**
-     * An ai trait that prevents the user from executing anything other than
-     * their basic attack while they lack a leader.
-     */
-    this.follower = follower;
-
-    /**
-     * An ai trait that gives a battler the ability to use its own ai to
-     * determine skills for a follower. This is usually combined with other
-     * ai traits.
-     */
-    this.leader = leader;
-  }
-
-  /**
-   * Decides an action for the designated follower based on the leader's ai.
-   * @param {JABS_Battler} leaderBattler The leader deciding the action.
-   * @param {JABS_Battler} followerBattler The follower executing the decided action.
-   * @returns {number} The skill id of the decided skill for the follower to perform.
-   */
-  decideActionForFollower(leaderBattler, followerBattler)
-  {
-    // grab the basic attack skill id for this battler.
-    const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
-
-    // start with the follower's own list of skills.
-    let skillsToUse = followerBattler.getSkillIdsFromEnemy();
-
-    // if the enemy has no skills, then just basic attack.
-    if (!skillsToUse.length)
-    {
-      // if there are no actual skills on this enemy, just use it's basic attack.
-      return basicAttackSkillId;
-    }
-
-    // all follower actions are decided based on the leader's ai.
-    const {careful, executor, healer} = this;
-
-    // the leader calculates for the follower, so the follower gets the leader's sight as a bonus.
-    const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
-
-    // healer AI takes priority.
-    if (healer)
-    {
-      // get nearby allies with the leader's modified sight range of both battlers.
-      const allies = JABS_AiManager.getAlliedBattlersWithinRange(leaderBattler, modifiedSightRadius);
-
-      // prioritize healing when self or allies are low on hp.
-      if (healer)
-      {
-        skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
-      }
-    }
-    else if (careful || executor)
-    {
-      // focus on the leader's target instead of the follower's target.
-      skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
-    }
-
-    // if the enemy has no skills after all the filtering, then just basic attack.
-    if (!skillsToUse.length)
-    {
-      // basic attacking is always an option.
-      return basicAttackSkillId;
-    }
-
-    // handle either collection or single skill.
-    // TODO: probably should unify the responses of the above to return either a single OR collection.
-    let chosenSkillId = Array.isArray(skillsToUse) ? skillsToUse[0] : skillsToUse;
-
-    // grab the battler of the follower.
-    const followerGameBattler = followerBattler.getBattler();
-
-    // grab the skill.
-    const skill = followerGameBattler.skill(chosenSkillId);
-
-    // check if they can pay the costs of the skill.
-    if (!followerGameBattler.canPaySkillCost(skill))
-    {
-      // if they can't pay the cost of the decided skill, you can always basic attack!
-      chosenSkillId = basicAttackSkillId;
-    }
-
-    return chosenSkillId;
-  }
-
-  /**
-   * Decides a support-oriented action to perform.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]} skillsToUse The available skills to use.
-   */
-  decideSupportAction(user, skillsToUse)
-  {
-    // don't do things if we have no skills to work with.
-    if (!skillsToUse || !skillsToUse.length) return [];
-
-    const allies = JABS_AiManager.getAlliedBattlersWithinRange(user, user.getSightRadius());
-
-    // prioritize healing when self or allies are low on hp.
-    if (this.healer)
-    {
-      skillsToUse = this.filterSkillsHealerPriority(user, skillsToUse, allies);
-    }
-
-    // if we ended up not picking a skill, then clear any ally targeting.
-    if (!skillsToUse.length)
-    {
-      user.setAllyTarget(null);
-    }
-
-    // handle the possibility of none or many skills still remaining.
-    return this.decideFromNoneToManySkills(user, skillsToUse);
-  }
-
-  /**
-   * Decides an attack-oriented action to perform.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]} skillsToUse The available skills to use.
-   */
-  decideAttackAction(user, skillsToUse)
-  {
-    // reduce the list to only castable skills.
-    skillsToUse = this.filterUncastableSkills(user, skillsToUse);
-
-    // don't do things if we have no skills to work with.
-    if (!skillsToUse || !skillsToUse.length) return [];
-
-    const {careful, executor} = this;
-    const target = user.getTarget();
-
-    // filter out skills that are elementally ineffective.
-    if (careful)
-    {
-      skillsToUse = this.filterElementallyIneffectiveSkills(skillsToUse, target);
-    }
-
-    // find most elementally effective skill vs the target.
-    if (executor)
-    {
-      skillsToUse = this.findMostElementallyEffectiveSkill(skillsToUse, user, target);
-    }
-
-    // handle the possibility of none or many skills still remaining.
-    return this.decideFromNoneToManySkills(user, skillsToUse);
-  }
-
-  /**
-   * Filters out skills that cannot be executed at this time by the battler.
-   * This prevents the user from continuously picking a skill they cannot execute.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]} skillsToUse The available skills to use.
-   * @returns {number[]}
-   */
-  filterUncastableSkills(user, skillsToUse)
-  {
-    // check to make sure we have skills to filter.
-    if (!skillsToUse || !skillsToUse.length) return [];
-
-    // filter the skills by whether or not they can be executed.
-    return skillsToUse.filter(user.canExecuteSkill, user);
-  }
-
-  /**
-   * A protection method for handling none, one, or many skills remaining after
-   * filtering, and only returning a single skill id.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]|number|null} skillsToUse The available skills to use.
-   * @returns {number}
-   */
-  decideFromNoneToManySkills(user, skillsToUse)
-  {
-    // check if "skills" is actually just one valid skill.
-    if (Number.isInteger(skillsToUse))
-    {
-      // return that, this is fine.
-      return skillsToUse;
-    }
-    // check if "skills" is indeed an array of skills with values.
-    else if (Array.isArray(skillsToUse) && skillsToUse.length)
-    {
-      // pick one at random.
-      return skillsToUse[Math.randomInt(skillsToUse.length)];
-    }
-
-    // always at least basic attack.
-    return user.getEnemyBasicAttack();
-  }
-
-  /**
-   * Decides an action from an array of skill objects based on the target.
-   * Will purge all elementally ineffective skills from the collection.
-   * @param {number[]} skillsToUse The available skills to use.
-   * @param {JABS_Battler} target The battler to decide the action about.
-   */
-  filterElementallyIneffectiveSkills(skillsToUse, target)
-  {
-    if (skillsToUse.length > 1)
-    {
-      skillsToUse = skillsToUse.filter(skillId =>
-      {
-        const testAction = new Game_Action(target.getBattler());
-        testAction.setSkill(skillId);
-        const rate = testAction.calcElementRate(target.getBattler());
-        return rate >= 1
-      });
-    }
-
-    return skillsToUse;
-  }
-
-  /**
-   * Decides an action from an array of skill objects based on the target.
-   * Will choose the skill that has the highest elemental effectiveness.
-   * @param {number[]|number} skillsToUse The available skills to use.
-   * @param {JABS_Battler} user The battler to decide the action.
-   * @param {JABS_Battler} target The battler to decide the action about.
-   */
-  findMostElementallyEffectiveSkill(skillsToUse, user, target)
-  {
-    // if we have no skills to work with, then don't process.
-    if (!skillsToUse.length > 1) return skillsToUse;
-
-    if (skillsToUse.length > 1)
-    {
-      const elementalSkillCollection = [];
-      skillsToUse.forEach(skillId =>
-      {
-        const testAction = new Game_Action(user.getBattler());
-        testAction.setSkill(skillId);
-        const rate = testAction.calcElementRate(target.getBattler());
-        elementalSkillCollection.push([skillId, rate]);
-      });
-
-      // sorts the skills by their elemental effectiveness.
-      elementalSkillCollection.sort((a, b) =>
-      {
-        if (a[1] > b[1]) return -1;
-        if (a[1] < b[1]) return 1;
-        return 0;
-      });
-
-      // only use the highest elementally effective skill.
-      skillsToUse = elementalSkillCollection[0][0];
-    }
-
-    return skillsToUse;
-  }
-
-  /**
-   * Filters skills by a healing priority.
-   * @param {JABS_Battler} user The battler to decide the skill for.
-   * @param {number[]} skillsToUse The available skills to use.
-   * @param {JABS_Battler[]} allies
-   * @returns {number} The best skill id for healing according to this battler.
-   */
-  filterSkillsHealerPriority(user, skillsToUse, allies)
-  {
-    // if we have no skills to work with, then don't process.
-    if (!skillsToUse.length > 1) return skillsToUse;
-
-    // if we have no ai traits that affect skill-decision-making, then don't perform the logic.
-    const {careful, reckless} = this;
-    if (!careful && !reckless) return skillsToUse;
-
-    let mostWoundedAlly = null;
-    let lowestHpRatio = 1.01;
-    let actualHpDifference = 0;
-    let alliesBelow66 = 0;
-    let alliesMissingAnyHp = 0;
-
-    // iterate over allies to determine the ally with the lowest hp%
-    allies.forEach(ally =>
-    {
-      const battler = ally.getBattler();
-      const hpRatio = battler.hp / battler.mhp;
-
-      // if it is lower than the last-tracked-lowest, then update the lowest.
-      if (lowestHpRatio > hpRatio)
-      {
-        lowestHpRatio = hpRatio;
-        mostWoundedAlly = ally;
-        actualHpDifference = battler.mhp - battler.hp;
-
-        // count all allies below the "heal all" threshold.
-        if (hpRatio <= 0.66)
-        {
-          alliesBelow66++;
-        }
-      }
-
-      // count all allies missing any amount of hp.
-      if (hpRatio < 1)
-      {
-        alliesMissingAnyHp++;
-      }
-    });
-
-    // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
-    if (!alliesMissingAnyHp && !reckless) return skillsToUse;
-
-    user.setAllyTarget(mostWoundedAlly);
-    const mostWoundedAllyBattler = mostWoundedAlly.getBattler();
-
-    // filter out the skills that aren't for allies.
-    const healingTypeSkills = skillsToUse.filter(skillId =>
-    {
-      const testAction = new Game_Action(user.getBattler());
-      testAction.setSkill(skillId);
-      return (testAction.isForAliveFriend() &&  // must target living allies.
-        testAction.isRecover() &&               // must recover something.
-        testAction.isHpEffect());               // must affect hp.
-    });
-
-    // if we have 0 or 1 skills left after healing, just return that.
-    if (healingTypeSkills.length < 2)
-    {
-      return healingTypeSkills;
-    }
-
-    // determine the best skill based on AI traits.
-    let bestSkillId = null;
-    let runningBiggestHealAll = 0;
-    let runningBiggestHealOne = 0;
-    let runningClosestFitHealAll = 0;
-    let runningClosestFitHealOne = 0;
-    let runningBiggestHeal = 0;
-    let biggestHealSkill = null;
-    let biggestHealAllSkill = null;
-    let biggestHealOneSkill = null;
-    let closestFitHealAllSkill = null;
-    let closestFitHealOneSkill = null;
-    let firstSkill = false;
-    healingTypeSkills.forEach(skillId =>
-    {
-      const skill = $dataSkills[skillId];
-      const testAction = new Game_Action(user.getBattler());
-      testAction.setItemObject(skill);
-      const healAmount = testAction.makeDamageValue(mostWoundedAllyBattler, false);
-      if (Math.abs(runningBiggestHeal) < Math.abs(healAmount))
-      {
-        biggestHealSkill = skillId;
-        runningBiggestHeal = healAmount;
-      }
-
-      // if this is our first skill in the possible heal skills available, write to all skills.
-      if (!firstSkill)
-      {
-        biggestHealAllSkill = skillId;
-        runningBiggestHealAll = healAmount;
-        closestFitHealAllSkill = skillId;
-        runningClosestFitHealAll = healAmount;
-        biggestHealOneSkill = skillId;
-        runningBiggestHealOne = healAmount;
-        closestFitHealOneSkill = skillId;
-        runningClosestFitHealOne = healAmount;
-        firstSkill = true;
-      }
-
-      // analyze the heal all skills for biggest and closest fits.
-      if (testAction.isForAll())
-      {
-        // if this heal amount is bigger than the running biggest heal-all amount, then update.
-        if (runningBiggestHealAll < healAmount)
-        {
-          biggestHealAllSkill = skillId;
-          runningBiggestHealAll = healAmount;
-        }
-
-        // if this difference is smaller than the running closest fit heal-all amount, then update.
-        const runningDifference = Math.abs(runningClosestFitHealAll - actualHpDifference);
-        const thisDifference = Math.abs(healAmount - actualHpDifference);
-        if (thisDifference < runningDifference)
-        {
-          closestFitHealAllSkill = skillId;
-          runningClosestFitHealAll = healAmount;
-        }
-      }
-
-      // analyze the heal one skills for biggest and closest fits.
-      if (testAction.isForOne())
-      {
-        // if this heal amount is bigger than the running biggest heal-one amount, then update.
-        if (runningBiggestHealOne < healAmount)
-        {
-          biggestHealOneSkill = skillId;
-          runningBiggestHealOne = healAmount;
-        }
-
-        // if this difference is smaller than the running closest fit heal-one amount, then update.
-        const runningDifference = Math.abs(runningClosestFitHealOne - actualHpDifference);
-        const thisDifference = Math.abs(healAmount - actualHpDifference);
-        if (thisDifference < runningDifference)
-        {
-          closestFitHealOneSkill = skillId;
-          runningClosestFitHealOne = healAmount;
-        }
-      }
-    });
-
-    const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
-    bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
-
-    // careful will decide in this order:
-    if (careful)
-    {
-      // - if any below 40%, then prioritize heal-one of most wounded.
-      if (lowestHpRatio <= 0.40)
-      {
-        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
-
-        // - if none below 40% but multiple wounded, prioritize closest-fit heal-all.
-      }
-      else if (alliesMissingAnyHp > 1 && lowestHpRatio < 0.80)
-      {
-        bestSkillId = defensive ? biggestHealAllSkill : closestFitHealAllSkill;
-
-        // - if only one wounded, then heal them.
-      }
-      else if (alliesMissingAnyHp === 1 && lowestHpRatio < 0.80)
-      {
-        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
-        // - if none wounded, or none below 80%, then don't heal.
-      }
-    }
-    else
-    {
-      // - if there is only one wounded ally, prioritize biggest heal-one skill.
-      if (alliesMissingAnyHp === 1)
-      {
-        bestSkillId = biggestHealOneSkill;
-        // - if there is more than one wounded ally, prioritize biggest heal-all skill.
-      }
-      else if (alliesMissingAnyHp > 1)
-      {
-        bestSkillId = biggestHealAllSkill;
-        // - if none wounded, don't heal.
-      }
-    }
-
-    // reckless will decide in this order:
-    if (reckless)
-    {
-      // - if there are any wounded allies, always use biggest heal skill, for one or all.
-      if (alliesMissingAnyHp > 0)
-      {
-        bestSkillId = biggestHealSkill;
-        // - if none wounded, don't heal.
-      }
-    }
-
-    return bestSkillId;
-  }
-}
-//#endregion JABS_BattlerAI
-
 //#region JABS_BattlerCoreData
 /**
  * A class containing all the data extracted from the comments of an event's
@@ -9253,7 +9077,7 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * Initializes this battler data object.
  * @param {number} battlerId This enemy id.
  * @param {number} teamId This battler's team id.
- * @param {JABS_BattlerAI} battlerAI This battler's converted AI.
+ * @param {JABS_EnemyAI} battlerAI This battler's converted AI.
  * @param {number} sightRange The sight range.
  * @param {number} alertedSightBoost The boost to sight range while alerted.
  * @param {number} pursuitRange The pursuit range.
@@ -9295,7 +9119,7 @@ JABS_BattlerCoreData.prototype.initialize = function({
 
   /**
    * The converted-from-binary AI of this battler.
-   * @type {JABS_BattlerAI}
+   * @type {JABS_EnemyAI}
    */
   this._battlerAI = battlerAI;
 
@@ -9393,7 +9217,7 @@ JABS_BattlerCoreData.prototype.team = function()
 
 /**
  * Gets this battler's AI.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 JABS_BattlerCoreData.prototype.ai = function()
 {
@@ -10255,6 +10079,829 @@ class JABS_CoreDataBuilder
   //#endregion setters
 }
 //#endregion JABS_CoreDataBuilder
+
+//#region JABS_EnemyAI
+/**
+ * An object representing the structure of the `JABS_Battler` AI.
+ */
+class JABS_EnemyAI extends JABS_AI
+{
+  /**
+   * An ai trait that prevents this user from executing skills that are
+   * elementally ineffective against their target.
+   */
+  careful = false;
+
+  /**
+   * An ai trait that encourages this user to always use the strongest
+   * available skill.
+   */
+  executor = false;
+
+  /**
+   * An ai trait that forces this user to always use skills if possible.
+   */
+  reckless = false;
+
+  /**
+   * An ai trait that prioritizes healing allies.
+   * If combined with smart, the most effective healing skill will be used.
+   * If combined with reckless, the healer will spam healing.
+   * If combined with smart AND reckless, the healer will only use the biggest
+   * healing spells available.
+   */
+  healer = false;
+
+  /**
+   * An ai trait that prevents the user from executing anything other than
+   * their basic attack while they lack a leader.
+   */
+  follower = false;
+
+  /**
+   * An ai trait that gives a battler the ability to use its own ai to
+   * determine skills for a follower. This is usually combined with other
+   * ai traits.
+   */
+  leader = false;
+
+  /**
+   * Constructor.
+   * @param {boolean} careful Add pathfinding pursuit and more.
+   * @param {boolean} executor Add weakpoint targeting.
+   * @param {boolean} reckless Add skill spamming over attacking.
+   * @param {boolean} healer Prioritize healing if health is low.
+   * @param {boolean} follower Only attacks alone, obeys leaders.
+   * @param {boolean} leader Enables ally coordination.
+   */
+  constructor(careful = false, executor = false, reckless = false, healer = false, follower = false, leader = false)
+  {
+    // perform original initialization.
+    super();
+
+    // assign the AI.
+    this.careful = careful;
+    this.executor = executor;
+    this.reckless = reckless;
+    this.healer = healer;
+    this.follower = follower;
+    this.leader = leader;
+  }
+
+  /**
+   * Decides an action based on this battler's AI, the target, and the given available skills.
+   * @param {JABS_Battler} user The battler of the AI deciding a skill.
+   * @param {JABS_Battler} target The target battler to decide an action against.
+   * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
+   * @returns {number|null} The skill id chosen to use, or null if none were valid choices for this AI.
+   */
+  decideAction(user, target, availableSkills)
+  {
+    // filter out the unusable or invalid skills.
+    const usableSkills = this.filterUncastableSkills(user, availableSkills);
+
+    // extract the AI data points out.
+    const { careful, executor, reckless, healer, follower, leader } = this;
+
+    // check if this is a "leader" battler.
+    if (leader)
+    {
+      // "leader" battlers decide actions for nearby "follower" battlers before their own actions.
+      this.decideActionsForFollowers(user);
+    }
+
+    // check if we need to warn the RM dev that they chose reckless but assigned no skills.
+    if (reckless && usableSkills.length === 0)
+    {
+      console.warn('a battler with the "reckless" trait was found with no skills.', user);
+    }
+
+    // pivot on the ai traits available to decide what skill to use.
+    switch (this)
+    {
+      case follower:
+        return this.decideFollowerAi(user);
+      case healer:
+        return this.decideSupportAction(user, usableSkills);
+      case (careful || executor || reckless):
+        return this.decideAttackAction(user, usableSkills);
+      default:
+        return this.decideGenericAction(user, usableSkills);
+    }
+  }
+
+  //region leader
+  /**
+   * Decides the next action for all applicable followers.
+   * @param {JABS_Battler} leader The leader to make decisions with.
+   */
+  decideActionsForFollowers(leader)
+  {
+    // grab all nearby followers.
+    const nearbyFollowers = JABS_AiManager.getLeaderFollowers(leader);
+
+    // iterate over each found follower.
+    nearbyFollowers.forEach(follower => this.decideFollowerAction(leader, follower));
+  }
+
+  /**
+   * Decides the next action for a follower.
+   * @param {JABS_Battler} leader The leader battler.
+   * @param {JABS_Battler} follower The follower battler potentially being lead.
+   */
+  decideFollowerAction(leader, follower)
+  {
+    // leaders can't control other leaders' followers.
+    if (!this.canDecideActionForFollower(leader, follower)) return;
+
+    // assign the follower to this leader.
+    if (!follower.hasLeader())
+    {
+      // update the follower's leader.
+      follower.setLeader(leader.getUuid());
+    }
+
+    // decide the action of the follower for them.
+    const decidedFollowerSkillId = leader.getAiMode().decideActionForFollower(leader, follower);
+
+    // validate the skill chosen.
+    if (this.isSkillIdValid(decidedFollowerSkillId))
+    {
+      // set it as their next action.
+      follower.setLeaderDecidedAction(decidedFollowerSkillId);
+    }
+  }
+
+  /**
+   * Determines whether or not this leader can lead the given follower.
+   * @param {JABS_Battler} leader The leader battler.
+   * @param {JABS_Battler} follower The follower battler potentially being lead.
+   * @returns {boolean} True if this leader can lead this follower, false otherwise.
+   */
+  canDecideActionForFollower(leader, follower)
+  {
+    // check if the follower and the leader are actually the same.
+    if (leader === follower)
+    {
+      // you are already in control, bro.
+      return false;
+    }
+
+    // check if the follower exists.
+    if (!follower)
+    {
+      // there is nothing to control.
+      return false;
+    }
+
+    // check if the follower is a leader themself.
+    if (follower.getAiMode().leader)
+    {
+      // leaders cannot control leaders.
+      return false;
+    }
+
+    // check if the follower has a leader that is different than this leader.
+    if (follower.hasLeader() && follower.getLeader() !== leader.getUuid())
+    {
+      // stop trying to boss other leader's followers around!
+      leader.removeFollower(follower.getUuid());
+
+      // they are already under control.
+      return false;
+    }
+
+    // lead this follower!
+    return true;
+
+  }
+
+  /**
+   * Decides an action for the designated follower based on the leader's ai.
+   * @param {JABS_Battler} leaderBattler The leader deciding the action.
+   * @param {JABS_Battler} followerBattler The follower executing the decided action.
+   * @returns {number} The skill id of the decided skill for the follower to perform.
+   */
+  decideActionForFollower(leaderBattler, followerBattler)
+  {
+    // check first if we should follow with the next hit of the combo.
+    if (this.shouldFollowWithCombo(followerBattler))
+    {
+      // we're doing the next combo in the chain!
+      return this.followWithCombo(followerBattler);
+    }
+
+    // grab the basic attack skill id for this battler.
+    const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
+
+    // start with the follower's own list of skills.
+    let skillsToUse = followerBattler.getSkillIdsFromEnemy();
+
+    // if the enemy has no skills, then just basic attack.
+    if (!skillsToUse.length)
+    {
+      // if there are no actual skills on this enemy, just use it's basic attack.
+      return basicAttackSkillId;
+    }
+
+    // all follower actions are decided based on the leader's ai.
+    const { careful, executor, healer } = this;
+
+    // the leader calculates for the follower, so the follower gets the leader's sight as a bonus.
+    const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
+
+    // healer AI takes priority.
+    if (healer)
+    {
+      // get nearby allies with the leader's modified sight range of both battlers.
+      const allies = JABS_AiManager.getAlliedBattlersWithinRange(leaderBattler, modifiedSightRadius);
+
+      // update the collection based on healing skills.
+      skillsToUse = this.filterSkillsHealerPriority(followerBattler, skillsToUse, allies);
+    }
+    else if (careful || executor)
+    {
+      // focus on the leader's target instead of the follower's target.
+      skillsToUse = this.decideAttackAction(leaderBattler, skillsToUse);
+    }
+
+    // if the enemy has no skills after all the filtering, then just basic attack.
+    if (!skillsToUse.length)
+    {
+      // basic attacking is always an option.
+      return basicAttackSkillId;
+    }
+
+    // handle either collection or single skill.
+    // TODO: probably should unify the responses of the above to return either a single OR collection.
+    const chosenSkillId = Array.isArray(skillsToUse)
+      ? skillsToUse.at(0)
+      : skillsToUse;
+
+    // grab the battler of the follower.
+    const followerGameBattler = followerBattler.getBattler();
+
+    // grab the skill.
+    const skill = followerGameBattler.skill(chosenSkillId);
+
+    // check if they can pay the costs of the skill.
+    if (!followerGameBattler.canPaySkillCost(skill))
+    {
+      // basic attacking is always an option.
+      return basicAttackSkillId;
+    }
+
+    return chosenSkillId;
+  }
+  //endregion leader
+
+  //region follower
+  /**
+   * Handles how a follower decides its next action to take while engaged.
+   *
+   * NOTE:
+   * If a follower has a leader, they will wait until the leader gives commands
+   * to execute them. This means that the follower's turn speed will be reduced
+   * to match the leader if necessary.
+   * @param {JABS_Battler} battler The battler to decide actions.
+   */
+  decideFollowerAi(battler)
+  {
+    // check if we have a leader ready to guide us.
+    if (this.hasLeaderReady(battler))
+    {
+      // let the leader decide what this battler should do.
+      return this.decideFollowerAiByLeader(battler);
+    }
+    // we have no leader.
+    else
+    {
+      // only basic attacks for this battler.
+      return this.decideFollowerAiBySelf(battler);
+    }
+  }
+
+  /**
+   * Determines whether or not this battler has a leader ready to guide them.
+   * @param {JABS_Battler} battler The battler deciding the action.
+   * @returns {boolean} True if this battler has a ready leader, false otherwise.
+   */
+  hasLeaderReady(battler)
+  {
+    // check if we have a leader.
+    if (!battler.hasLeader()) return false;
+
+    // check to make sure we can actually retrieve the leader.
+    if (!battler.getLeaderBattler()) return false;
+
+    // check to make sure that leader is still engaged in combat.
+    if (!battler.getLeaderBattler().isEngaged()) return false;
+
+    // let the leader decide!
+    return true;
+  }
+
+  /**
+   * Allows the leader to decide this follower's next action to take.
+   * @param {JABS_Battler} battler The follower that is allowing a leader to decide.
+   */
+  decideFollowerAiByLeader(battler)
+  {
+    // show the balloon that we are processing leader actions instead.
+    battler.showBalloon(J.ABS.Balloons.Check);
+
+    // we have an engaged leader.
+    const leaderDecidedSkillId = battler.getNextLeaderDecidedAction();
+
+    // validate the skill chosen.
+    if (!this.isSkillIdValid(leaderDecidedSkillId))
+    {
+      // stop processing.
+      return null;
+    }
+
+    // return the skill decided.
+    return leaderDecidedSkillId;
+  }
+
+  /**
+   * Allows the follower to decide their own next action to take.
+   * It is always a basic attack when a follower decides for themselves.
+   * @param {JABS_Battler} battler The follower that is deciding for themselves.
+   */
+  decideFollowerAiBySelf(battler)
+  {
+    // only basic attacks for this battler.
+    const basicAttackSkillId = battler.getEnemyBasicAttack();
+
+    // validate the skill chosen.
+    if (!this.isSkillIdValid(basicAttackSkillId))
+    {
+      // stop processing.
+      return null;
+    }
+
+    // return the skill decided.
+    return basicAttackSkillId;
+  }
+  //endregion follower
+
+  /**
+   * Decides a support-oriented action to perform.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} usableSkills The available skills to use.
+   */
+  decideSupportAction(user, usableSkills)
+  {
+    // check first if we should follow with the next hit of the combo.
+    if (this.shouldFollowWithCombo(user))
+    {
+      // we're doing the next combo in the chain!
+      return this.followWithCombo(user);
+    }
+
+    // don't do things if we have no skills to work with.
+    if (!usableSkills.length) return null;
+
+    // grab all nearby allies that are visible.
+    const allies = JABS_AiManager.getAlliedBattlersWithinRange(user, user.getPursuitRadius());
+
+    // prioritize healing when self or allies are low on hp.
+    if (this.healer)
+    {
+      usableSkills = this.filterSkillsHealerPriority(user, usableSkills, allies);
+    }
+
+    // check if we no longer have skills to potentially cast.
+    if (!usableSkills.length)
+    {
+      // clear the ally targeting.
+      user.setAllyTarget(null);
+    }
+
+    // handle the possibility of none or many skills still remaining.
+    return this.decideFromNoneToManySkills(user, usableSkills);
+  }
+
+  /**
+   * Decides an attack-oriented action to perform.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} usableSkills The available skills to use.
+   */
+  decideAttackAction(user, usableSkills)
+  {
+    // check first if we should follow with the next hit of the combo.
+    if (this.shouldFollowWithCombo(user))
+    {
+      // we're doing the next combo in the chain!
+      return this.followWithCombo(user);
+    }
+
+    // don't do things if we have no skills to work with.
+    if (!usableSkills.length) return null;
+
+    // grab the target of the attacker.
+    const target = user.getTarget();
+
+    // filter out skills that are elementally ineffective if "careful" trait is present.
+    if (this.careful)
+    {
+      usableSkills = this.filterElementallyIneffectiveSkills(usableSkills, target);
+    }
+
+    // find most elementally effective skill vs the target if "executor" trait is present.
+    if (this.executor)
+    {
+      usableSkills = this.findMostElementallyEffectiveSkill(usableSkills, user, target);
+    }
+
+    // handle the possibility of none or many skills still remaining.
+    return this.decideFromNoneToManySkills(user, usableSkills);
+  }
+
+  /**
+   * Decides an action with no particular AI influence.
+   * RNG decides this AI-controlled battler's fate.
+   * @param {JABS_Battler} user The battler of the AI deciding the action.
+   * @param {number[]} usableSkills The possible skills this AI can choose from.
+   * @returns {number} The decided skill id.
+   */
+  decideGenericAction(user, usableSkills)
+  {
+    // check first if we should follow with the next hit of the combo.
+    if (this.shouldFollowWithCombo(user))
+    {
+      // we're doing the next combo in the chain!
+      return this.followWithCombo(user);
+    }
+
+    // don't do things if we have no skills to work with.
+    if (!usableSkills.length)
+    {
+      // no usable skills means just attack.
+      return user.getEnemyBasicAttack();
+    }
+
+    // choose a random index based on the usable skills collection.
+    const randomIndex = Math.randomInt(usableSkills.length);
+
+    // grab that random skill id.
+    const randomSkillId = usableSkills.at(randomIndex);
+
+    // 50% chance of just using the basic attack instead.
+    if (Math.randomInt(2) === 0)
+    {
+      // overwrite the random skill with the basic attack.
+      return user.getEnemyBasicAttack();
+    }
+
+    // return the skill we rolled the dice for.
+    return randomSkillId;
+  }
+
+  /**
+   * Overwrites {@link #aiComboChanceModifier}.
+   * Calculates the combo chance modifier based on the various AI traits that are
+   * associated with this AI.
+   * This is summed together with the {@link #baseComboChance} to determine whether or not
+   * this AI will follow-up with combos when available.
+   * @returns {number} An integer percent chance between 0-100.
+   */
+  aiComboChanceModifier()
+  {
+    // default the modifier to 0.
+    let comboChanceModifier = 0;
+
+    // extract out this AI's traits.
+    const { careful, executor, reckless, leader, follower, healer } = this;
+
+    // modify the combo chance based on the various traits.
+
+    if (careful)
+    {
+      comboChanceModifier += 10;
+    }
+
+    if (executor)
+    {
+      comboChanceModifier += 30;
+    }
+
+    if (reckless)
+    {
+      comboChanceModifier -= 20;
+    }
+
+    if (follower)
+    {
+      comboChanceModifier += 10;
+    }
+
+    if (leader)
+    {
+      comboChanceModifier += 20;
+    }
+
+    if (healer)
+    {
+      comboChanceModifier -= 30;
+    }
+
+    return comboChanceModifier;
+  }
+
+  /**
+   * A protection method for handling none, one, or many skills remaining after
+   * filtering, and only returning a single skill id.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]|number|null} skillsToUse The available skills to use.
+   * @returns {number}
+   */
+  decideFromNoneToManySkills(user, skillsToUse)
+  {
+    // check if "skills" is actually just one valid skill.
+    if (Number.isInteger(skillsToUse))
+    {
+      // return that, this is fine.
+      return skillsToUse;
+    }
+    // check if "skills" is indeed an array of skills with values.
+    else if (Array.isArray(skillsToUse) && skillsToUse.length)
+    {
+      // pick one at random.
+      return skillsToUse[Math.randomInt(skillsToUse.length)];
+    }
+
+    // always at least basic attack.
+    return user.getEnemyBasicAttack();
+  }
+
+  /**
+   * Filters skills by a healing priority.
+   * @param {JABS_Battler} user The battler to decide the skill for.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler[]} allies
+   * @returns {number} The best skill id for healing according to this battler.
+   */
+  filterSkillsHealerPriority(user, skillsToUse, allies)
+  {
+    // if we have no skills to work with, then don't process.
+    if (!skillsToUse.length > 1) return skillsToUse;
+
+    // if we have no ai traits that affect skill-decision-making, then don't perform the logic.
+    const { careful, reckless } = this;
+    if (!careful && !reckless) return skillsToUse;
+
+    let mostWoundedAlly = null;
+    let lowestHpRatio = 1.01;
+    let actualHpDifference = 0;
+    let alliesBelow66 = 0;
+    let alliesMissingAnyHp = 0;
+
+    // iterate over allies to determine the ally with the lowest hp%
+    allies.forEach(ally =>
+    {
+      const battler = ally.getBattler();
+      const hpRatio = battler.hp / battler.mhp;
+
+      // if it is lower than the last-tracked-lowest, then update the lowest.
+      if (lowestHpRatio > hpRatio)
+      {
+        lowestHpRatio = hpRatio;
+        mostWoundedAlly = ally;
+        actualHpDifference = battler.mhp - battler.hp;
+
+        // count all allies below the "heal all" threshold.
+        if (hpRatio <= 0.66)
+        {
+          alliesBelow66++;
+        }
+      }
+
+      // count all allies missing any amount of hp.
+      if (hpRatio < 1)
+      {
+        alliesMissingAnyHp++;
+      }
+    });
+
+    // if there are no allies that are missing hp, then just return... unless we're reckless 🌚.
+    if (!alliesMissingAnyHp && !reckless) return skillsToUse;
+
+    user.setAllyTarget(mostWoundedAlly);
+    const mostWoundedAllyBattler = mostWoundedAlly.getBattler();
+
+    // filter out the skills that aren't for allies.
+    const healingTypeSkills = skillsToUse.filter(skillId =>
+    {
+      const testAction = new Game_Action(user.getBattler());
+      testAction.setSkill(skillId);
+      return (testAction.isForAliveFriend() &&  // must target living allies.
+        testAction.isRecover() &&               // must recover something.
+        testAction.isHpEffect());               // must affect hp.
+    });
+
+    // if we have 0 or 1 skills left after healing, just return that.
+    if (healingTypeSkills.length < 2)
+    {
+      return healingTypeSkills;
+    }
+
+    // determine the best skill based on AI traits.
+    let bestSkillId = null;
+    let runningBiggestHealAll = 0;
+    let runningBiggestHealOne = 0;
+    let runningClosestFitHealAll = 0;
+    let runningClosestFitHealOne = 0;
+    let runningBiggestHeal = 0;
+    let biggestHealSkill = null;
+    let biggestHealAllSkill = null;
+    let biggestHealOneSkill = null;
+    let closestFitHealAllSkill = null;
+    let closestFitHealOneSkill = null;
+    let firstSkill = false;
+    healingTypeSkills.forEach(skillId =>
+    {
+      const skill = $dataSkills[skillId];
+      const testAction = new Game_Action(user.getBattler());
+      testAction.setItemObject(skill);
+      const healAmount = testAction.makeDamageValue(mostWoundedAllyBattler, false);
+      if (Math.abs(runningBiggestHeal) < Math.abs(healAmount))
+      {
+        biggestHealSkill = skillId;
+        runningBiggestHeal = healAmount;
+      }
+
+      // if this is our first skill in the possible heal skills available, write to all skills.
+      if (!firstSkill)
+      {
+        biggestHealAllSkill = skillId;
+        runningBiggestHealAll = healAmount;
+        closestFitHealAllSkill = skillId;
+        runningClosestFitHealAll = healAmount;
+        biggestHealOneSkill = skillId;
+        runningBiggestHealOne = healAmount;
+        closestFitHealOneSkill = skillId;
+        runningClosestFitHealOne = healAmount;
+        firstSkill = true;
+      }
+
+      // analyze the heal all skills for biggest and closest fits.
+      if (testAction.isForAll())
+      {
+        // if this heal amount is bigger than the running biggest heal-all amount, then update.
+        if (runningBiggestHealAll < healAmount)
+        {
+          biggestHealAllSkill = skillId;
+          runningBiggestHealAll = healAmount;
+        }
+
+        // if this difference is smaller than the running closest fit heal-all amount, then update.
+        const runningDifference = Math.abs(runningClosestFitHealAll - actualHpDifference);
+        const thisDifference = Math.abs(healAmount - actualHpDifference);
+        if (thisDifference < runningDifference)
+        {
+          closestFitHealAllSkill = skillId;
+          runningClosestFitHealAll = healAmount;
+        }
+      }
+
+      // analyze the heal one skills for biggest and closest fits.
+      if (testAction.isForOne())
+      {
+        // if this heal amount is bigger than the running biggest heal-one amount, then update.
+        if (runningBiggestHealOne < healAmount)
+        {
+          biggestHealOneSkill = skillId;
+          runningBiggestHealOne = healAmount;
+        }
+
+        // if this difference is smaller than the running closest fit heal-one amount, then update.
+        const runningDifference = Math.abs(runningClosestFitHealOne - actualHpDifference);
+        const thisDifference = Math.abs(healAmount - actualHpDifference);
+        if (thisDifference < runningDifference)
+        {
+          closestFitHealOneSkill = skillId;
+          runningClosestFitHealOne = healAmount;
+        }
+      }
+    });
+
+    const skillOptions = [biggestHealAllSkill, biggestHealOneSkill, closestFitHealAllSkill, closestFitHealOneSkill];
+    bestSkillId = skillOptions[Math.randomInt(skillOptions.length)];
+
+    // careful will decide in this order:
+    if (careful)
+    {
+      // - if any below 40%, then prioritize heal-one of most wounded.
+      if (lowestHpRatio <= 0.40)
+      {
+        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
+
+        // - if none below 40% but multiple wounded, prioritize closest-fit heal-all.
+      }
+      else if (alliesMissingAnyHp > 1 && lowestHpRatio < 0.80)
+      {
+        bestSkillId = defensive ? biggestHealAllSkill : closestFitHealAllSkill;
+
+        // - if only one wounded, then heal them.
+      }
+      else if (alliesMissingAnyHp === 1 && lowestHpRatio < 0.80)
+      {
+        bestSkillId = defensive ? biggestHealOneSkill : closestFitHealOneSkill;
+        // - if none wounded, or none below 80%, then don't heal.
+      }
+    }
+    else
+    {
+      // - if there is only one wounded ally, prioritize biggest heal-one skill.
+      if (alliesMissingAnyHp === 1)
+      {
+        bestSkillId = biggestHealOneSkill;
+        // - if there is more than one wounded ally, prioritize biggest heal-all skill.
+      }
+      else if (alliesMissingAnyHp > 1)
+      {
+        bestSkillId = biggestHealAllSkill;
+        // - if none wounded, don't heal.
+      }
+    }
+
+    // reckless will decide in this order:
+    if (reckless)
+    {
+      // - if there are any wounded allies, always use biggest heal skill, for one or all.
+      if (alliesMissingAnyHp > 0)
+      {
+        bestSkillId = biggestHealSkill;
+        // - if none wounded, don't heal.
+      }
+    }
+
+    return bestSkillId;
+  }
+
+  /**
+   * Decides an action from an array of skill objects based on the target.
+   * Will purge all elementally ineffective skills from the collection.
+   * @param {number[]} skillsToUse The available skills to use.
+   * @param {JABS_Battler} target The battler to decide the action about.
+   */
+  filterElementallyIneffectiveSkills(skillsToUse, target)
+  {
+    if (skillsToUse.length > 1)
+    {
+      skillsToUse = skillsToUse.filter(skillId =>
+      {
+        const testAction = new Game_Action(target.getBattler());
+        testAction.setSkill(skillId);
+        const rate = testAction.calcElementRate(target.getBattler());
+        return rate >= 1
+      });
+    }
+
+    return skillsToUse;
+  }
+
+  /**
+   * Decides an action from an array of skill objects based on the target.
+   * Will choose the skill that has the highest elemental effectiveness.
+   * @param {number[]|number} skillsToUse The available skills to use.
+   * @param {JABS_Battler} user The battler to decide the action.
+   * @param {JABS_Battler} target The battler to decide the action about.
+   */
+  findMostElementallyEffectiveSkill(skillsToUse, user, target)
+  {
+    // if we have no skills to work with, then don't process.
+    if (!skillsToUse.length > 1) return skillsToUse;
+
+    if (skillsToUse.length > 1)
+    {
+      const elementalSkillCollection = [];
+      skillsToUse.forEach(skillId =>
+      {
+        const testAction = new Game_Action(user.getBattler());
+        testAction.setSkill(skillId);
+        const rate = testAction.calcElementRate(target.getBattler());
+        elementalSkillCollection.push([skillId, rate]);
+      });
+
+      // sorts the skills by their elemental effectiveness.
+      elementalSkillCollection.sort((a, b) =>
+      {
+        if (a[1] > b[1]) return -1;
+        if (a[1] < b[1]) return 1;
+        return 0;
+      });
+
+      // only use the highest elementally effective skill.
+      skillsToUse = elementalSkillCollection[0][0];
+    }
+
+    return skillsToUse;
+  }
+}
+//#endregion JABS_EnemyAI
 
 //#region JABS_GuardData
 /**
@@ -11824,8 +12471,13 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
  */
 JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
 {
+  // define the invalid skill slots that allies shouldn't use skills from.
+  const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
+
+  // return the filtered list of slots with skills that aren't invalid.
   return this.getEquippedSlots()
-    .filter(skillSlot => skillSlot.key !== JABS_Button.Tool);
+    // exclude the invalid skill slots.
+    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
 };
 
 /**
@@ -11846,8 +12498,20 @@ JABS_SkillSlotManager.prototype.getSkillSlotByKey = function(key)
  */
 JABS_SkillSlotManager.prototype.getSlotBySkillId = function(skillIdToFind)
 {
-  return this.getEquippedSlots()
+  // check if the skill to find is the base skill of a slot.
+  let foundSlot = this.getEquippedSlots()
     .find(skillSlot => skillSlot.id === skillIdToFind);
+
+  // validate we found a slot for the skill.
+  if (!foundSlot)
+  {
+    // check if the skill id is actually the combo skill of one of the slots.
+    foundSlot = this.getEquippedSlots()
+      .find(skillSlot => skillSlot.comboId === skillIdToFind);
+  }
+
+  // return the found slot.
+  return foundSlot;
 };
 
 /**
@@ -12407,7 +13071,7 @@ class JABS_Timer
     // don't mess with time that isn't finished.
     if (!this.isTimerComplete()) return;
 
-    // normalize only applies to "should stop counting"
+    // normalize only applies to "should stop counting".
     if (!this.shouldStopCounting()) return;
 
     // reset the time to the max time.
@@ -12835,9 +13499,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 
 //#region ai
 /**
- * The compiled {@link JABS_BattlerAI}.
+ * The compiled {@link JABS_EnemyAI}.
  * This defines how this battler's AI will be controlled.
- * @type {JABS_BattlerAI}
+ * @type {JABS_EnemyAI}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
   {
@@ -12849,7 +13513,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsBattlerAi",
 
 /**
  * Checks whether or not this battler has the JABS AI trait of careful.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 RPG_BaseBattler.prototype.getJabsBattlerAi = function()
 {
@@ -12862,7 +13526,7 @@ RPG_BaseBattler.prototype.getJabsBattlerAi = function()
   const leader = this.jabsAiTraitLeader;
 
   // return the compiled battler AI.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
 //#region ai:careful
@@ -14332,6 +14996,68 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboAction",
       return this.getJabsComboAction();
     },
   });
+
+/**
+ * Whether or not this skill can be used to engage in a combo.
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter",
+  {
+    get: function()
+    {
+      return this.getJabsComboStarter();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the combo starter.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getJabsComboStarter = function()
+{
+  return this.metaAsBoolean('comboStarter');
+};
+
+/**
+ * Whether or not this skill is a "skill extend" skill.
+ * @returns {boolean} True if this is a "skill extend" skill, false otherwise.
+ */
+Object.defineProperty(RPG_Skill.prototype, "isSkillExtender",
+  {
+    get: function()
+    {
+      return !!this.getSkillExtender();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the JABS AI skill exclusion tag.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getSkillExtender = function()
+{
+  return this.metadata('skillExtend');
+};
+
+/**
+ * Whether or not this skill can be chosen at all by the JABS AI.
+ * Combo skills can still be executed as they are chosen by different means.
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion",
+  {
+    get: function()
+    {
+      return this.getAiSkillExclusion();
+    },
+  });
+
+/**
+ * Checks the skill's metadata for the presence of the JABS AI skill exclusion tag.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getAiSkillExclusion = function()
+{
+  return this.metaAsBoolean('aiSkillExclusion');
+};
 
 /**
  * The JABS combo skill id that this skill can lead into if the skill is learned
@@ -16415,7 +17141,6 @@ class JABS_AiManager
   static manageAi()
   {
     // grab all available battlers within a fixed range.
-    //const battlers = this.getAllBattlers();
     const battlers = this.getAllBattlersWithinRangeSortedByDistance(
       $jabsEngine.getPlayer1(),
       J.ABS.Metadata.MaxAiUpdateRange);
@@ -16762,7 +17487,7 @@ class JABS_AiManager
     if (distance === null) return true;
 
     // check if the distance arbitrarily is too great.
-    if (distance > 15) return true;
+    if (distance > 20) return true;
 
     // check if the distance is outside of the pursuit radius of this battler.
     if (battler.getPursuitRadius() < distance) return true;
@@ -16798,10 +17523,10 @@ class JABS_AiManager
 
   //#region Phase 2 - Execute Action Phase
   /**
-   * Phase 2 for AI is the phase where the battler will decide adn execute its action.
+   * Phase 2 for AI is the phase where the battler will decide and execute its action.
    * While in this phase, the battler will decide its action, and attempt to move
    * into the required range to execute the action if necessary and execute it.
-   * @param {JABS_Battler} battler The `JABS_Battler`.
+   * @param {JABS_Battler} battler The ai battler being managed.
    */
   static aiPhase2(battler)
   {
@@ -16938,221 +17663,18 @@ class JABS_AiManager
    */
   static decideEnemyAiPhase2Action(battler)
   {
-    // grab the AI object belonging to this battler.
-    const ai = battler.getAiMode();
+    // use the battler's AI to decide the action.
+    const decidedSkillId = battler
+      .getAiMode()
+      .decideAction(
+        battler,
+        battler.getTarget(),
+        battler.getSkillIdsFromEnemy());
 
-    // extract the AI from this battler.
-    const {careful, executor, reckless, healer, follower, leader} = ai;
-
-    // check if the battler has the "leader" ai trait.
-    if (leader)
+    // validate the skill chosen.
+    if (!this.isSkillIdValid(decidedSkillId))
     {
-      // decide actions for all nearby followers.
-      this.decideActionsForFollowers(battler);
-
-      // fall through and continue with your own actions!
-    }
-
-    // check if the battler has the "follower" ai trait.
-    if (follower)
-    {
-      // decide the skill and set it up for this follower.
-      this.decideFollowerAi(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // check if the battler has the "healer" ai trait.
-    // battlers with "careful" will leverage that while deciding healing skills.
-    if (healer)
-    {
-      // decide the skill and set it up for this battler.
-      this.decideHealerAi(battler);
-
-      // stop processing.
-      return;
-    }
-
-    /*
-    * It is important to note here that you can have "careful" and other above ai traits.
-    * "careful" will impact how the above are decided.
-    */
-
-    // check if the battler has the "careful" or "executor" ai trait.
-    if (careful || executor)
-    {
-      // decide an attack skill from the available skills.
-      this.decideAggressiveAi(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // check if the battler has the "reckless" ai trait.
-    if (reckless)
-    {
-      // decide a random skill from the available skills.
-      this.decideRecklessAi(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // process generic AI decision making.
-    this.decideGenericAi(battler);
-  }
-
-  //#region ai:leader
-  /**
-   * Decides the next action for all applicable followers.
-   * @param {JABS_Battler} leader The leader to make decisions with.
-   */
-  static decideActionsForFollowers(leader)
-  {
-    // grab all nearby followers.
-    const nearbyFollowers = this.getLeaderFollowers(leader);
-
-    // iterate over each found follower.
-    nearbyFollowers.forEach(follower => this.decideActionForFollower(leader, follower));
-  }
-
-  /**
-   * Decides the next action for a follower.
-   * @param {JABS_Battler} leader The leader battler.
-   * @param {JABS_Battler} follower The follower battler potentially being lead.
-   */
-  static decideActionForFollower(leader, follower)
-  {
-    // leaders can't control other leaders' followers.
-    if (!this.canDecideActionForFollower(leader, follower)) return;
-
-    // assign the follower to this leader.
-    if (!follower.hasLeader())
-    {
-      follower.setLeader(leader.getUuid());
-    }
-
-    // grab the leader's AI.
-    const leaderAi = leader.getAiMode();
-
-    // decide the action of the follower for them.
-    const followerAction = leaderAi.decideActionForFollower(leader, follower);
-
-    // check if we found a valid action for the follower.
-    if (followerAction)
-    {
-      // set it as their next action.
-      follower.setLeaderDecidedAction(followerAction);
-    }
-  }
-
-  /**
-   * Determines whether or not this leader can lead the given follower.
-   * @param {JABS_Battler} leader The leader battler.
-   * @param {JABS_Battler} follower The follower battler potentially being lead.
-   * @returns {boolean} True if this leader can lead this follower, false otherwise.
-   */
-  static canDecideActionForFollower(leader, follower)
-  {
-    // check if the follower and the leader are actually the same.
-    if (leader === follower)
-    {
-      // you are already in control, bro.
-      return false;
-    }
-
-    // check if the follower exists.
-    if (!follower)
-    {
-      // there is nothing to control.
-      return false;
-    }
-
-    // check if the follower is a leader themself.
-    if (follower.getAiMode().leader)
-    {
-      // leaders cannot control leaders.
-      return false;
-    }
-
-    // check if the follower has a leader that is different than this leader.
-    if (follower.hasLeader() && follower.getLeader() !== leader.getUuid())
-    {
-      // stop trying to boss other leader's followers around!
-      leader.removeFollower(follower.getUuid());
-
-      // they are already under control.
-      return false;
-    }
-
-    // lead this follower!
-    return true;
-  }
-  //#endregion ai:leader
-
-  //#region ai:follower
-  /**
-   * Handles how a follower decides its next action to take while engaged.
-   *
-   * NOTE:
-   * If a follower has a leader, they will wait until the leader gives commands
-   * to execute them. This means that the follower's turn speed will be reduced
-   * to match the leader if necessary.
-   * @param {JABS_Battler} battler The battler to decide actions.
-   */
-  static decideFollowerAi(battler)
-  {
-    // check if we have a leader ready to guide us.
-    if (this.hasLeaderReady(battler))
-    {
-      // let the leader decide what this battler should do.
-      this.decideFollowerAiByLeader(battler);
-    }
-    // we have no leader.
-    else
-    {
-      // only basic attacks for this battler.
-      this.decideFollowerAiBySelf(battler);
-    }
-  }
-
-  /**
-   * Determines whether or not this battler has a leader ready to guide them.
-   * @param {JABS_Battler} battler The battler deciding the action.
-   * @returns {boolean} True if this battler has a ready leader, false otherwise.
-   */
-  static hasLeaderReady(battler)
-  {
-    // check if we have a leader.
-    if (!battler.hasLeader()) return false;
-
-    // check to make sure we can actually retrieve the leader.
-    if (!battler.getLeaderBattler()) return false;
-
-    // check to make sure that leader is still engaged in combat.
-    if (!battler.getLeaderBattler().isEngaged()) return false;
-
-    // let the leader decide!
-    return true;
-  }
-
-  /**
-   * Allows the leader to decide this follower's next action to take.
-   * @param {JABS_Battler} battler The follower that is allowing a leader to decide.
-   */
-  static decideFollowerAiByLeader(battler)
-  {
-    // show the balloon that we are processing leader actions instead.
-    battler.showBalloon(J.ABS.Balloons.Check);
-
-    // we have an engaged leader.
-    const leaderDecidedSkillId = battler.getNextLeaderDecidedAction();
-
-    // check if we decided on a skill.
-    if (!leaderDecidedSkillId || leaderDecidedSkillId.length)
-    {
-      // cancel the setup if we decided on nothing.
+      // cancel the setup.
       this.cancelActionSetup(battler);
 
       // stop processing.
@@ -17160,7 +17682,7 @@ class JABS_AiManager
     }
 
     // construct the skill from the battler's perspective.
-    const skill = battler.getSkill(leaderDecidedSkillId);
+    const skill = battler.getSkill(decidedSkillId);
 
     // check to make sure we actually constructed a skill.
     if (!skill)
@@ -17176,247 +17698,25 @@ class JABS_AiManager
     const cooldownKey = this.buildEnemyCooldownType(skill);
 
     // setup the skill for use.
-    this.setupActionForNextPhase(battler, leaderDecidedSkillId, cooldownKey);
+    this.setupActionForNextPhase(battler, decidedSkillId, cooldownKey);
   }
 
   /**
-   * Allows the follower to decide their own next action to take.
-   * It is always a basic attack.
-   * @param {JABS_Battler} battler The follower that is deciding for themselves.
-   */
-  static decideFollowerAiBySelf(battler)
-  {
-    // only basic attacks for this battler.
-    const basicAttackSkillId = battler.getEnemyBasicAttack();
-
-    // construct the skill from the battler's perspective.
-    const skill = battler.getSkill(basicAttackSkillId);
-
-    // check to make sure we actually constructed a skill.
-    if (!skill)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType(skill);
-
-    // setup the skill for use.
-    this.setupActionForNextPhase(battler, basicAttackSkillId, cooldownKey);
-  }
-  //#endregion ai:follower
-
-  //#region ai:healer
-  /**
-   * Handles how a healer decides its next action to take while engaged.
-   * @param {JABS_Battler} battler The battler to decide actions.
-   */
-  static decideHealerAi(battler)
-  {
-    // get all skills available to this enemy.
-    const skillsToUse = battler.getSkillIdsFromEnemy();
-
-    // determine the best support action to use.
-    const skillId = battler.getAiMode().decideSupportAction(battler, skillsToUse);
-
-    // check if we decided on a skill.
-    if (!skillId)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // construct the skill from the battler's perspective.
-    const skill = battler.getSkill(skillId);
-
-    // check to make sure we actually constructed a skill.
-    if (!skill)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType(skill);
-
-    // setup the skill for use.
-    this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  }
-  //#endregion ai:healer
-
-  //#region ai:careful/executor
-  /**
-   * Handles how a batler decides its next action to take while engaged.
-   * "Smart" battlers will try to use skills that are known to be strong/effective
-   * against their targets.
-   * @param {JABS_Battler} battler The battler to decide actions.
-   */
-  static decideAggressiveAi(battler)
-  {
-    // get all skills available to this enemy.
-    const skillsToUse = battler.getAllSkillIdsFromEnemy();
-
-    // determine the best attack action to use.
-    const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse) ?? 0;
-
-    // check if we decided on a skill.
-    if (!skillId)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // construct the skill from the battler's perspective.
-    const skill = battler.getSkill(skillId);
-
-    // check to make sure we actually constructed a skill.
-    if (!skill)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType(skill);
-
-    // setup the skill for use.
-    this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  }
-  //#endregion ai:careful/executor
-
-  //#region ai:reckless
-  /**
-   * Handles how a battler decides its next action while engaged.
-   * "Reckless" battlers will always try to use a skill instead of their basic attack.
-   * If an enemy with reckless does not have any skills to use, it will default to
-   * its own basic attack instead.
-   * @param {JABS_Battler} battler The battler to decide actions.
-   */
-  static decideRecklessAi(battler)
-  {
-    // get all skills (excluding basic attack) available to this enemy.
-    const skillsToUse = battler.getSkillIdsFromEnemy();
-
-    // check if we decided on a skill.
-    if (!skillsToUse || !skillsToUse.length)
-    {
-      console.warn('a battler with the "reckless" trait was found with no skills.', battler);
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // determine the best attack action to use.
-    const skillId = battler.getAiMode().decideAttackAction(battler, skillsToUse);
-
-    if (!this.isSkillIdValid(skillId))
-    {
-      // cancel the setup if we can't use any skills while being reckless!
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // construct the skill from the battler's perspective.
-    const skill = battler.getSkill(skillId);
-
-    // check to make sure we actually constructed a skill.
-    if (!skill)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // build the cooldown from the skill.
-    const cooldownKey = this.buildEnemyCooldownType(skill);
-
-    // setup the skill for use.
-    this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  }
-
-  /**
-   *
-   * @param {number|number[]} skillId The skill id or ids to validate.
-   * @returns {boolean} True if the skill id is
+   * Determines whether or not the parameter provided is a valid skill id.
+   * @param {number|number[]|null} skillId The skill id or ids to validate.
+   * @returns {boolean} True if it is a single skill id, false otherwise.
    */
   static isSkillIdValid(skillId)
   {
     // if the skill id is something falsy like 0/null/undefined, not valid.
     if (!skillId) return false;
 
-    // check if the "skill id" is actually an array of them.
-    if (Array.isArray(skillId))
-    {
-      // the length of the skill id array is 0, not valid.
-      if (!skillId.length) return false;
-    }
+    // if the skill id somehow managed to become many skill ids, not valid.
+    if (Array.isArray(skillId)) return false;
 
     // skill id is valid!
     return true;
   }
-  //#endregion ai:reckless
-
-  //#region ai:unassigned
-  /**
-   * HAndles how a battler decides its next action while engaged.
-   * When a battler has no special ai traits, it'll just pick a random skill
-   * from its list of skills with a 50% chance of instead using its basic attack.
-   * @param {JABS_Battler} battler The battler to decide actions.
-   */
-  static decideGenericAi(battler)
-  {
-    // get all skills available to this enemy.
-    const skillsToUse = battler.getSkillIdsFromEnemy();
-
-    // determine the best attack action to use.
-    let skillId = skillsToUse[Math.randomInt(skillsToUse.length)];
-
-    // 50% chance of just using the basic attack instead.
-    if (Math.randomInt(2) === 0)
-    {
-      // overwrite the random skill with the basic attack.
-      skillId = battler.getEnemyBasicAttack();
-    }
-
-    // check if we decided on a skill.
-    if (!skillId)
-    {
-      // cancel the setup if we decided on nothing.
-      this.cancelActionSetup(battler);
-
-      // stop processing.
-      return;
-    }
-
-    // build the cooldown key from the skill.
-    const cooldownKey = this.buildEnemyCooldownType($dataSkills[skillId]);
-
-    // setup the skill for use.
-    this.setupActionForNextPhase(battler, skillId, cooldownKey);
-  }
-  //#endregion ai:unassigned
 
   /**
    * Sets up the battler and the action in preparation for the next phase.
@@ -17442,14 +17742,14 @@ class JABS_AiManager
     // set the cooldown type for all actions.
     actions.forEach(action => action.setCooldownType(cooldownKey));
 
-    // determine the "primary" action.
-    const action = actions[0];
+    // destructure the "primary" action out.
+    const [action,] = actions;
 
     // perform the execution animation.
     this.performExecutionAnimation(battler, action);
 
     // set an arbitrary 1/3 second wait after setup.
-    battler.setWaitCountdown(20);
+    battler.setWaitCountdown(10);
 
     // set the cast time of this skill.
     battler.setCastCountdown(action.getCastTime());
@@ -18078,7 +18378,7 @@ class JABS_Engine
   getAnimationId(skill, caster)
   {
     // grab the animation id from the skill.
-    const {animationId} = skill;
+    const { animationId } = skill;
 
     // check if the animation id indicates we should look to the weapon.
     if (animationId === -1)
@@ -19325,7 +19625,7 @@ class JABS_Engine
     }
 
     const pageIndex = actionEventSprite.findProperPageIndex();
-    const {characterIndex, characterName} = actionEventData.pages[pageIndex].image;
+    const { characterIndex, characterName } = actionEventData.pages[pageIndex].image;
 
     actionEventSprite.setActionSpriteNeedsAdding();
     actionEventSprite._eventId = actionEventData.id;
@@ -19789,6 +20089,8 @@ class JABS_Engine
     {
       // its a combo skill, so also extend the base cooldown by the combo cooldown.
       caster.modCooldownCounter(cooldownKey, jabsComboDelay);
+
+      caster.setPhase(2);
     }
 
     // update the next combo data.
@@ -19867,7 +20169,6 @@ class JABS_Engine
     // return whether or not the hit was successful.
     return hit < parry;
   }
-
 
   isParryPossible(caster, target)
   {
@@ -22474,7 +22775,7 @@ Game_Actor.prototype.alertDuration = function()
  */
 Game_Actor.prototype.ai = function()
 {
-  return new JABS_BattlerAI(true, true);
+  return new JABS_EnemyAI();
 };
 
 /**
@@ -23187,11 +23488,11 @@ Game_Battler.prototype.teamId = function()
 
 /**
  * All battlers have a default AI.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 Game_Battler.prototype.ai = function()
 {
-  return new JABS_BattlerAI();
+  return new JABS_EnemyAI();
 };
 
 /**
@@ -23750,6 +24051,13 @@ Game_Battler.prototype.ignoreAllParry = function()
 
   // return what we found.
   return unparryable;
+};
+
+/**
+ * Disables native RMMZ regeneration.
+ */
+Game_Battler.prototype.regenerateAll = function()
+{
 };
 //#endregion Game_Battler
 
@@ -24573,7 +24881,7 @@ Game_Enemy.prototype.teamId = function()
 /**
  * Gets the enemy's ai from their notes.
  * This will be overwritten by values provided from an event.
- * @returns {JABS_BattlerAI}
+ * @returns {JABS_EnemyAI}
  */
 Game_Enemy.prototype.ai = function()
 {
@@ -25250,7 +25558,7 @@ Game_Event.prototype.getTeamIdOverrides = function()
 
 /**
  * Parses out the battler ai including their bonus ai traits.
- * @returns {JABS_BattlerAI} The constructed battler AI.
+ * @returns {JABS_EnemyAI} The constructed battler AI.
  */
 Game_Event.prototype.getBattlerAiOverrides = function()
 {
@@ -25312,7 +25620,7 @@ Game_Event.prototype.getBattlerAiOverrides = function()
   });
 
   // return the overridden battler ai.
-  return new JABS_BattlerAI(careful, executor, reckless, healer, follower, leader);
+  return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
 /**
@@ -26759,7 +27067,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   lootCollected.forEach(loot =>
   {
     // get the underlying loot item.
-    const {lootData} = loot.getJabsLoot();
+    const { lootData } = loot.getJabsLoot();
 
     // store the loot on-pickup.
     this.storeOnPickup(lootData);
@@ -26797,7 +27105,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent)
 {
   // extract the loot data.
   const lootMetadata = lootEvent.getJabsLoot();
-  const {lootData} = lootMetadata;
+  const { lootData } = lootMetadata;
   lootMetadata.useOnPickup
     ? this.useOnPickup(lootData)
     : this.storeOnPickup(lootData);
@@ -26836,6 +27144,22 @@ Game_Player.prototype.removeLoot = function(lootEvent)
   $jabsEngine.requestClearLoot = true;
 };
 //#endregion Game_Player
+
+//#region Game_Switches
+/**
+ * Extends {@link #onChange}.
+ * Also refreshes the JABS menu when a switch is toggled.
+ */
+J.ABS.Aliased.Game_Switches.set('onChange', Game_Switches.prototype.onChange);
+Game_Switches.prototype.onChange = function()
+{
+  // perform original logic.
+  J.ABS.Aliased.Game_Switches.get('onChange').call(this);
+
+  // also refresh the JABS menu.
+  $jabsEngine.requestJabsMenuRefresh = true;
+};
+//#endregion Game_Switches
 
 //#region Game_Unit
 /**

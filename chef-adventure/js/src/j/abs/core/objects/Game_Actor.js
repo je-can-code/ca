@@ -502,7 +502,7 @@ Game_Actor.prototype.alertDuration = function()
  */
 Game_Actor.prototype.ai = function()
 {
-  return new JABS_BattlerAI(true, true);
+  return new JABS_EnemyAI();
 };
 
 /**

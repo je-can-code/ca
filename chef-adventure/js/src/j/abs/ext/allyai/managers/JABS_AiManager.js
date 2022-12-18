@@ -51,18 +51,23 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
 };
 
 /**
- * Extend the action decision phase to also handle ally decision-making.
+ * Extends {@link #decideAiPhase2Action}.
+ * Includes handling ally AI as well as enemy.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
 J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
+  // check if the battler is an enemy.
   if (battler.isEnemy())
   {
+    // perform original logic for enemies.
     J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
   }
+  // it isn't an enemy, it must be an ally.
   else
   {
+    // perform ally AI instead.
     this.decideAllyAiPhase2Action(battler);
   }
 };
@@ -74,7 +79,7 @@ JABS_AiManager.decideAiPhase2Action = function(battler)
  */
 JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
 {
-  // grab the battler as a variable.
+  // grab the underlying battler deciding the action.
   const battler = jabsBattler.getBattler();
 
   // get all slots that have skills in them.
@@ -84,16 +89,20 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
 
   // decide the action based on the ally ai mode currently assigned.
-  const decidedSkillId = jabsBattler.getAllyAiMode().decideAction(
-    currentlyEquippedSkillIds,
-    jabsBattler,
-    jabsBattler.getTarget());
+  const decidedSkillId = jabsBattler
+    .getAllyAiMode()
+    .decideAction(
+      jabsBattler,
+      jabsBattler.getTarget(),
+      currentlyEquippedSkillIds);
 
-  // check if we have a skill and can pay its cost.
-  if (!decidedSkillId)
+  // validate the skill chosen.
+  if (!this.isSkillIdValid(decidedSkillId))
   {
-    // if the battler didn't settle on a skill, or can't cast the one they did settle on, reset.
-    jabsBattler.resetPhases();
+    // cancel the setup.
+    this.cancelActionSetup(jabsBattler);
+
+    // stop processing.
     return;
   }
 
@@ -101,8 +110,10 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // check if the skill id is actually a mobility skill.
   if (JABS_Battler.isDodgeSkillById(decidedSkillId))
   {
-    // restart the decision-making process.
-    jabsBattler.resetPhases();
+    // cancel the setup.
+    this.cancelActionSetup(jabsBattler);
+
+    // stop processing.
     return;
   }
 

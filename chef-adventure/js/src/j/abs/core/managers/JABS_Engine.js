@@ -384,7 +384,7 @@ class JABS_Engine
   getAnimationId(skill, caster)
   {
     // grab the animation id from the skill.
-    const {animationId} = skill;
+    const { animationId } = skill;
 
     // check if the animation id indicates we should look to the weapon.
     if (animationId === -1)
@@ -1631,7 +1631,7 @@ class JABS_Engine
     }
 
     const pageIndex = actionEventSprite.findProperPageIndex();
-    const {characterIndex, characterName} = actionEventData.pages[pageIndex].image;
+    const { characterIndex, characterName } = actionEventData.pages[pageIndex].image;
 
     actionEventSprite.setActionSpriteNeedsAdding();
     actionEventSprite._eventId = actionEventData.id;
@@ -2095,6 +2095,8 @@ class JABS_Engine
     {
       // its a combo skill, so also extend the base cooldown by the combo cooldown.
       caster.modCooldownCounter(cooldownKey, jabsComboDelay);
+
+      caster.setPhase(2);
     }
 
     // update the next combo data.
@@ -2173,7 +2175,6 @@ class JABS_Engine
     // return whether or not the hit was successful.
     return hit < parry;
   }
-
 
   isParryPossible(caster, target)
   {
