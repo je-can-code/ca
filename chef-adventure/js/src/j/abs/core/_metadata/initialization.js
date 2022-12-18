@@ -408,6 +408,8 @@ J.ABS.RegExp = {
   // skill-combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   FreeCombo: /<freeCombo>/gi,
+  ComboStarter: /<comboStarter>/gi,
+  AiSkillExclusion: /<aiSkillExclusion>/gi,
 
   // aggro-related.
   BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Dec 17 2022 17:41:33 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Dec 18 2022 08:21:27 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -681,6 +681,21 @@
  * this skill, their skill would become skill ID 2, and be usable after
  * 10 frames (roughly 1/6 of a second).
  *
+ * COMBO STARTER:
+ * While combo action tags work as you might suspect for when the player is
+ * controlling a particular battler, AI-controlled battlers require a bit of
+ * extra hand-holding in order to use combos. The main tag for that is the
+ * "combo starter" tag, that looks something like this:
+ *    <comboStarter>
+ *
+ * That is it. By default, AI-controlled battlers will dismiss skills that
+ * have the "combo action" tag on them, but if you add the "combo starter"
+ * tag to the skills that are intended to start a combo, the AI will know that
+ * it can use that skill as well. The chance of pursuing a combo is dependent
+ * on the AI configuration (ally or enemy), but generally hovers between 50-100
+ * percent chance of obeying the "combo action" tag. More on that down in the
+ * AI traits section, and in the J-ABS-AllyAI plugin.
+ *
  * NOTE ABOUT FOLLOW-UP COMBOS:
  * In order for a combo action to become available, it REQUIRES the skill to
  * connect with a target. However, if you want a skill to not require hitting
@@ -695,11 +710,27 @@
  *
  * Using this will instantly make the next combo skill available to execute.
  *
- * NOTE ABOUT COMBOS AND AI:
- * In the current state, enemies and allies controlled by AI will not be able
- * to combo, even if the conditions are otherwise met. I simply did not code
- * this ability due to the way enemies/allies use AI to choose their skills.
- * It is on the wishlist of items to implement.
+ * AI SKILL EXCLUSION:
+ * While this isn't explicitly related to combos, this is most likely to be
+ * used in conjunction with combo tags. The "ai skill exclusion" tag does
+ * exactly what you probably suspect it will do: exclude the skill from the
+ * list of available skills that an AI-controlled battler can leverage. You
+ * may ask "why would I want to add a skill to an enemy, and then exclude it?"
+ * and the answer is "because its a part of a combo". As you may recall from
+ * the many paragraphs of combo information above, in order for a skill to be
+ * usable within a combo, the battler must know the skill. However, a skill
+ * that is the end of a combo typically won't have a combo tag, meaning the
+ * AI will be able to randomly also select the combo-ender skill while deciding
+ * actions. By adding the "ai skill exclusion" tag to said combo-ender skills,
+ * you can avoid this behavior with grace. You can also use this to exclude
+ * skills that perform other functionalities that shouldn't be executed in
+ * battle, such as "passive" skills.
+ *    <aiSkillExclusion>
+ *
+ * NOTE ABOUT SKILL EXTENSION SKILLS:
+ * If also using the "J-SkillExtend" plugin, by default all extension skills
+ * will be excluded from random selection, identical in behavior to the
+ * "ai skill exclusion" tag above.
  *
  * ----------------------------------------------------------------------------
  * GUARDING:
@@ -2077,6 +2108,8 @@ J.ABS.RegExp = {
   // skill-combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
   FreeCombo: /<freeCombo>/gi,
+  ComboStarter: /<comboStarter>/gi,
+  AiSkillExclusion: /<aiSkillExclusion>/gi,
 
   // aggro-related.
   BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
@@ -15014,7 +15047,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter",
  */
 RPG_Skill.prototype.getJabsComboStarter = function()
 {
-  return this.metaAsBoolean('comboStarter');
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ComboStarter);
 };
 
 /**
@@ -15056,7 +15089,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion",
  */
 RPG_Skill.prototype.getAiSkillExclusion = function()
 {
-  return this.metaAsBoolean('aiSkillExclusion');
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiSkillExclusion);
 };
 
 /**

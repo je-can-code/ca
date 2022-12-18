@@ -737,7 +737,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter",
  */
 RPG_Skill.prototype.getJabsComboStarter = function()
 {
-  return this.metaAsBoolean('comboStarter');
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ComboStarter);
 };
 
 /**
@@ -779,7 +779,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion",
  */
 RPG_Skill.prototype.getAiSkillExclusion = function()
 {
-  return this.metaAsBoolean('aiSkillExclusion');
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiSkillExclusion);
 };
 
 /**
