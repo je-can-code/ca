@@ -780,7 +780,7 @@ JABS_AllyAI.prototype.aiComboChanceModifier = function()
     default:
       return 0;
   }
-}
+};
 //#endregion decide action
 
 //#region battle memory

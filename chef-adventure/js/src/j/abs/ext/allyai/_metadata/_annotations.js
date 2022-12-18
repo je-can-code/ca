@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ALLYAI] Grants your allies AI and the will to fight alongside the player.
+ * [v1.1.0 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -12,25 +12,43 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * This plugin enables allies to leverage one of four modes to calculate their
- * actions decided in-combat based on what skills they have equipped presently.
+ * OVERVIEW:
+ * This plugin enables allies to leverage one of a selection of ally AI modes.
  *
- * In order for this plugin to do anything, followers must be enabled. If the
- * followers functionality is disabled, then they will simply do nothing.
+ * This plugin requires JABS.
+ * This plugin requires followers be enabled to do anything.
+ * This plugin has plugin parameters that can adjust some arbitrary parameters.
+ * ----------------------------------------------------------------------------
+ * DETAILS:
+ * All members of the party represented by "followers" on the field will be
+ * granted AI to enable action decision-making while in combat.
  *
  * In order to set a default ally AI mode (defaults to "variety"), you can use
- * a tag on the actor and/or class. Class will take priority over actor tags:
- *
- * <defaultAi:MODE>
- * where MODE is one of the 5 below (the key in the parentheses).
- *
- * Example of a working default ai mode:
- * <defaultAi:only-attack>
- *
+ * a tag on the actor and/or class. Class will take priority over actor tags.
  *
  * ============================================================================
- * The modes available to swap between for your allies are below.
+ * DEFAULT ALLY AI MODE:
+ * Have you ever wanted to set the default AI mode of your allies to a
+ * particular mode? Well now you can! By applying the appropriate tags to
+ * actors/classes, you can allow your allies to have a preset ally AI mode!
  *
+ * NOTE:
+ * Tags on classes are considered "more granular" and thus take priority over
+ * tags that exist on the actors.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ *
+ * TAG FORMAT:
+ *  <defaultAi:MODE>
+ * Where MODE is one of the valid modes listed below.
+ *
+ * EXAMPLE:
+ *  <defaultAi:do-nothing>
+ * This ally will be set to the "do-nothing" mode by default.
+ *
+ * AVAILABLE MODES:
  * - Do Nothing (do-nothing):
  *   Your ally will take no action.
  *
@@ -56,6 +74,21 @@
  *   states available, and refresh states once they reach a designated
  *   threshold of duration (configurable) left.
  *
+ * ----------------------------------------------------------------------------
+ * NOTE ABOUT COMBOS WITH ALLY AI:
+ * As the player can, your allies can potentially perform combo skills, but
+ * they adhere to the same restrictions that the player does. However, unlike
+ * the player, it is not dependent on button inputs, but instead dependent on
+ * RNG to continue a combo. Each of the modes above provide different bonuses
+ * to the base 50% chance for executing a combo:
+ * - do-nothing:    no bonus.   (=50% chance)
+ * - basic-attack:  +30% chance (=80% chance)
+ * - variety:       +20% chance (=70% chance)
+ * - full-force:    +50% chance (=100% chance!!!)
+ * - support:       +10% chance (=60% chance)
+ *
+ * ----------------------------------------------------------------------------
+ * BATTLE MEMORIES:
  * Additionally, in the modes of "Variety" and "Full Force", there is an extra
  * functionality to be considered called "battle memories"- unique to ally ai.
  * Battle Memories are effectively a snapshot recollection of your ally using
@@ -64,12 +97,14 @@
  * given skill. This will influence the allies decision making when it comes to
  * deciding skills (preferring known effectiveness over otherwise).
  *
+ * AGGRO/PASSIVE TOGGLE:
  * Lastly, there is a party-wide toggle available that will toggle between two
  * options: Passive and Aggressive. When "Passive" is enabled, your allies will
  * not engage unless they are hit directly, or you attack a foe. When
  * "Aggressive" is enabled, your allies will engage with any enemy that comes
  * within their designated sight range (configurable) similar to how enemies
  * will engage the player when you enter their sight range.
+ *
  * ============================================================================
  * Caveats to note:
  * - When party-cycling, all allies will be pulled to the player and all aggro
@@ -80,7 +115,6 @@
  *
  * ============================================================================
  * CHANGELOG:
- *
  * - 1.1.0
  *    Retroactively added this CHANGELOG.
  *    Upgraded AI to be able to leverage combos (enemy AI, too).
