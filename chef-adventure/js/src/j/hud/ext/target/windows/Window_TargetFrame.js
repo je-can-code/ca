@@ -1,4 +1,4 @@
-//#region Window_TargetFrame
+//region Window_TargetFrame
 /**
  * A window that displays a target and their relevant information.
  */
@@ -105,7 +105,7 @@ class Window_TargetFrame extends Window_Base
     this.refreshCache();
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -247,7 +247,7 @@ class Window_TargetFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Sets the target that this window should be tracking.
@@ -713,4 +713,4 @@ class Window_TargetFrame extends Window_Base
     gauge.move(x, y);
   }
 }
-//#endregion Window_TargetFrame
+//endregion Window_TargetFrame

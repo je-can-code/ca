@@ -1,4 +1,4 @@
-//#region Window_MenuCommand
+//region Window_MenuCommand
 /**
  * Extends the make command list for the main menu to include SDP, if it meets the conditions.
  */
@@ -54,4 +54,4 @@ Window_MenuCommand.prototype.canAddSdpCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_MenuCommand
+//endregion Window_MenuCommand

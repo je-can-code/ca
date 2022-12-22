@@ -1,4 +1,4 @@
-//#region Window_AbsMenu
+//region Window_AbsMenu
 /**
  * Extends {@link #buildCommands}.
  * Adds the ally ai management command at the end of the list.
@@ -43,4 +43,4 @@ Window_AbsMenu.prototype.canAddAllyAiCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu

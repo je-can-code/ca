@@ -44,4 +44,4 @@ J.ABS.EXT.CYCLE.Aliased = {
   JABS_Action: new Map(),
   JABS_Battler: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction

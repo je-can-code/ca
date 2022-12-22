@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Sun Dec 18 2022 08:21:27 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 09:08:27 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.0 JABS] Enables combat to be carried out on the map.
+ * [v3.2.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -16,7 +16,7 @@
  * Using this plugin will enable you to carry out combat directly on the map
  * in real-time, similar to popular game franchises like Zelda.
  *
- * ============================================================================
+ * ----------------------------------------------------------------------------
  * DETAILS:
  * Have you ever wanted to decorate events with tons of event comments and
  * watch them come to life as AI-controlled allies/enemies in an action battle
@@ -48,6 +48,8 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.1
+ *    Refactored slip effects to accommodate the J-Passives update.
  * - 3.2.0
  *    Fixed bug where actions couldn't connect if the attacker was too close.
  *    Upgraded AI to be able to leverage combos (ally AI, too).
@@ -1698,13 +1700,13 @@
 //=================================================================================================
 /* eslint-enable max-len */
 
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -1715,15 +1717,15 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin setup and configuration
+//region plugin setup and configuration
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.ABS = {};
 
-//#region helpers
+//region helpers
 /**
  * A collection of helpful functions for use within this plugin.
  */
@@ -1777,15 +1779,15 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
-//#endregion helpers
+//endregion helpers
 
-//#region metadata
+//region metadata
 /**
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.2.0';
+J.ABS.Metadata.Version = '3.2.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -1851,7 +1853,7 @@ J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
 J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
 J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
-//#endregion metadata
+//endregion metadata
 
 /**
  * The various default values across the engine. Often configurable.
@@ -2093,7 +2095,7 @@ J.ABS.RegExp = {
 
   // projectile-related.
   Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Proximity: /<proximity:[ ]?(\d+)>/gi,
+  Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Projectile: /<projectile:[ ]?([12348])>/gi,
   Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
   Direct: /<direct>/gi,
@@ -2105,11 +2107,15 @@ J.ABS.RegExp = {
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
   PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
 
-  // skill-combo-related.
+  // combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  FreeCombo: /<freeCombo>/gi,
   ComboStarter: /<comboStarter>/gi,
   AiSkillExclusion: /<aiSkillExclusion>/gi,
+  FreeCombo: /<freeCombo>/gi,
+
+  // learning-related
+  AutoAssign: /<autoAssignSkills>/gi,
+  AssignInPlaceOf: /<autoAssignOnLearning:(\d+)>/gi,
 
   // aggro-related.
   BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
@@ -2256,9 +2262,9 @@ J.ABS.Aliased = {
   Sprite_Character: new Map(),
   Sprite_Gauge: new Map(),
 };
-//#endregion Plugin setup & configuration
+//endregion Plugin setup & configuration
 
-//#region Plugin Command Registration
+//region Plugin Command Registration
 /**
  * Plugin command for enabling JABS.
  */
@@ -2403,10 +2409,10 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 //   });
 // });
 
-//#endregion Plugin Command Registration
-//#endregion Metadata
+//endregion Plugin Command Registration
+//endregion Metadata
 
-//#region JABS_Action
+//region JABS_Action
 /**
  * An object that binds a `Game_Action` to a `Game_Event` on the map.
  */
@@ -2940,7 +2946,7 @@ class JABS_Action
     this._pierceDelay.reset();
   }
 
-  //#region update
+  //region update
   /**
    * The overarching update logic for the action.
    */
@@ -3092,7 +3098,7 @@ class JABS_Action
   postUpdate()
   {
   }
-  //#endregion update
+  //endregion update
 
   /**
    * Gets whether or not this action is a direct-targeting action.
@@ -3153,7 +3159,7 @@ class JABS_Action
     }
 
     // return the proximity from the underlying skill.
-    return this.getBaseSkill().jabsProximity;
+    return this.getBaseSkill().jabsProximity ?? 0;
   }
 
   /**
@@ -3212,9 +3218,9 @@ class JABS_Action
     return this.getBaseSkill().jabsAggroMultiplier ?? 1.0;
   }
 }
-//#endregion JABS_Action
+//endregion JABS_Action
 
-//#region JABS_Aggro
+//region JABS_Aggro
 /**
  * A tracker for managing the aggro for this particular battler and its owner.
  */
@@ -3313,7 +3319,7 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
   this.aggro += modAggro;
   if (this.aggro < 0) this.aggro = 0;
 };
-//#endregion JABS_Aggro
+//endregion JABS_Aggro
 
 //region JABS_AI
 /**
@@ -3499,7 +3505,7 @@ class JABS_AI
 }
 //endregion JABS_AI
 
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
  * This can be for either the player, an ally, or an enemy.
@@ -3509,7 +3515,7 @@ function JABS_Battler()
   this.initialize(...arguments);
 }
 
-//#region initialize battler
+//region initialize battler
 JABS_Battler.prototype = {};
 JABS_Battler.prototype.constructor = JABS_Battler;
 
@@ -4020,9 +4026,9 @@ JABS_Battler.prototype.initCooldowns = function()
   // setup the skill slots for the enemy.
   battler.getSkillSlotManager().setupSlots(battler);
 };
-//#endregion initialize battler
+//endregion initialize battler
 
-//#region statics
+//region statics
 /**
  * Generates a `JABS_Battler` based on the current leader of the party.
  * Also assigns the controller inputs for the player.
@@ -4240,9 +4246,9 @@ JABS_Battler.allyRubberbandRange = function()
 {
   return parseFloat(10 + J.ABS.Metadata.AllyRubberbandAdjustment);
 };
-//#endregion statics
+//endregion statics
 
-//#region updates
+//region updates
 /**
  * Things that are battler-respective and should be updated on their own.
  */
@@ -4260,7 +4266,7 @@ JABS_Battler.prototype.update = function()
   this.updateDeathHandling();
 };
 
-//#region queued player actions
+//region queued player actions
 /**
  * Process any queued actions and execute them.
  */
@@ -4306,9 +4312,9 @@ JABS_Battler.prototype.canProcessQueuedActions = function()
   // we can process all the actions!
   return true;
 };
-//#endregion queued player actions
+//endregion queued player actions
 
-//#region update pose effects
+//region update pose effects
 /**
  * Update all character sprite animations executing on this battler.
  */
@@ -4414,9 +4420,9 @@ JABS_Battler.prototype.setPosePattern = function(pattern)
 {
   this.getCharacter()._pattern = pattern;
 };
-//#endregion update pose effects
+//endregion update pose effects
 
-//#region update cooldowns
+//region update cooldowns
 /**
  * Updates all cooldowns for this battler.
  */
@@ -4424,9 +4430,9 @@ JABS_Battler.prototype.updateCooldowns = function()
 {
   this.getBattler().getSkillSlotManager().updateCooldowns();
 };
-//#endregion update cooldowns
+//endregion update cooldowns
 
-//#region update timers
+//region update timers
 /**
  * Updates all timers for this battler.
  */
@@ -4507,9 +4513,9 @@ JABS_Battler.prototype.processEngagementTimer = function()
 {
   this._engagementTimer.update();
 };
-//#endregion update timers
+//endregion update timers
 
-//#region update engagement
+//region update engagement
 /**
  * Monitors all other battlers and determines if they are engaged or not.
  */
@@ -4638,9 +4644,9 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
   // return the findings.
   return isInSightRange;
 };
-//#endregion update engagement
+//endregion update engagement
 
-//#region update dodging
+//region update dodging
 /**
  * Updates the dodge skill.
  */
@@ -4782,9 +4788,9 @@ JABS_Battler.prototype.endDodge = function()
   // disable the invincibility from dodging.
   this.setInvincible(false);
 };
-//#endregion update dodging
+//endregion update dodging
 
-//#region update death handling
+//region update death handling
 /**
  * Handles when this enemy battler is dying.
  */
@@ -4805,11 +4811,11 @@ JABS_Battler.prototype.updateDeathHandling = function()
     this.destroy();
   }
 };
-//#endregion update death handling
-//#endregion updates
+//endregion update death handling
+//endregion updates
 
-//#region update helpers
-//#region timers
+//region update helpers
+//region timers
 /**
  * Sets the battler's wait duration to a number. If this number is greater than
  * zero, then the battler must wait before doing anything else.
@@ -4945,9 +4951,9 @@ JABS_Battler.prototype.clearAlert = function()
   //   this.showBalloon(J.ABS.Balloons.Silence);
   // }
 };
-//#endregion timers
+//endregion timers
 
-//#region dodging
+//region dodging
 /**
  * Gets whether or not this battler is dodging.
  * @returns {boolean} True if currently dodging, false otherwise.
@@ -5101,9 +5107,9 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType)
 
   return direction;
 };
-//#endregion dodging
+//endregion dodging
 
-//#region regeneration
+//region regeneration
 /**
  * Updates all regenerations and ticks four times per second.
  */
@@ -5177,7 +5183,7 @@ JABS_Battler.prototype.performRegeneration = function()
   this.processNaturalRegens();
 
   // if we have no states, don't bother.
-  let states = battler.states();
+  let states = battler.allStates();
   if (!states.length) return;
 
   // clean-up all the states that are somehow applied but not tracked.
@@ -5340,6 +5346,9 @@ JABS_Battler.prototype.shouldProcessState = function(state)
   // validate the state exists.
   if (!trackedState)
   {
+    // untracked states could be passive states the battler is owning.
+    if (battler.isPassiveState(state.id)) return true;
+
     // when loading a file that was saved with a state, we encounter a weird issue
     // where the state is still on the battler but not in temporary memory as a
     // JABS tracked state. In this case, we remove it.
@@ -5364,45 +5373,27 @@ JABS_Battler.prototype.stateSlipHp = function(state)
   // grab the battler we're working with.
   const battler = this.getBattler();
 
-  // default slip to zero.
+  // the running total of the hp-per-5 amount from states.
   let tagHp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipHpFlatPerFive: hpPerFiveFlat,
+    jabsSlipHpPercentPerFive: hpPerFivePercent,
+    jabsSlipHpFormulaPerFive: hpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagHp5 += state.jabsSlipHpFlatPerFive;
+  tagHp5 += hpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagHp5 += battler.mhp * (state.jabsSlipHpPercentPerFive / 100);
+  tagHp5 += battler.mhp * (hpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const hpPerFiveFormula = state.jabsSlipHpFormulaPerFive;
   if (hpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(hpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagHp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has an hp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${hpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagHp5 += this.calculateStateSlipFormula(hpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
@@ -5419,45 +5410,27 @@ JABS_Battler.prototype.stateSlipMp = function(state)
   // grab the battler we're working with.
   const battler = this.getBattler();
 
-  // default slip to zero.
+  // the running total of the mp-per-5 amount from states.
   let tagMp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipMpFlatPerFive: mpPerFiveFlat,
+    jabsSlipMpPercentPerFive: mpPerFivePercent,
+    jabsSlipMpFormulaPerFive: mpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagMp5 += state.jabsSlipMpFlatPerFive;
+  tagMp5 += mpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagMp5 += battler.mmp * (state.jabsSlipMpPercentPerFive / 100);
+  tagMp5 += battler.mmp * (mpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const mpPerFiveFormula = state.jabsSlipMpFormulaPerFive;
   if (mpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(mpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagMp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has an mp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${mpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagMp5 += this.calculateStateSlipFormula(mpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
@@ -5465,9 +5438,9 @@ JABS_Battler.prototype.stateSlipMp = function(state)
 };
 
 /**
- * Processes a single state and returns its tag-based mp regen value.
+ * Processes a single state and returns its tag-based tp regen value.
  * @param {RPG_State} state The state to process.
- * @returns {number} The mp regen from this state.
+ * @returns {number} The tp regen from this state.
  */
 JABS_Battler.prototype.stateSlipTp = function(state)
 {
@@ -5477,46 +5450,136 @@ JABS_Battler.prototype.stateSlipTp = function(state)
   // default slip to zero.
   let tagTp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipTpFlatPerFive: tpPerFiveFlat,
+    jabsSlipTpPercentPerFive: tpPerFivePercent,
+    jabsSlipTpFormulaPerFive: tpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagTp5 += state.jabsSlipTpFlatPerFive;
+  tagTp5 += tpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagTp5 += battler.maxTp() * (state.jabsSlipTpPercentPerFive / 100);
+  tagTp5 += battler.maxTp() * (tpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const tpPerFiveFormula = state.jabsSlipTpFormulaPerFive;
   if (tpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(tpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagTp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has a tp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${tpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagTp5 += this.calculateStateSlipFormula(tpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
   return tagTp5;
+};
+
+/**
+ * Calculates the value of a slip-based formula.
+ * This is where the source and afflicted are determined before {@link eval}uating the
+ * formula with the necessary context to evaluate a formula.
+ * @param {string} formula The string containing the formula to parse.
+ * @param {Game_Battler} battler The battler that is afflicted with the slip effect.
+ * @param {RPG_State} state The state representing this slip effect.
+ * @returns {number} The result of the formula representing the slip effect value.
+ */
+JABS_Battler.prototype.calculateStateSlipFormula = function(formula, battler, state)
+{
+  // pull the state associated with the battler.
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
+
+  // initialize the source and afflicted with oneself.
+  let sourceBattler = battler;
+  let afflictedBattler = battler;
+
+  // check if the trackedState was present.
+  if (trackedState)
+  {
+    // update the source and afflicted with the tracked data instead.
+    sourceBattler = trackedState.source;
+    afflictedBattler = trackedState.battler;
+  }
+
+  // calculate the total for this slip formula.
+  const total = this.slipEval(formula, sourceBattler, afflictedBattler, state);
+
+  // return the result.
+  return total;
+};
+
+/**
+ * Performs an {@link eval} on the provided formula with the given parameters as scoped context
+ * to calculate a formula-based slip values. Also provides a weak safety net to ensure that no
+ * garbage values get returned, or raises exceptions if the formula is invalidly written.
+ * @param {string} formula The string containing the formula to parse.
+ * @param {Game_Battler} sourceBattler The battler that applied this state to the target.
+ * @param {Game_Battler} afflictedBattler The target battler afflicted with this state.
+ * @param {RPG_State} state The state associated with this slip effect.
+ * @returns {number} The output of the formula (multiplied by `-1`) to
+ */
+JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBattler, state)
+{
+  // variables for contextual eval().
+  /* eslint-disable no-unused-vars */
+  const a = sourceBattler;        // the one who applied the state.
+  const b = afflictedBattler;     // this battler, afflicted by the state.
+  const v = $gameVariables._data; // access to variables if you need it.
+  const s = state;                // access to the state itself if you need it.
+  /* eslint-enable no-unused-vars */
+
+  // initialize the result.
+  let result = 0;
+
+  // add a safety net for people who write broken formulas.
+  try
+  {
+    // eval() the formula and default to negative (because "slip" is negative).
+    result = eval(formula) * -1;
+
+    // check if the eval() produced garbage output despite not throwing.
+    if (!Number.isFinite(result))
+    {
+      // throw, and then catch to properly log in the next block.
+      throw new Error("Invalid formula.")
+    }
+  }
+  catch (err)
+  {
+    console.warn(`failed to eval() this formula: [ ${formula} ]`);
+    console.trace();
+    throw err;
+  }
+
+  // we prefer to work with integers for slip.
+  const formattedResult = Math.round(result);
+
+  // return the calculated result.
+  return formattedResult;
+};
+
+/**
+ * Applies the regeneration amount to the appropriate parameter.
+ * @param {number} amount The regen amount.
+ * @param {number} type The regen type- identified by index.
+ */
+JABS_Battler.prototype.applySlipEffect = function(amount, type)
+{
+  // grab the battler.
+  const battler = this.getBattler();
+
+  // pivot on the slip type.
+  switch (type)
+  {
+    case 0:
+      battler.gainHp(amount);
+      break;
+    case 1:
+      battler.gainMp(amount);
+      break;
+    case 2:
+      battler.gainTp(amount);
+      break;
+  }
 };
 
 /**
@@ -5568,29 +5631,7 @@ JABS_Battler.prototype.configureSlipPop = function(amount, type)
   // build and return the popup.
   return textPopBuilder.build();
 };
-
-/**
- * Applies the regeneration amount to the appropriate parameter.
- * @param {number} amount The regen amount.
- * @param {number} type The regen type- identified by index.
- */
-JABS_Battler.prototype.applySlipEffect = function(amount, type)
-{
-  const battler = this.getBattler();
-  switch (type)
-  {
-    case 0:
-      battler.gainHp(amount);
-      break;
-    case 1:
-      battler.gainMp(amount);
-      break;
-    case 2:
-      battler.gainTp(amount);
-      break;
-  }
-};
-//#endregion regeneration
+//endregion regeneration
 
 /**
  * Gets whether or not this battler's movement is locked.
@@ -5724,9 +5765,9 @@ JABS_Battler.prototype.setBaseSpriteIndex = function(index)
 {
   this._baseSpriteIndex = index;
 };
-//#endregion update helpers
+//endregion update helpers
 
-//#region reference helpers
+//region reference helpers
 /**
  * Reassigns the character to something else.
  * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
@@ -7039,9 +7080,9 @@ JABS_Battler.prototype.turnTowardTarget = function()
 
   character.turnTowardCharacter(target.getCharacter());
 };
-//#endregion reference helpers
+//endregion reference helpers
 
-//#region isReady & cooldowns
+//region isReady & cooldowns
 /**
  * Initializes a cooldown with the given key.
  * @param {string} cooldownKey The key of this cooldown.
@@ -7456,9 +7497,9 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
   // we can pay the cost!
   return true;
 };
-//#endregion isReady & cooldowns
+//endregion isReady & cooldowns
 
-//#region get data
+//region get data
 /**
  * Gets the skill id of the last skill that this battler executed.
  * @returns {number}
@@ -7699,9 +7740,9 @@ JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
 
   return bonusHits;
 };
-//#endregion get data
+//endregion get data
 
-//#region aggro
+//region aggro
 /**
  * Adjust the currently engaged target based on aggro.
  */
@@ -8044,9 +8085,9 @@ JABS_Battler.prototype.aggroExists = function(uuid)
   return this._aggros.find(aggro => aggro.uuid() === uuid);
 };
 
-//#endregion aggro
+//endregion aggro
 
-//#region create/apply effects
+//region create/apply effects
 /**
  * Performs a preliminary check to see if the target is actually able to be hit.
  * @returns {boolean} True if actions can potentially connect, false otherwise.
@@ -8642,9 +8683,9 @@ JABS_Battler.prototype.performPostdefeatEffects = function(victor)
     this.setDying(true);
   }
 };
-//#endregion apply effects
+//endregion apply effects
 
-//#region guarding
+//region guarding
 /**
  * Whether or not the precise-parry window is active.
  * @returns {boolean}
@@ -8955,9 +8996,9 @@ JABS_Battler.prototype.countdownParryWindow = function()
     this._parryWindow = 0;
   }
 };
-//#endregion guarding
+//endregion guarding
 
-//#region actionposes/animations
+//region actionposes/animations
 /**
  * Executes an action pose.
  * Will silently fail if the asset is missing.
@@ -9061,9 +9102,9 @@ JABS_Battler.prototype.resetAnimation = function()
     character.setImage(originalImage, originalIndex);
   }
 };
-//#endregion actionposes/animations
+//endregion actionposes/animations
 
-//#region utility helpers
+//region utility helpers
 /**
  * Forces a display of a emoji balloon above this battler's head.
  * @param {number} balloonId The id of the balloon to display on this character.
@@ -9090,10 +9131,10 @@ JABS_Battler.prototype.isShowingAnimation = function()
 {
   return this.getCharacter().isAnimationPlaying();
 };
-//#endregion utility helpers
-//#endregion JABS_Battler
+//endregion utility helpers
+//endregion JABS_Battler
 
-//#region JABS_BattlerCoreData
+//region JABS_BattlerCoreData
 /**
  * A class containing all the data extracted from the comments of an event's
  * comments and contained with friendly methods to access and manipulate.
@@ -9346,9 +9387,9 @@ JABS_BattlerCoreData.prototype.isInanimate = function()
 {
   return this._isInanimate;
 };
-//#endregion JABS_BattlerCoreData
+//endregion JABS_BattlerCoreData
 
-//#region JABS_Cooldown
+//region JABS_Cooldown
 /**
  * A class representing a skill or item's cooldown data.
  * @param {string} key The key of the cooldown.
@@ -9361,7 +9402,7 @@ function JABS_Cooldown(key)
 JABS_Cooldown.prototype = {};
 JABS_Cooldown.prototype.constructor = JABS_Cooldown;
 
-//#region initialize
+//region initialize
 /**
  * Initializes this cooldown.
  * @param {string} key The key for this cooldown.
@@ -9437,7 +9478,7 @@ JABS_Cooldown.prototype.clearData = function()
   this.locked = false;
   this.mustComboClear = false;
 };
-//#endregion initialize
+//endregion initialize
 
 /**
  * Whether or not the combo data needs clearing.
@@ -9501,7 +9542,7 @@ JABS_Cooldown.prototype.updateCooldownData = function()
   this.updateComboCooldown();
 };
 
-//#region base cooldown
+//region base cooldown
 /**
  * Updates the base skill data for this cooldown.
  */
@@ -9605,9 +9646,9 @@ JABS_Cooldown.prototype.handleIfBaseUnready = function()
     this.ready = false;
   }
 };
-//#endregion base cooldown
+//endregion base cooldown
 
-//#region combo cooldown
+//region combo cooldown
 /**
  * Updates the combo data for this cooldown.
  */
@@ -9723,9 +9764,9 @@ JABS_Cooldown.prototype.isComboReady = function()
 {
   return this.comboReady;
 };
-//#endregion combo cooldown
+//endregion combo cooldown
 
-//#region locking
+//region locking
 /**
  * Gets whether or not this cooldown is locked.
  * @returns {boolean}
@@ -9750,16 +9791,16 @@ JABS_Cooldown.prototype.unlock = function()
 {
   this.locked = false;
 };
-//#endregion locking
-//#endregion JABS_Cooldown
+//endregion locking
+//endregion JABS_Cooldown
 
-//#region JABS_CoreDataBuilder
+//region JABS_CoreDataBuilder
 /**
  * A builder class for constructing `JABS_BattlerCoreData`.
  */
 class JABS_CoreDataBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The battler's id, such as the actor id or enemy id.
    * @type {number}
@@ -9857,7 +9898,7 @@ class JABS_CoreDataBuilder
    * @private
    */
   #isInanimate = J.ABS.Metadata.DefaultEnemyIsInanimate;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -9904,7 +9945,7 @@ class JABS_CoreDataBuilder
     return core;
   }
 
-  //#region setters
+  //region setters
   /**
    * Sets all properties based on this battler's own data except id.
    * @param {Game_Battler} battler
@@ -10109,11 +10150,11 @@ class JABS_CoreDataBuilder
     this.#isInanimate = isInanimate;
     return this;
   }
-  //#endregion setters
+  //endregion setters
 }
-//#endregion JABS_CoreDataBuilder
+//endregion JABS_CoreDataBuilder
 
-//#region JABS_EnemyAI
+//region JABS_EnemyAI
 /**
  * An object representing the structure of the `JABS_Battler` AI.
  */
@@ -10934,9 +10975,9 @@ class JABS_EnemyAI extends JABS_AI
     return skillsToUse;
   }
 }
-//#endregion JABS_EnemyAI
+//endregion JABS_EnemyAI
 
-//#region JABS_GuardData
+//region JABS_GuardData
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
  */
@@ -11024,9 +11065,9 @@ class JABS_GuardData
     return !!(this.counterGuardIds.length || this.counterParryIds.length);
   }
 }
-//#endregion JABS_GuardData
+//endregion JABS_GuardData
 
-//#region JABS_InputAdapter
+//region JABS_InputAdapter
 /**
  * This static class governs the instructions of what to do regarding input.
  * Inputs are received by the JABS_InputController.
@@ -11429,9 +11470,9 @@ class JABS_InputAdapter
     return true;
   }
 }
-//#endregion JABS_InputAdapter
+//endregion JABS_InputAdapter
 
-//#region JABS_LootDrop
+//region JABS_LootDrop
 /**
  * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
  */
@@ -11557,9 +11598,9 @@ class JABS_LootDrop
     return this._lootObject.jabsUseOnPickup ?? false;
   }
 }
-//#endregion JABS_LootDrop
+//endregion JABS_LootDrop
 
-//#region JABS_OnChanceEffect
+//region JABS_OnChanceEffect
 /**
  * A class defining the structure of an on-death skill, either for ally or enemy.
  */
@@ -11692,9 +11733,9 @@ class JABS_OnChanceEffect
     return success;
   }
 }
-//#endregion JABS_OnChanceEffect
+//endregion JABS_OnChanceEffect
 
-//#region JABS_SkillSlot
+//region JABS_SkillSlot
 /**
  * This class represents a single skill slot handled by the skill slot manager.
  */
@@ -11760,7 +11801,7 @@ JABS_SkillSlot.prototype.initMembers = function()
   this.initVisualRefreshes();
 };
 
-//#region refreshes
+//region refreshes
 /**
  * Initializes the various visual refreshes.
  */
@@ -11899,7 +11940,7 @@ JABS_SkillSlot.prototype.acknowledgeIconRefresh = function()
 {
   this.needsIconRefresh = false;
 };
-//#endregion refreshes
+//endregion refreshes
 
 /**
  * Gets the cooldown associated with this skill slot.
@@ -12238,9 +12279,9 @@ JABS_SkillSlot.prototype.canBeAutocleared = function()
 
   return !noAutoclearSlots.includes(this.key);
 };
-//#endregion JABS_SkillSlot
+//endregion JABS_SkillSlot
 
-//#region JABS_SkillSlotManager
+//region JABS_SkillSlotManager
 /**
  * A class responsible for managing the skill slots on an actor.
  */
@@ -12499,21 +12540,6 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
 };
 
 /**
- * Gets all skill slots that have a skill assigned.
- * @returns {JABS_SkillSlot[]}
- */
-JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
-{
-  // define the invalid skill slots that allies shouldn't use skills from.
-  const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
-
-  // return the filtered list of slots with skills that aren't invalid.
-  return this.getEquippedSlots()
-    // exclude the invalid skill slots.
-    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
-};
-
-/**
  * Gets a skill slot by its key.
  * @param {string} key The key to find the matching slot for.
  * @returns {JABS_SkillSlot}
@@ -12646,15 +12672,15 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function()
 {
   this.getAllSlots().forEach(slot => slot.unlock());
 };
-//#endregion JABS_SkillSlotManager
+//endregion JABS_SkillSlotManager
 
-//#region JABS_State
+//region JABS_State
 /**
  * A class for handling the state data in the context of JABS.
  */
 class JABS_State
 {
-  //#region properties
+  //region properties
   /**
    * The list of rulesets available for how to handle reapplication of a state.
    */
@@ -12732,7 +12758,7 @@ class JABS_State
    * @type {number}
    */
   stackCount = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -12940,9 +12966,9 @@ class JABS_State
     return (this.#recentlyAppliedCounter >= 0);
   }
 }
-//#endregion JABS_State
+//endregion JABS_State
 
-//#region JABS_Timer
+//region JABS_Timer
 /**
  * A reusable timer with some nifty functions.
  */
@@ -13220,10 +13246,10 @@ class JABS_Timer
     //console.log(`timer completed`, this);
   }
 }
-//#endregion JABS_Timer
+//endregion JABS_Timer
 
-//#region RPG_BaseBattler
-//#region bonusHits
+//region RPG_BaseBattler
+//region bonusHits
 /**
  * The number of additional bonus hits this battler adds to their basic attacks.
  * @type {number}
@@ -13253,12 +13279,12 @@ RPG_BaseBattler.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
-//#endregion RPG_BaseBattler
+//endregion bonusHits
+//endregion RPG_BaseBattler
 
 
-//#region RPG_Class
-//#region bonusHits
+//region RPG_Class
+//region bonusHits
 /**
  * The number of additional bonus hits this battler adds to their basic attacks.
  * @type {number}
@@ -13288,10 +13314,10 @@ RPG_Class.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
-//#endregion RPG_Class
+//endregion bonusHits
+//endregion RPG_Class
 
-//#region teamId
+//region teamId
 /**
  * The JABS team id for this battler.
  * This number is the id of the team that this battler will belong to.
@@ -13321,9 +13347,9 @@ RPG_BaseBattler.prototype.extractJabsTeamId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.TeamId, true);
 };
-//#endregion teamId
+//endregion teamId
 
-//#region prepare time
+//region prepare time
 /**
  * The JABS prepare time for this battler.
  * This number represents how many frames must pass before this battler can
@@ -13355,9 +13381,9 @@ RPG_BaseBattler.prototype.extractJabsPrepareTime = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.PrepareTime, true);
 };
-//#endregion prepare time
+//endregion prepare time
 
-//#region sight range
+//region sight range
 /**
  * The JABS sight range for this battler.
  * This number represents how many tiles this battler can see before
@@ -13389,9 +13415,9 @@ RPG_BaseBattler.prototype.extractJabsSightRange = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Sight, true);
 };
-//#endregion sight range
+//endregion sight range
 
-//#region pursuit range
+//region pursuit range
 /**
  * The JABS pursuit range for this battler.
  * This number represents how many tiles this battler can see after
@@ -13423,9 +13449,9 @@ RPG_BaseBattler.prototype.extractJabsPursuitRange = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
 };
-//#endregion pursuit range
+//endregion pursuit range
 
-//#region alert duration
+//region alert duration
 /**
  * The JABS alert duration for this battler.
  * This number represents how many frames this battler will remain alerted
@@ -13457,9 +13483,9 @@ RPG_BaseBattler.prototype.extractJabsAlertDuration = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
 };
-//#endregion alert duration
+//endregion alert duration
 
-//#region alerted sight boost
+//region alerted sight boost
 /**
  * The JABS alerted sight boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
@@ -13491,9 +13517,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedSightBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedSightBoost, true);
 };
-//#endregion alerted sight boost
+//endregion alerted sight boost
 
-//#region alerted pursuit boost
+//region alerted pursuit boost
 /**
  * The JABS alerted pursuit boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
@@ -13528,9 +13554,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedPursuitBoost, true);
 };
-//#endregion alerted pursuit boost
+//endregion alerted pursuit boost
 
-//#region ai
+//region ai
 /**
  * The compiled {@link JABS_EnemyAI}.
  * This defines how this battler's AI will be controlled.
@@ -13562,7 +13588,7 @@ RPG_BaseBattler.prototype.getJabsBattlerAi = function()
   return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
-//#region ai:careful
+//region ai:careful
 /**
  * The JABS AI trait of careful.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13593,9 +13619,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitCareful = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitCareful);
 };
-//#endregion ai:careful
+//endregion ai:careful
 
-//#region ai:executor
+//region ai:executor
 /**
  * The JABS AI trait of executor.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13626,9 +13652,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitExecutor = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitExecutor);
 };
-//#endregion ai:executor
+//endregion ai:executor
 
-//#region ai:reckless
+//region ai:reckless
 /**
  * The JABS AI trait of reckless.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13659,9 +13685,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitReckless = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitReckless);
 };
-//#endregion ai:reckless
+//endregion ai:reckless
 
-//#region ai:healer
+//region ai:healer
 /**
  * The JABS AI trait of healer.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13692,9 +13718,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitHealer = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitHealer);
 };
-//#endregion ai:healer
+//endregion ai:healer
 
-//#region ai:follower
+//region ai:follower
 /**
  * The JABS AI trait of follower.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13725,9 +13751,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitFollower = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitFollower);
 };
-//#endregion ai:follower
+//endregion ai:follower
 
-//#region ai:leader
+//region ai:leader
 /**
  * The JABS AI trait of leader.
  * This boolean decides whether or not this battler has this AI trait.
@@ -13758,12 +13784,12 @@ RPG_BaseBattler.prototype.extractJabsAiTraitLeader = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitLeader);
 };
-//#endregion ai:leader
+//endregion ai:leader
 
-//#endregion ai
+//endregion ai
 
-//#region config
-//#region config:canIdle
+//region config
+//region config:canIdle
 /**
  * The JABS config option for enabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
@@ -13794,9 +13820,9 @@ RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigCanIdle, true);
 };
-//#endregion config:canIdle
+//endregion config:canIdle
 
-//#region config:noIdle
+//region config:noIdle
 /**
  * The JABS config option for disabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
@@ -13827,9 +13853,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoIdle, true);
 };
-//#endregion config:canIdle
+//endregion config:canIdle
 
-//#region config:showHpBar
+//region config:showHpBar
 /**
  * The JABS config option for enabling showing the hp bar.
  * This boolean decides whether or not this battler will reveal its hp bar under its sprite.
@@ -13860,9 +13886,9 @@ RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowHpBar, true);
 };
-//#endregion config:showHpBar
+//endregion config:showHpBar
 
-//#region config:noHpBar
+//region config:noHpBar
 /**
  * The JABS config option for disabling showing the hp bar.
  * This boolean decides whether or not this battler will hide its hp bar under its sprite.
@@ -13893,9 +13919,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoHpBar, true);
 };
-//#endregion config:noHpBar
+//endregion config:noHpBar
 
-//#region config:showName
+//region config:showName
 /**
  * The JABS config option for enabling showing the battler's name.
  * This boolean decides whether or not this battler will reveal its name under its sprite.
@@ -13926,9 +13952,9 @@ RPG_BaseBattler.prototype.extractJabsConfigShowName = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowName, true);
 };
-//#endregion config:showName
+//endregion config:showName
 
-//#region config:noName
+//region config:noName
 /**
  * The JABS config option for disabling showing the battler's name.
  * This boolean decides whether or not this battler will hide its name under its sprite.
@@ -13959,9 +13985,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoName = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoName, true);
 };
-//#endregion config:noName
+//endregion config:noName
 
-//#region config:invincible
+//region config:invincible
 /**
  * The JABS config option for enabling invincibility on this battler.
  * This boolean decides whether or not actions can collide with this battler.
@@ -13992,9 +14018,9 @@ RPG_BaseBattler.prototype.extractJabsConfigInvincible = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInvincible, true);
 };
-//#endregion config:invincible
+//endregion config:invincible
 
-//#region config:notInvincible
+//region config:notInvincible
 /**
  * The JABS config option for disabling invincibility on this battler.
  * This boolean decides whether or not actions cannot collide with this battler.
@@ -14025,9 +14051,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNotInvincible = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInvincible, true);
 };
-//#endregion config:notInvincible
+//endregion config:notInvincible
 
-//#region config:inanimate
+//region config:inanimate
 /**
  * The JABS config option for enabling being inanimate for this battler.
  * This boolean decides whether or not to enable being inanimate
@@ -14058,9 +14084,9 @@ RPG_BaseBattler.prototype.extractJabsConfigInanimate = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInanimate, true);
 };
-//#endregion config:inanimate
+//endregion config:inanimate
 
-//#region config:notInanimate
+//region config:notInanimate
 /**
  * The JABS config option for disabling being inanimate for this battler.
  * This boolean decides whether or not to disable being inanimate.
@@ -14091,12 +14117,12 @@ RPG_BaseBattler.prototype.extractJabsConfigNotInanimate = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInanimate, true);
 };
-//#endregion config:notInanimate
+//endregion config:notInanimate
 
-//#endregion config
+//endregion config
 
-//#region RPG_EquipItem
-//#region skillId
+//region RPG_EquipItem
+//region skillId
 /**
  * The skill id associated with this equipment.
  * This is typically found on weapons and offhand armors.
@@ -14127,9 +14153,9 @@ RPG_EquipItem.prototype.extractJabsSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
 };
-//#endregion skillId
+//endregion skillId
 
-//#region offhand skillId
+//region offhand skillId
 /**
  * The offhand skill id override from this equip.
  * @type {number}
@@ -14158,11 +14184,11 @@ RPG_EquipItem.prototype.extractJabsOffhandSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
-//#endregion offhand skillId
+//endregion offhand skillId
 
 
 
-//#region useOnPickup
+//region useOnPickup
 /**
  * Normally defines whether or not an item will be automatically used
  * upon being picked up, however, equipment cannot be "used".
@@ -14175,9 +14201,9 @@ Object.defineProperty(RPG_EquipItem.prototype, "jabsUseOnPickup",
       return false;
     },
   });
-//#endregion useOnPickup
+//endregion useOnPickup
 
-//#region expiration
+//region expiration
 /**
  * The expiration time in frames for this equip drop.
  * @type {number|null}
@@ -14207,11 +14233,11 @@ RPG_EquipItem.prototype.extractJabsExpirationFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
-//#endregion expiration
-//#endregion RPG_EquipItem
+//endregion expiration
+//endregion RPG_EquipItem
 
-//#region RPG_Item
-//#region skillId
+//region RPG_Item
+//region skillId
 /**
  * The skill id associated with this item or tool.
  * @type {number|null}
@@ -14241,9 +14267,9 @@ RPG_Item.prototype.extractJabsSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
 };
-//#endregion skillId
+//endregion skillId
 
-//#region useOnPickup
+//region useOnPickup
 /**
  * Whether or not this item will be automatically executed upon being picked up.
  * @type {boolean|null}
@@ -14273,9 +14299,9 @@ RPG_Item.prototype.extractJabsUseOnPickup = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UseOnPickup, true);
 };
-//#endregion useOnPickup
+//endregion useOnPickup
 
-//#region expiration
+//region expiration
 /**
  * The expiration time in frames for this loot drop.
  * @type {number|null}
@@ -14305,11 +14331,11 @@ RPG_Item.prototype.extractJabsExpirationFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
-//#endregion expiration
-//#endregion RPG_Item
+//endregion expiration
+//endregion RPG_Item
 
-//#region RPG_Skill effects
-//#region range
+//region RPG_Skill effects
+//region range
 /**
  * The JABS range for this skill.
  * This range determines the number of tiles the skill can reach in the
@@ -14340,9 +14366,9 @@ RPG_Skill.prototype.extractJabsRadius = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Range, true);
 };
-//#endregion range
+//endregion range
 
-//#region proximity
+//region proximity
 /**
  * A new property for retrieving the JABS proximity from this skill.
  * @type {number}
@@ -14371,9 +14397,9 @@ RPG_Skill.prototype.extractJabsProximity = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Proximity, true);
 };
-//#endregion proximity
+//endregion proximity
 
-//#region actionId
+//region actionId
 /**
  * A new property for retrieving the JABS actionId from this skill.
  * @type {number}
@@ -14403,9 +14429,9 @@ RPG_Skill.prototype.extractJabsActionId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.ActionId, true);
 };
-//#endregion actionId
+//endregion actionId
 
-//#region duration
+//region duration
 /**
  * A new property for retrieving the JABS duration from this skill.
  * @type {number}
@@ -14435,9 +14461,9 @@ RPG_Skill.prototype.extractJabsDuration = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Duration, true);
 };
-//#endregion duration
+//endregion duration
 
-//#region shape
+//region shape
 /**
  * A new property for retrieving the JABS shape from this skill.
  * @type {string}
@@ -14467,9 +14493,9 @@ RPG_Skill.prototype.extractJabsShape = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.Shape, true);
 };
-//#endregion shape
+//endregion shape
 
-//#region knockback
+//region knockback
 /**
  * A new property for retrieving the JABS knockback from this skill.
  * @type {number}
@@ -14499,9 +14525,9 @@ RPG_Skill.prototype.extractJabsKnockback = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Knockback, true);
 };
-//#endregion knockback
+//endregion knockback
 
-//#region castAnimation
+//region castAnimation
 /**
  * A new property for retrieving the JABS castAnimation id from this skill.
  * @type {number}
@@ -14531,9 +14557,9 @@ RPG_Skill.prototype.extractJabsCastAnimation = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastAnimation, true);
 };
-//#endregion castAnimation
+//endregion castAnimation
 
-//#region castTime
+//region castTime
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -14563,43 +14589,9 @@ RPG_Skill.prototype.extractJabsCastTime = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastTime, true);
 };
-//#endregion castTime
+//endregion castTime
 
-//#region freeCombo
-/**
- * Whether or not this skill has the "free combo" trait on it.
- * Skills with "free combo" can continuously be executed regardless of
- * the actual timing factor for combos.
- * @type {boolean|null}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
-  {
-    get: function()
-    {
-      return this.getJabsFreeCombo();
-    },
-  });
-
-/**
- * Gets the JABS freeCombo this skill.
- * @returns {boolean|null}
- */
-RPG_Skill.prototype.getJabsFreeCombo = function()
-{
-  return this.extractJabsFreeCombo();
-};
-
-/**
- * Extracts the JABS freeCombo for this skill from its notes.
- * @returns {boolean|null}
- */
-RPG_Skill.prototype.extractJabsFreeCombo = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.FreeCombo, true);
-};
-//#endregion freeCombo
-
-//#region direct
+//region direct
 /**
  * A new property for retrieving the JABS direct from this skill.
  * @type {boolean}
@@ -14629,9 +14621,9 @@ RPG_Skill.prototype.extractJabsDirect = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Direct, true);
 };
-//#endregion direct
+//endregion direct
 
-//#region bonusAggro
+//region bonusAggro
 /**
  * A new property for retrieving the JABS bonusAggro from this skill.
  * @type {number}
@@ -14661,9 +14653,9 @@ RPG_Skill.prototype.extractJabsBonusAggro = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusAggro, true);
 };
-//#endregion bonusAggro
+//endregion bonusAggro
 
-//#region aggroMultiplier
+//region aggroMultiplier
 /**
  * A new property for retrieving the JABS aggroMultiplier from this skill.
  * @type {number}
@@ -14693,9 +14685,9 @@ RPG_Skill.prototype.extractJabsAggroMultiplier = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroMultiplier, true);
 };
-//#endregion aggroMultiplier
+//endregion aggroMultiplier
 
-//#region jabsGuardData
+//region jabsGuardData
 /**
  * The `JABS_GuardData` of this skill.
  * Will return null if there is no guard tag available on this
@@ -14723,9 +14715,9 @@ RPG_Skill.prototype.getJabsGuardData = function()
     this.jabsCounterParry,
     this.jabsParry)
 };
-//#endregion jabsGuardData
+//endregion jabsGuardData
 
-//#region guard
+//region guard
 /**
  * A new property for retrieving the JABS guard from this skill.
  * @type {[number, number]}
@@ -14783,9 +14775,9 @@ RPG_Skill.prototype.extractJabsGuard = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.Guard);
 };
-//#endregion guard
+//endregion guard
 
-//#region parry
+//region parry
 /**
  * The number of frames that the precise-parry window is available
  * when first guarding.
@@ -14816,9 +14808,9 @@ RPG_Skill.prototype.extractJabsParryFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Parry, true);
 };
-//#endregion parry
+//endregion parry
 
-//#region counterParry
+//region counterParry
 /**
  * When performing a precise-parry, this skill id will be automatically
  * executed in retaliation.
@@ -14849,9 +14841,9 @@ RPG_Skill.prototype.extractJabsCounterParry = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterParry);
 };
-//#endregion counterParry
+//endregion counterParry
 
-//#region counterGuard
+//region counterGuard
 /**
  * While guarding, this skill id will be automatically executed in retaliation.
  * @type {number[]}
@@ -14881,9 +14873,9 @@ RPG_Skill.prototype.extractJabsCounterGuard = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterGuard);
 };
-//#endregion counterGuard
+//endregion counterGuard
 
-//#region projectile
+//region projectile
 /**
  * A new property for retrieving the JABS projectile frames from this skill.
  * @type {number}
@@ -14913,9 +14905,9 @@ RPG_Skill.prototype.extractJabsProjectile = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Projectile, true);
 };
-//#endregion projectile
+//endregion projectile
 
-//#region uniqueCooldown
+//region uniqueCooldown
 /**
  * A new property for retrieving the JABS uniqueCooldown from this skill.
  * @type {boolean}
@@ -14945,9 +14937,9 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UniqueCooldown, true);
 };
-//#endregion uniqueCooldown
+//endregion uniqueCooldown
 
-//#region moveType
+//region moveType
 /**
  * The direction that this dodge skill will move.
  * @type {string}
@@ -14977,9 +14969,9 @@ RPG_Skill.prototype.extractJabsMoveType = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.MoveType, true);
 };
-//#endregion moveType
+//endregion moveType
 
-//#region invincibleDodge
+//region invincibleDodge
 /**
  * Whether or not the battler is invincible for the duration of this
  * skill's dodge movement.
@@ -15010,9 +15002,43 @@ RPG_Skill.prototype.extractJabsInvincibleDodge = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.InvincibleDodge, true);
 };
-//#endregion invincibleDodge
+//endregion invincibleDodge
 
-//#region comboAction
+//region freeCombo
+/**
+ * Whether or not this skill has the "free combo" trait on it.
+ * Skills with "free combo" can continuously be executed regardless of
+ * the actual timing factor for combos.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
+  {
+    get: function()
+    {
+      return this.getJabsFreeCombo();
+    },
+  });
+
+/**
+ * Gets the JABS freeCombo this skill.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getJabsFreeCombo = function()
+{
+  return this.extractJabsFreeCombo();
+};
+
+/**
+ * Extracts the JABS freeCombo for this skill from its notes.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.extractJabsFreeCombo = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.FreeCombo, true);
+};
+//endregion freeCombo
+
+//region comboAction
 /**
  * The JABS combo data for this skill.
  *
@@ -15134,9 +15160,79 @@ RPG_Skill.prototype.extractJabsComboAction = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.ComboAction);
 };
-//#endregion comboAction
+//endregion comboAction
 
-//#region piercing
+/**
+ * Gets the list of skill ids in order that this skill going forward can
+ * combo into. This will not include combo skills prior to this skill.
+ * @returns {number[]}
+ */
+RPG_Skill.prototype.getComboSkillIdList = function(battler)
+{
+  return this.recursivelyFindAllComboSkillIds(this.id, Array.empty, battler);
+};
+
+/**
+ * Recursively finds the complete combo of an equip starting at a particular
+ * skill id and building the collection of skill ids that this skill combos into.
+ * @param {number} skillId The id to recursively interpret the combo of.
+ * @param {number[]=} list The running list of combo skill ids; defaults to an empty list.
+ * @param {Game_Battler=} battler The battler perceiving these skills; defaults to null.
+ * @returns {number[]} The full combo of the starting skill id.
+ */
+RPG_Skill.prototype.recursivelyFindAllComboSkillIds = function(skillId, list = Array.empty, battler = null)
+{
+  // start our list from what was passed in.
+  const skillIdList = list;
+
+  // grab the database skill.
+  const skill = battler
+    ? battler.skill(skillId)
+    : $dataSkills.at(skillId);
+
+  // check if we should recurse this skill.
+  if (this.shouldRecurseForComboSkills(skill))
+  {
+    // grab the combo skill id.
+    const { jabsComboSkillId } = skill;
+
+    // add it to the list.
+    skillIdList.push(jabsComboSkillId);
+
+    // continue finding more skills with the new combo skill id as the target.
+    return this.recursivelyFindAllComboSkillIds(jabsComboSkillId, skillIdList, battler);
+  }
+  // that was the last combo skill to record.
+  else
+  {
+    // return the complete combo list.
+    return skillIdList;
+  }
+};
+
+/**
+ * Determines whether or not we need to recurse another time to continue
+ * finding combo skills.
+ * @param {RPG_Skill} skill The skill to determine if recursion is required for.
+ * @param {number} lastSkillId The last skill id in the combo.
+ * @returns {boolean} True if we should recurse another skill, false otherwise.
+ */
+RPG_Skill.prototype.shouldRecurseForComboSkills = function(skill, lastSkillId)
+{
+  // if there is no skill, then there is no recursion.
+  if (!skill) return false;
+
+  // if there is no combo, then there is no recursion.
+  if (!skill.jabsComboAction) return false;
+
+  // if the combo skill is the same as the last skill id, then don't infinitely recurse.
+  if (skill.jabsComboSkillId === lastSkillId) return false;
+
+  // we should recurse!
+  return true;
+};
+
+//region piercing
 /**
  * The JABS piercing data for this skill.
  *
@@ -15185,7 +15281,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay",
   });
 
 /**
- * Gets the JABS combo this skill.
+ * Gets the JABS percing data this skill.
  * @returns {[number, number]|null}
  */
 RPG_Skill.prototype.getJabsPiercingData = function()
@@ -15194,17 +15290,17 @@ RPG_Skill.prototype.getJabsPiercingData = function()
 };
 
 /**
- * Extracts the JABS combo for this skill from its notes.
+ * Extracts the data for this skill from its notes.
  * @returns {[number, number]|null}
  */
 RPG_Skill.prototype.extractJabsPiercingData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.PiercingData);
 };
-//#endregion piercing
+//endregion piercing
 
-//#region knockbackResist
-//#region RPG_BaseBattler
+//region knockbackResist
+//region RPG_BaseBattler
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -15234,9 +15330,9 @@ RPG_BaseBattler.prototype.extractJabsKnockbackResist = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
 };
-//#endregion RPG_BaseBattler
+//endregion RPG_BaseBattler
 
-//#region RPG_BaseItem
+//region RPG_BaseItem
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -15266,10 +15362,10 @@ RPG_BaseItem.prototype.extractJabsKnockbackResist = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
 };
-//#endregion RPG_BaseItem
-//#endregion knockbackResist
+//endregion RPG_BaseItem
+//endregion knockbackResist
 
-//#region poseSuffix
+//region poseSuffix
 /**
  * Gets the JABS pose suffix data for this skill.
  *
@@ -15339,9 +15435,9 @@ RPG_Skill.prototype.extractJabsPoseData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.PoseSuffix, true);
 };
-//#endregion poseSuffix
+//endregion poseSuffix
 
-//#region ignoreParry
+//region ignoreParry
 /**
  * The amount of parry rating ignored by this skill.
  * @type {number}
@@ -15370,10 +15466,10 @@ RPG_Skill.prototype.extractJabsIgnoreParry = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.IgnoreParry, true);
 };
-//#endregion ignoreParry
+//endregion ignoreParry
 
-//#region unparryable
-//#region RPG_Skill
+//region unparryable
+//region RPG_Skill
 /**
  * Whether or not this skill is completely unparryable by the target.
  * @type {boolean}
@@ -15403,10 +15499,10 @@ RPG_Skill.prototype.extractJabsUnparryable = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
 };
-//#endregion RPG_Skill
-//#endregion unparryable
+//endregion RPG_Skill
+//endregion unparryable
 
-//#region selfAnimation
+//region selfAnimation
 /**
  * The animation id to play on oneself when executing this skill.
  * @type {number}
@@ -15435,9 +15531,9 @@ RPG_Skill.prototype.extractJabsSelfAnimationId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SelfAnimationId, true);
 };
-//#endregion range
+//endregion range
 
-//#region delay
+//region delay
 /**
  * The JABS delay data for this skill.
  *
@@ -15502,11 +15598,11 @@ RPG_Skill.prototype.extractJabsDelayData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.DelayData);
 };
-//#endregion delay
-//#endregion RPG_Skill effects
+//endregion delay
+//endregion RPG_Skill effects
 
-//#region RPG_State effects
-//#region paralysis
+//region RPG_State effects
+//region paralysis
 /**
  * Whether or not this state is also a JABS paralysis state.
  * Paralysis is the same as being rooted & muted & disarmed simultaneously.
@@ -15537,9 +15633,9 @@ RPG_State.prototype.extractJabsParalyzed = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Paralyzed, true);
 };
-//#endregion paralysis
+//endregion paralysis
 
-//#region rooted
+//region rooted
 /**
  * Whether or not this state is also a JABS rooted state.
  * Rooted battlers are unable to move on the map.
@@ -15570,9 +15666,9 @@ RPG_State.prototype.extractJabsRooted = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Rooted, true);
 };
-//#endregion rooted
+//endregion rooted
 
-//#region muted
+//region muted
 /**
  * Whether or not this state is also a JABS muted state.
  * Muted battlers are unable to use their combat skills.
@@ -15603,9 +15699,9 @@ RPG_State.prototype.extractJabsMuted = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Muted, true);
 };
-//#endregion muted
+//endregion muted
 
-//#region disarmed
+//region disarmed
 /**
  * Whether or not this state is also a JABS disarmed state.
  * Disarmed battlers are unable to use their basic attacks.
@@ -15636,9 +15732,9 @@ RPG_State.prototype.extractJabsDisarmed = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Disarmed, true);
 };
-//#endregion disarmed
+//endregion disarmed
 
-//#region negative
+//region negative
 /**
  * Whether or not this state is considered "negative" for the purpose
  * of AI action decision-making. Ally AI set to Support or enemy AI set
@@ -15670,9 +15766,9 @@ RPG_State.prototype.extractJabsNegative = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Negative);
 };
-//#endregion disarmed
+//endregion disarmed
 
-//#region aggroInAmp
+//region aggroInAmp
 /**
  * Multiply incoming aggro by this amount.
  * @type {number|null}
@@ -15702,9 +15798,9 @@ RPG_State.prototype.extractJabsAggroInAmp = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroInAmp, true);
 };
-//#endregion aggroInAmp
+//endregion aggroInAmp
 
-//#region aggroOutAmp
+//region aggroOutAmp
 /**
  * Multiply outgoing aggro by this amount.
  * @type {number|null}
@@ -15734,9 +15830,9 @@ RPG_State.prototype.extractJabsAggroOutAmp = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroOutAmp, true);
 };
-//#endregion aggroOutAmp
+//endregion aggroOutAmp
 
-//#region aggroLock
+//region aggroLock
 /**
  * Whether or not this state locks aggro. Battlers with this state applied
  * can neither gain nor lose aggro for the duration of the state.
@@ -15767,9 +15863,9 @@ RPG_State.prototype.extractJabsAggroLock = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AggroLock, true);
 };
-//#endregion aggroLock
+//endregion aggroLock
 
-//#region offhand skillId
+//region offhand skillId
 /**
  * The offhand skill id override from this state.
  * @type {number}
@@ -15798,10 +15894,10 @@ RPG_State.prototype.extractJabsOffhandSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
-//#endregion offhand skillId
+//endregion offhand skillId
 
-//#region slipHp
-//#region flat
+//region slipHp
+//region flat
 /**
  * The flat slip hp amount- per 5 seconds.
  * @type {number}
@@ -15855,9 +15951,9 @@ RPG_State.prototype.extractJabsSlipHpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip hp amount- per 5 seconds.
  * @type {number}
@@ -15911,9 +16007,9 @@ RPG_State.prototype.extractJabsSlipHpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip hp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -15945,11 +16041,11 @@ RPG_State.prototype.extractJabsSlipHpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipHpFormula);
 };
-//#endregion formula
-//#endregion slipHp
+//endregion formula
+//endregion slipHp
 
-//#region slipMp
-//#region flat
+//region slipMp
+//region flat
 /**
  * The flat slip mp amount- per 5 seconds.
  * @type {number}
@@ -16003,9 +16099,9 @@ RPG_State.prototype.extractJabsSlipMpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip mp amount- per 5 seconds.
  * @type {number}
@@ -16059,9 +16155,9 @@ RPG_State.prototype.extractJabsSlipMpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip mp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -16093,11 +16189,11 @@ RPG_State.prototype.extractJabsSlipMpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipMpFormula);
 };
-//#endregion formula
-//#endregion slipMp
+//endregion formula
+//endregion slipMp
 
-//#region slipTp
-//#region flat
+//region slipTp
+//region flat
 /**
  * The flat slip tp amount- per 5 seconds.
  * @type {number}
@@ -16151,9 +16247,9 @@ RPG_State.prototype.extractJabsSlipTpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip tp amount- per 5 seconds.
  * @type {number}
@@ -16207,9 +16303,9 @@ RPG_State.prototype.extractJabsSlipTpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip tp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -16241,12 +16337,12 @@ RPG_State.prototype.extractJabsSlipTpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipTpFormula);
 };
-//#endregion formula
-//#endregion slipTp
-//#endregion RPG_State effects
+//endregion formula
+//endregion slipTp
+//endregion RPG_State effects
 
-//#region RPG_Traited
-//#region bonusHits
+//region RPG_Traited
+//region bonusHits
 /**
  * A new property for retrieving the JABS bonusHits from this traited item.
  * @type {number}
@@ -16276,12 +16372,12 @@ RPG_Traited.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
-//#endregion RPG_Traited
+//endregion bonusHits
+//endregion RPG_Traited
 
 
-//#region RPG_UsableItem
-//#region bonusHits
+//region RPG_UsableItem
+//region bonusHits
 /**
  * The number of additional bonus hits this skill or item adds to their basic attacks.
  * @type {number}
@@ -16311,9 +16407,9 @@ RPG_UsableItem.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
+//endregion bonusHits
 
-//#region cooldown
+//region cooldown
 /**
  * The JABS cooldown when using this skill or item.
  * @type {number}
@@ -16342,10 +16438,10 @@ RPG_UsableItem.prototype.extractJabsCooldown = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
 };
-//#endregion cooldown
-//#endregion RPG_UsableItem
+//endregion cooldown
+//endregion RPG_UsableItem
 
-//#region DataManager
+//region DataManager
 /**
  * The global reference for the `JABS_Engine` data object.
  * @type {JABS_Engine}
@@ -16452,11 +16548,11 @@ DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
 };
-//#endregion
+//endregion
 
 
 //TODO: move these to the input manager?
-//#region Input
+//region Input
 /**
  * The mappings of the gamepad descriptions to their buttons.
  */
@@ -16569,9 +16665,9 @@ Input.keyMapper = {
   51: J.ABS.Input.CombatSkill3,       // 3 = L1 + square
   52: J.ABS.Input.CombatSkill4,       // 4 = L1 + triangle
 };
-//#endregion Input
+//endregion Input
 
-//#region JABS_AiManager
+//region JABS_AiManager
 /**
  * This static class tracks and manages all {@link JABS_Battler}s on the map.
  */
@@ -16598,7 +16694,7 @@ class JABS_AiManager
     throw new Error("The JABS_AiManager is a static class.");
   }
 
-  //#region get battlers
+  //region get battlers
   /**
    * Gets all battlers as an array for iterative purposes.
    * @returns {JABS_Battler[]} The currently tracked battlers.
@@ -16908,9 +17004,9 @@ class JABS_AiManager
     // return the battlers sorted by distance from closest to farthest.
     return battlers.sort(comparing);
   }
-  //#endregion get battlers
+  //endregion get battlers
 
-  //#region manage battlers
+  //region manage battlers
   /**
    * Adds a battler to tracking.
    * @param {JABS_Battler} battler The battler to add to tracking.
@@ -17134,9 +17230,9 @@ class JABS_AiManager
     // convert it!
     return true;
   }
-  //#endregion manage battlers
+  //endregion manage battlers
 
-  //#region update loop
+  //region update loop
   /**
    * Handles updating all the logic of the JABS engine.
    */
@@ -17263,9 +17359,9 @@ class JABS_AiManager
       this.aiPhase0(battler);
     }
   }
-  //#endregion update loop
+  //endregion update loop
 
-  //#region Phase 0 - Idle Phase
+  //region Phase 0 - Idle Phase
   /**
    * The zero-th phase, when the battler is not engaged- it's idle action.
    * @param {JABS_Battler} battler The battler executing this phase of the AI.
@@ -17403,9 +17499,9 @@ class JABS_AiManager
     // to move or not to move?
     return shouldMove;
   }
-  //#endregion Phase 0 - Idle Phase
+  //endregion Phase 0 - Idle Phase
 
-  //#region Phase 1 - Pre-Action Movement Phase
+  //region Phase 1 - Pre-Action Movement Phase
   /**
    * Phase 1 for AI is the phase where the battler will count down its "prepare" timer.
    * While in this phase, the battler will make an effort to maintain a "safe" distance
@@ -17552,9 +17648,9 @@ class JABS_AiManager
         break;
     }
   }
-  //#endregion Phase 1 - Pre-Action Movement Phase
+  //endregion Phase 1 - Pre-Action Movement Phase
 
-  //#region Phase 2 - Execute Action Phase
+  //region Phase 2 - Execute Action Phase
   /**
    * Phase 2 for AI is the phase where the battler will decide and execute its action.
    * While in this phase, the battler will decide its action, and attempt to move
@@ -17566,7 +17662,6 @@ class JABS_AiManager
     // check if the distance is invalid or too great.
     if (this.shouldDisengageTarget(battler))
     {
-
       // just give up on this target.
       battler.disengageTarget();
 
@@ -17577,7 +17672,6 @@ class JABS_AiManager
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {
-
       // make a decision about what to do.
       this.decideAiPhase2Action(battler);
 
@@ -17588,7 +17682,6 @@ class JABS_AiManager
     // check if we need to reposition.
     if (this.needsRepositioning(battler))
     {
-
       // move into a better position based on the decided action.
       this.decideAiPhase2Movement(battler);
 
@@ -17625,20 +17718,20 @@ class JABS_AiManager
    */
   static needsRepositioning(battler)
   {
-    // check if the battler is currently busy with another action like moving or casting.
-    const isBusy = battler._event.isMoving() || battler.isCasting();
+    // if the battler is casting, then they can't do repositioning things.
+    if (battler.isCasting()) return false;
 
-    // check if the battler is able to move.
-    const isAble = battler.canBattlerMove();
+    // if we are already in position, then we don't need repositioning.
+    if (battler.isInPosition()) return false;
 
-    // check if the battler is already in-position.
-    const alreadyInPosition = battler.isInPosition()
+    // if the battler is moving, then they can't do repositioning things.
+    if (battler.getCharacter().isMoving()) return false;
 
-    // if the battler isn't busy, is able, and not already in position, then reposition!
-    if (!isBusy && !alreadyInPosition && isAble) return true;
+    // if we can't even move, we aren't able to reposition.
+    if (!battler.canBattlerMove()) return false;
 
-    // battler is fine where they are at.
-    return false;
+    // we need repositioning!
+    return true;
   }
 
   /**
@@ -17940,9 +18033,9 @@ class JABS_AiManager
       battler.smartMoveTowardTarget();
     }
   }
-  //#endregion Phase 2 - Execute Action Phase
+  //endregion Phase 2 - Execute Action Phase
 
-  //#region Phase 3 - Post-Action Cooldown Phase
+  //region Phase 3 - Post-Action Cooldown Phase
   /**
    * Phase 3 for AI is the phase where the battler is cooling down from its skill usage.
    * While in this phase, the battler will attempt to maintain a "safe" distance from
@@ -18021,11 +18114,11 @@ class JABS_AiManager
     this.decideAiMovement(battler);
   }
 
-  //#endregion Phase 3 - Post-Action Cooldown Phase
+  //endregion Phase 3 - Post-Action Cooldown Phase
 }
-//#endregion JABS_AiManager
+//endregion JABS_AiManager
 
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * This class is the engine that manages JABS and how `JABS_Action`s interact
  * with the `JABS_Battler`s on the map.
@@ -18046,7 +18139,7 @@ class JABS_Engine
     this.initialize();
   }
 
-  //#region properties
+  //region properties
   /**
    * Retrieves whether or not the ABS is currently enabled.
    * @returns {boolean} True if enabled, false otherwise.
@@ -18229,7 +18322,7 @@ class JABS_Engine
   {
     this._requestSpriteRefresh = request;
   }
-  //#endregion properties
+  //endregion properties
 
   /**
    * Creates all members available in this class.
@@ -18526,7 +18619,7 @@ class JABS_Engine
     return false;
   }
 
-  //#region update
+  //region update
   /**
    * Updates all the battlers on the current map.
    * Also, this includes managing player input and updating active `JABS_Action`s.
@@ -18579,7 +18672,7 @@ class JABS_Engine
     return players;
   }
 
-  //#region update player
+  //region update player
   /**
    * Updates this player's current state.
    */
@@ -18618,7 +18711,7 @@ class JABS_Engine
     return true;
   }
 
-  //#region state tracking
+  //region state tracking
   /**
    * Gets all ongoing states organized by the uuid of a battler being the key,
    * and a map of all states applied to the battler as the value.
@@ -18909,10 +19002,10 @@ class JABS_Engine
       jabsStates.forEach(jabsState => jabsState.update());
     });
   }
-  //#endregion state tracking
-  //#endregion update player
+  //endregion state tracking
+  //endregion update player
 
-  //#region update ai battlers
+  //region update ai battlers
   /**
    * Updates all battler's
    */
@@ -18983,9 +19076,9 @@ class JABS_Engine
     // target is defeated!
     return true;
   }
-  //#endregion update ai battlers
+  //endregion update ai battlers
 
-  //#region update input
+  //region update input
   /**
    * Handles the player input.
    */
@@ -19177,9 +19270,9 @@ class JABS_Engine
     // perform!
     return true;
   }
-  //#endregion update input
+  //endregion update input
 
-  //#region update actions
+  //region update actions
   /**
    * Updates all tracked actions currently on the battle map.
    */
@@ -19194,11 +19287,11 @@ class JABS_Engine
     // update each of the actions.
     actionEvents.forEach(action => action.update());
   }
-  //#endregion update actions
-  //#endregion update
+  //endregion update actions
+  //endregion update
 
-  //#region functional
-  //#region action execution
+  //region functional
+  //region action execution
   /**
    * Generates a new `JABS_Action` based on a skillId, and executes the skill.
    * This overrides the need for costs or cooldowns, and is intended to be
@@ -20808,9 +20901,9 @@ class JABS_Engine
     const elementalIcon = iconData.find(data => data.element === elementId);
     return elementalIcon ? elementalIcon.icon : 0;
   }
-  //#endregion action execution
+  //endregion action execution
 
-  //#region collision
+  //region collision
   /**
    * Checks this `JABS_Action` against all map battlers to determine collision.
    * If there is a collision, then a `Game_Action` is applied.
@@ -21241,10 +21334,10 @@ class JABS_Engine
     // return the result.
     return inRange;
   }
-  //#endregion collision
-  //#endregion functional
+  //endregion collision
+  //endregion functional
 
-  //#region defeated target aftermath
+  //region defeated target aftermath
   /**
    * Handles the defeat of a given `Game_Battler` on the map.
    * @param {JABS_Battler} target The `Game_Battler` that was defeated.
@@ -21784,11 +21877,11 @@ class JABS_Engine
       .build();
   }
 
-//#endregion defeated target aftermath
+//endregion defeated target aftermath
 }
-//#endregion JABS_Engine
+//endregion JABS_Engine
 
-//#region Game_Action
+//region Game_Action
 /**
  * OVERWRITE In the context of this `Game_Action`, for non-allies, it should
  * instead return the $dataEnemies data instead of the $gameTroop data because
@@ -22255,9 +22348,9 @@ Game_Action.prototype.calculateHitSuccess = function(target)
   // return our outcome.
   return success;
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_ActionResult
+//region Game_ActionResult
 /**
  * Extends {@link Game_ActionResult.initialize}.
  * Initializes additional members.
@@ -22302,9 +22395,9 @@ Game_ActionResult.prototype.isHit = function()
 {
   return this.used && !this.parried && !this.evaded;
 };
-//#endregion Game_ActionResult
+//endregion Game_ActionResult
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #initJabsMembers}.
  * Includes additional actor-specific members.
@@ -22375,7 +22468,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
   this.jabsRefresh();
 };
 
-//#region JABS basic attack skills
+//region JABS basic attack skills
 /**
  * Initializes the JABS equipped skills based on equipment.
  */
@@ -22386,6 +22479,9 @@ Game_Actor.prototype.initAbsSkills = function()
 
   // update them with data.
   this.refreshBasicAttackSkills();
+
+  // update the auto-equippable skills if applicable.
+  this.refreshAutoEquippedSkills();
 };
 
 /**
@@ -22565,9 +22661,9 @@ Game_Actor.prototype.removeInvalidSkills = function()
     }
   });
 };
-//#endregion JABS basic attack skills
+//endregion JABS basic attack skills
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Actors have fixed `uuid`s, and thus it can be calculated as-is.
  * @returns {string}
@@ -22916,9 +23012,9 @@ Game_Actor.prototype.switchLocked = function()
 
   return switchLocked;
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region ondeath management
+//region ondeath management
 /**
  * Gets whether or not this actor needs a death effect.
  * @returns {boolean}
@@ -22973,9 +23069,9 @@ Game_Actor.prototype.stopDying = function()
   // turn off the dying effect.
   jabsBattler.setDying(false);
 };
-//#endregion ondeath management
+//endregion ondeath management
 
-//#region JABS skill slot access
+//region JABS skill slot access
 /**
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
@@ -23025,42 +23121,34 @@ Game_Actor.prototype.getValidEquippedSkillSlots = function()
 };
 
 /**
- * Gets all skill slots that have skills assigned to them- excluding the tool slot.
- * @returns {JABS_SkillSlot[]}
- */
-Game_Actor.prototype.getValidSkillSlotsForAlly = function()
-{
-  return this.getSkillSlotManager().getEquippedAllySlots();
-};
-
-/**
  * Gets all skill slots that have skills that are upgradable.
  * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getUpgradableSkillSlots = function()
 {
-  return this
-    .getValidEquippedSkillSlots()
-    .filter(skillSlot =>
-    {
-      if (!skillSlot.canBeAutocleared())
-      {
-      // skip the main/off/tool slots.
-        return false;
-      }
+  // a filtering function for whether or not a skill slot is upgradable.
+  const filtering = skillSlot =>
+  {
+    // if the slot is not autoclearable, then it isn't upgradable.
+    if (!skillSlot.canBeAutocleared()) return false;
 
-      if (skillSlot.isLocked())
-      {
-      // skip locked slots.
-        return false;
-      }
+    // if the slot is locked, then it isn't upgradable.
+    if (skillSlot.isLocked()) return false;
 
-      return true;
-    });
+    // the slot is upgradable!
+    return true;
+  };
+
+  // determine the slots that are valid and upgradable.
+  const upgradableSkillSlots = this.getValidEquippedSkillSlots()
+    .filter(filtering, this);
+
+  // return our valid upgradable slots.
+  return upgradableSkillSlots;
 };
-//#endregion JABS skill slot access
+//endregion JABS skill slot access
 
-//#region leveling
+//region leveling
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
  */
@@ -23119,9 +23207,9 @@ Game_Actor.prototype.jabsLevelDown = function()
   // this is the leader so refresh the battler sprite!
   $jabsEngine.requestSpriteRefresh = true;
 };
-//#endregion leveling
+//endregion leveling
 
-//#region learning
+//region learning
 /**
  * A hook for performing actions when a battler learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
@@ -23149,6 +23237,16 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
   $jabsEngine.battlerSkillLearn(this.skill(skillId), this.getUuid());
 
   // upgrade the skill if permissable.
+  this.jabsProcessLearnedSkill(skillId);
+};
+
+/**
+ * Performs various JABS-related logic upon learning the given skill.
+ * @param {number} skillId The id of the skill being learnt.
+ */
+Game_Actor.prototype.jabsProcessLearnedSkill = function(skillId)
+{
+  // upgrade the skill if permissable.
   this.upgradeSkillIfUpgraded(skillId);
 
   // autoassign skills if necessary.
@@ -23169,7 +23267,10 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
 {
+  // grab all the upgradable skill slots.
   const upgradableSkillsSlots = this.getUpgradableSkillSlots();
+
+  //
   if (!upgradableSkillsSlots)
   {
     return;
@@ -23212,32 +23313,40 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
 };
 
 /**
- * If the actor has a tag/note somewhere for auto-assignment, then this will
- * attempt to automatically slot the learned skill into an otherwise empty
- * skill slot.
- *
- * This will only attempt to assign skills to one of the 8 secondary slots.
+ * Attempts to assign the given skillId into the first unassigned combat skill slot.
  *
  * If all slots are full, no action is taken.
- * @param {number} skillId The skill id to auto-assign to a slot.
+ * @param {number} skillId The skillId to auto-assign to a slot.
  */
 Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 {
   // if we are not auto-assigning, then do not.
   if (!this.autoAssignOnLevelup()) return;
 
+  // grab all the empty combat skill slots.
   const emptySlots = this.getEmptySecondarySkills();
-  if (!emptySlots.length)
-  {
-    return;
-  }
 
-  const slotKey = emptySlots[0].key;
-  this.setEquippedSkill(slotKey, skillId);
+  // if we have no additional empty slots, then do not auto-assign.
+  if (emptySlots.length === 0) return;
+
+  // extract the key of the empty slot to be assigned.
+  const { key } = emptySlots.at(0).key;
+
+  // assign the given skill to the slot.
+  this.setEquippedSkill(key, skillId);
 };
-//#endregion learning
 
-//#region JABS bonus hits
+/**
+ * Refreshes all auto-equippable skills available to this battler.
+ */
+Game_Actor.prototype.refreshAutoEquippedSkills = function()
+{
+  // iterate over each of the skills and auto-assign/equip them where applicable.
+  this.skills().forEach(this.jabsProcessLearnedSkill, this);
+};
+//endregion learning
+
+//region JABS bonus hits
 /**
  * Gets all collections of sources that will be scanned for bonus hits.
  *
@@ -23264,9 +23373,9 @@ Game_Actor.prototype.getBonusHitsSources = function()
     [this.currentClass()],
   ];
 };
-//#endregion JABS bonus hits
+//endregion JABS bonus hits
 
-//#region map effects
+//region map effects
 /**
  * Replaces the map damage with JABS' version of the map damage.
  */
@@ -23310,10 +23419,10 @@ Game_Actor.prototype.turnEndOnMap = function()
   // do normal turn-end things while JABS is disabled.
   J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
 };
-//#endregion map effects
-//#endregion Game_Actor
+//endregion map effects
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends {@link Game_Battler.initMembers}.
  * Includes JABS parameter initialization.
@@ -23366,7 +23475,7 @@ Game_Battler.prototype.initJabsMembers = function()
   this._j._abs._equippedSkills = new JABS_SkillSlotManager();
 };
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Gets the `uuid` of this battler.
  * The default uuid for battlers is their name and the uuid connected by a hyphen.
@@ -23591,9 +23700,9 @@ Game_Battler.prototype.isAggroLocked = function()
 {
   return this.states().some(state => state.jabsAggroLock ?? false);
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region JABS skill slot management
+//region JABS skill slot management
 /**
  * Gets the battler's skill slot manager directly.
  * @returns {JABS_SkillSlotManager}
@@ -23738,9 +23847,9 @@ Game_Battler.prototype.unlockAllSlots = function()
 {
   this.getSkillSlotManager().unlockAllSlots();
 };
-//#endregion JABS skill slot management
+//endregion JABS skill slot management
 
-//#region on-chance effects
+//region on-chance effects
 /**
  * Gets all retaliation skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
@@ -23794,9 +23903,9 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
   // return what was found.
   return onTargetKills;
 };
-//#endregion on-chance effects
+//endregion on-chance effects
 
-//#region JABS state management
+//region JABS state management
 /**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
@@ -23967,9 +24076,9 @@ Game_Battler.prototype.getStateDurationBoost = function(baseDuration)
   // return the total state duration boost.
   return formattedDurationBoost;
 };
-//#endregion JABS state management
+//endregion JABS state management
 
-//#region JABS bonus hits
+//region JABS bonus hits
 /**
  * Updates the bonus hit count for this actor based on equipment.
  *
@@ -24066,7 +24175,7 @@ Game_Battler.prototype.getBonusHitsFromSources = function(sources)
   // return the bonus hits from some traited sources.
   return bonusHits;
 };
-//#endregion JABS bonus hits
+//endregion JABS bonus hits
 
 /**
  * Checks all states to see if we have anything that grants parry ignore.
@@ -24092,9 +24201,9 @@ Game_Battler.prototype.ignoreAllParry = function()
 Game_Battler.prototype.regenerateAll = function()
 {
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Character
+//region Game_Character
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
@@ -24193,7 +24302,7 @@ Game_Character.prototype.initJabsLootMembers = function()
   this._j._abs._loot._data = null;
 };
 
-//#region JABS action
+//region JABS action
 /**
  * If the event has a `JABS_Action` associated with it, return that.
  * @returns {JABS_Action}
@@ -24291,9 +24400,9 @@ Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = 
 {
   this._j._abs._action.needsRemoving = removeSprite;
 };
-//#endregion JABS action
+//endregion JABS action
 
-//#region JABS battler
+//region JABS battler
 /**
  * Gets the `uuid` of this `JABS_Battler`.
  */
@@ -24351,9 +24460,9 @@ Game_Character.prototype.getJabsBattler = function()
   // return the tracked battler.
   return JABS_AiManager.getBattlerByUuid(uuid);
 };
-//#endregion JABS battler
+//endregion JABS battler
 
-//#region JABS loot
+//region JABS loot
 /**
  * Gets the loot data for this character/event.
  * @returns {JABS_LootDrop}
@@ -24414,7 +24523,7 @@ Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
 {
   this._j._abs._loot._needsRemoving = needsRemoving;
 };
-//#endregion JABS loot
+//endregion JABS loot
 
 /**
  * Execute an animation of a provided id upon this character.
@@ -24653,9 +24762,9 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
   }
 };
 /* eslint-enable */
-//#endregion Game_Character
+//endregion Game_Character
 
-//#region Game_CharacterBase
+//region Game_CharacterBase
 /**
  * Extends the {@link Game_CharacterBase.initMembers}.
  * Allows custom move speeds and dashing.
@@ -24795,9 +24904,9 @@ Game_CharacterBase.prototype.isDodging = function()
   // TODO: update to accommodate the designated player if applicable.
   return $jabsEngine.getPlayer1().isDodging();
 };
-//#endregion Game_CharacterBase
+//endregion Game_CharacterBase
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link Game_Enemy.setup}.
  * Includes JABS skill initialization.
@@ -24846,7 +24955,7 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.jabsRefresh();
 };
 
-//#region JABS basic attack skills
+//region JABS basic attack skills
 /**
  * Gets the enemy's basic attack skill id.
  * This is defined by the first "Attack Skill" trait on an enemy.
@@ -24862,9 +24971,9 @@ Game_Enemy.prototype.basicAttackSkillId = function()
   // if we didn't find one, return the default instead.
   return basicAttackSkillId ?? J.ABS.Metadata.DefaultEnemyAttackSkillId;
 };
-//#endregion JABS basic attack skills
+//endregion JABS basic attack skills
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.
@@ -25177,9 +25286,9 @@ Game_Enemy.prototype.isInanimate = function()
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyIsInanimate;
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region JABS bonus hits
+//region JABS bonus hits
 /**
  * Gets all collections of sources that will be scanned for bonus hits.
  *
@@ -25198,10 +25307,10 @@ Game_Enemy.prototype.getBonusHitsSources = function()
     [this.databaseData()],
   ];
 };
-//#endregion JABS bonus hits
-//#endregion Game_Enemy
+//endregion JABS bonus hits
+//endregion Game_Enemy
 
-//#region Game_Event
+//region Game_Event
 J.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
@@ -25530,7 +25639,7 @@ Game_Event.prototype.canParseEnemyComments = function()
   return true;
 };
 
-//#region overrides
+//region overrides
 /**
  * Parses out the enemy id from a list of event commands.
  * @returns {number} The found battler id, or 0 if not found.
@@ -25971,7 +26080,7 @@ Game_Event.prototype.getShowBattlerNameOverrides = function()
   // return the truth.
   return showBattlerName;
 };
-//#endregion overrides
+//endregion overrides
 
 /**
  * Binds the initial core battler data to the event.
@@ -26089,7 +26198,7 @@ Game_Event.prototype.existOnCaster = function()
   // exist ontop of the caster.
   this.locate(caster.getX(), caster.getY());
 };
-//#endregion Game_Event
+//endregion Game_Event
 
 /**
  * Whether or not this character is a follower.
@@ -26100,7 +26209,7 @@ Game_Follower.prototype.isFollower = function()
   return true;
 };
 
-//#region Game_Interpreter
+//region Game_Interpreter
 /**
  * Enables setting move routes of `Game_Character`s on the map with JABS.
  * @param {number} param The character/event id to get the data for.
@@ -26312,9 +26421,9 @@ Game_Interpreter.prototype.command352 = function()
     return J.ABS.Aliased.Game_Interpreter.command352.call(this);
   }
 };
-//#endregion Game_Interpreter
+//endregion Game_Interpreter
 
-//#region Game_Map
+//region Game_Map
 /**
  * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
  */
@@ -26788,9 +26897,9 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
 
   return false;
 };
-//#endregion Game_Map
+//endregion Game_Map
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends the initialize to include additional objects for JABS.
  */
@@ -26881,9 +26990,9 @@ Game_Party.prototype.swapLeaderWithFollower = function(newIndex)
   // update the player with the change in party member order.
   $gamePlayer.refresh();
 };
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_Player
+//region Game_Player
 /**
  * OVERWRITE Changes the button detection to look for a different button instead of SHIFT.
  */
@@ -27176,9 +27285,9 @@ Game_Player.prototype.removeLoot = function(lootEvent)
   lootEvent.setLootNeedsRemoving(true);
   $jabsEngine.requestClearLoot = true;
 };
-//#endregion Game_Player
+//endregion Game_Player
 
-//#region Game_Switches
+//region Game_Switches
 /**
  * Extends {@link #onChange}.
  * Also refreshes the JABS menu when a switch is toggled.
@@ -27192,9 +27301,9 @@ Game_Switches.prototype.onChange = function()
   // also refresh the JABS menu.
   $jabsEngine.requestJabsMenuRefresh = true;
 };
-//#endregion Game_Switches
+//endregion Game_Switches
 
-//#region Game_Unit
+//region Game_Unit
 /**
  * Overwrites {@link Game_Unit.inBattle}.
  * If JABS is enabled, combat is always active.
@@ -27208,9 +27317,9 @@ Game_Unit.prototype.inBattle = function()
     ? true
     : J.ABS.Aliased.Game_Unit.get('inBattle').call(this);
 }
-//#endregion Game_Unit
+//endregion Game_Unit
 
-//#region Scene_Load
+//region Scene_Load
 /**
  * Overwrites {@link Scene_Load.reloadMapIfUpdated}.
  * When loading, the map needs to be refreshed to load the enemies properly.
@@ -27232,9 +27341,9 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
     J.ABS.Aliased.Scene_Load.get('reloadMapIfUpdated').call(this);
   }
 };
-//#endregion Scene_Load
+//endregion Scene_Load
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
@@ -27492,7 +27601,7 @@ Scene_Map.prototype.hideAllJabsWindows = function()
   this._j._absMenu._equipDodgeWindow.hide();
 };
 
-//#region JABS Menu
+//region JABS Menu
 /**
  * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
@@ -27894,10 +28003,10 @@ Scene_Map.prototype.closeAbsMenu = function()
 {
   this._j._absMenu._mainWindow.closeMenu();
 };
-//#endregion JABS Menu
-//#endregion Scene_Map
+//endregion JABS Menu
+//endregion Scene_Map
 
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
@@ -27978,7 +28087,7 @@ Sprite_Character.prototype.initMembers = function()
   J.ABS.Aliased.Sprite_Character.get('initMembers').call(this);
 };
 
-//#region setup & reference
+//region setup & reference
 /**
  * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
@@ -28168,9 +28277,9 @@ Sprite_Character.prototype.setupMapSprite = function()
   // flag this character as finalized for the purpose of jabs battler-related updates.
   this.finalizeJabsBattlerSetup();
 };
-//#endregion setup & reference
+//endregion setup & reference
 
-//#region state overlay
+//region state overlay
 /**
  * Sets up this character's state overlay, to show things like poison or paralysis.
  */
@@ -28261,9 +28370,9 @@ Sprite_Character.prototype.hideStateOverlay = function()
 {
   this._j._stateOverlaySprite.hide();
 };
-//#endregion state overlay
+//endregion state overlay
 
-//#region gauges
+//region gauges
 /**
  * Sets up this character's hp gauge, to show the hp bar as-needed.
  */
@@ -28376,9 +28485,9 @@ Sprite_Character.prototype.hideHpGauge = function()
 {
   this._j._hpGauge.hide();
 };
-//#endregion gauges
+//endregion gauges
 
-//#region battler name
+//region battler name
 /**
  * Sets up this battler's name as a sprite below the character.
  */
@@ -28498,9 +28607,9 @@ Sprite_Character.prototype.hideBattlerName = function()
 {
   this._j._battlerName.hide();
 };
-//#endregion battler name
+//endregion battler name
 
-//#region loot
+//region loot
 /**
  * Handle loot setup for loot that hasn't been drawn yet.
  */
@@ -28796,10 +28905,10 @@ Sprite_Character.prototype.shouldSwingDown = function()
 {
   return this._j._loot._oy < -5;
 };
-//#endregion loot
-//#endregion Sprite_Character
+//endregion loot
+//endregion Sprite_Character
 
-//#region Sprite_Gauge
+//region Sprite_Gauge
 /**
  * Due to JABS' slip effects, we have fractional hp/mp/tp values.
  * This rounds up the values for the sprite gauge if they are a number.
@@ -28816,9 +28925,9 @@ Sprite_Gauge.prototype.currentValue = function()
   // return the rounded-up amount.
   return Math.ceil(base);
 };
-//#endregion Sprite_Gauge
+//endregion Sprite_Gauge
 
-//#region Spriteset_Map
+//region Spriteset_Map
 /**
  * Hooks into the `update` function to also update any active action sprites.
  */
@@ -29064,9 +29173,9 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
   $jabsEngine.requestSpriteRefresh = false;
 };
-//#endregion Spriteset_Map
+//endregion Spriteset_Map
 
-//#region Window_AbsMenu
+//region Window_AbsMenu
 /**
  * The window representing what is called and manages the player's assigned skill slots.
  */
@@ -29164,9 +29273,9 @@ class Window_AbsMenu extends Window_Command
     }
   }
 }
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu
 
-//#region Window_AbsMenuSelect
+//region Window_AbsMenuSelect
 /**
  * A window that is reused to draw all the subwindows of the JABS menu.
  */
@@ -29342,4 +29451,4 @@ class Window_AbsMenuSelect
     this.addCommand(name, "slot", true, dodgeSkill.key, iconIndex);
   }
 }
-//#endregion Window_AbsMenuSelect
+//endregion Window_AbsMenuSelect

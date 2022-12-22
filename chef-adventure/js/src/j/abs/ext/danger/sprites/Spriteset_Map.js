@@ -1,4 +1,4 @@
-//#region Spriteset_Map
+//region Spriteset_Map
 /**
  * Extends `refreshAllCharacterSprites()` to also refresh danger indicators.
  */
@@ -11,4 +11,4 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
   // perform original logic.
   J.DANGER.Aliased.Spriteset_Map.get('refreshAllCharacterSprites').call(this);
 };
-//#endregion Spriteset_Map
+//endregion Spriteset_Map

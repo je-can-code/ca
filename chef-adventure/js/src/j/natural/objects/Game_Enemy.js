@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link Game_Enemy.setup}.
  * Includes parameter buff initialization.
@@ -27,7 +27,7 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.refreshAllParameterBuffs();
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -47,9 +47,9 @@ Game_Enemy.prototype.getBaseMaxTp = function()
 {
   return J.NATURAL.Metadata.BaseTpMaxEnemies;
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b params
+//region b params
 /**
  * Extends `.paramBase()` to include any additional growth bonuses as part of the base.
  */
@@ -104,9 +104,9 @@ Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
   // return result.
   return paramBuff;
 };
-//#endregion b params
+//endregion b params
 
-//#region ex params
+//region ex params
 /**
  * Extends `.xparam()` to include any additional growth bonuses.
  */
@@ -161,9 +161,9 @@ Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, structures, ba
   // return result.
   return paramBuff;
 };
-//#endregion ex params
+//endregion ex params
 
-//#region sp params
+//region sp params
 /**
  * Extends `.sparam()` to include any additional growth bonuses.
  */
@@ -219,5 +219,5 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, ba
   // return result.
   return paramBuff;
 };
-//#endregion sp params
-//#endregion Game_Enemy
+//endregion sp params
+//endregion Game_Enemy

@@ -1,4 +1,4 @@
-//#region Game_Temp
+//region Game_Temp
 /**
  * Intializes all additional members of this class.
  */
@@ -262,4 +262,4 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   // return the compiled difficulty.
   return newDifficulty;
 };
-//#endregion Game_Temp
+//endregion Game_Temp

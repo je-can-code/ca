@@ -1,3 +1,4 @@
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -20,7 +21,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.0.0',
+  Version: '2.0.1',
 };
 
 /**
@@ -38,6 +39,10 @@ J.NATURAL.Aliased = {
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
+
+  Scene_Equip: new Map(),
+
+  Window_EquipItem: new Map(),
 };
 
 /**
@@ -191,4 +196,4 @@ J.NATURAL.RegExp = {
   MaxTechGrowthPlus: /mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechGrowthRate: /mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 };
-//#endregion Introduction
+//endregion Metadata

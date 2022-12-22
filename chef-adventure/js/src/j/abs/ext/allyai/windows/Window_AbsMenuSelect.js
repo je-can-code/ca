@@ -1,4 +1,4 @@
-//#region Window_AbsMenuSelect
+//region Window_AbsMenuSelect
 /**
  * Extends the initialization to include the actor id for ai management.
  */
@@ -135,4 +135,4 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
   // iterate over each mode and rebuild the commands.
   modes.forEach(forEacher, this);
 };
-//#endregion Window_AbsMenuSelect
+//endregion Window_AbsMenuSelect

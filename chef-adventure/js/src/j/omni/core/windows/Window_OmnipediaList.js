@@ -1,4 +1,4 @@
-//#region Window_OmnipediaList
+//region Window_OmnipediaList
 /**
  * A window displaying the list of pedias available.
  */
@@ -69,4 +69,4 @@ class Window_OmnipediaList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
-//#endregion Window_OmnipediaList
+//endregion Window_OmnipediaList

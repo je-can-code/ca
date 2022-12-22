@@ -1,4 +1,4 @@
-//#region Window_Base
+//region Window_Base
 /**
  * All alignments available for {@link Window_Base.prototype.drawText}.
  */
@@ -186,4 +186,4 @@ Window_Base.prototype.setFontSize = function(fontSize)
   // set the font size to the new size.
   this.contents.fontSize = normalizedFontSize;
 };
-//#endregion Window_Base
+//endregion Window_Base

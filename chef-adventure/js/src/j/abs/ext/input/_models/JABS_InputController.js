@@ -1,4 +1,4 @@
-//#region JABS_InputController
+//region JABS_InputController
 /**
  * The class that handles input in the context of JABS for a player.
  * A battler must be set in order for this to update.
@@ -71,7 +71,7 @@ class JABS_InputController
     return this.inputMapping.get(slot);
   }
 
-  //#region update
+  //region update
   /**
    * Updates the input loop for tracking JABS input.
    */
@@ -114,9 +114,9 @@ class JABS_InputController
     // update!
     return true;
   }
-  //#endregion update
+  //endregion update
 
-  //#region menu action
+  //region menu action
   /**
    * Monitors and takes action based on player input regarding the menu.
    * This is `Menu` on the gamepad by default.
@@ -154,9 +154,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performMenuAction();
   }
-  //#endregion menu action
+  //endregion menu action
 
-  //#region party cycle
+  //region party cycle
   /**
    * Monitors and takes action based on player input regarding party cycling.
    * This is `Select` on the gamepad by default.
@@ -194,9 +194,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performPartyCycling(false);
   }
-  //#endregion party cycle
+  //endregion party cycle
 
-  //#region mainhand
+  //region mainhand
   /**
    * Monitors and takes action based on player input regarding the mainhand action.
    * This is `A` on the gamepad by default.
@@ -240,9 +240,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performMainhandAction(this.battler);
   }
-  //#endregion mainhand
+  //endregion mainhand
 
-  //#region offhand
+  //region offhand
   /**
    * Monitors and takes action based on player input regarding the offhand action.
    * This is `B` on the gamepad by default.
@@ -286,9 +286,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performOffhandAction(this.battler);
   }
-  //#endregion offhand
+  //endregion offhand
 
-  //#region tool
+  //region tool
   /**
    * Monitors and takes action based on player input regarding the tool action.
    * This is `Y` on the gamepad by default.
@@ -332,9 +332,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performToolAction($jabsEngine.getPlayer1());
   }
-  //#endregion tool
+  //endregion tool
 
-  //#region dodge
+  //region dodge
   /**
    * Monitors and takes action based on player input regarding the dodge action.
    * This is `R2` on the gamepad by default.
@@ -372,9 +372,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performDodgeAction($jabsEngine.getPlayer1());
   }
-  //#endregion dodge
+  //endregion dodge
 
-  //#region combat actions
+  //region combat actions
   /**
    * Checks the inputs to ensure the combat action enabler is being held down.
    * (L1 default).
@@ -403,7 +403,7 @@ class JABS_InputController
       $jabsEngine.getPlayer1());
   }
 
-  //#region combat action 1
+  //region combat action 1
   /**
    * Monitors and takes action based on player input regarding combat action 1.
    * This is `L1+A` on the gamepad by default.
@@ -440,9 +440,9 @@ class JABS_InputController
     // A was never triggered while L1 was held down.
     return false;
   }
-  //#endregion combat action 1
+  //endregion combat action 1
 
-  //#region combat action 2
+  //region combat action 2
   /**
    * Monitors and takes action based on player input regarding combat action 2.
    * This is `L1+B` on the gamepad by default.
@@ -479,9 +479,9 @@ class JABS_InputController
     // B was never triggered while L1 was held down.
     return false;
   }
-  //#endregion combat action 2
+  //endregion combat action 2
 
-  //#region combat action 3
+  //region combat action 3
   /**
    * Monitors and takes action based on player input regarding combat action 3.
    * This is `L1+X` on the gamepad by default.
@@ -518,9 +518,9 @@ class JABS_InputController
     // X was never triggered while L1 was held down.
     return false;
   }
-  //#endregion combat action 3
+  //endregion combat action 3
 
-  //#region combat action 4
+  //region combat action 4
   /**
    * Monitors and takes action based on player input regarding combat action 4.
    * This is `L1+Y` on the gamepad by default.
@@ -557,10 +557,10 @@ class JABS_InputController
     // Y was never triggered while L1 was held down.
     return false;
   }
-  //#endregion combat action 4
-  //#endregion combat actions
+  //endregion combat action 4
+  //endregion combat actions
 
-  //#region strafe
+  //region strafe
   /**
    * Monitors and takes action based on player input regarding the strafe action.
    * This is `L2` on the gamepad by default.
@@ -612,9 +612,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performStrafe(false, this.battler);
   }
-  //#endregion strafe
+  //endregion strafe
 
-  //#region rotate
+  //region rotate
   /**
    * Monitors and takes action based on player input regarding the rotate action.
    * This is `L2` on the gamepad by default.
@@ -666,9 +666,9 @@ class JABS_InputController
   {
     JABS_InputAdapter.performRotate(false, $jabsEngine.getPlayer1());
   }
-  //#endregion strafe
+  //endregion strafe
 
-  //#region guard
+  //region guard
   /**
    * Monitors and takes action based on player input regarding the guard action.
    * This is `L2` on the gamepad by default.
@@ -720,6 +720,6 @@ class JABS_InputController
   {
     JABS_InputAdapter.performGuard(false, $jabsEngine.getPlayer1());
   }
-  //#endregion guard
+  //endregion guard
 }
-//#endregion JABS_InputController
+//endregion JABS_InputController

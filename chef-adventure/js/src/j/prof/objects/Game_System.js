@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Hooks in and initializes the SDP system.
  */

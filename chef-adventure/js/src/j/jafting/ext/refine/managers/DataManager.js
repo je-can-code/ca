@@ -1,5 +1,5 @@
-//#region DataManager
-//#region save/load data
+//region DataManager
+//region save/load data
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
@@ -42,5 +42,5 @@ DataManager.extractSaveContents = function(contents)
   $gameJAFTING.updateDataWeapons();
   $gameJAFTING.updateDataArmors();
 };
-//#endregion save/load data
-//#endregion DataManager
+//endregion save/load data
+//endregion DataManager

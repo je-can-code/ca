@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -14,7 +14,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The over-arching extensions collection for JABS.
@@ -136,4 +136,4 @@ J.ABS.EXT.TOOLS.GapClosePositions = {
    */
   Same: "same",
 };
-//#endregion Introduction
+//endregion Introduction

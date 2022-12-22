@@ -1,5 +1,5 @@
-//#region Window_Base
-//#region more database text codes
+//region Window_Base
+//region more database text codes
 /**
  * Extends {@link #convertEscapeCharacters}.
  * Adds handling for new text codes for various database objects.
@@ -263,9 +263,9 @@ Window_Base.prototype.translateEquipTypeTypeTextCode = function(text)
     return `\\I[${iconIndex}]\\C[${colorId}]${name}\\C[0]`;
   });
 };
-//#endregion more database text codes
+//endregion more database text codes
 
-//#region bold and italics
+//region bold and italics
 /**
  * Extends text analysis to check for our custom escape codes, too.
  */
@@ -381,5 +381,5 @@ Window_Base.prototype.boldenText = function(text)
 {
   return `\\*${text}\\*`;
 };
-//#endregion bold and italics
-//#endregion Window_Base
+//endregion bold and italics
+//endregion Window_Base

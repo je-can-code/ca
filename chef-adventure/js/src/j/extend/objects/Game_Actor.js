@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * OVERWRITE Gets the skill associated with the given skill id.
  * By abstracting this, we can modify the underlying skill before it reaches its destination.
@@ -9,4 +9,4 @@ Game_Actor.prototype.skill = function(skillId)
 {
   return OverlayManager.getExtendedSkill(this, skillId);
 };
-//#endregion Game_Actor
+//endregion Game_Actor

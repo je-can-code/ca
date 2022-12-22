@@ -1,4 +1,4 @@
-//#region JABS_AiManager
+//region JABS_AiManager
 /**
  * This static class tracks and manages all {@link JABS_Battler}s on the map.
  */
@@ -25,7 +25,7 @@ class JABS_AiManager
     throw new Error("The JABS_AiManager is a static class.");
   }
 
-  //#region get battlers
+  //region get battlers
   /**
    * Gets all battlers as an array for iterative purposes.
    * @returns {JABS_Battler[]} The currently tracked battlers.
@@ -335,9 +335,9 @@ class JABS_AiManager
     // return the battlers sorted by distance from closest to farthest.
     return battlers.sort(comparing);
   }
-  //#endregion get battlers
+  //endregion get battlers
 
-  //#region manage battlers
+  //region manage battlers
   /**
    * Adds a battler to tracking.
    * @param {JABS_Battler} battler The battler to add to tracking.
@@ -561,9 +561,9 @@ class JABS_AiManager
     // convert it!
     return true;
   }
-  //#endregion manage battlers
+  //endregion manage battlers
 
-  //#region update loop
+  //region update loop
   /**
    * Handles updating all the logic of the JABS engine.
    */
@@ -690,9 +690,9 @@ class JABS_AiManager
       this.aiPhase0(battler);
     }
   }
-  //#endregion update loop
+  //endregion update loop
 
-  //#region Phase 0 - Idle Phase
+  //region Phase 0 - Idle Phase
   /**
    * The zero-th phase, when the battler is not engaged- it's idle action.
    * @param {JABS_Battler} battler The battler executing this phase of the AI.
@@ -830,9 +830,9 @@ class JABS_AiManager
     // to move or not to move?
     return shouldMove;
   }
-  //#endregion Phase 0 - Idle Phase
+  //endregion Phase 0 - Idle Phase
 
-  //#region Phase 1 - Pre-Action Movement Phase
+  //region Phase 1 - Pre-Action Movement Phase
   /**
    * Phase 1 for AI is the phase where the battler will count down its "prepare" timer.
    * While in this phase, the battler will make an effort to maintain a "safe" distance
@@ -979,9 +979,9 @@ class JABS_AiManager
         break;
     }
   }
-  //#endregion Phase 1 - Pre-Action Movement Phase
+  //endregion Phase 1 - Pre-Action Movement Phase
 
-  //#region Phase 2 - Execute Action Phase
+  //region Phase 2 - Execute Action Phase
   /**
    * Phase 2 for AI is the phase where the battler will decide and execute its action.
    * While in this phase, the battler will decide its action, and attempt to move
@@ -993,7 +993,6 @@ class JABS_AiManager
     // check if the distance is invalid or too great.
     if (this.shouldDisengageTarget(battler))
     {
-
       // just give up on this target.
       battler.disengageTarget();
 
@@ -1004,7 +1003,6 @@ class JABS_AiManager
     // check if the battler has decided their action yet.
     if (this.needsActionDecision(battler))
     {
-
       // make a decision about what to do.
       this.decideAiPhase2Action(battler);
 
@@ -1015,7 +1013,6 @@ class JABS_AiManager
     // check if we need to reposition.
     if (this.needsRepositioning(battler))
     {
-
       // move into a better position based on the decided action.
       this.decideAiPhase2Movement(battler);
 
@@ -1052,20 +1049,20 @@ class JABS_AiManager
    */
   static needsRepositioning(battler)
   {
-    // check if the battler is currently busy with another action like moving or casting.
-    const isBusy = battler._event.isMoving() || battler.isCasting();
+    // if the battler is casting, then they can't do repositioning things.
+    if (battler.isCasting()) return false;
 
-    // check if the battler is able to move.
-    const isAble = battler.canBattlerMove();
+    // if we are already in position, then we don't need repositioning.
+    if (battler.isInPosition()) return false;
 
-    // check if the battler is already in-position.
-    const alreadyInPosition = battler.isInPosition()
+    // if the battler is moving, then they can't do repositioning things.
+    if (battler.getCharacter().isMoving()) return false;
 
-    // if the battler isn't busy, is able, and not already in position, then reposition!
-    if (!isBusy && !alreadyInPosition && isAble) return true;
+    // if we can't even move, we aren't able to reposition.
+    if (!battler.canBattlerMove()) return false;
 
-    // battler is fine where they are at.
-    return false;
+    // we need repositioning!
+    return true;
   }
 
   /**
@@ -1367,9 +1364,9 @@ class JABS_AiManager
       battler.smartMoveTowardTarget();
     }
   }
-  //#endregion Phase 2 - Execute Action Phase
+  //endregion Phase 2 - Execute Action Phase
 
-  //#region Phase 3 - Post-Action Cooldown Phase
+  //region Phase 3 - Post-Action Cooldown Phase
   /**
    * Phase 3 for AI is the phase where the battler is cooling down from its skill usage.
    * While in this phase, the battler will attempt to maintain a "safe" distance from
@@ -1448,6 +1445,6 @@ class JABS_AiManager
     this.decideAiMovement(battler);
   }
 
-  //#endregion Phase 3 - Post-Action Cooldown Phase
+  //endregion Phase 3 - Post-Action Cooldown Phase
 }
-//#endregion JABS_AiManager
+//endregion JABS_AiManager

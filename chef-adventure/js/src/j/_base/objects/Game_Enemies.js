@@ -1,4 +1,4 @@
-//#region Game_Enemies
+//region Game_Enemies
 /**
  * A class that acts as a lazy dictionary for {@link Game_Enemy} data.
  * Do not use the enemies from this class as actual battlers!
@@ -35,4 +35,4 @@ class Game_Enemies
     return enemy;
   }
 }
-//#endregion Game_Enemies
+//endregion Game_Enemies

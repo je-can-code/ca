@@ -1,4 +1,4 @@
-//#region Window_SDP_Points
+//region Window_SDP_Points
 /**
  * The SDP window containing the amount of SDP points a given actor has.
  */
@@ -95,4 +95,4 @@ class Window_SDP_Points
     this.refresh();
   }
 }
-//#endregion Window_SDP_Points
+//endregion Window_SDP_Points

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -84,7 +84,7 @@ J.UTILS.Helpers = {};
 J.UTILS.Helpers.depth = (o) =>
   Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTILS.Helpers.depth)) : 0;
 
-//#region Input
+//region Input
 /**
  * Extends the existing mapper to track additional inputs.
  */
@@ -96,7 +96,7 @@ Input.keyMapper =
     // F6, the volume toggle key.
     117: 'volumeToggle',
   };
-//#endregion Input
+//endregion Input
 
 /**
  * Extends {@link Game_Actor.onLearnNewSkill}.
@@ -217,7 +217,7 @@ Game_Temp.prototype.getAllArmorNames = function()
   return $dataArmors.map(mapping);
 };
 
-//#region Scene_Base
+//region Scene_Base
 /**
  * Extends the `.update()` to include a watcher for whether or not
  * the volume toggle button is pressed.
@@ -271,9 +271,9 @@ Scene_Base.prototype.toggleVolume = function()
     ConfigManager.seVolume = 0;
   }
 };
-//#endregion Scene_Base
+//endregion Scene_Base
 
-//#region Scene_Boot
+//region Scene_Boot
 /**
  * Extends `startNormalGame()` to accommodate plugin parameters.
  * If the "auto-newgame" parameter is true, then we skip straight into a new game,
@@ -295,7 +295,7 @@ Scene_Boot.prototype.startNormalGame = function()
     J.UTILS.Aliased.Scene_Boot.get('startNormalGame').call(this);
   }
 };
-//#endregion Scene_Boot
+//endregion Scene_Boot
 
 /**
  * OVERWRITES {@link Scene_Map.onMapTouch}.
@@ -387,11 +387,11 @@ Scene_Map.prototype.extractAndLogBattlerData = function(target, x, y)
   console.log(`[x:${x}, y:${y}]\n[uuid:${battler.getUuid()}]\n[name:${battler.getBattler().name()}]\n`, battler);
 };
 
-//#region TileMap
+//region TileMap
 /**
  * OVERWRITE Fuck those autoshadows.
  */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) 
 {
 };
-//#endregion TileMap
+//endregion TileMap

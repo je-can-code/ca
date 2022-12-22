@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -179,7 +179,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -190,7 +190,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -250,9 +250,9 @@ J.CRIT.RegExp = {
   CritDamageMultiplierGrowthPlus: /<cdmGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
   CritDamageMultiplierGrowthRate: /<cdmGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region IconManager
+//region IconManager
 /**
  * Extend `.longParam()` to first search for our critical damage icon indices.
  */
@@ -285,9 +285,9 @@ IconManager.critParam = function(paramId)
       return 977;    // cdr
   }
 };
-//#endregion IconManager
+//endregion IconManager
 
-//#region TextManager
+//region TextManager
 /**
  * Extends `.longParam()` to first search for our critical damage text ids.
  */
@@ -321,9 +321,9 @@ TextManager.critParam = function(paramId)
       return "Crit Block";
   }
 };
-//#endregion TextManager
+//endregion TextManager
 
-//#region Game_Action
+//region Game_Action
 /**
  * Extends the `initialize()` function to include initializing our new target tracker.
  * Note that the target tracker will remain null on this action until after our custom logic
@@ -446,9 +446,9 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
   // return the calculated amount of remaining critical damage after reductions.
   return modifiedCriticalDamage;
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 if (J.NATURAL)
 {
   /**
@@ -586,9 +586,9 @@ if (J.SDP)
     return val;
   };
 }
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends `.initNaturalGrowthParameters()` to include the new critical damage parameters as growth-ready.
  */
@@ -636,7 +636,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._cdrRate = 0;
 };
 
-//#region properties
+//region properties
 /**
  * Gets the permanent flat bonus for CDM.
  * @returns {number}
@@ -708,7 +708,7 @@ Game_Battler.prototype.modCdrRate = function(amount)
 {
   this._j._natural._cdrRate += amount;
 };
-//#endregion properties
+//endregion properties
 
 /**
  * Gets the base multiplier for this battler's critical hits.
@@ -991,9 +991,9 @@ Game_Battler.prototype.cdrNaturalGrowths = function()
   // calculate the result.
   return this.calculatePlusRate(baseCdr, growthPlus, growthRate);
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_BattlerBase
+//region Game_BattlerBase
 // add our new critical-related parameters to all battlers.
 Object.defineProperties(
   Game_BattlerBase.prototype,
@@ -1068,9 +1068,9 @@ Game_BattlerBase.prototype.criticalDamageReduction = function()
 {
   return 0.0;
 };
-//#endregion Game_BattlerBase
+//endregion Game_BattlerBase
 
-//#region Window_SDP_Details
+//region Window_SDP_Details
 /**
  * Extends `.translateParameter()` to understand how to build the crit damage parameters.
  */
@@ -1131,4 +1131,4 @@ Window_SDP_Details.prototype.getIsPercentParameterIds = function(paramId)
   // combine the original with our new ids.
   return original.concat(critParamPercentIds);
 };
-//#endregion Window_SDP_Details
+//endregion Window_SDP_Details

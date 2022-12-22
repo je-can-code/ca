@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends initialization to include the ally AI configurations.
  */
@@ -88,4 +88,4 @@ Game_Party.prototype.removeActor = function(actorId)
   // update all allies when removing an actor from the party.
   $gameMap.updateAllies();
 };
-//#endregion Game_Party
+//endregion Game_Party

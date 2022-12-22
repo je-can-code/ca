@@ -1,4 +1,4 @@
-//#region Game_Map
+//region Game_Map
 /**
  * Extends {@link Game_Map.parseBattlers}.
  * Also parses ally battlers as well as events.
@@ -76,4 +76,4 @@ Game_Map.prototype.removeBattlers = function(battlers)
   // remove them from tracking.
   JABS_AiManager.removeBattlers(battlers);
 };
-//#endregion Game_Map
+//endregion Game_Map

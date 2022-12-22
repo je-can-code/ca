@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -389,7 +389,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -408,7 +408,7 @@ var J = J || {};
     throw new Error(`Either missing J-HUD or has a lower version than the required: ${requiredHudVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -484,9 +484,9 @@ J.HUD.EXT_TARGET.RegExp = {
   HideTargetMP: /<hideTargetMpBar>/i,
   HideTargetTP: /<hideTargetTpBar>/i,
 };
-//#endregion introduction
+//endregion introduction
 
-//#region FramedTarget
+//region FramedTarget
 /**
  * The shape of a target for the target frame.
  */
@@ -524,11 +524,11 @@ class FramedTarget
 
   /**
    * Constructor.
-   * @param {string|String.empty} name The name of the target.
-   * @param {string|String.empty} text The additional text for the target.
-   * @param {number} icon The icon to place on this target.
-   * @param {Game_Enemy|null} battler The battler data of the target.
-   * @param {FramedTargetConfiguration|null} configuration The configuration of this target.
+   * @param {string} name The name of the target.
+   * @param {string=} text The additional text for the target; defaults to an empty string.
+   * @param {number=} icon The icon to place on this target; defaults to 0.
+   * @param {Game_Enemy=} battler The battler data of the target; defaults to null.
+   * @param {FramedTargetConfiguration=} configuration The configuration of this target; defaults to null.
    */
   constructor(name, text = String.empty, icon = 0, battler = null, configuration = null)
   {
@@ -539,9 +539,9 @@ class FramedTarget
     this.configuration = configuration;
   }
 }
-//#endregion FramedTarget
+//endregion FramedTarget
 
-//#region FramedTargetConfiguration
+//region FramedTargetConfiguration
 /**
  * A configuration object for whether to show/hide various target data points.
  */
@@ -599,9 +599,9 @@ class FramedTargetConfiguration
     this.showTp = showTp;
   }
 }
-//#endregion FramedTargetConfiguration
+//endregion FramedTargetConfiguration
 
-//#region JABS_Battler
+//region JABS_Battler
 J.HUD.EXT_TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 /**
  * Sets the last battler struck by this battler.
@@ -877,9 +877,9 @@ JABS_Battler.prototype.getTargetFrameIcon = function()
   // and return it.
   return targetFrameIcon;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler
 
-//#region ImageManager
+//region ImageManager
 /**
  * Generates a promise based on the resolution of the bitmap.<br/>
  * If the promise resolves successfully, it'll contain the bitmap.<br/>
@@ -892,9 +892,9 @@ ImageManager.loadHudBitmap = function(filename)
   // return the created promise.
   return this.loadBitmapPromise(filename, 'img/hud/');
 };
-//#endregion ImageManager
+//endregion ImageManager
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the extra text from this enemy for the target frame.
  * @returns {string}
@@ -1219,9 +1219,9 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   // return the truth.
   return showTargetText;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Event
+//region Game_Event
 /**
  * Gets the icon index of the target frame icon.
  * If none are present or valid, then the default will be 0 (no icon).
@@ -1480,9 +1480,9 @@ Game_Event.prototype.showTargetText = function()
   // return the truth.
   return showText;
 };
-//#endregion Game_Event
+//endregion Game_Event
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
@@ -1578,17 +1578,17 @@ Scene_Map.prototype.handleAssignTarget = function()
     $hudManager.acknowledgeAssignedTarget();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
 // TODO: move this to J-Base.
-//#region Sprite_FlowingGauge
+//region Sprite_FlowingGauge
 /**
  * A gauge that acts like a regular `Sprite_Gauge` that is instead based
  * on images and also "flows".
  */
 class Sprite_FlowingGauge extends Sprite
 {
-  //#region properties
+  //region properties
   static Types =
     {
       HP: "hp",
@@ -1665,7 +1665,7 @@ class Sprite_FlowingGauge extends Sprite
    * @type {boolean}
    */
   _isReady = false;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Initializes all properties of this class.
@@ -2299,9 +2299,9 @@ class Sprite_FlowingGauge extends Sprite
     return Math.floor(this._gaugeBitmap.height / 2);
   }
 }
-//#endregion Sprite_FlowingGauge
+//endregion Sprite_FlowingGauge
 
-//#region Window_TargetFrame
+//region Window_TargetFrame
 /**
  * A window that displays a target and their relevant information.
  */
@@ -2408,7 +2408,7 @@ class Window_TargetFrame extends Window_Base
     this.refreshCache();
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -2550,7 +2550,7 @@ class Window_TargetFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Sets the target that this window should be tracking.
@@ -3016,4 +3016,4 @@ class Window_TargetFrame extends Window_Base
     gauge.move(x, y);
   }
 }
-//#endregion Window_TargetFrame
+//endregion Window_TargetFrame

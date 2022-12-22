@@ -1,4 +1,4 @@
-//#region Game_Followers
+//region Game_Followers
 /**
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
@@ -78,4 +78,4 @@ Game_Followers.prototype.setDirectionFixAll = function(isFixed)
     follower.setDirection(isFixed);
   });
 };
-//#endregion Game_Followers
+//endregion Game_Followers

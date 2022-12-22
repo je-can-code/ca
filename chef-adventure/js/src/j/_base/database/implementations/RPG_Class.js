@@ -1,10 +1,10 @@
-//#region RPG_Class
+//region RPG_Class
 /**
  * A class representing a RPG-relevant class from the database.
  */
 class RPG_Class extends RPG_Base
 {
-  //#region properties
+  //region properties
   /**
    * The four data points that comprise the EXP curve for this class.
    * @type {[number, number, number, number]}
@@ -30,7 +30,7 @@ class RPG_Class extends RPG_Base
    * @type {RPG_Trait[]}
    */
   traits = [];
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -51,4 +51,4 @@ class RPG_Class extends RPG_Base
     .map(trait => new RPG_Trait(trait));
   }
 }
-//#endregion RPG_Class
+//endregion RPG_Class

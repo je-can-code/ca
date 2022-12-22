@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends the `update()` function to also monitor updates for the hud.
  */
@@ -26,4 +26,4 @@ Scene_Map.prototype.updateHudFrames = function()
  */
 Scene_Map.prototype.refreshHud = function()
 { };
-//#endregion Scene_Map
+//endregion Scene_Map

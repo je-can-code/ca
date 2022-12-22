@@ -57,7 +57,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
     this.initialize();
   }
 
-  //#region init
+  //region init
   /**
    * Initialize the window and all properties required by the scene.
    */
@@ -129,9 +129,9 @@ class Scene_Monsterpedia extends Scene_MenuBase
      */
     this._j._omni._monster._pediaHelp = null;
   }
-  //#endregion init
+  //endregion init
 
-  //#region create
+  //region create
   /**
    * Initialize all resources required for this scene.
    */
@@ -184,10 +184,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
     this.addChild(this._backgroundSprite);
     this.setBackgroundOpacity(192);
   }
-  //#endregion create
+  //endregion create
 
-  //#region windows
-  //#region list window
+  //region windows
+  //region list window
   /**
    * Creates the list of monsters the player has perceived.
    */
@@ -264,9 +264,9 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     this._j._omni._monster._pediaList = listWindow;
   }
-  //#endregion list window
+  //endregion list window
 
-  //#region detail window
+  //region detail window
   /**
    * Creates the detail of a single monster the player has perceived.
    */
@@ -369,10 +369,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
     window.close();
     window.hide();
   }
-  //#endregion detail window
-  //#endregion windows
+  //endregion detail window
+  //endregion windows
 
-  //#region actions
+  //region actions
   /**
    * Synchronize the detail window with the list window of the monsterpedia.
    */
@@ -414,5 +414,5 @@ class Scene_Monsterpedia extends Scene_MenuBase
     // revert to the previous scene.
     SceneManager.pop();
   }
-  //#endregion actions
+  //endregion actions
 }

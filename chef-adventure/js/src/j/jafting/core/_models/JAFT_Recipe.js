@@ -1,4 +1,4 @@
-//#region JAFT_Recipe
+//region JAFT_Recipe
 /**
  * The data that makes up what defines a crafting recipe for use with JAFTING.
  */
@@ -253,4 +253,4 @@ JAFTING_Recipe.prototype.getRecipeDescription = function()
 
   return description;
 };
-//#endregion JAFT_Recipe
+//endregion JAFT_Recipe

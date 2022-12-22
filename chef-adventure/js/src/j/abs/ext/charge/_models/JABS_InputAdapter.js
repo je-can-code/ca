@@ -1,5 +1,5 @@
-//#region JABS_InputAdapter
-//#region mainhand
+//region JABS_InputAdapter
+//region mainhand
 /**
  * Executes the charging of the mainhand slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -30,9 +30,9 @@ JABS_InputAdapter.canPerformMainhandActionCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion mainhand
+//endregion mainhand
 
-//#region offhand
+//region offhand
 /**
  * Executes the charging of the offhand slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -67,9 +67,9 @@ JABS_InputAdapter.canPerformOffhandActionCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion offhand
+//endregion offhand
 
-//#region combat skills
+//region combat skills
 /**
  * Executes the charging of the combat skill slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -101,5 +101,5 @@ JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion combat skills
-//#endregion JABS_InputAdapter
+//endregion combat skills
+//endregion JABS_InputAdapter

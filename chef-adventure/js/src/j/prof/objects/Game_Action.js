@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * Extends the .apply() to include consideration of prof.
  */
@@ -152,4 +152,4 @@ if (J.ABS)
     return true;
   };
 }
-//#endregion Game_Action
+//endregion Game_Action

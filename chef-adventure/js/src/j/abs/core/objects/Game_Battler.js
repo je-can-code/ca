@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends {@link Game_Battler.initMembers}.
  * Includes JABS parameter initialization.
@@ -51,7 +51,7 @@ Game_Battler.prototype.initJabsMembers = function()
   this._j._abs._equippedSkills = new JABS_SkillSlotManager();
 };
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Gets the `uuid` of this battler.
  * The default uuid for battlers is their name and the uuid connected by a hyphen.
@@ -276,9 +276,9 @@ Game_Battler.prototype.isAggroLocked = function()
 {
   return this.states().some(state => state.jabsAggroLock ?? false);
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region JABS skill slot management
+//region JABS skill slot management
 /**
  * Gets the battler's skill slot manager directly.
  * @returns {JABS_SkillSlotManager}
@@ -423,9 +423,9 @@ Game_Battler.prototype.unlockAllSlots = function()
 {
   this.getSkillSlotManager().unlockAllSlots();
 };
-//#endregion JABS skill slot management
+//endregion JABS skill slot management
 
-//#region on-chance effects
+//region on-chance effects
 /**
  * Gets all retaliation skills associated with this battler.
  * @returns {JABS_OnChanceEffect[]}
@@ -479,9 +479,9 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
   // return what was found.
   return onTargetKills;
 };
-//#endregion on-chance effects
+//endregion on-chance effects
 
-//#region JABS state management
+//region JABS state management
 /**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
@@ -652,9 +652,9 @@ Game_Battler.prototype.getStateDurationBoost = function(baseDuration)
   // return the total state duration boost.
   return formattedDurationBoost;
 };
-//#endregion JABS state management
+//endregion JABS state management
 
-//#region JABS bonus hits
+//region JABS bonus hits
 /**
  * Updates the bonus hit count for this actor based on equipment.
  *
@@ -751,7 +751,7 @@ Game_Battler.prototype.getBonusHitsFromSources = function(sources)
   // return the bonus hits from some traited sources.
   return bonusHits;
 };
-//#endregion JABS bonus hits
+//endregion JABS bonus hits
 
 /**
  * Checks all states to see if we have anything that grants parry ignore.
@@ -777,4 +777,4 @@ Game_Battler.prototype.ignoreAllParry = function()
 Game_Battler.prototype.regenerateAll = function()
 {
 };
-//#endregion Game_Battler
+//endregion Game_Battler

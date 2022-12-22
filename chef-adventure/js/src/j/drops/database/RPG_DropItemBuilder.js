@@ -3,7 +3,7 @@
  */
 class RPG_DropItemBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The current id mapping to the entry in the database for this drop.
    * @type {number}
@@ -22,7 +22,7 @@ class RPG_DropItemBuilder
    * @type {number}
    */
   #chance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Builds the {@link RPG_DropItem} with the current parameters in this builder.
@@ -59,7 +59,7 @@ class RPG_DropItemBuilder
     this.setChance(0);
   }
 
-  //#region builders
+  //region builders
   /**
    * Sets the id aka `dataId` of this {@link RPG_DropItem}.
    * @param {number} id The database id of the item.
@@ -134,5 +134,5 @@ class RPG_DropItemBuilder
     this.setChance(percentChance);
     return this.build();
   }
-  //#endregion builders
+  //endregion builders
 }

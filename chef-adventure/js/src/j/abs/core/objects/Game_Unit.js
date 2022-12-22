@@ -1,4 +1,4 @@
-//#region Game_Unit
+//region Game_Unit
 /**
  * Overwrites {@link Game_Unit.inBattle}.
  * If JABS is enabled, combat is always active.
@@ -12,4 +12,4 @@ Game_Unit.prototype.inBattle = function()
     ? true
     : J.ABS.Aliased.Game_Unit.get('inBattle').call(this);
 }
-//#endregion Game_Unit
+//endregion Game_Unit

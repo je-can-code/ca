@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Hooks in and initializes the SDP system.
  */
@@ -188,4 +188,4 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
     return 0;
   }
 };
-//#endregion Game_System
+//endregion Game_System

@@ -30,4 +30,4 @@ J.POPUPS.Aliased =
     Sprite_Character: new Map(),
     Sprite_Damage: new Map(),
   };
-//#endregion Introduction
+//endregion Introduction

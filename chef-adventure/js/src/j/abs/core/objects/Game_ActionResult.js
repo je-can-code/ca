@@ -1,4 +1,4 @@
-//#region Game_ActionResult
+//region Game_ActionResult
 /**
  * Extends {@link Game_ActionResult.initialize}.
  * Initializes additional members.
@@ -43,4 +43,4 @@ Game_ActionResult.prototype.isHit = function()
 {
   return this.used && !this.parried && !this.evaded;
 };
-//#endregion Game_ActionResult
+//endregion Game_ActionResult

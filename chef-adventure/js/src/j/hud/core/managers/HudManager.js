@@ -1,11 +1,11 @@
-//#region Hud_Manager
+//region Hud_Manager
 /**
  * A manager class for the hud.
  * Use this class to issue requests to show/hide the hud.
  */
 class Hud_Manager
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not the allies are currently being displayed in the hud.
    * @type {boolean}
@@ -86,7 +86,7 @@ class Hud_Manager
    * @private
    */
   #ready = false;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Sets up this hud based on info from the saved data if available.
@@ -338,7 +338,7 @@ class Hud_Manager
     this.#setRequestRefreshInputFrame(false);
   }
 
-  //#region private functions
+  //region private functions
   /**
    * Whether or not the hud manager is ready to get started.
    * @returns {boolean} True if it is ready, false otherwise.
@@ -547,6 +547,6 @@ class Hud_Manager
   {
     this.#requestHideHud = request;
   }
-  //#endregion private functions
+  //endregion private functions
 }
-//#endregion Hud_Manager
+//endregion Hud_Manager

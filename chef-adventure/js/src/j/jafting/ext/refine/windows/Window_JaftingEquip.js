@@ -1,4 +1,4 @@
-//#region Window_JaftingEquip
+//region Window_JaftingEquip
 /**
  * A window that shows a list of all equipment.
  */
@@ -251,4 +251,4 @@ class Window_JaftingEquip
     });
   }
 }
-//#endregion Window_JaftingEquip
+//endregion Window_JaftingEquip

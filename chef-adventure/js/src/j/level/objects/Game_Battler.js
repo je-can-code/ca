@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Generates the "level" property for all battlers, along with
  * a new function to calculate level retrieval.
@@ -104,4 +104,4 @@ Game_Battler.prototype.extractLevel = function(rpgData)
   // extract the level from the notes.
   return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.BattlerLevel);
 };
-//#endregion Game_Battler
+//endregion Game_Battler

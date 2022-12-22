@@ -1,4 +1,4 @@
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * This class is the engine that manages JABS and how `JABS_Action`s interact
  * with the `JABS_Battler`s on the map.
@@ -19,7 +19,7 @@ class JABS_Engine
     this.initialize();
   }
 
-  //#region properties
+  //region properties
   /**
    * Retrieves whether or not the ABS is currently enabled.
    * @returns {boolean} True if enabled, false otherwise.
@@ -202,7 +202,7 @@ class JABS_Engine
   {
     this._requestSpriteRefresh = request;
   }
-  //#endregion properties
+  //endregion properties
 
   /**
    * Creates all members available in this class.
@@ -499,7 +499,7 @@ class JABS_Engine
     return false;
   }
 
-  //#region update
+  //region update
   /**
    * Updates all the battlers on the current map.
    * Also, this includes managing player input and updating active `JABS_Action`s.
@@ -552,7 +552,7 @@ class JABS_Engine
     return players;
   }
 
-  //#region update player
+  //region update player
   /**
    * Updates this player's current state.
    */
@@ -591,7 +591,7 @@ class JABS_Engine
     return true;
   }
 
-  //#region state tracking
+  //region state tracking
   /**
    * Gets all ongoing states organized by the uuid of a battler being the key,
    * and a map of all states applied to the battler as the value.
@@ -882,10 +882,10 @@ class JABS_Engine
       jabsStates.forEach(jabsState => jabsState.update());
     });
   }
-  //#endregion state tracking
-  //#endregion update player
+  //endregion state tracking
+  //endregion update player
 
-  //#region update ai battlers
+  //region update ai battlers
   /**
    * Updates all battler's
    */
@@ -956,9 +956,9 @@ class JABS_Engine
     // target is defeated!
     return true;
   }
-  //#endregion update ai battlers
+  //endregion update ai battlers
 
-  //#region update input
+  //region update input
   /**
    * Handles the player input.
    */
@@ -1150,9 +1150,9 @@ class JABS_Engine
     // perform!
     return true;
   }
-  //#endregion update input
+  //endregion update input
 
-  //#region update actions
+  //region update actions
   /**
    * Updates all tracked actions currently on the battle map.
    */
@@ -1167,11 +1167,11 @@ class JABS_Engine
     // update each of the actions.
     actionEvents.forEach(action => action.update());
   }
-  //#endregion update actions
-  //#endregion update
+  //endregion update actions
+  //endregion update
 
-  //#region functional
-  //#region action execution
+  //region functional
+  //region action execution
   /**
    * Generates a new `JABS_Action` based on a skillId, and executes the skill.
    * This overrides the need for costs or cooldowns, and is intended to be
@@ -2781,9 +2781,9 @@ class JABS_Engine
     const elementalIcon = iconData.find(data => data.element === elementId);
     return elementalIcon ? elementalIcon.icon : 0;
   }
-  //#endregion action execution
+  //endregion action execution
 
-  //#region collision
+  //region collision
   /**
    * Checks this `JABS_Action` against all map battlers to determine collision.
    * If there is a collision, then a `Game_Action` is applied.
@@ -3214,10 +3214,10 @@ class JABS_Engine
     // return the result.
     return inRange;
   }
-  //#endregion collision
-  //#endregion functional
+  //endregion collision
+  //endregion functional
 
-  //#region defeated target aftermath
+  //region defeated target aftermath
   /**
    * Handles the defeat of a given `Game_Battler` on the map.
    * @param {JABS_Battler} target The `Game_Battler` that was defeated.
@@ -3757,6 +3757,6 @@ class JABS_Engine
       .build();
   }
 
-//#endregion defeated target aftermath
+//endregion defeated target aftermath
 }
-//#endregion JABS_Engine
+//endregion JABS_Engine

@@ -1,4 +1,4 @@
-//#region RPG_Base
+//region RPG_Base
 /**
  * A class representing the foundation of all database objects.
  * In addition to doing all the things that a database object normally does,
@@ -8,7 +8,7 @@
  */
 class RPG_Base
 {
-  //#region properties
+  //region properties
   /**
    * The original object that this data was built from.
    * @type {any}
@@ -43,9 +43,9 @@ class RPG_Base
    * @type {string}
    */
   note = String.empty;
-  //#endregion properties
+  //endregion properties
 
-  //#region base
+  //region base
   /**
    * Constructor.
    * Maps the base item's properties into this object.
@@ -132,9 +132,9 @@ class RPG_Base
   {
     return this._index();
   }
-  //#endregion base
+  //endregion base
 
-  //#region meta
+  //region meta
   /**
    * Gets the metadata of a given key from this entry as whatever value RMMZ stored it as.
    * Only returns null if there was no underlying data associated with the provided key.
@@ -323,9 +323,9 @@ class RPG_Base
     // it must just be a word or something.
     return str;
   }
-  //#endregion meta
+  //endregion meta
 
-  //#region note
+  //region note
   /**
    * Gets the note data of this baseitem split into an array by `\r\n`.
    * If this baseitem has no note data, it will return an empty array.
@@ -460,7 +460,7 @@ class RPG_Base
   /**
    * Gets all numbers matching the provided regex structure.
    *
-   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * This accepts a regex structure, assuming the capture group is a numeric value,
    * and concats all values together from each line in the notes that match the provided
    * regex structure.
    *
@@ -471,7 +471,7 @@ class RPG_Base
    * This can handle both integers and decimal numbers.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   * @returns {number[]|null} The concat'd array of all found numbers, or null if flagged.
    */
   getNumberArrayFromNotesByRegex(structure, nullIfEmpty = false)
   {
@@ -494,14 +494,14 @@ class RPG_Base
       // extract the captured formula.
       const [,result] = structure.exec(line);
 
-      // parse out the contents of the note.
+      // parse out the array of stringified numbers, and parse the strings.
       const parsed = JSON.parse(result).map(parseFloat);
 
-      // destructure the array and add its bits to the running total.
+      // destructure the array and add its bits to the running collection.
       val.push(...parsed);
     });
 
-    // return the
+    // return the concat'd array of all numbers found in the matching regex.
     return val;
   }
 
@@ -862,6 +862,6 @@ class RPG_Base
     // return the found value.
     return data;
   }
-  //#endregion note
+  //endregion note
 }
-//#endregion RPG_Base
+//endregion RPG_Base

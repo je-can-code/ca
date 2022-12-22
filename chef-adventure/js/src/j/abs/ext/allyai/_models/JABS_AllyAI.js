@@ -1,4 +1,4 @@
-//#region JABS_AllyAI
+//region JABS_AllyAI
 /**
  * A class representing the AI-decision-making functionality for allies.
  */
@@ -10,7 +10,7 @@ function JABS_AllyAI()
 JABS_AllyAI.prototype = Object.create(JABS_AI.prototype);
 JABS_AllyAI.prototype.constructor = JABS_AllyAI;
 
-//#region statics
+//region statics
 /**
  * The strict enumeration of what ai modes are available for ally ai.
  * @type {any}
@@ -74,9 +74,9 @@ JABS_AllyAI.getModes = () => Object
 JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI
   .getModes()
   .find(mode => mode.key === potentialMode);
-//#endregion statics
+//endregion statics
 
-//#region initialize
+//region initialize
 /**
  * Initializes this class.
  * @param {string} initialMode The mode to start out in.
@@ -98,9 +98,9 @@ JABS_AllyAI.prototype.initMembers = function()
    */
   this.memory = [];
 };
-//#endregion initialize
+//endregion initialize
 
-//#region mode
+//region mode
 /**
  * Gets the current mode this ally's AI is set to.
  * @returns {string}
@@ -124,9 +124,9 @@ JABS_AllyAI.prototype.changeMode = function(newMode)
 
   this.mode = newMode;
 };
-//#endregion mode
+//endregion mode
 
-//#region decide action
+//region decide action
 /**
  * Decides an action based on this battler's AI, the target, and the given available skills.
  * @param {JABS_Battler} user The battler of the AI deciding a skill.
@@ -160,7 +160,7 @@ JABS_AllyAI.prototype.decideAction = function(user, target ,availableSkills)
   }
 };
 
-//#region do-nothing
+//region do-nothing
 /**
  * Decides to do nothing and waits a short amount of time before doing anything else.
  * @returns {null}
@@ -173,9 +173,9 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
   // return nothing to indicate no action should be taken.
   return null;
 };
-//#endregion do-nothing
+//endregion do-nothing
 
-//#region basic-attack
+//region basic-attack
 /**
  * Decides a skill id based on the ai mode of "basic attack only".
  * @param {number[]} usableSkills The skill ids available to choose from.
@@ -224,9 +224,9 @@ JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
     return mainBasicAttackSkillId;
   }
 };
-//#endregion basic-attack
+//endregion basic-attack
 
-//#region variety
+//region variety
 /**
  * Decides a skill id based on the ai mode of "variety".
  * If no allies are in danger, then simply chooses a random skill.
@@ -294,9 +294,9 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
   // return the decided skill id.
   return chosenSkillId;
 };
-//#endregion variety
+//endregion variety
 
-//#region full-force
+//region full-force
 /**
  * Decides a skill id based on the ai mode of "full-force".
  * Always looks to choose the skill that will deal the most damage.
@@ -368,9 +368,9 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
   // return the chosen skill.
   return chosenSkillId;
 };
-//#endregion full-force
+//endregion full-force
 
-//#region support
+//region support
 /**
  * Decides a skill id based on this ally's current AI mode.
  * This mode prioritizes keeping allies alive.
@@ -419,7 +419,7 @@ JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
   return supportSkillId;
 };
 
-//#region support-cleansing
+//region support-cleansing
 /**
  * Decides on the best cleansing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -498,9 +498,9 @@ JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSk
 
   return bestSkillForStateCleansing;
 };
-//#endregion support-cleansing
+//endregion support-cleansing
 
-//#region support-healing
+//region support-healing
 /**
  * Decides on the best healing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -696,9 +696,9 @@ JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, heale
 
   return bestSkillId;
 };
-//#endregion support-healing
+//endregion support-healing
 
-//#region support-buffing
+//region support-buffing
 /**
  * Decides on the best buffing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -753,8 +753,8 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
 
   return bestSkillId;
 };
-//#endregion support-buffing
-//#endregion support
+//endregion support-buffing
+//endregion support
 
 /**
  * Overwrites {@link #aiComboChanceModifier}.
@@ -781,9 +781,9 @@ JABS_AllyAI.prototype.aiComboChanceModifier = function()
       return 0;
   }
 };
-//#endregion decide action
+//endregion decide action
 
-//#region battle memory
+//region battle memory
 /**
  * Handles a new memory for this battler's ally ai.
  * @param {JABS_BattleMemory} newMemory The new memory to handle.
@@ -854,5 +854,5 @@ JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills)
   // return the filtered list of skills.
   return usableSkills.filter(filtering);
 };
-//#endregion battle memory
-//#endregion JABS_AllyAI
+//endregion battle memory
+//endregion JABS_AllyAI

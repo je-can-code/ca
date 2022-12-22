@@ -1,4 +1,4 @@
-//#region Game_Event
+//region Game_Event
 J.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
@@ -327,7 +327,7 @@ Game_Event.prototype.canParseEnemyComments = function()
   return true;
 };
 
-//#region overrides
+//region overrides
 /**
  * Parses out the enemy id from a list of event commands.
  * @returns {number} The found battler id, or 0 if not found.
@@ -768,7 +768,7 @@ Game_Event.prototype.getShowBattlerNameOverrides = function()
   // return the truth.
   return showBattlerName;
 };
-//#endregion overrides
+//endregion overrides
 
 /**
  * Binds the initial core battler data to the event.
@@ -886,4 +886,4 @@ Game_Event.prototype.existOnCaster = function()
   // exist ontop of the caster.
   this.locate(caster.getX(), caster.getY());
 };
-//#endregion Game_Event
+//endregion Game_Event

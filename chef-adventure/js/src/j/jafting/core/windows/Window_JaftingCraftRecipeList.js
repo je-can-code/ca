@@ -1,4 +1,4 @@
-//#region Window_JaftingCraftRecipeList
+//region Window_JaftingCraftRecipeList
 /**
  * A simple window that shows a list of recipes available based on unlocked ingredients.
  */
@@ -114,4 +114,4 @@ class Window_JaftingCraftRecipeList
     });
   }
 }
-//#endregion Window_JaftingCraftRecipeList
+//endregion Window_JaftingCraftRecipeList

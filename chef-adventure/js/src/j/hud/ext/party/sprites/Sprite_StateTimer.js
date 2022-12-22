@@ -1,4 +1,4 @@
-//#region Sprite_StateTimer
+//region Sprite_StateTimer
 /**
  * A sprite that displays some the remaining duration for a state in seconds with one decimal point.
  */
@@ -90,4 +90,4 @@ Sprite_StateTimer.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 };
-//#endregion Sprite_StateTimer
+//endregion Sprite_StateTimer

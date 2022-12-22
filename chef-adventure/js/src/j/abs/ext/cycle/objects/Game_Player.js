@@ -1,4 +1,4 @@
-//#region Game_Player
+//region Game_Player
 /**
  * If we're using cyclone movement, adjust their triggering of events to not interact
  * with battlers and such if they are also events that have event commands.
@@ -51,4 +51,4 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers)
     this.startMapEvent(x3, y3, triggers, true);
   }
 }
-//#endregion Game_Player
+//endregion Game_Player

@@ -1,4 +1,4 @@
-//#region Map_Log
+//region Map_Log
 /**
  * A model representing a single log in the log window.
  */
@@ -39,4 +39,4 @@ class Map_Log
     return this.#message;
   }
 }
-//#endregion Map_Log
+//endregion Map_Log

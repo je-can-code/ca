@@ -1,4 +1,4 @@
-//#region Scene_Base
+//region Scene_Base
 /**
  * Extends the `.update()` to include a watcher for whether or not
  * the volume toggle button is pressed.
@@ -52,4 +52,4 @@ Scene_Base.prototype.toggleVolume = function()
     ConfigManager.seVolume = 0;
   }
 };
-//#endregion Scene_Base
+//endregion Scene_Base

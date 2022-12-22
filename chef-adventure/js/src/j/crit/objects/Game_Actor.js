@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 if (J.NATURAL)
 {
   /**
@@ -136,4 +136,4 @@ if (J.SDP)
     return val;
   };
 }
-//#endregion Game_Actor
+//endregion Game_Actor

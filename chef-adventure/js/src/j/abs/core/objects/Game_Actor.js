@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #initJabsMembers}.
  * Includes additional actor-specific members.
@@ -69,7 +69,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
   this.jabsRefresh();
 };
 
-//#region JABS basic attack skills
+//region JABS basic attack skills
 /**
  * Initializes the JABS equipped skills based on equipment.
  */
@@ -80,6 +80,9 @@ Game_Actor.prototype.initAbsSkills = function()
 
   // update them with data.
   this.refreshBasicAttackSkills();
+
+  // update the auto-equippable skills if applicable.
+  this.refreshAutoEquippedSkills();
 };
 
 /**
@@ -259,9 +262,9 @@ Game_Actor.prototype.removeInvalidSkills = function()
     }
   });
 };
-//#endregion JABS basic attack skills
+//endregion JABS basic attack skills
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Actors have fixed `uuid`s, and thus it can be calculated as-is.
  * @returns {string}
@@ -610,9 +613,9 @@ Game_Actor.prototype.switchLocked = function()
 
   return switchLocked;
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region ondeath management
+//region ondeath management
 /**
  * Gets whether or not this actor needs a death effect.
  * @returns {boolean}
@@ -667,9 +670,9 @@ Game_Actor.prototype.stopDying = function()
   // turn off the dying effect.
   jabsBattler.setDying(false);
 };
-//#endregion ondeath management
+//endregion ondeath management
 
-//#region JABS skill slot access
+//region JABS skill slot access
 /**
  * Gets all skill slots identified as "primary".
  * @returns {JABS_SkillSlot[]}
@@ -719,42 +722,34 @@ Game_Actor.prototype.getValidEquippedSkillSlots = function()
 };
 
 /**
- * Gets all skill slots that have skills assigned to them- excluding the tool slot.
- * @returns {JABS_SkillSlot[]}
- */
-Game_Actor.prototype.getValidSkillSlotsForAlly = function()
-{
-  return this.getSkillSlotManager().getEquippedAllySlots();
-};
-
-/**
  * Gets all skill slots that have skills that are upgradable.
  * @returns {JABS_SkillSlot[]}
  */
 Game_Actor.prototype.getUpgradableSkillSlots = function()
 {
-  return this
-    .getValidEquippedSkillSlots()
-    .filter(skillSlot =>
-    {
-      if (!skillSlot.canBeAutocleared())
-      {
-      // skip the main/off/tool slots.
-        return false;
-      }
+  // a filtering function for whether or not a skill slot is upgradable.
+  const filtering = skillSlot =>
+  {
+    // if the slot is not autoclearable, then it isn't upgradable.
+    if (!skillSlot.canBeAutocleared()) return false;
 
-      if (skillSlot.isLocked())
-      {
-      // skip locked slots.
-        return false;
-      }
+    // if the slot is locked, then it isn't upgradable.
+    if (skillSlot.isLocked()) return false;
 
-      return true;
-    });
+    // the slot is upgradable!
+    return true;
+  };
+
+  // determine the slots that are valid and upgradable.
+  const upgradableSkillSlots = this.getValidEquippedSkillSlots()
+    .filter(filtering, this);
+
+  // return our valid upgradable slots.
+  return upgradableSkillSlots;
 };
-//#endregion JABS skill slot access
+//endregion JABS skill slot access
 
-//#region leveling
+//region leveling
 /**
  * OVERWRITE Replaces the levelup display on the map to not display a message.
  */
@@ -813,9 +808,9 @@ Game_Actor.prototype.jabsLevelDown = function()
   // this is the leader so refresh the battler sprite!
   $jabsEngine.requestSpriteRefresh = true;
 };
-//#endregion leveling
+//endregion leveling
 
-//#region learning
+//region learning
 /**
  * A hook for performing actions when a battler learns a new skill.
  * @param {number} skillId The skill id of the skill learned.
@@ -843,6 +838,16 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
   $jabsEngine.battlerSkillLearn(this.skill(skillId), this.getUuid());
 
   // upgrade the skill if permissable.
+  this.jabsProcessLearnedSkill(skillId);
+};
+
+/**
+ * Performs various JABS-related logic upon learning the given skill.
+ * @param {number} skillId The id of the skill being learnt.
+ */
+Game_Actor.prototype.jabsProcessLearnedSkill = function(skillId)
+{
+  // upgrade the skill if permissable.
   this.upgradeSkillIfUpgraded(skillId);
 
   // autoassign skills if necessary.
@@ -863,7 +868,10 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
  */
 Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
 {
+  // grab all the upgradable skill slots.
   const upgradableSkillsSlots = this.getUpgradableSkillSlots();
+
+  //
   if (!upgradableSkillsSlots)
   {
     return;
@@ -906,32 +914,40 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
 };
 
 /**
- * If the actor has a tag/note somewhere for auto-assignment, then this will
- * attempt to automatically slot the learned skill into an otherwise empty
- * skill slot.
- *
- * This will only attempt to assign skills to one of the 8 secondary slots.
+ * Attempts to assign the given skillId into the first unassigned combat skill slot.
  *
  * If all slots are full, no action is taken.
- * @param {number} skillId The skill id to auto-assign to a slot.
+ * @param {number} skillId The skillId to auto-assign to a slot.
  */
 Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 {
   // if we are not auto-assigning, then do not.
   if (!this.autoAssignOnLevelup()) return;
 
+  // grab all the empty combat skill slots.
   const emptySlots = this.getEmptySecondarySkills();
-  if (!emptySlots.length)
-  {
-    return;
-  }
 
-  const slotKey = emptySlots[0].key;
-  this.setEquippedSkill(slotKey, skillId);
+  // if we have no additional empty slots, then do not auto-assign.
+  if (emptySlots.length === 0) return;
+
+  // extract the key of the empty slot to be assigned.
+  const { key } = emptySlots.at(0).key;
+
+  // assign the given skill to the slot.
+  this.setEquippedSkill(key, skillId);
 };
-//#endregion learning
 
-//#region JABS bonus hits
+/**
+ * Refreshes all auto-equippable skills available to this battler.
+ */
+Game_Actor.prototype.refreshAutoEquippedSkills = function()
+{
+  // iterate over each of the skills and auto-assign/equip them where applicable.
+  this.skills().forEach(this.jabsProcessLearnedSkill, this);
+};
+//endregion learning
+
+//region JABS bonus hits
 /**
  * Gets all collections of sources that will be scanned for bonus hits.
  *
@@ -958,9 +974,9 @@ Game_Actor.prototype.getBonusHitsSources = function()
     [this.currentClass()],
   ];
 };
-//#endregion JABS bonus hits
+//endregion JABS bonus hits
 
-//#region map effects
+//region map effects
 /**
  * Replaces the map damage with JABS' version of the map damage.
  */
@@ -1004,5 +1020,5 @@ Game_Actor.prototype.turnEndOnMap = function()
   // do normal turn-end things while JABS is disabled.
   J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
 };
-//#endregion map effects
-//#endregion Game_Actor
+//endregion map effects
+//endregion Game_Actor

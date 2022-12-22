@@ -1,4 +1,4 @@
-//#region Window_AbsMenu
+//region Window_AbsMenu
 /**
  * The window representing what is called and manages the player's assigned skill slots.
  */
@@ -96,4 +96,4 @@ class Window_AbsMenu extends Window_Command
     }
   }
 }
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu

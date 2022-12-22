@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 J.ABS.EXT_INPUT.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
@@ -8,4 +8,4 @@ DataManager.createGameObjects = function()
   // initialize controller 1 for JABS.
   $jabsController1 = new JABS_InputController();
 };
-//#endregion DataManager
+//endregion DataManager

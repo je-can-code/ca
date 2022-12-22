@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Adds new properties to the actors that manage the skill prof system.
  */
@@ -375,4 +375,4 @@ Game_Actor.prototype.bonusSkillProficiencyGains = function()
 
   return bonusProficiency;
 };
-//#endregion Game_Actor
+//endregion Game_Actor

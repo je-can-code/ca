@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the {@link MonsterpediaObservations} associated with this enemy.
  * If none exists yet, one will be initialized.
@@ -163,4 +163,4 @@ Game_Enemy.prototype.observeElement = function(elementId)
   // observe the element.
   observations.addKnownElementalistic(elementId);
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

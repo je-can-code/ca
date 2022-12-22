@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Parses the given reference data to extract any extra drops that may be present.
  * @param {RPG_BaseItem} referenceData The database object to parse.
@@ -29,4 +29,4 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
   // return the found extra drops.
   return convertedDrops;
 };
-//#endregion Game_Battler
+//endregion Game_Battler

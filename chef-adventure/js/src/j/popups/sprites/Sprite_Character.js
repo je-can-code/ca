@@ -1,4 +1,4 @@
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
@@ -100,7 +100,7 @@ Sprite_Character.prototype.update = function()
   this.updateTextPops();
 };
 
-//#region incoming subscription
+//region incoming subscription
 /**
  * Listens for a notification to process any new popups.
  */
@@ -164,9 +164,9 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup)
   // add the sprite to the parent for visual tracking.
   this.parent.addChild(sprite);
 };
-//#endregion incoming subscription
+//endregion incoming subscription
 
-//#region handle text pops
+//region handle text pops
 /**
  * Handle the updating and processing of text popups.
  */
@@ -187,7 +187,7 @@ Sprite_Character.prototype.updateTextPops = function()
   }
 };
 
-//#region damage pops
+//region damage pops
 /**
  * Updates all damage popup sprites on this character.
  */
@@ -271,9 +271,9 @@ Sprite_Character.prototype.removeDamagePop = function(damagePop, index)
   // purge the item from the tracking.
   delete damagePops[index];
 };
-//#endregion damage pops
+//endregion damage pops
 
-//#region non-damage pops
+//region non-damage pops
 /**
  * Updates all non-damage popup sprites on this character.
  */
@@ -357,6 +357,6 @@ Sprite_Character.prototype.removeNonDamagePop = function(popup, index)
   // purge the item from the tracking.
   delete nonDamagePops[index];
 };
-//#endregion non-damage pops
-//#endregion handle text pops
-//#endregion Sprite_Character
+//endregion non-damage pops
+//endregion handle text pops
+//endregion Sprite_Character

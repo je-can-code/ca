@@ -1,4 +1,4 @@
-//#region Window_Status
+//region Window_Status
 /**
  * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
  * Also does NOT write nicknames, because why is that a thing?
@@ -28,4 +28,4 @@ Window_Status.prototype.drawBlock2 = function()
   this.drawBasicInfo(204, y);
   this.drawExpInfo(0, y + 250);
 };
-//#endregion Window_Status
+//endregion Window_Status

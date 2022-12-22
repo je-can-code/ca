@@ -1,4 +1,4 @@
-//#region Map_TextPop
+//region Map_TextPop
 /**
  * A class representing a single popup on the map.
  */
@@ -137,4 +137,4 @@ Map_TextPop.prototype.initialize = function({
    */
   this.healing = healing;
 };
-//#endregion Map_TextPop
+//endregion Map_TextPop

@@ -1,10 +1,10 @@
-//#region JABS_ChargingTier
+//region JABS_ChargingTier
 /**
  * A single charging tier derived from a skill in a slot to be charged.
  */
 class JABS_ChargingTier
 {
-  //#region properties
+  //region properties
   /**
    * The number of frames that this tier has already been charged.
    * @type {number}
@@ -108,4 +108,4 @@ class JABS_ChargingTier
   {
   }
 }
-//#endregion JABS_ChargingTier
+//endregion JABS_ChargingTier

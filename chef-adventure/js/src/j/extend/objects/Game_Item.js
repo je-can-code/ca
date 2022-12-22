@@ -1,4 +1,4 @@
-//#region Game_Item
+//region Game_Item
 /**
  * Extend `initialize()` to include our update of assigning the item.
  */
@@ -74,4 +74,4 @@ Game_Item.prototype.object = function()
 
   return J.EXTEND.Aliased.Game_Item.get('object').call(this);
 };
-//#endregion Game_Item
+//endregion Game_Item

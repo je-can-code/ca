@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Gets this actor's bonus drop multiplier.
  * @returns {number}
@@ -72,4 +72,4 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
 
   return goldMultiplier;
 };
-//#endregion Game_Actor
+//endregion Game_Actor

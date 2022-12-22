@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Initialization
+//region Initialization
 /*:
  * @target MZ
  * @plugindesc
@@ -66,7 +66,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -85,9 +85,9 @@ var J = J || {};
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin metadata
+//region plugin metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -125,11 +125,11 @@ J.DIAG.Aliased = {
   Game_Map: {},
   Game_Player: {},
 };
-//#endregion plugin metadata
-//#endregion Initialization
+//endregion plugin metadata
+//endregion Initialization
 
-//#region Game_Event
-//#region update existing functionality
+//region Game_Event
+//region update existing functionality
 /**
  * Moves straight in a given direction.
  * If there is an underlying diagonal direction, then move diagonally.
@@ -384,9 +384,9 @@ Game_Event.prototype.turnRightOrLeft45 = function()
     ? this.turnLeft45()
     : this.turnRight45();
 };
-//#endregion update existing functionality
+//endregion update existing functionality
 
-//#region homing movement
+//region homing movement
 /**
  * Pursues the target battler on the map.
  * If there is no target, then it'll just move straight ahead.
@@ -488,9 +488,9 @@ Game_Event.prototype.homeIntoBattler = function(battler)
   // move towards the target.
   this.moveStraight(this.direction());
 };
-//#endregion homing movement
+//endregion homing movement
 
-//#region seeking movement
+//region seeking movement
 /**
  * Pursues the target battler on the map with a slow rotation.
  * If there is no target battler, then it'll just go straight ahead instead.
@@ -634,10 +634,10 @@ Game_Event.prototype.gradualRotateToDirection = function(currentDirection, final
     ? this.turnLeft45()
     : this.turnRight45();
 };
-//#endregion seeking movement
-//#endregion Game_Event
+//endregion seeking movement
+//endregion Game_Event
 
-//#region Game_Player
+//region Game_Player
 /**
  * OVERWRITE Leverages dir8 instead of dir4 by default.
  * @returns {number}
@@ -724,4 +724,4 @@ if (globalThis && globalThis.CycloneMovement)
     }
   };
 }
-//#endregion Game_Player
+//endregion Game_Player

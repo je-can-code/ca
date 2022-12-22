@@ -1,4 +1,4 @@
-//#region Sprite_InputKeySlot
+//region Sprite_InputKeySlot
 /**
  * A single sprite that owns the drawing and management of a single input key slot.
  */
@@ -68,7 +68,7 @@ class Sprite_InputKeySlot extends Sprite
     this.drawInputKey();
   }
 
-  //#region getters & setters
+  //region getters & setters
   /**
    * Gets the assigned skill slot.
    * @returns {JABS_SkillSlot|null}
@@ -177,9 +177,9 @@ class Sprite_InputKeySlot extends Sprite
   {
     this._j._battler = battler;
   }
-  //#endregion getters & setters
+  //endregion getters & setters
 
-  //#region caching
+  //region caching
   /**
    * Ensures all sprites are created and available for use.
    */
@@ -473,9 +473,9 @@ class Sprite_InputKeySlot extends Sprite
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
-  //#region drawing
+  //region drawing
   /**
    * Draws the input key sprite based on the currently assigned data.
    */
@@ -678,6 +678,6 @@ class Sprite_InputKeySlot extends Sprite
     sprite.show();
     sprite.move(x, y+24);
   }
-  //#endregion drawing
+  //endregion drawing
 }
-//#endregion Sprite_InputKeySlot
+//endregion Sprite_InputKeySlot

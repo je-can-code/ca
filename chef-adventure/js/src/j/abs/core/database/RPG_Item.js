@@ -1,5 +1,5 @@
-//#region RPG_Item
-//#region skillId
+//region RPG_Item
+//region skillId
 /**
  * The skill id associated with this item or tool.
  * @type {number|null}
@@ -29,9 +29,9 @@ RPG_Item.prototype.extractJabsSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
 };
-//#endregion skillId
+//endregion skillId
 
-//#region useOnPickup
+//region useOnPickup
 /**
  * Whether or not this item will be automatically executed upon being picked up.
  * @type {boolean|null}
@@ -61,9 +61,9 @@ RPG_Item.prototype.extractJabsUseOnPickup = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UseOnPickup, true);
 };
-//#endregion useOnPickup
+//endregion useOnPickup
 
-//#region expiration
+//region expiration
 /**
  * The expiration time in frames for this loot drop.
  * @type {number|null}
@@ -93,5 +93,5 @@ RPG_Item.prototype.extractJabsExpirationFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
-//#endregion expiration
-//#endregion RPG_Item
+//endregion expiration
+//endregion RPG_Item

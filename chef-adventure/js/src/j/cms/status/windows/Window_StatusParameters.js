@@ -1,4 +1,4 @@
-//#region Window_StatusParameters
+//region Window_StatusParameters
 /**
  * A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
@@ -842,4 +842,4 @@ class Window_StatusParameters extends Window_Base
     this.resetFontSettings();
   }
 }
-//#endregion Window_StatusParameters
+//endregion Window_StatusParameters

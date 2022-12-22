@@ -1,10 +1,10 @@
-//#region JABS_CoreDataBuilder
+//region JABS_CoreDataBuilder
 /**
  * A builder class for constructing `JABS_BattlerCoreData`.
  */
 class JABS_CoreDataBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The battler's id, such as the actor id or enemy id.
    * @type {number}
@@ -102,7 +102,7 @@ class JABS_CoreDataBuilder
    * @private
    */
   #isInanimate = J.ABS.Metadata.DefaultEnemyIsInanimate;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -149,7 +149,7 @@ class JABS_CoreDataBuilder
     return core;
   }
 
-  //#region setters
+  //region setters
   /**
    * Sets all properties based on this battler's own data except id.
    * @param {Game_Battler} battler
@@ -354,6 +354,6 @@ class JABS_CoreDataBuilder
     this.#isInanimate = isInanimate;
     return this;
   }
-  //#endregion setters
+  //endregion setters
 }
-//#endregion JABS_CoreDataBuilder
+//endregion JABS_CoreDataBuilder

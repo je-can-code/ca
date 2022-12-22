@@ -1,4 +1,4 @@
-//#region FramedTarget
+//region FramedTarget
 /**
  * The shape of a target for the target frame.
  */
@@ -36,11 +36,11 @@ class FramedTarget
 
   /**
    * Constructor.
-   * @param {string|String.empty} name The name of the target.
-   * @param {string|String.empty} text The additional text for the target.
-   * @param {number} icon The icon to place on this target.
-   * @param {Game_Enemy|null} battler The battler data of the target.
-   * @param {FramedTargetConfiguration|null} configuration The configuration of this target.
+   * @param {string} name The name of the target.
+   * @param {string=} text The additional text for the target; defaults to an empty string.
+   * @param {number=} icon The icon to place on this target; defaults to 0.
+   * @param {Game_Enemy=} battler The battler data of the target; defaults to null.
+   * @param {FramedTargetConfiguration=} configuration The configuration of this target; defaults to null.
    */
   constructor(name, text = String.empty, icon = 0, battler = null, configuration = null)
   {
@@ -51,4 +51,4 @@ class FramedTarget
     this.configuration = configuration;
   }
 }
-//#endregion FramedTarget
+//endregion FramedTarget

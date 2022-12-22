@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends `.initMembers()` to include initializing the natural growth parameters.
  */
@@ -12,7 +12,7 @@ Game_Battler.prototype.initMembers = function()
   this.initNaturalGrowthParameters();
 };
 
-//#region properties
+//region properties
 /**
  * Initializes the natural growth parameters for this battler.
  */
@@ -125,7 +125,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._xParamsBuffRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 };
 
-//#region max tp
+//region max tp
 /**
  * Gets the permanent flat bonus for max tp.
  * @returns {number}
@@ -197,9 +197,9 @@ Game_Battler.prototype.setMaxTpBuffRate = function(amount)
 {
   this._j._natural._maxTpBuffRate = amount;
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b-params
+//region b-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -279,9 +279,9 @@ Game_Battler.prototype.setBparamBuffRate = function(paramId, amount)
 {
   this._j._natural._bParamsBuffRate[paramId] = amount;
 };
-//#endregion b-params
+//endregion b-params
 
-//#region s-params
+//region s-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -361,9 +361,9 @@ Game_Battler.prototype.setSparamBuffRate = function(paramId, amount)
 {
   this._j._natural._sParamsBuffRate[paramId] = amount;
 };
-//#endregion s-params
+//endregion s-params
 
-//#region x-params
+//region x-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -443,8 +443,8 @@ Game_Battler.prototype.setXparamBuffRate = function(paramId, amount)
 {
   this._j._natural._xParamsBuffRate[paramId] = amount;
 };
-//#endregion x-params
-//#endregion properties
+//endregion x-params
+//endregion properties
 
 /**
  * Refreshes both plus/rate buffs for all parameters.
@@ -842,7 +842,7 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
   return result;
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -939,5 +939,5 @@ Game_Battler.prototype.getBaseMaxTp = function()
 {
   return 0;
 };
-//#endregion max tp
-//#endregion Game_Battler
+//endregion max tp
+//endregion Game_Battler

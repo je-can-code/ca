@@ -1,4 +1,4 @@
-//#region Game_BattlerBase
+//region Game_BattlerBase
 /**
  * Returns a list of known base parameter ids.
  * @returns {number[]}
@@ -37,4 +37,4 @@ Object.defineProperty(Game_BattlerBase.prototype, "mtp",
     },
     configurable: true
   });
-//#endregion Game_BattlerBase
+//endregion Game_BattlerBase

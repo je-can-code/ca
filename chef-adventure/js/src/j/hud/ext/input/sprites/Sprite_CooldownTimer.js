@@ -1,4 +1,4 @@
-//#region Sprite_CooldownTimer
+//region Sprite_CooldownTimer
 /**
  * A sprite that displays a timer representing the cooldown time for a JABS action.
  */
@@ -115,4 +115,4 @@ Sprite_CooldownTimer.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 }
-//#endregion
+//endregion

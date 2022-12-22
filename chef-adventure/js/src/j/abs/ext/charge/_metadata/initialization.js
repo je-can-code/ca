@@ -82,4 +82,4 @@ J.ABS.EXT_CHARGE.Aliased = {
 J.ABS.EXT_CHARGE.RegExp = {
   ChargeData: /<chargeTier:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+(,[ ]?\d+(,[ ]?\d+)?)?])>/gi,
 };
-//#endregion Introduction
+//endregion Introduction

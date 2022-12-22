@@ -1,4 +1,4 @@
-//#region Game_Follower
+//region Game_Follower
 /**
  * OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
  * while this follower is engaged.
@@ -261,4 +261,4 @@ Game_Follower.prototype.handleEngagementDistancing = function()
 };
 
 // TODO: refactor handleEngagementDistancing().
-//#endregion Game_Follower
+//endregion Game_Follower

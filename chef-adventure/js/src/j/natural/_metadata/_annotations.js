@@ -1,8 +1,8 @@
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 NATURAL] Enables level-based growth of all parameters.
+ * [v2.0.1 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -180,6 +180,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.1
+ *    Fixed issue with buffs not being refreshed in Scene_Equip.
  * - 2.0.0
  *    Buff tracking has been refactored to be more compatible with J-Passives.
  *    Fixed issues with buffs/growths not being tracked correctly.
@@ -200,3 +202,4 @@
  * @desc The base TP for enemies is this amount. Any formulai add onto this.
  * @default 100
  */
+//endregion Introduction

@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -115,7 +115,7 @@
 var J = J || {};
 J.JAFTING.EXT_REFINE = {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -134,7 +134,7 @@ J.JAFTING.EXT_REFINE = {};
     throw new Error(`Either missing J-JAFTING or has a lower version than the required: ${requiredJaftingVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * A helpful mapping of the various messages that we use in JAFTING.
@@ -284,9 +284,9 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJa
 {
   $gameJAFTING.enableRefinement();
 });
-//#endregion Introduction
+//endregion Introduction
 
-//#region Game_JAFTING
+//region Game_JAFTING
 /**
  * A class for managing all things related to JAFTING.
  */
@@ -1135,9 +1135,9 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
     throw new Error("please stop crafting stuff that isn't valid.");
   }
 };
-//#endregion Game_JAFTING
+//endregion Game_JAFTING
 
-//#region JAFT_RefinementData
+//region JAFT_RefinementData
 /**
  * A class containing all the various data points extracted from notes.
  */
@@ -1291,9 +1291,9 @@ class JAFTING_RefinementData
     return noRefine;
   }
 }
-//#endregion JAFT_RefinementData
+//endregion JAFT_RefinementData
 
-//#region JAFTING_Trait
+//region JAFTING_Trait
 /**
  * A class representing a single trait on a piece of equipment that can be potentially
  * transferred by means of JAFTING's refinement mode.
@@ -1551,7 +1551,7 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 {
   return RPG_Trait.fromValues(this._code, this._dataId, this._value);
 };
-//#endregion JAFTING_Trait
+//endregion JAFTING_Trait
 
 J.JAFTING.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
 /**
@@ -1574,15 +1574,15 @@ RPG_Base.prototype._generate = function(overrides, index)
   return original;
 };
 
-//#region refinedCount
+//region refinedCount
 /**
  * The number of times this equip has been refined.
  * @type {number}
  */
 RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
-//#endregion refinedCount
+//endregion refinedCount
 
-//#region notRefinementBase
+//region notRefinementBase
 /**
  * Whether or not this equip is blocked from being used as a base for refinement.
  * @type {boolean}
@@ -1612,9 +1612,9 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase);
 };
-//#endregion notRefinementBase
+//endregion notRefinementBase
 
-//#region notRefinementMaterial
+//region notRefinementMaterial
 /**
  * Whether or not this equip is blocked from being used as a material for refinement.
  * @type {boolean}
@@ -1644,9 +1644,9 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial);
 };
-//#endregion notRefinementMaterial
+//endregion notRefinementMaterial
 
-//#region unrefinable
+//region unrefinable
 /**
  * Whether or not this equip is blocked from being used in refinement at all.
  * This is equivalent to {@link jaftingNotRefinementBase} and {@link jaftingNotRefinementMaterial}
@@ -1697,9 +1697,9 @@ RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.Unrefinable);
 };
-//#endregion unrefinable
+//endregion unrefinable
 
-//#region maxRefineCount
+//region maxRefineCount
 /**
  * The maximum number of times this equip can be refined.
  * @type {number}
@@ -1728,9 +1728,9 @@ RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
 {
   return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount);
 };
-//#endregion maxRefineCount
+//endregion maxRefineCount
 
-//#region maxTraitCount
+//region maxTraitCount
 /**
  * The maximum number of traits this equip can be gain as a result of refinement.
  * This is defined as the number of traits that come after the divider.
@@ -1760,10 +1760,10 @@ RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 {
   return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount);
 };
-//#endregion maxRefineCount
+//endregion maxRefineCount
 
-//#region DataManager
-//#region save/load data
+//region DataManager
+//region save/load data
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
@@ -1806,10 +1806,10 @@ DataManager.extractSaveContents = function(contents)
   $gameJAFTING.updateDataWeapons();
   $gameJAFTING.updateDataArmors();
 };
-//#endregion save/load data
-//#endregion DataManager
+//endregion save/load data
+//endregion DataManager
 
-//#region Game_Item
+//region Game_Item
 /**
  * Largely overwrites this function to instead leverage an item's index value over
  * it's ID for setting objects to the item slot.
@@ -1825,10 +1825,10 @@ Game_Item.prototype.setObject = function(item)
     ? item._key()
     : 0;
 };
-//#endregion Game_Item
+//endregion Game_Item
 
-//#region Scene_Map
-//#region window initialization
+//region Scene_Map
+//region window initialization
 /**
  * Extends the initialization of the JAFTING menu to include the refinment windows.
  */
@@ -1985,7 +1985,7 @@ Scene_Map.prototype.createJaftingRefinementConfirmationWindow = function()
   this._j._jaftingMenu._refineConfirmationWindow.hide();
   this.addWindow(this._j._jaftingMenu._refineConfirmationWindow);
 };
-//#endregion window initialization
+//endregion window initialization
 
 /**
  * When a refinement target is selected, perform this logic.
@@ -2418,9 +2418,9 @@ Scene_Map.prototype.toggleJaftingRefineConfirmationWindow = function(visible)
     this._j._jaftingMenu._refineConfirmationWindow.deactivate();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_JaftingEquip
+//region Window_JaftingEquip
 /**
  * A window that shows a list of all equipment.
  */
@@ -2673,9 +2673,9 @@ class Window_JaftingEquip
     });
   }
 }
-//#endregion Window_JaftingEquip
+//endregion Window_JaftingEquip
 
-//#region Window_JaftingModeMenu
+//region Window_JaftingModeMenu
 /**
  * Extends the mode command creation to include a new command for refinement.
  */
@@ -2697,9 +2697,9 @@ Window_JaftingModeMenu.prototype.makeCommandList = function()
   };
   this._list.splice(1, 0, refineCommand);
 };
-//#endregion Window_JaftingModeMenu
+//endregion Window_JaftingModeMenu
 
-//#region Window_JaftingRefinementConfirmation
+//region Window_JaftingRefinementConfirmation
 /**
  * A window that gives the player a chance to confirm or cancel their
  * refinement before executing.
@@ -2726,9 +2726,9 @@ class Window_JaftingRefinementConfirmation
     this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
   }
 }
-//#endregion Window_JaftingRefinementConfirmation
+//endregion Window_JaftingRefinementConfirmation
 
-//#region Window_JaftingRefinementOutput
+//region Window_JaftingRefinementOutput
 /**
  * The window containing the chosen equips for refinement and also the projected results.
  */
@@ -2987,4 +2987,4 @@ class Window_JaftingRefinementOutput
   }
 
 }
-//#endregion Window_JaftingRefinementOutput
+//endregion Window_JaftingRefinementOutput

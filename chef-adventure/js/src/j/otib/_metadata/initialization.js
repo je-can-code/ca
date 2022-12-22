@@ -88,4 +88,4 @@ J.OTIB.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction

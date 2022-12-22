@@ -1,4 +1,4 @@
-//#region OneTimeItemBoost
+//region OneTimeItemBoost
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
@@ -61,4 +61,4 @@ OneTimeItemBoost.prototype.lock = function()
 {
   this.unlocked = false;
 };
-//#endregion OneTimeItemBoost
+//endregion OneTimeItemBoost

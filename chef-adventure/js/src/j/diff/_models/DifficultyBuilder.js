@@ -1,4 +1,4 @@
-//#region DifficultyBuilder
+//region DifficultyBuilder
 /**
  * The fluent-builder for easily creating new difficulties.
  */
@@ -204,4 +204,4 @@ class DifficultyBuilder
     return this;
   }
 }
-//#endregion DifficultyBuilder
+//endregion DifficultyBuilder

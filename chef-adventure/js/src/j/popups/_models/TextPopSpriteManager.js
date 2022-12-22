@@ -1,4 +1,4 @@
-//#region TextPopSpriteManager
+//region TextPopSpriteManager
 /**
  * A builder class for converting text pops to sprites.
  */
@@ -112,4 +112,4 @@ class TextPopSpriteManager
     }
   }
 }
-//#endregion TextPopSpriteManager
+//endregion TextPopSpriteManager

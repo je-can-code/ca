@@ -1,4 +1,4 @@
-//#region JAFT_RefinementData
+//region JAFT_RefinementData
 /**
  * A class containing all the various data points extracted from notes.
  */
@@ -152,4 +152,4 @@ class JAFTING_RefinementData
     return noRefine;
   }
 }
-//#endregion JAFT_RefinementData
+//endregion JAFT_RefinementData

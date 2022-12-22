@@ -1,10 +1,10 @@
-//#region RPG_Skill
+//region RPG_Skill
 /**
  * An class representing a single skill from the database.
  */
 class RPG_Skill extends RPG_UsableItem
 {
-  //#region properties
+  //region properties
   /**
    * The first line of the message for this skill.
    * @type {string}
@@ -52,7 +52,7 @@ class RPG_Skill extends RPG_UsableItem
    * @type {number}
    */
   tpCost = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -86,4 +86,4 @@ class RPG_Skill extends RPG_UsableItem
     this.tpCost = skill.tpCost;
   }
 }
-//#endregion RPG_Skill
+//endregion RPG_Skill

@@ -19,7 +19,7 @@ class Sprite_CooldownGauge extends Sprite
     this.setup(cooldownData);
   }
 
-  //#region properties
+  //region properties
   /**
    * Initializes all members of this class.
    */
@@ -176,7 +176,7 @@ class Sprite_CooldownGauge extends Sprite
 
     return parsedRate;
   }
-  //#endregion properties
+  //endregion properties
 
   /**
    * Sets up the gauge based on the cooldown data.

@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:07 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:47 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -121,10 +121,10 @@ J.MESSAGE.Aliased =
   {
     Window_Base: new Map(),
   };
-//#endregion introduction
+//endregion introduction
 
-//#region Window_Base
-//#region more database text codes
+//region Window_Base
+//region more database text codes
 /**
  * Extends {@link #convertEscapeCharacters}.
  * Adds handling for new text codes for various database objects.
@@ -388,9 +388,9 @@ Window_Base.prototype.translateEquipTypeTypeTextCode = function(text)
     return `\\I[${iconIndex}]\\C[${colorId}]${name}\\C[0]`;
   });
 };
-//#endregion more database text codes
+//endregion more database text codes
 
-//#region bold and italics
+//region bold and italics
 /**
  * Extends text analysis to check for our custom escape codes, too.
  */
@@ -506,5 +506,5 @@ Window_Base.prototype.boldenText = function(text)
 {
   return `\\*${text}\\*`;
 };
-//#endregion bold and italics
-//#endregion Window_Base
+//endregion bold and italics
+//endregion Window_Base

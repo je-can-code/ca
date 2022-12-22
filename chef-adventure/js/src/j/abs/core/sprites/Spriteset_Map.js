@@ -1,4 +1,4 @@
-//#region Spriteset_Map
+//region Spriteset_Map
 /**
  * Hooks into the `update` function to also update any active action sprites.
  */
@@ -244,4 +244,4 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
   $jabsEngine.requestSpriteRefresh = false;
 };
-//#endregion Spriteset_Map
+//endregion Spriteset_Map

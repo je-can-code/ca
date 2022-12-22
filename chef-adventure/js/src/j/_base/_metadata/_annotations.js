@@ -1,8 +1,8 @@
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 BASE] The base class for all J plugins.
+ * [v2.1.2 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -35,6 +35,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Added polyfill implementation for Array.prototype.at().
+ *    Updated Window_EquipItem code to enable extension.
  * - 2.1.1
  *    Lifted and shifted multiple functions out of my plugins into here.
  *    Added RPGManager class for helpful note parsing.

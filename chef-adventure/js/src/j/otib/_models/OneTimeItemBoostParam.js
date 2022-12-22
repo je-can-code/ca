@@ -1,4 +1,4 @@
-//#region OneTimeItemBoostParam
+//region OneTimeItemBoostParam
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
@@ -29,4 +29,4 @@ OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent)
    */
   this.isPercent = isPercent;
 };
-//#endregion OneTimeItemBoostParam
+//endregion OneTimeItemBoostParam

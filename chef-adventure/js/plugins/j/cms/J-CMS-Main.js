@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -14,14 +14,14 @@
  * This is a redesign of the main menu.
  * ============================================================================
  */
-//#endregion Introduction
+//endregion Introduction
 
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -32,7 +32,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.

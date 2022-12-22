@@ -1,4 +1,4 @@
-//#region JABS_BattleMemory
+//region JABS_BattleMemory
 /**
  * A class representing a single battle memory.
  * Battle memories are simply a mapping of the battler targeted, the skill used, and
@@ -54,4 +54,4 @@ JABS_BattleMemory.prototype.wasEffective = function()
 {
   return this.effectiveness >= 1;
 };
-//#endregion JABS_BattleMemory
+//endregion JABS_BattleMemory

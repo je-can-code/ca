@@ -1,4 +1,4 @@
-//#region Window_EquipItem
+//region Window_EquipItem
 /**
  * Extends the `.initialize()` to include tracking for the more equip data window.
  */
@@ -37,4 +37,4 @@ Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow)
 {
   this._moreDataWindow = moreDataWindow;
 };
-//#endregion Window_EquipItem
+//endregion Window_EquipItem

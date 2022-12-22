@@ -1,4 +1,4 @@
-//#region JABS_Engine
+//region JABS_Engine
 J.ABS.EXT_INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.prototype.performPartyCycling);
 /**
  * Extends `performPartyCycling()` to include reassigning the controller to the player.
@@ -27,4 +27,4 @@ JABS_Engine.prototype.updateInput = function()
   // update the input.
   $jabsController1.update();
 };
-//#endregion JABS_Engine
+//endregion JABS_Engine

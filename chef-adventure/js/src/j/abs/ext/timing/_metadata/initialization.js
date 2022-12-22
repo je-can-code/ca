@@ -47,4 +47,4 @@ J.ABS.EXT_TIMING.RegExp = {
   FastCooldownFlat: /<fastCooldownFlat:\[([+\-*/ ().\w]+)]>/gi,
   FastCooldownRate: /<fastCooldownRate:\[([+\-*/ ().\w]+)]>/gi,
 };
-//#endregion Introduction
+//endregion Introduction

@@ -1,4 +1,4 @@
-//#region Sprite_BaseSkillSlot
+//region Sprite_BaseSkillSlot
 /**
  * A sprite that represents a skill slot.
  * This is a base class for other things that need data from a skill slot.
@@ -176,4 +176,4 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
     return skill.name;
   }
 }
-//#endregion Sprite_BaseSkillSlot
+//endregion Sprite_BaseSkillSlot

@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #initOmnipediaMembers}.
  * Includes monsterpedia members.
@@ -13,7 +13,7 @@ Game_Party.prototype.initOmnipediaMembers = function()
   this.initMonsterpediaMembers();
 };
 
-//#region monsterpedia
+//region monsterpedia
 /**
  * Initialize members related to the omnipedia's monsterpedia.
  */
@@ -197,5 +197,5 @@ Game_Party.prototype.getOrCreateMonsterpediaObservationsById = function(enemyId)
   // return the newly created observations.
   return createdObservations;
 };
-//#endregion monsterpedia
-//#endregion Game_Party
+//endregion monsterpedia
+//endregion Game_Party

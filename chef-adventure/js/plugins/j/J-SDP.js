@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Sat Dec 17 2022 13:04:28 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /* eslint-disable */
 /*:
  * @target MZ
@@ -429,7 +429,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -440,7 +440,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -642,7 +642,7 @@ J.SDP.RegExp = {
   SdpDropData: /<sdpDropData:[ ]?(\[[-\w]+,[ ]?\d+(:?,[ ]?\d+)?])>/i,
 };
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for calling the SDP scene/menu.
  */
@@ -702,10 +702,10 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify party SDP points", ar
     member.modSdpPoints(sdpPoints);
   });
 });
-//#endregion plugin commands
-//#endregion Introduction
+//endregion plugin commands
+//endregion Introduction
 
-//#region JABS_Engine
+//region JABS_Engine
 if (J.ABS)
 {
   /**
@@ -803,9 +803,9 @@ if (J.ABS)
     $gameTextLog.addLog(sdpLog);
   };
 }
-//#endregion JABS_Engine
+//endregion JABS_Engine
 
-//#region SDP_Panel
+//region SDP_Panel
 /**
  * The class that governs the details of a single SDP.
  */
@@ -1040,9 +1040,9 @@ StatDistributionPanel.prototype.calculateBonusByRank = function(
   // return the total.
   return val;
 };
-//#endregion SDP_Panel
+//endregion SDP_Panel
 
-//#region SDP_Parameter
+//region SDP_Parameter
 /**
  * A class that represents a single parameter and its growth for a SDP.
  */
@@ -1091,9 +1091,9 @@ PanelParameter.prototype.initialize = function({
    */
   this.isCore = isCore;
 };
-//#endregion SDP_Parameter
+//endregion SDP_Parameter
 
-//#region SDP_Ranking
+//region SDP_Ranking
 /**
  * A class for tracking an actor's ranking in a particular panel.
  */
@@ -1228,9 +1228,9 @@ PanelRanking.prototype.performMaxRankupEffects = function()
   SoundManager.playRecovery();
   this.performRankupEffects(0);
 };
-//#endregion SDP_Ranking
+//endregion SDP_Ranking
 
-//#region SDP_RankupReward
+//region SDP_RankupReward
 /**
  * A class that represents a single reward for achieving a particular rank in a panel.
  */
@@ -1262,9 +1262,9 @@ PanelRankupReward.prototype.initialize = function(rankRequired, effect)
    */
   this.effect = effect;
 };
-//#endregion SDP_RankupReward
+//endregion SDP_RankupReward
 
-//#region RPG_Item
+//region RPG_Item
 /**
  * The SDP key of this item.
  * @type {string}
@@ -1303,10 +1303,10 @@ RPG_DropItem.prototype.isSdpDrop = function()
 {
   return !!this._sdpKey;
 };
-//#endregion RPG_Item
+//endregion RPG_Item
 
-//#region RPG_Enemy
-//#region sdpPoints
+//region RPG_Enemy
+//region sdpPoints
 /**
  * The number of SDP points this enemy will yield upon defeat.
  * @type {number|null}
@@ -1336,9 +1336,9 @@ RPG_Enemy.prototype.extractSdpPoints = function()
 {
   return this.getNumberFromNotesByRegex(J.SDP.RegExp.SdpPoints);
 };
-//#endregion sdpPoints
+//endregion sdpPoints
 
-//#region sdpDropData
+//region sdpDropData
 /**
  * Gets the SDP drop data for this enemy.
  *
@@ -1411,10 +1411,10 @@ RPG_Enemy.prototype.extractSdpDropData = function()
 {
   return this.getArrayFromNotesByRegex(J.SDP.RegExp.SdpDropData, true);
 };
-//#endregion sdpDropData
-//#endregion RPG_Enemy
+//endregion sdpDropData
+//endregion RPG_Enemy
 
-//#region BattleManager
+//region BattleManager
 /**
  * Extends the creation of the rewards object to include SDP points.
  */
@@ -1466,9 +1466,9 @@ BattleManager.displaySdp = function()
     $gameMessage.add("\\." + text);
   }
 };
-//#endregion BattleManager
+//endregion BattleManager
 
-//#region DataManager
+//region DataManager
 /**
  * Updates existing save files with the updated SDP plugin metadata.
  */
@@ -1505,9 +1505,9 @@ DataManager.extractSaveContents = function(contents)
   // perform original logic.
   J.SDP.Aliased.DataManager.get('extractSaveContents').call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Adds new properties to the actors that manage the SDP system.
  */
@@ -1937,9 +1937,9 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   // return the modifier.
   return panelModifications;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Gets the SDP points multiplier for this battler.
  * @returns {number}
@@ -1948,9 +1948,9 @@ Game_Battler.prototype.sdpMultiplier = function()
 {
   return 1.0;
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets any additional drops from the notes of this particular enemy.
  * This allows for only gaining an SDP from enemies once.
@@ -2045,9 +2045,9 @@ Game_Enemy.prototype.sdpPoints = function()
 {
   return this.enemy().sdpPoints;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_System
+//region Game_System
 /**
  * Hooks in and initializes the SDP system.
  */
@@ -2237,9 +2237,9 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
     return 0;
   }
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Game_Troop
+//region Game_Troop
 /**
  * Gets the amount of SDP points earned from all defeated enemies.
  * @returns {number}
@@ -2255,9 +2255,9 @@ Game_Troop.prototype.sdpTotal = function()
   // return the summed value.
   return sdpPoints;
 };
-//#endregion Game_Troop
+//endregion Game_Troop
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Adds the functionality for calling the SDP menu from the JABS quick menu.
  */
@@ -2281,9 +2281,9 @@ Scene_Map.prototype.commandSdp = function()
 {
   Scene_SDP.callScene();
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Scene_Menu
+//region Scene_Menu
 /**
  * Hooks into the command window creation of the menu to add functionality for the SDP menu.
  */
@@ -2304,9 +2304,9 @@ Scene_Menu.prototype.commandSdp = function()
 {
   Scene_SDP.callScene();
 };
-//#endregion Scene_Menu
+//endregion Scene_Menu
 
-//#region Scene_SDP
+//region Scene_SDP
 class Scene_SDP extends Scene_MenuBase
 {
   /**
@@ -2450,7 +2450,7 @@ class Scene_SDP extends Scene_MenuBase
   {
   }
 
-  //#region window creation
+  //region window creation
   /**
    * Creates all windows associated with the SDP scene.
    */
@@ -2544,7 +2544,7 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.hide();
     this.addWindow(this._j._sdpConfirmationWindow);
   }
-  //#endregion SDP window creation
+  //endregion SDP window creation
 
   /**
    * Refreshes all windows in this scene.
@@ -2654,9 +2654,9 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpListWindow.activate();
   }
 }
-//#endregion Scene_SDP
+//endregion Scene_SDP
 
-//#region Window_AbsMenu
+//region Window_AbsMenu
 if (J.ABS)
 {
   /**
@@ -2704,9 +2704,9 @@ if (J.ABS)
     return true;
   };
 }
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu
 
-//#region Window_MenuCommand
+//region Window_MenuCommand
 /**
  * Extends the make command list for the main menu to include SDP, if it meets the conditions.
  */
@@ -2762,9 +2762,9 @@ Window_MenuCommand.prototype.canAddSdpCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_MenuCommand
+//endregion Window_MenuCommand
 
-//#region Window_SDP_ConfirmUpgrade
+//region Window_SDP_ConfirmUpgrade
 /**
  * The window that prompts the user to confirm/cancel the upgrading of a chosen panel.
  */
@@ -2809,10 +2809,10 @@ class Window_SDP_ConfirmUpgrade
     this.addCommand(`Cancel`, `panel-upgrade-cancel`, true, null, 90);
   }
 }
-//#endregion Window_SDP_ConfirmUpgrade
-//#endregion Window objects
+//endregion Window_SDP_ConfirmUpgrade
+//endregion Window objects
 
-//#region Window_SDP_Details
+//region Window_SDP_Details
 /**
  * The window that displays all details of how a panel would affect the actor's parameters.
  */
@@ -3235,9 +3235,9 @@ class Window_SDP_Details extends Window_Base
     ];
   }
 }
-//#endregion Window_SDP_Details
+//endregion Window_SDP_Details
 
-//#region Window_SDP_Help
+//region Window_SDP_Help
 /**
  * The window that displays the help text associated with a panel.
  */
@@ -3254,9 +3254,9 @@ class Window_SDP_Help
     this.initialize(rect);
   }
 }
-//#endregion Window_SDP_Help
+//endregion Window_SDP_Help
 
-//#region Window_SDP_List
+//region Window_SDP_List
 /**
  * The SDP window containing the list of all earned SDPs.
  */
@@ -3390,9 +3390,9 @@ class Window_SDP_List extends Window_Command
     return command;
   }
 }
-//#endregion Window_SDP_List
+//endregion Window_SDP_List
 
-//#region Window_SDP_Points
+//region Window_SDP_Points
 /**
  * The SDP window containing the amount of SDP points a given actor has.
  */
@@ -3489,4 +3489,4 @@ class Window_SDP_Points
     this.refresh();
   }
 }
-//#endregion Window_SDP_Points
+//endregion Window_SDP_Points

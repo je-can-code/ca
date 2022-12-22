@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Overwrites {@link #gainItem}.
  * Replaces item gain and management with index-based management instead.
@@ -172,4 +172,4 @@ Game_Party.prototype.allItemsQuantified = function()
   // return our quantified list.
   return allItemsRepeated;
 };
-//#endregion Game_Party
+//endregion Game_Party

@@ -1,4 +1,4 @@
-//#region BattleManager
+//region BattleManager
 /**
  * Extends the creation of the rewards object to include SDP points.
  */
@@ -50,4 +50,4 @@ BattleManager.displaySdp = function()
     $gameMessage.add("\\." + text);
   }
 };
-//#endregion BattleManager
+//endregion BattleManager

@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends the JABS menu initialization to include the new ally ai management selection.
  */
@@ -206,4 +206,4 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
       break;
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map

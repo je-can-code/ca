@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -118,9 +118,9 @@ J.ABS.EXT_SPEED.Aliased = {
 J.ABS.EXT_SPEED.RegExp = {
   WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region RPG_Base
+//region RPG_Base
 /**
  * The movement speed modifier from this from database object.
  * @type {number|null}
@@ -150,9 +150,9 @@ RPG_Base.prototype.extractJabsSpeedBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.EXT_SPEED.RegExp.WalkSpeedBoost, true);
 };
-//#endregion RPG_Base
+//endregion RPG_Base
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #onBattlerDataChange}.
  * Refreshes movement speed boosts when the battler's data changes.
@@ -166,9 +166,9 @@ Game_Actor.prototype.onBattlerDataChange = function()
   // update JABS-related things.
   this.refreshSpeedBoosts();
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends {@link Game_Battler.initMembers}.
  */
@@ -248,9 +248,9 @@ Game_Battler.prototype.refreshSpeedBoosts = function()
   // update the speed boost value with the latest.
   this.setWalkSpeedBoost(speedBoosts);
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Character
+//region Game_Character
 /**
  * Extends {@link Game_Character.distancePerFrame}.
  * Enables modification of the character's movement speed on the map.
@@ -325,9 +325,9 @@ Game_Character.prototype.minimumDistancePerFrame = function()
   // return the calculated amount.
   return minimumDistance;
 };
-//#endregion Game_Character
+//endregion Game_Character
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link #onBattlerDataChange}.
  * Refreshes movement speed boosts when the battler's data changes.
@@ -341,4 +341,4 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   // update JABS-related things.
   this.refreshSpeedBoosts();
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

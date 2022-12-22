@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Extends the `Game_System.initialize()` to include the JAFTING setup.
  */
@@ -351,4 +351,4 @@ Game_System.prototype.translateRpgItemToType = function(rpgItem)
     console.error(`check the logs, there were issues translating items for recipes.`)
   }
 };
-//#endregion Game_System
+//endregion Game_System

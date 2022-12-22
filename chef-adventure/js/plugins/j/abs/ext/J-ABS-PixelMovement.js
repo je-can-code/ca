@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -23,7 +23,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -34,9 +34,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The over-arching extensions collection for JABS.
  */
@@ -68,7 +68,7 @@ J.ABS.EXT.PIXEL.Aliased =
     Game_CharacterBase: new Map(),
     Game_Player: new Map(),
   };
-//#endregion metadata
+//endregion metadata
 
 /**
  * Extends {@link processMoveCommand}.

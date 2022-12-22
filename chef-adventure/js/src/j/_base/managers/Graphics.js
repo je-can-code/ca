@@ -1,4 +1,4 @@
-//#region Graphics
+//region Graphics
 /**
  * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.
  * When combined with {@link Graphics.verticalPadding}, the origin x,y can be easily
@@ -36,4 +36,4 @@ Object.defineProperty(Graphics, "boxOrigin",
       return [this.horizontalPadding, this.verticalPadding];
     }
   });
-//#endregion Graphics
+//endregion Graphics

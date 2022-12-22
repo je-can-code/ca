@@ -1,4 +1,4 @@
-//#region Game_Event
+//region Game_Event
 /**
  * Extends the binding of core battler data to the event.
  * Adds the danger indicator data to the core battler data.
@@ -76,4 +76,4 @@ Game_Event.prototype.canShowDangerIndicator = function(battlerId)
   // return whether or not to show the danger indicator.
   return showDangerIndicator;
 };
-//#endregion Game_Event
+//endregion Game_Event

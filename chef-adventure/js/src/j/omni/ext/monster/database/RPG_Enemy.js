@@ -1,4 +1,4 @@
-//#region RPG_Enemy
+//region RPG_Enemy
 /**
  * Whether or not this enemy should be hidden from the monsterpedia.
  * @type {boolean} True if the enemy should be hidden, false otherwise.
@@ -61,4 +61,4 @@ RPG_Enemy.prototype.getMonsterpediaDescription = function()
 {
   return this.getStringsFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
 };
-//#endregion RPG_Enemy
+//endregion RPG_Enemy

@@ -1,4 +1,4 @@
-//#region JABS_Action
+//region JABS_Action
 /**
  * Extends {@link JABS_Action.getCastTime}.
  * Applies cast speed into the equation of determining cast time.
@@ -44,4 +44,4 @@ JABS_Action.prototype.getCooldown = function()
   // return the actual cooldown.
   return actualCooldown;
 };
-//#endregion JABS_Action
+//endregion JABS_Action

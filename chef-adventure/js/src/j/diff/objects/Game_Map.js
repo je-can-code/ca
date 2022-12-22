@@ -1,4 +1,4 @@
-//#region Game_Map
+//region Game_Map
 /**
  * Extends the `.encounterStep()` function to modify by difficulty.
  * @returns {number}
@@ -18,4 +18,4 @@ Game_Map.prototype.encounterStep = function()
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
 };
-//#endregion Game_Map
+//endregion Game_Map

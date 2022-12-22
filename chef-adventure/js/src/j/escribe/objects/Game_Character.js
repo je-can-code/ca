@@ -1,4 +1,4 @@
-//#region Game_Character
+//region Game_Character
 /**
  * Creates the method for overwriting by subclasses.
  * At this level, it will return false for non-events.
@@ -17,4 +17,4 @@ Game_Character.prototype.hasEscribeData = function()
 Game_Character.prototype.parseEscriptionComments = function()
 {
 };
-//#endregion Game_Character
+//endregion Game_Character

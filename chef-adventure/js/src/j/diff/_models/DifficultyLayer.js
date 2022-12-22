@@ -1,4 +1,4 @@
-//#region DifficultyLayer
+//region DifficultyLayer
 /**
  * A class governing a single difficulty and the way it impacts the game parameters.
  */
@@ -79,7 +79,7 @@ class DifficultyLayer
     return this.key === DifficultyLayer.appliedKey;
   }
 
-  //#region properties
+  //region properties
   /**
    * The name of the difficulty, visually to the player.
    * @type {string}
@@ -160,9 +160,9 @@ class DifficultyLayer
    * @type {number}
    */
   encounters = 100;
-  //#endregion properties
+  //endregion properties
 
-  //#region parameters
+  //region parameters
   /**
    * Gets the b-parameter multiplier for this difficulty.
    * The default is 100.
@@ -195,9 +195,9 @@ class DifficultyLayer
   {
     return this.xparams[paramId];
   }
-  //#endregion parameters
+  //endregion parameters
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty's cost can be covered by the remaining layer points.
    * @returns {boolean} True if the cost can be paid, false otherwise.
@@ -321,6 +321,6 @@ class DifficultyLayer
     // disable it.
     config.enabled = false;
   }
-  //#endregion access
+  //endregion access
 }
-//#endregion DifficultyLayer
+//endregion DifficultyLayer

@@ -1,4 +1,4 @@
-//#region JABS_BattlerCoreData
+//region JABS_BattlerCoreData
 /**
  * A class containing all the data extracted from the comments of an event's
  * comments and contained with friendly methods to access and manipulate.
@@ -251,4 +251,4 @@ JABS_BattlerCoreData.prototype.isInanimate = function()
 {
   return this._isInanimate;
 };
-//#endregion JABS_BattlerCoreData
+//endregion JABS_BattlerCoreData

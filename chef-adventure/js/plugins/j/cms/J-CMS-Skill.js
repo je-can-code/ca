@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -23,7 +23,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -34,7 +34,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -53,9 +53,9 @@ J.CMS_K.Aliased = {
   Window_SkillList: {},
   Window_EquipSlot: {},
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region JCMS_ParameterKvp
+//region JCMS_ParameterKvp
 /**
  * A class representing a single key-value pair, with an optional long id.
  * This is used for storing table-like data related to actors and skills.
@@ -110,9 +110,9 @@ class JCMS_ParameterKvp
     return this._colorId;
   }
 }
-//#endregion JCMS_ParameterKvp
+//endregion JCMS_ParameterKvp
 
-//#region Scene_Skill
+//region Scene_Skill
 J.CMS_K.Aliased.Scene_Skill.initialize = Scene_Skill.prototype.initialize;
 Scene_Skill.prototype.initialize = function()
 {
@@ -177,9 +177,9 @@ Scene_Skill.prototype.itemWindowRect = function()
   const wy = this._statusWindow.y + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
-//#endregion Scene_Skill
+//endregion Scene_Skill
 
-//#region Window_SkillDetail
+//region Window_SkillDetail
 /**
  * A window responsible for showing various datapoints of a skill.
  */
@@ -699,9 +699,9 @@ class Window_SkillDetail extends Window_Base
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
-//#endregion Window_SkillDetail
+//endregion Window_SkillDetail
 
-//#region Window_SkillList
+//region Window_SkillList
 /**
  * Extends `.initialize()` to include our skill detail window.
  */
@@ -773,9 +773,9 @@ Window_SkillList.prototype.maxCols = function()
 Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width)
 {
 };
-//#endregion Window_SkillList
+//endregion Window_SkillList
 
-//#region Window_SkillType
+//region Window_SkillType
 /**
  * OVERWRITE Fixes the maximum columns for this screen to be 1.
  * @returns {number}
@@ -798,4 +798,4 @@ Window_SkillType.prototype.makeCommandList = function()
     });
   }
 };
-//#endregion Window_SkillType
+//endregion Window_SkillType

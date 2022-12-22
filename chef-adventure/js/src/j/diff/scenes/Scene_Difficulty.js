@@ -1,4 +1,4 @@
-//#region Scene_Difficulty
+//region Scene_Difficulty
 /**
  * The difficulty scene for managing the current difficulty.
  */
@@ -97,7 +97,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverChange();
   }
 
-  //#region create windows
+  //region create windows
   /**
    * Creates all windows associated with the difficulty scene.
    */
@@ -116,7 +116,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.createDetailsWindow();
   }
 
-  //#region points window
+  //region points window
   /**
    * Creates the points window that displays information about your current point allocation.
    */
@@ -171,9 +171,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._pointsWindow = pointsWindow;
   }
-  //#endregion points window
+  //endregion points window
 
-  //#region help window
+  //region help window
   /**
    * Creates the help window that provides contextual details to the player
    * about the difficulty difference between the selected and current.
@@ -236,9 +236,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficultyHelpWindow = helpWindow;
   }
-  //#endregion help window
+  //endregion help window
 
-  //#region list window
+  //region list window
   /**
    * Creates the list of difficulties available to the player.
    * This uses the help window's coordinates, and must be created after it.
@@ -321,9 +321,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._listWindow = difficultyListWindow;
   }
-  //#endregion list window
+  //endregion list window
 
-  //#region details window
+  //region details window
   /**
    * Creates the details window that describes the selected difficulty
    * compared to the current difficulty.
@@ -398,8 +398,8 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._detailsWindow = difficultyDetailsWindow;
   }
-  //#endregion details window
-  //#endregion create windows
+  //endregion details window
+  //endregion create windows
 
   /**
    * Gets the difficulty being hovered over in the difficulty list.
@@ -414,7 +414,7 @@ class Scene_Difficulty extends Scene_MenuBase
     return listWindow.hoveredDifficulty();
   }
 
-  //#region on-hover
+  //region on-hover
   /**
    * A hook to perform logic when the selected
    */
@@ -477,9 +477,9 @@ class Scene_Difficulty extends Scene_MenuBase
     // set the text of the hovered difficulty for the help window.
     helpWindow.setText(hoveredDifficulty.description);
   }
-  //#endregion on-hover
+  //endregion on-hover
 
-  //#region on-select
+  //region on-select
   /**
    * Runs when the user chooses one of the items in the difficulty list.
    */
@@ -564,7 +564,7 @@ class Scene_Difficulty extends Scene_MenuBase
     // modify the layer points by the difficulty layer's cost.
     $gameSystem.modLayerPoints(difficulty.cost);
   }
-  //#endregion on-select
+  //endregion on-select
 
   /**
    * Refreshes all windows in the scene at once.
@@ -612,4 +612,4 @@ class Scene_Difficulty extends Scene_MenuBase
     detailsWindow.setHoveredDifficulty(hoveredDifficulty);
   }
 }
-//#endregion Scene_Difficulty
+//endregion Scene_Difficulty

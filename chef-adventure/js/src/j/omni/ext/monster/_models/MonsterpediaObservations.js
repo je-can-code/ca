@@ -1,4 +1,4 @@
-//#region MonsterpediaObservations
+//region MonsterpediaObservations
 /**
  * A monsterpedia entry of observations about a particular monster.
  * This data drives the visibility of data within a given monsterpedia entry.
@@ -142,4 +142,4 @@ MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
 {
   return this.knownElementalistics.includes(elementId);
 };
-//#endregion MonsterpediaObservations
+//endregion MonsterpediaObservations

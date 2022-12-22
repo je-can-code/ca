@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -203,9 +203,9 @@ J.DANGER.Aliased =
     Sprite_Character: new Map(),
     Spriteset_Map: new Map(),
   };
-//#endregion Introduction
+//endregion Introduction
 
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends `initCoreData()` to include our danger indicator flag.
  * @param {JABS_BattlerCoreData} battlerCoreData The core data of the battler.
@@ -233,9 +233,9 @@ JABS_Battler.prototype.showDangerIndicator = function()
 {
   return this._showDangerIndicator;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler
 
-//#region JABS_BattlerCoreData
+//region JABS_BattlerCoreData
 /**
  * Extends the `initMembers()` function to include our new data.
  */
@@ -270,9 +270,9 @@ JABS_BattlerCoreData.prototype.showDangerIndicator = function()
 
   return this._showDangerIndicator;
 };
-//#endregion JABS_BattlerCoreData
+//endregion JABS_BattlerCoreData
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Gets whether or not the actor's danger indicator will show.
  * Danger indicator is not applicable to actors (since it is relative to the player).
@@ -282,7 +282,7 @@ Game_Actor.prototype.showDangerIndicator = function()
 {
   return false;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
 /**
  * Gets the numeric representation of this battler's strength.
@@ -360,7 +360,7 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
   }
 };
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets whether or not an enemy has a visible danger indicator from their notes.
  * This will be overwritten by values provided from an event.
@@ -391,9 +391,9 @@ Game_Enemy.prototype.showDangerIndicator = function()
 
   return val;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Event
+//region Game_Event
 /**
  * Extends the binding of core battler data to the event.
  * Adds the danger indicator data to the core battler data.
@@ -471,9 +471,9 @@ Game_Event.prototype.canShowDangerIndicator = function(battlerId)
   // return whether or not to show the danger indicator.
   return showDangerIndicator;
 };
-//#endregion Game_Event
+//endregion Game_Event
 
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Extends the `initMembers()` function to include our new data.
  */
@@ -641,9 +641,9 @@ Sprite_Character.prototype.hideDangerIndicator = function()
 {
   this._j._dangerIndicator.hide();
 };
-//#endregion Sprite_Character
+//endregion Sprite_Character
 
-//#region Spriteset_Map
+//region Spriteset_Map
 /**
  * Extends `refreshAllCharacterSprites()` to also refresh danger indicators.
  */
@@ -656,4 +656,4 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
   // perform original logic.
   J.DANGER.Aliased.Spriteset_Map.get('refreshAllCharacterSprites').call(this);
 };
-//#endregion Spriteset_Map
+//endregion Spriteset_Map

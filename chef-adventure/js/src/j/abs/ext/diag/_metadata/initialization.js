@@ -5,7 +5,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -24,9 +24,9 @@ var J = J || {};
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin metadata
+//region plugin metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -64,5 +64,5 @@ J.DIAG.Aliased = {
   Game_Map: {},
   Game_Player: {},
 };
-//#endregion plugin metadata
-//#endregion Initialization
+//endregion plugin metadata
+//endregion Initialization

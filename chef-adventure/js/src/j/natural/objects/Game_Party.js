@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #gainItem}.
  * Also refreshes the passive states for the party.
@@ -25,4 +25,4 @@ Game_Party.prototype.refreshAllParameterBuffsForAll = function()
     .members()
     .forEach(member => member.refreshAllParameterBuffs());
 };
-//#endregion Game_Party
+//endregion Game_Party

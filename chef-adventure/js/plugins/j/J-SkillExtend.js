@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -178,7 +178,7 @@
  * ============================================================================
  */
 
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -217,9 +217,9 @@ J.EXTEND.Aliased.Game_Item = new Map();
 J.EXTEND.RegExp = {};
 J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
 J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-//#endregion Metadata
+//endregion Metadata
 
-//#region OverlayManager
+//region OverlayManager
 /**
  * A static class for managing the overlaying of one skill onto another.
  * The methods are divided by the attribute they overlay.
@@ -346,7 +346,7 @@ class OverlayManager
     return baseSkill;
   }
 
-  //#region overwrites
+  //region overwrites
   /**
    * Overlays the base skill data.
    *
@@ -984,12 +984,12 @@ class OverlayManager
     // return the overlayed base skill.
     return baseSkill;
   }
-//#endregion overwrites
+//endregion overwrites
 }
 
-//#endregion OverlayManager
+//endregion OverlayManager
 
-//#region Game_Action
+//region Game_Action
 /**
  * Overwrites {@link #setSkill}.
  * If a caster is available to this action, then update the udnerlying skill with
@@ -1161,9 +1161,9 @@ Game_Action.prototype.applyStates = function(target, stateChances)
     });
   }
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * OVERWRITE Gets the skill associated with the given skill id.
  * By abstracting this, we can modify the underlying skill before it reaches its destination.
@@ -1174,9 +1174,9 @@ Game_Actor.prototype.skill = function(skillId)
 {
   return OverlayManager.getExtendedSkill(this, skillId);
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Item
+//region Game_Item
 /**
  * Extend `initialize()` to include our update of assigning the item.
  */
@@ -1252,9 +1252,9 @@ Game_Item.prototype.object = function()
 
   return J.EXTEND.Aliased.Game_Item.get('object').call(this);
 };
-//#endregion Game_Item
+//endregion Game_Item
 
-//#region Game_Party
+//region Game_Party
 Game_Party.prototype.extraOnHitSelfStateSources = function()
 {
   const extraSources = [];
@@ -1294,4 +1294,4 @@ Game_Party.prototype.extraOnCastSelfStateSources = function()
   // return all found sources.
   return extraSources;
 };
-//#endregion Game_Party
+//endregion Game_Party

@@ -1,4 +1,4 @@
-//#region TextManager
+//region TextManager
 /**
  * Extends `.longParam()` to first search for our critical damage text ids.
  */
@@ -32,4 +32,4 @@ TextManager.critParam = function(paramId)
       return "Crit Block";
   }
 };
-//#endregion TextManager
+//endregion TextManager

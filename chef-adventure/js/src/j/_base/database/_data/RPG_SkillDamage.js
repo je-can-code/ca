@@ -1,10 +1,10 @@
-//#region RPG_SkillDamage
+//region RPG_SkillDamage
 /**
  * The damage data for the skill, such as the damage formula or associated element.
  */
 class RPG_SkillDamage
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not the damage can produce a critical hit.
    * @type {boolean}
@@ -34,7 +34,7 @@ class RPG_SkillDamage
    * @type {number}
    */
   variance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -57,4 +57,4 @@ class RPG_SkillDamage
     }
   }
 }
-//#endregion RPG_SkillDamage
+//endregion RPG_SkillDamage

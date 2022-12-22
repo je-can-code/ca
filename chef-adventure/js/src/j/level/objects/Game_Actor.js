@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * The base or default level for this battler.
  * Actors have a level tracker, so we'll use that for the base.
@@ -35,4 +35,4 @@ Game_Actor.prototype.getLevelBalancer = function()
   // we don't have any balancing required.
   return 0;
 };
-//#endregion Game_Actor
+//endregion Game_Actor

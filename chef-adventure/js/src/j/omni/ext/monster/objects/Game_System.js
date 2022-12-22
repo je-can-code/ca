@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Update the saved data with the running cache.
  */
@@ -24,4 +24,4 @@ Game_System.prototype.onAfterLoad = function()
   // update the savable data into the cache.
   $gameParty.synchronizeMonsterpediaAfterLoad();
 };
-//#endregion Game_System
+//endregion Game_System

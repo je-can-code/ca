@@ -1,6 +1,6 @@
 class Window_MonsterpediaDetail extends Window_Base
 {
-  //#region properties
+  //region properties
   /**
    * The player's observations of the currently highlighted enemy.
    * @type {MonsterpediaObservations|null}
@@ -30,7 +30,7 @@ class Window_MonsterpediaDetail extends Window_Base
    * @type {Map<number, Sprite_Icon>}
    */
   #exParameterIconCache = new Map();
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -59,7 +59,7 @@ class Window_MonsterpediaDetail extends Window_Base
     this.#currentObservations = observations;
   }
 
-  //#region image caching
+  //region image caching
   /**
    * Gets the battler image cache.
    * @returns {Map<number, Sprite_Enemy>}
@@ -334,7 +334,7 @@ class Window_MonsterpediaDetail extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion image caching
+  //endregion image caching
 
   /**
    * Extends {@link #clearContent}.

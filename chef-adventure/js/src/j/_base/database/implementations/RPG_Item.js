@@ -1,10 +1,10 @@
-//#region RPG_Item
+//region RPG_Item
 /**
  * A class representing a single item entry from the database.
  */
 class RPG_Item extends RPG_UsableItem
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not this item is removed after using it.
    * @type {boolean}
@@ -29,7 +29,7 @@ class RPG_Item extends RPG_UsableItem
    * @type {1}
    */
   kind = 1;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -47,4 +47,4 @@ class RPG_Item extends RPG_UsableItem
     this.price = item.price;
   }
 }
-//#endregion RPG_Item
+//endregion RPG_Item

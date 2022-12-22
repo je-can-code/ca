@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /* eslint-disable */
 /*:
  * @target MZ
@@ -325,7 +325,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -336,9 +336,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -579,9 +579,9 @@ J.DIFFICULTY.Aliased = {
   Game_Temp: new Map(),
   Scene_Map: new Map(),
 };
-//#endregion metadata
+//endregion metadata
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for calling the Difficulty scene/menu.
  */
@@ -677,10 +677,10 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args
   const parsedAmount = parseInt(amount);
   $gameSystem.modLayerPointMax(parsedAmount);
 });
-//#endregion plugin commands
-//#endregion introduction
+//endregion plugin commands
+//endregion introduction
 
-//#region DifficultyBuilder
+//region DifficultyBuilder
 /**
  * The fluent-builder for easily creating new difficulties.
  */
@@ -886,9 +886,9 @@ class DifficultyBuilder
     return this;
   }
 }
-//#endregion DifficultyBuilder
+//endregion DifficultyBuilder
 
-//#region DifficultyConfig
+//region DifficultyConfig
 class DifficultyConfig
 {
   /**
@@ -913,15 +913,15 @@ class DifficultyConfig
     return difficultyConfig;
   }
 
-  //#region properties
+  //region properties
   /**
    * The unique identifier of the difficulty, used for lookup and reference.
    * @type {string}
    */
   key = String.empty;
-  //#endregion properties
+  //endregion properties
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty is enabled.
    * When a difficulty is enabled, its global effects are applied.
@@ -940,7 +940,7 @@ class DifficultyConfig
    * @type {boolean}
    */
   hidden = false;
-  //#endregion access
+  //endregion access
 
   /**
    * Constructor.
@@ -957,9 +957,9 @@ class DifficultyConfig
     this.hidden = hidden;
   }
 }
-//#endregion DifficultyConfig
+//endregion DifficultyConfig
 
-//#region DifficultyLayer
+//region DifficultyLayer
 /**
  * A class governing a single difficulty and the way it impacts the game parameters.
  */
@@ -1040,7 +1040,7 @@ class DifficultyLayer
     return this.key === DifficultyLayer.appliedKey;
   }
 
-  //#region properties
+  //region properties
   /**
    * The name of the difficulty, visually to the player.
    * @type {string}
@@ -1121,9 +1121,9 @@ class DifficultyLayer
    * @type {number}
    */
   encounters = 100;
-  //#endregion properties
+  //endregion properties
 
-  //#region parameters
+  //region parameters
   /**
    * Gets the b-parameter multiplier for this difficulty.
    * The default is 100.
@@ -1156,9 +1156,9 @@ class DifficultyLayer
   {
     return this.xparams[paramId];
   }
-  //#endregion parameters
+  //endregion parameters
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty's cost can be covered by the remaining layer points.
    * @returns {boolean} True if the cost can be paid, false otherwise.
@@ -1282,17 +1282,17 @@ class DifficultyLayer
     // disable it.
     config.enabled = false;
   }
-  //#endregion access
+  //endregion access
 }
-//#endregion DifficultyLayer
+//endregion DifficultyLayer
 
-//#region Difficulty
+//region Difficulty
 /**
  * A class governing a single difficulty and the way it impacts the game parameters.
  */
 class DifficultyMetadata
 {
-  //#region properties
+  //region properties
   /**
    * The name of the difficulty, visually to the player.
    * @type {string}
@@ -1322,9 +1322,9 @@ class DifficultyMetadata
    * @type {number}
    */
   cost = 0;
-  //#endregion properties
+  //endregion properties
 
-  //#region params
+  //region params
   /**
    * The base/b-parameter multipliers.
    * The array aligns percent multipliers against the matching index's parameters.
@@ -1345,9 +1345,9 @@ class DifficultyMetadata
    * @type {[number, number, number, number, number, number, number, number, number, number]}
    */
   xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-  //#endregion params
+  //endregion params
 
-  //#region bonuses
+  //region bonuses
   /**
    * The bonus multiplier for experience earned by the player.
    * @type {number}
@@ -1377,9 +1377,9 @@ class DifficultyMetadata
    * @type {number}
    */
   encounters = 100;
-  //#endregion bonuses
+  //endregion bonuses
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty is enabled.
    * When a difficulty is enabled, its global effects are applied.
@@ -1398,9 +1398,9 @@ class DifficultyMetadata
    * @type {boolean}
    */
   hidden = false;
-  //#endregion access
+  //endregion access
 }
-//#endregion Difficulty
+//endregion Difficulty
 
 /**
  * Extends {@link DataManager.setupNewGame}.
@@ -1416,7 +1416,7 @@ DataManager.setupNewGame = function()
   $gameTemp.setupDifficultySystem();
 };
 
-//#region DifficultyManager
+//region DifficultyManager
 /**
  * A static class to manage the difficulties with.
  */
@@ -1612,9 +1612,9 @@ class DifficultyManager
     }
   }
 }
-//#endregion DifficultyManager
+//endregion DifficultyManager
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends the `.param(paramId)` function to modify by difficulty.
  * @returns {number}
@@ -1764,9 +1764,9 @@ if (J.SDP)
     return Math.round(originalValue * multiplier);
   };
 }
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Map
+//region Game_Map
 /**
  * Extends the `.encounterStep()` function to modify by difficulty.
  * @returns {number}
@@ -1786,9 +1786,9 @@ Game_Map.prototype.encounterStep = function()
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
 };
-//#endregion Game_Map
+//endregion Game_Map
 
-//#region Game_System
+//region Game_System
 /**
  * Extends the `.initialize()` with our difficulty initialization.
  */
@@ -1969,9 +1969,9 @@ Game_System.prototype.getRemainingLayerPoints = function()
 {
   return (this.getLayerPointMax() - this.getLayerPoints());
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Game_Temp
+//region Game_Temp
 /**
  * Intializes all additional members of this class.
  */
@@ -2235,9 +2235,9 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   // return the compiled difficulty.
   return newDifficulty;
 };
-//#endregion Game_Temp
+//endregion Game_Temp
 
-//#region Scene_Difficulty
+//region Scene_Difficulty
 /**
  * The difficulty scene for managing the current difficulty.
  */
@@ -2336,7 +2336,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverChange();
   }
 
-  //#region create windows
+  //region create windows
   /**
    * Creates all windows associated with the difficulty scene.
    */
@@ -2355,7 +2355,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.createDetailsWindow();
   }
 
-  //#region points window
+  //region points window
   /**
    * Creates the points window that displays information about your current point allocation.
    */
@@ -2410,9 +2410,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._pointsWindow = pointsWindow;
   }
-  //#endregion points window
+  //endregion points window
 
-  //#region help window
+  //region help window
   /**
    * Creates the help window that provides contextual details to the player
    * about the difficulty difference between the selected and current.
@@ -2475,9 +2475,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficultyHelpWindow = helpWindow;
   }
-  //#endregion help window
+  //endregion help window
 
-  //#region list window
+  //region list window
   /**
    * Creates the list of difficulties available to the player.
    * This uses the help window's coordinates, and must be created after it.
@@ -2560,9 +2560,9 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._listWindow = difficultyListWindow;
   }
-  //#endregion list window
+  //endregion list window
 
-  //#region details window
+  //region details window
   /**
    * Creates the details window that describes the selected difficulty
    * compared to the current difficulty.
@@ -2637,8 +2637,8 @@ class Scene_Difficulty extends Scene_MenuBase
   {
     this._j._difficulty._detailsWindow = difficultyDetailsWindow;
   }
-  //#endregion details window
-  //#endregion create windows
+  //endregion details window
+  //endregion create windows
 
   /**
    * Gets the difficulty being hovered over in the difficulty list.
@@ -2653,7 +2653,7 @@ class Scene_Difficulty extends Scene_MenuBase
     return listWindow.hoveredDifficulty();
   }
 
-  //#region on-hover
+  //region on-hover
   /**
    * A hook to perform logic when the selected
    */
@@ -2716,9 +2716,9 @@ class Scene_Difficulty extends Scene_MenuBase
     // set the text of the hovered difficulty for the help window.
     helpWindow.setText(hoveredDifficulty.description);
   }
-  //#endregion on-hover
+  //endregion on-hover
 
-  //#region on-select
+  //region on-select
   /**
    * Runs when the user chooses one of the items in the difficulty list.
    */
@@ -2803,7 +2803,7 @@ class Scene_Difficulty extends Scene_MenuBase
     // modify the layer points by the difficulty layer's cost.
     $gameSystem.modLayerPoints(difficulty.cost);
   }
-  //#endregion on-select
+  //endregion on-select
 
   /**
    * Refreshes all windows in the scene at once.
@@ -2851,9 +2851,9 @@ class Scene_Difficulty extends Scene_MenuBase
     detailsWindow.setHoveredDifficulty(hoveredDifficulty);
   }
 }
-//#endregion Scene_Difficulty
+//endregion Scene_Difficulty
 
-//#region Window_DifficultyDetails
+//region Window_DifficultyDetails
 class Window_DifficultyDetails extends Window_Base 
 {
   /**
@@ -3445,9 +3445,9 @@ class Window_DifficultyDetails extends Window_Base
     return biggerIsBetterXParameters[xparamId] ?? true;
   }
 }
-//#endregion Window_DifficultyDetails
+//endregion Window_DifficultyDetails
 
-//#region Window_DifficultyList
+//region Window_DifficultyList
 class Window_DifficultyList extends Window_Command
 {
   /**
@@ -3560,7 +3560,7 @@ class Window_DifficultyList extends Window_Command
   {
   }
 }
-//#endregion Window_DifficultyList
+//endregion Window_DifficultyList
 
 /**
  * A window containing the difficulty points information.

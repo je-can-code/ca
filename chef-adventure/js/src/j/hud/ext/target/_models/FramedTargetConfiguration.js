@@ -1,4 +1,4 @@
-//#region FramedTargetConfiguration
+//region FramedTargetConfiguration
 /**
  * A configuration object for whether to show/hide various target data points.
  */
@@ -56,4 +56,4 @@ class FramedTargetConfiguration
     this.showTp = showTp;
   }
 }
-//#endregion FramedTargetConfiguration
+//endregion FramedTargetConfiguration

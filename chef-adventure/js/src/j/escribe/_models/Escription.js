@@ -1,4 +1,4 @@
-//#region Escription
+//region Escription
 /**
  * A single "describe" class which contains various data to describe this event on the map.
  */
@@ -63,4 +63,4 @@ Escription.prototype.proximityIconRange = function()
 {
   return this._proximityIcon;
 };
-//#endregion Escription
+//endregion Escription

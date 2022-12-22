@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Gets the skill associated with the given skill id.
  * By default, we simply get the skill from the database with no modifications.
@@ -8,6 +8,15 @@
 Game_Battler.prototype.skill = function(skillId)
 {
   return $dataSkills[skillId];
+};
+
+/**
+ * Gets all skills this battler has available to it.
+ * @returns {RPG_Skill[]}
+ */
+Game_Battler.prototype.skills = function()
+{
+  return Array.empty;
 };
 
 /**
@@ -58,6 +67,9 @@ Game_Battler.prototype.getNotesSources = function()
     // add the actor/enemy to the source list.
     this.databaseData(),
 
+    // add all skills for the actor/enemy to the source list.
+    ...this.skills(),
+
     // add all currently applied states to the source list.
     ...this.allStates(),
   ];
@@ -73,7 +85,7 @@ Game_Battler.prototype.onBattlerDataChange = function()
 {
 };
 
-//#region state management
+//region state management
 /**
  * Gets the state associated with the given state id.
  * By abstracting this, we can modify the underlying state before it reaches its destination.
@@ -179,7 +191,7 @@ Game_Battler.prototype.allStates = function()
   // return that combined collection.
   return states;
 };
-//#endregion state management
+//endregion state management
 
 /**
  * Gets the current health percent of this battler.
@@ -189,4 +201,4 @@ Game_Battler.prototype.currentHpPercent = function()
 {
   return parseFloat((this.hp / this.mhp).toFixed(2));
 };
-//#endregion Game_Battler
+//endregion Game_Battler

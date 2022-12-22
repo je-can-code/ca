@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the extra text from this enemy for the target frame.
  * @returns {string}
@@ -323,4 +323,4 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   // return the truth.
   return showTargetText;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

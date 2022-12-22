@@ -1,4 +1,4 @@
-//#region Game_Character
+//region Game_Character
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
@@ -97,7 +97,7 @@ Game_Character.prototype.initJabsLootMembers = function()
   this._j._abs._loot._data = null;
 };
 
-//#region JABS action
+//region JABS action
 /**
  * If the event has a `JABS_Action` associated with it, return that.
  * @returns {JABS_Action}
@@ -195,9 +195,9 @@ Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = 
 {
   this._j._abs._action.needsRemoving = removeSprite;
 };
-//#endregion JABS action
+//endregion JABS action
 
-//#region JABS battler
+//region JABS battler
 /**
  * Gets the `uuid` of this `JABS_Battler`.
  */
@@ -255,9 +255,9 @@ Game_Character.prototype.getJabsBattler = function()
   // return the tracked battler.
   return JABS_AiManager.getBattlerByUuid(uuid);
 };
-//#endregion JABS battler
+//endregion JABS battler
 
-//#region JABS loot
+//region JABS loot
 /**
  * Gets the loot data for this character/event.
  * @returns {JABS_LootDrop}
@@ -318,7 +318,7 @@ Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true)
 {
   this._j._abs._loot._needsRemoving = needsRemoving;
 };
-//#endregion JABS loot
+//endregion JABS loot
 
 /**
  * Execute an animation of a provided id upon this character.
@@ -557,4 +557,4 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
   }
 };
 /* eslint-enable */
-//#endregion Game_Character
+//endregion Game_Character

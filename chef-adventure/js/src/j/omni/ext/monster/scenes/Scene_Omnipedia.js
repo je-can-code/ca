@@ -1,5 +1,5 @@
-//#region Scene_Omnipedia
-//#region root actions
+//region Scene_Omnipedia
+//region root actions
 /**
  * Extends {@link #onRootPediaSelection}.
  * When the monsterpedia is selected, open the monsterpedia.
@@ -35,5 +35,5 @@ Scene_Omnipedia.prototype.monsterpediaSelected = function()
   // call the monsterpedia scene.
   Scene_Monsterpedia.callScene();
 }
-//#endregion root actions
-//#endregion Scene_Omnipedia
+//endregion root actions
+//endregion Scene_Omnipedia

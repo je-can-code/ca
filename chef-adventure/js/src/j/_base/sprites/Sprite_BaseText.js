@@ -1,4 +1,4 @@
-//#region Sprite_BaseText
+//region Sprite_BaseText
 /**
  * A sprite that displays some text.
  * This acts as a base class for a number of other text-based sprites.
@@ -421,4 +421,4 @@ class Sprite_BaseText extends Sprite
       this.alignment());
   }
 }
-//#endregion Sprite_BaseText
+//endregion Sprite_BaseText

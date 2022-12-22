@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets all database sources we can get levels from.
  * @returns {RPG_BaseItem[]}
@@ -38,4 +38,4 @@ Game_Enemy.prototype.getLevelBalancer = function()
   // we don't have any balancing required.
   return 0;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

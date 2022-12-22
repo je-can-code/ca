@@ -1,4 +1,4 @@
-//#region Window_MonsterpediaList
+//region Window_MonsterpediaList
 /**
  * A window containing the list of all enemies perceived for the monsterpedia.
  */
@@ -117,4 +117,4 @@ class Window_MonsterpediaList extends Window_Command
       .build();
   }
 }
-//#endregion Window_MonsterpediaList
+//endregion Window_MonsterpediaList

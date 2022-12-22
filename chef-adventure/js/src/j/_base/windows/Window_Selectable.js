@@ -1,4 +1,4 @@
-//#region Window_Selectable
+//region Window_Selectable
 /**
  * Weaves in the "more data window" at the highest level of selectable.
  *
@@ -88,4 +88,4 @@ Window_Selectable.prototype.select = function(index)
 Window_Selectable.prototype.onIndexChange = function()
 {
 };
-//#endregion Window_Selectable
+//endregion Window_Selectable

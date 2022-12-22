@@ -1,4 +1,4 @@
-//#region Game_Player
+//region Game_Player
 /**
  * OVERWRITE Leverages dir8 instead of dir4 by default.
  * @returns {number}
@@ -85,4 +85,4 @@ if (globalThis && globalThis.CycloneMovement)
     }
   };
 }
-//#endregion Game_Player
+//endregion Game_Player

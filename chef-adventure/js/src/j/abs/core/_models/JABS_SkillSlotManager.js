@@ -1,4 +1,4 @@
-//#region JABS_SkillSlotManager
+//region JABS_SkillSlotManager
 /**
  * A class responsible for managing the skill slots on an actor.
  */
@@ -257,21 +257,6 @@ JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
 };
 
 /**
- * Gets all skill slots that have a skill assigned.
- * @returns {JABS_SkillSlot[]}
- */
-JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
-{
-  // define the invalid skill slots that allies shouldn't use skills from.
-  const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
-
-  // return the filtered list of slots with skills that aren't invalid.
-  return this.getEquippedSlots()
-    // exclude the invalid skill slots.
-    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
-};
-
-/**
  * Gets a skill slot by its key.
  * @param {string} key The key to find the matching slot for.
  * @returns {JABS_SkillSlot}
@@ -404,4 +389,4 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function()
 {
   this.getAllSlots().forEach(slot => slot.unlock());
 };
-//#endregion JABS_SkillSlotManager
+//endregion JABS_SkillSlotManager

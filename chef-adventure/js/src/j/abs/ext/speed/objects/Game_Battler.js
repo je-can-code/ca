@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends {@link Game_Battler.initMembers}.
  */
@@ -78,4 +78,4 @@ Game_Battler.prototype.refreshSpeedBoosts = function()
   // update the speed boost value with the latest.
   this.setWalkSpeedBoost(speedBoosts);
 };
-//#endregion Game_Battler
+//endregion Game_Battler

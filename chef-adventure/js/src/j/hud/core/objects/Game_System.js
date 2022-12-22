@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Extends the `initialize()` to include our hud data for remembering.
  */
@@ -49,4 +49,4 @@ Game_System.prototype.getHudAlliesVisible = function()
 {
   return this._j._hud._alliesVisible;
 };
-//#endregion Game_System
+//endregion Game_System

@@ -1,4 +1,4 @@
-//#region Window_Time
+//region Window_Time
 /**
  * A window class for displaying the time.
  */
@@ -105,4 +105,4 @@ class Window_Time
     this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
   };
 }
-//#endregion Window_Time
+//endregion Window_Time

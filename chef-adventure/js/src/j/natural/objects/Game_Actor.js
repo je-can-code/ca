@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #setup}.
  * Includes parameter buff initialization.
@@ -27,7 +27,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
   this.refreshAllParameterBuffs();
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -85,9 +85,9 @@ Game_Actor.prototype.getMaxTpGrowth = function(baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b params
+//region b params
 /**
  * Extends `.paramBase()` to include any additional growth bonuses as part of the base.
  */
@@ -165,9 +165,9 @@ Game_Actor.prototype.getBparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion b params
+//endregion b params
 
-//#region ex params
+//region ex params
 /**
  * Extends `.xparam()` to include any additional growth bonuses.
  */
@@ -246,9 +246,9 @@ Game_Actor.prototype.getXparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion ex params
+//endregion ex params
 
-//#region sp params
+//region sp params
 /**
  * Extends `.sparam()` to include any additional growth bonuses.
  */
@@ -328,9 +328,9 @@ Game_Actor.prototype.getSparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion sp params
+//endregion sp params
 
-//#region apply growths
+//region apply growths
 /**
  * Extends `.levelUp()` to include applying any natural growths the battler has.
  */
@@ -547,5 +547,5 @@ Game_Actor.prototype.getGrowthRegexBySparamId = function(sparamId)
 Game_Actor.prototype.applyNaturalCustomGrowths = function()
 {
 };
-//#endregion apply growths
-//#endregion Game_Actor
+//endregion apply growths
+//endregion Game_Actor

@@ -1,4 +1,4 @@
-//#region JAFT_Category
+//region JAFT_Category
 /**
  * Represents the category details for this recipe.
  * A single recipe can live in multiple categories.
@@ -74,4 +74,4 @@ JAFTING_Category.prototype.unlock = function()
 {
   this.unlocked = true;
 };
-//#endregion JAFT_Category
+//endregion JAFT_Category

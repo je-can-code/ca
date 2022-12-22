@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #initialize}.
  * Includes our custom members as well.
@@ -224,4 +224,4 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
   // also refresh our passive states tracker.
   this.refreshPassiveStates();
 };
-//#endregion Game_Party
+//endregion Game_Party

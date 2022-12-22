@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Checks the current battle party and averages all levels.
  * @returns {number} The average battle party level (rounded).
@@ -20,4 +20,4 @@ Game_Party.prototype.averageActorLevel = function()
   // the average level of the party.
   return Math.round(levelTotal / allies.length);
 }
-//#endregion Game_Party
+//endregion Game_Party

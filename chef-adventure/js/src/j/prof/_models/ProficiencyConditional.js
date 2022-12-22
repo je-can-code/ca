@@ -1,4 +1,4 @@
-//#region ProficiencyConditional
+//region ProficiencyConditional
 /**
  * A conditional revolving around skill proficiencies that when met, will
  * execute some kind of logic.
@@ -76,4 +76,4 @@ ProficiencyRequirement.prototype.initialize = function(skillId, proficiency)
    */
   this.proficiency = proficiency;
 };
-//#endregion ProficiencyConditional
+//endregion ProficiencyConditional

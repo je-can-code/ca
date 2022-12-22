@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * Extends the `initialize()` function to include initializing our new target tracker.
  * Note that the target tracker will remain null on this action until after our custom logic
@@ -121,4 +121,4 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
   // return the calculated amount of remaining critical damage after reductions.
   return modifiedCriticalDamage;
 };
-//#endregion Game_Action
+//endregion Game_Action

@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
@@ -78,4 +78,4 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
   return boostAmount;
 };
 
-//#endregion Game_Enemy
+//endregion Game_Enemy

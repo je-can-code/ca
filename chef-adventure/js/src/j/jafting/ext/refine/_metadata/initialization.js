@@ -4,7 +4,7 @@
 var J = J || {};
 J.JAFTING.EXT_REFINE = {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -23,7 +23,7 @@ J.JAFTING.EXT_REFINE = {};
     throw new Error(`Either missing J-JAFTING or has a lower version than the required: ${requiredJaftingVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * A helpful mapping of the various messages that we use in JAFTING.
@@ -173,4 +173,4 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJa
 {
   $gameJAFTING.enableRefinement();
 });
-//#endregion Introduction
+//endregion Introduction

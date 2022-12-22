@@ -1,4 +1,4 @@
-//#region Window_SkillType
+//region Window_SkillType
 /**
  * OVERWRITE Fixes the maximum columns for this screen to be 1.
  * @returns {number}
@@ -21,4 +21,4 @@ Window_SkillType.prototype.makeCommandList = function()
     });
   }
 };
-//#endregion Window_SkillType
+//endregion Window_SkillType

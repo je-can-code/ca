@@ -1,4 +1,4 @@
-//#region Scene_Skill
+//region Scene_Skill
 J.CMS_K.Aliased.Scene_Skill.initialize = Scene_Skill.prototype.initialize;
 Scene_Skill.prototype.initialize = function()
 {
@@ -63,4 +63,4 @@ Scene_Skill.prototype.itemWindowRect = function()
   const wy = this._statusWindow.y + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
-//#endregion Scene_Skill
+//endregion Scene_Skill

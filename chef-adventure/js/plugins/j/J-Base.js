@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:11 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 08:48:03 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 BASE] The base class for all J plugins.
+ * [v2.1.2 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -37,6 +37,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Added polyfill implementation for Array.prototype.at().
+ *    Updated Window_EquipItem code to enable extension.
  * - 2.1.1
  *    Lifted and shifted multiple functions out of my plugins into here.
  *    Added RPGManager class for helpful note parsing.
@@ -84,7 +87,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.1',
+  Version: '2.1.2',
 };
 
 /**
@@ -247,7 +250,7 @@ J.BASE.Aliased = {
   Window_Selectable: {},
 };
 
-//#region Helpers
+//region Helpers
 /**
  * The helper functions used commonly throughout my plugins.
  */
@@ -473,10 +476,32 @@ J.BASE.Helpers.parseString = function(str)
 }
 
 /**
- * An empty static constant string variable.
+ * Extends the global javascript {@link String} object.
+ * Adds a new property: {@link String.empty}, which is just an empty string.
+ *
+ * This is used to more clearly show developer intent rather than just arbitrarily
+ * adding empty double quotes all over the place.
+ * @type {""}
  */
-String.empty = '';
-Object.defineProperty(String, "empty", { writable: false });
+Object.defineProperty(String, "empty", { value: "", writable: false });
+
+/**
+ * Extends the global javascript {@link Array} object.
+ * Adds a new property: {@link Array.empty}, which is just an empty array.
+ *
+ * This is used to more clearly show developer intent rather than just arbitrarily
+ * adding empty hard brackets all over the place.
+ * @type {[]}
+ */
+Object.defineProperty(Array, "empty",
+  {
+    enumerable: true,
+    configurable: false,
+    get: function()
+    {
+      return Array.of();
+    },
+  });
 
 /**
  * Executes a given function a given number of `times`.
@@ -504,15 +529,42 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
   // return the masked string content.
   return stringToMask.toString().replace(structure, maskingCharacter);
 };
-//#endregion Helpers
+//endregion Helpers
 
-//#region RPG_ClassLearning
+/**
+ * A polyfill for {@link Array.prototype.at}.
+ * If this is not present in the available runtime, then this implementation
+ * will be used instead.
+ */
+if (![].at)
+{
+  /* eslint-disable */
+  Array.prototype.at = function(index)
+  {
+    index = Math.trunc(index) || 0;
+
+    if (index < 0)
+    {
+      index += this.length;
+    }
+
+    if (index < 0 || index >= this.length)
+    {
+      return undefined;
+    }
+
+    return this[index];
+  };
+  /* eslint-enable */
+}
+
+//region RPG_ClassLearning
 /**
  * A class representing a single learning of a skill for a class from the database.
  */
 class RPG_ClassLearning
 {
-  //#region properties
+  //region properties
   /**
    * The level that the owning class will learn the given skill.
    * @type {number}
@@ -530,7 +582,7 @@ class RPG_ClassLearning
    * @type {string}
    */
   note = String.empty;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -544,9 +596,9 @@ class RPG_ClassLearning
     this.note = learning.note;
   }
 }
-//#endregion RPG_ClassLearning
+//endregion RPG_ClassLearning
 
-//#region RPG_DropItem
+//region RPG_DropItem
 /**
  * A class representing a single drop item of an enemy from the database.
  */
@@ -620,7 +672,7 @@ class RPG_DropItem
     }
   }
 
-  //#region properties
+  //region properties
   /**
    * The id of the underlying item's entry in the database.
    * @type {number}
@@ -639,7 +691,7 @@ class RPG_DropItem
    * @type {number}
    */
   kind = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -653,15 +705,15 @@ class RPG_DropItem
     this.kind = kind;
   }
 }
-//#endregion RPG_DropItem
+//endregion RPG_DropItem
 
-//#region RPG_EnemyAction
+//region RPG_EnemyAction
 /**
  * A class representing a single enemy action from the database.
  */
 class RPG_EnemyAction
 {
-  //#region properties
+  //region properties
   /**
    * The first parameter of the condition configuration.
    * @type {number}
@@ -707,15 +759,15 @@ class RPG_EnemyAction
     this.skillId = enemyAction.skillId;
   }
 }
-//#endregion RPG_EnemyAction
+//endregion RPG_EnemyAction
 
-//#region RPG_SkillDamage
+//region RPG_SkillDamage
 /**
  * The damage data for the skill, such as the damage formula or associated element.
  */
 class RPG_SkillDamage
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not the damage can produce a critical hit.
    * @type {boolean}
@@ -745,7 +797,7 @@ class RPG_SkillDamage
    * @type {number}
    */
   variance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -768,9 +820,9 @@ class RPG_SkillDamage
     }
   }
 }
-//#endregion RPG_SkillDamage
+//endregion RPG_SkillDamage
 
-//#region RPG_Trait
+//region RPG_Trait
 /**
  * A class representing a single trait living on one of the many types
  * of database classes that leverage traits.
@@ -820,15 +872,15 @@ class RPG_Trait
     return new RPG_Trait({code, dataId, value});
   }
 }
-//#endregion RPG_Trait
+//endregion RPG_Trait
 
-//#region RPG_UsableEffect
+//region RPG_UsableEffect
 /**
  * A class representing a single effect on an item or skill from the database.
  */
 class RPG_UsableEffect
 {
-  //#region properties
+  //region properties
   /**
    * The type of effect this is.
    * @type {number}
@@ -852,7 +904,7 @@ class RPG_UsableEffect
    * @type {number}
    */
   value2 = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -867,9 +919,9 @@ class RPG_UsableEffect
     this.value2 = effect.value2;
   }
 }
-//#endregion RPG_UsableEffect
+//endregion RPG_UsableEffect
 
-//#region RPG_Base
+//region RPG_Base
 /**
  * A class representing the foundation of all database objects.
  * In addition to doing all the things that a database object normally does,
@@ -879,7 +931,7 @@ class RPG_UsableEffect
  */
 class RPG_Base
 {
-  //#region properties
+  //region properties
   /**
    * The original object that this data was built from.
    * @type {any}
@@ -914,9 +966,9 @@ class RPG_Base
    * @type {string}
    */
   note = String.empty;
-  //#endregion properties
+  //endregion properties
 
-  //#region base
+  //region base
   /**
    * Constructor.
    * Maps the base item's properties into this object.
@@ -1003,9 +1055,9 @@ class RPG_Base
   {
     return this._index();
   }
-  //#endregion base
+  //endregion base
 
-  //#region meta
+  //region meta
   /**
    * Gets the metadata of a given key from this entry as whatever value RMMZ stored it as.
    * Only returns null if there was no underlying data associated with the provided key.
@@ -1194,9 +1246,9 @@ class RPG_Base
     // it must just be a word or something.
     return str;
   }
-  //#endregion meta
+  //endregion meta
 
-  //#region note
+  //region note
   /**
    * Gets the note data of this baseitem split into an array by `\r\n`.
    * If this baseitem has no note data, it will return an empty array.
@@ -1331,7 +1383,7 @@ class RPG_Base
   /**
    * Gets all numbers matching the provided regex structure.
    *
-   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * This accepts a regex structure, assuming the capture group is a numeric value,
    * and concats all values together from each line in the notes that match the provided
    * regex structure.
    *
@@ -1342,7 +1394,7 @@ class RPG_Base
    * This can handle both integers and decimal numbers.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   * @returns {number[]|null} The concat'd array of all found numbers, or null if flagged.
    */
   getNumberArrayFromNotesByRegex(structure, nullIfEmpty = false)
   {
@@ -1365,14 +1417,14 @@ class RPG_Base
       // extract the captured formula.
       const [,result] = structure.exec(line);
 
-      // parse out the contents of the note.
+      // parse out the array of stringified numbers, and parse the strings.
       const parsed = JSON.parse(result).map(parseFloat);
 
-      // destructure the array and add its bits to the running total.
+      // destructure the array and add its bits to the running collection.
       val.push(...parsed);
     });
 
-    // return the
+    // return the concat'd array of all numbers found in the matching regex.
     return val;
   }
 
@@ -1733,11 +1785,11 @@ class RPG_Base
     // return the found value.
     return data;
   }
-  //#endregion note
+  //endregion note
 }
-//#endregion RPG_Base
+//endregion RPG_Base
 
-//#region RPG_BaseBattler
+//region RPG_BaseBattler
 /**
  * A class representing the groundwork for what all battlers
  * database data look like.
@@ -1773,9 +1825,9 @@ class RPG_BaseBattler extends RPG_Base
       .map(trait => new RPG_Trait(trait));
   }
 }
-//#endregion RPG_BaseBattler
+//endregion RPG_BaseBattler
 
-//#region RPG_BaseItem
+//region RPG_BaseItem
 /**
  * The class representing baseItem from the database,
  * and now an iconIndex with a description.
@@ -1810,9 +1862,9 @@ class RPG_BaseItem extends RPG_Base
     this.iconIndex = baseItem.iconIndex;
   }
 }
-//#endregion RPG_BaseItem
+//endregion RPG_BaseItem
 
-//#region RPG_Traited
+//region RPG_Traited
 /**
  * A class representing a BaseItem from the database, but with traits.
  */
@@ -1839,16 +1891,16 @@ class RPG_Traited extends RPG_BaseItem
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   }
 }
-//#endregion RPG_Traited
+//endregion RPG_Traited
 
-//#region RPG_EquipItem
+//region RPG_EquipItem
 /**
  * A base class representing containing common properties found in both
  * weapons and armors.
  */
 class RPG_EquipItem extends RPG_Traited
 {
-  //#region properties
+  //region properties
   /**
    * The type of equip this is.
    * This number is the index that maps to your equip types.
@@ -1869,7 +1921,7 @@ class RPG_EquipItem extends RPG_Traited
    * @type {number}
    */
   price = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -1886,17 +1938,36 @@ class RPG_EquipItem extends RPG_Traited
     this.params = equip.params;
     this.price = equip.price;
   }
-}
-//#endregion RPG_EquipItem
 
-//#region RPG_UsableItem
+  /**
+   * Determines whether or not this equip is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return this.etypeId === 1;
+  }
+
+  /**
+   * Determines whether or not this equip is an armor.
+   * Armor is defined as an equip type that is greater than 1.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return this.etypeId > 1;
+  }
+}
+//endregion RPG_EquipItem
+
+//region RPG_UsableItem
 /**
  * A class representing the base properties for any usable item or skill
  * from the database.
  */
 class RPG_UsableItem extends RPG_BaseItem
 {
-  //#region properties
+  //region properties
   /**
    * The animation id to execute for this skill.
    * @type {number}
@@ -1956,7 +2027,7 @@ class RPG_UsableItem extends RPG_BaseItem
    * @type {number}
    */
   tpGain = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -1981,15 +2052,15 @@ class RPG_UsableItem extends RPG_BaseItem
     this.tpGain = usableItem.tpGain;
   }
 }
-//#endregion RPG_UsableItem
+//endregion RPG_UsableItem
 
-//#region RPG_Actor
+//region RPG_Actor
 /**
  * A class representing a single actor battler's data from the database.
  */
 class RPG_Actor extends RPG_BaseBattler
 {
-  //#region properties
+  //region properties
   /**
    * The index of the character sprite of the battler
    * on the spritesheet.
@@ -2054,7 +2125,7 @@ class RPG_Actor extends RPG_BaseBattler
    * @type {string}
    */
   profile = String.empty;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2089,15 +2160,15 @@ class RPG_Actor extends RPG_BaseBattler
     this.profile = actor.profile;
   }
 }
-//#endregion RPG_Actor
+//endregion RPG_Actor
 
-//#region RPG_Armor
+//region RPG_Armor
 /**
  * A class representing a single armor from the database.
  */
 class RPG_Armor extends RPG_EquipItem
 {
-  //#region properties
+  //region properties
   /**
    * The type of armor this is.
    * This number is the index that maps to your armor types.
@@ -2110,7 +2181,7 @@ class RPG_Armor extends RPG_EquipItem
    * @type {3}
    */
   kind = 3;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2126,15 +2197,15 @@ class RPG_Armor extends RPG_EquipItem
     this.atypeId = armor.atypeId;
   }
 }
-//#endregion RPG_Armor
+//endregion RPG_Armor
 
-//#region RPG_Class
+//region RPG_Class
 /**
  * A class representing a RPG-relevant class from the database.
  */
 class RPG_Class extends RPG_Base
 {
-  //#region properties
+  //region properties
   /**
    * The four data points that comprise the EXP curve for this class.
    * @type {[number, number, number, number]}
@@ -2160,7 +2231,7 @@ class RPG_Class extends RPG_Base
    * @type {RPG_Trait[]}
    */
   traits = [];
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2181,15 +2252,15 @@ class RPG_Class extends RPG_Base
     .map(trait => new RPG_Trait(trait));
   }
 }
-//#endregion RPG_Class
+//endregion RPG_Class
 
-//#region RPG_Enemy
+//region RPG_Enemy
 /**
  * A class representing a single enemy battler's data from the database.
  */
 class RPG_Enemy extends RPG_BaseBattler
 {
-  //#region properties
+  //region properties
   /**
    * A collection of all actions that an enemy has assigned from the database.
    * @type {RPG_EnemyAction[]}
@@ -2227,7 +2298,7 @@ class RPG_Enemy extends RPG_BaseBattler
    * @type {[number, number, number, number, number, number, number, number]}
    */
   params = [1, 0, 0, 0, 0, 0, 0, 0];
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2260,15 +2331,15 @@ class RPG_Enemy extends RPG_BaseBattler
     this.params = enemy.params;
   }
 }
-//#endregion RPG_Enemy
+//endregion RPG_Enemy
 
-//#region RPG_Item
+//region RPG_Item
 /**
  * A class representing a single item entry from the database.
  */
 class RPG_Item extends RPG_UsableItem
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not this item is removed after using it.
    * @type {boolean}
@@ -2293,7 +2364,7 @@ class RPG_Item extends RPG_UsableItem
    * @type {1}
    */
   kind = 1;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2311,15 +2382,15 @@ class RPG_Item extends RPG_UsableItem
     this.price = item.price;
   }
 }
-//#endregion RPG_Item
+//endregion RPG_Item
 
-//#region RPG_Skill
+//region RPG_Skill
 /**
  * An class representing a single skill from the database.
  */
 class RPG_Skill extends RPG_UsableItem
 {
-  //#region properties
+  //region properties
   /**
    * The first line of the message for this skill.
    * @type {string}
@@ -2367,7 +2438,7 @@ class RPG_Skill extends RPG_UsableItem
    * @type {number}
    */
   tpCost = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2401,15 +2472,15 @@ class RPG_Skill extends RPG_UsableItem
     this.tpCost = skill.tpCost;
   }
 }
-//#endregion RPG_Skill
+//endregion RPG_Skill
 
-//#region RPG_State
+//region RPG_State
 /**
  * An class representing a single state from the database.
  */
 class RPG_State extends RPG_Traited
 {
-  //#region properties
+  //region properties
   /**
    * The automatic removal timing.
    * @type {0|1|2}
@@ -2536,7 +2607,7 @@ class RPG_State extends RPG_Traited
    * @type {number}
    */
   stepsToRemove = 100;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2570,15 +2641,15 @@ class RPG_State extends RPG_Traited
     this.stepsToRemove = state.stepsToRemove;
   }
 }
-//#endregion RPG_State
+//endregion RPG_State
 
-//#region RPG_Weapon
+//region RPG_Weapon
 /**
  * A class representing a single weapon from the database.
  */
 class RPG_Weapon extends RPG_EquipItem
 {
-  //#region properties
+  //region properties
   /**
    * The animation id for this weapon.
    * @type {number}
@@ -2597,7 +2668,7 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {2}
    */
   kind = 2;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -2614,7 +2685,7 @@ class RPG_Weapon extends RPG_EquipItem
     this.wtypeId = weapon.wtypeId;
   }
 }
-//#endregion RPG_Weapon
+//endregion RPG_Weapon
 
 /**
  * The structure of the data points required to play a sound effect using the {@link SoundManager}.
@@ -2661,7 +2732,7 @@ class RPG_SoundEffect
   }
 }
 
-//#region ColorManager
+//region ColorManager
 /**
  * Gets the color index from the "long" parameter id.
  *
@@ -2794,15 +2865,15 @@ ColorManager.equipType = function(equipTypeId)
 {
   return this.textColor(4);
 };
-//#endregion ColorManager
+//endregion ColorManager
 
-//#region DataManager
+//region DataManager
 /**
  * The over-arching object containing all of my added parameters.
  */
 DataManager._j ||= {};
 
-//#region rewrite data
+//region rewrite data
 /**
  * Whether or not the database JSON data has been wrapped yet or not.
  * @type {boolean}
@@ -3235,7 +3306,7 @@ DataManager.weaponRewriteClass = function()
 {
   return RPG_Weapon;
 };
-//#endregion rewrite data
+//endregion rewrite data
 
 /**
  * Checks whether or not the unidentified object is a skill.
@@ -3276,9 +3347,9 @@ DataManager.isArmor = function(unidentified)
 {
   return unidentified && ('atypeId' in unidentified);
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Graphics
+//region Graphics
 /**
  * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.
  * When combined with {@link Graphics.verticalPadding}, the origin x,y can be easily
@@ -3316,9 +3387,9 @@ Object.defineProperty(Graphics, "boxOrigin",
       return [this.horizontalPadding, this.verticalPadding];
     }
   });
-//#endregion Graphics
+//endregion Graphics
 
-//#region IconManager
+//region IconManager
 /**
  * A static class that manages the icon to X correlation, such as stats and elements.
  */
@@ -3917,9 +3988,9 @@ class IconManager
     }
   }
 }
-//#endregion IconManager
+//endregion IconManager
 
-//#region ImageManager
+//region ImageManager
 /**
  * Generates a promise based on the resolution of the bitmap.<br/>
  * If the promise resolves successfully, it'll contain the bitmap.<br/>
@@ -3957,9 +4028,9 @@ ImageManager.loadBitmapPromise = function(filename, directory)
  */
 ImageManager.iconColumns = 16;
 
-//#endregion ImageManager
+//endregion ImageManager
 
-//#region RPGManager
+//region RPGManager
 /**
  * A utility class for handling common database-related translations.
  */
@@ -4188,9 +4259,9 @@ class RPGManager
     return databaseDatas.some(regexMatchExists);
   }
 }
-//#endregion RPGManager
+//endregion RPGManager
 
-//#region SoundManager
+//region SoundManager
 /**
  * Plays the sound effect provided.
  * @param {RPG_SoundEffect} se The sound effect to play.
@@ -4199,7 +4270,7 @@ SoundManager.playSoundEffect = function(se)
 {
   AudioManager.playStaticSe(se);
 };
-//#endregion SoundManager
+//endregion SoundManager
 
 /**
  * Checks whether or not a file exists given the path with the file name.
@@ -4215,7 +4286,7 @@ StorageManager.fileExists = function(pathWithFile)
   return fs.existsSync(pathWithFile);
 };
 
-//#region TextManager
+//region TextManager
 /**
  * Gets the proper name of "SDP Multiplier".
  * @returns {string}
@@ -4544,14 +4615,14 @@ TextManager.isValidTypeId = function(id, types)
   // get the name!
   return true;
 }
-//#endregion TextManager
+//endregion TextManager
 
 /**
  * An implementation of a class surrounding the data for a singular window command.
  */
 class BuiltWindowCommand
 {
-  //#region properties
+  //region properties
   /**
    * The name of the command.
    * This is what visibly shows up in the list of commands.
@@ -4603,7 +4674,7 @@ class BuiltWindowCommand
    * @type {number}
    */
   #colorIndex = 0;
-  //#endregion properties
+  //endregion properties
 
   constructor(
     name,
@@ -4625,7 +4696,7 @@ class BuiltWindowCommand
     this.#lines = lines;
   }
 
-  //#region getters
+  //region getters
   /**
    * Gets the name for this command.
    * @returns {string}
@@ -4697,7 +4768,7 @@ class BuiltWindowCommand
   {
     return this.#colorIndex;
   }
-  //#endregion getters
+  //endregion getters
 }
 
 /**
@@ -4705,7 +4776,7 @@ class BuiltWindowCommand
  */
 class WindowCommandBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The name of the command.
    * This is what visibly shows up in the list of commands.
@@ -4757,7 +4828,7 @@ class WindowCommandBuilder
    * @type {number}
    */
   #colorIndex = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Start by defining the name, and chain additional setter methods to
@@ -4902,7 +4973,7 @@ class WindowCommandBuilder
   }
 }
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Gets the parameter value from the "long" parameter id.
  *
@@ -5029,11 +5100,8 @@ Game_Actor.prototype.getNotesSources = function()
     // add the actor's class to the source list.
     this.currentClass(),
 
-    // add the actor's skills to the source list.
-    ...this.skills(),
-
     // add all of the actor's valid equips to the source list.
-    ...this.equips().filter(equip => !!equip),
+    ...this.equippedEquips(),
   ];
 
   // combine the two source lists.
@@ -5180,6 +5248,25 @@ Game_Actor.prototype.onEquipChange = function()
   this.onBattlerDataChange();
 };
 
+J.BASE.Aliased.Game_Actor.set('changeClass', Game_Actor.prototype.changeClass);
+Game_Actor.prototype.changeClass = function(classId, keepExp)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('changeClass').call(this, classId, keepExp);
+
+  // perform on-class-change effects.
+  this.onClassChange(classId, keepExp);
+};
+
+/**
+ * An event hook fired when this actor changes classes.
+ */
+Game_Actor.prototype.onClassChange = function(classId, keepExp)
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
+};
+
 /**
  * Extends {@link #changeEquip}.
  * Adds a hook for performing actions when equipment on the actor has changed state.
@@ -5312,6 +5399,17 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
 };
 
 /**
+ * Gets all currently-equipped equips for this actor.
+ * Normally, {@link #equips} includes `null`s where there may be empty equipment slots,
+ * but this filters those out for you.
+ * @returns {RPG_EquipItem[]}
+ */
+Game_Actor.prototype.equippedEquips = function()
+{
+  return this.equips().filter(equip => !!equip);
+};
+
+/**
  * An event hook fired when this actor levels up.
  */
 Game_Actor.prototype.onLevelUp = function()
@@ -5354,9 +5452,9 @@ Game_Actor.prototype.levelDown = function()
   // triggers the on-level-down hook.
   this.onLevelDown();
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Gets the skill associated with the given skill id.
  * By default, we simply get the skill from the database with no modifications.
@@ -5366,6 +5464,15 @@ Game_Actor.prototype.levelDown = function()
 Game_Battler.prototype.skill = function(skillId)
 {
   return $dataSkills[skillId];
+};
+
+/**
+ * Gets all skills this battler has available to it.
+ * @returns {RPG_Skill[]}
+ */
+Game_Battler.prototype.skills = function()
+{
+  return Array.empty;
 };
 
 /**
@@ -5416,6 +5523,9 @@ Game_Battler.prototype.getNotesSources = function()
     // add the actor/enemy to the source list.
     this.databaseData(),
 
+    // add all skills for the actor/enemy to the source list.
+    ...this.skills(),
+
     // add all currently applied states to the source list.
     ...this.allStates(),
   ];
@@ -5431,7 +5541,7 @@ Game_Battler.prototype.onBattlerDataChange = function()
 {
 };
 
-//#region state management
+//region state management
 /**
  * Gets the state associated with the given state id.
  * By abstracting this, we can modify the underlying state before it reaches its destination.
@@ -5537,7 +5647,7 @@ Game_Battler.prototype.allStates = function()
   // return that combined collection.
   return states;
 };
-//#endregion state management
+//endregion state management
 
 /**
  * Gets the current health percent of this battler.
@@ -5547,9 +5657,9 @@ Game_Battler.prototype.currentHpPercent = function()
 {
   return parseFloat((this.hp / this.mhp).toFixed(2));
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_BattlerBase
+//region Game_BattlerBase
 /**
  * Returns a list of known base parameter ids.
  * @returns {number[]}
@@ -5588,7 +5698,7 @@ Object.defineProperty(Game_BattlerBase.prototype, "mtp",
     },
     configurable: true
   });
-//#endregion Game_BattlerBase
+//endregion Game_BattlerBase
 
 /**
  * Determines if this character is actually a player.
@@ -5696,7 +5806,7 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
   }
 };
 
-//#region Game_Enemies
+//region Game_Enemies
 /**
  * A class that acts as a lazy dictionary for {@link Game_Enemy} data.
  * Do not use the enemies from this class as actual battlers!
@@ -5733,9 +5843,9 @@ class Game_Enemies
     return enemy;
   }
 }
-//#endregion Game_Enemies
+//endregion Game_Enemies
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the battler id of this enemy from the database.
  * @returns {number}
@@ -5752,28 +5862,6 @@ Game_Enemy.prototype.battlerId = function()
 Game_Enemy.prototype.databaseData = function()
 {
   return this.enemy();
-};
-
-/**
- * All sources this enemy battler has available to it.
- * @returns {(RPG_Enemy|RPG_State|RPG_Skill)[]}
- */
-Game_Enemy.prototype.getNotesSources = function()
-{
-  // get the super-classes' note sources as a baseline.
-  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
-
-  // the list of note sources unique to enemies.
-  const enemyUniqueNoteSources = [
-    // add the actor's skills to the source list.
-    ...this.skills(),
-  ];
-
-  // combine the two source lists.
-  const combinedNoteSources = baseNoteSources.concat(enemyUniqueNoteSources);
-
-  // return our combination.
-  return combinedNoteSources;
 };
 
 /**
@@ -5854,9 +5942,9 @@ Game_Enemy.prototype.onDeath = function()
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Event
+//region Game_Event
 /**
  * Gets all valid-shaped comment event commands.
  * @returns {rm.types.EventCommand[]}
@@ -5954,9 +6042,9 @@ Game_Event.prototype.isErased = function()
 {
   return this._erased;
 };
-//#endregion Game_Event
+//endregion Game_Event
 
-//#region Game_Party
+//region Game_Party
 /**
  * Overwrites {@link #gainItem}.
  * Replaces item gain and management with index-based management instead.
@@ -6130,9 +6218,9 @@ Game_Party.prototype.allItemsQuantified = function()
   // return our quantified list.
   return allItemsRepeated;
 };
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_Player
+//region Game_Player
 /**
  * Determines if this character is actually a player.
  * @returns {boolean}
@@ -6141,7 +6229,7 @@ Game_Player.prototype.isPlayer = function()
 {
   return true;
 };
-//#endregion Game_Player
+//endregion Game_Player
 
 /**
  * Extends {@link Game_System.initialize}.
@@ -6164,7 +6252,7 @@ Game_System.prototype.initMembers = function()
 {
 };
 
-//#region Game_Temp
+//region Game_Temp
 /**
  * Extends {@link Game_Temp.initialize}.
  * Initializes all members of this class and adds our custom members.
@@ -6185,7 +6273,7 @@ Game_Temp.prototype.initialize = function()
 Game_Temp.prototype.initMembers = function()
 {
 };
-//#endregion Game_Temp
+//endregion Game_Temp
 
 /**
  * Pushes this current scene onto the stack, forcing it into action.
@@ -6195,7 +6283,7 @@ Scene_Base.prototype.callScene = function()
   SceneManager.push(this);
 };
 
-//#region Sprite_BaseText
+//region Sprite_BaseText
 /**
  * A sprite that displays some text.
  * This acts as a base class for a number of other text-based sprites.
@@ -6618,7 +6706,7 @@ class Sprite_BaseText extends Sprite
       this.alignment());
   }
 }
-//#endregion Sprite_BaseText
+//endregion Sprite_BaseText
 
 /**
  * Gets the underlying `Game_Character` or its appropriate subclass that this
@@ -6651,7 +6739,7 @@ Sprite_Character.prototype.isErased = function()
   return character.isErased();
 };
 
-//#region Sprite_Face
+//region Sprite_Face
 /**
  * A sprite that displays a single face.
  */
@@ -6698,9 +6786,9 @@ Sprite_Face.prototype.loadBitmap = function()
   const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
   this.setFrame(sx, sy, pw, ph);
 };
-//#endregion Sprite_Face
+//endregion Sprite_Face
 
-//#region Sprite_Icon
+//region Sprite_Icon
 /**
  * A customizable sprite that displays a single icon.
  *
@@ -6932,9 +7020,9 @@ class Sprite_Icon extends Sprite
     this.setFrame(x, y, iconWidth, iconHeight);
   }
 }
-//#endregion Sprite_Icon
+//endregion Sprite_Icon
 
-//#region Sprite_MapGauge
+//region Sprite_MapGauge
 /**
  * The sprite for displaying a gauge over a character's sprite.
  */
@@ -7170,18 +7258,18 @@ Sprite_MapGauge.prototype.currentMaxValue = function()
   }
   return NaN;
 };
-//#endregion Sprite_MapGauge
+//endregion Sprite_MapGauge
 
-//#region TileMap
+//region TileMap
 /**
  * OVERWRITE Fuck those autoshadows.
  */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 {
 };
-//#endregion TileMap
+//endregion TileMap
 
-//#region Window_Base
+//region Window_Base
 /**
  * All alignments available for {@link Window_Base.prototype.drawText}.
  */
@@ -7369,9 +7457,9 @@ Window_Base.prototype.setFontSize = function(fontSize)
   // set the font size to the new size.
   this.contents.fontSize = normalizedFontSize;
 };
-//#endregion Window_Base
+//endregion Window_Base
 
-//#region Window_Command
+//region Window_Command
 /**
  * Gets all commands currently in this list.
  * @returns {BuiltWindowCommand[]}
@@ -7649,7 +7737,81 @@ Window_Command.prototype.prependBuiltCommand = function(command)
 {
   this.commandList().unshift(command);
 };
-//#endregion Window_Command
+//endregion Window_Command
+
+//region Window_EquipItem
+/**
+ * Overwrites {@link #updateHelp}.
+ * Enables extension of the method's logic for various menu needs.
+ */
+Window_EquipItem.prototype.updateHelp = function()
+{
+  // perform parent logic.
+  Window_ItemList.prototype.updateHelp.call(this);
+
+  // validate we can update the actor comparison data.
+  if (this._actor && this._statusWindow && this._slotId >= 0)
+  {
+    // update the actor comparison.
+    this.updateActorComparison();
+  }
+};
+
+/**
+ * Updates the actor comparison of the status window by duplicating the actor
+ * and forcefully equipping it with the hovered item.
+ */
+Window_EquipItem.prototype.updateActorComparison = function()
+{
+  // duplicate the actor.
+  const actorClone = this.getActorClone(this._actor);
+
+  // perform setup before force-equipping the hovered item.
+  this.preEquipSetupActorClone(actorClone);
+
+  // force the duplicate actor to equip the hovered item.
+  actorClone.forceChangeEquip(this._slotId, this.item());
+
+  // perform setup after force-equipping the hovered item.
+  this.postEquipSetupActorClone(actorClone);
+
+  // update the status window with this new item.
+  this._statusWindow.setTempActor(actorClone);
+};
+
+/**
+ * Duplicates a given actor.
+ *
+ * The duplicate is not a real version of the {@link Game_Actor} class, but
+ * will have access to its prototypical inheritance.
+ * @param {Game_Actor} actorToCopy The actor to make a copy of.
+ * @returns {Game_Actor} A non-referenced duplicate of the given actor.
+ */
+Window_EquipItem.prototype.getActorClone = function(actorToCopy)
+{
+  return JsonEx.makeDeepCopy(actorToCopy);
+};
+
+/**
+ * A hook for performing logic on the clone of the actor for the status window.
+ * This is fired before equipping the actor clone with the equipment.
+ * @param {Game_Actor} actorClone The clone of the actor.
+ */
+// eslint-disable-next-line no-unused-vars
+Window_EquipItem.prototype.preEquipSetupActorClone = function(actorClone)
+{
+};
+
+/**
+ * A hook for performing logic on the clone of the actor for the status window.
+ * This is fired after equipping the actor clone with the equipment.
+ * @param {Game_Actor} actorClone The clone of the actor.
+ */
+// eslint-disable-next-line no-unused-vars
+Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone)
+{
+};
+//endregion Window_EquipItem
 
 
 /**
@@ -7769,14 +7931,13 @@ Window_Help.prototype.renderText = function()
   this.drawTextEx(this._text, x, y, width);
 };
 
-//#region Window_MoreData
+//region Window_MoreData
 /**
  * A window designed to display "more" data.
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
-class Window_MoreData
-  extends Window_Command
+class Window_MoreData extends Window_Command
 {
   /**
    * The various types supported by "more data" functionality.
@@ -7817,6 +7978,7 @@ class Window_MoreData
   {
     /**
      * The item we're displaying more data for.
+     * @type {RPG_EquipItem|RPG_UsableItem|null}
      */
     this.item = null;
 
@@ -7957,9 +8119,9 @@ class Window_MoreData
     }
   }
 }
-//#endregion Window_MoreData
+//endregion Window_MoreData
 
-//#region Window_Selectable
+//region Window_Selectable
 /**
  * Weaves in the "more data window" at the highest level of selectable.
  *
@@ -8049,9 +8211,9 @@ Window_Selectable.prototype.select = function(index)
 Window_Selectable.prototype.onIndexChange = function()
 {
 };
-//#endregion Window_Selectable
+//endregion Window_Selectable
 
-//#region WindowLayer
+//region WindowLayer
 /**
  * OVERWRITE Renders windows, but WITH the ability to overlay.
  *
@@ -8110,4 +8272,4 @@ WindowLayer.prototype.render = function(renderer)
 
   renderer.batch.flush();
 }
-//#endregion WindowLayer
+//endregion WindowLayer

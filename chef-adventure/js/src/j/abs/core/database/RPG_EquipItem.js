@@ -1,5 +1,5 @@
-//#region RPG_EquipItem
-//#region skillId
+//region RPG_EquipItem
+//region skillId
 /**
  * The skill id associated with this equipment.
  * This is typically found on weapons and offhand armors.
@@ -30,9 +30,9 @@ RPG_EquipItem.prototype.extractJabsSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SkillId, true);
 };
-//#endregion skillId
+//endregion skillId
 
-//#region offhand skillId
+//region offhand skillId
 /**
  * The offhand skill id override from this equip.
  * @type {number}
@@ -61,11 +61,11 @@ RPG_EquipItem.prototype.extractJabsOffhandSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
-//#endregion offhand skillId
+//endregion offhand skillId
 
 
 
-//#region useOnPickup
+//region useOnPickup
 /**
  * Normally defines whether or not an item will be automatically used
  * upon being picked up, however, equipment cannot be "used".
@@ -78,9 +78,9 @@ Object.defineProperty(RPG_EquipItem.prototype, "jabsUseOnPickup",
       return false;
     },
   });
-//#endregion useOnPickup
+//endregion useOnPickup
 
-//#region expiration
+//region expiration
 /**
  * The expiration time in frames for this equip drop.
  * @type {number|null}
@@ -110,5 +110,5 @@ RPG_EquipItem.prototype.extractJabsExpirationFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Expires, true);
 };
-//#endregion expiration
-//#endregion RPG_EquipItem
+//endregion expiration
+//endregion RPG_EquipItem

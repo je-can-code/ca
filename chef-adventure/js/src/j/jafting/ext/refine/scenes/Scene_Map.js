@@ -1,5 +1,5 @@
-//#region Scene_Map
-//#region window initialization
+//region Scene_Map
+//region window initialization
 /**
  * Extends the initialization of the JAFTING menu to include the refinment windows.
  */
@@ -156,7 +156,7 @@ Scene_Map.prototype.createJaftingRefinementConfirmationWindow = function()
   this._j._jaftingMenu._refineConfirmationWindow.hide();
   this.addWindow(this._j._jaftingMenu._refineConfirmationWindow);
 };
-//#endregion window initialization
+//endregion window initialization
 
 /**
  * When a refinement target is selected, perform this logic.
@@ -589,4 +589,4 @@ Scene_Map.prototype.toggleJaftingRefineConfirmationWindow = function(visible)
     this._j._jaftingMenu._refineConfirmationWindow.deactivate();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map

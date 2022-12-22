@@ -1,4 +1,4 @@
-//#region JABS_BattlerCoreData
+//region JABS_BattlerCoreData
 /**
  * Extends the `initMembers()` function to include our new data.
  */
@@ -33,4 +33,4 @@ JABS_BattlerCoreData.prototype.showDangerIndicator = function()
 
   return this._showDangerIndicator;
 };
-//#endregion JABS_BattlerCoreData
+//endregion JABS_BattlerCoreData

@@ -1,4 +1,4 @@
-//#region Sprite_SkillCost
+//region Sprite_SkillCost
 /**
  * A sprite that represents a skill slot's assigned skill's mp cost.
  */
@@ -204,4 +204,4 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
     this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
   }
 }
-//#endregion Sprite_SkillCost
+//endregion Sprite_SkillCost

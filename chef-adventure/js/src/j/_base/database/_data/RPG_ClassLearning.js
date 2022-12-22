@@ -1,10 +1,10 @@
-//#region RPG_ClassLearning
+//region RPG_ClassLearning
 /**
  * A class representing a single learning of a skill for a class from the database.
  */
 class RPG_ClassLearning
 {
-  //#region properties
+  //region properties
   /**
    * The level that the owning class will learn the given skill.
    * @type {number}
@@ -22,7 +22,7 @@ class RPG_ClassLearning
    * @type {string}
    */
   note = String.empty;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -36,4 +36,4 @@ class RPG_ClassLearning
     this.note = learning.note;
   }
 }
-//#endregion RPG_ClassLearning
+//endregion RPG_ClassLearning

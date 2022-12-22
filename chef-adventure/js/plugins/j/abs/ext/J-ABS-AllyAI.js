@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Sun Dec 18 2022 09:06:51 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -75,7 +75,7 @@
  *   the AI will make an active effort to keep your party buffed with all
  *   states available, and refresh states once they reach a designated
  *   threshold of duration (configurable) left.
- * 
+ *
  * ----------------------------------------------------------------------------
  * NOTE ABOUT COMBOS WITH ALLY AI:
  * As the player can, your allies can potentially perform combo skills, but
@@ -242,7 +242,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -261,9 +261,9 @@ var J = J || {};
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin setup and configuration
+//region plugin setup and configuration
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -329,10 +329,10 @@ J.ALLYAI.Aliased = {
  */
 J.ALLYAI.RegExp = {};
 J.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
-//#endregion plugin setup and configuration
-//#endregion Introduction
+//endregion plugin setup and configuration
+//endregion Introduction
 
-//#region JABS_AllyAI
+//region JABS_AllyAI
 /**
  * A class representing the AI-decision-making functionality for allies.
  */
@@ -344,7 +344,7 @@ function JABS_AllyAI()
 JABS_AllyAI.prototype = Object.create(JABS_AI.prototype);
 JABS_AllyAI.prototype.constructor = JABS_AllyAI;
 
-//#region statics
+//region statics
 /**
  * The strict enumeration of what ai modes are available for ally ai.
  * @type {any}
@@ -408,9 +408,9 @@ JABS_AllyAI.getModes = () => Object
 JABS_AllyAI.validateMode = potentialMode => JABS_AllyAI
   .getModes()
   .find(mode => mode.key === potentialMode);
-//#endregion statics
+//endregion statics
 
-//#region initialize
+//region initialize
 /**
  * Initializes this class.
  * @param {string} initialMode The mode to start out in.
@@ -432,9 +432,9 @@ JABS_AllyAI.prototype.initMembers = function()
    */
   this.memory = [];
 };
-//#endregion initialize
+//endregion initialize
 
-//#region mode
+//region mode
 /**
  * Gets the current mode this ally's AI is set to.
  * @returns {string}
@@ -458,9 +458,9 @@ JABS_AllyAI.prototype.changeMode = function(newMode)
 
   this.mode = newMode;
 };
-//#endregion mode
+//endregion mode
 
-//#region decide action
+//region decide action
 /**
  * Decides an action based on this battler's AI, the target, and the given available skills.
  * @param {JABS_Battler} user The battler of the AI deciding a skill.
@@ -494,7 +494,7 @@ JABS_AllyAI.prototype.decideAction = function(user, target ,availableSkills)
   }
 };
 
-//#region do-nothing
+//region do-nothing
 /**
  * Decides to do nothing and waits a short amount of time before doing anything else.
  * @returns {null}
@@ -507,9 +507,9 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
   // return nothing to indicate no action should be taken.
   return null;
 };
-//#endregion do-nothing
+//endregion do-nothing
 
-//#region basic-attack
+//region basic-attack
 /**
  * Decides a skill id based on the ai mode of "basic attack only".
  * @param {number[]} usableSkills The skill ids available to choose from.
@@ -558,9 +558,9 @@ JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
     return mainBasicAttackSkillId;
   }
 };
-//#endregion basic-attack
+//endregion basic-attack
 
-//#region variety
+//region variety
 /**
  * Decides a skill id based on the ai mode of "variety".
  * If no allies are in danger, then simply chooses a random skill.
@@ -628,9 +628,9 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
   // return the decided skill id.
   return chosenSkillId;
 };
-//#endregion variety
+//endregion variety
 
-//#region full-force
+//region full-force
 /**
  * Decides a skill id based on the ai mode of "full-force".
  * Always looks to choose the skill that will deal the most damage.
@@ -702,9 +702,9 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
   // return the chosen skill.
   return chosenSkillId;
 };
-//#endregion full-force
+//endregion full-force
 
-//#region support
+//region support
 /**
  * Decides a skill id based on this ally's current AI mode.
  * This mode prioritizes keeping allies alive.
@@ -753,7 +753,7 @@ JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
   return supportSkillId;
 };
 
-//#region support-cleansing
+//region support-cleansing
 /**
  * Decides on the best cleansing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -832,9 +832,9 @@ JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSk
 
   return bestSkillForStateCleansing;
 };
-//#endregion support-cleansing
+//endregion support-cleansing
 
-//#region support-healing
+//region support-healing
 /**
  * Decides on the best healing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -1030,9 +1030,9 @@ JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, heale
 
   return bestSkillId;
 };
-//#endregion support-healing
+//endregion support-healing
 
-//#region support-buffing
+//region support-buffing
 /**
  * Decides on the best buffing skill from the selection of skills available.
  * @param {number[]} availableSkills The skill ids available to choose from.
@@ -1087,8 +1087,8 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
 
   return bestSkillId;
 };
-//#endregion support-buffing
-//#endregion support
+//endregion support-buffing
+//endregion support
 
 /**
  * Overwrites {@link #aiComboChanceModifier}.
@@ -1115,9 +1115,9 @@ JABS_AllyAI.prototype.aiComboChanceModifier = function()
       return 0;
   }
 };
-//#endregion decide action
+//endregion decide action
 
-//#region battle memory
+//region battle memory
 /**
  * Handles a new memory for this battler's ally ai.
  * @param {JABS_BattleMemory} newMemory The new memory to handle.
@@ -1188,10 +1188,10 @@ JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills)
   // return the filtered list of skills.
   return usableSkills.filter(filtering);
 };
-//#endregion battle memory
-//#endregion JABS_AllyAI
+//endregion battle memory
+//endregion JABS_AllyAI
 
-//#region JABS_BattleMemory
+//region JABS_BattleMemory
 /**
  * A class representing a single battle memory.
  * Battle memories are simply a mapping of the battler targeted, the skill used, and
@@ -1247,9 +1247,9 @@ JABS_BattleMemory.prototype.wasEffective = function()
 {
   return this.effectiveness >= 1;
 };
-//#endregion JABS_BattleMemory
+//endregion JABS_BattleMemory
 
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends the engagement determination to handle aggro/passive party toggling.
  * @param {JABS_Battler} target The target to see if we should engage with.
@@ -1302,9 +1302,9 @@ JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
   // return the determination.
   return shouldEngage;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler
 
-//#region JABS_AiManager
+//region JABS_AiManager
 J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 /**
  * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
@@ -1432,9 +1432,9 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // setup the action for use!
   this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
 };
-//#endregion JABS_AiManager
+//endregion JABS_AiManager
 
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * Extends {@link JABS_Engine.prePartyCycling}.
  * Jumps all followers to the player upon party cycling.
@@ -1473,9 +1473,26 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
   // rebuild all allies.
   $gameMap.updateAllies();
 };
-//#endregion JABS_Engine
+//endregion JABS_Engine
 
-//#region Game_Actor
+//region JABS_SkillSlotManager
+/**
+ * Gets all skill slots that have a skill assigned.
+ * @returns {JABS_SkillSlot[]}
+ */
+JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
+{
+  // define the invalid skill slots that allies shouldn't use skills from.
+  const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
+
+  // return the filtered list of slots with skills that aren't invalid.
+  return this.getEquippedSlots()
+  // exclude the invalid skill slots.
+  .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
+};
+//endregion JABS_SkillSlotManager
+
+//region Game_Actor
 /**
  * Extends {@link #initMembers}.
  * Also tracks JABS ally AI.
@@ -1595,9 +1612,18 @@ Game_Actor.prototype.getDefaultAllyAI = function()
   // return the default of "variety" for ally ai.
   return JABS_AllyAI.modes.VARIETY.key;
 };
-//#endregion Game_Actor
 
-//#region Game_Follower
+/**
+ * Gets all skill slots that have skills assigned to them- excluding the tool slot.
+ * @returns {JABS_SkillSlot[]}
+ */
+Game_Actor.prototype.getValidSkillSlotsForAlly = function()
+{
+  return this.getSkillSlotManager().getEquippedAllySlots();
+};
+//endregion Game_Actor
+
+//region Game_Follower
 /**
  * OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
  * while this follower is engaged.
@@ -1860,9 +1886,9 @@ Game_Follower.prototype.handleEngagementDistancing = function()
 };
 
 // TODO: refactor handleEngagementDistancing().
-//#endregion Game_Follower
+//endregion Game_Follower
 
-//#region Game_Followers
+//region Game_Followers
 /**
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
@@ -1942,9 +1968,9 @@ Game_Followers.prototype.setDirectionFixAll = function(isFixed)
     follower.setDirection(isFixed);
   });
 };
-//#endregion Game_Followers
+//endregion Game_Followers
 
-//#region Game_Interpreter
+//region Game_Interpreter
 /**
  * Extends the "Set Moveroute" event command.
  * Sets all follower's direction-fix to be whatever the player's is after a moveroute.
@@ -1970,9 +1996,9 @@ Game_Interpreter.prototype.command205 = function(params)
   // return the outcome.
   return result;
 };
-//#endregion Game_Interpreter
+//endregion Game_Interpreter
 
-//#region Game_Map
+//region Game_Map
 /**
  * Extends {@link Game_Map.parseBattlers}.
  * Also parses ally battlers as well as events.
@@ -2050,9 +2076,9 @@ Game_Map.prototype.removeBattlers = function(battlers)
   // remove them from tracking.
   JABS_AiManager.removeBattlers(battlers);
 };
-//#endregion Game_Map
+//endregion Game_Map
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends initialization to include the ally AI configurations.
  */
@@ -2142,9 +2168,9 @@ Game_Party.prototype.removeActor = function(actorId)
   // update all allies when removing an actor from the party.
   $gameMap.updateAllies();
 };
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_Player
+//region Game_Player
 /**
  * Jumps all followers of the player back to the player.
  */
@@ -2154,9 +2180,9 @@ Game_Player.prototype.jumpFollowersToMe = function()
     .data()
     .forEach(follower => follower.jumpToPlayer());
 };
-//#endregion Game_Player
+//endregion Game_Player
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends the JABS menu initialization to include the new ally ai management selection.
  */
@@ -2364,9 +2390,9 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
       break;
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_AbsMenu
+//region Window_AbsMenu
 /**
  * Extends {@link #buildCommands}.
  * Adds the ally ai management command at the end of the list.
@@ -2411,9 +2437,9 @@ Window_AbsMenu.prototype.canAddAllyAiCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu
 
-//#region Window_AbsMenuSelect
+//region Window_AbsMenuSelect
 /**
  * Extends the initialization to include the actor id for ai management.
  */
@@ -2550,4 +2576,4 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
   // iterate over each mode and rebuild the commands.
   modes.forEach(forEacher, this);
 };
-//#endregion Window_AbsMenuSelect
+//endregion Window_AbsMenuSelect

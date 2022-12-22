@@ -1,4 +1,4 @@
-//#region Game_Map
+//region Game_Map
 /**
  * Extends `Game_Map.setup()` to parse out battlers and populate enemies.
  */
@@ -472,4 +472,4 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
 
   return false;
 };
-//#endregion Game_Map
+//endregion Game_Map

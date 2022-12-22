@@ -1,4 +1,4 @@
-//#region Game_Item
+//region Game_Item
 /**
  * Largely overwrites this function to instead leverage an item's index value over
  * it's ID for setting objects to the item slot.
@@ -14,4 +14,4 @@ Game_Item.prototype.setObject = function(item)
     ? item._key()
     : 0;
 };
-//#endregion Game_Item
+//endregion Game_Item

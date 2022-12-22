@@ -1,4 +1,4 @@
-//#region Game_Player
+//region Game_Player
 /**
  * Jumps all followers of the player back to the player.
  */
@@ -8,4 +8,4 @@ Game_Player.prototype.jumpFollowersToMe = function()
     .data()
     .forEach(follower => follower.jumpToPlayer());
 };
-//#endregion Game_Player
+//endregion Game_Player

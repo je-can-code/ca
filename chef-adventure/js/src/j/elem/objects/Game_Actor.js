@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
@@ -76,4 +76,4 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
   const factoredBoosts = filteredBoosts.map(boost => boost[1] / 100);
   return factoredBoosts.reduce((previousAmount, nextAmount) => previousAmount + nextAmount, 1);
 };
-//#endregion Game_Actor
+//endregion Game_Actor

@@ -1,4 +1,4 @@
-//#region Window_AbsMenuSelect
+//region Window_AbsMenuSelect
 /**
  * A window that is reused to draw all the subwindows of the JABS menu.
  */
@@ -174,4 +174,4 @@ class Window_AbsMenuSelect
     this.addCommand(name, "slot", true, dodgeSkill.key, iconIndex);
   }
 }
-//#endregion Window_AbsMenuSelect
+//endregion Window_AbsMenuSelect

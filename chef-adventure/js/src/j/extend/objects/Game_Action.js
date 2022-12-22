@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * Overwrites {@link #setSkill}.
  * If a caster is available to this action, then update the udnerlying skill with
@@ -170,4 +170,4 @@ Game_Action.prototype.applyStates = function(target, stateChances)
     });
   }
 };
-//#endregion Game_Action
+//endregion Game_Action

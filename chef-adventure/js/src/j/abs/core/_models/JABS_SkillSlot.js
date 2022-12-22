@@ -1,4 +1,4 @@
-//#region JABS_SkillSlot
+//region JABS_SkillSlot
 /**
  * This class represents a single skill slot handled by the skill slot manager.
  */
@@ -64,7 +64,7 @@ JABS_SkillSlot.prototype.initMembers = function()
   this.initVisualRefreshes();
 };
 
-//#region refreshes
+//region refreshes
 /**
  * Initializes the various visual refreshes.
  */
@@ -203,7 +203,7 @@ JABS_SkillSlot.prototype.acknowledgeIconRefresh = function()
 {
   this.needsIconRefresh = false;
 };
-//#endregion refreshes
+//endregion refreshes
 
 /**
  * Gets the cooldown associated with this skill slot.
@@ -542,4 +542,4 @@ JABS_SkillSlot.prototype.canBeAutocleared = function()
 
   return !noAutoclearSlots.includes(this.key);
 };
-//#endregion JABS_SkillSlot
+//endregion JABS_SkillSlot

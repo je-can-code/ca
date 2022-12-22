@@ -1,4 +1,4 @@
-//#region JCMS_ParameterKvp
+//region JCMS_ParameterKvp
 /**
  * A class representing a single key-value pair, with an optional long id.
  * This is used for storing table-like data related to actors and skills.
@@ -53,4 +53,4 @@ class JCMS_ParameterKvp
     return this._colorId;
   }
 }
-//#endregion JCMS_ParameterKvp
+//endregion JCMS_ParameterKvp

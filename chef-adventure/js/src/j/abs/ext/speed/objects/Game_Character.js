@@ -1,4 +1,4 @@
-//#region Game_Character
+//region Game_Character
 /**
  * Extends {@link Game_Character.distancePerFrame}.
  * Enables modification of the character's movement speed on the map.
@@ -73,4 +73,4 @@ Game_Character.prototype.minimumDistancePerFrame = function()
   // return the calculated amount.
   return minimumDistance;
 };
-//#endregion Game_Character
+//endregion Game_Character

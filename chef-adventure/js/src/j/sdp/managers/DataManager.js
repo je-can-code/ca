@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * Updates existing save files with the updated SDP plugin metadata.
  */
@@ -35,4 +35,4 @@ DataManager.extractSaveContents = function(contents)
   // perform original logic.
   J.SDP.Aliased.DataManager.get('extractSaveContents').call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager

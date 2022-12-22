@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:11 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -31,15 +31,15 @@
  *    Initial release.
  * ============================================================================
  */
-//#endregion Introduction
+//endregion Introduction
 
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -50,7 +50,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The over-arching extensions collection for this plugin.
@@ -97,6 +97,7 @@ J.OMNI.EXT.MONSTER.Aliased = {};
 J.OMNI.EXT.MONSTER.Aliased.Game_Enemy = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Game_Party = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Game_System = new Map();
+J.OMNI.EXT.MONSTER.Aliased.JABS_Battler = new Map();
 J.OMNI.EXT.MONSTER.Aliased.JABS_Engine = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList = new Map();
@@ -109,9 +110,44 @@ J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-//#endregion Metadata
+//endregion Metadata
 
-//#region MonsterpediaObservations
+//region JABS_Battler
+if (J.HUD && J.HUD.EXT_TARGET)
+{
+  /**
+   * Gets the target frame icon from the underlying character.
+   * @returns {number}
+   */
+  J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.set('getTargetFrameIcon', JABS_Battler.prototype.getTargetFrameIcon);
+  JABS_Battler.prototype.getTargetFrameIcon = function()
+  {
+    // perform original logic to get the target frame icon.
+    const originalTargetFrameIcon = J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.get('getTargetFrameIcon').call(this);
+
+    // if a target frame icon was provided, then just use that.
+    if (originalTargetFrameIcon !== 0) return originalTargetFrameIcon;
+
+    // if this isn't an enemy, then they don't get target frame icons.
+    const enemy = this.getBattler().enemy();
+
+    // check for a monster family icon instead.
+    const monsterFamilyIconIndex = enemy.monsterFamilyIcon;
+
+    // validate we have a monster family icon, too.
+    if (monsterFamilyIconIndex)
+    {
+      // return the monster family icon by default.
+      return monsterFamilyIconIndex;
+    }
+
+    // there is no freebie icons for this enemy.
+    return 0;
+  };
+}
+//endregion JABS_Battler
+
+//region MonsterpediaObservations
 /**
  * A monsterpedia entry of observations about a particular monster.
  * This data drives the visibility of data within a given monsterpedia entry.
@@ -255,9 +291,9 @@ MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
 {
   return this.knownElementalistics.includes(elementId);
 };
-//#endregion MonsterpediaObservations
+//endregion MonsterpediaObservations
 
-//#region RPG_Enemy
+//region RPG_Enemy
 /**
  * Whether or not this enemy should be hidden from the monsterpedia.
  * @type {boolean} True if the enemy should be hidden, false otherwise.
@@ -320,9 +356,9 @@ RPG_Enemy.prototype.getMonsterpediaDescription = function()
 {
   return this.getStringsFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
 };
-//#endregion RPG_Enemy
+//endregion RPG_Enemy
 
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * Processes the various on-hit effects against the target.
  * @param {JABS_Action} action The `JABS_Action` containing the action data.
@@ -384,9 +420,9 @@ JABS_Engine.prototype.processElementalisticObservations = function(action, targe
   // observe all of the elements against the enemy.
   elements.forEach(elementId => enemy.observeElement(elementId));
 };
-//#endregion JABS_Engine
+//endregion JABS_Engine
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the {@link MonsterpediaObservations} associated with this enemy.
  * If none exists yet, one will be initialized.
@@ -551,9 +587,9 @@ Game_Enemy.prototype.observeElement = function(elementId)
   // observe the element.
   observations.addKnownElementalistic(elementId);
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #initOmnipediaMembers}.
  * Includes monsterpedia members.
@@ -568,7 +604,7 @@ Game_Party.prototype.initOmnipediaMembers = function()
   this.initMonsterpediaMembers();
 };
 
-//#region monsterpedia
+//region monsterpedia
 /**
  * Initialize members related to the omnipedia's monsterpedia.
  */
@@ -752,10 +788,10 @@ Game_Party.prototype.getOrCreateMonsterpediaObservationsById = function(enemyId)
   // return the newly created observations.
   return createdObservations;
 };
-//#endregion monsterpedia
-//#endregion Game_Party
+//endregion monsterpedia
+//endregion Game_Party
 
-//#region Game_System
+//region Game_System
 /**
  * Update the saved data with the running cache.
  */
@@ -781,7 +817,7 @@ Game_System.prototype.onAfterLoad = function()
   // update the savable data into the cache.
   $gameParty.synchronizeMonsterpediaAfterLoad();
 };
-//#endregion Game_System
+//endregion Game_System
 
 /**
  * A scene containing access to all available and implemented pedia entries.
@@ -842,7 +878,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
     this.initialize();
   }
 
-  //#region init
+  //region init
   /**
    * Initialize the window and all properties required by the scene.
    */
@@ -914,9 +950,9 @@ class Scene_Monsterpedia extends Scene_MenuBase
      */
     this._j._omni._monster._pediaHelp = null;
   }
-  //#endregion init
+  //endregion init
 
-  //#region create
+  //region create
   /**
    * Initialize all resources required for this scene.
    */
@@ -969,10 +1005,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
     this.addChild(this._backgroundSprite);
     this.setBackgroundOpacity(192);
   }
-  //#endregion create
+  //endregion create
 
-  //#region windows
-  //#region list window
+  //region windows
+  //region list window
   /**
    * Creates the list of monsters the player has perceived.
    */
@@ -1049,9 +1085,9 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     this._j._omni._monster._pediaList = listWindow;
   }
-  //#endregion list window
+  //endregion list window
 
-  //#region detail window
+  //region detail window
   /**
    * Creates the detail of a single monster the player has perceived.
    */
@@ -1154,10 +1190,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
     window.close();
     window.hide();
   }
-  //#endregion detail window
-  //#endregion windows
+  //endregion detail window
+  //endregion windows
 
-  //#region actions
+  //region actions
   /**
    * Synchronize the detail window with the list window of the monsterpedia.
    */
@@ -1199,11 +1235,11 @@ class Scene_Monsterpedia extends Scene_MenuBase
     // revert to the previous scene.
     SceneManager.pop();
   }
-  //#endregion actions
+  //endregion actions
 }
 
-//#region Scene_Omnipedia
-//#region root actions
+//region Scene_Omnipedia
+//region root actions
 /**
  * Extends {@link #onRootPediaSelection}.
  * When the monsterpedia is selected, open the monsterpedia.
@@ -1239,12 +1275,12 @@ Scene_Omnipedia.prototype.monsterpediaSelected = function()
   // call the monsterpedia scene.
   Scene_Monsterpedia.callScene();
 }
-//#endregion root actions
-//#endregion Scene_Omnipedia
+//endregion root actions
+//endregion Scene_Omnipedia
 
 class Window_MonsterpediaDetail extends Window_Base
 {
-  //#region properties
+  //region properties
   /**
    * The player's observations of the currently highlighted enemy.
    * @type {MonsterpediaObservations|null}
@@ -1274,7 +1310,7 @@ class Window_MonsterpediaDetail extends Window_Base
    * @type {Map<number, Sprite_Icon>}
    */
   #exParameterIconCache = new Map();
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -1303,7 +1339,7 @@ class Window_MonsterpediaDetail extends Window_Base
     this.#currentObservations = observations;
   }
 
-  //#region image caching
+  //region image caching
   /**
    * Gets the battler image cache.
    * @returns {Map<number, Sprite_Enemy>}
@@ -1578,7 +1614,7 @@ class Window_MonsterpediaDetail extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion image caching
+  //endregion image caching
 
   /**
    * Extends {@link #clearContent}.
@@ -2640,7 +2676,7 @@ class Window_MonsterpediaDetail extends Window_Base
    */
 }
 
-//#region Window_MonsterpediaList
+//region Window_MonsterpediaList
 /**
  * A window containing the list of all enemies perceived for the monsterpedia.
  */
@@ -2759,7 +2795,7 @@ class Window_MonsterpediaList extends Window_Command
       .build();
   }
 }
-//#endregion Window_MonsterpediaList
+//endregion Window_MonsterpediaList
 
 /**
  * Extends {@link #buildCommands}.

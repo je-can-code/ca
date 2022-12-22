@@ -1,4 +1,4 @@
-//#region RPG_Base
+//region RPG_Base
 /**
  * The movement speed modifier from this from database object.
  * @type {number|null}
@@ -28,4 +28,4 @@ RPG_Base.prototype.extractJabsSpeedBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.EXT_SPEED.RegExp.WalkSpeedBoost, true);
 };
-//#endregion RPG_Base
+//endregion RPG_Base

@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -34,7 +34,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -45,9 +45,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -85,10 +85,10 @@ J.HUD.EXT_INPUT.Metadata =
 J.HUD.EXT_INPUT.Aliased = {
   Scene_Map: new Map(),
 };
-//#endregion metadata
-//#endregion introduction
+//endregion metadata
+//endregion introduction
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
@@ -224,9 +224,9 @@ Scene_Map.prototype.refreshHud = function()
   this._j._inputFrame.refreshCache();
   this._j._inputFrame.refresh();
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Sprite_BaseSkillSlot
+//region Sprite_BaseSkillSlot
 /**
  * A sprite that represents a skill slot.
  * This is a base class for other things that need data from a skill slot.
@@ -404,7 +404,7 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
     return skill.name;
   }
 }
-//#endregion Sprite_BaseSkillSlot
+//endregion Sprite_BaseSkillSlot
 
 /**
  * A simple calculated gauge representing the current cooldown of an action.
@@ -427,7 +427,7 @@ class Sprite_CooldownGauge extends Sprite
     this.setup(cooldownData);
   }
 
-  //#region properties
+  //region properties
   /**
    * Initializes all members of this class.
    */
@@ -584,7 +584,7 @@ class Sprite_CooldownGauge extends Sprite
 
     return parsedRate;
   }
-  //#endregion properties
+  //endregion properties
 
   /**
    * Sets up the gauge based on the cooldown data.
@@ -749,7 +749,7 @@ class Sprite_CooldownGauge extends Sprite
   }
 }
 
-//#region Sprite_CooldownTimer
+//region Sprite_CooldownTimer
 /**
  * A sprite that displays a timer representing the cooldown time for a JABS action.
  */
@@ -866,9 +866,9 @@ Sprite_CooldownTimer.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 }
-//#endregion
+//endregion
 
-//#region Sprite_InputKeySlot
+//region Sprite_InputKeySlot
 /**
  * A single sprite that owns the drawing and management of a single input key slot.
  */
@@ -938,7 +938,7 @@ class Sprite_InputKeySlot extends Sprite
     this.drawInputKey();
   }
 
-  //#region getters & setters
+  //region getters & setters
   /**
    * Gets the assigned skill slot.
    * @returns {JABS_SkillSlot|null}
@@ -1047,9 +1047,9 @@ class Sprite_InputKeySlot extends Sprite
   {
     this._j._battler = battler;
   }
-  //#endregion getters & setters
+  //endregion getters & setters
 
-  //#region caching
+  //region caching
   /**
    * Ensures all sprites are created and available for use.
    */
@@ -1343,9 +1343,9 @@ class Sprite_InputKeySlot extends Sprite
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
-  //#region drawing
+  //region drawing
   /**
    * Draws the input key sprite based on the currently assigned data.
    */
@@ -1548,11 +1548,11 @@ class Sprite_InputKeySlot extends Sprite
     sprite.show();
     sprite.move(x, y+24);
   }
-  //#endregion drawing
+  //endregion drawing
 }
-//#endregion Sprite_InputKeySlot
+//endregion Sprite_InputKeySlot
 
-//#region Sprite_SkillCost
+//region Sprite_SkillCost
 /**
  * A sprite that represents a skill slot's assigned skill's mp cost.
  */
@@ -1758,9 +1758,9 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
     this.skillSlot().acknowledgeCostRefreshByType(this.skillCostType());
   }
 }
-//#endregion Sprite_SkillCost
+//endregion Sprite_SkillCost
 
-//#region Sprite_SkillName
+//region Sprite_SkillName
 /**
  * A sprite that represents a skill slot's assigned skill's name.
  */
@@ -1820,9 +1820,9 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
     this.skillSlot().acknowledgeNameRefresh();
   }
 }
-//#endregion Sprite_SkillName
+//endregion Sprite_SkillName
 
-//#region Sprite_SkillSlotIcon
+//region Sprite_SkillSlotIcon
 /**
  * A sprite that displays the icon represented by the assigned skill slot.
  */
@@ -1975,9 +1975,9 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
     }
   }
 }
-//#endregion Sprite_SkillIcon
+//endregion Sprite_SkillIcon
 
-//#region Window_InputFrame
+//region Window_InputFrame
 /**
  * A window displaying available skills and button inputs.
  */
@@ -2052,7 +2052,7 @@ class Window_InputFrame extends Window_Frame
     this._j._needsRefresh = false;
   }
 
-  //#region caching
+  //region caching
   /**
    * Ensures all sprites are created and available for use.
    */
@@ -2108,7 +2108,7 @@ class Window_InputFrame extends Window_Frame
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Refreshes the contents of this window.
@@ -2148,7 +2148,7 @@ class Window_InputFrame extends Window_Frame
     this.drawInputFrame();
   }
 
-  //#region visibility
+  //region visibility
   /**
    * Manages visibility for the hud.
    */
@@ -2235,7 +2235,7 @@ class Window_InputFrame extends Window_Frame
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
-  //#endregion visibility
+  //endregion visibility
 
   /**
    * The rough estimate of width for a single input key and all its subsprites.
@@ -2378,4 +2378,4 @@ class Window_InputFrame extends Window_Frame
     sprite.move(x+6, y+20);
   }
 }
-//#endregion Window_InputFrame
+//endregion Window_InputFrame

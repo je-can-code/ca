@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
  */
@@ -256,7 +256,7 @@ Scene_Map.prototype.hideAllJabsWindows = function()
   this._j._absMenu._equipDodgeWindow.hide();
 };
 
-//#region JABS Menu
+//region JABS Menu
 /**
  * OVERWRITE Disable the primary menu from being called while JABS is enabled.
  */
@@ -658,5 +658,5 @@ Scene_Map.prototype.closeAbsMenu = function()
 {
   this._j._absMenu._mainWindow.closeMenu();
 };
-//#endregion JABS Menu
-//#endregion Scene_Map
+//endregion JABS Menu
+//endregion Scene_Map

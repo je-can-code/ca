@@ -1,10 +1,10 @@
-//#region RPG_UsableEffect
+//region RPG_UsableEffect
 /**
  * A class representing a single effect on an item or skill from the database.
  */
 class RPG_UsableEffect
 {
-  //#region properties
+  //region properties
   /**
    * The type of effect this is.
    * @type {number}
@@ -28,7 +28,7 @@ class RPG_UsableEffect
    * @type {number}
    */
   value2 = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -43,4 +43,4 @@ class RPG_UsableEffect
     this.value2 = effect.value2;
   }
 }
-//#endregion RPG_UsableEffect
+//endregion RPG_UsableEffect

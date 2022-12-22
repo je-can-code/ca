@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Extends the `.initialize()` with our difficulty initialization.
  */
@@ -179,4 +179,4 @@ Game_System.prototype.getRemainingLayerPoints = function()
 {
   return (this.getLayerPointMax() - this.getLayerPoints());
 };
-//#endregion Game_System
+//endregion Game_System

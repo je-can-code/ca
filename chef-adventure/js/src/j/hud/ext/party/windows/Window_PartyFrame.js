@@ -1,4 +1,4 @@
-//#region Window_PartyFrame
+//region Window_PartyFrame
 /**
  * A window containing the HUD data for the map.
  */
@@ -124,7 +124,7 @@ class Window_PartyFrame extends Window_Base
     });
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -598,7 +598,7 @@ class Window_PartyFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * The per-frame update of this window.
@@ -633,7 +633,7 @@ class Window_PartyFrame extends Window_Base
     this.drawAllies(136, 8);
   }
 
-  //#region visibility
+  //region visibility
   /**
    * Manages visibility for the hud.
    */
@@ -720,7 +720,7 @@ class Window_PartyFrame extends Window_Base
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
-  //#endregion visibility
+  //endregion visibility
 
   /**
    * Draw the leader's data for the HUD.
@@ -1003,4 +1003,4 @@ class Window_PartyFrame extends Window_Base
     tpGauge.show();
   }
 }
-//#endregion Window_PartyFrame
+//endregion Window_PartyFrame

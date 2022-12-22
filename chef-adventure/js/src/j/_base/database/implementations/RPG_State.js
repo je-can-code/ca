@@ -1,10 +1,10 @@
-//#region RPG_State
+//region RPG_State
 /**
  * An class representing a single state from the database.
  */
 class RPG_State extends RPG_Traited
 {
-  //#region properties
+  //region properties
   /**
    * The automatic removal timing.
    * @type {0|1|2}
@@ -131,7 +131,7 @@ class RPG_State extends RPG_Traited
    * @type {number}
    */
   stepsToRemove = 100;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -165,4 +165,4 @@ class RPG_State extends RPG_Traited
     this.stepsToRemove = state.stepsToRemove;
   }
 }
-//#endregion RPG_State
+//endregion RPG_State

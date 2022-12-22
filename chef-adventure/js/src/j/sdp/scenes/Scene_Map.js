@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Adds the functionality for calling the SDP menu from the JABS quick menu.
  */
@@ -22,4 +22,4 @@ Scene_Map.prototype.commandSdp = function()
 {
   Scene_SDP.callScene();
 };
-//#endregion Scene_Map
+//endregion Scene_Map

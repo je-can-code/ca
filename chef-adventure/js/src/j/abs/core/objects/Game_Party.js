@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends the initialize to include additional objects for JABS.
  */
@@ -89,4 +89,4 @@ Game_Party.prototype.swapLeaderWithFollower = function(newIndex)
   // update the player with the change in party member order.
   $gamePlayer.refresh();
 };
-//#endregion Game_Party
+//endregion Game_Party

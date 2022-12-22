@@ -1,4 +1,4 @@
-//#region JAFTING_Trait
+//region JAFTING_Trait
 /**
  * A class representing a single trait on a piece of equipment that can be potentially
  * transferred by means of JAFTING's refinement mode.
@@ -256,4 +256,4 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 {
   return RPG_Trait.fromValues(this._code, this._dataId, this._value);
 };
-//#endregion JAFTING_Trait
+//endregion JAFTING_Trait

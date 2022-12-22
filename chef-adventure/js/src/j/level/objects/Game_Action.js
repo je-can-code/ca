@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * Scales damaged dealt and received to be based on level differences.
  */
@@ -14,4 +14,4 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
   // return the product of these two values.
   return (baseDamage * multiplier);
 }
-//#endregion Game_Action
+//endregion Game_Action

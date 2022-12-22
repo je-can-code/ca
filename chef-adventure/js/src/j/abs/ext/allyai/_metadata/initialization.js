@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -22,9 +22,9 @@ var J = J || {};
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin setup and configuration
+//region plugin setup and configuration
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -90,5 +90,5 @@ J.ALLYAI.Aliased = {
  */
 J.ALLYAI.RegExp = {};
 J.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
-//#endregion plugin setup and configuration
-//#endregion Introduction
+//endregion plugin setup and configuration
+//endregion Introduction

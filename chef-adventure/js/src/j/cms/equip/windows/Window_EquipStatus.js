@@ -1,4 +1,4 @@
-//#region Window_EquipStatus
+//region Window_EquipStatus
 /**
  * Gets the parameter bitmap width.
  * @returns {number} The parameter bitmap width.
@@ -15,7 +15,7 @@ Window_EquipStatus.prototype.drawAllParams = function()
   this.drawAllSParams(360, 380);
 };
 
-//#region b-parameters
+//region b-parameters
 /**
  * Draws all b-parameters and their changed values.
  * @param {number} ox The origin x.
@@ -91,9 +91,9 @@ Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(newValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion b-parameters
+//endregion b-parameters
 
-//#region x-parameters
+//region x-parameters
 /**
  * Draws all x-params.
  * @param {number} ox The origin x.
@@ -170,9 +170,9 @@ Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion x-parameters
+//endregion x-parameters
 
-//#region s-parameters
+//region s-parameters
 /**
  * Draws all s-params.
  * @param {number} ox The origin x.
@@ -249,7 +249,7 @@ Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion s-parameters
+//endregion s-parameters
 
 Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue)
 {
@@ -274,4 +274,4 @@ Window_EquipStatus.prototype.arrowCharacter = function(diffValue)
     return "\u2192";
   }
 };
-//#endregion Window_EquipStatus
+//endregion Window_EquipStatus

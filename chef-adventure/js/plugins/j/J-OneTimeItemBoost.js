@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -216,9 +216,9 @@ J.OTIB.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region OneTimeItemBoost
+//region OneTimeItemBoost
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
@@ -281,9 +281,9 @@ OneTimeItemBoost.prototype.lock = function()
 {
   this.unlocked = false;
 };
-//#endregion OneTimeItemBoost
+//endregion OneTimeItemBoost
 
-//#region OneTimeItemBoostParam
+//region OneTimeItemBoostParam
 /**
  * A class representing the permanent data of a one time boost from a single item.
  */
@@ -314,9 +314,9 @@ OneTimeItemBoostParam.prototype.initialize = function(paramId, boost, isPercent)
    */
   this.isPercent = isPercent;
 };
-//#endregion OneTimeItemBoostParam
+//endregion OneTimeItemBoostParam
 
-//#region DataManager
+//region DataManager
 /**
  * Update save data with new plugin metadata.
  */
@@ -368,9 +368,9 @@ DataManager.extractSaveContents = function(contents)
 
   J.OTIB.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Adds new properties to the actors that manage the SDP system.
  */
@@ -637,9 +637,9 @@ Game_Actor.prototype.maxTp = function()
   // return the result.
   return result;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Determines whether or not the {@link OneTimeItemBoost} has been unlocked yet.
  * @param {number} itemId The id of the item granting the boost.
@@ -688,4 +688,4 @@ Game_Battler.prototype.handleOtibUnlock = function(item)
     this.unlockOtib(id);
   }
 };
-//#endregion Game_Battler
+//endregion Game_Battler

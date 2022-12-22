@@ -1,4 +1,4 @@
-//#region teamId
+//region teamId
 /**
  * The JABS team id for this battler.
  * This number is the id of the team that this battler will belong to.
@@ -28,9 +28,9 @@ RPG_BaseBattler.prototype.extractJabsTeamId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.TeamId, true);
 };
-//#endregion teamId
+//endregion teamId
 
-//#region prepare time
+//region prepare time
 /**
  * The JABS prepare time for this battler.
  * This number represents how many frames must pass before this battler can
@@ -62,9 +62,9 @@ RPG_BaseBattler.prototype.extractJabsPrepareTime = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.PrepareTime, true);
 };
-//#endregion prepare time
+//endregion prepare time
 
-//#region sight range
+//region sight range
 /**
  * The JABS sight range for this battler.
  * This number represents how many tiles this battler can see before
@@ -96,9 +96,9 @@ RPG_BaseBattler.prototype.extractJabsSightRange = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Sight, true);
 };
-//#endregion sight range
+//endregion sight range
 
-//#region pursuit range
+//region pursuit range
 /**
  * The JABS pursuit range for this battler.
  * This number represents how many tiles this battler can see after
@@ -130,9 +130,9 @@ RPG_BaseBattler.prototype.extractJabsPursuitRange = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
 };
-//#endregion pursuit range
+//endregion pursuit range
 
-//#region alert duration
+//region alert duration
 /**
  * The JABS alert duration for this battler.
  * This number represents how many frames this battler will remain alerted
@@ -164,9 +164,9 @@ RPG_BaseBattler.prototype.extractJabsAlertDuration = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Pursuit, true);
 };
-//#endregion alert duration
+//endregion alert duration
 
-//#region alerted sight boost
+//region alerted sight boost
 /**
  * The JABS alerted sight boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
@@ -198,9 +198,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedSightBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedSightBoost, true);
 };
-//#endregion alerted sight boost
+//endregion alerted sight boost
 
-//#region alerted pursuit boost
+//region alerted pursuit boost
 /**
  * The JABS alerted pursuit boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
@@ -235,9 +235,9 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AlertedPursuitBoost, true);
 };
-//#endregion alerted pursuit boost
+//endregion alerted pursuit boost
 
-//#region ai
+//region ai
 /**
  * The compiled {@link JABS_EnemyAI}.
  * This defines how this battler's AI will be controlled.
@@ -269,7 +269,7 @@ RPG_BaseBattler.prototype.getJabsBattlerAi = function()
   return new JABS_EnemyAI(careful, executor, reckless, healer, follower, leader);
 };
 
-//#region ai:careful
+//region ai:careful
 /**
  * The JABS AI trait of careful.
  * This boolean decides whether or not this battler has this AI trait.
@@ -300,9 +300,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitCareful = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitCareful);
 };
-//#endregion ai:careful
+//endregion ai:careful
 
-//#region ai:executor
+//region ai:executor
 /**
  * The JABS AI trait of executor.
  * This boolean decides whether or not this battler has this AI trait.
@@ -333,9 +333,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitExecutor = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitExecutor);
 };
-//#endregion ai:executor
+//endregion ai:executor
 
-//#region ai:reckless
+//region ai:reckless
 /**
  * The JABS AI trait of reckless.
  * This boolean decides whether or not this battler has this AI trait.
@@ -366,9 +366,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitReckless = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitReckless);
 };
-//#endregion ai:reckless
+//endregion ai:reckless
 
-//#region ai:healer
+//region ai:healer
 /**
  * The JABS AI trait of healer.
  * This boolean decides whether or not this battler has this AI trait.
@@ -399,9 +399,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitHealer = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitHealer);
 };
-//#endregion ai:healer
+//endregion ai:healer
 
-//#region ai:follower
+//region ai:follower
 /**
  * The JABS AI trait of follower.
  * This boolean decides whether or not this battler has this AI trait.
@@ -432,9 +432,9 @@ RPG_BaseBattler.prototype.extractJabsAiTraitFollower = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitFollower);
 };
-//#endregion ai:follower
+//endregion ai:follower
 
-//#region ai:leader
+//region ai:leader
 /**
  * The JABS AI trait of leader.
  * This boolean decides whether or not this battler has this AI trait.
@@ -465,12 +465,12 @@ RPG_BaseBattler.prototype.extractJabsAiTraitLeader = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AiTraitLeader);
 };
-//#endregion ai:leader
+//endregion ai:leader
 
-//#endregion ai
+//endregion ai
 
-//#region config
-//#region config:canIdle
+//region config
+//region config:canIdle
 /**
  * The JABS config option for enabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
@@ -501,9 +501,9 @@ RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigCanIdle, true);
 };
-//#endregion config:canIdle
+//endregion config:canIdle
 
-//#region config:noIdle
+//region config:noIdle
 /**
  * The JABS config option for disabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
@@ -534,9 +534,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoIdle, true);
 };
-//#endregion config:canIdle
+//endregion config:canIdle
 
-//#region config:showHpBar
+//region config:showHpBar
 /**
  * The JABS config option for enabling showing the hp bar.
  * This boolean decides whether or not this battler will reveal its hp bar under its sprite.
@@ -567,9 +567,9 @@ RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowHpBar, true);
 };
-//#endregion config:showHpBar
+//endregion config:showHpBar
 
-//#region config:noHpBar
+//region config:noHpBar
 /**
  * The JABS config option for disabling showing the hp bar.
  * This boolean decides whether or not this battler will hide its hp bar under its sprite.
@@ -600,9 +600,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoHpBar, true);
 };
-//#endregion config:noHpBar
+//endregion config:noHpBar
 
-//#region config:showName
+//region config:showName
 /**
  * The JABS config option for enabling showing the battler's name.
  * This boolean decides whether or not this battler will reveal its name under its sprite.
@@ -633,9 +633,9 @@ RPG_BaseBattler.prototype.extractJabsConfigShowName = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowName, true);
 };
-//#endregion config:showName
+//endregion config:showName
 
-//#region config:noName
+//region config:noName
 /**
  * The JABS config option for disabling showing the battler's name.
  * This boolean decides whether or not this battler will hide its name under its sprite.
@@ -666,9 +666,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNoName = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoName, true);
 };
-//#endregion config:noName
+//endregion config:noName
 
-//#region config:invincible
+//region config:invincible
 /**
  * The JABS config option for enabling invincibility on this battler.
  * This boolean decides whether or not actions can collide with this battler.
@@ -699,9 +699,9 @@ RPG_BaseBattler.prototype.extractJabsConfigInvincible = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInvincible, true);
 };
-//#endregion config:invincible
+//endregion config:invincible
 
-//#region config:notInvincible
+//region config:notInvincible
 /**
  * The JABS config option for disabling invincibility on this battler.
  * This boolean decides whether or not actions cannot collide with this battler.
@@ -732,9 +732,9 @@ RPG_BaseBattler.prototype.extractJabsConfigNotInvincible = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInvincible, true);
 };
-//#endregion config:notInvincible
+//endregion config:notInvincible
 
-//#region config:inanimate
+//region config:inanimate
 /**
  * The JABS config option for enabling being inanimate for this battler.
  * This boolean decides whether or not to enable being inanimate
@@ -765,9 +765,9 @@ RPG_BaseBattler.prototype.extractJabsConfigInanimate = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigInanimate, true);
 };
-//#endregion config:inanimate
+//endregion config:inanimate
 
-//#region config:notInanimate
+//region config:notInanimate
 /**
  * The JABS config option for disabling being inanimate for this battler.
  * This boolean decides whether or not to disable being inanimate.
@@ -798,6 +798,6 @@ RPG_BaseBattler.prototype.extractJabsConfigNotInanimate = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNotInanimate, true);
 };
-//#endregion config:notInanimate
+//endregion config:notInanimate
 
-//#endregion config
+//endregion config

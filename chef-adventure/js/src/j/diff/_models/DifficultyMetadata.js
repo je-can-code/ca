@@ -1,10 +1,10 @@
-//#region Difficulty
+//region Difficulty
 /**
  * A class governing a single difficulty and the way it impacts the game parameters.
  */
 class DifficultyMetadata
 {
-  //#region properties
+  //region properties
   /**
    * The name of the difficulty, visually to the player.
    * @type {string}
@@ -34,9 +34,9 @@ class DifficultyMetadata
    * @type {number}
    */
   cost = 0;
-  //#endregion properties
+  //endregion properties
 
-  //#region params
+  //region params
   /**
    * The base/b-parameter multipliers.
    * The array aligns percent multipliers against the matching index's parameters.
@@ -57,9 +57,9 @@ class DifficultyMetadata
    * @type {[number, number, number, number, number, number, number, number, number, number]}
    */
   xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-  //#endregion params
+  //endregion params
 
-  //#region bonuses
+  //region bonuses
   /**
    * The bonus multiplier for experience earned by the player.
    * @type {number}
@@ -89,9 +89,9 @@ class DifficultyMetadata
    * @type {number}
    */
   encounters = 100;
-  //#endregion bonuses
+  //endregion bonuses
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty is enabled.
    * When a difficulty is enabled, its global effects are applied.
@@ -110,6 +110,6 @@ class DifficultyMetadata
    * @type {boolean}
    */
   hidden = false;
-  //#endregion access
+  //endregion access
 }
-//#endregion Difficulty
+//endregion Difficulty

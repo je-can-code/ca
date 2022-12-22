@@ -1,4 +1,4 @@
-//#region Scene_Base
+//region Scene_Base
 /**
  * Extend the highest level `Scene_Base.update()` to also update time when applicable.
  */
@@ -27,4 +27,4 @@ Scene_Base.prototype.shouldUpdateTime = function()
 
   return isNoTimeScene && isTimeActive && isTimeUnblocked;
 };
-//#endregion Scene_Base
+//endregion Scene_Base

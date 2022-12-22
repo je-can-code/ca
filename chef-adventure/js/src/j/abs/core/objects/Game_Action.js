@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * OVERWRITE In the context of this `Game_Action`, for non-allies, it should
  * instead return the $dataEnemies data instead of the $gameTroop data because
@@ -465,4 +465,4 @@ Game_Action.prototype.calculateHitSuccess = function(target)
   // return our outcome.
   return success;
 };
-//#endregion Game_Action
+//endregion Game_Action

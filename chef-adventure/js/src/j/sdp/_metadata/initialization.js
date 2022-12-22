@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -14,7 +14,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -216,7 +216,7 @@ J.SDP.RegExp = {
   SdpDropData: /<sdpDropData:[ ]?(\[[-\w]+,[ ]?\d+(:?,[ ]?\d+)?])>/i,
 };
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for calling the SDP scene/menu.
  */
@@ -276,5 +276,5 @@ PluginManager.registerCommand(J.SDP.Metadata.Name, "Modify party SDP points", ar
     member.modSdpPoints(sdpPoints);
   });
 });
-//#endregion plugin commands
-//#endregion Introduction
+//endregion plugin commands
+//endregion Introduction

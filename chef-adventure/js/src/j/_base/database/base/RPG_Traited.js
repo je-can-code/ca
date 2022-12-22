@@ -1,4 +1,4 @@
-//#region RPG_Traited
+//region RPG_Traited
 /**
  * A class representing a BaseItem from the database, but with traits.
  */
@@ -25,4 +25,4 @@ class RPG_Traited extends RPG_BaseItem
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   }
 }
-//#endregion RPG_Traited
+//endregion RPG_Traited

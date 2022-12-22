@@ -1,4 +1,4 @@
-//#region Window_JaftingRefinementConfirmation
+//region Window_JaftingRefinementConfirmation
 /**
  * A window that gives the player a chance to confirm or cancel their
  * refinement before executing.
@@ -25,4 +25,4 @@ class Window_JaftingRefinementConfirmation
     this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
   }
 }
-//#endregion Window_JaftingRefinementConfirmation
+//endregion Window_JaftingRefinementConfirmation

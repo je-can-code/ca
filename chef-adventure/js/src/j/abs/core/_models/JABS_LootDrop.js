@@ -1,4 +1,4 @@
-//#region JABS_LootDrop
+//region JABS_LootDrop
 /**
  * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
  */
@@ -124,4 +124,4 @@ class JABS_LootDrop
     return this._lootObject.jabsUseOnPickup ?? false;
   }
 }
-//#endregion JABS_LootDrop
+//endregion JABS_LootDrop

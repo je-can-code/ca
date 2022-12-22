@@ -1,4 +1,4 @@
-//#region Game_Temp
+//region Game_Temp
 /**
  * Extends {@link Game_Temp.initialize}.
  * Initializes all members of this class and adds our custom members.
@@ -19,4 +19,4 @@ Game_Temp.prototype.initialize = function()
 Game_Temp.prototype.initMembers = function()
 {
 };
-//#endregion Game_Temp
+//endregion Game_Temp

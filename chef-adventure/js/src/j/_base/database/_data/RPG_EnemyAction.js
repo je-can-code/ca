@@ -1,10 +1,10 @@
-//#region RPG_EnemyAction
+//region RPG_EnemyAction
 /**
  * A class representing a single enemy action from the database.
  */
 class RPG_EnemyAction
 {
-  //#region properties
+  //region properties
   /**
    * The first parameter of the condition configuration.
    * @type {number}
@@ -50,4 +50,4 @@ class RPG_EnemyAction
     this.skillId = enemyAction.skillId;
   }
 }
-//#endregion RPG_EnemyAction
+//endregion RPG_EnemyAction

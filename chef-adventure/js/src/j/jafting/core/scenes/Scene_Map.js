@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JAFTING objects for tracking.
  */
@@ -640,4 +640,4 @@ Scene_Map.prototype.closeJaftingMenu = function()
 {
   this._j._jaftingMenu._modeWindow.closeMenu();
 };
-//#endregion Scene_Map
+//endregion Scene_Map

@@ -1,4 +1,4 @@
-//#region JABS_GuardData
+//region JABS_GuardData
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
  */
@@ -86,4 +86,4 @@ class JABS_GuardData
     return !!(this.counterGuardIds.length || this.counterParryIds.length);
   }
 }
-//#endregion JABS_GuardData
+//endregion JABS_GuardData

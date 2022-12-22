@@ -1,4 +1,4 @@
-//#region Window_DifficultyDetails
+//region Window_DifficultyDetails
 class Window_DifficultyDetails extends Window_Base 
 {
   /**
@@ -590,4 +590,4 @@ class Window_DifficultyDetails extends Window_Base
     return biggerIsBetterXParameters[xparamId] ?? true;
   }
 }
-//#endregion Window_DifficultyDetails
+//endregion Window_DifficultyDetails

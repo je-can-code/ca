@@ -1,4 +1,4 @@
-//#region Game_Player
+//region Game_Player
 /**
  * Extends the canMove function to ensure the player can't move around while
  * in the JAFTING menu.
@@ -15,4 +15,4 @@ Game_Player.prototype.canMove = function()
     return J.JAFTING.Aliased.Game_Player.canMove.call(this);
   }
 };
-//#endregion Game_Player
+//endregion Game_Player

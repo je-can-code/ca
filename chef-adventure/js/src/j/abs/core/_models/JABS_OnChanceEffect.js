@@ -1,4 +1,4 @@
-//#region JABS_OnChanceEffect
+//region JABS_OnChanceEffect
 /**
  * A class defining the structure of an on-death skill, either for ally or enemy.
  */
@@ -131,4 +131,4 @@ class JABS_OnChanceEffect
     return success;
   }
 }
-//#endregion JABS_OnChanceEffect
+//endregion JABS_OnChanceEffect

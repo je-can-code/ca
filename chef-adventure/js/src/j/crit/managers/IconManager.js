@@ -1,4 +1,4 @@
-//#region IconManager
+//region IconManager
 /**
  * Extend `.longParam()` to first search for our critical damage icon indices.
  */
@@ -31,4 +31,4 @@ IconManager.critParam = function(paramId)
       return 977;    // cdr
   }
 };
-//#endregion IconManager
+//endregion IconManager

@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Extends `gainItem()` to also refresh the JAFTING windows on item quantity change.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
@@ -14,4 +14,4 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
   // refresh the JAFTING windows on item quantity change.
   $gameSystem.setRefreshRequest(true);
 };
-//#endregion Game_Party
+//endregion Game_Party

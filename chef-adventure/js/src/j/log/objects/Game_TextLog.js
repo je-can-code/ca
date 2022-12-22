@@ -1,4 +1,4 @@
-//#region Game_TextLog
+//region Game_TextLog
 /**
  * TODO: make static, rename to TextLogManager.
  * The manager that handles all logs in the `Window_TextLog`.
@@ -150,4 +150,4 @@ Game_TextLog.prototype.setLogVisibility = function(visible)
 {
   this._isVisible = visible;
 };
-//#endregion Game_TextLog
+//endregion Game_TextLog

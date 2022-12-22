@@ -1,11 +1,11 @@
-//#region RPG_UsableItem
+//region RPG_UsableItem
 /**
  * A class representing the base properties for any usable item or skill
  * from the database.
  */
 class RPG_UsableItem extends RPG_BaseItem
 {
-  //#region properties
+  //region properties
   /**
    * The animation id to execute for this skill.
    * @type {number}
@@ -65,7 +65,7 @@ class RPG_UsableItem extends RPG_BaseItem
    * @type {number}
    */
   tpGain = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -90,4 +90,4 @@ class RPG_UsableItem extends RPG_BaseItem
     this.tpGain = usableItem.tpGain;
   }
 }
-//#endregion RPG_UsableItem
+//endregion RPG_UsableItem

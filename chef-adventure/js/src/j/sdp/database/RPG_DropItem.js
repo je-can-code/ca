@@ -1,4 +1,4 @@
-//#region RPG_Item
+//region RPG_Item
 /**
  * The SDP key of this item.
  * @type {string}
@@ -37,4 +37,4 @@ RPG_DropItem.prototype.isSdpDrop = function()
 {
   return !!this._sdpKey;
 };
-//#endregion RPG_Item
+//endregion RPG_Item

@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends the engagement determination to handle aggro/passive party toggling.
  * @param {JABS_Battler} target The target to see if we should engage with.
@@ -51,4 +51,4 @@ JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
   // return the determination.
   return shouldEngage;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler

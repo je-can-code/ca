@@ -1,4 +1,4 @@
-//#region Window_OmnipediaListHeader
+//region Window_OmnipediaListHeader
 class Window_OmnipediaListHeader extends Window_Base
 {
   /**
@@ -79,4 +79,4 @@ class Window_OmnipediaListHeader extends Window_Base
     this.resetFontSettings();
   }
 }
-//#endregion Window_OmnipediaListHeader
+//endregion Window_OmnipediaListHeader

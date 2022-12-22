@@ -79,7 +79,7 @@ Game_Map.prototype.updateStarBattlePhases = function()
   }
 };
 
-//#region phase 1 - prepare
+//region phase 1 - prepare
 /**
  * The "prepare" star phase.
  * The transition to the battlemap and generation of the troop onto the field.
@@ -158,9 +158,9 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
   // directly assign the event index to the enemies.
   $gameMap._events[index] = newEnemy;
 };
-//#endregion phase 1 - prepare
+//endregion phase 1 - prepare
 
-//#region phase 2 - inbattle
+//region phase 2 - inbattle
 /**
  * The second phase of star battle, {@link StarPhases.INBATTLE}.
  * Handles the monitoring of victory conditions for battle, to switch to the
@@ -198,9 +198,9 @@ Game_Map.prototype.onStarVictory = function()
   // stall for 4 seconds before transition to the next star phase.
   BattleManager.setWait(240);
 };
-//#endregion phase 2 - inbattle
+//endregion phase 2 - inbattle
 
-//#region phase 3 - finished
+//region phase 3 - finished
 /**
  * The third phase of star battle, {@link StarPhases.CLEANUP}.
  * This is typically the conclusion of battle, including replacing the character
@@ -228,10 +228,10 @@ Game_Map.prototype.returnPlayerToOrigin = function()
 {
   $gamePlayer.reserveOriginTransfer();
 };
-//#endregion phase 3 - finished
+//endregion phase 3 - finished
 
-//#region phase 4 - cleanup
-//#endregion phase 4 - cleanup
+//region phase 4 - cleanup
+//endregion phase 4 - cleanup
 
-//#region phase 5 - backtomap
-//#endregion phase 5 - backtomap
+//region phase 5 - backtomap
+//endregion phase 5 - backtomap

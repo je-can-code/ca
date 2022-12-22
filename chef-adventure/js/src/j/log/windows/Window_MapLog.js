@@ -1,4 +1,4 @@
-//#region Window_MapLog
+//region Window_MapLog
 /**
  * A window containing the logs.
  */
@@ -68,7 +68,7 @@ class Window_MapLog extends Window_Command
     this.upArrowVisible = false;
   }
 
-  //#region overwrites
+  //region overwrites
   isScrollEnabled()
   {
     if (!$gameTextLog.isVisible()) return false;
@@ -165,7 +165,7 @@ class Window_MapLog extends Window_Command
     // because we didn't draw a full-sized icon, we move the textState.x back a bit.
     textState.x -= 16;
   }
-  //#endregion overwrites
+  //endregion overwrites
 
   /**
    * Update this window's drawing and the like.
@@ -191,7 +191,7 @@ class Window_MapLog extends Window_Command
     this.updateVisibility();
   }
 
-  //#region update logging
+  //region update logging
   /**
    * The update of the logging.
    * The processing of incoming messages, and updating the contents of this window
@@ -265,9 +265,9 @@ class Window_MapLog extends Window_Command
     // after drawing all the logs, scroll to the bottom.
     this.smoothScrollDown(this._list.length);
   }
-  //#endregion update logging
+  //endregion update logging
 
-  //#region update visibility
+  //region update visibility
   /**
    * Updates the visibility of the window.
    * Uses an inactivity timer to countdown and eventually reduce opacity once
@@ -407,6 +407,6 @@ class Window_MapLog extends Window_Command
     this.contentsOpacity = 255;
     this.opacity = 128;
   }
-  //#endregion update visibility
+  //endregion update visibility
 }
-//#endregion Window_MapLog
+//endregion Window_MapLog

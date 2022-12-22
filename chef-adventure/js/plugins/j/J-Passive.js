@@ -1,110 +1,143 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 08:44:45 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 PASSIVE] Grants skills the ability to provide passive state effects.
+ * [v2.0.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/ca
+ * @base J-Base
+ * @orderAfter J-Base
  * @help
  * ============================================================================
- * This plugin enables the ability to have a skill provide passive effects just
- * by knowing the skill in the form of states.
+ * OVERVIEW:
+ * This plugin enables the ability to have a various database objects provide
+ * passive effects in the form of states.
  *
- * By extending the .traitObjects() function, we have added new functionality:
- * - Just knowing a skill can grant passive state effects.
- * - Just having an item/weapon/armor can grant passive state effects.
- *
- * ============================================================================
- * PASSIVE SKILL STATES:
- * Have you ever wanted a battler to be able to learn skills that grant passive
- * effects from states? Well now you can! By adding the correct tags to your
- * skills' notes in the database, you too can make your battlers learn passive
- * skills!
- *
- * NOTE:
- * Under the covers, this plugin scans all skills learned by the battler and
- * parses any of the listed state ids matching the tag format. Any states that
- * are added in this manner are tracked as "passive", and thus always active
- * regardless of duration specifications in the database. These states also
- * cannot be removed, cannot be applied/re-applied while possessing a
- * passive state id of the same state, and cannot be stacked.
- *
- * TAG USAGE:
- * - Skills only.
- *
- * TAG FORMAT:
- *  <passive:[NUM]>          (for one passive state)
- *  <passive:[NUM,NUM,...]>  (for many passive states)
- *
- * TAG EXAMPLES:
- *  <passive:[10]>
- * If this battler has learned this skill, then state of id 10 is applied
- * as a passive state.
- *
- *  <passive:[10,11,12]>
- * If a battler has learned this skill, then they will have states of id
- * 10, 11, and 12 applied as passive states.
- *
- *  <passive:[10]>
- *  <passive:[10,11,12]>
- * If a battler had two separate skills learned matching the above two tags,
- * then the states of id 10, 11, and 12 would be applied as passive states.
- * The duplicate 10 passive state would be ignored.
+ * ----------------------------------------------------------------------------
+ * DETAILS:
+ * All database objects with notes can now provide the effects of a state
+ * within a given scope (usually just a single battler, but in some cases the
+ * whole party) to the target by having or equipping said objects. Passive
+ * states are simply states that are perpetually in effect while the condition
+ * is met, that condition varying depending on the tag.
  *
  * ============================================================================
- * PASSIVE ITEMS/WEAPONS/ARMORS STATES:
- * Have you ever wanted the player's party to be able to gain passive effects
- * just by having an item in their possession? Well now you can! By adding the
- * correct tags to the various entries in the database, you too can make your
- * party gain passive effects from holding stuff! Additionally, unlike the
- * skill passives above, item passive effects will stack! If you have multiple
- * of the item with a non-unique passive on it, it'll stack that many times!
+ * PASSIVE STATES:
+ * Have you ever wanted a battler to be able to be in possession of some object
+ * like a skill or equipment, and have that object grant passive effects? Well
+ * now you can! By adding the correct tags to the various database objects, you
+ * too can have passive states!
  *
- * NOTE ABOUT STACKING PASSIVES WITH UNIQUE:
- * Under the covers, this plugin will scan all currently owned items and equips
- * in search of the various passives tags. All unique tags are scanned and
- * added to the list first, then any stackable tags will be added if there are
- * no unique call outs first.
+ * DETAILS:
+ * The means of application are specific to what type of database object the
+ * tag lives on, as well as the scope of the effect.
  *
- * NOTE ABOUT UNIQUE ITEMS WITH SKILL PASSIVES:
- * Unique passive states granted by items do not consider uniqueness in regards
- * to passive states granted by skills.
+ * DETAILS ON-SKILL:
+ * If the tag lives on a skill, then the battler only needs to know the skill
+ * for it to apply the passive state(s).
+ * The effects of this are applied to the battler that knows the skill.
+ *
+ * DETAILS ON-ITEM/WEAPON/ARMOR:
+ * If the tag lives on an item/weapon/armor, then the party only needs to have
+ * the object in their possession for it to apply the passive state(s).
+ * The effects for this are applied to the entire party.
+ *
+ * DETAILS ON-ACTOR/ENEMY:
+ * If the tag lives on an actor/class/enemy, then the actor or enemy would only
+ * need to exist for it to apply the passive state(s).
+ * The effects for this are applied only to the battler the tag is on.
+ *
+ * DETAILS ON-CLASS:
+ * If the tag lives on a class, then an actor would need the class to be
+ * currently applied for it to apply the passive state(s).
+ * The effects for this are applied only to the actor using the class.
+ *
+ * DETAILS ON-STATE:
+ * If the tag lives on a state, then the battler would need to be afflicted
+ * with the given state in order to apply the passive state(s).
+ * The effects for this are applied only to the battler afflicted with the
+ * original state bearing the tag.
+ *
+ * DETAILS "EQUIPPED" TAG FORMATS:
+ * If the "equipped" version of the tags live on an equip, the effects of the
+ * passive state(s) will only be applied while it is equipped.
+ * The effects for this are applied only to the actor using the class.
+ *
+ * NOTE ABOUT ADDING/REMOVING PASSIVE STATES:
+ * Any states that are added in this manner are tracked as "passive", and thus
+ * always active regardless of duration specifications in the database. These
+ * states also cannot be removed, cannot be applied/re-applied by normal means
+ * while possessing a passive state id of the same state.
+ *
+ * NOTE ABOUT JABS INTERACTIONS:
+ * If using JABS with this plugin, it is important to keep in mind that all
+ * formula-based slip effects will use the afflicted battler as both the
+ * source AND target battlers in the context of "a" and "b" in the formula.
  *
  * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Enemies
+ * - Skills
  * - Items
  * - Weapons
  * - Armors
+ * - States
  *
  * TAG FORMAT:
- *  <passive:[NUM]>                 (for one passive state)
- *  <passive:[NUM,NUM,...]>         (for many passive states)
- *  <uniquePassive:[NUM]>           (for one unique passive state)
- *  <uniquePassive:[NUM,NUM,...]>   (for many unique passive states)
+ *  <passive:[STATE_IDS]>
+ *  <uniquePassive:[STATE_IDS]>
+ *  <equippedPassive:[STATE_IDS]>
+ *  <uniqueEquippedPassive:[STATE_IDS]>
+ * Where STATE_IDS is a comma-delimited list of state ids to be applied.
  *
  * TAG EXAMPLES:
  *  <passive:[10]>
- * If this object is in the party's possession, then the state of id 10 will be
- * applied to the entire party at all times.
+ * If the battler has possession of a database object with this tag, then the
+ * state of id 10 is applied.
  *
  *  <passive:[10,11,12]>
- * If this object is in the party's possession, then all states ids of 10,11,12
- * will be applied to the entire party at all times.
+ * If the battler has possession of a database object with this tag, then the
+ * state ids of 10, 11, and 12, will all be applied.
+ *
+ *  <passive:[10]>
+ *  <passive:[10,11,12]>
+ * If a battler had two separate database objects in their possession each
+ * bearing one of the above two tags, then the state id of 10 would be applied
+ * twice, while 11, 12, and 13 would be applied only once.
  *
  *  <uniquePassive:[10]>
- * If this object is in the party's possession, then the party will have the
- * effects of exactly 1 instance of the state with id 10 at any given time. No
- * other items that grant passive state id 10 will apply.
+ *  <passive:[10,11,12]>
+ * If a battler had two separate database objects in their possession each
+ * bearing one of the above two tags, then the state id of 10 would be applied
+ * once due to uniqueness, along with 11 and 12 being applied once, too.
+ *
+ *  <equippedPassive:[10,11]>
+ * If the battler has a piece of equipment equipped with this tag, then the
+ * state ids of 10 and 11 would be applied. If the battler did not have this
+ * equipment equipped, it would do nothing.
+ *
+ *  <uniqueEquippedPassive:[10]>
+ *  <equippedPassive:[10,11,12]>
+ * If a battler had two separate equipped equips each bearing one of the above
+ * two tags, then the state id of 10 would be applied once due to uniqueness,
+ * along with 11 and 12 being applied once, too.
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Refactored the entire passive state implementation.
+ *    Added passive states for all database objects with notes.
+ *    Added support for only-while-equipped passive states.
  * - 1.1.0
  *    Added passives for items/weapons/armors as well.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
  */
+//endregion Introduction
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -119,43 +152,113 @@ J.PASSIVE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.PASSIVE.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Passive`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.1.0',
-};
+J.PASSIVE.Metadata = {};
+J.PASSIVE.Metadata.Name = `J-Passive`;
+J.PASSIVE.Metadata.Version = '1.1.0';
 
 /**
  * All regular expressions used by this plugin.
  */
-J.PASSIVE.RegExp = {
-  PassiveStateIds: /<passive:[ ]?(\[[\d, ]+])>/gi,
-  UniquePassiveStateIds: /<uniquePassive:[ ]?(\[[\d, ]+])>/gi,
-};
+J.PASSIVE.RegExp = {};
+J.PASSIVE.RegExp.EquippedPassiveStateIds = /<equippedPassive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds = /<uniqueEquippedPassive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.PassiveStateIds = /<passive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.UniquePassiveStateIds = /<uniquePassive:[ ]?(\[[\d, ]+])>/gi;
 
 /**
  * The collection of all aliased classes for extending.
  */
-J.PASSIVE.Aliased = {
-  DataManager: new Map(),
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_BattlerBase: new Map(),
-  Game_Enemy: new Map(),
-  Game_Party: new Map(),
-};
-//#endregion Introduction
+J.PASSIVE.Aliased = {};
+J.PASSIVE.Aliased.DataManager = new Map();
+J.PASSIVE.Aliased.Game_Actor = new Map();
+J.PASSIVE.Aliased.Game_Battler = new Map();
+J.PASSIVE.Aliased.Game_BattlerBase = new Map();
+J.PASSIVE.Aliased.Game_Enemy = new Map();
+J.PASSIVE.Aliased.Game_Party = new Map();
+J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
+//endregion Introduction
 
-//#region passive state ids
+//region RPG_BaseBattler
+//region passive state ids
 /**
  * The passive state ids that this item possesses.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
  * @returns {number[]}
+ */
+RPG_BaseBattler.prototype.extractPassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
+};
+//endregion passive state ids
+
+//region unique passive state ids
+/**
+ * The passive state ids that this item possesses.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "uniquePassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractUniquePassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_BaseBattler.prototype.extractUniquePassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
+};
+//endregion unique passive state ids
+
+//region equipped passive state ids
+/**
+ * The battler itself cannot be equipped, thus it cannot have equipped passive states.
+ * @type {Array.empty}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "equippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return Array.empty;
+    },
+  });
+//endregion equipped passive state ids
+
+//region unique equipped passive state ids
+/**
+ * The battler itself cannot be equipped, thus it cannot have equipped passive states.
+ * @type {Array.empty}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, "uniqueEquippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return Array.empty;
+    },
+  });
+//endregion unique equipped passive state ids
+//endregion RPG_BaseBattler
+
+//region RPG_BaseItem
+//region passive state ids
+/**
+ * The passive state ids that this item possesses.
+ * @type {number[]}
  */
 Object.defineProperty(RPG_BaseItem.prototype, "passiveStateIds",
   {
@@ -173,12 +276,12 @@ RPG_BaseItem.prototype.extractPassiveStateIds = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
 };
-//#endregion passive state ids
+//endregion passive state ids
 
-//#region unique passive state ids
+//region unique passive state ids
 /**
- * The passive state ids that this item possesses.
- * @returns {number[]}
+ * The non-duplicative passive state ids that this item possesses.
+ * @type {number[]}
  */
 Object.defineProperty(RPG_BaseItem.prototype, "uniquePassiveStateIds",
   {
@@ -196,26 +299,198 @@ RPG_BaseItem.prototype.extractUniquePassiveStateIds = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
 };
-//#endregion unique passive state ids
+//endregion unique passive state ids
 
-//#region Game_Actor
+//region equipped passive state ids
 /**
- * Extends `initmembers()` to include passive skill states.
+ * The passive state ids that this equipment will apply while this equip is equipped.
+ * @type {number[]}
  */
-J.PASSIVE.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
+Object.defineProperty(RPG_BaseItem.prototype, "equippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractEquippedPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_BaseItem.prototype.extractEquippedPassiveStateIds = function()
 {
-  J.PASSIVE.Aliased.Game_Actor.get('initMembers').call(this)
-  this._j = this._j || {};
-  /**
-   * A cached list of all passive skills.
-   * @type {number[]|null}
-   */
-  this._j._passiveSkillStateIds = null;
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.EquippedPassiveStateIds);
+};
+//endregion equipped passive state ids
+
+//region unique equipped passive state ids
+/**
+ * The non-duplicative passive state ids that this equipment will apply
+ * while this equip is equipped.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_BaseItem.prototype, "uniqueEquippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractUniqueEquippedPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_BaseItem.prototype.extractUniqueEquippedPassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
+};
+//endregion unique equipped passive state ids
+//endregion RPG_BaseItem
+
+//region RPG_Class
+//region passive state ids
+/**
+ * The passive state ids that this item possesses.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_Class.prototype, "passiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_Class.prototype.extractPassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
+};
+//endregion passive state ids
+
+//region unique passive state ids
+/**
+ * The non-duplicative passive state ids that this item possesses.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_Class.prototype, "uniquePassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractUniquePassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_Class.prototype.extractUniquePassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
+};
+//endregion unique passive state ids
+
+//region equipped passive state ids
+/**
+ * The passive state ids that this equipment will apply while this equip is equipped.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_Class.prototype, "equippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractEquippedPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_Class.prototype.extractEquippedPassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.EquippedPassiveStateIds);
+};
+//endregion equipped passive state ids
+
+//region unique equipped passive state ids
+/**
+ * The non-duplicative passive state ids that this equipment will apply
+ * while this equip is equipped.
+ * @type {number[]}
+ */
+Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds",
+  {
+    get: function()
+    {
+      return this.extractUniqueEquippedPassiveStateIds();
+    },
+  });
+
+/**
+ * Extracts the value from the notes.
+ * @returns {number[]}
+ */
+RPG_Class.prototype.extractUniqueEquippedPassiveStateIds = function()
+{
+  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
+};
+//endregion unique equipped passive state ids
+//endregion RPG_Class
+
+//region Game_Actor
+/**
+ * Extends {@link #onSetup}.
+ * Also refreshes the passive states on this battler for the first time.
+ * @param {number} actorId The battler's id.
+ */
+J.PASSIVE.Aliased.Game_Actor.set('onSetup', Game_Actor.prototype.onSetup);
+Game_Actor.prototype.onSetup = function(actorId)
+{
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Actor.get('onSetup').call(this, actorId);
+
+  // refresh all passive states on this battler.
+  this.refreshPassiveStates();
 };
 
 /**
- * Extends `traitObjects()` to include our custom passive skills trait objects.
+ * Gets all sources from which this battler can derive passive state from.
+ *
+ * This does include a reference call to potentially getting passive states, but due
+ * to control flows, this should always come back with no passive states in the list.
+ * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+ */
+Game_Actor.prototype.getPassiveStateSources = function()
+{
+  // perform original logic to get base sources.
+  const originalSources = Game_Battler.prototype.getPassiveStateSources.call(this);
+
+  // define additional sources that actors can derive passive states from.
+  const actorPassiveSources = [
+    // all equipment currently equipped on the actor.
+    ...this.equippedEquips(),
+
+    // also add the class for this
+    this.currentClass(),
+  ];
+
+  // combine the sources.
+  const combinedSources = originalSources.concat(actorPassiveSources);
+
+  // return this collection of stuff.
+  return combinedSources;
+};
+
+/**
+ * Extends {@link #traitObjects}.
+ * When considering traits, also include the actor's and party's passive states.
  */
 J.PASSIVE.Aliased.Game_Actor.set('traitObjects', Game_Actor.prototype.traitObjects);
 Game_Actor.prototype.traitObjects = function()
@@ -223,40 +498,70 @@ Game_Actor.prototype.traitObjects = function()
   // perform original logic.
   const originalObjects = J.PASSIVE.Aliased.Game_Actor.get('traitObjects').call(this);
 
-  // add our passive skill states.
-  originalObjects.push(...this.sourcesToPassiveSkillStates(originalObjects));
+  // add our own passive states.
+  originalObjects.push(...this.getPassiveStates());
 
   // add our passive items/weapons/armors states.
   originalObjects.push(...$gameParty.passiveStates());
 
-  // add our passive items/weapons/armors states.
+  // return the new combined collection.
   return originalObjects;
 };
 
 /**
- * Extends `learnSkill()` to also empty the passive skill collection forcing a refresh.
+ * Extends {@link #onLearnNewSkill}.
+ * Triggers a refresh of passive states when learning a new skill.
  */
-J.PASSIVE.Aliased.Game_Actor.set('learnSkill', Game_Actor.prototype.learnSkill);
-Game_Actor.prototype.learnSkill = function(skillId)
+J.PASSIVE.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewSkill);
+Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
+  J.PASSIVE.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
 
-  // refresh our passive skill list.
-  this.forcePassiveSkillRefresh();
+  // refresh our passive state list.
+  this.refreshPassiveStates();
 };
 
 /**
- * Extends `forgetSkill()` to also empty the passive skill collection forcing a refresh.
+ * Extends {@link #onForgetSkill}.
+ * Triggers a refresh of passive states when forgetting a skill.
  */
-J.PASSIVE.Aliased.Game_Actor.set('forgetSkill', Game_Actor.prototype.forgetSkill);
-Game_Actor.prototype.forgetSkill = function(skillId)
+J.PASSIVE.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetSkill);
+Game_Actor.prototype.onForgetSkill = function(skillId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
+  J.PASSIVE.Aliased.Game_Actor.get('onForgetSkill').call(this, skillId);
 
-  // refresh our passive skill list.
-  this.forcePassiveSkillRefresh();
+  // refresh our passive state list.
+  this.refreshPassiveStates();
+};
+
+/**
+ * Extends {@link #onEquipChange}.
+ * Triggers a refresh of passive states when equipment changes.
+ */
+J.PASSIVE.Aliased.Game_Actor.set('onEquipChange', Game_Actor.prototype.onEquipChange);
+Game_Actor.prototype.onEquipChange = function()
+{
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Actor.get('onEquipChange').call(this);
+
+  // refresh our passive state list.
+  this.refreshPassiveStates();
+};
+
+/**
+ * Extends {@link #onClassChange}.
+ * Triggers a refresh of passive states when the class changes.
+ */
+J.PASSIVE.Aliased.Game_Actor.set('onClassChange', Game_Actor.prototype.onClassChange);
+Game_Actor.prototype.onClassChange = function(classId, keepExp)
+{
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Actor.get('onClassChange').call(this, classId, keepExp);
+
+  // refresh our passive state list.
+  this.refreshPassiveStates();
 };
 
 /**
@@ -272,8 +577,8 @@ Game_Actor.prototype.getNotesSources = function()
 
   // newly defined sources for passives.
   const passiveSources = [
-    // then add all those currently applied passive skill states, too.
-    ...this.passiveSkillStates(),
+    // then add all those currently applied passive states, too.
+    ...this.getPassiveStates(),
 
     // also apply the party's effects.
     ...$gameParty.passiveStates(),
@@ -285,35 +590,276 @@ Game_Actor.prototype.getNotesSources = function()
   // return the combination.
   return combinedSources
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
- * Extends `initMembers()` to include initialization of our passives collection.
+ * Extends {@link #initMembers}.
+ * Also initializes the passive states properties for this battler.
  */
 J.PASSIVE.Aliased.Game_BattlerBase.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
+  // perform original logic.
   J.PASSIVE.Aliased.Game_BattlerBase.get('initMembers').call(this);
-  this.initPassives();
+
+  // initialize the passive states properties.
+  this.initPassiveStatesMembers();
 };
 
 /**
  * Initializes the passives collection
  */
-Game_Battler.prototype.initPassives = function()
+Game_Battler.prototype.initPassiveStatesMembers = function()
 {
   /**
-   * The overarching _j object, where all my stateful plugin data is stored.
-   * @type {{}}
+   * The over-arching J object to contain all additional plugin parameters.
    */
-  this._j = this._j || {};
+  this._j ||= {};
 
   /**
-   * A cached list of all our passives.
+   * A grouping of all properties associated with passive states.
+   */
+  this._j._passive ||= {};
+
+  /**
+   * A cached list of all currently applied passive state ids.
    * @type {number[]|null}
    */
-  this._j._passiveSkillStateIds = null;
+  this._j._passive._stateIds = [];
+};
+
+/**
+ * Get all currently known passive state ids this battler has.
+ * @returns {number[]}
+ */
+Game_Battler.prototype.getPassiveStateIds = function()
+{
+  return this._j._passive._stateIds;
+};
+
+/**
+ * Checks whether or not this battler currently has a given passive state applied.
+ * @param {number} stateId The id of the state to check for.
+ * @returns {boolean} True if this battler has the passive state applied, false otherwise.
+ */
+Game_Battler.prototype.hasPassiveStateId = function(stateId)
+{
+  return this.getPassiveStateIds().includes(stateId);
+};
+
+/**
+ * Adds the given state id to the passive state ids collection for this battler.
+ * If `allowDuplicates` is `false`, then the adding of the state id will be ignored
+ * if the battler already has the id.
+ * @param {number} stateId The id of the state to add.
+ * @param {boolean=} allowDuplicates Whether or not duplicate state ids is permitted; defaults to true.
+ */
+Game_Battler.prototype.addPassiveStateId = function(stateId, allowDuplicates = true)
+{
+  // check if we disallow duplicates and already have the state tracked.
+  if (!this.canAddPassiveStateId(stateId, allowDuplicates)) return;
+
+  // grab the passive state id collection.
+  const passiveStateIds = this.getPassiveStateIds();
+
+  // add the stateId to the collection.
+  passiveStateIds.push(stateId);
+};
+
+/**
+ * Determines whether or not a given stateId can be added to the list
+ * @param {number} stateId The id of the state to add.
+ * @param {boolean=} allowDuplicates Whether or not duplicate state ids is permitted; defaults to true.
+ * @returns {boolean} True if the state id can be added to the passives collection, false otherwise.
+ */
+Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
+{
+  // if we don't allow duplicates and already are have this stateId, then don't add it.
+  if (!allowDuplicates && this.getPassiveStateIds().has(stateId)) return false;
+
+  // we can add this stateId!
+  return true;
+};
+
+/**
+ * Gets the converted {@link RPG_State} form of all currently applied passive states.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.getPassiveStates = function()
+{
+  return this.getPassiveStateIds().map(this.state, this);
+};
+
+/**
+ * Adds a state to the passive state cache of converted passive state ids.
+ * @param {RPG_State} state The passive state.
+ */
+Game_Battler.prototype.addPassiveState = function(state)
+{
+  // grab all the current cached passive states.
+  const cachedPassiveStates = this.getPassiveStates();
+
+  // add the given state to the cache.
+  cachedPassiveStates.push(state);
+};
+
+/**
+ * Clears all passive state data currently tracked.
+ */
+Game_Battler.prototype.clearPassiveStates = function()
+{
+  // empty the state tracker.
+  this._j._passive._stateIds = [];
+};
+
+/**
+ * Clears and updates the passive state tracker with the latest.
+ */
+Game_Battler.prototype.refreshPassiveStates = function()
+{
+  // remove all currently tracked passive states.
+  this.clearPassiveStates();
+
+  // grab all the unique ids.
+  const uniqueIds = this.getAllUniquePassiveStateIds();
+
+  // grab all the stackable ids.
+  const stackableIds = this.getAllStackablePassiveStateIds();
+
+  // add all the unique ids to the tracker.
+  uniqueIds.forEach(stateId => this.addPassiveStateId(stateId, false), this);
+
+  // add all the stackable ids to the tracker.
+  stackableIds.forEach((stackCount, stateId) =>
+  {
+    // don't re-add unique passive states.
+    if (uniqueIds.has(stateId)) return;
+
+    // capture the number of times to duplicate the state object.
+    let times = stackCount;
+
+    // while we have times left, keep going.
+    while (times > 0)
+    {
+      // add the stackable passive state id.
+      this.addPassiveStateId(stateId);
+
+      // decrement the counter.
+      times--;
+    }
+  });
+};
+
+/**
+ * Gets all unique passive state ids that are present across all sources this
+ * battler owns.
+ * @returns {Set<number>}
+ */
+Game_Battler.prototype.getAllUniquePassiveStateIds = function()
+{
+  // initialize the set of unique ids; there can only be one!
+  const uniquePassiveStateIds = new Set();
+
+  // grab all objects to get unique passive state ids from.
+  const everything = this.getPassiveStateSources();
+
+  // iterate over all the things.
+  everything.forEach(baseItem =>
+  {
+    // grab the unique ids from the item.
+    const uniqueIds = baseItem.uniquePassiveStateIds;
+
+    // check if we need to include passive state ids, too.
+    if (baseItem instanceof RPG_EquipItem)
+    {
+      // add the equip-only passive state ids.
+      uniqueIds.push(...baseItem.uniqueEquippedPassiveStateIds);
+    }
+
+    // add them uniquely to the set.
+    uniqueIds.forEach(id => uniquePassiveStateIds.add(id));
+  });
+
+  // return the completed unique set.
+  return uniquePassiveStateIds;
+};
+
+/**
+ * Gets all stackable passive state ids that are present across all sources this
+ * battler owns.
+ * @returns {Map<number, number>}
+ */
+Game_Battler.prototype.getAllStackablePassiveStateIds = function()
+{
+  // initialize the map of stackable ids; each one can have many.
+  /** @type {Map<number, number>} */
+  const stackablePassiveStateIds = new Map();
+
+  // grab all objects to get stackable passive state ids from.
+  const everything = this.getPassiveStateSources();
+
+  // iterate over all the things.
+  everything.forEach(baseItem =>
+  {
+    // grab the stackable ids from the item.
+    const stackableIds = baseItem.passiveStateIds;
+
+    // check if we need to include passive state ids, too.
+    if (baseItem instanceof RPG_EquipItem)
+    {
+      // add the equip-only passive state ids.
+      stackableIds.push(...baseItem.equippedPassiveStateIds);
+    }
+
+    // iterate over each of the stackable passive state ids on this item.
+    stackableIds.forEach(id =>
+    {
+      // check if we are already tracking this passive state id.
+      if (stackablePassiveStateIds.has(id))
+      {
+        // grab the running stack total for this passive state id.
+        const stack = stackablePassiveStateIds.get(id);
+
+        // increment the stack.
+        stackablePassiveStateIds.set(id, stack+1);
+      }
+      // we aren't tracking this passive state id yet.
+      else
+      {
+        // start the stack for this passive state id at 1.
+        stackablePassiveStateIds.set(id, 1);
+      }
+    });
+  });
+
+  // return the completed stackable map.
+  return stackablePassiveStateIds;
+};
+
+/**
+ * Gets all sources from which this battler can derive passive state from.
+ *
+ * This does include a reference call to potentially getting passive states, but due
+ * to control flows, this should always come back with no passive states in the list.
+ * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+ */
+Game_Battler.prototype.getPassiveStateSources = function()
+{
+  // define all sources from which passive states can come from.
+  const battlerSources = [
+    // ones own data from the database, such as the actor or enemy data.
+    this.databaseData(),
+
+    // all states currently applied to the battler- this won't include own any passive states.
+    ...this.allStates(),
+
+    // all skills available to this battler.
+    ...this.skills(),
+  ];
+
+  // return this collection of stuff.
+  return battlerSources;
 };
 
 /**
@@ -323,101 +869,8 @@ Game_Battler.prototype.initPassives = function()
  */
 Game_Battler.prototype.isPassiveState = function(stateId)
 {
-  // if we have access to the cached passives collection...
-  if (this._j._passiveSkillStateIds !== null)
-  {
-    // then the answer lies in whether or not the given state id is in that list.
-    return this._j._passiveSkillStateIds.includes(stateId);
-  }
-
-  return false;
-};
-
-/**
- * Forces a passive skill refresh on this battler.
- */
-Game_Battler.prototype.forcePassiveSkillRefresh = function()
-{
-  // only do this if its not already null.
-  if (this._j._passiveSkillStateIds !== null)
-  {
-    // empty the list.
-    this._j._passiveSkillStateIds.length = 0;
-
-    // switch it to null for requesting a refresh.
-    this._j._passiveSkillStateIds = null;
-  }
-};
-
-/**
- * Extends `isStateAddable()` to prevent adding states if they are identified as passive.
- */
-J.PASSIVE.Aliased.Game_Battler.set('isStateAddable', Game_Battler.prototype.isStateAddable);
-Game_Battler.prototype.isStateAddable = function(stateId)
-{
-  // skip adding if it is a passive state.
-  if (this.isPassiveState(stateId)) return false;
-
-  // otherwise, check as normal.
-  return J.PASSIVE.Aliased.Game_Battler.get('isStateAddable').call(this, stateId);
-};
-
-/**
- * Extends `removeState()` to prevent removal of states if they are identified as passive.
- */
-J.PASSIVE.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState);
-Game_Battler.prototype.removeState = function(stateId)
-{
-  // skip removal if it is a passive state.
-  if (this.isPassiveState(stateId)) return;
-
-  // otherwise, remove as normal.
-  J.PASSIVE.Aliased.Game_Battler.get('removeState').call(this, stateId);
-};
-
-/**
- * Parses all skills to get at the state ids provided, and thusly the passive states associated
- * with any skills learned by the actor.
- *
- * This is an expensive process, and shouldn't be performed on a per-frame basis.
- * @param {RPG_EquipItem[]} traitObjects
- * @returns {RPG_State[]}
- */
-Game_Battler.prototype.sourcesToPassiveSkillStates = function(traitObjects)
-{
-  // this array is only null when it hasn't yet been initialized yet or if we're forcing a refresh.
-  if (this._j._passiveSkillStateIds !== null)
-  {
-    // map all the passive state ids into passive states.
-    return this._j._passiveSkillStateIds.map(this.state, this);
-  }
-
-  // reset the array of skill-state ids to empty.
-  this._j._passiveSkillStateIds = [];
-
-  // combine the base skill ids and added skill ids together into a single collection.
-  const skillIds = this.skillIdList(traitObjects);
-
-  // CAUTION! this is an expensive chain of array manipulation, don't do it a lot if avoidable!
-  const passiveStates = this.skillsToPassiveStates(skillIds);
-
-  return passiveStates;
-};
-
-/**
- * Gets all the current passive skill states, if any exist.
- * @returns {RPG_State[]}
- */
-Game_Battler.prototype.passiveSkillStates = function()
-{
-  // this array is only null when it hasn't yet been initialized yet or if we're forcing a refresh.
-  if (this._j._passiveSkillStateIds !== null)
-  {
-    // map all the passive state ids into passive states.
-    return this._j._passiveSkillStateIds.map(this.state, this);
-  }
-
-  return [];
+  // then the answer lies in whether or not the given state id is in that list.
+  return this._j._passive._stateIds.includes(stateId);
 };
 
 /**
@@ -432,171 +885,107 @@ Game_Battler.prototype.allStates = function()
   const states = J.PASSIVE.Aliased.Game_Battler.get('allStates').call(this);
 
   // add in all passive skill states.
-  states.push(...this.passiveSkillStates());
+  states.push(...this.getPassiveStates());
 
   // return that combined collection.
   return states;
 };
 
 /**
- * Gets a combined list of both base skill ids this battler knows.
- * The list includes skills learned via class/assignation, and also
- * @param {RPG_EquipItem[]} traitObjects The presumed objects bearing traits.
- * @returns {number[]} The combined list of base skill ids and added-via-traits skill ids.
+ * Extends {@link #isStateAddable}.
+ * Prevents adding states if they are identified as passive.
  */
-Game_Battler.prototype.skillIdList = function(traitObjects)
+J.PASSIVE.Aliased.Game_Battler.set('isStateAddable', Game_Battler.prototype.isStateAddable);
+Game_Battler.prototype.isStateAddable = function(stateId)
 {
-  // get the base skills that the actor knows.
-  const baseSkillIds = this.skillsIdsFromSelf();
+  // skip adding if it is a passive state.
+  if (this.isPassiveState(stateId)) return false;
 
-  // get any added skills from other traits, like equipment teaching a skill.
-  const addedSkillIds = this.skillsIdsFromTraits(traitObjects);
-
-  // combine the base skill ids and added skill ids together into a single collection.
-  return [...baseSkillIds, ...addedSkillIds];
+  // otherwise, check as normal.
+  return J.PASSIVE.Aliased.Game_Battler.get('isStateAddable').call(this, stateId);
 };
 
 /**
- * Gets all skill ids learned from oneself, via normal means.
- * For actors, this is just whatever their class-learned skill list is.
- * @returns {number[]}
+ * Extends {@link #onStateAdded}.
+ * Triggers a refresh of passive states when a state is added.
+ * @param {number} stateId The state id being added.
  */
-Game_Battler.prototype.skillsIdsFromSelf = function()
+J.PASSIVE.Aliased.Game_Battler.set('onStateAdded', Game_Battler.prototype.onStateAdded);
+Game_Battler.prototype.onStateAdded = function(stateId)
 {
-  return this._skills;
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Battler.get('onStateAdded').call(this, stateId);
+
+  // refresh our passive state list.
+  this.refreshPassiveStates();
 };
 
 /**
- * A manual concatenation of retrieval of all skill ids from any traits the actor has-
- * without actually calling any of the trait methods. This is done to avoid the
- * circular dependency of `.traitObjects()` and this passive skill flow.
- * @param {RPG_EquipItem[]} traitObjects The trait objects to parse for added skills.
- * @returns {number[]} All found added skill ids from the given trait objects.
+ * Extends {@link #removeState}.
+ * Prevent removal of states if they are identified as passive.
  */
-Game_Battler.prototype.skillsIdsFromTraits = function(traitObjects)
+J.PASSIVE.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState);
+Game_Battler.prototype.removeState = function(stateId)
 {
-  return traitObjects
-  // concat all the traits from the various database objects.
-    .reduce((r, obj) => r.concat(obj.traits), [])
-  // concat the list of what types of traits these are.
-    .reduce((r, trait) => r.concat(trait.dataId), [])
-  // filter all the traits by the "add skill" trait.
-    .filter(trait => trait.code === Game_BattlerBase.TRAIT_SKILL_ADD)
-  // add all the objects together for a full list of skill ids.
-    .reduce((r, obj) => r.concat(obj.traits), []);
+  // skip removal if it is a passive state.
+  if (this.isPassiveState(stateId)) return;
+
+  // otherwise, remove as normal.
+  J.PASSIVE.Aliased.Game_Battler.get('removeState').call(this, stateId);
 };
 
 /**
- * Takes in a list of skill passives, extracts any passive state ids that may
- * be residing in the notes of them, and returns the relevant state objects.
- *
- * This may result in an empty array.
- * @param {number[]} skillIds The skill ids to convert to passives.
- * @returns {rm.types.State[]}
+ * Extends {@link #onStateRemoval}.
+ * Triggers a refresh of passive states when a state is removed.
+ * @param {number} stateId The state id being removed.
  */
-Game_Battler.prototype.skillsToPassiveStates = function(skillIds)
+J.PASSIVE.Aliased.Game_Battler.set('onStateRemoval', Game_Battler.prototype.onStateRemoval);
+Game_Battler.prototype.onStateRemoval = function(stateId)
 {
-  // translate all skill ids to skills.
-  const skills = skillIds.map(this.skill, this);
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Battler.get('onStateRemoval').call(this, stateId);
 
-  // filter out skills that aren't "passive".
-  const passiveSkills = skills.filter(this.isPassiveSkill, this);
+  // refresh our passive state list.
+  this.refreshPassiveStates();
+};
+//endregion Game_Battler
 
-  // convert the skills into an array of state ids associated with the passives.
-  const passiveStateIds = passiveSkills
-    .map(this.extractPassives, this)
-    .flat(); // because we prefer to work with 1-dimensional arrays.
+//region Game_Enemy
+/**
+ * Extends {@link #onSetup}.
+ * Also refreshes the passive states on this battler for the first time.
+ * @param {number} enemyId The battler's id.
+ */
+J.PASSIVE.Aliased.Game_Enemy.set('onSetup', Game_Enemy.prototype.onSetup);
+Game_Enemy.prototype.onSetup = function(enemyId)
+{
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Enemy.get('onSetup').call(this, enemyId);
 
-  // filter out passive states that we already have.
-  const passiveRelevantStateIds = passiveStateIds.filter(this.isRelevantPassiveState, this);
-
-  // add the missing passive states to the ones we have.
-  this._j._passiveSkillStateIds.push(...passiveRelevantStateIds);
-
-  // translate the state ids into actual states.
-  const passiveStates = passiveRelevantStateIds.map(this.state, this);
-
-  // return these newly determined trait objects.
-  return passiveStates;
+  // refresh all passive states on this battler.
+  this.refreshPassiveStates();
 };
 
 /**
- * Determines whether or not a skill is identified as "passive".
- * This is intended to be used as a filter function against a collection of skills,
- * though it can be used to identify a singular skill otherwise.
- * @param {RPG_Skill} skill The skill to identify.
- * @returns {boolean} True if the skill is identified as passive, false otherwise.
+ * Extends {@link #traitObjects}.
+ * When considering traits, also include the enemy's passive states.
  */
-Game_Battler.prototype.isPassiveSkill = function(skill)
+J.PASSIVE.Aliased.Game_Enemy.set('traitObjects', Game_Enemy.prototype.traitObjects);
+Game_Enemy.prototype.traitObjects = function()
 {
-  return !!skill.metadata("passive");
-};
+  // perform original logic.
+  const originalObjects = J.PASSIVE.Aliased.Game_Enemy.get('traitObjects').call(this);
 
-/**
- * Determines whether or not a state is considered "relevant".
- * This is intended to be used as a filter function against a collection of passive state ids,
- * though it can be used to identify if a passive state id is not yet applied to this battler.
- * @param {number} stateId The state id to check for relevancy.
- * @returns {boolean} True if the state is a non-applied state, false otherwise.
- */
-Game_Battler.prototype.isRelevantPassiveState = function(stateId)
-{
-  return !this.hasPassiveState(stateId);
-};
+  // add our own passive states.
+  originalObjects.push(...this.getPassiveStates());
 
-/**
- * Extracts the passive state ids out of the skill.
- * This is intended to be used as a map function against a collection of skills
- * that contain state ids, though it can be used to extract a single skill's passive states.
- * @param {RPG_Skill} referenceData The skill to extract passive state ids from.
- * @returns {number[]}
- */
-Game_Battler.prototype.extractPassives = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<passive:[ ]?(\[[\d, ]+])>/i;
-  const passives = [];
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      passives.push(...data);
-    }
-  });
-
-  return passives;
-};
-
-/**
- * Checks whether or not this battler already has the passive state applied.
- * @param {number} stateId The passive state id to check.
- * @returns {boolean} True if it is already applied, false otherwise.
- */
-Game_Battler.prototype.hasPassiveState = function(stateId)
-{
-  return this._j._passiveSkillStateIds.includes(stateId);
-};
-//#endregion Game_Battler
-
-//#region Game_Enemy
-/**
- * Gets all skills learned from oneself.
- * In the case of enemies, this extracts the list of skill ids from the various actions
- * they can execute from their action list, as well as their "attack skill".
- * @returns {number[]}
- */
-Game_Enemy.prototype.skillIdsFromSelf = function()
-{
-  return this.skills().map(skill => skill.id);
+  // return the new combined collection.
+  return originalObjects;
 };
 
 /**
  * Extends {@link #getNotesSources}.
- * Includes passive skill states from this enemy.
+ * Includes passive states from this enemy.
  * @returns {RPG_BaseItem[]}
  */
 J.PASSIVE.Aliased.Game_Enemy.set('getNotesSources', Game_Enemy.prototype.getNotesSources);
@@ -608,18 +997,18 @@ Game_Enemy.prototype.getNotesSources = function()
   // newly defined sources for passives.
   const passiveSources = [
     // then add all those currently applied passive skill states, too.
-    ...this.passiveSkillStates(),
+    ...this.getPassiveStates(),
   ];
 
   // combine the sources.
   const combinedSources = originalSources.concat(passiveSources);
 
   // return the combination.
-  return combinedSources
+  return combinedSources;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #initialize}.
  * Includes our custom members as well.
@@ -845,4 +1234,72 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
   // also refresh our passive states tracker.
   this.refreshPassiveStates();
 };
-//#endregion Game_Party
+//endregion Game_Party
+
+//region Window_MoreEquipData
+/**
+ * Extends {@link #addJabsEquipmentData}.
+ * Includes additional entries about passive states provided by the equipment.
+ */
+J.PASSIVE.Aliased.Window_MoreEquipData.set('addJabsEquipmentData', Window_MoreEquipData.prototype.addJabsEquipmentData);
+Window_MoreEquipData.prototype.addJabsEquipmentData = function()
+{
+  // perform original logic.
+  J.PASSIVE.Aliased.Window_MoreEquipData.get('addJabsEquipmentData').call(this);
+
+  // also add the passive state data.
+  this.addPassiveStateData();
+}
+
+/**
+ * Adds all passive states found across the item.
+ */
+Window_MoreEquipData.prototype.addPassiveStateData = function()
+{
+  // do not process if we are not allowed to.
+  if (!this.canAddPassiveStateData()) return;
+
+  // grab all the equipped passive state ids.
+  const stackablePassiveIds = this.item.equippedPassiveStateIds;
+  const uniquePassiveIds = this.item.uniqueEquippedPassiveStateIds;
+
+  // combine the two groups of ids.
+  const allIds = [...stackablePassiveIds, ...uniquePassiveIds].sort();
+
+  // an iterator function for rendering a command based on the passive state id.
+  const forEacher = passiveStateId =>
+  {
+    // extract the data from the state.
+    const state = this.actor.state(passiveStateId);
+    const { name, iconIndex } = state;
+
+    // define the name of the command.
+    const commandName = `Passive: ${name}`;
+
+    // build the command with the data.
+    const command = new WindowCommandBuilder(commandName)
+      .setIconIndex(iconIndex)
+      .setExtensionData(state)
+      .build();
+
+    // add the built command to the list.
+    this.addBuiltCommand(command);
+  };
+
+  // render all the commands based on the ids.
+  allIds.forEach(forEacher, this);
+};
+
+/**
+ * Determines whether or not the passive state data for this item can be added.
+ * @returns {boolean} True if allowed, false otherwise.
+ */
+Window_MoreEquipData.prototype.canAddPassiveStateData = function()
+{
+  // if there is no item to render, then do not render the passive states.
+  if (!this.item) return false;
+
+  // render the passive data!
+  return true;
+};
+//endregion Window_MoreEquipData

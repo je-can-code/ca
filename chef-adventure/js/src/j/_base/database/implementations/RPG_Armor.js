@@ -1,10 +1,10 @@
-//#region RPG_Armor
+//region RPG_Armor
 /**
  * A class representing a single armor from the database.
  */
 class RPG_Armor extends RPG_EquipItem
 {
-  //#region properties
+  //region properties
   /**
    * The type of armor this is.
    * This number is the index that maps to your armor types.
@@ -17,7 +17,7 @@ class RPG_Armor extends RPG_EquipItem
    * @type {3}
    */
   kind = 3;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -33,4 +33,4 @@ class RPG_Armor extends RPG_EquipItem
     this.atypeId = armor.atypeId;
   }
 }
-//#endregion RPG_Armor
+//endregion RPG_Armor

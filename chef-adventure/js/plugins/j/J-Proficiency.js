@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -299,9 +299,9 @@ PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency
     });
   });
 });
-//#endregion Introduction
+//endregion Introduction
 
-//#region ProficiencyConditional
+//region ProficiencyConditional
 /**
  * A conditional revolving around skill proficiencies that when met, will
  * execute some kind of logic.
@@ -379,9 +379,9 @@ ProficiencyRequirement.prototype.initialize = function(skillId, proficiency)
    */
   this.proficiency = proficiency;
 };
-//#endregion ProficiencyConditional
+//endregion ProficiencyConditional
 
-//#region SkillProficiency
+//region SkillProficiency
 /**
  * A class representing a single trait on a piece of equipment that can be potentially
  * transferred by means of JAFTING's refinement mode.
@@ -436,9 +436,9 @@ SkillProficiency.prototype.improve = function(value)
     this.proficiency = 0;
   }
 };
-//#endregion SkillProficiency
+//endregion SkillProficiency
 
-//#region Game_Action
+//region Game_Action
 /**
  * Extends the .apply() to include consideration of prof.
  */
@@ -592,9 +592,9 @@ if (J.ABS)
     return true;
   };
 }
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Adds new properties to the actors that manage the skill prof system.
  */
@@ -971,9 +971,9 @@ Game_Actor.prototype.bonusSkillProficiencyGains = function()
 
   return bonusProficiency;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Gets all skill proficiencies for this battler.
  * @returns {SkillProficiency[]}
@@ -1095,9 +1095,9 @@ Game_Battler.prototype.extractProficiencyGainingBlock = function()
 
   return canGainProficiency;
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function()
 {
@@ -1174,9 +1174,9 @@ Game_Enemy.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 
   proficiency.improve(amount);
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_System
+//region Game_System
 /**
  * Hooks in and initializes the SDP system.
  */

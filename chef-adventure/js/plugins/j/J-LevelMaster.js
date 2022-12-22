@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region initialization
+//region initialization
 /*:
  * @target MZ
  * @plugindesc
@@ -253,7 +253,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -264,7 +264,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -318,7 +318,7 @@ J.LEVEL.RegExp = {
   BattlerLevel: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
 };
 
-//#region Plugin Command Registration
+//region Plugin Command Registration
 /**
  * Plugin command for enabling the level scaling functionality.
  */
@@ -336,16 +336,16 @@ PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () =>
   J.LEVEL.Metadata.Enabled = false;
   $gameSystem.disableLevelScaling();
 });
-//#endregion Plugin Command Registration
-//#endregion initialization
+//endregion Plugin Command Registration
+//endregion initialization
 
-//#region LevelScaling
+//region LevelScaling
 /**
  * A helper class for calculating level-based scaling multipliers.
  */
 class LevelScaling
 {
-  //#region properties
+  //region properties
   /**
    * The default scaling multiplier.
    * @type {number}
@@ -387,7 +387,7 @@ class LevelScaling
    * @type {number}
    */
   static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor; however, this is a static class designed to have its methods used
@@ -478,9 +478,9 @@ class LevelScaling
     return result.clamp(this.#minimumMultiplier, this.#maximumMultiplier);
   }
 }
-//#endregion LevelScaling
+//endregion LevelScaling
 
-//#region Game_Action
+//region Game_Action
 /**
  * Scales damaged dealt and received to be based on level differences.
  */
@@ -496,9 +496,9 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
   // return the product of these two values.
   return (baseDamage * multiplier);
 }
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * The base or default level for this battler.
  * Actors have a level tracker, so we'll use that for the base.
@@ -535,9 +535,9 @@ Game_Actor.prototype.getLevelBalancer = function()
   // we don't have any balancing required.
   return 0;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Generates the "level" property for all battlers, along with
  * a new function to calculate level retrieval.
@@ -643,9 +643,9 @@ Game_Battler.prototype.extractLevel = function(rpgData)
   // extract the level from the notes.
   return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.BattlerLevel);
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets all database sources we can get levels from.
  * @returns {RPG_BaseItem[]}
@@ -685,9 +685,9 @@ Game_Enemy.prototype.getLevelBalancer = function()
   // we don't have any balancing required.
   return 0;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Party
+//region Game_Party
 /**
  * Checks the current battle party and averages all levels.
  * @returns {number} The average battle party level (rounded).
@@ -709,9 +709,9 @@ Game_Party.prototype.averageActorLevel = function()
   // the average level of the party.
   return Math.round(levelTotal / allies.length);
 }
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_System
+//region Game_System
 J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 /**
  * Extends `initialize()` to include properties for this plugin.
@@ -757,9 +757,9 @@ Game_System.prototype.disableLevelScaling = function()
 {
   this._j._levelScalingEnabled = false;
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Game_Troop
+//region Game_Troop
 /**
  * Upon defeating a troop of enemies, scales the earned experience based on
  * average actor level vs each of the enemies.
@@ -814,4 +814,4 @@ Game_Troop.prototype.getScaledExpResult = function()
   // return the rounded sum of scaled experience.
   return Math.round(deadEnemies.reduce(reducer, 0));
 };
-//#endregion Game_Troop
+//endregion Game_Troop

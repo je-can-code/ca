@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -14,9 +14,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -36,5 +36,5 @@ J.HUD.EXT_PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 J.HUD.EXT_PARTY.Aliased = {
   Scene_Map: new Map(),
 };
-//#endregion introduction
-//#endregion introduction
+//endregion introduction
+//endregion introduction

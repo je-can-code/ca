@@ -1,4 +1,4 @@
-//#region Window_MenuCommand
+//region Window_MenuCommand
 /**
  * Extends {@link #makeCommandList}.
  * Also adds the omnipedia command.
@@ -48,4 +48,4 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_MenuCommand
+//endregion Window_MenuCommand

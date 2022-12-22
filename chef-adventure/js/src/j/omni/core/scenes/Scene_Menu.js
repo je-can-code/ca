@@ -1,4 +1,4 @@
-//#region Scene_Menu
+//region Scene_Menu
 /**
  * Hooks into the command window creation of the menu to add functionality for the SDP menu.
  */
@@ -19,4 +19,4 @@ Scene_Menu.prototype.commandOmnipedia = function()
 {
   Scene_Omnipedia.callScene();
 };
-//#endregion Scene_Menu
+//endregion Scene_Menu

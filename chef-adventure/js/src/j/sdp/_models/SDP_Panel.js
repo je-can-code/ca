@@ -1,4 +1,4 @@
-//#region SDP_Panel
+//region SDP_Panel
 /**
  * The class that governs the details of a single SDP.
  */
@@ -233,4 +233,4 @@ StatDistributionPanel.prototype.calculateBonusByRank = function(
   // return the total.
   return val;
 };
-//#endregion SDP_Panel
+//endregion SDP_Panel

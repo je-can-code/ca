@@ -1,5 +1,5 @@
-//#region RPG_Class
-//#region bonusHits
+//region RPG_Class
+//region bonusHits
 /**
  * The number of additional bonus hits this battler adds to their basic attacks.
  * @type {number}
@@ -29,5 +29,5 @@ RPG_Class.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
-//#endregion RPG_Class
+//endregion bonusHits
+//endregion RPG_Class

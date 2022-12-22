@@ -1,4 +1,4 @@
-//#region JABS_Action
+//region JABS_Action
 /**
  * An object that binds a `Game_Action` to a `Game_Event` on the map.
  */
@@ -532,7 +532,7 @@ class JABS_Action
     this._pierceDelay.reset();
   }
 
-  //#region update
+  //region update
   /**
    * The overarching update logic for the action.
    */
@@ -684,7 +684,7 @@ class JABS_Action
   postUpdate()
   {
   }
-  //#endregion update
+  //endregion update
 
   /**
    * Gets whether or not this action is a direct-targeting action.
@@ -745,7 +745,7 @@ class JABS_Action
     }
 
     // return the proximity from the underlying skill.
-    return this.getBaseSkill().jabsProximity;
+    return this.getBaseSkill().jabsProximity ?? 0;
   }
 
   /**
@@ -804,4 +804,4 @@ class JABS_Action
     return this.getBaseSkill().jabsAggroMultiplier ?? 1.0;
   }
 }
-//#endregion JABS_Action
+//endregion JABS_Action

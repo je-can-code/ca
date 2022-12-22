@@ -1,4 +1,4 @@
-//#region Window_JaftingCraftCategory
+//region Window_JaftingCraftCategory
 /**
  * A simple window that shows a list of categories unlocked.
  */
@@ -87,4 +87,4 @@ class Window_JaftingCraftCategory extends Window_Command
     });
   }
 }
-//#endregion Window_JaftingCraftCategory
+//endregion Window_JaftingCraftCategory

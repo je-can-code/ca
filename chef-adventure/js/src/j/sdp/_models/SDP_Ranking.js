@@ -1,4 +1,4 @@
-//#region SDP_Ranking
+//region SDP_Ranking
 /**
  * A class for tracking an actor's ranking in a particular panel.
  */
@@ -133,4 +133,4 @@ PanelRanking.prototype.performMaxRankupEffects = function()
   SoundManager.playRecovery();
   this.performRankupEffects(0);
 };
-//#endregion SDP_Ranking
+//endregion SDP_Ranking

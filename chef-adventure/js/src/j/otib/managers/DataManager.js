@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * Update save data with new plugin metadata.
  */
@@ -50,4 +50,4 @@ DataManager.extractSaveContents = function(contents)
 
   J.OTIB.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager

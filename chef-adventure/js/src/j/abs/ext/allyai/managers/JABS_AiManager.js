@@ -1,4 +1,4 @@
-//#region JABS_AiManager
+//region JABS_AiManager
 J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 /**
  * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
@@ -126,4 +126,4 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // setup the action for use!
   this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
 };
-//#endregion JABS_AiManager
+//endregion JABS_AiManager

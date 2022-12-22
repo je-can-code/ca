@@ -1,4 +1,4 @@
-//#region ColorManager
+//region ColorManager
 /**
  * Gets the color index from the "long" parameter id.
  *
@@ -131,4 +131,4 @@ ColorManager.equipType = function(equipTypeId)
 {
   return this.textColor(4);
 };
-//#endregion ColorManager
+//endregion ColorManager

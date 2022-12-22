@@ -1,4 +1,4 @@
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * Extends {@link JABS_Engine.prePartyCycling}.
  * Jumps all followers to the player upon party cycling.
@@ -37,4 +37,4 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
   // rebuild all allies.
   $gameMap.updateAllies();
 };
-//#endregion JABS_Engine
+//endregion JABS_Engine

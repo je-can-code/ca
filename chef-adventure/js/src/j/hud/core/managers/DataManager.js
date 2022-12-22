@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * Instantiates the hud manager after the rest of the objects are created.
  */
@@ -35,4 +35,4 @@ DataManager.setupNewGame = function()
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
 };
-//#endregion DataManager
+//endregion DataManager

@@ -1,4 +1,4 @@
-//#region Sprite_SkillName
+//region Sprite_SkillName
 /**
  * A sprite that represents a skill slot's assigned skill's name.
  */
@@ -58,4 +58,4 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
     this.skillSlot().acknowledgeNameRefresh();
   }
 }
-//#endregion Sprite_SkillName
+//endregion Sprite_SkillName

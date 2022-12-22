@@ -1,4 +1,4 @@
-//#region Sprite_MapGauge
+//region Sprite_MapGauge
 /**
  * The sprite for displaying a gauge over a character's sprite.
  */
@@ -234,4 +234,4 @@ Sprite_MapGauge.prototype.currentMaxValue = function()
   }
   return NaN;
 };
-//#endregion Sprite_MapGauge
+//endregion Sprite_MapGauge

@@ -1,4 +1,4 @@
-//#region ImageManager
+//region ImageManager
 /**
  * Generates a promise based on the resolution of the bitmap.<br/>
  * If the promise resolves successfully, it'll contain the bitmap.<br/>
@@ -11,4 +11,4 @@ ImageManager.loadHudBitmap = function(filename)
   // return the created promise.
   return this.loadBitmapPromise(filename, 'img/hud/');
 };
-//#endregion ImageManager
+//endregion ImageManager

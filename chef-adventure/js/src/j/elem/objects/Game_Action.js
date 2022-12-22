@@ -1,4 +1,4 @@
-//#region Game_Action
+//region Game_Action
 /**
  * OVERWRITE Calculates the elemental rates of this action against the designated target.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -368,4 +368,4 @@ Game_Action.prototype.healingFactor = function(targetAbsorbs)
   const isHealingAction = [3, 4].includes(this.item().damage.type);
   return isHealingAction && !targetAbsorbs ? -1 : 1;
 };
-//#endregion Game_Action
+//endregion Game_Action

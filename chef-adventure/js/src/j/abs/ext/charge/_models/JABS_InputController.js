@@ -1,4 +1,4 @@
-//#region JABS_InputController
+//region JABS_InputController
 J.ABS.EXT_CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
 JABS_InputController.prototype.initMembers = function()
 {
@@ -85,7 +85,7 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
   return this.getChargeInputDelayBySlot(slot).isTimerComplete();
 };
 
-//#region mainhand
+//region mainhand
 /**
  * Extends {@link JABS_InputController.updateMainhandAction}.
  * Handles charging capability for this input.
@@ -195,9 +195,9 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
   // reset the slot's charging input delay.
   this.resetChargeInputDelayBySlot(JABS_Button.Mainhand);
 };
-//#endregion mainhand
+//endregion mainhand
 
-//#region offhand
+//region offhand
 /**
  * Extends {@link JABS_InputController.updateOffhandAction}.
  * Handles charging capability to the offhand.
@@ -303,9 +303,9 @@ JABS_InputController.prototype.performOffhandChargeAlterAction = function()
 {
   JABS_InputAdapter.performOffhandActionCharging(false, $jabsEngine.getPlayer1())
 };
-//#endregion offhand
+//endregion offhand
 
-//#region combat skills
+//region combat skills
 /**
  * Determines whether or not the charging is ready.
  * @returns {boolean} True if the charging is ready, false otherwise.
@@ -355,7 +355,7 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
   this.resetChargeInputDelayBySlot(slot);
 };
 
-//#region combat skill 1
+//region combat skill 1
 /**
  * Extends {@link JABS_InputController.updateCombatAction1}.
  * Handles charging capability for this input.
@@ -421,9 +421,9 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 1
+//endregion combat skill 1
 
-//#region combat skill 2
+//region combat skill 2
 /**
  * Extends {@link JABS_InputController.updateCombatAction2}.
  * Handles charging capability for this input.
@@ -489,9 +489,9 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 2
+//endregion combat skill 2
 
-//#region combat skill 3
+//region combat skill 3
 /**
  * Extends {@link JABS_InputController.updateCombatAction3}.
  * Handles charging capability for this input.
@@ -557,9 +557,9 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 3
+//endregion combat skill 3
 
-//#region combat skill 4
+//region combat skill 4
 /**
  * Extends {@link JABS_InputController.updateCombatAction4}.
  * Handles charging capability for this input.
@@ -625,6 +625,6 @@ JABS_InputController.prototype.canChargeCombatAction4 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 4
-//#endregion combat skills
-//#endregion JABS_InputController
+//endregion combat skill 4
+//endregion combat skills
+//endregion JABS_InputController

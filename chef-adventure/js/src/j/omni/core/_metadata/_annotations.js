@@ -1,4 +1,4 @@
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -25,4 +25,4 @@
  *    Initial release.
  * ============================================================================
  */
-//#endregion Introduction
+//endregion Introduction

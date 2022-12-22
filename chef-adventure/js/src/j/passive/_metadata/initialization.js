@@ -11,35 +11,28 @@ J.PASSIVE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.PASSIVE.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Passive`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.1.0',
-};
+J.PASSIVE.Metadata = {};
+J.PASSIVE.Metadata.Name = `J-Passive`;
+J.PASSIVE.Metadata.Version = '1.1.0';
 
 /**
  * All regular expressions used by this plugin.
  */
-J.PASSIVE.RegExp = {
-  PassiveStateIds: /<passive:[ ]?(\[[\d, ]+])>/gi,
-  UniquePassiveStateIds: /<uniquePassive:[ ]?(\[[\d, ]+])>/gi,
-};
+J.PASSIVE.RegExp = {};
+J.PASSIVE.RegExp.EquippedPassiveStateIds = /<equippedPassive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds = /<uniqueEquippedPassive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.PassiveStateIds = /<passive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.UniquePassiveStateIds = /<uniquePassive:[ ]?(\[[\d, ]+])>/gi;
 
 /**
  * The collection of all aliased classes for extending.
  */
-J.PASSIVE.Aliased = {
-  DataManager: new Map(),
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_BattlerBase: new Map(),
-  Game_Enemy: new Map(),
-  Game_Party: new Map(),
-};
-//#endregion Introduction
+J.PASSIVE.Aliased = {};
+J.PASSIVE.Aliased.DataManager = new Map();
+J.PASSIVE.Aliased.Game_Actor = new Map();
+J.PASSIVE.Aliased.Game_Battler = new Map();
+J.PASSIVE.Aliased.Game_BattlerBase = new Map();
+J.PASSIVE.Aliased.Game_Enemy = new Map();
+J.PASSIVE.Aliased.Game_Party = new Map();
+J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
+//endregion Introduction

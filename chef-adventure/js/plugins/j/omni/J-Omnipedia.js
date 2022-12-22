@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -27,9 +27,9 @@
  *    Initial release.
  * ============================================================================
  */
-//#endregion Introduction
+//endregion Introduction
 
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -92,7 +92,7 @@ J.OMNI.Aliased.Scene_Map = new Map();
 J.OMNI.Aliased.Scene_Menu = new Map();
 J.OMNI.Aliased.Window_AbsMenu = new Map();
 J.OMNI.Aliased.Window_MenuCommand = new Map();
-//#endregion Metadata
+//endregion Metadata
 
 J.OMNI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
@@ -111,7 +111,7 @@ Game_Party.prototype.initOmnipediaMembers = function()
 {
 };
 
-//#region Game_System
+//region Game_System
 /**
  * Calls the omnipedia scene if possible.
  * @param {boolean=} force Whether or not to force-call the scene; defaults to false.
@@ -141,9 +141,9 @@ Game_System.prototype.canCallOmnipediaScene = function()
   // peek at the omnipedia!
   return true;
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends {@link #createJabsAbsMenuMainWindow}.
  * Adds additional handling in the list for the omnipedia command.
@@ -168,9 +168,9 @@ Scene_Map.prototype.commandOmnipedia = function()
 {
   Scene_Omnipedia.callScene();
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Scene_Menu
+//region Scene_Menu
 /**
  * Hooks into the command window creation of the menu to add functionality for the SDP menu.
  */
@@ -191,9 +191,9 @@ Scene_Menu.prototype.commandOmnipedia = function()
 {
   Scene_Omnipedia.callScene();
 };
-//#endregion Scene_Menu
+//endregion Scene_Menu
 
-//#region Scene_Omnipedia
+//region Scene_Omnipedia
 /**
  * A scene containing access to all available and implemented pedia entries.
  */
@@ -219,7 +219,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     this.initialize();
   }
 
-  //#region init
+  //region init
   /**
    * Initialize the window and all properties required by the scene.
    */
@@ -279,9 +279,9 @@ class Scene_Omnipedia extends Scene_MenuBase
      */
     this._j._omni._pediaListHeader = null;
   }
-  //#endregion init
+  //endregion init
 
-  //#region create
+  //region create
   /**
    * Initialize all resources required for this scene.
    */
@@ -311,9 +311,9 @@ class Scene_Omnipedia extends Scene_MenuBase
     // create all root windows for the main listing.
     this.createOmnipediaRootWindows();
   }
-  //#endregion create
+  //endregion create
 
-  //#region windows
+  //region windows
   /**
    * Creates the root-level omnipedia windows.
    */
@@ -326,7 +326,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     this.createOmnipediaListHeaderWindow();
   }
 
-  //#region header window
+  //region header window
   /**
    * Creates a header window for the omnipedia list.
    */
@@ -425,9 +425,9 @@ class Scene_Omnipedia extends Scene_MenuBase
     rootHeaderWindow.close();
     rootHeaderWindow.hide();
   }
-  //#endregion header window
+  //endregion header window
 
-  //#region list window
+  //region list window
   /**
    * Creates the list of pedias available to the player to peruse.
    */
@@ -541,7 +541,7 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     return this.getOmnipediaListWindow().currentSymbol();
   }
-  //#endregion list window
+  //endregion list window
 
   /**
    * Opens all windows associated with the root omnipedia.
@@ -566,10 +566,10 @@ class Scene_Omnipedia extends Scene_MenuBase
     // close the header window.
     this.closeRootHeaderWindow();
   }
-  //#endregion windows
+  //endregion windows
 
-  //#region actions
-  //#region root actions
+  //region actions
+  //region root actions
   /**
    * When an pedia choice is made, execute this logic.
    * This is only implemented/extended by the pedias.
@@ -578,12 +578,12 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     console.debug(`selected "${this.getRootOmnipediaKey()}" option.`);
   }
-  //#endregion root actions
-  //#endregion actions
+  //endregion root actions
+  //endregion actions
 }
-//#endregion Scene_Omnipedia
+//endregion Scene_Omnipedia
 
-//#region Window_AbsMenu
+//region Window_AbsMenu
 if (J.ABS)
 {
   /**
@@ -627,9 +627,9 @@ if (J.ABS)
     return true;
   };
 }
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu
 
-//#region Window_MenuCommand
+//region Window_MenuCommand
 /**
  * Extends {@link #makeCommandList}.
  * Also adds the omnipedia command.
@@ -679,9 +679,9 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function()
   // render the command!
   return true;
 };
-//#endregion Window_MenuCommand
+//endregion Window_MenuCommand
 
-//#region Window_OmnipediaList
+//region Window_OmnipediaList
 /**
  * A window displaying the list of pedias available.
  */
@@ -752,9 +752,9 @@ class Window_OmnipediaList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
-//#endregion Window_OmnipediaList
+//endregion Window_OmnipediaList
 
-//#region Window_OmnipediaListHeader
+//region Window_OmnipediaListHeader
 class Window_OmnipediaListHeader extends Window_Base
 {
   /**
@@ -835,4 +835,4 @@ class Window_OmnipediaListHeader extends Window_Base
     this.resetFontSettings();
   }
 }
-//#endregion Window_OmnipediaListHeader
+//endregion Window_OmnipediaListHeader

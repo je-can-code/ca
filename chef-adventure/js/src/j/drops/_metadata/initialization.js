@@ -36,4 +36,4 @@ J.DROPS.RegExp = {
 J.DROPS.Aliased = {
   Game_Enemy: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction

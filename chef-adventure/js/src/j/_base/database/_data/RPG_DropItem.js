@@ -1,4 +1,4 @@
-//#region RPG_DropItem
+//region RPG_DropItem
 /**
  * A class representing a single drop item of an enemy from the database.
  */
@@ -72,7 +72,7 @@ class RPG_DropItem
     }
   }
 
-  //#region properties
+  //region properties
   /**
    * The id of the underlying item's entry in the database.
    * @type {number}
@@ -91,7 +91,7 @@ class RPG_DropItem
    * @type {number}
    */
   kind = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -105,4 +105,4 @@ class RPG_DropItem
     this.kind = kind;
   }
 }
-//#endregion RPG_DropItem
+//endregion RPG_DropItem

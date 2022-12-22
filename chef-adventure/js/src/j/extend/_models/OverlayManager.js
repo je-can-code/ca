@@ -1,4 +1,4 @@
-//#region OverlayManager
+//region OverlayManager
 /**
  * A static class for managing the overlaying of one skill onto another.
  * The methods are divided by the attribute they overlay.
@@ -125,7 +125,7 @@ class OverlayManager
     return baseSkill;
   }
 
-  //#region overwrites
+  //region overwrites
   /**
    * Overlays the base skill data.
    *
@@ -763,7 +763,7 @@ class OverlayManager
     // return the overlayed base skill.
     return baseSkill;
   }
-//#endregion overwrites
+//endregion overwrites
 }
 
-//#endregion OverlayManager
+//endregion OverlayManager

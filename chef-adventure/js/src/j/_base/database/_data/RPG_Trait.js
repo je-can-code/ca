@@ -1,4 +1,4 @@
-//#region RPG_Trait
+//region RPG_Trait
 /**
  * A class representing a single trait living on one of the many types
  * of database classes that leverage traits.
@@ -48,4 +48,4 @@ class RPG_Trait
     return new RPG_Trait({code, dataId, value});
   }
 }
-//#endregion RPG_Trait
+//endregion RPG_Trait

@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 08:44:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 NATURAL] Enables level-based growth of all parameters.
+ * [v2.0.1 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -182,6 +182,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.1
+ *    Fixed issue with buffs not being refreshed in Scene_Equip.
  * - 2.0.0
  *    Buff tracking has been refactored to be more compatible with J-Passives.
  *    Fixed issues with buffs/growths not being tracked correctly.
@@ -202,7 +204,9 @@
  * @desc The base TP for enemies is this amount. Any formulai add onto this.
  * @default 100
  */
+//endregion Introduction
 
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -225,7 +229,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.0.0',
+  Version: '2.0.1',
 };
 
 /**
@@ -243,6 +247,10 @@ J.NATURAL.Aliased = {
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
+
+  Scene_Equip: new Map(),
+
+  Window_EquipItem: new Map(),
 };
 
 /**
@@ -396,9 +404,9 @@ J.NATURAL.RegExp = {
   MaxTechGrowthPlus: /mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechGrowthRate: /mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 };
-//#endregion Introduction
+//endregion Metadata
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #setup}.
  * Includes parameter buff initialization.
@@ -427,7 +435,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
   this.refreshAllParameterBuffs();
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -485,9 +493,9 @@ Game_Actor.prototype.getMaxTpGrowth = function(baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b params
+//region b params
 /**
  * Extends `.paramBase()` to include any additional growth bonuses as part of the base.
  */
@@ -565,9 +573,9 @@ Game_Actor.prototype.getBparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion b params
+//endregion b params
 
-//#region ex params
+//region ex params
 /**
  * Extends `.xparam()` to include any additional growth bonuses.
  */
@@ -646,9 +654,9 @@ Game_Actor.prototype.getXparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion ex params
+//endregion ex params
 
-//#region sp params
+//region sp params
 /**
  * Extends `.sparam()` to include any additional growth bonuses.
  */
@@ -728,9 +736,9 @@ Game_Actor.prototype.getSparamGrowth = function(paramId, baseParam)
   // return result.
   return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
-//#endregion sp params
+//endregion sp params
 
-//#region apply growths
+//region apply growths
 /**
  * Extends `.levelUp()` to include applying any natural growths the battler has.
  */
@@ -947,10 +955,10 @@ Game_Actor.prototype.getGrowthRegexBySparamId = function(sparamId)
 Game_Actor.prototype.applyNaturalCustomGrowths = function()
 {
 };
-//#endregion apply growths
-//#endregion Game_Actor
+//endregion apply growths
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends `.initMembers()` to include initializing the natural growth parameters.
  */
@@ -964,7 +972,7 @@ Game_Battler.prototype.initMembers = function()
   this.initNaturalGrowthParameters();
 };
 
-//#region properties
+//region properties
 /**
  * Initializes the natural growth parameters for this battler.
  */
@@ -1077,7 +1085,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._xParamsBuffRate = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 };
 
-//#region max tp
+//region max tp
 /**
  * Gets the permanent flat bonus for max tp.
  * @returns {number}
@@ -1149,9 +1157,9 @@ Game_Battler.prototype.setMaxTpBuffRate = function(amount)
 {
   this._j._natural._maxTpBuffRate = amount;
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b-params
+//region b-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -1231,9 +1239,9 @@ Game_Battler.prototype.setBparamBuffRate = function(paramId, amount)
 {
   this._j._natural._bParamsBuffRate[paramId] = amount;
 };
-//#endregion b-params
+//endregion b-params
 
-//#region s-params
+//region s-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -1313,9 +1321,9 @@ Game_Battler.prototype.setSparamBuffRate = function(paramId, amount)
 {
   this._j._natural._sParamsBuffRate[paramId] = amount;
 };
-//#endregion s-params
+//endregion s-params
 
-//#region x-params
+//region x-params
 /**
  * Gets the permanent flat bonus for a base parameter of the given id.
  * @param {number} paramId The id of the parameter.
@@ -1395,8 +1403,8 @@ Game_Battler.prototype.setXparamBuffRate = function(paramId, amount)
 {
   this._j._natural._xParamsBuffRate[paramId] = amount;
 };
-//#endregion x-params
-//#endregion properties
+//endregion x-params
+//endregion properties
 
 /**
  * Refreshes both plus/rate buffs for all parameters.
@@ -1794,7 +1802,7 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
   return result;
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -1891,10 +1899,10 @@ Game_Battler.prototype.getBaseMaxTp = function()
 {
   return 0;
 };
-//#endregion max tp
-//#endregion Game_Battler
+//endregion max tp
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link Game_Enemy.setup}.
  * Includes parameter buff initialization.
@@ -1923,7 +1931,7 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.refreshAllParameterBuffs();
 };
 
-//#region max tp
+//region max tp
 /**
  * OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
  * formulas and apply rates from tags, etc.
@@ -1943,9 +1951,9 @@ Game_Enemy.prototype.getBaseMaxTp = function()
 {
   return J.NATURAL.Metadata.BaseTpMaxEnemies;
 };
-//#endregion max tp
+//endregion max tp
 
-//#region b params
+//region b params
 /**
  * Extends `.paramBase()` to include any additional growth bonuses as part of the base.
  */
@@ -2000,9 +2008,9 @@ Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
   // return result.
   return paramBuff;
 };
-//#endregion b params
+//endregion b params
 
-//#region ex params
+//region ex params
 /**
  * Extends `.xparam()` to include any additional growth bonuses.
  */
@@ -2057,9 +2065,9 @@ Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, structures, ba
   // return result.
   return paramBuff;
 };
-//#endregion ex params
+//endregion ex params
 
-//#region sp params
+//region sp params
 /**
  * Extends `.sparam()` to include any additional growth bonuses.
  */
@@ -2115,10 +2123,10 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, ba
   // return result.
   return paramBuff;
 };
-//#endregion sp params
-//#endregion Game_Enemy
+//endregion sp params
+//endregion Game_Enemy
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends {@link #gainItem}.
  * Also refreshes the passive states for the party.
@@ -2145,4 +2153,34 @@ Game_Party.prototype.refreshAllParameterBuffsForAll = function()
     .members()
     .forEach(member => member.refreshAllParameterBuffs());
 };
-//#endregion Game_Party
+//endregion Game_Party
+
+//region Scene_Equip
+/**
+ * Extends {@link #executeEquipChange}.
+ * Also refreshes all natural parameter data.
+ */
+J.NATURAL.Aliased.Scene_Equip.set('executeEquipChange', Scene_Equip.prototype.executeEquipChange);
+Scene_Equip.prototype.executeEquipChange = function() 
+{
+  // perform original logic.
+  J.NATURAL.Aliased.Scene_Equip.get('executeEquipChange').call(this);
+
+  // refresh the actor's parameter buffs after changing equips.
+  this.actor().refreshAllParameterBuffs();
+};
+//endregion Scene_Equip
+
+//region Window_EquipItem
+/**
+ * Extends {@link #postEquipSetupActorClone}.
+ * Updates the buffs associated with the cloned actor so that it reflects in the
+ * status window comparison.
+ * @param {Game_Actor} actorClone The clone of the actor.
+ */
+J.NATURAL.Aliased.Window_EquipItem.set('postEquipSetupActorClone', Window_EquipItem.prototype.postEquipSetupActorClone);
+Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone)
+{
+  actorClone.refreshAllParameterBuffs();
+};
+//endregion Window_EquipItem

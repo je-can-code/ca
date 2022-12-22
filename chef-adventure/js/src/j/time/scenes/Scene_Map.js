@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends `Scene_Map.initialize()` to also initialize the TIME window.
  */
@@ -112,4 +112,4 @@ Scene_Map.prototype.blockIfTagged = function()
     $gameTime.unblock();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map

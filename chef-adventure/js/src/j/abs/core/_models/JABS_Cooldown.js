@@ -1,4 +1,4 @@
-//#region JABS_Cooldown
+//region JABS_Cooldown
 /**
  * A class representing a skill or item's cooldown data.
  * @param {string} key The key of the cooldown.
@@ -11,7 +11,7 @@ function JABS_Cooldown(key)
 JABS_Cooldown.prototype = {};
 JABS_Cooldown.prototype.constructor = JABS_Cooldown;
 
-//#region initialize
+//region initialize
 /**
  * Initializes this cooldown.
  * @param {string} key The key for this cooldown.
@@ -87,7 +87,7 @@ JABS_Cooldown.prototype.clearData = function()
   this.locked = false;
   this.mustComboClear = false;
 };
-//#endregion initialize
+//endregion initialize
 
 /**
  * Whether or not the combo data needs clearing.
@@ -151,7 +151,7 @@ JABS_Cooldown.prototype.updateCooldownData = function()
   this.updateComboCooldown();
 };
 
-//#region base cooldown
+//region base cooldown
 /**
  * Updates the base skill data for this cooldown.
  */
@@ -255,9 +255,9 @@ JABS_Cooldown.prototype.handleIfBaseUnready = function()
     this.ready = false;
   }
 };
-//#endregion base cooldown
+//endregion base cooldown
 
-//#region combo cooldown
+//region combo cooldown
 /**
  * Updates the combo data for this cooldown.
  */
@@ -373,9 +373,9 @@ JABS_Cooldown.prototype.isComboReady = function()
 {
   return this.comboReady;
 };
-//#endregion combo cooldown
+//endregion combo cooldown
 
-//#region locking
+//region locking
 /**
  * Gets whether or not this cooldown is locked.
  * @returns {boolean}
@@ -400,5 +400,5 @@ JABS_Cooldown.prototype.unlock = function()
 {
   this.locked = false;
 };
-//#endregion locking
-//#endregion JABS_Cooldown
+//endregion locking
+//endregion JABS_Cooldown

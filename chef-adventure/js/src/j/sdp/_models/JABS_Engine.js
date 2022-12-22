@@ -1,4 +1,4 @@
-//#region JABS_Engine
+//region JABS_Engine
 if (J.ABS)
 {
   /**
@@ -96,4 +96,4 @@ if (J.ABS)
     $gameTextLog.addLog(sdpLog);
   };
 }
-//#endregion JABS_Engine
+//endregion JABS_Engine

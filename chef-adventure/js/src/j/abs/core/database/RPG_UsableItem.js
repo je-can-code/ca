@@ -1,5 +1,5 @@
-//#region RPG_UsableItem
-//#region bonusHits
+//region RPG_UsableItem
+//region bonusHits
 /**
  * The number of additional bonus hits this skill or item adds to their basic attacks.
  * @type {number}
@@ -29,9 +29,9 @@ RPG_UsableItem.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
+//endregion bonusHits
 
-//#region cooldown
+//region cooldown
 /**
  * The JABS cooldown when using this skill or item.
  * @type {number}
@@ -60,5 +60,5 @@ RPG_UsableItem.prototype.extractJabsCooldown = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Cooldown, true);
 };
-//#endregion cooldown
-//#endregion RPG_UsableItem
+//endregion cooldown
+//endregion RPG_UsableItem

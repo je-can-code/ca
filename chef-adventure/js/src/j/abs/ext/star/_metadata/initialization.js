@@ -8,7 +8,7 @@ var J = J || {};
  */
 J.STAR = {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -27,7 +27,7 @@ J.STAR = {};
     throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The metadata for this plugin.

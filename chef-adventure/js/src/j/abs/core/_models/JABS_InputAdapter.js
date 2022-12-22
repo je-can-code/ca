@@ -1,4 +1,4 @@
-//#region JABS_InputAdapter
+//region JABS_InputAdapter
 /**
  * This static class governs the instructions of what to do regarding input.
  * Inputs are received by the JABS_InputController.
@@ -401,4 +401,4 @@ class JABS_InputAdapter
     return true;
   }
 }
-//#endregion JABS_InputAdapter
+//endregion JABS_InputAdapter

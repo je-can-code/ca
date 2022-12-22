@@ -1,5 +1,5 @@
-//#region RPG_Enemy
-//#region sdpPoints
+//region RPG_Enemy
+//region sdpPoints
 /**
  * The number of SDP points this enemy will yield upon defeat.
  * @type {number|null}
@@ -29,9 +29,9 @@ RPG_Enemy.prototype.extractSdpPoints = function()
 {
   return this.getNumberFromNotesByRegex(J.SDP.RegExp.SdpPoints);
 };
-//#endregion sdpPoints
+//endregion sdpPoints
 
-//#region sdpDropData
+//region sdpDropData
 /**
  * Gets the SDP drop data for this enemy.
  *
@@ -104,5 +104,5 @@ RPG_Enemy.prototype.extractSdpDropData = function()
 {
   return this.getArrayFromNotesByRegex(J.SDP.RegExp.SdpDropData, true);
 };
-//#endregion sdpDropData
-//#endregion RPG_Enemy
+//endregion sdpDropData
+//endregion RPG_Enemy

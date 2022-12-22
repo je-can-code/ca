@@ -1,10 +1,10 @@
-//#region LevelScaling
+//region LevelScaling
 /**
  * A helper class for calculating level-based scaling multipliers.
  */
 class LevelScaling
 {
-  //#region properties
+  //region properties
   /**
    * The default scaling multiplier.
    * @type {number}
@@ -46,7 +46,7 @@ class LevelScaling
    * @type {number}
    */
   static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor; however, this is a static class designed to have its methods used
@@ -137,4 +137,4 @@ class LevelScaling
     return result.clamp(this.#minimumMultiplier, this.#maximumMultiplier);
   }
 }
-//#endregion LevelScaling
+//endregion LevelScaling

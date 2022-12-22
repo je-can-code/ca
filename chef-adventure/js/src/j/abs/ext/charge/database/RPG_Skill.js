@@ -1,4 +1,4 @@
-//#region RPG_Skill
+//region RPG_Skill
 /**
  * The charge tier data associated with a skill.
  * @type {[number, number, number, number][]|null}
@@ -28,4 +28,4 @@ RPG_Base.prototype.extractJabsChargeData = function()
 {
   return this.getArraysFromNotesByRegex(J.ABS.EXT_CHARGE.RegExp.ChargeData, true);
 };
-//#endregion RPG_Skill
+//endregion RPG_Skill

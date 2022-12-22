@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -103,7 +103,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -114,9 +114,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -142,7 +142,7 @@ J.HUD.Aliased = {
   Scene_Map: new Map(),
   DataManager: new Map(),
 };
-//#endregion metadata
+//endregion metadata
 
 /**
  * A global object for managing the hud.
@@ -151,7 +151,7 @@ J.HUD.Aliased = {
  */
 var $hudManager = null;
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for hiding the hud.
  */
@@ -199,10 +199,10 @@ PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshImageCache", () =>
 {
   $hudManager.requestRefreshImageCache();
 });
-//#endregion plugin commands
-//#endregion introduction
+//endregion plugin commands
+//endregion introduction
 
-//#region DataManager
+//region DataManager
 /**
  * Instantiates the hud manager after the rest of the objects are created.
  */
@@ -239,16 +239,16 @@ DataManager.setupNewGame = function()
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Hud_Manager
+//region Hud_Manager
 /**
  * A manager class for the hud.
  * Use this class to issue requests to show/hide the hud.
  */
 class Hud_Manager
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not the allies are currently being displayed in the hud.
    * @type {boolean}
@@ -329,7 +329,7 @@ class Hud_Manager
    * @private
    */
   #ready = false;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Sets up this hud based on info from the saved data if available.
@@ -581,7 +581,7 @@ class Hud_Manager
     this.#setRequestRefreshInputFrame(false);
   }
 
-  //#region private functions
+  //region private functions
   /**
    * Whether or not the hud manager is ready to get started.
    * @returns {boolean} True if it is ready, false otherwise.
@@ -790,11 +790,11 @@ class Hud_Manager
   {
     this.#requestHideHud = request;
   }
-  //#endregion private functions
+  //endregion private functions
 }
-//#endregion Hud_Manager
+//endregion Hud_Manager
 
-//#region Game_System
+//region Game_System
 /**
  * Extends the `initialize()` to include our hud data for remembering.
  */
@@ -845,9 +845,9 @@ Game_System.prototype.getHudAlliesVisible = function()
 {
   return this._j._hud._alliesVisible;
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends the `update()` function to also monitor updates for the hud.
  */
@@ -875,9 +875,9 @@ Scene_Map.prototype.updateHudFrames = function()
  */
 Scene_Map.prototype.refreshHud = function()
 { };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_Frame
+//region Window_Frame
 /**
  * A base class with some common sprite-cache-management features.
  */
@@ -936,7 +936,7 @@ class Window_Frame extends Window_Base
     this.refreshCache();
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -968,7 +968,7 @@ class Window_Frame extends Window_Base
   {
     // fill with sprite creation methods.
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Hooks into the update loop to include updating for this frame.
@@ -990,4 +990,4 @@ class Window_Frame extends Window_Base
     // fill with window frame logic.
   }
 }
-//#endregion Window_Frame
+//endregion Window_Frame

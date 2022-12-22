@@ -1,10 +1,10 @@
-//#region RPG_Enemy
+//region RPG_Enemy
 /**
  * A class representing a single enemy battler's data from the database.
  */
 class RPG_Enemy extends RPG_BaseBattler
 {
-  //#region properties
+  //region properties
   /**
    * A collection of all actions that an enemy has assigned from the database.
    * @type {RPG_EnemyAction[]}
@@ -42,7 +42,7 @@ class RPG_Enemy extends RPG_BaseBattler
    * @type {[number, number, number, number, number, number, number, number]}
    */
   params = [1, 0, 0, 0, 0, 0, 0, 0];
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -75,4 +75,4 @@ class RPG_Enemy extends RPG_BaseBattler
     this.params = enemy.params;
   }
 }
-//#endregion RPG_Enemy
+//endregion RPG_Enemy

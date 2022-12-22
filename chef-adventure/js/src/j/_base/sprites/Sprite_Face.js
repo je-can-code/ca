@@ -1,4 +1,4 @@
-//#region Sprite_Face
+//region Sprite_Face
 /**
  * A sprite that displays a single face.
  */
@@ -45,4 +45,4 @@ Sprite_Face.prototype.loadBitmap = function()
   const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
   this.setFrame(sx, sy, pw, ph);
 };
-//#endregion Sprite_Face
+//endregion Sprite_Face

@@ -1,4 +1,4 @@
-//#region Scene_Status
+//region Scene_Status
 /**
  * OVERWRITE Removes the buttons because fuck the buttons.
  */
@@ -82,4 +82,4 @@ Scene_Status.prototype.statusParamsWindowRect = function()
   const wh = Graphics.boxHeight;
   return new Rectangle(wx, wy, ww, wh);
 };
-//#endregion Scene_Status
+//endregion Scene_Status

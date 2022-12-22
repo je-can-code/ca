@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Determines whether or not the {@link OneTimeItemBoost} has been unlocked yet.
  * @param {number} itemId The id of the item granting the boost.
@@ -47,4 +47,4 @@ Game_Battler.prototype.handleOtibUnlock = function(item)
     this.unlockOtib(id);
   }
 };
-//#endregion Game_Battler
+//endregion Game_Battler

@@ -1,4 +1,4 @@
-//#region JAFT_Component
+//region JAFT_Component
 /**
  * A single instance of a particular crafting component, such as an ingredient/tool/output,
  * for use in JAFTING.
@@ -73,4 +73,4 @@ JAFTING_Component.prototype.consume = function()
 {
   $gameParty.loseItem(this.getItem(), this.count);
 };
-//#endregion JAFT_Component
+//endregion JAFT_Component

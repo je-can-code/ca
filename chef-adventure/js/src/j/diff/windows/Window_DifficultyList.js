@@ -1,4 +1,4 @@
-//#region Window_DifficultyList
+//region Window_DifficultyList
 class Window_DifficultyList extends Window_Command
 {
   /**
@@ -111,4 +111,4 @@ class Window_DifficultyList extends Window_Command
   {
   }
 }
-//#endregion Window_DifficultyList
+//endregion Window_DifficultyList

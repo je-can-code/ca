@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * The global text logger.
  * @type {Game_TextLog}
@@ -14,4 +14,4 @@ DataManager.createGameObjects = function()
   J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
   $gameTextLog = new Game_TextLog();
 };
-//#endregion DataManager
+//endregion DataManager

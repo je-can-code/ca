@@ -1,4 +1,4 @@
-//#region IconManager
+//region IconManager
 /**
  * A static class that manages the icon to X correlation, such as stats and elements.
  */
@@ -597,4 +597,4 @@ class IconManager
     }
   }
 }
-//#endregion IconManager
+//endregion IconManager

@@ -1,4 +1,4 @@
-//#region Window_JaftingCraftRecipeDetails
+//region Window_JaftingCraftRecipeDetails
 /**
  * The window that displays all tools, ingredients, and output from a given recipe.
  */
@@ -202,4 +202,4 @@ class Window_JaftingCraftRecipeDetails
     this.drawTextEx(`${itemNumbers}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
   }
 }
-//#endregion Window_JaftingCraftRecipeDetails
+//endregion Window_JaftingCraftRecipeDetails

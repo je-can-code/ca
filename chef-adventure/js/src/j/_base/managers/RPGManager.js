@@ -1,4 +1,4 @@
-//#region RPGManager
+//region RPGManager
 /**
  * A utility class for handling common database-related translations.
  */
@@ -227,4 +227,4 @@ class RPGManager
     return databaseDatas.some(regexMatchExists);
   }
 }
-//#endregion RPGManager
+//endregion RPGManager

@@ -1,10 +1,10 @@
-//#region RPG_Weapon
+//region RPG_Weapon
 /**
  * A class representing a single weapon from the database.
  */
 class RPG_Weapon extends RPG_EquipItem
 {
-  //#region properties
+  //region properties
   /**
    * The animation id for this weapon.
    * @type {number}
@@ -23,7 +23,7 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {2}
    */
   kind = 2;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -40,4 +40,4 @@ class RPG_Weapon extends RPG_EquipItem
     this.wtypeId = weapon.wtypeId;
   }
 }
-//#endregion RPG_Weapon
+//endregion RPG_Weapon

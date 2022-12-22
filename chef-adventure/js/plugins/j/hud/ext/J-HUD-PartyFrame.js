@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -38,7 +38,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -49,9 +49,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -71,10 +71,10 @@ J.HUD.EXT_PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 J.HUD.EXT_PARTY.Aliased = {
   Scene_Map: new Map(),
 };
-//#endregion introduction
-//#endregion introduction
+//endregion introduction
+//endregion introduction
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
@@ -214,9 +214,9 @@ Scene_Map.prototype.handleRefreshPartyFrameImageCache = function()
     $hudManager.acknowledgeRefreshImageCache();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Sprite_ActorValue
+//region Sprite_ActorValue
 /**
  * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
  */
@@ -392,9 +392,9 @@ Sprite_ActorValue.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 };
-//#endregion Sprite_ActorValue
+//endregion Sprite_ActorValue
 
-//#region Sprite_StateTimer
+//region Sprite_StateTimer
 /**
  * A sprite that displays some the remaining duration for a state in seconds with one decimal point.
  */
@@ -486,9 +486,9 @@ Sprite_StateTimer.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 };
-//#endregion Sprite_StateTimer
+//endregion Sprite_StateTimer
 
-//#region Window_PartyFrame
+//region Window_PartyFrame
 /**
  * A window containing the HUD data for the map.
  */
@@ -614,7 +614,7 @@ class Window_PartyFrame extends Window_Base
     });
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -1088,7 +1088,7 @@ class Window_PartyFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * The per-frame update of this window.
@@ -1123,7 +1123,7 @@ class Window_PartyFrame extends Window_Base
     this.drawAllies(136, 8);
   }
 
-  //#region visibility
+  //region visibility
   /**
    * Manages visibility for the hud.
    */
@@ -1210,7 +1210,7 @@ class Window_PartyFrame extends Window_Base
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
-  //#endregion visibility
+  //endregion visibility
 
   /**
    * Draw the leader's data for the HUD.
@@ -1493,4 +1493,4 @@ class Window_PartyFrame extends Window_Base
     tpGauge.show();
   }
 }
-//#endregion Window_PartyFrame
+//endregion Window_PartyFrame

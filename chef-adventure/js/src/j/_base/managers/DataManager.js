@@ -1,10 +1,10 @@
-//#region DataManager
+//region DataManager
 /**
  * The over-arching object containing all of my added parameters.
  */
 DataManager._j ||= {};
 
-//#region rewrite data
+//region rewrite data
 /**
  * Whether or not the database JSON data has been wrapped yet or not.
  * @type {boolean}
@@ -437,7 +437,7 @@ DataManager.weaponRewriteClass = function()
 {
   return RPG_Weapon;
 };
-//#endregion rewrite data
+//endregion rewrite data
 
 /**
  * Checks whether or not the unidentified object is a skill.
@@ -478,4 +478,4 @@ DataManager.isArmor = function(unidentified)
 {
   return unidentified && ('atypeId' in unidentified);
 };
-//#endregion DataManager
+//endregion DataManager

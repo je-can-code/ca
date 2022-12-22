@@ -1,5 +1,5 @@
-//#region Game_Event
-//#region update existing functionality
+//region Game_Event
+//region update existing functionality
 /**
  * Moves straight in a given direction.
  * If there is an underlying diagonal direction, then move diagonally.
@@ -254,9 +254,9 @@ Game_Event.prototype.turnRightOrLeft45 = function()
     ? this.turnLeft45()
     : this.turnRight45();
 };
-//#endregion update existing functionality
+//endregion update existing functionality
 
-//#region homing movement
+//region homing movement
 /**
  * Pursues the target battler on the map.
  * If there is no target, then it'll just move straight ahead.
@@ -358,9 +358,9 @@ Game_Event.prototype.homeIntoBattler = function(battler)
   // move towards the target.
   this.moveStraight(this.direction());
 };
-//#endregion homing movement
+//endregion homing movement
 
-//#region seeking movement
+//region seeking movement
 /**
  * Pursues the target battler on the map with a slow rotation.
  * If there is no target battler, then it'll just go straight ahead instead.
@@ -504,5 +504,5 @@ Game_Event.prototype.gradualRotateToDirection = function(currentDirection, final
     ? this.turnLeft45()
     : this.turnRight45();
 };
-//#endregion seeking movement
-//#endregion Game_Event
+//endregion seeking movement
+//endregion Game_Event

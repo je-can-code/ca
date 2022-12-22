@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -201,7 +201,7 @@ J.DROPS.RegExp = {
 J.DROPS.Aliased = {
   Game_Enemy: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction
 
 /**
  * Translates this drop item into its corresponding implemented class.
@@ -237,7 +237,7 @@ RPG_DropItem.prototype.toImplementation = function()
  */
 class RPG_DropItemBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The current id mapping to the entry in the database for this drop.
    * @type {number}
@@ -256,7 +256,7 @@ class RPG_DropItemBuilder
    * @type {number}
    */
   #chance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Builds the {@link RPG_DropItem} with the current parameters in this builder.
@@ -293,7 +293,7 @@ class RPG_DropItemBuilder
     this.setChance(0);
   }
 
-  //#region builders
+  //region builders
   /**
    * Sets the id aka `dataId` of this {@link RPG_DropItem}.
    * @param {number} id The database id of the item.
@@ -368,7 +368,7 @@ class RPG_DropItemBuilder
     this.setChance(percentChance);
     return this.build();
   }
-  //#endregion builders
+  //endregion builders
 }
 
 /**
@@ -402,7 +402,7 @@ RPG_Enemy.prototype.validDropItemFilter = function(dropItem)
   return true;
 };
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Gets this actor's bonus drop multiplier.
  * @returns {number}
@@ -476,9 +476,9 @@ Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
 
   return goldMultiplier;
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Parses the given reference data to extract any extra drops that may be present.
  * @param {RPG_BaseItem} referenceData The database object to parse.
@@ -509,9 +509,9 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
   // return the found extra drops.
   return convertedDrops;
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the gold that the enemy dropped.
  * This includes multipliers from our gold bonuses.
@@ -678,9 +678,9 @@ Game_Enemy.prototype.getBaseDropRate = function()
 {
   return 1;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy
 
-//#region Game_Party
+//region Game_Party
 /**
  * Gets the collective multiplier for gold drops for the entire party.
  * @returns {number}
@@ -738,4 +738,4 @@ Game_Party.prototype.dropMultiplierMembers = function()
   // membersToConsider.push(...$gameParty.members());
   return membersToConsider;
 };
-//#endregion Game_Party
+//endregion Game_Party

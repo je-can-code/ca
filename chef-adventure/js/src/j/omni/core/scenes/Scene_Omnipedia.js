@@ -1,4 +1,4 @@
-//#region Scene_Omnipedia
+//region Scene_Omnipedia
 /**
  * A scene containing access to all available and implemented pedia entries.
  */
@@ -24,7 +24,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     this.initialize();
   }
 
-  //#region init
+  //region init
   /**
    * Initialize the window and all properties required by the scene.
    */
@@ -84,9 +84,9 @@ class Scene_Omnipedia extends Scene_MenuBase
      */
     this._j._omni._pediaListHeader = null;
   }
-  //#endregion init
+  //endregion init
 
-  //#region create
+  //region create
   /**
    * Initialize all resources required for this scene.
    */
@@ -116,9 +116,9 @@ class Scene_Omnipedia extends Scene_MenuBase
     // create all root windows for the main listing.
     this.createOmnipediaRootWindows();
   }
-  //#endregion create
+  //endregion create
 
-  //#region windows
+  //region windows
   /**
    * Creates the root-level omnipedia windows.
    */
@@ -131,7 +131,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     this.createOmnipediaListHeaderWindow();
   }
 
-  //#region header window
+  //region header window
   /**
    * Creates a header window for the omnipedia list.
    */
@@ -230,9 +230,9 @@ class Scene_Omnipedia extends Scene_MenuBase
     rootHeaderWindow.close();
     rootHeaderWindow.hide();
   }
-  //#endregion header window
+  //endregion header window
 
-  //#region list window
+  //region list window
   /**
    * Creates the list of pedias available to the player to peruse.
    */
@@ -346,7 +346,7 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     return this.getOmnipediaListWindow().currentSymbol();
   }
-  //#endregion list window
+  //endregion list window
 
   /**
    * Opens all windows associated with the root omnipedia.
@@ -371,10 +371,10 @@ class Scene_Omnipedia extends Scene_MenuBase
     // close the header window.
     this.closeRootHeaderWindow();
   }
-  //#endregion windows
+  //endregion windows
 
-  //#region actions
-  //#region root actions
+  //region actions
+  //region root actions
   /**
    * When an pedia choice is made, execute this logic.
    * This is only implemented/extended by the pedias.
@@ -383,7 +383,7 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     console.debug(`selected "${this.getRootOmnipediaKey()}" option.`);
   }
-  //#endregion root actions
-  //#endregion actions
+  //endregion root actions
+  //endregion actions
 }
-//#endregion Scene_Omnipedia
+//endregion Scene_Omnipedia

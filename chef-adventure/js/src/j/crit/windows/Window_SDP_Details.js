@@ -1,4 +1,4 @@
-//#region Window_SDP_Details
+//region Window_SDP_Details
 /**
  * Extends `.translateParameter()` to understand how to build the crit damage parameters.
  */
@@ -59,4 +59,4 @@ Window_SDP_Details.prototype.getIsPercentParameterIds = function(paramId)
   // combine the original with our new ids.
   return original.concat(critParamPercentIds);
 };
-//#endregion Window_SDP_Details
+//endregion Window_SDP_Details

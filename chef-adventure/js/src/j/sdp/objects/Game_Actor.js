@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Adds new properties to the actors that manage the SDP system.
  */
@@ -428,4 +428,4 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   // return the modifier.
   return panelModifications;
 };
-//#endregion Game_Actor
+//endregion Game_Actor

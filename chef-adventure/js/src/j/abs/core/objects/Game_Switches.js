@@ -1,4 +1,4 @@
-//#region Game_Switches
+//region Game_Switches
 /**
  * Extends {@link #onChange}.
  * Also refreshes the JABS menu when a switch is toggled.
@@ -12,4 +12,4 @@ Game_Switches.prototype.onChange = function()
   // also refresh the JABS menu.
   $jabsEngine.requestJabsMenuRefresh = true;
 };
-//#endregion Game_Switches
+//endregion Game_Switches

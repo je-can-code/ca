@@ -1,4 +1,4 @@
-//#region ImageManager
+//region ImageManager
 /**
  * Generates a promise based on the resolution of the bitmap.<br/>
  * If the promise resolves successfully, it'll contain the bitmap.<br/>
@@ -36,4 +36,4 @@ ImageManager.loadBitmapPromise = function(filename, directory)
  */
 ImageManager.iconColumns = 16;
 
-//#endregion ImageManager
+//endregion ImageManager

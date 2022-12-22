@@ -1,10 +1,10 @@
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -15,7 +15,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The over-arching extensions collection for this plugin.
@@ -40,7 +40,7 @@ J.OMNI.EXT.MONSTER.Metadata.Name = 'J-Omni-Monsterpedia';
 /**
  * The version of this plugin.
  */
-J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.0';
+J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.1';
 
 /**
  * The plugin parameters for this plugin.
@@ -62,6 +62,7 @@ J.OMNI.EXT.MONSTER.Aliased = {};
 J.OMNI.EXT.MONSTER.Aliased.Game_Enemy = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Game_Party = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Game_System = new Map();
+J.OMNI.EXT.MONSTER.Aliased.JABS_Battler = new Map();
 J.OMNI.EXT.MONSTER.Aliased.JABS_Engine = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia = new Map();
 J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList = new Map();
@@ -74,4 +75,4 @@ J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
-//#endregion Metadata
+//endregion Metadata

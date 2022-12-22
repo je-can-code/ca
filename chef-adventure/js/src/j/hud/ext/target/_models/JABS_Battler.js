@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 J.HUD.EXT_TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 /**
  * Sets the last battler struck by this battler.
@@ -274,4 +274,4 @@ JABS_Battler.prototype.getTargetFrameIcon = function()
   // and return it.
   return targetFrameIcon;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler

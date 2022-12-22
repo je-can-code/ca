@@ -1,11 +1,11 @@
-//#region RPG_EquipItem
+//region RPG_EquipItem
 /**
  * A base class representing containing common properties found in both
  * weapons and armors.
  */
 class RPG_EquipItem extends RPG_Traited
 {
-  //#region properties
+  //region properties
   /**
    * The type of equip this is.
    * This number is the index that maps to your equip types.
@@ -26,7 +26,7 @@ class RPG_EquipItem extends RPG_Traited
    * @type {number}
    */
   price = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -43,5 +43,24 @@ class RPG_EquipItem extends RPG_Traited
     this.params = equip.params;
     this.price = equip.price;
   }
+
+  /**
+   * Determines whether or not this equip is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return this.etypeId === 1;
+  }
+
+  /**
+   * Determines whether or not this equip is an armor.
+   * Armor is defined as an equip type that is greater than 1.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return this.etypeId > 1;
+  }
 }
-//#endregion RPG_EquipItem
+//endregion RPG_EquipItem

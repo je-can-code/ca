@@ -1,10 +1,10 @@
-//#region JABS_Button
+//region JABS_Button
 /**
  * A static class containing all input keys available for JABS.
  */
 class JABS_Button
 {
-  //#region functionality
+  //region functionality
   /**
    * The "start" key.
    * Used for bringing up the JABS menu on the map.
@@ -18,9 +18,9 @@ class JABS_Button
    * @type {string}
    */
   static Select = "Select";
-  //#endregion functionality
+  //endregion functionality
 
-  //#region primary
+  //region primary
   /**
    * The "main", "A" button, or "Z" key.
    * Used for executing the mainhand action.
@@ -48,9 +48,9 @@ class JABS_Button
    * @type {string}
    */
   static Dodge = "Dodge";
-  //#endregion primary
+  //endregion primary
 
-  //#region mobility
+  //region mobility
   /**
    * The "strafe", "L2" button, or "Left Ctrl" key.
    * Used for locking the direction faced while the input is held.
@@ -71,9 +71,9 @@ class JABS_Button
    * @type {string}
    */
   static Guard = "Guard";
-  //#endregion mobility
+  //endregion mobility
 
-  //#region L1 + buttons
+  //region L1 + buttons
   /**
    * The `L1 + A` or 1 key.
    * Executes combat skill 1.
@@ -101,7 +101,7 @@ class JABS_Button
    * @type {string}
    */
   static CombatSkill4 = "CombatSkill4";
-  //#endregion  L1 + buttons
+  //endregion  L1 + buttons
 
   /**
    * Gets all assignable buttons used for JABS.
@@ -161,4 +161,4 @@ class JABS_Button
     ];
   }
 }
-//#endregion JABS_Button
+//endregion JABS_Button

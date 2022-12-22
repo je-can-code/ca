@@ -1,4 +1,4 @@
-//#region DifficultyConfig
+//region DifficultyConfig
 class DifficultyConfig
 {
   /**
@@ -23,15 +23,15 @@ class DifficultyConfig
     return difficultyConfig;
   }
 
-  //#region properties
+  //region properties
   /**
    * The unique identifier of the difficulty, used for lookup and reference.
    * @type {string}
    */
   key = String.empty;
-  //#endregion properties
+  //endregion properties
 
-  //#region access
+  //region access
   /**
    * Whether or not this difficulty is enabled.
    * When a difficulty is enabled, its global effects are applied.
@@ -50,7 +50,7 @@ class DifficultyConfig
    * @type {boolean}
    */
   hidden = false;
-  //#endregion access
+  //endregion access
 
   /**
    * Constructor.
@@ -67,4 +67,4 @@ class DifficultyConfig
     this.hidden = hidden;
   }
 }
-//#endregion DifficultyConfig
+//endregion DifficultyConfig

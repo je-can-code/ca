@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -24,7 +24,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -35,7 +35,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -55,9 +55,9 @@ J.CMS_S.Aliased = {
   Window_StatusParams: {},
   Window_StatusEquip: {},
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region StatusParameter
+//region StatusParameter
 /**
  * The content of a single parameter being drawn in a window.
  */
@@ -245,9 +245,9 @@ class StatusParameter
     return finalPrettyValue;
   }
 }
-//#endregion StatusParameter
+//endregion StatusParameter
 
-//#region Scene_Status
+//region Scene_Status
 /**
  * OVERWRITE Removes the buttons because fuck the buttons.
  */
@@ -331,9 +331,9 @@ Scene_Status.prototype.statusParamsWindowRect = function()
   const wh = Graphics.boxHeight;
   return new Rectangle(wx, wy, ww, wh);
 };
-//#endregion Scene_Status
+//endregion Scene_Status
 
-//#region Window_Status
+//region Window_Status
 /**
  * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
  * Also does NOT write nicknames, because why is that a thing?
@@ -363,9 +363,9 @@ Window_Status.prototype.drawBlock2 = function()
   this.drawBasicInfo(204, y);
   this.drawExpInfo(0, y + 250);
 };
-//#endregion Window_Status
+//endregion Window_Status
 
-//#region Window_StatusParameters
+//region Window_StatusParameters
 /**
  * A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
@@ -1209,4 +1209,4 @@ class Window_StatusParameters extends Window_Base
     this.resetFontSettings();
   }
 }
-//#endregion Window_StatusParameters
+//endregion Window_StatusParameters

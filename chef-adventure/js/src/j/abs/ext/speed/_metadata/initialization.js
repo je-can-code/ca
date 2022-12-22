@@ -44,4 +44,4 @@ J.ABS.EXT_SPEED.Aliased = {
 J.ABS.EXT_SPEED.RegExp = {
   WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 };
-//#endregion Introduction
+//endregion Introduction

@@ -1,4 +1,4 @@
-//#region Game_CharacterBase
+//region Game_CharacterBase
 /**
  * Extends the {@link Game_CharacterBase.initMembers}.
  * Allows custom move speeds and dashing.
@@ -138,4 +138,4 @@ Game_CharacterBase.prototype.isDodging = function()
   // TODO: update to accommodate the designated player if applicable.
   return $jabsEngine.getPlayer1().isDodging();
 };
-//#endregion Game_CharacterBase
+//endregion Game_CharacterBase

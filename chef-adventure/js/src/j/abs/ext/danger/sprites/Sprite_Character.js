@@ -1,4 +1,4 @@
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Extends the `initMembers()` function to include our new data.
  */
@@ -166,4 +166,4 @@ Sprite_Character.prototype.hideDangerIndicator = function()
 {
   this._j._dangerIndicator.hide();
 };
-//#endregion Sprite_Character
+//endregion Sprite_Character

@@ -1,4 +1,4 @@
-//#region Scene_Equip
+//region Scene_Equip
 /**
  * Initializes this scene.
  */
@@ -161,8 +161,8 @@ Scene_Equip.prototype.createMoreDataWindow = function()
 Scene_Equip.prototype.moreDataRect = function()
 {
   const width = 500;
-  const wx = this.statusWidth() - width - 12;
-  const wy = this.slotWindowRect().y - 12;
+  const wx = this.statusWidth() - width - 4;
+  const wy = this.slotWindowRect().y - 4;
   const ww = width;
   const wh = Graphics.boxHeight - wy;
   return new Rectangle(wx, wy, ww, wh);
@@ -237,4 +237,4 @@ Scene_Equip.prototype.refreshActor = function()
   const actor = this.actor();
   this._moreDataWindow.setActor(actor);
 };
-//#endregion Scene_Equip
+//endregion Scene_Equip

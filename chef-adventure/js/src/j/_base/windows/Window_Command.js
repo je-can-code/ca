@@ -1,4 +1,4 @@
-//#region Window_Command
+//region Window_Command
 /**
  * Gets all commands currently in this list.
  * @returns {BuiltWindowCommand[]}
@@ -276,4 +276,4 @@ Window_Command.prototype.prependBuiltCommand = function(command)
 {
   this.commandList().unshift(command);
 };
-//#endregion Window_Command
+//endregion Window_Command

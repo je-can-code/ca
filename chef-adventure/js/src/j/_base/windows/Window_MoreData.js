@@ -1,11 +1,10 @@
-//#region Window_MoreData
+//region Window_MoreData
 /**
  * A window designed to display "more" data.
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
-class Window_MoreData
-  extends Window_Command
+class Window_MoreData extends Window_Command
 {
   /**
    * The various types supported by "more data" functionality.
@@ -46,6 +45,7 @@ class Window_MoreData
   {
     /**
      * The item we're displaying more data for.
+     * @type {RPG_EquipItem|RPG_UsableItem|null}
      */
     this.item = null;
 
@@ -186,4 +186,4 @@ class Window_MoreData
     }
   }
 }
-//#endregion Window_MoreData
+//endregion Window_MoreData

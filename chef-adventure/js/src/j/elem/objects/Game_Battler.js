@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Determines whether or not a given element id is absorbed by this battler.
  * @param {number} elementId The element id.
@@ -142,4 +142,4 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
 
   return boostedElements;
 };
-//#endregion Game_Battler
+//endregion Game_Battler

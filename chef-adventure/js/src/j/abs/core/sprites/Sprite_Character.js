@@ -1,4 +1,4 @@
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
@@ -79,7 +79,7 @@ Sprite_Character.prototype.initMembers = function()
   J.ABS.Aliased.Sprite_Character.get('initMembers').call(this);
 };
 
-//#region setup & reference
+//region setup & reference
 /**
  * Hooks into the `Sprite_Character.update` and adds our ABS updates.
  */
@@ -269,9 +269,9 @@ Sprite_Character.prototype.setupMapSprite = function()
   // flag this character as finalized for the purpose of jabs battler-related updates.
   this.finalizeJabsBattlerSetup();
 };
-//#endregion setup & reference
+//endregion setup & reference
 
-//#region state overlay
+//region state overlay
 /**
  * Sets up this character's state overlay, to show things like poison or paralysis.
  */
@@ -362,9 +362,9 @@ Sprite_Character.prototype.hideStateOverlay = function()
 {
   this._j._stateOverlaySprite.hide();
 };
-//#endregion state overlay
+//endregion state overlay
 
-//#region gauges
+//region gauges
 /**
  * Sets up this character's hp gauge, to show the hp bar as-needed.
  */
@@ -477,9 +477,9 @@ Sprite_Character.prototype.hideHpGauge = function()
 {
   this._j._hpGauge.hide();
 };
-//#endregion gauges
+//endregion gauges
 
-//#region battler name
+//region battler name
 /**
  * Sets up this battler's name as a sprite below the character.
  */
@@ -599,9 +599,9 @@ Sprite_Character.prototype.hideBattlerName = function()
 {
   this._j._battlerName.hide();
 };
-//#endregion battler name
+//endregion battler name
 
-//#region loot
+//region loot
 /**
  * Handle loot setup for loot that hasn't been drawn yet.
  */
@@ -897,5 +897,5 @@ Sprite_Character.prototype.shouldSwingDown = function()
 {
   return this._j._loot._oy < -5;
 };
-//#endregion loot
-//#endregion Sprite_Character
+//endregion loot
+//endregion Sprite_Character

@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the gold that the enemy dropped.
  * This includes multipliers from our gold bonuses.
@@ -165,4 +165,4 @@ Game_Enemy.prototype.getBaseDropRate = function()
 {
   return 1;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

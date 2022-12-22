@@ -1,4 +1,4 @@
-//#region MapLogBuilder
+//region MapLogBuilder
 /**
  * A fluent-builder for the logger on the map.
  */
@@ -457,4 +457,4 @@ class MapLogBuilder
     return this;
   }
 }
-//#endregion MapLogBuilder
+//endregion MapLogBuilder

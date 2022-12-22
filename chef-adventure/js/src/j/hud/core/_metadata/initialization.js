@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -14,9 +14,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -42,7 +42,7 @@ J.HUD.Aliased = {
   Scene_Map: new Map(),
   DataManager: new Map(),
 };
-//#endregion metadata
+//endregion metadata
 
 /**
  * A global object for managing the hud.
@@ -51,7 +51,7 @@ J.HUD.Aliased = {
  */
 var $hudManager = null;
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for hiding the hud.
  */
@@ -99,5 +99,5 @@ PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshImageCache", () =>
 {
   $hudManager.requestRefreshImageCache();
 });
-//#endregion plugin commands
-//#endregion introduction
+//endregion plugin commands
+//endregion introduction

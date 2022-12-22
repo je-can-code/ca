@@ -20,7 +20,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.1',
+  Version: '2.1.2',
 };
 
 /**
@@ -183,7 +183,7 @@ J.BASE.Aliased = {
   Window_Selectable: {},
 };
 
-//#region Helpers
+//region Helpers
 /**
  * The helper functions used commonly throughout my plugins.
  */
@@ -409,10 +409,32 @@ J.BASE.Helpers.parseString = function(str)
 }
 
 /**
- * An empty static constant string variable.
+ * Extends the global javascript {@link String} object.
+ * Adds a new property: {@link String.empty}, which is just an empty string.
+ *
+ * This is used to more clearly show developer intent rather than just arbitrarily
+ * adding empty double quotes all over the place.
+ * @type {""}
  */
-String.empty = '';
-Object.defineProperty(String, "empty", { writable: false });
+Object.defineProperty(String, "empty", { value: "", writable: false });
+
+/**
+ * Extends the global javascript {@link Array} object.
+ * Adds a new property: {@link Array.empty}, which is just an empty array.
+ *
+ * This is used to more clearly show developer intent rather than just arbitrarily
+ * adding empty hard brackets all over the place.
+ * @type {[]}
+ */
+Object.defineProperty(Array, "empty",
+  {
+    enumerable: true,
+    configurable: false,
+    get: function()
+    {
+      return Array.of();
+    },
+  });
 
 /**
  * Executes a given function a given number of `times`.
@@ -440,4 +462,31 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
   // return the masked string content.
   return stringToMask.toString().replace(structure, maskingCharacter);
 };
-//#endregion Helpers
+//endregion Helpers
+
+/**
+ * A polyfill for {@link Array.prototype.at}.
+ * If this is not present in the available runtime, then this implementation
+ * will be used instead.
+ */
+if (![].at)
+{
+  /* eslint-disable */
+  Array.prototype.at = function(index)
+  {
+    index = Math.trunc(index) || 0;
+
+    if (index < 0)
+    {
+      index += this.length;
+    }
+
+    if (index < 0 || index >= this.length)
+    {
+      return undefined;
+    }
+
+    return this[index];
+  };
+  /* eslint-enable */
+}

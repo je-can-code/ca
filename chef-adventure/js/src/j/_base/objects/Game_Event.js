@@ -1,4 +1,4 @@
-//#region Game_Event
+//region Game_Event
 /**
  * Gets all valid-shaped comment event commands.
  * @returns {rm.types.EventCommand[]}
@@ -96,4 +96,4 @@ Game_Event.prototype.isErased = function()
 {
   return this._erased;
 };
-//#endregion Game_Event
+//endregion Game_Event

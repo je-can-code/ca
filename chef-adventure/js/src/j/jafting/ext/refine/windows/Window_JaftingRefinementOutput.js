@@ -1,4 +1,4 @@
-//#region Window_JaftingRefinementOutput
+//region Window_JaftingRefinementOutput
 /**
  * The window containing the chosen equips for refinement and also the projected results.
  */
@@ -257,4 +257,4 @@ class Window_JaftingRefinementOutput
   }
 
 }
-//#endregion Window_JaftingRefinementOutput
+//endregion Window_JaftingRefinementOutput

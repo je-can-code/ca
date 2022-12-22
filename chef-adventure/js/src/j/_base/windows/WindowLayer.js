@@ -1,4 +1,4 @@
-//#region WindowLayer
+//region WindowLayer
 /**
  * OVERWRITE Renders windows, but WITH the ability to overlay.
  *
@@ -57,4 +57,4 @@ WindowLayer.prototype.render = function(renderer)
 
   renderer.batch.flush();
 }
-//#endregion WindowLayer
+//endregion WindowLayer

@@ -167,7 +167,7 @@ declare class Game_ActionResult {
     pushRemovedBuff(paramId: number): void;
 }
 
-//#region battlers
+//region battlers
 declare class Game_BattlerBase {
     constructor();
     initialize(): void;
@@ -2265,7 +2265,7 @@ declare class Game_Actor extends Game_Battler {
      */
     testEscape(item: RPG_BaseItem): boolean;
 }
-//#endregion battlers
+//endregion battlers
 
 declare class Game_Actors {
     constructor();
@@ -2284,7 +2284,7 @@ declare class Game_Actors {
     actor(actorId: number): Game_Actor;
 }
 
-//#region characters
+//region characters
 declare class Game_CharacterBase {
     constructor();
     _x: number;
@@ -3224,7 +3224,7 @@ declare class Game_Follower extends Game_Character {
      */
     chaseCharacter(character: Game_Character): void;
 }
-//#endregion characters
+//endregion characters
 
 declare class Game_CommonEvent {
     constructor(commonEventId: number);

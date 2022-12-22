@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 /**
  * Gets the collective multiplier for gold drops for the entire party.
  * @returns {number}
@@ -56,4 +56,4 @@ Game_Party.prototype.dropMultiplierMembers = function()
   // membersToConsider.push(...$gameParty.members());
   return membersToConsider;
 };
-//#endregion Game_Party
+//endregion Game_Party

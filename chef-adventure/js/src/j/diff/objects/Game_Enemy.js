@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends the `.param(paramId)` function to modify by difficulty.
  * @returns {number}
@@ -148,4 +148,4 @@ if (J.SDP)
     return Math.round(originalValue * multiplier);
   };
 }
-//#endregion Game_Enemy
+//endregion Game_Enemy

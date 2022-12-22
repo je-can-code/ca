@@ -1,4 +1,4 @@
-//#region Window_AbsMenu
+//region Window_AbsMenu
 if (J.ABS)
 {
   /**
@@ -42,4 +42,4 @@ if (J.ABS)
     return true;
   };
 }
-//#endregion Window_AbsMenu
+//endregion Window_AbsMenu

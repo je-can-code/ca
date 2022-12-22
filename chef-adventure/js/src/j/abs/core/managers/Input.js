@@ -1,5 +1,5 @@
 //TODO: move these to the input manager?
-//#region Input
+//region Input
 /**
  * The mappings of the gamepad descriptions to their buttons.
  */
@@ -112,4 +112,4 @@ Input.keyMapper = {
   51: J.ABS.Input.CombatSkill3,       // 3 = L1 + square
   52: J.ABS.Input.CombatSkill4,       // 4 = L1 + triangle
 };
-//#endregion Input
+//endregion Input

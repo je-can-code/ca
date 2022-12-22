@@ -1,18 +1,39 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
- * Gets all skills learned from oneself.
- * In the case of enemies, this extracts the list of skill ids from the various actions
- * they can execute from their action list, as well as their "attack skill".
- * @returns {number[]}
+ * Extends {@link #onSetup}.
+ * Also refreshes the passive states on this battler for the first time.
+ * @param {number} enemyId The battler's id.
  */
-Game_Enemy.prototype.skillIdsFromSelf = function()
+J.PASSIVE.Aliased.Game_Enemy.set('onSetup', Game_Enemy.prototype.onSetup);
+Game_Enemy.prototype.onSetup = function(enemyId)
 {
-  return this.skills().map(skill => skill.id);
+  // perform original logic.
+  J.PASSIVE.Aliased.Game_Enemy.get('onSetup').call(this, enemyId);
+
+  // refresh all passive states on this battler.
+  this.refreshPassiveStates();
+};
+
+/**
+ * Extends {@link #traitObjects}.
+ * When considering traits, also include the enemy's passive states.
+ */
+J.PASSIVE.Aliased.Game_Enemy.set('traitObjects', Game_Enemy.prototype.traitObjects);
+Game_Enemy.prototype.traitObjects = function()
+{
+  // perform original logic.
+  const originalObjects = J.PASSIVE.Aliased.Game_Enemy.get('traitObjects').call(this);
+
+  // add our own passive states.
+  originalObjects.push(...this.getPassiveStates());
+
+  // return the new combined collection.
+  return originalObjects;
 };
 
 /**
  * Extends {@link #getNotesSources}.
- * Includes passive skill states from this enemy.
+ * Includes passive states from this enemy.
  * @returns {RPG_BaseItem[]}
  */
 J.PASSIVE.Aliased.Game_Enemy.set('getNotesSources', Game_Enemy.prototype.getNotesSources);
@@ -24,13 +45,13 @@ Game_Enemy.prototype.getNotesSources = function()
   // newly defined sources for passives.
   const passiveSources = [
     // then add all those currently applied passive skill states, too.
-    ...this.passiveSkillStates(),
+    ...this.getPassiveStates(),
   ];
 
   // combine the sources.
   const combinedSources = originalSources.concat(passiveSources);
 
   // return the combination.
-  return combinedSources
+  return combinedSources;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

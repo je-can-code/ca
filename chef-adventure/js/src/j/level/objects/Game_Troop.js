@@ -1,4 +1,4 @@
-//#region Game_Troop
+//region Game_Troop
 /**
  * Upon defeating a troop of enemies, scales the earned experience based on
  * average actor level vs each of the enemies.
@@ -53,4 +53,4 @@ Game_Troop.prototype.getScaledExpResult = function()
   // return the rounded sum of scaled experience.
   return Math.round(deadEnemies.reduce(reducer, 0));
 };
-//#endregion Game_Troop
+//endregion Game_Troop

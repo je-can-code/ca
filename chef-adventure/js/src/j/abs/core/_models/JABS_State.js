@@ -1,10 +1,10 @@
-//#region JABS_State
+//region JABS_State
 /**
  * A class for handling the state data in the context of JABS.
  */
 class JABS_State
 {
-  //#region properties
+  //region properties
   /**
    * The list of rulesets available for how to handle reapplication of a state.
    */
@@ -82,7 +82,7 @@ class JABS_State
    * @type {number}
    */
   stackCount = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -290,4 +290,4 @@ class JABS_State
     return (this.#recentlyAppliedCounter >= 0);
   }
 }
-//#endregion JABS_State
+//endregion JABS_State

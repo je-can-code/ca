@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends `initCoreData()` to include our danger indicator flag.
  * @param {JABS_BattlerCoreData} battlerCoreData The core data of the battler.
@@ -26,4 +26,4 @@ JABS_Battler.prototype.showDangerIndicator = function()
 {
   return this._showDangerIndicator;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler

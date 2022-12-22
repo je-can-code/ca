@@ -1,4 +1,4 @@
-//#region Window_Frame
+//region Window_Frame
 /**
  * A base class with some common sprite-cache-management features.
  */
@@ -57,7 +57,7 @@ class Window_Frame extends Window_Base
     this.refreshCache();
   }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -89,7 +89,7 @@ class Window_Frame extends Window_Base
   {
     // fill with sprite creation methods.
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Hooks into the update loop to include updating for this frame.
@@ -111,4 +111,4 @@ class Window_Frame extends Window_Base
     // fill with window frame logic.
   }
 }
-//#endregion Window_Frame
+//endregion Window_Frame

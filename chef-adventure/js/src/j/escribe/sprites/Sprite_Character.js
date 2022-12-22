@@ -1,4 +1,4 @@
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Hooks into the initmembers function to add our properties.
  */
@@ -66,7 +66,7 @@ Sprite_Character.prototype.initMembers = function()
   };
 };
 
-//#region properties
+//region properties
 /**
  * Gets the data related to the escription members.
  */
@@ -75,7 +75,7 @@ Sprite_Character.prototype.allEscriptionData = function()
   return this._j._event;
 };
 
-//#region text properties
+//region text properties
 /**
  * Gets the data related to the text escription information.
  */
@@ -146,9 +146,9 @@ Sprite_Character.prototype.setEscriptionTextProximity = function(textProximity)
   const escriptionTextData = this.escribeTextData();
   escriptionTextData._proximity = textProximity;
 };
-//#endregion text properties
+//endregion text properties
 
-//#region icon properties
+//region icon properties
 /**
  * Gets the data related to the icon escription information.
  */
@@ -217,10 +217,10 @@ Sprite_Character.prototype.setEscriptionIconProximity = function(iconProximity)
   const escriptionIconData = this.escribeIconData();
   escriptionIconData._proximity = iconProximity;
 };
-//#endregion icon properties
-//#endregion properties
+//endregion icon properties
+//endregion properties
 
-//#region helpers
+//region helpers
 /**
  * Checks whether or not this sprite has a character with escription data.
  * @returns {boolean}
@@ -353,9 +353,9 @@ Sprite_Character.prototype.refreshCharacterEscription = function()
   // parse the comments if there are any.
   character.refreshEscription();
 };
-//#endregion helpers
+//endregion helpers
 
-//#region setup describe sprites
+//region setup describe sprites
 /**
  * Extends {@link Sprite_Character.setCharacterBitmap}.
  * Sets up the initial escription sprites and renders them as applicable.
@@ -513,7 +513,7 @@ Sprite_Character.prototype.createDescribeIconSprite = function()
   // return the built sprite.
   return sprite;
 };
-//#endregion setup describe sprites
+//endregion setup describe sprites
 
 /**
  * Refreshes the escription data for the underlying character's escription data.
@@ -535,7 +535,7 @@ Sprite_Character.prototype.refreshEscriptionIfNeeded = function()
   }
 };
 
-//#region update describe sprites
+//region update describe sprites
 /**
  * Hooks into the update function to update our describe sprites.
  */
@@ -752,5 +752,5 @@ Sprite_Character.prototype.fadeInEscribeIcon = function()
 
   sprite.opacity += 17;
 };
-//#endregion update describe sprites
-//#endregion Sprite_Character
+//endregion update describe sprites
+//endregion Sprite_Character

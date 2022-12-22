@@ -1,4 +1,4 @@
-//#region TextManager
+//region TextManager
 /**
  * Gets the proper name of "SDP Multiplier".
  * @returns {string}
@@ -327,4 +327,4 @@ TextManager.isValidTypeId = function(id, types)
   // get the name!
   return true;
 }
-//#endregion TextManager
+//endregion TextManager

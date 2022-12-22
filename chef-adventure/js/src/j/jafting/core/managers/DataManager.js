@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * Extends the save data extraction to include any changes in recipes/categories
  * from the plugin settings.
@@ -51,4 +51,4 @@ DataManager.extractSaveContents = function(contents)
   contents.system._j._jafting._categories = fromPluginParamsCategories;
   J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager

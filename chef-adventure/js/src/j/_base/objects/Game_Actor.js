@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Gets the parameter value from the "long" parameter id.
  *
@@ -125,11 +125,8 @@ Game_Actor.prototype.getNotesSources = function()
     // add the actor's class to the source list.
     this.currentClass(),
 
-    // add the actor's skills to the source list.
-    ...this.skills(),
-
     // add all of the actor's valid equips to the source list.
-    ...this.equips().filter(equip => !!equip),
+    ...this.equippedEquips(),
   ];
 
   // combine the two source lists.
@@ -276,6 +273,25 @@ Game_Actor.prototype.onEquipChange = function()
   this.onBattlerDataChange();
 };
 
+J.BASE.Aliased.Game_Actor.set('changeClass', Game_Actor.prototype.changeClass);
+Game_Actor.prototype.changeClass = function(classId, keepExp)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Actor.get('changeClass').call(this, classId, keepExp);
+
+  // perform on-class-change effects.
+  this.onClassChange(classId, keepExp);
+};
+
+/**
+ * An event hook fired when this actor changes classes.
+ */
+Game_Actor.prototype.onClassChange = function(classId, keepExp)
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
+};
+
 /**
  * Extends {@link #changeEquip}.
  * Adds a hook for performing actions when equipment on the actor has changed state.
@@ -408,6 +424,17 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
 };
 
 /**
+ * Gets all currently-equipped equips for this actor.
+ * Normally, {@link #equips} includes `null`s where there may be empty equipment slots,
+ * but this filters those out for you.
+ * @returns {RPG_EquipItem[]}
+ */
+Game_Actor.prototype.equippedEquips = function()
+{
+  return this.equips().filter(equip => !!equip);
+};
+
+/**
  * An event hook fired when this actor levels up.
  */
 Game_Actor.prototype.onLevelUp = function()
@@ -450,4 +477,4 @@ Game_Actor.prototype.levelDown = function()
   // triggers the on-level-down hook.
   this.onLevelDown();
 };
-//#endregion Game_Actor
+//endregion Game_Actor

@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
@@ -134,4 +134,4 @@ Scene_Map.prototype.refreshHud = function()
   this._j._inputFrame.refreshCache();
   this._j._inputFrame.refresh();
 };
-//#endregion Scene_Map
+//endregion Scene_Map

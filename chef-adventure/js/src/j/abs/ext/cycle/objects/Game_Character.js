@@ -5,7 +5,7 @@
  */
 Game_Character.repeatableMoveCommandCodes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
-//#region properties
+//region properties
 /**
  * Extends {@link Game_Character.initMembers}.
  * Includes our cyclone movement repeat trackers.
@@ -99,7 +99,7 @@ Game_Character.prototype.modRepeatingMovementCount = function(amount = -1)
 {
   this._j._cycleAdapter._repeatCount += amount;
 };
-//#endregion properties
+//endregion properties
 
 /**
  * Overwrites {@link Game_Character.updateRoutineMove}.

@@ -3,7 +3,7 @@
  */
 class WindowCommandBuilder
 {
-  //#region properties
+  //region properties
   /**
    * The name of the command.
    * This is what visibly shows up in the list of commands.
@@ -55,7 +55,7 @@ class WindowCommandBuilder
    * @type {number}
    */
   #colorIndex = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Start by defining the name, and chain additional setter methods to

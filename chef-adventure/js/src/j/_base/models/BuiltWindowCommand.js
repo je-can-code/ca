@@ -3,7 +3,7 @@
  */
 class BuiltWindowCommand
 {
-  //#region properties
+  //region properties
   /**
    * The name of the command.
    * This is what visibly shows up in the list of commands.
@@ -55,7 +55,7 @@ class BuiltWindowCommand
    * @type {number}
    */
   #colorIndex = 0;
-  //#endregion properties
+  //endregion properties
 
   constructor(
     name,
@@ -77,7 +77,7 @@ class BuiltWindowCommand
     this.#lines = lines;
   }
 
-  //#region getters
+  //region getters
   /**
    * Gets the name for this command.
    * @returns {string}
@@ -149,5 +149,5 @@ class BuiltWindowCommand
   {
     return this.#colorIndex;
   }
-  //#endregion getters
+  //endregion getters
 }

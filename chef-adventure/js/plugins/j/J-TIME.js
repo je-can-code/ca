@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -517,7 +517,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -528,7 +528,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -699,9 +699,9 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "lockTone", () =>
  * @type {Game_Time}
  */
 var $gameTime = null;
-//#endregion Introduction
+//endregion Introduction
 
-//#region Game_Time
+//region Game_Time
 /**
  * A class for controlling time.
  */
@@ -712,7 +712,7 @@ function Game_Time()
 Game_Time.prototype = {};
 Game_Time.prototype.constructor = Game_Time;
 
-//#region statics
+//region statics
 /**
  * A static representation of the tones for each time of day.
  */
@@ -724,7 +724,7 @@ Game_Time.toneOfDay = {
   Evening: [0, -30, -30, -30],
   Twilight: [-68, -68, 0, 68],
 };
-//#endregion statics
+//endregion statics
 
 /**
  * Initializes the members of this class.
@@ -1466,7 +1466,7 @@ Game_Time.prototype.tickTime = function()
   this.addSeconds();
 };
 
-//#region add time
+//region add time
 /**
  * Ticks the second counter up by a designated amount.
  * @param {number} seconds The number of seconds to tick.
@@ -1597,11 +1597,11 @@ Game_Time.prototype.addYears = function(years = this._yearsPerTick)
 {
   this._years += years;
 };
-//#endregion add time
+//endregion add time
 
-//#endregion Game_Time
+//endregion Game_Time
 
-//#region Time_Snapshot
+//region Time_Snapshot
 /**
  * A class representing a snapshot in time of a moment.
  */
@@ -1669,7 +1669,7 @@ class Time_Snapshot
     this._seasonOfYearId = seasonOfYearId;
   };
 
-  //#region statics
+  //region statics
   /**
    * Translates the numeric season of the year into it's proper name.
    * @param {number} seasonId The numeric representation of the season of the year.
@@ -1766,7 +1766,7 @@ class Time_Snapshot
     }
   };
 
-  //#endregion statics
+  //endregion statics
 
   /**
    * Gets the name of the current season of the year.
@@ -1805,9 +1805,9 @@ class Time_Snapshot
   };
 }
 
-//#endregion Time_Snapshot
+//endregion Time_Snapshot
 
-//#region DataManager
+//region DataManager
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
@@ -1846,9 +1846,9 @@ DataManager.extractSaveContents = function(contents)
     console.info('J-Time did not exist in the loaded save file- creating anew.');
   }
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Scene_Base
+//region Scene_Base
 /**
  * Extend the highest level `Scene_Base.update()` to also update time when applicable.
  */
@@ -1877,9 +1877,9 @@ Scene_Base.prototype.shouldUpdateTime = function()
 
   return isNoTimeScene && isTimeActive && isTimeUnblocked;
 };
-//#endregion Scene_Base
+//endregion Scene_Base
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends `Scene_Map.initialize()` to also initialize the TIME window.
  */
@@ -1993,9 +1993,9 @@ Scene_Map.prototype.blockIfTagged = function()
     $gameTime.unblock();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_Time
+//region Window_Time
 /**
  * A window class for displaying the time.
  */
@@ -2102,4 +2102,4 @@ class Window_Time
     this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
   };
 }
-//#endregion Window_Time
+//endregion Window_Time

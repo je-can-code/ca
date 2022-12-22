@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link Game_Enemy.setup}.
  * Includes JABS skill initialization.
@@ -47,7 +47,7 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.jabsRefresh();
 };
 
-//#region JABS basic attack skills
+//region JABS basic attack skills
 /**
  * Gets the enemy's basic attack skill id.
  * This is defined by the first "Attack Skill" trait on an enemy.
@@ -63,9 +63,9 @@ Game_Enemy.prototype.basicAttackSkillId = function()
   // if we didn't find one, return the default instead.
   return basicAttackSkillId ?? J.ABS.Metadata.DefaultEnemyAttackSkillId;
 };
-//#endregion JABS basic attack skills
+//endregion JABS basic attack skills
 
-//#region JABS battler properties
+//region JABS battler properties
 /**
  * Gets the enemy's prepare time from their notes.
  * This will be overwritten by values provided from an event.
@@ -378,9 +378,9 @@ Game_Enemy.prototype.isInanimate = function()
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyIsInanimate;
 };
-//#endregion JABS battler properties
+//endregion JABS battler properties
 
-//#region JABS bonus hits
+//region JABS bonus hits
 /**
  * Gets all collections of sources that will be scanned for bonus hits.
  *
@@ -399,5 +399,5 @@ Game_Enemy.prototype.getBonusHitsSources = function()
     [this.databaseData()],
   ];
 };
-//#endregion JABS bonus hits
-//#endregion Game_Enemy
+//endregion JABS bonus hits
+//endregion Game_Enemy

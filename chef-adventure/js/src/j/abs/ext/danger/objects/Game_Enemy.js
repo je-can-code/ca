@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets whether or not an enemy has a visible danger indicator from their notes.
  * This will be overwritten by values provided from an event.
@@ -29,4 +29,4 @@ Game_Enemy.prototype.showDangerIndicator = function()
 
   return val;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

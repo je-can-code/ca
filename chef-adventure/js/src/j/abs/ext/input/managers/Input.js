@@ -1,4 +1,4 @@
-//#region Input
+//region Input
 /**
  * Extends the existing mapper for keyboards to accommodate for the
  * additional skill inputs that are used for gamepads.
@@ -37,4 +37,4 @@ Input.keyMapper = {
   51: J.ABS.Input.CombatSkill3,       // 3 = L1 + square
   52: J.ABS.Input.CombatSkill4,       // 4 = L1 + triangle
 };
-//#endregion Input
+//endregion Input

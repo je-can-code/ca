@@ -1,4 +1,4 @@
-//#region Game_Party
+//region Game_Party
 Game_Party.prototype.extraOnHitSelfStateSources = function()
 {
   const extraSources = [];
@@ -38,4 +38,4 @@ Game_Party.prototype.extraOnCastSelfStateSources = function()
   // return all found sources.
   return extraSources;
 };
-//#endregion Game_Party
+//endregion Game_Party

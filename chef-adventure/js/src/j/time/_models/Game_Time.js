@@ -1,4 +1,4 @@
-//#region Game_Time
+//region Game_Time
 /**
  * A class for controlling time.
  */
@@ -9,7 +9,7 @@ function Game_Time()
 Game_Time.prototype = {};
 Game_Time.prototype.constructor = Game_Time;
 
-//#region statics
+//region statics
 /**
  * A static representation of the tones for each time of day.
  */
@@ -21,7 +21,7 @@ Game_Time.toneOfDay = {
   Evening: [0, -30, -30, -30],
   Twilight: [-68, -68, 0, 68],
 };
-//#endregion statics
+//endregion statics
 
 /**
  * Initializes the members of this class.
@@ -763,7 +763,7 @@ Game_Time.prototype.tickTime = function()
   this.addSeconds();
 };
 
-//#region add time
+//region add time
 /**
  * Ticks the second counter up by a designated amount.
  * @param {number} seconds The number of seconds to tick.
@@ -894,6 +894,6 @@ Game_Time.prototype.addYears = function(years = this._yearsPerTick)
 {
   this._years += years;
 };
-//#endregion add time
+//endregion add time
 
-//#endregion Game_Time
+//endregion Game_Time

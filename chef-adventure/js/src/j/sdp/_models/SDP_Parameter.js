@@ -1,4 +1,4 @@
-//#region SDP_Parameter
+//region SDP_Parameter
 /**
  * A class that represents a single parameter and its growth for a SDP.
  */
@@ -47,4 +47,4 @@ PanelParameter.prototype.initialize = function({
    */
   this.isCore = isCore;
 };
-//#endregion SDP_Parameter
+//endregion SDP_Parameter

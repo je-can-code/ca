@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:08 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
 
-//#region introduction
+//region introduction
 /*:
 * @target MZ
 * @plugindesc
@@ -62,7 +62,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -73,7 +73,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -127,9 +127,9 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "addLog", args =>
     .build();
   $gameTextLog.addLog(log);
 });
-//#endregion introduction
+//endregion introduction
 
-//#region Map_Log
+//region Map_Log
 /**
  * A model representing a single log in the log window.
  */
@@ -170,9 +170,9 @@ class Map_Log
     return this.#message;
   }
 }
-//#endregion Map_Log
+//endregion Map_Log
 
-//#region MapLogBuilder
+//region MapLogBuilder
 /**
  * A fluent-builder for the logger on the map.
  */
@@ -631,9 +631,9 @@ class MapLogBuilder
     return this;
   }
 }
-//#endregion MapLogBuilder
+//endregion MapLogBuilder
 
-//#region DataManager
+//region DataManager
 /**
  * The global text logger.
  * @type {Game_TextLog}
@@ -649,9 +649,9 @@ DataManager.createGameObjects = function()
   J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
   $gameTextLog = new Game_TextLog();
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Game_TextLog
+//region Game_TextLog
 /**
  * TODO: make static, rename to TextLogManager.
  * The manager that handles all logs in the `Window_TextLog`.
@@ -803,9 +803,9 @@ Game_TextLog.prototype.setLogVisibility = function(visible)
 {
   this._isVisible = visible;
 };
-//#endregion Game_TextLog
+//endregion Game_TextLog
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our log.
  */
@@ -876,9 +876,9 @@ Scene_Map.prototype.textLogWindowRect = function()
   const y = Graphics.boxHeight - height;
   return new Rectangle(x, y, width, height);
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_MapLog
+//region Window_MapLog
 /**
  * A window containing the logs.
  */
@@ -948,7 +948,7 @@ class Window_MapLog extends Window_Command
     this.upArrowVisible = false;
   }
 
-  //#region overwrites
+  //region overwrites
   isScrollEnabled()
   {
     if (!$gameTextLog.isVisible()) return false;
@@ -1045,7 +1045,7 @@ class Window_MapLog extends Window_Command
     // because we didn't draw a full-sized icon, we move the textState.x back a bit.
     textState.x -= 16;
   }
-  //#endregion overwrites
+  //endregion overwrites
 
   /**
    * Update this window's drawing and the like.
@@ -1071,7 +1071,7 @@ class Window_MapLog extends Window_Command
     this.updateVisibility();
   }
 
-  //#region update logging
+  //region update logging
   /**
    * The update of the logging.
    * The processing of incoming messages, and updating the contents of this window
@@ -1145,9 +1145,9 @@ class Window_MapLog extends Window_Command
     // after drawing all the logs, scroll to the bottom.
     this.smoothScrollDown(this._list.length);
   }
-  //#endregion update logging
+  //endregion update logging
 
-  //#region update visibility
+  //region update visibility
   /**
    * Updates the visibility of the window.
    * Uses an inactivity timer to countdown and eventually reduce opacity once
@@ -1287,6 +1287,6 @@ class Window_MapLog extends Window_Command
     this.contentsOpacity = 255;
     this.opacity = 128;
   }
-  //#endregion update visibility
+  //endregion update visibility
 }
-//#endregion Window_MapLog
+//endregion Window_MapLog

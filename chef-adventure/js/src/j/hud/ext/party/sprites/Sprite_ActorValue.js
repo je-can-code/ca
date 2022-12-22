@@ -1,4 +1,4 @@
-//#region Sprite_ActorValue
+//region Sprite_ActorValue
 /**
  * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
  */
@@ -174,4 +174,4 @@ Sprite_ActorValue.prototype.fontFace = function()
 {
   return $gameSystem.numberFontFace();
 };
-//#endregion Sprite_ActorValue
+//endregion Sprite_ActorValue

@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:07 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:47 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -237,9 +237,9 @@ J.ELEM.Aliased = {
   Game_Actor: new Map(),
   Game_Enemy: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region Game_Action
+//region Game_Action
 /**
  * OVERWRITE Calculates the elemental rates of this action against the designated target.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -609,9 +609,9 @@ Game_Action.prototype.healingFactor = function(targetAbsorbs)
   const isHealingAction = [3, 4].includes(this.item().damage.type);
   return isHealingAction && !targetAbsorbs ? -1 : 1;
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 /**
  * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
@@ -689,9 +689,9 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
   const factoredBoosts = filteredBoosts.map(boost => boost[1] / 100);
   return factoredBoosts.reduce((previousAmount, nextAmount) => previousAmount + nextAmount, 1);
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Determines whether or not a given element id is absorbed by this battler.
  * @param {number} elementId The element id.
@@ -835,9 +835,9 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
 
   return boostedElements;
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
@@ -917,4 +917,4 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
   return boostAmount;
 };
 
-//#endregion Game_Enemy
+//endregion Game_Enemy

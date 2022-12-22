@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Generates a `JABS_Battler` based on the current leader of the party.
  * Also assigns the controller inputs for the player.
@@ -15,4 +15,4 @@ JABS_Battler.createPlayer = function()
   // return original logic data.
   return playerJabsBattler;
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler

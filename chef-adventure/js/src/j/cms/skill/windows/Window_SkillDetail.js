@@ -1,4 +1,4 @@
-//#region Window_SkillDetail
+//region Window_SkillDetail
 /**
  * A window responsible for showing various datapoints of a skill.
  */
@@ -518,4 +518,4 @@ class Window_SkillDetail extends Window_Base
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
-//#endregion Window_SkillDetail
+//endregion Window_SkillDetail

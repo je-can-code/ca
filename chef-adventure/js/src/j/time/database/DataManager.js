@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
@@ -37,4 +37,4 @@ DataManager.extractSaveContents = function(contents)
     console.info('J-Time did not exist in the loaded save file- creating anew.');
   }
 };
-//#endregion DataManager
+//endregion DataManager

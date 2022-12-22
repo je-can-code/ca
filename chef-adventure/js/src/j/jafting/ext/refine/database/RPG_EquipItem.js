@@ -1,12 +1,12 @@
-//#region refinedCount
+//region refinedCount
 /**
  * The number of times this equip has been refined.
  * @type {number}
  */
 RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
-//#endregion refinedCount
+//endregion refinedCount
 
-//#region notRefinementBase
+//region notRefinementBase
 /**
  * Whether or not this equip is blocked from being used as a base for refinement.
  * @type {boolean}
@@ -36,9 +36,9 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase);
 };
-//#endregion notRefinementBase
+//endregion notRefinementBase
 
-//#region notRefinementMaterial
+//region notRefinementMaterial
 /**
  * Whether or not this equip is blocked from being used as a material for refinement.
  * @type {boolean}
@@ -68,9 +68,9 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial);
 };
-//#endregion notRefinementMaterial
+//endregion notRefinementMaterial
 
-//#region unrefinable
+//region unrefinable
 /**
  * Whether or not this equip is blocked from being used in refinement at all.
  * This is equivalent to {@link jaftingNotRefinementBase} and {@link jaftingNotRefinementMaterial}
@@ -121,9 +121,9 @@ RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
 {
   return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.Unrefinable);
 };
-//#endregion unrefinable
+//endregion unrefinable
 
-//#region maxRefineCount
+//region maxRefineCount
 /**
  * The maximum number of times this equip can be refined.
  * @type {number}
@@ -152,9 +152,9 @@ RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
 {
   return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount);
 };
-//#endregion maxRefineCount
+//endregion maxRefineCount
 
-//#region maxTraitCount
+//region maxTraitCount
 /**
  * The maximum number of traits this equip can be gain as a result of refinement.
  * This is defined as the number of traits that come after the divider.
@@ -184,4 +184,4 @@ RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 {
   return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount);
 };
-//#endregion maxRefineCount
+//endregion maxRefineCount

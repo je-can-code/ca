@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 /**
  * Calls the omnipedia scene if possible.
  * @param {boolean=} force Whether or not to force-call the scene; defaults to false.
@@ -28,4 +28,4 @@ Game_System.prototype.canCallOmnipediaScene = function()
   // peek at the omnipedia!
   return true;
 };
-//#endregion Game_System
+//endregion Game_System

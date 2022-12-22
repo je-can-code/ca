@@ -1,5 +1,5 @@
-//#region RPG_Skill effects
-//#region range
+//region RPG_Skill effects
+//region range
 /**
  * The JABS range for this skill.
  * This range determines the number of tiles the skill can reach in the
@@ -30,9 +30,9 @@ RPG_Skill.prototype.extractJabsRadius = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Range, true);
 };
-//#endregion range
+//endregion range
 
-//#region proximity
+//region proximity
 /**
  * A new property for retrieving the JABS proximity from this skill.
  * @type {number}
@@ -61,9 +61,9 @@ RPG_Skill.prototype.extractJabsProximity = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Proximity, true);
 };
-//#endregion proximity
+//endregion proximity
 
-//#region actionId
+//region actionId
 /**
  * A new property for retrieving the JABS actionId from this skill.
  * @type {number}
@@ -93,9 +93,9 @@ RPG_Skill.prototype.extractJabsActionId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.ActionId, true);
 };
-//#endregion actionId
+//endregion actionId
 
-//#region duration
+//region duration
 /**
  * A new property for retrieving the JABS duration from this skill.
  * @type {number}
@@ -125,9 +125,9 @@ RPG_Skill.prototype.extractJabsDuration = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Duration, true);
 };
-//#endregion duration
+//endregion duration
 
-//#region shape
+//region shape
 /**
  * A new property for retrieving the JABS shape from this skill.
  * @type {string}
@@ -157,9 +157,9 @@ RPG_Skill.prototype.extractJabsShape = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.Shape, true);
 };
-//#endregion shape
+//endregion shape
 
-//#region knockback
+//region knockback
 /**
  * A new property for retrieving the JABS knockback from this skill.
  * @type {number}
@@ -189,9 +189,9 @@ RPG_Skill.prototype.extractJabsKnockback = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Knockback, true);
 };
-//#endregion knockback
+//endregion knockback
 
-//#region castAnimation
+//region castAnimation
 /**
  * A new property for retrieving the JABS castAnimation id from this skill.
  * @type {number}
@@ -221,9 +221,9 @@ RPG_Skill.prototype.extractJabsCastAnimation = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastAnimation, true);
 };
-//#endregion castAnimation
+//endregion castAnimation
 
-//#region castTime
+//region castTime
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -253,43 +253,9 @@ RPG_Skill.prototype.extractJabsCastTime = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.CastTime, true);
 };
-//#endregion castTime
+//endregion castTime
 
-//#region freeCombo
-/**
- * Whether or not this skill has the "free combo" trait on it.
- * Skills with "free combo" can continuously be executed regardless of
- * the actual timing factor for combos.
- * @type {boolean|null}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
-  {
-    get: function()
-    {
-      return this.getJabsFreeCombo();
-    },
-  });
-
-/**
- * Gets the JABS freeCombo this skill.
- * @returns {boolean|null}
- */
-RPG_Skill.prototype.getJabsFreeCombo = function()
-{
-  return this.extractJabsFreeCombo();
-};
-
-/**
- * Extracts the JABS freeCombo for this skill from its notes.
- * @returns {boolean|null}
- */
-RPG_Skill.prototype.extractJabsFreeCombo = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.FreeCombo, true);
-};
-//#endregion freeCombo
-
-//#region direct
+//region direct
 /**
  * A new property for retrieving the JABS direct from this skill.
  * @type {boolean}
@@ -319,9 +285,9 @@ RPG_Skill.prototype.extractJabsDirect = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Direct, true);
 };
-//#endregion direct
+//endregion direct
 
-//#region bonusAggro
+//region bonusAggro
 /**
  * A new property for retrieving the JABS bonusAggro from this skill.
  * @type {number}
@@ -351,9 +317,9 @@ RPG_Skill.prototype.extractJabsBonusAggro = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusAggro, true);
 };
-//#endregion bonusAggro
+//endregion bonusAggro
 
-//#region aggroMultiplier
+//region aggroMultiplier
 /**
  * A new property for retrieving the JABS aggroMultiplier from this skill.
  * @type {number}
@@ -383,9 +349,9 @@ RPG_Skill.prototype.extractJabsAggroMultiplier = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroMultiplier, true);
 };
-//#endregion aggroMultiplier
+//endregion aggroMultiplier
 
-//#region jabsGuardData
+//region jabsGuardData
 /**
  * The `JABS_GuardData` of this skill.
  * Will return null if there is no guard tag available on this
@@ -413,9 +379,9 @@ RPG_Skill.prototype.getJabsGuardData = function()
     this.jabsCounterParry,
     this.jabsParry)
 };
-//#endregion jabsGuardData
+//endregion jabsGuardData
 
-//#region guard
+//region guard
 /**
  * A new property for retrieving the JABS guard from this skill.
  * @type {[number, number]}
@@ -473,9 +439,9 @@ RPG_Skill.prototype.extractJabsGuard = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.Guard);
 };
-//#endregion guard
+//endregion guard
 
-//#region parry
+//region parry
 /**
  * The number of frames that the precise-parry window is available
  * when first guarding.
@@ -506,9 +472,9 @@ RPG_Skill.prototype.extractJabsParryFrames = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Parry, true);
 };
-//#endregion parry
+//endregion parry
 
-//#region counterParry
+//region counterParry
 /**
  * When performing a precise-parry, this skill id will be automatically
  * executed in retaliation.
@@ -539,9 +505,9 @@ RPG_Skill.prototype.extractJabsCounterParry = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterParry);
 };
-//#endregion counterParry
+//endregion counterParry
 
-//#region counterGuard
+//region counterGuard
 /**
  * While guarding, this skill id will be automatically executed in retaliation.
  * @type {number[]}
@@ -571,9 +537,9 @@ RPG_Skill.prototype.extractJabsCounterGuard = function()
 {
   return this.getNumberArrayFromNotesByRegex(J.ABS.RegExp.CounterGuard);
 };
-//#endregion counterGuard
+//endregion counterGuard
 
-//#region projectile
+//region projectile
 /**
  * A new property for retrieving the JABS projectile frames from this skill.
  * @type {number}
@@ -603,9 +569,9 @@ RPG_Skill.prototype.extractJabsProjectile = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.Projectile, true);
 };
-//#endregion projectile
+//endregion projectile
 
-//#region uniqueCooldown
+//region uniqueCooldown
 /**
  * A new property for retrieving the JABS uniqueCooldown from this skill.
  * @type {boolean}
@@ -635,9 +601,9 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.UniqueCooldown, true);
 };
-//#endregion uniqueCooldown
+//endregion uniqueCooldown
 
-//#region moveType
+//region moveType
 /**
  * The direction that this dodge skill will move.
  * @type {string}
@@ -667,9 +633,9 @@ RPG_Skill.prototype.extractJabsMoveType = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.MoveType, true);
 };
-//#endregion moveType
+//endregion moveType
 
-//#region invincibleDodge
+//region invincibleDodge
 /**
  * Whether or not the battler is invincible for the duration of this
  * skill's dodge movement.
@@ -700,9 +666,43 @@ RPG_Skill.prototype.extractJabsInvincibleDodge = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.InvincibleDodge, true);
 };
-//#endregion invincibleDodge
+//endregion invincibleDodge
 
-//#region comboAction
+//region freeCombo
+/**
+ * Whether or not this skill has the "free combo" trait on it.
+ * Skills with "free combo" can continuously be executed regardless of
+ * the actual timing factor for combos.
+ * @type {boolean|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo",
+  {
+    get: function()
+    {
+      return this.getJabsFreeCombo();
+    },
+  });
+
+/**
+ * Gets the JABS freeCombo this skill.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.getJabsFreeCombo = function()
+{
+  return this.extractJabsFreeCombo();
+};
+
+/**
+ * Extracts the JABS freeCombo for this skill from its notes.
+ * @returns {boolean|null}
+ */
+RPG_Skill.prototype.extractJabsFreeCombo = function()
+{
+  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.FreeCombo, true);
+};
+//endregion freeCombo
+
+//region comboAction
 /**
  * The JABS combo data for this skill.
  *
@@ -824,9 +824,79 @@ RPG_Skill.prototype.extractJabsComboAction = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.ComboAction);
 };
-//#endregion comboAction
+//endregion comboAction
 
-//#region piercing
+/**
+ * Gets the list of skill ids in order that this skill going forward can
+ * combo into. This will not include combo skills prior to this skill.
+ * @returns {number[]}
+ */
+RPG_Skill.prototype.getComboSkillIdList = function(battler)
+{
+  return this.recursivelyFindAllComboSkillIds(this.id, Array.empty, battler);
+};
+
+/**
+ * Recursively finds the complete combo of an equip starting at a particular
+ * skill id and building the collection of skill ids that this skill combos into.
+ * @param {number} skillId The id to recursively interpret the combo of.
+ * @param {number[]=} list The running list of combo skill ids; defaults to an empty list.
+ * @param {Game_Battler=} battler The battler perceiving these skills; defaults to null.
+ * @returns {number[]} The full combo of the starting skill id.
+ */
+RPG_Skill.prototype.recursivelyFindAllComboSkillIds = function(skillId, list = Array.empty, battler = null)
+{
+  // start our list from what was passed in.
+  const skillIdList = list;
+
+  // grab the database skill.
+  const skill = battler
+    ? battler.skill(skillId)
+    : $dataSkills.at(skillId);
+
+  // check if we should recurse this skill.
+  if (this.shouldRecurseForComboSkills(skill))
+  {
+    // grab the combo skill id.
+    const { jabsComboSkillId } = skill;
+
+    // add it to the list.
+    skillIdList.push(jabsComboSkillId);
+
+    // continue finding more skills with the new combo skill id as the target.
+    return this.recursivelyFindAllComboSkillIds(jabsComboSkillId, skillIdList, battler);
+  }
+  // that was the last combo skill to record.
+  else
+  {
+    // return the complete combo list.
+    return skillIdList;
+  }
+};
+
+/**
+ * Determines whether or not we need to recurse another time to continue
+ * finding combo skills.
+ * @param {RPG_Skill} skill The skill to determine if recursion is required for.
+ * @param {number} lastSkillId The last skill id in the combo.
+ * @returns {boolean} True if we should recurse another skill, false otherwise.
+ */
+RPG_Skill.prototype.shouldRecurseForComboSkills = function(skill, lastSkillId)
+{
+  // if there is no skill, then there is no recursion.
+  if (!skill) return false;
+
+  // if there is no combo, then there is no recursion.
+  if (!skill.jabsComboAction) return false;
+
+  // if the combo skill is the same as the last skill id, then don't infinitely recurse.
+  if (skill.jabsComboSkillId === lastSkillId) return false;
+
+  // we should recurse!
+  return true;
+};
+
+//region piercing
 /**
  * The JABS piercing data for this skill.
  *
@@ -875,7 +945,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay",
   });
 
 /**
- * Gets the JABS combo this skill.
+ * Gets the JABS percing data this skill.
  * @returns {[number, number]|null}
  */
 RPG_Skill.prototype.getJabsPiercingData = function()
@@ -884,17 +954,17 @@ RPG_Skill.prototype.getJabsPiercingData = function()
 };
 
 /**
- * Extracts the JABS combo for this skill from its notes.
+ * Extracts the data for this skill from its notes.
  * @returns {[number, number]|null}
  */
 RPG_Skill.prototype.extractJabsPiercingData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.PiercingData);
 };
-//#endregion piercing
+//endregion piercing
 
-//#region knockbackResist
-//#region RPG_BaseBattler
+//region knockbackResist
+//region RPG_BaseBattler
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -924,9 +994,9 @@ RPG_BaseBattler.prototype.extractJabsKnockbackResist = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
 };
-//#endregion RPG_BaseBattler
+//endregion RPG_BaseBattler
 
-//#region RPG_BaseItem
+//region RPG_BaseItem
 /**
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
@@ -956,10 +1026,10 @@ RPG_BaseItem.prototype.extractJabsKnockbackResist = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.KnockbackResist, true);
 };
-//#endregion RPG_BaseItem
-//#endregion knockbackResist
+//endregion RPG_BaseItem
+//endregion knockbackResist
 
-//#region poseSuffix
+//region poseSuffix
 /**
  * Gets the JABS pose suffix data for this skill.
  *
@@ -1029,9 +1099,9 @@ RPG_Skill.prototype.extractJabsPoseData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.PoseSuffix, true);
 };
-//#endregion poseSuffix
+//endregion poseSuffix
 
-//#region ignoreParry
+//region ignoreParry
 /**
  * The amount of parry rating ignored by this skill.
  * @type {number}
@@ -1060,10 +1130,10 @@ RPG_Skill.prototype.extractJabsIgnoreParry = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.IgnoreParry, true);
 };
-//#endregion ignoreParry
+//endregion ignoreParry
 
-//#region unparryable
-//#region RPG_Skill
+//region unparryable
+//region RPG_Skill
 /**
  * Whether or not this skill is completely unparryable by the target.
  * @type {boolean}
@@ -1093,10 +1163,10 @@ RPG_Skill.prototype.extractJabsUnparryable = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Unparryable, true);
 };
-//#endregion RPG_Skill
-//#endregion unparryable
+//endregion RPG_Skill
+//endregion unparryable
 
-//#region selfAnimation
+//region selfAnimation
 /**
  * The animation id to play on oneself when executing this skill.
  * @type {number}
@@ -1125,9 +1195,9 @@ RPG_Skill.prototype.extractJabsSelfAnimationId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SelfAnimationId, true);
 };
-//#endregion range
+//endregion range
 
-//#region delay
+//region delay
 /**
  * The JABS delay data for this skill.
  *
@@ -1192,5 +1262,5 @@ RPG_Skill.prototype.extractJabsDelayData = function()
 {
   return this.getArrayFromNotesByRegex(J.ABS.RegExp.DelayData);
 };
-//#endregion delay
-//#endregion RPG_Skill effects
+//endregion delay
+//endregion RPG_Skill effects

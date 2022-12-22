@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets the battler id of this enemy from the database.
  * @returns {number}
@@ -15,28 +15,6 @@ Game_Enemy.prototype.battlerId = function()
 Game_Enemy.prototype.databaseData = function()
 {
   return this.enemy();
-};
-
-/**
- * All sources this enemy battler has available to it.
- * @returns {(RPG_Enemy|RPG_State|RPG_Skill)[]}
- */
-Game_Enemy.prototype.getNotesSources = function()
-{
-  // get the super-classes' note sources as a baseline.
-  const baseNoteSources = Game_Battler.prototype.getNotesSources.call(this);
-
-  // the list of note sources unique to enemies.
-  const enemyUniqueNoteSources = [
-    // add the actor's skills to the source list.
-    ...this.skills(),
-  ];
-
-  // combine the two source lists.
-  const combinedNoteSources = baseNoteSources.concat(enemyUniqueNoteSources);
-
-  // return our combination.
-  return combinedNoteSources;
 };
 
 /**
@@ -117,4 +95,4 @@ Game_Enemy.prototype.onDeath = function()
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

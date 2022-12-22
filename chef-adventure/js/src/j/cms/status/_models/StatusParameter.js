@@ -1,4 +1,4 @@
-//#region StatusParameter
+//region StatusParameter
 /**
  * The content of a single parameter being drawn in a window.
  */
@@ -186,4 +186,4 @@ class StatusParameter
     return finalPrettyValue;
   }
 }
-//#endregion StatusParameter
+//endregion StatusParameter

@@ -1,4 +1,4 @@
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -12,4 +12,4 @@
  * This is a redesign of the main menu.
  * ============================================================================
  */
-//#endregion Introduction
+//endregion Introduction

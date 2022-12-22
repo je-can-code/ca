@@ -1,4 +1,4 @@
-//#region SkillProficiency
+//region SkillProficiency
 /**
  * A class representing a single trait on a piece of equipment that can be potentially
  * transferred by means of JAFTING's refinement mode.
@@ -53,4 +53,4 @@ SkillProficiency.prototype.improve = function(value)
     this.proficiency = 0;
   }
 };
-//#endregion SkillProficiency
+//endregion SkillProficiency

@@ -28,4 +28,4 @@ J.ELEM.Aliased = {
   Game_Actor: new Map(),
   Game_Enemy: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction

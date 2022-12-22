@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -173,7 +173,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -184,7 +184,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -393,7 +393,7 @@ J.JAFTING.Aliased = {
   Scene_Map: {},
 };
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for calling forth the JAFTING menu and all its windowy glory.
  */
@@ -448,10 +448,10 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Lock All Categories", ()
 {
   $gameSystem.lockAllCategories();
 });
-//#endregion plugin commands
-//#endregion Introduction
+//endregion plugin commands
+//endregion Introduction
 
-//#region JAFT_Category
+//region JAFT_Category
 /**
  * Represents the category details for this recipe.
  * A single recipe can live in multiple categories.
@@ -527,9 +527,9 @@ JAFTING_Category.prototype.unlock = function()
 {
   this.unlocked = true;
 };
-//#endregion JAFT_Category
+//endregion JAFT_Category
 
-//#region JAFT_Component
+//region JAFT_Component
 /**
  * A single instance of a particular crafting component, such as an ingredient/tool/output,
  * for use in JAFTING.
@@ -604,9 +604,9 @@ JAFTING_Component.prototype.consume = function()
 {
   $gameParty.loseItem(this.getItem(), this.count);
 };
-//#endregion JAFT_Component
+//endregion JAFT_Component
 
-//#region JAFT_Recipe
+//region JAFT_Recipe
 /**
  * The data that makes up what defines a crafting recipe for use with JAFTING.
  */
@@ -861,9 +861,9 @@ JAFTING_Recipe.prototype.getRecipeDescription = function()
 
   return description;
 };
-//#endregion JAFT_Recipe
+//endregion JAFT_Recipe
 
-//#region DataManager
+//region DataManager
 /**
  * Extends the save data extraction to include any changes in recipes/categories
  * from the plugin settings.
@@ -916,9 +916,9 @@ DataManager.extractSaveContents = function(contents)
   contents.system._j._jafting._categories = fromPluginParamsCategories;
   J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
-//#endregion DataManager
+//endregion DataManager
 
-//#region Game_Party
+//region Game_Party
 /**
  * Extends `gainItem()` to also refresh the JAFTING windows on item quantity change.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
@@ -934,9 +934,9 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
   // refresh the JAFTING windows on item quantity change.
   $gameSystem.setRefreshRequest(true);
 };
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_Player
+//region Game_Player
 /**
  * Extends the canMove function to ensure the player can't move around while
  * in the JAFTING menu.
@@ -953,9 +953,9 @@ Game_Player.prototype.canMove = function()
     return J.JAFTING.Aliased.Game_Player.canMove.call(this);
   }
 };
-//#endregion Game_Player
+//endregion Game_Player
 
-//#region Game_System
+//region Game_System
 /**
  * Extends the `Game_System.initialize()` to include the JAFTING setup.
  */
@@ -1308,9 +1308,9 @@ Game_System.prototype.translateRpgItemToType = function(rpgItem)
     console.error(`check the logs, there were issues translating items for recipes.`)
   }
 };
-//#endregion Game_System
+//endregion Game_System
 
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JAFTING objects for tracking.
  */
@@ -1952,9 +1952,9 @@ Scene_Map.prototype.closeJaftingMenu = function()
 {
   this._j._jaftingMenu._modeWindow.closeMenu();
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#region Window_JaftingCraftCategory
+//region Window_JaftingCraftCategory
 /**
  * A simple window that shows a list of categories unlocked.
  */
@@ -2043,9 +2043,9 @@ class Window_JaftingCraftCategory extends Window_Command
     });
   }
 }
-//#endregion Window_JaftingCraftCategory
+//endregion Window_JaftingCraftCategory
 
-//#region Window_JaftingCraftRecipeDetails
+//region Window_JaftingCraftRecipeDetails
 /**
  * The window that displays all tools, ingredients, and output from a given recipe.
  */
@@ -2249,9 +2249,9 @@ class Window_JaftingCraftRecipeDetails
     this.drawTextEx(`${itemNumbers}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
   }
 }
-//#endregion Window_JaftingCraftRecipeDetails
+//endregion Window_JaftingCraftRecipeDetails
 
-//#region Window_JaftingCraftRecipeList
+//region Window_JaftingCraftRecipeList
 /**
  * A simple window that shows a list of recipes available based on unlocked ingredients.
  */
@@ -2367,9 +2367,9 @@ class Window_JaftingCraftRecipeList
     });
   }
 }
-//#endregion Window_JaftingCraftRecipeList
+//endregion Window_JaftingCraftRecipeList
 
-//#region Window_JaftingModeMenu
+//region Window_JaftingModeMenu
 /**
  * The mode selection window for JAFTING.
  */
@@ -2445,4 +2445,4 @@ class Window_JaftingModeMenu
     }
   }
 }
-//#endregion Window_JaftingModeMenu
+//endregion Window_JaftingModeMenu

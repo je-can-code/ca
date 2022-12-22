@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.0 JABS] Enables combat to be carried out on the map.
+ * [v3.2.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -14,7 +14,7 @@
  * Using this plugin will enable you to carry out combat directly on the map
  * in real-time, similar to popular game franchises like Zelda.
  *
- * ============================================================================
+ * ----------------------------------------------------------------------------
  * DETAILS:
  * Have you ever wanted to decorate events with tons of event comments and
  * watch them come to life as AI-controlled allies/enemies in an action battle
@@ -46,6 +46,8 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.1
+ *    Refactored slip effects to accommodate the J-Passives update.
  * - 3.2.0
  *    Fixed bug where actions couldn't connect if the attacker was too close.
  *    Upgraded AI to be able to leverage combos (ally AI, too).

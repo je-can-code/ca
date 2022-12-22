@@ -1,4 +1,4 @@
-//#region JABS_Aggro
+//region JABS_Aggro
 /**
  * A tracker for managing the aggro for this particular battler and its owner.
  */
@@ -97,4 +97,4 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
   this.aggro += modAggro;
   if (this.aggro < 0) this.aggro = 0;
 };
-//#endregion JABS_Aggro
+//endregion JABS_Aggro

@@ -29,6 +29,8 @@
     "init": "node utils/init.js",
     "all": "node utils/build-all.js",
 
+    "once:ca-mods": "node utils/combine.js ./j/__ca-mods ../plugins/j J-CA-Mods.js",
+
     "once:utils": "node utils/combine.js ./j/utils ../plugins/j J-SystemUtilities.js",
     "once:base": "node utils/combine.js ./j/_base ../plugins/j J-Base.js",
 

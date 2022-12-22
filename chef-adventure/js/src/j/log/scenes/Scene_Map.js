@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our log.
  */
@@ -69,4 +69,4 @@ Scene_Map.prototype.textLogWindowRect = function()
   const y = Graphics.boxHeight - height;
   return new Rectangle(x, y, width, height);
 };
-//#endregion Scene_Map
+//endregion Scene_Map

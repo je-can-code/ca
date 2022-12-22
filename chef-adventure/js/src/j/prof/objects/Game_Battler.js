@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Gets all skill proficiencies for this battler.
  * @returns {SkillProficiency[]}
@@ -120,4 +120,4 @@ Game_Battler.prototype.extractProficiencyGainingBlock = function()
 
   return canGainProficiency;
 };
-//#endregion Game_Battler
+//endregion Game_Battler

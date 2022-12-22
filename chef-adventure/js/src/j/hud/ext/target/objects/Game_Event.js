@@ -1,4 +1,4 @@
-//#region Game_Event
+//region Game_Event
 /**
  * Gets the icon index of the target frame icon.
  * If none are present or valid, then the default will be 0 (no icon).
@@ -257,4 +257,4 @@ Game_Event.prototype.showTargetText = function()
   // return the truth.
   return showText;
 };
-//#endregion Game_Event
+//endregion Game_Event

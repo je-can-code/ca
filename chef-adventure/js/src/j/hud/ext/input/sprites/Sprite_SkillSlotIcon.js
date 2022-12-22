@@ -1,4 +1,4 @@
-//#region Sprite_SkillSlotIcon
+//region Sprite_SkillSlotIcon
 /**
  * A sprite that displays the icon represented by the assigned skill slot.
  */
@@ -151,4 +151,4 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
     }
   }
 }
-//#endregion Sprite_SkillIcon
+//endregion Sprite_SkillIcon

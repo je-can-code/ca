@@ -1,4 +1,4 @@
-//#region RPG_BaseItem
+//region RPG_BaseItem
 /**
  * The class representing baseItem from the database,
  * and now an iconIndex with a description.
@@ -33,4 +33,4 @@ class RPG_BaseItem extends RPG_Base
     this.iconIndex = baseItem.iconIndex;
   }
 }
-//#endregion RPG_BaseItem
+//endregion RPG_BaseItem

@@ -1,4 +1,4 @@
-//#region Game_Player
+//region Game_Player
 /**
  * OVERWRITE Changes the button detection to look for a different button instead of SHIFT.
  */
@@ -291,4 +291,4 @@ Game_Player.prototype.removeLoot = function(lootEvent)
   lootEvent.setLootNeedsRemoving(true);
   $jabsEngine.requestClearLoot = true;
 };
-//#endregion Game_Player
+//endregion Game_Player

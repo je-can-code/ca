@@ -1,4 +1,4 @@
-//#region gapClose
+//region gapClose
 /**
  * Whether or not this skill is designed to gap close.
  * Gap-closing will pull the player to wherever the skill connected.
@@ -29,9 +29,9 @@ RPG_Skill.prototype.extractJabsGapClose = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClose);
 };
-//#endregion gapClose
+//endregion gapClose
 
-//#region gapCloseMode
+//region gapCloseMode
 /**
  * The type of gap close mode this skill uses.
  * If there is no gap close mode available, then it'll be null instead.
@@ -62,9 +62,9 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapCloseMode, true);
 };
-//#endregion gapCloseMode
+//endregion gapCloseMode
 
-//#region gapClosePosition
+//region gapClosePosition
 /**
  * The type of gap close position this skill uses.
  * If there is no gap close position available, then it'll be null instead.
@@ -95,4 +95,4 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClosePosition, true);
 };
-//#endregion gapClosePosition
+//endregion gapClosePosition

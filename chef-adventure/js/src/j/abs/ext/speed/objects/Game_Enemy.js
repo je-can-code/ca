@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Extends {@link #onBattlerDataChange}.
  * Refreshes movement speed boosts when the battler's data changes.
@@ -12,4 +12,4 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   // update JABS-related things.
   this.refreshSpeedBoosts();
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

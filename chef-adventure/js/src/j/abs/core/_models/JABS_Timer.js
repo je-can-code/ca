@@ -1,4 +1,4 @@
-//#region JABS_Timer
+//region JABS_Timer
 /**
  * A reusable timer with some nifty functions.
  */
@@ -276,4 +276,4 @@ class JABS_Timer
     //console.log(`timer completed`, this);
   }
 }
-//#endregion JABS_Timer
+//endregion JABS_Timer

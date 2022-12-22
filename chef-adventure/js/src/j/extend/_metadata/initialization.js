@@ -1,4 +1,4 @@
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -37,4 +37,4 @@ J.EXTEND.Aliased.Game_Item = new Map();
 J.EXTEND.RegExp = {};
 J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
 J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-//#endregion Metadata
+//endregion Metadata

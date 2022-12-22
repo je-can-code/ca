@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends {@link JABS_Battler.initBattleInfo}.
  * Also initializes the charge-related data.
@@ -37,7 +37,7 @@ JABS_Battler.prototype.initChargeData = function()
   this._chargingTiers = [];
 };
 
-//#region property getter setter
+//region property getter setter
 /**
  * Gets whether or not this battler is charging a skill.
  * @returns {boolean}
@@ -212,7 +212,7 @@ JABS_Battler.prototype.setChargingSlot = function(slot)
 {
   this._chargeSlot = slot;
 };
-//#endregion property getter setter
+//endregion property getter setter
 
 /**
  * Resets all charge-related data back to default values.
@@ -755,4 +755,4 @@ JABS_Battler.prototype.onChargeTierComplete = function(completedChargeTier, next
     SoundManager.playChargeTierCompleteSE();
   }
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler

@@ -1,4 +1,4 @@
-//#region Window_JaftingModeMenu
+//region Window_JaftingModeMenu
 /**
  * Extends the mode command creation to include a new command for refinement.
  */
@@ -20,4 +20,4 @@ Window_JaftingModeMenu.prototype.makeCommandList = function()
   };
   this._list.splice(1, 0, refineCommand);
 };
-//#endregion Window_JaftingModeMenu
+//endregion Window_JaftingModeMenu

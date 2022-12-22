@@ -1,4 +1,4 @@
-//#region Game_JAFTING
+//region Game_JAFTING
 /**
  * A class for managing all things related to JAFTING.
  */
@@ -847,4 +847,4 @@ Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinem
     throw new Error("please stop crafting stuff that isn't valid.");
   }
 };
-//#endregion Game_JAFTING
+//endregion Game_JAFTING

@@ -1,4 +1,4 @@
-//#region Game_Character
+//region Game_Character
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
@@ -81,4 +81,4 @@ Game_Character.prototype.emptyDamagePops = function()
   // empty the contents of the array for all references to see.
   this._j._textPops.splice(0, this._j._textPops.length);
 };
-//#endregion Game_Character
+//endregion Game_Character

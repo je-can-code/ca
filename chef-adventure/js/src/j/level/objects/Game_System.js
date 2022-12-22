@@ -1,4 +1,4 @@
-//#region Game_System
+//region Game_System
 J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 /**
  * Extends `initialize()` to include properties for this plugin.
@@ -44,4 +44,4 @@ Game_System.prototype.disableLevelScaling = function()
 {
   this._j._levelScalingEnabled = false;
 };
-//#endregion Game_System
+//endregion Game_System

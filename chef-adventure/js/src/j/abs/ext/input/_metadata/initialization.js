@@ -3,7 +3,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -14,9 +14,9 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -53,7 +53,7 @@ J.ABS.EXT_INPUT.Aliased =
     JABS_Engine: new Map(),
     JABS_Battler: new Map(),
   };
-//#endregion metadata
+//endregion metadata
 
 /**
  * The global reference for the player's input manager.
@@ -62,4 +62,4 @@ J.ABS.EXT_INPUT.Aliased =
  * @global
  */
 var $jabsController1 = null;
-//#endregion introduction
+//endregion introduction

@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Extends {@link #createJabsAbsMenuMainWindow}.
  * Adds additional handling in the list for the omnipedia command.
@@ -23,4 +23,4 @@ Scene_Map.prototype.commandOmnipedia = function()
 {
   Scene_Omnipedia.callScene();
 };
-//#endregion Scene_Map
+//endregion Scene_Map

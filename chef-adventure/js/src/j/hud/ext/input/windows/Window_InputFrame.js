@@ -1,4 +1,4 @@
-//#region Window_InputFrame
+//region Window_InputFrame
 /**
  * A window displaying available skills and button inputs.
  */
@@ -73,7 +73,7 @@ class Window_InputFrame extends Window_Frame
     this._j._needsRefresh = false;
   }
 
-  //#region caching
+  //region caching
   /**
    * Ensures all sprites are created and available for use.
    */
@@ -129,7 +129,7 @@ class Window_InputFrame extends Window_Frame
     // return the created sprite.
     return sprite;
   }
-  //#endregion caching
+  //endregion caching
 
   /**
    * Refreshes the contents of this window.
@@ -169,7 +169,7 @@ class Window_InputFrame extends Window_Frame
     this.drawInputFrame();
   }
 
-  //#region visibility
+  //region visibility
   /**
    * Manages visibility for the hud.
    */
@@ -256,7 +256,7 @@ class Window_InputFrame extends Window_Frame
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
-  //#endregion visibility
+  //endregion visibility
 
   /**
    * The rough estimate of width for a single input key and all its subsprites.
@@ -399,4 +399,4 @@ class Window_InputFrame extends Window_Frame
     sprite.move(x+6, y+20);
   }
 }
-//#endregion Window_InputFrame
+//endregion Window_InputFrame

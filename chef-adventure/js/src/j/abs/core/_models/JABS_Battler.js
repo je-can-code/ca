@@ -1,4 +1,4 @@
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
  * This can be for either the player, an ally, or an enemy.
@@ -8,7 +8,7 @@ function JABS_Battler()
   this.initialize(...arguments);
 }
 
-//#region initialize battler
+//region initialize battler
 JABS_Battler.prototype = {};
 JABS_Battler.prototype.constructor = JABS_Battler;
 
@@ -519,9 +519,9 @@ JABS_Battler.prototype.initCooldowns = function()
   // setup the skill slots for the enemy.
   battler.getSkillSlotManager().setupSlots(battler);
 };
-//#endregion initialize battler
+//endregion initialize battler
 
-//#region statics
+//region statics
 /**
  * Generates a `JABS_Battler` based on the current leader of the party.
  * Also assigns the controller inputs for the player.
@@ -739,9 +739,9 @@ JABS_Battler.allyRubberbandRange = function()
 {
   return parseFloat(10 + J.ABS.Metadata.AllyRubberbandAdjustment);
 };
-//#endregion statics
+//endregion statics
 
-//#region updates
+//region updates
 /**
  * Things that are battler-respective and should be updated on their own.
  */
@@ -759,7 +759,7 @@ JABS_Battler.prototype.update = function()
   this.updateDeathHandling();
 };
 
-//#region queued player actions
+//region queued player actions
 /**
  * Process any queued actions and execute them.
  */
@@ -805,9 +805,9 @@ JABS_Battler.prototype.canProcessQueuedActions = function()
   // we can process all the actions!
   return true;
 };
-//#endregion queued player actions
+//endregion queued player actions
 
-//#region update pose effects
+//region update pose effects
 /**
  * Update all character sprite animations executing on this battler.
  */
@@ -913,9 +913,9 @@ JABS_Battler.prototype.setPosePattern = function(pattern)
 {
   this.getCharacter()._pattern = pattern;
 };
-//#endregion update pose effects
+//endregion update pose effects
 
-//#region update cooldowns
+//region update cooldowns
 /**
  * Updates all cooldowns for this battler.
  */
@@ -923,9 +923,9 @@ JABS_Battler.prototype.updateCooldowns = function()
 {
   this.getBattler().getSkillSlotManager().updateCooldowns();
 };
-//#endregion update cooldowns
+//endregion update cooldowns
 
-//#region update timers
+//region update timers
 /**
  * Updates all timers for this battler.
  */
@@ -1006,9 +1006,9 @@ JABS_Battler.prototype.processEngagementTimer = function()
 {
   this._engagementTimer.update();
 };
-//#endregion update timers
+//endregion update timers
 
-//#region update engagement
+//region update engagement
 /**
  * Monitors all other battlers and determines if they are engaged or not.
  */
@@ -1137,9 +1137,9 @@ JABS_Battler.prototype.shouldEngage = function(target, distance)
   // return the findings.
   return isInSightRange;
 };
-//#endregion update engagement
+//endregion update engagement
 
-//#region update dodging
+//region update dodging
 /**
  * Updates the dodge skill.
  */
@@ -1281,9 +1281,9 @@ JABS_Battler.prototype.endDodge = function()
   // disable the invincibility from dodging.
   this.setInvincible(false);
 };
-//#endregion update dodging
+//endregion update dodging
 
-//#region update death handling
+//region update death handling
 /**
  * Handles when this enemy battler is dying.
  */
@@ -1304,11 +1304,11 @@ JABS_Battler.prototype.updateDeathHandling = function()
     this.destroy();
   }
 };
-//#endregion update death handling
-//#endregion updates
+//endregion update death handling
+//endregion updates
 
-//#region update helpers
-//#region timers
+//region update helpers
+//region timers
 /**
  * Sets the battler's wait duration to a number. If this number is greater than
  * zero, then the battler must wait before doing anything else.
@@ -1444,9 +1444,9 @@ JABS_Battler.prototype.clearAlert = function()
   //   this.showBalloon(J.ABS.Balloons.Silence);
   // }
 };
-//#endregion timers
+//endregion timers
 
-//#region dodging
+//region dodging
 /**
  * Gets whether or not this battler is dodging.
  * @returns {boolean} True if currently dodging, false otherwise.
@@ -1600,9 +1600,9 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType)
 
   return direction;
 };
-//#endregion dodging
+//endregion dodging
 
-//#region regeneration
+//region regeneration
 /**
  * Updates all regenerations and ticks four times per second.
  */
@@ -1676,7 +1676,7 @@ JABS_Battler.prototype.performRegeneration = function()
   this.processNaturalRegens();
 
   // if we have no states, don't bother.
-  let states = battler.states();
+  let states = battler.allStates();
   if (!states.length) return;
 
   // clean-up all the states that are somehow applied but not tracked.
@@ -1839,6 +1839,9 @@ JABS_Battler.prototype.shouldProcessState = function(state)
   // validate the state exists.
   if (!trackedState)
   {
+    // untracked states could be passive states the battler is owning.
+    if (battler.isPassiveState(state.id)) return true;
+
     // when loading a file that was saved with a state, we encounter a weird issue
     // where the state is still on the battler but not in temporary memory as a
     // JABS tracked state. In this case, we remove it.
@@ -1863,45 +1866,27 @@ JABS_Battler.prototype.stateSlipHp = function(state)
   // grab the battler we're working with.
   const battler = this.getBattler();
 
-  // default slip to zero.
+  // the running total of the hp-per-5 amount from states.
   let tagHp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipHpFlatPerFive: hpPerFiveFlat,
+    jabsSlipHpPercentPerFive: hpPerFivePercent,
+    jabsSlipHpFormulaPerFive: hpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagHp5 += state.jabsSlipHpFlatPerFive;
+  tagHp5 += hpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagHp5 += battler.mhp * (state.jabsSlipHpPercentPerFive / 100);
+  tagHp5 += battler.mhp * (hpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const hpPerFiveFormula = state.jabsSlipHpFormulaPerFive;
   if (hpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(hpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagHp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has an hp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${hpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagHp5 += this.calculateStateSlipFormula(hpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
@@ -1918,45 +1903,27 @@ JABS_Battler.prototype.stateSlipMp = function(state)
   // grab the battler we're working with.
   const battler = this.getBattler();
 
-  // default slip to zero.
+  // the running total of the mp-per-5 amount from states.
   let tagMp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipMpFlatPerFive: mpPerFiveFlat,
+    jabsSlipMpPercentPerFive: mpPerFivePercent,
+    jabsSlipMpFormulaPerFive: mpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagMp5 += state.jabsSlipMpFlatPerFive;
+  tagMp5 += mpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagMp5 += battler.mmp * (state.jabsSlipMpPercentPerFive / 100);
+  tagMp5 += battler.mmp * (mpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const mpPerFiveFormula = state.jabsSlipMpFormulaPerFive;
   if (mpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(mpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagMp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has an mp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${mpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagMp5 += this.calculateStateSlipFormula(mpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
@@ -1964,9 +1931,9 @@ JABS_Battler.prototype.stateSlipMp = function(state)
 };
 
 /**
- * Processes a single state and returns its tag-based mp regen value.
+ * Processes a single state and returns its tag-based tp regen value.
  * @param {RPG_State} state The state to process.
- * @returns {number} The mp regen from this state.
+ * @returns {number} The tp regen from this state.
  */
 JABS_Battler.prototype.stateSlipTp = function(state)
 {
@@ -1976,46 +1943,136 @@ JABS_Battler.prototype.stateSlipTp = function(state)
   // default slip to zero.
   let tagTp5 = 0;
 
+  // deconstruct the data out of the state.
+  const {
+    jabsSlipTpFlatPerFive: tpPerFiveFlat,
+    jabsSlipTpPercentPerFive: tpPerFivePercent,
+    jabsSlipTpFormulaPerFive: tpPerFiveFormula,
+  } = state;
+
   // if the flat tag exists, use it.
-  tagTp5 += state.jabsSlipTpFlatPerFive;
+  tagTp5 += tpPerFiveFlat;
 
   // if the percent tag exists, use it.
-  tagTp5 += battler.maxTp() * (state.jabsSlipTpPercentPerFive / 100);
+  tagTp5 += battler.maxTp() * (tpPerFivePercent / 100);
 
   // if the formula tag exists, use it.
-  const tpPerFiveFormula = state.jabsSlipTpFormulaPerFive;
   if (tpPerFiveFormula)
   {
-    // pull the state associated with the battler.
-    const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
-
-    // variables for contextual eval().
-    const a = trackedState.source;  // the one who applied the state.
-    const b = trackedState.battler; // this battler, afflicted by the state.
-    const v = $gameVariables._data; // access to variables if you need it.
-    const s = state;                // access to the state itself if you need it.
-
-    // eval the formula with the above context.
-    const result = Math.round(eval(tpPerFiveFormula) * -1);
-
-    // check to make sure we have a number.
-    if (Number.isFinite(result))
-    {
-      // add the number onto the running total.
-      tagTp5 += result;
-    }
-    // the eval failed and produced a NaN or otherwise.
-    else
-    {
-      // warn them!
-      console.warn(`The state of ${state.id} has a tp formula producing a result that isn't valid.`);
-      console.warn(`formula parsed: ${tpPerFiveFormula}`);
-      console.warn(`result produced: ${result}`);
-    }
+    // add the slip formula to the running total.
+    tagTp5 += this.calculateStateSlipFormula(tpPerFiveFormula, battler, state);
   }
 
   // return the per-five.
   return tagTp5;
+};
+
+/**
+ * Calculates the value of a slip-based formula.
+ * This is where the source and afflicted are determined before {@link eval}uating the
+ * formula with the necessary context to evaluate a formula.
+ * @param {string} formula The string containing the formula to parse.
+ * @param {Game_Battler} battler The battler that is afflicted with the slip effect.
+ * @param {RPG_State} state The state representing this slip effect.
+ * @returns {number} The result of the formula representing the slip effect value.
+ */
+JABS_Battler.prototype.calculateStateSlipFormula = function(formula, battler, state)
+{
+  // pull the state associated with the battler.
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
+
+  // initialize the source and afflicted with oneself.
+  let sourceBattler = battler;
+  let afflictedBattler = battler;
+
+  // check if the trackedState was present.
+  if (trackedState)
+  {
+    // update the source and afflicted with the tracked data instead.
+    sourceBattler = trackedState.source;
+    afflictedBattler = trackedState.battler;
+  }
+
+  // calculate the total for this slip formula.
+  const total = this.slipEval(formula, sourceBattler, afflictedBattler, state);
+
+  // return the result.
+  return total;
+};
+
+/**
+ * Performs an {@link eval} on the provided formula with the given parameters as scoped context
+ * to calculate a formula-based slip values. Also provides a weak safety net to ensure that no
+ * garbage values get returned, or raises exceptions if the formula is invalidly written.
+ * @param {string} formula The string containing the formula to parse.
+ * @param {Game_Battler} sourceBattler The battler that applied this state to the target.
+ * @param {Game_Battler} afflictedBattler The target battler afflicted with this state.
+ * @param {RPG_State} state The state associated with this slip effect.
+ * @returns {number} The output of the formula (multiplied by `-1`) to
+ */
+JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBattler, state)
+{
+  // variables for contextual eval().
+  /* eslint-disable no-unused-vars */
+  const a = sourceBattler;        // the one who applied the state.
+  const b = afflictedBattler;     // this battler, afflicted by the state.
+  const v = $gameVariables._data; // access to variables if you need it.
+  const s = state;                // access to the state itself if you need it.
+  /* eslint-enable no-unused-vars */
+
+  // initialize the result.
+  let result = 0;
+
+  // add a safety net for people who write broken formulas.
+  try
+  {
+    // eval() the formula and default to negative (because "slip" is negative).
+    result = eval(formula) * -1;
+
+    // check if the eval() produced garbage output despite not throwing.
+    if (!Number.isFinite(result))
+    {
+      // throw, and then catch to properly log in the next block.
+      throw new Error("Invalid formula.")
+    }
+  }
+  catch (err)
+  {
+    console.warn(`failed to eval() this formula: [ ${formula} ]`);
+    console.trace();
+    throw err;
+  }
+
+  // we prefer to work with integers for slip.
+  const formattedResult = Math.round(result);
+
+  // return the calculated result.
+  return formattedResult;
+};
+
+/**
+ * Applies the regeneration amount to the appropriate parameter.
+ * @param {number} amount The regen amount.
+ * @param {number} type The regen type- identified by index.
+ */
+JABS_Battler.prototype.applySlipEffect = function(amount, type)
+{
+  // grab the battler.
+  const battler = this.getBattler();
+
+  // pivot on the slip type.
+  switch (type)
+  {
+    case 0:
+      battler.gainHp(amount);
+      break;
+    case 1:
+      battler.gainMp(amount);
+      break;
+    case 2:
+      battler.gainTp(amount);
+      break;
+  }
 };
 
 /**
@@ -2067,29 +2124,7 @@ JABS_Battler.prototype.configureSlipPop = function(amount, type)
   // build and return the popup.
   return textPopBuilder.build();
 };
-
-/**
- * Applies the regeneration amount to the appropriate parameter.
- * @param {number} amount The regen amount.
- * @param {number} type The regen type- identified by index.
- */
-JABS_Battler.prototype.applySlipEffect = function(amount, type)
-{
-  const battler = this.getBattler();
-  switch (type)
-  {
-    case 0:
-      battler.gainHp(amount);
-      break;
-    case 1:
-      battler.gainMp(amount);
-      break;
-    case 2:
-      battler.gainTp(amount);
-      break;
-  }
-};
-//#endregion regeneration
+//endregion regeneration
 
 /**
  * Gets whether or not this battler's movement is locked.
@@ -2223,9 +2258,9 @@ JABS_Battler.prototype.setBaseSpriteIndex = function(index)
 {
   this._baseSpriteIndex = index;
 };
-//#endregion update helpers
+//endregion update helpers
 
-//#region reference helpers
+//region reference helpers
 /**
  * Reassigns the character to something else.
  * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
@@ -3538,9 +3573,9 @@ JABS_Battler.prototype.turnTowardTarget = function()
 
   character.turnTowardCharacter(target.getCharacter());
 };
-//#endregion reference helpers
+//endregion reference helpers
 
-//#region isReady & cooldowns
+//region isReady & cooldowns
 /**
  * Initializes a cooldown with the given key.
  * @param {string} cooldownKey The key of this cooldown.
@@ -3955,9 +3990,9 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
   // we can pay the cost!
   return true;
 };
-//#endregion isReady & cooldowns
+//endregion isReady & cooldowns
 
-//#region get data
+//region get data
 /**
  * Gets the skill id of the last skill that this battler executed.
  * @returns {number}
@@ -4198,9 +4233,9 @@ JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
 
   return bonusHits;
 };
-//#endregion get data
+//endregion get data
 
-//#region aggro
+//region aggro
 /**
  * Adjust the currently engaged target based on aggro.
  */
@@ -4543,9 +4578,9 @@ JABS_Battler.prototype.aggroExists = function(uuid)
   return this._aggros.find(aggro => aggro.uuid() === uuid);
 };
 
-//#endregion aggro
+//endregion aggro
 
-//#region create/apply effects
+//region create/apply effects
 /**
  * Performs a preliminary check to see if the target is actually able to be hit.
  * @returns {boolean} True if actions can potentially connect, false otherwise.
@@ -5141,9 +5176,9 @@ JABS_Battler.prototype.performPostdefeatEffects = function(victor)
     this.setDying(true);
   }
 };
-//#endregion apply effects
+//endregion apply effects
 
-//#region guarding
+//region guarding
 /**
  * Whether or not the precise-parry window is active.
  * @returns {boolean}
@@ -5454,9 +5489,9 @@ JABS_Battler.prototype.countdownParryWindow = function()
     this._parryWindow = 0;
   }
 };
-//#endregion guarding
+//endregion guarding
 
-//#region actionposes/animations
+//region actionposes/animations
 /**
  * Executes an action pose.
  * Will silently fail if the asset is missing.
@@ -5560,9 +5595,9 @@ JABS_Battler.prototype.resetAnimation = function()
     character.setImage(originalImage, originalIndex);
   }
 };
-//#endregion actionposes/animations
+//endregion actionposes/animations
 
-//#region utility helpers
+//region utility helpers
 /**
  * Forces a display of a emoji balloon above this battler's head.
  * @param {number} balloonId The id of the balloon to display on this character.
@@ -5589,5 +5624,5 @@ JABS_Battler.prototype.isShowingAnimation = function()
 {
   return this.getCharacter().isAnimationPlaying();
 };
-//#endregion utility helpers
-//#endregion JABS_Battler
+//endregion utility helpers
+//endregion JABS_Battler

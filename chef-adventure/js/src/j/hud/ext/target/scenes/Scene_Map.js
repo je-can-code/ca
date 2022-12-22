@@ -1,4 +1,4 @@
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
@@ -94,4 +94,4 @@ Scene_Map.prototype.handleAssignTarget = function()
     $hudManager.acknowledgeAssignedTarget();
   }
 };
-//#endregion Scene_Map
+//endregion Scene_Map

@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends `.initNaturalGrowthParameters()` to include the new critical damage parameters as growth-ready.
  */
@@ -46,7 +46,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   this._j._natural._cdrRate = 0;
 };
 
-//#region properties
+//region properties
 /**
  * Gets the permanent flat bonus for CDM.
  * @returns {number}
@@ -118,7 +118,7 @@ Game_Battler.prototype.modCdrRate = function(amount)
 {
   this._j._natural._cdrRate += amount;
 };
-//#endregion properties
+//endregion properties
 
 /**
  * Gets the base multiplier for this battler's critical hits.
@@ -401,4 +401,4 @@ Game_Battler.prototype.cdrNaturalGrowths = function()
   // calculate the result.
   return this.calculatePlusRate(baseCdr, growthPlus, growthRate);
 };
-//#endregion Game_Battler
+//endregion Game_Battler

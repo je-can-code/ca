@@ -1,4 +1,4 @@
-//#region Game_Battler
+//region Game_Battler
 /**
  * Extends `initMembers()` to include initialization of our new parameters.
  */
@@ -69,7 +69,7 @@ Game_Battler.prototype.initActionUpgrades1 = function()
   this._j._abs._timing._castSpeedRate = 0;
 };
 
-//#region getters & setters & updates
+//region getters & setters & updates
 /**
  * Gets the cached fast cooldown base value.
  * @returns {number}
@@ -250,9 +250,9 @@ Game_Battler.prototype.updateCastSpeedRate = function()
   // update the cast speed rate modifier.
   this.setCastSpeedRate(currentCastSpeedRate);
 };
-//#endregion getters & setters & updates
+//endregion getters & setters & updates
 
-//#region cast speed
+//region cast speed
 /**
  * The base cast speed multiplier.
  * A battler's base cast speed defines the default multiplier for how long it takes to cast.
@@ -373,9 +373,9 @@ Game_Battler.prototype.minimumCastTime = function()
   // TODO: parameterize minimum into plugin parameter.
   return 0;
 };
-//#endregion castspeed
+//endregion castspeed
 
-//#region fast cooldown
+//region fast cooldown
 /**
  * The base faster cooldown flat modifier.
  * A battler's faster cooldown value will reduce the number of frames
@@ -499,5 +499,5 @@ Game_Battler.prototype.minimumCooldown = function()
   // TODO: parameterize minimum into plugin parameter.
   return 0;
 };
-//#endregion fast cooldown
-//#endregion Game_Battler
+//endregion fast cooldown
+//endregion Game_Battler

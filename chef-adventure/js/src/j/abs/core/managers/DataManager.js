@@ -1,4 +1,4 @@
-//#region DataManager
+//region DataManager
 /**
  * The global reference for the `JABS_Engine` data object.
  * @type {JABS_Engine}
@@ -105,4 +105,4 @@ DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
 };
-//#endregion
+//endregion

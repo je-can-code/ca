@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 /**
  * Gets any additional drops from the notes of this particular enemy.
  * This allows for only gaining an SDP from enemies once.
@@ -93,4 +93,4 @@ Game_Enemy.prototype.sdpPoints = function()
 {
   return this.enemy().sdpPoints;
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

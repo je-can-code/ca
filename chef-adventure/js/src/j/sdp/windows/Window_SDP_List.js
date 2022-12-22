@@ -1,4 +1,4 @@
-//#region Window_SDP_List
+//region Window_SDP_List
 /**
  * The SDP window containing the list of all earned SDPs.
  */
@@ -132,4 +132,4 @@ class Window_SDP_List extends Window_Command
     return command;
   }
 }
-//#endregion Window_SDP_List
+//endregion Window_SDP_List

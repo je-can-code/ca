@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -93,7 +93,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -104,7 +104,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The over-arching extensions collection for JABS.
@@ -226,7 +226,7 @@ J.ABS.EXT.TOOLS.GapClosePositions = {
    */
   Same: "same",
 };
-//#endregion Introduction
+//endregion Introduction
 
 /**
  * Initializes the properties of this battler that are not related to anything in particular.
@@ -521,7 +521,7 @@ JABS_Battler.gapCloseWiggleRoom = function()
   return 0.5;
 };
 
-//#region gapClose
+//region gapClose
 /**
  * Whether or not this skill is designed to gap close.
  * Gap-closing will pull the player to wherever the skill connected.
@@ -552,9 +552,9 @@ RPG_Skill.prototype.extractJabsGapClose = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClose);
 };
-//#endregion gapClose
+//endregion gapClose
 
-//#region gapCloseMode
+//region gapCloseMode
 /**
  * The type of gap close mode this skill uses.
  * If there is no gap close mode available, then it'll be null instead.
@@ -585,9 +585,9 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapCloseMode, true);
 };
-//#endregion gapCloseMode
+//endregion gapCloseMode
 
-//#region gapClosePosition
+//region gapClosePosition
 /**
  * The type of gap close position this skill uses.
  * If there is no gap close position available, then it'll be null instead.
@@ -618,7 +618,7 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClosePosition, true);
 };
-//#endregion gapClosePosition
+//endregion gapClosePosition
 
 /**
  * Processes the various on-hit effects against the target.

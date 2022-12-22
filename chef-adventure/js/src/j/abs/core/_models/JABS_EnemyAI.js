@@ -1,4 +1,4 @@
-//#region JABS_EnemyAI
+//region JABS_EnemyAI
 /**
  * An object representing the structure of the `JABS_Battler` AI.
  */
@@ -819,4 +819,4 @@ class JABS_EnemyAI extends JABS_AI
     return skillsToUse;
   }
 }
-//#endregion JABS_EnemyAI
+//endregion JABS_EnemyAI

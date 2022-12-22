@@ -1,12 +1,12 @@
 // TODO: move this to J-Base.
-//#region Sprite_FlowingGauge
+//region Sprite_FlowingGauge
 /**
  * A gauge that acts like a regular `Sprite_Gauge` that is instead based
  * on images and also "flows".
  */
 class Sprite_FlowingGauge extends Sprite
 {
-  //#region properties
+  //region properties
   static Types =
     {
       HP: "hp",
@@ -83,7 +83,7 @@ class Sprite_FlowingGauge extends Sprite
    * @type {boolean}
    */
   _isReady = false;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Initializes all properties of this class.
@@ -717,4 +717,4 @@ class Sprite_FlowingGauge extends Sprite
     return Math.floor(this._gaugeBitmap.height / 2);
   }
 }
-//#endregion Sprite_FlowingGauge
+//endregion Sprite_FlowingGauge

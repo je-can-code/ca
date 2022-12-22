@@ -1,10 +1,10 @@
-//#region RPG_Actor
+//region RPG_Actor
 /**
  * A class representing a single actor battler's data from the database.
  */
 class RPG_Actor extends RPG_BaseBattler
 {
-  //#region properties
+  //region properties
   /**
    * The index of the character sprite of the battler
    * on the spritesheet.
@@ -69,7 +69,7 @@ class RPG_Actor extends RPG_BaseBattler
    * @type {string}
    */
   profile = String.empty;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -104,4 +104,4 @@ class RPG_Actor extends RPG_BaseBattler
     this.profile = actor.profile;
   }
 }
-//#endregion RPG_Actor
+//endregion RPG_Actor

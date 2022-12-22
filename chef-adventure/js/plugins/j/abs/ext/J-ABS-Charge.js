@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -265,9 +265,9 @@ J.ABS.EXT_CHARGE.Aliased = {
 J.ABS.EXT_CHARGE.RegExp = {
   ChargeData: /<chargeTier:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+(,[ ]?\d+(,[ ]?\d+)?)?])>/gi,
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region JABS_Battler
+//region JABS_Battler
 /**
  * Extends {@link JABS_Battler.initBattleInfo}.
  * Also initializes the charge-related data.
@@ -306,7 +306,7 @@ JABS_Battler.prototype.initChargeData = function()
   this._chargingTiers = [];
 };
 
-//#region property getter setter
+//region property getter setter
 /**
  * Gets whether or not this battler is charging a skill.
  * @returns {boolean}
@@ -481,7 +481,7 @@ JABS_Battler.prototype.setChargingSlot = function(slot)
 {
   this._chargeSlot = slot;
 };
-//#endregion property getter setter
+//endregion property getter setter
 
 /**
  * Resets all charge-related data back to default values.
@@ -1024,15 +1024,15 @@ JABS_Battler.prototype.onChargeTierComplete = function(completedChargeTier, next
     SoundManager.playChargeTierCompleteSE();
   }
 };
-//#endregion JABS_Battler
+//endregion JABS_Battler
 
-//#region JABS_ChargingTier
+//region JABS_ChargingTier
 /**
  * A single charging tier derived from a skill in a slot to be charged.
  */
 class JABS_ChargingTier
 {
-  //#region properties
+  //region properties
   /**
    * The number of frames that this tier has already been charged.
    * @type {number}
@@ -1136,10 +1136,10 @@ class JABS_ChargingTier
   {
   }
 }
-//#endregion JABS_ChargingTier
+//endregion JABS_ChargingTier
 
-//#region JABS_InputAdapter
-//#region mainhand
+//region JABS_InputAdapter
+//region mainhand
 /**
  * Executes the charging of the mainhand slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -1170,9 +1170,9 @@ JABS_InputAdapter.canPerformMainhandActionCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion mainhand
+//endregion mainhand
 
-//#region offhand
+//region offhand
 /**
  * Executes the charging of the offhand slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -1207,9 +1207,9 @@ JABS_InputAdapter.canPerformOffhandActionCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion offhand
+//endregion offhand
 
-//#region combat skills
+//region combat skills
 /**
  * Executes the charging of the combat skill slot.
  * @param {boolean} charging True if we are charging this slot, false otherwise.
@@ -1241,10 +1241,10 @@ JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler)
   // perform!
   return true;
 };
-//#endregion combat skills
-//#endregion JABS_InputAdapter
+//endregion combat skills
+//endregion JABS_InputAdapter
 
-//#region JABS_InputController
+//region JABS_InputController
 J.ABS.EXT_CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
 JABS_InputController.prototype.initMembers = function()
 {
@@ -1331,7 +1331,7 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
   return this.getChargeInputDelayBySlot(slot).isTimerComplete();
 };
 
-//#region mainhand
+//region mainhand
 /**
  * Extends {@link JABS_InputController.updateMainhandAction}.
  * Handles charging capability for this input.
@@ -1441,9 +1441,9 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
   // reset the slot's charging input delay.
   this.resetChargeInputDelayBySlot(JABS_Button.Mainhand);
 };
-//#endregion mainhand
+//endregion mainhand
 
-//#region offhand
+//region offhand
 /**
  * Extends {@link JABS_InputController.updateOffhandAction}.
  * Handles charging capability to the offhand.
@@ -1549,9 +1549,9 @@ JABS_InputController.prototype.performOffhandChargeAlterAction = function()
 {
   JABS_InputAdapter.performOffhandActionCharging(false, $jabsEngine.getPlayer1())
 };
-//#endregion offhand
+//endregion offhand
 
-//#region combat skills
+//region combat skills
 /**
  * Determines whether or not the charging is ready.
  * @returns {boolean} True if the charging is ready, false otherwise.
@@ -1601,7 +1601,7 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
   this.resetChargeInputDelayBySlot(slot);
 };
 
-//#region combat skill 1
+//region combat skill 1
 /**
  * Extends {@link JABS_InputController.updateCombatAction1}.
  * Handles charging capability for this input.
@@ -1667,9 +1667,9 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 1
+//endregion combat skill 1
 
-//#region combat skill 2
+//region combat skill 2
 /**
  * Extends {@link JABS_InputController.updateCombatAction2}.
  * Handles charging capability for this input.
@@ -1735,9 +1735,9 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 2
+//endregion combat skill 2
 
-//#region combat skill 3
+//region combat skill 3
 /**
  * Extends {@link JABS_InputController.updateCombatAction3}.
  * Handles charging capability for this input.
@@ -1803,9 +1803,9 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 3
+//endregion combat skill 3
 
-//#region combat skill 4
+//region combat skill 4
 /**
  * Extends {@link JABS_InputController.updateCombatAction4}.
  * Handles charging capability for this input.
@@ -1871,11 +1871,11 @@ JABS_InputController.prototype.canChargeCombatAction4 = function()
   // we can charge!
   return true;
 };
-//#endregion combat skill 4
-//#endregion combat skills
-//#endregion JABS_InputController
+//endregion combat skill 4
+//endregion combat skills
+//endregion JABS_InputController
 
-//#region RPG_Skill
+//region RPG_Skill
 /**
  * The charge tier data associated with a skill.
  * @type {[number, number, number, number][]|null}
@@ -1905,9 +1905,9 @@ RPG_Base.prototype.extractJabsChargeData = function()
 {
   return this.getArraysFromNotesByRegex(J.ABS.EXT_CHARGE.RegExp.ChargeData, true);
 };
-//#endregion RPG_Skill
+//endregion RPG_Skill
 
-//#region SoundManager
+//region SoundManager
 /**
  * Extends {@link SoundManager.preloadImportantSounds}.
  * Also preloads the charging-related sound effects.
@@ -1979,4 +1979,4 @@ SoundManager.maxChargeReadySE = function()
 {
   return new RPG_SoundEffect("Item3", 50, 110, 0);
 };
-//#endregion SoundManager
+//endregion SoundManager

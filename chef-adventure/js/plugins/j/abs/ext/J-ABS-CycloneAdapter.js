@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:10 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -69,7 +69,7 @@ J.ABS.EXT.CYCLE.Aliased = {
   JABS_Action: new Map(),
   JABS_Battler: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction
 
 /**
  * Sets the number of steps that will be force-moved when dodging.
@@ -113,7 +113,7 @@ JABS_Battler.prototype.destroy = function()
  */
 Game_Character.repeatableMoveCommandCodes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
-//#region properties
+//region properties
 /**
  * Extends {@link Game_Character.initMembers}.
  * Includes our cyclone movement repeat trackers.
@@ -207,7 +207,7 @@ Game_Character.prototype.modRepeatingMovementCount = function(amount = -1)
 {
   this._j._cycleAdapter._repeatCount += amount;
 };
-//#endregion properties
+//endregion properties
 
 /**
  * Overwrites {@link Game_Character.updateRoutineMove}.
@@ -372,7 +372,7 @@ Game_Follower.prototype.isDoingJabsAllyAiThings = function()
   return true;
 };
 
-//#region Game_Player
+//region Game_Player
 /**
  * If we're using cyclone movement, adjust their triggering of events to not interact
  * with battlers and such if they are also events that have event commands.
@@ -425,4 +425,4 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers)
     this.startMapEvent(x3, y3, triggers, true);
   }
 }
-//#endregion Game_Player
+//endregion Game_Player

@@ -1,10 +1,10 @@
-//#region TextPopBuilder
+//region TextPopBuilder
 /**
  * The fluent-builder for text pops on the map.
  */
 class TextPopBuilder
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not this popup is the result of a critical skill usage.
    * @type {boolean}
@@ -86,7 +86,7 @@ class TextPopBuilder
    * @private
    */
   #yVariance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -168,7 +168,7 @@ class TextPopBuilder
     return [this.#xVariance, this.#yVariance];
   }
 
-  //#region setters
+  //region setters
   /**
    * Sets the value of the text pop you are building.
    * @param {number|string} value The new value to replace the old one with.
@@ -344,9 +344,9 @@ class TextPopBuilder
     this.setYVariance(yVariance);
     return this;
   }
-  //#endregion setters
+  //endregion setters
 
-  //#region presets
+  //region presets
   /**
    * Changes the suffix based on elemental efficicacy associated with a damage pop.
    * @param {number} elementalRate The elemental factor, such as 0.4 or 1.75.
@@ -694,6 +694,6 @@ class TextPopBuilder
     // return the builder for fluent chaining.
     return this;
   }
-  //#endregion presents
+  //endregion presents
 }
-//#endregion TextPopBuilder
+//endregion TextPopBuilder

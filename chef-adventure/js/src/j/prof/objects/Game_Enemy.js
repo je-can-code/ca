@@ -1,4 +1,4 @@
-//#region Game_Enemy
+//region Game_Enemy
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function()
 {
@@ -75,4 +75,4 @@ Game_Enemy.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 
   proficiency.improve(amount);
 };
-//#endregion Game_Enemy
+//endregion Game_Enemy

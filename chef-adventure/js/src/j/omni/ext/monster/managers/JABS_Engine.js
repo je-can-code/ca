@@ -1,4 +1,4 @@
-//#region JABS_Engine
+//region JABS_Engine
 /**
  * Processes the various on-hit effects against the target.
  * @param {JABS_Action} action The `JABS_Action` containing the action data.
@@ -60,4 +60,4 @@ JABS_Engine.prototype.processElementalisticObservations = function(action, targe
   // observe all of the elements against the enemy.
   elements.forEach(elementId => enemy.observeElement(elementId));
 };
-//#endregion JABS_Engine
+//endregion JABS_Engine

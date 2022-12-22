@@ -1,4 +1,4 @@
-//#region Sprite_Gauge
+//region Sprite_Gauge
 /**
  * Due to JABS' slip effects, we have fractional hp/mp/tp values.
  * This rounds up the values for the sprite gauge if they are a number.
@@ -15,4 +15,4 @@ Sprite_Gauge.prototype.currentValue = function()
   // return the rounded-up amount.
   return Math.ceil(base);
 };
-//#endregion Sprite_Gauge
+//endregion Sprite_Gauge

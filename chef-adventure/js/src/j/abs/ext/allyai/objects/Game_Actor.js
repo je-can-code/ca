@@ -1,4 +1,4 @@
-//#region Game_Actor
+//region Game_Actor
 /**
  * Extends {@link #initMembers}.
  * Also tracks JABS ally AI.
@@ -118,4 +118,13 @@ Game_Actor.prototype.getDefaultAllyAI = function()
   // return the default of "variety" for ally ai.
   return JABS_AllyAI.modes.VARIETY.key;
 };
-//#endregion Game_Actor
+
+/**
+ * Gets all skill slots that have skills assigned to them- excluding the tool slot.
+ * @returns {JABS_SkillSlot[]}
+ */
+Game_Actor.prototype.getValidSkillSlotsForAlly = function()
+{
+  return this.getSkillSlotManager().getEquippedAllySlots();
+};
+//endregion Game_Actor

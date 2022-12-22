@@ -1,4 +1,4 @@
-//#region Sprite_Icon
+//region Sprite_Icon
 /**
  * A customizable sprite that displays a single icon.
  *
@@ -230,4 +230,4 @@ class Sprite_Icon extends Sprite
     this.setFrame(x, y, iconWidth, iconHeight);
   }
 }
-//#endregion Sprite_Icon
+//endregion Sprite_Icon

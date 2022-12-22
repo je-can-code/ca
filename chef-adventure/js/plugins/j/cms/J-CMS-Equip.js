@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 09:15:44 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -23,7 +23,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -34,7 +34,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -53,9 +53,9 @@ J.CMS_E.Aliased = {
   Window_EquipItem: {},
   Window_EquipSlot: {},
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region Scene_Equip
+//region Scene_Equip
 /**
  * Initializes this scene.
  */
@@ -218,8 +218,8 @@ Scene_Equip.prototype.createMoreDataWindow = function()
 Scene_Equip.prototype.moreDataRect = function()
 {
   const width = 500;
-  const wx = this.statusWidth() - width - 12;
-  const wy = this.slotWindowRect().y - 12;
+  const wx = this.statusWidth() - width - 4;
+  const wy = this.slotWindowRect().y - 4;
   const ww = width;
   const wh = Graphics.boxHeight - wy;
   return new Rectangle(wx, wy, ww, wh);
@@ -294,9 +294,9 @@ Scene_Equip.prototype.refreshActor = function()
   const actor = this.actor();
   this._moreDataWindow.setActor(actor);
 };
-//#endregion Scene_Equip
+//endregion Scene_Equip
 
-//#region Window_EquipItem
+//region Window_EquipItem
 /**
  * Extends the `.initialize()` to include tracking for the more equip data window.
  */
@@ -335,9 +335,9 @@ Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow)
 {
   this._moreDataWindow = moreDataWindow;
 };
-//#endregion Window_EquipItem
+//endregion Window_EquipItem
 
-//#region Window_EquipSlot
+//region Window_EquipSlot
 /**
  * Extends the `.initialize()` to include tracking for the more equip data window.
  */
@@ -376,9 +376,9 @@ Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow)
 {
   this._moreDataWindow = moreDataWindow;
 };
-//#endregion Window_EquipSlot
+//endregion Window_EquipSlot
 
-//#region Window_EquipStatus
+//region Window_EquipStatus
 /**
  * Gets the parameter bitmap width.
  * @returns {number} The parameter bitmap width.
@@ -395,7 +395,7 @@ Window_EquipStatus.prototype.drawAllParams = function()
   this.drawAllSParams(360, 380);
 };
 
-//#region b-parameters
+//region b-parameters
 /**
  * Draws all b-parameters and their changed values.
  * @param {number} ox The origin x.
@@ -471,9 +471,9 @@ Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(newValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion b-parameters
+//endregion b-parameters
 
-//#region x-parameters
+//region x-parameters
 /**
  * Draws all x-params.
  * @param {number} ox The origin x.
@@ -550,9 +550,9 @@ Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion x-parameters
+//endregion x-parameters
 
-//#region s-parameters
+//region s-parameters
 /**
  * Draws all s-params.
  * @param {number} ox The origin x.
@@ -629,7 +629,7 @@ Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy)
   this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
   this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
 };
-//#endregion s-parameters
+//endregion s-parameters
 
 Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue)
 {
@@ -654,9 +654,9 @@ Window_EquipStatus.prototype.arrowCharacter = function(diffValue)
     return "\u2192";
   }
 };
-//#endregion Window_EquipStatus
+//endregion Window_EquipStatus
 
-//#region Window_MoreEquipData
+//region Window_MoreEquipData
 /**
  * A window designed to display "more" data associated with the equipment.
  */
@@ -673,21 +673,58 @@ class Window_MoreEquipData extends Window_MoreData
    */
   makeCommandList()
   {
+    // perform base logic.
     super.makeCommandList();
-    if (!this.item)
+
+    // check whether or not we can build commands.
+    if (!this.canBuildCommands())
     {
+      // at least adjust the window height for the no-commands.
       this.adjustWindowHeight();
+
+      // stop processing.
       return;
     }
 
-    // add all the various additional data from equipment.
-    this.addJaftingRefinementData();
-    this.addBaseParameterData();
-    this.addJabsEquipmentData();
-    this.addEquipmentTraitData();
+    // build all the various commands for this data window.
+    this.buildCommands();
 
     // always adjust after determining the commands.
     this.adjustWindowHeight();
+  }
+
+  /**
+   * Determines whether or not commands for the "more data" window can be built.
+   * @returns {boolean} True if the commands can be built, false otherwise.
+   */
+  canBuildCommands()
+  {
+    // if there is no item, we cannot build commands.
+    if (!this.item) return false;
+
+    // if there is no actor, we cannot build commands.
+    if (!this.actor) return false;
+
+    // we can build commands!
+    return true;
+  }
+
+  /**
+   * Build all commands for this particular hovered item.
+   */
+  buildCommands()
+  {
+    // add jafting-related data.
+    this.addJaftingRefinementData();
+
+    // add all the b-params from the database.
+    this.addBaseParameterData();
+
+    // add all various JABS-related data from equipment.
+    this.addJabsEquipmentData();
+
+    // add all the traits from the database.
+    this.addEquipmentTraitData();
   }
 
   /**
@@ -695,23 +732,29 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addBaseParameterData()
   {
-    this.item.params.forEach((value, index) =>
+    // an iterator function for adding b-params to the list.
+    const forEacher = (value, paramIdIndex) =>
     {
+      // skip falsy values.
       if (!value) return;
 
-      this.addBaseParameterCommand(index);
-    });
-  }
+      // determine the base parameter values for the item.
+      const baseValue = this.item.params[paramIdIndex];
 
-  /**
-   * Adds a command to the list based on the base parameter matching the given id.
-   * @param {number} paramId The id of the base parameter.
-   */
-  addBaseParameterCommand(paramId)
-  {
-    const baseValue = this.item.params[paramId];
-    const commandName = `${TextManager.param(paramId)}: ${baseValue}`;
-    this.addCommand(commandName, null, true, null, IconManager.param(paramId), 0);
+      // define the command name.
+      const commandName = `${TextManager.param(paramIdIndex)}: ${baseValue}`;
+
+      // build the command.
+      const command = new WindowCommandBuilder(commandName)
+        .setIconIndex(IconManager.param(paramIdIndex))
+        .build();
+
+      // add the skill command to the list.
+      this.addBuiltCommand(command);
+    };
+
+    // add all valid b-params to the list.
+    this.item.params.forEach(forEacher, this);
   }
 
   /**
@@ -719,29 +762,61 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addJabsEquipmentData()
   {
-    if (!this.item._j) return;
-
+    // add the hit count.
     this.addHitsCommand();
+
+    // add all added and combo skills.
     this.addSkillCommands();
+
+    // add the move speed boost.
     this.addSpeedBoostCommand();
   }
 
   /**
-   * Add the "bonus hits" command. Usually goes on weapons, but if bonus hits exist on other
+   * Add the "bonus hits" command.
+   * Usually goes on weapons, but if bonus hits exist on other
    * types of equipment, then we'll report those, too.
    */
   addHitsCommand()
   {
-    const { bonusHits } = this.item._j;
-    const isWeapon = this.item.etypeId === 1;
-    if (bonusHits || isWeapon)
+    // grab the bonus hits out of the item.
+    const { jabsBonusHits } = this.item;
+
+    // check if this is a weapon.
+    const isWeapon = this.item.isWeapon();
+
+    // weapons have a default bonus of +1 hits.
+    let bonusHits = jabsBonusHits ?? 0;
+
+    // if there is no bonus hits, and this isn't a weapon, don't list 0 hits.
+    if (!(bonusHits || isWeapon)) return;
+
+    // define the command name depending on whether or not we its a weapon.
+    let commandName = `Bonus Hits`;
+
+    // check if this is a weapon.
+    if (isWeapon)
     {
-      const bonus = isWeapon ? 1 : 0;
-      const command = isWeapon ? `Hit Count` : `Bonus Hits`;
-      const hitBonusCommand = `${command}: x${bonusHits + bonus}`;
-      const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
-      this.addCommand(hitBonusCommand, null, true, null, hitBonusIcon, 0);
+      // weapons by default have a hit.
+      bonusHits += 1;
+
+      // weapons will instead have a hit count total including bonus hits.
+      commandName = `Hit Count`;
     }
+
+    // define the command name.
+    const hitBonusCommand = `${commandName}: x${bonusHits}`;
+
+    // its very long, so lets do that icon calculation here.
+    const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
+
+    // build the skill command.
+    const command = new WindowCommandBuilder(hitBonusCommand)
+      .setIconIndex(hitBonusIcon)
+      .build();
+
+    // add the skill command to the list.
+    this.addBuiltCommand(command);
   }
 
   /**
@@ -749,29 +824,70 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addSkillCommands()
   {
-    const { skillId } = this.item._j;
-    const { actor } = this;
-    if (skillId)
-    {
-      const baseAttackskill = OverlayManager.getExtendedSkill(actor, skillId);
-      const comboSkillList = this.recursivelyFindAllComboSkillIds(skillId);
-      let baseAttackSkillCommand = (this.item.etypeId === 2) ? `Offhand Skill` : `Attack Skill`;
-      if (comboSkillList.length)
-      {
-        baseAttackSkillCommand = `Combo Starter`;
-      }
+    // grab the skill id from the skill.
+    const { jabsSkillId } = this.item;
 
-      const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${baseAttackskill.name}\\C[0]`;
-      this.addCommand(attackSkillCommand, null, true, null, baseAttackskill.iconIndex);
-      if (comboSkillList.length)
+    // if there is no skill, then there is no skill command.
+    if (!jabsSkillId) return;
+
+    // determine the skill.
+    const skill = this.actor.skill(jabsSkillId);
+
+    // build the combo list.
+    const comboSkillList = skill.getComboSkillIdList(this.actor);
+
+    // check if this is main or offhand slot.
+    let baseAttackSkillCommand = this.item.isArmor()
+      ? `Offhand Skill`
+      : `Attack Skill`;
+
+    // identify if there is a combo here or not.
+    const hasCombo = comboSkillList.length > 0;
+
+    // only modify the effect name if we have combos.
+    if (hasCombo)
+    {
+      // rename the command to combo starter.
+      baseAttackSkillCommand = `Combo Starter`;
+    }
+
+    // determine the actual skill.
+    const { name, iconIndex } = skill;
+
+    // define the command name.
+    const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${name}\\C[0]`;
+
+    // build the skill command.
+    const command = new WindowCommandBuilder(attackSkillCommand)
+      .setIconIndex(iconIndex)
+      .build();
+
+    // add the skill command to the list.
+    this.addBuiltCommand(command);
+
+    // check if we have combos before we start trying to add them.
+    if (hasCombo)
+    {
+      // an iterator function for building and adding combo commands to the list.
+      const forEacher = (comboSkillId, index) =>
       {
-        comboSkillList.forEach((comboSkillId, index) =>
-        {
-          const skill = $dataSkills[comboSkillId];
-          const commandName = `Combo Skill ${index + 1}: \\C[2]${skill.name}\\C[0]`;
-          this.addCommand(commandName, null, true, null, skill.iconIndex);
-        });
-      }
+        // grab the combo skill.
+        const comboSkill = this.actor.skill(comboSkillId);
+
+        // define the combo skill name.
+        const comboSkillCommandName = `Combo Skill ${index + 1}: \\C[2]${comboSkill.name}\\C[0]`;
+
+        // build the combo skill command.
+        const comboCommand = new WindowCommandBuilder(comboSkillCommandName)
+          .setIconIndex(iconIndex)
+          .build();
+
+        // add the combo skill command to the list.
+        this.addBuiltCommand(comboCommand);
+      };
+
+      // iterate over the combos and add them.
+      comboSkillList.forEach(forEacher, this);
     }
   }
 
@@ -780,40 +896,25 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addSpeedBoostCommand()
   {
-    const { speedBoost } = this.item._j;
-    if (speedBoost)
-    {
-      const speedBoostCommand = `Speed Boost: ${speedBoost}`;
-      const speedBoostIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.SPEED_BOOST)
-      this.addCommand(speedBoostCommand, null, true, null, speedBoostIcon, 0);
-    }
-  }
+    // grab the data out of the item.
+    const { jabsSpeedBoost } = this.item;
 
-  /**
-   * Recursively finds the complete combo of an equip starting at a particular
-   * skill id and building the collection of skill ids that this skill combos into.
-   * @param {number} skillId The id to recursively interpret the combo of.
-   * @param {number[]} list The running list of combo skill ids.
-   * @returns {number[]} The full combo of the starting skill id.
-   */
-  recursivelyFindAllComboSkillIds(skillId, list = [])
-  {
-    // start our list from what was passed in.
-    const skillIdList = list;
+    // if there is no speed boost, then do not render the data.
+    if (!jabsSpeedBoost) return;
 
-    // grab the database skill.
-    const skill = this.actor.skill(skillId);
-    const shouldRecurse = (s) => (s && s.jabsComboAction && !s.jabsFreeCombo);
-    if (shouldRecurse(skill))
-    {
-      const foundComboSkill = skill.jabsComboSkillId;
-      skillIdList.push(foundComboSkill);
-      return this.recursivelyFindAllComboSkillIds(foundComboSkill, skillIdList);
-    }
-    else
-    {
-      return skillIdList;
-    }
+    // define the command name.
+    const speedBoostCommand = `Speed Boost: ${jabsSpeedBoost}`;
+
+    // its very long, so lets do that icon calculation here.
+    const speedBoostIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.SPEED_BOOST);
+
+    // build the speed boost command.
+    const command = new WindowCommandBuilder(speedBoostCommand)
+      .setIconIndex(speedBoostIcon)
+      .build();
+
+    // add the skill command to the list.
+    this.addBuiltCommand(command);
   }
 
   /**
@@ -821,18 +922,16 @@ class Window_MoreEquipData extends Window_MoreData
    */
   addJaftingRefinementData()
   {
-    if (!this.item._jafting) return;
-
     const {
-      maxRefineCount,
-      maxTraitCount,
-      notRefinementBase,
-      notRefinementMaterial,
-      refinedCount,
-      unrefinable
-    } = this.item._jafting;
+      jaftingMaxRefineCount,
+      jaftingMaxTraitCount,
+      jaftingNotRefinementBase,
+      jaftingNotRefinementMaterial,
+      jaftingRefinedCount,
+      jaftingUnrefinable,
+    } = this.item;
 
-    if (unrefinable)
+    if (jaftingUnrefinable)
     {
       const unrefinableCommand = `Unrefinable`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.UNREFINABLE);
@@ -841,7 +940,7 @@ class Window_MoreEquipData extends Window_MoreData
       return;
     }
 
-    if (notRefinementBase)
+    if (jaftingNotRefinementBase)
     {
       const unrefinableCommand = `Only Refine as Material`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.NOT_BASE);
@@ -849,7 +948,7 @@ class Window_MoreEquipData extends Window_MoreData
       this.addCommand(unrefinableCommand, null, true, null, unrefinableIcon, unrefinableColor);
     }
 
-    if (notRefinementMaterial)
+    if (jaftingNotRefinementMaterial)
     {
       const unrefinableCommand = `Only Refine as Base`;
       const unrefinableIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.NOT_MATERIAL);
@@ -858,11 +957,11 @@ class Window_MoreEquipData extends Window_MoreData
     }
 
     let maxRefineIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.TIMES_REFINED);
-    let maxRefineCommand = `Refinement: ${refinedCount}`;
-    if (maxRefineCount)
+    let maxRefineCommand = `Refinement: ${jaftingRefinedCount}`;
+    if (jaftingMaxRefineCount)
     {
-      maxRefineCommand += ` / ${maxRefineCount}`;
-      if (maxRefineCount === refinedCount)
+      maxRefineCommand += ` / ${jaftingMaxRefineCount}`;
+      if (jaftingMaxRefineCount === jaftingRefinedCount)
       {
         maxRefineIcon = 91;
       }
@@ -873,9 +972,9 @@ class Window_MoreEquipData extends Window_MoreData
     const maxTraitIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.MAX_TRAITS);
     const currentTraitCount = $gameJAFTING.parseTraits(this.item).length;
     let maxTraitCommand = `Transferable Traits: ${currentTraitCount}`;
-    if (maxTraitCount)
+    if (jaftingMaxTraitCount)
     {
-      maxTraitCommand += ` / ${maxTraitCount}`;
+      maxTraitCommand += ` / ${jaftingMaxTraitCount}`;
     }
 
     this.addCommand(maxTraitCommand, null, true, null, maxTraitIcon);
@@ -940,4 +1039,4 @@ class Window_MoreEquipData extends Window_MoreData
     });
   }
 }
-//#endregion Window_MoreEquipData
+//endregion Window_MoreEquipData

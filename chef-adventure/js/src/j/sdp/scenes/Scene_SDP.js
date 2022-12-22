@@ -1,4 +1,4 @@
-//#region Scene_SDP
+//region Scene_SDP
 class Scene_SDP extends Scene_MenuBase
 {
   /**
@@ -142,7 +142,7 @@ class Scene_SDP extends Scene_MenuBase
   {
   }
 
-  //#region window creation
+  //region window creation
   /**
    * Creates all windows associated with the SDP scene.
    */
@@ -236,7 +236,7 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpConfirmationWindow.hide();
     this.addWindow(this._j._sdpConfirmationWindow);
   }
-  //#endregion SDP window creation
+  //endregion SDP window creation
 
   /**
    * Refreshes all windows in this scene.
@@ -346,4 +346,4 @@ class Scene_SDP extends Scene_MenuBase
     this._j._sdpListWindow.activate();
   }
 }
-//#endregion Scene_SDP
+//endregion Scene_SDP

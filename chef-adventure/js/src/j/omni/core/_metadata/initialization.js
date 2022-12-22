@@ -1,4 +1,4 @@
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -61,4 +61,4 @@ J.OMNI.Aliased.Scene_Map = new Map();
 J.OMNI.Aliased.Scene_Menu = new Map();
 J.OMNI.Aliased.Window_AbsMenu = new Map();
 J.OMNI.Aliased.Window_MenuCommand = new Map();
-//#endregion Metadata
+//endregion Metadata

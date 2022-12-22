@@ -1,4 +1,4 @@
-//#region Window_SkillList
+//region Window_SkillList
 /**
  * Extends `.initialize()` to include our skill detail window.
  */
@@ -70,4 +70,4 @@ Window_SkillList.prototype.maxCols = function()
 Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width)
 {
 };
-//#endregion Window_SkillList
+//endregion Window_SkillList

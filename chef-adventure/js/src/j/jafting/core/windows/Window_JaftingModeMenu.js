@@ -1,4 +1,4 @@
-//#region Window_JaftingModeMenu
+//region Window_JaftingModeMenu
 /**
  * The mode selection window for JAFTING.
  */
@@ -74,4 +74,4 @@ class Window_JaftingModeMenu
     }
   }
 }
-//#endregion Window_JaftingModeMenu
+//endregion Window_JaftingModeMenu

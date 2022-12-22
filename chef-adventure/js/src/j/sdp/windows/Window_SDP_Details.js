@@ -1,4 +1,4 @@
-//#region Window_SDP_Details
+//region Window_SDP_Details
 /**
  * The window that displays all details of how a panel would affect the actor's parameters.
  */
@@ -421,4 +421,4 @@ class Window_SDP_Details extends Window_Base
     ];
   }
 }
-//#endregion Window_SDP_Details
+//endregion Window_SDP_Details

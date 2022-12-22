@@ -1,4 +1,4 @@
-//#region Scene_Load
+//region Scene_Load
 /**
  * Overwrites {@link Scene_Load.reloadMapIfUpdated}.
  * When loading, the map needs to be refreshed to load the enemies properly.
@@ -20,4 +20,4 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
     J.ABS.Aliased.Scene_Load.get('reloadMapIfUpdated').call(this);
   }
 };
-//#endregion Scene_Load
+//endregion Scene_Load

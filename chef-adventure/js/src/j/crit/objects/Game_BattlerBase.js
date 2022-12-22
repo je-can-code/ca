@@ -1,4 +1,4 @@
-//#region Game_BattlerBase
+//region Game_BattlerBase
 // add our new critical-related parameters to all battlers.
 Object.defineProperties(
   Game_BattlerBase.prototype,
@@ -73,4 +73,4 @@ Game_BattlerBase.prototype.criticalDamageReduction = function()
 {
   return 0.0;
 };
-//#endregion Game_BattlerBase
+//endregion Game_BattlerBase

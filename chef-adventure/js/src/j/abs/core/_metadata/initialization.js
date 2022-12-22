@@ -1,10 +1,10 @@
-//#region Metadata
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -15,15 +15,15 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region plugin setup and configuration
+//region plugin setup and configuration
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.ABS = {};
 
-//#region helpers
+//region helpers
 /**
  * A collection of helpful functions for use within this plugin.
  */
@@ -77,15 +77,15 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
     return {element: parseInt(elementId), icon: parseInt(iconIndex)};
   });
 };
-//#endregion helpers
+//endregion helpers
 
-//#region metadata
+//region metadata
 /**
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.2.0';
+J.ABS.Metadata.Version = '3.2.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -151,7 +151,7 @@ J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
 J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
 J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
-//#endregion metadata
+//endregion metadata
 
 /**
  * The various default values across the engine. Often configurable.
@@ -393,7 +393,7 @@ J.ABS.RegExp = {
 
   // projectile-related.
   Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Proximity: /<proximity:[ ]?(\d+)>/gi,
+  Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Projectile: /<projectile:[ ]?([12348])>/gi,
   Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
   Direct: /<direct>/gi,
@@ -405,11 +405,15 @@ J.ABS.RegExp = {
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
   PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
 
-  // skill-combo-related.
+  // combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  FreeCombo: /<freeCombo>/gi,
   ComboStarter: /<comboStarter>/gi,
   AiSkillExclusion: /<aiSkillExclusion>/gi,
+  FreeCombo: /<freeCombo>/gi,
+
+  // learning-related
+  AutoAssign: /<autoAssignSkills>/gi,
+  AssignInPlaceOf: /<autoAssignOnLearning:(\d+)>/gi,
 
   // aggro-related.
   BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
@@ -556,9 +560,9 @@ J.ABS.Aliased = {
   Sprite_Character: new Map(),
   Sprite_Gauge: new Map(),
 };
-//#endregion Plugin setup & configuration
+//endregion Plugin setup & configuration
 
-//#region Plugin Command Registration
+//region Plugin Command Registration
 /**
  * Plugin command for enabling JABS.
  */
@@ -703,5 +707,5 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 //   });
 // });
 
-//#endregion Plugin Command Registration
-//#endregion Metadata
+//endregion Plugin Command Registration
+//endregion Metadata

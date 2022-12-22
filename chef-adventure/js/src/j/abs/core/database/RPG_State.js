@@ -1,5 +1,5 @@
-//#region RPG_State effects
-//#region paralysis
+//region RPG_State effects
+//region paralysis
 /**
  * Whether or not this state is also a JABS paralysis state.
  * Paralysis is the same as being rooted & muted & disarmed simultaneously.
@@ -30,9 +30,9 @@ RPG_State.prototype.extractJabsParalyzed = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Paralyzed, true);
 };
-//#endregion paralysis
+//endregion paralysis
 
-//#region rooted
+//region rooted
 /**
  * Whether or not this state is also a JABS rooted state.
  * Rooted battlers are unable to move on the map.
@@ -63,9 +63,9 @@ RPG_State.prototype.extractJabsRooted = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Rooted, true);
 };
-//#endregion rooted
+//endregion rooted
 
-//#region muted
+//region muted
 /**
  * Whether or not this state is also a JABS muted state.
  * Muted battlers are unable to use their combat skills.
@@ -96,9 +96,9 @@ RPG_State.prototype.extractJabsMuted = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Muted, true);
 };
-//#endregion muted
+//endregion muted
 
-//#region disarmed
+//region disarmed
 /**
  * Whether or not this state is also a JABS disarmed state.
  * Disarmed battlers are unable to use their basic attacks.
@@ -129,9 +129,9 @@ RPG_State.prototype.extractJabsDisarmed = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Disarmed, true);
 };
-//#endregion disarmed
+//endregion disarmed
 
-//#region negative
+//region negative
 /**
  * Whether or not this state is considered "negative" for the purpose
  * of AI action decision-making. Ally AI set to Support or enemy AI set
@@ -163,9 +163,9 @@ RPG_State.prototype.extractJabsNegative = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.Negative);
 };
-//#endregion disarmed
+//endregion disarmed
 
-//#region aggroInAmp
+//region aggroInAmp
 /**
  * Multiply incoming aggro by this amount.
  * @type {number|null}
@@ -195,9 +195,9 @@ RPG_State.prototype.extractJabsAggroInAmp = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroInAmp, true);
 };
-//#endregion aggroInAmp
+//endregion aggroInAmp
 
-//#region aggroOutAmp
+//region aggroOutAmp
 /**
  * Multiply outgoing aggro by this amount.
  * @type {number|null}
@@ -227,9 +227,9 @@ RPG_State.prototype.extractJabsAggroOutAmp = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.AggroOutAmp, true);
 };
-//#endregion aggroOutAmp
+//endregion aggroOutAmp
 
-//#region aggroLock
+//region aggroLock
 /**
  * Whether or not this state locks aggro. Battlers with this state applied
  * can neither gain nor lose aggro for the duration of the state.
@@ -260,9 +260,9 @@ RPG_State.prototype.extractJabsAggroLock = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.AggroLock, true);
 };
-//#endregion aggroLock
+//endregion aggroLock
 
-//#region offhand skillId
+//region offhand skillId
 /**
  * The offhand skill id override from this state.
  * @type {number}
@@ -291,10 +291,10 @@ RPG_State.prototype.extractJabsOffhandSkillId = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
-//#endregion offhand skillId
+//endregion offhand skillId
 
-//#region slipHp
-//#region flat
+//region slipHp
+//region flat
 /**
  * The flat slip hp amount- per 5 seconds.
  * @type {number}
@@ -348,9 +348,9 @@ RPG_State.prototype.extractJabsSlipHpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip hp amount- per 5 seconds.
  * @type {number}
@@ -404,9 +404,9 @@ RPG_State.prototype.extractJabsSlipHpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipHpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip hp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -438,11 +438,11 @@ RPG_State.prototype.extractJabsSlipHpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipHpFormula);
 };
-//#endregion formula
-//#endregion slipHp
+//endregion formula
+//endregion slipHp
 
-//#region slipMp
-//#region flat
+//region slipMp
+//region flat
 /**
  * The flat slip mp amount- per 5 seconds.
  * @type {number}
@@ -496,9 +496,9 @@ RPG_State.prototype.extractJabsSlipMpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip mp amount- per 5 seconds.
  * @type {number}
@@ -552,9 +552,9 @@ RPG_State.prototype.extractJabsSlipMpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipMpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip mp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -586,11 +586,11 @@ RPG_State.prototype.extractJabsSlipMpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipMpFormula);
 };
-//#endregion formula
-//#endregion slipMp
+//endregion formula
+//endregion slipMp
 
-//#region slipTp
-//#region flat
+//region slipTp
+//region flat
 /**
  * The flat slip tp amount- per 5 seconds.
  * @type {number}
@@ -644,9 +644,9 @@ RPG_State.prototype.extractJabsSlipTpFlatPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpFlat);
 };
-//#endregion flat
+//endregion flat
 
-//#region percent
+//region percent
 /**
  * The percent slip tp amount- per 5 seconds.
  * @type {number}
@@ -700,9 +700,9 @@ RPG_State.prototype.extractJabsSlipTpPercentPer5 = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.SlipTpPercent);
 };
-//#endregion percent
+//endregion percent
 
-//#region formula
+//region formula
 /**
  * The formula slip tp amount- per 5 seconds.
  * This does NOT `eval()` the formula, as there is no additional variables
@@ -734,6 +734,6 @@ RPG_State.prototype.extractJabsSlipTpFormulaPer5 = function()
 {
   return this.getStringFromNotesByRegex(J.ABS.RegExp.SlipTpFormula);
 };
-//#endregion formula
-//#endregion slipTp
-//#endregion RPG_State effects
+//endregion formula
+//endregion slipTp
+//endregion RPG_State effects

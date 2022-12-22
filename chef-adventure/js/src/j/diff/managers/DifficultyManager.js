@@ -1,4 +1,4 @@
-//#region DifficultyManager
+//region DifficultyManager
 /**
  * A static class to manage the difficulties with.
  */
@@ -194,4 +194,4 @@ class DifficultyManager
     }
   }
 }
-//#endregion DifficultyManager
+//endregion DifficultyManager

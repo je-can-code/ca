@@ -1,5 +1,5 @@
-//#region RPG_Traited
-//#region bonusHits
+//region RPG_Traited
+//region bonusHits
 /**
  * A new property for retrieving the JABS bonusHits from this traited item.
  * @type {number}
@@ -29,5 +29,5 @@ RPG_Traited.prototype.extractJabsBonusHits = function()
 {
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.BonusHits, true);
 };
-//#endregion bonusHits
-//#endregion RPG_Traited
+//endregion bonusHits
+//endregion RPG_Traited

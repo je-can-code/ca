@@ -1,4 +1,4 @@
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc

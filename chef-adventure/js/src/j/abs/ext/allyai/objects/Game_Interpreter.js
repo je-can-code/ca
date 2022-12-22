@@ -1,4 +1,4 @@
-//#region Game_Interpreter
+//region Game_Interpreter
 /**
  * Extends the "Set Moveroute" event command.
  * Sets all follower's direction-fix to be whatever the player's is after a moveroute.
@@ -24,4 +24,4 @@ Game_Interpreter.prototype.command205 = function(params)
   // return the outcome.
   return result;
 };
-//#endregion Game_Interpreter
+//endregion Game_Interpreter

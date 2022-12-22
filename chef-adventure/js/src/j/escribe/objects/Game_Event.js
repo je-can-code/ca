@@ -1,5 +1,5 @@
-//#region Game_Event
-//#region properties
+//region Game_Event
+//region properties
 /**
  * Hooks into the initialization to add our members for containing event data.
  */
@@ -146,7 +146,7 @@ Game_Event.prototype.acknowledgeEscribeRemoval = function()
 {
   this._j._event._needsRemoval = false;
 };
-//#endregion properties
+//endregion properties
 
 /**
  * Extends the page settings for events and adds on custom parameters to this event.
@@ -365,4 +365,4 @@ Game_Event.prototype.updateEscribeIconProximity = function()
     this.setPlayerNearbyForIcon(false);
   }
 };
-//#endregion Game_Event
+//endregion Game_Event

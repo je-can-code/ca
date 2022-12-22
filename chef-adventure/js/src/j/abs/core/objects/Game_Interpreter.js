@@ -1,4 +1,4 @@
-//#region Game_Interpreter
+//region Game_Interpreter
 /**
  * Enables setting move routes of `Game_Character`s on the map with JABS.
  * @param {number} param The character/event id to get the data for.
@@ -210,4 +210,4 @@ Game_Interpreter.prototype.command352 = function()
     return J.ABS.Aliased.Game_Interpreter.command352.call(this);
   }
 };
-//#endregion Game_Interpreter
+//endregion Game_Interpreter

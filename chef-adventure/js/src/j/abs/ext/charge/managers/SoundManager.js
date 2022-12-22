@@ -1,4 +1,4 @@
-//#region SoundManager
+//region SoundManager
 /**
  * Extends {@link SoundManager.preloadImportantSounds}.
  * Also preloads the charging-related sound effects.
@@ -70,4 +70,4 @@ SoundManager.maxChargeReadySE = function()
 {
   return new RPG_SoundEffect("Item3", 50, 110, 0);
 };
-//#endregion SoundManager
+//endregion SoundManager

@@ -1,6 +1,6 @@
-/*  BUNDLED TIME: Fri Dec 16 2022 18:58:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
 
-//#region Introduction
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
@@ -105,9 +105,9 @@ J.POPUPS.Aliased =
     Sprite_Character: new Map(),
     Sprite_Damage: new Map(),
   };
-//#endregion Introduction
+//endregion Introduction
 
-//#region Map_TextPop
+//region Map_TextPop
 /**
  * A class representing a single popup on the map.
  */
@@ -246,15 +246,15 @@ Map_TextPop.prototype.initialize = function({
    */
   this.healing = healing;
 };
-//#endregion Map_TextPop
+//endregion Map_TextPop
 
-//#region TextPopBuilder
+//region TextPopBuilder
 /**
  * The fluent-builder for text pops on the map.
  */
 class TextPopBuilder
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not this popup is the result of a critical skill usage.
    * @type {boolean}
@@ -336,7 +336,7 @@ class TextPopBuilder
    * @private
    */
   #yVariance = 0;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Constructor.
@@ -418,7 +418,7 @@ class TextPopBuilder
     return [this.#xVariance, this.#yVariance];
   }
 
-  //#region setters
+  //region setters
   /**
    * Sets the value of the text pop you are building.
    * @param {number|string} value The new value to replace the old one with.
@@ -594,9 +594,9 @@ class TextPopBuilder
     this.setYVariance(yVariance);
     return this;
   }
-  //#endregion setters
+  //endregion setters
 
-  //#region presets
+  //region presets
   /**
    * Changes the suffix based on elemental efficicacy associated with a damage pop.
    * @param {number} elementalRate The elemental factor, such as 0.4 or 1.75.
@@ -944,11 +944,11 @@ class TextPopBuilder
     // return the builder for fluent chaining.
     return this;
   }
-  //#endregion presents
+  //endregion presents
 }
-//#endregion TextPopBuilder
+//endregion TextPopBuilder
 
-//#region TextPopSpriteManager
+//region TextPopSpriteManager
 /**
  * A builder class for converting text pops to sprites.
  */
@@ -1062,9 +1062,9 @@ class TextPopSpriteManager
     }
   }
 }
-//#endregion TextPopSpriteManager
+//endregion TextPopSpriteManager
 
-//#region Game_Character
+//region Game_Character
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
  */
@@ -1147,9 +1147,9 @@ Game_Character.prototype.emptyDamagePops = function()
   // empty the contents of the array for all references to see.
   this._j._textPops.splice(0, this._j._textPops.length);
 };
-//#endregion Game_Character
+//endregion Game_Character
 
-//#region Sprite_Character
+//region Sprite_Character
 /**
  * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
  */
@@ -1251,7 +1251,7 @@ Sprite_Character.prototype.update = function()
   this.updateTextPops();
 };
 
-//#region incoming subscription
+//region incoming subscription
 /**
  * Listens for a notification to process any new popups.
  */
@@ -1315,9 +1315,9 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup)
   // add the sprite to the parent for visual tracking.
   this.parent.addChild(sprite);
 };
-//#endregion incoming subscription
+//endregion incoming subscription
 
-//#region handle text pops
+//region handle text pops
 /**
  * Handle the updating and processing of text popups.
  */
@@ -1338,7 +1338,7 @@ Sprite_Character.prototype.updateTextPops = function()
   }
 };
 
-//#region damage pops
+//region damage pops
 /**
  * Updates all damage popup sprites on this character.
  */
@@ -1422,9 +1422,9 @@ Sprite_Character.prototype.removeDamagePop = function(damagePop, index)
   // purge the item from the tracking.
   delete damagePops[index];
 };
-//#endregion damage pops
+//endregion damage pops
 
-//#region non-damage pops
+//region non-damage pops
 /**
  * Updates all non-damage popup sprites on this character.
  */
@@ -1508,11 +1508,11 @@ Sprite_Character.prototype.removeNonDamagePop = function(popup, index)
   // purge the item from the tracking.
   delete nonDamagePops[index];
 };
-//#endregion non-damage pops
-//#endregion handle text pops
-//#endregion Sprite_Character
+//endregion non-damage pops
+//endregion handle text pops
+//endregion Sprite_Character
 
-//#region Sprite_Damage
+//region Sprite_Damage
 /**
  * Extends this `.initialize()` function to include our parameters for all damage sprites.
  */
@@ -1912,4 +1912,4 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   // extend the duration for all to see your critical glory!
   this.addDuration(60);
 };
-//#endregion Sprite_Damage
+//endregion Sprite_Damage

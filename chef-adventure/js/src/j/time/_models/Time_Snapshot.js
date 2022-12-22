@@ -1,4 +1,4 @@
-//#region Time_Snapshot
+//region Time_Snapshot
 /**
  * A class representing a snapshot in time of a moment.
  */
@@ -66,7 +66,7 @@ class Time_Snapshot
     this._seasonOfYearId = seasonOfYearId;
   };
 
-  //#region statics
+  //region statics
   /**
    * Translates the numeric season of the year into it's proper name.
    * @param {number} seasonId The numeric representation of the season of the year.
@@ -163,7 +163,7 @@ class Time_Snapshot
     }
   };
 
-  //#endregion statics
+  //endregion statics
 
   /**
    * Gets the name of the current season of the year.
@@ -202,4 +202,4 @@ class Time_Snapshot
   };
 }
 
-//#endregion Time_Snapshot
+//endregion Time_Snapshot

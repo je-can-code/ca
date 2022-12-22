@@ -1,4 +1,4 @@
-//#region Sprite_Damage
+//region Sprite_Damage
 /**
  * Extends this `.initialize()` function to include our parameters for all damage sprites.
  */
@@ -398,4 +398,4 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   // extend the duration for all to see your critical glory!
   this.addDuration(60);
 };
-//#endregion Sprite_Damage
+//endregion Sprite_Damage
