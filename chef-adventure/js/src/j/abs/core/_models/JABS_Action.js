@@ -78,6 +78,12 @@ class JABS_Action
      */
     this._actionCooldownType = cooldownKey ?? "global";
 
+    /**
+     * Whether or not this action has collided with at least one target.
+     * @type {boolean}
+     */
+    this._hitAtLeastOne = false;
+
     this.initMembers();
   }
 
@@ -132,16 +138,21 @@ class JABS_Action
   initDelay()
   {
     /**
+     * A grouping of all properties related to the delay of this action.
+     */
+    this._delay = {};
+
+    /**
      * The duration remaining before this will action will autotrigger.
      * @type {JABS_Timer}
      */
-    this._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
+    this._delay._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
 
     /**
      * Whether or not this action will trigger when an enemy touches it.
      * @type {boolean}
      */
-    this._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
+    this._delay._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
   }
 
   initPiercing()
@@ -438,7 +449,7 @@ class JABS_Action
    */
   countdownDelay()
   {
-    this._delayDuration.update();
+    this._delay._delayDuration.update();
   }
 
   /**
@@ -449,7 +460,20 @@ class JABS_Action
    */
   isDelayCompleted()
   {
-    return this._delayDuration.isTimerComplete() && !this.isEndlessDelay();
+    // if we triggered the action, we aren't delaying anymore.
+    if (this.hasHitAtLeastOneTarget()) return true;
+
+    // check if the delay has completed.
+    const isTimerComplete = this._delay._delayDuration.isTimerComplete();
+
+    // check if this action will delay until triggered.
+    const willWaitEndlessly = this.isEndlessDelay();
+
+    // if the timer is done and we're not waiting forever, the delay is completed.
+    const isDelayComplete = (isTimerComplete && !willWaitEndlessly);
+
+    // return our determination.
+    return isDelayComplete;
   }
 
   /**
@@ -457,7 +481,7 @@ class JABS_Action
    */
   endDelay()
   {
-    this._delayDuration.forceComplete();
+    this._delay._delayDuration.forceComplete();
   }
 
   /**
@@ -466,7 +490,7 @@ class JABS_Action
    */
   isEndlessDelay()
   {
-    return this._delayDuration.getMaxTime() === -1;
+    return this._delay._delayDuration.getMaxTime() === -1;
   }
 
   /**
@@ -479,7 +503,7 @@ class JABS_Action
    */
   triggerOnTouch()
   {
-    return this._triggerOnTouch || this.isEndlessDelay();
+    return this._delay._triggerOnTouch || this.isEndlessDelay();
   }
 
   /**
@@ -676,6 +700,22 @@ class JABS_Action
 
     // reduce the pierce counts by one.
     this.decrementPierceTimes();
+
+    // check if this action has hit at least one target.
+    if (!this.hasHitAtLeastOneTarget())
+    {
+      // execute first-hit logic.
+      this.onFirstCollision();
+    }
+  }
+
+  /**
+   * An event hook fired when this action collides with its first target.
+   */
+  onFirstCollision()
+  {
+    // flag our first hit so we don't do this again.
+    this._hitAtLeastOne = true;
   }
 
   /**
@@ -802,6 +842,15 @@ class JABS_Action
   aggroMultiplier()
   {
     return this.getBaseSkill().jabsAggroMultiplier ?? 1.0;
+  }
+
+  /**
+   * Whether or not this action has hit at least one target.
+   * @returns {boolean}
+   */
+  hasHitAtLeastOneTarget()
+  {
+    return this._hitAtLeastOne;
   }
 }
 //endregion JABS_Action

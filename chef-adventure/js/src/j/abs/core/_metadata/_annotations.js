@@ -48,6 +48,7 @@
  * CHANGELOG:
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
+ *    Fixed issue where endlessly delaying actions would never expire.
  * - 3.2.0
  *    Fixed bug where actions couldn't connect if the attacker was too close.
  *    Upgraded AI to be able to leverage combos (ally AI, too).

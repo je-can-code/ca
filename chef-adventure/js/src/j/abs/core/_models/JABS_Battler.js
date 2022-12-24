@@ -3853,7 +3853,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // build the cooldown key based on the skill data.
-  let skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
+  const skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
 
   // check to make sure we have a key.
   if (!skillSlotKey)
@@ -3875,7 +3875,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // check if the chosen skill is actually a combo for this slot.
-  let isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
+  const isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
 
   // check if the base is off cooldown yet.
   if (!isCombo && !cooldown.isBaseReady())
@@ -5098,17 +5098,17 @@ JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
   // grab all of the loser battler's on-death skills to execute.
   const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
 
-  // iterate over each of the on-death skills.
-  onOwnDefeatSkills.forEach(onDefeatSkill =>
+  // an iterator function for executing all relevant on-own-defeat skills.
+  const forEacher = onDefeatSkill =>
   {
     // extract out the data points from the skill.
-    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+    const { skillId } = onDefeatSkill;
 
     // roll the dice and see if we should trigger this on-own-death skill.
-    if (shouldTrigger())
+    if (onDefeatSkill.shouldTrigger())
     {
       // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = appearOnTarget();
+      const castFromTarget = onDefeatSkill.appearOnTarget();
 
       // check if the skill should be cast from the target.
       if (castFromTarget)
@@ -5123,7 +5123,10 @@ JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
         $jabsEngine.forceMapAction(this, skillId, false);
       }
     }
-  });
+  };
+
+  // iterate over each of the on-death skills.
+  onOwnDefeatSkills.forEach(forEacher, this);
 };
 
 /**
@@ -5135,17 +5138,17 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
   // grab all of the victor battler's on-target-defeat skills.
   const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
 
-  // iterate over each the on-target-defeat skills.
-  onTargetDefeatSkills.forEach(onDefeatSkill =>
+  // an iterator function for executing all relevant on-target-defeat skills.
+  const forEacher = onDefeatSkill =>
   {
     // extract out the data points from the skill.
-    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+    const { skillId } = onDefeatSkill;
 
     // roll the dice and see if we should trigger this on-target-defeat skill.
-    if (shouldTrigger())
+    if (onDefeatSkill.shouldTrigger())
     {
       // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = appearOnTarget();
+      const castFromTarget = onDefeatSkill.appearOnTarget();
 
       // check if the skill should be cast from the target.
       if (castFromTarget)
@@ -5160,7 +5163,10 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
         $jabsEngine.forceMapAction(victor, skillId, false);
       }
     }
-  });
+  };
+
+  // iterate over each the on-target-defeat skills.
+  onTargetDefeatSkills.forEach(forEacher, this);
 };
 
 /**

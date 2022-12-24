@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 09:08:27 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 24 2022 09:09:11 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -50,6 +50,7 @@
  * CHANGELOG:
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
+ *    Fixed issue where endlessly delaying actions would never expire.
  * - 3.2.0
  *    Fixed bug where actions couldn't connect if the attacker was too close.
  *    Upgraded AI to be able to leverage combos (ally AI, too).
@@ -2492,6 +2493,12 @@ class JABS_Action
      */
     this._actionCooldownType = cooldownKey ?? "global";
 
+    /**
+     * Whether or not this action has collided with at least one target.
+     * @type {boolean}
+     */
+    this._hitAtLeastOne = false;
+
     this.initMembers();
   }
 
@@ -2546,16 +2553,21 @@ class JABS_Action
   initDelay()
   {
     /**
+     * A grouping of all properties related to the delay of this action.
+     */
+    this._delay = {};
+
+    /**
      * The duration remaining before this will action will autotrigger.
      * @type {JABS_Timer}
      */
-    this._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
+    this._delay._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
 
     /**
      * Whether or not this action will trigger when an enemy touches it.
      * @type {boolean}
      */
-    this._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
+    this._delay._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
   }
 
   initPiercing()
@@ -2852,7 +2864,7 @@ class JABS_Action
    */
   countdownDelay()
   {
-    this._delayDuration.update();
+    this._delay._delayDuration.update();
   }
 
   /**
@@ -2863,7 +2875,20 @@ class JABS_Action
    */
   isDelayCompleted()
   {
-    return this._delayDuration.isTimerComplete() && !this.isEndlessDelay();
+    // if we triggered the action, we aren't delaying anymore.
+    if (this.hasHitAtLeastOneTarget()) return true;
+
+    // check if the delay has completed.
+    const isTimerComplete = this._delay._delayDuration.isTimerComplete();
+
+    // check if this action will delay until triggered.
+    const willWaitEndlessly = this.isEndlessDelay();
+
+    // if the timer is done and we're not waiting forever, the delay is completed.
+    const isDelayComplete = (isTimerComplete && !willWaitEndlessly);
+
+    // return our determination.
+    return isDelayComplete;
   }
 
   /**
@@ -2871,7 +2896,7 @@ class JABS_Action
    */
   endDelay()
   {
-    this._delayDuration.forceComplete();
+    this._delay._delayDuration.forceComplete();
   }
 
   /**
@@ -2880,7 +2905,7 @@ class JABS_Action
    */
   isEndlessDelay()
   {
-    return this._delayDuration.getMaxTime() === -1;
+    return this._delay._delayDuration.getMaxTime() === -1;
   }
 
   /**
@@ -2893,7 +2918,7 @@ class JABS_Action
    */
   triggerOnTouch()
   {
-    return this._triggerOnTouch || this.isEndlessDelay();
+    return this._delay._triggerOnTouch || this.isEndlessDelay();
   }
 
   /**
@@ -3090,6 +3115,22 @@ class JABS_Action
 
     // reduce the pierce counts by one.
     this.decrementPierceTimes();
+
+    // check if this action has hit at least one target.
+    if (!this.hasHitAtLeastOneTarget())
+    {
+      // execute first-hit logic.
+      this.onFirstCollision();
+    }
+  }
+
+  /**
+   * An event hook fired when this action collides with its first target.
+   */
+  onFirstCollision()
+  {
+    // flag our first hit so we don't do this again.
+    this._hitAtLeastOne = true;
   }
 
   /**
@@ -3216,6 +3257,15 @@ class JABS_Action
   aggroMultiplier()
   {
     return this.getBaseSkill().jabsAggroMultiplier ?? 1.0;
+  }
+
+  /**
+   * Whether or not this action has hit at least one target.
+   * @returns {boolean}
+   */
+  hasHitAtLeastOneTarget()
+  {
+    return this._hitAtLeastOne;
   }
 }
 //endregion JABS_Action
@@ -7360,7 +7410,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // build the cooldown key based on the skill data.
-  let skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
+  const skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
 
   // check to make sure we have a key.
   if (!skillSlotKey)
@@ -7382,7 +7432,7 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   }
 
   // check if the chosen skill is actually a combo for this slot.
-  let isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
+  const isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
 
   // check if the base is off cooldown yet.
   if (!isCombo && !cooldown.isBaseReady())
@@ -8605,17 +8655,17 @@ JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
   // grab all of the loser battler's on-death skills to execute.
   const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
 
-  // iterate over each of the on-death skills.
-  onOwnDefeatSkills.forEach(onDefeatSkill =>
+  // an iterator function for executing all relevant on-own-defeat skills.
+  const forEacher = onDefeatSkill =>
   {
     // extract out the data points from the skill.
-    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+    const { skillId } = onDefeatSkill;
 
     // roll the dice and see if we should trigger this on-own-death skill.
-    if (shouldTrigger())
+    if (onDefeatSkill.shouldTrigger())
     {
       // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = appearOnTarget();
+      const castFromTarget = onDefeatSkill.appearOnTarget();
 
       // check if the skill should be cast from the target.
       if (castFromTarget)
@@ -8630,7 +8680,10 @@ JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
         $jabsEngine.forceMapAction(this, skillId, false);
       }
     }
-  });
+  };
+
+  // iterate over each of the on-death skills.
+  onOwnDefeatSkills.forEach(forEacher, this);
 };
 
 /**
@@ -8642,17 +8695,17 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
   // grab all of the victor battler's on-target-defeat skills.
   const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
 
-  // iterate over each the on-target-defeat skills.
-  onTargetDefeatSkills.forEach(onDefeatSkill =>
+  // an iterator function for executing all relevant on-target-defeat skills.
+  const forEacher = onDefeatSkill =>
   {
     // extract out the data points from the skill.
-    const { shouldTrigger, appearOnTarget, skillId } = onDefeatSkill;
+    const { skillId } = onDefeatSkill;
 
     // roll the dice and see if we should trigger this on-target-defeat skill.
-    if (shouldTrigger())
+    if (onDefeatSkill.shouldTrigger())
     {
       // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = appearOnTarget();
+      const castFromTarget = onDefeatSkill.appearOnTarget();
 
       // check if the skill should be cast from the target.
       if (castFromTarget)
@@ -8667,7 +8720,10 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
         $jabsEngine.forceMapAction(victor, skillId, false);
       }
     }
-  });
+  };
+
+  // iterate over each the on-target-defeat skills.
+  onTargetDefeatSkills.forEach(forEacher, this);
 };
 
 /**
