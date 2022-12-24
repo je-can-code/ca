@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v1.2.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base

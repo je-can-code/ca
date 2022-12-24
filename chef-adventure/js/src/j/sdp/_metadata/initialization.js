@@ -34,7 +34,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: '1.2.1',
+  Version: '1.2.2',
 };
 
 /**
