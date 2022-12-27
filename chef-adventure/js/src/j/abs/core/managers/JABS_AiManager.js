@@ -529,7 +529,7 @@ class JABS_AiManager
     builder.setBattler(battler);
 
     // check if we're using the danger indicators.
-    if (J.DANGER)
+    if (J.ABS.EXT.DANGER)
     {
       // never show the danger indicator for allies.
       builder.setShowDangerIndicator(false)

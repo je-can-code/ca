@@ -2,8 +2,6 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
-J.JAFTING.EXT_REFINE = {};
-
 //region version checks
 (() =>
 {
@@ -17,7 +15,7 @@ J.JAFTING.EXT_REFINE = {};
 
   // Check to ensure we have the minimum required version of the J-JAFTING plugin.
   const requiredJaftingVersion = '2.0.0';
-  const hasJaftingRequirement = J.BASE.Helpers.satisfies(J.JAFTING.Metadata.Version, requiredJaftingVersion);
+  const hasJaftingRequirement = J.BASE.Helpers.satisfies(J.JAFTING.EXT.REFINE.Metadata.Version, requiredJaftingVersion);
   if (!hasJaftingRequirement)
   {
     throw new Error(`Either missing J-JAFTING or has a lower version than the required: ${requiredJaftingVersion}`);
@@ -26,9 +24,21 @@ J.JAFTING.EXT_REFINE = {};
 //endregion version check
 
 /**
+ * The plugin umbrella that governs all things related to this extension plugin.
+ */
+J.JAFTING.EXT.REFINE = {};
+
+/**
+ * The `metadata` associated with this plugin, such as version.
+ */
+J.JAFTING.EXT.REFINE.Metadata = {};
+J.JAFTING.EXT.REFINE.Metadata.Version = '1.0.0';
+J.JAFTING.EXT.REFINE.Metadata.Name = `J-JAFTING-Refinement`;
+
+/**
  * A helpful mapping of the various messages that we use in JAFTING.
  */
-J.JAFTING.Messages = {
+J.JAFTING.EXT.REFINE.Messages = {
   /**
    * The name of the command for Refinement on the JAFTING mode menu.
    */
@@ -118,8 +128,8 @@ J.JAFTING.Messages = {
 /**
  * A helpful mapping of all the various RMMZ classes being extended.
  */
-J.JAFTING.Aliased = {
-  ...J.JAFTING.Aliased,
+J.JAFTING.EXT.REFINE.Aliased = {
+  ...J.JAFTING.EXT.REFINE.Aliased,
   Game_Item: new Map(),
   RPG_Base: new Map(),
   Window_JaftingModeMenu: {},
@@ -128,12 +138,12 @@ J.JAFTING.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.JAFTING.EXT_REFINE.RegExp = {};
-J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
-J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
-J.JAFTING.EXT_REFINE.RegExp.Unrefinable = /<unrefinable>/i;
-J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
-J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT.REFINE.RegExp = {};
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
+J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<unrefinable>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 
 /**
  * A global object for storing data related to JAFTING.
@@ -145,7 +155,7 @@ var $gameJAFTING = null;
 /**
  * Plugin command for hiding the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "hideJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "hideJaftingRefinement", () =>
 {
   $gameJAFTING.hideRefinement();
 });
@@ -153,7 +163,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "hideJaft
 /**
  * Plugin command for showing the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "showJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "showJaftingRefinement", () =>
 {
   $gameJAFTING.showRefinement();
 });
@@ -161,7 +171,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "showJaft
 /**
  * Plugin command for disabling the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "disableJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "disableJaftingRefinement", () =>
 {
   $gameJAFTING.disableRefinement();
 });
@@ -169,7 +179,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "disableJ
 /**
  * Plugin command for enabling the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "enableJaftingRefinement", () =>
 {
   $gameJAFTING.enableRefinement();
 });

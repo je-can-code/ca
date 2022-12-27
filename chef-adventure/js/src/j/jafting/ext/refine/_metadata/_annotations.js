@@ -79,7 +79,7 @@
  *
  * I debated on putting all the various text bits that show up
  * throughout the menu here for translation, but instead I captured them all
- * and put them in the J.JAFTING.Messages object. If you want to change the
+ * and put them in the J.JAFTING.EXT.REFINE.Messages object. If you want to change the
  * text, feel free to edit that instead. Additionally, for the various traits
  * text, you can find that text hard-coded english starting at line 2164 by
  * trait code.

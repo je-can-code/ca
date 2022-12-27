@@ -26,6 +26,6 @@ RPG_Base.prototype.getJabsSpeedBoost = function()
  */
 RPG_Base.prototype.extractJabsSpeedBoost = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.EXT_SPEED.RegExp.WalkSpeedBoost, true);
+  return this.getNumberFromNotesByRegex(J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
 };
 //endregion RPG_Base

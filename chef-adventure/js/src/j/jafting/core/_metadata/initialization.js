@@ -22,6 +22,11 @@ var J = J || {};
 J.JAFTING = {};
 
 /**
+ * A collection of all extensions for JAFTING.
+ */
+J.JAFTING.EXT = {};
+
+/**
  * A helpful collection of functions for this plugin.
  */
 J.JAFTING.Helpers = {};

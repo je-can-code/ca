@@ -34,7 +34,7 @@ RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
  */
 RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.EXT_REFINE.RegExp.NotRefinementBase);
 };
 //endregion notRefinementBase
 
@@ -66,7 +66,7 @@ RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
  */
 RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.EXT_REFINE.RegExp.NotRefinementMaterial);
 };
 //endregion notRefinementMaterial
 
@@ -119,7 +119,7 @@ RPG_EquipItem.prototype.getJaftingUnrefinable = function()
  */
 RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.Unrefinable);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.EXT_REFINE.RegExp.Unrefinable);
 };
 //endregion unrefinable
 
@@ -150,7 +150,7 @@ RPG_EquipItem.prototype.getJaftingMaxRefineCount = function()
  */
 RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
 {
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount);
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.EXT_REFINE.RegExp.MaxRefineCount);
 };
 //endregion maxRefineCount
 
@@ -182,6 +182,6 @@ RPG_EquipItem.prototype.getJaftingMaxTraitCount = function()
  */
 RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 {
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount);
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.EXT_REFINE.RegExp.MaxTraitCount);
 };
 //endregion maxRefineCount

@@ -3,11 +3,11 @@
  * Largely overwrites this function to instead leverage an item's index value over
  * it's ID for setting objects to the item slot.
  */
-J.JAFTING.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
+J.JAFTING.EXT.REFINE.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(item)
 {
   // perform original logic.
-  J.JAFTING.Aliased.Game_Item.get('setObject').call(this, item);
+  J.JAFTING.EXT.REFINE.Aliased.Game_Item.get('setObject').call(this, item);
 
   // assign the item id to here.
   this._itemId = item

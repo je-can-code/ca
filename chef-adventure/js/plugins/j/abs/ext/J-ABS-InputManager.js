@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:21:35 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -54,34 +54,34 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.ABS.EXT_INPUT = {};
+J.ABS.EXT.INPUT = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_INPUT = {};
-J.ABS.EXT_INPUT.Metadata = {};
-J.ABS.EXT_INPUT.Metadata.Version = '1.0.0';
-J.ABS.EXT_INPUT.Metadata.Name = `J-ABS-InputManager`;
+J.ABS.EXT.INPUT = {};
+J.ABS.EXT.INPUT.Metadata = {};
+J.ABS.EXT.INPUT.Metadata.Version = '1.0.0';
+J.ABS.EXT.INPUT.Metadata.Name = `J-ABS-InputManager`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ABS.EXT_INPUT.PluginParameters = PluginManager.parameters(J.ABS.EXT_INPUT.Metadata.Name);
+J.ABS.EXT.INPUT.PluginParameters = PluginManager.parameters(J.ABS.EXT.INPUT.Metadata.Name);
 
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.ABS.EXT_INPUT.Metadata =
+J.ABS.EXT.INPUT.Metadata =
   {
     // the previously defined metadata.
-    ...J.ABS.EXT_INPUT.Metadata,
+    ...J.ABS.EXT.INPUT.Metadata,
   };
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_INPUT.Aliased =
+J.ABS.EXT.INPUT.Aliased =
   {
     DataManager: new Map(),
     JABS_Engine: new Map(),
@@ -103,11 +103,11 @@ var $jabsController1 = null;
  * Generates a `JABS_Battler` based on the current leader of the party.
  * Also assigns the controller inputs for the player.
  */
-J.ABS.EXT_INPUT.Aliased.JABS_Battler.set('createPlayer', JABS_Battler.createPlayer);
+J.ABS.EXT.INPUT.Aliased.JABS_Battler.set('createPlayer', JABS_Battler.createPlayer);
 JABS_Battler.createPlayer = function()
 {
   // intercept return data from original logic.
-  const playerJabsBattler = J.ABS.EXT_INPUT.Aliased.JABS_Battler.get('createPlayer').call(this);
+  const playerJabsBattler = J.ABS.EXT.INPUT.Aliased.JABS_Battler.get('createPlayer').call(this);
 
   // assign newly players are created to controller 1.
   $jabsController1.battler = playerJabsBattler;
@@ -1009,11 +1009,11 @@ class JABS_InputController
 //endregion JABS_InputController
 
 //region DataManager
-J.ABS.EXT_INPUT.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+J.ABS.EXT.INPUT.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.ABS.EXT_INPUT.Aliased.DataManager.get('createGameObjects').call(this);
+  J.ABS.EXT.INPUT.Aliased.DataManager.get('createGameObjects').call(this);
 
   // initialize controller 1 for JABS.
   $jabsController1 = new JABS_InputController();
@@ -1062,14 +1062,14 @@ Input.keyMapper = {
 //endregion Input
 
 //region JABS_Engine
-J.ABS.EXT_INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.prototype.performPartyCycling);
+J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.prototype.performPartyCycling);
 /**
  * Extends `performPartyCycling()` to include reassigning the controller to the player.
  */
 JABS_Engine.prototype.performPartyCycling = function()
 {
   // perform original logic.
-  J.ABS.EXT_INPUT.Aliased.JABS_Engine.get('performPartyCycling').call(this);
+  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('performPartyCycling').call(this);
 
   // when the player party cycles, update their controls to the updated battler.
   $jabsController1.battler = this.getPlayer1();
@@ -1078,11 +1078,11 @@ JABS_Engine.prototype.performPartyCycling = function()
 /**
  * Handles the player input.
  */
-J.ABS.EXT_INPUT.Aliased.JABS_Engine.set('updateInput', JABS_Engine.prototype.updateInput);
+J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('updateInput', JABS_Engine.prototype.updateInput);
 JABS_Engine.prototype.updateInput = function()
 {
   // perform original logic.
-  J.ABS.EXT_INPUT.Aliased.JABS_Engine.get('updateInput').call(this);
+  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('updateInput').call(this);
 
   // don't update if we aren't allowed to update.
   if (!this.canUpdateInput()) return;

@@ -4,11 +4,11 @@
  * Enables modification of the character's movement speed on the map.
  * @return {number} The modified distance per frame to move.
  */
-J.ABS.EXT_SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.prototype.distancePerFrame);
+J.ABS.EXT.SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.prototype.distancePerFrame);
 Game_Character.prototype.distancePerFrame = function()
 {
   // determine base distance per frame.
-  const base = J.ABS.EXT_SPEED.Aliased.Game_Character.get('distancePerFrame').call(this);
+  const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get('distancePerFrame').call(this);
 
   // calculate the speed boost bonus based on the base.
   const bonus = this.calculateSpeedBoostBonus(base);

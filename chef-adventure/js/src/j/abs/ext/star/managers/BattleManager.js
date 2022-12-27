@@ -8,11 +8,11 @@ BattleManager.enemyMap = BattleManager.enemyMap || { events: [] };
 /**
  * Extends `initMembers` to include our members as well.
  */
-J.STAR.Aliased.BattleManager.set('initMembers', BattleManager.initMembers);
+J.ABS.EXT.STAR.Aliased.BattleManager.set('initMembers', BattleManager.initMembers);
 BattleManager.initMembers = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.BattleManager.get('initMembers').call(this);
+  J.ABS.EXT.STAR.Aliased.BattleManager.get('initMembers').call(this);
 
   /**
    * The origin location that the player came from.

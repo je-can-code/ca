@@ -26,6 +26,6 @@ RPG_Base.prototype.getJabsChargeData = function()
  */
 RPG_Base.prototype.extractJabsChargeData = function()
 {
-  return this.getArraysFromNotesByRegex(J.ABS.EXT_CHARGE.RegExp.ChargeData, true);
+  return this.getArraysFromNotesByRegex(J.ABS.EXT.CHARGE.RegExp.ChargeData, true);
 };
 //endregion RPG_Skill

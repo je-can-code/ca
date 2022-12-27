@@ -56,19 +56,19 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
   switch (true)
   {
     case (bpl < ppl * 0.5):
-      return J.DANGER.DangerIndicatorIcons.Worthless;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Worthless;
     case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
-      return J.DANGER.DangerIndicatorIcons.Simple;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Simple;
     case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
-      return J.DANGER.DangerIndicatorIcons.Easy;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Easy;
     case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
-      return J.DANGER.DangerIndicatorIcons.Average;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Average;
     case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
-      return J.DANGER.DangerIndicatorIcons.Hard;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Hard;
     case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Grueling;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Grueling;
     case (bpl > ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Deadly;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Deadly;
     default:
       return -1;
   }

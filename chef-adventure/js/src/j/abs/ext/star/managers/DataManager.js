@@ -2,11 +2,11 @@
  * Extends {@link DataManager.createGameObjects}.
  * Includes fetching the enemy map and storing it memory.
  */
-J.STAR.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+J.ABS.EXT.STAR.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.STAR.Aliased.DataManager.get('createGameObjects').call(this);
+  J.ABS.EXT.STAR.Aliased.DataManager.get('createGameObjects').call(this);
 
   // load the enemy master map into memory.
   DataManager.getEnemyMasterMap();
@@ -19,7 +19,7 @@ DataManager.createGameObjects = function()
 DataManager.getEnemyMasterMap = function()
 {
   // determine the map id of the enemy map.
-  const mapId = J.STAR.DefaultValues.EnemyMap;
+  const mapId = J.ABS.EXT.STAR.DefaultValues.EnemyMap;
 
   // check to make sure the map id is valid.
   if (mapId > 0) 

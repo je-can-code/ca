@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:16:04 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -246,7 +246,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -254,7 +254,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.2.0';
+  const requiredJabsVersion = '3.2.2';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -267,44 +267,44 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.ALLYAI = {};
+J.ABS.EXT.ALLYAI = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ALLYAI.Metadata = {};
-J.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ALLYAI.Metadata.Version = '1.1.0';
+J.ABS.EXT.ALLYAI.Metadata = {};
+J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
+J.ABS.EXT.ALLYAI.Metadata.Version = '1.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ALLYAI.PluginParameters = PluginManager.parameters(J.ALLYAI.Metadata.Name);
+J.ABS.EXT.ALLYAI.PluginParameters = PluginManager.parameters(J.ABS.EXT.ALLYAI.Metadata.Name);
 
 // configuration for the main JABS quick menu command for ally AI.
-J.ALLYAI.Metadata.AllyAiCommandName = J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
-J.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
-J.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName = J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
 
 // configuration for party-wide commands.
-J.ALLYAI.Metadata.PartyAiPassiveText = J.ALLYAI.PluginParameters['partyWidePassiveText'];
-J.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
-J.ALLYAI.Metadata.PartyAiAggressiveText = J.ALLYAI.PluginParameters['partyWideAggressiveText'];
-J.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveText'];
+J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveText'];
+J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
 
 // configuration for the various ai modes.
-J.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeEquipped']);
-J.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeNotEquipped']);
-J.ALLYAI.Metadata.AiModeDoNothingText = J.ALLYAI.PluginParameters['aiModeDoNothing'];
-J.ALLYAI.Metadata.AiModeOnlyAttackText = J.ALLYAI.PluginParameters['aiModeOnlyAttack'];
-J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety'];
-J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
-J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeEquipped']);
+J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeNotEquipped']);
+J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeDoNothing'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeOnlyAttack'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeVariety'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeFullForce'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeSupport'];
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ALLYAI.Aliased = {
+J.ABS.EXT.ALLYAI.Aliased = {
   Game_Actor: new Map(),
   Game_BattleMap: new Map(),
   Game_Battler: {},
@@ -327,8 +327,8 @@ J.ALLYAI.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ALLYAI.RegExp = {};
-J.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
+J.ABS.EXT.ALLYAI.RegExp = {};
+J.ABS.EXT.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
 //endregion plugin setup and configuration
 //endregion Introduction
 
@@ -355,7 +355,7 @@ JABS_AllyAI.modes = {
    */
   DO_NOTHING: {
     key: "do-nothing",
-    name: J.ALLYAI.Metadata.AiModeDoNothingText,
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText,
   },
 
   /**
@@ -364,7 +364,7 @@ JABS_AllyAI.modes = {
    */
   BASIC_ATTACK: {
     key: "basic-attack",
-    name: J.ALLYAI.Metadata.AiModeOnlyAttackText,
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText,
   },
 
   /**
@@ -372,7 +372,7 @@ JABS_AllyAI.modes = {
    */
   VARIETY: {
     key: "variety",
-    name: J.ALLYAI.Metadata.AiModeVarietyText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText
   },
 
   /**
@@ -380,7 +380,7 @@ JABS_AllyAI.modes = {
    */
   FULL_FORCE: {
     key: "full-force",
-    name: J.ALLYAI.Metadata.AiModeFullForceText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText
   },
 
   /**
@@ -388,7 +388,7 @@ JABS_AllyAI.modes = {
    */
   SUPPORT: {
     key: "support",
-    name: J.ALLYAI.Metadata.AiModeSupportText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText
   },
 };
 
@@ -1255,21 +1255,21 @@ JABS_BattleMemory.prototype.wasEffective = function()
  * @param {JABS_Battler} target The target to see if we should engage with.
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.JABS_Battler.set('shouldEngage', JABS_Battler.prototype.shouldEngage);
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set('shouldEngage', JABS_Battler.prototype.shouldEngage);
 JABS_Battler.prototype.shouldEngage = function(target, distance)
 {
   // enemies follow standard behavior.
   if (this.isEnemy())
   {
     // perform original logic.
-    return J.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
+    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
   }
 
   // aggro allies against non-inanimate targets also follow standard behavior.
   if ($gameParty.isAggro() && !target.isInanimate())
   {
     // perform original logic.
-    return J.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
+    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
   }
 
   // determine if the ally should engage the foe.
@@ -1305,7 +1305,7 @@ JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
 //endregion JABS_Battler
 
 //region JABS_AiManager
-J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 /**
  * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
  * @param {JABS_Battler} battler The batter to decide for.
@@ -1316,7 +1316,7 @@ JABS_AiManager.aiPhase0 = function(battler)
   if (battler.isEnemy())
   {
     // perform original logic for enemies.
-    J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
+    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
   }
   // it must be an ally.
   else
@@ -1361,14 +1361,14 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
  * Includes handling ally AI as well as enemy.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
-J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
   // check if the battler is an enemy.
   if (battler.isEnemy())
   {
     // perform original logic for enemies.
-    J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
+    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
   }
   // it isn't an enemy, it must be an ally.
   else
@@ -1439,11 +1439,11 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
  * Extends {@link JABS_Engine.prePartyCycling}.
  * Jumps all followers to the player upon party cycling.
  */
-J.ALLYAI.Aliased.Game_BattleMap.set('prePartyCycling', JABS_Engine.prototype.prePartyCycling);
+J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('prePartyCycling', JABS_Engine.prototype.prePartyCycling);
 JABS_Engine.prototype.prePartyCycling = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_BattleMap.get('prePartyCycling').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.get('prePartyCycling').call(this);
 
   // when cycling, jump all followers to the player.
   $gamePlayer.jumpFollowersToMe();
@@ -1454,7 +1454,7 @@ JABS_Engine.prototype.prePartyCycling = function()
  * Overwrites {@link JABS_Engine.handlePartyCycleMemberChanges}.
  * Jumps all followers to the player upon party cycling.
  */
-J.ALLYAI.Aliased.Game_BattleMap.set('handlePartyCycleMemberChanges', JABS_Engine.prototype.handlePartyCycleMemberChanges);
+J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('handlePartyCycleMemberChanges', JABS_Engine.prototype.handlePartyCycleMemberChanges);
 JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
 {
   // grab the current data for removing after to prevent duplicate players.
@@ -1468,7 +1468,7 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
   }
 
   // perform original logic, updating the player to the latest.
-  J.ALLYAI.Aliased.Game_BattleMap.get('handlePartyCycleMemberChanges').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.get('handlePartyCycleMemberChanges').call(this);
 
   // rebuild all allies.
   $gameMap.updateAllies();
@@ -1487,8 +1487,8 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
 
   // return the filtered list of slots with skills that aren't invalid.
   return this.getEquippedSlots()
-  // exclude the invalid skill slots.
-  .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
+    // exclude the invalid skill slots.
+    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
 };
 //endregion JABS_SkillSlotManager
 
@@ -1497,11 +1497,11 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
  * Extends {@link #initMembers}.
  * Also tracks JABS ally AI.
  */
-J.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Actor.get('initMembers').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('initMembers').call(this);
 
   // init the additional members.
   this.initAllyAiMembers();
@@ -1538,11 +1538,11 @@ Game_Actor.prototype.initAllyAiMembers = function()
  * Extends {@link #setup}.
  * Also initializes ally AI.
  */
-J.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Actor.get('setup').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('setup').call(this, actorId);
 
   // also initialize the ally's AI.
   this.initAllyAI();
@@ -1594,10 +1594,10 @@ Game_Actor.prototype.getDefaultAllyAI = function()
   if (!this._actorId) return null;
 
   // extract the ally ai mode from the actor.
-  const actorMode = this.actor().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
+  const actorMode = this.actor().getStringFromNotesByRegex(J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 
   // extract the ally ai mode from the class.
-  const classMode = this.currentClass().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
+  const classMode = this.currentClass().getStringFromNotesByRegex(J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 
   // priority is class > actor > default, for ally ai mode.
   const allyAiMode = classMode ?? actorMode;
@@ -1629,14 +1629,14 @@ Game_Actor.prototype.getValidSkillSlotsForAlly = function()
  * while this follower is engaged.
  * @param {Game_Character} character The character this follower is following.
  */
-J.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
 Game_Follower.prototype.chaseCharacter = function(character)
 {
   // if this isn't a valid battler or followers aren't being shown, then don't control them.
   if (!this.canObeyJabsAi())
   {
     // perform original logic.
-    J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 
     // stop processing.
     return;
@@ -1711,7 +1711,7 @@ Game_Follower.prototype.handleJabsDeadAi = function(character)
 {
   // TODO: handle logic for repeating whilst dead.
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 };
 
 /**
@@ -1790,21 +1790,21 @@ Game_Follower.prototype.handleJabsCombatActiveAi = function(character)
 Game_Follower.prototype.handleJabsCombatInactiveAi = function(character)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 };
 
 /**
  * Extends {@link Game_Follower.update}.
  * If this follower should be controlled by JABS AI, then modify the way it updates.
  */
-J.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
 Game_Follower.prototype.update = function()
 {
   // check if this follower should be obeying jabs ai.
   if (!this.canObeyJabsAi())
   {
     // perform original logic if we are not.
-    J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update').call(this);
 
     // stop processing.
     return;
@@ -1821,7 +1821,7 @@ Game_Follower.prototype.updateAllyAi = function()
 {
   // TODO: rewrite this entirely.
   // perform superclass logic.
-  J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update').call(this);
   //Game_Character.prototype.update.call(this);
 
   // update the various parameters accordingly for followers.
@@ -1893,11 +1893,11 @@ Game_Follower.prototype.handleEngagementDistancing = function()
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
 Game_Followers.prototype.show = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Followers.get('show').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('show').call(this);
 
   // update all allies when choosing "show" as an event command.
   $gameMap.updateAllies();
@@ -1910,11 +1910,11 @@ Game_Followers.prototype.show = function()
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
 Game_Followers.prototype.hide = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Followers.get('hide').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('hide').call(this);
 
   // update all allies when choosing "hide" as an event command.
   $gameMap.updateAllies();
@@ -1977,13 +1977,13 @@ Game_Followers.prototype.setDirectionFixAll = function(isFixed)
  * This accommodates the other adjustment regarding the player direction locking and allowing
  * the allies to stay agnostic to that input.
  */
-J.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
+J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
 Game_Interpreter.prototype.command205 = function(params)
 {
   // if param[0] is -1, that is the player!
   // TODO: only jump to player if the player moves!
   // execute the move route command.
-  const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
+  const result = J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
 
   // check if we have a result and also the target is to move the character.
   if (result && params[0] === -1)
@@ -2004,11 +2004,11 @@ Game_Interpreter.prototype.command205 = function(params)
  * Also parses ally battlers as well as events.
  * @returns {JABS_Battler[]}
  */
-J.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
+J.ABS.EXT.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
 Game_Map.prototype.parseBattlers = function()
 {
   // perform original logic.
-  const originalParsedBattlers = J.ALLYAI.Aliased.Game_Map.get('parseBattlers').call(this);
+  const originalParsedBattlers = J.ABS.EXT.ALLYAI.Aliased.Game_Map.get('parseBattlers').call(this);
 
   // also parse ally battlers.
   const parsedAllyBattlers = this.parseAllyBattlers();
@@ -2082,11 +2082,11 @@ Game_Map.prototype.removeBattlers = function(battlers)
 /**
  * Extends initialization to include the ally AI configurations.
  */
-J.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('initialize').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('initialize').call(this);
 
   // initialize our ally ai members.
   this.initAllyAi();
@@ -2145,11 +2145,11 @@ Game_Party.prototype.becomePassive = function()
  * Extends {@link Game_Party.addActor}.
  * Also updates allies to accommodate the addition of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
 Game_Party.prototype.addActor = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('addActor').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('addActor').call(this, actorId);
 
   // update all allies when adding an actor to the party.
   $gameMap.updateAllies();
@@ -2159,11 +2159,11 @@ Game_Party.prototype.addActor = function(actorId)
  * Extends {@link Game_Party.removeActor}.
  * Also updates allies to accommodate the removal of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
 Game_Party.prototype.removeActor = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('removeActor').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('removeActor').call(this, actorId);
 
   // update all allies when removing an actor from the party.
   $gameMap.updateAllies();
@@ -2186,10 +2186,10 @@ Game_Player.prototype.jumpFollowersToMe = function()
 /**
  * Extends the JABS menu initialization to include the new ally ai management selection.
  */
-J.ALLYAI.Aliased.Scene_Map.initJabsMembers = Scene_Map.prototype.initJabsMembers;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.initJabsMembers = Scene_Map.prototype.initJabsMembers;
 Scene_Map.prototype.initJabsMembers = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.initJabsMembers.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.initJabsMembers.call(this);
   this.initAllyAiSubmenu();
 };
 
@@ -2223,10 +2223,10 @@ Scene_Map.prototype.getAllyAiActorId = function()
 /**
  * Extends the JABS menu creation to include the new windows for ally ai management.
  */
-J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu = Scene_Map.prototype.createJabsAbsMenu;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu = Scene_Map.prototype.createJabsAbsMenu;
 Scene_Map.prototype.createJabsAbsMenu = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu.call(this);
   this.createAllyAiPartyWindow();
   this.createAllyAiEquipWindow();
 };
@@ -2234,10 +2234,10 @@ Scene_Map.prototype.createJabsAbsMenu = function()
 /**
  * Extends the JABS menu creation to include a new command handler for ally ai.
  */
-J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
   this._j._absMenu._mainWindow.setHandler("ally-ai", this.commandManagePartyAi.bind(this));
 };
 
@@ -2335,10 +2335,10 @@ Scene_Map.prototype.commandEquipMemberAi = function()
 /**
  * Manages the ABS main menu's interactivity.
  */
-J.ALLYAI.Aliased.Scene_Map.manageAbsMenu = Scene_Map.prototype.manageAbsMenu;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.manageAbsMenu = Scene_Map.prototype.manageAbsMenu;
 Scene_Map.prototype.manageAbsMenu = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.manageAbsMenu.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.manageAbsMenu.call(this);
   switch (this._j._absMenu._windowFocus)
   {
     case "ai-party-list":
@@ -2364,10 +2364,10 @@ Scene_Map.prototype.manageAbsMenu = function()
  * Closes a given Abs menu window.
  * @param {string} absWindow The type of abs window being closed.
  */
-J.ALLYAI.Aliased.Scene_Map.closeAbsWindow = Scene_Map.prototype.closeAbsWindow;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.closeAbsWindow = Scene_Map.prototype.closeAbsWindow;
 Scene_Map.prototype.closeAbsWindow = function(absWindow)
 {
-  J.ALLYAI.Aliased.Scene_Map.closeAbsWindow.call(this, absWindow);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.closeAbsWindow.call(this, absWindow);
   switch (absWindow)
   {
     case "ai-party-list":
@@ -2398,11 +2398,11 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
  * Adds the ally ai management command at the end of the list.
  * @returns {BuiltWindowCommand[]}
  */
-J.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
 Window_AbsMenu.prototype.buildCommands = function()
 {
   // perform original logic to get base commands.
-  const originalCommands = J.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+  const originalCommands = J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
 
   // if the switch is disabled, then the command won't even appear in the menu.
   if (!this.canAddAllyAiCommand()) return originalCommands;
@@ -2411,10 +2411,10 @@ Window_AbsMenu.prototype.buildCommands = function()
   const enabled = $gamePlayer.followers().isVisible();
 
   // build the command.
-  const command = new WindowCommandBuilder(J.ALLYAI.Metadata.AllyAiCommandName)
+  const command = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName)
     .setSymbol('ally-ai')
     .setEnabled(enabled)
-    .setIconIndex(J.ALLYAI.Metadata.AllyAiCommandIconIndex)
+    .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex)
     .setColorIndex(27)
     .build();
 
@@ -2432,7 +2432,7 @@ Window_AbsMenu.prototype.buildCommands = function()
 Window_AbsMenu.prototype.canAddAllyAiCommand = function()
 {
   // if the necessary switch isn't ON, don't render the command at all.
-  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
+  if (!$gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
 
   // render the command!
   return true;
@@ -2443,11 +2443,11 @@ Window_AbsMenu.prototype.canAddAllyAiCommand = function()
 /**
  * Extends the initialization to include the actor id for ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
 Window_AbsMenuSelect.prototype.initialize = function(rect, type)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize').call(this, rect, type);
+  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize').call(this, rect, type);
 
   // TODO: init properly.
   this._j._chosenActorId = 0;
@@ -2474,11 +2474,11 @@ Window_AbsMenuSelect.prototype.getActorId = function()
 /**
  * Extends the JABS quick menu select to also handle ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
 Window_AbsMenuSelect.prototype.makeCommandList = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList').call(this);
 
   // pivot on the menu type.
   switch (this._j._menuType)
@@ -2515,11 +2515,11 @@ Window_AbsMenuSelect.prototype.makeAllyList = function()
 
   // define the icons for passive/aggressive ally AI aggro settings.
   const aggroPassiveCommandName = $gameParty.isAggro()
-    ? J.ALLYAI.Metadata.PartyAiAggressiveText
-    : J.ALLYAI.Metadata.PartyAiPassiveText;
+    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText
+    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
   const aggroPassiveCommandIcon = $gameParty.isAggro()
-    ? J.ALLYAI.Metadata.PartyAiAggressiveIconIndex
-    : J.ALLYAI.Metadata.PartyAiPassiveIconIndex;
+    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex
+    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
 
   // build the command for toggling ally AI aggro.
   const command = new WindowCommandBuilder(aggroPassiveCommandName)
@@ -2559,8 +2559,8 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
 
     // build the icon based on whether or not its equipped.
     const iconIndex = isEquipped
-      ? J.ALLYAI.Metadata.AiModeEquippedIconIndex
-      : J.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+      ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex
+      : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
 
     // build the command.
     const command = new WindowCommandBuilder(name)

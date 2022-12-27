@@ -20,20 +20,20 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.HUD.EXT_PARTY = {};
+J.HUD.EXT.PARTY = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.HUD.EXT_PARTY = {};
-J.HUD.EXT_PARTY.Metadata = {};
-J.HUD.EXT_PARTY.Metadata.Version = '1.0.0';
-J.HUD.EXT_PARTY.Metadata.Name = `J-HUD-PartyFrame`;
+J.HUD.EXT.PARTY = {};
+J.HUD.EXT.PARTY.Metadata = {};
+J.HUD.EXT.PARTY.Metadata.Version = '1.0.0';
+J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.HUD.EXT_PARTY.Aliased = {
+J.HUD.EXT.PARTY.Aliased = {
   Scene_Map: new Map(),
 };
 //endregion introduction

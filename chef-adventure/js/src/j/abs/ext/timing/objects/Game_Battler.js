@@ -2,11 +2,11 @@
 /**
  * Extends `initMembers()` to include initialization of our new parameters.
  */
-J.ABS.EXT_TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
+J.ABS.EXT.TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_TIMING.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.EXT.TIMING.Aliased.Game_Battler.get('initMembers').call(this);
 
   // initialize the extra members.
   this.initActionUpgrades1();
@@ -269,7 +269,7 @@ Game_Battler.prototype.baseCastSpeed = function()
   // sum together all the csp flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.BaseCastSpeed,
+    J.ABS.EXT.TIMING.RegExp.BaseCastSpeed,
     baseParam,
     this);
 
@@ -292,7 +292,7 @@ Game_Battler.prototype.castSpeedFlat = function()
   // sum together all the csp flat modifiers.
   const cspFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.CastSpeedFlat,
+    J.ABS.EXT.TIMING.RegExp.CastSpeedFlat,
     baseParam,
     this);
 
@@ -315,7 +315,7 @@ Game_Battler.prototype.castSpeedRate = function()
   // grab the base parameter value.
   const cspRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.CastSpeedRate,
+    J.ABS.EXT.TIMING.RegExp.CastSpeedRate,
     baseParam,
     this);
 
@@ -395,7 +395,7 @@ Game_Battler.prototype.baseFastCooldown = function()
   // sum together all the fcd flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.BaseFastCooldown,
+    J.ABS.EXT.TIMING.RegExp.BaseFastCooldown,
     baseParam,
     this);
 
@@ -418,7 +418,7 @@ Game_Battler.prototype.fastCooldownFlat = function()
   // sum together all the fcd flat modifiers.
   const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.FastCooldownFlat,
+    J.ABS.EXT.TIMING.RegExp.FastCooldownFlat,
     baseParam,
     this);
 
@@ -441,7 +441,7 @@ Game_Battler.prototype.fastCooldownRate = function()
   // grab the base parameter value.
   const fcdRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.FastCooldownRate,
+    J.ABS.EXT.TIMING.RegExp.FastCooldownRate,
     baseParam,
     this);
 

@@ -3,11 +3,11 @@
  * Extends {@link JABS_Action.getCastTime}.
  * Applies cast speed into the equation of determining cast time.
  */
-J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
 JABS_Action.prototype.getCastTime = function()
 {
   // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
+  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();
@@ -26,11 +26,11 @@ JABS_Action.prototype.getCastTime = function()
  * Extends {@link JABS_Action.getCooldown}.
  * Applies fast cooldown into the equation of determining cooldown time.
  */
-J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
 JABS_Action.prototype.getCooldown = function()
 {
   // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
+  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();

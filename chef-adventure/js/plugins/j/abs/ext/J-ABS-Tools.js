@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:24:36 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -105,11 +105,6 @@ var J = J || {};
   }
 })();
 //endregion version check
-
-/**
- * The over-arching extensions collection for JABS.
- */
-J.ABS.EXT ||= {};
 
 /**
  * The plugin umbrella that governs all things related to this plugin.

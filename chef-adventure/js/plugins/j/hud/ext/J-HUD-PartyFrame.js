@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:38:17 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -55,20 +55,20 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.HUD.EXT_PARTY = {};
+J.HUD.EXT.PARTY = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.HUD.EXT_PARTY = {};
-J.HUD.EXT_PARTY.Metadata = {};
-J.HUD.EXT_PARTY.Metadata.Version = '1.0.0';
-J.HUD.EXT_PARTY.Metadata.Name = `J-HUD-PartyFrame`;
+J.HUD.EXT.PARTY = {};
+J.HUD.EXT.PARTY.Metadata = {};
+J.HUD.EXT.PARTY.Metadata.Version = '1.0.0';
+J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.HUD.EXT_PARTY.Aliased = {
+J.HUD.EXT.PARTY.Aliased = {
   Scene_Map: new Map(),
 };
 //endregion introduction
@@ -78,11 +78,11 @@ J.HUD.EXT_PARTY.Aliased = {
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
    * All encompassing _j object for storing this plugin's properties.
@@ -101,11 +101,11 @@ Scene_Map.prototype.initialize = function()
 /**
  * Once the map is loaded, create the text log.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
   this.createHudPartyFrame();
@@ -154,11 +154,11 @@ Scene_Map.prototype.mapNameWindowRect = function()
 /**
  * Refreshes the hud on-command.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
 
   // refresh the party frame.
   this._j._partyFrame.refresh();
@@ -167,11 +167,11 @@ Scene_Map.prototype.refreshHud = function()
 /**
  * Extend the update loop for the party frame.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
   this.handleRefreshPartyFrame();

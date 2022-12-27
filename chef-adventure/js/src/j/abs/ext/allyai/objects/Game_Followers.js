@@ -3,11 +3,11 @@
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
 Game_Followers.prototype.show = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Followers.get('show').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('show').call(this);
 
   // update all allies when choosing "show" as an event command.
   $gameMap.updateAllies();
@@ -20,11 +20,11 @@ Game_Followers.prototype.show = function()
  * OVERWRITE If you're using this, the followers always show up!
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
 Game_Followers.prototype.hide = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Followers.get('hide').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('hide').call(this);
 
   // update all allies when choosing "hide" as an event command.
   $gameMap.updateAllies();

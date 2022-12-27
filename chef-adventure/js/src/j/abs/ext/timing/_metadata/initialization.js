@@ -6,12 +6,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.ABS.EXT_TIMING = {};
+J.ABS.EXT.TIMING = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_TIMING.Metadata = {
+J.ABS.EXT.TIMING.Metadata = {
   /**
    * The name of this plugin.
    */
@@ -23,12 +23,12 @@ J.ABS.EXT_TIMING.Metadata = {
   Version: '1.0.0',
 };
 
-J.ABS.EXT_TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT_TIMING.Metadata.Name);
+J.ABS.EXT.TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT.TIMING.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_TIMING.Aliased = {
+J.ABS.EXT.TIMING.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
@@ -39,7 +39,7 @@ J.ABS.EXT_TIMING.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ABS.EXT_TIMING.RegExp = {
+J.ABS.EXT.TIMING.RegExp = {
   BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,

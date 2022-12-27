@@ -2,11 +2,11 @@
  * Extends {@link Game_Map.update}.
  * Also update the flow of star battle.
  */
-J.STAR.Aliased.Game_Map.set('update', Game_Map.prototype.update);
+J.ABS.EXT.STAR.Aliased.Game_Map.set('update', Game_Map.prototype.update);
 Game_Map.prototype.update = function()
 {
   // perform original logic.
-  J.STAR.Aliased.Game_Map.get('update').call(this);
+  J.ABS.EXT.STAR.Aliased.Game_Map.get('update').call(this);
 
   // update the flow of star battle.
   this.updateStarBattle();
@@ -98,7 +98,7 @@ Game_Map.prototype.starPhasePrepare = function()
   const origin = new StarOrigin($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
 
   // transfer them to the star battlefield.
-  BattleManager.setupStarBattle(origin, battleMapId ?? J.STAR.DefaultValues.EnemyMap);
+  BattleManager.setupStarBattle(origin, battleMapId ?? J.ABS.EXT.STAR.DefaultValues.EnemyMap);
 
   // engage battle music.
   BattleManager.playBattleBgm();
@@ -128,9 +128,9 @@ Game_Map.prototype.postTransferEnemyParsing = function()
 Game_Map.prototype.generateStarEnemy = function(gameEnemy, index) 
 {
   // stop generating enemies if we reached the max count.
-  if (index >= J.STAR.DefaultValues.MaxEnemyCount) 
+  if (index >= J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount) 
   {
-    console.warn(`Exceeded enemy count limit of ${J.STAR.DefaultValues.MaxEnemyCount}.`);
+    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.`);
     return;
   }
 
@@ -152,7 +152,7 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
   $dataMap.events[normalizedIndex] = enemyData;
 
   // generate a new event based on this JABS enemy.
-  const newEnemy = new Game_Event(J.STAR.DefaultValues.EnemyMap, normalizedIndex);
+  const newEnemy = new Game_Event(J.ABS.EXT.STAR.DefaultValues.EnemyMap, normalizedIndex);
 
   // TODO: update this, this is almost certainly broken logic after the delete update!
   // directly assign the event index to the enemies.

@@ -1,9 +1,9 @@
 //region JABS_InputController
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
 JABS_InputController.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('initMembers').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('initMembers').call(this);
 
   /**
    * The input delay between when the button is pressed down and when the charging can begin.
@@ -90,12 +90,12 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
  * Extends {@link JABS_InputController.updateMainhandAction}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateMainhandAction', JABS_InputController.prototype.updateMainhandAction);
 JABS_InputController.prototype.updateMainhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateMainhandAction').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateMainhandAction').call(this);
 
   // handle the charging.
   this.handleMainhandCharging();
@@ -202,12 +202,12 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
  * Extends {@link JABS_InputController.updateOffhandAction}.
  * Handles charging capability to the offhand.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateOffhandAction', JABS_InputController.prototype.updateOffhandAction);
 JABS_InputController.prototype.updateOffhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateOffhandAction').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateOffhandAction').call(this);
 
   // handle the charging.
   this.handleOffhandCharging();
@@ -360,12 +360,12 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
  * Extends {@link JABS_InputController.updateCombatAction1}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction1', JABS_InputController.prototype.updateCombatAction1);
 JABS_InputController.prototype.updateCombatAction1 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction1').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction1').call(this);
 
   // handle the charging.
   this.handleCombatAction1Charging();
@@ -428,12 +428,12 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
  * Extends {@link JABS_InputController.updateCombatAction2}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction2', JABS_InputController.prototype.updateCombatAction2);
 JABS_InputController.prototype.updateCombatAction2 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction2').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction2').call(this);
 
   // handle the charging.
   this.handleCombatAction2Charging();
@@ -496,12 +496,12 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
  * Extends {@link JABS_InputController.updateCombatAction3}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction3', JABS_InputController.prototype.updateCombatAction3);
 JABS_InputController.prototype.updateCombatAction3 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction3').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction3').call(this);
 
   // handle the charging.
   this.handleCombatAction3Charging();
@@ -564,12 +564,12 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
  * Extends {@link JABS_InputController.updateCombatAction4}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction4', JABS_InputController.prototype.updateCombatAction4);
 JABS_InputController.prototype.updateCombatAction4 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction4').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction4').call(this);
 
   // handle the charging.
   this.handleCombatAction4Charging();

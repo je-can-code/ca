@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:20:03 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -86,12 +86,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.DANGER = {};
+J.ABS.EXT.DANGER = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DANGER.Metadata =
+J.ABS.EXT.DANGER.Metadata =
   {
     /**
      * The name of this plugin.
@@ -107,19 +107,19 @@ J.DANGER.Metadata =
 /**
  * A collection of helper functions for use within this plugin.
  */
-J.DANGER.Helpers = {};
+J.ABS.EXT.DANGER.Helpers = {};
 
 /**
  * A collection of helper functions for the use with the plugin manager.
  */
-J.DANGER.Helpers.PluginManager = {};
+J.ABS.EXT.DANGER.Helpers.PluginManager = {};
 
 /**
  * Translates the plugin parameters' JSON into the danger icon metadata.
  * @param {string} obj The JSON to be parsed into danger icons.
  * @returns {{}} A custom object containing KVPs of [name]: [iconIndex].
  */
-J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
+J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
 {
   // no danger indicator icons identified.
   if (!obj) return {};
@@ -137,64 +137,64 @@ J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.DANGER.PluginParameters = PluginManager.parameters(J.DANGER.Metadata.Name);
-J.DANGER.Metadata.DefaultEnemyShowDangerIndicator =
-  J.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
-J.DANGER.Metadata.DangerIndicatorIcons =
-  J.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.DANGER.PluginParameters['dangerIndicatorIconData']);
+J.ABS.EXT.DANGER.PluginParameters = PluginManager.parameters(J.ABS.EXT.DANGER.Metadata.Name);
+J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator =
+  J.ABS.EXT.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
+J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons =
+  J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.EXT.DANGER.PluginParameters['dangerIndicatorIconData']);
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
  */
-J.DANGER.DangerIndicatorIcons =
+J.ABS.EXT.DANGER.DangerIndicatorIcons =
   {
     /**
      * Worthless enemies are 7+ levels below the player.
      * @type {number}
      */
-    Worthless: J.DANGER.Metadata.DangerIndicatorIcons.Worthless,
+    Worthless: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Worthless,
 
     /**
      * Simple enemies are 5-6 levels below the player.
      * @type {number}
      */
-    Simple: J.DANGER.Metadata.DangerIndicatorIcons.Simple,
+    Simple: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Simple,
 
     /**
      * Easy enemies are 3-4 levels below the player.
      * @type {number}
      */
-    Easy: J.DANGER.Metadata.DangerIndicatorIcons.Easy,
+    Easy: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Easy,
 
     /**
      * Average enemies are +/- 2 levels of the player.
      * @type {number}
      */
-    Average: J.DANGER.Metadata.DangerIndicatorIcons.Average,
+    Average: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Average,
 
     /**
      * Hard enemies are 3-4 levels above the player.
      * @type {number}
      */
-    Hard: J.DANGER.Metadata.DangerIndicatorIcons.Hard,
+    Hard: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Hard,
 
     /**
      * Grueling enemies are 5-6 levels above the player.
      * @type {number}
      */
-    Grueling: J.DANGER.Metadata.DangerIndicatorIcons.Grueling,
+    Grueling: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Grueling,
 
     /**
      * Deadly enemies are 7+ levels above the player.
      * @type {number}
      */
-    Deadly: J.DANGER.Metadata.DangerIndicatorIcons.Deadly,
+    Deadly: J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons.Deadly,
   };
 
 /**
  * A collection of all extended classes in this plugin.
  */
-J.DANGER.Aliased =
+J.ABS.EXT.DANGER.Aliased =
   {
     Game_Character: new Map(),
     Game_Event: new Map(),
@@ -210,7 +210,7 @@ J.DANGER.Aliased =
  * Extends `initCoreData()` to include our danger indicator flag.
  * @param {JABS_BattlerCoreData} battlerCoreData The core data of the battler.
  */
-J.DANGER.Aliased.JABS_Battler.set('initCoreData', JABS_Battler.prototype.initCoreData);
+J.ABS.EXT.DANGER.Aliased.JABS_Battler.set('initCoreData', JABS_Battler.prototype.initCoreData);
 JABS_Battler.prototype.initCoreData = function(battlerCoreData)
 {
   /**
@@ -223,7 +223,7 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
     : battlerCoreData.showDangerIndicator();
 
   // perform original logic.
-  J.DANGER.Aliased.JABS_Battler.get('initCoreData').call(this, battlerCoreData);
+  J.ABS.EXT.DANGER.Aliased.JABS_Battler.get('initCoreData').call(this, battlerCoreData);
 };
 /**
  * Gets whether or not this battler should show its danger indicator.
@@ -239,17 +239,17 @@ JABS_Battler.prototype.showDangerIndicator = function()
 /**
  * Extends the `initMembers()` function to include our new data.
  */
-J.DANGER.Aliased.JABS_BattlerCoreData.set('initMembers', JABS_BattlerCoreData.prototype.initMembers);
+J.ABS.EXT.DANGER.Aliased.JABS_BattlerCoreData.set('initMembers', JABS_BattlerCoreData.prototype.initMembers);
 JABS_BattlerCoreData.prototype.initMembers = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.JABS_BattlerCoreData.get('initMembers').call(this);
+  J.ABS.EXT.DANGER.Aliased.JABS_BattlerCoreData.get('initMembers').call(this);
 
   /**
    * Whether or not this battler's danger indicator will be visible.
    * @type {boolean} True if the battler's danger indicator should show, false otherwise.
    */
-  this._showDangerIndicator = J.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
+  this._showDangerIndicator = J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
 };
 /**
  * Sets whether or not to show the danger indicator.
@@ -342,19 +342,19 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
   switch (true)
   {
     case (bpl < ppl * 0.5):
-      return J.DANGER.DangerIndicatorIcons.Worthless;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Worthless;
     case (bpl >= ppl * 0.5 && bpl < ppl * 0.7):
-      return J.DANGER.DangerIndicatorIcons.Simple;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Simple;
     case (bpl >= ppl * 0.7 && bpl < ppl * 0.9):
-      return J.DANGER.DangerIndicatorIcons.Easy;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Easy;
     case (bpl >= ppl * 0.9 && bpl < ppl * 1.1):
-      return J.DANGER.DangerIndicatorIcons.Average;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Average;
     case (bpl >= ppl * 1.1 && bpl < ppl * 1.3):
-      return J.DANGER.DangerIndicatorIcons.Hard;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Hard;
     case (bpl >= ppl * 1.3 && bpl <= ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Grueling;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Grueling;
     case (bpl > ppl * 1.5):
-      return J.DANGER.DangerIndicatorIcons.Deadly;
+      return J.ABS.EXT.DANGER.DangerIndicatorIcons.Deadly;
     default:
       return -1;
   }
@@ -368,7 +368,7 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
  */
 Game_Enemy.prototype.showDangerIndicator = function()
 {
-  let val = J.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
+  let val = J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
 
   const referenceData = this.enemy();
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoDangerIndicator])
@@ -399,7 +399,7 @@ Game_Enemy.prototype.showDangerIndicator = function()
  * Adds the danger indicator data to the core battler data.
  * @param {JABS_BattlerCoreData|null} battlerCoreData The core data of this battler.
  */
-J.DANGER.Aliased.Game_Event.set('initializeCoreData', Game_Event.prototype.initializeCoreData);
+J.ABS.EXT.DANGER.Aliased.Game_Event.set('initializeCoreData', Game_Event.prototype.initializeCoreData);
 Game_Event.prototype.initializeCoreData = function(battlerCoreData)
 {
   // localize the variable to avoid reassigning the parameter.
@@ -413,7 +413,7 @@ Game_Event.prototype.initializeCoreData = function(battlerCoreData)
   }
 
   // perform original logic, potentially with the modified core data.
-  J.DANGER.Aliased.Game_Event.get('initializeCoreData').call(this, localBattlerCoreData);
+  J.ABS.EXT.DANGER.Aliased.Game_Event.get('initializeCoreData').call(this, localBattlerCoreData);
 };
 
 /**
@@ -477,7 +477,7 @@ Game_Event.prototype.canShowDangerIndicator = function(battlerId)
 /**
  * Extends the `initMembers()` function to include our new data.
  */
-J.DANGER.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.initMembers);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.initMembers);
 Sprite_Character.prototype.initMembers = function()
 {
   /**
@@ -492,17 +492,17 @@ Sprite_Character.prototype.initMembers = function()
   this._j._dangerIndicator = null;
 
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('initMembers').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('initMembers').call(this);
 };
 
 /**
  * Setup this `Sprite_Character` with the additional JABS-related functionalities.
  */
-J.DANGER.Aliased.Sprite_Character.set('setupJabsSprite', Sprite_Character.prototype.setupJabsSprite);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('setupJabsSprite', Sprite_Character.prototype.setupJabsSprite);
 Sprite_Character.prototype.setupJabsSprite = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('setupJabsSprite').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('setupJabsSprite').call(this);
 
   // if this is a battler, configure the visual components of the battler.
   this.handleBattlerSetup();
@@ -578,11 +578,11 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
 /**
  * Extends `update()` to update the danger indicator.
  */
-J.DANGER.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
 Sprite_Character.prototype.update = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('update').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('update').call(this);
 
   // check if we can update the indicator.
   if (this.canUpdateDangerIndicator())
@@ -647,13 +647,13 @@ Sprite_Character.prototype.hideDangerIndicator = function()
 /**
  * Extends `refreshAllCharacterSprites()` to also refresh danger indicators.
  */
-J.DANGER.Aliased.Spriteset_Map.set('refreshAllCharacterSprites', Spriteset_Map.prototype.refreshAllCharacterSprites);
+J.ABS.EXT.DANGER.Aliased.Spriteset_Map.set('refreshAllCharacterSprites', Spriteset_Map.prototype.refreshAllCharacterSprites);
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {
   // iterate over each sprite and set up its danger indicators if necessary.
   this._characterSprites.forEach(sprite => sprite.setupDangerIndicator());
 
   // perform original logic.
-  J.DANGER.Aliased.Spriteset_Map.get('refreshAllCharacterSprites').call(this);
+  J.ABS.EXT.DANGER.Aliased.Spriteset_Map.get('refreshAllCharacterSprites').call(this);
 };
 //endregion Spriteset_Map

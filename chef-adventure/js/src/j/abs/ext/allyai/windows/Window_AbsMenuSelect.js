@@ -2,11 +2,11 @@
 /**
  * Extends the initialization to include the actor id for ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
 Window_AbsMenuSelect.prototype.initialize = function(rect, type)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize').call(this, rect, type);
+  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize').call(this, rect, type);
 
   // TODO: init properly.
   this._j._chosenActorId = 0;
@@ -33,11 +33,11 @@ Window_AbsMenuSelect.prototype.getActorId = function()
 /**
  * Extends the JABS quick menu select to also handle ai management.
  */
-J.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
 Window_AbsMenuSelect.prototype.makeCommandList = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList').call(this);
 
   // pivot on the menu type.
   switch (this._j._menuType)
@@ -74,11 +74,11 @@ Window_AbsMenuSelect.prototype.makeAllyList = function()
 
   // define the icons for passive/aggressive ally AI aggro settings.
   const aggroPassiveCommandName = $gameParty.isAggro()
-    ? J.ALLYAI.Metadata.PartyAiAggressiveText
-    : J.ALLYAI.Metadata.PartyAiPassiveText;
+    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText
+    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
   const aggroPassiveCommandIcon = $gameParty.isAggro()
-    ? J.ALLYAI.Metadata.PartyAiAggressiveIconIndex
-    : J.ALLYAI.Metadata.PartyAiPassiveIconIndex;
+    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex
+    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
 
   // build the command for toggling ally AI aggro.
   const command = new WindowCommandBuilder(aggroPassiveCommandName)
@@ -118,8 +118,8 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
 
     // build the icon based on whether or not its equipped.
     const iconIndex = isEquipped
-      ? J.ALLYAI.Metadata.AiModeEquippedIconIndex
-      : J.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+      ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex
+      : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
 
     // build the command.
     const command = new WindowCommandBuilder(name)

@@ -13,13 +13,13 @@ Game_Player.prototype.getInputDirection = function()
  * If there is an underlying diagonal direction, then move diagonally.
  * @param {number} direction The direction being moved.
  */
-J.DIAG.Aliased.Game_Player.moveStraight = Game_Player.prototype.moveStraight;
+J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight = Game_Player.prototype.moveStraight;
 Game_Player.prototype.moveStraight = function(direction)
 {
   // if we're using cyclone movement, rely on that instead.
   if (globalThis.CycloneMovement)
   {
-    J.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
     return;
   }
 
@@ -30,7 +30,7 @@ Game_Player.prototype.moveStraight = function(direction)
   }
   else
   {
-    J.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
   }
 };
 
@@ -40,10 +40,10 @@ Game_Player.prototype.moveStraight = function(direction)
  * @param {number} horz The horizontal piece of the direction to move.
  * @param {number} vert The vertical piece of the direction to move.
  */
-J.DIAG.Aliased.Game_Player.moveDiagonally = Game_Player.prototype.moveDiagonally;
+J.ABS.EXT.DIAG.Aliased.Game_Player.moveDiagonally = Game_Player.prototype.moveDiagonally;
 Game_Player.prototype.moveDiagonally = function(horz, vert)
 {
-  J.DIAG.Aliased.Game_Player.moveDiagonally.call(this, horz, vert);
+  J.ABS.EXT.DIAG.Aliased.Game_Player.moveDiagonally.call(this, horz, vert);
   // if we're using cyclone movement, rely on that instead.
   if (globalThis && globalThis.CycloneMovement) return;
 
@@ -72,7 +72,7 @@ Game_Player.prototype.moveDiagonally = function(horz, vert)
  */
 if (globalThis && globalThis.CycloneMovement)
 {
-  J.DIAG.Aliased.Game_Player.shouldTriggerEvent = Game_Player.prototype.shouldTriggerEvent;
+  J.ABS.EXT.DIAG.Aliased.Game_Player.shouldTriggerEvent = Game_Player.prototype.shouldTriggerEvent;
   Game_Player.prototype.shouldTriggerEvent = function(event, triggers, normal)
   {
     if (event.isJabsBattler())
@@ -81,7 +81,7 @@ if (globalThis && globalThis.CycloneMovement)
     }
     else
     {
-      return J.DIAG.Aliased.Game_Player.shouldTriggerEvent.call(this, event, triggers, normal);
+      return J.ABS.EXT.DIAG.Aliased.Game_Player.shouldTriggerEvent.call(this, event, triggers, normal);
     }
   };
 }

@@ -2,11 +2,11 @@
 /**
  * Extends initialization to include the ally AI configurations.
  */
-J.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('initialize').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('initialize').call(this);
 
   // initialize our ally ai members.
   this.initAllyAi();
@@ -65,11 +65,11 @@ Game_Party.prototype.becomePassive = function()
  * Extends {@link Game_Party.addActor}.
  * Also updates allies to accommodate the addition of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
 Game_Party.prototype.addActor = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('addActor').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('addActor').call(this, actorId);
 
   // update all allies when adding an actor to the party.
   $gameMap.updateAllies();
@@ -79,11 +79,11 @@ Game_Party.prototype.addActor = function(actorId)
  * Extends {@link Game_Party.removeActor}.
  * Also updates allies to accommodate the removal of the actor.
  */
-J.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
 Game_Party.prototype.removeActor = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Party.get('removeActor').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('removeActor').call(this, actorId);
 
   // update all allies when removing an actor from the party.
   $gameMap.updateAllies();

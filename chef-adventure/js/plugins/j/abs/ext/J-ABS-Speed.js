@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:23:04 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -80,12 +80,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.ABS.EXT_SPEED = {};
+J.ABS.EXT.SPEED = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_SPEED.Metadata = {
+J.ABS.EXT.SPEED.Metadata = {
   /**
    * The name of this plugin.
    */
@@ -100,12 +100,12 @@ J.ABS.EXT_SPEED.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ABS.EXT_SPEED.PluginParameters = PluginManager.parameters(J.ABS.EXT_SPEED.Metadata.Name);
+J.ABS.EXT.SPEED.PluginParameters = PluginManager.parameters(J.ABS.EXT.SPEED.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_SPEED.Aliased = {
+J.ABS.EXT.SPEED.Aliased = {
   Game_Actor: new Map(),
   Game_Character: new Map(),
   Game_Battler: new Map(),
@@ -115,7 +115,7 @@ J.ABS.EXT_SPEED.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ABS.EXT_SPEED.RegExp = {
+J.ABS.EXT.SPEED.RegExp = {
   WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
 };
 //endregion Introduction
@@ -148,7 +148,7 @@ RPG_Base.prototype.getJabsSpeedBoost = function()
  */
 RPG_Base.prototype.extractJabsSpeedBoost = function()
 {
-  return this.getNumberFromNotesByRegex(J.ABS.EXT_SPEED.RegExp.WalkSpeedBoost, true);
+  return this.getNumberFromNotesByRegex(J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
 };
 //endregion RPG_Base
 
@@ -157,11 +157,11 @@ RPG_Base.prototype.extractJabsSpeedBoost = function()
  * Extends {@link #onBattlerDataChange}.
  * Refreshes movement speed boosts when the battler's data changes.
  */
-J.ABS.EXT_SPEED.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+J.ABS.EXT.SPEED.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
 Game_Actor.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.EXT_SPEED.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
 
   // update JABS-related things.
   this.refreshSpeedBoosts();
@@ -172,11 +172,11 @@ Game_Actor.prototype.onBattlerDataChange = function()
 /**
  * Extends {@link Game_Battler.initMembers}.
  */
-J.ABS.EXT_SPEED.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
+J.ABS.EXT.SPEED.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_SPEED.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Battler.get('initMembers').call(this);
 
   // initialize the extra members.
   this.initSpeedBoosts();
@@ -256,11 +256,11 @@ Game_Battler.prototype.refreshSpeedBoosts = function()
  * Enables modification of the character's movement speed on the map.
  * @return {number} The modified distance per frame to move.
  */
-J.ABS.EXT_SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.prototype.distancePerFrame);
+J.ABS.EXT.SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.prototype.distancePerFrame);
 Game_Character.prototype.distancePerFrame = function()
 {
   // determine base distance per frame.
-  const base = J.ABS.EXT_SPEED.Aliased.Game_Character.get('distancePerFrame').call(this);
+  const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get('distancePerFrame').call(this);
 
   // calculate the speed boost bonus based on the base.
   const bonus = this.calculateSpeedBoostBonus(base);
@@ -332,11 +332,11 @@ Game_Character.prototype.minimumDistancePerFrame = function()
  * Extends {@link #onBattlerDataChange}.
  * Refreshes movement speed boosts when the battler's data changes.
  */
-J.ABS.EXT_SPEED.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
+J.ABS.EXT.SPEED.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
 Game_Enemy.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.EXT_SPEED.Aliased.Game_Enemy.get('onBattlerDataChange').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Enemy.get('onBattlerDataChange').call(this);
 
   // update JABS-related things.
   this.refreshSpeedBoosts();

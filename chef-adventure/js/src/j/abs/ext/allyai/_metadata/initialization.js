@@ -7,7 +7,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -15,7 +15,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.2.0';
+  const requiredJabsVersion = '3.2.2';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -28,44 +28,44 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.ALLYAI = {};
+J.ABS.EXT.ALLYAI = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ALLYAI.Metadata = {};
-J.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ALLYAI.Metadata.Version = '1.1.0';
+J.ABS.EXT.ALLYAI.Metadata = {};
+J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
+J.ABS.EXT.ALLYAI.Metadata.Version = '1.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ALLYAI.PluginParameters = PluginManager.parameters(J.ALLYAI.Metadata.Name);
+J.ABS.EXT.ALLYAI.PluginParameters = PluginManager.parameters(J.ABS.EXT.ALLYAI.Metadata.Name);
 
 // configuration for the main JABS quick menu command for ally AI.
-J.ALLYAI.Metadata.AllyAiCommandName = J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
-J.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
-J.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName = J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
 
 // configuration for party-wide commands.
-J.ALLYAI.Metadata.PartyAiPassiveText = J.ALLYAI.PluginParameters['partyWidePassiveText'];
-J.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
-J.ALLYAI.Metadata.PartyAiAggressiveText = J.ALLYAI.PluginParameters['partyWideAggressiveText'];
-J.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveText'];
+J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
+J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveText'];
+J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
 
 // configuration for the various ai modes.
-J.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeEquipped']);
-J.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ALLYAI.PluginParameters['aiModeNotEquipped']);
-J.ALLYAI.Metadata.AiModeDoNothingText = J.ALLYAI.PluginParameters['aiModeDoNothing'];
-J.ALLYAI.Metadata.AiModeOnlyAttackText = J.ALLYAI.PluginParameters['aiModeOnlyAttack'];
-J.ALLYAI.Metadata.AiModeVarietyText = J.ALLYAI.PluginParameters['aiModeVariety'];
-J.ALLYAI.Metadata.AiModeFullForceText = J.ALLYAI.PluginParameters['aiModeFullForce'];
-J.ALLYAI.Metadata.AiModeSupportText = J.ALLYAI.PluginParameters['aiModeSupport'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeEquipped']);
+J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeNotEquipped']);
+J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeDoNothing'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeOnlyAttack'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeVariety'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeFullForce'];
+J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeSupport'];
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ALLYAI.Aliased = {
+J.ABS.EXT.ALLYAI.Aliased = {
   Game_Actor: new Map(),
   Game_BattleMap: new Map(),
   Game_Battler: {},
@@ -88,7 +88,7 @@ J.ALLYAI.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ALLYAI.RegExp = {};
-J.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
+J.ABS.EXT.ALLYAI.RegExp = {};
+J.ABS.EXT.ALLYAI.RegExp.DefaultAi = /<defaultAi:(do-nothing|basic-attack|variety|full-force|support)>/i;
 //endregion plugin setup and configuration
 //endregion Introduction

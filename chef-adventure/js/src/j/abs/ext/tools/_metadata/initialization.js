@@ -17,11 +17,6 @@ var J = J || {};
 //endregion version check
 
 /**
- * The over-arching extensions collection for JABS.
- */
-J.ABS.EXT ||= {};
-
-/**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.ABS.EXT.TOOLS = {};

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:20:56 GMT-0800 (Pacific Standard Time)  */
 
 //region Initialization
 /*:
@@ -91,12 +91,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.DIAG = {};
+J.ABS.EXT.DIAG = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIAG.Metadata = {
+J.ABS.EXT.DIAG.Metadata = {
   /**
    * The version of this plugin.
    */
@@ -106,9 +106,9 @@ J.DIAG.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.DIAG.PluginParameters = PluginManager.parameters(J.DIAG.Metadata.Name);
-J.DIAG.Metadata = {
-  ...J.DIAG.Metadata,
+J.ABS.EXT.DIAG.PluginParameters = PluginManager.parameters(J.ABS.EXT.DIAG.Metadata.Name);
+J.ABS.EXT.DIAG.Metadata = {
+  ...J.ABS.EXT.DIAG.Metadata,
   /**
    * The version of this plugin.
    */
@@ -118,7 +118,7 @@ J.DIAG.Metadata = {
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.DIAG.Aliased = {
+J.ABS.EXT.DIAG.Aliased = {
   Game_BattleMap: {},
   Game_Character: {},
   Game_Event: {},
@@ -135,7 +135,7 @@ J.DIAG.Aliased = {
  * If there is an underlying diagonal direction, then move diagonally.
  * @param {number} direction The direction being moved.
  */
-J.DIAG.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
+J.ABS.EXT.DIAG.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
 Game_Event.prototype.moveStraight = function(direction)
 {
   const initialDirection = this.getCustomDirection();
@@ -146,14 +146,14 @@ Game_Event.prototype.moveStraight = function(direction)
   }
   else
   {
-    J.DIAG.Aliased.Game_Event.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Event.moveStraight.call(this, direction);
   }
 };
 
-J.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
+J.ABS.EXT.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
 Game_Event.prototype.moveDiagonally = function(horz, vert)
 {
-  J.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
+  J.ABS.EXT.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
   if (this.isDiagonalDirection(this.direction()))
   {
     this.convertDiagonalToDir4();
@@ -652,13 +652,13 @@ Game_Player.prototype.getInputDirection = function()
  * If there is an underlying diagonal direction, then move diagonally.
  * @param {number} direction The direction being moved.
  */
-J.DIAG.Aliased.Game_Player.moveStraight = Game_Player.prototype.moveStraight;
+J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight = Game_Player.prototype.moveStraight;
 Game_Player.prototype.moveStraight = function(direction)
 {
   // if we're using cyclone movement, rely on that instead.
   if (globalThis.CycloneMovement)
   {
-    J.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
     return;
   }
 
@@ -669,7 +669,7 @@ Game_Player.prototype.moveStraight = function(direction)
   }
   else
   {
-    J.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
   }
 };
 
@@ -679,10 +679,10 @@ Game_Player.prototype.moveStraight = function(direction)
  * @param {number} horz The horizontal piece of the direction to move.
  * @param {number} vert The vertical piece of the direction to move.
  */
-J.DIAG.Aliased.Game_Player.moveDiagonally = Game_Player.prototype.moveDiagonally;
+J.ABS.EXT.DIAG.Aliased.Game_Player.moveDiagonally = Game_Player.prototype.moveDiagonally;
 Game_Player.prototype.moveDiagonally = function(horz, vert)
 {
-  J.DIAG.Aliased.Game_Player.moveDiagonally.call(this, horz, vert);
+  J.ABS.EXT.DIAG.Aliased.Game_Player.moveDiagonally.call(this, horz, vert);
   // if we're using cyclone movement, rely on that instead.
   if (globalThis && globalThis.CycloneMovement) return;
 
@@ -711,7 +711,7 @@ Game_Player.prototype.moveDiagonally = function(horz, vert)
  */
 if (globalThis && globalThis.CycloneMovement)
 {
-  J.DIAG.Aliased.Game_Player.shouldTriggerEvent = Game_Player.prototype.shouldTriggerEvent;
+  J.ABS.EXT.DIAG.Aliased.Game_Player.shouldTriggerEvent = Game_Player.prototype.shouldTriggerEvent;
   Game_Player.prototype.shouldTriggerEvent = function(event, triggers, normal)
   {
     if (event.isJabsBattler())
@@ -720,7 +720,7 @@ if (globalThis && globalThis.CycloneMovement)
     }
     else
     {
-      return J.DIAG.Aliased.Game_Player.shouldTriggerEvent.call(this, event, triggers, normal);
+      return J.ABS.EXT.DIAG.Aliased.Game_Player.shouldTriggerEvent.call(this, event, triggers, normal);
     }
   };
 }

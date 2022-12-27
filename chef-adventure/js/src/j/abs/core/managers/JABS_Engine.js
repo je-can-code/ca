@@ -2463,7 +2463,7 @@ class JABS_Engine
     if (target.isEnemy()) return;
 
     // only works if the code is there to process.
-    if (!J.ALLYAI) return;
+    if (!J.ABS.EXT.ALLYAI) return;
 
     const newMemory = new JABS_BattleMemory(
       target.getBattlerId(),

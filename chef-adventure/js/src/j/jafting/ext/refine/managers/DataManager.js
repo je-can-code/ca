@@ -3,20 +3,20 @@
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
-J.JAFTING.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function()
 {
-  J.JAFTING.Aliased.DataManager.createGameObjects.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects.call(this);
   $gameJAFTING = new Game_JAFTING();
 };
 
 /**
  * Extends the save content creation to include creating JAFTING data.
  */
-J.JAFTING.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
 DataManager.makeSaveContents = function()
 {
-  const contents = J.JAFTING.Aliased.DataManager.makeSaveContents.call(this);
+  const contents = J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents.call(this);
   contents.jafting = $gameJAFTING;
   return contents;
 };
@@ -29,11 +29,11 @@ DataManager.makeSaveContents = function()
  *
  * TODO: change this plugin to use EXT_REFINE so there is no collision.
  */
-J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
   // perform original logic.
-  J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
+  J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2.call(this, contents);
 
   // grab the jafting contents out.
   $gameJAFTING = contents.jafting;

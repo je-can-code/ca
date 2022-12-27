@@ -4,7 +4,7 @@
  * Adds the danger indicator data to the core battler data.
  * @param {JABS_BattlerCoreData|null} battlerCoreData The core data of this battler.
  */
-J.DANGER.Aliased.Game_Event.set('initializeCoreData', Game_Event.prototype.initializeCoreData);
+J.ABS.EXT.DANGER.Aliased.Game_Event.set('initializeCoreData', Game_Event.prototype.initializeCoreData);
 Game_Event.prototype.initializeCoreData = function(battlerCoreData)
 {
   // localize the variable to avoid reassigning the parameter.
@@ -18,7 +18,7 @@ Game_Event.prototype.initializeCoreData = function(battlerCoreData)
   }
 
   // perform original logic, potentially with the modified core data.
-  J.DANGER.Aliased.Game_Event.get('initializeCoreData').call(this, localBattlerCoreData);
+  J.ABS.EXT.DANGER.Aliased.Game_Event.get('initializeCoreData').call(this, localBattlerCoreData);
 };
 
 /**

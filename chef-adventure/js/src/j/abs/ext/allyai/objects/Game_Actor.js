@@ -3,11 +3,11 @@
  * Extends {@link #initMembers}.
  * Also tracks JABS ally AI.
  */
-J.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Actor.get('initMembers').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('initMembers').call(this);
 
   // init the additional members.
   this.initAllyAiMembers();
@@ -44,11 +44,11 @@ Game_Actor.prototype.initAllyAiMembers = function()
  * Extends {@link #setup}.
  * Also initializes ally AI.
  */
-J.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Actor.get('setup').call(this, actorId);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('setup').call(this, actorId);
 
   // also initialize the ally's AI.
   this.initAllyAI();
@@ -100,10 +100,10 @@ Game_Actor.prototype.getDefaultAllyAI = function()
   if (!this._actorId) return null;
 
   // extract the ally ai mode from the actor.
-  const actorMode = this.actor().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
+  const actorMode = this.actor().getStringFromNotesByRegex(J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 
   // extract the ally ai mode from the class.
-  const classMode = this.currentClass().getStringFromNotesByRegex(J.ALLYAI.RegExp.DefaultAi, true);
+  const classMode = this.currentClass().getStringFromNotesByRegex(J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 
   // priority is class > actor > default, for ally ai mode.
   const allyAiMode = classMode ?? actorMode;

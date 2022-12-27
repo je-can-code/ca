@@ -3,11 +3,11 @@
  * Extends {@link JABS_Battler.initBattleInfo}.
  * Also initializes the charge-related data.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_Battler.set('initBattleInfo', JABS_Battler.prototype.initBattleInfo);
+J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('initBattleInfo', JABS_Battler.prototype.initBattleInfo);
 JABS_Battler.prototype.initBattleInfo = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_Battler.get('initBattleInfo').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_Battler.get('initBattleInfo').call(this);
 
   // initialize the charge-related members.
   this.initChargeData();
@@ -535,11 +535,11 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData)
  * Extends {@link JABS_Battler.update}.
  * Also updates charging as-needed.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
+J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
 JABS_Battler.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_Battler.get('update').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_Battler.get('update').call(this);
 
   // also update charging.
   this.updateCharging();
@@ -594,7 +594,7 @@ JABS_Battler.prototype.preUpdateCharging = function(currentTier)
   {
     // grab the [default] animation id.
     const animationId = currentTier.whileChargingAnimationId === 0
-      ? J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId
+      ? J.ABS.EXT.CHARGE.Metadata.DefaultChargingAnimationId
       : currentTier.whileChargingAnimationId;
 
     // play an animation.
@@ -612,7 +612,7 @@ JABS_Battler.prototype.canShowPreChargingAnimation = function(currentTier)
   const hasNoAnimationId = currentTier.whileChargingAnimationId === 0;
 
   // check if we set a default animation id to play.
-  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId !== 0;
+  const usingDefault = J.ABS.EXT.CHARGE.Metadata.DefaultChargingAnimationId !== 0;
 
   // if we have no animation id nor default, then we cannot show animations.
   if (hasNoAnimationId && !usingDefault) return false;
@@ -669,7 +669,7 @@ JABS_Battler.prototype.canShowTierCompletionAnimation = function(currentTier)
   const hasNoAnimationId = currentTier.chargeTierCompleteAnimationId === 0;
 
   // check if we set a default animation id to play.
-  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId !== 0;
+  const usingDefault = J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId !== 0;
 
   // if we have no animation id nor default, then we cannot show animations.
   if (hasNoAnimationId && !usingDefault) return false;
@@ -687,12 +687,12 @@ JABS_Battler.prototype.onMaxCharge = function(finalChargeTier)
 {
   // shorthand our various conditions for playing/showing things.
   const canShowAnimation = this.canShowTierCompletionAnimation(finalChargeTier);
-  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
-  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+  const canPlaySE = J.ABS.EXT.CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT.CHARGE.Metadata.AllowTierCompleteSEandAnimation;
 
   // grab the [default] animation id.
   const animationId = finalChargeTier.chargeTierCompleteAnimationId === 0
-    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    ? J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId
     : finalChargeTier.chargeTierCompleteAnimationId;
 
   // check if we can show the animation.
@@ -727,12 +727,12 @@ JABS_Battler.prototype.onChargeTierComplete = function(completedChargeTier, next
 {
   // shorthand our various conditions for playing/showing things.
   const canShowAnimation = this.canShowTierCompletionAnimation(completedChargeTier);
-  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
-  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+  const canPlaySE = J.ABS.EXT.CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT.CHARGE.Metadata.AllowTierCompleteSEandAnimation;
 
   // grab the [default] animation id.
   const animationId = completedChargeTier.chargeTierCompleteAnimationId === 0
-    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    ? J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId
     : completedChargeTier.chargeTierCompleteAnimationId;
 
   // check if we can show the animation.

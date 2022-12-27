@@ -278,7 +278,7 @@ class RPG_Base
     if (typeof obj === "string")
     {
       // check if the string is an unparsed array.
-      if (obj.startsWith("[") && obj.endsWith("]"))
+      if (obJ.ABS.EXT.STARtsWith("[") && obj.endsWith("]"))
       {
         // expose the stringified segments of the array.
         const exposedArray = obj

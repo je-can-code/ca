@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:27:17 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -38,7 +38,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -51,38 +51,38 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.HUD.EXT_INPUT = {};
+J.HUD.EXT.INPUT = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.HUD.EXT_INPUT = {};
-J.HUD.EXT_INPUT.Metadata = {};
-J.HUD.EXT_INPUT.Metadata.Version = '1.0.0';
-J.HUD.EXT_INPUT.Metadata.Name = `J-HUD-InputFrame`;
+J.HUD.EXT.INPUT = {};
+J.HUD.EXT.INPUT.Metadata = {};
+J.HUD.EXT.INPUT.Metadata.Version = '1.0.0';
+J.HUD.EXT.INPUT.Metadata.Name = `J-HUD-InputFrame`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.HUD.EXT_INPUT.PluginParameters = PluginManager.parameters(J.HUD.EXT_INPUT.Metadata.Name);
+J.HUD.EXT.INPUT.PluginParameters = PluginManager.parameters(J.HUD.EXT.INPUT.Metadata.Name);
 
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.HUD.EXT_INPUT.Metadata =
+J.HUD.EXT.INPUT.Metadata =
   {
     // the previously defined metadata.
-    ...J.HUD.EXT_INPUT.Metadata,
+    ...J.HUD.EXT.INPUT.Metadata,
 
     // our configurable data points.
-    InputFrameX: Number(J.HUD.EXT_INPUT.PluginParameters['inputFrameX']),
-    InputFrameY: Number(J.HUD.EXT_INPUT.PluginParameters['inputFrameY']),
+    InputFrameX: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameX']),
+    InputFrameY: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameY']),
   };
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.HUD.EXT_INPUT.Aliased = {
+J.HUD.EXT.INPUT.Aliased = {
   Scene_Map: new Map(),
 };
 //endregion metadata
@@ -92,11 +92,11 @@ J.HUD.EXT_INPUT.Aliased = {
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
    * All encompassing _j object for storing my custom properties.
@@ -113,11 +113,11 @@ Scene_Map.prototype.initialize = function()
 /**
  * Once the map is loaded, create the text log.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the target frame.
   this.createInputFrame();
@@ -154,11 +154,11 @@ Scene_Map.prototype.inputFrameWindowRect = function()
 /**
  * Extend the update loop for the input frame.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
   this.handleInputFrameUpdate();
@@ -214,11 +214,11 @@ Scene_Map.prototype.handleVisibilityInputFrame = function()
 /**
  * Refreshes the hud on-command.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
 
   // refresh the input frame.
   this._j._inputFrame.refreshCache();

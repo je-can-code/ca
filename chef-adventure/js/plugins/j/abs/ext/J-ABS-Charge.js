@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:16:54 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -189,12 +189,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.ABS.EXT_CHARGE = {};
+J.ABS.EXT.CHARGE = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_CHARGE.Metadata = {
+J.ABS.EXT.CHARGE.Metadata = {
   /**
    * The name of this plugin.
    */
@@ -209,46 +209,46 @@ J.ABS.EXT_CHARGE.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.ABS.EXT_CHARGE.PluginParameters = PluginManager.parameters(J.ABS.EXT_CHARGE.Metadata.Name);
+J.ABS.EXT.CHARGE.PluginParameters = PluginManager.parameters(J.ABS.EXT.CHARGE.Metadata.Name);
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_CHARGE.Metadata = {
+J.ABS.EXT.CHARGE.Metadata = {
   // the original properties.
-  ...J.ABS.EXT_CHARGE.Metadata,
+  ...J.ABS.EXT.CHARGE.Metadata,
 
   /**
    * The default charging animation id.
    * 0 will yield no default animation.
    * @type {number}
    */
-  DefaultChargingAnimationId: Number(J.ABS.EXT_CHARGE.PluginParameters['defaultChargingAnimId']),
+  DefaultChargingAnimationId: Number(J.ABS.EXT.CHARGE.PluginParameters['defaultChargingAnimId']),
 
   /**
    * The default tier complete animation id.
    * 0 will yield no default animation.
    * @type {number}
    */
-  DefaultTierCompleteAnimationId: Number(J.ABS.EXT_CHARGE.PluginParameters['defaultTierCompleteAnimId']),
+  DefaultTierCompleteAnimationId: Number(J.ABS.EXT.CHARGE.PluginParameters['defaultTierCompleteAnimId']),
 
   /**
    * Whether or not to use the charging tier complete sound effect.
    * @type {boolean}
    */
-  UseTierCompleteSE: J.ABS.EXT_CHARGE.PluginParameters['useTierCompleteSE'] === "true",
+  UseTierCompleteSE: J.ABS.EXT.CHARGE.PluginParameters['useTierCompleteSE'] === "true",
 
   /**
    * Whether or not to use the charging tier complete sound effect when there is an animation present.
    * @type {boolean}
    */
-  AllowTierCompleteSEandAnimation: J.ABS.EXT_CHARGE.PluginParameters['allowTierCompleteSEandAnim'] === "true",
+  AllowTierCompleteSEandAnimation: J.ABS.EXT.CHARGE.PluginParameters['allowTierCompleteSEandAnim'] === "true",
 };
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_CHARGE.Aliased = {
+J.ABS.EXT.CHARGE.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
@@ -262,7 +262,7 @@ J.ABS.EXT_CHARGE.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ABS.EXT_CHARGE.RegExp = {
+J.ABS.EXT.CHARGE.RegExp = {
   ChargeData: /<chargeTier:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+(,[ ]?\d+(,[ ]?\d+)?)?])>/gi,
 };
 //endregion Introduction
@@ -272,11 +272,11 @@ J.ABS.EXT_CHARGE.RegExp = {
  * Extends {@link JABS_Battler.initBattleInfo}.
  * Also initializes the charge-related data.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_Battler.set('initBattleInfo', JABS_Battler.prototype.initBattleInfo);
+J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('initBattleInfo', JABS_Battler.prototype.initBattleInfo);
 JABS_Battler.prototype.initBattleInfo = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_Battler.get('initBattleInfo').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_Battler.get('initBattleInfo').call(this);
 
   // initialize the charge-related members.
   this.initChargeData();
@@ -804,11 +804,11 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData)
  * Extends {@link JABS_Battler.update}.
  * Also updates charging as-needed.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
+J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
 JABS_Battler.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_Battler.get('update').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_Battler.get('update').call(this);
 
   // also update charging.
   this.updateCharging();
@@ -863,7 +863,7 @@ JABS_Battler.prototype.preUpdateCharging = function(currentTier)
   {
     // grab the [default] animation id.
     const animationId = currentTier.whileChargingAnimationId === 0
-      ? J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId
+      ? J.ABS.EXT.CHARGE.Metadata.DefaultChargingAnimationId
       : currentTier.whileChargingAnimationId;
 
     // play an animation.
@@ -881,7 +881,7 @@ JABS_Battler.prototype.canShowPreChargingAnimation = function(currentTier)
   const hasNoAnimationId = currentTier.whileChargingAnimationId === 0;
 
   // check if we set a default animation id to play.
-  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultChargingAnimationId !== 0;
+  const usingDefault = J.ABS.EXT.CHARGE.Metadata.DefaultChargingAnimationId !== 0;
 
   // if we have no animation id nor default, then we cannot show animations.
   if (hasNoAnimationId && !usingDefault) return false;
@@ -938,7 +938,7 @@ JABS_Battler.prototype.canShowTierCompletionAnimation = function(currentTier)
   const hasNoAnimationId = currentTier.chargeTierCompleteAnimationId === 0;
 
   // check if we set a default animation id to play.
-  const usingDefault = J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId !== 0;
+  const usingDefault = J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId !== 0;
 
   // if we have no animation id nor default, then we cannot show animations.
   if (hasNoAnimationId && !usingDefault) return false;
@@ -956,12 +956,12 @@ JABS_Battler.prototype.onMaxCharge = function(finalChargeTier)
 {
   // shorthand our various conditions for playing/showing things.
   const canShowAnimation = this.canShowTierCompletionAnimation(finalChargeTier);
-  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
-  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+  const canPlaySE = J.ABS.EXT.CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT.CHARGE.Metadata.AllowTierCompleteSEandAnimation;
 
   // grab the [default] animation id.
   const animationId = finalChargeTier.chargeTierCompleteAnimationId === 0
-    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    ? J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId
     : finalChargeTier.chargeTierCompleteAnimationId;
 
   // check if we can show the animation.
@@ -996,12 +996,12 @@ JABS_Battler.prototype.onChargeTierComplete = function(completedChargeTier, next
 {
   // shorthand our various conditions for playing/showing things.
   const canShowAnimation = this.canShowTierCompletionAnimation(completedChargeTier);
-  const canPlaySE = J.ABS.EXT_CHARGE.Metadata.UseTierCompleteSE;
-  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT_CHARGE.Metadata.AllowTierCompleteSEandAnimation;
+  const canPlaySE = J.ABS.EXT.CHARGE.Metadata.UseTierCompleteSE;
+  const canPlaySEwithAnimation = canPlaySE && J.ABS.EXT.CHARGE.Metadata.AllowTierCompleteSEandAnimation;
 
   // grab the [default] animation id.
   const animationId = completedChargeTier.chargeTierCompleteAnimationId === 0
-    ? J.ABS.EXT_CHARGE.Metadata.DefaultTierCompleteAnimationId
+    ? J.ABS.EXT.CHARGE.Metadata.DefaultTierCompleteAnimationId
     : completedChargeTier.chargeTierCompleteAnimationId;
 
   // check if we can show the animation.
@@ -1245,11 +1245,11 @@ JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler)
 //endregion JABS_InputAdapter
 
 //region JABS_InputController
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
 JABS_InputController.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('initMembers').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('initMembers').call(this);
 
   /**
    * The input delay between when the button is pressed down and when the charging can begin.
@@ -1336,12 +1336,12 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
  * Extends {@link JABS_InputController.updateMainhandAction}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateMainhandAction', JABS_InputController.prototype.updateMainhandAction);
 JABS_InputController.prototype.updateMainhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateMainhandAction').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateMainhandAction').call(this);
 
   // handle the charging.
   this.handleMainhandCharging();
@@ -1448,12 +1448,12 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
  * Extends {@link JABS_InputController.updateOffhandAction}.
  * Handles charging capability to the offhand.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateOffhandAction', JABS_InputController.prototype.updateOffhandAction);
 JABS_InputController.prototype.updateOffhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateOffhandAction').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateOffhandAction').call(this);
 
   // handle the charging.
   this.handleOffhandCharging();
@@ -1606,12 +1606,12 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
  * Extends {@link JABS_InputController.updateCombatAction1}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction1', JABS_InputController.prototype.updateCombatAction1);
 JABS_InputController.prototype.updateCombatAction1 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction1').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction1').call(this);
 
   // handle the charging.
   this.handleCombatAction1Charging();
@@ -1674,12 +1674,12 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
  * Extends {@link JABS_InputController.updateCombatAction2}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction2', JABS_InputController.prototype.updateCombatAction2);
 JABS_InputController.prototype.updateCombatAction2 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction2').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction2').call(this);
 
   // handle the charging.
   this.handleCombatAction2Charging();
@@ -1742,12 +1742,12 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
  * Extends {@link JABS_InputController.updateCombatAction3}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction3', JABS_InputController.prototype.updateCombatAction3);
 JABS_InputController.prototype.updateCombatAction3 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction3').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction3').call(this);
 
   // handle the charging.
   this.handleCombatAction3Charging();
@@ -1810,12 +1810,12 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
  * Extends {@link JABS_InputController.updateCombatAction4}.
  * Handles charging capability for this input.
  */
-J.ABS.EXT_CHARGE.Aliased.JABS_InputController
+J.ABS.EXT.CHARGE.Aliased.JABS_InputController
   .set('updateCombatAction4', JABS_InputController.prototype.updateCombatAction4);
 JABS_InputController.prototype.updateCombatAction4 = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.JABS_InputController.get('updateCombatAction4').call(this);
+  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction4').call(this);
 
   // handle the charging.
   this.handleCombatAction4Charging();
@@ -1903,7 +1903,7 @@ RPG_Base.prototype.getJabsChargeData = function()
  */
 RPG_Base.prototype.extractJabsChargeData = function()
 {
-  return this.getArraysFromNotesByRegex(J.ABS.EXT_CHARGE.RegExp.ChargeData, true);
+  return this.getArraysFromNotesByRegex(J.ABS.EXT.CHARGE.RegExp.ChargeData, true);
 };
 //endregion RPG_Skill
 
@@ -1912,11 +1912,11 @@ RPG_Base.prototype.extractJabsChargeData = function()
  * Extends {@link SoundManager.preloadImportantSounds}.
  * Also preloads the charging-related sound effects.
  */
-J.ABS.EXT_CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);
+J.ABS.EXT.CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);
 SoundManager.preloadImportantSounds = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.SoundManager.get('preloadImportantSounds').call(this);
+  J.ABS.EXT.CHARGE.Aliased.SoundManager.get('preloadImportantSounds').call(this);
 
   // load our charging sounds.
   this.loadJabsChargingSounds();

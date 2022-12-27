@@ -5,13 +5,13 @@
  * This accommodates the other adjustment regarding the player direction locking and allowing
  * the allies to stay agnostic to that input.
  */
-J.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
+J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.command205 = Game_Interpreter.prototype.command205;
 Game_Interpreter.prototype.command205 = function(params)
 {
   // if param[0] is -1, that is the player!
   // TODO: only jump to player if the player moves!
   // execute the move route command.
-  const result = J.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
+  const result = J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.command205.call(this, params);
 
   // check if we have a result and also the target is to move the character.
   if (result && params[0] === -1)

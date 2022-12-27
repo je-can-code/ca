@@ -2,11 +2,11 @@
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
    * All encompassing _j object for storing this plugin's properties.
@@ -25,11 +25,11 @@ Scene_Map.prototype.initialize = function()
 /**
  * Once the map is loaded, create the text log.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
   this.createHudPartyFrame();
@@ -78,11 +78,11 @@ Scene_Map.prototype.mapNameWindowRect = function()
 /**
  * Refreshes the hud on-command.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
 
   // refresh the party frame.
   this._j._partyFrame.refresh();
@@ -91,11 +91,11 @@ Scene_Map.prototype.refreshHud = function()
 /**
  * Extend the update loop for the party frame.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
   this.handleRefreshPartyFrame();

@@ -6,7 +6,7 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.STAR = {};
+J.ABS.EXT.STAR = {};
 
 //region version checks
 (() =>
@@ -32,19 +32,19 @@ J.STAR = {};
 /**
  * The metadata for this plugin.
  */
-J.STAR.Metadata = {};
-J.STAR.Metadata.Name = 'J-ABS-STAR';
-J.STAR.Metadata.Version = '1.0.0';
+J.ABS.EXT.STAR.Metadata = {};
+J.ABS.EXT.STAR.Metadata.Name = 'J-ABS-STAR';
+J.ABS.EXT.STAR.Metadata.Version = '1.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.STAR.PluginParameters = PluginManager.parameters(J.STAR.Metadata.Name);
+J.ABS.EXT.STAR.PluginParameters = PluginManager.parameters(J.ABS.EXT.STAR.Metadata.Name);
 
 /**
  * The default values for this plugin.
  */
-J.STAR.DefaultValues = {
+J.ABS.EXT.STAR.DefaultValues = {
   /**
    * The mapId used when there is no mapId specified.
    * @type {number}
@@ -62,7 +62,7 @@ J.STAR.DefaultValues = {
 /**
  * The aliased classes within this plugin.
  */
-J.STAR.Aliased = {
+J.ABS.EXT.STAR.Aliased = {
   BattleManager: new Map(),
   DataManager: new Map(),
   Game_Interpreter: {},
@@ -72,6 +72,6 @@ J.STAR.Aliased = {
   Scene_Map: new Map(),
 };
 
-J.STAR.Regexp = {
+J.ABS.EXT.STAR.Regexp = {
   BattleMapId: /<battleMapId:(\d+)>/gi,
 };

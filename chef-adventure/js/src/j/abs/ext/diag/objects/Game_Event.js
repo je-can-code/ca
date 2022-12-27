@@ -5,7 +5,7 @@
  * If there is an underlying diagonal direction, then move diagonally.
  * @param {number} direction The direction being moved.
  */
-J.DIAG.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
+J.ABS.EXT.DIAG.Aliased.Game_Event.moveStraight = Game_Event.prototype.moveStraight;
 Game_Event.prototype.moveStraight = function(direction)
 {
   const initialDirection = this.getCustomDirection();
@@ -16,14 +16,14 @@ Game_Event.prototype.moveStraight = function(direction)
   }
   else
   {
-    J.DIAG.Aliased.Game_Event.moveStraight.call(this, direction);
+    J.ABS.EXT.DIAG.Aliased.Game_Event.moveStraight.call(this, direction);
   }
 };
 
-J.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
+J.ABS.EXT.DIAG.Aliased.Game_Event.moveDiagonally = Game_Event.prototype.moveDiagonally;
 Game_Event.prototype.moveDiagonally = function(horz, vert)
 {
-  J.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
+  J.ABS.EXT.DIAG.Aliased.Game_Event.moveDiagonally.call(this, horz, vert);
   if (this.isDiagonalDirection(this.direction()))
   {
     this.convertDiagonalToDir4();

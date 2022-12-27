@@ -1,5 +1,5 @@
 //region JABS_AiManager
-J.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 /**
  * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
  * @param {JABS_Battler} battler The batter to decide for.
@@ -10,7 +10,7 @@ JABS_AiManager.aiPhase0 = function(battler)
   if (battler.isEnemy())
   {
     // perform original logic for enemies.
-    J.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
+    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0').call(this, battler);
   }
   // it must be an ally.
   else
@@ -55,14 +55,14 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
  * Includes handling ally AI as well as enemy.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
-J.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
   // check if the battler is an enemy.
   if (battler.isEnemy())
   {
     // perform original logic for enemies.
-    J.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
+    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
   }
   // it isn't an enemy, it must be an ally.
   else

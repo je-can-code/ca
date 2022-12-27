@@ -3,11 +3,11 @@
  * Extends {@link SoundManager.preloadImportantSounds}.
  * Also preloads the charging-related sound effects.
  */
-J.ABS.EXT_CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);
+J.ABS.EXT.CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);
 SoundManager.preloadImportantSounds = function()
 {
   // perform original logic.
-  J.ABS.EXT_CHARGE.Aliased.SoundManager.get('preloadImportantSounds').call(this);
+  J.ABS.EXT.CHARGE.Aliased.SoundManager.get('preloadImportantSounds').call(this);
 
   // load our charging sounds.
   this.loadJabsChargingSounds();

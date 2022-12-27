@@ -15,11 +15,11 @@ Scene_Map.prototype.updateEncounter = function()
 /**
  * `updateEncounterEffect` handles the zoom/flashing battle transition.
  */
-J.STAR.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
+J.ABS.EXT.STAR.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.Scene_Map.get('update').call(this);
+  J.ABS.EXT.STAR.Aliased.Scene_Map.get('update').call(this);
 
   //? TODO: Modify encountereffect here.
 };

@@ -3,10 +3,10 @@
 /**
  * Extends the initialization of the JAFTING menu to include the refinment windows.
  */
-J.JAFTING.Aliased.Scene_Map.initJaftingMenu = Scene_Map.prototype.initJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu = Scene_Map.prototype.initJaftingMenu;
 Scene_Map.prototype.initJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.initJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu.call(this);
 
   // create empty refinement windows.
   this._j._jaftingMenu._refinePrimaryEquipWindow = null;
@@ -25,10 +25,10 @@ Scene_Map.prototype.initJaftingMenu = function()
 /**
  * Extends the creation of the JAFTING windows to include the refinement windows.
  */
-J.JAFTING.Aliased.Scene_Map.createJaftingMenu = Scene_Map.prototype.createJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu = Scene_Map.prototype.createJaftingMenu;
 Scene_Map.prototype.createJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.createJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu.call(this);
   this.createJaftingRefinementModeWindows();
 };
 
@@ -36,10 +36,10 @@ Scene_Map.prototype.createJaftingMenu = function()
  * Creates the mode selection window used to determine which type of JAFTING
  * that the player will perform.
  */
-J.JAFTING.Aliased.Scene_Map.createJaftingModeWindow = Scene_Map.prototype.createJaftingModeWindow;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow = Scene_Map.prototype.createJaftingModeWindow;
 Scene_Map.prototype.createJaftingModeWindow = function()
 {
-  J.JAFTING.Aliased.Scene_Map.createJaftingModeWindow.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow.call(this);
   this._j._jaftingMenu._modeWindow.setHandler('refine-mode', this.chooseJaftingRefineMode.bind(this));
 };
 
@@ -50,7 +50,7 @@ Scene_Map.prototype.createJaftingModeWindow = function()
 Scene_Map.prototype.chooseJaftingRefineMode = function()
 {
   this.setWindowFocus("refine-primary");
-  this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
 };
 
 /**
@@ -164,7 +164,7 @@ Scene_Map.prototype.createJaftingRefinementConfirmationWindow = function()
 Scene_Map.prototype.choosePrimaryEquip = function()
 {
   this.setPrimaryRefineSlot(this.getHoverForDetails().data);
-  this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementMaterial);
+  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementMaterial);
   this.setWindowFocus("refine-secondary");
 };
 
@@ -313,10 +313,10 @@ Scene_Map.prototype.setGuidingWindowText = function(text)
  * As an example, if the player gains/loses an item, all windows will need refreshing
  * to reflect the change in quantity.
  */
-J.JAFTING.Aliased.Scene_Map.refreshJafting = Scene_Map.prototype.refreshJafting;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting = Scene_Map.prototype.refreshJafting;
 Scene_Map.prototype.refreshJafting = function()
 {
-  J.JAFTING.Aliased.Scene_Map.refreshJafting.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting.call(this);
   this._j._jaftingMenu._refinePrimaryEquipWindow.refresh();
   this._j._jaftingMenu._refineSecondaryEquipWindow.refresh();
   this._j._jaftingMenu._refineProjectedResultsWindow.refresh();
@@ -325,10 +325,10 @@ Scene_Map.prototype.refreshJafting = function()
 /**
  * Extends the jafting window focus management to accommodate refinement mode.
  */
-J.JAFTING.Aliased.Scene_Map.manageJaftingMenu = Scene_Map.prototype.manageJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu = Scene_Map.prototype.manageJaftingMenu;
 Scene_Map.prototype.manageJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.manageJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu.call(this);
 
   // extend for refinement focuses.
   switch (this.getWindowFocus())
@@ -357,10 +357,10 @@ Scene_Map.prototype.manageJaftingMenu = function()
  * Extends the jafting window closing-by-tag function to accommodate refinement mode.
  * @param {string} jaftingWindowToClose The type of window we're closing.
  */
-J.JAFTING.Aliased.Scene_Map.closeJaftingWindow = Scene_Map.prototype.closeJaftingWindow;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow = Scene_Map.prototype.closeJaftingWindow;
 Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
 {
-  J.JAFTING.Aliased.Scene_Map.closeJaftingWindow.call(this, jaftingWindowToClose);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow.call(this, jaftingWindowToClose);
   switch (jaftingWindowToClose)
   {
     case "refine-primary":
@@ -378,7 +378,7 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
       this.setSecondaryRefineSlot(null);
       this.setHoverForDetails(null);
       this.toggleJaftingRefineSecondaryWindow(false);
-      this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
       this.toggleJaftingRefineConfirmationWindow(false);
       this.setWindowFocus("refine-primary");
       break;
@@ -387,7 +387,7 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
       this.setPrimaryRefineSlot(null);
       this.setSecondaryRefineSlot(null);
       this.setHoverForDetails(null);
-      this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
       this.setWindowFocus("refine-primary");
       break;
     case "refine-confirm-cancel":
@@ -465,11 +465,11 @@ Scene_Map.prototype.drawRefineHelpText = function()
   {
     if (item.data.jaftingNotRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
     {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsBase);
+      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsBase);
     }
     else if (item.data.jaftingNotRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
     {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsMaterial);
+      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsMaterial);
     }
     else if (item.error !== "")
     {
@@ -482,7 +482,7 @@ Scene_Map.prototype.drawRefineHelpText = function()
   }
   else
   {
-    this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.NoItemSelected);
+    this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.NoItemSelected);
   }
 };
 

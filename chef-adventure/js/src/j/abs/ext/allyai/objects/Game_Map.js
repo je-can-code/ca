@@ -4,11 +4,11 @@
  * Also parses ally battlers as well as events.
  * @returns {JABS_Battler[]}
  */
-J.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
+J.ABS.EXT.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
 Game_Map.prototype.parseBattlers = function()
 {
   // perform original logic.
-  const originalParsedBattlers = J.ALLYAI.Aliased.Game_Map.get('parseBattlers').call(this);
+  const originalParsedBattlers = J.ABS.EXT.ALLYAI.Aliased.Game_Map.get('parseBattlers').call(this);
 
   // also parse ally battlers.
   const parsedAllyBattlers = this.parseAllyBattlers();

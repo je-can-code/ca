@@ -166,7 +166,7 @@ class Window_JaftingEquip
         if (!$gameJAFTING.parseTraits(equip).length)
         {
           enabled = false;
-          errorText += `${J.JAFTING.Messages.NoTraitsOnMaterial}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
         }
 
         // prevent equipment explicitly marked as "not usable as material" from being used.
@@ -189,7 +189,7 @@ class Window_JaftingEquip
             {
               enabled = false;
               iconIndex = 90;
-              errorText += `${J.JAFTING.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.\n`;
+              errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.\n`;
             }
           }
 
@@ -203,7 +203,7 @@ class Window_JaftingEquip
           {
             enabled = false;
             iconIndex = 92
-            errorText += `${J.JAFTING.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.\n`;
+            errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.\n`;
           }
         }
 
@@ -221,14 +221,14 @@ class Window_JaftingEquip
         {
           enabled = false;
           iconIndex = 92;
-          errorText += `${J.JAFTING.Messages.AlreadyMaxRefineCount}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
         }
 
         if (equipHasMaxTraits)
         {
           enabled = false;
           iconIndex = 92;
-          errorText += `${J.JAFTING.Messages.AlreadyMaxTraitCount}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
         }
 
         // prevent equipment explicitly marked as "not usable as base" from being used.

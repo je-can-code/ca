@@ -357,7 +357,7 @@ Game_Battler.prototype.setEquippedSkill = function(slot, skillId, locked = false
     skillSlotManager.setSlot(slot, skillId, locked);
 
     // check if we're using the hud's input frame.
-    if (J.HUD && J.HUD.EXT_INPUT)
+    if (J.HUD && J.HUD.EXT.INPUT)
     {
       // flag the slot for refresh.
       skillSlotManager.getSkillSlotByKey(slot).flagSkillSlotForRefresh();

@@ -80,7 +80,7 @@ class JABS_CoreDataBuilder
    * @type {boolean}
    * @private
    */
-  #showDangerIndicator = J.DANGER ? J.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
+  #showDangerIndicator = J.ABS.EXT.DANGER ? J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
 
   /**
    * Whether or not this battler's name is visible.
@@ -141,7 +141,7 @@ class JABS_CoreDataBuilder
     });
 
     // if using danger indicators, then set that, too.
-    if (J.DANGER)
+    if (J.ABS.EXT.DANGER)
     {
       core.setDangerIndicator(this.#showDangerIndicator);
     }

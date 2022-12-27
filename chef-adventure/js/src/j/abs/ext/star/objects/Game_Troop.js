@@ -2,11 +2,11 @@
  * Extends {@link Game_Troop.initialize}.
  * Initializes our additional members for STABS.
  */
-J.STAR.Aliased.Game_Troop.set('initialize', Game_Troop.prototype.initialize);
+J.ABS.EXT.STAR.Aliased.Game_Troop.set('initialize', Game_Troop.prototype.initialize);
 Game_Troop.prototype.initialize = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.Game_Troop.get('initialize').call(this);
+  J.ABS.EXT.STAR.Aliased.Game_Troop.get('initialize').call(this);
 
   // initialize the STABS members.
   this.initMembers();

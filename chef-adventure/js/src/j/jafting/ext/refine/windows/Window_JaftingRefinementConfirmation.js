@@ -21,8 +21,8 @@ class Window_JaftingRefinementConfirmation
    */
   makeCommandList()
   {
-    this.addCommand(`${J.JAFTING.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
-    this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
+    this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
+    this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
   }
 }
 //endregion Window_JaftingRefinementConfirmation

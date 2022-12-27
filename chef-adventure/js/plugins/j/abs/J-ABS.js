@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Mon Dec 26 2022 13:13:00 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Tue Dec 27 2022 13:13:02 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.1 JABS] Enables combat to be carried out on the map.
+ * [v3.2.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -48,6 +48,8 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.2
+ *    JABS quick menu how honors menu access via event control.
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
  *    Fixed issue where endlessly delaying actions would never expire.
@@ -1726,6 +1728,11 @@ var J = J || {};
  */
 J.ABS = {};
 
+/**
+ * The parent namespace for all JABS extensions.
+ */
+J.ABS.EXT = {}
+
 //region helpers
 /**
  * A collection of helpful functions for use within this plugin.
@@ -1788,7 +1795,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.2.1';
+J.ABS.Metadata.Version = '3.2.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

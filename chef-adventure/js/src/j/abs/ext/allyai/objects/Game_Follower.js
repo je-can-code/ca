@@ -4,14 +4,14 @@
  * while this follower is engaged.
  * @param {Game_Character} character The character this follower is following.
  */
-J.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
 Game_Follower.prototype.chaseCharacter = function(character)
 {
   // if this isn't a valid battler or followers aren't being shown, then don't control them.
   if (!this.canObeyJabsAi())
   {
     // perform original logic.
-    J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 
     // stop processing.
     return;
@@ -86,7 +86,7 @@ Game_Follower.prototype.handleJabsDeadAi = function(character)
 {
   // TODO: handle logic for repeating whilst dead.
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 };
 
 /**
@@ -165,21 +165,21 @@ Game_Follower.prototype.handleJabsCombatActiveAi = function(character)
 Game_Follower.prototype.handleJabsCombatInactiveAi = function(character)
 {
   // perform original logic.
-  J.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
 };
 
 /**
  * Extends {@link Game_Follower.update}.
  * If this follower should be controlled by JABS AI, then modify the way it updates.
  */
-J.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
 Game_Follower.prototype.update = function()
 {
   // check if this follower should be obeying jabs ai.
   if (!this.canObeyJabsAi())
   {
     // perform original logic if we are not.
-    J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update').call(this);
 
     // stop processing.
     return;
@@ -196,7 +196,7 @@ Game_Follower.prototype.updateAllyAi = function()
 {
   // TODO: rewrite this entirely.
   // perform superclass logic.
-  J.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update').call(this);
   //Game_Character.prototype.update.call(this);
 
   // update the various parameters accordingly for followers.

@@ -4,11 +4,11 @@
  * Adds the ally ai management command at the end of the list.
  * @returns {BuiltWindowCommand[]}
  */
-J.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
 Window_AbsMenu.prototype.buildCommands = function()
 {
   // perform original logic to get base commands.
-  const originalCommands = J.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+  const originalCommands = J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
 
   // if the switch is disabled, then the command won't even appear in the menu.
   if (!this.canAddAllyAiCommand()) return originalCommands;
@@ -17,10 +17,10 @@ Window_AbsMenu.prototype.buildCommands = function()
   const enabled = $gamePlayer.followers().isVisible();
 
   // build the command.
-  const command = new WindowCommandBuilder(J.ALLYAI.Metadata.AllyAiCommandName)
+  const command = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName)
     .setSymbol('ally-ai')
     .setEnabled(enabled)
-    .setIconIndex(J.ALLYAI.Metadata.AllyAiCommandIconIndex)
+    .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex)
     .setColorIndex(27)
     .build();
 
@@ -38,7 +38,7 @@ Window_AbsMenu.prototype.buildCommands = function()
 Window_AbsMenu.prototype.canAddAllyAiCommand = function()
 {
   // if the necessary switch isn't ON, don't render the command at all.
-  if (!$gameSwitches.value(J.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
+  if (!$gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
 
   // render the command!
   return true;

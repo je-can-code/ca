@@ -4,21 +4,21 @@
  * @param {JABS_Battler} target The target to see if we should engage with.
  * @returns {boolean}
  */
-J.ALLYAI.Aliased.JABS_Battler.set('shouldEngage', JABS_Battler.prototype.shouldEngage);
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set('shouldEngage', JABS_Battler.prototype.shouldEngage);
 JABS_Battler.prototype.shouldEngage = function(target, distance)
 {
   // enemies follow standard behavior.
   if (this.isEnemy())
   {
     // perform original logic.
-    return J.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
+    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
   }
 
   // aggro allies against non-inanimate targets also follow standard behavior.
   if ($gameParty.isAggro() && !target.isInanimate())
   {
     // perform original logic.
-    return J.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
+    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage').call(this, target, distance);
   }
 
   // determine if the ally should engage the foe.

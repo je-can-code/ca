@@ -6,7 +6,7 @@
  */
 Game_Enemy.prototype.showDangerIndicator = function()
 {
-  let val = J.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
+  let val = J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator;
 
   const referenceData = this.enemy();
   if (referenceData.meta && referenceData.meta[J.BASE.Notetags.NoDangerIndicator])

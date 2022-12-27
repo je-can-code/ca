@@ -3,7 +3,7 @@
  * Extends `initCoreData()` to include our danger indicator flag.
  * @param {JABS_BattlerCoreData} battlerCoreData The core data of the battler.
  */
-J.DANGER.Aliased.JABS_Battler.set('initCoreData', JABS_Battler.prototype.initCoreData);
+J.ABS.EXT.DANGER.Aliased.JABS_Battler.set('initCoreData', JABS_Battler.prototype.initCoreData);
 JABS_Battler.prototype.initCoreData = function(battlerCoreData)
 {
   /**
@@ -16,7 +16,7 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
     : battlerCoreData.showDangerIndicator();
 
   // perform original logic.
-  J.DANGER.Aliased.JABS_Battler.get('initCoreData').call(this, battlerCoreData);
+  J.ABS.EXT.DANGER.Aliased.JABS_Battler.get('initCoreData').call(this, battlerCoreData);
 };
 /**
  * Gets whether or not this battler should show its danger indicator.

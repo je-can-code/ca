@@ -174,13 +174,13 @@ class Window_JaftingRefinementOutput
     switch (type)
     {
       case "base":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
         break;
       case "material":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
         break;
       case "output":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
         break;
     }
 
@@ -225,7 +225,7 @@ class Window_JaftingRefinementOutput
     const lh = this.lineHeight();
     if (!traits.length)
     {
-      this.drawTextEx(`${J.JAFTING.Messages.NoTransferableTraits}`, x, lh * 2, 250);
+      this.drawTextEx(`${J.JAFTING.EXT.REFINE.Messages.NoTransferableTraits}`, x, lh * 2, 250);
       return;
     }
 

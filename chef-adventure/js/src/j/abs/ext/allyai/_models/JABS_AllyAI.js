@@ -21,7 +21,7 @@ JABS_AllyAI.modes = {
    */
   DO_NOTHING: {
     key: "do-nothing",
-    name: J.ALLYAI.Metadata.AiModeDoNothingText,
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText,
   },
 
   /**
@@ -30,7 +30,7 @@ JABS_AllyAI.modes = {
    */
   BASIC_ATTACK: {
     key: "basic-attack",
-    name: J.ALLYAI.Metadata.AiModeOnlyAttackText,
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText,
   },
 
   /**
@@ -38,7 +38,7 @@ JABS_AllyAI.modes = {
    */
   VARIETY: {
     key: "variety",
-    name: J.ALLYAI.Metadata.AiModeVarietyText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText
   },
 
   /**
@@ -46,7 +46,7 @@ JABS_AllyAI.modes = {
    */
   FULL_FORCE: {
     key: "full-force",
-    name: J.ALLYAI.Metadata.AiModeFullForceText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText
   },
 
   /**
@@ -54,7 +54,7 @@ JABS_AllyAI.modes = {
    */
   SUPPORT: {
     key: "support",
-    name: J.ALLYAI.Metadata.AiModeSupportText
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText
   },
 };
 

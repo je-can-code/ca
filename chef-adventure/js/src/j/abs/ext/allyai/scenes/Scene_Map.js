@@ -2,10 +2,10 @@
 /**
  * Extends the JABS menu initialization to include the new ally ai management selection.
  */
-J.ALLYAI.Aliased.Scene_Map.initJabsMembers = Scene_Map.prototype.initJabsMembers;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.initJabsMembers = Scene_Map.prototype.initJabsMembers;
 Scene_Map.prototype.initJabsMembers = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.initJabsMembers.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.initJabsMembers.call(this);
   this.initAllyAiSubmenu();
 };
 
@@ -39,10 +39,10 @@ Scene_Map.prototype.getAllyAiActorId = function()
 /**
  * Extends the JABS menu creation to include the new windows for ally ai management.
  */
-J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu = Scene_Map.prototype.createJabsAbsMenu;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu = Scene_Map.prototype.createJabsAbsMenu;
 Scene_Map.prototype.createJabsAbsMenu = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenu.call(this);
   this.createAllyAiPartyWindow();
   this.createAllyAiEquipWindow();
 };
@@ -50,10 +50,10 @@ Scene_Map.prototype.createJabsAbsMenu = function()
 /**
  * Extends the JABS menu creation to include a new command handler for ally ai.
  */
-J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow = Scene_Map.prototype.createJabsAbsMenuMainWindow;
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.createJabsAbsMenuMainWindow.call(this);
   this._j._absMenu._mainWindow.setHandler("ally-ai", this.commandManagePartyAi.bind(this));
 };
 
@@ -151,10 +151,10 @@ Scene_Map.prototype.commandEquipMemberAi = function()
 /**
  * Manages the ABS main menu's interactivity.
  */
-J.ALLYAI.Aliased.Scene_Map.manageAbsMenu = Scene_Map.prototype.manageAbsMenu;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.manageAbsMenu = Scene_Map.prototype.manageAbsMenu;
 Scene_Map.prototype.manageAbsMenu = function()
 {
-  J.ALLYAI.Aliased.Scene_Map.manageAbsMenu.call(this);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.manageAbsMenu.call(this);
   switch (this._j._absMenu._windowFocus)
   {
     case "ai-party-list":
@@ -180,10 +180,10 @@ Scene_Map.prototype.manageAbsMenu = function()
  * Closes a given Abs menu window.
  * @param {string} absWindow The type of abs window being closed.
  */
-J.ALLYAI.Aliased.Scene_Map.closeAbsWindow = Scene_Map.prototype.closeAbsWindow;
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.closeAbsWindow = Scene_Map.prototype.closeAbsWindow;
 Scene_Map.prototype.closeAbsWindow = function(absWindow)
 {
-  J.ALLYAI.Aliased.Scene_Map.closeAbsWindow.call(this, absWindow);
+  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.closeAbsWindow.call(this, absWindow);
   switch (absWindow)
   {
     case "ai-party-list":

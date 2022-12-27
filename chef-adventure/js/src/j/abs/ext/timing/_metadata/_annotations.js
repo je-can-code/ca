@@ -45,7 +45,7 @@
  * damage of a skill. None of the tags are case sensitive, but the order is
  * specific. If you find yourself having trouble building the tags, you can
  * peek at the source code of this file and search for
- * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * "J.ABS.EXT.TIMING.RegExp =" to find the grand master list of all
  * combinations of tags. Do note that the hard brackets of [] are required to
  * wrap the formula in the note tag.
  *
@@ -95,7 +95,7 @@
  * damage of a skill. None of the tags are case sensitive, but the order is
  * specific. If you find yourself having trouble building the tags, you can
  * peek at the source code of this file and search for
- * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * "J.ABS.EXT.TIMING.RegExp =" to find the grand master list of all
  * combinations of tags. Do note that the hard brackets of [] are required to
  * wrap the formula in the note tag.
  *

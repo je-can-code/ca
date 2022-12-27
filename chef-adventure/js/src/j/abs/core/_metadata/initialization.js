@@ -23,6 +23,11 @@ var J = J || {};
  */
 J.ABS = {};
 
+/**
+ * The parent namespace for all JABS extensions.
+ */
+J.ABS.EXT = {}
+
 //region helpers
 /**
  * A collection of helpful functions for use within this plugin.

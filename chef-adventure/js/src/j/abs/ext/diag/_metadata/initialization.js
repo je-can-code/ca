@@ -30,12 +30,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.DIAG = {};
+J.ABS.EXT.DIAG = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIAG.Metadata = {
+J.ABS.EXT.DIAG.Metadata = {
   /**
    * The version of this plugin.
    */
@@ -45,9 +45,9 @@ J.DIAG.Metadata = {
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.DIAG.PluginParameters = PluginManager.parameters(J.DIAG.Metadata.Name);
-J.DIAG.Metadata = {
-  ...J.DIAG.Metadata,
+J.ABS.EXT.DIAG.PluginParameters = PluginManager.parameters(J.ABS.EXT.DIAG.Metadata.Name);
+J.ABS.EXT.DIAG.Metadata = {
+  ...J.ABS.EXT.DIAG.Metadata,
   /**
    * The version of this plugin.
    */
@@ -57,7 +57,7 @@ J.DIAG.Metadata = {
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.DIAG.Aliased = {
+J.ABS.EXT.DIAG.Aliased = {
   Game_BattleMap: {},
   Game_Character: {},
   Game_Event: {},

@@ -2,11 +2,11 @@
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
    * All encompassing _j object for storing my custom properties.
@@ -23,11 +23,11 @@ Scene_Map.prototype.initialize = function()
 /**
  * Once the map is loaded, create the text log.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the target frame.
   this.createInputFrame();
@@ -64,11 +64,11 @@ Scene_Map.prototype.inputFrameWindowRect = function()
 /**
  * Extend the update loop for the input frame.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
   this.handleInputFrameUpdate();
@@ -124,11 +124,11 @@ Scene_Map.prototype.handleVisibilityInputFrame = function()
 /**
  * Refreshes the hud on-command.
  */
-J.HUD.EXT_INPUT.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT_INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
 
   // refresh the input frame.
   this._j._inputFrame.refreshCache();

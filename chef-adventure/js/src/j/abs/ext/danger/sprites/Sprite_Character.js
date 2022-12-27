@@ -2,7 +2,7 @@
 /**
  * Extends the `initMembers()` function to include our new data.
  */
-J.DANGER.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.initMembers);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.initMembers);
 Sprite_Character.prototype.initMembers = function()
 {
   /**
@@ -17,17 +17,17 @@ Sprite_Character.prototype.initMembers = function()
   this._j._dangerIndicator = null;
 
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('initMembers').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('initMembers').call(this);
 };
 
 /**
  * Setup this `Sprite_Character` with the additional JABS-related functionalities.
  */
-J.DANGER.Aliased.Sprite_Character.set('setupJabsSprite', Sprite_Character.prototype.setupJabsSprite);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('setupJabsSprite', Sprite_Character.prototype.setupJabsSprite);
 Sprite_Character.prototype.setupJabsSprite = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('setupJabsSprite').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('setupJabsSprite').call(this);
 
   // if this is a battler, configure the visual components of the battler.
   this.handleBattlerSetup();
@@ -103,11 +103,11 @@ Sprite_Character.prototype.getDangerIndicatorIcon = function()
 /**
  * Extends `update()` to update the danger indicator.
  */
-J.DANGER.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
+J.ABS.EXT.DANGER.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
 Sprite_Character.prototype.update = function()
 {
   // perform original logic.
-  J.DANGER.Aliased.Sprite_Character.get('update').call(this);
+  J.ABS.EXT.DANGER.Aliased.Sprite_Character.get('update').call(this);
 
   // check if we can update the indicator.
   if (this.canUpdateDangerIndicator())
