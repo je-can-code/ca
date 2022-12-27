@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Dec 24 2022 09:09:11 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Mon Dec 26 2022 13:13:00 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -29279,7 +29279,7 @@ class Window_AbsMenu extends Window_Command
     // build the main menu command.
     const mainMenuCommand = new WindowCommandBuilder(J.ABS.Metadata.MainMenuText)
       .setSymbol('main-menu')
-      .setEnabled(true)
+      .setEnabled($gameSystem.isMenuEnabled())
       .setIconIndex(189)
       .build();
 

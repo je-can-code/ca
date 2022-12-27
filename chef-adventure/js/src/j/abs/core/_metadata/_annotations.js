@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.1 JABS] Enables combat to be carried out on the map.
+ * [v3.2.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -46,6 +46,8 @@
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 3.2.2
+ *    JABS quick menu how honors menu access via event control.
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
  *    Fixed issue where endlessly delaying actions would never expire.

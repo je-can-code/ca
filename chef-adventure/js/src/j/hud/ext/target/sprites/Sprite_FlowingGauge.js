@@ -106,7 +106,7 @@ class Sprite_FlowingGauge extends Sprite
     this.resetValues();
 
     // establish a promise for loading the gauge background into memory.
-    const backgroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.BackgroundFilename);
+    const backgroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.BackgroundFilename);
     const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
@@ -118,7 +118,7 @@ class Sprite_FlowingGauge extends Sprite
       });
 
     // establish a promise for loading the gauge foreground into memory.
-    const foregroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
+    const foregroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.ForegroundFilename);
     const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
@@ -176,8 +176,8 @@ class Sprite_FlowingGauge extends Sprite
   {
     // establish the new sprite based on the given bitmap.
     this._gaugeBackground = new Sprite(this._backgroundBitmap);
-    this._gaugeBackground.x = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageX;
-    this._gaugeBackground.y = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageY;
+    this._gaugeBackground.x = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
+    this._gaugeBackground.y = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageY;
     this.addChild(this._gaugeBackground);
   }
 
@@ -188,14 +188,14 @@ class Sprite_FlowingGauge extends Sprite
   {
     // generate the middleground of the gauge.
     this._gaugeCurrentSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeCurrentSprite.x = J.HUD.EXT_TARGET.Metadata.MiddlegroundGaugeImageX;
-    this._gaugeCurrentSprite.y = J.HUD.EXT_TARGET.Metadata.MiddlegroundGaugeImageY;
+    this._gaugeCurrentSprite.x = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageX;
+    this._gaugeCurrentSprite.y = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageY;
     this.addChild(this._gaugeCurrentSprite);
 
     // generate the foreground of the gauge
     this._gaugeActualSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeActualSprite.x = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageX;
-    this._gaugeActualSprite.y = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageY;
+    this._gaugeActualSprite.x = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageX;
+    this._gaugeActualSprite.y = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageY;
     this.addChild(this._gaugeActualSprite);
   }
 

@@ -1,8 +1,8 @@
 //region ImageManager
 /**
- * Generates a promise based on the resolution of the bitmap.<br/>
- * If the promise resolves successfully, it'll contain the bitmap.<br/>
- * If the promise rejects, then it is up to the handler how to deal with that.<br/>
+ * Generates a promise based on the resolution of the bitmap.
+ * If the promise resolves successfully, it'll contain the bitmap.
+ * If the promise rejects, then it is up to the handler how to deal with that.
  * @param {string} filename The name of the file without the file extension.
  * @param {string} directory The name of the directory to find the filename in (include trailing slash!).
  * @returns {Promise}

@@ -46,7 +46,7 @@ class Window_AbsMenu extends Window_Command
     // build the main menu command.
     const mainMenuCommand = new WindowCommandBuilder(J.ABS.Metadata.MainMenuText)
       .setSymbol('main-menu')
-      .setEnabled(true)
+      .setEnabled($gameSystem.isMenuEnabled())
       .setIconIndex(189)
       .build();
 

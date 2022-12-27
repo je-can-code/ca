@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 24 2022 15:05:38 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -121,6 +121,11 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.HUD = {};
+
+/**
+ * A collection of all extensions for the HUD.
+ */
+J.HUD.EXT = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
@@ -849,6 +854,36 @@ Game_System.prototype.getHudAlliesVisible = function()
 
 //region Scene_Map
 /**
+ * Extends {@link #initMembers}.
+ * Also initializes the HUD members.
+ */
+J.HUD.Aliased.Scene_Map.set('initMembers', Scene_Map.prototype.initMembers);
+Scene_Map.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('initMembers').call(this);
+
+  // also initialize the HUD members.
+  this.initHudMembers();
+};
+
+/**
+ * A hook for initializing HUD members.
+ */
+Scene_Map.prototype.initHudMembers = function()
+{
+  /**
+   * A grouping of all properties that are associated with J's plugins.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties that belong to the HUD.
+   */
+  this._j._hud ||= {};
+};
+
+/**
  * Extends the `update()` function to also monitor updates for the hud.
  */
 J.HUD.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
@@ -874,7 +909,8 @@ Scene_Map.prototype.updateHudFrames = function()
  * A hook for refreshing all frames of the HUD.
  */
 Scene_Map.prototype.refreshHud = function()
-{ };
+{
+};
 //endregion Scene_Map
 
 //region Window_Frame

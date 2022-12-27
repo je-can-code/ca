@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 08:48:03 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 24 2022 14:35:04 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -6274,6 +6274,27 @@ Game_Temp.prototype.initMembers = function()
 {
 };
 //endregion Game_Temp
+
+/**
+ * Extends {@link #initialize}.
+ * Adds extension for initializing custom members for scenes.
+ */
+J.BASE.Aliased.Scene_Base.set('initialize', Scene_Base.prototype.initialize);
+Scene_Base.prototype.initialize = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Scene_Base.get('initialize').call(this);
+
+  // also add custom members to this class.
+  this.initMembers();
+};
+
+/**
+ * Initialize any additional custom members for this scene.
+ */
+Scene_Base.prototype.initMembers = function()
+{
+};
 
 /**
  * Pushes this current scene onto the stack, forcing it into action.

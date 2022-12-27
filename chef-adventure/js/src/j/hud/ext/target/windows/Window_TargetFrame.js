@@ -15,9 +15,9 @@ class Window_TargetFrame extends Window_Base
    * @param {Rectangle} rect The shape of this window.
    */
   constructor(rect)
-{
- super(rect);
-}
+  {
+    super(rect);
+  }
 
   /**
    * Initializes the properties of this class.
@@ -169,8 +169,8 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.HpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.HpGaugeScaleY;
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -203,8 +203,8 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.MpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.MpGaugeScaleY;
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -237,9 +237,9 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.rotation = J.HUD.EXT_TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.TpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.TpGaugeScaleY;
+    sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -390,24 +390,30 @@ class Window_TargetFrame extends Window_Base
       const x = 0;
       const y = 0;
 
-      // draw the name of the target.
-      this.drawTargetName(x, y);
-
-      // draw the level of the target.
-      this.drawTargetLevel(x+220, y);
-
-      // draw the extra data for the target.
-      this.drawTargetExtra(x, y+24);
-
-      // draw the relation of the target.
-      this.drawTargetIcon(x, y+48);
-
-      // draw the battler data of the target- if available.
-      this.drawTargetBattlerInfo(x+32, y);
+      // draw the target data.
+      this.drawContent(x, y);
 
       // acknowledge the request to refresh the target.
       this.acknowledgeTargetRefresh();
     }
+  }
+
+  drawContent(x, y)
+  {
+    // draw the name of the target.
+    this.drawTargetName(x, y);
+
+    // draw the level of the target.
+    this.drawTargetLevel(x+220, y);
+
+    // draw the extra data for the target.
+    this.drawTargetExtra(x, y+24);
+
+    // draw the relation of the target.
+    this.drawTargetIcon(x, y+48);
+
+    // draw the battler data of the target- if available.
+    this.drawTargetBattlerInfo(x+32, y);
   }
 
   /**
@@ -596,7 +602,7 @@ class Window_TargetFrame extends Window_Base
     else
     {
       // clear/hide the gauge data.
-      this._j._spriteCache.forEach((value, _) => value.hide());
+      this._j._spriteCache.forEach(value => value.hide());
     }
   }
 

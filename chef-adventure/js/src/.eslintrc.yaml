@@ -8,7 +8,9 @@ rules:
   no-case-declarations: off           # confusing, but sometimes a necessary evil.
   no-empty-function: off              # some functions are empty for overriding.
   no-undef: off                       # most game objects are undefined.
-  no-unused-vars: warn                # globally defining models can't be handled by this.
+  no-unused-vars:
+  - warn
+  - { "varsIgnorePattern": "(?:(^[Window|Sprite|Scene|Game])|(Manager$))", "argsIgnorePattern": "^_$" }
   no-useless-call: off                # all aliasing is done with .call() for scoping this.
   no-prototype-builtins: off          # with prototypical inheritance, this is needed sometimes.
 

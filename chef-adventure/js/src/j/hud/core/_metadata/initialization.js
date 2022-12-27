@@ -23,6 +23,11 @@ var J = J || {};
 J.HUD = {};
 
 /**
+ * A collection of all extensions for the HUD.
+ */
+J.HUD.EXT = {};
+
+/**
  * The `metadata` associated with this plugin, such as version.
  */
 J.HUD.Metadata = {};

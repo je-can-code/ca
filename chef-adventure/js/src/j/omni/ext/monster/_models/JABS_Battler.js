@@ -1,5 +1,5 @@
 //region JABS_Battler
-if (J.HUD && J.HUD.EXT_TARGET)
+if (J.HUD && J.HUD.EXT.TARGET)
 {
   /**
    * Gets the target frame icon from the underlying character.

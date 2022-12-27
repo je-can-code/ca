@@ -23,7 +23,7 @@ Game_Enemy.prototype.extractTargetFrameText = function(referenceData)
   if (!referenceData.note) return String.empty;
 
   const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameText;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
   let extraText = String.empty;
   notedata.forEach(line =>
   {
@@ -64,7 +64,7 @@ Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameIcon;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
 
   // start with the default icon index of 0.
   let targetFrameIcon = 0;
@@ -112,7 +112,7 @@ Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
 
   // start with the default of true
   let showTargetFrame = true;
@@ -160,7 +160,7 @@ Game_Enemy.prototype.extractShowHpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
 
   // start with the default of true
   let showHpBar = true;
@@ -208,7 +208,7 @@ Game_Enemy.prototype.extractShowMpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
 
   // start with the default of true
   let showMpBar = true;
@@ -256,7 +256,7 @@ Game_Enemy.prototype.extractShowTpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
 
   // start with the default of true
   let showTpBar = true;
@@ -304,7 +304,7 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
 
   // start with the default of true
   let showTargetText = true;

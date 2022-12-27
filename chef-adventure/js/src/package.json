@@ -60,6 +60,7 @@
     "once:hud-input": "node utils/combine.js ./j/hud/ext/input ../plugins/j/hud/ext J-HUD-InputFrame.js",
     "once:hud-party": "node utils/combine.js ./j/hud/ext/party ../plugins/j/hud/ext J-HUD-PartyFrame.js",
     "once:hud-target": "node utils/combine.js ./j/hud/ext/target ../plugins/j/hud/ext J-HUD-TargetFrame.js",
+    "once:hud-boss": "node utils/combine.js ./j/hud/ext/boss ../plugins/j/hud/ext J-HUD-BossFrame.js",
 
     "once:jafting": "node utils/combine.js ./j/jafting/core ../plugins/j/jafting J-JAFTING.js",
     "once:jafting-refine": "node utils/combine.js ./j/jafting/ext/refine ../plugins/j/jafting/ext J-JAFTING-Refinement.js",

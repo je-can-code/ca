@@ -45,9 +45,9 @@ class FramedTargetConfiguration
   constructor(
     showName = true,
     showText = true,
-    showHp = J.HUD.EXT_TARGET.Metadata.EnableHP,
-    showMp = J.HUD.EXT_TARGET.Metadata.EnableMP,
-    showTp = J.HUD.EXT_TARGET.Metadata.EnableTP)
+    showHp = J.HUD.EXT.TARGET.Metadata.EnableHP,
+    showMp = J.HUD.EXT.TARGET.Metadata.EnableMP,
+    showTp = J.HUD.EXT.TARGET.Metadata.EnableTP)
   {
     this.showName = showName;
     this.showText = showText;

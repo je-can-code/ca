@@ -16,7 +16,7 @@ Game_Event.prototype.getTargetFrameText = function()
   if (!commentCommands.length) return targetFrameText;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameText;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -53,7 +53,7 @@ Game_Event.prototype.getTargetFrameIcon = function()
   if (!commentCommands.length) return targetFrameIcon;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameIcon;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -90,7 +90,7 @@ Game_Event.prototype.canShowTargetFrame = function()
   if (!commentCommands.length) return showTargetFrame;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -118,7 +118,7 @@ Game_Event.prototype.canShowTargetFrame = function()
 Game_Event.prototype.showTargetHpBar = function()
 {
   // start with the default of true.
-  let showHpBar = J.HUD.EXT_TARGET.Metadata.EnableHP;
+  let showHpBar = J.HUD.EXT.TARGET.Metadata.EnableHP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -127,7 +127,7 @@ Game_Event.prototype.showTargetHpBar = function()
   if (!commentCommands.length) return showHpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -155,7 +155,7 @@ Game_Event.prototype.showTargetHpBar = function()
 Game_Event.prototype.showTargetMpBar = function()
 {
   // start with the default of true.
-  let showMpBar = J.HUD.EXT_TARGET.Metadata.EnableMP;
+  let showMpBar = J.HUD.EXT.TARGET.Metadata.EnableMP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -164,7 +164,7 @@ Game_Event.prototype.showTargetMpBar = function()
   if (!commentCommands.length) return showMpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -192,7 +192,7 @@ Game_Event.prototype.showTargetMpBar = function()
 Game_Event.prototype.showTargetTpBar = function()
 {
   // start with the default of true.
-  let showTpBar = J.HUD.EXT_TARGET.Metadata.EnableTP;
+  let showTpBar = J.HUD.EXT.TARGET.Metadata.EnableTP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -201,7 +201,7 @@ Game_Event.prototype.showTargetTpBar = function()
   if (!commentCommands.length) return showTpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -238,7 +238,7 @@ Game_Event.prototype.showTargetText = function()
   if (!commentCommands.length) return showText;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>

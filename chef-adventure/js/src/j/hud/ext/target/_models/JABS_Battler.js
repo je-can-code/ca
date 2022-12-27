@@ -1,9 +1,9 @@
 //region JABS_Battler
-J.HUD.EXT_TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 /**
  * Sets the last battler struck by this battler.
  * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
  */
+J.HUD.EXT.TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
 {
   // check if we can update the target frame based on the provided data.
@@ -17,7 +17,7 @@ JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
   }
 
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.JABS_Battler.get('setBattlerLastHit').call(this, battlerLastHit);
+  J.HUD.EXT.TARGET.Aliased.JABS_Battler.get('setBattlerLastHit').call(this, battlerLastHit);
 };
 
 /**
@@ -145,7 +145,7 @@ JABS_Battler.prototype.buildFramedTargetConfiguration = function()
 JABS_Battler.prototype.canShowTargetHp = function()
 {
   // if the defaults hide the HP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableHP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableHP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;
@@ -167,7 +167,7 @@ JABS_Battler.prototype.canShowTargetHp = function()
 JABS_Battler.prototype.canShowTargetMp = function()
 {
   // if the defaults hide the MP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableMP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableMP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;
@@ -192,7 +192,7 @@ JABS_Battler.prototype.canShowTargetMp = function()
 JABS_Battler.prototype.canShowTargetTp = function()
 {
   // if the defaults hide the TP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableTP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableTP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;

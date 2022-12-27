@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Mon Dec 26 2022 11:51:45 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -393,7 +393,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -411,61 +411,61 @@ var J = J || {};
 //endregion version check
 
 /**
- * The plugin umbrella that governs all things related to this plugin.
+ * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.HUD.EXT_TARGET = {};
+J.HUD.EXT.TARGET = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.HUD.EXT_TARGET.Metadata = {};
-J.HUD.EXT_TARGET.Metadata.Version = '1.0.0';
-J.HUD.EXT_TARGET.Metadata.Name = `J-HUD-TargetFrame`;
+J.HUD.EXT.TARGET.Metadata = {};
+J.HUD.EXT.TARGET.Metadata.Version = '1.0.0';
+J.HUD.EXT.TARGET.Metadata.Name = `J-HUD-TargetFrame`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.HUD.EXT_TARGET.PluginParameters = PluginManager.parameters(J.HUD.EXT_TARGET.Metadata.Name);
+J.HUD.EXT.TARGET.PluginParameters = PluginManager.parameters(J.HUD.EXT.TARGET.Metadata.Name);
 
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.HUD.EXT_TARGET.Metadata =
+J.HUD.EXT.TARGET.Metadata =
   {
     // the previously defined metadata.
-    ...J.HUD.EXT_TARGET.Metadata,
+    ...J.HUD.EXT.TARGET.Metadata,
 
     // our configurable data points.
-    TargetFrameX: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameX']),
-    TargetFrameY: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameY']),
-    TargetFrameWidth: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameWidth']),
-    TargetFrameHeight: Number(J.HUD.EXT_TARGET.PluginParameters['targetFrameHeight']),
-    BackgroundGaugeImageX: Number(J.HUD.EXT_TARGET.PluginParameters['backgroundGaugeImageX']),
-    BackgroundGaugeImageY: Number(J.HUD.EXT_TARGET.PluginParameters['backgroundGaugeImageY']),
-    MiddlegroundGaugeImageX: Number(J.HUD.EXT_TARGET.PluginParameters['middlegroundGaugeImageX']),
-    MiddlegroundGaugeImageY: Number(J.HUD.EXT_TARGET.PluginParameters['middlegroundGaugeImageY']),
-    ForegroundGaugeImageX: Number(J.HUD.EXT_TARGET.PluginParameters['foregroundGaugeImageX']),
-    ForegroundGaugeImageY: Number(J.HUD.EXT_TARGET.PluginParameters['foregroundGaugeImageY']),
-    BackgroundFilename: J.HUD.EXT_TARGET.PluginParameters['backgroundImageFilename'],
-    ForegroundFilename: J.HUD.EXT_TARGET.PluginParameters['foregroundImageFilename'],
-    EnableHP: J.HUD.EXT_TARGET.PluginParameters['enableHp'] === "true",
-    EnableMP: J.HUD.EXT_TARGET.PluginParameters['enableMp'] === "true",
-    EnableTP: J.HUD.EXT_TARGET.PluginParameters['enableTp'] === "true",
-    HpGaugeScaleX: Number(J.HUD.EXT_TARGET.PluginParameters['hpGaugeScaleX']),
-    HpGaugeScaleY: Number(J.HUD.EXT_TARGET.PluginParameters['hpGaugeScaleY']),
-    HpGaugeRotation: Number(J.HUD.EXT_TARGET.PluginParameters['hpGaugeRotation']),
-    MpGaugeScaleX: Number(J.HUD.EXT_TARGET.PluginParameters['mpGaugeScaleX']),
-    MpGaugeScaleY: Number(J.HUD.EXT_TARGET.PluginParameters['mpGaugeScaleY']),
-    MpGaugeRotation: Number(J.HUD.EXT_TARGET.PluginParameters['mpGaugeRotation']),
-    TpGaugeScaleX: Number(J.HUD.EXT_TARGET.PluginParameters['tpGaugeScaleX']),
-    TpGaugeScaleY: Number(J.HUD.EXT_TARGET.PluginParameters['tpGaugeScaleY']),
-    TpGaugeRotation: Number(J.HUD.EXT_TARGET.PluginParameters['tpGaugeRotation']),
+    TargetFrameX: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameX']),
+    TargetFrameY: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameY']),
+    TargetFrameWidth: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameWidth']),
+    TargetFrameHeight: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameHeight']),
+    BackgroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageX']),
+    BackgroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageY']),
+    MiddlegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageX']),
+    MiddlegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageY']),
+    ForegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageX']),
+    ForegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageY']),
+    BackgroundFilename: J.HUD.EXT.TARGET.PluginParameters['backgroundImageFilename'],
+    ForegroundFilename: J.HUD.EXT.TARGET.PluginParameters['foregroundImageFilename'],
+    EnableHP: J.HUD.EXT.TARGET.PluginParameters['enableHp'] === "true",
+    EnableMP: J.HUD.EXT.TARGET.PluginParameters['enableMp'] === "true",
+    EnableTP: J.HUD.EXT.TARGET.PluginParameters['enableTp'] === "true",
+    HpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleX']),
+    HpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleY']),
+    HpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeRotation']),
+    MpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleX']),
+    MpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleY']),
+    MpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeRotation']),
+    TpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleX']),
+    TpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleY']),
+    TpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeRotation']),
   };
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.HUD.EXT_TARGET.Aliased = {
+J.HUD.EXT.TARGET.Aliased = {
   Game_System: new Map(),
   Hud_Manager: new Map(),
   JABS_Battler: new Map(),
@@ -475,7 +475,7 @@ J.HUD.EXT_TARGET.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.HUD.EXT_TARGET.RegExp = {
+J.HUD.EXT.TARGET.RegExp = {
   TargetFrameText: /<targetFrameText:([\w :"'.!+\-*/\\]*)>/i,
   TargetFrameIcon: /<targetFrameIcon:(\d+)>/i,
   HideTargetFrame: /<hideTargetFrame>/i,
@@ -588,9 +588,9 @@ class FramedTargetConfiguration
   constructor(
     showName = true,
     showText = true,
-    showHp = J.HUD.EXT_TARGET.Metadata.EnableHP,
-    showMp = J.HUD.EXT_TARGET.Metadata.EnableMP,
-    showTp = J.HUD.EXT_TARGET.Metadata.EnableTP)
+    showHp = J.HUD.EXT.TARGET.Metadata.EnableHP,
+    showMp = J.HUD.EXT.TARGET.Metadata.EnableMP,
+    showTp = J.HUD.EXT.TARGET.Metadata.EnableTP)
   {
     this.showName = showName;
     this.showText = showText;
@@ -602,11 +602,11 @@ class FramedTargetConfiguration
 //endregion FramedTargetConfiguration
 
 //region JABS_Battler
-J.HUD.EXT_TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 /**
  * Sets the last battler struck by this battler.
  * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
  */
+J.HUD.EXT.TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
 JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
 {
   // check if we can update the target frame based on the provided data.
@@ -620,7 +620,7 @@ JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
   }
 
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.JABS_Battler.get('setBattlerLastHit').call(this, battlerLastHit);
+  J.HUD.EXT.TARGET.Aliased.JABS_Battler.get('setBattlerLastHit').call(this, battlerLastHit);
 };
 
 /**
@@ -748,7 +748,7 @@ JABS_Battler.prototype.buildFramedTargetConfiguration = function()
 JABS_Battler.prototype.canShowTargetHp = function()
 {
   // if the defaults hide the HP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableHP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableHP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;
@@ -770,7 +770,7 @@ JABS_Battler.prototype.canShowTargetHp = function()
 JABS_Battler.prototype.canShowTargetMp = function()
 {
   // if the defaults hide the MP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableMP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableMP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;
@@ -795,7 +795,7 @@ JABS_Battler.prototype.canShowTargetMp = function()
 JABS_Battler.prototype.canShowTargetTp = function()
 {
   // if the defaults hide the TP, then don't show it.
-  if (!J.HUD.EXT_TARGET.Metadata.EnableTP) return false;
+  if (!J.HUD.EXT.TARGET.Metadata.EnableTP) return false;
 
   // we do not show hp bars for non-enemies.
   if (!this.isEnemy()) return false;
@@ -919,7 +919,7 @@ Game_Enemy.prototype.extractTargetFrameText = function(referenceData)
   if (!referenceData.note) return String.empty;
 
   const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameText;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
   let extraText = String.empty;
   notedata.forEach(line =>
   {
@@ -960,7 +960,7 @@ Game_Enemy.prototype.extractTargetFrameIcon = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameIcon;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
 
   // start with the default icon index of 0.
   let targetFrameIcon = 0;
@@ -1008,7 +1008,7 @@ Game_Enemy.prototype.extractShowTargetFrame = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
 
   // start with the default of true
   let showTargetFrame = true;
@@ -1056,7 +1056,7 @@ Game_Enemy.prototype.extractShowHpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
 
   // start with the default of true
   let showHpBar = true;
@@ -1104,7 +1104,7 @@ Game_Enemy.prototype.extractShowMpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
 
   // start with the default of true
   let showMpBar = true;
@@ -1152,7 +1152,7 @@ Game_Enemy.prototype.extractShowTpBar = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
 
   // start with the default of true
   let showTpBar = true;
@@ -1200,7 +1200,7 @@ Game_Enemy.prototype.extractShowTargetText = function(referenceData)
   const notedata = referenceData.note.split(/[\r\n]+/);
 
   // the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
 
   // start with the default of true
   let showTargetText = true;
@@ -1239,7 +1239,7 @@ Game_Event.prototype.getTargetFrameText = function()
   if (!commentCommands.length) return targetFrameText;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameText;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1276,7 +1276,7 @@ Game_Event.prototype.getTargetFrameIcon = function()
   if (!commentCommands.length) return targetFrameIcon;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.TargetFrameIcon;
+  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1313,7 +1313,7 @@ Game_Event.prototype.canShowTargetFrame = function()
   if (!commentCommands.length) return showTargetFrame;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetFrame;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1341,7 +1341,7 @@ Game_Event.prototype.canShowTargetFrame = function()
 Game_Event.prototype.showTargetHpBar = function()
 {
   // start with the default of true.
-  let showHpBar = J.HUD.EXT_TARGET.Metadata.EnableHP;
+  let showHpBar = J.HUD.EXT.TARGET.Metadata.EnableHP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -1350,7 +1350,7 @@ Game_Event.prototype.showTargetHpBar = function()
   if (!commentCommands.length) return showHpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetHP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1378,7 +1378,7 @@ Game_Event.prototype.showTargetHpBar = function()
 Game_Event.prototype.showTargetMpBar = function()
 {
   // start with the default of true.
-  let showMpBar = J.HUD.EXT_TARGET.Metadata.EnableMP;
+  let showMpBar = J.HUD.EXT.TARGET.Metadata.EnableMP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -1387,7 +1387,7 @@ Game_Event.prototype.showTargetMpBar = function()
   if (!commentCommands.length) return showMpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetMP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1415,7 +1415,7 @@ Game_Event.prototype.showTargetMpBar = function()
 Game_Event.prototype.showTargetTpBar = function()
 {
   // start with the default of true.
-  let showTpBar = J.HUD.EXT_TARGET.Metadata.EnableTP;
+  let showTpBar = J.HUD.EXT.TARGET.Metadata.EnableTP;
 
   // get the list of valid event commands that are comments.
   const commentCommands = this.getValidCommentCommands();
@@ -1424,7 +1424,7 @@ Game_Event.prototype.showTargetTpBar = function()
   if (!commentCommands.length) return showTpBar;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetTP;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1461,7 +1461,7 @@ Game_Event.prototype.showTargetText = function()
   if (!commentCommands.length) return showText;
 
   // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT_TARGET.RegExp.HideTargetText;
+  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
 
   // check all the valid event commands to see if we have a reason to hide it.
   commentCommands.forEach(command =>
@@ -1484,55 +1484,81 @@ Game_Event.prototype.showTargetText = function()
 
 //region Scene_Map
 /**
- * Hooks into `initialize` to add our hud.
+ * Extends {@link #initHudMembers}.
+ * Includes initialization of the target frame members.
  */
-J.HUD.EXT_TARGET.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
-Scene_Map.prototype.initialize = function()
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
+Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('initHudMembers').call(this);
 
   /**
-   * All encompassing _j object for storing this plugin's properties.
-   * @type {{}}
-   * @private
+   * A grouping of all properties that belong to target extension
+   * of the HUD.
    */
-  this._j ||= {};
+  this._j._hud._target = {};
 
   /**
-   * The log window on the map.
+   * The target frame showing enemy data.
    * @type {Window_TargetFrame}
    */
-  this._j._targetFrame = null;
+  this._j._hud._target._targetFrame = null;
+
+  /**
+   * The target frame showing boss data.
+   * This is much bigger than the regular target frame.
+   * @type {Window_TargetFrame}
+   * @private
+   */
+  this._j._hud._target._bossFrame = null;
 };
 
 /**
- * Once the map is loaded, create the text log.
+ * Extends {@link #createAllWindows}.
+ * Includes creation of the target frame window.
  */
-J.HUD.EXT_TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the target frame.
-  this.createTargetFrame();
+  this.createTargetFrameWindow();
+};
+
+//region target frame
+/**
+ * Creates the target frame window and adds it to tracking.
+ */
+Scene_Map.prototype.createTargetFrameWindow = function()
+{
+  // create the window.
+  const window = this.buildTargetFrameWindow();
+
+  // update the tracker with the new window.
+  this.setTargetFrameWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
 };
 
 /**
- * Creates the log window and adds it to tracking.
+ * Sets up and defines the target frame window.
+ * @returns {Window_TargetFrame}
  */
-Scene_Map.prototype.createTargetFrame = function()
+Scene_Map.prototype.buildTargetFrameWindow = function()
 {
-  // create the rectangle of the window.
-  const rect = this.targetFrameWindowRect();
+  // define the rectangle of the window.
+  const rectangle = this.targetFrameWindowRect();
 
-  // assign the window to our reference.
-  this._j._targetFrame = new Window_TargetFrame(rect);
+  // create the window with the rectangle.
+  const window = new Window_TargetFrame(rectangle);
 
-  // add window to tracking.
-  this.addWindow(this._j._targetFrame);
-};
+  // return the built and configured window.
+  return window;
+}
 
 /**
  * Creates the rectangle representing the window for the target frame.
@@ -1540,21 +1566,41 @@ Scene_Map.prototype.createTargetFrame = function()
  */
 Scene_Map.prototype.targetFrameWindowRect = function()
 {
-  const width = J.HUD.EXT_TARGET.Metadata.TargetFrameWidth;
-  const height = J.HUD.EXT_TARGET.Metadata.TargetFrameHeight;
-  const x = J.HUD.EXT_TARGET.Metadata.TargetFrameX;
-  const y = J.HUD.EXT_TARGET.Metadata.TargetFrameY;
+  const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
+  const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
+  const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
+  const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
   return new Rectangle(x, y, width, height);
 };
 
 /**
- * The update loop for the hud manager.
+ * Gets the currently tracked target frame window.
+ * @returns {Window_TargetFrame}
  */
-J.HUD.EXT_TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+Scene_Map.prototype.getTargetFrameWindow = function()
+{
+  return this._j._hud._target._targetFrame;
+}
+
+/**
+ * Set the currently tracked target frame window to the given window.
+ * @param {Window_TargetFrame} window The window to track.
+ */
+Scene_Map.prototype.setTargetFrameWindow = function(window)
+{
+  this._j._hud._target._targetFrame = window;
+}
+//endregion target frame
+
+/**
+ * Extends {@link #updateHudFrames}.
+ * Includes updating the target frame.
+ */
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_TARGET.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages target frame assignments.
   this.handleAssignTarget();
@@ -1565,18 +1611,17 @@ Scene_Map.prototype.updateHudFrames = function()
  */
 Scene_Map.prototype.handleAssignTarget = function()
 {
-  // handles incoming requests to assign a target.
-  if ($hudManager.hasRequestAssignTarget())
-  {
-    // grab the new target.
-    const newTarget = $hudManager.getNewTarget();
+  // if there is no request, then don't process.
+  if (!$hudManager.hasRequestAssignTarget()) return;
 
-    // set the target frame's target to this new target.
-    this._j._targetFrame.setTarget(newTarget);
+  // grab the new target.
+  const newTarget = $hudManager.getNewTarget();
 
-    // let the hud manager know we've done the deed.
-    $hudManager.acknowledgeAssignedTarget();
-  }
+  // set the target frame's target to this new target.
+  this.getTargetFrameWindow().setTarget(newTarget);
+
+  // let the hud manager know we've done the deed.
+  $hudManager.acknowledgeAssignedTarget();
 };
 //endregion Scene_Map
 
@@ -1688,7 +1733,7 @@ class Sprite_FlowingGauge extends Sprite
     this.resetValues();
 
     // establish a promise for loading the gauge background into memory.
-    const backgroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.BackgroundFilename);
+    const backgroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.BackgroundFilename);
     const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
@@ -1700,7 +1745,7 @@ class Sprite_FlowingGauge extends Sprite
       });
 
     // establish a promise for loading the gauge foreground into memory.
-    const foregroundFilename = this.extractFileName(J.HUD.EXT_TARGET.Metadata.ForegroundFilename);
+    const foregroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.ForegroundFilename);
     const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
 
     // manage the completion and error handling of the bitmap loading.
@@ -1758,8 +1803,8 @@ class Sprite_FlowingGauge extends Sprite
   {
     // establish the new sprite based on the given bitmap.
     this._gaugeBackground = new Sprite(this._backgroundBitmap);
-    this._gaugeBackground.x = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageX;
-    this._gaugeBackground.y = J.HUD.EXT_TARGET.Metadata.BackgroundGaugeImageY;
+    this._gaugeBackground.x = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
+    this._gaugeBackground.y = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageY;
     this.addChild(this._gaugeBackground);
   }
 
@@ -1770,14 +1815,14 @@ class Sprite_FlowingGauge extends Sprite
   {
     // generate the middleground of the gauge.
     this._gaugeCurrentSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeCurrentSprite.x = J.HUD.EXT_TARGET.Metadata.MiddlegroundGaugeImageX;
-    this._gaugeCurrentSprite.y = J.HUD.EXT_TARGET.Metadata.MiddlegroundGaugeImageY;
+    this._gaugeCurrentSprite.x = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageX;
+    this._gaugeCurrentSprite.y = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageY;
     this.addChild(this._gaugeCurrentSprite);
 
     // generate the foreground of the gauge
     this._gaugeActualSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeActualSprite.x = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageX;
-    this._gaugeActualSprite.y = J.HUD.EXT_TARGET.Metadata.ForegroundGaugeImageY;
+    this._gaugeActualSprite.x = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageX;
+    this._gaugeActualSprite.y = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageY;
     this.addChild(this._gaugeActualSprite);
   }
 
@@ -2318,9 +2363,9 @@ class Window_TargetFrame extends Window_Base
    * @param {Rectangle} rect The shape of this window.
    */
   constructor(rect)
-{
- super(rect);
-}
+  {
+    super(rect);
+  }
 
   /**
    * Initializes the properties of this class.
@@ -2472,8 +2517,8 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.HpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.HpGaugeScaleY;
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -2506,8 +2551,8 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.MpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.MpGaugeScaleY;
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -2540,9 +2585,9 @@ class Window_TargetFrame extends Window_Base
 
     // hide the sprite for now.
     sprite.hide();
-    sprite.rotation = J.HUD.EXT_TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
-    sprite.scale.x = J.HUD.EXT_TARGET.Metadata.TpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT_TARGET.Metadata.TpGaugeScaleY;
+    sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
+    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleX;
+    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleY;
 
     // add the sprite to tracking.
     this.addChild(sprite);
@@ -2693,24 +2738,30 @@ class Window_TargetFrame extends Window_Base
       const x = 0;
       const y = 0;
 
-      // draw the name of the target.
-      this.drawTargetName(x, y);
-
-      // draw the level of the target.
-      this.drawTargetLevel(x+220, y);
-
-      // draw the extra data for the target.
-      this.drawTargetExtra(x, y+24);
-
-      // draw the relation of the target.
-      this.drawTargetIcon(x, y+48);
-
-      // draw the battler data of the target- if available.
-      this.drawTargetBattlerInfo(x+32, y);
+      // draw the target data.
+      this.drawContent(x, y);
 
       // acknowledge the request to refresh the target.
       this.acknowledgeTargetRefresh();
     }
+  }
+
+  drawContent(x, y)
+  {
+    // draw the name of the target.
+    this.drawTargetName(x, y);
+
+    // draw the level of the target.
+    this.drawTargetLevel(x+220, y);
+
+    // draw the extra data for the target.
+    this.drawTargetExtra(x, y+24);
+
+    // draw the relation of the target.
+    this.drawTargetIcon(x, y+48);
+
+    // draw the battler data of the target- if available.
+    this.drawTargetBattlerInfo(x+32, y);
   }
 
   /**
@@ -2899,7 +2950,7 @@ class Window_TargetFrame extends Window_Base
     else
     {
       // clear/hide the gauge data.
-      this._j._spriteCache.forEach((value, _) => value.hide());
+      this._j._spriteCache.forEach(value => value.hide());
     }
   }
 
