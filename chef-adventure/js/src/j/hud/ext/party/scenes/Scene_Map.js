@@ -9,9 +9,7 @@ Scene_Map.prototype.initialize = function()
   J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
-   * All encompassing _j object for storing this plugin's properties.
-   * @type {{}}
-   * @private
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
@@ -57,9 +55,9 @@ Scene_Map.prototype.createHudPartyFrame = function()
 Scene_Map.prototype.hudPartyFrameWindowRect = function()
 {
   const width = 320;
-  const height = 290;
+  const height = 240;
   const x = 0;
-  const y = 0;
+  const y = Graphics.boxHeight - height;
   return new Rectangle(x, y, width, height);
 };
 

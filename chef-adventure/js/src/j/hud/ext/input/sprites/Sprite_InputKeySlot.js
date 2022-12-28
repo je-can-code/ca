@@ -27,7 +27,7 @@ class Sprite_InputKeySlot extends Sprite
   initMembers()
   {
     /**
-     * All encompassing _j object for storing my custom properties.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 
@@ -459,7 +459,66 @@ class Sprite_InputKeySlot extends Sprite
     }
 
     // create a new sprite.
-    const sprite = new Sprite_SkillName(skillSlot);
+    const sprite = new Sprite_SkillName(skillSlot)
+      .setFontSize(12)
+      .setAlignment(Sprite_BaseText.Alignments.Center);
+
+    // cache the sprite.
+    this._j._spriteCache.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  }
+
+  /**
+   * Creates the key for the input key skill name sprite based on the parameters.
+   * @param {string} inputType The type of input for this key.
+   * @returns {string}
+   */
+  makeInputKeySlotNameSpriteKey(inputType)
+  {
+    return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
+  }
+
+  /**
+   * Creates a slot name sprite for the given input key and caches it.
+   * @param {JABS_SkillSlot} skillSlot The slot to create a name for.
+   * @param {string} inputType The type of input for this key.
+   * @returns {Sprite_BaseText}
+   */
+  getOrCreateInputKeySlotNameSprite(skillSlot, inputType)
+  {
+    // determine the key for this sprite.
+    const key = this.makeInputKeySlotNameSpriteKey(inputType);
+
+    // check if the key already maps to a cached sprite.
+    if (this._j._spriteCache.has(key))
+    {
+      // if it does, just return that.
+      return this._j._spriteCache.get(key);
+    }
+
+    // push for uppercase for cleanliness.
+    let labelText = inputType.toUpperCase();
+
+    // check if this is a combat skill.
+    if (skillSlot.isSecondarySlot())
+    {
+      // parse out the word "combat" from the input if it exists.
+      labelText = labelText.replace("COMBAT", String.empty);
+    }
+
+    // create a new sprite.
+    const sprite = new Sprite_BaseText(labelText)
+      .setFontSize(12)
+      .setAlignment(Sprite_BaseText.Alignments.Center)
+      .setBold(true);
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);
@@ -509,6 +568,9 @@ class Sprite_InputKeySlot extends Sprite
 
     // draw skill name.
     this.drawInputKeySkillName(x, y);
+
+    // draw the slot name.
+    this.drawInputKeySlotName(x, y);
   }
 
   /**
@@ -676,7 +738,19 @@ class Sprite_InputKeySlot extends Sprite
     // relocate the sprite.
     const sprite = this.getOrCreateInputKeySkillNameSprite(skillSlot, inputType);
     sprite.show();
-    sprite.move(x, y+24);
+    sprite.move(x, y+36);
+  }
+
+  drawInputKeySlotName(x, y)
+  {
+    // grab data for building the sprite.
+    const skillSlot = this.skillSlot();
+    const inputType = this.skillSlot().key;
+
+    // relocate the sprite.
+    const sprite = this.getOrCreateInputKeySlotNameSprite(skillSlot, inputType);
+    sprite.show();
+    sprite.move(x, y+48);
   }
   //endregion drawing
 }

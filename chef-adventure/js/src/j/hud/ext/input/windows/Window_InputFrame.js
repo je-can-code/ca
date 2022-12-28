@@ -267,6 +267,11 @@ class Window_InputFrame extends Window_Frame
     return 72;
   }
 
+  inputKeyHeight()
+  {
+    return 96;
+  }
+
   /**
    * Draws the input frame window in its entirety.
    */
@@ -285,15 +290,16 @@ class Window_InputFrame extends Window_Frame
       sprite.drawInputKey();
     }));
 
-    // our origin x:y coordinates.
-    const x = 0;
-    const y = 0;
-
-    // draw the primary section of our input.
-    this.drawPrimaryInputKeys(x, y);
-
-    // draw the secondary section of our input.
-    this.drawSecondaryInputKeys(x+250, y);
+    if (J.HUD.EXT.INPUT.Metadata.UseGamepadLayout)
+    {
+      // draw the inputs.
+      this.drawGamepadStyleInputKeys();
+    }
+    else
+    {
+      // draw the inputs.
+      this.drawKeyboardStyleInputKeys();
+    }
 
     // flags that this has been refreshed.
     this.acknowledgeInternalRefresh();
@@ -322,12 +328,46 @@ class Window_InputFrame extends Window_Frame
   }
 
   /**
+   * Draws the inputs to be more console-style with a gamepad layout.
+   */
+  drawGamepadStyleInputKeys()
+  {
+    // our origin x:y coordinates.
+    const x = 0;
+    const y = 0;
+
+    // draw the primary section of our input.
+    this.drawGamepadPrimaryInputKeys(x, y);
+
+    // draw the secondary section of our input.
+    this.drawGamepadSecondaryInputKeys(x+250, y);
+  }
+
+  /**
+   * Draws the inputs to be more PC-style with a keyboard layout.
+   */
+  drawKeyboardStyleInputKeys()
+  {
+    // our origin x:y coordinates.
+    const ikw = this.inputKeyWidth();
+    const x = 0;
+    const y = 0;
+
+    // draw the primary section of our input.
+    this.drawKeyboardPrimaryInputKeys(x, y);
+
+    // draw the secondary section of our input.
+    const keyboardSecondaryX = x + (ikw*4) + 24;
+    this.drawKeyboardSecondaryInputKeys(keyboardSecondaryX, y);
+  }
+
+  /**
    * Draws the primary set of input keys.
    * This includes: mainhand, offhand, dodge, and tool input keys.
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    */
-  drawPrimaryInputKeys(x, y)
+  drawGamepadPrimaryInputKeys(x, y)
   {
     // shorthand the variables for re-use.
     const ikw = this.inputKeyWidth();
@@ -347,7 +387,7 @@ class Window_InputFrame extends Window_Frame
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    */
-  drawSecondaryInputKeys(x, y)
+  drawGamepadSecondaryInputKeys(x, y)
   {
     // shorthand the variables for re-use.
     const ikw = this.inputKeyWidth();
@@ -359,6 +399,34 @@ class Window_InputFrame extends Window_Frame
     this.drawInputKey(JABS_Button.CombatSkill4, baseX+(ikw*1), baseY);
     this.drawInputKey(JABS_Button.CombatSkill1, baseX+(ikw*1), baseY+64);
     this.drawInputKey(JABS_Button.CombatSkill2, baseX+(ikw*2), baseY+32);
+  }
+
+  drawKeyboardPrimaryInputKeys(x, y)
+  {
+    // shorthand the variables for re-use.
+    const ikw = this.inputKeyWidth();
+    const baseX = x + 16;
+    const baseY = y + 8;
+
+    // draw the four basic core functions of JABS.
+    this.drawInputKey(JABS_Button.Mainhand, baseX + ikw*0, baseY);
+    this.drawInputKey(JABS_Button.Offhand, baseX + ikw*1, baseY);
+    this.drawInputKey(JABS_Button.Dodge, baseX + ikw*2, baseY);
+    this.drawInputKey(JABS_Button.Tool, baseX + ikw*3, baseY);
+  }
+
+  drawKeyboardSecondaryInputKeys(x, y)
+  {
+    // shorthand the variables for re-use.
+    const ikw = this.inputKeyWidth();
+    const baseX = x + 16;
+    const baseY = y + 8;
+
+    // draw the combat skills equipped for JABS.
+    this.drawInputKey(JABS_Button.CombatSkill1, baseX + ikw*0, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill2, baseX + ikw*1, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill3, baseX + ikw*2, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill4, baseX + ikw*3, baseY);
   }
 
   /**
@@ -395,6 +463,16 @@ class Window_InputFrame extends Window_Frame
   drawInputKeySlotSprite(skillSlot, inputType, x, y)
   {
     const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, inputType);
+
+    if (!skillSlot.isEmpty())
+    {
+      const width = this.inputKeyWidth() - 10;
+      const height = this.inputKeyHeight();
+      const c1 = ColorManager.itemBackColor1();
+      const c2 = ColorManager.itemBackColor2();
+      this.contents.gradientFillRect(x-10, y+20, width, height, c1, c2, true);
+    }
+
     sprite.show();
     sprite.move(x+6, y+20);
   }

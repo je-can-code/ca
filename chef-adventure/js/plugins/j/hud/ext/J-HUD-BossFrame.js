@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:26 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 15:09:18 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -360,19 +360,17 @@ Scene_Map.prototype.buildBossFrameWindow = function()
  */
 Scene_Map.prototype.bossFrameWindowRect = function()
 {
-  const windowToLeft = this.hudPartyFrameWindowRect();
-
   // define the width of the window.
-  const width = Graphics.boxWidth - windowToLeft.width - 100;
+  const width = Graphics.boxWidth - 400;
 
   // define the height of the window.
-  const height = 200;
+  const height = 120;
 
   // define the origin x of the window.
-  const x = windowToLeft.width;
+  const x = (Graphics.boxWidth - width) / 2;
 
   // define the origin y of the window.
-  const y = 100;
+  const y = 0;
 
   // return the built rectangle.
   return new Rectangle(x, y, width, height);

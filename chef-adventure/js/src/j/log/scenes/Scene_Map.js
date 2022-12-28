@@ -2,71 +2,121 @@
 /**
  * Hooks into `initialize` to add our log.
  */
-J.LOG.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.LOG.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.LOG.Aliased.Scene_Map.initialize.call(this);
+  J.LOG.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
-   * All encompassing _j object for storing this plugin's properties.
-   * @type {{}}
-   * @private
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
   /**
-   * The log window on the map.
+   * A grouping of all properties associated with this plugin.
+   */
+  this._j._log = {};
+
+  /**
+   * The action log for the map.
    * @type {Window_MapLog}
    */
-  this._j._log = null;
+  this._j._log._actionLog = null;
 };
 
 /**
- * Once the map is loaded, create the text log.
+ * Extends {@link #onMapLoaded}.
+ * Creates the action log as well.
+ * // TODO: can this be migrated to the {@link #createAllWindows} method like normal windows?
  */
-J.LOG.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.LOG.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
 {
   // perform original logic.
-  J.LOG.Aliased.Scene_Map.onMapLoaded.call(this);
+  J.LOG.Aliased.Scene_Map.get('onMapLoaded').call(this);
 
   // create the log.
-  this.createTextLog();
+  this.createActionLogWindow();
+};
+
+//region action log
+/**
+ * Creates the action log window and adds it to tracking.
+ */
+Scene_Map.prototype.createActionLogWindow = function()
+{
+  // create the window.
+  const window = this.buildActionLogWindow();
+
+  // update the tracker with the new window.
+  this.setActionLogWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
 };
 
 /**
- * Creates the log window and adds it to tracking.
+ * Sets up and defines the action log window.
+ * @returns {Window_MapLog}
  */
-Scene_Map.prototype.createTextLog = function()
+Scene_Map.prototype.buildActionLogWindow = function()
 {
-  // create the rectangle of the window.
-  const rect = this.textLogWindowRect();
+  // define the rectangle of the window.
+  const rectangle = this.actionLogWindowRect();
 
-  // assign the window to our reference.
-  this._j._log = new Window_MapLog(rect);
+  // create the window with the rectangle.
+  const window = new Window_MapLog(rectangle);
 
   // deselect/deactivate the window so we don't have it look interactable.
-  this._j._log.deselect();
-  this._j._log.deactivate();
+  window.deselect();
+  window.deactivate();
 
-  // add window to tracking.
-  this.addWindow(this._j._log);
+  // return the built and configured window.
+  return window;
+}
+
+/**
+ * Creates the rectangle representing the window for the action log.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.actionLogWindowRect = function()
+{
+  // an arbitrary number of rows.
+  const rows = 8;
+
+  // define the width of the window.
+  const width = 600;
+
+  // define the height of the window.
+  const height = (Window_MapLog.rowHeight * (rows + 2)) - 8;
+
+  // define the origin x of the window.
+  const x = Graphics.boxWidth - width;
+
+  // define the origin y of the window.
+  const y = Graphics.boxHeight - height - 72;
+
+  // return the built rectangle.
+  return new Rectangle(x, y, width, height);
 };
 
 /**
- * Creates the rectangle representing the window for the log.
- * @returns {Rectangle}
+ * Gets the currently tracked action log window.
+ * @returns {Window_MapLog}
  */
-Scene_Map.prototype.textLogWindowRect = function()
+Scene_Map.prototype.getActionLogWindow = function()
 {
-  // an arbitrary number of rows.
-  const rows = 12;
+  return this._j._log._actionLog;
+}
 
-  const width = 600;
-  const height = (Window_MapLog.rowHeight * rows) - 8;
-  const x = 0;
-  const y = Graphics.boxHeight - height;
-  return new Rectangle(x, y, width, height);
-};
+/**
+ * Set the currently tracked action log window to the given window.
+ * @param {Window_MapLog} window The window to track.
+ */
+Scene_Map.prototype.setActionLogWindow = function(window)
+{
+  this._j._log._actionLog = window;
+}
+//endregion action log
 //endregion Scene_Map

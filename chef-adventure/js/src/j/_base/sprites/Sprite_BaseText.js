@@ -36,7 +36,7 @@ class Sprite_BaseText extends Sprite
   initMembers()
   {
     /**
-     * All encompassing _j object for storing my custom properties.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 
@@ -63,7 +63,7 @@ class Sprite_BaseText extends Sprite
      * The alignment of text in this sprite.
      * @type {Sprite_BaseText.Alignments}
      */
-    this._j._alignment = "left";
+    this._j._alignment = Sprite_BaseText.Alignments.Left;
 
     /**
      * Whether or not the text should be italics.
@@ -115,6 +115,7 @@ class Sprite_BaseText extends Sprite
   configureBitmap()
   {
     this.bitmap.clear();
+    this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
     this.bitmap.fontFace = this.fontFace();
     this.bitmap.fontSize = this.fontSize();
     this.bitmap.fontBold = this.isBold();
@@ -152,13 +153,14 @@ class Sprite_BaseText extends Sprite
   bitmapWidth()
   {
     // setup the test bitmap similar to the real one.
-    this._j._testBitmap.fontFace = this._j._fontFace;
-    this._j._testBitmap.fontSize = this._j._fontSize;
+    this._j._testBitmap = new Bitmap(this.bitmap?.width ?? 128, this.bitmapHeight());
+    this._j._testBitmap.fontFace = this.fontFace();
+    this._j._testBitmap.fontSize = this.fontSize();
     this._j._testBitmap.fontItalic = this.isItalics();
     this._j._testBitmap.fontBold = this.isBold();
 
     // and return the measured text width.
-    return this._j._testBitmap.measureTextWidth(this._j._text);
+    return this._j._testBitmap.measureTextWidth(this.text());
   }
 
   /**
@@ -316,7 +318,7 @@ class Sprite_BaseText extends Sprite
    */
   setBold(bold)
   {
-    if (this.bold() !== bold)
+    if (this.isBold() !== bold)
     {
       this._j._bold = bold;
       this.refresh();
@@ -411,12 +413,16 @@ class Sprite_BaseText extends Sprite
    */
   renderText()
   {
+    const width = this.alignment() === Sprite_BaseText.Alignments.Center
+      ? this.width
+      : this.bitmapWidth();
+
     // draw the text with the current settings onto the bitmap.
     this.bitmap.drawText(
       this.text(),
       0,
       0,
-      this.bitmapWidth(),
+      width,
       this.bitmapHeight(),
       this.alignment());
   }

@@ -9,7 +9,7 @@ Game_Temp.prototype.initMembers = function()
   J.DIFFICULTY.Aliased.Game_Temp.get('initMembers').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

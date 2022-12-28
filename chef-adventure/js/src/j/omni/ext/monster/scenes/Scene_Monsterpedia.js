@@ -88,7 +88,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
   initCoreMembers()
   {
     /**
-     * The over-arching J object to contain all additional plugin parameters.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 

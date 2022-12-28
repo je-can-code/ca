@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:24 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -158,7 +158,7 @@ Game_Temp.prototype.initMembers = function()
   J.UTILS.Aliased.Game_Temp.get('initMembers').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

@@ -19,7 +19,7 @@ Game_Actor.prototype.initMembers = function()
 Game_Actor.prototype.initAllyAiMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

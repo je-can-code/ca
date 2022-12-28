@@ -6,7 +6,7 @@ J.ABS.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype.ini
 Sprite_Character.prototype.initMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

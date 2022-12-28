@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:26 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -613,7 +613,7 @@ Game_Battler.prototype.initMembers = function()
 Game_Battler.prototype.initPassiveStatesMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
@@ -1029,7 +1029,7 @@ Game_Party.prototype.initialize = function()
 Game_Party.prototype.initPassiveItemStates = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

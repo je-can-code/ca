@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:25 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /* eslint-disable */
@@ -1982,7 +1982,7 @@ Game_Temp.prototype.initMembers = function()
   J.DIFFICULTY.Aliased.Game_Temp.get('initMembers').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
@@ -2270,7 +2270,7 @@ class Scene_Difficulty extends Scene_MenuBase
   initMembers()
   {
     /**
-     * The over-arching J object to contain all additional plugin parameters.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 

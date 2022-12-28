@@ -82,10 +82,19 @@ Scene_Map.prototype.buildTargetFrameWindow = function()
  */
 Scene_Map.prototype.targetFrameWindowRect = function()
 {
+  // define the width of the window.
   const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
+
+  // define the height of the window.
   const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
+
+  // define the origin x of the window.
   const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
+
+  // define the origin y of the window.
   const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
 

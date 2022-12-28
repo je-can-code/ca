@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -1513,7 +1513,7 @@ Game_Actor.prototype.initMembers = function()
 Game_Actor.prototype.initAllyAiMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

@@ -624,13 +624,14 @@ class Window_PartyFrame extends Window_Base
     this.manageVisibility();
 
     // draw the leader data.
-    this.drawLeader(8, 8);
+    this.drawLeader(0, 0);
 
     // if we cannot draw your allies, then do not.
     if (!$hudManager.canShowAllies()) return;
 
     // draw all allies' data.
-    this.drawAllies(136, 8);
+    const alliesY = (ImageManager.iconHeight * 2) + 12;
+    this.drawAllies(136, alliesY);
   }
 
   //region visibility
@@ -733,13 +734,15 @@ class Window_PartyFrame extends Window_Base
     if (!$gameParty.leader()) return;
 
     // draw the face for the leader.
-    this.drawLeaderFace(x, y);
+    const partyY = y + (ImageManager.iconHeight * 2) + 12;
+    this.drawLeaderFace(x, partyY);
 
     // draw the gauges for the leader.
-    this.drawLeaderGauges(x, y+120);
+    const leaderGaugesY = partyY + 120;
+    this.drawLeaderGauges(x, leaderGaugesY);
 
     // draw states for the leader.
-    this.drawStates();
+    this.drawStates(x, y);
   }
 
   /**
@@ -805,26 +808,27 @@ class Window_PartyFrame extends Window_Base
     tpNumbers.show();
 
     // grab and locate the xp gauge.
+    const xpY = oy - 120;
     const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
-    xpGauge.move(x+5, 8);
+    xpGauge.move(x+5, xpY);
     xpGauge.show();
 
     // locate the xp numbers.
     const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.XP);
-    xpNumbers.move(x, 8);
+    xpNumbers.move(x, xpY);
     xpNumbers.show();
 
     // locate the level numbers.
     const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
-    levelNumbers.move(x+84, oy-24);
+    levelNumbers.move(x+84, xpY);
     levelNumbers.show();
   }
 
   /**
    * Draw all states for the leader of the party.
    */
-  drawStates()
+  drawStates(x, y)
   {
     // grab the leader.
     const leader = $gameParty.leader();
@@ -849,18 +853,18 @@ class Window_PartyFrame extends Window_Base
       negativeStates.forEach((negativeTrackedState, index) =>
       {
         // draw the negative state onto the hud.
-        const x = 8 + (index * (ImageManager.iconWidth + 2));
-        const y = 180;
-        this.drawState(leader, negativeTrackedState, x, y);
+        const negativeX = x + (index * (ImageManager.iconWidth + 2));
+        const negativeY = y;
+        this.drawState(leader, negativeTrackedState, negativeX, negativeY);
       });
 
       // iterate over all the positive states and draw them.
       positiveStates.forEach((positiveTrackedState, index) =>
       {
         // draw the positive state onto the hud.
-        const x = 8 + (index * (ImageManager.iconWidth + 2));
-        const y = 230;
-        this.drawState(leader, positiveTrackedState, x, y);
+        const positiveX = x + (index * (ImageManager.iconWidth + 2));
+        const positiveY = y + (ImageManager.iconHeight + 8);
+        this.drawState(leader, positiveTrackedState, positiveX, positiveY);
       });
     }
   }

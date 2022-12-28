@@ -30,7 +30,7 @@ class Sprite_Icon extends Sprite
   initMembers()
   {
     /**
-     * All encompassing _j object for storing my custom properties.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 

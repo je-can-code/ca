@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:26 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 13:49:28 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -66,18 +66,9 @@ J.HUD.EXT.INPUT.Metadata.Name = `J-HUD-InputFrame`;
  */
 J.HUD.EXT.INPUT.PluginParameters = PluginManager.parameters(J.HUD.EXT.INPUT.Metadata.Name);
 
-/**
- * Extend this plugin's metadata with additional configurable data points.
- */
-J.HUD.EXT.INPUT.Metadata =
-  {
-    // the previously defined metadata.
-    ...J.HUD.EXT.INPUT.Metadata,
-
-    // our configurable data points.
-    InputFrameX: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameX']),
-    InputFrameY: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameY']),
-  };
+J.HUD.EXT.INPUT.Metadata.InputFrameX = Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameX']);
+J.HUD.EXT.INPUT.Metadata.InputFrameY = Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameY']);
+J.HUD.EXT.INPUT.Metadata.UseGamepadLayout = false;
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -92,22 +83,17 @@ J.HUD.EXT.INPUT.Aliased = {
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
-Scene_Map.prototype.initialize = function()
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
+Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initialize').call(this);
-
-  /**
-   * All encompassing _j object for storing my custom properties.
-   */
-  this._j ||= {};
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initHudMembers').call(this);
 
   /**
    * The input frame window on the map.
    * @type {Window_InputFrame}
    */
-  this._j._inputFrame = null;
+  this._j._hud._inputFrame = null;
 };
 
 /**
@@ -120,36 +106,91 @@ Scene_Map.prototype.createAllWindows = function()
   J.HUD.EXT.INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the target frame.
-  this.createInputFrame();
+  this.createInputFrameWindow();
 };
 
+//region input frame
 /**
- * Creates the log window and adds it to tracking.
+ * Creates the input frame window and adds it to tracking.
  */
-Scene_Map.prototype.createInputFrame = function()
+Scene_Map.prototype.createInputFrameWindow = function()
 {
-  // create the rectangle of the window.
-  const rect = this.inputFrameWindowRect();
+  // create the window.
+  const window = this.buildInputFrameWindow();
 
-  // assign the window to our reference.
-  this._j._inputFrame = new Window_InputFrame(rect);
+  // update the tracker with the new window.
+  this.setInputFrameWindow(window);
 
-  // add window to tracking.
-  this.addWindow(this._j._inputFrame);
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
 };
 
 /**
- * Creates the rectangle representing the window for the map hud.
+ * Sets up and defines the input frame window.
+ * @returns {Window_InputFrame}
+ */
+Scene_Map.prototype.buildInputFrameWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.inputFrameWindowRect();
+
+  // create the window with the rectangle.
+  const window = new Window_InputFrame(rectangle);
+
+  // return the built and configured window.
+  return window;
+}
+
+/**
+ * Creates the rectangle representing the window for the input frame.
  * @returns {Rectangle}
  */
 Scene_Map.prototype.inputFrameWindowRect = function()
 {
-  const width = 500;
-  const height = 160;
+  // if using the keyboard layout, apply a modifier against the width.
+  const usingKeyboardWidthModifier = J.HUD.EXT.INPUT.Metadata.UseGamepadLayout
+    ? 0     // no bonus for gamepads.
+    : 220;  // bonus width for all-in-one row.
+
+  // define the width of the window.
+  const width = 500 + usingKeyboardWidthModifier;
+
+  // if using the keyboard layout, apply a modifier against the height.
+  const usingKeyboardHeightModifier = J.HUD.EXT.INPUT.Metadata.UseGamepadLayout
+    ? 0
+    : -60;
+
+  // define the height of the window.
+  const height = 160 + usingKeyboardHeightModifier;
+
+  // define the origin x of the window.
   const x = Graphics.boxWidth - width;
+
+  // define the origin y of the window.
   const y = Graphics.boxHeight - height;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
+
+/**
+ * Gets the currently tracked input frame window.
+ * @returns {Window_InputFrame}
+ */
+Scene_Map.prototype.getInputFrameWindow = function()
+{
+  return this._j._hud._inputFrame;
+}
+
+/**
+ * Set the currently tracked input frame window to the given window.
+ * @param {Window_InputFrame} window The window to track.
+ */
+Scene_Map.prototype.setInputFrameWindow = function(window)
+{
+  this._j._hud._inputFrame = window;
+}
+//endregion input frame
 
 /**
  * Extend the update loop for the input frame.
@@ -172,7 +213,7 @@ Scene_Map.prototype.handleInputFrameUpdate = function()
   // handles incoming requests to refresh the input frame.
   this.handleRefreshInputFrame();
 
-  //
+  // manage the visibility of the input frame.
   this.handleVisibilityInputFrame();
 };
 
@@ -185,7 +226,7 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
   if ($hudManager.hasRequestRefreshInputFrame())
   {
     // refresh the input frame.
-    this._j._inputFrame.refresh();
+    this.getInputFrameWindow().refresh();
 
     // let the hud manager know we've done the deed.
     $hudManager.acknowledgeRefreshInputFrame();
@@ -197,17 +238,20 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
  */
 Scene_Map.prototype.handleVisibilityInputFrame = function()
 {
+  // grab the window itself.
+  const inputFrameWindow = this.getInputFrameWindow();
+
   // handles incoming requests to refresh the input frame.
   if ($hudManager.canShowHud())
   {
     // hide the input frame.
-    this._j._inputFrame.show();
+    inputFrameWindow.show();
   }
   else
   {
     // show the input frame.
-    this._j._inputFrame.hide();
-    this._j._inputFrame.hideSprites();
+    inputFrameWindow.hide();
+    inputFrameWindow.hideSprites();
   }
 };
 
@@ -220,9 +264,12 @@ Scene_Map.prototype.refreshHud = function()
   // perform original logic.
   J.HUD.EXT.INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
 
+  // grab the window.
+  const inputFrameWindow = this.getInputFrameWindow();
+
   // refresh the input frame.
-  this._j._inputFrame.refreshCache();
-  this._j._inputFrame.refresh();
+  inputFrameWindow.refreshCache();
+  inputFrameWindow.refresh();
 };
 //endregion Scene_Map
 
@@ -434,7 +481,7 @@ class Sprite_CooldownGauge extends Sprite
   initMembers()
   {
     /**
-     * The over-arching J object to contain all additional plugin parameters.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j = {
       /**
@@ -897,7 +944,7 @@ class Sprite_InputKeySlot extends Sprite
   initMembers()
   {
     /**
-     * All encompassing _j object for storing my custom properties.
+     * The shared root namespace for all of J's plugin data.
      */
     this._j ||= {};
 
@@ -1329,7 +1376,66 @@ class Sprite_InputKeySlot extends Sprite
     }
 
     // create a new sprite.
-    const sprite = new Sprite_SkillName(skillSlot);
+    const sprite = new Sprite_SkillName(skillSlot)
+      .setFontSize(12)
+      .setAlignment(Sprite_BaseText.Alignments.Center);
+
+    // cache the sprite.
+    this._j._spriteCache.set(key, sprite);
+
+    // hide the sprite for now.
+    sprite.hide();
+
+    // add the sprite to tracking.
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  }
+
+  /**
+   * Creates the key for the input key skill name sprite based on the parameters.
+   * @param {string} inputType The type of input for this key.
+   * @returns {string}
+   */
+  makeInputKeySlotNameSpriteKey(inputType)
+  {
+    return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
+  }
+
+  /**
+   * Creates a slot name sprite for the given input key and caches it.
+   * @param {JABS_SkillSlot} skillSlot The slot to create a name for.
+   * @param {string} inputType The type of input for this key.
+   * @returns {Sprite_BaseText}
+   */
+  getOrCreateInputKeySlotNameSprite(skillSlot, inputType)
+  {
+    // determine the key for this sprite.
+    const key = this.makeInputKeySlotNameSpriteKey(inputType);
+
+    // check if the key already maps to a cached sprite.
+    if (this._j._spriteCache.has(key))
+    {
+      // if it does, just return that.
+      return this._j._spriteCache.get(key);
+    }
+
+    // push for uppercase for cleanliness.
+    let labelText = inputType.toUpperCase();
+
+    // check if this is a combat skill.
+    if (skillSlot.isSecondarySlot())
+    {
+      // parse out the word "combat" from the input if it exists.
+      labelText = labelText.replace("COMBAT", String.empty);
+    }
+
+    // create a new sprite.
+    const sprite = new Sprite_BaseText(labelText)
+      .setFontSize(12)
+      .setAlignment(Sprite_BaseText.Alignments.Center)
+      .setBold(true);
 
     // cache the sprite.
     this._j._spriteCache.set(key, sprite);
@@ -1379,6 +1485,9 @@ class Sprite_InputKeySlot extends Sprite
 
     // draw skill name.
     this.drawInputKeySkillName(x, y);
+
+    // draw the slot name.
+    this.drawInputKeySlotName(x, y);
   }
 
   /**
@@ -1546,7 +1655,19 @@ class Sprite_InputKeySlot extends Sprite
     // relocate the sprite.
     const sprite = this.getOrCreateInputKeySkillNameSprite(skillSlot, inputType);
     sprite.show();
-    sprite.move(x, y+24);
+    sprite.move(x, y+36);
+  }
+
+  drawInputKeySlotName(x, y)
+  {
+    // grab data for building the sprite.
+    const skillSlot = this.skillSlot();
+    const inputType = this.skillSlot().key;
+
+    // relocate the sprite.
+    const sprite = this.getOrCreateInputKeySlotNameSprite(skillSlot, inputType);
+    sprite.show();
+    sprite.move(x, y+48);
   }
   //endregion drawing
 }
@@ -1766,16 +1887,6 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
  */
 class Sprite_SkillName extends Sprite_BaseSkillSlot
 {
-  /**
-   * OVERWRITE Gets the font size for this sprite's text.
-   * Skill names are hard-coded to be a fixed size, 12.
-   * @returns {number}
-   */
-  fontSize()
-  {
-    return 12;
-  }
-
   /**
    * Extends the `update()` to also synchronize the text to
    * match the skill slot it is
@@ -2246,6 +2357,11 @@ class Window_InputFrame extends Window_Frame
     return 72;
   }
 
+  inputKeyHeight()
+  {
+    return 96;
+  }
+
   /**
    * Draws the input frame window in its entirety.
    */
@@ -2264,15 +2380,16 @@ class Window_InputFrame extends Window_Frame
       sprite.drawInputKey();
     }));
 
-    // our origin x:y coordinates.
-    const x = 0;
-    const y = 0;
-
-    // draw the primary section of our input.
-    this.drawPrimaryInputKeys(x, y);
-
-    // draw the secondary section of our input.
-    this.drawSecondaryInputKeys(x+250, y);
+    if (J.HUD.EXT.INPUT.Metadata.UseGamepadLayout)
+    {
+      // draw the inputs.
+      this.drawGamepadStyleInputKeys();
+    }
+    else
+    {
+      // draw the inputs.
+      this.drawKeyboardStyleInputKeys();
+    }
 
     // flags that this has been refreshed.
     this.acknowledgeInternalRefresh();
@@ -2301,12 +2418,46 @@ class Window_InputFrame extends Window_Frame
   }
 
   /**
+   * Draws the inputs to be more console-style with a gamepad layout.
+   */
+  drawGamepadStyleInputKeys()
+  {
+    // our origin x:y coordinates.
+    const x = 0;
+    const y = 0;
+
+    // draw the primary section of our input.
+    this.drawGamepadPrimaryInputKeys(x, y);
+
+    // draw the secondary section of our input.
+    this.drawGamepadSecondaryInputKeys(x+250, y);
+  }
+
+  /**
+   * Draws the inputs to be more PC-style with a keyboard layout.
+   */
+  drawKeyboardStyleInputKeys()
+  {
+    // our origin x:y coordinates.
+    const ikw = this.inputKeyWidth();
+    const x = 0;
+    const y = 0;
+
+    // draw the primary section of our input.
+    this.drawKeyboardPrimaryInputKeys(x, y);
+
+    // draw the secondary section of our input.
+    const keyboardSecondaryX = x + (ikw*4) + 24;
+    this.drawKeyboardSecondaryInputKeys(keyboardSecondaryX, y);
+  }
+
+  /**
    * Draws the primary set of input keys.
    * This includes: mainhand, offhand, dodge, and tool input keys.
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    */
-  drawPrimaryInputKeys(x, y)
+  drawGamepadPrimaryInputKeys(x, y)
   {
     // shorthand the variables for re-use.
     const ikw = this.inputKeyWidth();
@@ -2326,7 +2477,7 @@ class Window_InputFrame extends Window_Frame
    * @param {number} x The x coordinate.
    * @param {number} y The y coordinate.
    */
-  drawSecondaryInputKeys(x, y)
+  drawGamepadSecondaryInputKeys(x, y)
   {
     // shorthand the variables for re-use.
     const ikw = this.inputKeyWidth();
@@ -2338,6 +2489,34 @@ class Window_InputFrame extends Window_Frame
     this.drawInputKey(JABS_Button.CombatSkill4, baseX+(ikw*1), baseY);
     this.drawInputKey(JABS_Button.CombatSkill1, baseX+(ikw*1), baseY+64);
     this.drawInputKey(JABS_Button.CombatSkill2, baseX+(ikw*2), baseY+32);
+  }
+
+  drawKeyboardPrimaryInputKeys(x, y)
+  {
+    // shorthand the variables for re-use.
+    const ikw = this.inputKeyWidth();
+    const baseX = x + 16;
+    const baseY = y + 8;
+
+    // draw the four basic core functions of JABS.
+    this.drawInputKey(JABS_Button.Mainhand, baseX + ikw*0, baseY);
+    this.drawInputKey(JABS_Button.Offhand, baseX + ikw*1, baseY);
+    this.drawInputKey(JABS_Button.Dodge, baseX + ikw*2, baseY);
+    this.drawInputKey(JABS_Button.Tool, baseX + ikw*3, baseY);
+  }
+
+  drawKeyboardSecondaryInputKeys(x, y)
+  {
+    // shorthand the variables for re-use.
+    const ikw = this.inputKeyWidth();
+    const baseX = x + 16;
+    const baseY = y + 8;
+
+    // draw the combat skills equipped for JABS.
+    this.drawInputKey(JABS_Button.CombatSkill1, baseX + ikw*0, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill2, baseX + ikw*1, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill3, baseX + ikw*2, baseY);
+    this.drawInputKey(JABS_Button.CombatSkill4, baseX + ikw*3, baseY);
   }
 
   /**
@@ -2374,6 +2553,16 @@ class Window_InputFrame extends Window_Frame
   drawInputKeySlotSprite(skillSlot, inputType, x, y)
   {
     const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, inputType);
+
+    if (!skillSlot.isEmpty())
+    {
+      const width = this.inputKeyWidth() - 10;
+      const height = this.inputKeyHeight();
+      const c1 = ColorManager.itemBackColor1();
+      const c2 = ColorManager.itemBackColor2();
+      this.contents.gradientFillRect(x-10, y+20, width, height, c1, c2, true);
+    }
+
     sprite.show();
     sprite.move(x+6, y+20);
   }

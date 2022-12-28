@@ -35,18 +35,9 @@ J.HUD.EXT.INPUT.Metadata.Name = `J-HUD-InputFrame`;
  */
 J.HUD.EXT.INPUT.PluginParameters = PluginManager.parameters(J.HUD.EXT.INPUT.Metadata.Name);
 
-/**
- * Extend this plugin's metadata with additional configurable data points.
- */
-J.HUD.EXT.INPUT.Metadata =
-  {
-    // the previously defined metadata.
-    ...J.HUD.EXT.INPUT.Metadata,
-
-    // our configurable data points.
-    InputFrameX: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameX']),
-    InputFrameY: Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameY']),
-  };
+J.HUD.EXT.INPUT.Metadata.InputFrameX = Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameX']);
+J.HUD.EXT.INPUT.Metadata.InputFrameY = Number(J.HUD.EXT.INPUT.PluginParameters['inputFrameY']);
+J.HUD.EXT.INPUT.Metadata.UseGamepadLayout = false;
 
 /**
  * A collection of all aliased methods for this plugin.

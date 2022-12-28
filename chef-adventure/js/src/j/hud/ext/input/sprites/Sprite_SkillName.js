@@ -5,16 +5,6 @@
 class Sprite_SkillName extends Sprite_BaseSkillSlot
 {
   /**
-   * OVERWRITE Gets the font size for this sprite's text.
-   * Skill names are hard-coded to be a fixed size, 12.
-   * @returns {number}
-   */
-  fontSize()
-  {
-    return 12;
-  }
-
-  /**
    * Extends the `update()` to also synchronize the text to
    * match the skill slot it is
    */

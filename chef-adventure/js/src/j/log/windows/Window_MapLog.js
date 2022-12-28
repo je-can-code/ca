@@ -75,11 +75,13 @@ class Window_MapLog extends Window_Command
 
     return true;
   }
+
   /**
    * OVERWRITE Forces the arrows that appear in scrollable windows to not be visible.
    */
   updateArrows()
-  { }
+  {
+  }
 
   /**
    * Extends the scroll functionality to also refresh the timer to prevent this window
@@ -106,11 +108,13 @@ class Window_MapLog extends Window_Command
   }
 
   /**
-   * OVERWRITE Removes the drawing of the background-per-row.
-   * @param {Rectangle} rect The rectangle to draw the background for.
+   * Overwrites {@link #drawBackgroundRect}.
+   * Prevents the rendering of the backdrop of each line in the window.
+   * @param {Rectangle} _ The rectangle to draw the background for.
    */
-  drawBackgroundRect(rect)
-  { }
+  drawBackgroundRect(_)
+  {
+  }
 
   /**
    * Extends the `itemRectWithPadding()` function to move the rect a little
@@ -318,11 +322,6 @@ class Window_MapLog extends Window_Command
   handlePlayerInterference()
   {
     // if we are above 64, rapidly decrement by -15 until we get below 64.
-    if (this.opacity > 32) this.opacity -= 15;
-    // if we are below 64, increment by +1 until we get to 64.
-    else if (this.opacity < 32) this.opacity += 1;
-
-    // if we are above 64, rapidly decrement by -15 until we get below 64.
     if (this.contentsOpacity > 64) this.contentsOpacity -= 15;
     // if we are below 64, increment by +1 until we get to 64.
     else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
@@ -367,7 +366,6 @@ class Window_MapLog extends Window_Command
     {
       // reduce opacity if it is.
       this.contentsOpacity -= 12;
-      this.opacity -= 8;
     }
     // otherwise, check if the timer is simply 0.
     else if (this.inactivityTimer === 0)
@@ -387,7 +385,6 @@ class Window_MapLog extends Window_Command
 
     // hide the contents.
     this.contentsOpacity = 0;
-    this.opacity = 0;
   }
 
   /**
@@ -405,7 +402,6 @@ class Window_MapLog extends Window_Command
 
     // refresh the opacity so the logs can be seen again.
     this.contentsOpacity = 255;
-    this.opacity = 128;
   }
   //endregion update visibility
 }

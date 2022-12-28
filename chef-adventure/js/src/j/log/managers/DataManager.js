@@ -11,7 +11,10 @@ var $gameTextLog = null;
 J.LOG.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
+  // perform original logic.
   J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
+
+  // generate a new instance of the text log.
   $gameTextLog = new Game_TextLog();
 };
 //endregion DataManager

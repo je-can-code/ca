@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -113,7 +113,7 @@ Game_CharacterBase.prototype.initMembers = function()
 Game_CharacterBase.prototype.initPixelMovementMembers = function()
 {
   /**
-   * All encompassing _j object for storing my custom properties.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

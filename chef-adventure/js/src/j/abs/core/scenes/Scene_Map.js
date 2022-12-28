@@ -9,7 +9,7 @@ Scene_Map.prototype.initialize = function()
   J.ABS.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

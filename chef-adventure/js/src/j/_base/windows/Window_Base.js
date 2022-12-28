@@ -186,4 +186,23 @@ Window_Base.prototype.setFontSize = function(fontSize)
   // set the font size to the new size.
   this.contents.fontSize = normalizedFontSize;
 };
+
+/**
+ * Renders a "background" of a given rectangle.
+ * This is centralized for all windows to leverage if necessary.
+ * @param {Rectangle} rect The rectangle representing the background shape to render.
+ */
+Window_Base.prototype.drawBackgroundRect = function(rect)
+{
+  // grab the color gradient for the background.
+  const color1 = ColorManager.itemBackColor1();
+  const color2 = ColorManager.itemBackColor2();
+
+  // extract the data from the rectangle.
+  const { x, y, width, height } = rect;
+
+  // render the background.
+  this.contentsBack.gradientFillRect(x, y, width, height, color1, color2, true);
+  this.contentsBack.strokeRect(x, y, width, height, color1);
+};
 //endregion Window_Base

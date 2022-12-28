@@ -2,22 +2,17 @@
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
-Scene_Map.prototype.initialize = function()
+J.HUD.EXT.INPUT.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
+Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initialize').call(this);
-
-  /**
-   * All encompassing _j object for storing my custom properties.
-   */
-  this._j ||= {};
+  J.HUD.EXT.INPUT.Aliased.Scene_Map.get('initHudMembers').call(this);
 
   /**
    * The input frame window on the map.
    * @type {Window_InputFrame}
    */
-  this._j._inputFrame = null;
+  this._j._hud._inputFrame = null;
 };
 
 /**
@@ -30,36 +25,91 @@ Scene_Map.prototype.createAllWindows = function()
   J.HUD.EXT.INPUT.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the target frame.
-  this.createInputFrame();
+  this.createInputFrameWindow();
 };
 
+//region input frame
 /**
- * Creates the log window and adds it to tracking.
+ * Creates the input frame window and adds it to tracking.
  */
-Scene_Map.prototype.createInputFrame = function()
+Scene_Map.prototype.createInputFrameWindow = function()
 {
-  // create the rectangle of the window.
-  const rect = this.inputFrameWindowRect();
+  // create the window.
+  const window = this.buildInputFrameWindow();
 
-  // assign the window to our reference.
-  this._j._inputFrame = new Window_InputFrame(rect);
+  // update the tracker with the new window.
+  this.setInputFrameWindow(window);
 
-  // add window to tracking.
-  this.addWindow(this._j._inputFrame);
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
 };
 
 /**
- * Creates the rectangle representing the window for the map hud.
+ * Sets up and defines the input frame window.
+ * @returns {Window_InputFrame}
+ */
+Scene_Map.prototype.buildInputFrameWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.inputFrameWindowRect();
+
+  // create the window with the rectangle.
+  const window = new Window_InputFrame(rectangle);
+
+  // return the built and configured window.
+  return window;
+}
+
+/**
+ * Creates the rectangle representing the window for the input frame.
  * @returns {Rectangle}
  */
 Scene_Map.prototype.inputFrameWindowRect = function()
 {
-  const width = 500;
-  const height = 160;
+  // if using the keyboard layout, apply a modifier against the width.
+  const usingKeyboardWidthModifier = J.HUD.EXT.INPUT.Metadata.UseGamepadLayout
+    ? 0     // no bonus for gamepads.
+    : 220;  // bonus width for all-in-one row.
+
+  // define the width of the window.
+  const width = 500 + usingKeyboardWidthModifier;
+
+  // if using the keyboard layout, apply a modifier against the height.
+  const usingKeyboardHeightModifier = J.HUD.EXT.INPUT.Metadata.UseGamepadLayout
+    ? 0
+    : -60;
+
+  // define the height of the window.
+  const height = 160 + usingKeyboardHeightModifier;
+
+  // define the origin x of the window.
   const x = Graphics.boxWidth - width;
+
+  // define the origin y of the window.
   const y = Graphics.boxHeight - height;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
+
+/**
+ * Gets the currently tracked input frame window.
+ * @returns {Window_InputFrame}
+ */
+Scene_Map.prototype.getInputFrameWindow = function()
+{
+  return this._j._hud._inputFrame;
+}
+
+/**
+ * Set the currently tracked input frame window to the given window.
+ * @param {Window_InputFrame} window The window to track.
+ */
+Scene_Map.prototype.setInputFrameWindow = function(window)
+{
+  this._j._hud._inputFrame = window;
+}
+//endregion input frame
 
 /**
  * Extend the update loop for the input frame.
@@ -82,7 +132,7 @@ Scene_Map.prototype.handleInputFrameUpdate = function()
   // handles incoming requests to refresh the input frame.
   this.handleRefreshInputFrame();
 
-  //
+  // manage the visibility of the input frame.
   this.handleVisibilityInputFrame();
 };
 
@@ -95,7 +145,7 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
   if ($hudManager.hasRequestRefreshInputFrame())
   {
     // refresh the input frame.
-    this._j._inputFrame.refresh();
+    this.getInputFrameWindow().refresh();
 
     // let the hud manager know we've done the deed.
     $hudManager.acknowledgeRefreshInputFrame();
@@ -107,17 +157,20 @@ Scene_Map.prototype.handleRefreshInputFrame = function()
  */
 Scene_Map.prototype.handleVisibilityInputFrame = function()
 {
+  // grab the window itself.
+  const inputFrameWindow = this.getInputFrameWindow();
+
   // handles incoming requests to refresh the input frame.
   if ($hudManager.canShowHud())
   {
     // hide the input frame.
-    this._j._inputFrame.show();
+    inputFrameWindow.show();
   }
   else
   {
     // show the input frame.
-    this._j._inputFrame.hide();
-    this._j._inputFrame.hideSprites();
+    inputFrameWindow.hide();
+    inputFrameWindow.hideSprites();
   }
 };
 
@@ -130,8 +183,11 @@ Scene_Map.prototype.refreshHud = function()
   // perform original logic.
   J.HUD.EXT.INPUT.Aliased.Scene_Map.get('refreshHud').call(this);
 
+  // grab the window.
+  const inputFrameWindow = this.getInputFrameWindow();
+
   // refresh the input frame.
-  this._j._inputFrame.refreshCache();
-  this._j._inputFrame.refresh();
+  inputFrameWindow.refreshCache();
+  inputFrameWindow.refresh();
 };
 //endregion Scene_Map

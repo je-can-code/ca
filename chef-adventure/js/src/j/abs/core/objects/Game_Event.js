@@ -3,7 +3,7 @@ J.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
 Game_Event.prototype.initMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

@@ -26,7 +26,7 @@ Game_Character.prototype.initMembers = function()
 Game_Character.prototype.initCycloneAdapterMembers = function()
 {
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 

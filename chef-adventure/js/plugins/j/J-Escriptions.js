@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:27:24 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -204,7 +204,7 @@ Game_Event.prototype.initMembers = function()
   J.ESCRIBE.Aliased.Game_Event.get('initMembers').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
@@ -572,7 +572,7 @@ Sprite_Character.prototype.initMembers = function()
   J.ESCRIBE.Aliased.Sprite_Character.get('initMembers').call(this);
 
   /**
-   * The over-arching J object to contain all additional plugin parameters.
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
