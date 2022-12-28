@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Dec 24 2022 14:35:04 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:33:59 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -3992,9 +3992,9 @@ class IconManager
 
 //region ImageManager
 /**
- * Generates a promise based on the resolution of the bitmap.<br/>
- * If the promise resolves successfully, it'll contain the bitmap.<br/>
- * If the promise rejects, then it is up to the handler how to deal with that.<br/>
+ * Generates a promise based on the resolution of the bitmap.
+ * If the promise resolves successfully, it'll contain the bitmap.
+ * If the promise rejects, then it is up to the handler how to deal with that.
  * @param {string} filename The name of the file without the file extension.
  * @param {string} directory The name of the directory to find the filename in (include trailing slash!).
  * @returns {Promise}

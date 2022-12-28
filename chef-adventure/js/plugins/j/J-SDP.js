@@ -1,11 +1,11 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v1.2.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -460,7 +460,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: '1.2.1',
+  Version: '1.2.2',
 };
 
 /**

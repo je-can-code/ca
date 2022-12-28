@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -190,6 +190,11 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.JAFTING = {};
+
+/**
+ * A collection of all extensions for JAFTING.
+ */
+J.JAFTING.EXT = {};
 
 /**
  * A helpful collection of functions for this plugin.

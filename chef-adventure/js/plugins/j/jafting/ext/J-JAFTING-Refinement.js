@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:35:09 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -81,7 +81,7 @@
  *
  * I debated on putting all the various text bits that show up
  * throughout the menu here for translation, but instead I captured them all
- * and put them in the J.JAFTING.Messages object. If you want to change the
+ * and put them in the J.JAFTING.EXT.REFINE.Messages object. If you want to change the
  * text, feel free to edit that instead. Additionally, for the various traits
  * text, you can find that text hard-coded english starting at line 2164 by
  * trait code.
@@ -113,13 +113,11 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
-J.JAFTING.EXT_REFINE = {};
-
 //region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -137,9 +135,21 @@ J.JAFTING.EXT_REFINE = {};
 //endregion version check
 
 /**
+ * The plugin umbrella that governs all things related to this extension plugin.
+ */
+J.JAFTING.EXT.REFINE = {};
+
+/**
+ * The `metadata` associated with this plugin, such as version.
+ */
+J.JAFTING.EXT.REFINE.Metadata = {};
+J.JAFTING.EXT.REFINE.Metadata.Version = '1.0.0';
+J.JAFTING.EXT.REFINE.Metadata.Name = `J-JAFTING-Refinement`;
+
+/**
  * A helpful mapping of the various messages that we use in JAFTING.
  */
-J.JAFTING.Messages = {
+J.JAFTING.EXT.REFINE.Messages = {
   /**
    * The name of the command for Refinement on the JAFTING mode menu.
    */
@@ -229,22 +239,27 @@ J.JAFTING.Messages = {
 /**
  * A helpful mapping of all the various RMMZ classes being extended.
  */
-J.JAFTING.Aliased = {
-  ...J.JAFTING.Aliased,
-  Game_Item: new Map(),
+J.JAFTING.EXT.REFINE.Aliased = {
+  DataManager: new Map(),
+
   RPG_Base: new Map(),
+
+  Game_Item: new Map(),
+
+  Scene_Map: new Map(),
+
   Window_JaftingModeMenu: {},
 };
 
 /**
  * All regular expressions used by this plugin.
  */
-J.JAFTING.EXT_REFINE.RegExp = {};
-J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
-J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
-J.JAFTING.EXT_REFINE.RegExp.Unrefinable = /<unrefinable>/i;
-J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
-J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT.REFINE.RegExp = {};
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
+J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<unrefinable>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 
 /**
  * A global object for storing data related to JAFTING.
@@ -256,7 +271,7 @@ var $gameJAFTING = null;
 /**
  * Plugin command for hiding the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "hideJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "hideJaftingRefinement", () =>
 {
   $gameJAFTING.hideRefinement();
 });
@@ -264,7 +279,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "hideJaft
 /**
  * Plugin command for showing the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "showJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "showJaftingRefinement", () =>
 {
   $gameJAFTING.showRefinement();
 });
@@ -272,7 +287,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "showJaft
 /**
  * Plugin command for disabling the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "disableJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "disableJaftingRefinement", () =>
 {
   $gameJAFTING.disableRefinement();
 });
@@ -280,7 +295,7 @@ PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "disableJ
 /**
  * Plugin command for enabling the refinement option in the JAFTING mode selection window.
  */
-PluginManager.registerCommand(`${J.JAFTING.Metadata.Name}-Refinement`, "enableJaftingRefinement", () =>
+PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "enableJaftingRefinement", () =>
 {
   $gameJAFTING.enableRefinement();
 });
@@ -1553,7 +1568,7 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 };
 //endregion JAFTING_Trait
 
-J.JAFTING.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
+J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
 /**
  * Extends {@link RPG_Base._generate}.
  *
@@ -1565,7 +1580,7 @@ J.JAFTING.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
 RPG_Base.prototype._generate = function(overrides, index)
 {
   // perform original logic.
-  const original = J.JAFTING.Aliased.RPG_Base.get('_generate').call(this, overrides, index);
+  const original = J.JAFTING.EXT.REFINE.Aliased.RPG_Base.get('_generate').call(this, overrides, index);
 
   // update the refined count to the latest.
   original.jaftingRefinedCount = overrides.jaftingRefinedCount;
@@ -1610,7 +1625,7 @@ RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
  */
 RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementBase);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase);
 };
 //endregion notRefinementBase
 
@@ -1642,7 +1657,7 @@ RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
  */
 RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.NotRefinementMaterial);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial);
 };
 //endregion notRefinementMaterial
 
@@ -1695,7 +1710,7 @@ RPG_EquipItem.prototype.getJaftingUnrefinable = function()
  */
 RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
 {
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.Unrefinable);
+  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.Unrefinable);
 };
 //endregion unrefinable
 
@@ -1726,7 +1741,7 @@ RPG_EquipItem.prototype.getJaftingMaxRefineCount = function()
  */
 RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
 {
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxRefineCount);
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount);
 };
 //endregion maxRefineCount
 
@@ -1758,7 +1773,7 @@ RPG_EquipItem.prototype.getJaftingMaxTraitCount = function()
  */
 RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 {
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT_REFINE.RegExp.MaxTraitCount);
+  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount);
 };
 //endregion maxRefineCount
 
@@ -1767,20 +1782,20 @@ RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 /**
  * Extends the game object creation to include creating the JAFTING manager.
  */
-J.JAFTING.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
 DataManager.createGameObjects = function()
 {
-  J.JAFTING.Aliased.DataManager.createGameObjects.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects.call(this);
   $gameJAFTING = new Game_JAFTING();
 };
 
 /**
  * Extends the save content creation to include creating JAFTING data.
  */
-J.JAFTING.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
 DataManager.makeSaveContents = function()
 {
-  const contents = J.JAFTING.Aliased.DataManager.makeSaveContents.call(this);
+  const contents = J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents.call(this);
   contents.jafting = $gameJAFTING;
   return contents;
 };
@@ -1793,11 +1808,11 @@ DataManager.makeSaveContents = function()
  *
  * TODO: change this plugin to use EXT_REFINE so there is no collision.
  */
-J.JAFTING.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
+J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
   // perform original logic.
-  J.JAFTING.Aliased.DataManager.extractSaveContents2.call(this, contents);
+  J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2.call(this, contents);
 
   // grab the jafting contents out.
   $gameJAFTING = contents.jafting;
@@ -1814,11 +1829,11 @@ DataManager.extractSaveContents = function(contents)
  * Largely overwrites this function to instead leverage an item's index value over
  * it's ID for setting objects to the item slot.
  */
-J.JAFTING.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
+J.JAFTING.EXT.REFINE.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(item)
 {
   // perform original logic.
-  J.JAFTING.Aliased.Game_Item.get('setObject').call(this, item);
+  J.JAFTING.EXT.REFINE.Aliased.Game_Item.get('setObject').call(this, item);
 
   // assign the item id to here.
   this._itemId = item
@@ -1832,10 +1847,10 @@ Game_Item.prototype.setObject = function(item)
 /**
  * Extends the initialization of the JAFTING menu to include the refinment windows.
  */
-J.JAFTING.Aliased.Scene_Map.initJaftingMenu = Scene_Map.prototype.initJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu = Scene_Map.prototype.initJaftingMenu;
 Scene_Map.prototype.initJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.initJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu.call(this);
 
   // create empty refinement windows.
   this._j._jaftingMenu._refinePrimaryEquipWindow = null;
@@ -1854,10 +1869,10 @@ Scene_Map.prototype.initJaftingMenu = function()
 /**
  * Extends the creation of the JAFTING windows to include the refinement windows.
  */
-J.JAFTING.Aliased.Scene_Map.createJaftingMenu = Scene_Map.prototype.createJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu = Scene_Map.prototype.createJaftingMenu;
 Scene_Map.prototype.createJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.createJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu.call(this);
   this.createJaftingRefinementModeWindows();
 };
 
@@ -1865,10 +1880,10 @@ Scene_Map.prototype.createJaftingMenu = function()
  * Creates the mode selection window used to determine which type of JAFTING
  * that the player will perform.
  */
-J.JAFTING.Aliased.Scene_Map.createJaftingModeWindow = Scene_Map.prototype.createJaftingModeWindow;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow = Scene_Map.prototype.createJaftingModeWindow;
 Scene_Map.prototype.createJaftingModeWindow = function()
 {
-  J.JAFTING.Aliased.Scene_Map.createJaftingModeWindow.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow.call(this);
   this._j._jaftingMenu._modeWindow.setHandler('refine-mode', this.chooseJaftingRefineMode.bind(this));
 };
 
@@ -1879,7 +1894,7 @@ Scene_Map.prototype.createJaftingModeWindow = function()
 Scene_Map.prototype.chooseJaftingRefineMode = function()
 {
   this.setWindowFocus("refine-primary");
-  this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
 };
 
 /**
@@ -1993,7 +2008,7 @@ Scene_Map.prototype.createJaftingRefinementConfirmationWindow = function()
 Scene_Map.prototype.choosePrimaryEquip = function()
 {
   this.setPrimaryRefineSlot(this.getHoverForDetails().data);
-  this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementMaterial);
+  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementMaterial);
   this.setWindowFocus("refine-secondary");
 };
 
@@ -2142,10 +2157,10 @@ Scene_Map.prototype.setGuidingWindowText = function(text)
  * As an example, if the player gains/loses an item, all windows will need refreshing
  * to reflect the change in quantity.
  */
-J.JAFTING.Aliased.Scene_Map.refreshJafting = Scene_Map.prototype.refreshJafting;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting = Scene_Map.prototype.refreshJafting;
 Scene_Map.prototype.refreshJafting = function()
 {
-  J.JAFTING.Aliased.Scene_Map.refreshJafting.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting.call(this);
   this._j._jaftingMenu._refinePrimaryEquipWindow.refresh();
   this._j._jaftingMenu._refineSecondaryEquipWindow.refresh();
   this._j._jaftingMenu._refineProjectedResultsWindow.refresh();
@@ -2154,10 +2169,10 @@ Scene_Map.prototype.refreshJafting = function()
 /**
  * Extends the jafting window focus management to accommodate refinement mode.
  */
-J.JAFTING.Aliased.Scene_Map.manageJaftingMenu = Scene_Map.prototype.manageJaftingMenu;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu = Scene_Map.prototype.manageJaftingMenu;
 Scene_Map.prototype.manageJaftingMenu = function()
 {
-  J.JAFTING.Aliased.Scene_Map.manageJaftingMenu.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu.call(this);
 
   // extend for refinement focuses.
   switch (this.getWindowFocus())
@@ -2186,10 +2201,10 @@ Scene_Map.prototype.manageJaftingMenu = function()
  * Extends the jafting window closing-by-tag function to accommodate refinement mode.
  * @param {string} jaftingWindowToClose The type of window we're closing.
  */
-J.JAFTING.Aliased.Scene_Map.closeJaftingWindow = Scene_Map.prototype.closeJaftingWindow;
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow = Scene_Map.prototype.closeJaftingWindow;
 Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
 {
-  J.JAFTING.Aliased.Scene_Map.closeJaftingWindow.call(this, jaftingWindowToClose);
+  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow.call(this, jaftingWindowToClose);
   switch (jaftingWindowToClose)
   {
     case "refine-primary":
@@ -2207,7 +2222,7 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
       this.setSecondaryRefineSlot(null);
       this.setHoverForDetails(null);
       this.toggleJaftingRefineSecondaryWindow(false);
-      this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
       this.toggleJaftingRefineConfirmationWindow(false);
       this.setWindowFocus("refine-primary");
       break;
@@ -2216,7 +2231,7 @@ Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
       this.setPrimaryRefineSlot(null);
       this.setSecondaryRefineSlot(null);
       this.setHoverForDetails(null);
-      this.setGuidingWindowText(J.JAFTING.Messages.ChooseRefinementBase);
+      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
       this.setWindowFocus("refine-primary");
       break;
     case "refine-confirm-cancel":
@@ -2294,11 +2309,11 @@ Scene_Map.prototype.drawRefineHelpText = function()
   {
     if (item.data.jaftingNotRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
     {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsBase);
+      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsBase);
     }
     else if (item.data.jaftingNotRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
     {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.CannotUseAsMaterial);
+      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsMaterial);
     }
     else if (item.error !== "")
     {
@@ -2311,7 +2326,7 @@ Scene_Map.prototype.drawRefineHelpText = function()
   }
   else
   {
-    this._j._jaftingMenu._helpWindow.setText(J.JAFTING.Messages.NoItemSelected);
+    this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.NoItemSelected);
   }
 };
 
@@ -2588,7 +2603,7 @@ class Window_JaftingEquip
         if (!$gameJAFTING.parseTraits(equip).length)
         {
           enabled = false;
-          errorText += `${J.JAFTING.Messages.NoTraitsOnMaterial}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
         }
 
         // prevent equipment explicitly marked as "not usable as material" from being used.
@@ -2611,7 +2626,7 @@ class Window_JaftingEquip
             {
               enabled = false;
               iconIndex = 90;
-              errorText += `${J.JAFTING.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.\n`;
+              errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.\n`;
             }
           }
 
@@ -2625,7 +2640,7 @@ class Window_JaftingEquip
           {
             enabled = false;
             iconIndex = 92
-            errorText += `${J.JAFTING.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.\n`;
+            errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.\n`;
           }
         }
 
@@ -2643,14 +2658,14 @@ class Window_JaftingEquip
         {
           enabled = false;
           iconIndex = 92;
-          errorText += `${J.JAFTING.Messages.AlreadyMaxRefineCount}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
         }
 
         if (equipHasMaxTraits)
         {
           enabled = false;
           iconIndex = 92;
-          errorText += `${J.JAFTING.Messages.AlreadyMaxTraitCount}\n`;
+          errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
         }
 
         // prevent equipment explicitly marked as "not usable as base" from being used.
@@ -2679,17 +2694,17 @@ class Window_JaftingEquip
 /**
  * Extends the mode command creation to include a new command for refinement.
  */
-J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
+J.JAFTING.EXT.REFINE.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
 Window_JaftingModeMenu.prototype.makeCommandList = function()
 {
-  J.JAFTING.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
   if ($gameJAFTING.isRefinementHidden()) return;
 
   const hasEquipment = $gameParty.equipItems().length > 1; // need at least 2 items to refine.
   const refineAllowed = $gameJAFTING.isRefinementEnabled();
   const canRefine = hasEquipment && refineAllowed;
   const refineCommand = {
-    name: J.JAFTING.Messages.RefineCommandName,
+    name: J.JAFTING.EXT.REFINE.Messages.RefineCommandName,
     symbol: `refine-mode`,
     enabled: canRefine,
     ext: null,
@@ -2722,8 +2737,8 @@ class Window_JaftingRefinementConfirmation
    */
   makeCommandList()
   {
-    this.addCommand(`${J.JAFTING.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
-    this.addCommand(`${J.JAFTING.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
+    this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
+    this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
   }
 }
 //endregion Window_JaftingRefinementConfirmation
@@ -2904,13 +2919,13 @@ class Window_JaftingRefinementOutput
     switch (type)
     {
       case "base":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
         break;
       case "material":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
         break;
       case "output":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
+        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
         break;
     }
 
@@ -2955,7 +2970,7 @@ class Window_JaftingRefinementOutput
     const lh = this.lineHeight();
     if (!traits.length)
     {
-      this.drawTextEx(`${J.JAFTING.Messages.NoTransferableTraits}`, x, lh * 2, 250);
+      this.drawTextEx(`${J.JAFTING.EXT.REFINE.Messages.NoTransferableTraits}`, x, lh * 2, 250);
       return;
     }
 

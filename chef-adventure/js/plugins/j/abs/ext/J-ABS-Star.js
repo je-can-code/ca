@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:50 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
 
 /*:
  * @target MZ
@@ -25,7 +25,7 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.STAR = {};
+J.ABS.EXT.STAR = {};
 
 //region version checks
 (() =>
@@ -51,19 +51,19 @@ J.STAR = {};
 /**
  * The metadata for this plugin.
  */
-J.STAR.Metadata = {};
-J.STAR.Metadata.Name = 'J-ABS-STAR';
-J.STAR.Metadata.Version = '1.0.0';
+J.ABS.EXT.STAR.Metadata = {};
+J.ABS.EXT.STAR.Metadata.Name = 'J-ABS-STAR';
+J.ABS.EXT.STAR.Metadata.Version = '1.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.STAR.PluginParameters = PluginManager.parameters(J.STAR.Metadata.Name);
+J.ABS.EXT.STAR.PluginParameters = PluginManager.parameters(J.ABS.EXT.STAR.Metadata.Name);
 
 /**
  * The default values for this plugin.
  */
-J.STAR.DefaultValues = {
+J.ABS.EXT.STAR.DefaultValues = {
   /**
    * The mapId used when there is no mapId specified.
    * @type {number}
@@ -81,7 +81,7 @@ J.STAR.DefaultValues = {
 /**
  * The aliased classes within this plugin.
  */
-J.STAR.Aliased = {
+J.ABS.EXT.STAR.Aliased = {
   BattleManager: new Map(),
   DataManager: new Map(),
   Game_Interpreter: {},
@@ -91,7 +91,7 @@ J.STAR.Aliased = {
   Scene_Map: new Map(),
 };
 
-J.STAR.Regexp = {
+J.ABS.EXT.STAR.Regexp = {
   BattleMapId: /<battleMapId:(\d+)>/gi,
 };
 
@@ -224,11 +224,11 @@ BattleManager.enemyMap = BattleManager.enemyMap || { events: [] };
 /**
  * Extends `initMembers` to include our members as well.
  */
-J.STAR.Aliased.BattleManager.set('initMembers', BattleManager.initMembers);
+J.ABS.EXT.STAR.Aliased.BattleManager.set('initMembers', BattleManager.initMembers);
 BattleManager.initMembers = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.BattleManager.get('initMembers').call(this);
+  J.ABS.EXT.STAR.Aliased.BattleManager.get('initMembers').call(this);
 
   /**
    * The origin location that the player came from.
@@ -398,11 +398,11 @@ BattleManager.origin = function()
  * Extends {@link DataManager.createGameObjects}.
  * Includes fetching the enemy map and storing it memory.
  */
-J.STAR.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+J.ABS.EXT.STAR.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.STAR.Aliased.DataManager.get('createGameObjects').call(this);
+  J.ABS.EXT.STAR.Aliased.DataManager.get('createGameObjects').call(this);
 
   // load the enemy master map into memory.
   DataManager.getEnemyMasterMap();
@@ -415,7 +415,7 @@ DataManager.createGameObjects = function()
 DataManager.getEnemyMasterMap = function()
 {
   // determine the map id of the enemy map.
-  const mapId = J.STAR.DefaultValues.EnemyMap;
+  const mapId = J.ABS.EXT.STAR.DefaultValues.EnemyMap;
 
   // check to make sure the map id is valid.
   if (mapId > 0) 
@@ -540,11 +540,11 @@ Game_Interpreter.prototype.command301convertToTroopId = function(designationType
  * Extends {@link Game_Map.update}.
  * Also update the flow of star battle.
  */
-J.STAR.Aliased.Game_Map.set('update', Game_Map.prototype.update);
+J.ABS.EXT.STAR.Aliased.Game_Map.set('update', Game_Map.prototype.update);
 Game_Map.prototype.update = function()
 {
   // perform original logic.
-  J.STAR.Aliased.Game_Map.get('update').call(this);
+  J.ABS.EXT.STAR.Aliased.Game_Map.get('update').call(this);
 
   // update the flow of star battle.
   this.updateStarBattle();
@@ -636,7 +636,7 @@ Game_Map.prototype.starPhasePrepare = function()
   const origin = new StarOrigin($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
 
   // transfer them to the star battlefield.
-  BattleManager.setupStarBattle(origin, battleMapId ?? J.STAR.DefaultValues.EnemyMap);
+  BattleManager.setupStarBattle(origin, battleMapId ?? J.ABS.EXT.STAR.DefaultValues.EnemyMap);
 
   // engage battle music.
   BattleManager.playBattleBgm();
@@ -666,9 +666,9 @@ Game_Map.prototype.postTransferEnemyParsing = function()
 Game_Map.prototype.generateStarEnemy = function(gameEnemy, index) 
 {
   // stop generating enemies if we reached the max count.
-  if (index >= J.STAR.DefaultValues.MaxEnemyCount) 
+  if (index >= J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount) 
   {
-    console.warn(`Exceeded enemy count limit of ${J.STAR.DefaultValues.MaxEnemyCount}.`);
+    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.`);
     return;
   }
 
@@ -690,7 +690,7 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
   $dataMap.events[normalizedIndex] = enemyData;
 
   // generate a new event based on this JABS enemy.
-  const newEnemy = new Game_Event(J.STAR.DefaultValues.EnemyMap, normalizedIndex);
+  const newEnemy = new Game_Event(J.ABS.EXT.STAR.DefaultValues.EnemyMap, normalizedIndex);
 
   // TODO: update this, this is almost certainly broken logic after the delete update!
   // directly assign the event index to the enemies.
@@ -778,11 +778,11 @@ Game_Map.prototype.returnPlayerToOrigin = function()
  * Extends {@link Game_Player.clearTransferInfo}.
  * Parse out enemy data from the troop and convert them into JABS battlers.
  */
-J.STAR.Aliased.Game_Player.set('clearTransferInfo', Game_Player.prototype.clearTransferInfo);
+J.ABS.EXT.STAR.Aliased.Game_Player.set('clearTransferInfo', Game_Player.prototype.clearTransferInfo);
 Game_Player.prototype.clearTransferInfo = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.Game_Player.get('clearTransferInfo').call(this);
+  J.ABS.EXT.STAR.Aliased.Game_Player.get('clearTransferInfo').call(this);
 
   // also parse the event data to produce JABS Battlers.
   $gameMap.postTransferEnemyParsing();
@@ -792,11 +792,11 @@ Game_Player.prototype.clearTransferInfo = function()
  * Extends {@link Game_Player.executeEncounter}.
  * Includes preparation for the stars of battle.
  */
-J.STAR.Aliased.Game_Player.set('executeEncounter', Game_Player.prototype.executeEncounter);
+J.ABS.EXT.STAR.Aliased.Game_Player.set('executeEncounter', Game_Player.prototype.executeEncounter);
 Game_Player.prototype.executeEncounter = function() 
 {
   // intercept original logic.
-  const base = J.STAR.Aliased.Game_Player.get('executeEncounter').call(this);
+  const base = J.ABS.EXT.STAR.Aliased.Game_Player.get('executeEncounter').call(this);
 
   // check if we have an encounter.
   if (base) 
@@ -819,11 +819,11 @@ Game_Player.prototype.reserveOriginTransfer = function()
  * Extends {@link Game_Troop.initialize}.
  * Initializes our additional members for STABS.
  */
-J.STAR.Aliased.Game_Troop.set('initialize', Game_Troop.prototype.initialize);
+J.ABS.EXT.STAR.Aliased.Game_Troop.set('initialize', Game_Troop.prototype.initialize);
 Game_Troop.prototype.initialize = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.Game_Troop.get('initialize').call(this);
+  J.ABS.EXT.STAR.Aliased.Game_Troop.get('initialize').call(this);
 
   // initialize the STABS members.
   this.initMembers();
@@ -894,11 +894,11 @@ Scene_Map.prototype.updateEncounter = function()
 /**
  * `updateEncounterEffect` handles the zoom/flashing battle transition.
  */
-J.STAR.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
+J.ABS.EXT.STAR.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function() 
 {
   // perform original logic.
-  J.STAR.Aliased.Scene_Map.get('update').call(this);
+  J.ABS.EXT.STAR.Aliased.Scene_Map.get('update').call(this);
 
   //? TODO: Modify encountereffect here.
 };

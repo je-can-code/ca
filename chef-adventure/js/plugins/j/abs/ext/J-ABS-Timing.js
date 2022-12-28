@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:49 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -47,7 +47,7 @@
  * damage of a skill. None of the tags are case sensitive, but the order is
  * specific. If you find yourself having trouble building the tags, you can
  * peek at the source code of this file and search for
- * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * "J.ABS.EXT.TIMING.RegExp =" to find the grand master list of all
  * combinations of tags. Do note that the hard brackets of [] are required to
  * wrap the formula in the note tag.
  *
@@ -97,7 +97,7 @@
  * damage of a skill. None of the tags are case sensitive, but the order is
  * specific. If you find yourself having trouble building the tags, you can
  * peek at the source code of this file and search for
- * "J.ABS.EXT_TIMING.RegExp =" to find the grand master list of all
+ * "J.ABS.EXT.TIMING.RegExp =" to find the grand master list of all
  * combinations of tags. Do note that the hard brackets of [] are required to
  * wrap the formula in the note tag.
  *
@@ -148,12 +148,12 @@ var J = J || {};
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
-J.ABS.EXT_TIMING = {};
+J.ABS.EXT.TIMING = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.ABS.EXT_TIMING.Metadata = {
+J.ABS.EXT.TIMING.Metadata = {
   /**
    * The name of this plugin.
    */
@@ -165,12 +165,12 @@ J.ABS.EXT_TIMING.Metadata = {
   Version: '1.0.0',
 };
 
-J.ABS.EXT_TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT_TIMING.Metadata.Name);
+J.ABS.EXT.TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT.TIMING.Metadata.Name);
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT_TIMING.Aliased = {
+J.ABS.EXT.TIMING.Aliased = {
   Game_Actor: new Map(),
   Game_Battler: new Map(),
   Game_BattlerBase: new Map(),
@@ -181,7 +181,7 @@ J.ABS.EXT_TIMING.Aliased = {
 /**
  * All regular expressions used by this plugin.
  */
-J.ABS.EXT_TIMING.RegExp = {
+J.ABS.EXT.TIMING.RegExp = {
   BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
   CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
@@ -196,11 +196,11 @@ J.ABS.EXT_TIMING.RegExp = {
  * Extends {@link JABS_Action.getCastTime}.
  * Applies cast speed into the equation of determining cast time.
  */
-J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
 JABS_Action.prototype.getCastTime = function()
 {
   // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
+  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();
@@ -219,11 +219,11 @@ JABS_Action.prototype.getCastTime = function()
  * Extends {@link JABS_Action.getCooldown}.
  * Applies fast cooldown into the equation of determining cooldown time.
  */
-J.ABS.EXT_TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
 JABS_Action.prototype.getCooldown = function()
 {
   // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT_TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
+  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
 
   // grab the caster.
   const caster = this.getCaster().getBattler();
@@ -243,11 +243,11 @@ JABS_Action.prototype.getCooldown = function()
 /**
  * Extends `initMembers()` to include initialization of our new parameters.
  */
-J.ABS.EXT_TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
+J.ABS.EXT.TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT_TIMING.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.EXT.TIMING.Aliased.Game_Battler.get('initMembers').call(this);
 
   // initialize the extra members.
   this.initActionUpgrades1();
@@ -510,7 +510,7 @@ Game_Battler.prototype.baseCastSpeed = function()
   // sum together all the csp flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.BaseCastSpeed,
+    J.ABS.EXT.TIMING.RegExp.BaseCastSpeed,
     baseParam,
     this);
 
@@ -533,7 +533,7 @@ Game_Battler.prototype.castSpeedFlat = function()
   // sum together all the csp flat modifiers.
   const cspFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.CastSpeedFlat,
+    J.ABS.EXT.TIMING.RegExp.CastSpeedFlat,
     baseParam,
     this);
 
@@ -556,7 +556,7 @@ Game_Battler.prototype.castSpeedRate = function()
   // grab the base parameter value.
   const cspRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.CastSpeedRate,
+    J.ABS.EXT.TIMING.RegExp.CastSpeedRate,
     baseParam,
     this);
 
@@ -636,7 +636,7 @@ Game_Battler.prototype.baseFastCooldown = function()
   // sum together all the fcd flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.BaseFastCooldown,
+    J.ABS.EXT.TIMING.RegExp.BaseFastCooldown,
     baseParam,
     this);
 
@@ -659,7 +659,7 @@ Game_Battler.prototype.fastCooldownFlat = function()
   // sum together all the fcd flat modifiers.
   const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.FastCooldownFlat,
+    J.ABS.EXT.TIMING.RegExp.FastCooldownFlat,
     baseParam,
     this);
 
@@ -682,7 +682,7 @@ Game_Battler.prototype.fastCooldownRate = function()
   // grab the base parameter value.
   const fcdRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.EXT_TIMING.RegExp.FastCooldownRate,
+    J.ABS.EXT.TIMING.RegExp.FastCooldownRate,
     baseParam,
     this);
 

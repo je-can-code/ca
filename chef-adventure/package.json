@@ -1,7 +1,6 @@
 {
     "name": "rmmz-game",
     "main": "index.html",
-    "private": "true",
     "chromium-args": "--force-color-profile=srgb",
     "window": {
         "title": "Chef Adventure",

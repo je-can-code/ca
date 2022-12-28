@@ -322,7 +322,7 @@ J.BASE.Helpers.parseObject = function(obj)
   if (typeof obj === "string")
   {
     // check if the string is an unparsed array.
-    if (obJ.ABS.EXT.STARtsWith("[") && obj.endsWith("]"))
+    if (obj.startsWith("[") && obj.endsWith("]"))
     {
       // expose the stringified segments of the array.
       return this.parseArrayFromString(obj);

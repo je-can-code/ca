@@ -1,9 +1,9 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 07:43:48 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:24 GMT-0800 (Pacific Standard Time)  */
 
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 CAMODS] JS Mods exclusive to Chef Adventure.
+ * @plugindesc [CAMODS] JS Mods exclusive to Chef Adventure.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -19,6 +19,11 @@
  * modifier, I do not intend to support this as a public plugin, so you should
  * probably not use this plugin unless you want 100% of the functionality
  * listed below, or are able to tweak/adjust the code yourself.
+ *
+ * This is also NOT a versioned plugin, and can potentially change without
+ * any notification.
+ *
+ * Use with caution!
  *
  * ============================================================================
  * SYSTEM CHANGES:

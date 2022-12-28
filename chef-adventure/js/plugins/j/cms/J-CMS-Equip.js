@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 22 2022 09:15:44 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:26 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -956,8 +956,8 @@ class Window_MoreEquipData extends Window_MoreData
       this.addCommand(unrefinableCommand, null, true, null, unrefinableIcon, unrefinableColor);
     }
 
-    let maxRefineIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.TIMES_REFINED);
     let maxRefineCommand = `Refinement: ${jaftingRefinedCount}`;
+    let maxRefineIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.TIMES_REFINED);
     if (jaftingMaxRefineCount)
     {
       maxRefineCommand += ` / ${jaftingMaxRefineCount}`;

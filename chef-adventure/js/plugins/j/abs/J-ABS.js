@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Tue Dec 27 2022 13:13:02 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Dec 28 2022 08:27:27 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -9939,7 +9939,7 @@ class JABS_CoreDataBuilder
    * @type {boolean}
    * @private
    */
-  #showDangerIndicator = J.DANGER ? J.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
+  #showDangerIndicator = J.ABS.EXT.DANGER ? J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
 
   /**
    * Whether or not this battler's name is visible.
@@ -10000,7 +10000,7 @@ class JABS_CoreDataBuilder
     });
 
     // if using danger indicators, then set that, too.
-    if (J.DANGER)
+    if (J.ABS.EXT.DANGER)
     {
       core.setDangerIndicator(this.#showDangerIndicator);
     }
@@ -17261,7 +17261,7 @@ class JABS_AiManager
     builder.setBattler(battler);
 
     // check if we're using the danger indicators.
-    if (J.DANGER)
+    if (J.ABS.EXT.DANGER)
     {
       // never show the danger indicator for allies.
       builder.setShowDangerIndicator(false)
@@ -20646,7 +20646,7 @@ class JABS_Engine
     if (target.isEnemy()) return;
 
     // only works if the code is there to process.
-    if (!J.ALLYAI) return;
+    if (!J.ABS.EXT.ALLYAI) return;
 
     const newMemory = new JABS_BattleMemory(
       target.getBattlerId(),
@@ -23844,7 +23844,7 @@ Game_Battler.prototype.setEquippedSkill = function(slot, skillId, locked = false
     skillSlotManager.setSlot(slot, skillId, locked);
 
     // check if we're using the hud's input frame.
-    if (J.HUD && J.HUD.EXT_INPUT)
+    if (J.HUD && J.HUD.EXT.INPUT)
     {
       // flag the slot for refresh.
       skillSlotManager.getSkillSlotByKey(slot).flagSkillSlotForRefresh();
