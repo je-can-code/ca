@@ -11,34 +11,79 @@ function DataManager() {
     throw new Error("This is a static class");
 }
 
+/** @type {RPG_Actor[]} */
 $dataActors = null;
+
+/** @type {RPG_Class[]} */
 $dataClasses = null;
+
+/** @type {RPG_Item[]} */
 $dataSkills = null;
+
+/** @type {RPG_Item[]} */
 $dataItems = null;
+
+/** @type {RPG_Weapon[]} */
 $dataWeapons = null;
+
+/** @type {RPG_Armor[]} */
 $dataArmors = null;
+
+/** @type {RPG_Enemy[]} */
 $dataEnemies = null;
+
 $dataTroops = null;
+
+/** @type {RPG_State[]} */
 $dataStates = null;
+
 $dataAnimations = null;
 $dataTilesets = null;
 $dataCommonEvents = null;
 $dataSystem = null;
 $dataMapInfos = null;
 $dataMap = null;
+
+/** @type {Game_Temp} */
 $gameTemp = null;
+
+/** @type {Game_System} */
 $gameSystem = null;
+
+/** @type {Game_Screen} */
 $gameScreen = null;
+
+/** @type {Game_Timer} */
 $gameTimer = null;
+
+/** @type {Game_Message} */
 $gameMessage = null;
+
+/** @type {Game_Switches} */
 $gameSwitches = null;
+
+/** @type {Game_Variables} */
 $gameVariables = null;
+
+/** @type {Game_SelfSwitches} */
 $gameSelfSwitches = null;
+
+/** @type {Game_Actors} */
 $gameActors = null;
+
+/** @type {Game_Party} */
 $gameParty = null;
+
+/** @type {Game_Troop} */
 $gameTroop = null;
+
+/** @type {Game_Map} */
 $gameMap = null;
+
+/** @type {Game_Player} */
 $gamePlayer = null;
+
+/** @type {Game_Event} */
 $testEvent = null;
 
 DataManager._globalInfo = null;

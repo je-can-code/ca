@@ -29,7 +29,7 @@
  * - variable assignment for tracking a wide variety of battle data points
  * - additional accessory for all actors (as accessory)
  * - "recover all" recovers TP too
- * - prevent passage on region id 1
+ * - prevent passage on tileset terrain id 1
  * - random variable assignment for "rare/named enemies" on map transfer
  * - removal of touch buttons from base and map scenes
  *

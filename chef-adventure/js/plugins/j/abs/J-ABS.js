@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Fri Dec 30 2022 10:36:36 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -2145,9 +2145,9 @@ J.ABS.RegExp = {
   InvincibleDodge: /<invincibleDodge>/gi,
 
   // counter-related (on-chance-effect template)
-  Retaliate: /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
+  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
+  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   /* ON SKILLS */
 
   /* ON EQUIPS */
@@ -11663,6 +11663,58 @@ class JABS_LootDrop
 }
 //endregion JABS_LootDrop
 
+//region JABS_MenuType
+/**
+ * The keys of the window focuses that the JABS menu can choose from.
+ */
+class JABS_MenuType
+{
+  /**
+   * Constructor.
+   * Not intended to be used for static classes.
+   */
+  constructor()
+  {
+    console.warn(`Attempted to instantiate the JABS_MenuType class.`);
+    console.warn(`Please directly use the static properties on it instead of instantiating it.`);
+    console.warn(`Consider adding additional static properties if new menu items are being added.`);
+    console.trace();
+    throw new Error(`JABS_MenuType is a static class that cannot be instantiated.`);
+  }
+
+  /**
+   * The "main" window is the root window containing the list of subcommands.
+   * @type {"main"}
+   */
+  static Main = "main";
+
+  /**
+   * The "skill" window is the list of combat skills that the player can choose from to equip.
+   * @type {"skill"}
+   */
+  static Skill = "skill";
+
+  /**
+   * The "tool" window is the list of tools that the player can choose from to equip.
+   * @type {"tool"}
+   */
+  static Tool = "tool";
+
+  /**
+   * The "dodge" window is the list of dodge skills that the player can choose from to equip.
+   * @type {string}
+   */
+  static Dodge = "dodge";
+
+  /**
+   * The "assign" window is one of multiple types of windows where items or skills are assigned
+   * via the concept of "combat skills", "dodge skills", and "tools".
+   * @type {string}
+   */
+  static Assign = "assign"
+}
+//endregion JABS_MenuType
+
 //region JABS_OnChanceEffect
 /**
  * A class defining the structure of an on-death skill, either for ally or enemy.
@@ -12270,6 +12322,9 @@ JABS_SkillSlot.prototype.isLocked = function()
  */
 JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
 {
+  // if there is no target, then return null.
+  if (targetId === null) return null;
+
   // if this slot is empty, then return null.
   if (this.isEmpty()) return null;
 
@@ -23148,7 +23203,7 @@ Game_Actor.prototype.getAllPrimarySkills = function()
  * Gets all skill slots identified as "secondary".
  * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getAllSecondarySkills = function()
+Game_Actor.prototype.getAllCombatSkillSlots = function()
 {
   return this.getSkillSlotManager().getAllSecondarySlots();
 };
@@ -23157,7 +23212,7 @@ Game_Actor.prototype.getAllSecondarySkills = function()
  * Gets the skill dedicated to the tool slot.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.getToolSkill = function()
+Game_Actor.prototype.getToolSkillSlot = function()
 {
   return this.getSkillSlotManager().getToolSlot();
 };
@@ -23166,7 +23221,7 @@ Game_Actor.prototype.getToolSkill = function()
  * Gets the skill dedicated to the dodge slot.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.getDodgeSkill = function()
+Game_Actor.prototype.getDodgeSkillSlot = function()
 {
   return this.getSkillSlotManager().getDodgeSlot();
 };
@@ -27407,8 +27462,10 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
 //endregion Scene_Load
 
 //region Scene_Map
+//region init
 /**
- * Hooks into the `Scene_Map.initialize` function and adds the JABS objects for tracking.
+ * Extends {@link #initialize}.
+ * Also initializes all additional properties for JABS.
  */
 J.ABS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
@@ -27426,7 +27483,8 @@ Scene_Map.prototype.initialize = function()
 };
 
 /**
- * Initializes the player's `JABS_Battler` if it was not already initialized.
+ * Extends {@link #onMapLoaded}.
+ * Safety net for ensuring the player's battler is initialized with the map load.
  */
 J.ABS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
@@ -27513,11 +27571,72 @@ Scene_Map.prototype.initJabsMenu = function()
    * @type {Window_AbsMenuSelect|null}
    */
   this._j._absMenu._equipDodgeWindow = null;
+
+  /**
+   * The help window for displaying information on the highlighted item.
+   * @type {Window_Help|null}
+   */
+  this._j._absMenu._helpWindow = null;
+};
+
+//region properties
+/**
+ * Gets the current window focus of the JABS menu.
+ * @returns {string|null}
+ */
+Scene_Map.prototype.getJabsMenuFocus = function()
+{
+  return this._j._absMenu._windowFocus;
 };
 
 /**
- * Gets the main list window of the JABS menu.
- * @returns {Window_AbsMenu|null}
+ * Sets the current window focus of the JABS menu.
+ * @param {string} focus The key of the new JABS menu window to focus on.
+ */
+Scene_Map.prototype.setJabsMenuFocus = function(focus)
+{
+  this._j._absMenu._windowFocus = focus;
+}
+
+/**
+ * Gets the currently selected menu equip type being perused.
+ * @returns {string|null}
+ */
+Scene_Map.prototype.getJabsMenuEquipType = function()
+{
+  return this._j._absMenu._equipType;
+};
+
+/**
+ * Sets the currently selected menu equip type being perused.
+ * @param {string} equipType The currently selected menu equip type.
+ */
+Scene_Map.prototype.setJabsMenuEquipType = function(equipType)
+{
+  this._j._absMenu._equipType = equipType;
+}
+
+/**
+ * Gets the currently tracked JABS menu help window.
+ * @returns {Window_AbsHelp|null}
+ */
+Scene_Map.prototype.getJabsMenuHelpWindow = function()
+{
+  return this._j._absMenu._helpWindow;
+};
+
+/**
+ * Sets the currently tracked JABS menu help window to the given window.
+ * @param {Window_AbsHelp} window The help window to track.
+ */
+Scene_Map.prototype.setJabsMenuHelpWindow = function(window)
+{
+  this._j._absMenu._helpWindow = window;
+};
+
+/**
+ * Gets the currently tracked JABS main menu window.
+ * @returns {Window_AbsMenu}
  */
 Scene_Map.prototype.getJabsMainListWindow = function()
 {
@@ -27525,30 +27644,30 @@ Scene_Map.prototype.getJabsMainListWindow = function()
 };
 
 /**
- * Gets the window containing the list of equippable combat skills.
- * @returns {Window_AbsMenuSelect|null}
+ * Sets the currently tracked JABS main menu window to the given window.
+ * @param {Window_AbsMenu} window The JABS main menu window to track.
  */
-Scene_Map.prototype.getJabsCombatSkillEquippablesListWindow = function()
+Scene_Map.prototype.setJabsMenuMainWindow = function(window)
+{
+  this._j._absMenu._mainWindow = window;
+};
+
+/**
+ * Get the currently tracked JABS menu skill list window.
+ * @returns {Window_DifficultyList}
+ */
+Scene_Map.prototype.getJabsSkillListWindow = function()
 {
   return this._j._absMenu._skillWindow;
 };
 
 /**
- * Gets the window containing the list of equippable tools.
- * @returns {Window_AbsMenuSelect|null}
+ * Set the currently tracked JABS menu combat skill list window to the given window.
+ * @param {Window_AbsMenu} window The combat skill list window to track.
  */
-Scene_Map.prototype.getJabsToolEquippablesListWindow = function()
+Scene_Map.prototype.setJabsSkillListWindow = function(window)
 {
-  return this._j._absMenu._toolWindow;
-};
-
-/**
- * Gets the window containing the list of equippable dodge skills.
- * @returns {Window_AbsMenuSelect|null}
- */
-Scene_Map.prototype.getJabsDodgeSkillEquippablesListWindow = function()
-{
-  return this._j._absMenu._dodgeWindow;
+  this._j._absMenu._skillWindow = window;
 };
 
 /**
@@ -27561,12 +27680,66 @@ Scene_Map.prototype.getJabsEquippedCombatSkillsWindow = function()
 };
 
 /**
+ * Set the currently tracked JABS menu equipped combat skills window to the given window.
+ * @param {Window_AbsMenu} window The equipped combat skills window to track.
+ */
+Scene_Map.prototype.setJabsEquippedCombatSkillsWindow = function(window)
+{
+  this._j._absMenu._equipSkillWindow = window;
+};
+
+/**
+ * Gets the window containing the list of equippable tools.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsToolListWindow = function()
+{
+  return this._j._absMenu._toolWindow;
+};
+
+/**
+ * Set the currently tracked JABS menu tool list window to the given window.
+ * @param {Window_AbsMenu} window The tool list window to track.
+ */
+Scene_Map.prototype.setJabsToolListWindow = function(window)
+{
+  this._j._absMenu._toolWindow = window;
+};
+
+/**
  * Gets the window containing the equipped tool.
  * @returns {Window_AbsMenuSelect|null}
  */
 Scene_Map.prototype.getJabsEquippedToolWindow = function()
 {
   return this._j._absMenu._equipToolWindow;
+};
+
+/**
+ * Set the currently tracked JABS menu equipped tool window to the given window.
+ * @param {Window_AbsMenuSelect} window The equipped tool window to track.
+ */
+Scene_Map.prototype.setJabsEquippedToolWindow = function(window)
+{
+  this._j._absMenu._equipToolWindow = window;
+};
+
+/**
+ * Gets the window containing the list of equippable dodge skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsDodgeSkillListWindow = function()
+{
+  return this._j._absMenu._dodgeWindow;
+};
+
+/**
+ * Set the currently tracked JABS menu dodge skill list window to the given window.
+ * @param {Window_AbsMenuSelect} window The dodge skill list window to track.
+ */
+Scene_Map.prototype.setJabsDodgeSkillListWindow = function(window)
+{
+  this._j._absMenu._dodgeWindow = window;
 };
 
 /**
@@ -27578,6 +27751,18 @@ Scene_Map.prototype.getJabsEquippedDodgeSkillWindow = function()
   return this._j._absMenu._equipDodgeWindow;
 };
 
+/**
+ * Set the currently tracked JABS menu equipped dodge skill window to the given window.
+ * @param {Window_AbsMenu} window The equipped combat skills window to track.
+ */
+Scene_Map.prototype.setJabsEquippedDodgeSkillWindow = function(window)
+{
+  this._j._absMenu._equipDodgeWindow = window;
+};
+//endregion properties
+//endregion init
+
+//region create
 /**
  * Create the Hud with all the rest of the windows.
  */
@@ -27592,7 +27777,867 @@ Scene_Map.prototype.createAllWindows = function()
 };
 
 /**
- * Update the `JABS_BattlerManager` while updating the regular scene map.
+ * Creates the Jabs quick menu for use.
+ */
+Scene_Map.prototype.createJabsAbsMenu = function()
+{
+  // the help window used by all menus.
+  this.createJabsAbsMenuHelpWindow();
+
+  // the main window that forks into the other three.
+  this.createJabsAbsMenuMainWindow();
+
+  // the three main windows of the ABS menu.
+  this.createJabsAbsSkillListWindow();
+  this.createJabsAbsMenuToolListWindow();
+  this.createJabsAbsMenuDodgeListWindow();
+
+  // the assignment of the the windows.
+  this.createJabsAbsMenuEquipSkillWindow();
+  this.createJabsAbsMenuEquipToolWindow();
+  this.createJabsAbsMenuEquipDodgeWindow();
+};
+
+//region help
+/**
+ * Creates a help window for use across all menus in the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuHelpWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsMenuHelpWindow();
+
+  // update the tracker with the new window.
+  this.setJabsMenuHelpWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the JABS menu help window.
+ * @returns {Window_AbsHelp}
+ */
+Scene_Map.prototype.buildJabsMenuHelpWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsMenuHelpWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsHelp(rectangle);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the main list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsMenuHelpWindowRectangle = function()
+{
+  // the width is the full window.
+  const width = Graphics.boxWidth;
+
+  // define the height arbitrarily.
+  const height = 100;
+
+  // the x:y is the upper left.
+  const x = 0;
+  const y = 0;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion help
+
+//region main menu
+/**
+ * Creates the JABS main menu window containing the list of other options
+ * available for use while on the map.
+ */
+Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsMenuMainWindow();
+
+  // update the tracker with the new window.
+  this.setJabsMenuMainWindow(window);
+
+  // perform this once to begin with.
+  window.onIndexChange();
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the JABS main menu window.
+ * @returns {Window_AbsMenu}
+ */
+Scene_Map.prototype.buildJabsMenuMainWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsMenuMainWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenu(rectangle);
+
+  // assign functionality for each of the commands.
+  window.setHandler("skill-assign", this.commandSkill.bind(this));
+  window.setHandler("dodge-assign", this.commandDodge.bind(this));
+  window.setHandler("item-assign", this.commandItem.bind(this));
+  window.setHandler("main-menu", this.commandMenu.bind(this));
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Main));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsMenuHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the main list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsMenuMainWindowRectangle = function()
+{
+  // the general height of a command item is this many pixels.
+  const commandHeight = 36;
+
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the height should be 8 items tall.
+  const height = commandHeight * 8;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // define the y coordinate arbitrarily.
+  const y = 100;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion main menu
+
+//region skill list
+/**
+ * Creates the skill assignment window of the Jabs quick menu.
+ */
+Scene_Map.prototype.createJabsAbsSkillListWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsSkillListWindow();
+
+  // update the tracker with the new window.
+  this.setJabsSkillListWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+}
+
+/**
+ * Sets up and defines the skill list of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsSkillListWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsSkillListWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.SkillList);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.SkillList));
+  window.setHandler("skill", this.commandEquipSkill.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsCombatSkillListHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the skill list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsSkillListWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the general height of a command item is this many pixels.
+  const commandHeight = 36;
+
+  // the height should be 8 items tall.
+  const height = commandHeight * 8;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // define the y coordinate arbitrarily.
+  const y = 100;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion skill list
+
+//region equip skill
+/**
+ * Creates the skill assignment window of the Jabs quick menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsEquippedCombatSkillsWindow();
+
+  // update the tracker with the new window.
+  this.setJabsEquippedCombatSkillsWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the equipped combat skills window of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsEquippedCombatSkillsWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsEquippedCombatSkillsWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.SkillEquip);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler("slot", this.commandAssign.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsEquippedCombatSkillsHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the equipped combat skills of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsEquippedCombatSkillsWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the general height of a command item is this many pixels.
+  const commandHeight = 36;
+
+  // the height should be 5 items tall with some padding on top and bottom.
+  const height = (commandHeight * 5) + 20;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // grab the parent rectangle for location details.
+  const parentRectangle = this.jabsSkillListWindowRectangle();
+
+  // define the y coordinate arbitrarily.
+  const y = parentRectangle.y + parentRectangle.height;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion equip skill
+
+//region tool list
+/**
+ * Creates the item assignment window of the Jabs quick menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuToolListWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsToolListWindow();
+
+  // update the tracker with the new window.
+  this.setJabsToolListWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the tool list of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsToolListWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsToolListWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.ToolList);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.ToolList));
+  window.setHandler("tool", this.commandEquipTool.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsToolListHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the tool list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsToolListWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the general height of a command item is this many pixels.
+  const commandHeight = 36;
+
+  // the height should be 8 items tall.
+  const height = commandHeight * 8;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // define the y coordinate arbitrarily.
+  const y = 100;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion tool list
+
+//region equip tool
+/**
+ * Creates the equip tool window of the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsEquippedToolWindow();
+
+  // update the tracker with the new window.
+  this.setJabsEquippedToolWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the equipped tool window of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsEquippedToolWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsEquippedToolWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.ToolEquip);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler("slot", this.commandAssign.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsEquippedToolHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the equipped tool of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsEquippedToolWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the height should be just enough to fit the single tool in there.
+  const height = 70;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // grab the parent rectangle for location details.
+  const parentRectangle = this.jabsToolListWindowRectangle();
+
+  // define the y coordinate arbitrarily.
+  const y = parentRectangle.y + parentRectangle.height;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion equip tool
+
+//region dodge list
+/**
+ * Creates the dodge skill list window of the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsDodgeSkillListWindow();
+
+  // update the tracker with the new window.
+  this.setJabsDodgeSkillListWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the dodge skill list of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsDodgeSkillListWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsDodgeSkillListWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.DodgeList);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Dodge));
+  window.setHandler("dodge", this.commandEquipDodge.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsDodgeSkillListHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the dodge skill list of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsDodgeSkillListWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the general height of a command item is this many pixels.
+  const commandHeight = 36;
+
+  // the height should be 8 items tall.
+  const height = commandHeight * 8;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // define the y coordinate arbitrarily.
+  const y = 100;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion dodge list
+
+//region equip dodge
+/**
+ * Creates the equip dodge skill window of the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsEquippedDodgeSkillWindow();
+
+  // update the tracker with the new window.
+  this.setJabsEquippedDodgeSkillWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the equipped dodge skill window of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsEquippedDodgeSkillWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsEquippedDodgeSkillWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.DodgeEquip);
+
+  // assign functionality for each of the commands.
+  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler("slot", this.commandAssign.bind(this));
+
+  // overwrite the onIndexChange hook with our local onHoverChange hook.
+  window.onIndexChange = this.onJabsEquippedDodgeSkillHoverChange.bind(this);
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the equipped dodge skill of the JABS menu.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsEquippedDodgeSkillWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the height should be just enough to fit the single dodge skill in there.
+  const height = 70;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // grab the parent rectangle for location details.
+  const parentRectangle = this.jabsDodgeSkillListWindowRectangle();
+
+  // define the y coordinate arbitrarily.
+  const y = parentRectangle.y + parentRectangle.height;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion equip dodge
+//endregion create
+
+//region actions
+//region onHover
+Scene_Map.prototype.onJabsMenuHoverChange = function()
+{
+  // grab the main menu.
+  const menu = this.getJabsMainListWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsCombatSkillListHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsSkillListWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsEquippedCombatSkillsHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsEquippedCombatSkillsWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsToolListHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsToolListWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsEquippedToolHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsEquippedToolWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsDodgeSkillListHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsDodgeSkillListWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+
+Scene_Map.prototype.onJabsEquippedDodgeSkillHoverChange = function()
+{
+  // grab the menu.
+  const menu = this.getJabsDodgeSkillListWindow();
+
+  // extract the text out of the current selection.
+  const text = menu.currentHelpText();
+
+  // update the help window with some text.
+  this.getJabsMenuHelpWindow().setText(text);
+};
+//endregion onHover
+
+//region command execution
+/**
+ * Brings up the main menu.
+ */
+Scene_Map.prototype.commandMenu = function()
+{
+  SceneManager.push(Scene_Menu);
+};
+
+/**
+ * When the "assign skills" option is chosen, it prioritizes this window.
+ */
+Scene_Map.prototype.commandSkill = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Skill);
+
+  // refresh the window.
+  this.getJabsSkillListWindow().refresh();
+
+  // show the related equipped window.
+  this.getJabsEquippedCombatSkillsWindow().refresh();
+  this.showJabsEquippedCombatSkillsWindow();
+  this.getJabsEquippedCombatSkillsWindow().deselect();
+  this.getJabsEquippedCombatSkillsWindow().deactivate();
+
+  // show the window.
+  this.showJabsSkillListWindow();
+
+  // set the assignment type to combat skills.
+  this.setJabsMenuEquipType(JABS_MenuType.Skill);
+};
+
+/**
+ * When the "assign items" option is chosen, it prioritizes this window.
+ */
+Scene_Map.prototype.commandItem = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Tool);
+
+  // refresh the window.
+  this.getJabsToolListWindow().refresh();
+
+  // show the related equipped window.
+  this.getJabsEquippedToolWindow().refresh();
+  this.showJabsEquippedToolWindow();
+  this.getJabsEquippedToolWindow().deselect();
+  this.getJabsEquippedToolWindow().deactivate();
+
+  // show the window.
+  this.showJabsToolListWindow();
+
+  // set the assignment type to tools.
+  this.setJabsMenuEquipType(JABS_MenuType.Tool);
+};
+
+/**
+ * When the "assign dodge" option is chosen, it prioritizes this window.
+ */
+Scene_Map.prototype.commandDodge = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Dodge);
+
+  // refresh the window.
+  this.getJabsDodgeSkillListWindow().refresh();
+
+  // show the related equipped window.
+  this.getJabsEquippedDodgeSkillWindow().refresh();
+  this.showJabsEquippedDodgeSkillWindow();
+  this.getJabsEquippedDodgeSkillWindow().deselect();
+  this.getJabsEquippedDodgeSkillWindow().deactivate();
+
+  // show the window.
+  this.showJabsDodgeSkillListWindow();
+
+  // set the assignment type to dodge skills.
+  this.setJabsMenuEquipType(JABS_MenuType.Dodge);
+};
+
+/**
+ * When a decision is made in skill assign, prioritize the equip window.
+ */
+Scene_Map.prototype.commandEquipSkill = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Assign);
+
+  // grab the window.
+  const window = this.getJabsEquippedCombatSkillsWindow();
+
+  // refresh the window.
+  window.refresh();
+  window.select(0);
+
+  // show the window.
+  this.showJabsEquippedCombatSkillsWindow();
+
+};
+
+/**
+ * When a decision is made in tool assign, prioritize the equip window.
+ */
+Scene_Map.prototype.commandEquipTool = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Assign);
+
+  // grab the window.
+  const window = this.getJabsEquippedToolWindow();
+
+  // refresh the window.
+  window.refresh();
+  window.select(0);
+
+  // show the window.
+  this.showJabsEquippedToolWindow();
+};
+
+/**
+ * When a decision is made in tool assign, prioritize the equip window.
+ */
+Scene_Map.prototype.commandEquipDodge = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Assign);
+
+  // grab the window.
+  const window = this.getJabsEquippedDodgeSkillWindow();
+
+  // refresh the window.
+  window.refresh();
+  window.select(0);
+
+  // show the window.
+  this.showJabsEquippedDodgeSkillWindow();
+};
+
+/**
+ * When assigning a slot, determine the last opened window and use that.
+ */
+Scene_Map.prototype.commandAssign = function()
+{
+  // grab the leader for reference.
+  const actor = $gameParty.leader();
+
+  // initialize the skill and slot variables.
+  let nextActionSkill = 0
+  let equippedActionSlot = 0;
+
+  // pivot on the currently perused equip type.
+  switch (this.getJabsMenuEquipType())
+  {
+    case JABS_MenuType.Skill:
+      // update with combat skill information and the given slot.
+      equippedActionSlot = this.getJabsEquippedCombatSkillsWindow().currentExt();
+      nextActionSkill = this.getJabsSkillListWindow().currentExt();
+      break;
+    case JABS_MenuType.Tool:
+      // update with tool information and the given slot.
+      equippedActionSlot = this.getJabsEquippedToolWindow().currentExt();
+      nextActionSkill = this.getJabsToolListWindow().currentExt();
+      break;
+    case JABS_MenuType.Dodge:
+      // update with dodge skill information and the given slot.
+      equippedActionSlot = this.getJabsEquippedDodgeSkillWindow().currentExt();
+      nextActionSkill = this.getJabsDodgeSkillListWindow().currentExt();
+      break;
+  }
+
+  // update the leader's equipped slots with the skill.
+  actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
+
+  // automatically return back to the list.
+  this.closeAbsWindow(JABS_MenuType.Assign);
+};
+//endregion command execution
+
+/**
+ * Sets the item parsed in the JABS menu help window.
+ * @param {RPG_BaseItem} item The item to parse into the help window.
+ */
+Scene_Map.prototype.setJabsHelpItem = function(item)
+{
+  this.getJabsMenuHelpWindow().setItem(item);
+};
+
+/**
+ * Sets the text of the JABS menu help window.
+ * @param {string} text The text to put into the window.
+ */
+Scene_Map.prototype.setJabsHelpText = function(text)
+{
+  this.getJabsMenuHelpWindow().setText(text);
+};
+//endregion actions
+
+//region update
+/**
+ * Extends {@link #update}.
+ * Also updates JABS.
  */
 J.ABS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
@@ -27605,7 +28650,7 @@ Scene_Map.prototype.update = function()
 };
 
 /**
- * Frame-updates associated with the JABS engine.
+ * Performs update logic for the JABS engine.
  */
 Scene_Map.prototype.updateJabs = function()
 {
@@ -27639,208 +28684,34 @@ Scene_Map.prototype.updateJabs = function()
 };
 
 /**
- * Manages the party rotation.
+ * Handles the logic in the scene for a party rotation.
  */
 Scene_Map.prototype.handlePartyRotation = function()
 {
+  // acknowledge the party rotation request.
   $jabsEngine.requestPartyRotation = false;
-  if (J.HUD)
-  {
-    this.refreshHud();
-  }
+
+  // add a hook for logic on-rotation.
+  this.onPartyRotate();
 };
 
 /**
- * Hides all windows of the JABS menu.
+ * A hook for performing action when there was a party rotation request.
  */
-Scene_Map.prototype.hideAllJabsWindows = function()
+Scene_Map.prototype.onPartyRotate = function()
 {
-  this._j._absMenu._mainWindow.hide();
-  this._j._absMenu._skillWindow.hide();
-  this._j._absMenu._equipSkillWindow.hide();
-  this._j._absMenu._toolWindow.hide();
-  this._j._absMenu._equipToolWindow.hide();
-  this._j._absMenu._dodgeWindow.hide();
-  this._j._absMenu._equipDodgeWindow.hide();
-};
-
-//region JABS Menu
-/**
- * OVERWRITE Disable the primary menu from being called while JABS is enabled.
- */
-J.ABS.Aliased.Scene_Map.set('callMenu', Scene_Map.prototype.callMenu);
-Scene_Map.prototype.callMenu = function()
-{
-  // if the ABS is disabled, then allow the menu to be called normally.
-  if (!$jabsEngine.absEnabled)
-  {
-    J.ABS.Aliased.Scene_Map.get('callMenu').call(this);
-  }
 };
 
 /**
- * Creates the Jabs quick menu for use.
+ * Refreshes the contents of the JABS menu.
  */
-Scene_Map.prototype.createJabsAbsMenu = function()
+Scene_Map.prototype.refreshJabsMenu = function()
 {
-  // the main window that forks into the other three.
-  this.createJabsAbsMenuMainWindow();
+  // refresh the main menu window.
+  this.getJabsMainListWindow().refresh();
 
-  // the three main windows of the ABS menu.
-  this.createJabsAbsMenuSkillListWindow();
-  this.createJabsAbsMenuToolListWindow();
-  this.createJabsAbsMenuDodgeListWindow();
-
-  // the assignment of the the windows.
-  this.createJabsAbsMenuEquipSkillWindow();
-  this.createJabsAbsMenuEquipToolWindow();
-  this.createJabsAbsMenuEquipDodgeWindow();
-};
-
-/**
- * Creates the first/main window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
-{
-  const rect = this.jabsAbsMenuMainWindowRectangle();
-  const mainMenu = new Window_AbsMenu(rect);
-  mainMenu.setHandler("skill-assign", this.commandSkill.bind(this));
-  mainMenu.setHandler("dodge-assign", this.commandDodge.bind(this));
-  mainMenu.setHandler("item-assign", this.commandItem.bind(this));
-  mainMenu.setHandler("main-menu", this.commandMenu.bind(this));
-  mainMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "main"));
-  this._j._absMenu._mainWindow = mainMenu;
-  this._j._absMenu._mainWindow.close();
-  this._j._absMenu._mainWindow.hide();
-  this.addWindow(this._j._absMenu._mainWindow);
-};
-
-/**
- * Get the rectangle associated with the main list of the JABS menu.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.jabsAbsMenuMainWindowRectangle = function()
-{
-  const commandHeight = 36;
-  const w = 400;
-  const h = commandHeight * 8;
-  const x = Graphics.boxWidth - w;
-  const y = 200;
-  return new Rectangle(x, y, w, h);
-};
-
-/**
- * Creates the skill assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuSkillListWindow = function()
-{
-  const w = 400;
-  const h = 300;
-  const x = Graphics.boxWidth - (w);
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const skillMenu = new Window_AbsMenuSelect(rect, "skill");
-  skillMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "skill"));
-  skillMenu.setHandler("skill", this.commandEquipSkill.bind(this));
-  this._j._absMenu._skillWindow = skillMenu;
-  this._j._absMenu._skillWindow.close();
-  this._j._absMenu._skillWindow.hide();
-  this.addWindow(this._j._absMenu._skillWindow);
-};
-
-/**
- * Creates the skill assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuEquipSkillWindow = function()
-{
-  const w = 400;
-  const h = 380;
-  const x = Graphics.boxWidth - (w);
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const skillMenu = new Window_AbsMenuSelect(rect, "equip-skill");
-  skillMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));
-  skillMenu.setHandler("slot", this.commandAssign.bind(this));
-  this._j._absMenu._equipSkillWindow = skillMenu;
-  this._j._absMenu._equipSkillWindow.close();
-  this._j._absMenu._equipSkillWindow.hide();
-  this.addWindow(this._j._absMenu._equipSkillWindow);
-};
-
-/**
- * Creates the item assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuToolListWindow = function()
-{
-  const w = 400;
-  const h = 300;
-  const x = Graphics.boxWidth - w;
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const itemMenu = new Window_AbsMenuSelect(rect, "tool");
-  itemMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "tool"));
-  itemMenu.setHandler("tool", this.commandEquipTool.bind(this));
-  this._j._absMenu._toolWindow = itemMenu;
-  this._j._absMenu._toolWindow.close();
-  this._j._absMenu._toolWindow.hide();
-  this.addWindow(this._j._absMenu._toolWindow);
-};
-
-/**
- * Creates the skill assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuEquipToolWindow = function()
-{
-  const w = 400;
-  const h = 70;
-  const x = Graphics.boxWidth - (w);
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const itemMenu = new Window_AbsMenuSelect(rect, "equip-tool");
-  itemMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));
-  itemMenu.setHandler("slot", this.commandAssign.bind(this));
-  this._j._absMenu._equipToolWindow = itemMenu;
-  this._j._absMenu._equipToolWindow.close();
-  this._j._absMenu._equipToolWindow.hide();
-  this.addWindow(this._j._absMenu._equipToolWindow);
-};
-
-/**
- * Creates the dodge assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuDodgeListWindow = function()
-{
-  const w = 400;
-  const h = 300;
-  const x = Graphics.boxWidth - w;
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const dodgeMenu = new Window_AbsMenuSelect(rect, "dodge");
-  dodgeMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "dodge"));
-  dodgeMenu.setHandler("dodge", this.commandEquipDodge.bind(this));
-  this._j._absMenu._dodgeWindow = dodgeMenu;
-  this._j._absMenu._dodgeWindow.close();
-  this._j._absMenu._dodgeWindow.hide();
-  this.addWindow(this._j._absMenu._dodgeWindow);
-};
-
-/**
- * Creates the skill assignment window of the Jabs quick menu.
- */
-Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function()
-{
-  const w = 400;
-  const h = 70;
-  const x = Graphics.boxWidth - (w);
-  const y = 200;
-  const rect = new Rectangle(x, y, w, h);
-  const assignMenu = new Window_AbsMenuSelect(rect, "equip-dodge");
-  assignMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "assign"));
-  assignMenu.setHandler("slot", this.commandAssign.bind(this));
-  this._j._absMenu._equipDodgeWindow = assignMenu;
-  this._j._absMenu._equipDodgeWindow.close();
-  this._j._absMenu._equipDodgeWindow.hide();
-  this.addWindow(this._j._absMenu._equipDodgeWindow);
+  // acknowledge jabs menu refresh request.
+  $jabsEngine.requestJabsMenuRefresh = false;
 };
 
 /**
@@ -27848,213 +28719,364 @@ Scene_Map.prototype.createJabsAbsMenuEquipDodgeWindow = function()
  */
 Scene_Map.prototype.manageAbsMenu = function()
 {
-  switch (this._j._absMenu._windowFocus)
+  switch (this.getJabsMenuFocus())
   {
-    case "main":
-      this._j._absMenu._mainWindow.show();
-      this._j._absMenu._mainWindow.open();
-      this._j._absMenu._mainWindow.activate();
+    case JABS_MenuType.Main:
+      this.showJabsMenuHelpWindow();
+      this.showJabsMainListWindow();
       break;
-    case "skill":
-      this._j._absMenu._mainWindow.hide();
-      this._j._absMenu._mainWindow.close();
-      this._j._absMenu._mainWindow.deactivate();
-      this._j._absMenu._skillWindow.show();
-      this._j._absMenu._skillWindow.open();
-      this._j._absMenu._skillWindow.activate();
+    case JABS_MenuType.Skill:
+      this.hideJabsMainWindow();
+      this.showJabsSkillListWindow();
       break;
-    case "tool":
-      this._j._absMenu._mainWindow.hide();
-      this._j._absMenu._mainWindow.close();
-      this._j._absMenu._mainWindow.deactivate();
-      this._j._absMenu._toolWindow.show();
-      this._j._absMenu._toolWindow.open();
-      this._j._absMenu._toolWindow.activate();
+    case JABS_MenuType.Tool:
+      this.hideJabsMainWindow();
+      this.showJabsToolListWindow();
       break;
-    case "dodge":
-      this._j._absMenu._mainWindow.hide();
-      this._j._absMenu._mainWindow.close();
-      this._j._absMenu._mainWindow.deactivate();
-      this._j._absMenu._dodgeWindow.show();
-      this._j._absMenu._dodgeWindow.open();
-      this._j._absMenu._dodgeWindow.activate();
+    case JABS_MenuType.Dodge:
+      this.hideJabsMainWindow();
+      this.showJabsDodgeSkillListWindow();
       break;
     case null:
-      this._j._absMenu._windowFocus = "main";
+      this.setJabsMenuFocus(JABS_MenuType.Main);
       break;
   }
 };
+//endregion update
 
 /**
- * When the "assign skills" option is chosen, it prioritizes this window.
+ * Extends {@link #callMenu}.
+ * Disables the ability to directly call the menu by pressing the given key.
  */
-Scene_Map.prototype.commandSkill = function()
+J.ABS.Aliased.Scene_Map.set('callMenu', Scene_Map.prototype.callMenu);
+Scene_Map.prototype.callMenu = function()
 {
-  this._j._absMenu._windowFocus = "skill";
-  this._j._absMenu._skillWindow.refresh();
-  this._j._absMenu._skillWindow.show();
-  this._j._absMenu._skillWindow.open();
-  this._j._absMenu._skillWindow.activate();
-  this._j._absMenu._equipType = "skill";
+  // while JABS is enabled, the call to the menu will always fail.
+  if ($jabsEngine.absEnabled) return;
+
+  // perform original logic.
+  J.ABS.Aliased.Scene_Map.get('callMenu').call(this);
 };
 
+//region show/hide
+//region help
 /**
- * When the "assign items" option is chosen, it prioritizes this window.
+ * Shows the JABS menu help window.
  */
-Scene_Map.prototype.commandItem = function()
+Scene_Map.prototype.showJabsMenuHelpWindow = function()
 {
-  this._j._absMenu._windowFocus = "tool";
-  this._j._absMenu._toolWindow.refresh();
-  this._j._absMenu._toolWindow.show();
-  this._j._absMenu._toolWindow.open();
-  this._j._absMenu._toolWindow.activate();
-  this._j._absMenu._equipType = "tool";
+  // grab the window.
+  const window = this.getJabsMenuHelpWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
 };
 
 /**
- * When the "assign dodge" option is chosen, it prioritizes this window.
+ * Hides the JABS menu help window.
  */
-Scene_Map.prototype.commandDodge = function()
+Scene_Map.prototype.hideJabsMenuHelpWindow = function()
 {
-  this._j._absMenu._windowFocus = "dodge";
-  this._j._absMenu._dodgeWindow.refresh();
-  this._j._absMenu._dodgeWindow.show();
-  this._j._absMenu._dodgeWindow.open();
-  this._j._absMenu._dodgeWindow.activate();
-  this._j._absMenu._equipType = "dodge";
-};
+  // grab the window.
+  const window = this.getJabsMenuHelpWindow();
 
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion help
+
+//region main
 /**
- * Brings up the main menu.
+ * Shows the JABS menu main list window.
  */
-Scene_Map.prototype.commandMenu = function()
+Scene_Map.prototype.showJabsMainListWindow = function()
 {
-  SceneManager.push(Scene_Menu);
-};
+  // grab the window.
+  const window = this.getJabsMainListWindow();
 
-Scene_Map.prototype.refreshJabsMenu = function()
-{
-  $jabsEngine.requestJabsMenuRefresh = false;
-  this._j._absMenu._mainWindow.refresh();
+  // show the window.
+  this.showJabsMenuWindow(window);
 };
 
 /**
- * When a decision is made in skill assign, prioritize the equip window.
+ * Hides the JABS menu main list window.
  */
-Scene_Map.prototype.commandEquipSkill = function()
+Scene_Map.prototype.hideJabsMainWindow = function()
 {
-  this._j._absMenu._windowFocus = "assign";
-  this._j._absMenu._skillWindow.close();
-  this._j._absMenu._skillWindow.deactivate();
-  this._j._absMenu._equipSkillWindow.refresh();
-  this._j._absMenu._equipSkillWindow.show();
-  this._j._absMenu._equipSkillWindow.open();
-  this._j._absMenu._equipSkillWindow.activate();
-};
+  // grab the window.
+  const window = this.getJabsMainListWindow();
 
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion main
+
+//region combat skills
 /**
- * When a decision is made in tool assign, prioritize the equip window.
+ * Shows the JABS menu skill list window.
  */
-Scene_Map.prototype.commandEquipTool = function()
+Scene_Map.prototype.showJabsSkillListWindow = function()
 {
-  this._j._absMenu._windowFocus = "assign";
-  this._j._absMenu._toolWindow.close();
-  this._j._absMenu._toolWindow.deactivate();
-  this._j._absMenu._equipToolWindow.refresh();
-  this._j._absMenu._equipToolWindow.show();
-  this._j._absMenu._equipToolWindow.open();
-  this._j._absMenu._equipToolWindow.activate();
+  // grab the window.
+  const window = this.getJabsSkillListWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
 };
 
 /**
- * When a decision is made in tool assign, prioritize the equip window.
+ * Hides the JABS menu skill list window.
  */
-Scene_Map.prototype.commandEquipDodge = function()
+Scene_Map.prototype.hideJabsCombatSkillListWindow = function()
 {
-  this._j._absMenu._windowFocus = "assign";
-  this._j._absMenu._dodgeWindow.close();
-  this._j._absMenu._dodgeWindow.deactivate();
-  this._j._absMenu._equipDodgeWindow.refresh();
-  this._j._absMenu._equipDodgeWindow.show();
-  this._j._absMenu._equipDodgeWindow.open();
-  this._j._absMenu._equipDodgeWindow.activate();
-};
+  // grab the window.
+  const window = this.getJabsSkillListWindow();
 
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion combat skills
+
+//region tools
 /**
- * When assigning a slot, determine the last opened window and use that.
+ * Shows the JABS menu tool list window.
  */
-Scene_Map.prototype.commandAssign = function()
+Scene_Map.prototype.showJabsToolListWindow = function()
 {
-  const actor = $gameParty.leader();
-  let nextActionSkill = 0
-  let equippedActionSlot = 0;
-  switch (this._j._absMenu._equipType)
-  {
-    case "skill":
-      equippedActionSlot = this._j._absMenu._equipSkillWindow.currentExt();
-      nextActionSkill = this._j._absMenu._skillWindow.currentExt();
-      break;
-    case "tool":
-      equippedActionSlot = this._j._absMenu._equipToolWindow.currentExt();
-      nextActionSkill = this._j._absMenu._toolWindow.currentExt();
-      break;
-    case "dodge":
-      equippedActionSlot = this._j._absMenu._equipDodgeWindow.currentExt();
-      nextActionSkill = this._j._absMenu._dodgeWindow.currentExt();
-      break;
-    default:
-      break;
-  }
+  // grab the window.
+  const window = this.getJabsToolListWindow();
 
-  actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
-  this.closeAbsWindow("assign");
+  // show the window.
+  this.showJabsMenuWindow(window);
 };
 
 /**
- * Closes a given Abs menu window.
+ * Hides the JABS menu tool list window.
+ */
+Scene_Map.prototype.hideJabsToolListWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsToolListWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion tools
+
+//region dodge skills
+/**
+ * Shows the JABS menu dodge skill list window.
+ */
+Scene_Map.prototype.showJabsDodgeSkillListWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsDodgeSkillListWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu dodge skill list window.
+ */
+Scene_Map.prototype.hideJabsDodgeSkillListWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsDodgeSkillListWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion dodge skills
+
+//region equip combat skills
+/**
+ * Shows the JABS menu equip combat skill window.
+ */
+Scene_Map.prototype.showJabsEquippedCombatSkillsWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedCombatSkillsWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu equip combat skill window.
+ */
+Scene_Map.prototype.hideJabsEquippedCombatSkillsWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedCombatSkillsWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion equip combat skills
+
+//region equip tool
+/**
+ * Shows the JABS menu equip tool window.
+ */
+Scene_Map.prototype.showJabsEquippedToolWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedToolWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu equip tool window.
+ */
+Scene_Map.prototype.hideJabsEquippedToolWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedToolWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion equip tool
+
+//region equip dodge skill
+/**
+ * Shows the JABS menu equip dodge skill window.
+ */
+Scene_Map.prototype.showJabsEquippedDodgeSkillWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedDodgeSkillWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu equip dodge skill window.
+ */
+Scene_Map.prototype.hideJabsEquippedDodgeSkillWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedDodgeSkillWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion equip dodge skill
+
+/**
+ * Hides all windows of the JABS menu.
+ */
+Scene_Map.prototype.hideAllJabsWindows = function()
+{
+  // hide the help window.
+  this.getJabsMenuHelpWindow().hide();
+
+  // hide the main window.
+  this.getJabsMainListWindow().hide();
+
+  // hide the skill windows.
+  this.getJabsSkillListWindow().hide();
+  this.getJabsEquippedCombatSkillsWindow().hide();
+
+  // hide the tool windows.
+  this.getJabsToolListWindow().hide();
+  this.getJabsEquippedToolWindow().hide();
+
+  // hide the dodge windows.
+  this.getJabsDodgeSkillListWindow().hide();
+  this.getJabsEquippedDodgeSkillWindow().hide();
+};
+
+/**
+ * Shows a JABS menu window.
+ * @param {Window_AbsMenu|Window_AbsHelp|Window_AbsMenuSelect} window The window to show.
+ */
+Scene_Map.prototype.showJabsMenuWindow = function(window)
+{
+  // positively open it.
+  window.show();
+  window.open();
+  window.activate();
+};
+
+/**
+ * Hides a JABS menu window.
+ * @param {Window_AbsMenu|Window_AbsHelp|Window_AbsMenuSelect} window The window to hide.
+ */
+Scene_Map.prototype.hideJabsMenuWindow = function(window)
+{
+  // negatively close it.
+  window.hide();
+  window.close();
+  window.deactivate();
+};
+//endregion show/hide
+
+/**
+ * Closes a given JABS menu window.
  * @param {string} absWindow The type of abs window being closed.
  */
 Scene_Map.prototype.closeAbsWindow = function(absWindow)
 {
   switch (absWindow)
   {
-    case "main":
-      this._j._absMenu._mainWindow.deactivate();
-      this._j._absMenu._mainWindow.close();
+    case JABS_MenuType.Main:
+      this.hideJabsMainWindow();
       this.closeAbsMenu();
       break;
-    case "skill":
-      this._j._absMenu._skillWindow.deactivate();
-      this._j._absMenu._skillWindow.close();
-      this._j._absMenu._windowFocus = "main";
+    case JABS_MenuType.Skill:
+      this.hideJabsCombatSkillListWindow();
+      this.hideJabsEquippedCombatSkillsWindow();
+      this.setJabsMenuFocus(JABS_MenuType.Main);
       break;
-    case "tool":
-      this._j._absMenu._toolWindow.deactivate();
-      this._j._absMenu._toolWindow.close();
-      this._j._absMenu._windowFocus = "main";
+    case JABS_MenuType.Tool:
+      this.hideJabsToolListWindow();
+      this.hideJabsEquippedToolWindow();
+      this.setJabsMenuFocus(JABS_MenuType.Main);
       break;
-    case "dodge":
-      this._j._absMenu._dodgeWindow.deactivate();
-      this._j._absMenu._dodgeWindow.close();
-      this._j._absMenu._windowFocus = "main";
+    case JABS_MenuType.Dodge:
+      this.hideJabsDodgeSkillListWindow();
+      this.hideJabsEquippedDodgeSkillWindow();
+      this.setJabsMenuFocus(JABS_MenuType.Main);
       break;
-    case "assign":
-      this._j._absMenu._equipSkillWindow.deactivate();
-      this._j._absMenu._equipSkillWindow.close();
-      this._j._absMenu._equipToolWindow.deactivate();
-      this._j._absMenu._equipToolWindow.close();
-      this._j._absMenu._equipDodgeWindow.deactivate();
-      this._j._absMenu._equipDodgeWindow.close();
-      this._j._absMenu._skillWindow.deactivate();
-      this._j._absMenu._skillWindow.close();
-      this._j._absMenu._toolWindow.deactivate();
-      this._j._absMenu._toolWindow.close();
-      this._j._absMenu._dodgeWindow.deactivate();
-      this._j._absMenu._dodgeWindow.close();
-      this._j._absMenu._mainWindow.activate();
-      this._j._absMenu._mainWindow.open();
-      this._j._absMenu._mainWindow.show();
-      this._j._absMenu._windowFocus = "main"
+    case JABS_MenuType.Assign:
+      this.redirectToParentAssignMenu();
+      break;
+  }
+};
+
+/**
+ * Redirects the player's control to the parent assignment menu.
+ */
+Scene_Map.prototype.redirectToParentAssignMenu = function()
+{
+  // grab the current equip type.
+  const equipType = this.getJabsMenuEquipType();
+
+  // pivot on current equip type.
+  switch (equipType)
+  {
+    case JABS_MenuType.Skill:
+      const equippedCombatSkillsWindow = this.getJabsEquippedCombatSkillsWindow();
+      equippedCombatSkillsWindow.deselect();
+      equippedCombatSkillsWindow.refresh();
+      this.getJabsSkillListWindow().activate();
+      break;
+    case JABS_MenuType.Tool:
+      const equippedToolWindow = this.getJabsEquippedToolWindow();
+      equippedToolWindow.deselect();
+      equippedToolWindow.refresh();
+      this.getJabsToolListWindow().activate();
+      break;
+    case JABS_MenuType.Dodge:
+      const equippedDodgeSkillWindow = this.getJabsEquippedDodgeSkillWindow();
+      equippedDodgeSkillWindow.deselect();
+      equippedDodgeSkillWindow.refresh();
+      this.getJabsDodgeSkillListWindow().activate();
       break;
   }
 };
@@ -28064,9 +29086,8 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
  */
 Scene_Map.prototype.closeAbsMenu = function()
 {
-  this._j._absMenu._mainWindow.closeMenu();
+  this.getJabsMainListWindow().closeMenu();
 };
-//endregion JABS Menu
 //endregion Scene_Map
 
 //region Sprite_Character
@@ -29238,32 +30259,28 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 };
 //endregion Spriteset_Map
 
+class Window_AbsHelp extends Window_Help
+{
+  constructor(rect)
+  {
+    super(rect);
+  }
+}
+
 //region Window_AbsMenu
 /**
- * The window representing what is called and manages the player's assigned skill slots.
+ * The main JABS menu window called from the map.
+ * This window contains mostly combat-setup options relating to JABS.
  */
 class Window_AbsMenu extends Window_Command
 {
   /**
-   * @constructor
+   * Constructor.
    * @param {Rectangle} rect The shape of the window.
    */
   constructor(rect)
   {
     super(rect);
-    this.initialize(rect);
-  }
-
-  /**
-   * Initializes this window.
-   * @param {Rectangle} rect The shape of the window.
-   */
-  initialize(rect)
-  {
-    super.initialize(rect);
-    this.refresh();
-    this.select(0);
-    this.activate();
   }
 
   /**
@@ -29271,9 +30288,10 @@ class Window_AbsMenu extends Window_Command
    */
   makeCommandList()
   {
+    // build all the commands.
     const commands = this.buildCommands();
 
-    // build all the commands.
+    // add the built commands.
     commands.forEach(this.addBuiltCommand, this);
   }
 
@@ -29288,6 +30306,7 @@ class Window_AbsMenu extends Window_Command
       .setSymbol('main-menu')
       .setEnabled($gameSystem.isMenuEnabled())
       .setIconIndex(189)
+      .setHelpText(this.mainMenuHelpText())
       .build();
 
     // build the combat skills command.
@@ -29296,6 +30315,7 @@ class Window_AbsMenu extends Window_Command
       .setEnabled(true)
       .setIconIndex(77)
       .setColorIndex(10)
+      .setHelpText(this.combatSkillsHelpText())
       .build();
 
     // build the dodge skill command.
@@ -29304,6 +30324,7 @@ class Window_AbsMenu extends Window_Command
       .setEnabled(true)
       .setIconIndex(82)
       .setColorIndex(24)
+      .setHelpText(this.dodgeSkillHelpText())
       .build();
 
     // build the tool command.
@@ -29312,6 +30333,7 @@ class Window_AbsMenu extends Window_Command
       .setEnabled(true)
       .setIconIndex(83)
       .setColorIndex(17)
+      .setHelpText(this.toolHelpText())
       .build();
 
     // return the built commands.
@@ -29321,6 +30343,62 @@ class Window_AbsMenu extends Window_Command
       dodgeSkillCommand,
       toolCommand,
     ];
+  }
+
+  /**
+   * The help text for the JABS main menu.
+   * @returns {string}
+   */
+  mainMenuHelpText()
+  {
+    const description = [
+      "The unabbreviated main menu with access to player status, descriptions, etc.",
+      "This is colloquially referred to as the 'The Main Menu™' by protagonists all across the universe."
+    ];
+
+    return description.join("\n");
+  }
+
+  /**
+   * The help text for the JABS combat skills menu.
+   * @returns {string}
+   */
+  combatSkillsHelpText()
+  {
+    const description = [
+      "The `Combat Skills` are more powerful variants of your basic attacks that may require resources to execute.",
+      "Typical things like sword techs and magic spells will show up here."
+    ];
+
+    return description.join("\n");
+  }
+
+  /**
+   * The help text for the JABS dodge skill menu.
+   * @returns {string}
+   */
+  dodgeSkillHelpText()
+  {
+    const description = [
+      "The `Dodge Skills` are ones that grant some form of mobility.",
+      "It is encouraged to use these liberally to maneuver around the field, in and out of combat."
+    ];
+
+    return description.join("\n");
+  }
+
+  /**
+   * The help text for the JABS tool menu.
+   * @returns {string}
+   */
+  toolHelpText()
+  {
+    const description = [
+      "Your tool list, where you can find any and all equippable items.",
+      "Not all items will show up in the list- only ones usable in combat somehow will be available."
+    ];
+
+    return description.join("\n");
   }
 
   /**
@@ -29342,9 +30420,18 @@ class Window_AbsMenu extends Window_Command
 /**
  * A window that is reused to draw all the subwindows of the JABS menu.
  */
-class Window_AbsMenuSelect
-  extends Window_Command
+class Window_AbsMenuSelect extends Window_Command
 {
+  /* eslint-disable prefer-destructuring */
+  static SelectionTypes = {
+    SkillList: "skill",
+    SkillEquip: "equip-skill",
+    ToolList: "tool",
+    ToolEquip: "equip-tool",
+    DodgeList: "dodge",
+    DodgeEquip: "equip-dodge",
+  }
+
   /**
    * @constructor
    * @param {Rectangle} rect The shape of the window.
@@ -29363,7 +30450,7 @@ class Window_AbsMenuSelect
    */
   initialize(rect, type)
   {
-    this._j = {};
+    this._j ||= {};
     this._j._menuType = type;
     super.initialize(rect);
     this.refresh();
@@ -29378,29 +30465,29 @@ class Window_AbsMenuSelect
   {
     switch (this._j._menuType)
     {
-      case "skill":
+      case Window_AbsMenuSelect.SelectionTypes.SkillList:
         // the list of all equippable combat skills this actor knows.
-        this.makeSkillList();
+        this.makeCombatSkillList();
         break;
-      case "tool":
+      case Window_AbsMenuSelect.SelectionTypes.ToolList:
         // the list of all items/tools in the party's possession.
         this.makeToolList();
         break;
-      case "dodge":
+      case Window_AbsMenuSelect.SelectionTypes.DodgeList:
         // the list of all equippable dodge skills this actor knows.
-        this.makeDodgeList();
+        this.makeDodgeSkillList();
         break;
-      case "equip-skill":
+      case Window_AbsMenuSelect.SelectionTypes.SkillEquip:
         // the combat skill equip menu, where all the combat skills can be equipped.
-        this.makeEquippedSkillList();
+        this.makeEquippedCombatSkillList();
         break;
-      case "equip-tool":
+      case Window_AbsMenuSelect.SelectionTypes.ToolEquip:
         // the tool equip menu, where the items/tools can be equipped.
         this.makeEquippedToolList();
         break;
-      case "equip-dodge":
+      case Window_AbsMenuSelect.SelectionTypes.DodgeEquip:
         // the dodge skill equip menu, where all the dodge skills can be equipped.
-        this.makeEquippedDodgeList();
+        this.makeEquippedDodgeSkillList();
         break;
     }
   }
@@ -29408,16 +30495,50 @@ class Window_AbsMenuSelect
   /**
    * Fills the list with learned skills to assign.
    */
-  makeSkillList()
+  makeCombatSkillList()
   {
+    // grab the leader for reference data.
     const actor = $gameParty.leader();
+
+    // grab all of the leader's skills that are visible in this menu.
     const skills = actor.skills().filter(JABS_Battler.isSkillVisibleInCombatMenu);
 
-    this.addCommand(J.ABS.Metadata.ClearSlotText, "skill", true, 0, 16);
-    skills.forEach(skill =>
+    // initialize our blank list of skills to view.
+    const commands = Array.empty;
+
+    // build the clear slot command.
+    const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
+      .setSymbol("skill")
+      .setColorIndex(16)
+      .setHelpText("Remove the existing combat skill from the slot.")
+      .build();
+
+    // add the clear slot command to the list.
+    commands.push(clearSlotCommand);
+
+    // an iterator function for building skill commands.
+    const forEacher = skill =>
     {
-      this.addCommand(skill.name, "skill", true, skill.id, skill.iconIndex);
-    });
+      // destruct the data out of the database data.
+      const { name, id, iconIndex, description } = skill;
+
+      // build the command.
+      const skillCommand = new WindowCommandBuilder(name)
+        .setSymbol("skill")
+        .setExtensionData(id)
+        .setIconIndex(iconIndex)
+        .setHelpText(description)
+        .build();
+
+      // add the built command to the list.
+      commands.push(skillCommand);
+    };
+
+    // iterate over each of the skills and add them to the list.
+    skills.forEach(forEacher, this);
+
+    // iterate over all of the commands found and render them.
+    commands.forEach(this.addBuiltCommand, this);
   }
 
   /**
@@ -29425,51 +30546,147 @@ class Window_AbsMenuSelect
    */
   makeToolList()
   {
-    const items = $gameParty.allItems().filter(JABS_Battler.isItemVisibleInToolMenu);
+    // initialize our blank list of skills to view.
+    const commands = Array.empty;
 
-    this.addCommand(J.ABS.Metadata.ClearSlotText, "tool", true, 0, 16);
-    items.forEach(item =>
+    // build the clear slot command.
+    const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
+      .setSymbol("tool")
+      .setHelpText("Remove the existing tool from the slot.")
+      .setColorIndex(16)
+      .build();
+
+    // add the clear slot command to the list.
+    commands.push(clearSlotCommand);
+
+    // an iterator function for building tool commands.
+    const forEacher = tool =>
     {
-      const name = `${item.name}: ${$gameParty.numItems(item)}`;
-      this.addCommand(name, "tool", true, item.id, item.iconIndex);
-    });
+      // destruct the data out of the database data.
+      const { name, id, iconIndex, description } = tool;
+
+      // tools only get an amount if they are consumable.
+      const amount = tool.consumable
+        ? $gameParty.numItems(tool).padZero(3)
+        : "♾";
+
+      // build the command.
+      const toolCommand = new WindowCommandBuilder(name)
+        .setSymbol("tool")
+        .setExtensionData(id)
+        .setIconIndex(iconIndex)
+        .setHelpText(description)
+        .setRightText(`x${amount}`)
+        .build();
+
+      // add the built command to the list.
+      commands.push(toolCommand);
+    };
+
+    // grab all the tools that are visiblie in this menu.
+    const tools = $gameParty.allItems().filter(JABS_Battler.isItemVisibleInToolMenu);
+
+    // iterate over each of the tools and add them to the list.
+    tools.forEach(forEacher, this);
+
+    // iterate over all of the commands found and render them.
+    commands.forEach(this.addBuiltCommand, this);
   }
 
   /**
    * Fills the list with the currently assigned dodge.
    */
-  makeDodgeList()
+  makeDodgeSkillList()
   {
-    const skills = $gameParty.leader().skills();
-    const dodgeSkills = skills.filter(JABS_Battler.isSkillVisibleInDodgeMenu);
+    // initialize our blank list of skills to view.
+    const commands = Array.empty;
 
-    this.addCommand(J.ABS.Metadata.ClearSlotText, "dodge", true, 0, 16);
-    dodgeSkills.forEach(dodge =>
+    // build the clear slot command.
+    const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
+      .setSymbol("dodge")
+      .setColorIndex(16)
+      .setHelpText("Remove the existing dodge skill from the slot.")
+      .build();
+
+    // add the clear slot command to the list.
+    commands.push(clearSlotCommand);
+
+    // filter out all non-dodge-skills.
+    const dodgeSkills = $gameParty.leader()
+      .skills()
+      .filter(JABS_Battler.isSkillVisibleInDodgeMenu);
+
+    // an iterator function for building dodge skill commands.
+    const forEacher = dodgeSkill =>
     {
-      this.addCommand(dodge.name, "dodge", true, dodge.id, dodge.iconIndex);
-    });
+      // destruct the data out of the database data.
+      const { name, id, iconIndex, description } = dodgeSkill;
+
+      // build the command.
+      const dodgeCommand = new WindowCommandBuilder(name)
+        .setSymbol("dodge")
+        .setExtensionData(id)
+        .setIconIndex(iconIndex)
+        .setHelpText(description)
+        .build();
+
+      // add the built command to the list.
+      commands.push(dodgeCommand);
+    };
+
+    // iterate over each of the dodge skills and add them to the list.
+    dodgeSkills.forEach(forEacher, this);
+
+    // iterate over all of the commands found and render them.
+    commands.forEach(this.addBuiltCommand, this);
   }
 
   /**
    * Fills the list with the currently assigned items.
    */
-  makeEquippedSkillList()
+  makeEquippedCombatSkillList()
   {
+    // grab the leader for reference data.
     const leader = $gameParty.leader();
-    const skills = leader.getAllSecondarySkills();
-    skills.forEach(skillSlot =>
+    
+    // an iterator function for iterating over skill slots and rendering their data.
+    /** @param {JABS_SkillSlot} skillSlot */
+    const forEacher = skillSlot =>
     {
+      // initialize the command variables.
       let name = `${skillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
       let iconIndex = 0;
+      let description = "An empty combat skill slot eagerly awaiting to be filled.";
+
+      // check if the skillslot has something in it.
       if (skillSlot.isUsable())
       {
+        // grab the skill in the slot.
         const equippedSkill = leader.skill(skillSlot.id);
-        name = `${equippedSkill.name}`;
+
+        // update the command variables with the equipped skill data.
+        name = equippedSkill.name;
         iconIndex = equippedSkill.iconIndex;
+        description = equippedSkill.description;
       }
 
-      this.addCommand(name, "slot", true, skillSlot.key, iconIndex);
-    });
+      // build the command.
+      const command = new WindowCommandBuilder(name)
+        .setSymbol("slot")
+        .setExtensionData(skillSlot.key)
+        .setIconIndex(iconIndex)
+        .setHelpText(description)
+        .build();
+
+      // add the built command.
+      this.addBuiltCommand(command);
+    };
+
+    // grab all the combat skill slots.
+    const combatSkillSlots = leader.getAllCombatSkillSlots();
+
+    // iterate over each of the combat skill slots.
+    combatSkillSlots.forEach(forEacher, this);
   }
 
   /**
@@ -29477,41 +30694,84 @@ class Window_AbsMenuSelect
    */
   makeEquippedToolList()
   {
-    const toolSkill = $gameParty.leader().getToolSkill();
-    let name = `${toolSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
+    // grab the tool skillslot.
+    const toolSkillSlot = $gameParty.leader().getToolSkillSlot();
+    
+    // initialize the command variables.
+    let name = `${toolSkillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
     let iconIndex = 0;
-    if (toolSkill.isUsable())
+    let description = String.empty;
+    let amount = String.empty;
+    
+    // check if the tool skillslot has anything in it.
+    if (toolSkillSlot.isUsable())
     {
-      const equippedTool = $dataItems[toolSkill.id];
-      name = `${equippedTool.name}: ${$gameParty.numItems(equippedTool)}`;
+      // determine the currently equipped tool.
+      const equippedTool = $dataItems.at(toolSkillSlot.id);
+
+      // tools only get an amount if they are consumable.
+      amount = equippedTool.consumable
+        ? $gameParty.numItems(equippedTool).padZero(3)
+        : "♾";
+
+      // update the command variables with the equipped tool data.
+      name = equippedTool.name;
       iconIndex = equippedTool.iconIndex;
+      description = equippedTool.description;
     }
 
-    this.addCommand(name, "slot", true, toolSkill.key, iconIndex);
+    // build the command.
+    const command = new WindowCommandBuilder(name)
+      .setSymbol("slot")
+      .setExtensionData(toolSkillSlot.key)
+      .setIconIndex(iconIndex)
+      .setHelpText(description)
+      .setRightText(`x${amount}`)
+      .build();
+
+    // add the built command.
+    this.addBuiltCommand(command);
   }
 
   /**
    * Fills the list with the currently assigned items.
    */
-  makeEquippedDodgeList()
+  makeEquippedDodgeSkillList()
   {
-    // grab the leader.
+    // grab the leader for reference data.
     const leader = $gameParty.leader();
 
     // grab the leader's dodge skill.
-    const dodgeSkill = leader.getDodgeSkill();
+    const dodgeSkillSlot = leader.getDodgeSkillSlot();
 
-    // default the unequipped slot text.
-    let name = `${dodgeSkill.key}: ${J.ABS.Metadata.UnassignedText}`;
+    // initialize the command variables.
+    let name = `${dodgeSkillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
     let iconIndex = 0;
-    if (dodgeSkill.isUsable())
+    let description = String.empty;
+
+    // check if the dodge skillslot has anything in it.
+    if (dodgeSkillSlot.isUsable())
     {
-      const equippedDodgeSkill = leader.skill(dodgeSkill.id);
-      name = `${equippedDodgeSkill.name}`;
+      // determine the currently equipped dodge skill.
+      const equippedDodgeSkill = leader.skill(dodgeSkillSlot.id);
+
+      // update the command variables with the equipped tool data.
+      name = equippedDodgeSkill.name;
       iconIndex = equippedDodgeSkill.iconIndex;
+      description = equippedDodgeSkill.description;
     }
 
-    this.addCommand(name, "slot", true, dodgeSkill.key, iconIndex);
+    // build the command.
+    const command = new WindowCommandBuilder(name)
+      .setSymbol("slot")
+      .setExtensionData(dodgeSkillSlot.key)
+      .setIconIndex(iconIndex)
+      .setHelpText(description)
+      .build();
+
+    // add the built command.
+    this.addBuiltCommand(command);
   }
+  /* eslint-enable prefer-destructuring */
 }
 //endregion Window_AbsMenuSelect

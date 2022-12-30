@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Dec 29 2022 08:24:19 GMT-0800 (Pacific Standard Time)  */
 
 //region annotations
 /*:
@@ -31,7 +31,7 @@
  * - variable assignment for tracking a wide variety of battle data points
  * - additional accessory for all actors (as accessory)
  * - "recover all" recovers TP too
- * - prevent passage on region id 1
+ * - prevent passage on tileset terrain id 1
  * - random variable assignment for "rare/named enemies" on map transfer
  * - removal of touch buttons from base and map scenes
  *
@@ -589,7 +589,7 @@ Game_Map.prototype.checkPassage = function(x, y, bit)
       continue;
     }
 
-    // represents [Terrain 1] No effect on passage.
+    // represents [Terrain 1] blocks passage.
     if ((flag >> 12) === 1)
     {
       return false;

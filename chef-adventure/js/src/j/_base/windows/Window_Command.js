@@ -159,6 +159,25 @@ Window_Command.prototype.commandRightText = function(index)
 };
 
 /**
+ * Gets the help text for the command at the given index.
+ * @param {number} index The index to get the help text for.
+ * @returns {string}
+ */
+Window_Command.prototype.commandHelpText = function(index)
+{
+  return this.commandList().at(index).helpText;
+};
+
+/**
+ * Gets the help text for the current command.
+ * @returns {string}
+ */
+Window_Command.prototype.currentHelpText = function()
+{
+  return this.commandList().at(this.index()).helpText ?? String.empty;
+};
+
+/**
  * Prepends the icon for this command if applicable.
  * @param {string} command The comman as raw text.
  * @param {number} index The index of this command in the window.

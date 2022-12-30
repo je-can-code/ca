@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.2 BASE] The base class for all J plugins.
+ * [v2.1.3 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @help
@@ -35,6 +35,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.3
+ *    Added help text functionality for window commands.
  * - 2.1.2
  *    Added polyfill implementation for Array.prototype.at().
  *    Updated Window_EquipItem code to enable extension.

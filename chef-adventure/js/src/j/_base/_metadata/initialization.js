@@ -20,7 +20,7 @@ J.BASE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.2',
+  Version: '2.1.3',
 };
 
 /**

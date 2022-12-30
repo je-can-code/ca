@@ -470,6 +470,9 @@ JABS_SkillSlot.prototype.isLocked = function()
  */
 JABS_SkillSlot.prototype.data = function(user = null, targetId = this.id)
 {
+  // if there is no target, then return null.
+  if (targetId === null) return null;
+
   // if this slot is empty, then return null.
   if (this.isEmpty()) return null;
 

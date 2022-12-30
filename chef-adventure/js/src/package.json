@@ -82,6 +82,9 @@
     "once:omni-monster": "node utils/combine.js ./j/omni/ext/monster ../plugins/j/omni/ext J-Omni-Monsters.js",
     "once:omni-item": "node utils/combine.js ./j/omni/ext/item ../plugins/j/omni/ext J-Omni-Itempedia.js",
     "once:omni-weapon": "node utils/combine.js ./j/omni/ext/weapon ../plugins/j/omni/ext J-Omni-Weaponpedia.js",
-    "once:omni-armor": "node utils/combine.js ./j/omni/ext/armor ../plugins/j/omni/ext J-Omni-Armorpedia.js"
+    "once:omni-armor": "node utils/combine.js ./j/omni/ext/armor ../plugins/j/omni/ext J-Omni-Armorpedia.js",
+
+    "once:regions": "node utils/combine.js ./j/regions/core ../plugins/j/regions J-RegionEffects.js",
+    "once:regions-states": "node utils/combine.js ./j/regions/ext/states ../plugins/j/regions/ext J-Regions-States.js"
   }
 }

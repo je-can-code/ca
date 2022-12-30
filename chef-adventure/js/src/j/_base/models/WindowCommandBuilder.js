@@ -45,6 +45,12 @@ class WindowCommandBuilder
   #extensionData = null;
 
   /**
+   * Any special help text associated with this command.
+   * @type {string}
+   */
+  #helpText = String.empty;
+
+  /**
    * The index of the icon that will be rendered on the left side of this command.
    * @type {number}
    */
@@ -82,7 +88,8 @@ class WindowCommandBuilder
       this.#iconIndex,
       this.#colorIndex,
       this.#rightText,
-      this.#lines
+      this.#lines,
+      this.#helpText
     );
 
     // return the built command.
@@ -196,6 +203,17 @@ class WindowCommandBuilder
   setColorIndex(colorIndex)
   {
     this.#colorIndex = colorIndex;
+    return this;
+  }
+
+  /**
+   * Sets the help text for this command.
+   * @param {string} helpText The help text.
+   * @returns {this} This builder for fluent-building.
+   */
+  setHelpText(helpText)
+  {
+    this.#helpText = helpText;
     return this;
   }
 }

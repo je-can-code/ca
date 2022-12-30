@@ -686,7 +686,7 @@ Game_Actor.prototype.getAllPrimarySkills = function()
  * Gets all skill slots identified as "secondary".
  * @returns {JABS_SkillSlot[]}
  */
-Game_Actor.prototype.getAllSecondarySkills = function()
+Game_Actor.prototype.getAllCombatSkillSlots = function()
 {
   return this.getSkillSlotManager().getAllSecondarySlots();
 };
@@ -695,7 +695,7 @@ Game_Actor.prototype.getAllSecondarySkills = function()
  * Gets the skill dedicated to the tool slot.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.getToolSkill = function()
+Game_Actor.prototype.getToolSkillSlot = function()
 {
   return this.getSkillSlotManager().getToolSlot();
 };
@@ -704,7 +704,7 @@ Game_Actor.prototype.getToolSkill = function()
  * Gets the skill dedicated to the dodge slot.
  * @returns {JABS_SkillSlot}
  */
-Game_Actor.prototype.getDodgeSkill = function()
+Game_Actor.prototype.getDodgeSkillSlot = function()
 {
   return this.getSkillSlotManager().getDodgeSlot();
 };

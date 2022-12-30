@@ -29,7 +29,7 @@ Game_Map.prototype.checkPassage = function(x, y, bit)
       continue;
     }
 
-    // represents [Terrain 1] No effect on passage.
+    // represents [Terrain 1] blocks passage.
     if ((flag >> 12) === 1)
     {
       return false;

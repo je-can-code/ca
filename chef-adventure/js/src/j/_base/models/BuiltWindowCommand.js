@@ -45,6 +45,12 @@ class BuiltWindowCommand
   #extensionData = null;
 
   /**
+   * Any special help text associated with this command.
+   * @type {string}
+   */
+  #helpText = String.empty;
+
+  /**
    * The index of the icon that will be rendered on the left side of this command.
    * @type {number}
    */
@@ -65,7 +71,8 @@ class BuiltWindowCommand
     iconIndex = 0,
     colorIndex = 0,
     rightText = String.empty,
-    lines = [])
+    lines = [],
+    helpText = String.empty)
   {
     this.#name = name;
     this.#key = symbol;
@@ -75,6 +82,7 @@ class BuiltWindowCommand
     this.#colorIndex = colorIndex;
     this.#rightText = rightText;
     this.#lines = lines;
+    this.#helpText = helpText;
   }
 
   //region getters
@@ -148,6 +156,15 @@ class BuiltWindowCommand
   get color()
   {
     return this.#colorIndex;
+  }
+
+  /**
+   * Gets the help text of this command, if any is available.
+   * @returns {string}
+   */
+  get helpText()
+  {
+    return this.#helpText;
   }
   //endregion getters
 }

@@ -440,9 +440,9 @@ J.ABS.RegExp = {
   InvincibleDodge: /<invincibleDodge>/gi,
 
   // counter-related (on-chance-effect template)
-  Retaliate: /<retaliate:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
+  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
+  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   /* ON SKILLS */
 
   /* ON EQUIPS */

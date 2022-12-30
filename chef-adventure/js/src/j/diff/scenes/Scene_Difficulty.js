@@ -256,30 +256,6 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Gets the rectangle associated with the difficulty list command window.
-   */
-  difficultyListRectangle()
-  {
-    // grab the points window height.
-    const { height: pointsHeight } = this.getPointsWindow();
-
-    // define the width arbitrarily.
-    const width = 400;
-
-    // the height should meet the points window bottom.
-    const height = Graphics.boxHeight - pointsHeight;
-
-    // define the x coordinate arbitrarily.
-    const x = 0;
-
-    // the y coordinate starts at the bottom of the points window.
-    const y = pointsHeight;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
-  }
-
-  /**
    * Sets up and defines the difficulty list window.
    * @returns {Window_DifficultyList}
    */
@@ -302,6 +278,30 @@ class Scene_Difficulty extends Scene_MenuBase
 
     // return the built and configured difficulty list window.
     return window;
+  }
+
+  /**
+   * Gets the rectangle associated with the difficulty list command window.
+   */
+  difficultyListRectangle()
+  {
+    // grab the points window height.
+    const { height: pointsHeight } = this.getPointsWindow();
+
+    // define the width arbitrarily.
+    const width = 400;
+
+    // the height should meet the points window bottom.
+    const height = Graphics.boxHeight - pointsHeight;
+
+    // define the x coordinate arbitrarily.
+    const x = 0;
+
+    // the y coordinate starts at the bottom of the points window.
+    const y = pointsHeight;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
   }
 
   /**

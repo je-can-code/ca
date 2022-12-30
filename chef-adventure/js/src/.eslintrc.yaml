@@ -10,7 +10,7 @@ rules:
   no-undef: off                       # most game objects are undefined.
   no-unused-vars:
   - warn
-  - { "varsIgnorePattern": "(?:(^[Window|Sprite|Scene|Game])|(Manager$))", "argsIgnorePattern": "^_$" }
+  - { "varsIgnorePattern": "(?:(^[JABS|Window|Sprite|Scene|Game])|(Manager$))", "argsIgnorePattern": "^_$" }
   no-useless-call: off                # all aliasing is done with .call() for scoping this.
   no-prototype-builtins: off          # with prototypical inheritance, this is needed sometimes.
 
