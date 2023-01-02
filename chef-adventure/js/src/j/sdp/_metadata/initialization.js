@@ -7,7 +7,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -34,7 +34,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: '1.2.2',
+  Version: '1.2.3',
 };
 
 /**

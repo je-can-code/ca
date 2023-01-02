@@ -855,7 +855,7 @@ RPG_Skill.prototype.recursivelyFindAllComboSkillIds = function(skillId, list = A
     : $dataSkills.at(skillId);
 
   // check if we should recurse this skill.
-  if (this.shouldRecurseForComboSkills(skill))
+  if (this.shouldRecurseForComboSkills(skill, skillId))
   {
     // grab the combo skill id.
     const { jabsComboSkillId } = skill;

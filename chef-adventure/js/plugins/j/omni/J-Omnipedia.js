@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 31 2022 09:06:19 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.0.1 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -23,6 +23,8 @@
  * - J-ControlledDrops; enables viewing of dropped loot in the bestiary.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Updated JABS menu integration with help text.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -53,7 +55,7 @@ J.OMNI.Metadata.Name = 'J-Omnipedia';
 /**
  * The version of this plugin.
  */
-J.OMNI.Metadata.Version = '1.0.0';
+J.OMNI.Metadata.Version = '1.0.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -605,6 +607,7 @@ if (J.ABS)
       .setSymbol(J.OMNI.Metadata.Command.Symbol)
       .setIconIndex(J.OMNI.Metadata.Command.IconIndex)
       .setColorIndex(J.OMNI.Metadata.Command.ColorIndex)
+      .setHelpText(this.omnipediaHelpText())
       .build();
 
     // add the new command.
@@ -625,6 +628,20 @@ if (J.ABS)
 
     // render the command!
     return true;
+  };
+
+  /**
+   * The help text for the JABS omnipedia menu.
+   * @returns {string}
+   */
+  Window_AbsMenu.prototype.omnipediaHelpText = function()
+  {
+    const description = [
+      "An encyclopedia-like system full of data-driven entries.",
+      "It can contain many sub-categories, such as the Monsterpedia."
+    ];
+
+    return description.join("\n");
   };
 }
 //endregion Window_AbsMenu

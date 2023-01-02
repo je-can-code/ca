@@ -22,6 +22,7 @@ Window_AbsMenu.prototype.buildCommands = function()
     .setEnabled(enabled)
     .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex)
     .setColorIndex(27)
+    .setHelpText(this.allyAiHelpText())
     .build();
 
   // add the new command.
@@ -42,5 +43,19 @@ Window_AbsMenu.prototype.canAddAllyAiCommand = function()
 
   // render the command!
   return true;
+};
+
+/**
+ * The help text for the JABS sdp menu.
+ * @returns {string}
+ */
+Window_AbsMenu.prototype.allyAiHelpText = function()
+{
+  const description = [
+    "Your AI mode selection menu.",
+    "A general direction or theme of guidance can be assigned to your allies from here."
+  ];
+
+  return description.join("\n");
 };
 //endregion Window_AbsMenu

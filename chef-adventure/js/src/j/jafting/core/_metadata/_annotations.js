@@ -9,9 +9,31 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * This is not officially released and thus has no/incomplete documentation.
+ * OVERVIEW:
+ * This plugin enables a new "JAFTING" (aka crafting) scene. With it, you can
+ * define recipes and enable generic item creation in your game.
  *
- * If you really want to use it, just look at the plugin commands & parameters.
+ * NOTE ABOUT CREATION:
+ * This base plugin can only be used to create already-existing entries from
+ * the database. If you want to create new weapons/armor entirely, consider
+ * looking into the J-JAFTING-Refinement extension.
+ * ============================================================================
+ * RECIPES:
+ * Have you ever wanted to make a recipe that the player can then learn and
+ * create items from? Well now you can! There are absolutely no tags required
+ * for this basic functionality, it is 100% defined within the plugin
+ * parameters of your RMMZ editor.
+ *
+ * A recipe is comprised of three lists:
+ * - Ingredients: the consumed items/weapons/armors.
+ * - Tools: the non-consumed items/weapons/armors.
+ * - Output: what the player gains when JAFTING the recipe.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Retroactively added this CHANGELOG.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  *
  * @param JAFTINGconfigs

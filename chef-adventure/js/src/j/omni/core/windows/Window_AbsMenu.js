@@ -20,6 +20,7 @@ if (J.ABS)
       .setSymbol(J.OMNI.Metadata.Command.Symbol)
       .setIconIndex(J.OMNI.Metadata.Command.IconIndex)
       .setColorIndex(J.OMNI.Metadata.Command.ColorIndex)
+      .setHelpText(this.omnipediaHelpText())
       .build();
 
     // add the new command.
@@ -40,6 +41,20 @@ if (J.ABS)
 
     // render the command!
     return true;
+  };
+
+  /**
+   * The help text for the JABS omnipedia menu.
+   * @returns {string}
+   */
+  Window_AbsMenu.prototype.omnipediaHelpText = function()
+  {
+    const description = [
+      "An encyclopedia-like system full of data-driven entries.",
+      "It can contain many sub-categories, such as the Monsterpedia."
+    ];
+
+    return description.join("\n");
   };
 }
 //endregion Window_AbsMenu

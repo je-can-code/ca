@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v1.1.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -115,6 +115,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Updated JABS menu integration with help text.
  * - 1.1.0
  *    Retroactively added this CHANGELOG.
  *    Upgraded AI to be able to leverage combos (enemy AI, too).

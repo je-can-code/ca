@@ -7,7 +7,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.2';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -35,7 +35,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '1.1.0';
+J.ABS.EXT.ALLYAI.Metadata.Version = '1.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

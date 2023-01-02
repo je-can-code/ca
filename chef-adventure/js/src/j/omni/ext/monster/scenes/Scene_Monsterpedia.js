@@ -177,12 +177,12 @@ class Scene_Monsterpedia extends Scene_MenuBase
    */
   createBackground()
   {
-    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.5);
+    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
     this._backgroundSprite = new Sprite();
     this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
     this._backgroundSprite.filters = [this._backgroundFilter];
     this.addChild(this._backgroundSprite);
-    this.setBackgroundOpacity(192);
+    //this.setBackgroundOpacity(220);
   }
   //endregion create
 

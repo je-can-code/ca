@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 31 2022 09:19:17 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -11,9 +11,31 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * This is not officially released and thus has no/incomplete documentation.
+ * OVERVIEW:
+ * This plugin enables a new "JAFTING" (aka crafting) scene. With it, you can
+ * define recipes and enable generic item creation in your game.
  *
- * If you really want to use it, just look at the plugin commands & parameters.
+ * NOTE ABOUT CREATION:
+ * This base plugin can only be used to create already-existing entries from
+ * the database. If you want to create new weapons/armor entirely, consider
+ * looking into the J-JAFTING-Refinement extension.
+ * ============================================================================
+ * RECIPES:
+ * Have you ever wanted to make a recipe that the player can then learn and
+ * create items from? Well now you can! There are absolutely no tags required
+ * for this basic functionality, it is 100% defined within the plugin
+ * parameters of your RMMZ editor.
+ *
+ * A recipe is comprised of three lists:
+ * - Ingredients: the consumed items/weapons/armors.
+ * - Tools: the non-consumed items/weapons/armors.
+ * - Output: what the player gains when JAFTING the recipe.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Retroactively added this CHANGELOG.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  *
  * @param JAFTINGconfigs
@@ -177,7 +199,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -358,34 +380,24 @@ J.JAFTING.Helpers.translateCategories = rawCategoryBlobs =>
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.JAFTING.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Name: `J-JAFTING`,
-};
+J.JAFTING.Metadata = {};
+J.JAFTING.Metadata.Name = `J-JAFTING`;
+J.JAFTING.Metadata.Version = '2.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.JAFTING.PluginParameters = PluginManager.parameters(J.JAFTING.Metadata.Name);
-J.JAFTING.Metadata = {
-  ...J.JAFTING.Metadata,
-  /**
-   * The version of this plugin.
-   */
-  Version: '2.0.0',
 
-  /**
-   * All recipes defined in the plugin settings that can be JAFTED.
-   */
-  Recipes: [],
+/**
+ * All recipes defined in the plugin settings that can be JAFTED.
+ */
+J.JAFTING.Metadata.Recipes = [];
 
-  /**
-   * All categories defined in the plugin settings that can contain JAFTING recipes.
-   */
-  Categories: [],
-};
+/**
+ * All categories defined in the plugin settings that can contain JAFTING recipes.
+ */
+J.JAFTING.Metadata.Categories = [];
 
 /**
  * A helpful mapping of all the various RMMZ classes being extended.

@@ -22,7 +22,7 @@ J.OMNI.Metadata.Name = 'J-Omnipedia';
 /**
  * The version of this plugin.
  */
-J.OMNI.Metadata.Version = '1.0.0';
+J.OMNI.Metadata.Version = '1.0.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

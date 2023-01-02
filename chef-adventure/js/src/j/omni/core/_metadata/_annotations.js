@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.0.1 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -21,6 +21,8 @@
  * - J-ControlledDrops; enables viewing of dropped loot in the bestiary.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Updated JABS menu integration with help text.
  * - 1.0.0
  *    Initial release.
  * ============================================================================

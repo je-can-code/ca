@@ -7,7 +7,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -188,34 +188,24 @@ J.JAFTING.Helpers.translateCategories = rawCategoryBlobs =>
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.JAFTING.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Name: `J-JAFTING`,
-};
+J.JAFTING.Metadata = {};
+J.JAFTING.Metadata.Name = `J-JAFTING`;
+J.JAFTING.Metadata.Version = '2.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.JAFTING.PluginParameters = PluginManager.parameters(J.JAFTING.Metadata.Name);
-J.JAFTING.Metadata = {
-  ...J.JAFTING.Metadata,
-  /**
-   * The version of this plugin.
-   */
-  Version: '2.0.0',
 
-  /**
-   * All recipes defined in the plugin settings that can be JAFTED.
-   */
-  Recipes: [],
+/**
+ * All recipes defined in the plugin settings that can be JAFTED.
+ */
+J.JAFTING.Metadata.Recipes = [];
 
-  /**
-   * All categories defined in the plugin settings that can contain JAFTING recipes.
-   */
-  Categories: [],
-};
+/**
+ * All categories defined in the plugin settings that can contain JAFTING recipes.
+ */
+J.JAFTING.Metadata.Categories = [];
 
 /**
  * A helpful mapping of all the various RMMZ classes being extended.

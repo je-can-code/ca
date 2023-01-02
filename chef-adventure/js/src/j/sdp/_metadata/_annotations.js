@@ -100,6 +100,8 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.3
+ *    Updated JABS menu integration with help text.
  * - 1.2.2
  *    Updated sdp drop production to use drop item builder.
  * - 1.2.1

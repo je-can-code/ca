@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Dec 31 2022 09:04:27 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /* eslint-disable */
@@ -102,6 +102,8 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.3
+ *    Updated JABS menu integration with help text.
  * - 1.2.2
  *    Updated sdp drop production to use drop item builder.
  * - 1.2.1
@@ -433,7 +435,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -460,7 +462,7 @@ J.SDP.Metadata = {
    * The version of this plugin.
    * @type {number}
    */
-  Version: '1.2.2',
+  Version: '1.2.3',
 };
 
 /**
@@ -2682,6 +2684,7 @@ if (J.ABS)
       .setEnabled(enabled)
       .setIconIndex(J.SDP.Metadata.JabsMenuIcon)
       .setColorIndex(1)
+      .setHelpText(this.sdpHelpText())
       .build();
 
     // add the new command.
@@ -2702,6 +2705,20 @@ if (J.ABS)
 
     // render the command!
     return true;
+  };
+
+  /**
+   * The help text for the JABS sdp menu.
+   * @returns {string}
+   */
+  Window_AbsMenu.prototype.sdpHelpText = function()
+  {
+    const description = [
+      "The ever-growing list of stat distribution panels, aka your junction system.",
+      "Junction points can be spent here to modify your stats- permanently."
+    ];
+
+    return description.join("\n");
   };
 }
 //endregion Window_AbsMenu

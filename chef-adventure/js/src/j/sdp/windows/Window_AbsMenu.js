@@ -24,6 +24,7 @@ if (J.ABS)
       .setEnabled(enabled)
       .setIconIndex(J.SDP.Metadata.JabsMenuIcon)
       .setColorIndex(1)
+      .setHelpText(this.sdpHelpText())
       .build();
 
     // add the new command.
@@ -44,6 +45,20 @@ if (J.ABS)
 
     // render the command!
     return true;
+  };
+
+  /**
+   * The help text for the JABS sdp menu.
+   * @returns {string}
+   */
+  Window_AbsMenu.prototype.sdpHelpText = function()
+  {
+    const description = [
+      "The ever-growing list of stat distribution panels, aka your junction system.",
+      "Junction points can be spent here to modify your stats- permanently."
+    ];
+
+    return description.join("\n");
   };
 }
 //endregion Window_AbsMenu

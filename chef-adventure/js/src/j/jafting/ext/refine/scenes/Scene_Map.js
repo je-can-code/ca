@@ -429,7 +429,7 @@ Scene_Map.prototype.drawRefinementPrimaryHelpWindowText = function()
 
   // sets the currently hovered over equipItem for the help and output windows.
   const hoveredOver = this._j._jaftingMenu._refinePrimaryEquipWindow.currentExt();
-  if (!hoveredOver.data) return;
+  if (!hoveredOver?.data) return;
 
   this.setHoverForDetails(hoveredOver);
   this._j._jaftingMenu._refinePrimaryEquipWindow.currentIndex = index;
@@ -447,7 +447,7 @@ Scene_Map.prototype.drawRefinementSecondaryHelpWindowText = function()
 
   // sets the currently hovered over equipItem for the help and output windows.
   const hoveredOver = this._j._jaftingMenu._refineSecondaryEquipWindow.currentExt();
-  if (!hoveredOver.data) return;
+  if (!hoveredOver?.data) return;
 
   this.setHoverForDetails(hoveredOver);
 
