@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 01 2023 13:25:18 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -1000,12 +1000,12 @@ class Scene_Monsterpedia extends Scene_MenuBase
    */
   createBackground()
   {
-    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.5);
+    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
     this._backgroundSprite = new Sprite();
     this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
     this._backgroundSprite.filters = [this._backgroundFilter];
     this.addChild(this._backgroundSprite);
-    this.setBackgroundOpacity(192);
+    //this.setBackgroundOpacity(220);
   }
   //endregion create
 

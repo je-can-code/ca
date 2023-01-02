@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 01 2023 13:41:05 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -2273,7 +2273,7 @@ Scene_Map.prototype.drawRefinementPrimaryHelpWindowText = function()
 
   // sets the currently hovered over equipItem for the help and output windows.
   const hoveredOver = this._j._jaftingMenu._refinePrimaryEquipWindow.currentExt();
-  if (!hoveredOver.data) return;
+  if (!hoveredOver?.data) return;
 
   this.setHoverForDetails(hoveredOver);
   this._j._jaftingMenu._refinePrimaryEquipWindow.currentIndex = index;
@@ -2291,7 +2291,7 @@ Scene_Map.prototype.drawRefinementSecondaryHelpWindowText = function()
 
   // sets the currently hovered over equipItem for the help and output windows.
   const hoveredOver = this._j._jaftingMenu._refineSecondaryEquipWindow.currentExt();
-  if (!hoveredOver.data) return;
+  if (!hoveredOver?.data) return;
 
   this.setHoverForDetails(hoveredOver);
 

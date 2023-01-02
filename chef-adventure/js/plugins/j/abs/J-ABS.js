@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Fri Dec 30 2022 10:36:36 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 01 2023 14:02:38 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -15309,7 +15309,7 @@ RPG_Skill.prototype.recursivelyFindAllComboSkillIds = function(skillId, list = A
     : $dataSkills.at(skillId);
 
   // check if we should recurse this skill.
-  if (this.shouldRecurseForComboSkills(skill))
+  if (this.shouldRecurseForComboSkills(skill, skillId))
   {
     // grab the combo skill id.
     const { jabsComboSkillId } = skill;
