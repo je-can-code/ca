@@ -42,6 +42,17 @@ Game_Battler.prototype.databaseData = function()
 };
 
 /**
+ * Gets the class associated with the given class id.
+ * By default, we simply get the class from the database with no modifications.
+ * @param {number} classId The class id to get the class for.
+ * @returns {RPG_Class}
+ */
+Game_Battler.prototype.class = function(classId)
+{
+  return $dataClasses.at(classId);
+};
+
+/**
  * Gets everything that this battler has with notes on it.
  * All battlers have their own database data, along with all their states.
  * Actors also get their class, skills, and equips added.
@@ -200,5 +211,15 @@ Game_Battler.prototype.allStates = function()
 Game_Battler.prototype.currentHpPercent = function()
 {
   return parseFloat((this.hp / this.mhp).toFixed(2));
+};
+
+/**
+ * Gets the current health percent of this battler as a base-100 integer.
+ * @returns {number}
+ */
+Game_Battler.prototype.currentHpPercent100 = function()
+{
+  // return the whole base-100 version of the hp percent.
+  return Math.round(this.currentHpPercent() * 100);
 };
 //endregion Game_Battler

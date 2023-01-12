@@ -25,7 +25,7 @@ declare class Game_Action {
     setItem(itemId: number): void;
     setItemObject(object: RPG_UsableItem): void;
     setTarget(targetIndex: number): void;
-    item(): RPG_UsableItem | RPG_Skill;
+    item(): RPG_Item | RPG_Skill;
     isSkill(): boolean;
     isItem(): boolean;
     numRepeats(): number;
@@ -536,7 +536,7 @@ declare class Game_BattlerBase {
      * @memberof Game_BattlerBase
      */
     attackStates(): number[];
-    attackStatesRate(stateId: number): void;
+    attackStatesRate(stateId: number): number;
     /**
      * Returns the attack speed of the battler.
      *

@@ -3,17 +3,32 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DIFFICULTY] A layered difficulty system.
+ * [v2.0.0 DIFFICULTY] A layered difficulty system.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
  * @orderAfter J-Base
- * @orderAfter _diffModels
+ * @orderAfter J-DropsControl
+ * @orderAfter J-SDP
  * @help
  * ============================================================================
- * This plugin grants you the ability to define a "difficulty system",
- * defined by globally manipulating enemy parameters to be higher or lower as
- * well as modifying basic things like experience gained or gold found.
+ * OVERVIEW:
+ * This plugin enables the ability to apply one to many "difficulty layers",
+ * defined as a collection of parameter modifications and bonuses against both
+ * actors and enemies alike.
+ * ----------------------------------------------------------------------------
+ * NOTE:
+ * There are no tags for this plugin, but all difficulty layers are defined in
+ * the plugin parameters.
+ * ============================================================================
+ * CHANGELOG:
+ * - 2.0.0
+ *    Updated window layout of scene.
+ *    Added multiple layer application support.
+ *    Updated difficulty layers to also be applicable to actors if desired.
+ *    Refactored a lot of underlying code.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  *
  * @param difficultyConfigs
@@ -156,26 +171,19 @@
  * @desc If this is ON/true, then this difficulty will be hidden when a new game is started.
  * @default false
  *
- * @param bparams
+ * @param enemyEffects
  * @parent data
- * @type struct<BParamStruct>[]
- * @text B-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
+ * @type struct<BattlerEffectsStruct>
+ * @text Enemy Effects
+ * @desc The effects that are applied to enemy battlers.
+ * @default {"bparams":"[]","xparams":"[]","sparams":"[]"}
  *
- * @param xparams
+ * @param actorEffects
  * @parent data
- * @type struct<XParamStruct>[]
- * @text X-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
- *
- * @param sparams
- * @parent data
- * @type struct<SParamStruct>[]
- * @text S-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
+ * @type struct<BattlerEffectsStruct>
+ * @text Actor Effects
+ * @desc The effects that are applied to actor battlers.
+ * @default {"bparams":"[]","xparams":"[]","sparams":"[]"}
  *
  * @param bonuses
  * @parent data
@@ -306,6 +314,29 @@
  * @type number
  * @desc The percent multiplier that the given bonus will be modified by.
  * @default 100
+ */
+/*~struct~BattlerEffectsStruct:
+ * @param bparams
+ * @parent data
+ * @type struct<BParamStruct>[]
+ * @text B-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
+ * @param xparams
+ * @parent data
+ * @type struct<XParamStruct>[]
+ * @text X-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
+ * @param sparams
+ * @parent data
+ * @type struct<SParamStruct>[]
+ * @text S-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
  */
 /*
  * ==============================================================================

@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Jan 12 2023 15:24:51 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -44,7 +44,11 @@
  *  \armorType[ID]
  *  \skillType[ID]
  *
+ *  From other plugins:
+ *  \sdp[SDP_KEY]
+ *
  * Where ID is the id of the entry in the database.
+ * Where SDP_KEY is the key of the panel.
  *
  * NEW TEXT CODES EXAMPLES:
  *  \Weapon[4]
@@ -81,10 +85,17 @@
  * - 1.1.0
  *    Implemented element, the four "types" from database data.
  *    Added plugin dependency of J-Base.
+ *    Implemented SDP panel text code format.
  * - 1.0.0
  *    Initial release.
  *    Implemented style toggles for bold and italics.
  *    Implemented weapon/armor/item/state/skill/enemy names from database data.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Added additional ways to modify text.
+ * - 1.0.0
+ *    The initial release.
  * ============================================================================
  */
 
@@ -101,26 +112,15 @@ J.MESSAGE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.MESSAGE.Metadata =
-  {
-    /**
-     * The name of this plugin.
-     */
-    Name: `J-MessageTextCodes`,
-
-    /**
-     * The version of this plugin.
-     */
-    Version: '1.1.0',
-  };
+J.MESSAGE.Metadata = {};
+J.MESSAGE.Metadata.Name = `J-MessageTextCodes`;
+J.MESSAGE.Metadata.Version = '1.1.0';
 
 /**
  * A collection of all base aliases.
  */
-J.MESSAGE.Aliased =
-  {
-    Window_Base: new Map(),
-  };
+J.MESSAGE.Aliased = {};
+J.MESSAGE.Aliased.Window_Base = new Map();
 //endregion introduction
 
 //region Window_Base
@@ -156,17 +156,20 @@ Window_Base.prototype.convertEscapeCharacters = function(text)
   // handle element string replacements.
   textToModify = this.translateElementTextCode(textToModify);
 
-  // handle skill type string replacements.
-  textToModify = this.translateSkillTypeTextCode(textToModify);
+  // handle equip type string replacements.
+  textToModify = this.translateEquipTypeTextCode(textToModify);
 
   // handle weapon string replacements.
   textToModify = this.translateWeaponTypeTextCode(textToModify);
 
   // handle armor string replacements.
-  textToModify = this.translateArmorTypeTypeTextCode(textToModify);
+  textToModify = this.translateArmorTypeTextCode(textToModify);
 
-  // handle equip type string replacements.
-  textToModify = this.translateEquipTypeTypeTextCode(textToModify);
+  // handle skill type string replacements.
+  textToModify = this.translateSkillTypeTextCode(textToModify);
+
+  // handle sdp string replacements.
+  textToModify = this.translateSdpTextCode(textToModify);
 
   // let the rest of the conversion occur with the newly modified text.
   return J.MESSAGE.Aliased.Window_Base.get('convertEscapeCharacters').call(this, textToModify);
@@ -348,7 +351,7 @@ Window_Base.prototype.translateWeaponTypeTextCode = function(text)
  * @param {string} text The text that has a text code in it.
  * @returns {string} The new text to parse.
  */
-Window_Base.prototype.translateArmorTypeTypeTextCode = function(text)
+Window_Base.prototype.translateArmorTypeTextCode = function(text)
 {
   return text.replace(/\\armorType\[(\d+)]/gi, (_, p1) =>
   {
@@ -371,7 +374,7 @@ Window_Base.prototype.translateArmorTypeTypeTextCode = function(text)
  * @param {string} text The text that has a text code in it.
  * @returns {string} The new text to parse.
  */
-Window_Base.prototype.translateEquipTypeTypeTextCode = function(text)
+Window_Base.prototype.translateEquipTypeTextCode = function(text)
 {
   return text.replace(/\\equipType\[(\d+)]/gi, (_, p1) =>
   {
@@ -388,9 +391,41 @@ Window_Base.prototype.translateEquipTypeTypeTextCode = function(text)
     return `\\I[${iconIndex}]\\C[${colorId}]${name}\\C[0]`;
   });
 };
+
+/**
+ * Translates the text code into the name and icon of the corresponding SDP.
+ * @param {string} text The text that has a text code in it.
+ * @returns {string} The new text to parse.
+ */
+Window_Base.prototype.translateSdpTextCode = function(text)
+{
+  // if not using the SDP system, then don't try to process the text.
+  if (!J.SDP) return text;
+  
+  return text.replace(/\\sdp\[(.*)]/gi, (_, p1) =>
+  {
+    // determine the sdp key.
+    const sdpKey = p1 ?? String.empty;
+
+    // if no key was provided, then do not parse the panel.
+    if (!sdpKey) return text;
+
+    // grab the panel by its key.
+    const sdp = $gameSystem.getSdpByKey(sdpKey);
+
+    // if the panel doesn't exist, then do not parse the panel.
+    if (!sdp) return text;
+
+    // extract the necessary data from the SDP.
+    const { name, rarity: colorIndex, iconIndex } = sdp;
+
+    // return the constructed replacement string.
+    return `\\I[${iconIndex}]\\C[${colorIndex}]${name}\\C[0]`;
+  });
+};
 //endregion more database text codes
 
-//region bold and italics
+//region font style
 /**
  * Extends text analysis to check for our custom escape codes, too.
  */
@@ -506,5 +541,20 @@ Window_Base.prototype.boldenText = function(text)
 {
   return `\\*${text}\\*`;
 };
-//endregion bold and italics
+
+/**
+ * Wraps the given text with a font-size modifier shorthand.
+ * @param {number} modifier The size modification.
+ * @param {string} text The text to modify size for.
+ * @returns {`\\FS[${number}]${string}\\FS[${number}]`}
+ */
+Window_Base.prototype.modFontSizeForText = function(modifier, text)
+{
+  const currentFontSize = this.contents.fontSize;
+
+  const modifiedFontSize = currentFontSize + modifier;
+
+  return `\\FS[${modifiedFontSize}]${text}\\FS[${currentFontSize}]`;
+};
+//endregion font style
 //endregion Window_Base

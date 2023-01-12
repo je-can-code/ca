@@ -81,7 +81,7 @@ Game_Actor.prototype.getOrCreateSdpRankByKey = function(key)
  * @param {string} key The key of the panel we seek.
  * @returns {PanelRanking} The sdp ranking.
  */
-Game_Actor.prototype.getSdpRankByKey = function(key)
+Game_Actor.prototype.getSdpByKey = function(key)
 {
   return this.getOrCreateSdpRankByKey(key);
 };
@@ -228,7 +228,7 @@ Game_Actor.prototype.extractSdpMultiplier = function(referenceData)
  */
 Game_Actor.prototype.rankUpPanel = function(panelKey)
 {
-  this.getSdpRankByKey(panelKey).rankUp();
+  this.getSdpByKey(panelKey).rankUp();
 };
 
 /**
@@ -248,7 +248,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpRankByKey(panelRanking.key)
+      .getSdpByKey(panelRanking.key)
       .getPanelParameterById(paramId);
     if (panelParameters.length)
     {
@@ -289,7 +289,7 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpRankByKey(panelRanking.key)
+      .getSdpByKey(panelRanking.key)
       .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
     if (panelParameters.length)
     {
@@ -396,7 +396,7 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   {
     // get the corresponding SDP's panel parameters.
     const panelParameters = $gameSystem
-      .getSdpRankByKey(panelRanking.key)
+      .getSdpByKey(panelRanking.key)
       .getPanelParameterById(30); // TODO: generalize this whole thing.
 
     // validate we have any parameters from this panel.

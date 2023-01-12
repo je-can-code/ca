@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Jan 12 2023 13:44:01 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -573,7 +573,7 @@ if (J.SDP)
     panelRankings.forEach(panelRanking =>
     {
       // grab our panel by its key.
-      const panel = $gameSystem.getSdpRankByKey(panelRanking.key);
+      const panel = $gameSystem.getSdpByKey(panelRanking.key);
 
       // protect our players against changed keys mid-save file!
       if (!panel) return;

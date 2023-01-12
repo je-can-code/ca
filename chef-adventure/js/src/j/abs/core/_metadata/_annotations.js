@@ -48,6 +48,10 @@
  * CHANGELOG:
  * - 3.2.2
  *    JABS quick menu how honors menu access via event control.
+ *    Actor-based JABS parameter retrieval has been refactored.
+ *    Enabled auto-counter for enemies.
+ *    Fixed issue where states weren't reapplied properly.
+ *    Fixed issue where inanimate battlers could endlessly alert allies.
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
  *    Fixed issue where endlessly delaying actions would never expire.

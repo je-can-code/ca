@@ -48,7 +48,7 @@ Window_Command.prototype.drawItem = function(index)
   let commandName = this.buildCommandName(index);
 
   // grab the right text for this command.
-  const rightText = this.commandRightText(index)
+  const rightText = this.commandRightText(index);
 
   // grab the subtext for this command.
   const subtexts = this.commandSubtext(index);
@@ -59,8 +59,11 @@ Window_Command.prototype.drawItem = function(index)
   // initialize the y of the command name.
   let commandNameY = rectY;
 
+  // determine if we have subtext to draw.
+  const hasSubtexts = subtexts.length > 0;
+
   // check if we have any subtext.
-  if (subtexts.length > 0)
+  if (hasSubtexts)
   {
     // bolden the text if we have subtext to make it stand out.
     commandName = this.boldenText(commandName);
@@ -80,9 +83,25 @@ Window_Command.prototype.drawItem = function(index)
 
     // determine the x coordinate for the right text.
     const rightTextX = rectWidth - this.textWidth(rightText);
+
+    // initialize the y of the right text.
+    let rightTextY = rectY;
+
+    // check if we have subtexts to move the right text up.
+    if (hasSubtexts)
+    {
+      // bolden the text if we have subtext to make it stand out.
+      this.toggleBold(true);
+
+      // move the command name up a bit if we have subtext.
+      rightTextY -= this.subtextLineHeight();
+    }
     
     // render the right-aligned text.
-    this.drawText(rightText, rightTextX, rectY, textWidth, "right");
+    this.drawText(rightText, rightTextX, rightTextY, textWidth, "right");
+
+    // bolden the text if we have subtext to make it stand out.
+    this.toggleBold(false);
   }
 
   // check if we have any subtext available.
@@ -95,7 +114,7 @@ Window_Command.prototype.drawItem = function(index)
       const realSubtextIndex = (subtextIndex + 0);
 
       // calculate the x coordinate for all subtext.
-      const subtextX = rectX + 64;
+      const subtextX = rectX + 32;
 
       // calculate the new y coordinate for the line.
       const subtextY = rectY + (realSubtextIndex * this.subtextLineHeight()) + 2;
@@ -103,8 +122,11 @@ Window_Command.prototype.drawItem = function(index)
       // italicize the subtext line.
       const italicsSubtext = this.italicizeText(subtext);
 
+      // reduce font size for subtext just a bit.
+      const sizedSubtext = this.modFontSizeForText(-4, italicsSubtext);
+
       // render the subtext line.
-      this.drawTextEx(italicsSubtext, subtextX, subtextY, rectWidth);
+      this.drawTextEx(sizedSubtext, subtextX, subtextY, rectWidth);
     }, this);
   }
 };

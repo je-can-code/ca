@@ -1,6 +1,7 @@
 //region Game_Enemy
 /**
- * Extends the `.param(paramId)` function to modify by difficulty.
+ * Extends {@link #param}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("param", Game_Enemy.prototype.param);
@@ -13,15 +14,15 @@ Game_Enemy.prototype.param = function(paramId)
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.bparams[paramId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.bparams[paramId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
 };
 
 /**
- * Extends the `.sparam(paramId)` function to modify by difficulty.
- * @param {number} sparamId The s-parameter id.
+ * Extends {@link #sparam}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("sparam", Game_Enemy.prototype.sparam);
@@ -34,27 +35,28 @@ Game_Enemy.prototype.sparam = function(sparamId)
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.sparams[sparamId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.sparams[sparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);
 };
 
 /**
- * Extends the `.xparam(paramId)` function to modify by difficulty.
- * @param {number} xparamId The x-parameter id.
+ * Extends {@link #xparam}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("xparam", Game_Enemy.prototype.xparam);
 Game_Enemy.prototype.xparam = function(xparamId)
 {
+  // grab the original value.
   const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("xparam").call(this, xparamId);
 
   // grab the currently applied difficulty.
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.xparams[xparamId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.xparams[xparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);
@@ -101,7 +103,7 @@ Game_Enemy.prototype.gold = function()
 };
 
 // in order to to properly multiply drop rates, we need to use my drops plugin;
-// `J-ControlledDrops` gives easy access to modify the drop rates, so we'll extend that!
+// `J-DropsControl` gives easy access to modify the drop rates, so we'll extend that!
 if (J.DROPS)
 {
   /**

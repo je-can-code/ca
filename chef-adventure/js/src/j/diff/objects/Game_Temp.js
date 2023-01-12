@@ -22,8 +22,8 @@ Game_Temp.prototype.initMembers = function()
    * All difficulties that were defined in the plugin metadata.
    * @type {Map<string, DifficultyMetadata>}
    */
-  this._j._difficulty._metadata = J.DIFFICULTY.Helpers
-    .toDifficultiesMap(J.DIFFICULTY.PluginParameters['difficulties']);
+  this._j._difficulty._metadata = J.DIFFICULTY.Helpers.toDifficultiesMap(
+    J.DIFFICULTY.PluginParameters['difficulties']);
 
   /**
    * All difficulties available for use.
@@ -147,14 +147,9 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
     return DifficultyLayer.defaultLayer;
   }
 
-  // clone the b-params.
-  const bParams = DifficultyLayer.defaultLayer.bparams.clone();
-
-  // clone the s-params.
-  const sParams = DifficultyLayer.defaultLayer.sparams.clone();
-
-  // clone the x-params.
-  const xParams = DifficultyLayer.defaultLayer.xparams.clone();
+  // initialize the battler effects.
+  const enabledActorEffects = new DifficultyBattlerEffects();
+  const enabledEnemyEffects = new DifficultyBattlerEffects();
 
   // destructure the direct values out.
   let { exp, gold, drops, encounters, sdp, cost } = DifficultyLayer.defaultLayer;
@@ -162,34 +157,67 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   // iterate over each difficulty layer and apply it multiplicatively to the running amounts.
   enabledDifficulties.forEach(layer =>
   {
+    // extract the effects data.
+    const { actorEffects, enemyEffects } = layer;
+
     // iterate over each of the b-params.
-    layer.bparams.forEach((bparam, bIndex) =>
+    actorEffects.bparams.forEach((bparam, bIndex) =>
     {
       // calculate the factor.
       const bParamFactor = parseFloat((bparam / 100).toFixed(3));
 
       // apply the multiplier.
-      bParams[bIndex] *= bParamFactor;
+      enabledActorEffects.bparams[bIndex] *= bParamFactor;
     });
 
     // iterate over each of the s-params.
-    layer.sparams.forEach((sparam, sIndex) =>
+    actorEffects.sparams.forEach((sparam, sIndex) =>
     {
       // calculate the factor.
       const sParamFactor = parseFloat((sparam / 100).toFixed(3));
 
       // apply the multiplier.
-      sParams[sIndex] *= sParamFactor;
+      enabledActorEffects.sparams[sIndex] *= sParamFactor;
     });
 
     // iterate over each of the x-params.
-    layer.xparams.forEach((xparam, xIndex) =>
+    actorEffects.xparams.forEach((xparam, xIndex) =>
     {
       // calculate the factor.
       const xParamFactor = parseFloat((xparam / 100).toFixed(3));
 
       // apply the multiplier.
-      xParams[xIndex] *= xParamFactor;
+      enabledActorEffects.xparams[xIndex] *= xParamFactor;
+    });
+
+    // iterate over each of the b-params.
+    enemyEffects.bparams.forEach((bparam, bIndex) =>
+    {
+      // calculate the factor.
+      const bParamFactor = parseFloat((bparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.bparams[bIndex] *= bParamFactor;
+    });
+
+    // iterate over each of the s-params.
+    enemyEffects.sparams.forEach((sparam, sIndex) =>
+    {
+      // calculate the factor.
+      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.sparams[sIndex] *= sParamFactor;
+    });
+
+    // iterate over each of the x-params.
+    enemyEffects.xparams.forEach((xparam, xIndex) =>
+    {
+      // calculate the factor.
+      const xParamFactor = parseFloat((xparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.xparams[xIndex] *= xParamFactor;
     });
 
     // calculate the factor.
@@ -248,9 +276,8 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   newDifficulty.cost = cost;
 
   // params.
-  newDifficulty.bparams = bParams;
-  newDifficulty.sparams = sParams;
-  newDifficulty.xparams = xParams;
+  newDifficulty.actorEffects = enabledActorEffects;
+  newDifficulty.enemyEffects = enabledEnemyEffects;
 
   // bonuses.
   newDifficulty.exp = exp;

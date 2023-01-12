@@ -8,7 +8,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -385,7 +385,7 @@ J.ABS.Notetags = {
  * All regular expressions used by this plugin.
  */
 J.ABS.RegExp = {
-  /* ON SKILLS */
+  //region ON SKILLS
   ActionId: /<actionId:[ ]?(\d+)>/gi,
 
   // pre-execution-related.
@@ -443,9 +443,9 @@ J.ABS.RegExp = {
   Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
-  /* ON SKILLS */
+  //endregion ON SKILLS
 
-  /* ON EQUIPS */
+  //region ON EQUIPS
   // skill-related.
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
@@ -455,14 +455,14 @@ J.ABS.RegExp = {
 
   // parry-related.
   IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
-  /* ON EQUIPS */
+  //endregion ON EQUIPS
 
-  /* ON ITEMS */
+  //region ON ITEMS
   UseOnPickup: /<useOnPickup>/gi,
   Expires: /<expires:[ ]?(\d+)>/gi,
-  /* ON ITEMS */
+  //endregion ON ITEMS
 
-  /* ON STATES */
+  //region ON STATES
   // definition-related.
   Negative: /<negative>/gi,
 
@@ -492,9 +492,9 @@ J.ABS.RegExp = {
   StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
   StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
-  /* ON STATES */
+  //endregion ON STATES
 
-  /* ON EVENTS (for enemies) */
+  //region ON BATTLERS
   // core concepts.
   EnemyId: /<enemyId:[ ]?([0-9]*)>/i,
   TeamId: /<teamId:[ ]?([0-9]*)>/g,
@@ -530,7 +530,11 @@ J.ABS.RegExp = {
   ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
   ConfigNoName: /<jabsConfig:[ ]?noName>/i,
   ConfigShowName: /<jabsConfig:[ ]?showName>/i,
-  /* ON EVENTS (for enemies) */
+  //endregion ON BATTLERS
+
+  //region ON ACTORS/CLASSES
+  ConfigNoSwitch: /<noSwitch>/i,
+  //endregion ON ACTORS/CLASSES
 };
 
 /**

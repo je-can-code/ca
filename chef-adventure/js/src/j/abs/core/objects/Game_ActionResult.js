@@ -7,6 +7,12 @@ J.ABS.Aliased.Game_ActionResult.set('initialize', Game_ActionResult.prototype.in
 Game_ActionResult.prototype.initialize = function()
 {
   /**
+   * Whether or not the result was guarded.
+   * @type {boolean}
+   */
+  this.guarded = false;
+
+  /**
    * Whether or not the result was parried.
    * @type {boolean}
    */
@@ -32,6 +38,7 @@ Game_ActionResult.prototype.clear = function()
   J.ABS.Aliased.Game_ActionResult.get('clear').call(this);
 
   // refresh our custom parameters.
+  this.guarded = false;
   this.parried = false;
   this.reduced = 0;
 };

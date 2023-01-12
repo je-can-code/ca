@@ -2,7 +2,7 @@
 /**
  * The fluent-builder for easily creating new difficulties.
  */
-class DifficultyBuilder
+class DifficultyBuilder 
 {
   #name = String.empty;
   #key = String.empty;
@@ -10,9 +10,8 @@ class DifficultyBuilder
   #iconIndex = 0;
   #cost = 0;
 
-  #bparams = [100, 100, 100, 100, 100, 100, 100, 100];
-  #sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-  #xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  #actorEffects = new DifficultyBattlerEffects();
+  #enemyEffects = new DifficultyBattlerEffects();
 
   #exp = 100;
   #gold = 100;
@@ -29,7 +28,7 @@ class DifficultyBuilder
    * @param {string} name The name of this difficulty.
    * @param {string} key The unique key of this difficulty.
    */
-  constructor(name, key)
+  constructor(name, key) 
   {
     this.setName(name);
     this.setKey(key);
@@ -39,7 +38,7 @@ class DifficultyBuilder
    * Builds the difficulty with its current configuration.
    * @returns {DifficultyMetadata}
    */
-  build()
+  build() 
   {
     // start the difficulty here.
     const difficulty = new DifficultyMetadata();
@@ -51,10 +50,9 @@ class DifficultyBuilder
     difficulty.iconIndex = this.#iconIndex;
     difficulty.cost = this.#cost;
 
-    // assign the parameters.
-    difficulty.bparams = this.#bparams;
-    difficulty.sparams = this.#sparams;
-    difficulty.xparams = this.#xparams;
+    // assign the battler effects.
+    difficulty.actorEffects = this.#actorEffects;
+    difficulty.enemyEffects = this.#enemyEffects;
 
     // assign the bonuses.
     difficulty.exp = this.#exp;
@@ -72,87 +70,45 @@ class DifficultyBuilder
     return difficulty;
   }
 
-  setName(name)
+  setName(name) 
   {
     this.#name = name;
     return this;
   }
 
-  setKey(key)
+  setKey(key) 
   {
     this.#key = key;
     return this;
   }
 
-  setDescription(description)
+  setDescription(description) 
   {
     this.#description = description;
     return this;
   }
 
-  setIconIndex(iconIndex)
+  setIconIndex(iconIndex) 
   {
     this.#iconIndex = iconIndex;
     return this;
   }
 
-  setCost(cost)
+  setCost(cost) 
   {
     this.#cost = cost;
     return this;
   }
 
-  setBparam(paramId, value)
+  setActorEffects(effects) 
   {
-    this.#bparams[paramId] = value;
+    this.#actorEffects = effects;
     return this;
   }
 
-  modBparam(paramId, value)
+  setEnemyEffects(effects)
   {
-    this.#bparams[paramId] += value;
-    return this;
-  }
-
-  setBparams(value)
-  {
-    this.#bparams = value;
-    return this;
-  }
-
-  setSparam(paramId, value)
-  {
-    this.#sparams[paramId] = value;
-    return this;
-  }
-
-  modSparam(paramId, value)
-  {
-    this.#sparams[paramId] += value;
-    return this;
-  }
-
-  setSparams(value)
-  {
-    this.#sparams = value;
-    return this;
-  }
-
-  setXparam(paramId, value)
-  {
-    this.#xparams[paramId] = value;
-    return this;
-  }
-
-  modXparam(paramId, value)
-  {
-    this.#xparams[paramId] += value;
-    return this;
-  }
-
-  setXparams(value)
-  {
-    this.#xparams = value;
+    this.#enemyEffects = effects;
     return this;
   }
 

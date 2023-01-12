@@ -42,7 +42,11 @@
  *  \armorType[ID]
  *  \skillType[ID]
  *
+ *  From other plugins:
+ *  \sdp[SDP_KEY]
+ *
  * Where ID is the id of the entry in the database.
+ * Where SDP_KEY is the key of the panel.
  *
  * NEW TEXT CODES EXAMPLES:
  *  \Weapon[4]
@@ -79,9 +83,16 @@
  * - 1.1.0
  *    Implemented element, the four "types" from database data.
  *    Added plugin dependency of J-Base.
+ *    Implemented SDP panel text code format.
  * - 1.0.0
  *    Initial release.
  *    Implemented style toggles for bold and italics.
  *    Implemented weapon/armor/item/state/skill/enemy names from database data.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Added additional ways to modify text.
+ * - 1.0.0
+ *    The initial release.
  * ============================================================================
  */

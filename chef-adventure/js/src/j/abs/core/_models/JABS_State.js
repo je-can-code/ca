@@ -122,6 +122,19 @@ class JABS_State
   }
 
   /**
+   * Determines whether or not the state should not expire by duration.
+   * @returns {boolean} True if this state should last until removed, false otherwise.
+   */
+  hasEternalDuration()
+  {
+    // "forever" states are states that have no duration aka -1.
+    if (this.#baseDuration !== -1) return false;
+
+    // this state should never expire unless removed explicitly.
+    return true;
+  }
+
+  /**
    * Refresh the recently applied counter.
    */
   refreshRecentlyAppliedCounter()
@@ -145,8 +158,8 @@ class JABS_State
     // remove stacks as-needed.
     this.decrementStacks();
 
-    // check if we should remove this state from the battler.
-    if (this.shouldRemoveFromBattler())
+    // check if we can and should remove this state from the battler.
+    if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler())
     {
       // actually remove the state from the battler.
       this.removeFromBattler();
@@ -185,7 +198,7 @@ class JABS_State
   decrementStacks()
   {
     // check if we are at 0 duration and have stacks remaining.
-    if (this.duration <= 0 && this.stackCount > 0)
+    if (this.duration <= 0 && this.stackCount > 0 && !this.hasEternalDuration())
     {
       // decrement the stack counter.
       this.stackCount--;
@@ -203,13 +216,16 @@ class JABS_State
    * Refreshes the duration of the state based on its original duration.
    * This does not refresh the recently applied counter.
    */
-  refreshDuration()
+  refreshDuration(newDuration = this.#baseDuration)
   {
     // refresh the duration.
-    this.duration = this.#baseDuration;
+    this.duration = newDuration;
 
     // unexpire the tracker.
     this.expired = false;
+
+    // flag this as recently applied.
+    this.#recentlyAppliedCounter = 6;
   }
 
   /**
@@ -246,24 +262,63 @@ class JABS_State
   }
 
   /**
-   * Whether or not we should remove this state from the battler.
+   * Determine if removing this state is even possible.
+   * @returns {boolean} True if it is removable, false otherwise.
+   */
+  canRemoveFromBattler()
+  {
+    // if the state afflicted is death, we can't remove it.
+    if (this.canHoldBecauseStateType()) return false;
+
+    // if the battler isn't afflicted with it, we can't remove it.
+    if (!this.battler.isStateAffected(this.stateId)) return false;
+
+    // its removable.
+    return true;
+  }
+
+  /**
+   * Determines whether or not this state should be removed because of its type.
+   * @returns {boolean}
+   */
+  canHoldBecauseStateType()
+  {
+    // if the state afflicted is death, we can't remove it.
+    if (this.stateId === this.battler.deathStateId()) return true;
+
+    // nothing is holding this state relating to its type of state.
+    return false;
+  }
+
+  /**
+   * Determines whether or not we should remove this state from the battler.
    * @returns {boolean} True if it should be removed, false otherwise.
    */
   shouldRemoveFromBattler()
   {
+    // if there are any stacks remaining, the stacks should be decremented first.
+    if (this.stackCount > 0) return false;
+
+    // if there is still time on the clock, we shouldn't remove it.
+    if (!this.shouldRemoveByDuration()) return false;
+
+    // purge it!
+    return true;
+  }
+
+  /**
+   * Determines whether or not this state should be removed because of its duration.
+   * @returns {boolean} True if the state should be removed, false otherwise.
+   */
+  shouldRemoveByDuration()
+  {
     // if there is still time on the clock, we shouldn't remove it.
     if (this.duration > 0) return false;
 
-    // if the state afflicted is death, we shouldn't remove it.
-    if (this.stateId === this.battler.deathStateId()) return false;
+    // if there is no time because it is an eternal state, we shouldn't remove it.
+    if (this.duration <= 0 && this.hasEternalDuration()) return false;
 
-    // if the battler isn't afflicted with it, we shouldn't remove it.
-    if (!this.battler.isStateAffected(this.stateId)) return false;
-
-    // if there are any stacks remaining, we shouldn't remove it.
-    if (this.stackCount > 0) return false;
-
-    // purge it!
+    // time is up!
     return true;
   }
 
@@ -277,7 +332,7 @@ class JABS_State
     const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
 
     // return whether or not the current duration is less than that.
-    return (this.duration <= aboutToExpireThreshold);
+    return (this.duration <= aboutToExpireThreshold && !this.hasEternalDuration());
   }
 
   /**
@@ -287,7 +342,7 @@ class JABS_State
   wasRecentlyApplied()
   {
     // return whether or not this state has been recently applied.
-    return (this.#recentlyAppliedCounter >= 0);
+    return (this.#recentlyAppliedCounter > 0);
   }
 }
 //endregion JABS_State

@@ -93,7 +93,7 @@ class Window_SDP_List extends Window_Command
     const { name, key, iconIndex, rarity: colorIndex, maxRank } = panel;
 
     // get the ranking for a given panel by its key.
-    const panelRanking = actor.getSdpRankByKey(key);
+    const panelRanking = actor.getSdpByKey(key);
 
     // grab the current rank of the panel.
     const { currentRank } = panelRanking;

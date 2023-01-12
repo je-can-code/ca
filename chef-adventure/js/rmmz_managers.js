@@ -11,31 +11,55 @@ function DataManager() {
     throw new Error("This is a static class");
 }
 
-/** @type {RPG_Actor[]} */
+/**
+ * All actor metadata extracted from the database.
+ * @type {RPG_Actor[]}
+ */
 $dataActors = null;
 
-/** @type {RPG_Class[]} */
+/**
+ * All class metadata extracted from the database.
+ * @type {RPG_Class[]}
+ */
 $dataClasses = null;
 
-/** @type {RPG_Item[]} */
+/**
+ * All skill metadata extracted from the database.
+ * @type {RPG_Item[]}
+ */
 $dataSkills = null;
 
-/** @type {RPG_Item[]} */
+/**
+ * All item metadata extracted from the database.
+ * @type {RPG_Item[]}
+ */
 $dataItems = null;
 
-/** @type {RPG_Weapon[]} */
+/**
+ * All weapon metadata extracted from the database.
+ * @type {RPG_Weapon[]}
+ */
 $dataWeapons = null;
 
-/** @type {RPG_Armor[]} */
+/**
+ * All armor metadata extracted from the database.
+ * @type {RPG_Armor[]}
+ */
 $dataArmors = null;
 
-/** @type {RPG_Enemy[]} */
+/**
+ * All enemy metadata extracted from the database.
+ * @type {RPG_Enemy[]}
+ */
 $dataEnemies = null;
 
-$dataTroops = null;
-
-/** @type {RPG_State[]} */
+/**
+ * All state metadata extracted from the database.
+ * @type {RPG_State[]}
+ */
 $dataStates = null;
+
+$dataTroops = null;
 
 $dataAnimations = null;
 $dataTilesets = null;

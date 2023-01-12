@@ -390,7 +390,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuard",
   {
     get: function()
     {
-      return this.getJabsGuard();
+      return this.getJabsGuard() ?? [0, 0];
     },
   });
 

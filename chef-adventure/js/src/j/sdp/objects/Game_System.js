@@ -32,6 +32,37 @@ Game_System.prototype.initSdpMembers = function()
    * @type {StatDistributionPanel[]}
    */
   this._j._sdp._panels = J.SDP.Helpers.TranslateSDPs(J.SDP.PluginParameters['SDPs']);
+
+  /**
+   * Whether or not to force any enemy that can drop a panel to drop a panel.
+   * @type {boolean}
+   */
+  this._j._sdp._forceDropPanels = false;
+};
+
+/**
+ * Enables a DEBUG functionality for forcing the drop of panels where applicable.
+ */
+Game_System.prototype.enableForcedSdpDrops = function()
+{
+  this._j._sdp._forceDropPanels = true;
+};
+
+/**
+ * Disables a DEBUG functionality for forcing the drop of panels where applicable.
+ */
+Game_System.prototype.disableForcedSdpDrops = function()
+{
+  this._j._sdp._forceDropPanels = false;
+};
+
+/**
+ * Determines whether or not the DEBUG functionality of forced-panel-dropping is active.
+ * @returns {boolean|*|boolean}
+ */
+Game_System.prototype.shouldForceDropSdp = function()
+{
+  return this._j._sdp._forceDropPanels ?? false;
 };
 
 /**
@@ -70,7 +101,7 @@ Game_System.prototype.getAllSdps = function()
  * @param {string} key The less-friendly unique key that represents this SDP.
  * @returns {StatDistributionPanel}
  */
-Game_System.prototype.getSdpRankByKey = function(key)
+Game_System.prototype.getSdpByKey = function(key)
 {
   // if we don't have panels to search through, don't do it.
   if (!this.getAllSdps().length) return null;
@@ -123,7 +154,7 @@ Game_System.prototype.getUnlockedSdpsCount = function()
  */
 Game_System.prototype.unlockSdp = function(key)
 {
-  const panel = this.getSdpRankByKey(key);
+  const panel = this.getSdpByKey(key);
   if (panel)
   {
     panel.unlock();
@@ -150,7 +181,7 @@ Game_System.prototype.unlockAllSdps = function()
  */
 Game_System.prototype.lockSdp = function(key)
 {
-  const panel = this.getSdpRankByKey(key);
+  const panel = this.getSdpByKey(key);
   if (panel)
   {
     panel.lock();
@@ -178,7 +209,7 @@ Game_System.prototype.getRankByActorAndKey = function(actorId, key)
   }
 
   // make sure the actor has ranks in the panel and return the rank.
-  const panelRanking = actor.getSdpRankByKey(key);
+  const panelRanking = actor.getSdpByKey(key);
   if (panelRanking)
   {
     return panelRanking.currentRank;

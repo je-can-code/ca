@@ -4,6 +4,14 @@
  */
 class Scene_Difficulty extends Scene_MenuBase
 {
+  /**
+   * Pushes this current scene onto the stack, forcing it into action.
+   */
+  static callScene()
+  {
+    SceneManager.push(this);
+  }
+
   constructor()
   {
     // perform original logic.
@@ -11,18 +19,6 @@ class Scene_Difficulty extends Scene_MenuBase
 
     // execute initialization.
     this.initialize();
-  }
-
-  /**
-   * Initialize all members of this class.
-   */
-  initialize()
-  {
-    // perform original logic.
-    super.initialize(this);
-
-    // setup our class members.
-    this.initMembers();
   }
 
   /**
@@ -59,23 +55,16 @@ class Scene_Difficulty extends Scene_MenuBase
     this._j._difficulty._listWindow = null;
 
     /**
-     * The window for displaying the details of the currently hovered difficulty.
-     * @type {Window_DifficultyDetails}
+     * The window for displaying the various enemy effects this difficulty applies.
+     * @type {Window_DifficultyEffects}
      */
-    this._j._difficulty._detailsWindow = null;
-  }
+    this._j._difficulty._enemyEffects = null;
 
-  /**
-   * Extends {@link #create}.
-   * Creates our scene's windows.
-   */
-  create()
-  {
-    // perform original logic.
-    super.create();
-
-    // create all our windows.
-    this.createAllWindows();
+    /**
+     * The window for displaying the various actor effects this difficulty applies.
+     * @type {Window_DifficultyEffects}
+     */
+    this._j._difficulty._actorEffects = null;
   }
 
   /**
@@ -97,6 +86,28 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverChange();
   }
 
+  /**
+   * Extends {@link #create}.
+   * Creates our scene's windows.
+   */
+  create()
+  {
+    // perform original logic.
+    super.create();
+
+    // create the various display objects on the screen.
+    this.createDisplayObjects();
+  }
+
+  /**
+   * Creates the display objects for this scene.
+   */
+  createDisplayObjects()
+  {
+    // create all our windows.
+    this.createAllWindows();
+  }
+
   //region create windows
   /**
    * Creates all windows associated with the difficulty scene.
@@ -112,8 +123,11 @@ class Scene_Difficulty extends Scene_MenuBase
     // then build the list window based on the location of the help window.
     this.createListWindow();
 
-    // and lastly build the details window based on the location of the list window.
-    this.createDetailsWindow();
+    // create the list of enemy effects.
+    this.createEnemyEffectsWindow();
+
+    // create the list of actor effects.
+    this.createActorEffectsWindow();
   }
 
   //region points window
@@ -323,28 +337,44 @@ class Scene_Difficulty extends Scene_MenuBase
   }
   //endregion list window
 
-  //region details window
+  //region enemy effects window
   /**
-   * Creates the details window that describes the selected difficulty
-   * compared to the current difficulty.
+   * Creates the window displaying various battler effects applied to enemies.
    */
-  createDetailsWindow()
+  createEnemyEffectsWindow()
   {
     // create the window.
-    const window = this.buildDifficultyDetailsWindow();
+    const window = this.buildDifficultyEnemyEffectsWindow();
+
+    // deselect the command of the window.
+    window.deselect();
+    window.deactivate();
 
     // update the tracker with the new window.
-    this.setDifficultyDetailsWindow(window);
+    this.setDifficultyEnemyEffectsWindow(window);
 
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
 
   /**
-   * Gets the rectangle associated with the difficulty details window.
+   * Sets up and defines the difficulty enemy effects window.
+   * @returns {Window_DifficultyEffects}
+   */
+  buildDifficultyEnemyEffectsWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.difficultyEnemyEffectsRectangle();
+
+    // return the built details window.
+    return new Window_DifficultyEffects(rectangle);
+  }
+
+  /**
+   * Gets the rectangle associated with the difficulty enemy effects window.
    * @returns {Rectangle}
    */
-  difficultyDetailsRectangle()
+  difficultyEnemyEffectsRectangle()
   {
     // grab the width from the list window.
     const { width: listWidth } = this.getDifficultyListWindow();
@@ -353,7 +383,7 @@ class Scene_Difficulty extends Scene_MenuBase
     const { height: helpHeight } = this.getHelpWindow();
 
     // the width should be from the list window to the edge of the screen.
-    const width = Graphics.boxWidth - listWidth;
+    const width = (Graphics.boxWidth - listWidth) / 2;
 
     // the height should be from the bottom of the help window to the edge of the screen.
     const height = Graphics.boxHeight - helpHeight;
@@ -369,36 +399,105 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Sets up and defines the difficulty details window.
-   * @returns {Window_DifficultyDetails}
+   * Gets the currently tracked window.
+   * @returns {Window_DifficultyEffects}
    */
-  buildDifficultyDetailsWindow()
+  getDifficultyEnemyEffectsWindow()
+  {
+    return this._j._difficulty._enemyEffects;
+  }
+
+  /**
+   * Sets the currently tracked window to the given window.
+   * @param {Window_DifficultyEffects} window The window to track.
+   */
+  setDifficultyEnemyEffectsWindow(window)
+  {
+    this._j._difficulty._enemyEffects = window;
+  }
+  //endregion enemy effects window
+
+  //region actor effects window
+  /**
+   * Creates the window displaying various battler effects applied to actors.
+   */
+  createActorEffectsWindow()
+  {
+    // create the window.
+    const window = this.buildDifficultyActorEffectsWindow();
+
+    // deselect the command of the window.
+    window.deselect();
+    window.deactivate();
+
+    // update the tracker with the new window.
+    this.setDifficultyActorEffectsWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  /**
+   * Sets up and defines the difficulty actor effects window.
+   * @returns {Window_DifficultyEffects}
+   */
+  buildDifficultyActorEffectsWindow()
   {
     // define the rectangle of the window.
-    const rectangle = this.difficultyDetailsRectangle();
+    const rectangle = this.difficultyActorEffectsRectangle();
 
     // return the built details window.
-    return new Window_DifficultyDetails(rectangle);
+    return new Window_DifficultyEffects(rectangle);
   }
 
   /**
-   * Gets the currently tracked difficulty details window.
-   * @returns {Window_DifficultyDetails}
+   * Gets the rectangle associated with the difficulty actor effects window.
+   * @returns {Rectangle}
    */
-  getDifficultyDetailsWindow()
+  difficultyActorEffectsRectangle()
   {
-    return this._j._difficulty._detailsWindow;
+    // grab the width and x of the effects for calculating x of the actor effects.
+    const { x: enemyEffectsX, width: effectsEffectsWidth } = this.getDifficultyEnemyEffectsWindow();
+
+    // grab the height from the help window.
+    const { height: helpHeight } = this.getHelpWindow();
+
+    const leftSideOfEnemyEffects = enemyEffectsX + effectsEffectsWidth;
+
+    // the width should be from the list window to the edge of the screen.
+    const width = (Graphics.boxWidth - leftSideOfEnemyEffects);
+
+    // the height should be from the bottom of the help window to the edge of the screen.
+    const height = Graphics.boxHeight - helpHeight;
+
+    // the x coordinate should be the right side of the list window.
+    const x = leftSideOfEnemyEffects;
+
+    // the y coordinate should be the bottom side of the help window.
+    const y = helpHeight;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
   }
 
   /**
-   * Sets the currently tracked difficulty details window to the given window.
-   * @param {Window_DifficultyDetails} difficultyDetailsWindow The difficulty details window to track.
+   * Gets the currently tracked window.
+   * @returns {Window_DifficultyEffects}
    */
-  setDifficultyDetailsWindow(difficultyDetailsWindow)
+  getDifficultyActorEffectsWindow()
   {
-    this._j._difficulty._detailsWindow = difficultyDetailsWindow;
+    return this._j._difficulty._actorEffects;
   }
-  //endregion details window
+
+  /**
+   * Sets the currently tracked window to the given window.
+   * @param {Window_DifficultyEffects} window The window to track.
+   */
+  setDifficultyActorEffectsWindow(window)
+  {
+    this._j._difficulty._actorEffects = window;
+  }
+  //endregion actor effects window
   //endregion create windows
 
   /**
@@ -427,22 +526,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverUpdateHelp();
 
     // update the details window.
-    this.onHoverUpdateDetails();
-  }
-
-  /**
-   * Updates the details window when the hovered difficulty changes.
-   */
-  onHoverUpdateDetails()
-  {
-    // grab the hovered difficulty.
-    const hoveredDifficulty = this.hoveredDifficulty();
-
-    // grab the details window.
-    const detailsWindow = this.getDifficultyDetailsWindow();
-
-    // update the hovered difficulty for the details window.
-    detailsWindow.setHoveredDifficulty(hoveredDifficulty);
+    this.onHoverUpdateEffects();
   }
 
   /**
@@ -477,6 +561,85 @@ class Scene_Difficulty extends Scene_MenuBase
     // set the text of the hovered difficulty for the help window.
     helpWindow.setText(hoveredDifficulty.description);
   }
+
+  /**
+   * Updates the details window when the hovered difficulty changes.
+   */
+  onHoverUpdateEffects()
+  {
+    // grab the currently hovered difficulty.
+    const hoveredDifficulty = this.hoveredDifficulty();
+
+    // if there is no difficulty, then do not update.
+    if (!hoveredDifficulty) return;
+
+    // extract the data points from the window.
+    const { actorEffects, enemyEffects } = hoveredDifficulty;
+
+    // update the actor effects.
+    this.updateActorEffectsWindow(actorEffects);
+
+    // update the enemy effects.
+    this.updateEnemyEffectsWindow(enemyEffects);
+  }
+
+  updateActorEffectsWindow(newActorEffects)
+  {
+    // grab the actor window.
+    const actorEffectsWindow = this.getDifficultyActorEffectsWindow();
+
+    // check if the hovered difficulty is the same as the assigned one.
+    if (actorEffectsWindow.getEffectsList() !== newActorEffects)
+    {
+      // extract the data points from the window.
+      const {
+        exp, gold, sdp, drops, encounters
+      } = this.hoveredDifficulty();
+
+      // build the bonus effects.
+      const bonusEffects = new DifficultyBonusEffects();
+      bonusEffects.exp = exp;
+      bonusEffects.gold = gold;
+      bonusEffects.drops = drops;
+      bonusEffects.sdp = sdp;
+      bonusEffects.encounters = encounters;
+
+      // update the effects list in the window.
+      actorEffectsWindow.updateEffects(
+        newActorEffects,
+        bonusEffects,
+        Window_DifficultyEffects.EffectsTypes.ACTOR);
+    }
+  }
+
+  updateEnemyEffectsWindow(newEnemyEffects)
+  {
+    // grab the enemy effects window.
+    const enemyEffectsWindow = this.getDifficultyEnemyEffectsWindow();
+
+    // check if the hovered difficulty is the same as the assigned one.
+    if (enemyEffectsWindow.getEffectsList() !== newEnemyEffects)
+    {
+      // extract the data points from the window.
+      const {
+        exp, gold, sdp, drops, encounters
+      } = this.hoveredDifficulty();
+
+      // build the bonus effects.
+      const bonusEffects = new DifficultyBonusEffects();
+      bonusEffects.exp = exp;
+      bonusEffects.gold = gold;
+      bonusEffects.drops = drops;
+      bonusEffects.sdp = sdp;
+      bonusEffects.encounters = encounters;
+
+      // update the effects list in the window.
+      enemyEffectsWindow.updateEffects(
+        newEnemyEffects,
+        bonusEffects,
+        Window_DifficultyEffects.EffectsTypes.ENEMY);
+    }
+  }
   //endregion on-hover
 
   //region on-select
@@ -507,7 +670,7 @@ class Scene_Difficulty extends Scene_MenuBase
     }
 
     // refresh the difficulty windows.
-    this.refreshDifficultyWindows();
+    this.refreshCoreDifficultyWindows();
 
     // grab the list window to activate.
     const listWindow = this.getDifficultyListWindow();
@@ -569,47 +732,17 @@ class Scene_Difficulty extends Scene_MenuBase
   /**
    * Refreshes all windows in the scene at once.
    */
-  refreshDifficultyWindows()
+  refreshCoreDifficultyWindows()
   {
     // grab the windows to refresh.
     const listWindow = this.getDifficultyListWindow();
-    const detailsWindow = this.getDifficultyDetailsWindow();
     const helpWindow = this.getHelpWindow();
     const pointsWindow = this.getPointsWindow();
 
     // refresh all the windows.
     listWindow.refresh();
-    detailsWindow.refresh();
     helpWindow.refresh();
     pointsWindow.refresh();
-  }
-
-  /**
-   * Extends {@link #update}.
-   * Also keeps the details window in-sync with the list window.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // update the detail window, too.
-    this.updateDetailWindow();
-  }
-
-  /**
-   * Synchronizes the currently hovered difficulty into the details window.
-   */
-  updateDetailWindow()
-  {
-    // grab the details window.
-    const detailsWindow = this.getDifficultyDetailsWindow();
-
-    // grab the currently hovered difficulty.
-    const hoveredDifficulty = this.hoveredDifficulty();
-
-    // update the difficulty displayed in the details window.
-    detailsWindow.setHoveredDifficulty(hoveredDifficulty);
   }
 }
 //endregion Scene_Difficulty

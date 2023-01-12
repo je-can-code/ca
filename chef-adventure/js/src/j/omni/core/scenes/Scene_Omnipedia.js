@@ -26,22 +26,13 @@ class Scene_Omnipedia extends Scene_MenuBase
 
   //region init
   /**
-   * Initialize the window and all properties required by the scene.
-   */
-  initialize()
-  {
-    // perform original logic.
-    super.initialize(this);
-
-    // also initialize our scene properties.
-    this.initMembers();
-  }
-
-  /**
    * Initialize all properties for our omnipedia.
    */
   initMembers()
   {
+    // perform original logic.
+    super.initMembers();
+
     // initialize the root-namespace definition members.
     this.initCoreMembers();
 

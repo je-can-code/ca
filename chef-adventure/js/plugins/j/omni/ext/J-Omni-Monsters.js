@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jan 01 2023 13:25:18 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Jan 12 2023 13:43:35 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -2362,7 +2362,7 @@ class Window_MonsterpediaDetail extends Window_Base
 
     const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
 
-    const panel = $gameSystem.getSdpRankByKey(sdpKey);
+    const panel = $gameSystem.getSdpByKey(sdpKey);
 
     if (!panel) return;
 

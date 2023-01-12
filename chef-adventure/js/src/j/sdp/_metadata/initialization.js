@@ -22,20 +22,11 @@ var J = J || {};
 J.SDP = {};
 
 /**
- * The `metadata` associated with this plugin, such as version.
+ * The `metadata` associated with this plugin.
  */
-J.SDP.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-SDP`,
-
-  /**
-   * The version of this plugin.
-   * @type {number}
-   */
-  Version: '1.2.3',
-};
+J.SDP.Metadata = {};
+J.SDP.Metadata.Name =`J-SDP`;
+J.SDP.Metadata.Version = '1.3.0';
 
 /**
  * A collection of helpful functions to use throughout the plugin.
@@ -91,33 +82,7 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
     }
 
     // parse the rarity color.
-    let rarity = 0;
-    switch (parsedPanel.rarity)
-    {
-      case "Common":
-        rarity = 0;
-        break;
-      case "Magical":
-        rarity = 3;
-        break;
-      case "Rare":
-        rarity = 23;
-        break;
-      case "Epic":
-        rarity = 31;
-        break;
-      case "Legendary":
-        rarity = 20;
-        break;
-      case "Godlike":
-        rarity = 25;
-        break;
-      default:
-        rarity = 0;
-        console.warn("if modifying the rarity dropdown options, be sure to fix them here, too.");
-        console.warn(`${parsedPanel.rarity} was not an implemented option.`);
-        break;
-    }
+    const rarityColorIndex = SDP_Rarity.fromRarityToColor(parsedPanel.rarity);
 
     // create the panel.
     const panel = new StatDistributionPanel({
@@ -133,7 +98,7 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
       topFlavorText: parsedPanel.topFlavorText,
       panelRewards: parsedPanelRewards,
       panelParameters: parsedPanelParameters,
-      rarity: rarity,
+      rarity: rarityColorIndex,
     });
 
     parsedPanels.push(panel);
@@ -196,13 +161,17 @@ J.SDP.Metadata = {
 J.SDP.Aliased = {
   BattleManager: {},
   DataManager: new Map(),
-  Game_Actor: new Map(),
   JABS_Engine: new Map(),
+
+  Game_Action: new Map(),
+  Game_Actor: new Map(),
   Game_Enemy: new Map(),
   Game_Switches: new Map(),
   Game_System: new Map(),
+
   Scene_Map: new Map(),
   Scene_Menu: new Map(),
+
   Window_AbsMenu: new Map(),
   Window_MenuCommand: new Map(),
 };
@@ -214,6 +183,7 @@ J.SDP.RegExp = {
   SdpPoints: /<sdpPoints:[ ]?([0-9]*)>/i,
   SdpMultiplier: /<sdpMultiplier:[ ]?([-.\d]+)>/i,
   SdpDropData: /<sdpDropData:[ ]?(\[[-\w]+,[ ]?\d+(:?,[ ]?\d+)?])>/i,
+  SdpUnlockKey: /<sdpUnlock:(.+)>/i,
 };
 
 //region plugin commands

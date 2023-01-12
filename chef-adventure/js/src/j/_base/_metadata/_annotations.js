@@ -37,6 +37,7 @@
  * CHANGELOG:
  * - 2.1.3
  *    Added help text functionality for window commands.
+ *    Added description text for all parameters.
  * - 2.1.2
  *    Added polyfill implementation for Array.prototype.at().
  *    Updated Window_EquipItem code to enable extension.

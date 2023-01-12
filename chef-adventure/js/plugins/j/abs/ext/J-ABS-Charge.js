@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Mon Jan 02 2023 14:42:35 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -705,7 +705,7 @@ JABS_Battler.prototype.getChargingTiers = function(slot)
   else
   {
     // get the skill from the slot.
-    skillId = battler.getEquippedSkill(slot);
+    skillId = battler.getEquippedSkillId(slot);
   }
 
   // if there is no skill id, then we cannot get any charge data from it.

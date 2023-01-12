@@ -1,10 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 07 2023 07:42:49 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DROPS] Enables greater control over gold and item drops.
+ * [v2.0.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -185,7 +185,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '2.0.0',
 };
 
 /**

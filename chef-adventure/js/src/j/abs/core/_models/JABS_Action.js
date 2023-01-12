@@ -225,7 +225,7 @@ class JABS_Action
     if (this.hasSelfAnimationId())
     {
       // play it on oneself.
-      event.requestAnimation(this.getSelfAnimationId());
+      event?.requestAnimation(this.getSelfAnimationId());
     }
   }
 
@@ -253,7 +253,7 @@ class JABS_Action
    */
   performSelfAnimation()
   {
-    this.getActionSprite().requestAnimation(this.getSelfAnimationId());
+    this.getActionSprite()?.requestAnimation(this.getSelfAnimationId());
   }
 
   /**

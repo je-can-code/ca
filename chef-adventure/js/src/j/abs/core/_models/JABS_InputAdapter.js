@@ -163,7 +163,7 @@ class JABS_InputAdapter
     if (!this.#canPerformToolAction(jabsBattler)) return;
 
     // grab the tool id currently equipped.
-    const toolId = jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool);
+    const toolId = jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool);
 
     // perform tool effects!
     jabsBattler.applyToolEffects(toolId);
@@ -180,7 +180,7 @@ class JABS_InputAdapter
     if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
 
     // if there is no tool equipped, then do not perform.
-    if (!jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool)) return false;
+    if (!jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool)) return false;
 
     // perform!
     return true;

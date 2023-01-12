@@ -131,4 +131,18 @@ ColorManager.equipType = function(equipTypeId)
 {
   return this.textColor(4);
 };
+
+/**
+ * Gets the color index of the given SDP.
+ * @param {string} rarity The key to get the panel for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.sdp = function(rarity)
+{
+  // parse the rarity color.
+  const rarityColorIndex = SDP_Rarity.fromRarityToColor(rarity);
+
+  // return the text code for it.
+  return this.textColor(rarityColorIndex);
+};
 //endregion ColorManager

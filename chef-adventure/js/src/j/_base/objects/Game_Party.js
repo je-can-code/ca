@@ -172,4 +172,12 @@ Game_Party.prototype.allItemsQuantified = function()
   // return our quantified list.
   return allItemsRepeated;
 };
+
+/**
+ * Recovers the entire party back to perfect condition.
+ */
+Game_Party.prototype.recoverAllMembers = function()
+{
+  this.members().forEach(member => member.recoverAll());
+};
 //endregion Game_Party

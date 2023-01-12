@@ -5,6 +5,7 @@
  */
 class JABS_Engine
 {
+  // TODO: implement them as a map.
   /**
    * A cached collection of actions keyed by their uuids.
    * @type {JABS_Timer, JABS_Action}
@@ -12,11 +13,19 @@ class JABS_Engine
   cachedActions = new Map();
 
   /**
+   * The events array of the enemy cloning map.
+   * @type {rm.types.Event[]|null}
+   */
+  static #enemyCloneList = null;
+
+  /**
    * @constructor
    */
   constructor()
   {
     this.initialize();
+
+    JABS_Engine.initializeEnemyMap();
   }
 
   //region properties
@@ -261,7 +270,9 @@ class JABS_Engine
      * A collection of the metadata of all action-type events.
      * @type {rm.types.Event[]}
      */
-    this._activeActions = isMapTransfer ? [] : this._activeActions ?? [];
+    this._activeActions = isMapTransfer
+      ? Array.empty
+      : this._activeActions ?? Array.empty;
 
     /**
      * True if we want to call the ABS-specific menu, false otherwise.
@@ -299,7 +310,9 @@ class JABS_Engine
      * A collection of all ongoing states that are affecting battlers on the map.
      * @type {Map<string, Map<number, JABS_State>>}
      */
-    this._jabsStates = new Map();
+    this._jabsStates = isMapTransfer
+      ? this._jabsStates ?? new Map()
+      : new Map();
   }
 
   /**
@@ -347,8 +360,7 @@ class JABS_Engine
   event(uuid)
   {
     return this._activeActions
-      .filter(eventData => eventData.uniqueId === uuid)
-      .at(0);
+      .find(eventData => eventData.uniqueId === uuid);
   }
 
   /**
@@ -803,11 +815,8 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
-    // refresh the duration to new max.
-    jabsState.duration = newJabsState.duration;
-
-    // undo expiration if it was expired.
-    jabsState.expired = false;
+    // refresh the duration of the existing state.
+    jabsState.refreshDuration(newJabsState.duration);
   }
 
   /**
@@ -821,11 +830,11 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
-    // refresh the duration to new max.
-    jabsState.duration += newJabsState.duration;
+    // calculate the new duration.
+    const newDuration = jabsState.duration + newJabsState.duration;
 
-    // undo expiration if it was expired.
-    jabsState.expired = false;
+    // refresh the duration of the state.
+    jabsState.refreshDuration(newDuration);
   }
 
   /**
@@ -1657,16 +1666,18 @@ class JABS_Engine
 
   /**
    * Adds the loot to the map.
-   * @param {number} targetX The `x` coordinate of the battler dropping the loot.
-   * @param {number} targetY The `y` coordinate of the battler dropping the loot.
+   * @param {number} x The `x` coordinate of the battler dropping the loot.
+   * @param {number} y The `y` coordinate of the battler dropping the loot.
    * @param {RPG_EquipItem|RPG_Item} item The loot's raw data object.
    */
-  addLootDropToMap(targetX, targetY, item)
+  addLootDropToMap(x, y, item)
   {
     // clone the loot data from the action map event id of 1.
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
-    lootEventData.x = targetX;
-    lootEventData.y = targetY;
+    console.log(lootEventData);
+
+    lootEventData.x = x;
+    lootEventData.y = y;
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;
@@ -1691,6 +1702,86 @@ class JABS_Engine
     this.requestLootRendering = true;
     $gameMap.addEvent(lootEvent);
   }
+
+  //region adding an enemy to the map WIP
+  /**
+   * Generates an enemy and transplants it in the place of the corresponding index
+   * of the eventId on the battle map.
+   */
+  addEnemyToMap(x, y, enemyId)
+  {
+    // TODO: this is a work in progress, and not fully operational yet.
+    // TODO: enemies are not yet visible (though they do exist).
+    // TODO: updates to sprite_character required?
+
+    if (!JABS_Engine.#isEnemyMapInitialized())
+    {
+      JABS_Engine.initializeEnemyMap();
+    }
+
+    // grab the enemy event data to clone from.
+    const originalEnemyData = JABS_Engine.getEnemyCloneList().at(enemyId);
+
+    if (!originalEnemyData)
+    {
+      console.error(`The enemy id of [ ${enemyId} ] did not align with an event on the enemy clone map.`);
+
+      return;
+    }
+
+    // clone the enemy data from the enemy map.
+    /** @type {rm.types.Event} */
+    const enemyData = JsonEx.makeDeepCopy(originalEnemyData);
+
+    // assign our cloned event the original event's x and y coordinates.
+    enemyData.x = x;
+    enemyData.y = y;
+
+    // for usage in the arrays around the database, the 1st item of the arrays are null.
+    const normalizedIndex = $dataMap.events.length;
+
+    // update the metadata of the map with our data instead.
+    $dataMap.events[normalizedIndex] = enemyData;
+
+    // generate a new event based on this JABS enemy.
+    const newEnemy = new Game_Event($gameMap.mapId(), normalizedIndex);
+
+    // TODO: update this, this is almost certainly broken logic after the delete update!
+    // directly assign the event index to the enemies.
+    //$gameMap._events[index] = newEnemy;
+    $gameMap.addEvent(newEnemy);
+    newEnemy.refresh();
+  }
+
+  static getEnemyCloneList()
+  {
+    return this.#enemyCloneList;
+  }
+
+  static setEnemyCloneList(map)
+  {
+    this.#enemyCloneList = map;
+  }
+
+  static #isEnemyMapInitialized()
+  {
+    return !!this.#enemyCloneList;
+  }
+
+  static refreshEnemyMap()
+  {
+    this.setEnemyMap(null);
+
+    this.initializeEnemyMap();
+  }
+
+  static initializeEnemyMap()
+  {
+    const result = fetch("data/Map110.json")
+      .then(data => data.json())
+      .then(dataMap => JABS_Engine.setEnemyCloneList(dataMap.events));
+  }
+  //endregion adding an enemy to the map WIP
 
   /**
    * Applies an action against a designated target battler.
@@ -1742,14 +1833,30 @@ class JABS_Engine
       ? false // parry is cancelled.
       : this.checkParry(caster, target, action);
 
-    // check if the action was parried instead.
+    // grab the battler of the target.
     const targetBattler = target.getBattler();
-    if (!isUnparryable && isParried)
+
+    // check if the action is parryable and was parried.
+    if (isParried)
     {
-      // grab the result, clear it, and set the parry flag to true.
+      // grab the result.
       const result = targetBattler.result();
+
+      // when an action is parried, it gets completely undone.
       result.clear();
+
+      // flag the result for being parried.
       result.parried = true;
+    }
+
+    // check if the action was guarded.
+    if (target.guarding())
+    {
+      // grab the result.
+      const result = targetBattler.result();
+
+      // flag that the action was guarded.
+      result.guarded = true;
     }
 
     // apply the action to the target.
@@ -2225,6 +2332,9 @@ class JABS_Engine
    */
   canBeAlerted(attacker, battler)
   {
+    // cannot be alerted by inanimate battlers.
+    if (attacker.isInanimate()) return false;
+
     // cannot alert your own allies.
     if (attacker.isSameTeam(battler.getTeam())) return false;
 
@@ -2291,18 +2401,21 @@ class JABS_Engine
     // grab the action result.
     const actionResult = battler.getBattler().result();
 
+    // if auto-counter is available, then just do that.
+    this.handleAutoCounter(battler);
+
     // check if we need to perform any sort of countering.
-    const needsCounterParry = actionResult.parried && battler.counterParry().length;
+    const needsCounterParry = actionResult.parried;
+
+    // check if the action is parryable.
+    if (needsCounterParry)
+    {
+      // handle the battler's parry reaction.
+      this.handleCounterParry(battler);
+    }
 
     // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
-
-    // if we should be counter-parrying.
-    if (needsCounterParry)
-    {
-      // execute the counterparry.
-      this.doCounterParry(battler, JABS_Button.Offhand);
-    }
 
     // if we should be counter-guarding.
     if (needsCounterGuard)
@@ -2311,11 +2424,11 @@ class JABS_Engine
       this.doCounterGuard(battler, JABS_Button.Offhand);
     }
 
-    // if auto-counter is available, then just do that.
-    if (actionResult.parried)
-    {
-      this.handleAutoCounter(battler);
-    }
+    // TODO: is it unbalanced to auto-counter with every hit?
+    // if (actionResult.parried)
+    // {
+    //    this.handleAutoCounter(battler);
+    // }
 
     // grab all the retaliation skills for this battler.
     const retaliationSkills = battler.getBattler().retaliationSkills();
@@ -2332,6 +2445,38 @@ class JABS_Engine
         }
       })
     }
+  }
+
+  /**
+   * Handles the parry actions.
+   * @param {JABS_Battler} battler The battler to parry with.
+   */
+  handleCounterParry(battler)
+  {
+    // validate the battler can parry.
+    if (!this.canBattlerParry(battler)) return;
+
+    // execute the counterparry.
+    this.doCounterParry(battler, JABS_Button.Offhand);
+  }
+
+  /**
+   * Executes any retaliation the player may have when receiving a hit.
+   * @param {JABS_Battler} battler The battler doing the retaliating.
+   * @returns {boolean} True if the battler can parry, false otherwise.
+   */
+  canBattlerParry(battler)
+  {
+    // there is nothing to parry with if the battler has no parry ids.
+    if (battler.counterParry().length === 0) return false;
+
+    // the battler can parry!
+    return true;
+  }
+
+  handleCounterGuard(battler)
+  {
+
   }
 
   /**

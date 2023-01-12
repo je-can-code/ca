@@ -136,7 +136,7 @@ Scene_Map.prototype.handleAssignBoss = function()
   if (!BossFrameManager.needsBossFrameRefresh()) return;
 
   // grab the new boss.
-  const newBoss = BossFrameManager.getBoss();
+  const newBoss = BossFrameManager.getBossFrame();
 
   // set the target frame's target to this new target.
   this.getBossFrameWindow().setTarget(newBoss);

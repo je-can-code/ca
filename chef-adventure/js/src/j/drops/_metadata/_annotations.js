@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DROPS] Enables greater control over gold and item drops.
+ * [v2.0.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base

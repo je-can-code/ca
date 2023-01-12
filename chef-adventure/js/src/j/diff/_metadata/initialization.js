@@ -1,3 +1,4 @@
+//region metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -7,7 +8,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -16,7 +17,6 @@ var J = J || {};
 })();
 //endregion version check
 
-//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -25,17 +25,9 @@ J.DIFFICULTY = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIFFICULTY.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Difficulty`,
-};
+J.DIFFICULTY.Metadata = {};
+J.DIFFICULTY.Metadata.Version = '2.0.0';
+J.DIFFICULTY.Metadata.Name = `J-Difficulty`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -66,117 +58,170 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
     // parse the overarching blob of difficulties.
     const parsedDifficultyBlob = JSON.parse(rawDifficultyBlob);
 
-    // extract all the properties that we care about.
+    // extract the data points from the blob.
     const {
       key, name, description, iconIndex, cost,
-      bparams, xparams, sparams, bonuses,
+      actorEffects, enemyEffects, bonuses,
       enabled, unlocked, hidden
     } = parsedDifficultyBlob;
 
-    // parse the icon to start.
+    // parse the icon index.
     const parsedIconIndex = parseInt(iconIndex);
 
-    // parse the cost as well.
+    // parse the cost.
     const parsedCost = parseInt(cost);
+
+    // an iterator function for updating all param collections for these battler effects.
+    const battlerEffectsMapper = battlerEffects =>
+    {
+      // initialize the params to defaults.
+      const newBParams = [100, 100, 100, 100, 100, 100, 100, 100];
+      const newXParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+      const newSParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
+      // extract all the raw parameters.
+      const {
+        bparams, xparams, sparams,
+      } = battlerEffects;
+
+      // an iterator function for updating bparams.
+      const bParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownBaseParameterIds()
+            .forEach(paramId => newBParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newBParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse bparams from the layer.
+      const parsedBParams = JSON.parse(bparams);
+
+      // update the bparams for the effects.
+      parsedBParams.forEach(bParamForEacher, this);
+
+      // an iterator function for updating xparams.
+      const xParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownExParameterIds()
+            .forEach(paramId => newXParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newXParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse xparams from this layer.
+      const parsedXParams = JSON.parse(xparams);
+
+      // update the xparams for the effects.
+      parsedXParams.forEach(xParamForEacher, this);
+
+      // an iterator function for updating sparams.
+      const sParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownSpParameterIds()
+            .forEach(paramId => newSParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newSParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse sparams from this layer.
+      const parsedSParams = JSON.parse(sparams);
+
+      // update the sparams for the effects.
+      parsedSParams.forEach(sParamForEacher, this);
+
+      // create a new battler effects based on the modified params.
+      const modifiedBattlerEffects = DifficultyBattlerEffects.fromRaw(newBParams, newXParams, newSParams);
+
+      // return the built battler effects.
+      return modifiedBattlerEffects;
+    };
+
+    // parse the actor battler effects.
+    const parsedActorEffects = JSON.parse(actorEffects);
+    const mappedActorEffects = battlerEffectsMapper(parsedActorEffects);
+
+    // parse the enemy battler effects.
+    const parsedEnemyEffects = JSON.parse(enemyEffects);
+    const mappedEnemyEffects = battlerEffectsMapper(parsedEnemyEffects);
 
     // instantiate the builder with the base data.
     const builder = new DifficultyBuilder(name, key)
+      // assign the core data.
       .setDescription(description)
       .setIconIndex(parsedIconIndex)
-      .setCost(parsedCost);
+      .setCost(parsedCost)
+      // assign the accessors.
+      .setEnabled(enabled === "true")
+      .setHidden(hidden === "true")
+      .setUnlocked(unlocked === "true")
+      // assign the battler data.
+      .setActorEffects(mappedActorEffects)
+      .setEnemyEffects(mappedEnemyEffects);
 
-    // parse bparams.
-    const parsedBParams = JSON.parse(bparams);
-    parsedBParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setBparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setBparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // parse xparams.
-    const parsedXParams = JSON.parse(xparams);
-    parsedXParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setXparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setXparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // parse sparams.
-    const parsedSParams = JSON.parse(sparams);
-    parsedSParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setSparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setSparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // handle bonuses.
+    // parse the bonuses from the layer.
     const parsedBonuses = JSON.parse(bonuses);
+
+    // iterate over each of the bonuses and add it to the builder.
     parsedBonuses.forEach(rawBonus =>
     {
       // parse out the bonus JSON.
@@ -208,11 +253,6 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
       }
     });
 
-    // assign the accessors.
-    builder.setEnabled(enabled === "true");
-    builder.setHidden(hidden === "true");
-    builder.setUnlocked(unlocked === "true");
-
     // build the difficulty and add it to the running collection.
     const completeDifficulty = builder.build();
 
@@ -228,36 +268,30 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
 };
 
 /**
- * Extend this plugin's metadata with additional configurable data points.
+ * The key for the default difficulty.
+ * @type {string}
  */
-J.DIFFICULTY.Metadata = {
-  // the previously defined metadata.
-  ...J.DIFFICULTY.Metadata,
+J.DIFFICULTY.Metadata.DefaultDifficulty = J.DIFFICULTY.PluginParameters['defaultDifficulty'] || String.empty;
 
-  /**
-   * The key for the default difficulty.
-   * @type {string}
-   */
-  DefaultDifficulty: J.DIFFICULTY.PluginParameters['defaultDifficulty'] || String.empty,
-
-  /**
-   * The default point max for allocating difficulty layers.
-   */
-  DefaultLayerPointMax: parseInt(J.DIFFICULTY.PluginParameters['initialPoints']) || 0,
-};
+/**
+ * The default point max for allocating difficulty layers.
+ */
+J.DIFFICULTY.Metadata.DefaultLayerPointMax = parseInt(J.DIFFICULTY.PluginParameters['initialPoints']) || 0;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.DIFFICULTY.Aliased = {
   DataManager: new Map(),
+
+  Game_Actor: new Map(),
   Game_Enemy: new Map(),
   Game_Map: new Map(),
   Game_System: new Map(),
   Game_Temp: new Map(),
+
   Scene_Map: new Map(),
 };
-//endregion metadata
 
 //region plugin commands
 /**
@@ -265,7 +299,7 @@ J.DIFFICULTY.Aliased = {
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", () =>
 {
-  SceneManager.push(Scene_Difficulty);
+  Scene_Difficulty.callScene();
 });
 
 /**
@@ -356,4 +390,4 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args
   $gameSystem.modLayerPointMax(parsedAmount);
 });
 //endregion plugin commands
-//endregion introduction
+//endregion metadata

@@ -31,7 +31,7 @@ class BossFrameManager
    * Gets the current boss.
    * @returns {FramedTarget|null}
    */
-  static getBoss()
+  static getBossFrame()
   {
     return this.boss;
   }
@@ -40,7 +40,7 @@ class BossFrameManager
    * Sets the current boss to the given target.
    * @param {FramedTarget} boss The given target.
    */
-  static setBoss(boss)
+  static setBossFrame(boss)
   {
     // update the boss.
     this.boss = boss;
@@ -60,8 +60,103 @@ class BossFrameManager
     const bossTarget = this.#createBossFrameFromEventId(eventId);
 
     // set the boss.
-    this.setBoss(bossTarget);
+    this.setBossFrame(bossTarget);
   }
+
+  //region boss checking
+  /**
+   * Get the {@link Game_Battler} associated with this boss.
+   * @returns {Game_Battler|null}
+   */
+  static getBossGameBattler()
+  {
+    if (!this.boss) return null;
+
+    return this.boss.battler;
+  }
+
+  /**
+   * Get the {@link JABS_Battler} associated with this boss.
+   * @returns {JABS_Battler|null}
+   */
+  static getBossJabsBattler()
+  {
+    // if there is no boss, then there is no jabs battler.
+    if (!this.boss) return null;
+
+    // grab the underlying battler.
+    const gameBattler = this.getBossGameBattler();
+
+    // return the matching JABS battler.
+    return JABS_AiManager.getBattlerByUuid(gameBattler.getUuid());
+  }
+
+  /**
+   * Gets the boss's current percent of health.
+   * @returns {number}
+   */
+  static getBossHpPercent()
+  {
+    if (!this.boss) return 0;
+
+    return this.getBossGameBattler().currentHpPercent100();
+  }
+
+  /**
+   * Determines whether or not the boss is above a given hp percent threshold.
+   * @param {number} hpPercentThreshold The amount to check if the boss is inclusively above.
+   * @returns {boolean} True if the boss is above the given amount, false otherwise.
+   */
+  static isBossAboveHpThreshold(hpPercentThreshold)
+  {
+    // if there is no boss, then default to false.
+    if (!this.boss) return false;
+
+    // determine if the boss is above the threshold.
+    const aboveThreshold = this.getBossGameBattler().currentHpPercent100() >= hpPercentThreshold;
+
+    // return the result.
+    return aboveThreshold;
+  }
+
+  /**
+   * Determines whether or not the boss is below a given hp percent threshold.
+   * @param {number} hpPercentThreshold The amount to check if the boss is inclusively below.
+   * @returns {boolean} True if the boss is below the given amount, false otherwise.
+   */
+  static isBossBelowHpThreshold(hpPercentThreshold)
+  {
+    // if there is no boss, then default to false.
+    if (!this.boss) return false;
+
+    // determine if the boss is below the threshold.
+    const aboveThreshold = this.getBossGameBattler().currentHpPercent100() <= hpPercentThreshold;
+
+    // return the result.
+    return aboveThreshold;
+  }
+
+  /**
+   * Determines whether or not the boss is between two given hp percents.
+   * @param {number} lowerRange The lowest inclusive hp percent allowed.
+   * @param {number} upperRange The highest inclusive hp percent allowed.
+   * @returns {boolean} True if the boss is within the range, false otherwise.
+   */
+  static isBossWithinHpRange(lowerRange, upperRange)
+  {
+    // if there is no boss, then default to false.
+    if (!this.boss) return false;
+
+    // check where the battler's currently is at.
+    const hpPercent = this.getBossGameBattler().currentHpPercent100();
+
+    // determine if the boss is within the threshold.
+    const withinThreshold = lowerRange <= hpPercent <= upperRange;
+
+    // return the result.
+    return withinThreshold;
+  }
+  //endregion boss checking
 
   //region refresh
   /**

@@ -83,13 +83,16 @@ class JABS_AiManager
     // if we're not able to lead, then you have no followers.
     if (!leaderBattler.getAiMode().leader) return [];
 
-    // determine all nearby battlers.
-    const nearbyBattlers = this.getBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
+    // determine all nearby battlers of the same team.
+    const nearbyBattlers = this.getAlliedBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
 
     // the filter function for determining if a battler is a follower to this leader.
     /** @param battler {JABS_Battler} */
     const filtering = battler =>
     {
+      // actors are not considered for leader/follower.
+      if (battler.isActor()) return false;
+
       // grab the ai of the nearby battler.
       const { follower, leader } = battler.getAiMode();
 

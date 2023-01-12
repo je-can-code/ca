@@ -269,7 +269,7 @@ Game_Character.prototype.getJabsLoot = function()
 
 /**
  * Sets the loot data to the provided loot.
- * @param {object} data The loot data to assign to this character/event.
+ * @param {RPG_EquipItem|RPG_Item} data The loot data to assign to this character/event.
  */
 Game_Character.prototype.setJabsLoot = function(data)
 {

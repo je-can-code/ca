@@ -1078,25 +1078,34 @@ class Window_MonsterpediaDetail extends Window_Base
       return;
     }
 
+    // extract the data from the sdp drop.
     const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
 
-    const panel = $gameSystem.getSdpRankByKey(sdpKey);
+    // grab the corresponding panel with this key.
+    const panel = $gameSystem.getSdpByKey(sdpKey);
 
+    // if there is no panel, then don't try to render it.
     if (!panel) return;
 
+    // translate the drop chance to a percent.
     let dropText = `${sdpDropChance}%`;
 
+    // check if the panel is also already unlocked.
     if (panel.isUnlocked())
     {
+      // flip the text to a checkbox to indicate no need to seek it out.
       dropText = `✅`;
     }
 
+    // extract the item data associated with the panel.
     const { name, iconIndex } = $dataItems.at(sdpItemId);
 
+    // mask the name if applicable.
     const panelName = knowsParameters
       ? name
       : J.BASE.Helpers.maskString(name);
 
+    // render the parameter.
     this.drawEnemyParameter(
       x,
       y,

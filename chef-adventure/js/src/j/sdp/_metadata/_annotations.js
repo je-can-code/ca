@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v1.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -44,6 +44,8 @@
  * - SDP points for an actor cannot be reduced below 0.
  * - Stat Distribution Panels are unlocked for all members of the party.
  * - Stat Distribution Panels being leveled or maxed can unlock other SDPs.
+ *
+ * ============================================================================
  *
  * ============================================================================
  * SDP POINTS:
@@ -100,6 +102,8 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added new tag for unlocking panels on use of item.
  * - 1.2.3
  *    Updated JABS menu integration with help text.
  * - 1.2.2

@@ -436,7 +436,7 @@ JABS_Battler.prototype.getChargingTiers = function(slot)
   else
   {
     // get the skill from the slot.
-    skillId = battler.getEquippedSkill(slot);
+    skillId = battler.getEquippedSkillId(slot);
   }
 
   // if there is no skill id, then we cannot get any charge data from it.

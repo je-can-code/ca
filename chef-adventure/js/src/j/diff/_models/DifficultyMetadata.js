@@ -38,25 +38,16 @@ class DifficultyMetadata
 
   //region params
   /**
-   * The base/b-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * The various battler effects that apply against actors.
+   * @type {DifficultyBattlerEffects}
    */
-  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+  actorEffects = new DifficultyBattlerEffects();
 
   /**
-   * The secondary/s-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   * The various battler effects that apply against enemies.
+   * @type {DifficultyBattlerEffects}
    */
-  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The extraneous/x-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  enemyEffects = new DifficultyBattlerEffects();
   //endregion params
 
   //region bonuses

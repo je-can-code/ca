@@ -11,17 +11,9 @@ J.BASE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.BASE.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Base`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '2.1.3',
-};
+J.BASE.Metadata = {};
+J.BASE.Metadata.Name = `J-Base`;
+J.BASE.Metadata.Version = '2.1.3';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -38,18 +30,7 @@ J.BASE.Notetags = {
   NotRefinementMaterial: "notRefinementMaterial",
   NoRefinement: "noRefine",
 
-  // on enemies in database.
-  Drops: "drops",
-  EnemyLevel: "level",
-  OnOwnDefeat: "onOwnDefeat",
-  OnTargetDefeat: "onTargetDefeat",
-  PrepareTime: "prepare",
-  SdpPoints: "sdp",
-
   // on events on map.
-  BattlerId: "e",
-  AiCode: "ai",
-  Team: "team",
   Sight: "s",
   Pursuit: "p",
   MoveSpeed: "ms",

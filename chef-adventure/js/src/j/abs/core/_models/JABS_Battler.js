@@ -1502,7 +1502,7 @@ JABS_Battler.prototype.tryDodgeSkill = function()
   const battler = this.getBattler();
 
   // grab the skill id for the dodge slot.
-  const skillId = battler.getEquippedSkill(JABS_Button.Dodge);
+  const skillId = battler.getEquippedSkillId(JABS_Button.Dodge);
 
   // if we have no skill id in the dodge slot, then do not dodge.
   if (!skillId) return;
@@ -4760,7 +4760,7 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
   else
   {
     // then just grab the skill id in the slot.
-    skillId = battler.getEquippedSkill(slot);
+    skillId = battler.getEquippedSkillId(slot);
   }
 
   // return whichever skill id was found.
@@ -4776,7 +4776,7 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
 JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
 {
   // grab the item data.
-  const item = $dataItems[toolId];
+  const item = $dataItems.at(toolId);
 
   // grab this battler.
   const battler = this.getBattler();
@@ -4860,8 +4860,6 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   if (!isLoot && !$gameParty.items().includes(item))
   {
     // remove the item from the slot.
-    //battler.setEquippedSkill(JABS_Button.Tool, 0);
-
     battler.getSkillSlotManager().clearSlot(JABS_Button.Tool);
 
     // build a lot for it.
@@ -4869,9 +4867,6 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
       .setupUsedLastItem(item.id)
       .build();
     $gameTextLog.addLog(log);
-
-    // flag the slot for refresh.
-    //battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
   }
   else
   {
@@ -4905,7 +4900,7 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
   this.generatePopItem(gameAction, toolId);
 
   // show tool animation.
-  this.showAnimation($dataItems[toolId].animationId);
+  this.showAnimation($dataItems.at(toolId).animationId);
 };
 
 /**
@@ -4921,7 +4916,13 @@ JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = t
 
   // grab some shorthand variables for local use.
   const character = this.getCharacter();
-  const toolData = $dataItems[itemId];
+  const toolData = $dataItems.at(itemId);
+
+  if (toolData.sdpKey !== String.empty)
+  {
+    $jabsEngine.generatePopItemBulk([toolData], character);
+    return;
+  }
 
   // generate the textpop.
   const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
@@ -5011,6 +5012,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 
 /**
  * Creates the text log entry for executing an tool effect.
+ * @param {RPG_Item} item The tool being used in the log.
  */
 JABS_Battler.prototype.createToolLog = function(item)
 {
@@ -5356,10 +5358,13 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
   const battler = this.getBattler();
 
   // determine the skill in the given slot.
-  const skillId = battler.getEquippedSkill(cooldownKey);
+  const skillId = battler.getEquippedSkillId(cooldownKey);
 
   // if we have no skill to guard with, then we don't guard.
   if (!skillId) return null;
+
+  // if the skill isn't a guard skill, then it won't have guard data.
+  if (!JABS_Battler.isGuardSkillById(skillId)) return null;
 
   // get the skill.
   const skill = this.getSkill(skillId);
@@ -5382,7 +5387,7 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
 JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
 {
   // get the equipped skill in the given slot.
-  const skillId = this.getBattler().getEquippedSkill(cooldownKey);
+  const skillId = this.getBattler().getEquippedSkillId(cooldownKey);
 
   // if we don't hve a skill id, it isn't a guard skill.
   if (!skillId) return false;
@@ -5451,7 +5456,7 @@ JABS_Battler.prototype.startGuarding = function(skillSlot)
   if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 
   // set the pose!
-  const skillId = this.getBattler().getEquippedSkill(skillSlot);
+  const skillId = this.getBattler().getEquippedSkillId(skillSlot);
   this.performActionPose(this.getSkill(skillId));
 };
 

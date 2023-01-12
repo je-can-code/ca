@@ -6,7 +6,7 @@
 Game_Event.prototype.getValidCommentCommands = function()
 {
   // don't process if we have no event commands.
-  if (!this || !this.page().list || !this.list() || this.list().length === 0) return [];
+  if (!this.canGetValidCommentCommands()) return Array.empty;
 
   // otherwise, return the filtered list.
   return this.list().filter(command =>
@@ -20,6 +20,19 @@ Game_Event.prototype.getValidCommentCommands = function()
     // consider this comment valid if it passes, skip it otherwise.
     return J.BASE.RegExp.ParsableComment.test(comment);
   }, this);
+};
+
+/**
+ * Determines whether or not the parsable comment commands can be retrieved.
+ * @returns {boolean} True if they can be parsed, false otherwise.
+ */
+Game_Event.prototype.canGetValidCommentCommands = function()
+{
+  // if we are missing anything here, just don't try.
+  if (!this || !this.page() || !this.page().list || !this.list() || this.list().length === 0) return false;
+
+  // get those comment commands!
+  return true;
 };
 
 /**

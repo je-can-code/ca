@@ -31,7 +31,7 @@ Game_Enemy.prototype.canDropSdp = function()
   if (!this.hasSdpDropData()) return false;
 
   // grab the panel for shorthand reference below.
-  const panel = $gameSystem.getSdpRankByKey(this.enemy().sdpDropKey);
+  const panel = $gameSystem.getSdpByKey(this.enemy().sdpDropKey);
 
   // if the enemy has a panel that isn't defined, then don't drop it.
   if (!panel)
@@ -57,8 +57,13 @@ Game_Enemy.prototype.makeSdpDrop = function()
   // grab all the data points to build the SDP drop.
   const [key, chance, itemId] = this.getSdpDropData();
 
+  // if debug is enabled, panels should always drop.
+  const debugChance = $gameSystem.shouldForceDropSdp()
+    ? 10000000
+    : chance;
+
   // build the sdp drop item.
-  const sdpDrop = new RPG_DropItemBuilder().itemLoot(itemId, chance);
+  const sdpDrop = new RPG_DropItemBuilder().itemLoot(itemId, debugChance);
 
   // assign the drop item the key for the panel.
   sdpDrop.setSdpKey(key);

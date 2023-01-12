@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Dec 31 2022 09:06:19 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Mon Jan 02 2023 10:29:40 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -223,22 +223,13 @@ class Scene_Omnipedia extends Scene_MenuBase
 
   //region init
   /**
-   * Initialize the window and all properties required by the scene.
-   */
-  initialize()
-  {
-    // perform original logic.
-    super.initialize(this);
-
-    // also initialize our scene properties.
-    this.initMembers();
-  }
-
-  /**
    * Initialize all properties for our omnipedia.
    */
   initMembers()
   {
+    // perform original logic.
+    super.initMembers();
+
     // initialize the root-namespace definition members.
     this.initCoreMembers();
 

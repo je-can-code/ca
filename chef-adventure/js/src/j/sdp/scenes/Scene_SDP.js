@@ -309,7 +309,7 @@ class Scene_SDP extends Scene_MenuBase
     const actor = this._j._currentActor;
 
     // get the panel ranking from the actor.
-    const panelRanking = actor.getSdpRankByKey(panel.key);
+    const panelRanking = actor.getSdpByKey(panel.key);
 
     // determine the cost to rank up the panel.
     const panelRankupCost = panel.rankUpCost(panelRanking.currentRank);

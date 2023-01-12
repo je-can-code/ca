@@ -312,7 +312,7 @@ Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
  * @param {string} slot The slot to retrieve an equipped skill for.
  * @returns {number}
  */
-Game_Battler.prototype.getEquippedSkill = function(slot)
+Game_Battler.prototype.getEquippedSkillId = function(slot)
 {
   return this.getSkillSlot(slot).id;
 };
@@ -594,13 +594,23 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
   const state = assailant.state(stateId);
 
   // extract the base duration and icon index.
-  const { stepsToRemove: baseDuration, iconIndex } = state;
-
-  // extend our states per the one applying the states.
-  const bonusDuration = assailant.getStateDurationBoost(baseDuration);
+  const { removeByWalking, stepsToRemove: baseDuration, iconIndex } = state;
 
   // calculate the total duration of the state.
-  const totalDuration = baseDuration + bonusDuration;
+  let totalDuration = baseDuration;
+
+  // check if the state is removable by duration.
+  if (removeByWalking)
+  {
+    // extend our states per the one applying the states.
+    totalDuration += assailant.getStateDurationBoost(baseDuration);
+  }
+  // the state is not removable, so it is an eternal state.
+  else
+  {
+    // set the duration to -1 to flag it as an eternal state.
+    totalDuration = -1;
+  }
 
   // TODO: get this from the state?
   const stacks = 1;

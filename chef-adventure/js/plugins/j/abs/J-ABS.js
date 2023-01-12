@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jan 01 2023 14:02:38 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Wed Jan 11 2023 18:16:09 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -50,6 +50,10 @@
  * CHANGELOG:
  * - 3.2.2
  *    JABS quick menu how honors menu access via event control.
+ *    Actor-based JABS parameter retrieval has been refactored.
+ *    Enabled auto-counter for enemies.
+ *    Fixed issue where states weren't reapplied properly.
+ *    Fixed issue where inanimate battlers could endlessly alert allies.
  * - 3.2.1
  *    Refactored slip effects to accommodate the J-Passives update.
  *    Fixed issue where endlessly delaying actions would never expire.
@@ -1713,7 +1717,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -2090,7 +2094,7 @@ J.ABS.Notetags = {
  * All regular expressions used by this plugin.
  */
 J.ABS.RegExp = {
-  /* ON SKILLS */
+  //region ON SKILLS
   ActionId: /<actionId:[ ]?(\d+)>/gi,
 
   // pre-execution-related.
@@ -2148,9 +2152,9 @@ J.ABS.RegExp = {
   Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
   onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?[\d+]?])>/gi,
-  /* ON SKILLS */
+  //endregion ON SKILLS
 
-  /* ON EQUIPS */
+  //region ON EQUIPS
   // skill-related.
   SkillId: /<skillId:[ ]?(\d+)>/gi,
   OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
@@ -2160,14 +2164,14 @@ J.ABS.RegExp = {
 
   // parry-related.
   IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
-  /* ON EQUIPS */
+  //endregion ON EQUIPS
 
-  /* ON ITEMS */
+  //region ON ITEMS
   UseOnPickup: /<useOnPickup>/gi,
   Expires: /<expires:[ ]?(\d+)>/gi,
-  /* ON ITEMS */
+  //endregion ON ITEMS
 
-  /* ON STATES */
+  //region ON STATES
   // definition-related.
   Negative: /<negative>/gi,
 
@@ -2197,9 +2201,9 @@ J.ABS.RegExp = {
   StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
   StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
-  /* ON STATES */
+  //endregion ON STATES
 
-  /* ON EVENTS (for enemies) */
+  //region ON BATTLERS
   // core concepts.
   EnemyId: /<enemyId:[ ]?([0-9]*)>/i,
   TeamId: /<teamId:[ ]?([0-9]*)>/g,
@@ -2235,7 +2239,11 @@ J.ABS.RegExp = {
   ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
   ConfigNoName: /<jabsConfig:[ ]?noName>/i,
   ConfigShowName: /<jabsConfig:[ ]?showName>/i,
-  /* ON EVENTS (for enemies) */
+  //endregion ON BATTLERS
+
+  //region ON ACTORS/CLASSES
+  ConfigNoSwitch: /<noSwitch>/i,
+  //endregion ON ACTORS/CLASSES
 };
 
 /**
@@ -2647,7 +2655,7 @@ class JABS_Action
     if (this.hasSelfAnimationId())
     {
       // play it on oneself.
-      event.requestAnimation(this.getSelfAnimationId());
+      event?.requestAnimation(this.getSelfAnimationId());
     }
   }
 
@@ -2675,7 +2683,7 @@ class JABS_Action
    */
   performSelfAnimation()
   {
-    this.getActionSprite().requestAnimation(this.getSelfAnimationId());
+    this.getActionSprite()?.requestAnimation(this.getSelfAnimationId());
   }
 
   /**
@@ -5066,7 +5074,7 @@ JABS_Battler.prototype.tryDodgeSkill = function()
   const battler = this.getBattler();
 
   // grab the skill id for the dodge slot.
-  const skillId = battler.getEquippedSkill(JABS_Button.Dodge);
+  const skillId = battler.getEquippedSkillId(JABS_Button.Dodge);
 
   // if we have no skill id in the dodge slot, then do not dodge.
   if (!skillId) return;
@@ -8324,7 +8332,7 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
   else
   {
     // then just grab the skill id in the slot.
-    skillId = battler.getEquippedSkill(slot);
+    skillId = battler.getEquippedSkillId(slot);
   }
 
   // return whichever skill id was found.
@@ -8340,7 +8348,7 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
 JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
 {
   // grab the item data.
-  const item = $dataItems[toolId];
+  const item = $dataItems.at(toolId);
 
   // grab this battler.
   const battler = this.getBattler();
@@ -8424,8 +8432,6 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
   if (!isLoot && !$gameParty.items().includes(item))
   {
     // remove the item from the slot.
-    //battler.setEquippedSkill(JABS_Button.Tool, 0);
-
     battler.getSkillSlotManager().clearSlot(JABS_Button.Tool);
 
     // build a lot for it.
@@ -8433,9 +8439,6 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
       .setupUsedLastItem(item.id)
       .build();
     $gameTextLog.addLog(log);
-
-    // flag the slot for refresh.
-    //battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
   }
   else
   {
@@ -8469,7 +8472,7 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
   this.generatePopItem(gameAction, toolId);
 
   // show tool animation.
-  this.showAnimation($dataItems[toolId].animationId);
+  this.showAnimation($dataItems.at(toolId).animationId);
 };
 
 /**
@@ -8485,7 +8488,13 @@ JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = t
 
   // grab some shorthand variables for local use.
   const character = this.getCharacter();
-  const toolData = $dataItems[itemId];
+  const toolData = $dataItems.at(itemId);
+
+  if (toolData.sdpKey !== String.empty)
+  {
+    $jabsEngine.generatePopItemBulk([toolData], character);
+    return;
+  }
 
   // generate the textpop.
   const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
@@ -8575,6 +8584,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 
 /**
  * Creates the text log entry for executing an tool effect.
+ * @param {RPG_Item} item The tool being used in the log.
  */
 JABS_Battler.prototype.createToolLog = function(item)
 {
@@ -8920,10 +8930,13 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
   const battler = this.getBattler();
 
   // determine the skill in the given slot.
-  const skillId = battler.getEquippedSkill(cooldownKey);
+  const skillId = battler.getEquippedSkillId(cooldownKey);
 
   // if we have no skill to guard with, then we don't guard.
   if (!skillId) return null;
+
+  // if the skill isn't a guard skill, then it won't have guard data.
+  if (!JABS_Battler.isGuardSkillById(skillId)) return null;
 
   // get the skill.
   const skill = this.getSkill(skillId);
@@ -8946,7 +8959,7 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
 JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
 {
   // get the equipped skill in the given slot.
-  const skillId = this.getBattler().getEquippedSkill(cooldownKey);
+  const skillId = this.getBattler().getEquippedSkillId(cooldownKey);
 
   // if we don't hve a skill id, it isn't a guard skill.
   if (!skillId) return false;
@@ -9015,7 +9028,7 @@ JABS_Battler.prototype.startGuarding = function(skillSlot)
   if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 
   // set the pose!
-  const skillId = this.getBattler().getEquippedSkill(skillSlot);
+  const skillId = this.getBattler().getEquippedSkillId(skillSlot);
   this.performActionPose(this.getSkill(skillId));
 };
 
@@ -11295,7 +11308,7 @@ class JABS_InputAdapter
     if (!this.#canPerformToolAction(jabsBattler)) return;
 
     // grab the tool id currently equipped.
-    const toolId = jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool);
+    const toolId = jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool);
 
     // perform tool effects!
     jabsBattler.applyToolEffects(toolId);
@@ -11312,7 +11325,7 @@ class JABS_InputAdapter
     if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
 
     // if there is no tool equipped, then do not perform.
-    if (!jabsBattler.getBattler().getEquippedSkill(JABS_Button.Tool)) return false;
+    if (!jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool)) return false;
 
     // perform!
     return true;
@@ -11541,34 +11554,34 @@ class JABS_InputAdapter
  */
 class JABS_LootDrop
 {
-  constructor(object)
-  {
-    this._lootObject = object;
-    this.initMembers();
-  }
+  /**
+   * The duration that this loot drop will exist on the map.
+   * @type {number}
+   */
+  _duration = 900;
 
   /**
-   * Initializes properties of this object that don't require parameters.
+   * Whether or not this loot drop can expire.
+   * @type {boolean}
    */
-  initMembers()
+  _canExpire = true;
+
+  /**
+   * The universally unique identifier for this loot drop.
+   * @type {string}
+   */
+  _uuid = J.BASE.Helpers.shortUuid();
+
+  /**
+   * The underlying database object for the item or equip loot.
+   * Is null while unassigned.
+   * @type {RPG_EquipItem|RPG_Item|null}
+   */
+  _lootObject = null;
+
+  constructor(object)
   {
-    /**
-     * The duration that this loot drop will exist on the map.
-     * @type {number}
-     */
-    this._duration = 900;
-
-    /**
-     * Whether or not this loot drop can expire.
-     * @type {boolean}
-     */
-    this._canExpire = true;
-
-    /**
-     * The universally unique identifier for this loot drop.
-     * @type {string}
-     */
-    this._uuid = J.BASE.Helpers.generateUuid();
+    this.lootObject = object;
   }
 
   /**
@@ -11604,11 +11617,14 @@ class JABS_LootDrop
    */
   set duration(newDuration)
   {
+    // -1 is the magic duration means this loot stays forever.
     if (newDuration === -1)
     {
-      this._canExpire = false;
+      // disable this loot's expire functionality.
+      this.disableExpiration();
     }
 
+    // update the duration.
     this._duration = newDuration;
   }
 
@@ -11619,9 +11635,35 @@ class JABS_LootDrop
    */
   get expired()
   {
-    if (!this._canExpire) return false;
+    // if this loot cannot expire, then it is never expired.
+    if (!this.canExpire()) return false;
 
+    // return whether or not the duration has expired.
     return this._duration <= 0;
+  }
+
+  /**
+   * Set the underlying loot drop.
+   * @param {RPG_EquipItem|RPG_Item|null} newLootObject The loot that this drop represents.
+   */
+  set lootObject(newLootObject)
+  {
+    this._lootObject = newLootObject;
+  }
+
+  canExpire()
+  {
+    return this._canExpire;
+  }
+
+  enableExpiration()
+  {
+    this._canExpire = true;
+  }
+
+  disableExpiration()
+  {
+    this._canExpire = false;
   }
 
   /**
@@ -11629,9 +11671,25 @@ class JABS_LootDrop
    */
   countdownDuration()
   {
-    if (!this._canExpire || this._duration <= 0) return;
+    if (!this.canCountdownDuration()) return;
 
     this._duration--;
+  }
+
+  /**
+   * Determines whether or not this loot should countdown the duration.
+   * @returns {boolean} True if the loot should countdown, false otherwise.
+   */
+  canCountdownDuration()
+  {
+    // if already expired, do not countdown.
+    if (!this.canExpire()) return false;
+
+    // do not continue counting if duration has expired.
+    if (this.duration <= 0) return false;
+
+    // countdown the duration!
+    return true;
   }
 
   /**
@@ -12916,6 +12974,19 @@ class JABS_State
   }
 
   /**
+   * Determines whether or not the state should not expire by duration.
+   * @returns {boolean} True if this state should last until removed, false otherwise.
+   */
+  hasEternalDuration()
+  {
+    // "forever" states are states that have no duration aka -1.
+    if (this.#baseDuration !== -1) return false;
+
+    // this state should never expire unless removed explicitly.
+    return true;
+  }
+
+  /**
    * Refresh the recently applied counter.
    */
   refreshRecentlyAppliedCounter()
@@ -12939,8 +13010,8 @@ class JABS_State
     // remove stacks as-needed.
     this.decrementStacks();
 
-    // check if we should remove this state from the battler.
-    if (this.shouldRemoveFromBattler())
+    // check if we can and should remove this state from the battler.
+    if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler())
     {
       // actually remove the state from the battler.
       this.removeFromBattler();
@@ -12979,7 +13050,7 @@ class JABS_State
   decrementStacks()
   {
     // check if we are at 0 duration and have stacks remaining.
-    if (this.duration <= 0 && this.stackCount > 0)
+    if (this.duration <= 0 && this.stackCount > 0 && !this.hasEternalDuration())
     {
       // decrement the stack counter.
       this.stackCount--;
@@ -12997,13 +13068,16 @@ class JABS_State
    * Refreshes the duration of the state based on its original duration.
    * This does not refresh the recently applied counter.
    */
-  refreshDuration()
+  refreshDuration(newDuration = this.#baseDuration)
   {
     // refresh the duration.
-    this.duration = this.#baseDuration;
+    this.duration = newDuration;
 
     // unexpire the tracker.
     this.expired = false;
+
+    // flag this as recently applied.
+    this.#recentlyAppliedCounter = 6;
   }
 
   /**
@@ -13040,24 +13114,63 @@ class JABS_State
   }
 
   /**
-   * Whether or not we should remove this state from the battler.
+   * Determine if removing this state is even possible.
+   * @returns {boolean} True if it is removable, false otherwise.
+   */
+  canRemoveFromBattler()
+  {
+    // if the state afflicted is death, we can't remove it.
+    if (this.canHoldBecauseStateType()) return false;
+
+    // if the battler isn't afflicted with it, we can't remove it.
+    if (!this.battler.isStateAffected(this.stateId)) return false;
+
+    // its removable.
+    return true;
+  }
+
+  /**
+   * Determines whether or not this state should be removed because of its type.
+   * @returns {boolean}
+   */
+  canHoldBecauseStateType()
+  {
+    // if the state afflicted is death, we can't remove it.
+    if (this.stateId === this.battler.deathStateId()) return true;
+
+    // nothing is holding this state relating to its type of state.
+    return false;
+  }
+
+  /**
+   * Determines whether or not we should remove this state from the battler.
    * @returns {boolean} True if it should be removed, false otherwise.
    */
   shouldRemoveFromBattler()
   {
+    // if there are any stacks remaining, the stacks should be decremented first.
+    if (this.stackCount > 0) return false;
+
+    // if there is still time on the clock, we shouldn't remove it.
+    if (!this.shouldRemoveByDuration()) return false;
+
+    // purge it!
+    return true;
+  }
+
+  /**
+   * Determines whether or not this state should be removed because of its duration.
+   * @returns {boolean} True if the state should be removed, false otherwise.
+   */
+  shouldRemoveByDuration()
+  {
     // if there is still time on the clock, we shouldn't remove it.
     if (this.duration > 0) return false;
 
-    // if the state afflicted is death, we shouldn't remove it.
-    if (this.stateId === this.battler.deathStateId()) return false;
+    // if there is no time because it is an eternal state, we shouldn't remove it.
+    if (this.duration <= 0 && this.hasEternalDuration()) return false;
 
-    // if the battler isn't afflicted with it, we shouldn't remove it.
-    if (!this.battler.isStateAffected(this.stateId)) return false;
-
-    // if there are any stacks remaining, we shouldn't remove it.
-    if (this.stackCount > 0) return false;
-
-    // purge it!
+    // time is up!
     return true;
   }
 
@@ -13071,7 +13184,7 @@ class JABS_State
     const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
 
     // return whether or not the current duration is less than that.
-    return (this.duration <= aboutToExpireThreshold);
+    return (this.duration <= aboutToExpireThreshold && !this.hasEternalDuration());
   }
 
   /**
@@ -13081,7 +13194,7 @@ class JABS_State
   wasRecentlyApplied()
   {
     // return whether or not this state has been recently applied.
-    return (this.#recentlyAppliedCounter >= 0);
+    return (this.#recentlyAppliedCounter > 0);
   }
 }
 //endregion JABS_State
@@ -14844,7 +14957,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuard",
   {
     get: function()
     {
-      return this.getJabsGuard();
+      return this.getJabsGuard() ?? [0, 0];
     },
   });
 
@@ -16870,13 +16983,16 @@ class JABS_AiManager
     // if we're not able to lead, then you have no followers.
     if (!leaderBattler.getAiMode().leader) return [];
 
-    // determine all nearby battlers.
-    const nearbyBattlers = this.getBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
+    // determine all nearby battlers of the same team.
+    const nearbyBattlers = this.getAlliedBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
 
     // the filter function for determining if a battler is a follower to this leader.
     /** @param battler {JABS_Battler} */
     const filtering = battler =>
     {
+      // actors are not considered for leader/follower.
+      if (battler.isActor()) return false;
+
       // grab the ai of the nearby battler.
       const { follower, leader } = battler.getAiMode();
 
@@ -18243,6 +18359,7 @@ class JABS_AiManager
  */
 class JABS_Engine
 {
+  // TODO: implement them as a map.
   /**
    * A cached collection of actions keyed by their uuids.
    * @type {JABS_Timer, JABS_Action}
@@ -18250,11 +18367,19 @@ class JABS_Engine
   cachedActions = new Map();
 
   /**
+   * The events array of the enemy cloning map.
+   * @type {rm.types.Event[]|null}
+   */
+  static #enemyCloneList = null;
+
+  /**
    * @constructor
    */
   constructor()
   {
     this.initialize();
+
+    JABS_Engine.initializeEnemyMap();
   }
 
   //region properties
@@ -18499,7 +18624,9 @@ class JABS_Engine
      * A collection of the metadata of all action-type events.
      * @type {rm.types.Event[]}
      */
-    this._activeActions = isMapTransfer ? [] : this._activeActions ?? [];
+    this._activeActions = isMapTransfer
+      ? Array.empty
+      : this._activeActions ?? Array.empty;
 
     /**
      * True if we want to call the ABS-specific menu, false otherwise.
@@ -18537,7 +18664,9 @@ class JABS_Engine
      * A collection of all ongoing states that are affecting battlers on the map.
      * @type {Map<string, Map<number, JABS_State>>}
      */
-    this._jabsStates = new Map();
+    this._jabsStates = isMapTransfer
+      ? this._jabsStates ?? new Map()
+      : new Map();
   }
 
   /**
@@ -18585,8 +18714,7 @@ class JABS_Engine
   event(uuid)
   {
     return this._activeActions
-      .filter(eventData => eventData.uniqueId === uuid)
-      .at(0);
+      .find(eventData => eventData.uniqueId === uuid);
   }
 
   /**
@@ -19041,11 +19169,8 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
-    // refresh the duration to new max.
-    jabsState.duration = newJabsState.duration;
-
-    // undo expiration if it was expired.
-    jabsState.expired = false;
+    // refresh the duration of the existing state.
+    jabsState.refreshDuration(newJabsState.duration);
   }
 
   /**
@@ -19059,11 +19184,11 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
-    // refresh the duration to new max.
-    jabsState.duration += newJabsState.duration;
+    // calculate the new duration.
+    const newDuration = jabsState.duration + newJabsState.duration;
 
-    // undo expiration if it was expired.
-    jabsState.expired = false;
+    // refresh the duration of the state.
+    jabsState.refreshDuration(newDuration);
   }
 
   /**
@@ -19895,16 +20020,18 @@ class JABS_Engine
 
   /**
    * Adds the loot to the map.
-   * @param {number} targetX The `x` coordinate of the battler dropping the loot.
-   * @param {number} targetY The `y` coordinate of the battler dropping the loot.
+   * @param {number} x The `x` coordinate of the battler dropping the loot.
+   * @param {number} y The `y` coordinate of the battler dropping the loot.
    * @param {RPG_EquipItem|RPG_Item} item The loot's raw data object.
    */
-  addLootDropToMap(targetX, targetY, item)
+  addLootDropToMap(x, y, item)
   {
     // clone the loot data from the action map event id of 1.
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
-    lootEventData.x = targetX;
-    lootEventData.y = targetY;
+    console.log(lootEventData);
+
+    lootEventData.x = x;
+    lootEventData.y = y;
 
     // add the loot event to the datamap list of events.
     $dataMap.events[$dataMap.events.length] = lootEventData;
@@ -19929,6 +20056,86 @@ class JABS_Engine
     this.requestLootRendering = true;
     $gameMap.addEvent(lootEvent);
   }
+
+  //region adding an enemy to the map WIP
+  /**
+   * Generates an enemy and transplants it in the place of the corresponding index
+   * of the eventId on the battle map.
+   */
+  addEnemyToMap(x, y, enemyId)
+  {
+    // TODO: this is a work in progress, and not fully operational yet.
+    // TODO: enemies are not yet visible (though they do exist).
+    // TODO: updates to sprite_character required?
+
+    if (!JABS_Engine.#isEnemyMapInitialized())
+    {
+      JABS_Engine.initializeEnemyMap();
+    }
+
+    // grab the enemy event data to clone from.
+    const originalEnemyData = JABS_Engine.getEnemyCloneList().at(enemyId);
+
+    if (!originalEnemyData)
+    {
+      console.error(`The enemy id of [ ${enemyId} ] did not align with an event on the enemy clone map.`);
+
+      return;
+    }
+
+    // clone the enemy data from the enemy map.
+    /** @type {rm.types.Event} */
+    const enemyData = JsonEx.makeDeepCopy(originalEnemyData);
+
+    // assign our cloned event the original event's x and y coordinates.
+    enemyData.x = x;
+    enemyData.y = y;
+
+    // for usage in the arrays around the database, the 1st item of the arrays are null.
+    const normalizedIndex = $dataMap.events.length;
+
+    // update the metadata of the map with our data instead.
+    $dataMap.events[normalizedIndex] = enemyData;
+
+    // generate a new event based on this JABS enemy.
+    const newEnemy = new Game_Event($gameMap.mapId(), normalizedIndex);
+
+    // TODO: update this, this is almost certainly broken logic after the delete update!
+    // directly assign the event index to the enemies.
+    //$gameMap._events[index] = newEnemy;
+    $gameMap.addEvent(newEnemy);
+    newEnemy.refresh();
+  }
+
+  static getEnemyCloneList()
+  {
+    return this.#enemyCloneList;
+  }
+
+  static setEnemyCloneList(map)
+  {
+    this.#enemyCloneList = map;
+  }
+
+  static #isEnemyMapInitialized()
+  {
+    return !!this.#enemyCloneList;
+  }
+
+  static refreshEnemyMap()
+  {
+    this.setEnemyMap(null);
+
+    this.initializeEnemyMap();
+  }
+
+  static initializeEnemyMap()
+  {
+    const result = fetch("data/Map110.json")
+      .then(data => data.json())
+      .then(dataMap => JABS_Engine.setEnemyCloneList(dataMap.events));
+  }
+  //endregion adding an enemy to the map WIP
 
   /**
    * Applies an action against a designated target battler.
@@ -19980,14 +20187,30 @@ class JABS_Engine
       ? false // parry is cancelled.
       : this.checkParry(caster, target, action);
 
-    // check if the action was parried instead.
+    // grab the battler of the target.
     const targetBattler = target.getBattler();
-    if (!isUnparryable && isParried)
+
+    // check if the action is parryable and was parried.
+    if (isParried)
     {
-      // grab the result, clear it, and set the parry flag to true.
+      // grab the result.
       const result = targetBattler.result();
+
+      // when an action is parried, it gets completely undone.
       result.clear();
+
+      // flag the result for being parried.
       result.parried = true;
+    }
+
+    // check if the action was guarded.
+    if (target.guarding())
+    {
+      // grab the result.
+      const result = targetBattler.result();
+
+      // flag that the action was guarded.
+      result.guarded = true;
     }
 
     // apply the action to the target.
@@ -20463,6 +20686,9 @@ class JABS_Engine
    */
   canBeAlerted(attacker, battler)
   {
+    // cannot be alerted by inanimate battlers.
+    if (attacker.isInanimate()) return false;
+
     // cannot alert your own allies.
     if (attacker.isSameTeam(battler.getTeam())) return false;
 
@@ -20529,18 +20755,21 @@ class JABS_Engine
     // grab the action result.
     const actionResult = battler.getBattler().result();
 
+    // if auto-counter is available, then just do that.
+    this.handleAutoCounter(battler);
+
     // check if we need to perform any sort of countering.
-    const needsCounterParry = actionResult.parried && battler.counterParry().length;
+    const needsCounterParry = actionResult.parried;
+
+    // check if the action is parryable.
+    if (needsCounterParry)
+    {
+      // handle the battler's parry reaction.
+      this.handleCounterParry(battler);
+    }
 
     // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
     const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
-
-    // if we should be counter-parrying.
-    if (needsCounterParry)
-    {
-      // execute the counterparry.
-      this.doCounterParry(battler, JABS_Button.Offhand);
-    }
 
     // if we should be counter-guarding.
     if (needsCounterGuard)
@@ -20549,11 +20778,11 @@ class JABS_Engine
       this.doCounterGuard(battler, JABS_Button.Offhand);
     }
 
-    // if auto-counter is available, then just do that.
-    if (actionResult.parried)
-    {
-      this.handleAutoCounter(battler);
-    }
+    // TODO: is it unbalanced to auto-counter with every hit?
+    // if (actionResult.parried)
+    // {
+    //    this.handleAutoCounter(battler);
+    // }
 
     // grab all the retaliation skills for this battler.
     const retaliationSkills = battler.getBattler().retaliationSkills();
@@ -20570,6 +20799,38 @@ class JABS_Engine
         }
       })
     }
+  }
+
+  /**
+   * Handles the parry actions.
+   * @param {JABS_Battler} battler The battler to parry with.
+   */
+  handleCounterParry(battler)
+  {
+    // validate the battler can parry.
+    if (!this.canBattlerParry(battler)) return;
+
+    // execute the counterparry.
+    this.doCounterParry(battler, JABS_Button.Offhand);
+  }
+
+  /**
+   * Executes any retaliation the player may have when receiving a hit.
+   * @param {JABS_Battler} battler The battler doing the retaliating.
+   * @returns {boolean} True if the battler can parry, false otherwise.
+   */
+  canBattlerParry(battler)
+  {
+    // there is nothing to parry with if the battler has no parry ids.
+    if (battler.counterParry().length === 0) return false;
+
+    // the battler can parry!
+    return true;
+  }
+
+  handleCounterGuard(battler)
+  {
+
   }
 
   /**
@@ -22001,55 +22262,185 @@ class JABS_Engine
 
 //region Game_Action
 /**
- * OVERWRITE In the context of this `Game_Action`, for non-allies, it should
- * instead return the $dataEnemies data instead of the $gameTroop data because
- * the troop doesn't exist on the map.
+ * Overwrites {@link #subject}.
+ * On the map there is no context of a $gameTroop. This means that an
+ * action must accommodate both enemy and actor alike. In order to handle
+ * this, we check to see which id was set and respond accordingly.
+ *
+ * NOTE: The subject represents the battler who is performing this action.
+ * @returns {Game_Actor|Game_Enemy}
  */
+// TODO: should this be updated to use the battler's UUIDs instead?
 Game_Action.prototype.subject = function()
 {
+  // initialize the subject.
   let subject;
+
+  // determine if there was an actor id stored.
   if (this._subjectActorId > 0)
   {
-    subject = $gameActors.actor(this._subjectActorId)
+    // assign the subject to be the given actor.
+    subject = $gameActors.actor(this._subjectActorId);
   }
+  // it must've been an enemy.
   else
   {
+    // assign the subject to be the given enemy.
     subject = $gameEnemies.enemy(this._subjectEnemyIndex);
   }
+
+  // return the determined subject.
   return subject;
 };
 
 /**
- * OVERWRITE In the context of this `Game_Action`, overwrites the function for
- * setting the subject to reference the $dataEnemies, a new global object reference
- * for the database tab of enemies instead of referencing the troop.
- * @param {Game_Actor|Game_Enemy} subject The subject to work with.
+ * Overwrites {@link #setSubject}.
+ * On the map there is no context of a $gameTroop. This means that an
+ * action must accommodate both enemy and actor alike. In order to handle
+ * this, we check to see which id was set and respond accordingly.
+ *
+ * @param {Game_Actor|Game_Enemy} subject The subject to assign to this action.
  */
+// TODO: should this be updated to use the battler's UUIDs instead?
 Game_Action.prototype.setSubject = function(subject)
 {
-  if (subject.isActor())
+  // fancy if-else block.
+  switch (true)
   {
-    this._subjectActorId = subject.actorId();
-    this._subjectEnemyIndex = -1;
-  }
-  else if (subject.isEnemy())
-  {
-    this._subjectEnemyIndex = subject.enemyId();
-    this._subjectActorId = 0;
+    case (subject.isActor()):
+      // update the battler ids to show the caster is an actor.
+      this._subjectActorId = subject.battlerId();
+      this._subjectEnemyIndex = -1;
+      break;
+    case (subject.isEnemy()):
+      // update the battler ids to show the caster is an enemy.
+      this._subjectEnemyIndex = subject.battlerId();
+      this._subjectActorId = 0;
+      break;
   }
 };
 
+//region action application
 /**
- * Gets the parry rate for a given battler.
- * @param {Game_Battler} target The target to check the parry rate for.
+ * Overwrites {@link #apply}.
+ * Adjusts how a skill is applied to a target in the context of JABS.
+ * While JABS is disabled, the normal application is used instead.
  */
-Game_Action.prototype.itemPar = function(target)
+J.ABS.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
+Game_Action.prototype.apply = function(target)
 {
-  return (target.grd - 1).toFixed(3);
+  // check if JABS is enabled.
+  if ($jabsEngine.absEnabled)
+  {
+    // let JABS handle this.
+    this.applyJabsAction(target);
+  }
+  // JABS is not enabled.
+  else
+  {
+    // perform original logic.
+    J.ABS.Aliased.Game_Action.get('apply').call(this, target);
+  }
 };
 
 /**
- * Rounds the result of the damage calculations when executing skills.
+ * Applies a skill against the target.
+ * This is effectively Game_Action.apply, but with some adjustments to accommodate
+ * the fact that we're using this in an action battle system instead.
+ * @param {Game_Battler} target The target the skill is being applied to.
+ */
+Game_Action.prototype.applyJabsAction = function(target)
+{
+  // all the normal stuff that happens with Game_Action.apply() logic.
+  const result = target.result();
+  this.subject().clearResult();
+  result.clear();
+  result.used = this.testApply(target);
+  result.evaded = this.isHitEvaded(target);
+  result.physical = this.isPhysical();
+  result.drain = this.isDrain();
+
+  // validate we landed a hit.
+  if (result.isHit())
+  {
+    // check if there is a damage formula.
+    if (this.item().damage.type > 0)
+    {
+      // determine if its a critical hit.
+      result.critical = this.isHitCritical(target);
+
+      // calculate the damage.
+      const value = this.makeDamageValue(target, result.critical);
+
+      // actually apply the damage to the target.
+      this.executeDamage(target, value);
+    }
+
+    // add the subject who is applying the state as a parameter for tracking purposes.
+    this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
+
+    // applies on-cast/on-hit effects, like gaining TP or producing on-cast states.
+    this.applyItemUserEffect(target);
+
+    // applies common events that may be a part of a skill's effect.
+    this.applyGlobal();
+  }
+
+  // also update the last target hit.
+  this.updateLastTarget(target);
+};
+
+/**
+ * Calculates whether or not this action is evaded by the target.
+ * @param {Game_Battler} target The target the skill is being applied to.
+ * @returns {boolean} True if this action was evaded, false otherwise.
+ */
+Game_Action.prototype.isHitEvaded = function(target)
+{
+  // hit rate gets a bonus between 0-1.
+  const hitRate = Math.random() + this.itemHit();
+
+  // grab the evade rate of the target based on the action.
+  const evadeRate = this.itemEva(target);
+
+  // determine if the hit was evaded.
+  const evaded = (hitRate - evadeRate) <= 0;
+
+  // return our outcome.
+  return evaded;
+};
+
+/**
+ * Calculates whether or not this action is a critical hit against the target.
+ * @param {Game_Battler} target The target the skill is being applied to.
+ * @returns {boolean} True if this action was critical, false otherwise.
+ */
+Game_Action.prototype.isHitCritical = function(target)
+{
+  return Math.random() < this.itemCri(target);
+};
+
+/**
+ * Overwrites {@link #itemHit}.
+ * This overwrite converts the success rate of a skill into the value
+ * representing what percent of your hit is used in the hit chance formula.
+ * @returns {number}
+ */
+Game_Action.prototype.itemHit = function()
+{
+  // success is a multiplier against the hitrate.
+  const successFactor = this.item().successRate * 0.01;
+
+  // calculate the hitrate factor.
+  const hitRate = successFactor * this.subject().hit;
+
+  // return the hitrate factor.
+  return hitRate;
+};
+
+/**
+ * Extends {@link #makeDamageValue}.
+ * Includes consideration of guard effects of the target.
  */
 J.ABS.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
 Game_Action.prototype.makeDamageValue = function(target, critical)
@@ -22057,21 +22448,39 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
   // perform original logic.
   let base = J.ABS.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
 
-  // check if the player is the target.
-  if ($jabsEngine.isBattlerPlayer1(target))
+  // validate we have a target.
+  if (this.canHandleGuardEffects(target))
   {
-    // currently, only the player can properly defend like this.
-    base = this.handleGuardEffects(base, $jabsEngine.getPlayer1());
+    // grab the guarding
+    const guardingJabsBattler = JABS_AiManager.getBattlerByUuid(target.getUuid());
+
+    // apply guard damage modifiers.
+    base = this.handleGuardEffects(base, guardingJabsBattler);
   }
 
   // return the damage output.
   return base;
 };
 
+//region guard-related damage modification
+/**
+ * Determines whether or not the action should consider guard effects.
+ * @param {Game_Battler} target The target considering guard effects.
+ * @returns {boolean} True if guard effects should be considered, false otherwise.
+ */
+Game_Action.prototype.canHandleGuardEffects = function(target)
+{
+  // if there is no target, then the target cannot guarding.
+  if (!target) return false;
+
+  // handle guarding!
+  return true;
+};
+
 /**
  * Handles all guard-related effects, such as parrying or guarding.
  * @param {number} damage The amount of damage before damage reductions.
- * @param {JABS_Battler} jabsBattler The battler potentially doing guard things..
+ * @param {JABS_Battler} jabsBattler The battler potentially doing guard things.
  * @returns {number} The amount of damage after damage reductions from guarding.
  */
 Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
@@ -22104,71 +22513,6 @@ Game_Action.prototype.handleGuardEffects = function(damage, jabsBattler)
 
   // if there was no guarding or parrying happen, just return the original damage.
   return damage;
-};
-
-/**
- * OVERWRITE Rewrites the handling of applying states to targets.
- *
- * Passes the attacker as another data point to the application of state.
- * @param {Game_Battler} target The target.
- * @param {rm.types.Effect} effect The potential effect to add.
- */
-Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
-{
-  for (const stateId of this.subject().attackStates())
-  {
-    let chance = effect.value1;
-    chance *= target.stateRate(stateId);
-    chance *= this.subject().attackStatesRate(stateId);
-    chance *= this.lukEffectRate(target);
-    if (Math.random() < chance)
-    {
-      target.addState(stateId, this.subject());
-      this.makeSuccess(target);
-    }
-  }
-};
-
-/**
- * OVERWRITE Rewrites the handling of applying states to targets.
- *
- * Passes the attacker as another data point to the application of state.
- * @param {Game_Battler} target The target.
- * @param {rm.types.Effect} effect The potential effect to add.
- */
-Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
-{
-  let chance = effect.value1;
-  if (!this.isCertainHit())
-  {
-    chance *= target.stateRate(effect.dataId);
-    chance *= this.lukEffectRate(target);
-  }
-  if (Math.random() < chance)
-  {
-    target.addState(effect.dataId, this.subject());
-    this.makeSuccess(target);
-  }
-};
-
-/**
- * Intercepts the action result and prevents adding states entirely if precise-parried
- * by the player.
- */
-J.ABS.Aliased.Game_Action.set('itemEffectAddState', Game_Action.prototype.itemEffectAddState);
-Game_Action.prototype.itemEffectAddState = function(target, effect)
-{
-  if ($jabsEngine.isBattlerPlayer1(target))
-  {
-    // if it is the player, peek at the result before applying.
-    const result = $jabsEngine.getPlayer1().getBattler().result();
-
-    // if the player precise-parried the action, no status effects applied.
-    if (result.parried) return;
-  }
-
-  // if the precise-parry-state-prevention wasn't successful, apply as usual.
-  J.ABS.Aliased.Game_Action.get('itemEffectAddState').call(this, target, effect);
 };
 
 /**
@@ -22266,8 +22610,8 @@ Game_Action.prototype.calculateGuardDamageReduction = function(jabsBattler, orig
   let modifiedDamage = originalDamage;
 
   // reduce the damage accordingly per the guard data- percent then flat.
-  modifiedDamage = this.percDamageReduction(modifiedDamage, jabsBattler);
-  modifiedDamage = this.flatDamageReduction(modifiedDamage, jabsBattler);
+  modifiedDamage = this.applyPercentDamageReduction(modifiedDamage, jabsBattler);
+  modifiedDamage = this.applyFlatDamageReduction(modifiedDamage, jabsBattler);
 
   // return the guard-modified damage.
   return modifiedDamage;
@@ -22296,16 +22640,16 @@ Game_Action.prototype.getTpFromGuardSkill = function(jabsBattler)
 /**
  * Reduces damage of a value if defending- by a flat amount.
  * @param {number} base The base damage value to modify.
- * @param {JABS_Battler} player The player's JABS battler.
+ * @param {JABS_Battler} jabsBattler The battler.
  * @returns {number} The damage after reduction.
  */
-Game_Action.prototype.flatDamageReduction = function(base, player)
+Game_Action.prototype.applyFlatDamageReduction = function(base, jabsBattler)
 {
   // calculate the flat reduction.
-  const reduction = parseFloat(player.flatGuardReduction());
+  const reduction = parseFloat(jabsBattler.flatGuardReduction());
 
   // grab the action result for updating.
-  const result = player.getBattler().result();
+  const result = jabsBattler.getBattler().result();
 
   // take note of the flat amount reduced in the action result.
   result.reduced += reduction;
@@ -22323,7 +22667,7 @@ Game_Action.prototype.flatDamageReduction = function(base, player)
  * @param {JABS_Battler} jabsBattler The battler reducing damage.
  * @returns {number} The damage after reduction.
  */
-Game_Action.prototype.percDamageReduction = function(baseDamage, jabsBattler)
+Game_Action.prototype.applyPercentDamageReduction = function(baseDamage, jabsBattler)
 {
   // calculate the percent reduction.
   const reduction = parseFloat(baseDamage - ((100 + jabsBattler.percGuardReduction()) / 100) * baseDamage);
@@ -22340,132 +22684,188 @@ Game_Action.prototype.percDamageReduction = function(baseDamage, jabsBattler)
   // return the reduced amount of damage.
   return percentReducedDamage;
 };
+//endregion guard-related damage modification
 
+//region state-related effect application
 /**
- * OVERWRITE Replaces the hitrate formula with a standardized one that
- * makes it so the default is NOT to miss with half of your swings just
- * because you don't have +100% hit rate on every single skill.
- * @returns {number}
+ * Extends {@link #itemEffectAddState}.
+ * Adds a conditional check to see if adding state-related effects is allowed
+ * against the target.
+ * @param {Game_Battler} target The target battler potentially being afflicted.
+ * @param {rm.types.Effect} effect The effect being applied to the target.
  */
-Game_Action.prototype.itemHit = function()
+J.ABS.Aliased.Game_Action.set('itemEffectAddState', Game_Action.prototype.itemEffectAddState);
+Game_Action.prototype.itemEffectAddState = function(target, effect)
 {
-  // success is a multiplier against the hitrate.
-  const successFactor = this.item().successRate * 0.01;
+  // check if we are able to apply state-related effects.
+  if (!this.canItemEffectAddState(target, effect)) return;
 
-  // calculate the hitrate factor.
-  const hitRate = successFactor * this.subject().hit;
-
-  // return the hitrate factor.
-  return hitRate;
+  // if the precise-parry-state-prevention wasn't successful, apply as usual.
+  J.ABS.Aliased.Game_Action.get('itemEffectAddState').call(this, target, effect);
 };
 
 /**
- * OVERWRITE Alters this functionality to be determined by attacker's hit vs target's evade.
- * @param {Game_Battler} target The target of this action.
- * @returns {number}
- */
-Game_Action.prototype.itemEva = function(target)
-{
-  switch (true)
-  {
-    case (this.isPhysical()):
-      return target.eva;
-    case (this.isMagical()):
-      return target.mev;
-    default:
-      return 0;
-  }
-};
-
-/**
- * OVERWRITE Adjusts how a skill is applied against the target in the context of JABS.
- */
-J.ABS.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
-Game_Action.prototype.apply = function(target)
-{
-  // check if JABS is enabled.
-  if ($jabsEngine.absEnabled)
-  {
-    // let JABS handle this.
-    this.applyJabsSkill(target);
-  }
-  // JABS is not enabled.
-  else
-  {
-    // perform original logic.
-    J.ABS.Aliased.Game_Action.get('apply').call(this, target);
-  }
-};
-
-/**
- * Applies a skill against the target.
- * This is effectively Game_Action.apply, but with some adjustments to accommodate
- * the fact that we're using this in an action battle system instead.
+ * Determines whether or not the state from the effect of a skill or item can be applied
+ * against the target. This is not a check of state resistances, but a check of whether
+ * or not the application of state effects of any kind are allowed.
  *
- * "Missed" is no longer a possibility. It is false 100% of the time.
- * @param {Game_Battler} target The target the skill is being applied to.
+ * By default, if an action is parried, then its states are not applied to the target.
+ * @param {Game_Battler} target The target battler potentially being afflicted.
+ * @param {rm.types.Effect} effect The effect being applied to the target.
  */
-Game_Action.prototype.applyJabsSkill = function(target)
+// eslint-disable-next-line no-unused-vars
+Game_Action.prototype.canItemEffectAddState = function(target, effect)
 {
-  // all the normal stuff that happens with Game_Action.apply() logic.
-  const result = target.result();
-  this.subject().clearResult();
-  result.clear();
-  result.used = this.testApply(target);
-  result.evaded = !this.calculateHitSuccess(target);
-  result.physical = this.isPhysical();
-  result.drain = this.isDrain();
+  // if the target parried the result, then its state-related effects do not apply.
+  if (target.result()?.parried) return false;
 
-  // validate we landed a hit.
-  if (result.isHit())
-  {
-    // check if there is a damage formula.
-    if (this.item().damage.type > 0)
-    {
-      // determine if its a critical hit.
-      result.critical = Math.random() < this.itemCri(target);
-
-      // calculate the damage.
-      const value = this.makeDamageValue(target, result.critical);
-
-      // actually apply the damage to the target.
-      this.executeDamage(target, value);
-    }
-
-    // add the subject who is applying the state as a parameter for tracking purposes.
-    this.item().effects.forEach(effect => this.applyItemEffect(target, effect));
-
-    // applies on-cast/on-hit effects, like gaining TP or producing on-cast states.
-    this.applyItemUserEffect(target);
-
-    // applies common events that may be a part of a skill's effect.
-    this.applyGlobal();
-  }
-
-  // also update the last target hit.
-  this.updateLastTarget(target);
+  // see if the state-related effects are applied!
+  return true;
 };
 
 /**
- * Calculates whether or not the attacker was precise enough to land the hit.
- * If this returns false, the result is that the skill was evaded.
- * @param {Game_Battler} target The target the skill is being applied to.
- * @returns {boolean}
+ * Overwrites {@link #itemEffectAddAttackState}.
+ * When a "Normal Attack" effect is used and a state is applied, then
+ * all of the battler's attack states have an opportunity to be applied
+ * based on all the various rates and calculations.
+ *
+ * DEV NOTE:
+ * It was frustrating that this needed an entire replacement just to
+ * inject the battler.
+ * @param {Game_Battler} target The target.
+ * @param {rm.types.Effect} effect The potential effect to add.
  */
-Game_Action.prototype.calculateHitSuccess = function(target)
+Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
 {
-  // hit rate gets a bonus between 0-1.
-  const hitRate = Math.random() + this.itemHit();
+  // grab all the attacker's state ids.
+  const attackerStateIds = this.subject().attackStates();
 
-  // grab the evade rate of the target based on the action.
-  const evadeRate = this.itemEva(target);
+  // if there are no attacker state ids, then don't process anything.
+  if (!attackerStateIds.length) return;
 
-  // determine the success.
-  const success = (hitRate - evadeRate) > 0;
+  // extract the date point.
+  const { value1: chance } = effect;
 
-  // return our outcome.
-  return success;
+  // an iterator function for how to check and apply a state.
+  const forEacher = stateId =>
+  {
+    // handle the application of the state- if applicable.
+    this.handleApplyState(target, stateId, chance, true);
+  };
+
+  // run the logic against all the attacker's own states.
+  attackerStateIds.forEach(forEacher, this);
 };
+
+/**
+ * Overwrites {@link #itemEffectAddNormalState}.
+ * Updates the method to be more modifyable, and considers attackers
+ * when applying states.
+ *
+ * Passes the attacker as another data point to the application of state.
+ * @param {Game_Battler} target The target.
+ * @param {rm.types.Effect} effect The potential effect to add.
+ */
+Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
+{
+  // extract the data points.
+  const { value1: chance, dataId: stateId } = effect;
+
+  // handle the application of the state- if applicable.
+  this.handleApplyState(target, stateId, chance, false);
+};
+
+/**
+ *
+ * @param {Game_Battler} target The target.
+ * @param {number} stateId The id of the state being applied.
+ * @param {number} chance The base chance the state will be applied.
+ * @param {boolean} useAttackerStateRate Whether or not the attacker's state rate should apply.
+ */
+Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAttackerStateRate)
+{
+  // check if we applied the state.
+  if (this.shouldApplyState(target, stateId, chance, useAttackerStateRate))
+  {
+    // apply the state.
+    this.applyStateEffect(target, stateId);
+  }
+};
+
+/**
+ * Determines whether or not the state should be applied to the target.
+ * @param {Game_Battler} target The battler being afflicted with the state.
+ * @param {number} stateId The id of the state being applied.
+ * @param {number} baseChance The decimal base chance of applying the state.
+ * @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
+ * @returns {boolean} True if the state should be applied to the target, false otherwise.
+ */
+Game_Action.prototype.shouldApplyState = function(target, stateId, baseChance, useAttackerStateRate = false)
+{
+  // initialize the application modifier to 100%.
+  let applicationModifier = 1.00;
+
+  // check if we're applying the attacker's state rate against the base chance.
+  if (useAttackerStateRate)
+  {
+    // apply the chance of success for this particular state from the attacker.
+    applicationModifier *= this.subject().attackStatesRate(stateId);
+  }
+
+  // determine whether or not we should apply target resistances for this action.
+  if (this.shouldTargetApplyResistances())
+  {
+    // apply the target's own state resistance rates against the state.
+    applicationModifier *= target.stateRate(stateId);
+  }
+
+  // apply the action's luck modifier based on the two battlers.
+  applicationModifier *= this.lukEffectRate(target);
+
+  // calculate the chance.
+  const calculatedChance = baseChance * applicationModifier;
+
+  // convert the result into a rounded base-100 number.
+  const d100 = Math.round(calculatedChance * 100);
+
+  // roll d100.
+  const shouldApplyState = RPGManager.chanceIn100(d100);
+
+  // return the result.
+  return shouldApplyState;
+};
+
+/**
+ * Determines whether or not the direct application of a state should be
+ * resisted by a target.
+ *
+ * The default implementation is to ignore resistances only for skills/items that
+ * are of type "certain hit" in the database.
+ * @returns {boolean} True if the resistances should be applied, false otherwise.
+ */
+Game_Action.prototype.shouldTargetApplyResistances = function()
+{
+  // certain hits ignore target's state application modifiers and luck impacts!
+  if (this.isCertainHit()) return false;
+
+  return true;
+};
+
+/**
+ * Applies a state to a given target.
+ * @param {Game_Battler} target The target having the state applied to.
+ * @param {number} stateId The id of the staate being applied.
+ */
+Game_Action.prototype.applyStateEffect = function(target, stateId)
+{
+  // apply the state with the attacker.
+  target.addState(stateId, this.subject());
+
+  // flag the result as "success" of applying a state.
+  this.makeSuccess(target);
+};
+//endregion state-related effect application
+//endregion action application
 //endregion Game_Action
 
 //region Game_ActionResult
@@ -22476,6 +22876,12 @@ Game_Action.prototype.calculateHitSuccess = function(target)
 J.ABS.Aliased.Game_ActionResult.set('initialize', Game_ActionResult.prototype.initialize);
 Game_ActionResult.prototype.initialize = function()
 {
+  /**
+   * Whether or not the result was guarded.
+   * @type {boolean}
+   */
+  this.guarded = false;
+
   /**
    * Whether or not the result was parried.
    * @type {boolean}
@@ -22502,6 +22908,7 @@ Game_ActionResult.prototype.clear = function()
   J.ABS.Aliased.Game_ActionResult.get('clear').call(this);
 
   // refresh our custom parameters.
+  this.guarded = false;
   this.parried = false;
   this.reduced = 0;
 };
@@ -22810,219 +23217,135 @@ Game_Actor.prototype.prepareTime = function()
 };
 
 /**
+ * Extracts the JABS-related parameter from this actor's class, and
+ * falls back to the actor data itself.
+ * @param {RegExp} structure The parameter's regexp to search for.
+ * @param {number} defaultValue The default value to fallback to.
+ * @returns {number}
+ */
+Game_Actor.prototype.getJabsParameter = function(structure, defaultValue)
+{
+  // grab the class data from the actor.
+  const classData = this.currentClass();
+
+  // check if the class has sight on it.
+  if (classData.getNumberFromNotesByRegex(structure))
+  {
+    // return the sight from the class.
+    return classData.getNumberFromNotesByRegex(structure)
+  }
+
+  // grab the data for this actor.
+  const actorData = this.actor();
+
+  // if there is no class prepare tag, then look to the actor.
+  if (actorData.getNumberFromNotesByRegex(structure))
+  {
+    // return the sight from the battler.
+    return actorData.getNumberFromNotesByRegex(structure);
+  }
+
+  return defaultValue;
+};
+
+/**
  * Gets the sight range for this actor.
- * Looks first to the class, then the actor for the tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.sightRange = function()
 {
-  let val = Game_Battler.prototype.sightRange.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.sightRange.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Sight]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.Sight,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.Sight]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<s:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted sight boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertedSightBoost = function()
 {
-  let val = Game_Battler.prototype.alertedSightBoost.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertedSightBoost.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertedSightBoost,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertSightBoost]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<as:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted pursuit boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.pursuitRange = function()
 {
-  let val = Game_Battler.prototype.pursuitRange.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.pursuitRange.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Pursuit]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.Pursuit,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.Pursuit]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<p:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted pursuit boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertedPursuitBoost = function()
 {
-  let val = Game_Battler.prototype.alertedPursuitBoost.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertedPursuitBoost.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertedPursuitBoost,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ap:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alert duration for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertDuration = function()
 {
-  let val = Game_Battler.prototype.alertDuration.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertDuration.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertDuration]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertDuration,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertDuration]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the ai of the actor.
- * Though allies leverage ally ai for action decision making, this AI does
- * have one effect: how to move around and stuff throughout the phases.
+ * This is only implemented in JABS Ally AI.
  * @returns {null}
  */
 Game_Actor.prototype.ai = function()
 {
-  return new JABS_EnemyAI();
+  return null;
 };
 
 /**
@@ -23042,12 +23365,16 @@ Game_Actor.prototype.canIdle = function()
  */
 Game_Actor.prototype.showHpBar = function()
 {
-  return false;
+  // leaders do not reveal their HP bar.
+  if (this.isLeader()) return false;
+
+  // show the HP!
+  return true;
 };
 
 /**
  * Gets whether or not the actor's name will show below their character.
- * Actors never show their name (the use HUDs for that).
+ * Actors never show their name.
  * @returns {boolean}
  */
 Game_Actor.prototype.showBattlerName = function()
@@ -23067,7 +23394,7 @@ Game_Actor.prototype.isInvincible = function()
 
 /**
  * Gets whether or not the actor is inanimate.
- * Actors are never inanimate (duh).
+ * Actors are never inanimate.
  * @returns {boolean}
  */
 Game_Actor.prototype.isInanimate = function()
@@ -23082,52 +23409,23 @@ Game_Actor.prototype.isInanimate = function()
  */
 Game_Actor.prototype.teamId = function()
 {
-  let val = JABS_Battler.allyTeamId();
-
-  const referenceData = this.databaseData();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Team];
-  }
-  else
-  {
-    const structure = /<team:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
+  return JABS_Battler.allyTeamId();
 };
 
 /**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
+ * Checks if this actor has anything that is preventing party cycling.
+ * @returns {boolean} True if party cycling is blocked, false otherwise.
  */
 Game_Actor.prototype.switchLocked = function()
 {
+  // grab all the things that could have this tag.
   const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
 
+  // check if any of the things have this tag on it.
+  const switchLocked = objectsToCheck
+    .some(object => object.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoSwitch));
+
+  // return the result.
   return switchLocked;
 };
 //endregion JABS battler properties
@@ -23448,7 +23746,7 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
   if (emptySlots.length === 0) return;
 
   // extract the key of the empty slot to be assigned.
-  const { key } = emptySlots.at(0).key;
+  const { key } = emptySlots.at(0);
 
   // assign the given skill to the slot.
   this.setEquippedSkill(key, skillId);
@@ -23854,7 +24152,7 @@ Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
  * @param {string} slot The slot to retrieve an equipped skill for.
  * @returns {number}
  */
-Game_Battler.prototype.getEquippedSkill = function(slot)
+Game_Battler.prototype.getEquippedSkillId = function(slot)
 {
   return this.getSkillSlot(slot).id;
 };
@@ -24136,13 +24434,23 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
   const state = assailant.state(stateId);
 
   // extract the base duration and icon index.
-  const { stepsToRemove: baseDuration, iconIndex } = state;
-
-  // extend our states per the one applying the states.
-  const bonusDuration = assailant.getStateDurationBoost(baseDuration);
+  const { removeByWalking, stepsToRemove: baseDuration, iconIndex } = state;
 
   // calculate the total duration of the state.
-  const totalDuration = baseDuration + bonusDuration;
+  let totalDuration = baseDuration;
+
+  // check if the state is removable by duration.
+  if (removeByWalking)
+  {
+    // extend our states per the one applying the states.
+    totalDuration += assailant.getStateDurationBoost(baseDuration);
+  }
+  // the state is not removable, so it is an eternal state.
+  else
+  {
+    // set the duration to -1 to flag it as an eternal state.
+    totalDuration = -1;
+  }
 
   // TODO: get this from the state?
   const stacks = 1;
@@ -24592,7 +24900,7 @@ Game_Character.prototype.getJabsLoot = function()
 
 /**
  * Sets the loot data to the provided loot.
- * @param {object} data The loot data to assign to this character/event.
+ * @param {RPG_EquipItem|RPG_Item} data The loot data to assign to this character/event.
  */
 Game_Character.prototype.setJabsLoot = function(data)
 {
@@ -29728,14 +30036,36 @@ Sprite_Character.prototype.setupLootSprite = function()
   // flag this character is "through", so they don't block movement of others.
   this._character._through = true;
 
-  // create and assign the image sprite icon.
-  this._j._loot._sprite = this.createLootSprite();
+  // create the image sprite icon.
+  const lootSprite = this.createLootSprite();
+
+  // assign the image sprite icon.
+  this.setLootSprite(lootSprite);
 
   // add it to this sprite's tracking.
-  this.addChild(this._j._loot._sprite);
+  this.addChild(lootSprite);
 
   // flag this character as finalized for the purpose of loot-related updates.
   this.finalizeLootSetup();
+};
+
+/**
+ * Gets the loot sprite associated with this character.
+ * Will return null if there is no loot.
+ * @returns {Sprite_Icon|null}
+ */
+Sprite_Character.prototype.getLootSprite = function()
+{
+  return this._j._loot._sprite;
+};
+
+/**
+ * Sets the loot sprite associated with this character.
+ * @param {Sprite_Icon} sprite The icon sprite for this loot.
+ */
+Sprite_Character.prototype.setLootSprite = function(sprite)
+{
+  this._j._loot._sprite = sprite;
 };
 
 /**
@@ -29887,7 +30217,7 @@ Sprite_Character.prototype.expireLoot = function()
 };
 
 /**
- *
+ * Handles the float effect of the loot while on the map.
  */
 Sprite_Character.prototype.handleLootFloat = function()
 {
@@ -29906,7 +30236,7 @@ Sprite_Character.prototype.handleLootFloat = function()
 Sprite_Character.prototype.canUpdateLootFloat = function()
 {
   // if we have no sprite, we can't update it.
-  if (!this._j._loot._sprite) return false;
+  if (!this.getLootSprite()) return false;
 
   // if the loot is expired, we can't update it.
   if (this.getLootExpired()) return false;
@@ -29920,28 +30250,27 @@ Sprite_Character.prototype.canUpdateLootFloat = function()
  */
 Sprite_Character.prototype.lootFloat = function()
 {
-  // grab the sprite for floaty goodness- if we have one.
-  const lootSprite = this._j._loot._sprite;
-
   // Lets swing up and down a bit.
   if (this.lootSwing())
   {
     // ~swing up!
-    this.lootFloatUp(lootSprite);
+    this.lootFloatUp();
   }
   else
   {
     // !swing down~
-    this.lootFloatDown(lootSprite);
+    this.lootFloatDown();
   }
 };
 
 /**
  * The downswing of a loot sprite while floating.
- * @param {Sprite} lootSprite The sprite to give a float effect.
  */
-Sprite_Character.prototype.lootFloatDown = function(lootSprite)
+Sprite_Character.prototype.lootFloatDown = function()
 {
+  // grab the sprite for floaty goodness- if we have one.
+  const lootSprite = this.getLootSprite();
+
   // swing the loot down.
   this.lootSwingDown(0.3);
   lootSprite.y += 0.3;
@@ -29965,10 +30294,12 @@ Sprite_Character.prototype.shouldSwingUp = function()
 
 /**
  * The upswing of a loot sprite while floating.
- * @param {Sprite} lootSprite The sprite give a float effect.
  */
-Sprite_Character.prototype.lootFloatUp = function(lootSprite)
+Sprite_Character.prototype.lootFloatUp = function()
 {
+  // grab the sprite for floaty goodness- if we have one.
+  const lootSprite = this.getLootSprite();
+
   // swing the loot up.
   this.lootSwingUp(0.3);
   lootSprite.y -= 0.3;

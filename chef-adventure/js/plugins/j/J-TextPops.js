@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Mon Jan 09 2023 14:55:58 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -99,9 +99,16 @@ J.POPUPS.Metadata =
     Version: '1.0.0',
   };
 
+J.POPUPS.Helpers = {};
+
+J.POPUPS.Helpers.popupEmitter = new J_EventEmitter();
+
 J.POPUPS.Aliased =
   {
     Game_Character: new Map(),
+
+    Spriteset_Map: new Map(),
+
     Sprite_Character: new Map(),
     Sprite_Damage: new Map(),
   };
@@ -1913,3 +1920,52 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   this.addDuration(60);
 };
 //endregion Sprite_Damage
+
+//region Spriteset_Map
+J.POPUPS.Aliased.Spriteset_Map.set('initialize', Spriteset_Base.prototype.initialize);
+Spriteset_Base.prototype.initialize = function()
+{
+  // perform original logic.
+  J.POPUPS.Aliased.Spriteset_Map.get('initialize').call(this);
+
+  this.initPopupsMembers();
+};
+
+Spriteset_Base.prototype.initPopupsMembers = function()
+{
+  this._j ||= {};
+
+  this._j._popups = {};
+
+  this._j._popups._pops = [];
+
+  this._j._popups._secret = "cats are best";
+
+  this._j._popups._emitter = J.POPUPS.Helpers.popupEmitter;
+
+  this.setupPopupsEmitter();
+};
+
+/**
+ *
+ * @returns {J_EventEmitter}
+ */
+Spriteset_Base.prototype.getPopupsEmitter = function()
+{
+  return this._j._popups._emitter;
+};
+
+Spriteset_Base.prototype.setupPopupsEmitter = function()
+{
+  const popupsEmitter = this.getPopupsEmitter();
+
+  popupsEmitter.on("some-event", this.doWork, this);
+  console.log("emitter setup!");
+};
+
+Spriteset_Base.prototype.doWork = function(a, b)
+{
+  console.log(this._j._popups._secret);
+  console.log(a, b);
+};
+//endregion Spriteset_Map

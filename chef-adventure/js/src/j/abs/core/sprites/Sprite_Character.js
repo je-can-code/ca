@@ -636,14 +636,36 @@ Sprite_Character.prototype.setupLootSprite = function()
   // flag this character is "through", so they don't block movement of others.
   this._character._through = true;
 
-  // create and assign the image sprite icon.
-  this._j._loot._sprite = this.createLootSprite();
+  // create the image sprite icon.
+  const lootSprite = this.createLootSprite();
+
+  // assign the image sprite icon.
+  this.setLootSprite(lootSprite);
 
   // add it to this sprite's tracking.
-  this.addChild(this._j._loot._sprite);
+  this.addChild(lootSprite);
 
   // flag this character as finalized for the purpose of loot-related updates.
   this.finalizeLootSetup();
+};
+
+/**
+ * Gets the loot sprite associated with this character.
+ * Will return null if there is no loot.
+ * @returns {Sprite_Icon|null}
+ */
+Sprite_Character.prototype.getLootSprite = function()
+{
+  return this._j._loot._sprite;
+};
+
+/**
+ * Sets the loot sprite associated with this character.
+ * @param {Sprite_Icon} sprite The icon sprite for this loot.
+ */
+Sprite_Character.prototype.setLootSprite = function(sprite)
+{
+  this._j._loot._sprite = sprite;
 };
 
 /**
@@ -795,7 +817,7 @@ Sprite_Character.prototype.expireLoot = function()
 };
 
 /**
- *
+ * Handles the float effect of the loot while on the map.
  */
 Sprite_Character.prototype.handleLootFloat = function()
 {
@@ -814,7 +836,7 @@ Sprite_Character.prototype.handleLootFloat = function()
 Sprite_Character.prototype.canUpdateLootFloat = function()
 {
   // if we have no sprite, we can't update it.
-  if (!this._j._loot._sprite) return false;
+  if (!this.getLootSprite()) return false;
 
   // if the loot is expired, we can't update it.
   if (this.getLootExpired()) return false;
@@ -828,28 +850,27 @@ Sprite_Character.prototype.canUpdateLootFloat = function()
  */
 Sprite_Character.prototype.lootFloat = function()
 {
-  // grab the sprite for floaty goodness- if we have one.
-  const lootSprite = this._j._loot._sprite;
-
   // Lets swing up and down a bit.
   if (this.lootSwing())
   {
     // ~swing up!
-    this.lootFloatUp(lootSprite);
+    this.lootFloatUp();
   }
   else
   {
     // !swing down~
-    this.lootFloatDown(lootSprite);
+    this.lootFloatDown();
   }
 };
 
 /**
  * The downswing of a loot sprite while floating.
- * @param {Sprite} lootSprite The sprite to give a float effect.
  */
-Sprite_Character.prototype.lootFloatDown = function(lootSprite)
+Sprite_Character.prototype.lootFloatDown = function()
 {
+  // grab the sprite for floaty goodness- if we have one.
+  const lootSprite = this.getLootSprite();
+
   // swing the loot down.
   this.lootSwingDown(0.3);
   lootSprite.y += 0.3;
@@ -873,10 +894,12 @@ Sprite_Character.prototype.shouldSwingUp = function()
 
 /**
  * The upswing of a loot sprite while floating.
- * @param {Sprite} lootSprite The sprite give a float effect.
  */
-Sprite_Character.prototype.lootFloatUp = function(lootSprite)
+Sprite_Character.prototype.lootFloatUp = function()
 {
+  // grab the sprite for floaty goodness- if we have one.
+  const lootSprite = this.getLootSprite();
+
   // swing the loot up.
   this.lootSwingUp(0.3);
   lootSprite.y -= 0.3;

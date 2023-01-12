@@ -20,4 +20,8 @@
  * JABS. It generates a window on the map displaying a single target at a much
  * bigger scale than the J-HUD-TargetFrame does.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */

@@ -20,7 +20,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '2.0.0',
 };
 
 /**

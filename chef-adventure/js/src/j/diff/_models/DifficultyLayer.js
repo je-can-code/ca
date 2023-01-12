@@ -21,9 +21,8 @@ class DifficultyLayer
     difficultyLayer.cost = difficultyMetadata.cost;
 
     // combat modifiers.
-    difficultyLayer.bparams = difficultyMetadata.bparams;
-    difficultyLayer.sparams = difficultyMetadata.sparams;
-    difficultyLayer.xparams = difficultyMetadata.xparams;
+    difficultyLayer.actorEffects = difficultyMetadata.actorEffects;
+    difficultyLayer.enemyEffects = difficultyMetadata.enemyEffects;
 
     // reward modifiers.
     difficultyLayer.exp = difficultyMetadata.exp;
@@ -38,7 +37,6 @@ class DifficultyLayer
     return difficultyLayer;
   }
 
-  // TODO: update with information from $gameTemp.
   /**
    * A default {@link DifficultyLayer} with all unmodified parameters and bonuses.
    * When all layers are disabled, this is the default layer used.
@@ -111,25 +109,16 @@ class DifficultyLayer
   cost = 0;
 
   /**
-   * The base/b-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * The various parameter effects that apply to actors.
+   * @type {DifficultyBattlerEffects}
    */
-  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+  actorEffects = new DifficultyBattlerEffects();
 
   /**
-   * The secondary/s-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   * The various parameter effects that apply to enemies.
+   * @type {DifficultyBattlerEffects}
    */
-  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The extraneous/x-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  enemyEffects = new DifficultyBattlerEffects();
 
   /**
    * The bonus multiplier for experience earned by the player.
@@ -161,41 +150,6 @@ class DifficultyLayer
    */
   encounters = 100;
   //endregion properties
-
-  //region parameters
-  /**
-   * Gets the b-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  bparam(paramId)
-  {
-    return this.bparams[paramId];
-  }
-
-  /**
-   * Gets the s-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  sparam(paramId)
-  {
-    return this.sparams[paramId];
-  }
-
-  /**
-   * Gets the x-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  xparam(paramId)
-  {
-    return this.xparams[paramId];
-  }
-  //endregion parameters
 
   //region access
   /**

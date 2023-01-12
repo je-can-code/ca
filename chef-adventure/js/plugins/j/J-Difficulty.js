@@ -1,21 +1,36 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 07 2023 07:38:45 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /* eslint-disable */
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DIFFICULTY] A layered difficulty system.
+ * [v2.0.0 DIFFICULTY] A layered difficulty system.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
  * @orderAfter J-Base
- * @orderAfter _diffModels
+ * @orderAfter J-DropsControl
+ * @orderAfter J-SDP
  * @help
  * ============================================================================
- * This plugin grants you the ability to define a "difficulty system",
- * defined by globally manipulating enemy parameters to be higher or lower as
- * well as modifying basic things like experience gained or gold found.
+ * OVERVIEW:
+ * This plugin enables the ability to apply one to many "difficulty layers",
+ * defined as a collection of parameter modifications and bonuses against both
+ * actors and enemies alike.
+ * ----------------------------------------------------------------------------
+ * NOTE:
+ * There are no tags for this plugin, but all difficulty layers are defined in
+ * the plugin parameters.
+ * ============================================================================
+ * CHANGELOG:
+ * - 2.0.0
+ *    Updated window layout of scene.
+ *    Added multiple layer application support.
+ *    Updated difficulty layers to also be applicable to actors if desired.
+ *    Refactored a lot of underlying code.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  *
  * @param difficultyConfigs
@@ -158,26 +173,19 @@
  * @desc If this is ON/true, then this difficulty will be hidden when a new game is started.
  * @default false
  *
- * @param bparams
+ * @param enemyEffects
  * @parent data
- * @type struct<BParamStruct>[]
- * @text B-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
+ * @type struct<BattlerEffectsStruct>
+ * @text Enemy Effects
+ * @desc The effects that are applied to enemy battlers.
+ * @default {"bparams":"[]","xparams":"[]","sparams":"[]"}
  *
- * @param xparams
+ * @param actorEffects
  * @parent data
- * @type struct<XParamStruct>[]
- * @text X-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
- *
- * @param sparams
- * @parent data
- * @type struct<SParamStruct>[]
- * @text S-Parameter Modifiers
- * @desc Parameters listed here will be modified by the their respective provided rates.
- * @default []
+ * @type struct<BattlerEffectsStruct>
+ * @text Actor Effects
+ * @desc The effects that are applied to actor battlers.
+ * @default {"bparams":"[]","xparams":"[]","sparams":"[]"}
  *
  * @param bonuses
  * @parent data
@@ -309,6 +317,29 @@
  * @desc The percent multiplier that the given bonus will be modified by.
  * @default 100
  */
+/*~struct~BattlerEffectsStruct:
+ * @param bparams
+ * @parent data
+ * @type struct<BParamStruct>[]
+ * @text B-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
+ * @param xparams
+ * @parent data
+ * @type struct<XParamStruct>[]
+ * @text X-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
+ * @param sparams
+ * @parent data
+ * @type struct<SParamStruct>[]
+ * @text S-Parameter Modifiers
+ * @desc Parameters listed here will be modified by the their respective provided rates.
+ * @default []
+ *
+ */
 /*
  * ==============================================================================
  * CHANGELOG:
@@ -320,6 +351,7 @@
  */
 /* eslint-enable */
 
+//region metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -329,7 +361,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -338,7 +370,6 @@ var J = J || {};
 })();
 //endregion version check
 
-//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -347,17 +378,9 @@ J.DIFFICULTY = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIFFICULTY.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Difficulty`,
-};
+J.DIFFICULTY.Metadata = {};
+J.DIFFICULTY.Metadata.Version = '2.0.0';
+J.DIFFICULTY.Metadata.Name = `J-Difficulty`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -388,117 +411,170 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
     // parse the overarching blob of difficulties.
     const parsedDifficultyBlob = JSON.parse(rawDifficultyBlob);
 
-    // extract all the properties that we care about.
+    // extract the data points from the blob.
     const {
       key, name, description, iconIndex, cost,
-      bparams, xparams, sparams, bonuses,
+      actorEffects, enemyEffects, bonuses,
       enabled, unlocked, hidden
     } = parsedDifficultyBlob;
 
-    // parse the icon to start.
+    // parse the icon index.
     const parsedIconIndex = parseInt(iconIndex);
 
-    // parse the cost as well.
+    // parse the cost.
     const parsedCost = parseInt(cost);
+
+    // an iterator function for updating all param collections for these battler effects.
+    const battlerEffectsMapper = battlerEffects =>
+    {
+      // initialize the params to defaults.
+      const newBParams = [100, 100, 100, 100, 100, 100, 100, 100];
+      const newXParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+      const newSParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
+      // extract all the raw parameters.
+      const {
+        bparams, xparams, sparams,
+      } = battlerEffects;
+
+      // an iterator function for updating bparams.
+      const bParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownBaseParameterIds()
+            .forEach(paramId => newBParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newBParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse bparams from the layer.
+      const parsedBParams = JSON.parse(bparams);
+
+      // update the bparams for the effects.
+      parsedBParams.forEach(bParamForEacher, this);
+
+      // an iterator function for updating xparams.
+      const xParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownExParameterIds()
+            .forEach(paramId => newXParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newXParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse xparams from this layer.
+      const parsedXParams = JSON.parse(xparams);
+
+      // update the xparams for the effects.
+      parsedXParams.forEach(xParamForEacher, this);
+
+      // an iterator function for updating sparams.
+      const sParamForEacher = rawParam =>
+      {
+        // parse the parameter pair.
+        const parsedParam = JSON.parse(rawParam);
+
+        // destructure this parameter.
+        const { parameterId, parameterRate } = parsedParam;
+
+        // parse out the parameter id.
+        const parsedParameterId = parseInt(parameterId);
+
+        // parse out the rate.
+        const parsedParameterRate = parseInt(parameterRate)
+
+        // if the id is -1, then it is for all parameters.
+        if (parsedParameterId === -1)
+        {
+          // set all the params to this rate.
+          Game_BattlerBase.knownSpParameterIds()
+            .forEach(paramId => newSParams[paramId] = parsedParameterRate);
+        }
+        else
+        {
+          // set the new param.
+          newSParams[parsedParameterId] = parsedParameterRate;
+        }
+      };
+
+      // parse sparams from this layer.
+      const parsedSParams = JSON.parse(sparams);
+
+      // update the sparams for the effects.
+      parsedSParams.forEach(sParamForEacher, this);
+
+      // create a new battler effects based on the modified params.
+      const modifiedBattlerEffects = DifficultyBattlerEffects.fromRaw(newBParams, newXParams, newSParams);
+
+      // return the built battler effects.
+      return modifiedBattlerEffects;
+    };
+
+    // parse the actor battler effects.
+    const parsedActorEffects = JSON.parse(actorEffects);
+    const mappedActorEffects = battlerEffectsMapper(parsedActorEffects);
+
+    // parse the enemy battler effects.
+    const parsedEnemyEffects = JSON.parse(enemyEffects);
+    const mappedEnemyEffects = battlerEffectsMapper(parsedEnemyEffects);
 
     // instantiate the builder with the base data.
     const builder = new DifficultyBuilder(name, key)
+      // assign the core data.
       .setDescription(description)
       .setIconIndex(parsedIconIndex)
-      .setCost(parsedCost);
+      .setCost(parsedCost)
+      // assign the accessors.
+      .setEnabled(enabled === "true")
+      .setHidden(hidden === "true")
+      .setUnlocked(unlocked === "true")
+      // assign the battler data.
+      .setActorEffects(mappedActorEffects)
+      .setEnemyEffects(mappedEnemyEffects);
 
-    // parse bparams.
-    const parsedBParams = JSON.parse(bparams);
-    parsedBParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setBparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setBparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // parse xparams.
-    const parsedXParams = JSON.parse(xparams);
-    parsedXParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setXparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setXparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // parse sparams.
-    const parsedSParams = JSON.parse(sparams);
-    parsedSParams.forEach(rawParam =>
-    {
-      // parse the parameter pair.
-      const parsedParam = JSON.parse(rawParam);
-
-      // destructure this parameter.
-      const { parameterId, parameterRate } = parsedParam;
-
-      // parse out the parameter id.
-      const parsedParameterId = parseInt(parameterId);
-
-      // parse out the rate.
-      const parsedParameterRate = parseInt(parameterRate)
-
-      // if the id is -1, then it is for all parameters.
-      if (parsedParameterId === -1)
-      {
-        // set all the params to this rate.
-        Game_BattlerBase.knownBaseParameterIds()
-          .forEach(paramId => builder.setSparam(paramId, parsedParameterRate));
-      }
-      else
-      {
-        // set the new param.
-        builder.setSparam(parsedParameterId, parsedParameterRate);
-      }
-    });
-
-    // handle bonuses.
+    // parse the bonuses from the layer.
     const parsedBonuses = JSON.parse(bonuses);
+
+    // iterate over each of the bonuses and add it to the builder.
     parsedBonuses.forEach(rawBonus =>
     {
       // parse out the bonus JSON.
@@ -530,11 +606,6 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
       }
     });
 
-    // assign the accessors.
-    builder.setEnabled(enabled === "true");
-    builder.setHidden(hidden === "true");
-    builder.setUnlocked(unlocked === "true");
-
     // build the difficulty and add it to the running collection.
     const completeDifficulty = builder.build();
 
@@ -550,36 +621,30 @@ J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
 };
 
 /**
- * Extend this plugin's metadata with additional configurable data points.
+ * The key for the default difficulty.
+ * @type {string}
  */
-J.DIFFICULTY.Metadata = {
-  // the previously defined metadata.
-  ...J.DIFFICULTY.Metadata,
+J.DIFFICULTY.Metadata.DefaultDifficulty = J.DIFFICULTY.PluginParameters['defaultDifficulty'] || String.empty;
 
-  /**
-   * The key for the default difficulty.
-   * @type {string}
-   */
-  DefaultDifficulty: J.DIFFICULTY.PluginParameters['defaultDifficulty'] || String.empty,
-
-  /**
-   * The default point max for allocating difficulty layers.
-   */
-  DefaultLayerPointMax: parseInt(J.DIFFICULTY.PluginParameters['initialPoints']) || 0,
-};
+/**
+ * The default point max for allocating difficulty layers.
+ */
+J.DIFFICULTY.Metadata.DefaultLayerPointMax = parseInt(J.DIFFICULTY.PluginParameters['initialPoints']) || 0;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.DIFFICULTY.Aliased = {
   DataManager: new Map(),
+
+  Game_Actor: new Map(),
   Game_Enemy: new Map(),
   Game_Map: new Map(),
   Game_System: new Map(),
   Game_Temp: new Map(),
+
   Scene_Map: new Map(),
 };
-//endregion metadata
 
 //region plugin commands
 /**
@@ -587,7 +652,7 @@ J.DIFFICULTY.Aliased = {
  */
 PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", () =>
 {
-  SceneManager.push(Scene_Difficulty);
+  Scene_Difficulty.callScene();
 });
 
 /**
@@ -678,13 +743,104 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args
   $gameSystem.modLayerPointMax(parsedAmount);
 });
 //endregion plugin commands
-//endregion introduction
+//endregion metadata
+
+//region DifficultyBattlerEffects
+/**
+ * A collection of all applicable multipliers against core parameters
+ * that are a part of a {@link DifficultyMetadata}.
+ */
+class DifficultyBattlerEffects
+{
+  /**
+   * Creates a new {@link DifficultyBattlerEffects} with the given parameters.
+   * @param {number[]} bparams The bparams.
+   * @param {number[]} xparams The xparams.
+   * @param {number[]} sparams The sparams.
+   * @returns {DifficultyBattlerEffects}
+   */
+  static fromRaw(bparams, xparams, sparams)
+  {
+    // start with a fresh effects.
+    const battlerEffects = new DifficultyBattlerEffects();
+
+    // assign the parameters.
+    battlerEffects.bparams = bparams;
+    battlerEffects.xparams = xparams;
+    battlerEffects.sparams = sparams;
+
+    // return the predefined effects.
+    return battlerEffects;
+  }
+
+  //region params
+  /**
+   * The base/b-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+
+  /**
+   * The secondary/s-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   */
+  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
+  /**
+   * The extraneous/x-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   */
+  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  //endregion params
+
+  setBParam()
+  {
+
+  }
+}
+//endregion DifficultyBattlerEffects
+
+class DifficultyBonusEffects
+{
+  /**
+   * The bonus multiplier for experience earned by the player.
+   * @type {number}
+   */
+  exp = 100;
+
+  /**
+   * The bonus multiplier for gold found by the player.
+   * @type {number}
+   */
+  gold = 100;
+
+  /**
+   * The bonus multiplier for sdp acquired by the player.
+   * @type {number}
+   */
+  sdp = 100;
+
+  /**
+   * The bonus multiplier for drops (potentially) gained by the player.
+   * @type {number}
+   */
+  drops = 100;
+
+  /**
+   * The bonus multiplier for the encounter rate for the player.
+   * @type {number}
+   */
+  encounters = 100;
+}
 
 //region DifficultyBuilder
 /**
  * The fluent-builder for easily creating new difficulties.
  */
-class DifficultyBuilder
+class DifficultyBuilder 
 {
   #name = String.empty;
   #key = String.empty;
@@ -692,9 +848,8 @@ class DifficultyBuilder
   #iconIndex = 0;
   #cost = 0;
 
-  #bparams = [100, 100, 100, 100, 100, 100, 100, 100];
-  #sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-  #xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  #actorEffects = new DifficultyBattlerEffects();
+  #enemyEffects = new DifficultyBattlerEffects();
 
   #exp = 100;
   #gold = 100;
@@ -711,7 +866,7 @@ class DifficultyBuilder
    * @param {string} name The name of this difficulty.
    * @param {string} key The unique key of this difficulty.
    */
-  constructor(name, key)
+  constructor(name, key) 
   {
     this.setName(name);
     this.setKey(key);
@@ -721,7 +876,7 @@ class DifficultyBuilder
    * Builds the difficulty with its current configuration.
    * @returns {DifficultyMetadata}
    */
-  build()
+  build() 
   {
     // start the difficulty here.
     const difficulty = new DifficultyMetadata();
@@ -733,10 +888,9 @@ class DifficultyBuilder
     difficulty.iconIndex = this.#iconIndex;
     difficulty.cost = this.#cost;
 
-    // assign the parameters.
-    difficulty.bparams = this.#bparams;
-    difficulty.sparams = this.#sparams;
-    difficulty.xparams = this.#xparams;
+    // assign the battler effects.
+    difficulty.actorEffects = this.#actorEffects;
+    difficulty.enemyEffects = this.#enemyEffects;
 
     // assign the bonuses.
     difficulty.exp = this.#exp;
@@ -754,87 +908,45 @@ class DifficultyBuilder
     return difficulty;
   }
 
-  setName(name)
+  setName(name) 
   {
     this.#name = name;
     return this;
   }
 
-  setKey(key)
+  setKey(key) 
   {
     this.#key = key;
     return this;
   }
 
-  setDescription(description)
+  setDescription(description) 
   {
     this.#description = description;
     return this;
   }
 
-  setIconIndex(iconIndex)
+  setIconIndex(iconIndex) 
   {
     this.#iconIndex = iconIndex;
     return this;
   }
 
-  setCost(cost)
+  setCost(cost) 
   {
     this.#cost = cost;
     return this;
   }
 
-  setBparam(paramId, value)
+  setActorEffects(effects) 
   {
-    this.#bparams[paramId] = value;
+    this.#actorEffects = effects;
     return this;
   }
 
-  modBparam(paramId, value)
+  setEnemyEffects(effects)
   {
-    this.#bparams[paramId] += value;
-    return this;
-  }
-
-  setBparams(value)
-  {
-    this.#bparams = value;
-    return this;
-  }
-
-  setSparam(paramId, value)
-  {
-    this.#sparams[paramId] = value;
-    return this;
-  }
-
-  modSparam(paramId, value)
-  {
-    this.#sparams[paramId] += value;
-    return this;
-  }
-
-  setSparams(value)
-  {
-    this.#sparams = value;
-    return this;
-  }
-
-  setXparam(paramId, value)
-  {
-    this.#xparams[paramId] = value;
-    return this;
-  }
-
-  modXparam(paramId, value)
-  {
-    this.#xparams[paramId] += value;
-    return this;
-  }
-
-  setXparams(value)
-  {
-    this.#xparams = value;
+    this.#enemyEffects = effects;
     return this;
   }
 
@@ -982,9 +1094,8 @@ class DifficultyLayer
     difficultyLayer.cost = difficultyMetadata.cost;
 
     // combat modifiers.
-    difficultyLayer.bparams = difficultyMetadata.bparams;
-    difficultyLayer.sparams = difficultyMetadata.sparams;
-    difficultyLayer.xparams = difficultyMetadata.xparams;
+    difficultyLayer.actorEffects = difficultyMetadata.actorEffects;
+    difficultyLayer.enemyEffects = difficultyMetadata.enemyEffects;
 
     // reward modifiers.
     difficultyLayer.exp = difficultyMetadata.exp;
@@ -999,7 +1110,6 @@ class DifficultyLayer
     return difficultyLayer;
   }
 
-  // TODO: update with information from $gameTemp.
   /**
    * A default {@link DifficultyLayer} with all unmodified parameters and bonuses.
    * When all layers are disabled, this is the default layer used.
@@ -1072,25 +1182,16 @@ class DifficultyLayer
   cost = 0;
 
   /**
-   * The base/b-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * The various parameter effects that apply to actors.
+   * @type {DifficultyBattlerEffects}
    */
-  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+  actorEffects = new DifficultyBattlerEffects();
 
   /**
-   * The secondary/s-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   * The various parameter effects that apply to enemies.
+   * @type {DifficultyBattlerEffects}
    */
-  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The extraneous/x-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  enemyEffects = new DifficultyBattlerEffects();
 
   /**
    * The bonus multiplier for experience earned by the player.
@@ -1122,41 +1223,6 @@ class DifficultyLayer
    */
   encounters = 100;
   //endregion properties
-
-  //region parameters
-  /**
-   * Gets the b-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  bparam(paramId)
-  {
-    return this.bparams[paramId];
-  }
-
-  /**
-   * Gets the s-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  sparam(paramId)
-  {
-    return this.sparams[paramId];
-  }
-
-  /**
-   * Gets the x-parameter multiplier for this difficulty.
-   * The default is 100.
-   * @param {number} paramId The id/index of the parameter.
-   * @returns {number}
-   */
-  xparam(paramId)
-  {
-    return this.xparams[paramId];
-  }
-  //endregion parameters
 
   //region access
   /**
@@ -1326,25 +1392,16 @@ class DifficultyMetadata
 
   //region params
   /**
-   * The base/b-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * The various battler effects that apply against actors.
+   * @type {DifficultyBattlerEffects}
    */
-  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+  actorEffects = new DifficultyBattlerEffects();
 
   /**
-   * The secondary/s-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   * The various battler effects that apply against enemies.
+   * @type {DifficultyBattlerEffects}
    */
-  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The extraneous/x-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+  enemyEffects = new DifficultyBattlerEffects();
   //endregion params
 
   //region bonuses
@@ -1614,9 +1671,75 @@ class DifficultyManager
 }
 //endregion DifficultyManager
 
+//region Game_Actor
+/**
+ * Extends {@link #param}.
+ * Also modifies the value based on the applied difficulty.
+ * @returns {number}
+ */
+J.DIFFICULTY.Aliased.Game_Actor.set("param", Game_Actor.prototype.param);
+Game_Actor.prototype.param = function(paramId)
+{
+  // grab the original value.
+  const originalValue = J.DIFFICULTY.Aliased.Game_Actor.get("param").call(this, paramId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.actorEffects.bparams[paramId] / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return Math.round(originalValue * multiplier);
+};
+
+/**
+ * Extends {@link #sparam}.
+ * Also modifies the value based on the applied difficulty.
+ * @returns {number}
+ */
+J.DIFFICULTY.Aliased.Game_Actor.set("sparam", Game_Actor.prototype.sparam);
+Game_Actor.prototype.sparam = function(sparamId)
+{
+  // grab the original value.
+  const originalValue = J.DIFFICULTY.Aliased.Game_Actor.get("sparam").call(this, sparamId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.actorEffects.sparams[sparamId] / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return (originalValue * multiplier);
+};
+
+/**
+ * Extends {@link #xparam}.
+ * Also modifies the value based on the applied difficulty.
+ * @returns {number}
+ */
+J.DIFFICULTY.Aliased.Game_Actor.set("xparam", Game_Actor.prototype.xparam);
+Game_Actor.prototype.xparam = function(xparamId)
+{
+  // grab the original value.
+  const originalValue = J.DIFFICULTY.Aliased.Game_Actor.get("xparam").call(this, xparamId);
+
+  // grab the currently applied difficulty.
+  const appliedDifficulty = $gameTemp.getAppliedDifficulty();
+
+  // determine the multiplier for the parameter according to the difficulty.
+  const multiplier = appliedDifficulty.actorEffects.xparams[xparamId] / 100;
+
+  // return the rounded product of the multiplier and the original value.
+  return (originalValue * multiplier);
+};
+//endregion Game_Actor
+
 //region Game_Enemy
 /**
- * Extends the `.param(paramId)` function to modify by difficulty.
+ * Extends {@link #param}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("param", Game_Enemy.prototype.param);
@@ -1629,15 +1752,15 @@ Game_Enemy.prototype.param = function(paramId)
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.bparams[paramId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.bparams[paramId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
 };
 
 /**
- * Extends the `.sparam(paramId)` function to modify by difficulty.
- * @param {number} sparamId The s-parameter id.
+ * Extends {@link #sparam}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("sparam", Game_Enemy.prototype.sparam);
@@ -1650,27 +1773,28 @@ Game_Enemy.prototype.sparam = function(sparamId)
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.sparams[sparamId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.sparams[sparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);
 };
 
 /**
- * Extends the `.xparam(paramId)` function to modify by difficulty.
- * @param {number} xparamId The x-parameter id.
+ * Extends {@link #xparam}.
+ * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
 J.DIFFICULTY.Aliased.Game_Enemy.set("xparam", Game_Enemy.prototype.xparam);
 Game_Enemy.prototype.xparam = function(xparamId)
 {
+  // grab the original value.
   const originalValue = J.DIFFICULTY.Aliased.Game_Enemy.get("xparam").call(this, xparamId);
 
   // grab the currently applied difficulty.
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the parameter according to the difficulty.
-  const multiplier = appliedDifficulty.xparams[xparamId] / 100;
+  const multiplier = appliedDifficulty.enemyEffects.xparams[xparamId] / 100;
 
   // return the rounded product of the multiplier and the original value.
   return (originalValue * multiplier);
@@ -1717,7 +1841,7 @@ Game_Enemy.prototype.gold = function()
 };
 
 // in order to to properly multiply drop rates, we need to use my drops plugin;
-// `J-ControlledDrops` gives easy access to modify the drop rates, so we'll extend that!
+// `J-DropsControl` gives easy access to modify the drop rates, so we'll extend that!
 if (J.DROPS)
 {
   /**
@@ -1834,11 +1958,6 @@ Game_System.prototype.initDifficultyMembers = function()
    * @type {number}
    */
   this._j._difficulty._layerPoints = 0;
-};
-
-Game_System.prototype.callDifficultyLayerScene = function()
-{
-  SceneManager.push(Scene_Difficulty);
 };
 
 /**
@@ -1995,8 +2114,8 @@ Game_Temp.prototype.initMembers = function()
    * All difficulties that were defined in the plugin metadata.
    * @type {Map<string, DifficultyMetadata>}
    */
-  this._j._difficulty._metadata = J.DIFFICULTY.Helpers
-    .toDifficultiesMap(J.DIFFICULTY.PluginParameters['difficulties']);
+  this._j._difficulty._metadata = J.DIFFICULTY.Helpers.toDifficultiesMap(
+    J.DIFFICULTY.PluginParameters['difficulties']);
 
   /**
    * All difficulties available for use.
@@ -2120,14 +2239,9 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
     return DifficultyLayer.defaultLayer;
   }
 
-  // clone the b-params.
-  const bParams = DifficultyLayer.defaultLayer.bparams.clone();
-
-  // clone the s-params.
-  const sParams = DifficultyLayer.defaultLayer.sparams.clone();
-
-  // clone the x-params.
-  const xParams = DifficultyLayer.defaultLayer.xparams.clone();
+  // initialize the battler effects.
+  const enabledActorEffects = new DifficultyBattlerEffects();
+  const enabledEnemyEffects = new DifficultyBattlerEffects();
 
   // destructure the direct values out.
   let { exp, gold, drops, encounters, sdp, cost } = DifficultyLayer.defaultLayer;
@@ -2135,34 +2249,67 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   // iterate over each difficulty layer and apply it multiplicatively to the running amounts.
   enabledDifficulties.forEach(layer =>
   {
+    // extract the effects data.
+    const { actorEffects, enemyEffects } = layer;
+
     // iterate over each of the b-params.
-    layer.bparams.forEach((bparam, bIndex) =>
+    actorEffects.bparams.forEach((bparam, bIndex) =>
     {
       // calculate the factor.
       const bParamFactor = parseFloat((bparam / 100).toFixed(3));
 
       // apply the multiplier.
-      bParams[bIndex] *= bParamFactor;
+      enabledActorEffects.bparams[bIndex] *= bParamFactor;
     });
 
     // iterate over each of the s-params.
-    layer.sparams.forEach((sparam, sIndex) =>
+    actorEffects.sparams.forEach((sparam, sIndex) =>
     {
       // calculate the factor.
       const sParamFactor = parseFloat((sparam / 100).toFixed(3));
 
       // apply the multiplier.
-      sParams[sIndex] *= sParamFactor;
+      enabledActorEffects.sparams[sIndex] *= sParamFactor;
     });
 
     // iterate over each of the x-params.
-    layer.xparams.forEach((xparam, xIndex) =>
+    actorEffects.xparams.forEach((xparam, xIndex) =>
     {
       // calculate the factor.
       const xParamFactor = parseFloat((xparam / 100).toFixed(3));
 
       // apply the multiplier.
-      xParams[xIndex] *= xParamFactor;
+      enabledActorEffects.xparams[xIndex] *= xParamFactor;
+    });
+
+    // iterate over each of the b-params.
+    enemyEffects.bparams.forEach((bparam, bIndex) =>
+    {
+      // calculate the factor.
+      const bParamFactor = parseFloat((bparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.bparams[bIndex] *= bParamFactor;
+    });
+
+    // iterate over each of the s-params.
+    enemyEffects.sparams.forEach((sparam, sIndex) =>
+    {
+      // calculate the factor.
+      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.sparams[sIndex] *= sParamFactor;
+    });
+
+    // iterate over each of the x-params.
+    enemyEffects.xparams.forEach((xparam, xIndex) =>
+    {
+      // calculate the factor.
+      const xParamFactor = parseFloat((xparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledEnemyEffects.xparams[xIndex] *= xParamFactor;
     });
 
     // calculate the factor.
@@ -2221,9 +2368,8 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   newDifficulty.cost = cost;
 
   // params.
-  newDifficulty.bparams = bParams;
-  newDifficulty.sparams = sParams;
-  newDifficulty.xparams = xParams;
+  newDifficulty.actorEffects = enabledActorEffects;
+  newDifficulty.enemyEffects = enabledEnemyEffects;
 
   // bonuses.
   newDifficulty.exp = exp;
@@ -2243,6 +2389,14 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
  */
 class Scene_Difficulty extends Scene_MenuBase
 {
+  /**
+   * Pushes this current scene onto the stack, forcing it into action.
+   */
+  static callScene()
+  {
+    SceneManager.push(this);
+  }
+
   constructor()
   {
     // perform original logic.
@@ -2250,18 +2404,6 @@ class Scene_Difficulty extends Scene_MenuBase
 
     // execute initialization.
     this.initialize();
-  }
-
-  /**
-   * Initialize all members of this class.
-   */
-  initialize()
-  {
-    // perform original logic.
-    super.initialize(this);
-
-    // setup our class members.
-    this.initMembers();
   }
 
   /**
@@ -2298,23 +2440,16 @@ class Scene_Difficulty extends Scene_MenuBase
     this._j._difficulty._listWindow = null;
 
     /**
-     * The window for displaying the details of the currently hovered difficulty.
-     * @type {Window_DifficultyDetails}
+     * The window for displaying the various enemy effects this difficulty applies.
+     * @type {Window_DifficultyEffects}
      */
-    this._j._difficulty._detailsWindow = null;
-  }
+    this._j._difficulty._enemyEffects = null;
 
-  /**
-   * Extends {@link #create}.
-   * Creates our scene's windows.
-   */
-  create()
-  {
-    // perform original logic.
-    super.create();
-
-    // create all our windows.
-    this.createAllWindows();
+    /**
+     * The window for displaying the various actor effects this difficulty applies.
+     * @type {Window_DifficultyEffects}
+     */
+    this._j._difficulty._actorEffects = null;
   }
 
   /**
@@ -2336,6 +2471,28 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverChange();
   }
 
+  /**
+   * Extends {@link #create}.
+   * Creates our scene's windows.
+   */
+  create()
+  {
+    // perform original logic.
+    super.create();
+
+    // create the various display objects on the screen.
+    this.createDisplayObjects();
+  }
+
+  /**
+   * Creates the display objects for this scene.
+   */
+  createDisplayObjects()
+  {
+    // create all our windows.
+    this.createAllWindows();
+  }
+
   //region create windows
   /**
    * Creates all windows associated with the difficulty scene.
@@ -2351,8 +2508,11 @@ class Scene_Difficulty extends Scene_MenuBase
     // then build the list window based on the location of the help window.
     this.createListWindow();
 
-    // and lastly build the details window based on the location of the list window.
-    this.createDetailsWindow();
+    // create the list of enemy effects.
+    this.createEnemyEffectsWindow();
+
+    // create the list of actor effects.
+    this.createActorEffectsWindow();
   }
 
   //region points window
@@ -2495,30 +2655,6 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Gets the rectangle associated with the difficulty list command window.
-   */
-  difficultyListRectangle()
-  {
-    // grab the points window height.
-    const { height: pointsHeight } = this.getPointsWindow();
-
-    // define the width arbitrarily.
-    const width = 400;
-
-    // the height should meet the points window bottom.
-    const height = Graphics.boxHeight - pointsHeight;
-
-    // define the x coordinate arbitrarily.
-    const x = 0;
-
-    // the y coordinate starts at the bottom of the points window.
-    const y = pointsHeight;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
-  }
-
-  /**
    * Sets up and defines the difficulty list window.
    * @returns {Window_DifficultyList}
    */
@@ -2544,6 +2680,30 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
+   * Gets the rectangle associated with the difficulty list command window.
+   */
+  difficultyListRectangle()
+  {
+    // grab the points window height.
+    const { height: pointsHeight } = this.getPointsWindow();
+
+    // define the width arbitrarily.
+    const width = 400;
+
+    // the height should meet the points window bottom.
+    const height = Graphics.boxHeight - pointsHeight;
+
+    // define the x coordinate arbitrarily.
+    const x = 0;
+
+    // the y coordinate starts at the bottom of the points window.
+    const y = pointsHeight;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
    * Get the currently tracked difficulty list window.
    * @returns {Window_DifficultyList}
    */
@@ -2562,28 +2722,44 @@ class Scene_Difficulty extends Scene_MenuBase
   }
   //endregion list window
 
-  //region details window
+  //region enemy effects window
   /**
-   * Creates the details window that describes the selected difficulty
-   * compared to the current difficulty.
+   * Creates the window displaying various battler effects applied to enemies.
    */
-  createDetailsWindow()
+  createEnemyEffectsWindow()
   {
     // create the window.
-    const window = this.buildDifficultyDetailsWindow();
+    const window = this.buildDifficultyEnemyEffectsWindow();
+
+    // deselect the command of the window.
+    window.deselect();
+    window.deactivate();
 
     // update the tracker with the new window.
-    this.setDifficultyDetailsWindow(window);
+    this.setDifficultyEnemyEffectsWindow(window);
 
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
 
   /**
-   * Gets the rectangle associated with the difficulty details window.
+   * Sets up and defines the difficulty enemy effects window.
+   * @returns {Window_DifficultyEffects}
+   */
+  buildDifficultyEnemyEffectsWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.difficultyEnemyEffectsRectangle();
+
+    // return the built details window.
+    return new Window_DifficultyEffects(rectangle);
+  }
+
+  /**
+   * Gets the rectangle associated with the difficulty enemy effects window.
    * @returns {Rectangle}
    */
-  difficultyDetailsRectangle()
+  difficultyEnemyEffectsRectangle()
   {
     // grab the width from the list window.
     const { width: listWidth } = this.getDifficultyListWindow();
@@ -2592,7 +2768,7 @@ class Scene_Difficulty extends Scene_MenuBase
     const { height: helpHeight } = this.getHelpWindow();
 
     // the width should be from the list window to the edge of the screen.
-    const width = Graphics.boxWidth - listWidth;
+    const width = (Graphics.boxWidth - listWidth) / 2;
 
     // the height should be from the bottom of the help window to the edge of the screen.
     const height = Graphics.boxHeight - helpHeight;
@@ -2608,36 +2784,105 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Sets up and defines the difficulty details window.
-   * @returns {Window_DifficultyDetails}
+   * Gets the currently tracked window.
+   * @returns {Window_DifficultyEffects}
    */
-  buildDifficultyDetailsWindow()
+  getDifficultyEnemyEffectsWindow()
+  {
+    return this._j._difficulty._enemyEffects;
+  }
+
+  /**
+   * Sets the currently tracked window to the given window.
+   * @param {Window_DifficultyEffects} window The window to track.
+   */
+  setDifficultyEnemyEffectsWindow(window)
+  {
+    this._j._difficulty._enemyEffects = window;
+  }
+  //endregion enemy effects window
+
+  //region actor effects window
+  /**
+   * Creates the window displaying various battler effects applied to actors.
+   */
+  createActorEffectsWindow()
+  {
+    // create the window.
+    const window = this.buildDifficultyActorEffectsWindow();
+
+    // deselect the command of the window.
+    window.deselect();
+    window.deactivate();
+
+    // update the tracker with the new window.
+    this.setDifficultyActorEffectsWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  /**
+   * Sets up and defines the difficulty actor effects window.
+   * @returns {Window_DifficultyEffects}
+   */
+  buildDifficultyActorEffectsWindow()
   {
     // define the rectangle of the window.
-    const rectangle = this.difficultyDetailsRectangle();
+    const rectangle = this.difficultyActorEffectsRectangle();
 
     // return the built details window.
-    return new Window_DifficultyDetails(rectangle);
+    return new Window_DifficultyEffects(rectangle);
   }
 
   /**
-   * Gets the currently tracked difficulty details window.
-   * @returns {Window_DifficultyDetails}
+   * Gets the rectangle associated with the difficulty actor effects window.
+   * @returns {Rectangle}
    */
-  getDifficultyDetailsWindow()
+  difficultyActorEffectsRectangle()
   {
-    return this._j._difficulty._detailsWindow;
+    // grab the width and x of the effects for calculating x of the actor effects.
+    const { x: enemyEffectsX, width: effectsEffectsWidth } = this.getDifficultyEnemyEffectsWindow();
+
+    // grab the height from the help window.
+    const { height: helpHeight } = this.getHelpWindow();
+
+    const leftSideOfEnemyEffects = enemyEffectsX + effectsEffectsWidth;
+
+    // the width should be from the list window to the edge of the screen.
+    const width = (Graphics.boxWidth - leftSideOfEnemyEffects);
+
+    // the height should be from the bottom of the help window to the edge of the screen.
+    const height = Graphics.boxHeight - helpHeight;
+
+    // the x coordinate should be the right side of the list window.
+    const x = leftSideOfEnemyEffects;
+
+    // the y coordinate should be the bottom side of the help window.
+    const y = helpHeight;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
   }
 
   /**
-   * Sets the currently tracked difficulty details window to the given window.
-   * @param {Window_DifficultyDetails} difficultyDetailsWindow The difficulty details window to track.
+   * Gets the currently tracked window.
+   * @returns {Window_DifficultyEffects}
    */
-  setDifficultyDetailsWindow(difficultyDetailsWindow)
+  getDifficultyActorEffectsWindow()
   {
-    this._j._difficulty._detailsWindow = difficultyDetailsWindow;
+    return this._j._difficulty._actorEffects;
   }
-  //endregion details window
+
+  /**
+   * Sets the currently tracked window to the given window.
+   * @param {Window_DifficultyEffects} window The window to track.
+   */
+  setDifficultyActorEffectsWindow(window)
+  {
+    this._j._difficulty._actorEffects = window;
+  }
+  //endregion actor effects window
   //endregion create windows
 
   /**
@@ -2666,22 +2911,7 @@ class Scene_Difficulty extends Scene_MenuBase
     this.onHoverUpdateHelp();
 
     // update the details window.
-    this.onHoverUpdateDetails();
-  }
-
-  /**
-   * Updates the details window when the hovered difficulty changes.
-   */
-  onHoverUpdateDetails()
-  {
-    // grab the hovered difficulty.
-    const hoveredDifficulty = this.hoveredDifficulty();
-
-    // grab the details window.
-    const detailsWindow = this.getDifficultyDetailsWindow();
-
-    // update the hovered difficulty for the details window.
-    detailsWindow.setHoveredDifficulty(hoveredDifficulty);
+    this.onHoverUpdateEffects();
   }
 
   /**
@@ -2716,6 +2946,85 @@ class Scene_Difficulty extends Scene_MenuBase
     // set the text of the hovered difficulty for the help window.
     helpWindow.setText(hoveredDifficulty.description);
   }
+
+  /**
+   * Updates the details window when the hovered difficulty changes.
+   */
+  onHoverUpdateEffects()
+  {
+    // grab the currently hovered difficulty.
+    const hoveredDifficulty = this.hoveredDifficulty();
+
+    // if there is no difficulty, then do not update.
+    if (!hoveredDifficulty) return;
+
+    // extract the data points from the window.
+    const { actorEffects, enemyEffects } = hoveredDifficulty;
+
+    // update the actor effects.
+    this.updateActorEffectsWindow(actorEffects);
+
+    // update the enemy effects.
+    this.updateEnemyEffectsWindow(enemyEffects);
+  }
+
+  updateActorEffectsWindow(newActorEffects)
+  {
+    // grab the actor window.
+    const actorEffectsWindow = this.getDifficultyActorEffectsWindow();
+
+    // check if the hovered difficulty is the same as the assigned one.
+    if (actorEffectsWindow.getEffectsList() !== newActorEffects)
+    {
+      // extract the data points from the window.
+      const {
+        exp, gold, sdp, drops, encounters
+      } = this.hoveredDifficulty();
+
+      // build the bonus effects.
+      const bonusEffects = new DifficultyBonusEffects();
+      bonusEffects.exp = exp;
+      bonusEffects.gold = gold;
+      bonusEffects.drops = drops;
+      bonusEffects.sdp = sdp;
+      bonusEffects.encounters = encounters;
+
+      // update the effects list in the window.
+      actorEffectsWindow.updateEffects(
+        newActorEffects,
+        bonusEffects,
+        Window_DifficultyEffects.EffectsTypes.ACTOR);
+    }
+  }
+
+  updateEnemyEffectsWindow(newEnemyEffects)
+  {
+    // grab the enemy effects window.
+    const enemyEffectsWindow = this.getDifficultyEnemyEffectsWindow();
+
+    // check if the hovered difficulty is the same as the assigned one.
+    if (enemyEffectsWindow.getEffectsList() !== newEnemyEffects)
+    {
+      // extract the data points from the window.
+      const {
+        exp, gold, sdp, drops, encounters
+      } = this.hoveredDifficulty();
+
+      // build the bonus effects.
+      const bonusEffects = new DifficultyBonusEffects();
+      bonusEffects.exp = exp;
+      bonusEffects.gold = gold;
+      bonusEffects.drops = drops;
+      bonusEffects.sdp = sdp;
+      bonusEffects.encounters = encounters;
+
+      // update the effects list in the window.
+      enemyEffectsWindow.updateEffects(
+        newEnemyEffects,
+        bonusEffects,
+        Window_DifficultyEffects.EffectsTypes.ENEMY);
+    }
+  }
   //endregion on-hover
 
   //region on-select
@@ -2746,7 +3055,7 @@ class Scene_Difficulty extends Scene_MenuBase
     }
 
     // refresh the difficulty windows.
-    this.refreshDifficultyWindows();
+    this.refreshCoreDifficultyWindows();
 
     // grab the list window to activate.
     const listWindow = this.getDifficultyListWindow();
@@ -2808,62 +3117,40 @@ class Scene_Difficulty extends Scene_MenuBase
   /**
    * Refreshes all windows in the scene at once.
    */
-  refreshDifficultyWindows()
+  refreshCoreDifficultyWindows()
   {
     // grab the windows to refresh.
     const listWindow = this.getDifficultyListWindow();
-    const detailsWindow = this.getDifficultyDetailsWindow();
     const helpWindow = this.getHelpWindow();
     const pointsWindow = this.getPointsWindow();
 
     // refresh all the windows.
     listWindow.refresh();
-    detailsWindow.refresh();
     helpWindow.refresh();
     pointsWindow.refresh();
-  }
-
-  /**
-   * Extends {@link #update}.
-   * Also keeps the details window in-sync with the list window.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // update the detail window, too.
-    this.updateDetailWindow();
-  }
-
-  /**
-   * Synchronizes the currently hovered difficulty into the details window.
-   */
-  updateDetailWindow()
-  {
-    // grab the details window.
-    const detailsWindow = this.getDifficultyDetailsWindow();
-
-    // grab the currently hovered difficulty.
-    const hoveredDifficulty = this.hoveredDifficulty();
-
-    // update the difficulty displayed in the details window.
-    detailsWindow.setHoveredDifficulty(hoveredDifficulty);
   }
 }
 //endregion Scene_Difficulty
 
-//region Window_DifficultyDetails
-class Window_DifficultyDetails extends Window_Base 
+//region Window_DifficultyEffects
+class Window_DifficultyEffects extends Window_Command
 {
   /**
    * The difficulty being hovered over from the list.
-   * @type {DifficultyLayer}
+   * @type {DifficultyBattlerEffects}
    */
-  hoveredDifficulty = null;
+  hoveredEffects = null;
+
+  hoveredBonuses = null;
 
   /**
-   * @constructor
+   * The type of effects being displayed in this list.
+   * @type {Window_DifficultyEffects.EffectsTypes}
+   */
+  hoveredEffectsType = String.empty;
+
+  /**
+   * Constructor.
    * @param {Rectangle} rect The rectangle that represents this window.
    */
   constructor(rect) 
@@ -2885,428 +3172,463 @@ class Window_DifficultyDetails extends Window_Base
   };
 
   /**
-   * Gets the difficulty currently applied to the player.
-   * @returns {DifficultyLayer}
+   * The types of effects that can be listed in this window.
    */
-  getAppliedDifficulty()
+  static EffectsTypes = {
+    ACTOR: "actor",
+    ENEMY: "enemy",
+  };
+
+  /**
+   * Gets the list of battler effects that this window is displaying.
+   * @returns {DifficultyBattlerEffects}
+   */
+  getEffectsList()
   {
-    return $gameTemp.getAppliedDifficulty();
+    return this.hoveredEffects;
   }
 
   /**
-   * Gets the difficulty currently being hovered over in the list.
-   * @returns {DifficultyLayer}
+   * Sets the list of effects that this window is displaying.
+   * @param {DifficultyBattlerEffects} effectsList The new effects list.
    */
-  getHoveredDifficulty()
+  setEffectsList(effectsList)
   {
-    return this.hoveredDifficulty;
+    // don't update if it doesn't need updating.
+    if (this.hoveredEffects === effectsList) return;
+
+    // update the effects list.
+    this.hoveredEffects = effectsList;
   }
 
   /**
-   * Sets the hovered difficulty.
-   * @param {DifficultyLayer} difficulty The new hovered difficulty.
+   * Gets the type of battler effects that this window is displaying.
+   * @returns {DifficultyBattlerEffects}
    */
-  setHoveredDifficulty(difficulty)
+  getEffectsType()
   {
-    if (this.hoveredDifficulty !== difficulty)
+    return this.hoveredEffectsType;
+  }
+
+  /**
+   * Sets the type of effects that will display in this list.
+   * @param {Window_DifficultyEffects.EffectsTypes} effectsType The new effects type.
+   */
+  setEffectsType(effectsType)
+  {
+    // don't update if it doesn't need updating.
+    if (this.hoveredEffectsType === effectsType) return;
+
+    // update the effects type.
+    this.hoveredEffectsType = effectsType;
+  }
+
+  /**
+   * Gets the effect bonuses that will display in this list.
+   * @returns {DifficultyBonusEffects|null}
+   */
+  getEffectsBonuses()
+  {
+    return this.hoveredBonuses;
+  }
+
+  /**
+   * Sets the effect bonuses that will display in this list.
+   * @param {DifficultyBonusEffects} bonuses The new bonuses.
+   */
+  setEffectsBonuses(bonuses)
+  {
+    if (this.hoveredBonuses === bonuses) return;
+
+    // update the effects bonuses.
+    this.hoveredBonuses = bonuses;
+  }
+
+  /**
+   * Updates the contents of this window with new data.
+   * @param {DifficultyBattlerEffects} effectsList The new effects list.
+   * @param {DifficultyBonusEffects} effectBonuses The new bonuses list.
+   * @param {Window_DifficultyEffects.EffectsTypes} effectsType The new effects type.
+   */
+  updateEffects(effectsList, effectBonuses, effectsType)
+  {
+    // update the effects type.
+    this.setEffectsType(effectsType);
+
+    // update the effects list.
+    this.setEffectsList(effectsList);
+
+    // update the effects bonuses.
+    this.setEffectsBonuses(effectBonuses);
+
+    // refresh the window.
+    this.refresh();
+  }
+
+  /**
+   * Implements {@link #makeCommandList}.
+   * Renders all the effect of the hovered difficulty layer.
+   */
+  makeCommandList()
+  {
+    // grab the applied difficulty
+    const effectsList = this.getEffectsList();
+
+    // if there is no hovered difficulty, then don't render this.
+    if (!effectsList) return;
+
+    // extract the data out of the hovered difficulty.
+    const { bparams, xparams, sparams } = effectsList;
+
+    // initialize our command collection for enemies.
+    const battlerEffectsCommands = Array.empty;
+
+    // build the command.
+    const effectsTitleCommand = this.buildTitleCommand();
+
+    // add the title command.
+    battlerEffectsCommands.push(effectsTitleCommand);
+
+    // build the various commands from the difficulty for enemies.
+    const bparamCommands = bparams
+      .map(this.buildBParamCommand, this)
+      .filter(command => !!command);
+    const xparamCommands = xparams
+      .map(this.buildXParamCommand, this)
+      .filter(command => !!command);
+    const sparamCommands = sparams
+      .map(this.buildSParamCommand, this)
+      .filter(command => !!command);
+
+    // add the commands to the running list.
+    battlerEffectsCommands.push(...bparamCommands);
+    battlerEffectsCommands.push(...xparamCommands);
+    battlerEffectsCommands.push(...sparamCommands);
+
+    const bonusCommands = this.bonusEffectsCommands();
+
+    battlerEffectsCommands.push(...bonusCommands);
+
+    // add all the commands to the enemy effects.
+    battlerEffectsCommands.forEach(this.addBuiltCommand, this);
+  }
+
+  /**
+   * Builds all bonus effects commands.
+   * @returns {BuiltWindowCommand[]}
+   */
+  bonusEffectsCommands()
+  {
+    // pivot on effects type.
+    switch (this.getEffectsType())
     {
-      this.hoveredDifficulty = difficulty;
-      this.refresh();
+      case Window_DifficultyEffects.EffectsTypes.ACTOR:
+        return this.bonusActorEffects();
+      case Window_DifficultyEffects.EffectsTypes.ENEMY:
+        return this.bonusEnemyEffects();
     }
   }
 
   /**
-   * Refreshes this window and all its content.
+   * Builds all bonus effects applicable to enemies.
+   * @returns {BuiltWindowCommand[]}
    */
-  refresh()
+  bonusEnemyEffects()
   {
-    // don't refresh if there is no difficulty to refresh the contents of.
-    if (!this.hoveredDifficulty) return;
+    // grab the current effects bonuses.
+    const bonuses = this.getEffectsBonuses();
 
-    this.contents.clear();
-    this.drawDifficultyInfo();
-  }
+    // if there are no bonuses, then do not process.
+    if (!bonuses) return Array.empty;
 
-  /**
-   * Draws the information of the compared difficulties.
-   */
-  drawDifficultyInfo() 
-  {
-    // check if the difficulty info can be drawn right now.
-    if (this.canDrawDifficultyInfo())
+    // initialize the bonuses collection.
+    const bonusCommands = Array.empty;
+
+    // check if the experience bonus is modified.
+    if (bonuses.exp !== 100)
     {
-      // draw the difficulty.
-      this.drawDifficulty();
+      // determine the value.
+      const paramValue = bonuses.exp;
+
+      // get the icon index.
+      const paramIconIndex = IconManager.rewardParam(0);
+
+      // get the param name.
+      const paramName = TextManager.rewardParam(0);
+
+      // get the description of the parameter.
+      const paramDescription = TextManager.rewardDescription(0);
+
+      // initialize the parameter value's sign to indicate increase/decrease from default.
+      let paramSign = String.empty;
+
+      // check if greater than default.
+      if (paramValue > 100)
+      {
+        // add a plus.
+        paramSign = `+`;
+      }
+
+      // determine the compared color against the default.
+      const paramColorIndex = this.getComparedBonusColor(
+        true,
+        paramValue,
+        100);
+
+      // build the command.
+      const paramCommand = new WindowCommandBuilder(paramName)
+        .setIconIndex(paramIconIndex)
+        .setRightText(`${paramSign}${paramValue-100}`)
+        .setColorIndex(paramColorIndex)
+        .addSubTextLines(paramDescription)
+        .build();
+
+      // add the built command.
+      bonusCommands.push(paramCommand);
     }
-  }
 
-  /**
-   * Determines whether or not the difficulty info can be drawn.
-   * @returns {boolean}
-   */
-  canDrawDifficultyInfo()
-  {
-    // we cannot draw difficulty info if we don't have at least an applied difficulty.
-    if (!this.getAppliedDifficulty()) return false;
-
-    // draw the difficulty info!
-    return true;
-  }
-
-  /**
-   * Draws a single difficulty layer and all its relevant information.
-   */
-  drawDifficulty()
-  {
-    // remove any residual formatting.
-    this.resetFontSettings();
-
-    // get the difficulties.
-    const hoveredDifficulty = this.getHoveredDifficulty();
-
-    // draw the names.
-    this.drawDifficultyName(0, 0, 600, hoveredDifficulty);
-
-
-    // establish some baselines for coordinates.
-    const lh = this.lineHeight();
-    const ox = 0;
-    const oy = lh * 2;
-    const bonusesOy = lh * 14;
-
-    // draw all parameters.
-    this.drawBParams(ox + 40, oy, hoveredDifficulty);
-    this.drawSParams(ox + 320, oy, hoveredDifficulty);
-    this.drawXParams(ox + 600, oy, hoveredDifficulty);
-
-    // draw all bonus difficulty modifiers.
-    this.drawDifficultyBonuses(ox + 40, bonusesOy, hoveredDifficulty);
-  }
-
-  /**
-   * Draws the difficulty name with its icon.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficulty The currently applied difficulty.
-   */
-  drawDifficultyName(x, y, w, difficulty)
-  {
-    // draw the icon for the difficulty.
-    this.drawIcon(difficulty.iconIndex, x, y);
-
-    // draw the name of the difficulty.
-    this.drawText(`${difficulty.name}`, x + 32, y, w, "left");
-  }
-
-  /**
-   * Draws all the b-parameters.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawBParams(x, oy, difficultyLayer)
-  {
-    // if we have no difficulty, then do not draw.
-    if (!difficultyLayer) return;
-
-    // shorthand the height.
-    const lh = this.lineHeight();
-
-    // iterate over each of the params.
-    difficultyLayer.bparams.forEach((bparam, index) =>
+    // check if the gold bonus is modified.
+    if (bonuses.gold !== 100)
     {
-      // determine the x:y for the applied rate.
-      const paramY = (index * lh) + oy;
-      const paramWidth = 120;
+      // determine the value.
+      const paramValue = bonuses.gold;
 
       // get the icon index.
-      const paramIconIndex = IconManager.param(index);
+      const paramIconIndex = IconManager.rewardParam(1);
 
       // get the param name.
-      const paramName = TextManager.param(index);
+      const paramName = TextManager.rewardParam(1);
 
-      // get the current param rate we're drawing.
-      const paramValue = bparam;
+      // get the description of the parameter.
+      const paramDescription = TextManager.rewardDescription(1);
 
-      // determine if bigger is better for this parameter.
-      const biggerIsBetter = this.biggerIsBetterBParameters(index);
+      // initialize the parameter value's sign to indicate increase/decrease from default.
+      let paramSign = String.empty;
 
-      // draw the parameter.
-      this.drawDifficultyParam(
-        x,
-        paramY,
-        paramWidth,
-        paramIconIndex,
-        paramName,
+      // check if greater than default.
+      if (paramValue > 100)
+      {
+        // add a plus.
+        paramSign = `+`;
+      }
+
+      // determine the compared color against the default.
+      const paramColorIndex = this.getComparedBonusColor(
+        true,
         paramValue,
-        biggerIsBetter);
-    });
-  }
+        100);
 
-  /**
-   * Draws all the s-parameters.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawSParams(x, oy, difficultyLayer)
-  {
-    // if we have no difficulty, then do not draw.
-    if (!difficultyLayer) return;
+      // build the command.
+      const paramCommand = new WindowCommandBuilder(paramName)
+        .setIconIndex(paramIconIndex)
+        .setRightText(`${paramSign}${paramValue-100}`)
+        .setColorIndex(paramColorIndex)
+        .addSubTextLines(paramDescription)
+        .build();
 
-    // shorthand the height.
-    const lh = this.lineHeight();
+      // add the built command.
+      bonusCommands.push(paramCommand);
+    }
 
-    // iterate over each of the params.
-    difficultyLayer.sparams.forEach((sparam, index) =>
+    // check if the drops bonus is modified.
+    if (bonuses.drops !== 100)
     {
-      // determine the x:y for the rate.
-      const paramY = (index * lh) + oy;
-      const paramWidth = 120;
+      // determine the value.
+      const paramValue = bonuses.drops;
 
       // get the icon index.
-      const paramIconIndex = IconManager.sparam(index);
+      const paramIconIndex = IconManager.rewardParam(2);
 
       // get the param name.
-      const paramName = TextManager.sparam(index);
+      const paramName = TextManager.rewardParam(2);
 
-      // get the current xparam rate we're drawing.
-      const paramValue = sparam;
+      // get the description of the parameter.
+      const paramDescription = TextManager.rewardDescription(2);
 
-      // determine if bigger is better for this parameter.
-      const biggerIsBetter = this.biggerIsBetterSParameters(index);
+      // initialize the parameter value's sign to indicate increase/decrease from default.
+      let paramSign = String.empty;
 
-      // draw the parameter.
-      this.drawDifficultyParam(
-        x,
-        paramY,
-        paramWidth,
-        paramIconIndex,
-        paramName,
+      // check if greater than default.
+      if (paramValue > 100)
+      {
+        // add a plus.
+        paramSign = `+`;
+      }
+
+      // determine the compared color against the default.
+      const paramColorIndex = this.getComparedBonusColor(
+        true,
         paramValue,
-        biggerIsBetter);
-    });
-  }
+        100);
 
-  /**
-   * Draws all the x-parameters.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawXParams(x, oy, difficultyLayer)
-  {
-    // if we have no difficulty, then do not draw.
-    if (!difficultyLayer) return;
+      // build the command.
+      const paramCommand = new WindowCommandBuilder(paramName)
+        .setIconIndex(paramIconIndex)
+        .setRightText(`${paramSign}${paramValue-100}`)
+        .setColorIndex(paramColorIndex)
+        .addSubTextLines(paramDescription)
+        .build();
 
-    // shorthand the height.
-    const lh = this.lineHeight();
+      // add the built command.
+      bonusCommands.push(paramCommand);
+    }
 
-    // iterate over each of the params.
-    difficultyLayer.xparams.forEach((xparam, index) =>
+    // check if the sdp bonus is modified.
+    if (bonuses.sdp !== 100)
     {
-      // determine the x:y for the rate.
-      const paramY = (index * lh) + oy;
-      const paramWidth = 120;
+      // determine the value.
+      const paramValue = bonuses.sdp;
 
       // get the icon index.
-      const paramIconIndex = IconManager.xparam(index);
+      const paramIconIndex = IconManager.rewardParam(4);
 
       // get the param name.
-      const paramName = TextManager.xparam(index);
+      const paramName = TextManager.rewardParam(4);
 
-      // get the current param rate we're drawing.
-      const paramValue = xparam;
+      // get the description of the parameter.
+      const paramDescription = TextManager.rewardDescription(4);
 
-      // determine if bigger is better for this parameter.
-      const biggerIsBetter = this.biggerIsBetterXParameters(index);
+      // initialize the parameter value's sign to indicate increase/decrease from default.
+      let paramSign = String.empty;
 
-      // draw the parameter.
-      this.drawDifficultyParam(
-        x,
-        paramY,
-        paramWidth,
-        paramIconIndex,
-        paramName,
+      // check if greater than default.
+      if (paramValue > 100)
+      {
+        // add a plus.
+        paramSign = `+`;
+      }
+
+      // determine the compared color against the default.
+      const paramColorIndex = this.getComparedBonusColor(
+        true,
         paramValue,
-        biggerIsBetter);
-    });
+        100);
+
+      // build the command.
+      const paramCommand = new WindowCommandBuilder(paramName)
+        .setIconIndex(paramIconIndex)
+        .setRightText(`${paramSign}${paramValue-100}`)
+        .setColorIndex(paramColorIndex)
+        .addSubTextLines(paramDescription)
+        .build();
+
+      // add the built command.
+      bonusCommands.push(paramCommand);
+    }
+
+    // return the built bonus commands.
+    return bonusCommands;
   }
 
   /**
-   * Draws all difficulty bonuses.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
+   * Builds all bonus effects applicable to actors.
+   * @returns {BuiltWindowCommand[]}
    */
-  drawDifficultyBonuses(x, oy, difficultyLayer)
+  bonusActorEffects()
   {
-    // if we have no difficulty, then do not draw.
-    if (!difficultyLayer) return;
+    // grab the current effects bonuses.
+    const bonuses = this.getEffectsBonuses();
 
-    // shorthand the height.
-    const lh = this.lineHeight();
+    // if there are no bonuses, then do not process.
+    if (!bonuses) return Array.empty;
 
-    // all bonuses have the same width.
-    const w = 120;
+    // initialize the bonuses collection.
+    const bonusCommands = Array.empty;
 
-    // coordinate exp.
-    const expRateY = oy + (lh * 0);
-    this.drawDifficultyBonusExperience(x, expRateY, w, difficultyLayer);
+    if (bonuses.encounters !== 100)
+    {
+      // determine the value.
+      const paramValue = bonuses.encounters;
 
-    // coordinate gold.
-    const goldRateY = oy + (lh * 1);
-    this.drawDifficultyBonusGold(x, goldRateY, w, difficultyLayer);
+      // get the icon index.
+      const paramIconIndex = IconManager.rewardParam(3);
 
-    // coordinate sdp.
-    const sdpRateY = oy + (lh * 2);
-    this.drawDifficultyBonusSdp(x, sdpRateY, w, difficultyLayer);
+      // get the param name.
+      const paramName = TextManager.rewardParam(3);
 
-    // coordinate drops.
-    const dropsRateY = oy + (lh * 3);
-    this.drawDifficultyBonusDrops(x, dropsRateY, w, difficultyLayer);
+      // get the description of the parameter.
+      const paramDescription = TextManager.rewardDescription(3);
 
-    //const encountersRateY = oy + (lh * 4);
-    //this.drawDifficultyBonusEncounters(x, encountersRateY, w, difficultyLayer);
+      // initialize the parameter value's sign to indicate increase/decrease from default.
+      let paramSign = String.empty;
+
+      // check if greater than default.
+      if (paramValue > 100)
+      {
+        // add a plus.
+        paramSign = `+`;
+      }
+
+      // determine the compared color against the default.
+      const paramColorIndex = this.getComparedBonusColor(
+        true,
+        paramValue,
+        100);
+
+      // build the command.
+      const paramCommand = new WindowCommandBuilder(paramName)
+        .setIconIndex(paramIconIndex)
+        .setRightText(`${paramSign}${paramValue-100}`)
+        .setColorIndex(paramColorIndex)
+        .addSubTextLines(paramDescription)
+        .build();
+
+      // add the built command.
+      bonusCommands.push(paramCommand);
+    }
+
+    // return the built bonus commands.
+    return bonusCommands;
   }
 
-  /**
-   * Draws the bonus data for experience earned by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawDifficultyBonusExperience(x, y, w, difficultyLayer)
+  buildTitleCommand()
   {
-    // determine the icon for this bonus.
-    const rateIconIndex = IconManager.rewardParam(0);
+    switch (this.getEffectsType())
+    {
+      case Window_DifficultyEffects.EffectsTypes.ACTOR:
+        return this.buildActorTitleCommand();
+      case Window_DifficultyEffects.EffectsTypes.ENEMY:
+        return this.buildEnemyTitleCommand();
+    }
 
-    // determine the name for this bonus.
-    const rateName = `${TextManager.rewardParam(0)} RATE`;
-
-    // grab the rate.
-    const { exp } = difficultyLayer;
-
-    // draw the parameter.
-    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, exp, true);
+    // build the command.
+    return new WindowCommandBuilder("Effects")
+      .setIconIndex(93)
+      .setColorIndex(6)
+      .build();
   }
 
-  /**
-   * Draws the bonus data for gold found by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawDifficultyBonusGold(x, y, w, difficultyLayer)
+  buildEnemyTitleCommand()
   {
-    // determine the icon for this bonus.
-    const rateIconIndex = IconManager.rewardParam(1);
-
-    // determine the name for this bonus.
-    const rateName = `${TextManager.rewardParam(1)} RATE`;
-
-    // grab the rate.
-    const { gold } = difficultyLayer;
-
-    // draw the parameter.
-    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, gold, true);
+    // build the command.
+    return new WindowCommandBuilder("Enemy Effects")
+      .setIconIndex(14)
+      .setColorIndex(2)
+      .build();
   }
 
-  /**
-   * Draws the bonus data for drop rates gained by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawDifficultyBonusDrops(x, y, w, difficultyLayer)
+  buildActorTitleCommand()
   {
-    // determine the icon for this bonus.
-    const rateIconIndex = IconManager.rewardParam(2);
-
-    // determine the name for this bonus.
-    const rateName = `${TextManager.rewardParam(2)} RATE`;
-
-    // grab the rate.
-    const { drops } = difficultyLayer;
-
-    // draw the parameter.
-    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, drops, true);
+    // build the command.
+    return new WindowCommandBuilder("Actor Effects")
+      .setIconIndex(82)
+      .setColorIndex(1)
+      .build();
   }
 
-  /**
-   * Draws the bonus data for encountering enemies by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawDifficultyBonusEncounters(x, y, w, difficultyLayer)
+  buildBParamCommand(paramValue, index)
   {
-    // determine the icon for this bonus.
-    const rateIconIndex = IconManager.rewardParam(3);
+    // don't render commands for unchanged parameters.
+    if (paramValue === 100) return;
 
-    // determine the name for this bonus.
-    const rateName = `${TextManager.rewardParam(3)} RATE`;
+    // get the icon index.
+    const paramIconIndex = IconManager.param(index);
 
-    // grab the rate.
-    const { encounters } = difficultyLayer;
+    // get the param name.
+    const paramName = TextManager.param(index);
 
-    // draw the parameter.
-    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, encounters, true);
-  }
-
-  /**
-   * Draws the bonus data for sdp acquired by the player.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {DifficultyLayer} difficultyLayer The difficulty to display data for.
-   */
-  drawDifficultyBonusSdp(x, y, w, difficultyLayer)
-  {
-    // determine the icon for this bonus.
-    const rateIconIndex = IconManager.rewardParam(4);
-
-    // determine the name for this bonus.
-    const rateName = `${TextManager.rewardParam(4)} RATE`;
-
-    // grab the rate.
-    const { sdp } = difficultyLayer;
-
-    // draw the parameter.
-    this.drawDifficultyParam(x, y, w, rateIconIndex, rateName, sdp, true);
-  }
-
-  /**
-   * Draws a single parameter in the context of difficulty modifiers.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   * @param {number} w The width of the text.
-   * @param {number} paramIconIndex The icon index to render with the modifier.
-   * @param {string} paramName The name of the parameter.
-   * @param {number} paramValue The value of the modifier.
-   * @param {boolean} biggerIsBetter True if bigger is better, false otherwise.
-   */
-  drawDifficultyParam(x, y, w, paramIconIndex, paramName, paramValue, biggerIsBetter)
-  {
-    // reset font for this text.
-    this.resetFontSettings();
-
-    // draw the icon.
-    this.drawIcon(paramIconIndex, x-40, y);
-
-    // draw the param name.
-    this.drawText(paramName, x, y, w, "left");
-
-    // determine the compared color against the default.
-    const comparedColor = this.getComparedColor(biggerIsBetter, paramValue, 100);
-
-    // change the text color.
-    this.changeTextColor(comparedColor);
+    // get the description of the parameter.
+    const paramDescription = TextManager.bparamDescription(index);
 
     // initialize the parameter value's sign to indicate increase/decrease from default.
     let paramSign = String.empty;
@@ -3318,11 +3640,106 @@ class Window_DifficultyDetails extends Window_Base
       paramSign = `+`;
     }
 
-    // draw the currently applied rate with its sign if applicable.
-    this.drawText(`${paramSign}${paramValue-100}`, x+150, y, w, "left");
+    // determine the compared color against the default.
+    const paramColorIndex = this.getComparedColor(
+      this.biggerIsBetterBParameters(index),
+      paramValue,
+      100);
 
-    // cleanup font settings.
-    this.resetFontSettings();
+    // build the command.
+    const paramCommand = new WindowCommandBuilder(paramName)
+      .setIconIndex(paramIconIndex)
+      .setRightText(`${paramSign}${paramValue-100}`)
+      .setColorIndex(paramColorIndex)
+      .addSubTextLines(paramDescription)
+      .build();
+
+    // return the built command.
+    return paramCommand;
+  }
+
+  buildXParamCommand(paramValue, index)
+  {
+    // don't render commands for unchanged parameters.
+    if (paramValue === 100) return;
+
+    // get the icon index.
+    const paramIconIndex = IconManager.xparam(index);
+
+    // get the param name.
+    const paramName = TextManager.xparam(index);
+
+    // get the description of the parameter.
+    const paramDescription = TextManager.xparamDescription(index);
+
+    // initialize the parameter value's sign to indicate increase/decrease from default.
+    let paramSign = String.empty;
+
+    // check if greater than default.
+    if (paramValue > 100)
+    {
+      // add a plus.
+      paramSign = `+`;
+    }
+
+    // determine the compared color against the default.
+    const paramColorIndex = this.getComparedColor(
+      this.biggerIsBetterXParameters(index),
+      paramValue,
+      100);
+
+    // build the command.
+    const paramCommand = new WindowCommandBuilder(paramName)
+      .setIconIndex(paramIconIndex)
+      .setRightText(`${paramSign}${paramValue-100}`)
+      .setColorIndex(paramColorIndex)
+      .addSubTextLines(paramDescription)
+      .build();
+
+    // return the built command.
+    return paramCommand;
+  }
+
+  buildSParamCommand(paramValue, index)
+  {
+    // don't render commands for unchanged parameters.
+    if (paramValue === 100) return;
+
+    // get the icon index.
+    const paramIconIndex = IconManager.sparam(index);
+
+    // get the param name.
+    const paramName = TextManager.sparam(index);
+
+    // get the description of the parameter.
+    const paramDescription = TextManager.sparamDescription(index);
+
+    // initialize the parameter value's sign to indicate increase/decrease from default.
+    let paramSign = String.empty;
+
+    // check if greater than default.
+    if (paramValue > 100)
+    {
+      // add a plus.
+      paramSign = `+`;
+    }
+
+    // determine the compared color against the default.
+    const paramColorIndex = this.getComparedColor(
+      this.biggerIsBetterSParameters(index),
+      paramValue,
+      100);
+
+    // build the command.
+    const paramCommand = new WindowCommandBuilder(paramName)
+      .setIconIndex(paramIconIndex)
+      .setRightText(`${paramSign}${paramValue-100}`)
+      .setColorIndex(paramColorIndex)
+      .addSubTextLines(paramDescription)
+      .build();
+
+    // return the built command.
+    return paramCommand;
   }
 
   /**
@@ -3335,14 +3752,45 @@ class Window_DifficultyDetails extends Window_Base
   getComparedColor(biggerIsBetter, paramValue, comparisonValue)
   {
     const comparison = this.determineComparisonType(biggerIsBetter, paramValue, comparisonValue);
+
+    if (this.getEffectsType() === Window_DifficultyEffects.EffectsTypes.ENEMY)
+    {
+      switch (comparison)
+      {
+        case this.ComparisonTypes.SAME:
+          return 0;
+        case this.ComparisonTypes.EASIER:
+          return 29;
+        case this.ComparisonTypes.HARDER:
+          return 10;
+      }
+    }
+
+    if (this.getEffectsType() === Window_DifficultyEffects.EffectsTypes.ACTOR)
+    {
+      switch (comparison)
+      {
+        case Window_DifficultyEffects.ComparisonTypes.SAME:
+          return 0;
+        case Window_DifficultyEffects.ComparisonTypes.HARDER:
+          return 29;
+        case Window_DifficultyEffects.ComparisonTypes.EASIER:
+          return 10;
+      }
+    }
+  }
+
+  getComparedBonusColor(biggerIsBetter, paramValue, comparisonValue)
+  {
+    const comparison = this.determineComparisonType(biggerIsBetter, paramValue, comparisonValue);
     switch (comparison)
     {
-      case Window_DifficultyDetails.ComparisonTypes.SAME:
-        return ColorManager.normalColor();
-      case Window_DifficultyDetails.ComparisonTypes.EASIER:
-        return "rgba(0, 192, 0, 0.8)";
-      case Window_DifficultyDetails.ComparisonTypes.HARDER:
-        return "rgba(192, 0, 0, 0.8)";
+      case Window_DifficultyEffects.ComparisonTypes.SAME:
+        return 0;
+      case Window_DifficultyEffects.ComparisonTypes.EASIER:
+        return 29;
+      case Window_DifficultyEffects.ComparisonTypes.HARDER:
+        return 10;
     }
   }
 
@@ -3354,7 +3802,7 @@ class Window_DifficultyDetails extends Window_Base
    * @param {boolean} biggerIsBetter Whether or not a bigger parameter is better.
    * @param {number} baseValue The currently applied parameter.
    * @param {number} comparisonValue The potential parameter to change to.
-   * @returns {Window_DifficultyDetails.ComparisonTypes} One of "SAME", "EASIER", or "HARDER".
+   * @returns {Window_DifficultyEffects.ComparisonTypes} One of "SAME", "EASIER", or "HARDER".
    */
   determineComparisonType(biggerIsBetter, baseValue, comparisonValue)
   {
@@ -3363,19 +3811,18 @@ class Window_DifficultyDetails extends Window_Base
     const isImprovement = (biggerIsBetter === baseIsBigger);
     if (isSame)
     {
-      return Window_DifficultyDetails.ComparisonTypes.SAME;
+      return Window_DifficultyEffects.ComparisonTypes.SAME;
     }
     else if (isImprovement)
     {
       // the hovered parameter is changed color to indicate it will become easier.
-      return Window_DifficultyDetails.ComparisonTypes.EASIER;
+      return Window_DifficultyEffects.ComparisonTypes.EASIER;
     }
     else if (!isImprovement)
     {
       // the hovered parameter is changed color to indicate it will become harder.
-      return Window_DifficultyDetails.ComparisonTypes.HARDER;
+      return Window_DifficultyEffects.ComparisonTypes.HARDER;
     }
-
   }
 
   /**
@@ -3444,8 +3891,18 @@ class Window_DifficultyDetails extends Window_Base
 
     return biggerIsBetterXParameters[xparamId] ?? true;
   }
+
+  /**
+   * Overwrites {@link #itemHeight}.
+   * Makes the command rows bigger so there can be additional lines.
+   * @returns {number}
+   */
+  itemHeight()
+  {
+    return this.lineHeight() * 2;
+  }
 }
-//endregion Window_DifficultyDetails
+//endregion Window_DifficultyEffects
 
 //region Window_DifficultyList
 class Window_DifficultyList extends Window_Command

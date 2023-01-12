@@ -293,219 +293,135 @@ Game_Actor.prototype.prepareTime = function()
 };
 
 /**
+ * Extracts the JABS-related parameter from this actor's class, and
+ * falls back to the actor data itself.
+ * @param {RegExp} structure The parameter's regexp to search for.
+ * @param {number} defaultValue The default value to fallback to.
+ * @returns {number}
+ */
+Game_Actor.prototype.getJabsParameter = function(structure, defaultValue)
+{
+  // grab the class data from the actor.
+  const classData = this.currentClass();
+
+  // check if the class has sight on it.
+  if (classData.getNumberFromNotesByRegex(structure))
+  {
+    // return the sight from the class.
+    return classData.getNumberFromNotesByRegex(structure)
+  }
+
+  // grab the data for this actor.
+  const actorData = this.actor();
+
+  // if there is no class prepare tag, then look to the actor.
+  if (actorData.getNumberFromNotesByRegex(structure))
+  {
+    // return the sight from the battler.
+    return actorData.getNumberFromNotesByRegex(structure);
+  }
+
+  return defaultValue;
+};
+
+/**
  * Gets the sight range for this actor.
- * Looks first to the class, then the actor for the tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.sightRange = function()
 {
-  let val = Game_Battler.prototype.sightRange.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.sightRange.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Sight])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Sight]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.Sight,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Sight])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.Sight]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<s:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted sight boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertedSightBoost = function()
 {
-  let val = Game_Battler.prototype.alertedSightBoost.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertedSightBoost.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertSightBoost]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertedSightBoost,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertSightBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertSightBoost]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<as:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted pursuit boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.pursuitRange = function()
 {
-  let val = Game_Battler.prototype.pursuitRange.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.pursuitRange.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.Pursuit])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.Pursuit]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.Pursuit,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Pursuit])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.Pursuit]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<p:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alerted pursuit boost for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertedPursuitBoost = function()
 {
-  let val = Game_Battler.prototype.alertedPursuitBoost.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertedPursuitBoost.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertPursuitBoost]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertedPursuitBoost,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertPursuitBoost])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertPursuitBoost]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ap:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the alert duration for this actor.
- * Looks first to the class, then the actor for a skill id tag.
- * If neither are present, then it returns the default.
  * @returns {number}
  */
 Game_Actor.prototype.alertDuration = function()
 {
-  let val = Game_Battler.prototype.alertDuration.call(this);
-  const referenceData = this.actor();
+  // determine the default value.
+  const defaultValue = Game_Battler.prototype.alertDuration.call(this);
 
-  // if there is a class prepare tag, we want that first.
-  const referenceDataClass = $dataClasses[referenceData.classId];
-  if (referenceDataClass.meta && referenceDataClass.meta[J.BASE.Notetags.AlertDuration])
-  {
-    return parseInt(referenceDataClass.meta[J.BASE.Notetags.AlertDuration]);
-  }
+  // grab the value appropriately from this actor.
+  const actualValue = this.getJabsParameter(
+    J.ABS.RegExp.AlertDuration,
+    defaultValue);
 
-  // if there is no class prepare tag, then look to the actor.
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.AlertDuration])
-  {
-    // if its in the metadata, then grab it from there.
-    return parseInt(referenceData.meta[J.BASE.Notetags.AlertDuration]);
-  }
-  else
-  {
-    // if its not in the metadata, then check the notes proper.
-    const structure = /<ad:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = parseInt(RegExp.$1);
-      }
-    })
-  }
-
-  return val;
+  // return the value.
+  return actualValue;
 };
 
 /**
  * Gets the ai of the actor.
- * Though allies leverage ally ai for action decision making, this AI does
- * have one effect: how to move around and stuff throughout the phases.
+ * This is only implemented in JABS Ally AI.
  * @returns {null}
  */
 Game_Actor.prototype.ai = function()
 {
-  return new JABS_EnemyAI();
+  return null;
 };
 
 /**
@@ -525,12 +441,16 @@ Game_Actor.prototype.canIdle = function()
  */
 Game_Actor.prototype.showHpBar = function()
 {
-  return false;
+  // leaders do not reveal their HP bar.
+  if (this.isLeader()) return false;
+
+  // show the HP!
+  return true;
 };
 
 /**
  * Gets whether or not the actor's name will show below their character.
- * Actors never show their name (the use HUDs for that).
+ * Actors never show their name.
  * @returns {boolean}
  */
 Game_Actor.prototype.showBattlerName = function()
@@ -550,7 +470,7 @@ Game_Actor.prototype.isInvincible = function()
 
 /**
  * Gets whether or not the actor is inanimate.
- * Actors are never inanimate (duh).
+ * Actors are never inanimate.
  * @returns {boolean}
  */
 Game_Actor.prototype.isInanimate = function()
@@ -565,52 +485,23 @@ Game_Actor.prototype.isInanimate = function()
  */
 Game_Actor.prototype.teamId = function()
 {
-  let val = JABS_Battler.allyTeamId();
-
-  const referenceData = this.databaseData();
-  if (referenceData.meta && referenceData.meta[J.BASE.Notetags.Team])
-  {
-    // if its in the metadata, then grab it from there.
-    val = referenceData.meta[J.BASE.Notetags.Team];
-  }
-  else
-  {
-    const structure = /<team:[ ]?([0-9]*)>/i;
-    const notedata = referenceData.note.split(/[\r\n]+/);
-    notedata.forEach(note =>
-    {
-      if (note.match(structure))
-      {
-        val = RegExp.$1;
-      }
-    });
-  }
-
-  return parseInt(val);
+  return JABS_Battler.allyTeamId();
 };
 
 /**
- * Checks all possible places for whether or not the actor is able to
- * be switched to.
- * @returns {boolean}
+ * Checks if this actor has anything that is preventing party cycling.
+ * @returns {boolean} True if party cycling is blocked, false otherwise.
  */
 Game_Actor.prototype.switchLocked = function()
 {
+  // grab all the things that could have this tag.
   const objectsToCheck = this.getAllNotes();
-  const structure = /<noSwitch>/i;
-  let switchLocked = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        switchLocked = true;
-      }
-    });
-  });
 
+  // check if any of the things have this tag on it.
+  const switchLocked = objectsToCheck
+    .some(object => object.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoSwitch));
+
+  // return the result.
   return switchLocked;
 };
 //endregion JABS battler properties
@@ -931,7 +822,7 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
   if (emptySlots.length === 0) return;
 
   // extract the key of the empty slot to be assigned.
-  const { key } = emptySlots.at(0).key;
+  const { key } = emptySlots.at(0);
 
   // assign the given skill to the slot.
   this.setEquippedSkill(key, skillId);

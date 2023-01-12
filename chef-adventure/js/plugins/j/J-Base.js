@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 29 2022 16:16:57 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Thu Jan 12 2023 15:12:53 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -39,6 +39,7 @@
  * CHANGELOG:
  * - 2.1.3
  *    Added help text functionality for window commands.
+ *    Added description text for all parameters.
  * - 2.1.2
  *    Added polyfill implementation for Array.prototype.at().
  *    Updated Window_EquipItem code to enable extension.
@@ -80,17 +81,9 @@ J.BASE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.BASE.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-Base`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '2.1.3',
-};
+J.BASE.Metadata = {};
+J.BASE.Metadata.Name = `J-Base`;
+J.BASE.Metadata.Version = '2.1.3';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -107,18 +100,7 @@ J.BASE.Notetags = {
   NotRefinementMaterial: "notRefinementMaterial",
   NoRefinement: "noRefine",
 
-  // on enemies in database.
-  Drops: "drops",
-  EnemyLevel: "level",
-  OnOwnDefeat: "onOwnDefeat",
-  OnTargetDefeat: "onTargetDefeat",
-  PrepareTime: "prepare",
-  SdpPoints: "sdp",
-
   // on events on map.
-  BattlerId: "e",
-  AiCode: "ai",
-  Team: "team",
   Sight: "s",
   Pursuit: "p",
   MoveSpeed: "ms",
@@ -2867,6 +2849,20 @@ ColorManager.equipType = function(equipTypeId)
 {
   return this.textColor(4);
 };
+
+/**
+ * Gets the color index of the given SDP.
+ * @param {string} rarity The key to get the panel for.
+ * @returns {rm.types.Color}
+ */
+ColorManager.sdp = function(rarity)
+{
+  // parse the rarity color.
+  const rarityColorIndex = SDP_Rarity.fromRarityToColor(rarity);
+
+  // return the text code for it.
+  return this.textColor(rarityColorIndex);
+};
 //endregion ColorManager
 
 //region DataManager
@@ -4445,11 +4441,263 @@ TextManager.rewardParam = function(paramId)
     case  1:
       return this.currencyUnit; // gold
     case  2:
-      return "DROPS"; // drops
+      return "Drop Rate"; // drops
     case  3:
-      return "ENCOUNTERS"; // encounters
+      return "Encounter Rate"; // encounters
     case  4:
-      return "SDP"; // sdp
+      return "SDP Point Rate"; // sdp
+  }
+};
+
+TextManager.rewardDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    case 0:
+      return [
+        "The resource required to accumulate to rise in level.",
+        "Levels give unseen advantages."
+      ];
+    case 1:
+      return [
+        "The primary currency of the universe.",
+        "Most vendors happily take this in exchange for goods."
+      ];
+    case 2:
+      return [
+        "The rate at which enemies will drop loot.",
+        "Higher rates yield more frequent drops."
+      ];
+    case 3:
+      return [
+        "The frequency of which the party will be engage in battles.",
+        "Lower rates result in less random encounters."
+      ];
+    case 4:
+      return [
+        "The rate of SDP accumulation from any source.",
+        "Bigger rates yield fatter stacks of them sweet SDP points."
+      ];
+  }
+};
+
+/**
+ * The double-line descriptions for the b-parameters.
+ * @param {number} paramId The id of the parameter.
+ * @returns {string[]}
+ */
+TextManager.bparamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    case 0:
+      return [
+        "The base resource that defines life and death.",
+        "Enemies and allies alike obey the rule of '0hp = dead'."
+      ];
+    case 1:
+      return [
+        "The base resource that most magic-based spells consume.",
+        "Without this, spells typically cannot be cast."
+      ];
+    case 2:
+      return [
+        "The base stat that influences physical damage.",
+        "Higher amounts of this yield higher physical damage output."
+      ];
+    case 3:
+      return [
+        "The base stat that reduces physical damage.",
+        "Higher amounts of this will reduce incoming physical damage."
+      ];
+    case 4:
+      return [
+        "The base stat that influences magical damage.",
+        "Higher amounts of this yield higher magical damage output."
+      ];
+    case 5:
+      return [
+        "The base stat that reduces magical damage.",
+        "Higher amounts of this will reduce incoming magical damage."
+      ];
+    case 6:
+      return [
+        "The base stat that governs movement and agility.",
+        "The effects of this are unknown at higher levels."
+      ];
+    case 7:
+      return [
+        "The base stat that governs fortune and luck.",
+        "The effects of this are wide and varied."
+      ];
+  }
+};
+
+/**
+ * The double-line descriptions for the x-parameters.
+ * @param {number} paramId The id of the parameter.
+ * @returns {string[]}
+ */
+TextManager.xparamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    // HIT (HIT chance)
+    case 0:
+      return [
+        "The stat representing one's skill of accuracy.",
+        "Being more accurate will result in being parried less."
+      ];
+
+    // EVA (physical hit EVasion)
+    case 1:
+      return [
+        // "The stat representing skill in physically evading attacks.",  // original function.
+        // "Having higher evasion is often seen as a form of tanking.",   // original function.
+        "The stat governing one's uncanny ability to parry precisely.",
+        "An optional stat, but having more will make parrying easier."
+      ];
+
+    // CRI (CRItical hit chance)
+    case 2:
+      return [
+        "A numeric value to one's chance of landing a critical hit.",
+        "This is directly reduced by a target's critical evasion."
+      ];
+
+    // CEV (Critical hit Evasion)
+    case 3:
+      return [
+        "A numeric value to one's chance of evading a critical hit.",
+        "Enemy critical hit chance is directly reduced by this amount."
+      ];
+
+    // MEV (Magic attack EVasion)
+    case 4:
+      return [
+        "A numeric value to one's chance of evading a magical hit.",
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
+
+    // MRF (Magic attack ReFlection)
+    case 5:
+      return [
+        // "The chance of reflecting a magical hit back to its caster.",  // original function
+        "The chance of reflecting a skill back to its caster.",
+        "Aside from it being reflected back, it is as if you casted it."
+      ];
+
+    // CNT (CouNTer chance)
+    case 6:
+      return [
+        // "The chance of responding with a basic attack when hit.",  // original function
+        "The chance of auto-executing counter skills when struck.",
+        "Being un-reducable, 100 makes countering inevitable."
+      ];
+
+    // HRG (Hp ReGeneration)
+    case 7:
+      return [
+        "The amount of Life restored over 5 seconds.",
+        "Recovery Rate amplifies this effect."
+      ];
+
+    // MRG (Mp ReGeneration)
+    case 8:
+      return [
+        "The amount of Magi rejuvenated over 5 seconds.",
+        "Recovery Rate amplifies this effect."
+      ];
+
+    // TRG (Tp ReGeneration)
+    case 9:
+      return [
+        "The amount of Tech recovered over 5 seconds.",
+        "Recovery Rate amplifies this effect."
+      ];
+  }
+};
+
+/**
+ * The double-line descriptions for the s-parameters.
+ * @param {number} paramId The id of the parameter.
+ * @returns {string[]}
+ */
+TextManager.sparamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    // TGR (TarGeting Rate)
+    case 0:
+      return [
+        "The percentage of aggro that will be applied.",
+        "Reduce for stealthing; increase for taunting."
+      ];
+
+    // GRD (GuaRD rate)
+    case 1:
+      return [
+        // "Improves the damage reduction when guarding.",  // original function.
+        // "This stat speaks for itself.",                  // original function.
+        "A numeric value representing the frequency of parrying.",
+        "More of this will result in auto-parrying faced foes."
+      ];
+
+    // REC (RECovery boost rate)
+    case 2:
+      return [
+        "The percentage effectiveness of healing applied to oneself.",
+        "Higher amounts of this will make healing need less effort."
+      ];
+
+    // PHA (PHArmacology rate)
+    case 3:
+      return [
+        "The percentage effectiveness of items applied to oneself.",
+        "Higher amounts of this will make items more potent."
+      ];
+
+    // MCR (Magic Cost Rate)
+    case 4:
+      return [
+        "The percentage bonuses being applied to Magi costs.",
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
+
+    // TCR (Tech ChaRge rate)
+    case 5:
+      return [
+        "The percentage bonuses being applied to Tech generation.",
+        "Taking and dealing damage in combat will earn more Tech."
+      ];
+
+    // PDR (Physical Damage Rate)
+    case 6:
+      return [
+        "The percentage bonuses being applied to physical damage.",
+        "-100 is immune while 100+ takes double+ physical damage."
+      ];
+
+    // MDR (Magic Damage Rate)
+    case 7:
+      return [
+        "The percentage bonuses being applied to magical damage.",
+        "-100 is immune while 100+ takes double+ magical damage."
+      ];
+
+    // FDR (Floor Damage Rate)
+    case 8:
+      return [
+        "The percentage bonuses being applied to floor damage.",
+        "-100 is immune while 100+ takes double+ floor damage."
+      ];
+
+    // EXR (EXperience Rate)
+    case 9:
+      return [
+        "The percentage bonuses being applied to experience gain.",
+        "Higher amounts of this result in faster level growth."
+      ];
   }
 };
 
@@ -4895,6 +5143,16 @@ class BuiltWindowCommand
   }
   //endregion getters
 }
+
+//region J_EventEmitter
+/**
+ * A custom event emitter for providing an event-driven approach to targeted
+ * cross-domain communication.
+ */
+class J_EventEmitter extends PIXI.utils.EventEmitter
+{
+}
+//endregion J_EventEmitter
 
 /**
  * A builder class for constructing {@link BuiltWindowCommand}.
@@ -5641,6 +5899,17 @@ Game_Battler.prototype.databaseData = function()
 };
 
 /**
+ * Gets the class associated with the given class id.
+ * By default, we simply get the class from the database with no modifications.
+ * @param {number} classId The class id to get the class for.
+ * @returns {RPG_Class}
+ */
+Game_Battler.prototype.class = function(classId)
+{
+  return $dataClasses.at(classId);
+};
+
+/**
  * Gets everything that this battler has with notes on it.
  * All battlers have their own database data, along with all their states.
  * Actors also get their class, skills, and equips added.
@@ -5799,6 +6068,16 @@ Game_Battler.prototype.allStates = function()
 Game_Battler.prototype.currentHpPercent = function()
 {
   return parseFloat((this.hp / this.mhp).toFixed(2));
+};
+
+/**
+ * Gets the current health percent of this battler as a base-100 integer.
+ * @returns {number}
+ */
+Game_Battler.prototype.currentHpPercent100 = function()
+{
+  // return the whole base-100 version of the hp percent.
+  return Math.round(this.currentHpPercent() * 100);
 };
 //endregion Game_Battler
 
@@ -6095,7 +6374,7 @@ Game_Enemy.prototype.onDeath = function()
 Game_Event.prototype.getValidCommentCommands = function()
 {
   // don't process if we have no event commands.
-  if (!this || !this.page().list || !this.list() || this.list().length === 0) return [];
+  if (!this.canGetValidCommentCommands()) return Array.empty;
 
   // otherwise, return the filtered list.
   return this.list().filter(command =>
@@ -6109,6 +6388,19 @@ Game_Event.prototype.getValidCommentCommands = function()
     // consider this comment valid if it passes, skip it otherwise.
     return J.BASE.RegExp.ParsableComment.test(comment);
   }, this);
+};
+
+/**
+ * Determines whether or not the parsable comment commands can be retrieved.
+ * @returns {boolean} True if they can be parsed, false otherwise.
+ */
+Game_Event.prototype.canGetValidCommentCommands = function()
+{
+  // if we are missing anything here, just don't try.
+  if (!this || !this.page() || !this.page().list || !this.list() || this.list().length === 0) return false;
+
+  // get those comment commands!
+  return true;
 };
 
 /**
@@ -6377,6 +6669,14 @@ Game_Party.prototype.allItemsQuantified = function()
 
   // return our quantified list.
   return allItemsRepeated;
+};
+
+/**
+ * Recovers the entire party back to perfect condition.
+ */
+Game_Party.prototype.recoverAllMembers = function()
+{
+  this.members().forEach(member => member.recoverAll());
 };
 //endregion Game_Party
 
@@ -7715,7 +8015,7 @@ Window_Command.prototype.drawItem = function(index)
   let commandName = this.buildCommandName(index);
 
   // grab the right text for this command.
-  const rightText = this.commandRightText(index)
+  let rightText = this.commandRightText(index)
 
   // grab the subtext for this command.
   const subtexts = this.commandSubtext(index);
@@ -7726,8 +8026,11 @@ Window_Command.prototype.drawItem = function(index)
   // initialize the y of the command name.
   let commandNameY = rectY;
 
+  // determine if we have subtext to draw.
+  const hasSubtexts = subtexts.length > 0;
+
   // check if we have any subtext.
-  if (subtexts.length > 0)
+  if (hasSubtexts)
   {
     // bolden the text if we have subtext to make it stand out.
     commandName = this.boldenText(commandName);
@@ -7747,9 +8050,25 @@ Window_Command.prototype.drawItem = function(index)
 
     // determine the x coordinate for the right text.
     const rightTextX = rectWidth - this.textWidth(rightText);
+
+    // initialize the y of the right text.
+    let rightTextY = rectY;
+
+    // check if we have subtexts to move the right text up.
+    if (hasSubtexts)
+    {
+      // bolden the text if we have subtext to make it stand out.
+      this.toggleBold(true);
+
+      // move the command name up a bit if we have subtext.
+      rightTextY -= this.subtextLineHeight();
+    }
     
     // render the right-aligned text.
-    this.drawText(rightText, rightTextX, rectY, textWidth, "right");
+    this.drawText(rightText, rightTextX, rightTextY, textWidth, "right");
+
+    // bolden the text if we have subtext to make it stand out.
+    this.toggleBold(false);
   }
 
   // check if we have any subtext available.
@@ -7762,7 +8081,7 @@ Window_Command.prototype.drawItem = function(index)
       const realSubtextIndex = (subtextIndex + 0);
 
       // calculate the x coordinate for all subtext.
-      const subtextX = rectX + 64;
+      const subtextX = rectX + 32;
 
       // calculate the new y coordinate for the line.
       const subtextY = rectY + (realSubtextIndex * this.subtextLineHeight()) + 2;
@@ -7770,8 +8089,10 @@ Window_Command.prototype.drawItem = function(index)
       // italicize the subtext line.
       const italicsSubtext = this.italicizeText(subtext);
 
+      const sizedSubtext = this.modFontSizeForText(-4, italicsSubtext);
+
       // render the subtext line.
-      this.drawTextEx(italicsSubtext, subtextX, subtextY, rectWidth);
+      this.drawTextEx(sizedSubtext, subtextX, subtextY, rectWidth);
     }, this);
   }
 };
