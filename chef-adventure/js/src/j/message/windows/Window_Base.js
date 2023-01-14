@@ -167,7 +167,7 @@ Window_Base.prototype.translateElementTextCode = function(text)
     // TODO: make a static "menu item" class out of this?
     // get the replacement data.
     const iconIndex = IconManager.element(elementId);
-    const colorId = ColorManager.element(elementId);
+    const colorId = ColorManager.elementColorIndex(elementId);
     const name = TextManager.element(elementId);
 
     // return the constructed replacement string.

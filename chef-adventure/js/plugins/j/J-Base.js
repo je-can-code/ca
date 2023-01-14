@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jan 12 2023 15:12:53 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 14 2023 10:23:52 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -2736,12 +2736,12 @@ ColorManager.longParam = function(paramId)
 };
 
 /**
- *
+ * Gets the color index for a given element.
  * @param {number} elementId The element id to get a color for.
- * @returns {rm.types.Color}
+ * @returns {number} The color index of the given element.
  */
 // eslint-disable-next-line
-ColorManager.element = function(elementId)
+ColorManager.elementColorHexcode = function(elementId)
 {
   switch (elementId)
   {
@@ -2807,6 +2807,81 @@ ColorManager.element = function(elementId)
       return this.textColor(20);
     default:
       return this.textColor(0);
+  }
+};
+
+/**
+ * Gets the color index for a given element.
+ * @param {number} elementId The element id to get a color for.
+ * @returns {number} The color index of the given element.
+ */
+// eslint-disable-next-line
+ColorManager.elementColorIndex = function(elementId)
+{
+  switch (elementId)
+  {
+    case -1:    // inherits element from parent.
+      return 0;
+    case 0:     // true
+      return 17;
+    case 1:     // cut
+      return 7;
+    case 2:     // poke
+      return 8;
+    case 3:     // blunt
+      return 25;
+    case 4:     // heat
+      return 18;
+    case 5:     // liquid
+      return 23;
+    case 6:     // air
+      return 8;
+    case 7:     // ground
+      return 25;
+    case 8:     // energy
+      return 6;
+    case 9:     // void
+      return 26;
+    case 10:    // typeless
+      return 0;
+    case 11:    // vs undead
+      return 2;
+    case 12:    // vs reptile
+      return 2;
+    case 13:    // vs aquatic
+      return 2;
+    case 14:    // vs slime
+      return 2;
+    case 15:    // vs plants
+      return 2;
+    case 16:    // vs beast
+      return 2;
+    case 17:    // vs insect
+      return 2;
+    case 18:    // vs humanoid
+      return 2;
+    case 19:    // vs construct
+      return 2;
+    case 20:    // vs deity
+      return 2;
+    case 21:    // x weaponry
+      return 27;
+    case 22:    // x flying
+      return 27;
+    case 23:    // x shields
+      return 27;
+    case 24:    // x aura
+      return 27;
+    case 25:    // tool shatter
+      return 20;
+    case 26:    // tool crush
+      return 20;
+    case 27:    // tool ignite
+      return 20;
+    case 28:    // tool overload
+      return 20;
+    default:
+      return 0;
   }
 };
 
@@ -4449,6 +4524,11 @@ TextManager.rewardParam = function(paramId)
   }
 };
 
+/**
+ * The double-line descriptions for various rewards.
+ * @param {number} paramId The id of the reward parameter.
+ * @returns {string[]}
+ */
 TextManager.rewardDescription = function(paramId)
 {
   switch (paramId)
@@ -6678,6 +6758,11 @@ Game_Party.prototype.recoverAllMembers = function()
 {
   this.members().forEach(member => member.recoverAll());
 };
+
+Game_Party.prototype.maxBattleMembers = function()
+{
+  return 8;
+};
 //endregion Game_Party
 
 //region Game_Player
@@ -8015,7 +8100,7 @@ Window_Command.prototype.drawItem = function(index)
   let commandName = this.buildCommandName(index);
 
   // grab the right text for this command.
-  let rightText = this.commandRightText(index)
+  const rightText = this.commandRightText(index);
 
   // grab the subtext for this command.
   const subtexts = this.commandSubtext(index);
@@ -8089,6 +8174,7 @@ Window_Command.prototype.drawItem = function(index)
       // italicize the subtext line.
       const italicsSubtext = this.italicizeText(subtext);
 
+      // reduce font size for subtext just a bit.
       const sizedSubtext = this.modFontSizeForText(-4, italicsSubtext);
 
       // render the subtext line.

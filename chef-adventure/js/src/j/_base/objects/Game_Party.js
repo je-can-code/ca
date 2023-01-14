@@ -180,4 +180,9 @@ Game_Party.prototype.recoverAllMembers = function()
 {
   this.members().forEach(member => member.recoverAll());
 };
+
+Game_Party.prototype.maxBattleMembers = function()
+{
+  return 8;
+};
 //endregion Game_Party

@@ -834,7 +834,7 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 Game_Actor.prototype.refreshAutoEquippedSkills = function()
 {
   // iterate over each of the skills and auto-assign/equip them where applicable.
-  this.skills().forEach(this.jabsProcessLearnedSkill, this);
+  this.skills().forEach(skill => this.jabsProcessLearnedSkill(skill.id), this);
 };
 //endregion learning
 

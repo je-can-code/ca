@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jan 12 2023 15:24:51 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 14 2023 06:56:34 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -292,7 +292,7 @@ Window_Base.prototype.translateElementTextCode = function(text)
     // TODO: make a static "menu item" class out of this?
     // get the replacement data.
     const iconIndex = IconManager.element(elementId);
-    const colorId = ColorManager.element(elementId);
+    const colorId = ColorManager.elementColorIndex(elementId);
     const name = TextManager.element(elementId);
 
     // return the constructed replacement string.

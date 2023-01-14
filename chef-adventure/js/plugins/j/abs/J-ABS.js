@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Jan 11 2023 18:16:09 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 14 2023 10:23:55 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -23758,7 +23758,7 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 Game_Actor.prototype.refreshAutoEquippedSkills = function()
 {
   // iterate over each of the skills and auto-assign/equip them where applicable.
-  this.skills().forEach(this.jabsProcessLearnedSkill, this);
+  this.skills().forEach(skill => this.jabsProcessLearnedSkill(skill.id), this);
 };
 //endregion learning
 

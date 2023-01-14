@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 29 2022 08:24:19 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sat Jan 14 2023 10:30:23 GMT-0800 (Pacific Standard Time)  */
 
 //region annotations
 /*:
@@ -516,6 +516,27 @@ Game_Actor.prototype.floorDamageSources = function()
 
   // return the source collection.
   return sources;
+};
+
+/**
+ * Refreshes all auto-equippable skills available to this battler.
+ */
+Game_Actor.prototype.refreshAutoEquippedSkills = function()
+{
+  const allSlots = this.getAllEquippedSkills();
+
+  // iterate over each of the skills and auto-assign/equip them where applicable.
+  this.skills().forEach(skill =>
+  {
+    // extract the skill id.
+    const skillId = skill.id;
+
+    // don't autoassign the same skill if a slot already has it somehow.
+    if (allSlots.some(slot => slot.id === skillId)) return;
+
+    // process the learned skill!
+    this.jabsProcessLearnedSkill(skill.id);
+  }, this);
 };
 //endregion Game_Actor
 
