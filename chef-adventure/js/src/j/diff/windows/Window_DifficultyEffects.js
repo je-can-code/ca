@@ -623,11 +623,11 @@ class Window_DifficultyEffects extends Window_Command
     {
       switch (comparison)
       {
-        case this.ComparisonTypes.SAME:
+        case Window_DifficultyEffects.ComparisonTypes.SAME:
           return 0;
-        case this.ComparisonTypes.EASIER:
+        case Window_DifficultyEffects.ComparisonTypes.EASIER:
           return 29;
-        case this.ComparisonTypes.HARDER:
+        case Window_DifficultyEffects.ComparisonTypes.HARDER:
           return 10;
       }
     }
