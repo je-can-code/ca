@@ -202,6 +202,7 @@ class Hud_Manager
     this.#setRequestHideHud(true);
   }
 
+  //region refresh
   /**
    * Issue a request to refresh the hud.
    */
@@ -251,7 +252,9 @@ class Hud_Manager
   {
     this.#setRequestRefreshImageCache(false);
   }
+  //endregion refresh
 
+  //region target frame
   /**
    * Whether or not we have a request to assign a new target to the target frame.
    * @returns {boolean} True if we have a request, false otherwise.
@@ -312,7 +315,9 @@ class Hud_Manager
   {
     this.setNewTarget(null);
   }
+  //endregion target frame
 
+  //region input frame
   /**
    * Issue a request to refresh the input frame.
    */
@@ -337,6 +342,7 @@ class Hud_Manager
   {
     this.#setRequestRefreshInputFrame(false);
   }
+  //endregion input frame
 
   //region private functions
   /**

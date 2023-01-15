@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Jan 12 2023 13:43:24 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 15 2023 07:00:22 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /* eslint-disable */
@@ -514,33 +514,7 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
     }
 
     // parse the rarity color.
-    let rarity = 0;
-    switch (parsedPanel.rarity)
-    {
-      case "Common":
-        rarity = 0;
-        break;
-      case "Magical":
-        rarity = 3;
-        break;
-      case "Rare":
-        rarity = 23;
-        break;
-      case "Epic":
-        rarity = 31;
-        break;
-      case "Legendary":
-        rarity = 20;
-        break;
-      case "Godlike":
-        rarity = 25;
-        break;
-      default:
-        rarity = 0;
-        console.warn("if modifying the rarity dropdown options, be sure to fix them here, too.");
-        console.warn(`${parsedPanel.rarity} was not an implemented option.`);
-        break;
-    }
+    const rarityColorIndex = SDP_Rarity.fromRarityToColor(parsedPanel.rarity);
 
     // create the panel.
     const panel = new StatDistributionPanel({
@@ -556,7 +530,7 @@ J.SDP.Helpers.TranslateSDPs = function(obj)
       topFlavorText: parsedPanel.topFlavorText,
       panelRewards: parsedPanelRewards,
       panelParameters: parsedPanelParameters,
-      rarity: rarity,
+      rarity: rarityColorIndex,
     });
 
     parsedPanels.push(panel);
@@ -1166,6 +1140,79 @@ PanelRankupReward.prototype.initialize = function(rankRequired, effect)
 };
 //endregion SDP_RankupReward
 
+//region SDP_Rarity
+class SDP_Rarity
+{
+  /**
+   * Common SDPs that bring few pros and many cons.
+   * @type {"Common"}
+   */
+  static Common = "Common";
+
+  /**
+   * Magical SDPs that are usually fairly balanced.
+   * @type {"Magical"}
+   */
+  static Magical = "Magical";
+
+  /**
+   * Rare SDPs that are skewed in favor of the player granting many positives.
+   * @type {"Rare"}
+   */
+  static Rare = "Rare";
+
+  /**
+   * Epic SDPs that make a significant difference if the player chooses to
+   * master it.
+   * @type {"Epic"}
+   */
+  static Epic = "Epic";
+
+  /**
+   * Legendary SDPs that can easily make-or-break the flow of battle with the
+   * immense boons they bring.
+   * @type {"Legendary"}
+   */
+  static Legendary = "Legendary";
+
+  /**
+   * Godlike SDPs that are few and far between, because they are tremendously
+   * imbalanced in favor of the player. The player would be a fool to not master
+   * this as soon as possible.
+   * @type {string}
+   */
+  static Godlike = "Godlike";
+
+  /**
+   * Convert the string form of an SDP's rarity into a color index.
+   * @param {string} rarity The word associated with the rarity.
+   * @returns {number}
+   */
+  static fromRarityToColor(rarity)
+  {
+    switch (rarity)
+    {
+      case this.Common:
+        return 0;
+      case this.Magical:
+        return 3;
+      case this.Rare:
+        return 23;
+      case this.Epic:
+        return 31;
+      case this.Legendary:
+        return 20;
+      case this.Godlike:
+        return 25;
+      default:
+        console.warn("if modifying the rarity dropdown options, be sure to fix them here, too.");
+        console.warn(`${rarity} was not an implemented option.`);
+        return 0;
+    }
+  }
+}
+//endregion SDP_Rarity
+
 //region RPG_Item
 /**
  * The SDP key of this item.
@@ -1501,7 +1548,7 @@ if (J.ABS)
 
     // add the pop to the caster's tracking.
     character.addTextPop(sdpPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   };
 
   /**

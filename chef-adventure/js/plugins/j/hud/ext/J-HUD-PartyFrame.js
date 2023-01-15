@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 15:05:03 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 15 2023 07:52:56 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /*:
@@ -106,16 +106,17 @@ Scene_Map.prototype.createAllWindows = function()
   J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
-  this.createHudPartyFrame();
+  this.createPartyFrameWindow();
 };
 
+//region party frame
 /**
  * Creates the party frame window and adds it to tracking.
  */
-Scene_Map.prototype.createHudPartyFrame = function()
+Scene_Map.prototype.createPartyFrameWindow = function()
 {
   // create the rectangle of the window.
-  const rect = this.hudPartyFrameWindowRect();
+  const rect = this.partyFrameWindowRectangle();
 
   // assign the window to our reference.
   this._j._partyFrame = new Window_PartyFrame(rect);
@@ -128,14 +129,24 @@ Scene_Map.prototype.createHudPartyFrame = function()
  * Creates the rectangle representing the window for the map hud.
  * @returns {Rectangle}
  */
-Scene_Map.prototype.hudPartyFrameWindowRect = function()
+Scene_Map.prototype.partyFrameWindowRectangle = function()
 {
-  const width = 320;
-  const height = 240;
+  // define the width of the window.
+  const width = 360;
+
+  // define the height of the window.
+  const height = 400;
+
+  // define the origin x of the window.
   const x = 0;
+
+  // define the origin y of the window.
   const y = Graphics.boxHeight - height;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
+//endregion party frame
 
 /**
  * OVERWRITE Relocates the map display name window to not overlap the hud.
@@ -703,8 +714,8 @@ class Window_PartyFrame extends Window_Base
     const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
 
     // set the scale to a fixed 80%.
-    sprite.scale.x = 0.8;
-    sprite.scale.y = 0.8;
+    sprite.scale.x = 1;
+    sprite.scale.y = 1;
 
     // cache the sprite.
     this._hudSprites.set(key, sprite);
@@ -1112,14 +1123,16 @@ class Window_PartyFrame extends Window_Base
     this.manageVisibility();
 
     // draw the leader data.
-    this.drawLeader(0, 0);
+    const leaderX = 0;
+    const leaderY = 0;
+    this.drawLeader(leaderX, leaderY);
 
     // if we cannot draw your allies, then do not.
     if (!$hudManager.canShowAllies()) return;
 
     // draw all allies' data.
-    const alliesY = (ImageManager.iconHeight * 2) + 12;
-    this.drawAllies(136, alliesY);
+    const alliesY = this.height - ImageManager.faceHeight - (this.lineHeight() + 12);
+    this.drawAllies(leaderX, alliesY);
   }
 
   //region visibility
@@ -1179,7 +1192,7 @@ class Window_PartyFrame extends Window_Base
   {
     const playerX = $gamePlayer.screenX();
     const playerY = $gamePlayer.screenY();
-    return (playerX < this.width+100) && (playerY < this.height+100);
+    return (playerX < (this.width - 100)) && (playerY > (this.y + 200));
   }
 
   /**
@@ -1222,15 +1235,24 @@ class Window_PartyFrame extends Window_Base
     if (!$gameParty.leader()) return;
 
     // draw the face for the leader.
-    const partyY = y + (ImageManager.iconHeight * 2) + 12;
-    this.drawLeaderFace(x, partyY);
+    const faceY = y + (this.height - ImageManager.faceHeight);
+    this.drawLeaderFace(x, faceY);
 
-    // draw the gauges for the leader.
-    const leaderGaugesY = partyY + 120;
-    this.drawLeaderGauges(x, leaderGaugesY);
+    // render the resource gauges: hp/mp/tp.
+    const gaugesX = x + ImageManager.faceWidth;
+    const gaugeHeight = 16;
+    const gaugesY = this.height - (gaugeHeight * 3);
+    this.drawLeaderResourceGauges(gaugesX, gaugesY);
+
+    // render the extraneous gauges: just experience.
+    const extraneousX = x + 12;
+    const extraneousY = faceY;
+    this.drawLeaderExtraneousGauges(extraneousX, extraneousY);
 
     // draw states for the leader.
-    this.drawStates(x, y);
+    const statesX = gaugesX;
+    const statesY = gaugesY - (ImageManager.iconHeight * 2) - 24;
+    this.drawStates(statesX, statesY);
   }
 
   /**
@@ -1249,12 +1271,7 @@ class Window_PartyFrame extends Window_Base
     sprite.show();
   }
 
-  /**
-   * Draws all gauges for the leader into the hud.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   */
-  drawLeaderGauges(x, oy)
+  drawLeaderResourceGauges(x, y)
   {
     // grab the leader of the party.
     const leader = $gameParty.leader();
@@ -1265,38 +1282,44 @@ class Window_PartyFrame extends Window_Base
     // locate the hp gauge.
     const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x-24, oy);
+    hpGauge.move(x-24, y);
     hpGauge.show();
 
     // locate the hp numbers.
     const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.HP);
-    hpNumbers.move(x, oy);
+    hpNumbers.move(x, y);
     hpNumbers.show();
 
     // grab and locate the sprite.
     const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x-24, oy + lh-2 - mpGauge.bitmapHeight());
+    mpGauge.move(x-24, y + lh-2 - mpGauge.bitmapHeight());
     mpGauge.show();
 
     // locate the mp numbers.
     const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.MP);
-    mpNumbers.move(x, oy+19);
+    mpNumbers.move(x, y+19);
     mpNumbers.show();
 
     // grab and locate the sprite.
     const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x-24, oy+46-tpGauge.bitmapHeight());
+    tpGauge.move(x-24, y+46-tpGauge.bitmapHeight());
     tpGauge.show();
 
     // locate the tp numbers.
     const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.TP);
-    tpNumbers.move(x, oy+33);
+    tpNumbers.move(x, y+33);
     tpNumbers.show();
+  }
+
+  drawLeaderExtraneousGauges(x, y)
+  {
+    // grab the leader of the party.
+    const leader = $gameParty.leader();
 
     // grab and locate the xp gauge.
-    const xpY = oy - 120;
+    const xpY = y;
     const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
     xpGauge.move(x+5, xpY);
@@ -1430,8 +1453,10 @@ class Window_PartyFrame extends Window_Base
       // the leader is always index 0, and they are being drawn separately.
       if (index === 0) return;
 
+      const adjustedIndex = index - 1;
+
       // draw the ally at the designated coordinates.
-      const y = oy + lh*(index-1);
+      const y = oy - (lh * adjustedIndex);
       this.drawAlly(ally, x, y);
     });
   }

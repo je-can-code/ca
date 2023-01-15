@@ -110,13 +110,13 @@ Sprite_Character.prototype.processIncomingTextPops = function()
   const character = this.character();
 
   // listen for notification to process any incoming popups.
-  if (character.getRequestTextPop())
+  if (character.hasTextPops())
   {
     // create all incoming text pops!
     this.createIncomingTextPops();
 
     // end notification for new incoming popups.
-    character.setRequestTextPop(false);
+    character.acknowledgeTextPops();
   }
 };
 

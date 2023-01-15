@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jan 14 2023 10:23:55 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 15 2023 07:00:20 GMT-0800 (Pacific Standard Time)  */
 
 /* eslint-disable max-len */
 /*:
@@ -5665,7 +5665,7 @@ JABS_Battler.prototype.generatePopSlip = function(amount, type)
 
   // add the pop to the target's tracking.
   character.addTextPop(slipPop);
-  character.setRequestTextPop();
+  character.requestTextPop();
 };
 
 /**
@@ -8501,7 +8501,7 @@ JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = t
 
   // add the pop to the target's tracking.
   character.addTextPop(itemPop);
-  character.setRequestTextPop();
+  character.requestTextPop();
 };
 
 /**
@@ -21010,7 +21010,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(damagePop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -21035,7 +21035,7 @@ class JABS_Engine
 
     // add the pop to the caster's tracking.
     character.addTextPop(skillUsagePop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -21905,7 +21905,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(expPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -21956,7 +21956,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(goldPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -22065,7 +22065,7 @@ class JABS_Engine
     }, this);
 
     // flag the character for processing pops.
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -22134,7 +22134,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(levelUpPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -22215,7 +22215,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(skillLearnPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**

@@ -2093,7 +2093,7 @@ JABS_Battler.prototype.generatePopSlip = function(amount, type)
 
   // add the pop to the target's tracking.
   character.addTextPop(slipPop);
-  character.setRequestTextPop();
+  character.requestTextPop();
 };
 
 /**
@@ -4929,7 +4929,7 @@ JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = t
 
   // add the pop to the target's tracking.
   character.addTextPop(itemPop);
-  character.setRequestTextPop();
+  character.requestTextPop();
 };
 
 /**

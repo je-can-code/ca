@@ -2656,7 +2656,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(damagePop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -2681,7 +2681,7 @@ class JABS_Engine
 
     // add the pop to the caster's tracking.
     character.addTextPop(skillUsagePop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -2801,6 +2801,7 @@ class JABS_Engine
    * @param {RPG_Skill} skill The skill reference data itself.
    * @param {JABS_Battler} caster The battler who casted this skill.
    * @param {JABS_Battler} target The target battler the popup is placed on.
+   * @returns {Map_TextPop}
    */
   configureDamagePop(gameAction, skill, caster, target)
   {
@@ -3551,7 +3552,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(expPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -3602,7 +3603,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(goldPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -3711,7 +3712,7 @@ class JABS_Engine
     }, this);
 
     // flag the character for processing pops.
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -3780,7 +3781,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(levelUpPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**
@@ -3861,7 +3862,7 @@ class JABS_Engine
 
     // add the pop to the target's tracking.
     character.addTextPop(skillLearnPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   }
 
   /**

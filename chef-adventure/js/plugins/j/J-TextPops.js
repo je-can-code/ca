@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Mon Jan 09 2023 14:55:58 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 15 2023 07:00:17 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -66,7 +66,7 @@
  *      .setTextColorIndex(27)
  *      .build();
  *    character.addTextPop(customPop);
- *    character.setRequestTextPop();
+ *    character.requestTextPop();
  *
  * Or if you're in a plugin, the only real difference would be how the
  * character is retrieved, with the rest being the same.
@@ -86,32 +86,18 @@ J.POPUPS = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.POPUPS.Metadata =
-  {
-    /**
-     * The name of this plugin.
-     */
-    Name: `J-TextPops`,
-
-    /**
-     * The version of this plugin.
-     */
-    Version: '1.0.0',
-  };
+J.POPUPS.Metadata = {};
+J.POPUPS.Metadata.Name = `J-TextPops`;
+J.POPUPS.Metadata.Version = '1.0.0';
 
 J.POPUPS.Helpers = {};
+J.POPUPS.Helpers.PopupEmitter = new J_EventEmitter();
 
-J.POPUPS.Helpers.popupEmitter = new J_EventEmitter();
-
-J.POPUPS.Aliased =
-  {
-    Game_Character: new Map(),
-
-    Spriteset_Map: new Map(),
-
-    Sprite_Character: new Map(),
-    Sprite_Damage: new Map(),
-  };
+J.POPUPS.Aliased = {};
+J.POPUPS.Aliased.Game_Character = new Map();
+J.POPUPS.Aliased.Spriteset_Map = new Map();
+J.POPUPS.Aliased.Sprite_Character = new Map();
+J.POPUPS.Aliased.Sprite_Damage = new Map();
 //endregion Introduction
 
 //region Map_TextPop
@@ -1103,7 +1089,7 @@ Game_Character.prototype.initMembers = function()
 /**
  * Gets the `requestDamagePop` property from the `actionSpriteProperties` for this event.
  */
-Game_Character.prototype.getRequestTextPop = function()
+Game_Character.prototype.hasTextPops = function()
 {
   // don't do this if popups are disabled by JABS.
   if (J.ABS && J.ABS.Metadata.DisableTextPops) return false;
@@ -1112,16 +1098,23 @@ Game_Character.prototype.getRequestTextPop = function()
 };
 
 /**
- * Flags this character for requiring a text pop.
- * @param {boolean} textPopRequest True to process all current text pops on this character, false otherwise.
+ * Flags this character for requiring text pops to be processed.
  */
-Game_Character.prototype.setRequestTextPop = function(textPopRequest = true)
+Game_Character.prototype.requestTextPop = function()
 {
   // don't do this if popups are disabled by JABS.
   if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
 
   // assign the request.
-  this._j._textPopRequest = textPopRequest;
+  this._j._textPopRequest = true;
+};
+
+/**
+ * Acknowledges the request for generating text pops.
+ */
+Game_Character.prototype.acknowledgeTextPops = function()
+{
+  this._j._textPopRequest = false;
 };
 
 /**
@@ -1151,8 +1144,10 @@ Game_Character.prototype.getTextPops = function()
  */
 Game_Character.prototype.emptyDamagePops = function()
 {
+  const textPops = this.getTextPops();
+
   // empty the contents of the array for all references to see.
-  this._j._textPops.splice(0, this._j._textPops.length);
+  textPops.splice(0, textPops.length);
 };
 //endregion Game_Character
 
@@ -1268,13 +1263,13 @@ Sprite_Character.prototype.processIncomingTextPops = function()
   const character = this.character();
 
   // listen for notification to process any incoming popups.
-  if (character.getRequestTextPop())
+  if (character.hasTextPops())
   {
     // create all incoming text pops!
     this.createIncomingTextPops();
 
     // end notification for new incoming popups.
-    character.setRequestTextPop(false);
+    character.acknowledgeTextPops();
   }
 };
 
@@ -1941,7 +1936,7 @@ Spriteset_Base.prototype.initPopupsMembers = function()
 
   this._j._popups._secret = "cats are best";
 
-  this._j._popups._emitter = J.POPUPS.Helpers.popupEmitter;
+  this._j._popups._emitter = J.POPUPS.Helpers.PopupEmitter;
 
   this.setupPopupsEmitter();
 };

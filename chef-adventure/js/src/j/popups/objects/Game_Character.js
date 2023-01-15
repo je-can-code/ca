@@ -30,7 +30,7 @@ Game_Character.prototype.initMembers = function()
 /**
  * Gets the `requestDamagePop` property from the `actionSpriteProperties` for this event.
  */
-Game_Character.prototype.getRequestTextPop = function()
+Game_Character.prototype.hasTextPops = function()
 {
   // don't do this if popups are disabled by JABS.
   if (J.ABS && J.ABS.Metadata.DisableTextPops) return false;
@@ -39,16 +39,23 @@ Game_Character.prototype.getRequestTextPop = function()
 };
 
 /**
- * Flags this character for requiring a text pop.
- * @param {boolean} textPopRequest True to process all current text pops on this character, false otherwise.
+ * Flags this character for requiring text pops to be processed.
  */
-Game_Character.prototype.setRequestTextPop = function(textPopRequest = true)
+Game_Character.prototype.requestTextPop = function()
 {
   // don't do this if popups are disabled by JABS.
   if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
 
   // assign the request.
-  this._j._textPopRequest = textPopRequest;
+  this._j._textPopRequest = true;
+};
+
+/**
+ * Acknowledges the request for generating text pops.
+ */
+Game_Character.prototype.acknowledgeTextPops = function()
+{
+  this._j._textPopRequest = false;
 };
 
 /**
@@ -78,7 +85,9 @@ Game_Character.prototype.getTextPops = function()
  */
 Game_Character.prototype.emptyDamagePops = function()
 {
+  const textPops = this.getTextPops();
+
   // empty the contents of the array for all references to see.
-  this._j._textPops.splice(0, this._j._textPops.length);
+  textPops.splice(0, textPops.length);
 };
 //endregion Game_Character

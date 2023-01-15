@@ -30,16 +30,17 @@ Scene_Map.prototype.createAllWindows = function()
   J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
-  this.createHudPartyFrame();
+  this.createPartyFrameWindow();
 };
 
+//region party frame
 /**
  * Creates the party frame window and adds it to tracking.
  */
-Scene_Map.prototype.createHudPartyFrame = function()
+Scene_Map.prototype.createPartyFrameWindow = function()
 {
   // create the rectangle of the window.
-  const rect = this.hudPartyFrameWindowRect();
+  const rect = this.partyFrameWindowRectangle();
 
   // assign the window to our reference.
   this._j._partyFrame = new Window_PartyFrame(rect);
@@ -52,14 +53,24 @@ Scene_Map.prototype.createHudPartyFrame = function()
  * Creates the rectangle representing the window for the map hud.
  * @returns {Rectangle}
  */
-Scene_Map.prototype.hudPartyFrameWindowRect = function()
+Scene_Map.prototype.partyFrameWindowRectangle = function()
 {
-  const width = 320;
-  const height = 240;
+  // define the width of the window.
+  const width = 360;
+
+  // define the height of the window.
+  const height = 400;
+
+  // define the origin x of the window.
   const x = 0;
+
+  // define the origin y of the window.
   const y = Graphics.boxHeight - height;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
+//endregion party frame
 
 /**
  * OVERWRITE Relocates the map display name window to not overlap the hud.

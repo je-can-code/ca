@@ -67,7 +67,7 @@ if (J.ABS)
 
     // add the pop to the caster's tracking.
     character.addTextPop(sdpPop);
-    character.setRequestTextPop();
+    character.requestTextPop();
   };
 
   /**

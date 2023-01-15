@@ -64,7 +64,7 @@
  *      .setTextColorIndex(27)
  *      .build();
  *    character.addTextPop(customPop);
- *    character.setRequestTextPop();
+ *    character.requestTextPop();
  *
  * Or if you're in a plugin, the only real difference would be how the
  * character is retrieved, with the rest being the same.
