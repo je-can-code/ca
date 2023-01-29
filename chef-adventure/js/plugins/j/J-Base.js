@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jan 14 2023 10:23:52 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 29 2023 09:05:21 GMT-0800 (Pacific Standard Time)  */
 
 //region Introduction
 /*:
@@ -4466,6 +4466,15 @@ StorageManager.fileExists = function(pathWithFile)
 };
 
 //region TextManager
+/**
+ * Gets the proper name for the points used by the SDP system.
+ * @returns {string}
+ */
+TextManager.sdpPoints = function()
+{
+  return "SDPs";
+};
+
 /**
  * Gets the proper name of "SDP Multiplier".
  * @returns {string}

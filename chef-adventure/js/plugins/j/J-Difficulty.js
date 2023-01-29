@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jan 07 2023 07:38:45 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Jan 29 2023 09:05:25 GMT-0800 (Pacific Standard Time)  */
 
 //region introduction
 /* eslint-disable */
@@ -3483,7 +3483,7 @@ class Window_DifficultyEffects extends Window_Command
       const paramIconIndex = IconManager.rewardParam(4);
 
       // get the param name.
-      const paramName = TextManager.rewardParam(4);
+      const paramName = TextManager.sdpPoints();
 
       // get the description of the parameter.
       const paramDescription = TextManager.rewardDescription(4);
@@ -3757,11 +3757,11 @@ class Window_DifficultyEffects extends Window_Command
     {
       switch (comparison)
       {
-        case this.ComparisonTypes.SAME:
+        case Window_DifficultyEffects.ComparisonTypes.SAME:
           return 0;
-        case this.ComparisonTypes.EASIER:
+        case Window_DifficultyEffects.ComparisonTypes.EASIER:
           return 29;
-        case this.ComparisonTypes.HARDER:
+        case Window_DifficultyEffects.ComparisonTypes.HARDER:
           return 10;
       }
     }

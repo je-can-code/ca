@@ -1,5 +1,14 @@
 //region TextManager
 /**
+ * Gets the proper name for the points used by the SDP system.
+ * @returns {string}
+ */
+TextManager.sdpPoints = function()
+{
+  return "SDPs";
+};
+
+/**
  * Gets the proper name of "SDP Multiplier".
  * @returns {string}
  */

@@ -349,7 +349,7 @@ class Window_DifficultyEffects extends Window_Command
       const paramIconIndex = IconManager.rewardParam(4);
 
       // get the param name.
-      const paramName = TextManager.rewardParam(4);
+      const paramName = TextManager.sdpPoints();
 
       // get the description of the parameter.
       const paramDescription = TextManager.rewardDescription(4);
