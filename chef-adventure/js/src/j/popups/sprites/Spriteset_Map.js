@@ -36,8 +36,8 @@ Spriteset_Base.prototype.setupPopupsEmitter = function()
 {
   const popupsEmitter = this.getPopupsEmitter();
 
-  popupsEmitter.on("some-event", this.doWork, this);
-  console.log("emitter setup!");
+  //popupsEmitter.on("some-event", this.doWork, this);
+  // console.log("emitter setup!");
 };
 
 Spriteset_Base.prototype.doWork = function(a, b)

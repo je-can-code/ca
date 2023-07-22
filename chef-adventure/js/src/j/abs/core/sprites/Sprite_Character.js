@@ -15,6 +15,10 @@ Sprite_Character.prototype.initMembers = function()
    */
   this._j._abs ||= {};
 
+  this._j._abs._gauges ||= {};
+
+  this._j._abs._gauges._castGauge = null;
+
   /**
    * Whether or not the map sprite setup has been completed.
    * @type {boolean}
@@ -539,11 +543,8 @@ Sprite_Character.prototype.getBattlerName = function()
   // if we don't, then just return an empty string.
   if (!battler) return String.empty;
 
-  // pull the name straight from the database actor/enemy tab.
-  const battlerName = battler.databaseData().name;
-
   // return the battler name.
-  return battlerName;
+  return battler.databaseData().name;
 };
 
 /**
