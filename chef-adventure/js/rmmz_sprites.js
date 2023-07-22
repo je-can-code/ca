@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_sprites.js v1.4.0
+// rmmz_sprites.js v1.5.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -938,7 +938,7 @@ Sprite_Enemy.prototype.initMembers = function() {
     Sprite_Battler.prototype.initMembers.call(this);
     this._enemy = null;
     this._appeared = false;
-    this._battlerName = "";
+    this._battlerName = null;
     this._battlerHue = 0;
     this._effectType = null;
     this._effectDuration = 0;
@@ -3475,8 +3475,9 @@ Spriteset_Map.prototype.updateParallax = function() {
         this._parallax.bitmap = ImageManager.loadParallax(this._parallaxName);
     }
     if (this._parallax.bitmap) {
-        this._parallax.origin.x = $gameMap.parallaxOx();
-        this._parallax.origin.y = $gameMap.parallaxOy();
+        const bitmap = this._parallax.bitmap;
+        this._parallax.origin.x = $gameMap.parallaxOx() % bitmap.width;
+        this._parallax.origin.y = $gameMap.parallaxOy() % bitmap.height;
     }
 };
 

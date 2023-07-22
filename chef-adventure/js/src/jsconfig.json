@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target":"ESNext",
+    "module": "nodenext",
+    "checkJs": true
+  },
+  "exclude": [
+    "**/node_modules/**",
+    "../plugins/*.js",
+    "../plugins/**/*.js"
+  ],
+  "include": [
+    "../defs/*.d.ts",
+    "../defs/**/*.d.ts",
+    "./j/**.js",
+    "./**/*.js",
+    "./*.js"
+  ]
+}

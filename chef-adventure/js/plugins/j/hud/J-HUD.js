@@ -1,25 +1,101 @@
-//#region introduction
+/*  BUNDLED TIME: Thu Dec 29 2022 14:33:03 GMT-0800 (Pacific Standard Time)  */
+
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0 HUD] Provides CORE functionality for this hud system.
+ * [v2.0.0 HUD] Provides core functionality for this HUD system.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @base J-ABS
- * @base J-BASE
+ * @base J-Base
  * @base J-HUD
  * @orderAfter J-ABS
- * @orderAfter J-BASE
+ * @orderAfter J-Base
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * This plugin is the core of the J-HUD system.
- * By itself, it doesn't actually do anything, it is simply the manager that
- * all extensions of the HUD leverage to communicate their displayed data to
- * the user.
+ * OVERVIEW:
+ * This plugin is the core of the J-HUD system, and contains plugin commands
+ * for managing the state of your JABS HUD.
  *
- * In other words, the $hudManager object is created and saved here.
+ * Integrates with others of mine plugins:
+ * - J-HUD-PartyFrame; enables on-the-map display of the player and ally data.
+ * - J-HUD-InputFrame; enables on-the-map display of the player's skill slots.
+ * - J-HUD-TargetFrame; enables on-the-map display of the player's last target.
+ *
+ * NOTE:
+ * If using the J-HUD-TargetFrame plugin, there is additional information in
+ * the plugin help that you will want to review at least once before using it.
+ *
  * ============================================================================
+ * CONTROLLING THE HUD:
+ * Have you ever wanted to have any degree of control over the HUD that exists
+ * as an information data overlay to your JABS-tastical fun? Well now you can!
+ * By leveraging the plugin commands below, you too can manipulate your HUD!
+ *
+ * DETAILS:
+ * The "HUD" is controlled as a collection of its frames. The below plugin
+ * commands all work to show/hide all portions of the "HUD" at once.
+ *
+ * NOTE:
+ * The Party and Input frames both are forcefully hidden while the message
+ * window is open and the $gameInterpreter believes an event is running.
+ *
+ * ----------------------------------------------------------------------------
+ * SHOW/HIDE COMMANDS
+ * Leveraging these commands will give you the control over showing or hiding
+ * the entirety of the HUD. This is the type of command you could use to
+ * - "Show HUD"
+ *    Shows the entire HUD.
+ * - "Hide HUD"
+ *    Hides the entire HUD.
+ *
+ * ----------------------------------------------------------------------------
+ * ALLY SHOW/HIDE COMMANDS
+ * Leveraging these commands will give you the control over showing or hiding
+ * any allies other than the leader from the HUD.
+ * - "Show Allies"
+ *    Shows the allies' section of the party frame.
+ * - "Hide Allies"
+ *    Hides the allies' section of the party frame.
+ *
+ * ----------------------------------------------------------------------------
+ * REFRESH COMMANDS
+ * Leveraging these commands will give you control over refreshing the HUD.
+ * These commands are very circumstancial in nature, but will enable you to
+ * forcefully refresh the HUD and it's image cache on-demand in the instance
+ * that you make changes to assets or have some other plugin requiring some
+ * sort of data update to a member of the party.
+ * - "Refresh HUD"
+ *    Refreshes the data of the HUD, such as actor parameters and states.
+ * - "Refresh HUD Image Cache"
+ *    Refreshes the image cache of the HUD, for when you change faces.
+ *
+ * ============================================================================
+ * @command hideHud
+ * @text Hide HUD
+ * @desc Hides the HUD on the map.
+ *
+ * @command showHud
+ * @text Show HUD
+ * @desc Shows the HUD on the map.
+ *
+ * @command hideAllies
+ * @text Hide Allies
+ * @desc Hides the display of allies in the hud.
+ *
+ * @command showAllies
+ * @text Show Allies
+ * @desc Shows allies' data in the hud.
+ *
+ * @command refreshHud
+ * @text Refresh HUD
+ * @desc Forcefully refreshes the hud.
+ *
+ * @command refreshImageCache
+ * @text Refresh HUD Image Cache
+ * @desc Forcefully refreshes the image cache of the hud.
  */
 
 /**
@@ -27,7 +103,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -38,13 +114,18 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.HUD = {};
+
+/**
+ * A collection of all extensions for the HUD.
+ */
+J.HUD.EXT = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
@@ -66,9 +147,7 @@ J.HUD.Aliased = {
   Scene_Map: new Map(),
   DataManager: new Map(),
 };
-//#endregion metadata
-
-//#endregion introduction
+//endregion metadata
 
 /**
  * A global object for managing the hud.
@@ -77,14 +156,104 @@ J.HUD.Aliased = {
  */
 var $hudManager = null;
 
-//#region Hud_Manager
+//region plugin commands
+/**
+ * Plugin command for hiding the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideHud", () =>
+{
+  $hudManager.requestHideHud();
+});
+
+/**
+ * Plugin command for showing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showHud", () =>
+{
+  $hudManager.requestShowHud();
+});
+
+/**
+ * Plugin command for hiding allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "hideAllies", () =>
+{
+  $hudManager.requestHideAllies();
+});
+
+/**
+ * Plugin command for showing allies in the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "showAllies", () =>
+{
+  $hudManager.requestShowAllies();
+});
+
+/**
+ * Plugin command for refreshing the hud.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshHud", () =>
+{
+  $hudManager.requestRefreshHud();
+});
+
+/**
+ * Plugin command for refreshing the hud's image cache.
+ */
+PluginManager.registerCommand(J.HUD.Metadata.Name, "refreshImageCache", () =>
+{
+  $hudManager.requestRefreshImageCache();
+});
+//endregion plugin commands
+//endregion introduction
+
+//region DataManager
+/**
+ * Instantiates the hud manager after the rest of the objects are created.
+ */
+J.HUD.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+DataManager.createGameObjects = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('createGameObjects').call(this);
+
+  // create the global hud manager object.
+  if (!$hudManager)
+  {
+    // if somehow we're missing this global object, then re-add it.
+    $hudManager = new Hud_Manager();
+  }
+};
+
+J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents)
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this, contents);
+
+  // setup the hud now that we know we have the save contents available.
+  $hudManager.setup();
+};
+
+J.HUD.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
+DataManager.setupNewGame = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.DataManager.get('setupNewGame').call(this);
+
+  // setup the hud now that we know we have the save contents available.
+  $hudManager.setup();
+};
+//endregion DataManager
+
+//region Hud_Manager
 /**
  * A manager class for the hud.
  * Use this class to issue requests to show/hide the hud.
  */
 class Hud_Manager
 {
-  //#region properties
+  //region properties
   /**
    * Whether or not the allies are currently being displayed in the hud.
    * @type {boolean}
@@ -165,7 +334,7 @@ class Hud_Manager
    * @private
    */
   #ready = false;
-  //#endregion properties
+  //endregion properties
 
   /**
    * Sets up this hud based on info from the saved data if available.
@@ -181,7 +350,7 @@ class Hud_Manager
 
     // flag this as ready for processing.
     this.#setReady(true);
-  };
+  }
 
   /**
    * The update loop for the manager.
@@ -216,7 +385,7 @@ class Hud_Manager
       this.#hideAllies();
       this.requestRefreshHud();
     }
-  };
+  }
 
   /**
    * Whether or not this hud can update its incoming request processing.
@@ -229,7 +398,7 @@ class Hud_Manager
 
     // we are ready for processing.
     return true;
-  };
+  }
 
   /**
    * Whether or not we can show the hud.
@@ -238,7 +407,7 @@ class Hud_Manager
   canShowHud()
   {
     return this.#hudVisible;
-  };
+  }
 
   /**
    * Whether or not we can show allies.
@@ -247,7 +416,7 @@ class Hud_Manager
   canShowAllies()
   {
     return this.#alliesVisible;
-  };
+  }
 
   /**
    * Issue a request to the hud to show allies in the hud.
@@ -255,7 +424,7 @@ class Hud_Manager
   requestShowAllies()
   {
     this.#setRequestShowAllies(true);
-  };
+  }
 
   /**
    * Issue a request to the hud to hide the allies from view.
@@ -263,7 +432,7 @@ class Hud_Manager
   requestHideAllies()
   {
     this.#setRequestHideAllies(true);
-  };
+  }
 
   /**
    * Issue a request to show the hud.
@@ -271,7 +440,7 @@ class Hud_Manager
   requestShowHud()
   {
     this.#setRequestShowHud(true);
-  };
+  }
 
   /**
    * Issue a request to hide the hud.
@@ -279,7 +448,7 @@ class Hud_Manager
   requestHideHud()
   {
     this.#setRequestHideHud(true);
-  };
+  }
 
   /**
    * Issue a request to refresh the hud.
@@ -287,7 +456,7 @@ class Hud_Manager
   requestRefreshHud()
   {
     this.#setRequestRefreshHud(true);
-  };
+  }
 
   /**
    * Checks whether or not we have a request to refresh the hud.
@@ -296,7 +465,7 @@ class Hud_Manager
   hasRequestRefreshHud()
   {
     return this.#requestRefresh;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the hud.
@@ -304,7 +473,7 @@ class Hud_Manager
   acknowledgeRefreshHud()
   {
     this.#setRequestRefreshHud(false);
-  };
+  }
 
   /**
    * Issue a request to refresh the image cache of the hud.
@@ -312,7 +481,7 @@ class Hud_Manager
   requestRefreshImageCache()
   {
     this.#setRequestRefreshImageCache(true);
-  };
+  }
 
   /**
    * Whether or not we have a request to refresh the hud's image cache.
@@ -321,7 +490,7 @@ class Hud_Manager
   hasRequestRefreshImageCache()
   {
     return this.#requestRefreshImageCache;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the hud's image cache.
@@ -329,7 +498,7 @@ class Hud_Manager
   acknowledgeRefreshImageCache()
   {
     this.#setRequestRefreshImageCache(false);
-  };
+  }
 
   /**
    * Whether or not we have a request to assign a new target to the target frame.
@@ -338,7 +507,7 @@ class Hud_Manager
   hasRequestAssignTarget()
   {
     return this.#newTarget !== null;
-  };
+  }
 
   /**
    * Gets the currently tracked target.
@@ -347,7 +516,7 @@ class Hud_Manager
   getNewTarget()
   {
     return this.#newTarget;
-  };
+  }
 
   /**
    * Sets the provided target to the tracker.
@@ -356,7 +525,7 @@ class Hud_Manager
   setNewTarget(newTarget)
   {
     this.#newTarget = newTarget;
-  };
+  }
 
   /**
    * Requests the target frame to refresh its inactivity timer.
@@ -364,7 +533,7 @@ class Hud_Manager
   requestTargetFrameRefresh()
   {
     this.#setRequestTargetFrameRefreshInactivity(true);
-  };
+  }
 
   /**
    * Gets whether or not we have a request to refresh the target frame's
@@ -374,7 +543,7 @@ class Hud_Manager
   hasRequestTargetFrameRefreshInactivityTimer()
   {
     return this.#requestTargetFrameRefreshInactivity;
-  };
+  }
 
   /**
    * Acknowledges the request to refresh the target frame's inactivity timer.
@@ -382,7 +551,7 @@ class Hud_Manager
   acknowledgeTargetFrameInactivityTimerRefresh()
   {
     this.#setRequestTargetFrameRefreshInactivity(false);
-  };
+  }
 
   /**
    * Acknowledges the request to assign a new target to the target frame.
@@ -390,7 +559,7 @@ class Hud_Manager
   acknowledgeAssignedTarget()
   {
     this.setNewTarget(null);
-  };
+  }
 
   /**
    * Issue a request to refresh the input frame.
@@ -398,7 +567,7 @@ class Hud_Manager
   requestRefreshInputFrame()
   {
     this.#setRequestRefreshInputFrame(true);
-  };
+  }
 
   /**
    * Checks whether or not we have a request to refresh the input frame.
@@ -407,7 +576,7 @@ class Hud_Manager
   hasRequestRefreshInputFrame()
   {
     return this.#requestRefreshInputFrame;
-  };
+  }
 
   /**
    * Acknowledge the request to refresh the input frame.
@@ -415,9 +584,9 @@ class Hud_Manager
   acknowledgeRefreshInputFrame()
   {
     this.#setRequestRefreshInputFrame(false);
-  };
+  }
 
-  //#region private functions
+  //region private functions
   /**
    * Whether or not the hud manager is ready to get started.
    * @returns {boolean} True if it is ready, false otherwise.
@@ -426,7 +595,7 @@ class Hud_Manager
   #isReady()
   {
     return this.#ready;
-  };
+  }
 
   /**
    * Sets whether or not the target frame window to refresh the timer.
@@ -435,7 +604,7 @@ class Hud_Manager
   #setRequestTargetFrameRefreshInactivity(request)
   {
     this.#requestTargetFrameRefreshInactivity = request;
-  };
+  }
 
   /**
    * Sets whether or not the hud's image cache needs refreshing.
@@ -445,7 +614,7 @@ class Hud_Manager
   #setRequestRefreshImageCache(request)
   {
     this.#requestRefreshImageCache = request;
-  };
+  }
 
   /**
    * Sets whether or not the hud requires a refresh.
@@ -455,7 +624,7 @@ class Hud_Manager
   #setRequestRefreshHud(request)
   {
     this.#requestRefresh = request;
-  };
+  }
 
   /**
    * Sets whether or not the input frame requires a refresh.
@@ -465,7 +634,7 @@ class Hud_Manager
   #setRequestRefreshInputFrame(request)
   {
     this.#requestRefreshInputFrame = request;
-  };
+  }
 
   /**
    * Sets whether or not this hud manager is ready to go.
@@ -475,7 +644,7 @@ class Hud_Manager
   #setReady(ready)
   {
     this.#ready = ready;
-  };
+  }
 
   /**
    * Sets the request to show allies to the given value.
@@ -485,7 +654,7 @@ class Hud_Manager
   #setRequestShowAllies(request)
   {
     this.#requestShowAllies = request;
-  };
+  }
 
   /**
    * Sets the showing of allies.
@@ -495,7 +664,7 @@ class Hud_Manager
   #setShowAllies(showAllies)
   {
     this.#alliesVisible = showAllies;
-  };
+  }
 
   /**
    * Whether or not we have a request to show allies in the hud.
@@ -504,7 +673,7 @@ class Hud_Manager
   #hasRequestShowAllies()
   {
     return this.#requestShowAllies;
-  };
+  }
 
   /**
    * Shows all allies.
@@ -518,7 +687,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudAlliesVisible(true);
-  };
+  }
 
   /**
    * Sets the request to hide allies to the given value.
@@ -528,7 +697,7 @@ class Hud_Manager
   #setRequestHideAllies(request)
   {
     this.#requestHideAllies = request;
-  };
+  }
 
   /**
    * Whether or not we have a request to hide allies in the hud.
@@ -537,7 +706,7 @@ class Hud_Manager
   #hasRequestHideAllies()
   {
     return this.#requestHideAllies;
-  };
+  }
 
   /**
    * Disables the showing of your allies in the hud.
@@ -549,7 +718,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudAlliesVisible(false);
-  };
+  }
 
   /**
    * Sets whether or not the hud is visible.
@@ -559,7 +728,7 @@ class Hud_Manager
   #setHudVisible(hudVisible)
   {
     this.#hudVisible = hudVisible;
-  };
+  }
 
   /**
    * Shows the hud.
@@ -573,7 +742,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudVisible(true);
-  };
+  }
 
   /**
    * Hides the hud.
@@ -587,7 +756,7 @@ class Hud_Manager
 
     // update the gameSystem for remembering.
     $gameSystem.setHudVisible(false);
-  };
+  }
 
   /**
    * Whether or not we have a request to show the hud.
@@ -596,7 +765,7 @@ class Hud_Manager
   #hasRequestShowHud()
   {
     return this.#requestShowHud;
-  };
+  }
 
   /**
    * Whether or not we have a request to hide the hud.
@@ -605,7 +774,7 @@ class Hud_Manager
   #hasRequestHideHud()
   {
     return this.#requestHideHud;
-  };
+  }
 
   /**
    * Sets the request to show the hud to the given value.
@@ -615,7 +784,7 @@ class Hud_Manager
   #setRequestShowHud(request)
   {
     this.#requestShowHud = request;
-  };
+  }
 
   /**
    * Sets the request to hide the hud to the given value.
@@ -625,54 +794,12 @@ class Hud_Manager
   #setRequestHideHud(request)
   {
     this.#requestHideHud = request;
-  };
-  //#endregion private functions
-}
-//#endregion Hud_Manager
-
-//#region Static objects
-//#region DataManager
-/**
- * Instantiates the hud manager after the rest of the objects are created.
- */
-J.HUD.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
-DataManager.createGameObjects = function()
-{
-  // perform original logic.
-  J.HUD.Aliased.DataManager.get('createGameObjects').call(this);
-
-  // create the global hud manager object.
-  if (!$hudManager)
-  {
-    // if somehow we're missing this global object, then re-add it.
-    $hudManager = new Hud_Manager();
   }
-};
+  //endregion private functions
+}
+//endregion Hud_Manager
 
-J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
-DataManager.extractSaveContents = function(contents)
-{
-  // perform original logic.
-  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this, contents);
-
-  // setup the hud now that we know we have the save contents available.
-  $hudManager.setup();
-};
-
-J.HUD.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
-DataManager.setupNewGame = function()
-{
-  // perform original logic.
-  J.HUD.Aliased.DataManager.get('setupNewGame').call(this);
-
-  // setup the hud now that we know we have the save contents available.
-  $hudManager.setup();
-};
-//#endregion DataManager
-//#endregion Static objects
-
-//#region Game objects
-//#region Game_System
+//region Game_System
 /**
  * Extends the `initialize()` to include our hud data for remembering.
  */
@@ -723,11 +850,42 @@ Game_System.prototype.getHudAlliesVisible = function()
 {
   return this._j._hud._alliesVisible;
 };
-//#endregion Game_System
-//#endregion Game objects
+//endregion Game_System
 
-//#region Scene objects
-//#region Scene_Map
+//region Scene_Map
+//region init
+/**
+ * Extends {@link #initMembers}.
+ * Also initializes the HUD members.
+ */
+J.HUD.Aliased.Scene_Map.set('initMembers', Scene_Map.prototype.initMembers);
+Scene_Map.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('initMembers').call(this);
+
+  // also initialize the HUD members.
+  this.initHudMembers();
+};
+
+/**
+ * A hook for initializing HUD members.
+ */
+Scene_Map.prototype.initHudMembers = function()
+{
+  /**
+   * A grouping of all properties that are associated with J's plugins.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties that belong to the HUD.
+   */
+  this._j._hud ||= {};
+};
+//endregion init
+
+//region update
 /**
  * Extends the `update()` function to also monitor updates for the hud.
  */
@@ -751,14 +909,29 @@ Scene_Map.prototype.updateHudFrames = function()
 };
 
 /**
+ * Extends {@link #onPartyRotate}.
+ * Refreshes the HUD on party rotation.
+ */
+J.HUD.Aliased.Scene_Map.set('onPartyRotate', Scene_Map.prototype.onPartyRotate);
+Scene_Map.prototype.onPartyRotate = function()
+{
+  // perform original logic.
+  J.HUD.Aliased.Scene_Map.get('onPartyRotate').call(this);
+
+  // also refresh the HUD when the party is rotated for JABS.
+  this.refreshHud();
+};
+
+/**
  * A hook for refreshing all frames of the HUD.
  */
-Scene_Map.prototype.refreshHud = function() { };
-//#endregion Scene_Map
-//#endregion Scene objects
+Scene_Map.prototype.refreshHud = function()
+{
+};
+//endregion update
+//endregion Scene_Map
 
-//#region Window objects
-//#region Window_InputFrame
+//region Window_Frame
 /**
  * A base class with some common sprite-cache-management features.
  */
@@ -768,7 +941,10 @@ class Window_Frame extends Window_Base
    * Constructor.
    * @param {Rectangle} rect The shape of this window.
    */
-  constructor(rect) { super(rect); };
+  constructor(rect)
+  {
+    super(rect);
+  }
 
   /**
    * Initializes the properties of this class.
@@ -784,7 +960,7 @@ class Window_Frame extends Window_Base
 
     // run any one-time configuration changes.
     this.configure();
-  };
+  }
 
   /**
    * Initializes all members of this class.
@@ -796,12 +972,14 @@ class Window_Frame extends Window_Base
      */
     this._j ||= {};
 
+    /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_ComboGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
-  };
+    /* eslint-enable max-len */
+  }
 
   /**
    * Executes any one-time configuration required for this window.
@@ -810,9 +988,9 @@ class Window_Frame extends Window_Base
   {
     // build the image cache for the first time.
     this.refreshCache();
-  };
+  }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -823,7 +1001,7 @@ class Window_Frame extends Window_Base
 
     // recreate all sprites for the cache.
     this.createCache();
-  };
+  }
 
   /**
    * Empties the cache of all sprites.
@@ -835,7 +1013,7 @@ class Window_Frame extends Window_Base
 
     // empty the collection of all references.
     this._j._spriteCache.clear();
-  };
+  }
 
   /**
    * Empties and recreates the entire cache of sprites.
@@ -843,8 +1021,8 @@ class Window_Frame extends Window_Base
   createCache()
   {
     // fill with sprite creation methods.
-  };
-  //#endregion caching
+  }
+  //endregion caching
 
   /**
    * Hooks into the update loop to include updating for this frame.
@@ -856,7 +1034,7 @@ class Window_Frame extends Window_Base
 
     // update this frame.
     this.updateFrame();
-  };
+  }
 
   /**
    * Updates the logic for this window frame.
@@ -864,10 +1042,6 @@ class Window_Frame extends Window_Base
   updateFrame()
   {
     // fill with window frame logic.
-  };
+  }
 }
-//#endregion Window_InputFrame
-//#endregion Window objects
-
-
-//ENDOFFILE
+//endregion Window_Frame

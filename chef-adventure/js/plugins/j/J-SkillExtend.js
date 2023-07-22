@@ -1,16 +1,19 @@
-//#region Introduction
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.0.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
  * This plugin extends the functionality of skills. It features additional
  * functionality that allow you to leverage new strategies in skill learning
  * and game development.
  *
+ * DETAILS:
  * The new functionalities available are as follows:
  * - Skills extending skills.
  * - On-hit self-state application.
@@ -117,11 +120,11 @@
  *  The effects of adding the "moveType" tag onto a skill that didn't
  *  previously have it are completely untested, use at your own risk!
  * ***:
- *  The effects of adding the "counterGuard/counterParry" glossary onto a skill
+ *  The effects of adding the "counterGuard/counterParry" tags onto a skill
  *  that didn't previously have it are untested, though shouldn't cause any
  *  problems if they are added onto a skill with "guard & parry".
  * !!!:
- *  The effects of adding the "combo/actionId/direct" glossary onto any skills is
+ *  The effects of adding the "combo/actionId/direct" tags onto any skills is
  *  something to be careful about, as they very significantly change how
  *  the manager interacts with the actions. Replacing any of those values
  *  though should be totally fine if they already existed on the base skill.
@@ -175,6 +178,7 @@
  * ============================================================================
  */
 
+//region Metadata
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -188,299 +192,34 @@ J.EXTEND = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.EXTEND.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-SkillExtend`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
-
-J.EXTEND.Aliased = {
-  Game_Action: new Map(),
-  Game_Item: new Map(),
-};
-//#endregion Introduction
-
-//#region Game objects
-//#region Game_Action
-/**
- * Basically replaces `setSkill()` with setting the skill to instead set our extended skill.
- */
-J.EXTEND.Aliased.Game_Action.set('setSkill', Game_Action.prototype.setSkill);
-Game_Action.prototype.setSkill = function(skillId)
-{
-  if (!this.subject())
-  {
-    J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
-    return;
-  }
-
-  // assign the overlayed skill to the object instead.
-  const skillToSet = OverlayManager.getExtendedSkill(this.subject(), skillId);
-  this._item.setObject(skillToSet);
-};
+J.EXTEND.Metadata = {};
 
 /**
- * Basically replaces `setItemObject()` with setting the skill to instead set our extended skill.
+ * The name of this plugin.
  */
-J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
-Game_Action.prototype.setItemObject = function(itemObject)
-{
-  if (!this.subject())
-  {
-    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemObject);
-    return;
-  }
-
-  // TODO: sort out how to manage this when both skills AND items come through this way.
-  this._item.setObject(itemObject);
-};
+J.EXTEND.Metadata.Name = `J-SkillExtend`;
 
 /**
- * Extends `apply()` to include applying states to one-self.
+ * The version of this plugin.
  */
-J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
-Game_Action.prototype.apply = function(target)
-{
-  // perform original logic.
-  J.EXTEND.Aliased.Game_Action.get('apply').call(this, target);
-
-  // apply our on-hit self-states if we have any.
-  this.applyOnHitSelfStates();
-};
+J.EXTEND.Metadata.Version = '1.0.0';
 
 /**
- * Applies all applicable on-hit self states.
+ * A collection of all aliased methods for this plugin.
  */
-Game_Action.prototype.applyOnHitSelfStates = function()
-{
-  // apply all on-hit states to oneself.
-  this.applyStates(this.subject(), this.onHitSelfStates());
-};
+J.EXTEND.Aliased = {};
+J.EXTEND.Aliased.Game_Action = new Map();
+J.EXTEND.Aliased.Game_Item = new Map();
 
 /**
- * Gets all possible states that could be self-inflicted
- * when this skill hits a target.
- * @returns {JABS_SkillChance[]}
+ * All regular expressions used by this plugin.
  */
-Game_Action.prototype.onHitSelfStates = function()
-{
-  const sources = [];
+J.EXTEND.RegExp = {};
+J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+//endregion Metadata
 
-  // get the skill and its overlays.
-  sources.push(this.item());
-
-  if (J.PASSIVE)
-  {
-    sources.push(...this.subject().allStates());
-  }
-
-  const structure = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const stateChances = [];
-
-  // get all "skill chances" aka "chance to inflict a state" on oneself.
-  sources.forEach(obj =>
-  {
-    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
-    stateChances.push(...chances);
-  });
-
-  return stateChances;
-};
-
-/**
- * Extends the `applyItemUserEffect()` function with additional on-cast effects.
- */
-J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.applyItemUserEffect);
-Game_Action.prototype.applyItemUserEffect = function(target)
-{
-  // perform original logic.
-  J.EXTEND.Aliased.Game_Action.get('applyItemUserEffect').call(this, target);
-
-  // ABS engines handle the timing differently, but in turn-based this would be fine.
-  if (J.ABS) return;
-
-  // apply our on-cast self-states if we have any.
-  this.applyOnCastSelfStates();
-};
-
-/**
- * Applies all applicable on-cast self states.
- */
-Game_Action.prototype.applyOnCastSelfStates = function()
-{
-  // apply all self-inflictable states to oneself.
-  this.applyStates(this.subject(), this.onCastSelfStates());
-};
-
-/**
- * Gets all possible states that could be self-inflicted
- * when casting this skill.
- * @returns {JABS_SkillChance[]}
- */
-Game_Action.prototype.onCastSelfStates = function()
-{
-  const sources = [];
-
-  // get the skill and its overlays.
-  sources.push(this.item());
-
-  if (J.PASSIVE)
-  {
-    sources.push(...this.subject().allStates());
-  }
-
-  const structure = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
-  const stateChances = [];
-
-  // get all "skill chances" aka "chance to inflict a state" on oneself.
-  sources.forEach(obj =>
-  {
-    const chances = J.BASE.Helpers.parseSkillChance(structure, obj);
-    stateChances.push(...chances);
-  });
-
-  return stateChances;
-};
-
-/**
- * Applies the given states to the target.
- * @param target {Game_Actor|Game_Enemy} The targe to apply states to.
- * @param stateChances {JABS_SkillChance[]} The various states to potentially apply.
- */
-Game_Action.prototype.applyStates = function(target, stateChances)
-{
-  if (stateChances.length)
-  {
-    // iterate over each of them and see if we should apply them.
-    stateChances.forEach(stateChance =>
-    {
-      // if the RNG favors this caster...
-      if (stateChance.shouldTrigger())
-      {
-        // ...then we apply the given state.
-        target.addState(stateChance.skillId);
-      }
-    });
-  }
-};
-//#endregion Game_Action
-
-//#region Game_Item
-/**
- * Extend `initialize()` to include our update of assigning the item.
- */
-J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
-Game_Item.prototype.initialize = function(item)
-{
-  J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
-  /**
-   * The underlying object associated with this item.
-   * @type {RPG_EquipItem|rm.types.UsableItem}
-   */
-  this._item = null;
-  if (item)
-  {
-    this._item = item;
-  }
-};
-
-/**
- * Extends `setObject()` to enable setting custom skills and items.
- * @param {RPG_UsableItem|RPG_EquipItem}
- */
-J.EXTEND.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
-Game_Item.prototype.setObject = function(obj)
-{
-  // perform original logic.
-  J.EXTEND.Aliased.Game_Item.get('setObject').call(this, obj);
-
-  // check to make sure we have something to work with.
-  if (!obj) return;
-
-  // check to ensure it has a skill category property.
-  if (obj.hasOwnProperty('stypeId'))
-  {
-    // assign the data.
-    this._dataClass = 'skill';
-    this._item = obj;
-  }
-  // check to ensure it has an item category property.
-  else if (obj.hasOwnProperty('itypeId'))
-  {
-    // assign the data.
-    this._dataClass = 'item';
-    this._item = obj;
-  }
-};
-
-/**
- * Extends this function to return the underlying custom object (like an extended skill)
- * if it was assigned.
- */
-J.EXTEND.Aliased.Game_Item.set('object', Game_Item.prototype.object);
-Game_Item.prototype.object = function()
-{
-  // if we have a custom object to return, return that.
-  if (this._item)
-  {
-    return this._item;
-  }
-
-  return J.EXTEND.Aliased.Game_Item.get('object').call(this);
-};
-//#endregion Game_Item
-
-//#region Game_Party
-Game_Party.prototype.extraOnHitSelfStateSources = function()
-{
-  const extraSources = [];
-
-  // if we're using passive skill states...
-  if (J.PASSIVE)
-  {
-    // get all the members of the battle party.
-    const members = $gameParty.battleMembers();
-    members.forEach(member =>
-    {
-      // and shove their current array of states into the sources to check.
-      extraSources.push(...member.allStates());
-    });
-  }
-
-  // return all found sources.
-  return extraSources;
-};
-
-Game_Party.prototype.extraOnCastSelfStateSources = function()
-{
-  const extraSources = [];
-
-  // if we're using passive skill states...
-  if (J.PASSIVE)
-  {
-    // get all the members of the battle party.
-    const members = $gameParty.battleMembers();
-    members.forEach(member =>
-    {
-      // and shove their current array of states into the sources to check.
-      extraSources.push(...member.allStates());
-    });
-  }
-
-  // return all found sources.
-  return extraSources;
-};
-//#endregion Game_Party
-//#endregion Game objects
-
-//#region Custom objects
-//#region OverlayManager
+//region OverlayManager
 /**
  * A static class for managing the overlaying of one skill onto another.
  * The methods are divided by the attribute they overlay.
@@ -508,16 +247,17 @@ class OverlayManager
     }
 
     // make a copy of the original skill to be overlayed.
-    const baseSkill = $dataSkills[skillId]._clone(); //JsonEx.makeDeepCopy($dataSkills[skillId]);
+    const baseSkill = $dataSkills[skillId]._clone();
 
     // the filter for filtering whether or not a skill is an extension skill.
+    /** @param {RPG_Skill} skill */
     const skillExtendFilter = (skill) =>
     {
       // if the skill isn't an extension skill, skip it.
-      const isExtensionSkill = !!(skill.meta && skill.meta['skillExtend']);
+      const isExtensionSkill = (skill.metadata('skillExtend'));
       if (!isExtensionSkill) return false;
 
-      const skillsExtended = JSON.parse(skill.meta['skillExtend']).map(parseInt);
+      const skillsExtended = JSON.parse(skill.metadata('skillExtend')).map(parseInt);
       return skillsExtended.includes(skillId);
     };
 
@@ -543,13 +283,13 @@ class OverlayManager
         const reducer = (skillPreviously, skillOverlay) => this.extendSkill(skillPreviously, skillOverlay);
         return skillExtendSkills.reduce(reducer, baseSkill);
     }
-  };
+  }
 
   /**
    * Merges the skill overlay onto the base skill and returns the updated base skill.
-   * @param baseSkill {rm.types.Skill} The base skill to be overlayed.
-   * @param skillOverlay {rm.types.Skill} The skill to overlay with.
-   * @returns {rm.types.Skill} The base skill overlayed with the overlay skill.
+   * @param baseSkill {RPG_Skill} The base skill to be overlayed.
+   * @param skillOverlay {RPG_Skill} The skill to overlay with.
+   * @returns {RPG_Skill} The base skill overlayed with the overlay skill.
    */
   static extendSkill(baseSkill, skillOverlay)
   {
@@ -564,7 +304,7 @@ class OverlayManager
 
     // return the base skill merged with the overlay.
     return baseSkill;
-  };
+  }
 
   /**
    * Overlays `skillOverlay` onto the `baseSkill`.
@@ -572,9 +312,9 @@ class OverlayManager
    * All parameters that the `skillOverlay` and `baseSkill` share will
    * be overridden by the `skillOverlay` values. Any parameters the
    * `skillOverlay` has that the `baseSkill` lacks will be added anew.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static overwrite(baseSkill, skillOverlay)
   {
@@ -600,23 +340,22 @@ class OverlayManager
     baseSkill = this.uniqueCooldown(baseSkill, skillOverlay);
     baseSkill = this.moveType(baseSkill, skillOverlay);
     baseSkill = this.invincibleDodge(baseSkill, skillOverlay);
-
     baseSkill = this.piercing(baseSkill, skillOverlay);
     baseSkill = this.combo(baseSkill, skillOverlay);
 
     return baseSkill;
-  };
+  }
 
-//#region overwrites
+  //region overwrites
   /**
    * Overlays the base skill data.
    *
    * Effects, meta, note, and repeats are combined.
    *
    * Scope, mpCost, tpCost, and tpGain are replaced.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @param skillOverlay {rm.types.Skill} The overlay skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @param skillOverlay {RPG_Skill} The overlay skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static baseSkillData(baseSkill, skillOverlay)
   {
@@ -680,13 +419,19 @@ class OverlayManager
     // append the notes.
     baseSkill.note += skillOverlay.note;
 
-    // combine repeats.
-    baseSkill.repeats += (skillOverlay.repeats - 1);
+    // combine repeats if they aren't just 1 (default).
+    if (skillOverlay.repeats !== 1)
+    {
+      baseSkill.repeats += (skillOverlay.repeats - 1);
+    }
 
     // combine speeds.
-    baseSkill.speed += skillOverlay.speed;
+    if (skillOverlay.speed !== 0)
+    {
+      baseSkill.speed += skillOverlay.speed;
+    }
 
-    // if they aren't the same, and aren't 100, then add them.
+    // if they aren't the same, and aren't 100 (default), then add them.
     if (baseSkill.successRate !== skillOverlay.successRate ||
       skillOverlay.successRate !== 100)
     {
@@ -705,20 +450,22 @@ class OverlayManager
       baseSkill.message2 = skillOverlay.message2;
     }
 
-    // overwrite scope.
-    if (baseSkill.scope !== skillOverlay.scope)
+    // overwrite scope if not "none" (0 = default) and not the same.
+    const bothHaveScopes = baseSkill.scope !== 0 && skillOverlay.scope !== 0;
+    const scopesHaveChanged = baseSkill.scope !== skillOverlay.scope;
+    if (bothHaveScopes && scopesHaveChanged)
     {
-      //! TODO: extend, don't overwrite!
+      // TODO: extend, don't overwrite!
       baseSkill.scope = skillOverlay.scope;
     }
 
-    // overwrite mp costs.
+    // overwrite mp costs if not the same.
     if (baseSkill.mpCost !== skillOverlay.mpCost)
     {
       baseSkill.mpCost = skillOverlay.mpCost;
     }
 
-    // overwrite tp costs.
+    // overwrite tp costs if not the same.
     if (baseSkill.tpCost !== skillOverlay.tpCost)
     {
       baseSkill.tpCost = skillOverlay.tpCost;
@@ -727,10 +474,17 @@ class OverlayManager
     // combine the tp gains.
     baseSkill.tpGain += skillOverlay.tpGain;
 
-    // if both hit types are NOT "certain hit", then overwrite them.
+    // if both hit types are NOT "certain hit" (default), then overwrite them.
     if (baseSkill.hitType && skillOverlay.hitType)
     {
       baseSkill.hitType = skillOverlay.hitType;
+    }
+
+    // overwrite the animation if not 0 (default) and it changed.
+    if (baseSkill.animationId !== 0 &&
+      baseSkill.animationId !== skillOverlay.animationId)
+    {
+      baseSkill.animationId = skillOverlay.animationId;
     }
 
     /*
@@ -743,44 +497,24 @@ class OverlayManager
     baseSkill = this.sanitizeBaseSkill(baseSkill);
 
     return baseSkill;
-  };
+  }
 
   /**
-   * Purges all references to the skill extend tag and functionality
-   * from the `baseSkill`.
-   * @param baseSkill {rm.types.Skill} The base skill.
-   * @returns {rm.types.Skill} The overlayed base skill.
+   * Purges all references to the skill extend tag from the `baseSkill`.
+   * @param baseSkill {RPG_Skill} The base skill.
+   * @returns {RPG_Skill} The overlayed base skill.
    */
   static sanitizeBaseSkill(baseSkill)
   {
-    // purge out the skill extends from the baseSkill.
-    baseSkill.note.replace(/<skillExtend:\[[\d,]+]>/gmi, String.empty);
+    // remove the skill extend from the metadata.
+    baseSkill.deleteMetadata('skillExtend');
 
-    // purge out the skill extends from the baseSkill.
-    if (baseSkill.meta && baseSkill.meta['skillExtend'])
-    {
-      delete baseSkill.meta['skillExtend'];
-    }
+    // remove the skill extend from the notedata.
+    baseSkill.deleteNotedata(/<skillExtend:\[[\d,]+]>/gmi);
 
-    // purge out the skill extends from the JABS skill data.
-    if (baseSkill._j)
-    {
-      // if it exists in the meta object, delete it.
-      if (baseSkill._j._meta && baseSkill._j._meta['skillExtend'])
-      {
-        delete baseSkill._j._meta['skillExtend'];
-      }
-
-      // if it exists in the note object, splice it.
-      const skillExtendNoteIndex = baseSkill._j._notes.findIndex(note => note.includes('skillExtend'))
-      if (skillExtendNoteIndex !== -1)
-      {
-        baseSkill._j._notes.splice(skillExtendNoteIndex, 1);
-      }
-    }
-
+    // return the base skill sans any reference to skill extension.
     return baseSkill;
-  };
+  }
 
   /**
    * Overlays the `invincibleDodge`.
@@ -795,7 +529,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.InvincibleDodge,
       skillOverlay.jabsInvincibleDodge);
-  };
+  }
 
   /**
    * Overlays the `moveType`.
@@ -810,7 +544,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.MoveType,
       skillOverlay.jabsMoveType);
-  };
+  }
 
   /**
    * Overlays the `uniqueCooldown`.
@@ -825,7 +559,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.UniqueCooldown,
       skillOverlay.jabsUniqueCooldown);
-  };
+  }
 
   /**
    * Overlays the `projectile`.
@@ -840,7 +574,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Projectile,
       skillOverlay.jabsProjectile);
-  };
+  }
 
   /**
    * Overlays the `parry`.
@@ -855,7 +589,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Parry,
       skillOverlay.jabsParry);
-  };
+  }
 
   /**
    * Overlays the `counterParry`.
@@ -870,7 +604,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CounterParry,
       skillOverlay.jabsCounterParry);
-  };
+  }
 
   /**
    * Overlays the `guard`.
@@ -885,7 +619,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Guard,
       skillOverlay.jabsGuard);
-  };
+  }
 
   /**
    * Overlays the `counterGuard`.
@@ -900,7 +634,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CounterGuard,
       skillOverlay.jabsCounterGuard);
-  };
+  }
 
   /**
    * Overlays the `getBonusHits`.
@@ -915,7 +649,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.BonusHits,
       skillOverlay.jabsBonusHits);
-  };
+  }
 
   /**
    * Overlays the `aggroMultiplier`.
@@ -930,7 +664,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.AggroMultiplier,
       skillOverlay.jabsAggroMultiplier);
-  };
+  }
 
   /**
    * Overlays the `bonusAggro`.
@@ -945,7 +679,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.BonusAggro,
       skillOverlay.jabsBonusAggro);
-  };
+  }
 
   /**
    * Overlays the `direct`.
@@ -960,7 +694,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Direct,
       skillOverlay.jabsDirect);
-  };
+  }
 
   /**
    * Overlays the `combo`.
@@ -975,7 +709,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.ComboAction,
       skillOverlay.jabsComboAction);
-  };
+  }
 
   /**
    * Overlays the `freeCombo`.
@@ -990,7 +724,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.FreeCombo,
       skillOverlay.jabsFreeCombo);
-  };
+  }
 
   /**
    * Overlays the `castTime`.
@@ -1005,7 +739,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CastTime,
       skillOverlay.jabsCastTime);
-  };
+  }
 
   /**
    * Overlays the `castAnimation`.
@@ -1020,7 +754,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.CastAnimation,
       skillOverlay.jabsCastAnimation);
-  };
+  }
 
   /**
    * Overlays the `poseSuffix`.
@@ -1035,7 +769,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.PoseSuffix,
       skillOverlay.jabsPoseData);
-  };
+  }
 
   /**
    * Overlays the `knockback`.
@@ -1050,7 +784,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Knockback,
       skillOverlay.jabsKnockback);
-  };
+  }
 
   /**
    * Overlays the `piercing`.
@@ -1060,12 +794,23 @@ class OverlayManager
    */
   static piercing(baseSkill, skillOverlay)
   {
+    // grab the overlay data.
+    let overlayData = skillOverlay.jabsPiercingData;
+
+    // check if the overlay data is just the default.
+    if (overlayData.equals([1, 0]))
+    {
+      // replace the default with null so we get the proper kind of overwrite.
+      overlayData = null;
+    }
+
+    // overwrite the value with the new one.
     return this._overwriteAsKvp(
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.PiercingData,
-      skillOverlay.jabsPiercingData);
-  };
+      overlayData);
+  }
 
   /**
    * Overlays the `shape`.
@@ -1080,7 +825,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Shape,
       skillOverlay.jabsShape);
-  };
+  }
 
   /**
    * Overlays the `duration`.
@@ -1095,7 +840,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Duration,
       skillOverlay.jabsDuration);
-  };
+  }
 
   /**
    * Overlays the `actionId`.
@@ -1110,7 +855,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.ActionId,
       skillOverlay.jabsActionId);
-  };
+  }
 
   /**
    * Overlays the `proximity`.
@@ -1125,7 +870,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Proximity,
       skillOverlay.jabsProximity);
-  };
+  }
 
   /**
    * Overlays the `range`.
@@ -1139,8 +884,8 @@ class OverlayManager
       baseSkill,
       skillOverlay,
       J.ABS.RegExp.Range,
-      skillOverlay.jabsRange);
-  };
+      skillOverlay.jabsRadius);
+  }
 
   /**
    * Overlays the `cooldown`.
@@ -1155,7 +900,7 @@ class OverlayManager
       skillOverlay,
       J.ABS.RegExp.Cooldown,
       skillOverlay.jabsCooldown);
-  };
+  }
 
   /**
    * An overlay type of which we overwrite whatever the existing data is with
@@ -1173,8 +918,8 @@ class OverlayManager
     // if the value doesn't exist, don't overlay; return the base skill.
     if (value === null) return baseSkill;
 
-    // strip out all glossary that match the regex.
-    baseSkill.note = baseSkill.note.replace(structure, String.empty);
+    // strip out all tags that match the regex.
+    baseSkill.deleteNotedata(structure);
 
     // determine the key from the regex.
     const key = J.BASE.Helpers.getKeyFromRegexp(structure);
@@ -1203,7 +948,7 @@ class OverlayManager
 
     // return the overlayed base skill.
     return baseSkill;
-  };
+  }
 
   /**
    * An overlay type of which we overwrite whatever the existing data is with
@@ -1221,7 +966,7 @@ class OverlayManager
     // if the value doesn't exist, don't overlay; return the base skill.
     if (value === null) return baseSkill;
 
-    // strip out all glossary that match the regex.
+    // strip out all tags that match the regex.
     baseSkill.note = baseSkill.note.replace(structure, String.empty);
 
     // determine the key from the regex.
@@ -1238,10 +983,315 @@ class OverlayManager
 
     // return the overlayed base skill.
     return baseSkill;
-  };
-//#endregion overwrites
+  }
+//endregion overwrites
 }
 
-//#endregion OverlayManager
+//endregion OverlayManager
 
-//#endregion Custom objects
+//region Game_Action
+/**
+ * Overwrites {@link #setSkill}.
+ * If a caster is available to this action, then update the udnerlying skill with
+ * the overlayed skill instead.
+ */
+J.EXTEND.Aliased.Game_Action.set('setSkill', Game_Action.prototype.setSkill);
+Game_Action.prototype.setSkill = function(skillId)
+{
+  // check if we are missing a caster.
+  if (!this.subject())
+  {
+    // perform original logic.
+    J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
+
+    // stop processing.
+    return;
+  }
+
+  // build the extended skill.
+  const skillToSet = OverlayManager.getExtendedSkill(this.subject(), skillId);
+
+  // assign the overlayed skill to the object instead.
+  this._item.setObject(skillToSet);
+};
+
+/**
+ * Overwrites {@link #setItemObject}.
+ * If a caster is available to this action, then update the underlying item with the data.
+ */
+J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
+Game_Action.prototype.setItemObject = function(itemObject)
+{
+  // check if we are missing a caster.
+  if (!this.subject())
+  {
+    // perform original logic.
+    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemObject);
+
+    // stop processing.
+    return;
+  }
+
+  // TODO: sort out how to manage this when both skills AND items come through this way.
+  this._item.setObject(itemObject);
+};
+
+/**
+ * Extends {@link #apply}.
+ * Also applies on-hit states.
+ */
+J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
+Game_Action.prototype.apply = function(target)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Action.get('apply').call(this, target);
+
+  // apply our on-hit self-states if we have any.
+  this.applyOnHitSelfStates();
+};
+
+/**
+ * Applies all applicable on-hit self states.
+ */
+Game_Action.prototype.applyOnHitSelfStates = function()
+{
+  // apply all on-hit states to oneself.
+  this.applyStates(this.subject(), this.onHitSelfStates());
+};
+
+/**
+ * Gets all possible states that could be self-inflicted when this skill hits a target.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onHitSelfStates = function()
+{
+  // grab all the self-state sources.
+  const sources = this.selfStateSources();
+
+  // get all "skill chances" aka "chance to inflict a state" on oneself.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    sources,
+    J.EXTEND.RegExp.OnHitSelfState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Extends {@link #applyItemUserEffect}.
+ * Also applies on-cast states.
+ */
+J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.applyItemUserEffect);
+Game_Action.prototype.applyItemUserEffect = function(target)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Action.get('applyItemUserEffect').call(this, target);
+
+  // apply our on-cast self-states if we have any.
+  this.applyOnCastSelfStates();
+};
+
+/**
+ * Applies all applicable on-cast self states.
+ */
+Game_Action.prototype.applyOnCastSelfStates = function()
+{
+  // apply all self-inflictable states to oneself.
+  this.applyStates(this.subject(), this.onCastSelfStates());
+};
+
+/**
+ * Gets all possible states that could be self-inflicted when casting this skill.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onCastSelfStates = function()
+{
+  // grab all the self-state sources.
+  const sources = this.selfStateSources();
+
+  // get all "skill chances" aka "chance to inflict a state" on oneself.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
+    sources,
+    J.EXTEND.RegExp.OnCastSelfState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * All sources to derive self-applied states from.
+ * @returns {(RPG_UsableItem|RPG_State)[]}
+ */
+Game_Action.prototype.selfStateSources = function()
+{
+  // define the sources for this action.
+  const sources = [
+    // this action itself is a source (the underlying item/skill).
+    this.item(),
+
+    // the caster's states also apply as a source.
+    ...this.subject().allStates(),
+  ];
+
+  // return what we found.
+  return sources;
+};
+
+/**
+ * Applies the given states to the target.
+ * @param target {Game_Actor|Game_Enemy} The target to apply states to.
+ * @param stateChances {JABS_OnChanceEffect[]} The various states to potentially apply.
+ */
+Game_Action.prototype.applyStates = function(target, stateChances)
+{
+  if (stateChances.length)
+  {
+    // iterate over each of them and see if we should apply them.
+    stateChances.forEach(stateChance =>
+    {
+      // extract the data points from the on-chance effect.
+      const { shouldTrigger, skillId } = stateChance;
+
+      // roll the dice to see if the on-chance effect applies.
+      if (shouldTrigger())
+      {
+        // apply the given state to the caster, with the caster as the attacker.
+        target.addState(skillId, this.subject());
+      }
+    });
+  }
+};
+//endregion Game_Action
+
+//region Game_Actor
+/**
+ * OVERWRITE Gets the skill associated with the given skill id.
+ * By abstracting this, we can modify the underlying skill before it reaches its destination.
+ * @param {number} skillId The skill id to get the skill for.
+ * @returns {RPG_Skill}
+ */
+Game_Actor.prototype.skill = function(skillId)
+{
+  return OverlayManager.getExtendedSkill(this, skillId);
+};
+//endregion Game_Actor
+
+//region Game_Item
+/**
+ * Extend `initialize()` to include our update of assigning the item.
+ */
+J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
+Game_Item.prototype.initialize = function(item)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
+
+  /**
+   * The underlying object associated with this item.
+   * @type {RPG_EquipItem|rm.types.UsableItem}
+   */
+  this._item = null;
+  if (item)
+  {
+    this._item = item;
+  }
+};
+
+/**
+ * Gets the underlying object for this `Game_Item`.
+ * Normally this can be retrieved by using {@link Game_Item.object}, but that function limits
+ * the possibility of retrieval to only stuff in the database, which extended skills will
+ * not be in the database.
+ */
+Game_Item.prototype.underlyingObject = function()
+{
+  return this._item;
+};
+
+/**
+ * Extends `setObject()` to enable setting custom skills and items.
+ * @param {RPG_UsableItem|RPG_EquipItem}
+ */
+J.EXTEND.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
+Game_Item.prototype.setObject = function(obj)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Item.get('setObject').call(this, obj);
+
+  // check to make sure we have something to work with.
+  if (!obj) return;
+
+  // check to ensure it has a skill category property.
+  if (obj.hasOwnProperty('stypeId'))
+  {
+    // assign the data.
+    this._dataClass = 'skill';
+    this._item = obj;
+  }
+  // check to ensure it has an item category property.
+  else if (obj.hasOwnProperty('itypeId'))
+  {
+    // assign the data.
+    this._dataClass = 'item';
+    this._item = obj;
+  }
+};
+
+/**
+ * Extends this function to return the underlying custom object (like an extended skill)
+ * if it was assigned.
+ */
+J.EXTEND.Aliased.Game_Item.set('object', Game_Item.prototype.object);
+Game_Item.prototype.object = function()
+{
+  // if we have a custom object to return, return that.
+  if (this._item)
+  {
+    return this._item;
+  }
+
+  return J.EXTEND.Aliased.Game_Item.get('object').call(this);
+};
+//endregion Game_Item
+
+//region Game_Party
+Game_Party.prototype.extraOnHitSelfStateSources = function()
+{
+  const extraSources = [];
+
+  // if we're using passive skill states...
+  if (J.PASSIVE)
+  {
+    // get all the members of the battle party.
+    const members = $gameParty.battleMembers();
+    members.forEach(member =>
+    {
+      // and shove their current array of states into the sources to check.
+      extraSources.push(...member.allStates());
+    });
+  }
+
+  // return all found sources.
+  return extraSources;
+};
+
+Game_Party.prototype.extraOnCastSelfStateSources = function()
+{
+  const extraSources = [];
+
+  // if we're using passive skill states...
+  if (J.PASSIVE)
+  {
+    // get all the members of the battle party.
+    const members = $gameParty.battleMembers();
+    members.forEach(member =>
+    {
+      // and shove their current array of states into the sources to check.
+      extraSources.push(...member.allStates());
+    });
+  }
+
+  // return all found sources.
+  return extraSources;
+};
+//endregion Game_Party

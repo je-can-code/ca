@@ -1,20 +1,22 @@
-//#region Introduction
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+
+//region Introduction
 /*:
  * @target MZ
- * @plugindesc 
- * [v1.0 CMS_S] A redesign of the status menu.
+ * @plugindesc
+ * [v1.0.0 CMS_S] A redesign of the status menu.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @orderAfter J-BASE
+ * @url https://github.com/je-can-code/ca
+ * @base J-Base
+ * @orderAfter J-Base
  * @help
  * ============================================================================
  * This is a redesign of the status menu. It includes ALL parameters instead of
  * just the b-params. It also includes elemental and state rates.
- * 
- * 
+ *
+ *
  * ============================================================================
- * 
+ *
  */
 
 /**
@@ -22,7 +24,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -33,7 +35,7 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -53,11 +55,199 @@ J.CMS_S.Aliased = {
   Window_StatusParams: {},
   Window_StatusEquip: {},
 };
+//endregion Introduction
 
-//#endregion Introduction
+//region StatusParameter
+/**
+ * The content of a single parameter being drawn in a window.
+ */
+class StatusParameter
+{
+  /**
+   * The numeric value for the parameter.
+   * For sp/ex parameters, this may be a decimal.
+   * @type {number}
+   */
+  value = 0.0;
 
-//#region Scene objects
-//#region Scene_Status
+  /**
+   * The "long" parameter id for this parameter.
+   * @type {number}
+   */
+  longParamId = 0;
+
+  /**
+   * The `name` of this parameter.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The `iconIndex` of this parameter.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * The `colorIndex` of this parameter.
+   * @type {number}
+   */
+  colorIndex = 0;
+
+  /**
+   * Constructor.
+   * @param {number} value The value of the parameter.
+   * @param {boolean=} longParamId True if this should be multiplied by 100, false otherwise.
+   */
+  constructor(value, longParamId)
+  {
+    this.value = value;
+    this.longParamId = longParamId;
+    this.refresh();
+  }
+
+  /**
+   * Initialize the properties based on the provided
+   */
+  refresh()
+  {
+    this.name = TextManager.longParam(this.longParamId);
+    this.iconIndex = IconManager.longParam(this.longParamId);
+    this.colorIndex = ColorManager.longParam(this.longParamId);
+  }
+
+  /**
+   * Get the pretty value of this parameter.
+   * @param {boolean=} withPadding True if you want zero-padding, false otherwise; defaults to false.
+   * @returns {string}
+   */
+  prettyValue(withPadding = false)
+  {
+    // copy the value.
+    let prettyValue = this.value;
+
+    // subjectively, whole numbers are better than 0-1 decimal numbers.
+    const needsMultiplyBy100 = [
+      8, 9, 10, 11, 12, 13, 14, 15, 16, 17,     // ex-params
+      18, 19, 20, 21, 22, 23, 24, 25, 26, 27,   // sp-params
+      28, 29                                    // crit params
+    ];
+
+    // check if our long param id is in this group.
+    if (needsMultiplyBy100.includes(this.longParamId))
+    {
+      // multiply by 100 then.
+      prettyValue *= 100;
+    }
+
+    // subjectively, the sp-params would look better if they were 0-based instead of 100-based.
+    const needsMinusBy100 = [
+      18, 19, 20, 21, 22, 23, 24, 25, 26, 27,   // sp-params
+    ];
+
+    // check if our long param id is in this group.
+    if (needsMinusBy100.includes(this.longParamId))
+    {
+      // reduce by 100 then.
+      prettyValue -= 100;
+    }
+
+    // check to make sure we're using padding.
+    if (withPadding && this.value)
+    {
+      // subjectively, the big parameters like hp and mp should have leading zeroes.
+      const needs6ZeroPadding = [
+        0, 1,                                     // max hp/mp
+      ];
+
+      // subjectively, the sorta big parameters like b-params, crit-params, and max tp also get zeroes.
+      const needs4ZeroPadding = [
+        2, 3, 4, 5, 6, 7,                         // most b-params
+        19,                                       // just GRD
+        28, 29,                                   // crit params
+        30,                                       // max tp
+      ];
+
+      // subjectively, the sp-params (except GRD) should have fewer leading zeroes.
+      const needs3ZeroPadding = [
+        13, 14,                               // CNT & MRF
+        18, 20, 21, 22, 23, 24, 25, 26, 27,   // sp-params
+      ];
+
+      // check if our long param id is in this group.
+      if (needs6ZeroPadding.includes(this.longParamId))
+      {
+        // pad with up to 6 zeroes.
+        prettyValue = prettyValue.padZero(6);
+      }
+      // check if our long param id is in this group.
+      else if (needs4ZeroPadding.includes(this.longParamId))
+      {
+        // pad with up to 4 zeroes.
+        prettyValue = prettyValue.padZero(4);
+      }
+      // check if our long param id is in this group.
+      else if (needs3ZeroPadding.includes(this.longParamId))
+      {
+        // pad with up to 3 zeroes.
+        prettyValue = prettyValue.padZero(3);
+      }
+    }
+
+    let finalPrettyValue = !(Number.isInteger(prettyValue))
+      ? prettyValue.toFixed(1)
+      : prettyValue.toString();
+
+    // check if we just have unused decimals.
+    if (finalPrettyValue.endsWith(".0"))
+    {
+      // strip em off.
+      finalPrettyValue = finalPrettyValue.slice(0, finalPrettyValue.length-2);
+    }
+
+    // the long param ids that should be decorated with a % symbol.
+    const needsPercentSymbol = [
+      9, 13, 14,                                // EVA & CNT & MRF
+      20, 21, 22, 23, 24, 25, 26, 27,           // sp-params
+      28, 29,                                   // crit params
+    ];
+
+    // check if our long param id is in this group.
+    if (needsPercentSymbol.includes(this.longParamId))
+    {
+      // append with a % symbol.
+      finalPrettyValue = `${finalPrettyValue}%`;
+    }
+
+    // the long param ids that should be decorated with a regen rate per second.
+    const needsRegenRate = [
+      15, 16, 17
+    ];
+
+    // check if our long param id is in this group.
+    if (needsRegenRate.includes(this.longParamId))
+    {
+      // calculate the per-second rate of regen.
+      let per1rate = (prettyValue / 5);
+
+      // check if it came out to be a clean whole number or not.
+      if (!Number.isInteger(per1rate))
+      {
+        // chop off the shit after 2 decimals.
+        per1rate = per1rate.toFixed(1);
+      }
+
+      // decorate the value with the per-second rate.
+      finalPrettyValue = `${per1rate}/s`;
+    }
+
+    // return the "pretty" value!
+    return finalPrettyValue;
+  }
+}
+//endregion StatusParameter
+
+//region Scene_Status
 /**
  * OVERWRITE Removes the buttons because fuck the buttons.
  */
@@ -93,7 +283,7 @@ Scene_Status.prototype.refreshActor = function()
 
 /**
  * Creates the Rectangle that will represent the window for the base status details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusWindowRect = function()
 {
@@ -106,7 +296,7 @@ Scene_Status.prototype.statusWindowRect = function()
 
 /**
  * Creates the Rectangle that will represent the window for the equip details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusEquipWindowRect = function()
 {
@@ -131,7 +321,7 @@ Scene_Status.prototype.createStatusParamsWindow = function()
 
 /**
  * Creates the Rectangle that will represent the window for the parameter details.
- * @returns {Rectange}
+ * @returns {Rectangle}
  */
 Scene_Status.prototype.statusParamsWindowRect = function()
 {
@@ -141,39 +331,49 @@ Scene_Status.prototype.statusParamsWindowRect = function()
   const wh = Graphics.boxHeight;
   return new Rectangle(wx, wy, ww, wh);
 };
-//#endregion Scene_Status
-//#endregion Scene objects
+//endregion Scene_Status
 
-//#region Window objects
-//#region Window_Status
+//region Window_Status
+/**
+ * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
+ * Also does NOT write nicknames, because why is that a thing?
+ */
 Window_Status.prototype.drawBlock1 = function()
 {
+  // grab the y coordinate.
   const y = this.block1Y();
+
+  // draw the components.
   this.drawActorName(this._actor, 0, y, 168);
   this.drawActorClass(this._actor, 204, y, 168);
-  this.drawActorNickname(this._actor, 0, y + 200, 270);
+
+  // don't draw the nickname.
 };
 
+/**
+ * OVERWRITE Changes the `x:y` coordinates for where to draw the components of this block.
+ */
 Window_Status.prototype.drawBlock2 = function()
 {
+  // grab the y coordinate.
   const y = this.block2Y();
+
+  // draw the components.
   this.drawActorFace(this._actor, 12, y);
   this.drawBasicInfo(204, y);
   this.drawExpInfo(0, y + 250);
 };
-//#endregion Window_Status
+//endregion Window_Status
 
-//#region Window_StatusParameters
+//region Window_StatusParameters
 /**
  * A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
  * params, including b-/x-/s- params.
  */
-class Window_StatusParameters
-  extends Window_Base
+class Window_StatusParameters extends Window_Base
 {
   /**
-   * @constructor
    * @param {Rectangle} rect A rectangle that represents the shape of this window.
    */
   constructor(rect)
@@ -181,7 +381,7 @@ class Window_StatusParameters
     super(rect);
     super.initialize(rect);
     this.initMembers();
-  };
+  }
 
   /**
    * Initializes all members of this class.
@@ -189,7 +389,7 @@ class Window_StatusParameters
   initMembers()
   {
     this.actor = null;
-  };
+  }
 
   /**
    * OVERWRITE Changes the lineheight to default to something smaller than 36 for this window.
@@ -198,7 +398,7 @@ class Window_StatusParameters
   lineHeight()
   {
     return 32;
-  };
+  }
 
   /**
    * Sets the actor for this window to draw parameter data for.
@@ -208,7 +408,7 @@ class Window_StatusParameters
   {
     this.actor = actor;
     this.refresh();
-  };
+  }
 
   /**
    * Refreshes this window by clearing it and redrawing all its contents.
@@ -217,7 +417,7 @@ class Window_StatusParameters
   {
     this.contents.clear();
     this.drawContent();
-  };
+  }
 
   /**
    * Draws all content in this window.
@@ -227,72 +427,651 @@ class Window_StatusParameters
     // if we don't have an actor to render the parameters for, don't.
     if (!this.actor) return;
 
-    this.drawBParams(0, 0);
-    this.drawXParams(350, 0);
-    this.drawSParams(700, 0);
-    this.drawElementalRates(0, 380);
-    this.drawStateRates(350, 380);
-  };
+    // define the two column x coordinates.
+    const [column1X, column2X] = [0, 500];
+
+    // define the three row y coordinates.
+    const [row1Y, row2Y, row3Y, row4Y] = [0, 180, 360, 470];
+
+    // draw row 1.
+    this.drawCombatStats(column1X, row1Y);
+    this.drawVitalityStats(column2X, row1Y);
+
+    // draw row 2.
+    this.drawPrecisionStats(column1X, row2Y);
+    this.drawDefensiveStats(column2X, row2Y);
+
+    // draw row 3.
+    this.drawMobilityStats(column1X, row3Y);
+    this.drawFateStats(column2X, row3Y);
+
+    // draw row 4.
+    this.drawElementalRates(column1X, row4Y);
+    this.drawStateRates(column2X, row4Y);
+  }
 
   /**
-   * Draws all the b-params for the actor.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
+   * Draws all vitality-related stats, such as max hp and the regenerations.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
    */
-  drawBParams(x, y)
+  drawVitalityStats(x, y)
   {
-    this.drawTitle("Params", x, y - 15, 2563, 1);
+    // draw the title for damage.
+    this.drawTitle("Vitality", x, (y - 15), 7, 3);
 
-    const paramIds = [0, 1, 2, 3, 4, 5, 6, 7];
-    paramIds.forEach((paramId, index) =>
-    {
-      const name = TextManager.param(paramId);
-      const value = this.actor.param(paramId);
-      const iconIndex = IconManager.param(paramId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
-    });
-  };
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, rowBaseY-2, w, 4);
+
+    // draw the parameters for the combat
+    this.drawVitalityParameters(x, rowBaseY, w);
+  }
 
   /**
-   * Draws all the x-params for the actor.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
+   * Draws the vitality parameter section.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The width of the parameter section.
    */
-  drawXParams(x, y)
+  drawVitalityParameters(x, y, w)
   {
-    this.drawTitle("Rates", x, y - 15, 92, 1);
+    // shorthand for line height.
+    const lh = this.lineHeight();
 
-    const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    paramIds.forEach((xparamId, index) =>
-    {
-      const name = TextManager.xparam(xparamId);
-      const value = Math.round(this.actor.xparam(xparamId) * 100);
-      const iconIndex = IconManager.xparam(xparamId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
-    });
-  };
+    // the width of the column of parameters.
+    const parameterWidth = w / 2;
+
+    // define the right column's x coordinate.
+    const rightX = x + parameterWidth + 16;
+
+    // define the first row's y coordinate.
+    const row1y = y + (lh * 1);
+
+    // define the second row's y coordinate.
+    const row2y = y + (lh * 2);
+
+    // define the third row's y coordinate.
+    const row3y = y + (lh * 3);
+
+    // define the fourth row's y coordinate.
+    const row4y = y + (lh * 4);
+
+    // get the max hp.
+    const mhpParam = this.makeParameter(0);
+
+    // get the max mp.
+    const mmpParam = this.makeParameter(1);
+
+    // get the max tp.
+    const mtpParam = this.makeParameter(30);
+
+    // get the rec parameter.
+    const recParam = this.makeParameter(20);
+
+    // get the hrg parameter.
+    const hrgParam = this.makeParameter(15);
+
+    // get the mrg parameter.
+    const mrgParam = this.makeParameter(16);
+
+    // get the trg parameter.
+    const trgParam = this.makeParameter(17);
+
+    // get the pha parameter.
+    const phaParam = this.makeParameter(21);
+
+    // draw the max hp parameter on the left.
+    this.drawParameterLeft(x, row1y, parameterWidth, mhpParam);
+
+    // draw the hp regen parameter on the right.
+    this.drawParameterRight(rightX, row1y, parameterWidth, hrgParam);
+
+    // draw the max mp parameter on the left.
+    this.drawParameterLeft(x, row2y, parameterWidth, mmpParam);
+
+    // draw the mp regen parameter on the right.
+    this.drawParameterRight(rightX, row2y, parameterWidth, mrgParam);
+
+    // draw the max tp parameter on the left.
+    this.drawParameterLeft(x, row3y, parameterWidth, mtpParam);
+
+    // draw the tp regen parameter on the right.
+    this.drawParameterRight(rightX, row3y, parameterWidth, trgParam);
+
+    // draw the max tp parameter on the left.
+    this.drawParameterLeft(x, row4y, parameterWidth, recParam);
+
+    // draw the tp regen parameter on the right.
+    this.drawParameterRight(rightX, row4y, parameterWidth, phaParam);
+  }
 
   /**
-   * Draws all the s-params for the actor.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
+   * Draws all core combat stats, such as power and force.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
    */
-  drawSParams(x, y)
+  drawCombatStats(x, y)
   {
-    this.drawTitle("Bonuses", x, y - 10, 73, 1);
+    // draw the title for damage.
+    this.drawTitle("Combat", x, (y-15), 76, 10);
 
-    const paramIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    paramIds.forEach((sparamId, index) =>
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+
+    // draw the parameters for the combat
+    this.drawCombatParameters(x, rowBaseY, w);
+  }
+
+  /**
+   * Draws the combat parameter section.
+   * @param {number} leftX The x coordinate.
+   * @param {number} rowBaseY The y coordinate.
+   * @param {number} sectionWidth The width of the parameter section.
+   */
+  drawCombatParameters(leftX, rowBaseY, sectionWidth)
+  {
+    // shorthand for line height.
+    const lh = this.lineHeight();
+
+    // the width of the column of parameters.
+    const parameterWidth = sectionWidth / 2;
+
+    // define the right column's x coordinate.
+    const rightX = leftX + parameterWidth + 16;
+
+    // define the first row's y coordinate.
+    const row1y = rowBaseY + (lh * 1);
+
+    // get the attack parameter.
+    const atkParam = this.makeParameter(2);
+
+    // get the force parameter.
+    const matParam = this.makeParameter(4);
+
+    // get the magicreflect parameter.
+    const mrfParam = this.makeParameter(13);
+
+    // get the autocounter parameter.
+    const cntParam = this.makeParameter(14);
+
+    // draw the power parameter on the left.
+    this.drawParameterLeft(leftX, row1y, parameterWidth, atkParam);
+
+    // draw the force parameter on the right.
+    this.drawParameterRight(rightX, row1y, parameterWidth, matParam);
+
+    // define the second row's y coordinate.
+    const row2y = rowBaseY + (lh * 2);
+
+    // draw the power parameter on the left.
+    this.drawParameterLeft(leftX, row2y, parameterWidth, cntParam);
+
+    // draw the force parameter on the right.
+    this.drawParameterRight(rightX, row2y, parameterWidth, mrfParam);
+  }
+
+  /**
+   * Draws all precision-related stats, such as hit, crit, and parry.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawPrecisionStats(x, y)
+  {
+    // draw the title for damage.
+    this.drawTitle("Precision", x, (y - 15), 1756, 6);
+
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, rowBaseY-2, w, 4);
+
+    // draw the parameters for the combat
+    this.drawPrecisionParameters(x, rowBaseY, w);
+  }
+
+  /**
+   * Draws the precision parameter section.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The width of the parameter section.
+   */
+  drawPrecisionParameters(x, y, w)
+  {
+    // shorthand for line height.
+    const lh = this.lineHeight();
+
+    // the width of the column of parameters.
+    const parameterWidth = w / 2;
+
+    // define the right column's x coordinate.
+    const rightX = x + parameterWidth + 16;
+
+    // define the first row's y coordinate.
+    const row1y = y + (lh * 1);
+
+    // define the second row's y coordinate.
+    const row2y = y + (lh * 2);
+
+    // define the third row's y coordinate.
+    const row3y = y + (lh * 3);
+
+    // define the fourth row's y coordinate.
+    const row4y = y + (lh * 4);
+
+    // get the hit parameter.
+    const hitParam = this.makeParameter(8);
+
+    // get the grd parameter.
+    const grdParam = this.makeParameter(19);
+
+    // get the agi parameter.
+    const agiParam = this.makeParameter(6);
+
+    // get the eva parameter.
+    const evaParam = this.makeParameter(9);
+
+    // get the cri parameter.
+    const criParam = this.makeParameter(10);
+
+    // get the cev parameter.
+    const cevParam = this.makeParameter(11);
+
+    // get the cdm parameter.
+    const cdmParam = this.makeParameter(28);
+
+    // get the cdr parameter.
+    const cdrParam = this.makeParameter(29);
+
+    // draw the hit parameter on the left.
+    this.drawParameterLeft(x, row1y, parameterWidth, hitParam);
+
+    // draw the parry (grd) parameter on the right.
+    this.drawParameterRight(rightX, row1y, parameterWidth, grdParam);
+
+    // draw the agility parameter on the left.
+    this.drawParameterLeft(x, row2y, parameterWidth, agiParam);
+
+    // draw the parry boost (eva) parameter on the right.
+    this.drawParameterRight(rightX, row2y, parameterWidth, evaParam);
+
+    // draw the crit chance parameter on the left.
+    this.drawParameterLeft(x, row3y, parameterWidth, criParam);
+
+    // draw the crit evade parameter on the right.
+    this.drawParameterRight(rightX, row3y, parameterWidth, cevParam);
+
+    // draw the crit damage multiplier parameter on the left.
+    this.drawParameterLeft(x, row4y, parameterWidth, cdmParam);
+
+    // draw the crit damage reduction parameter on the right.
+    this.drawParameterRight(rightX, row4y, parameterWidth, cdrParam);
+  }
+
+  /**
+   * Draws all defensive stats, such as endure and .
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawDefensiveStats(x, y)
+  {
+    // draw the title for damage.
+    this.drawTitle("Defensive", x, (y-15), 1625, 26);
+
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+
+    // draw the parameters for the combat
+    this.drawDefensiveParameters(x, rowBaseY, w);
+  }
+
+  /**
+   * Draws the combat parameter section.
+   * @param {number} leftX The x coordinate.
+   * @param {number} rowBaseY The y coordinate.
+   * @param {number} sectionWidth The width of the parameter section.
+   */
+  drawDefensiveParameters(leftX, rowBaseY, sectionWidth)
+  {
+    // shorthand for line height.
+    const lh = this.lineHeight();
+
+    // the width of the column of parameters.
+    const parameterWidth = sectionWidth / 2;
+
+    // define the right column's x coordinate.
+    const rightX = leftX + parameterWidth + 16;
+
+    // define the first row's y coordinate.
+    const row1y = rowBaseY + (lh * 1);
+
+    // define the second row's y coordinate.
+    const row2y = rowBaseY + (lh * 2);
+
+    // get the defense parameter.
+    const defParam = this.makeParameter(3);
+
+    // get the resist parameter.
+    const mdfParam = this.makeParameter(5);
+
+    // get the phys damage down parameter.
+    const pdrParam = this.makeParameter(24);
+
+    // get the magi damage down parameter.
+    const mdrParam = this.makeParameter(25);
+
+    // draw the power parameter on the left.
+    this.drawParameterLeft(leftX, row1y, parameterWidth, defParam);
+
+    // draw the force parameter on the right.
+    this.drawParameterRight(rightX, row1y, parameterWidth, mdfParam);
+
+    // draw the power parameter on the left.
+    this.drawParameterLeft(leftX, row2y, parameterWidth, pdrParam);
+
+    // draw the force parameter on the right.
+    this.drawParameterRight(rightX, row2y, parameterWidth, mdrParam);
+  }
+
+  /**
+   * Draws all mobility stats, such as movespeed.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawMobilityStats(x, y)
+  {
+    // draw the title for damage.
+    this.drawTitle("Mobility", x, (y-15), 82, 20);
+
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, (rowBaseY-4), w, 1);
+
+    // draw the parameters for the combat
+    this.drawMobilityParameters(x, rowBaseY, w);
+  }
+
+  /**
+   * Draws the mobility parameter section.
+   * @param {number} leftX The x coordinate.
+   * @param {number} rowBaseY The y coordinate.
+   * @param {number} sectionWidth The width of the parameter section.
+   */
+  drawMobilityParameters(leftX, rowBaseY, sectionWidth)
+  {
+    // shorthand for line height.
+    const lh = this.lineHeight();
+
+    // the width of the column of parameters.
+    const parameterWidth = sectionWidth / 2;
+
+    // define the first row's y coordinate.
+    const row1y = rowBaseY + (lh * 1);
+
+    // get the move speed boost parameter.
+    const msbParam = this.makeParameter(31);
+
+    // draw the power parameter on the left.
+    this.drawParameterLeft(leftX, row1y, parameterWidth, msbParam);
+  }
+
+  /**
+   * Draws all fate-related stats, such as experience rate and luck.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
+  drawFateStats(x, y)
+  {
+    // draw the title for damage.
+    this.drawTitle("Fate", x, (y-15), 1619, 27);
+
+    // the width of the section.
+    const w = 450;
+
+    // combine the base for each row to have to accommodate the title underline.
+    const rowBaseY = y + 8;
+
+    // draw the T separator; arbitrary line height decision by design.
+    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+
+    // draw the parameters for the combat
+    this.drawFateParameters(x, rowBaseY, w);
+  }
+
+  /**
+   * Draws the fate parameter section.
+   * @param {number} leftX The x coordinate.
+   * @param {number} rowBaseY The y coordinate.
+   * @param {number} sectionWidth The width of the parameter section.
+   */
+  drawFateParameters(leftX, rowBaseY, sectionWidth)
+  {
+    // shorthand for line height.
+    const lh = this.lineHeight();
+
+    // the width of the column of parameters.
+    const parameterWidth = sectionWidth / 2;
+
+    // define the right column's x coordinate.
+    const rightX = leftX + parameterWidth + 16;
+
+    // define the first row's y coordinate.
+    const row1y = rowBaseY + (lh * 1);
+
+    // get the fortune parameter.
+    const lukParam = this.makeParameter(7);
+
+    // get the experience rate parameter.
+    const exrParam = this.makeParameter(27);
+
+    // get the skill proficiency boost parameter.
+    const spbParam = this.makeParameter(32);
+
+    // get the sdp multiplier bonus parameter.
+    const smbParam = this.makeParameter(33);
+
+    // draw the luck parameter on the left.
+    this.drawParameterLeft(leftX, row1y, parameterWidth, lukParam);
+
+    // draw the experience parameter on the right.
+    this.drawParameterRight(rightX, row1y, parameterWidth, exrParam);
+
+    // define the second row's y coordinate.
+    const row2y = rowBaseY + (lh * 2);
+
+    // draw the proficiency parameter on the left.
+    this.drawParameterLeft(leftX, row2y, parameterWidth, spbParam);
+
+    // draw the sdp parameter on the right.
+    this.drawParameterRight(rightX, row2y, parameterWidth, smbParam);
+  }
+
+  /**
+   * Draws a T separator by using a horizontal and vertical line.
+   * The length of these lines is defined by the section width and the number of lines.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The width of the T separator.
+   * @param {number=} lines The height of the T separator, multiplied by `lineHeight`; defaults to 1 line.
+   */
+  drawTSeparator(x, y, w, lines = 1)
+  {
+    // shorthand the line height.
+    const lh = this.lineHeight();
+
+    // define the first row's y coordinate.
+    const firstRowY = y + (lh * 1);
+
+    // separate the title from the parameters, for visual effect.
+    this.drawHorizontalLine(x, firstRowY - 4, w+16, 3);
+
+    // define the right column's x coordinate.
+    const secondColumnX = x + (w / 2) + 12;
+
+    // define the x coordinate for the vertical line.
+    const verticalLineX = secondColumnX - 4;
+
+    // define the height in pixels for the vertical line.
+    const verticalLineHeight = (lh * lines) + 4;
+
+    // separate the two columns of parameters, for visual effect.
+    this.drawVerticalLine(verticalLineX, firstRowY-2, verticalLineHeight, 3);
+
+  }
+
+  /**
+   * Creates a new parameter object that contains the necessary data to draw it into the window.
+   * @param {number} longParamId The "long" parameter id.
+   * @returns {StatusParameter} The compiled {@link StatusParameter}.
+   */
+  makeParameter(longParamId)
+  {
+    // get the parameter value.
+    const value = this.actor.longParam(longParamId);
+
+    // return a newly constructed status parameter.
+    return new StatusParameter(value, longParamId);
+  }
+
+  /**
+   * Draws a {@link StatusParameter} at the designated coordinates, left-aligned.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The total width of the section.
+   * @param {StatusParameter} parameter The parameter to draw details for.
+   */
+  drawParameterLeft(x, y, w, parameter)
+  {
+    // clear text color modifiers.
+    this.resetFontSettings();
+
+    // draw the icon.
+    this.drawIcon(parameter.iconIndex, x, y);
+
+    // reduce the font size a bit.
+    this.makeFontSmaller();
+
+    // swap the text color over to the color index if available.
+    this.changeTextColor(ColorManager.textColor(parameter.colorIndex));
+
+    // calculate a modified x to accommodate the icon.
+    const iconPaddedX = x + ImageManager.iconWidth + 4;
+
+    // the width of the name.
+    const nameWidth = w * 0.70;
+
+    // draw the name of the parameter at the modified x.
+    this.drawText(`${parameter.name}`, iconPaddedX, y, nameWidth, 'left');
+
+    // calculate a modified x to further accommodate the name as well.
+    const iconNamePaddedX = iconPaddedX + (w * 0.45);
+
+    // the width of the value.
+    const valueWidth = w * 0.40;
+
+    // get the pretty value of this parameter.
+    const value = parameter.prettyValue();
+
+    // draw the value of the parameter at an even further modified x.
+    this.drawText(value, iconNamePaddedX, y, valueWidth, 'right');
+
+    // clear text color modifiers.
+    this.resetFontSettings();
+  }
+
+  /**
+   * Draws a {@link StatusParameter} at the designated coordinates, left-aligned.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   * @param {number} w The total width of the section.
+   * @param {StatusParameter} parameter The parameter to draw details for.
+   */
+  drawParameterRight(x, y, w, parameter)
+  {
+    // clear text color modifiers.
+    this.resetFontSettings();
+
+    // swap the text color over to the color index if available.
+    this.changeTextColor(ColorManager.textColor(parameter.colorIndex));
+
+    // reduce the font size a bit.
+    this.makeFontSmaller();
+
+    // the width of the value.
+    const valueWidth = w * 0.40;
+
+    // get the pretty value of this parameter.
+    const value = parameter.prettyValue();
+
+    // draw the value of the parameter at an even further modified x.
+    this.drawText(value, x, y, valueWidth, 'left');
+
+    // calculate a modified x to accommodate the value.
+    const valuePaddedX = x + (valueWidth * 0.45);
+
+    // the width of the name.
+    const nameWidth = w * 0.70;
+
+    // draw the name of the parameter at the modified x.
+    this.drawText(`${parameter.name}`, valuePaddedX, y, nameWidth, 'right');
+
+    // calculate a modified x to further accommodate the name as well.
+    const nameValuePaddedX = valuePaddedX + nameWidth;
+
+    // draw the icon.
+    this.drawIcon(parameter.iconIndex, nameValuePaddedX, y);
+
+    // clear text color modifiers.
+    this.resetFontSettings();
+  }
+
+  /**
+   * OVERWRITE Replaces this with a smaller font size reduction.
+   */
+  makeFontSmaller()
+  {
+    if (this.contents.fontSize >= 24)
     {
-      const name = TextManager.sparam(sparamId);
-      const value = Math.round(this.actor.sparam(sparamId) * 100) - 100;
-      const iconIndex = IconManager.sparam(sparamId);
-      y = ((index + 1) * this.lineHeight()) + 8;
-      this.drawParameter(name, value, iconIndex, x + 40, y);
-    });
-  };
+      this.contents.fontSize -= 6;
+    }
+  }
+
+  /**
+   * OVERWRITE Replaces this with a smaller font size increase.
+   */
+  makeFontBigger()
+  {
+    if (this.contents.fontSize <= 96)
+    {
+      this.contents.fontSize += 6;
+    }
+  }
 
   /**
    * Draws the elemental rates section.
@@ -302,27 +1081,50 @@ class Window_StatusParameters
    */
   drawElementalRates(x, y, limit = 10)
   {
-    this.drawTitle("Elements", x, y - 10, 78, 1);
+    // draw the title for this section.
+    this.drawTitle("Elemental Affiliations", x, y - 10, 64, 8);
 
+    // draw a visual separator from title and data.
+    this.drawHorizontalLine(x, y+36, 450, 3);
+
+    // grab all relevant elements.
     const elements = $dataSystem.elements.slice(0, limit);
-    elements.forEach((name, index) =>
+
+    // iterate over each element to draw it.
+    elements.forEach((elementName, index) =>
     {
+      // calculate the y coordinate.
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      let rate = ((this.actor.traitsPi(11, index)) * 100);
+
+      // calculate the rate.
+      const rate = ((this.actor.traitsPi(11, index)) * 100);
+
+      // initialize the color index to default.
       let colorIndex = 0;
+
+      // check if the rate is over the base 100 rate.
       if (rate > 100)
       {
+        // higher rates mean more incoming damage.
         colorIndex = 10; // red
       }
+      // check fi the rate is under the base 100 rate.
       else if (rate < 100)
       {
+        // lower rates mean less incoming damage.
         colorIndex = 3; // green
       }
+
+      // determine the icon index for the element.
       const iconIndex = IconManager.element(index);
-      name = (name === "") ? "Neutral" : name;
-      this.drawParameter(`${name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+
+      // determine the element name.
+      const actualElementName = (elementName === String.empty)
+        ? "Neutral"
+        : elementName;
+      this.drawParameter(`${actualElementName}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
-  };
+  }
 
   /**
    * Draws the state rates section.
@@ -331,15 +1133,19 @@ class Window_StatusParameters
    */
   drawStateRates(x, y)
   {
-    this.drawTitle("Ailments", x, y - 10, 18, 1);
+    // draw the title
+    this.drawTitle("Ailment Resistances", x, y - 10, 2, 8);
 
-    const states = $dataStates.slice(4, 12);
+    // draw a visual separator from title and data.
+    this.drawHorizontalLine(x, y+36, 450, 3);
+
+    const states = $dataStates.slice(4, 13);
     states.forEach((state, index) =>
     {
       if (!state) return;
 
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      let rate = ((this.actor.traitsPi(13, index + 4)) * 100);
+      const rate = ((this.actor.traitsPi(13, index + 4)) * 100);
       let colorIndex = 0;
       if (rate > 100)
       {
@@ -349,10 +1155,10 @@ class Window_StatusParameters
       {
         colorIndex = 3; // green
       }
-      const iconIndex = state.iconIndex;
+      const { iconIndex } = state;
       this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
-  };
+  }
 
   /**
    * Draws the given data as "a parameter".
@@ -371,27 +1177,36 @@ class Window_StatusParameters
     this.drawText(`${name}`, modifiedX, y, 200);
     this.changeTextColor(ColorManager.textColor(colorIndex));
     this.drawText(`${value}`, modifiedX + 200, y, 250);
-  };
+  }
 
   /**
    * Draws the title of one of the sections for parameters.
    * @param {string} text The text to write as the title.
    * @param {number} x The `x` coordinate.
    * @param {number} y The `y` coordinate.
-   * @param {number} iconIndex The icon index for this parameter.
-   * @param {number} colorIndex The color index for the title.
+   * @param {number=} iconIndex The icon index for this parameter; defaults to none(0).
+   * @param {number=} colorIndex The color index for the title; defaults to system color(1).
+   * @param {string=} alignment The text-alignment value of the title; defaults to "center".
    */
-  drawTitle(text, x, y, iconIndex = 0, colorIndex = 1)
+  drawTitle(text, x, y, iconIndex = 0, colorIndex = 1, alignment = "center")
   {
-    this.resetTextColor();
-    this.drawIcon(iconIndex, x, y + 16);
-    this.changeTextColor(ColorManager.textColor(colorIndex));
-    this.contents.fontSize += 12;
-    this.drawText(text, x + 32, y + 16, 350);
-    this.contents.fontSize -= 12;
-  };
-};
-//#endregion Window_StatusParameters
-//#endregion Window objects
+    // clear any font modifications.
+    this.resetFontSettings();
 
-//ENDFILE
+    // draw the icon of the title.
+    this.drawIcon(iconIndex, x, y + 16);
+
+    // swap the color over to the title color.
+    this.changeTextColor(ColorManager.textColor(colorIndex));
+
+    // upsize the title!
+    this.makeFontBigger();
+
+    // draw the title itself.
+    this.drawText(text, x + 32, y + 16, 350, alignment);
+
+    // clear our font modifications because we're good tech citizens.
+    this.resetFontSettings();
+  }
+}
+//endregion Window_StatusParameters

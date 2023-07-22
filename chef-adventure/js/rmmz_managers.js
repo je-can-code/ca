@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.4.0
+// rmmz_managers.js v1.5.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -11,34 +11,103 @@ function DataManager() {
     throw new Error("This is a static class");
 }
 
+/**
+ * All actor metadata extracted from the database.
+ * @type {RPG_Actor[]}
+ */
 $dataActors = null;
+
+/**
+ * All class metadata extracted from the database.
+ * @type {RPG_Class[]}
+ */
 $dataClasses = null;
+
+/**
+ * All skill metadata extracted from the database.
+ * @type {RPG_Item[]}
+ */
 $dataSkills = null;
+
+/**
+ * All item metadata extracted from the database.
+ * @type {RPG_Item[]}
+ */
 $dataItems = null;
+
+/**
+ * All weapon metadata extracted from the database.
+ * @type {RPG_Weapon[]}
+ */
 $dataWeapons = null;
+
+/**
+ * All armor metadata extracted from the database.
+ * @type {RPG_Armor[]}
+ */
 $dataArmors = null;
+
+/**
+ * All enemy metadata extracted from the database.
+ * @type {RPG_Enemy[]}
+ */
 $dataEnemies = null;
-$dataTroops = null;
+
+/**
+ * All state metadata extracted from the database.
+ * @type {RPG_State[]}
+ */
 $dataStates = null;
+
+$dataTroops = null;
+
 $dataAnimations = null;
 $dataTilesets = null;
 $dataCommonEvents = null;
 $dataSystem = null;
 $dataMapInfos = null;
 $dataMap = null;
+
+/** @type {Game_Temp} */
 $gameTemp = null;
+
+/** @type {Game_System} */
 $gameSystem = null;
+
+/** @type {Game_Screen} */
 $gameScreen = null;
+
+/** @type {Game_Timer} */
 $gameTimer = null;
+
+/** @type {Game_Message} */
 $gameMessage = null;
+
+/** @type {Game_Switches} */
 $gameSwitches = null;
+
+/** @type {Game_Variables} */
 $gameVariables = null;
+
+/** @type {Game_SelfSwitches} */
 $gameSelfSwitches = null;
+
+/** @type {Game_Actors} */
 $gameActors = null;
+
+/** @type {Game_Party} */
 $gameParty = null;
+
+/** @type {Game_Troop} */
 $gameTroop = null;
+
+/** @type {Game_Map} */
 $gameMap = null;
+
+/** @type {Game_Player} */
 $gamePlayer = null;
+
+/** @type {Game_Event} */
 $testEvent = null;
 
 DataManager._globalInfo = null;
@@ -341,16 +410,11 @@ DataManager.savefileExists = function(savefileId) {
 DataManager.saveGame = function(savefileId) {
     const contents = this.makeSaveContents();
     const saveName = this.makeSavename(savefileId);
-    return StorageManager.saveObject(saveName, contents)
-      .then(() => {
+    return StorageManager.saveObject(saveName, contents).then(() => {
         this._globalInfo[savefileId] = this.makeSavefileInfo();
         this.saveGlobalInfo();
         return 0;
-    })
-      .catch((ex) =>
-      {
-         console.error(ex);
-      });
+    });
 };
 
 DataManager.loadGame = function(savefileId) {
@@ -360,8 +424,7 @@ DataManager.loadGame = function(savefileId) {
         this.extractSaveContents(contents);
         this.correctDataErrors();
         return 0;
-    })
-      .catch(err => console.log(err));
+    });
 };
 
 DataManager.makeSavename = function(savefileId) {
@@ -1967,7 +2030,9 @@ SceneManager.determineRepeatNumber = function(deltaTime) {
 };
 
 SceneManager.terminate = function() {
-    window.close();
+    if (Utils.isNwjs()) {
+        nw.App.quit();
+    }
 };
 
 SceneManager.onError = function(event) {
@@ -2689,7 +2754,7 @@ BattleManager.updateTurnEnd = function() {
         this.startTurn();
     } else {
         this.endAllBattlersTurn();
-        this.startInput();
+        this._phase = "start";
     }
 };
 

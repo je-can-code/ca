@@ -1,15 +1,25 @@
-//#region Introduction
+/*  BUNDLED TIME: Thu Jan 12 2023 13:44:01 GMT-0800 (Pacific Standard Time)  */
+
+//region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * [v1.0.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
+ * @orderAfter J-Base
+ * @orderAfter J-SDP
+ * @orderAfter J-NaturalGrowths
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage
- * based on a pair of glossary.
+ * based on a pair of tags.
  *
+ * Integrates with others of mine plugins:
+ * - J-SDP            (can earn CDM and CDR from panels)
+ * - J-NaturalGrowths (can grow CDM and CDR via levels)
+ *
+ * ----------------------------------------------------------------------------
  * DETAILS:
  * This overwrites the "applyCritical()" function in its entirety and replaces
  * the functionality with two new parameters on battlers: cdm and cdr, which
@@ -19,15 +29,35 @@
  * base damage. Additionally, the base critical damage multiplier is reduced by
  * default, and is parameterized for your convenience- because lets face it:
  * triple damage for a crit is an awful lot for the default.
+ *
  * ============================================================================
  * CRITICAL DAMAGE MULTIPLIER:
  * Have you ever wanted to have any amount of control over critical damage?
  * Well now you can! By applying the appropriate tag to various database
  * locations, you can now control how hard (or weak) a battler's crit will be!
  *
+ * DETAILS:
+ * Four new tags are available for use across the various applicable database
+ * objects: two for base values, and two for adding onto the base. While you
+ * can use any of the four on any of the database locations listed below, it
+ * was designed so that the "base" tags would live on static objects, like the
+ * actor itself, while the non-base tags would live everywhere else.
+ *
+ * The two base values have greater impact when used in the context of
+ * "J-NaturalGrowths", as they are a new value that can be leveraged within
+ * the formulas you write, allowing for complex buff/growth formulas revolving
+ * around incoming/outgoing critical hit damage.
+ *
  * NOTE:
- * If multiple glossary are present on a single battler, then all tag amounts will
+ * If multiple tags are present on a single battler, then all tag amounts will
  * be added together for a single multiplier amount as seen in the examples.
+ *
+ * USING "J-NATURALGROWTHS":
+ * If using my "J-NaturalGrowths" plugin as well, these tags will function in
+ * a near identical fashion to the "(cdm|cdr)(Buff)(Plus):[flat amount]" type
+ * of tags. To spare the extra unnecessary loops, it is recommended that if
+ * using the "J-NaturalGrowths" plugin as well, then to use the suggested format
+ * provided by that plugin instead of this.
  *
  * TAG USAGE:
  * - Actors
@@ -38,16 +68,19 @@
  * - States
  *
  * TAG FORMAT:
- *  <cdm:NUM>
+ *  <critMultiplierBase:NUM>
+ *  <critMultiplier:NUM>
+ * Where NUM is the amount to add to the battler's critical damage multiplier.
  *
  * TAG EXAMPLE(S):
- *  <cdm:50>
- * Increases the critical hit damage multiplier by 50% for this battler.
+ *  <critMultiplier:50>
+ * Increases the outgoing critical damage multiplier by 50% for this battler.
  *
- *  <cdm:10>
- *  <cdm:40>
- *  <cdm:150>
- * Increases the critical hit damage multiplier by 200% for this battler.
+ *  <critMultiplier:10>
+ *  <critMultiplier:40>
+ *  <critMultiplier:150>
+ * Increases the outgoing critical damage multiplier by 200% for this battler.
+ *
  * ============================================================================
  * CRITICAL DAMAGE REDUCTION:
  * Have you ever regreted adding a ton of critical damage multipliers across
@@ -61,29 +94,83 @@
  * base damage that the critical hit is based on. See the overview details for
  * more information.
  *
+ * USING "J-NATURALGROWTHS":
+ * If using my "J-NaturalGrowths" plugin as well, these tags will function in
+ * a near identical fashion to the "(cdm|cdr)(Buff)(Plus):[flat amount]" type
+ * of tags. To spare the extra unnecessary loops, it is recommended that if
+ * using the "J-NaturalGrowths" plugin as well, then to use the suggested format
+ * provided by that plugin instead of this.
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
  * - Skills
  * - Weapons
  * - Armors
+ * - Enemies
  * - States
  *
  * TAG FORMAT:
- *  <cdr:NUM>
- * Where NUM is the amount of critical hit reduction added.
+ *  <critReductionBase:NUM>
+ *  <critReduction:NUM>
+ * Where NUM is the amount to add to the battler's critical damage reduction.
  *
  * TAG EXAMPLE(S):
- *  <cdr:30>
- * Reduces critical hit damage against this battler by 30%.
+ *  <critReduction:30>
+ * Reduces critical damage against this battler by 30%.
  *
- *  <cdr:10>
- *  <cdr:30>
- *  <cdr:80>
+ *  <critReduction:10>
+ *  <critReduction:30>
+ *  <critReduction:80>
  * The three amounts above total to above 100. This means that this battler
  * will NOT take any bonus damage from critical hits. All critical hits will
  * be the same as non-critical hits. However, for the sake of other possible
  * effects, the attack will still be classified as a "critical hit".
+ * ============================================================================
+ * NATURAL GROWTH + CRITICAL DAMAGE MULTIPLIERS/REDUCTIONS:
+ * Have you ever wanted to permanently grow your CDM/CDR stats along with your
+ * other growths that you have setup because you're also using my
+ *
+ *        J-NaturalGrowths
+ *
+ * plugin? Well now you can! By taking advantage of the same builder-like
+ * pattern already established by the natural growths plugin, you too can start
+ * growing your CDR and CDM by flat or rate multipliers as you level up!
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULA]>
+ * Where (PARAM) is the (base/sp/ex) parameter shorthand.
+ * Where (BUFF|GROWTH) is literally one of either "Buff" or "Growth".
+ * Where (PLUS|RATE) is literally one of either "Plus" or "Rate".
+ * Where [FORMULA] is the formula to produce the amount.
+ *
+ * EXAMPLE:
+ *  <cdmGrowthRate:[5]>
+ * Gain +5% crit damage multiplier (cdm) per level.
+ * This would result in gaining an ever-increasing amount of crit damage
+ * multiplier per level.
+ *
+ *  <cdrBuffPlus:[25]>
+ * Gain a flat 25 crit damage reduction (cdr) while this tag is applied to
+ * this battler.
+ * This would be lost if the object this tag lived on was removed.
+ *
+ *  <cdmGrowthPlus:[a.level * 3]>
+ * Gain (the battler's level multiplied by 3) crit damage multiplier (cdm) per
+ * level.
+ * This would result in gaining an ever-increasing amount of crit damage
+ * multiplier per level.
+ *
+ * Please refer to the other plugin's documentation for more details.
  * ============================================================================
  */
 
@@ -91,6 +178,19 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '2.1.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -113,6 +213,9 @@ J.CRIT.Metadata =
     Version: '1.0.0',
   };
 
+/**
+ * A collection of all aliased methods for this plugin.
+ */
 J.CRIT.Aliased =
   {
     Game_Action: new Map(),
@@ -120,11 +223,107 @@ J.CRIT.Aliased =
     Game_Battler: new Map(),
     Game_BattlerBase: new Map(),
     Game_Enemy: new Map(),
+    IconManager: new Map(),
+    TextManager: new Map(),
+    Window_SDP_Details: new Map(),
   };
-//#endregion Introduction
 
-//#region Game objects
-//#region Game_Action
+/**
+ * All regular expressions used by this plugin.
+ */
+J.CRIT.RegExp = {
+  // base functionality.
+  CritDamageReductionBase: /<critReductionBase:[ ]?(\d+)>/gi,
+  CritDamageReduction: /<critReduction:[ ]?(\d+)>/gi,
+  CritDamageMultiplierBase: /<critMultiplierBase:[ ]?(\d+)>/gi,
+  CritDamageMultiplier: /<critMultiplier:[ ]?(\d+)>/gi,
+
+  // for natural growths compatability.
+  CritDamageReductionBuffPlus: /<cdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageReductionBuffRate: /<cdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageReductionGrowthPlus: /<cdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageReductionGrowthRate: /<cdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+
+  // for natural growths compatability.
+  CritDamageMultiplierBuffPlus: /<cdmBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageMultiplierBuffRate: /<cdmBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageMultiplierGrowthPlus: /<cdmGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  CritDamageMultiplierGrowthRate: /<cdmGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+};
+//endregion Introduction
+
+//region IconManager
+/**
+ * Extend `.longParam()` to first search for our critical damage icon indices.
+ */
+J.CRIT.Aliased.IconManager.set('longParam', IconManager.longParam)
+IconManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 28:
+      return this.critParam(0);   // cdm
+    case 29:
+      return this.critParam(1);   // cdr
+    default:
+      return J.CRIT.Aliased.IconManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the icon index for the critical damager parameters from "J-CriticalFactors".
+ * @param {number} paramId The id of the crit param to get an icon index for.
+ * @returns {number} The icon index of the parameter.
+ */
+IconManager.critParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 0:
+      return 976;    // cdm
+    case 1:
+      return 977;    // cdr
+  }
+};
+//endregion IconManager
+
+//region TextManager
+/**
+ * Extends `.longParam()` to first search for our critical damage text ids.
+ */
+J.CRIT.Aliased.TextManager.set('longParam', TextManager.longParam);
+TextManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 28:
+      return this.critParam(0);   // cdm
+    case 29:
+      return this.critParam(1);   // cdr
+    default:
+      // perform original logic.
+      return J.CRIT.Aliased.TextManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the text for the critical damage parameters from "J-CriticalFactors".
+ * @param {number} paramId The id of the crit param to get a name for.
+ * @returns {string} The name of the parameter.
+ */
+TextManager.critParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 0:
+      return "Crit Amp";
+    case 1:
+      return "Crit Block";
+  }
+};
+//endregion TextManager
+
+//region Game_Action
 /**
  * Extends the `initialize()` function to include initializing our new target tracker.
  * Note that the target tracker will remain null on this action until after our custom logic
@@ -133,7 +332,9 @@ J.CRIT.Aliased =
 J.CRIT.Aliased.Game_Action.set('initialize', Game_Action.prototype.initialize);
 Game_Action.prototype.initialize = function(subject, forcing)
 {
+  // perform original logic.
   J.CRIT.Aliased.Game_Action.get('initialize').call(this, subject, forcing);
+
   /**
    * The target of this action.
    * This remains null until the `apply()` function is executed.
@@ -245,9 +446,554 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
   // return the calculated amount of remaining critical damage after reductions.
   return modifiedCriticalDamage;
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_BattlerBase
+//region Game_Actor
+if (J.NATURAL)
+{
+  /**
+   * Extend `.applyNaturalCustomGrowths()` to include our cdm/cdr growths.
+   */
+  J.NATURAL.Aliased.Game_Actor.set('applyNaturalCustomGrowths', Game_Actor.prototype.applyNaturalCustomGrowths);
+  Game_Actor.prototype.applyNaturalCustomGrowths = function()
+  {
+    // perform original logic.
+    J.NATURAL.Aliased.Game_Actor.get('applyNaturalCustomGrowths').call(this);
+
+    // do natural cdm growths.
+    this.applyNaturalCdmGrowths();
+
+    // do natural cdr growths.
+    this.applyNaturalCdrGrowths();
+  };
+}
+
+/**
+ * Extend `.longParam()` to first check for our crit params.
+ */
+J.CRIT.Aliased.Game_Actor.set('longParam', Game_Actor.prototype.longParam);
+Game_Actor.prototype.longParam = function(longParamId)
+{
+  switch (longParamId)
+  {
+    case 28:
+      return this.cdm;
+    case 29:
+      return this.cdr;
+    default:
+      return J.CRIT.Aliased.Game_Actor.get('longParam').call(this, longParamId);
+  }
+};
+
+/**
+ * Applies the natural CDM growths to this battler.
+ */
+Game_Actor.prototype.applyNaturalCdmGrowths = function()
+{
+  // destructure out the plus and rate structures for growths.
+  const [,,growthPlusStructure, growthRateStructure] = this.getNaturalGrowthsRegexForCrit();
+
+  // grab the base CDM for value basing.
+  const baseCdm = this.baseCriticalMultiplier();
+
+  // calculate the flat growth.
+  const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCdm);
+
+  // add the flat growth to this battler.
+  this.modCdmPlus(growthPlus);
+
+  // calculate the rate growth.
+  const growthRate = this.naturalParamBuff(growthRateStructure, baseCdm);
+
+  // add the rate growth to this battler.
+  this.modCdmRate(growthRate);
+};
+
+/**
+ * Applies the natural CDR growths to this battler.
+ */
+Game_Actor.prototype.applyNaturalCdrGrowths = function()
+{
+  // destructure out the plus and rate structures for growths.
+  const [growthPlusStructure, growthRateStructure,,] = this.getNaturalGrowthsRegexForCrit();
+
+  // grab the base CDR for value basing.
+  const baseCdr = this.baseCriticalReduction();
+
+  // calculate the flat growth.
+  const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCdr);
+
+  // add the flat growth to this battler.
+  this.modCdrPlus(growthPlus);
+
+  // calculate the rate growth.
+  const growthRate = this.naturalParamBuff(growthRateStructure, baseCdr);
+
+  // add the rate growth to this battler.
+  this.modCdrRate(growthRate);
+};
+
+/**
+ * Gets the various regular expressions used for getting CDM/CDR growth values.
+ * @returns {[RegExp,RegExp,RegExp,RegExp]}
+ */
+Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function()
+{
+  return [
+    J.CRIT.RegExp.CritDamageReductionGrowthPlus,
+    J.CRIT.RegExp.CritDamageReductionGrowthRate,
+    J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
+    J.CRIT.RegExp.CritDamageMultiplierGrowthRate,
+  ];
+};
+
+if (J.SDP)
+{
+  /**
+   * Gets all SDP bonuses for the given crit parameter id.
+   * @param {number} critParamId The id of the crit parameter.
+   * @param {number} baseParam The base value of the crit parameter in question.
+   * @returns {number}
+   */
+  Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam)
+  {
+    // grab all the rankings this actor has earned.
+    const panelRankings = this.getAllSdpRankings();
+
+    // short circuit if we have no rankings.
+    if (!panelRankings.length) return 0;
+
+    // crit params start at 28.
+    const actualCritParamId = 28 + critParamId;
+
+    // initialize the running value.
+    let val = 0;
+
+    // iterate over each of the earned rankings.
+    panelRankings.forEach(panelRanking =>
+    {
+      // grab our panel by its key.
+      const panel = $gameSystem.getSdpByKey(panelRanking.key);
+
+      // protect our players against changed keys mid-save file!
+      if (!panel) return;
+
+      // add the calculated bonus.
+      val += panel.calculateBonusByRank(actualCritParamId, panelRanking.currentRank, baseParam, false);
+    });
+
+    // return the summed value.
+    return val;
+  };
+}
+//endregion Game_Actor
+
+//region Game_Battler
+/**
+ * Extends `.initNaturalGrowthParameters()` to include the new critical damage parameters as growth-ready.
+ */
+J.CRIT.Aliased.Game_Battler.set("initNaturalGrowthParameters", Game_Battler.prototype.initNaturalGrowthParameters);
+Game_Battler.prototype.initNaturalGrowthParameters = function()
+{
+  // short circuit if not using the natural growths plugin.
+  if (!J.NATURAL) return;
+
+  // perform original logic.
+  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
+
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with natural growth.
+   */
+  this._j._natural ||= {};
+
+  /**
+   * The permanent flat bonus for CDM.
+   * @type {number}
+   */
+  this._j._natural._cdmPlus = 0;
+
+  /**
+   * The permanent multiplier bonus for CDR.
+   * @type {number}
+   */
+  this._j._natural._cdmRate = 0;
+
+  /**
+   * The permanent flat bonus for CDM.
+   * @type {number}
+   */
+  this._j._natural._cdrPlus = 0;
+
+  /**
+   * The permanent multiplier bonus for CDR.
+   * @type {number}
+   */
+  this._j._natural._cdrRate = 0;
+};
+
+//region properties
+/**
+ * Gets the permanent flat bonus for CDM.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdmPlus = function()
+{
+  return this._j._natural._cdmPlus;
+};
+
+/**
+ * Modifies the permanent flat bonus for CDM.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modCdmPlus = function(amount)
+{
+  this._j._natural._cdmPlus += amount;
+};
+
+/**
+ * Gets the permanent multiplicative bonus for CDM.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdmRate = function()
+{
+  return this._j._natural._cdmRate;
+};
+
+/**
+ * Modifies the permanent multiplicative bonus for CDM.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modCdmRate = function(amount)
+{
+  this._j._natural._cdmRate += amount;
+};
+
+/**
+ * Gets the current growths applied to CDR plus.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdrPlus = function()
+{
+  return this._j._natural._cdrPlus;
+};
+
+/**
+ * Modifies the permanent flat bonus for CDR.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modCdrPlus = function(amount)
+{
+  this._j._natural._cdrPlus += amount;
+};
+
+/**
+ * Gets the current growths applied to CDR rate.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdrRate = function()
+{
+  return this._j._natural._cdrRate;
+};
+
+/**
+ * Modifies the permanent multiplicative bonus for CDR.
+ * @param {number} amount The amount to modify the bonus by.
+ */
+Game_Battler.prototype.modCdrRate = function(amount)
+{
+  this._j._natural._cdrRate += amount;
+};
+//endregion properties
+
+/**
+ * Gets the base multiplier for this battler's critical hits.
+ * @returns {number}
+ */
+Game_Battler.prototype.baseCriticalMultiplier = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // sum together all the base CDM tags.
+  const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageMultiplierBase);
+
+  // calculate the factor for the CDM.
+  const baseCdmFactor = baseCriticalMultiplier / 100;
+
+  // return the factor.
+  return baseCdmFactor;
+};
+
+/**
+ * Calculates this battler's current critical damage multiplier.
+ * @returns {number}
+ */
+Game_Battler.prototype.criticalDamageMultiplier = function()
+{
+  // sum together all cdm values across the notes.
+  const cdmBonuses = this.getCriticalDamageMultiplier();
+
+  // grab all natural bonuses for cdm.
+  const cdmNaturalBonuses = this.cdmNaturalBonuses();
+
+  // grab all sdp bonuses for cdm.
+  const cdmSdpBonuses = this.critSdpBonuses(0, this.baseCriticalMultiplier());
+
+  // calculate the factor for the CDM.
+  const cdmFactor = (cdmBonuses + cdmNaturalBonuses + cdmSdpBonuses) / 100;
+
+  // return the factor.
+  return cdmFactor;
+};
+
+/**
+ * Gets the sum of all critical damage multipliers from all notes.
+ * @returns {number}
+ */
+Game_Battler.prototype.getCriticalDamageMultiplier = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // sum together all cdm values across the notes.
+  const cdmBonuses = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageMultiplier);
+
+  // return the sum of all bonuses.
+  return cdmBonuses;
+};
+
+/**
+ * Gets all natural bonuses for cdm, excluding the base cdm itself.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdmNaturalBonuses = function()
+{
+  // short circuit if we aren't using the natural growths plugin.
+  if (!J.NATURAL) return 0;
+
+  // calculate the natural buffs for this parameter.
+  const cdmBuffs = this.cdmNaturalBuffs();
+
+  // calculate the natural growths for this parameter.
+  const cdmGrowths = this.cdmNaturalGrowths();
+
+  // sum together the two natural bonuses.
+  return (cdmBuffs + cdmGrowths);
+};
+
+/**
+ * Calculates the buffs for critical damage multipliers.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdmNaturalBuffs = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // grab the base parameter value.
+  const baseParam = this.baseCriticalMultiplier();
+
+  // sum together all the cdm buff pluses across the notes.
+  const cdmBuffPlus = RPGManager.getResultsFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageMultiplierBuffPlus,
+    baseParam,
+    this);
+
+  // sum together all the cdm buff rates across the notes.
+  const cdmBuffRate = RPGManager.getResultsFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageMultiplierBuffRate,
+    baseParam,
+    this);
+
+  // don't calculate if we don't have anything.
+  if (!cdmBuffPlus && !cdmBuffRate) return 0;
+
+  // return result.
+  return this.calculatePlusRate(baseParam, cdmBuffPlus, cdmBuffRate);
+};
+
+/**
+ * Calculates the growths associated with critical damage multipliers.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdmNaturalGrowths = function()
+{
+  // grab the base param for calculations.
+  const baseCdm = this.baseCriticalMultiplier();
+
+  // get the current plus growth for cdm.
+  const growthPlus = this.cdmPlus();
+
+  // get the current rate growth for cdm.
+  const growthRate = this.cdmRate();
+
+  // don't calculate if we don't have anything.
+  if (!growthPlus && !growthRate) return 0;
+
+  // calculate the result.
+  return this.calculatePlusRate(baseCdm, growthPlus, growthRate);
+};
+
+/**
+ * Gets all SDP bonuses for cdm.
+ * @returns {number}
+ */
+Game_Battler.prototype.critSdpBonuses = function()
+{
+  return 0;
+};
+
+/**
+ * Gets the base reduction for this battler's critical hits.
+ * @returns {number}
+ */
+Game_Battler.prototype.baseCriticalReduction = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // sum together all the base CDR tags.
+  const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageReductionBase);
+
+  // calculate the factor for the CDR.
+  const baseCdmFactor = baseCriticalReduction / 100;
+
+  // return the factor.
+  return baseCdmFactor;
+};
+
+/**
+ * Gets the reduction factor for when this battler receives a critical hit.
+ * @returns {number} The CDR factor for this battler.
+ */
+Game_Battler.prototype.criticalDamageReduction = function()
+{
+  // sum together all cdr values across the notes.
+  const cdrBonuses = this.getCriticalDamageReduction();
+
+  // grab all natural bonuses for cdr.
+  const cdrNaturalBonuses = this.cdrNaturalBonuses();
+
+  // grab all sdp bonuses for cdm.
+  const cdrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
+
+  // calculate the factor for the CDR.
+  const cdrFactor = (cdrBonuses + cdrNaturalBonuses + cdrSdpBonuses) / 100;
+
+  // return the factor.
+  return cdrFactor;
+};
+
+/**
+ * Gets the sum of all critical damage reductions from all notes.
+ * @returns {number}
+ */
+Game_Battler.prototype.getCriticalDamageReduction = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // sum together all cdm values across the notes.
+  const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageReduction);
+
+  // return the sum of all bonuses.
+  return cdrBonuses;
+};
+
+/**
+ * Gets all natural bonuses for cdr, excluding the base cdr itself.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdrNaturalBonuses = function()
+{
+  // short circuit if we aren't using the natural growths plugin.
+  if (!J.NATURAL) return 0;
+
+  // calculate the natural buffs for this parameter.
+  const cdmBuffs = this.cdrNaturalBuffs();
+
+  // calculate the natural growths for this parameter.
+  const cdmGrowths = this.cdrNaturalGrowths();
+
+  // sum together the two natural bonuses.
+  return (cdmBuffs + cdmGrowths);
+};
+
+/**
+ * Calculates the buffs for critical damage reductions.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdrNaturalBuffs = function()
+{
+  // grab everything with notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // grab the base parameter value.
+  const baseParam = this.baseCriticalReduction();
+
+  // sum together all the cdm buff pluses across the notes.
+  const cdrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageReductionBuffPlus,
+    baseParam,
+    this);
+
+  // sum together all the cdm buff rates across the notes.
+  const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(
+    objectsToCheck,
+    J.CRIT.RegExp.CritDamageReductionBuffRate,
+    baseParam,
+    this);
+
+  // don't calculate if we don't have anything.
+  if (!cdrBuffPlus && !cdrBuffRate) return 0;
+
+  // grab the base param for calculations.
+  const baseCdr = this.baseCriticalReduction();
+
+  // return result.
+  return this.calculatePlusRate(baseCdr, cdrBuffPlus, cdrBuffRate);
+};
+
+/**
+ * Calculates the growths associated with critical damage reductions.
+ * @returns {number}
+ */
+Game_Battler.prototype.cdrNaturalGrowths = function()
+{
+  // grab the base param for calculations.
+  const baseCdr = this.baseCriticalReduction();
+
+  // get the current plus growth for cdr.
+  const growthPlus = this.cdrPlus();
+
+  // get the current rate growth for cdr.
+  const growthRate = this.cdrRate();
+
+  // don't calculate if we don't have anything.
+  if (!growthPlus && !growthRate) return 0;
+
+  // calculate the result.
+  return this.calculatePlusRate(baseCdr, growthPlus, growthRate);
+};
+//endregion Game_Battler
+
+//region Game_BattlerBase
 // add our new critical-related parameters to all battlers.
 Object.defineProperties(
   Game_BattlerBase.prototype,
@@ -290,7 +1036,7 @@ Object.defineProperties(
  */
 Game_BattlerBase.prototype.baseCriticalMultiplier = function()
 {
-  return 0.5; // TODO: parameterize this.
+  return 0.5;
 };
 
 /**
@@ -303,6 +1049,18 @@ Game_BattlerBase.prototype.criticalDamageMultiplier = function()
 };
 
 /**
+ * The base critical damage reduction.
+ * A battler's critical damage reduction acts as the base crit reduction for all incoming
+ * critical hits. The individual battler's `cdr` is added to this amount to calculate
+ * the damage a critical hit can potentially deal.
+ * @returns {number} The base reduction for this battler.
+ */
+Game_BattlerBase.prototype.baseCriticalReduction = function()
+{
+  return 0.5;
+};
+
+/**
  * Gets the reduction factor for when this battler receives a critical hit.
  * @returns {number}
  */
@@ -310,80 +1068,67 @@ Game_BattlerBase.prototype.criticalDamageReduction = function()
 {
   return 0.0;
 };
-//#endregion Game_BattlerBase
+//endregion Game_BattlerBase
 
-//#region Game_Battler
+//region Window_SDP_Details
 /**
- * Gets the multiplier for this battler's critical hits.
- * @returns {number}
+ * Extends `.translateParameter()` to understand how to build the crit damage parameters.
  */
-Game_Battler.prototype.criticalDamageMultiplier = function()
+J.CRIT.Aliased.Window_SDP_Details.set('translateParameter', Window_SDP_Details.prototype.translateParameter);
+Window_SDP_Details.prototype.translateParameter = function(longParamId)
 {
-  let criticalDamageMultiplier = 0;
-  const objectsToCheck = this.getEverythingWithNotes();
-  objectsToCheck.forEach(obj => (criticalDamageMultiplier += this.extractCritDamageMultipliers(obj)));
+  // determine "is smaller better?".
+  const smallerIsBetter = this.isNegativeGood(longParamId);
 
-  return (criticalDamageMultiplier / 100);
-};
+  // determine if we should render a % symbol after the value.
+  const isPercentValue = this.isPercentParameter(longParamId);
 
-/**
- * Extracts the critical damage multiplier out of the notes of the given database object.
- * The object given can be any database object with a note.
- * @param {rm.types.BaseItem} referenceData The database object.
- * @returns {number} The 100x form of the critical damage multiplier from this database object.
- */
-Game_Battler.prototype.extractCritDamageMultipliers = function(referenceData)
-{
-  let criticalDamageMultiplier = 0;
-  const structure = /<cdm:[ ]?(\d+)>/i;
-  const lines = referenceData.note.split(/[\r\n]+/);
-  lines.forEach(line =>
+  // initialize values.
+  let name = String.empty;
+  let value = 0;
+  let iconIndex = 0;
+
+  // fork on the paramId.
+  switch (longParamId)
   {
-    if (line.match(structure))
-    {
-      criticalDamageMultiplier += parseInt(RegExp.$1);
-    }
-  });
+    case 28:  // the long param id.
+      // build for crit damage multiplier.
+      name = TextManager.critParam(0);
+      value = (this.currentActor.cdm * 100).toFixed(2);
+      iconIndex = IconManager.critParam(0);
+      break;
+    case 29:
+      // build for crit damage reduction.
+      name = TextManager.critParam(1);
+      value = (this.currentActor.cdr * 100).toFixed(2);
+      iconIndex = IconManager.critParam(1);
+      break;
+    default:
+      // miss- fallback to default handling.
+      return J.CRIT.Aliased.Window_SDP_Details.get('translateParameter').call(this, longParamId);
+  }
 
-  return criticalDamageMultiplier;
+  // return the anonymous object that i swear one day I will refactor to a proper class.
+  return { name, value, iconIndex, smallerIsBetter, isPercentValue };
 };
 
 /**
- * Gets the reduction factor for when this battler receives a critical hit.
- * @returns {number}
+ * Extends `.getIsPercentParameterIds()` to include our crit param ids as %-needing params.
  */
-Game_Battler.prototype.criticalDamageReduction = function()
+J.CRIT.Aliased.Window_SDP_Details
+  .set('getIsPercentParameterIds', Window_SDP_Details.prototype.getIsPercentParameterIds);
+Window_SDP_Details.prototype.getIsPercentParameterIds = function(paramId)
 {
-  let criticalDamageReduction = 0;
-  const objectsToCheck = this.getEverythingWithNotes();
-  objectsToCheck.forEach(obj => (criticalDamageReduction += this.extractCritDamageReductions(obj)));
+  // determine the original logic.
+  const original = J.CRIT.Aliased.Window_SDP_Details.get('getIsPercentParameterIds').call(this, paramId);
 
-  return (criticalDamageReduction / 100);
+  // define the crit parameter ids that should be decorated.
+  const critParamPercentIds = [
+    28,   // cdm is a percent multiplier.
+    29,   // cdr is a percent reduction.
+  ];
+
+  // combine the original with our new ids.
+  return original.concat(critParamPercentIds);
 };
-
-/**
- * Extracts the critical damage reduction out of the notes of the given database object.
- * The object given can be any database object with a note.
- * @param {rm.types.BaseItem} referenceData The database object.
- * @returns {number} The 100x form of the critical damage reduction from this database object.
- */
-Game_Battler.prototype.extractCritDamageReductions = function(referenceData)
-{
-  let criticalDamageReduction = 0;
-  const structure = /<cdr:[ ]?(\d+)>/i;
-  const lines = referenceData.note.split(/[\r\n]+/);
-  lines.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      criticalDamageReduction += parseInt(RegExp.$1);
-    }
-  });
-
-  return criticalDamageReduction;
-};
-//#endregion Game_Battler
-
-//#endregion Game objects
-
-//ENDOFFILE
+//endregion Window_SDP_Details

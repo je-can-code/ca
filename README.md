@@ -36,7 +36,7 @@ If you want to learn more about them, please click the below link to be taken to
 ### Always Required
 All of my plugins are coded by me, and thus they follow similar patterns. To reduce excess repeat of code, there is one
 plugin that is always required to be present, updated, and at the top of the list:
-- `J-BASE` the base plugin where most all of my shared logic lives, including some shared functionality.
+- `J-Base` the base plugin where most all of my shared logic lives, including some shared functionality.
 
 ### Full Systems
 - [`JABS`, or `J's Action Battle System`](documentation/jabs/jabs-home.md)- an on-the-map and quick-paced form of 
