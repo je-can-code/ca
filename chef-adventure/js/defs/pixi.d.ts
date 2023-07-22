@@ -2852,11 +2852,11 @@ declare namespace PIXI {
          *
          * @static
          * @param {string} buffer  the id of the buffer that this attribute will look for
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
          * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {@link PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {@link PIXI.TYPES} to see the ones available
+         * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
          *
          * @returns {PIXI.Attribute} A new {@link PIXI.Attribute} based on the information provided
          */
@@ -2943,11 +2943,11 @@ declare namespace PIXI {
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
          * @param {PIXI.Buffer|number[]} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
          * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
@@ -4232,7 +4232,7 @@ declare namespace PIXI {
              * @property {Float32Array} inputSize
              * @property {Float32Array} inputPixel
              * @property {Float32Array} inputClamp
-             * @property {Number} resolution
+             * @property {number} resolution
              * @property {Float32Array} filterArea
              * @property {Fload32Array} filterClamp
              */
@@ -4359,10 +4359,10 @@ declare namespace PIXI {
             /**
              * Set the WebGLRenderingContext's viewport.
              *
-             * @param {Number} x - X position of viewport
-             * @param {Number} y - Y position of viewport
-             * @param {Number} width - Width of viewport
-             * @param {Number} height - Height of viewport
+             * @param {number} x - X position of viewport
+             * @param {number} y - Y position of viewport
+             * @param {number} width - Width of viewport
+             * @param {number} height - Height of viewport
              */
             setViewport(x: number, y: number, width: number, height: number): void;
             /**
@@ -4375,10 +4375,10 @@ declare namespace PIXI {
             /**
              * Clear the color of the context
              *
-             * @param {Number} r - Red value from 0 to 1
-             * @param {Number} g - Green value from 0 to 1
-             * @param {Number} b - Blue value from 0 to 1
-             * @param {Number} a - Alpha value from 0 to 1
+             * @param {number} r - Red value from 0 to 1
+             * @param {number} g - Green value from 0 to 1
+             * @param {number} b - Blue value from 0 to 1
+             * @param {number} a - Alpha value from 0 to 1
              */
             clear(r: number, g: number, b: number, a: number): void;
             /**
@@ -4551,10 +4551,10 @@ declare namespace PIXI {
             /**
              * Draw the geometry
              *
-             * @param {Number} type - the type primitive to render
-             * @param {Number} [size] - the number of elements to be rendered
-             * @param {Number} [start] - Starting index
-             * @param {Number} [instanceCount] - the number of instances of the set of elements to execute
+             * @param {number} type - the type primitive to render
+             * @param {number} [size] - the number of elements to be rendered
+             * @param {number} [start] - Starting index
+             * @param {number} [instanceCount] - the number of instances of the set of elements to execute
              */
             draw(type: number, size?: number, start?: number, instanceCount?: number): void;
             /**
@@ -4803,7 +4803,7 @@ declare namespace PIXI {
              *
              * @param {PIXI.Rectangle} destinationFrame - The destination frame.
              * @param {PIXI.Rectangle} sourceFrame - The source frame.
-             * @param {Number} resolution - Resolution
+             * @param {number} resolution - Resolution
              * @param {boolean} root - If is root
              */
             update(destinationFrame: PIXI.Rectangle, sourceFrame: PIXI.Rectangle, resolution: number, root: boolean): void;
@@ -4812,7 +4812,7 @@ declare namespace PIXI {
              *
              * @param {PIXI.Rectangle} destinationFrame - The destination frame.
              * @param {PIXI.Rectangle} sourceFrame - The source frame.
-             * @param {Number} resolution - Resolution
+             * @param {number} resolution - Resolution
              * @param {boolean} root - If is root
              */
             calculateProjection(destinationFrame: PIXI.Rectangle, sourceFrame: PIXI.Rectangle, resolution: number, root: boolean): void;
@@ -6331,7 +6331,7 @@ declare namespace PIXI {
             readonly items: PIXI.BaseTexture[];
             /**
              * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
+             * @member {number[]} PIXI.resources.ArrayResource#itemDirtyIds
              * @readonly
              */
             readonly itemDirtyIds: number[];
@@ -6893,7 +6893,7 @@ declare namespace PIXI {
             readonly items: PIXI.BaseTexture[];
             /**
              * Dirty IDs for each part
-             * @member {Array<number>} PIXI.resources.ArrayResource#itemDirtyIds
+             * @member {number[]} PIXI.resources.ArrayResource#itemDirtyIds
              * @readonly
              */
             readonly itemDirtyIds: number[];
@@ -8035,11 +8035,11 @@ declare namespace PIXI {
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
          * @param {PIXI.Buffer|number[]} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
          * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
@@ -13813,11 +13813,11 @@ declare namespace PIXI {
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
          * @param {PIXI.Buffer|number[]} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
          * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
@@ -17116,11 +17116,11 @@ declare namespace PIXI {
          *
          * @param {String} id - the name of the attribute (matching up to a shader)
          * @param {PIXI.Buffer|number[]} [buffer] the buffer that holds the data of the attribute . You can also provide an Array and a buffer will be created from it.
-         * @param {Number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
+         * @param {number} [size=0] the size of the attribute. If you have 2 floats per vertex (eg position x and y) this would be 2
          * @param {Boolean} [normalized=false] should the data be normalized.
-         * @param {Number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
-         * @param {Number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
-         * @param {Number} [start=0] How far into the array to start reading values (used for interleaving data)
+         * @param {number} [type=PIXI.TYPES.FLOAT] what type of number is the attribute. Check {PIXI.TYPES} to see the ones available
+         * @param {number} [stride=0] How far apart (in floats) the start of each value is. (used for interleaving data)
+         * @param {number} [start=0] How far into the array to start reading values (used for interleaving data)
          *
          * @return {PIXI.Geometry} returns self, useful for chaining.
          */
@@ -24315,22 +24315,22 @@ declare class Point extends PIXI.Point {
      *
      * @class Point
      * @constructor
-     * @param {Number} x The x coordinate
-     * @param {Number} y The y coordinate
+     * @param {number} x The x coordinate
+     * @param {number} y The y coordinate
      */
     constructor(x?: number, y?: number);
     /**
      * The x coordinate.
      *
      * @property x
-     * @type Number
+     * @type {number}
      */
     x: number;
     /**
      * The y coordinate.
      *
      * @property y
-     * @type Number
+     * @type {number}
      */
     y: number;
 }
@@ -25115,7 +25115,7 @@ declare namespace PIXI {
          * If the index is out of bounds an error will be thrown.
          *
          * @param child {DisplayObject} The child to add
-         * @param index {Int} The index to place the child in
+         * @param index {number} The index to place the child in
          * @return {DisplayObject} The child that was added.
          */
         addChildAt<T>(child: T, index: number): T;
@@ -25130,20 +25130,20 @@ declare namespace PIXI {
          * Returns the index position of a child DisplayObject instance
          *
          * @param child {DisplayObject} The DisplayObject instance to identify
-         * @return {Int} The index position of the child display object to identify
+         * @return {number} The index position of the child display object to identify
          */
         getChildIndex(child: PIXI.DisplayObject): number;
         /**
          * Changes the position of an existing child in the display object container
          *
          * @param child {DisplayObject} The child DisplayObject instance for which you want to change the index number
-         * @param index {Int} The resulting index number for the child display object
+         * @param index {number} The resulting index number for the child display object
          */
         setChildIndex(child: PIXI.DisplayObject, index: number): void;
         /**
          * Returns the child at the specified index
          *
-         * @param index {Int} The index to get the child from
+         * @param index {number} The index to get the child from
          * @return {DisplayObject} The child at the given index, if any.
          */
         getChildAt(index: number): PIXI.DisplayObject;
@@ -25157,15 +25157,15 @@ declare namespace PIXI {
         /**
          * Removes a child from the specified index position.
          *
-         * @param index {Int} The index to get the child from
+         * @param index {number} The index to get the child from
          * @return {DisplayObject} The child that was removed.
          */
         removeChildAt(index: number): PIXI.DisplayObject;
         /**
          * Removes all children from this container that are within the begin and end indexes.
          *
-         * @param beginIndex {Int} The beginning position. Default value is 0.
-         * @param endIndex {Int} The ending position. Default value is size of the container.
+         * @param beginIndex {number} The beginning position. Default value is 0.
+         * @param endIndex {number} The ending position. Default value is size of the container.
          * @return {Array<DisplayObject>} The children that are removed.
          */
         removeChildren(beginIndex?: number, endIndex?: number): PIXI.DisplayObject[];
@@ -25214,14 +25214,14 @@ declare namespace PIXI {
         /**
          * The tint applied to the sprite. This is a hex value. A value of 0xFFFFFF will remove any tint effect.
          *
-         * @member {Int}
+         * @member {number}
          * @default 0xFFFFFF
          */
         tint: number;
         /**
          * The blend mode to be applied to the sprite. Set to CONST.blendModes.NORMAL to remove any blend mode.
          *
-         * @member {Int}
+         * @member {number}
          * @default CONST.blendModes.NORMAL;
          */
         blendMode: any;

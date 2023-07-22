@@ -1,0 +1,40 @@
+parser: "@babel/eslint-parser"
+parserOptions:
+  requireConfigFile: false
+
+extends:
+  - eslint:recommended
+rules:
+  no-case-declarations: off           # confusing, but sometimes a necessary evil.
+  no-empty-function: off              # some functions are empty for overriding.
+  no-undef: off                       # most game objects are undefined.
+  no-unused-vars:
+  - warn
+  - { "varsIgnorePattern": "(?:(^[RPG|JABS|Window|Sprite|Scene|Game])|(Manager$))", "argsIgnorePattern": "^_$" }
+  no-useless-call: off                # all aliasing is done with .call() for scoping this.
+  no-prototype-builtins: off          # with prototypical inheritance, this is needed sometimes.
+
+  eqeqeq: error
+  complexity: ["warn", 20]
+  indent: ["error", 2, { "SwitchCase": 1 } ]
+
+  no-eq-null: error
+  no-lone-blocks: error
+  no-multi-assign: error
+  no-multi-str: error
+  no-nested-ternary: error
+  no-new: error
+  no-new-wrappers: error
+  no-param-reassign: warn
+  no-promise-executor-return: error
+  no-shadow: error
+  no-unexpected-multiline: error
+  no-void: error
+
+  prefer-arrow-callback: error
+  prefer-const: error
+  prefer-destructuring: warn
+
+  eol-last: ["error", "never"]
+  brace-style: ["error", "allman"]
+  max-len: ["error", { "code": 120 }]

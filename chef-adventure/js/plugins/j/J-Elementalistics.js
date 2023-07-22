@@ -1,26 +1,28 @@
-//#region Introduction
+/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
+
+//region Introduction
 /*:
  * @target MZ
- * @plugindesc 
- * [v1.0 ELEM] Enables greater control over elements.
+ * @plugindesc
+ * [v1.0.0 ELEM] Enables greater control over elements.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
+ * @url https://github.com/je-can-code/ca
  * @help
  * ============================================================================
- * This plugin enables the ability to modify skills with note glossary to to
+ * This plugin enables the ability to modify skills with note tags to to
  * further control a skill's elemental properties in the context of battle.
- * 
+ *
  * By overwriting the .calcElementRate() function, we have added new
  * functionality to elemental processing:
  * - Skills can now possess more than one element.
  * - Elements can now be absorbed.
  * - Elements can now be boosted.
  * - Actors/Enemies can now whitelist effective elements.
- * 
+ *
  * WARNING:
- * None of the note glossary below support negative numbers and are white-space
+ * None of the note tags below support negative numbers and are white-space
  * sensitive. Follow the examples closely to achieve your desired effects.
- * 
+ *
  * NOTE:
  * Combining multiple elements together is done multiplicatively for all
  * the various operations below.
@@ -29,24 +31,24 @@
  * Have you ever wanted a skill to be both fire and ice typed? Well now you
  * can! By applying the appropriate tag to the skill(s) in question, you can
  * add one or more "attack elements" to a given skill.
- * 
+ *
  * NOTE:
  * If you use "normal attack" as the base element on a skill, you will apply
  * all elements that your normal attack should include AND all elements you
  * add with this tag.
- * 
+ *
  * TAG USAGE:
  * - Skills Only
- * 
+ *
  * TAG FORMAT:
  *  <attackElements:[NUM]>          (for one extra element)
  *  <attackElements:[NUM,NUM,...]>  (for many extra elements)
- * 
+ *
  * TAG EXAMPLE(S):
  *  <attackElements:[22]>
  * Adds the element of 22 to the skill, in addition to any other attack
  * elements the skill has.
- * 
+ *
  *  <attackElements:[1,2,5]>
  * Adds elements 1, 2, and 5 to the skill, in addition to any other attack
  * elements the skill has.
@@ -56,7 +58,7 @@
  * Well now you can! By applying the appropriate note tag to the various
  * database locations applicable, you can absorb one or more "absorb elements"
  * from anything that performs elemental calculations (mostly skills/items).
- * 
+ *
  * DETAILS:
  * When a skill lands on a battler, all relevant notes will be checked to see
  * if the incoming skill elements have any overlap with the elements that this
@@ -64,26 +66,26 @@
  * elements will be removed from consideration and all elements being absorbed
  * will have their rates multiplied together. Absorption is prioritized over
  * handling elements with 0% rate (null elements).
- * 
+ *
  * EXAMPLE 1:
  * If an enemy was weak to fire, but absorbed ice, and you hit them with a
  * fire+ice element skill, the weakness would be ignored and the skill would
  * be absorbed at the rate provided for ice.
- * 
+ *
  * EXAMPLE 2:
  * If an enemy was immune to fire, but absorbed ice, and you hit them with a
  * fire+ice element skill, the immunity would be ignored, and the skill would
  * be absorbed at the rate provided.
- * 
+ *
  * EXAMPLE 3:
  * If an enemy absorbed both fire at 200% (or no rate specified) and ice at
  * the rate of 300%, and you hit them with a fire+ice element skill, the
  * rates would be multiplied together and the rate would be 600% damage
  * absorbed.
- * 
+ *
  * NOTE:
  * Defining the same element on two different sources does nothing extra.
- * 
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
@@ -97,14 +99,14 @@
  *  <absorbElements:[NUM]>          (for one absorbed element)
  *  <absorbElements:[NUM,NUM,...]>  (for many absorbed elements)
  * Where NUM is the element id from the "types" tab.
- * 
+ *
  * TAG EXAMPLES:
  *  <absorbElements:[4]>
  * This battler now absorbs element id of 4.
- * 
+ *
  *  <absorbElements:[10,18]>
  * This battler now absorbs elements 10 and 18.
- * 
+ *
  *  <absorbElements:[3,7]> on battler (either actor or enemy)
  *  <absorbElements:[4,7,9,12]> on armor (only applicable to actors)
  *  <absorbElements:[10]> on state
@@ -114,7 +116,7 @@
  * Have you ever wanted a battler to temporarily (or permanently) become more
  * effective with skills of a particular element? Well now you can! By applying
  * the appropriate note tag to the various database locations applicable, you
- * can "boost" one or more elements (more requires multiple glossary) by as little
+ * can "boost" one or more elements (more requires multiple tags) by as little
  * or as much as your heart desires!
  *
  * DETAILS:
@@ -162,22 +164,22 @@
  * By applying the appropriate note tag to the various database locations
  * applicable, you can restrict incoming damage to be limited to only a
  * subset of the available elements.
- * 
+ *
  * DETAILS:
  * All sources are checked and a list of all "strict" elements are combined
  * to define for a given battler. Effectively, this is a whitelist of all
- * elements a battler can be hurt by. If there are no glossary found on any
+ * elements a battler can be hurt by. If there are no tags found on any
  * sources, then all elements are added to the list as a default. Similar
  * to absorption, only the elements that a skill has that overlap with the
  * "strict" elements of a battler are considered for calculation.
- * 
+ *
  * NOTE:
  * Defining the same element on two different sources does nothing extra.
  * Additionally, this effect could also be done without this plugin by just
  * adding a 0%-rate for all elements except the one you want, but if you
  * have a ton of elements, that might get unwieldly, which is the exact
  * reason I created this functionality.
- * 
+ *
  * TAG USAGE:
  * - Actors
  * - Enemies
@@ -185,23 +187,23 @@
  * - Armors
  * - States
  * - Classes
- * 
+ *
  * TAG FORMAT:
  *  <strictElements:[NUM]>          (for one strict element)
  *  <strictElements:[NUM,NUM,...]>  (for many strict elements)
- * 
+ *
  * TAG EXAMPLES:
  *  <strictElements:[8]>
  * This battler now can only receive damage from skills with element id of 8.
- * 
+ *
  *  <strictElements:[3,5,6]>
  * This battler now can only receive damage from skills that include the
  * element id of 3, 5, or 6.
- * 
+ *
  *  <strictElements:[1,2,3,4,5,6]> on state applied to battler.
  *  <strictElements:[1,8]> on battler (either actor or enemy).
  * This battler now can only receive damage from skills that include the
- * element id of 1, 2, 3, 4, 5, 6, or 8. 
+ * element id of 1, 2, 3, 4, 5, 6, or 8.
  * ============================================================================
  */
 
@@ -235,9 +237,9 @@ J.ELEM.Aliased = {
   Game_Actor: new Map(),
   Game_Enemy: new Map(),
 };
-//#endregion Introduction
+//endregion Introduction
 
-//#region Game objects
+//region Game_Action
 /**
  * OVERWRITE Calculates the elemental rates of this action against the designated target.
  * @param {Game_Actor|Game_Enemy} target The target of this action.
@@ -335,7 +337,7 @@ Game_Action.prototype.getApplicableElements = function(target)
 
 /**
  * Extracts all extra attack elements from a skill's notes.
- * @param {rm.types.UsableItem} referenceData The database object of this action.
+ * @param {RPG_UsableItem} referenceData The database object of this action.
  * @returns {number[]} The additional attack elements.
  */
 Game_Action.extractElementsFromAction = function(referenceData)
@@ -384,7 +386,7 @@ Game_Action.prototype.multipleElementalRates = function(target, elements)
     return this.calculateAntiNullElementalRate(target, elements);
   }
 
-  // if we have an absorb rate amidst the attack elements that the target absorbs... 
+  // if we have an absorb rate amidst the attack elements that the target absorbs...
   const hasAbsorbRate = target.elementsAbsorbed().some(absorbed => elements.includes(absorbed));
   if (hasAbsorbRate)
   {
@@ -509,8 +511,8 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements)
   const filteredAbsorbedIds = target.elementsAbsorbed().filter(absorbed => attackElements.includes(absorbed));
 
   // translate the ids into rates.
-  const absorbRates = filteredAbsorbedIds.map(attackElementId => this.calculateBoostRate(attackElementId, target),
-    this);
+  const absorbRates = filteredAbsorbedIds
+    .map(attackElementId => this.calculateBoostRate(attackElementId, target), this);
 
   // multiply all the rates together.
   const absorbRate = absorbRates.reduce(reducer, 1);
@@ -550,7 +552,7 @@ Game_Action.prototype.getAntiNullElementIds = function()
 Game_Action.prototype.evalDamageFormula = function(target)
 {
   const item = this.item();
-  const attackElements = Game_Action.extractElementsFromAction(item);
+  const attackElements = Game_Action.extractElementsFromAction(item).concat(item.damage.elementId);
   const absorbedElements = target.elementsAbsorbed();
   const targetAbsorbs = attackElements.some(elementId => absorbedElements.includes(elementId));
 
@@ -607,11 +609,11 @@ Game_Action.prototype.healingFactor = function(targetAbsorbs)
   const isHealingAction = [3, 4].includes(this.item().damage.type);
   return isHealingAction && !targetAbsorbs ? -1 : 1;
 };
-//#endregion Game_Action
+//endregion Game_Action
 
-//#region Game_Actor
+//region Game_Actor
 /**
- * Modifies the element rate to accommodate elemental absorption glossary on an actor.
+ * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
 J.ELEM.Aliased.Game_Actor.set("elementRate", Game_Actor.prototype.elementRate);
 Game_Actor.prototype.elementRate = function(elementId)
@@ -628,7 +630,7 @@ Game_Actor.prototype.elementRate = function(elementId)
  */
 Game_Actor.prototype.elementsAbsorbed = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const absorbed = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -645,7 +647,7 @@ Game_Actor.prototype.elementsAbsorbed = function()
  */
 Game_Actor.prototype.strictElements = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const strict = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -670,7 +672,7 @@ Game_Actor.prototype.strictElements = function()
  */
 Game_Actor.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -687,9 +689,9 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
   const factoredBoosts = filteredBoosts.map(boost => boost[1] / 100);
   return factoredBoosts.reduce((previousAmount, nextAmount) => previousAmount + nextAmount, 1);
 };
-//#endregion Game_Actor
+//endregion Game_Actor
 
-//#region Game_Battler
+//region Game_Battler
 /**
  * Determines whether or not a given element id is absorbed by this battler.
  * @param {number} elementId The element id.
@@ -735,7 +737,7 @@ Game_Battler.prototype.elementsAbsorbed = function()
  * Gets all absorbed element ids from a given object on this battler.
  *
  * @todo Potentially lift this to J.BASE.Helpers
- * @param {rm.types.BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} referenceData The database data object.
  * @returns {number[]}
  */
 Game_Battler.prototype.extractAbsorbedElements = function(referenceData)
@@ -774,7 +776,7 @@ Game_Battler.prototype.strictElements = function()
  * Gets the strict element ids from a given object on this battler.
  *
  * @todo Potentially lift this to J.BASE.Helpers
- * @param {rm.types.BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} referenceData The database data object.
  * @returns {number[]}
  */
 Game_Battler.prototype.extractStrictElements = function(referenceData)
@@ -808,7 +810,7 @@ Game_Battler.prototype.elementRateBoost = function(elementId)
 
 /**
  * Gets the element boosts associated with the provided element id.
- * @param {rm.types.BaseItem} referenceData The reference data with a note to parse.
+ * @param {RPG_BaseItem} referenceData The reference data with a note to parse.
  * @returns {[number, number][]}
  */
 Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
@@ -833,11 +835,11 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
 
   return boostedElements;
 };
-//#endregion Game_Battler
+//endregion Game_Battler
 
-//#region Game_Enemy
+//region Game_Enemy
 /**
- * Modifies the element rate to accommodate elemental absorption glossary on an actor.
+ * Modifies the element rate to accommodate elemental absorption tags on an actor.
  */
 J.ELEM.Aliased.Game_Enemy.set("elementRate", Game_Enemy.prototype.elementRate);
 Game_Enemy.prototype.elementRate = function(elementId)
@@ -854,7 +856,7 @@ Game_Enemy.prototype.elementRate = function(elementId)
  */
 Game_Enemy.prototype.elementsAbsorbed = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const absorbed = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -871,7 +873,7 @@ Game_Enemy.prototype.elementsAbsorbed = function()
  */
 Game_Enemy.prototype.strictElements = function()
 {
-  const objectsToCheck = this.getEverythingWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const strict = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -896,7 +898,7 @@ Game_Enemy.prototype.strictElements = function()
  */
 Game_Enemy.prototype.elementRateBoost = function(elementId)
 {
-  const objectsToCheck = this.getCurrentWithNotes();
+  const objectsToCheck = this.getAllNotes();
   const boosts = [];
   objectsToCheck.forEach(referenceData =>
   {
@@ -915,5 +917,4 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
   return boostAmount;
 };
 
-//#endregion Game_Enemy
-//#endregion Game objects
+//endregion Game_Enemy

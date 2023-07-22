@@ -1,41 +1,65 @@
-//#region Introduction
+/*  BUNDLED TIME: Sat Dec 31 2022 09:19:17 GMT-0800 (Pacific Standard Time)  */
+
+//region Introduction
 /*:
  * @target MZ
- * @plugindesc 
+ * @plugindesc
  * [v1.0.0 JAFT] Enables the ability to craft items from recipes.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @orderAfter J-BASE
+ * @url https://github.com/je-can-code/ca
+ * @base J-Base
+ * @orderAfter J-Base
  * @help
  * ============================================================================
- * This is not officially released and thus has no/incomplete documentation.
- * 
- * If you really want to use it, just look at the plugin commands & parameters.
+ * OVERVIEW:
+ * This plugin enables a new "JAFTING" (aka crafting) scene. With it, you can
+ * define recipes and enable generic item creation in your game.
+ *
+ * NOTE ABOUT CREATION:
+ * This base plugin can only be used to create already-existing entries from
+ * the database. If you want to create new weapons/armor entirely, consider
+ * looking into the J-JAFTING-Refinement extension.
  * ============================================================================
- * 
+ * RECIPES:
+ * Have you ever wanted to make a recipe that the player can then learn and
+ * create items from? Well now you can! There are absolutely no tags required
+ * for this basic functionality, it is 100% defined within the plugin
+ * parameters of your RMMZ editor.
+ *
+ * A recipe is comprised of three lists:
+ * - Ingredients: the consumed items/weapons/armors.
+ * - Tools: the non-consumed items/weapons/armors.
+ * - Output: what the player gains when JAFTING the recipe.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Retroactively added this CHANGELOG.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
+ *
  * @param JAFTINGconfigs
  * @text JAFTING SETUP
- * 
+ *
  * @param JAFTINGrecipes
  * @parent JAFTINGconfigs
  * @type struct<RecipeStruct>[]
  * @text JAFTING Recipes
- * 
+ *
  * @param JAFTINGcategories
  * @parent JAFTINGconfigs
  * @type struct<CategoryStruct>[]
  * @text JAFTING Categories
- * 
+ *
  * @command Call Jafting Menu
  * @text Access the Jafting Menu
  * @desc Calls the Jafting Menu via plugin command.
- * 
+ *
  * @command Close Jafting Menu
  * @text End the Jafting session
  * @desc Ends the current Jafting session immediately.
  * Typically used for triggering a parallel item created event.
- * 
+ *
  * @command Unlock Category
  * @text Unlock new category
  * @desc Within the Crafting Mode, unlocks a new category of crafting.
@@ -43,7 +67,7 @@
  * @type string[]
  * @text Category Keys
  * @desc All the keys of the categories to be unlocked.
- * 
+ *
  * @command Unlock Recipe
  * @text Unlock new recipe
  * @desc Within the Crafting Mode, unlocks a new recipe of a category of crafting.
@@ -51,7 +75,7 @@
  * @type string[]
  * @text Recipe Keys
  * @desc All the keys of the recipes to be unlocked.
- * 
+ *
  * @command Lock Category
  * @text Lock a category
  * @desc Within the Crafting Mode, locks a previously unlocked category of crafting.
@@ -59,7 +83,7 @@
  * @type string
  * @desc The unique identifier to this category to remove.
  * @default C_SOME
- * 
+ *
  * @command Lock All Categories
  * @text Lock all crafting categories
  * @desc Locks all categories that were previously unlocked, effectively disabling crafting.
@@ -69,52 +93,52 @@
  * @type string
  * @text Recipe Key
  * @desc A unique identifier for this recipe.
- * 
+ *
  * @param name
  * @type string
  * @text Name
  * @desc The name of the recipe.
- * 
+ *
  * @param description
  * @type string
  * @text Description
  * @desc The description of this recipe. If unspecified, it will pull from the first output description.
- * 
+ *
  * @param iconIndex
  * @type number
  * @text Icon Index
  * @desc The icon index of this recipe. If unspecified, it will pull from the first output description.
- * 
+ *
  * @param categoryKeys
  * @type string[]
  * @text Category Keys
  * @desc The keys of the categories that this recipe belongs to.
  * @default []
- * 
+ *
  * @param ingredients
  * @type struct<ComponentStruct>[]
  * @text Ingredients
  * @desc The ingredients required to JAFT this recipe. These are consumed.
  * @default []
- * 
+ *
  * @param tools
  * @type struct<ComponentStruct>[]
  * @text Tools
  * @desc The tools required to JAFT this recipe. These are not consumed.
  * @default []
- * 
+ *
  * @param output
  * @type struct<ComponentStruct>[]
  * @text Output
  * @desc Upon JAFTING this recipe, these items are given to the player.
  * @default []
- * 
+ *
  * @param maskedUntilCrafted
  * @type boolean
  * @text Masked Until Crafted
  * @desc If this is set to true, then it will appear as all question marks until crafted the first time.
  * @default false
- * 
+ *
  */
 /*~struct~ComponentStruct:
  * @param itemId
@@ -122,19 +146,19 @@
  * @text Item ID
  * @desc The item this component represents.
  * There can only be one "id" identified on a component.
- * 
+ *
  * @param weaponId
  * @type weapon
  * @text Weapon ID
  * @desc The weapon this component represents.
  * There can only be one "id" identified on a component.
- * 
+ *
  * @param armorId
  * @type armor
  * @text Armor ID
  * @desc The armor this component represents.
  * There can only be one "id" identified on a component.
- * 
+ *
  * @param num
  * @type number
  * @min 1
@@ -143,23 +167,23 @@
  * @default 1
  */
 /*~struct~CategoryStruct:
- * 
+ *
  * @param name
  * @type string
  * @text Category Name
  * @desc The name of this category.
- * 
+ *
  * @param key
  * @type string
  * @text Category Key
  * @desc The unique key for this category.
- * 
+ *
  * @param iconIndex
  * @type number
  * @text Icon Index
  * @desc The icon index to represent this category.
  * @default 0
- * 
+ *
  * @param description
  * @type string
  * @text Description
@@ -171,23 +195,28 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.JAFTING = {};
+
+/**
+ * A collection of all extensions for JAFTING.
+ */
+J.JAFTING.EXT = {};
 
 /**
  * A helpful collection of functions for this plugin.
@@ -351,34 +380,24 @@ J.JAFTING.Helpers.translateCategories = rawCategoryBlobs =>
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.JAFTING.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Name: `J-JAFTING`,
-};
+J.JAFTING.Metadata = {};
+J.JAFTING.Metadata.Name = `J-JAFTING`;
+J.JAFTING.Metadata.Version = '2.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.JAFTING.PluginParameters = PluginManager.parameters(J.JAFTING.Metadata.Name);
-J.JAFTING.Metadata = {
-  ...J.JAFTING.Metadata,
-  /**
-   * The version of this plugin.
-   */
-  Version: '2.0.0',
 
-  /**
-   * All recipes defined in the plugin settings that can be JAFTED.
-   */
-  Recipes: J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']),
+/**
+ * All recipes defined in the plugin settings that can be JAFTED.
+ */
+J.JAFTING.Metadata.Recipes = [];
 
-  /**
-   * All categories defined in the plugin settings that can contain JAFTING recipes.
-   */
-  Categories: J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']),
-};
+/**
+ * All categories defined in the plugin settings that can contain JAFTING recipes.
+ */
+J.JAFTING.Metadata.Categories = [];
 
 /**
  * A helpful mapping of all the various RMMZ classes being extended.
@@ -387,11 +406,11 @@ J.JAFTING.Aliased = {
   DataManager: {},
   Game_Party: new Map(),
   Game_Player: {},
-  Game_System: {},
+  Game_System: new Map(),
   Scene_Map: {},
 };
 
-//#region plugin commands
+//region plugin commands
 /**
  * Plugin command for calling forth the JAFTING menu and all its windowy glory.
  */
@@ -446,11 +465,422 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Lock All Categories", ()
 {
   $gameSystem.lockAllCategories();
 });
-//#endregion plugin commands
-//#endregion Introduction
+//endregion plugin commands
+//endregion Introduction
 
-//#region Static objects
-//#region DataManager
+//region JAFT_Category
+/**
+ * Represents the category details for this recipe.
+ * A single recipe can live in multiple categories.
+ */
+function JAFTING_Category()
+{
+  this.initialize(...arguments);
+}
+
+JAFTING_Category.prototype = {};
+JAFTING_Category.prototype.constructor = JAFTING_Category;
+JAFTING_Category.prototype.initialize = function(name, key, iconIndex, description)
+{
+  /**
+   * The name of this crafting category.
+   * @type {string}
+   */
+  this.name = name;
+
+  /**
+   * The unique key of this crafting category.
+   * @type {string}
+   */
+  this.key = key;
+
+  /**
+   * The icon that will display in the type selection window next to this category.
+   * @type {number}
+   */
+  this.iconIndex = iconIndex;
+
+  /**
+   * The description that shows up in the help window.
+   * @type {string}
+   */
+  this.description = description;
+  this.initMembers();
+};
+
+/**
+ * Initializes all members in this class with defaults.
+ */
+JAFTING_Category.prototype.initMembers = function()
+{
+  /**
+   * Whether or not this category is unlocked.
+   * @type {boolean}
+   */
+  this.unlocked = false;
+};
+
+/**
+ * Gets whether or not this JAFTING category is unlocked.
+ * @returns {boolean}
+ */
+JAFTING_Category.prototype.isUnlocked = function()
+{
+  return this.unlocked;
+};
+
+/**
+ * Locks this JAFTING category.
+ */
+JAFTING_Category.prototype.lock = function()
+{
+  this.unlocked = false;
+};
+
+/**
+ * Unlocks this JAFTING category.
+ */
+JAFTING_Category.prototype.unlock = function()
+{
+  this.unlocked = true;
+};
+//endregion JAFT_Category
+
+//region JAFT_Component
+/**
+ * A single instance of a particular crafting component, such as an ingredient/tool/output,
+ * for use in JAFTING.
+ */
+function JAFTING_Component()
+{
+  this.initialize(...arguments);
+}
+
+JAFTING_Component.prototype = {};
+JAFTING_Component.prototype.constructor = JAFTING_Component;
+JAFTING_Component.prototype.initialize = function(id, type, count, isTool)
+{
+  /**
+   * The id of the underlying component.
+   * @type {number}
+   */
+  this.id = id;
+
+  /**
+   * The type of component this is, such as `i`/`w`/`a`.
+   * @type {string}
+   */
+  this.type = type;
+
+  /**
+   * How many of this component is required.
+   * @type {number}
+   */
+  this.count = count;
+
+  /**
+   * Whether or not this component is a non-consumable tool that is required
+   * to perform crafting for particular recipes.
+   * @type {boolean}
+   */
+  this.isTool = isTool;
+};
+
+/**
+ * Gets the underlying RPG:Item that this component represents.
+ */
+JAFTING_Component.prototype.getItem = function()
+{
+  switch (this.type)
+  {
+    case `i`:
+      return $dataItems[this.id];
+    case `w`:
+      return $dataWeapons[this.id];
+    case `a`:
+      return $dataArmors[this.id];
+    default:
+      console.error("attempted to craft an invalid item.");
+      console.log(this);
+      throw new Error("The output's type of a recipe was invalid. Check your recipes' output types again.");
+  }
+};
+
+/**
+ * Crafts this particular component based on it's type.
+ */
+JAFTING_Component.prototype.craft = function()
+{
+  $gameParty.gainItem(this.getItem(), this.count);
+};
+
+/**
+ * Consumes this particular component based on it's type.
+ */
+JAFTING_Component.prototype.consume = function()
+{
+  $gameParty.loseItem(this.getItem(), this.count);
+};
+//endregion JAFT_Component
+
+//region JAFT_Recipe
+/**
+ * The data that makes up what defines a crafting recipe for use with JAFTING.
+ */
+function JAFTING_Recipe()
+{
+  this.initialize(...arguments);
+}
+
+JAFTING_Recipe.prototype = {};
+JAFTING_Recipe.prototype.constructor = JAFTING_Recipe;
+JAFTING_Recipe.prototype.initialize = function(
+  name, key, description, categories, iconIndex, tools, ingredients, output, masked
+)
+{
+  /**
+   * The name of this crafting recipe.
+   * @type {string}
+   */
+  this.name = name;
+
+  /**
+   * The unique key associated with this crafting recipe.
+   * @type {string}
+   */
+  this.key = key;
+
+  /**
+   * The description of this crafting recipe.
+   * @type {string}
+   */
+  this.description = description;
+
+  /**
+   * The category keys that this crafting recipe belongs to.
+   * @type {string[]}
+   */
+  this.categories = categories;
+
+  /**
+   * The icon that will display in the type selection window next to this category.
+   * @type {number}
+   */
+  this.iconIndex = iconIndex;
+
+  /**
+   * The list of required tools not consumed but required to execute the recipe.
+   * @type {JAFTING_Component[]}
+   */
+  this.tools = tools;
+
+  /**
+   * The list of ingredients that make up this recipe that will be consumed.
+   * @type {JAFTING_Component[]}
+   */
+  this.ingredients = ingredients;
+
+  /**
+   * The list of `JAFTING_Component`s that would be generated when this recipe is successfully crafted.
+   * @type {JAFTING_Component[]}
+   */
+  this.output = output;
+
+  /**
+   * Whether or not this recipe is masked by default until crafted the first time.
+   * Masked recipes show up as all question marks in place of their name.
+   * @type {boolean}
+   */
+  this.maskedUntilCrafted = masked;
+  this.initMembers();
+};
+
+/**
+ * Initializes all members that do not require parameters for this class.
+ */
+JAFTING_Recipe.prototype.initMembers = function()
+{
+  /**
+   * Whether or not this recipe has been unlocked for JAFTING.
+   * @type {boolean}
+   */
+  this.unlocked = false;
+
+  /**
+   * Whether or not this recipe has been JAFTED before.
+   * @type {boolean}
+   */
+  this.crafted = false;
+};
+
+/**
+ * Gets whether or not this JAFTING recipe has been unlocked or not.
+ * @returns {boolean}
+ */
+JAFTING_Recipe.prototype.isUnlocked = function()
+{
+  return this.unlocked;
+};
+
+/**
+ * Locks this JAFTING recipe.
+ */
+JAFTING_Recipe.prototype.lock = function()
+{
+  this.unlocked = false;
+};
+
+/**
+ * Unlocks this JAFTING recipe. Does not unlock the category this recipe belongs to.
+ */
+JAFTING_Recipe.prototype.unlock = function()
+{
+  this.unlocked = true;
+};
+
+/**
+ * Creates all output of this JAFTING recipe and marks the recipe as "crafted".
+ */
+JAFTING_Recipe.prototype.craft = function()
+{
+  this.output.forEach(component => component.craft());
+  this.ingredients.forEach(component => component.consume());
+  this.setCrafted();
+};
+
+/**
+ * Gets whether or not this recipe is craftable based on the ingredients and tools on-hand.
+ * @returns {boolean}
+ */
+JAFTING_Recipe.prototype.canCraft = function()
+{
+  let hasIngredients = true;
+  let hasTools = true;
+
+  // check over all ingredients to see if we have enough to JAFT this recipe.
+  this.ingredients.forEach(component =>
+  {
+    const count = $gameParty.numItems(component.getItem());
+    if (component.count > count)
+    {
+      hasIngredients = false;
+    }
+  });
+
+  // check over all tools to see if we have them on-hand to JAFT this recipe.
+  this.tools.forEach(component =>
+  {
+    const count = $gameParty.numItems(component.getItem());
+    if (component.count > count)
+    {
+      hasTools = false;
+    }
+  });
+
+  return hasIngredients && hasTools;
+};
+
+/**
+ * Gets whether or not this recipe has been crafted before.
+ * @returns {boolean}
+ */
+JAFTING_Recipe.prototype.hasBeenCrafted = function()
+{
+  return this.crafted;
+};
+
+/**
+ * Sets this recipe to a "crafted" state.
+ * @param {boolean} crafted Whether or not this item has been crafted.
+ */
+JAFTING_Recipe.prototype.setCrafted = function(crafted = true)
+{
+  this.crafted = crafted;
+};
+
+/**
+ * Gets the primary output of this recipe.
+ * Primary output is defined as the first item in the list of all output
+ * that this recipe creates.
+ * @returns {any}
+ */
+JAFTING_Recipe.prototype.getPrimaryOutput = function()
+{
+  return this.output[0].getItem();
+};
+
+/**
+ * Gets the name of this recipe.
+ * If none was specified, then the primary output's name will be used.
+ * @returns {string}
+ */
+JAFTING_Recipe.prototype.getRecipeName = function()
+{
+  let name = "";
+  if (!this.name.length)
+  {
+    const primaryOutput = this.getPrimaryOutput();
+    name = primaryOutput.name;
+  }
+  else
+  {
+    name = this.name;
+  }
+
+  if (this.maskedUntilCrafted && !this.crafted)
+  {
+    name = name.replace(/[A-Za-z\-!?',.]/ig, "?");
+  }
+
+  return name;
+};
+
+/**
+ * Gets the icon index of this recipe.
+ * If none was specified, then the primary output's icon index will be used.
+ * @returns {number}
+ */
+JAFTING_Recipe.prototype.getRecipeIconIndex = function()
+{
+  if (this.iconIndex === -1)
+  {
+    const primaryOutput = this.getPrimaryOutput();
+    return primaryOutput.iconIndex;
+  }
+  else
+  {
+    return this.iconIndex;
+  }
+};
+
+/**
+ * Gets the description of this recipe.
+ * If none was specified, then the primary output's description will be used.
+ * @returns {string}
+ */
+JAFTING_Recipe.prototype.getRecipeDescription = function()
+{
+  let description = "";
+  if (!this.description.length)
+  {
+    const primaryOutput = this.getPrimaryOutput();
+    description = primaryOutput.description;
+  }
+  else
+  {
+    description = this.description;
+  }
+
+  if (this.maskedUntilCrafted && !this.crafted)
+  {
+    description = description.replace(/[A-Za-z\-!?',.]/ig, "?");
+  }
+
+  return description;
+};
+//endregion JAFT_Recipe
+
+//region DataManager
 /**
  * Extends the save data extraction to include any changes in recipes/categories
  * from the plugin settings.
@@ -458,55 +888,54 @@ PluginManager.registerCommand(J.JAFTING.Metadata.Name, "Lock All Categories", ()
 J.JAFTING.Aliased.DataManager.extractSaveContents = DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents)
 {
-  const fromPluginSettingsJafting = $gameSystem._j._jafting;
+  // grab the latest data from the plugin parameters for jafting.
+  const fromPluginParamsRecipes =
+    J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+  const fromPluginParamsCategories =
+    J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
+
+  // pull out the jafting data from the save file.
   const fromSaveFileJafting = contents.system._j._jafting;
+
+  // iterate over the save file recipes.
   fromSaveFileJafting._recipes.forEach(savedRecipe =>
   {
-    const updatedRecipe = fromPluginSettingsJafting._recipes
+    // grab the recipe from our plugin parameter data.
+    const updatedRecipe = fromPluginParamsRecipes
       .find(settingsRecipe => settingsRecipe.key === savedRecipe.key);
+
     // if the recipe no longer exists, don't do anything with it.
     if (!updatedRecipe) return;
 
     // if it was unlocked before, it stays unlocked.
-    if (savedRecipe.isUnlocked())
-    {
-      if (updatedRecipe)
-      {
-        updatedRecipe.unlock();
-      }
-    }
+    if (savedRecipe.isUnlocked()) updatedRecipe.unlock();
 
     // if it was crafted before, it stays crafted.
-    if (savedRecipe.hasBeenCrafted())
-    {
-      updatedRecipe.setCrafted();
-    }
+    if (savedRecipe.hasBeenCrafted()) updatedRecipe.setCrafted();
   });
 
   // iterate over all categories from the save file and update the unlock status of each.
   fromSaveFileJafting._categories.forEach(savedCategory =>
   {
-    const updatedCategory = fromPluginSettingsJafting._categories
+    // grab the category from our plugin parameter data.
+    const updatedCategory = fromPluginParamsCategories
       .find(settingsCategory => settingsCategory.key === savedCategory.key);
 
     // if the category no longer exists, don't do anything with it.
     if (!updatedCategory) return;
 
-    if (savedCategory.isUnlocked())
-    {
-      updatedCategory.unlock();
-    }
+    // if it was unlocked before, it stays unlocked.
+    if (savedCategory.isUnlocked()) updatedCategory.unlock();
   });
 
   // update the save file data with the modified plugin settings JAFTING data.
-  contents.system._j._jafting = fromPluginSettingsJafting;
+  contents.system._j._jafting._recipes = fromPluginParamsRecipes;
+  contents.system._j._jafting._categories = fromPluginParamsCategories;
   J.JAFTING.Aliased.DataManager.extractSaveContents.call(this, contents);
 };
-//#endregion DataManager
-//#endregion Static objects
+//endregion DataManager
 
-//#region Game objects
-//#region Game_Party
+//region Game_Party
 /**
  * Extends `gainItem()` to also refresh the JAFTING windows on item quantity change.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
@@ -522,9 +951,9 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
   // refresh the JAFTING windows on item quantity change.
   $gameSystem.setRefreshRequest(true);
 };
-//#endregion Game_Party
+//endregion Game_Party
 
-//#region Game_Player
+//region Game_Player
 /**
  * Extends the canMove function to ensure the player can't move around while
  * in the JAFTING menu.
@@ -541,17 +970,20 @@ Game_Player.prototype.canMove = function()
     return J.JAFTING.Aliased.Game_Player.canMove.call(this);
   }
 };
-//#endregion Game_Player
+//endregion Game_Player
 
-//#region Game_System
+//region Game_System
 /**
  * Extends the `Game_System.initialize()` to include the JAFTING setup.
  */
 J.JAFTING.Aliased.Game_System.initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function()
 {
-  this.initJaftingMembers();
+  // perform original logic.
   J.JAFTING.Aliased.Game_System.initialize.call(this);
+
+  // initialize the members.
+  this.initJaftingMembers();
 };
 
 /**
@@ -559,8 +991,15 @@ Game_System.prototype.initialize = function()
  */
 Game_System.prototype.initJaftingMembers = function()
 {
-  this._j = this._j || {};
-  this._j._jafting = this._j._jafting || {};
+  /**
+   * The over-arching object that contains all properties for this plugin.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the JAFTING system.
+   */
+  this._j._jafting ||= {};
 
   /**
    * Whether or not the JAFTING flow is executing.
@@ -572,19 +1011,55 @@ Game_System.prototype.initJaftingMembers = function()
    * The collection of all jafting recipes extracted from the database.
    * @type {JAFTING_Recipe[]}
    */
-  this._j._jafting._recipes = J.JAFTING.Metadata.Recipes;
+  this._j._jafting._recipes = J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
 
   /**
    * The collection of all categories that are viewable within the JAFTING menu.
    * @type {JAFTING_Category[]}
    */
-  this._j._jafting._categories = J.JAFTING.Metadata.Categories;
+  this._j._jafting._categories = J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
 
   /**
    * A request to refresh the windows of JAFTING.
    * @type {boolean}
    */
   this._j._jafting._requestRefresh = false;
+};
+
+/**
+ * Updates the list of all available JAFTING recipes from the latest plugin metadata.
+ */
+J.JAFTING.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.JAFTING.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update the recipes from the latest plugin metadata.
+  this.updateRecipesFromPluginMetadata();
+
+  // update the recipes from the latest plugin metadata.
+  this.updateCategoriesFromPluginMetadata();
+};
+
+/**
+ * Updates the recipe list from the latest plugin metadata.
+ */
+Game_System.prototype.updateRecipesFromPluginMetadata = function()
+{
+  // refresh the recipes list from the plugin metadata.
+  this._j._jafting._recipes ??=
+    J.JAFTING.Helpers.translateRecipes(J.JAFTING.PluginParameters['JAFTINGrecipes']);
+};
+
+/**
+ * Updates the category list from the latest plugin metadata.
+ */
+Game_System.prototype.updateCategoriesFromPluginMetadata = function()
+{
+  // refresh the categories list from the plugin metadata.
+  this._j._jafting._categories ??=
+    J.JAFTING.Helpers.translateCategories(J.JAFTING.PluginParameters['JAFTINGcategories']);
 };
 
 /**
@@ -629,10 +1104,10 @@ Game_System.prototype.getCategoryByKey = function(key)
  */
 Game_System.prototype.unlockCategory = function(key)
 {
-  const category = this._j._jafting._categories.find(category => category.key === key);
-  if (category)
+  const foundCategory = this._j._jafting._categories.find(category => category.key === key);
+  if (foundCategory)
   {
-    category.unlock();
+    foundCategory.unlock();
     this.setRefreshRequest(true);
   }
   else
@@ -657,10 +1132,10 @@ Game_System.prototype.unlockAllCategories = function()
  */
 Game_System.prototype.lockCategory = function(key)
 {
-  const category = this._j._jafting._categories.find(category => category.key === key);
-  if (category)
+  const foundCategory = this._j._jafting._categories.find(category => category.key === key);
+  if (foundCategory)
   {
-    category.lock();
+    foundCategory.lock();
     this.setRefreshRequest(true);
   }
 };
@@ -680,10 +1155,10 @@ Game_System.prototype.lockAllCategories = function()
  */
 Game_System.prototype.unlockRecipe = function(key)
 {
-  const recipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
-  if (recipe)
+  const foundRecipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
+  if (foundRecipe)
   {
-    recipe.unlock();
+    foundRecipe.unlock();
     this.setRefreshRequest(true);
   }
 };
@@ -694,12 +1169,21 @@ Game_System.prototype.unlockRecipe = function(key)
  */
 Game_System.prototype.lockRecipe = function(key)
 {
-  const recipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
-  if (recipe)
+  const foundRecipe = this._j._jafting._recipes.find(recipe => recipe.key === key);
+  if (foundRecipe)
   {
-    recipe.lock();
+    foundRecipe.lock();
     this.setRefreshRequest(true);
   }
+};
+
+/**
+ * Locks all recipes of JAFTING.
+ */
+Game_System.prototype.lockAllRecipes = function()
+{
+  this._j._jafting._recipes.forEach(recipe => recipe.lock());
+  this.setRefreshRequest(true);
 };
 
 /**
@@ -769,17 +1253,51 @@ Game_System.prototype.getUnlockedRecipesByCategory = function(categoryKey)
  */
 Game_System.prototype.getCraftedRecipesByCategory = function(categoryKey)
 {
+  // get all unlocked recipes of a given category.
   const unlocked = this.getUnlockedRecipesByCategory(categoryKey);
+
+  // check to make sure we have at least one before
   if (unlocked.length)
   {
-    const isAvailable = (recipe) =>
-    {
-      if (recipe.maskedUntilCrafted && recipe.crafted) return true;
-      if (!recipe.maskedUntilCrafted) return true;
-      return false;
-    };
-    return unlocked.filter(isAvailable);
+    // a filtering function to determine what is available.
+    const craftedRecipes = unlocked.filter(recipe => recipe.crafted);
+
+    // return what we found.
+    return craftedRecipes;
   }
+
+  console.warn("no recipes have yet been crafted.")
+  return [];
+};
+
+/**
+ * Gets the number of recipes that have been crafted in a particular category.
+ * @param {string} categoryKey The category key to search through.
+ * @returns {number} The number of recipes that have been crafted.
+ */
+Game_System.prototype.getCraftedRecipesCountByCategory = function(categoryKey)
+{
+  return this.getCraftedRecipesByCategory(categoryKey).length;
+};
+
+/**
+ * Gets a specific recipe by its key.
+ * @param {string} recipeKey The key of the recipe to find.
+ * @returns {JAFTING_Recipe|null} The found recipe, or null if it wasn't found.
+ */
+Game_System.prototype.getRecipe = function(recipeKey)
+{
+  // grab all the recipes agailable.
+  const recipes = this.getAllRecipes();
+
+  // if we don't have any recipes, then always null.
+  if (!recipes.length) return null;
+
+  // find the recipe by its key.
+  const foundRecipe = recipes.find(recipe => recipe.key === recipeKey);
+
+  // normalize the return value to null rather than undefined if necessary.
+  return foundRecipe ?? null;
 };
 
 /**
@@ -807,12 +1325,9 @@ Game_System.prototype.translateRpgItemToType = function(rpgItem)
     console.error(`check the logs, there were issues translating items for recipes.`)
   }
 };
-//#endregion Game_System
-//#endregion Game objects
+//endregion Game_System
 
-//#region Scene objects
-
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into the `Scene_Map.initialize` function and adds the JAFTING objects for tracking.
  */
@@ -1454,95 +1969,13 @@ Scene_Map.prototype.closeJaftingMenu = function()
 {
   this._j._jaftingMenu._modeWindow.closeMenu();
 };
-//#endregion Scene_Map
+//endregion Scene_Map
 
-//#endregion Scene objects
-
-//#region Window objects
-//#region Window_JaftingModeMenu
-/**
- * The mode selection window for JAFTING.
- */
-class Window_JaftingModeMenu
-  extends Window_HorzCommand
-{
-  /**
-   * @constructor
-   * @param {Rectangle} rect The rectangle that represents this window.
-   */
-  constructor(rect)
-  {
-    super(rect);
-    this.initialize(rect);
-    /**
-     * The currently selected index of this mode selection window.
-     * @type {number}
-     */
-    this._currentIndex = null;
-  };
-
-  /**
-   * Gets the current index that was last assigned of this window.
-   * @returns {number}
-   */
-  get currentIndex()
-  {
-    return this._currentIndex;
-  };
-
-  /**
-   * Sets the current index to a given value.
-   */
-  set currentIndex(index)
-  {
-    this._currentIndex = index;
-  };
-
-  /**
-   * Generate commands for all modes of crafting.
-   */
-  makeCommandList()
-  {
-    const hasCategories = $gameSystem.getUnlockedCategories();
-    this.addCommand(`Crafting`, `craft-mode`, hasCategories.length, null, 193);
-    this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
-    this.addCommand(`Cancel`, `cancel`, true, null, 90);
-  };
-
-  /**
-   * OVERWRITE Sets the alignment for this command window to be left-aligned.
-   */
-  itemTextAlign()
-  {
-    return "left";
-  };
-
-  /**
-   * Closes the entire JAFTING menu.
-   */
-  closeMenu()
-  {
-    if (!this.isClosed())
-    {
-      this.close();
-      if (J.ABS)
-      {
-        $jabsEngine.absPause = false;
-        $jabsEngine.requestAbsMenu = false;
-      }
-
-      $gameSystem.endJafting();
-    }
-  };
-};
-//#endregion Window_JaftingModeMenu
-
-//#region Window_JaftingCraftCategory
+//region Window_JaftingCraftCategory
 /**
  * A simple window that shows a list of categories unlocked.
  */
-class Window_JaftingCraftCategory
-  extends Window_Command
+class Window_JaftingCraftCategory extends Window_Command
 {
   /**
    * @constructor
@@ -1558,7 +1991,7 @@ class Window_JaftingCraftCategory
      * @type {number}
      */
     this._currentIndex = null;
-  };
+  }
 
   /**
    * Gets the current index that was last assigned of this window.
@@ -1567,7 +2000,7 @@ class Window_JaftingCraftCategory
   get currentIndex()
   {
     return this._currentIndex;
-  };
+  }
 
   /**
    * Sets the current index to a given value.
@@ -1575,7 +2008,7 @@ class Window_JaftingCraftCategory
   set currentIndex(index)
   {
     this._currentIndex = index;
-  };
+  }
 
   /**
    * OVERWRITE Sets the alignment for this command window to be left-aligned.
@@ -1583,7 +2016,7 @@ class Window_JaftingCraftCategory
   itemTextAlign()
   {
     return "left";
-  };
+  }
 
   /**
    * Gets the details of the currently selected category.
@@ -1596,7 +2029,7 @@ class Window_JaftingCraftCategory
 
     const details = this._list[this.currentIndex].ext;
     return details;
-  };
+  }
 
   /**
    * Determines whether or not there are any recipes learned for a given category.
@@ -1608,7 +2041,7 @@ class Window_JaftingCraftCategory
     const unlockedRecipes = $gameSystem.getUnlockedRecipesByCategory(categoryKey);
     const hasRecipesForCategory = unlockedRecipes.length > 0;
     return hasRecipesForCategory;
-  };
+  }
 
   /**
    * Creates a list of all unlocked categories of crafting.
@@ -1625,11 +2058,217 @@ class Window_JaftingCraftCategory
       const hasRecipesForCategory = this.hasRecipes(category.key);
       this.addCommand(category.name, `crafting-category`, hasRecipesForCategory, category, category.iconIndex);
     });
-  };
-};
-//#endregion Window_JaftingCraftCategory
+  }
+}
+//endregion Window_JaftingCraftCategory
 
-//#region Window_JaftingCraftRecipeList
+//region Window_JaftingCraftRecipeDetails
+/**
+ * The window that displays all tools, ingredients, and output from a given recipe.
+ */
+class Window_JaftingCraftRecipeDetails
+  extends Window_Base
+{
+  /**
+   * @constructor
+   * @param {Rectangle} rect The rectangle that represents this window.
+   */
+  constructor(rect)
+  {
+    super(rect);
+    this.initialize(rect);
+    this.initMembers();
+  }
+
+  /**
+   * Initializes all members of this window.
+   */
+  initMembers()
+  {
+    /**
+     * The recipe currently being displayed in this window.
+     * @type {JAFTING_Recipe}
+     */
+    this._currentRecipe = null;
+  }
+
+  /**
+   * Gets the current recipe being displayed.
+   * @returns {JAFTING_Recipe}
+   */
+  get currentRecipe()
+  {
+    return this._currentRecipe;
+  }
+
+  /**
+   * Sets the current recipe to be this recipe.
+   * @param {JAFTING_Recipe} recipe The recipe to assign as the current.
+   */
+  set currentRecipe(recipe)
+  {
+    this._currentRecipe = recipe;
+    this.refresh();
+  }
+
+  /**
+   * Refreshes this window and all its content.
+   */
+  refresh()
+  {
+    // don't refresh if there is no recipe to refresh the contents of.
+    if (!this.currentRecipe) return;
+
+    this.contents.clear();
+    this.drawRecipeInfo();
+  }
+
+  /**
+   * Draws the recipe details of the currently selected recipe.
+   */
+  drawRecipeInfo()
+  {
+    this.drawRecipeTitle();
+    this.drawRecipeIngredients();
+    this.drawRecipeTools();
+    this.drawRecipeOutput();
+  }
+
+  /**
+   * Draws the title of the recipe.
+   */
+  drawRecipeTitle()
+  {
+    const recipe = this.currentRecipe;
+    const iconIndex = this.currentRecipe.getRecipeIconIndex();
+    const lh = this.lineHeight();
+    this.drawTextEx(`\\{\\I[${iconIndex}] \\C[6]${recipe.getRecipeName()}\\C[0]\\}`, 0, lh * 0, 300);
+  }
+
+  /**
+   * Draw all ingredients for the recipe.
+   */
+  drawRecipeIngredients()
+  {
+    const recipe = this.currentRecipe;
+    const {ingredients} = recipe;
+    const ox = 30;
+    const lh = this.lineHeight();
+    this.drawTextEx(`\\C[1]Ingredients\\C[0]`, ox, lh * 2, 300);
+    ingredients.forEach((ingredient, index) =>
+    {
+      const rpgItem = J.BASE.Helpers.translateItem(ingredient.id, ingredient.type);
+      const x = ox + 40;
+      const y = lh * (3 + (index));
+      const need = ingredient.count;
+      const have = $gameParty.numItems(rpgItem);
+      this.drawRecipeIngredientCount(need, have, x - 60, y);
+      this.drawRecipeItemName(rpgItem, x + 40, y);
+    });
+  }
+
+  /**
+   * Draws a single recipe and it's required count vs how many the player has on-hand.
+   * @param {number} need The number of this ingredient that is needed.
+   * @param {number} have The number of this ingredient that the player has currently.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   */
+  drawRecipeIngredientCount(need, have, x, y)
+  {
+    const haveTextColor = (have >= need) ? 24 : 18;
+    this.drawTextEx(`\\C[${haveTextColor}]${have}\\C[0]`, x, y, 100);
+    this.drawTextEx(`/`, x + 35, y, 100);
+    this.drawTextEx(`${need}`, x + 55, y, 100);
+  }
+
+  /**
+   * Draw all tools for the recipe.
+   */
+  drawRecipeTools()
+  {
+    const recipe = this.currentRecipe;
+    const {tools} = recipe;
+    const ox = 430;
+    const lh = this.lineHeight();
+    this.drawTextEx(`\\C[1]Tools Required\\C[0]`, ox, lh * 2, 300);
+    tools.forEach((tool, index) =>
+    {
+      const rpgItem = J.BASE.Helpers.translateItem(tool.id, tool.type);
+      const x = ox + 40;
+      const y = lh * (3 + (index));
+      const available = $gameParty.numItems(rpgItem);
+      this.drawRecipeToolAvailability(available, x - 40, y);
+      this.drawRecipeItemName(rpgItem, x, y);
+    });
+  }
+
+  /**
+   * Draws a symbol representing whether or not the tool is in the player's possession.
+   * @param {boolean} available
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   */
+  drawRecipeToolAvailability(available, x, y)
+  {
+    const availableTextColor = available ? 24 : 18;
+    const symbol = available ? " ✔" : "❌";
+    this.drawTextEx(`\\C[${availableTextColor}]${symbol}\\C[0]`, x, y, 50);
+  }
+
+  /**
+   * Draws the name of a given ingredient.
+   * @param {object} rpgItem The underlying item that needs drawing.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   */
+  drawRecipeItemName(rpgItem, x, y)
+  {
+    this.drawTextEx(`\\I[${rpgItem.iconIndex}]${rpgItem.name}`, x, y, 300);
+  }
+
+  /**
+   * Draw all output for the recipe.
+   */
+  drawRecipeOutput()
+  {
+    const recipe = this.currentRecipe;
+    const outputs = recipe.output;
+    const lh = this.lineHeight();
+    const ox = 430;
+    this.drawTextEx(`\\C[1]Recipe Output\\C[0]`, ox, lh * 8, 300);
+    outputs.forEach((component, index) =>
+    {
+      const {count} = component;
+      const rpgItem = component.getItem();
+      const y = lh * (9 + (index));
+      this.drawRecipeOutputItem(rpgItem, count, ox, y);
+    });
+  }
+
+  /**
+   * Draws one output item and it's yield.
+   * @param {object} rpgItem The underlying item that needs drawing.
+   * @param {number} count The number of items that this output yields.
+   * @param {number} x The `x` coordinate.
+   * @param {number} y The `y` coordinate.
+   */
+  drawRecipeOutputItem(rpgItem, count, x, y)
+  {
+    const paddedCount = count.padZero(2);
+    const itemCount = ($gameParty.numItems(rpgItem)).padZero(2);
+    const itemNumbers = `${paddedCount}x / (x${itemCount})`
+    let {name} = rpgItem;
+    if (this.currentRecipe.maskedUntilCrafted && !this.currentRecipe.hasBeenCrafted())
+    {
+      name = name.replace(/[A-Za-z!-?.]/ig, "?");
+    }
+    this.drawTextEx(`${itemNumbers}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
+  }
+}
+//endregion Window_JaftingCraftRecipeDetails
+
+//region Window_JaftingCraftRecipeList
 /**
  * A simple window that shows a list of recipes available based on unlocked ingredients.
  */
@@ -1656,7 +2295,7 @@ class Window_JaftingCraftRecipeList
      * @type {string}
      */
     this._currentCategory = null;
-  };
+  }
 
   /**
    * Gets the current index that was last assigned of this window.
@@ -1665,7 +2304,7 @@ class Window_JaftingCraftRecipeList
   get currentIndex()
   {
     return this._currentIndex;
-  };
+  }
 
   /**
    * Sets the current index to a given value.
@@ -1673,7 +2312,7 @@ class Window_JaftingCraftRecipeList
   set currentIndex(index)
   {
     this._currentIndex = index;
-  };
+  }
 
   /**
    * Gets the current category that the recipe list is based off of.
@@ -1682,7 +2321,7 @@ class Window_JaftingCraftRecipeList
   get currentCategory()
   {
     return this._currentCategory;
-  };
+  }
 
   /**
    * Sets the current category to a given category.
@@ -1691,7 +2330,7 @@ class Window_JaftingCraftRecipeList
   {
     this._currentCategory = category;
     this.refresh();
-  };
+  }
 
   /**
    * OVERWRITE Sets the alignment for this command window to be left-aligned.
@@ -1699,7 +2338,7 @@ class Window_JaftingCraftRecipeList
   itemTextAlign()
   {
     return "left";
-  };
+  }
 
   /**
    * Gets the details of the currently selected category.
@@ -1721,7 +2360,7 @@ class Window_JaftingCraftRecipeList
 
     const details = this._list[this.currentIndex].ext;
     return details;
-  };
+  }
 
   /**
    * Creates a list of all unlocked recipes that belong to this category of crafting.
@@ -1743,16 +2382,16 @@ class Window_JaftingCraftRecipeList
       // determine if enabled/disabled by ingredients+tools in inventory.
       this.addCommand(name, `chosen-recipe`, canCraft, recipe, iconIndex);
     });
-  };
-};
-//#endregion Window_JaftingCraftRecipeList
+  }
+}
+//endregion Window_JaftingCraftRecipeList
 
-//#region Window_JaftingCraftRecipeDetails
+//region Window_JaftingModeMenu
 /**
- * The window that displays all tools, ingredients, and output from a given recipe.
+ * The mode selection window for JAFTING.
  */
-class Window_JaftingCraftRecipeDetails
-  extends Window_Base
+class Window_JaftingModeMenu
+  extends Window_HorzCommand
 {
   /**
    * @constructor
@@ -1762,194 +2401,65 @@ class Window_JaftingCraftRecipeDetails
   {
     super(rect);
     this.initialize(rect);
-    this.initMembers();
-  };
-
-  /**
-   * Initializes all members of this window.
-   */
-  initMembers()
-  {
     /**
-     * The recipe currently being displayed in this window.
-     * @type {JAFTING_Recipe}
+     * The currently selected index of this mode selection window.
+     * @type {number}
      */
-    this._currentRecipe = null;
-  };
+    this._currentIndex = null;
+  }
 
   /**
-   * Gets the current recipe being displayed.
-   * @returns {JAFTING_Recipe}
+   * Gets the current index that was last assigned of this window.
+   * @returns {number}
    */
-  get currentRecipe()
+  get currentIndex()
   {
-    return this._currentRecipe;
-  };
+    return this._currentIndex;
+  }
 
   /**
-   * Sets the current recipe to be this recipe.
-   * @param {JAFTING_Recipe} recipe The recipe to assign as the current.
+   * Sets the current index to a given value.
    */
-  set currentRecipe(recipe)
+  set currentIndex(index)
   {
-    this._currentRecipe = recipe;
-    this.refresh();
-  };
+    this._currentIndex = index;
+  }
 
   /**
-   * Refreshes this window and all its content.
+   * Generate commands for all modes of crafting.
    */
-  refresh()
+  makeCommandList()
   {
-    // don't refresh if there is no recipe to refresh the contents of.
-    if (!this.currentRecipe) return;
-
-    this.contents.clear();
-    this.drawRecipeInfo();
-  };
-
-  /**
-   * Draws the recipe details of the currently selected recipe.
-   */
-  drawRecipeInfo()
-  {
-    this.drawRecipeTitle();
-    this.drawRecipeIngredients();
-    this.drawRecipeTools();
-    this.drawRecipeOutput();
-  };
+    const hasCategories = $gameSystem.getUnlockedCategories();
+    this.addCommand(`Crafting`, `craft-mode`, hasCategories.length, null, 193);
+    this.addCommand(`Freestyle`, `free-mode`, false, null, 93); // disabled till implemented.
+    this.addCommand(`Cancel`, `cancel`, true, null, 90);
+  }
 
   /**
-   * Draws the title of the recipe.
+   * OVERWRITE Sets the alignment for this command window to be left-aligned.
    */
-  drawRecipeTitle()
+  itemTextAlign()
   {
-    const recipe = this.currentRecipe;
-    const iconIndex = this.currentRecipe.getRecipeIconIndex();
-    const lh = this.lineHeight();
-    this.drawTextEx(`\\{\\I[${iconIndex}] \\C[6]${recipe.getRecipeName()}\\C[0]\\}`, 0, lh * 0, 300);
-  };
+    return "left";
+  }
 
   /**
-   * Draw all ingredients for the recipe.
+   * Closes the entire JAFTING menu.
    */
-  drawRecipeIngredients()
+  closeMenu()
   {
-    const recipe = this.currentRecipe;
-    const ingredients = recipe.ingredients;
-    const ox = 30;
-    const lh = this.lineHeight();
-    this.drawTextEx(`\\C[1]Ingredients\\C[0]`, ox, lh * 2, 300);
-    ingredients.forEach((ingredient, index) =>
+    if (!this.isClosed())
     {
-      const rpgItem = J.BASE.Helpers.translateItem(ingredient.id, ingredient.type);
-      const x = ox + 40;
-      const y = lh * (3 + (index));
-      const need = ingredient.count;
-      const have = $gameParty.numItems(rpgItem);
-      this.drawRecipeIngredientCount(need, have, x - 60, y);
-      this.drawRecipeItemName(rpgItem, x + 40, y);
-    });
-  };
+      this.close();
+      if (J.ABS)
+      {
+        $jabsEngine.absPause = false;
+        $jabsEngine.requestAbsMenu = false;
+      }
 
-  /**
-   * Draws a single recipe and it's required count vs how many the player has on-hand.
-   * @param {number} need The number of this ingredient that is needed.
-   * @param {number} have The number of this ingredient that the player has currently.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
-   */
-  drawRecipeIngredientCount(need, have, x, y)
-  {
-    const haveTextColor = (have >= need) ? 24 : 18;
-    this.drawTextEx(`\\C[${haveTextColor}]${have}\\C[0]`, x, y, 100);
-    this.drawTextEx(`/`, x + 35, y, 100);
-    this.drawTextEx(`${need}`, x + 55, y, 100);
-  };
-
-  /**
-   * Draw all tools for the recipe.
-   */
-  drawRecipeTools()
-  {
-    const recipe = this.currentRecipe;
-    const tools = recipe.tools;
-    const ox = 430;
-    const lh = this.lineHeight();
-    this.drawTextEx(`\\C[1]Tools Required\\C[0]`, ox, lh * 2, 300);
-    tools.forEach((tool, index) =>
-    {
-      const rpgItem = J.BASE.Helpers.translateItem(tool.id, tool.type);
-      const x = ox + 40;
-      const y = lh * (3 + (index));
-      const available = $gameParty.numItems(rpgItem);
-      this.drawRecipeToolAvailability(available, x - 40, y);
-      this.drawRecipeItemName(rpgItem, x, y);
-    });
-  };
-
-  /**
-   * Draws a symbol representing whether or not the tool is in the player's possession.
-   * @param {boolean} available
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
-   */
-  drawRecipeToolAvailability(available, x, y)
-  {
-    const availableTextColor = available ? 24 : 18;
-    const symbol = available ? " ✔" : "❌";
-    this.drawTextEx(`\\C[${availableTextColor}]${symbol}\\C[0]`, x, y, 50);
-  };
-
-  /**
-   * Draws the name of a given ingredient.
-   * @param {object} rpgItem The underlying item that needs drawing.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
-   */
-  drawRecipeItemName(rpgItem, x, y)
-  {
-    this.drawTextEx(`\\I[${rpgItem.iconIndex}]${rpgItem.name}`, x, y, 300);
-  };
-
-  /**
-   * Draw all output for the recipe.
-   */
-  drawRecipeOutput()
-  {
-    const recipe = this.currentRecipe;
-    const outputs = recipe.output;
-    const lh = this.lineHeight();
-    const ox = 430;
-    this.drawTextEx(`\\C[1]Recipe Output\\C[0]`, ox, lh * 8, 300);
-    outputs.forEach((component, index) =>
-    {
-      const count = component.count;
-      const rpgItem = component.getItem();
-      const y = lh * (9 + (index));
-      this.drawRecipeOutputItem(rpgItem, count, ox, y);
-    });
-  };
-
-  /**
-   * Draws one output item and it's yield.
-   * @param {object} rpgItem The underlying item that needs drawing.
-   * @param {number} count The number of items that this output yields.
-   * @param {number} x The `x` coordinate.
-   * @param {number} y The `y` coordinate.
-   */
-  drawRecipeOutputItem(rpgItem, count, x, y)
-  {
-    const paddedCount = count.padZero(2);
-    let name = rpgItem.name;
-    if (this.currentRecipe.maskedUntilCrafted && !this.currentRecipe.hasBeenCrafted())
-    {
-      name = name.replace(/[A-Za-z!-?.]/ig, "?");
+      $gameSystem.endJafting();
     }
-    this.drawTextEx(`${paddedCount}x \\I[${rpgItem.iconIndex}]${name}`, x, y, 300);
-  };
-};
-//#endregion Window_JaftingCraftRecipeDetails
-//#endregion Window objects
-
-//ENDFILE
+  }
+}
+//endregion Window_JaftingModeMenu

@@ -1,14 +1,21 @@
-//#region introduction
+/*  BUNDLED TIME: Sun Jan 15 2023 07:52:56 GMT-0800 (Pacific Standard Time)  */
+
+//region introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
- * @url https://github.com/je-can-code/rmmz
- * @base J-BASE
- * @orderAfter J-BASE
+ * @url https://github.com/je-can-code/ca
+ * @base J-ABS
+ * @base J-Base
+ * @base J-HUD
+ * @orderAfter J-ABS
+ * @orderAfter J-Base
+ * @orderAfter J-HUD
  * @help
  * ============================================================================
+ * OVERVIEW:
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Party Frame, which displays the leader and allied members that
@@ -24,30 +31,6 @@
  * - current level
  * - experience gauge
  * - positive/negative state tracking
- * ============================================================================
- * @command hideHud
- * @text Hide HUD
- * @desc Hides the HUD on the map.
- *
- * @command showHud
- * @text Show HUD
- * @desc Shows the HUD on the map.
- *
- * @command hideAllies
- * @text Hide Allies
- * @desc Hides the display of allies in the hud.
- *
- * @command showAllies
- * @text Show Allies
- * @desc Shows allies' data in the hud.
- *
- * @command refreshHud
- * @text Refresh HUD
- * @desc Forcefully refreshes the hud.
- *
- * @command refreshImageCache
- * @text Refresh HUD Image Cache
- * @desc Forcefully refreshes the image cache of the hud. Use when you change face assets for actors.
  */
 
 /**
@@ -55,7 +38,7 @@
  */
 var J = J || {};
 
-//#region version checks
+//region version checks
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
@@ -66,95 +49,43 @@ var J = J || {};
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
   }
 })();
-//#endregion version check
+//endregion version check
 
-//#region metadata
+//region metadata
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
-J.HUD.EXT_PARTY = {};
+J.HUD.EXT.PARTY = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.HUD.EXT_PARTY = {};
-J.HUD.EXT_PARTY.Metadata = {};
-J.HUD.EXT_PARTY.Metadata.Version = '1.0.0';
-J.HUD.EXT_PARTY.Metadata.Name = `J-HUD-PartyFrame`;
+J.HUD.EXT.PARTY = {};
+J.HUD.EXT.PARTY.Metadata = {};
+J.HUD.EXT.PARTY.Metadata.Version = '1.0.0';
+J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.HUD.EXT_PARTY.Aliased = {
+J.HUD.EXT.PARTY.Aliased = {
   Scene_Map: new Map(),
 };
-//#endregion introduction
+//endregion introduction
+//endregion introduction
 
-//#region plugin commands
-/**
- * Plugin command for hiding the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideHud", () =>
-{
-  $hudManager.requestHideHud();
-});
-
-/**
- * Plugin command for showing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showHud", () =>
-{
-  $hudManager.requestShowHud();
-});
-
-/**
- * Plugin command for hiding allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "hideAllies", () =>
-{
-  $hudManager.requestHideAllies();
-});
-
-/**
- * Plugin command for showing allies in the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "showAllies", () =>
-{
-  $hudManager.requestShowAllies();
-});
-
-/**
- * Plugin command for refreshing the hud.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshHud", () =>
-{
-  $hudManager.requestRefreshHud();
-});
-
-/**
- * Plugin command for refreshing the hud's image cache.
- */
-PluginManager.registerCommand(J.HUD.EXT_PARTY.Metadata.Name, "refreshImageCache", () =>
-{
-  $hudManager.requestRefreshImageCache();
-});
-//#endregion plugin commands
-
-//#region Scene objects
-//#region Scene_Map
+//region Scene_Map
 /**
  * Hooks into `initialize` to add our hud.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize').call(this);
 
   /**
-   * All encompassing _j object for storing this plugin's properties.
-   * @type {{}}
-   * @private
+   * The shared root namespace for all of J's plugin data.
    */
   this._j ||= {};
 
@@ -168,23 +99,24 @@ Scene_Map.prototype.initialize = function()
 /**
  * Once the map is loaded, create the text log.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
 
   // create the hud.
-  this.createHudPartyFrame();
+  this.createPartyFrameWindow();
 };
 
+//region party frame
 /**
  * Creates the party frame window and adds it to tracking.
  */
-Scene_Map.prototype.createHudPartyFrame = function()
+Scene_Map.prototype.createPartyFrameWindow = function()
 {
   // create the rectangle of the window.
-  const rect = this.hudPartyFrameWindowRect();
+  const rect = this.partyFrameWindowRectangle();
 
   // assign the window to our reference.
   this._j._partyFrame = new Window_PartyFrame(rect);
@@ -197,14 +129,24 @@ Scene_Map.prototype.createHudPartyFrame = function()
  * Creates the rectangle representing the window for the map hud.
  * @returns {Rectangle}
  */
-Scene_Map.prototype.hudPartyFrameWindowRect = function()
+Scene_Map.prototype.partyFrameWindowRectangle = function()
 {
-  const width = 320;
-  const height = 290;
+  // define the width of the window.
+  const width = 360;
+
+  // define the height of the window.
+  const height = 400;
+
+  // define the origin x of the window.
   const x = 0;
-  const y = 0;
+
+  // define the origin y of the window.
+  const y = Graphics.boxHeight - height;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
+//endregion party frame
 
 /**
  * OVERWRITE Relocates the map display name window to not overlap the hud.
@@ -221,11 +163,11 @@ Scene_Map.prototype.mapNameWindowRect = function()
 /**
  * Refreshes the hud on-command.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
 
   // refresh the party frame.
   this._j._partyFrame.refresh();
@@ -234,11 +176,11 @@ Scene_Map.prototype.refreshHud = function()
 /**
  * Extend the update loop for the party frame.
  */
-J.HUD.EXT_PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
+J.HUD.EXT.PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT_PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
 
   // manages hud refreshes.
   this.handleRefreshPartyFrame();
@@ -281,11 +223,281 @@ Scene_Map.prototype.handleRefreshPartyFrameImageCache = function()
     $hudManager.acknowledgeRefreshImageCache();
   }
 };
-//#endregion Scene_Map
-//#endregion Scene objects
+//endregion Scene_Map
 
-//#region Window objects
-//#region Window_PartyFrame
+//region Sprite_ActorValue
+/**
+ * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
+ */
+function Sprite_ActorValue()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_ActorValue.prototype = Object.create(Sprite.prototype);
+Sprite_ActorValue.prototype.constructor = Sprite_ActorValue;
+Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0)
+{
+  this._j = {};
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(actor, parameter, fontSizeMod);
+  this.bitmap = this.createBitmap();
+};
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {object} actor The actor to track the value of.
+ * @param {string} parameter The parameter to track of "hp"/"mp"/"tp"/"time".
+ * @param {number} fontSizeMod The modification of the font size for this value.
+ */
+Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod)
+{
+  this._j._parameter = parameter;
+  this._j._actor = actor;
+  this._j._fontSizeMod = fontSizeMod;
+  this._j._last = {};
+  this._j._last._hp = actor.hp;
+  this._j._last._mp = actor.mp;
+  this._j._last._tp = actor.tp;
+  this._j._last._xp = actor.currentExp();
+  this._j._last._lvl = actor.level;
+  this._j._autoCounter = 60;
+};
+
+/**
+ * Updates the bitmap if it needs updating.
+ */
+Sprite_ActorValue.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+  if (this.hasParameterChanged())
+  {
+    this.refresh();
+  }
+
+  this.autoRefresh();
+};
+
+/**
+ * Automatically refreshes the value being represented by this sprite
+ * after a fixed amount of time.
+ */
+Sprite_ActorValue.prototype.autoRefresh = function()
+{
+  if (this._j._autoCounter <= 0)
+  {
+    this.refresh();
+    this._j._autoCounter = 60;
+  }
+
+  this._j._autoCounter--;
+};
+
+/**
+ * Refreshes the value being represented by this sprite.
+ */
+Sprite_ActorValue.prototype.refresh = function()
+{
+  this.bitmap = this.createBitmap();
+};
+
+/**
+ * Checks whether or not a given parameter has changed.
+ */
+Sprite_ActorValue.prototype.hasParameterChanged = function()
+{
+  let changed = true;
+  switch (this._j._parameter)
+  {
+    case "hp":
+      changed = this._j._actor.hp !== this._j._last._hp;
+      if (changed) this._j._last._hp = this._j._actor.hp;
+      return changed;
+    case "mp":
+      changed = this._j._actor.mp !== this._j._last._mp;
+      if (changed) this._j._last._mp = this._j._actor.mp;
+      return changed;
+    case "tp":
+      changed = this._j._actor.tp !== this._j._last._tp;
+      if (changed) this._j._last.tp = this._j._actor.tp;
+      return changed;
+    case "time":
+      changed = this._j._actor.currentExp() !== this._j._last._xp;
+      if (changed) this._j._last._xp = this._j._actor.currentExp();
+      return changed;
+    case "lvl":
+      changed = this._j._actor.level !== this._j._last._lvl;
+      if (changed) this._j._last._lvl = this._j._actor.level;
+      return changed;
+  }
+};
+
+/**
+ * Creates a bitmap to attach to this sprite that shows the value.
+ */
+Sprite_ActorValue.prototype.createBitmap = function()
+{
+  let value = 0;
+  const width = this.bitmapWidth();
+  const height = this.fontSize() + 4;
+  const bitmap = new Bitmap(width, height);
+  bitmap.fontFace = this.fontFace();
+  bitmap.fontSize = this.fontSize();
+  switch (this._j._parameter)
+  {
+    case "hp":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(128, 24, 24, 1.0)";
+      value = Math.floor(this._j._actor.hp);
+      break;
+    case "mp":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(24, 24, 192, 1.0)";
+      value = Math.floor(this._j._actor.mp);
+      break;
+    case "tp":
+      bitmap.outlineWidth = 2;
+      bitmap.outlineColor = "rgba(64, 128, 64, 1.0)";
+      value = Math.floor(this._j._actor.tp);
+      break;
+    case "time":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+      const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
+      const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
+      value = curExp - nextLv;
+      break;
+    case "lvl":
+      bitmap.outlineWidth = 4;
+      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+      value = this._j._actor.level.padZero(3);
+      break;
+  }
+
+  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
+  return bitmap;
+};
+
+/**
+ * Defaults the bitmap width to be a fixed 200 pixels.
+ */
+Sprite_ActorValue.prototype.bitmapWidth = function()
+{
+  return 200;
+};
+
+/**
+ * Defaults the font size to be an adjusted amount from the base font size.
+ */
+Sprite_ActorValue.prototype.fontSize = function()
+{
+  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
+};
+
+/**
+ * Defaults the font face to be the number font.
+ */
+Sprite_ActorValue.prototype.fontFace = function()
+{
+  return $gameSystem.numberFontFace();
+};
+//endregion Sprite_ActorValue
+
+//region Sprite_StateTimer
+/**
+ * A sprite that displays some the remaining duration for a state in seconds with one decimal point.
+ */
+function Sprite_StateTimer()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_StateTimer.prototype = Object.create(Sprite.prototype);
+Sprite_StateTimer.prototype.constructor = Sprite_StateTimer;
+Sprite_StateTimer.prototype.initialize = function(stateData)
+{
+  Sprite.prototype.initialize.call(this);
+  this.initMembers(stateData);
+  this.loadBitmap();
+}
+
+/**
+ * Initializes the properties associated with this sprite.
+ * @param {object} stateData The state data associated with this sprite.
+ */
+Sprite_StateTimer.prototype.initMembers = function(stateData)
+{
+  this._j = {};
+  this._j._stateData = stateData;
+};
+
+/**
+ * Loads the bitmap into the sprite.
+ */
+Sprite_StateTimer.prototype.loadBitmap = function()
+{
+  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+  this.bitmap.fontFace = this.fontFace();
+  this.bitmap.fontSize = this.fontSize();
+  this.bitmap.drawText(
+    this._j._text,
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+}
+
+Sprite_StateTimer.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+  this.updateCooldownText();
+};
+
+Sprite_StateTimer.prototype.updateCooldownText = function()
+{
+  this.bitmap.clear();
+  const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
+
+  this.bitmap.drawText(
+    durationRemaining.toString(),
+    0, 0,
+    this.bitmapWidth(), this.bitmapHeight(),
+    "center");
+};
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_StateTimer.prototype.bitmapWidth = function()
+{
+  return 40;
+};
+
+/**
+ * Determines the width of the bitmap accordingly to the length of the string.
+ */
+Sprite_StateTimer.prototype.bitmapHeight = function()
+{
+  return this.fontSize() * 3;
+};
+
+/**
+ * Determines the font size for text in this sprite.
+ */
+Sprite_StateTimer.prototype.fontSize = function()
+{
+  return $gameSystem.mainFontSize() - 10;
+};
+
+/**
+ * determines the font face for text in this sprite.
+ */
+Sprite_StateTimer.prototype.fontFace = function()
+{
+  return $gameSystem.numberFontFace();
+};
+//endregion Sprite_StateTimer
+
+//region Window_PartyFrame
 /**
  * A window containing the HUD data for the map.
  */
@@ -331,7 +543,7 @@ class Window_PartyFrame extends Window_Base
   {
     // required when extending a base class.
     super(rect);
-  };
+  }
 
   /**
    * Initializes this class.
@@ -350,7 +562,7 @@ class Window_PartyFrame extends Window_Base
 
     // refresh the window for the first time.
     this.refresh();
-  };
+  }
 
   /**
    * Initialize all properties of this class.
@@ -362,7 +574,7 @@ class Window_PartyFrame extends Window_Base
      * @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon>}
      */
     this._hudSprites = new Map();
-  };
+  }
 
   /**
    * Performs the one-time setup and configuration per instantiation.
@@ -374,7 +586,7 @@ class Window_PartyFrame extends Window_Base
 
     // initialize the cache.
     this.refreshCache();
-  };
+  }
 
   /**
    * Redraw all contents of the window.
@@ -389,7 +601,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw the hud anew.
     this.drawHud();
-  };
+  }
 
   /**
    * Hide all sprites for the hud.
@@ -409,9 +621,9 @@ class Window_PartyFrame extends Window_Base
         sprite.deactivateGauge();
       }
     });
-  };
+  }
 
-  //#region caching
+  //region caching
   /**
    * Empties and recreates the entire cache of sprites.
    */
@@ -422,7 +634,7 @@ class Window_PartyFrame extends Window_Base
 
     // recreate all sprites for the cache.
     this.createCache();
-  };
+  }
 
   /**
    * Empties the cache of all sprites.
@@ -434,7 +646,7 @@ class Window_PartyFrame extends Window_Base
 
     // empty the collection of all references.
     this._hudSprites.clear();
-  };
+  }
 
   /**
    * Creates all sprites for this hud and caches them.
@@ -466,7 +678,7 @@ class Window_PartyFrame extends Window_Base
         this.getOrCreateActorValueSprite(actor, gaugeType);
       });
     });
-  };
+  }
 
   /**
    * Creates the key for an actor's face sprite based on the parameters.
@@ -479,7 +691,7 @@ class Window_PartyFrame extends Window_Base
     return isFull
       ? `face-full-${actor.name()}-${actor.actorId()}`
       : `face-mini-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates a full-sized face sprite for the given actor and caches it.
@@ -502,8 +714,8 @@ class Window_PartyFrame extends Window_Base
     const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
 
     // set the scale to a fixed 80%.
-    sprite.scale.x = 0.8;
-    sprite.scale.y = 0.8;
+    sprite.scale.x = 1;
+    sprite.scale.y = 1;
 
     // cache the sprite.
     this._hudSprites.set(key, sprite);
@@ -516,7 +728,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created full sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates a mini-sized face sprite for the given actor and caches it.
@@ -553,7 +765,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created mini sprite.
     return sprite;
-  };
+  }
 
   /**
    * An array of all gauge types; for convenience.
@@ -567,7 +779,7 @@ class Window_PartyFrame extends Window_Base
       Window_PartyFrame.gaugeTypes.TP,
       Window_PartyFrame.gaugeTypes.XP
     ];
-  };
+  }
 
   /**
    * Creates the key for an actor's gauge sprite based on the parameters.
@@ -580,7 +792,7 @@ class Window_PartyFrame extends Window_Base
   {
     const gaugeSize = isFull ? `full` : `mini`;
     return `gauge-${gaugeType}-${gaugeSize}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Determines the gauge height based on the gauge type.
@@ -602,7 +814,7 @@ class Window_PartyFrame extends Window_Base
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates a full-sized gauge sprite for the given actor and caches it.
@@ -648,7 +860,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Determines the gauge height based on the gauge type.
@@ -670,7 +882,7 @@ class Window_PartyFrame extends Window_Base
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates a mini-sized gauge sprite for the given actor and caches it.
@@ -716,7 +928,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for an actor's gauge value sprite based on the parameters.
@@ -727,7 +939,7 @@ class Window_PartyFrame extends Window_Base
   makeValueSpriteKey(actor, gaugeType)
   {
     return `value-${gaugeType}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates a actor value sprite for the given actor's gauge and caches it.
@@ -767,7 +979,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Determines the font size for the actor value based on the gauge type.
@@ -779,19 +991,19 @@ class Window_PartyFrame extends Window_Base
     switch (gaugeType)
     {
       case Window_PartyFrame.gaugeTypes.HP:
-        return -10;
+        return -4;
       case Window_PartyFrame.gaugeTypes.MP:
-        return -12;
-      case Window_PartyFrame.gaugeTypes.TP:
-        return -14;
-      case Window_PartyFrame.gaugeTypes.XP:
-        return -12;
-      case Window_PartyFrame.gaugeTypes.Level:
         return -6;
+      case Window_PartyFrame.gaugeTypes.TP:
+        return -10;
+      case Window_PartyFrame.gaugeTypes.XP:
+        return -6;
+      case Window_PartyFrame.gaugeTypes.Level:
+        return 2;
       default:
         throw new Error(`Please use a valid gauge type from the list.`);
     }
-  };
+  }
 
   /**
    * Creates the key for an actor's state affliction.
@@ -802,7 +1014,7 @@ class Window_PartyFrame extends Window_Base
   makeStateIconSpriteKey(actor, stateId)
   {
     return `state-${stateId}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates an icon sprite for a given state.
@@ -839,7 +1051,7 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
+  }
 
   /**
    * Creates the key for an actor's state affliction.
@@ -850,12 +1062,12 @@ class Window_PartyFrame extends Window_Base
   makeStateTimerSpriteKey(actor, stateId)
   {
     return `timer-${stateId}-${actor.name()}-${actor.actorId()}`;
-  };
+  }
 
   /**
    * Creates the timer sprite for a given state.
    * @param {Game_Actor} actor The actor to draw the state data for.
-   * @param {JABS_TrackedState} trackedState The tracked state data for this state.
+   * @param {JABS_State} trackedState The tracked state data for this state.
    * @returns {Sprite_StateTimer} The state timer sprite.
    */
   getOrCreateStateTimer(actor, trackedState)
@@ -884,8 +1096,8 @@ class Window_PartyFrame extends Window_Base
 
     // return the created sprite.
     return sprite;
-  };
-  //#endregion caching
+  }
+  //endregion caching
 
   /**
    * The per-frame update of this window.
@@ -897,7 +1109,7 @@ class Window_PartyFrame extends Window_Base
 
     // update our stuff.
     this.drawHud();
-  };
+  }
 
   /**
    * Draws the contents of the HUD.
@@ -911,16 +1123,19 @@ class Window_PartyFrame extends Window_Base
     this.manageVisibility();
 
     // draw the leader data.
-    this.drawLeader(8, 8);
+    const leaderX = 0;
+    const leaderY = 0;
+    this.drawLeader(leaderX, leaderY);
 
     // if we cannot draw your allies, then do not.
     if (!$hudManager.canShowAllies()) return;
 
     // draw all allies' data.
-    this.drawAllies(136, 8);
-  };
+    const alliesY = this.height - ImageManager.faceHeight - (this.lineHeight() + 12);
+    this.drawAllies(leaderX, alliesY);
+  }
 
-  //#region visibility
+  //region visibility
   /**
    * Manages visibility for the hud.
    */
@@ -941,7 +1156,7 @@ class Window_PartyFrame extends Window_Base
       // undo the opacity changes.
       this.revertInterferenceOpacity();
     }
-  };
+  }
 
   /**
    * Close and open the window based on whether or not the message window is up.
@@ -949,17 +1164,17 @@ class Window_PartyFrame extends Window_Base
   handleMessageWindowInterference()
   {
     // check if the message window is up.
-    if ($gameMessage.isBusy())
+    if ($gameMessage.isBusy() || $gameMap.isEventRunning())
     {
       // check to make sure we haven't closed this window yet.
       if (!this.isClosed())
       {
         // hide all the sprites.
         this.hideSprites();
-      }
 
-      // and close the window.
-      this.close();
+        // and close the window.
+        this.close();
+      }
     }
     // otherwise, the message window isn't there.
     else
@@ -967,7 +1182,7 @@ class Window_PartyFrame extends Window_Base
       // just open the window.
       this.open();
     }
-  };
+  }
 
   /**
    * Determines whether or not the player is in the way (or near it) of this window.
@@ -977,8 +1192,8 @@ class Window_PartyFrame extends Window_Base
   {
     const playerX = $gamePlayer.screenX();
     const playerY = $gamePlayer.screenY();
-    return (playerX < this.width+100) && (playerY < this.height+100);
-  };
+    return (playerX < (this.width - 100)) && (playerY > (this.y + 200));
+  }
 
   /**
    * Manages opacity for all sprites while the player is interfering with the visibility.
@@ -992,7 +1207,7 @@ class Window_PartyFrame extends Window_Base
       // if we are below 64, increment by +1 until we get to 64.
       else if (sprite.opacity < 64) sprite.opacity += 1;
     });
-  };
+  }
 
   /**
    * Reverts the opacity changes associated with the player getting in the way.
@@ -1006,8 +1221,8 @@ class Window_PartyFrame extends Window_Base
       // if we are above 255, set to 255.
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
-  };
-  //#endregion visibility
+  }
+  //endregion visibility
 
   /**
    * Draw the leader's data for the HUD.
@@ -1020,14 +1235,25 @@ class Window_PartyFrame extends Window_Base
     if (!$gameParty.leader()) return;
 
     // draw the face for the leader.
-    this.drawLeaderFace(x, y);
+    const faceY = y + (this.height - ImageManager.faceHeight);
+    this.drawLeaderFace(x, faceY);
 
-    // draw the gauges for the leader.
-    this.drawLeaderGauges(x, y+120);
+    // render the resource gauges: hp/mp/tp.
+    const gaugesX = x + ImageManager.faceWidth;
+    const gaugeHeight = 16;
+    const gaugesY = this.height - (gaugeHeight * 3);
+    this.drawLeaderResourceGauges(gaugesX, gaugesY);
+
+    // render the extraneous gauges: just experience.
+    const extraneousX = x + 12;
+    const extraneousY = faceY;
+    this.drawLeaderExtraneousGauges(extraneousX, extraneousY);
 
     // draw states for the leader.
-    this.drawStates();
-  };
+    const statesX = gaugesX;
+    const statesY = gaugesY - (ImageManager.iconHeight * 2) - 24;
+    this.drawStates(statesX, statesY);
+  }
 
   /**
    * Draw the leader's face.
@@ -1043,14 +1269,9 @@ class Window_PartyFrame extends Window_Base
     const sprite = this.getOrCreateFullSizeFaceSprite(leader);
     sprite.move(x, y);
     sprite.show();
-  };
+  }
 
-  /**
-   * Draws all gauges for the leader into the hud.
-   * @param {number} x The x coordinate.
-   * @param {number} oy The origin y coordinate.
-   */
-  drawLeaderGauges(x, oy)
+  drawLeaderResourceGauges(x, y)
   {
     // grab the leader of the party.
     const leader = $gameParty.leader();
@@ -1061,57 +1282,64 @@ class Window_PartyFrame extends Window_Base
     // locate the hp gauge.
     const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x-24, oy);
+    hpGauge.move(x-24, y);
     hpGauge.show();
 
     // locate the hp numbers.
     const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.HP);
-    hpNumbers.move(x, oy);
+    hpNumbers.move(x, y);
     hpNumbers.show();
 
     // grab and locate the sprite.
     const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x-24, oy + lh-2 - mpGauge.bitmapHeight());
+    mpGauge.move(x-24, y + lh-2 - mpGauge.bitmapHeight());
     mpGauge.show();
 
     // locate the mp numbers.
     const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.MP);
-    mpNumbers.move(x, oy+19);
+    mpNumbers.move(x, y+19);
     mpNumbers.show();
 
     // grab and locate the sprite.
     const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x-24, oy+46-tpGauge.bitmapHeight());
+    tpGauge.move(x-24, y+46-tpGauge.bitmapHeight());
     tpGauge.show();
 
     // locate the tp numbers.
     const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.TP);
-    tpNumbers.move(x, oy+33);
+    tpNumbers.move(x, y+33);
     tpNumbers.show();
+  }
+
+  drawLeaderExtraneousGauges(x, y)
+  {
+    // grab the leader of the party.
+    const leader = $gameParty.leader();
 
     // grab and locate the xp gauge.
+    const xpY = y;
     const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
-    xpGauge.move(x+5, 8);
+    xpGauge.move(x+5, xpY);
     xpGauge.show();
 
     // locate the xp numbers.
     const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.XP);
-    xpNumbers.move(x, 8);
+    xpNumbers.move(x, xpY);
     xpNumbers.show();
 
     // locate the level numbers.
     const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
-    levelNumbers.move(x+84, oy-24);
+    levelNumbers.move(x+84, xpY);
     levelNumbers.show();
-  };
+  }
 
   /**
    * Draw all states for the leader of the party.
    */
-  drawStates()
+  drawStates(x, y)
   {
     // grab the leader.
     const leader = $gameParty.leader();
@@ -1125,30 +1353,32 @@ class Window_PartyFrame extends Window_Base
     // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      // grab all the states and sort them into negative/positive buckets.
-      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
-      const positiveStates = trackedStates.filter(this.filterPositiveStates);
-      const negativeStates = trackedStates.filter(this.filterNegativeStates);
+      // shorthand the leader's uuid for retrieving data.
+      const uuid = leader.getUuid();
+
+      // grab the positive and negative states for rendering.
+      const positiveStates = $jabsEngine.getPositiveJabsStatesByUuid(uuid);
+      const negativeStates = $jabsEngine.getNegativeJabsStatesByUuid(uuid);
 
       // iterate over all the negative states and draw them.
       negativeStates.forEach((negativeTrackedState, index) =>
       {
         // draw the negative state onto the hud.
-        const x = 8 + (index * (ImageManager.iconWidth + 2));
-        const y = 180;
-        this.drawState(leader, negativeTrackedState, x, y);
+        const negativeX = x + (index * (ImageManager.iconWidth + 2));
+        const negativeY = y;
+        this.drawState(leader, negativeTrackedState, negativeX, negativeY);
       });
 
       // iterate over all the positive states and draw them.
       positiveStates.forEach((positiveTrackedState, index) =>
       {
         // draw the positive state onto the hud.
-        const x = 8 + (index * (ImageManager.iconWidth + 2));
-        const y = 230;
-        this.drawState(leader, positiveTrackedState, x, y);
+        const positiveX = x + (index * (ImageManager.iconWidth + 2));
+        const positiveY = y + (ImageManager.iconHeight + 8);
+        this.drawState(leader, positiveTrackedState, positiveX, positiveY);
       });
     }
-  };
+  }
 
   /**
    * Hides all expired states on the leader.
@@ -1159,15 +1389,21 @@ class Window_PartyFrame extends Window_Base
     // the states deal only applies to JABS, sorry!
     if (J.ABS)
     {
-      const trackedStates = $jabsEngine.getStateTrackerByBattler(leader);
-      trackedStates.forEach(trackedState =>
+      // grab all of this battler's states.
+      const jabsStates = $jabsEngine.getJabsStatesByUuid(leader.getUuid());
+
+      // convert them to a proper array.
+      const states = Array.from(jabsStates.values());
+
+      // iterate over each state to hide them as-needed.
+      states.forEach(state =>
       {
         // if the tracked state isn't expired, don't bother.
-        if (!trackedState.isExpired()) return;
+        if (!state.expired) return;
 
         // make the keys for the sprites in question.
-        const iconKey = this.makeStateIconSpriteKey(leader, trackedState.stateId);
-        const timerKey = this.makeStateTimerSpriteKey(leader, trackedState.stateId);
+        const iconKey = this.makeStateIconSpriteKey(leader, state.stateId);
+        const timerKey = this.makeStateTimerSpriteKey(leader, state.stateId);
 
         // skip trying if they don't exist.
         if (!this._hudSprites.has(iconKey) || !this._hudSprites.has(timerKey)) return;
@@ -1181,48 +1417,12 @@ class Window_PartyFrame extends Window_Base
         timerSprite.hide();
       });
     }
-  };
-
-  /**
-   * The filter function for determining positive states.
-   * @param {JABS_TrackedState} trackedState The state to categorize.
-   * @returns {boolean} True if it is positive, false otherwise.
-   */
-  filterPositiveStates(trackedState)
-  {
-    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
-
-    const state = trackedState.battler.state(trackedState.stateId);
-    if (state.jabsNegative)
-    {
-      return false
-    }
-
-    return true;
-  };
-
-  /**
-   * The filter function for determining negative states.
-   * @param {JABS_TrackedState} trackedState The state to categorize.
-   * @returns {boolean} True if it is negative, false otherwise.
-   */
-  filterNegativeStates(trackedState)
-  {
-    if (trackedState.isExpired() || trackedState.stateId === 1) return false;
-
-    const state = trackedState.battler.state(trackedState.stateId);
-    if (state.jabsNegative)
-    {
-      return true;
-    }
-
-    return false;
-  };
+  }
 
   /**
    * Draws a single state onto the hud.
    * @param {Game_Actor} actor The actor to draw the state for.
-   * @param {JABS_TrackedState} trackedState The state afflicted on the character to draw.
+   * @param {JABS_State} trackedState The state afflicted on the character to draw.
    * @param {number} ox The origin x coordinate.
    * @param {number} y The y coordinate.
    */
@@ -1235,7 +1435,7 @@ class Window_PartyFrame extends Window_Base
     const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
     timerSprite.move(ox-4, y+20);
     timerSprite.show();
-  };
+  }
 
   /**
    * Draw all allies data for the hud.
@@ -1253,11 +1453,13 @@ class Window_PartyFrame extends Window_Base
       // the leader is always index 0, and they are being drawn separately.
       if (index === 0) return;
 
+      const adjustedIndex = index - 1;
+
       // draw the ally at the designated coordinates.
-      const y = oy + lh*(index-1);
+      const y = oy - (lh * adjustedIndex);
       this.drawAlly(ally, x, y);
     });
-  };
+  }
 
   /**
    * Draws a single ally's data for the hud.
@@ -1272,7 +1474,7 @@ class Window_PartyFrame extends Window_Base
 
     // draw the ally's mini gauges.
     this.drawAllyGauges(ally, x+40, oy+6);
-  };
+  }
 
   /**
    * Draws a single ally's mini face for the hud.
@@ -1286,7 +1488,7 @@ class Window_PartyFrame extends Window_Base
     const sprite = this.getOrCreateMiniSizeFaceSprite(ally);
     sprite.move(x, y);
     sprite.show();
-  };
+  }
 
   /**
    * Draws a single ally's mini gauges.
@@ -1316,12 +1518,6 @@ class Window_PartyFrame extends Window_Base
     tpGauge.activateGauge();
     tpGauge.move(x-24, oy + lh*2);
     tpGauge.show();
-  };
+  }
 }
-//#endregion Window_PartyFrame
-//#endregion Window objects
-
-//#region Custom objects
-
-//#endregion Custom objects
-//ENDOFFILE
+//endregion Window_PartyFrame
