@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jan 14 2023 10:30:23 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:01 GMT-0700 (Pacific Daylight Time)  */
 
 //region annotations
 /*:
@@ -428,7 +428,7 @@ Game_Actor.prototype.performMapDamage = function()
 
   // always show an animation if taking damage.
   // TODO: add a tag for this when you need non-poison floors, ex: lava.
-  $gamePlayer.requestAnimation(59, false);
+  $gamePlayer.requestAnimation(59);
 };
 
 /**

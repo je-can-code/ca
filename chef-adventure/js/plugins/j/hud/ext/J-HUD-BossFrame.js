@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sat Jan 07 2023 11:45:16 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:02 GMT-0700 (Pacific Daylight Time)  */
 
 //region introduction
 /*:
@@ -22,6 +22,10 @@
  * JABS. It generates a window on the map displaying a single target at a much
  * bigger scale than the J-HUD-TargetFrame does.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 
 /**
@@ -33,7 +37,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.2';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
