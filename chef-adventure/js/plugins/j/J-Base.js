@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Sun Jan 29 2023 09:05:21 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:02 GMT-0700 (Pacific Daylight Time)  */
 
 //region Introduction
 /*:
@@ -1446,12 +1446,15 @@ class RPG_Base
     let val = 0;
 
     // establish a variable to be used as "a" in the formula- the battler.
+    // eslint-disable-next-line no-unused-vars
     const a = context;
 
     // establish a variable to be used as "b" in the formula- the base parameter value.
+    // eslint-disable-next-line no-unused-vars
     const b = baseParam;
 
     // establish a variable to be used as "v" in the formula- access to variables if needed.
+    // eslint-disable-next-line no-unused-vars
     const v = $gameVariables._data;
 
     // iterate over each valid line of the note.

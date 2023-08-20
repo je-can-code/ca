@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:02 GMT-0700 (Pacific Daylight Time)  */
 
 //region introduction
 /*:
@@ -1566,10 +1566,19 @@ Scene_Map.prototype.buildTargetFrameWindow = function()
  */
 Scene_Map.prototype.targetFrameWindowRect = function()
 {
+  // define the width of the window.
   const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
+
+  // define the height of the window.
   const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
+
+  // define the origin x of the window.
   const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
+
+  // define the origin y of the window.
   const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
 

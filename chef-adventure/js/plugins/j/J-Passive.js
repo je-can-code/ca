@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:02 GMT-0700 (Pacific Daylight Time)  */
 
 //region Introduction
 /*:
@@ -676,7 +676,9 @@ Game_Battler.prototype.addPassiveStateId = function(stateId, allowDuplicates = t
 Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 {
   // if we don't allow duplicates and already are have this stateId, then don't add it.
-  if (!allowDuplicates && this.getPassiveStateIds().has(stateId)) return false;
+  if (!allowDuplicates && this.getPassiveStateIds().includes(stateId)) return false;
+
+  // TODO: check for blacklisted ids as well.
 
   // we can add this stateId!
   return true;
@@ -689,19 +691,6 @@ Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 Game_Battler.prototype.getPassiveStates = function()
 {
   return this.getPassiveStateIds().map(this.state, this);
-};
-
-/**
- * Adds a state to the passive state cache of converted passive state ids.
- * @param {RPG_State} state The passive state.
- */
-Game_Battler.prototype.addPassiveState = function(state)
-{
-  // grab all the current cached passive states.
-  const cachedPassiveStates = this.getPassiveStates();
-
-  // add the given state to the cache.
-  cachedPassiveStates.push(state);
 };
 
 /**

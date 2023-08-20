@@ -1,4 +1,4 @@
-/*  BUNDLED TIME: Thu Dec 29 2022 14:33:03 GMT-0800 (Pacific Standard Time)  */
+/*  BUNDLED TIME: Sun Aug 20 2023 10:09:02 GMT-0700 (Pacific Daylight Time)  */
 
 //region introduction
 /*:
@@ -450,6 +450,7 @@ class Hud_Manager
     this.#setRequestHideHud(true);
   }
 
+  //region refresh
   /**
    * Issue a request to refresh the hud.
    */
@@ -499,7 +500,9 @@ class Hud_Manager
   {
     this.#setRequestRefreshImageCache(false);
   }
+  //endregion refresh
 
+  //region target frame
   /**
    * Whether or not we have a request to assign a new target to the target frame.
    * @returns {boolean} True if we have a request, false otherwise.
@@ -560,7 +563,9 @@ class Hud_Manager
   {
     this.setNewTarget(null);
   }
+  //endregion target frame
 
+  //region input frame
   /**
    * Issue a request to refresh the input frame.
    */
@@ -585,6 +590,7 @@ class Hud_Manager
   {
     this.#setRequestRefreshInputFrame(false);
   }
+  //endregion input frame
 
   //region private functions
   /**
@@ -975,7 +981,7 @@ class Window_Frame extends Window_Base
     /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_Text|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string, Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
     /* eslint-enable max-len */
