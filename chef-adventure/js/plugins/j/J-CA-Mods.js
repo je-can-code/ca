@@ -25,13 +25,12 @@
  *
  * ============================================================================
  * SYSTEM CHANGES:
- * - force devtools window to open on system boot
  * - variable assignment for tracking a wide variety of battle data points
- * - additional accessory for all actors (as accessory)
+ * - additional equip slot for all actors (as accessory)
  * - "recover all" recovers TP too
  * - prevent passage on tileset terrain id 1
  * - random variable assignment for "rare/named enemies" on map transfer
- * - removal of touch buttons from base and map scenes
+ * - removal of touch buttons from base/map/menu scenes
  *
  * ----------------------------------------------------------------------------
  * CA-UNIQUE CHANGES:
@@ -105,7 +104,7 @@ J.CAMods.Aliased.Scene_Boot = new Map();
 
 //region JABS_Battler
 /**
- * Extends {@link #getTargetFrameText}.
+ * Extends {@link #getTargetFrameText}.<br>
  * If no text was provided for the target, instead autogenerate some text based on their traits.
  * The "traits" are defined by arbitrary CA-specific elements, so this can't live in the
  * target frame plugin, or the monsterpedia plugin.
@@ -184,7 +183,7 @@ JABS_Engine.prototype.addLootDropToMap = function(targetX, targetY, item)
   const modifiedTargetY = targetY + 1;
   
   // perform original logic.
-  J.CAMods.Aliased.JABS_Engine.get('addLootDropToMap').call(this, targetX, modifiedTargetY, item);
+  return J.CAMods.Aliased.JABS_Engine.get('addLootDropToMap').call(this, targetX, modifiedTargetY, item);
 };
 
 /**
@@ -212,7 +211,7 @@ JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
 };
 
 /**
- * Extends {@link #handleDefeatedPlayer}.
+ * Extends {@link #handleDefeatedPlayer}.<br>
  * Also tracks player defeated count.
  */
 J.CAMods.Aliased.JABS_Engine.set('handleDefeatedPlayer', JABS_Engine.prototype.handleDefeatedPlayer);
@@ -226,7 +225,7 @@ JABS_Engine.prototype.handleDefeatedPlayer = function()
 };
 
 /**
- * Extends {@link #postExecuteSkillEffects}.
+ * Extends {@link #postExecuteSkillEffects}.<br>
  * Also tracks our combat data in variables.
  * @param {JABS_Action} action The action being executed.
  * @param {JABS_Battler} target The target to apply skill effects against.
@@ -338,7 +337,7 @@ JABS_Engine.prototype.trackDefensiveData = function(target)
 };
 
 /**
- * Extends {@link #executeMapAction}.
+ * Extends {@link #executeMapAction}.<br>
  * Also tracks action execution data.
  * @param {JABS_Battler} caster The battler executing the action.
  * @param {JABS_Action} action The action being executed.
@@ -387,7 +386,7 @@ JABS_Engine.prototype.trackActionData = function(action)
 
 //region Game_Action
 /**
- * Implements {@link #getAntiNullElementIds}.
+ * Implements {@link #getAntiNullElementIds}.<br>
  * In CA, these elementIds define tools, which should be considered regardless.
  */
 Game_Action.prototype.getAntiNullElementIds = function()
@@ -398,7 +397,7 @@ Game_Action.prototype.getAntiNullElementIds = function()
 
 //region Game_Actor
 /**
- * Extends {@link #equipSlots}.
+ * Extends {@link #equipSlots}.<br>
  * Adds a duplicate of the 5th type (accessory).
  */
 J.CAMods.Aliased.Game_Actor.set("equipSlots", Game_Actor.prototype.equipSlots);
@@ -415,7 +414,7 @@ Game_Actor.prototype.equipSlots = function()
 };
 
 /**
- * Overwrites {@link #performMapDamage}.
+ * Overrides {@link #performMapDamage}.<br>
  * Forces the map damage flash to always happen because JABS is always in-battle.
  * Also shows an animation on the player when they take damage.
  */
@@ -430,7 +429,7 @@ Game_Actor.prototype.performMapDamage = function()
 };
 
 /**
- * Extends {@link #basicFloorDamage}.
+ * Extends {@link #basicFloorDamage}.<br>
  * Replaces logic if there is a $dataMap available with calculated damage instead.
  */
 J.CAMods.Aliased.Game_Actor.set("basicFloorDamage", Game_Actor.prototype.basicFloorDamage);
@@ -540,7 +539,7 @@ Game_Actor.prototype.refreshAutoEquippedSkills = function()
 
 //region Game_BattlerBase
 /**
- * Extends {@link #recoverAll}.
+ * Extends {@link #recoverAll}.<br>
  * Using the event command for "Recover All" also restores all TP to the battler.
  */
 J.CAMods.Aliased.Game_BattlerBase.set('recoverAll', Game_BattlerBase.prototype.recoverAll);
@@ -579,7 +578,7 @@ Game_Enemy.prototype.dropSources = function()
 
 //region Game_Map
 /**
- * Overwrites {@link #checkPassage}.
+ * Overrides {@link #checkPassage}.<br>
  * Disables the ability to walk over tiles with the terrain ID of 1.
  * In practice, this prevents battlers from getting knocked into otherwise
  * unreachable locations, like what is supposed to be ceiling tiles.
@@ -632,7 +631,7 @@ Game_Map.prototype.checkPassage = function(x, y, bit)
 };
 
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Upon map initialization, assigns a random integer between 1-100 to an arbitrary variable.
  * In CA, this value is used to determine the presence of "rare/named" monsters on the map.
  */
@@ -668,7 +667,7 @@ Game_Party.prototype.extraDropSources = function()
 
 //region Scene_Base
 /**
- * Overwrites {@link #buttonAreaHeight}.
+ * Overrides {@link #buttonAreaHeight}.<br>
  * Sets the button height to 0- they are not used in CA.
  * @returns {number}
  */
@@ -678,7 +677,7 @@ Scene_Base.prototype.buttonAreaHeight = function()
 };
 
 /**
- * Overwrites {@link #createButtons}.
+ * Overrides {@link #createButtons}.<br>
  * Removes logic for button creation- they are not used in CA.
  */
 Scene_Base.prototype.createButtons = function()
@@ -686,31 +685,22 @@ Scene_Base.prototype.createButtons = function()
 };
 //endregion Scene_Base
 
-//region Scene_Boot
-/**
- * Extends {@link #start}.
- * Also shows the devtools window because I need that to do dev things.
- */
-J.CAMods.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
-Scene_Boot.prototype.start = function()
-{
-  // perform original logic.
-  J.CAMods.Aliased.Scene_Boot.get('start').call(this);
-
-  // show the dev tools automatically.
-  SceneManager.showDevTools();
-
-  // set a timer for after the devtools has loaded to focus the game window.
-  setTimeout(() => nw.Window.get().focus(), 1000);
-};
-//endregion Scene_Boot
-
 //region Scene_Map
 /**
- * Overwrites {@link #createButtons}.
+ * Overrides {@link #createButtons}.<br>
  * Removes logic for button creation- they are not used in CA.
  */
 Scene_Map.prototype.createButtons = function()
 {
 };
 //endregion Scene_Map
+
+//region Scene_MenuBase
+/**
+ * Overrides {@link #createButtons}.<br>
+ * Removes logic for button creation- those are not allowed here.
+ */
+Scene_MenuBase.prototype.createButtons = function()
+{
+};
+//endregion Scene_MenuBase

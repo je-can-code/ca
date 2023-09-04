@@ -1,22 +1,76 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 UTIL] Various system utilities.
+ * [v1.1.0 UTIL] Various system utilities.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
  * @help
  * ============================================================================
- * A small set of system utility functions.
+ * OVERVIEW:
+ * This plugin provides a small set of system utility functions that may or
+ * may not be helpful to all users.
+ *
+ * NEW FUNCTIONS:
  * - F6 toggles all sound on/off.
- * - autostart newgame on testplay.
+ * - autostart newgame on testplay (when plugin parameter enabled).
+ * - pull up devtools window in background upon testplay (always).
  * ============================================================================
- * @param autoNewgame
+ * CHANGELOG:
+ * - 1.1.0
+ *    Implements strongly-typed plugin metadata.
+ *    Added "pull up devtools upon testplay" functionality.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
+ * @param autostart-newgame
  * @type boolean
- * @text Auto-Newgame
+ * @text Autostart Newgame
  * @desc Automatically start a new game when playtesting the game.
  * @default true
+ *
+ * @param autoload-devtools
+ * @type boolean
+ * @text Autoload Devtools
+ * @desc Automatically load the devtools console when playtesting the game.
+ * @default true
  */
+
+//region plugin metadata
+class J_UtilsPluginMetadata extends PluginMetadata
+{
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+
+  /**
+   *  Extends {@link #postInitialize}.<br>
+   *  Includes translation of plugin parameters.
+   */
+  postInitialize()
+  {
+    // execute original logic.
+    super.postInitialize();
+
+
+    /**
+     * Whether or not to use the "auto-newgame" feature.
+     * @type {boolean}
+     */
+    this.autostartNewgame = this.parsedPluginParameters['autostart-newgame'] === 'true';
+
+    /**
+     * Whether or not to use the "auto-newgame" feature.
+     * @type {boolean}
+     */
+    this.autoloadDevtools = this.parsedPluginParameters['autoload-devtools'] === 'true';
+  }
+}
+//endregion plugin metadata
 
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -29,30 +83,9 @@ var J = J || {};
 J.UTILS = {};
 
 /**
- * The `metadata` associated with this plugin, such as version.
+ * The metadata associated with this plugin, such as name and version.
  */
-J.UTILS.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-SystemUtilities`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
-
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.UTILS.PluginParameters = PluginManager.parameters(J.UTILS.Metadata.Name);
-
-/**
- * Whether or not to use the "auto-newgame" feature.
- * @type {boolean}
- */
-J.UTILS.Metadata.AutoNewgame = J.UTILS.PluginParameters['autoNewgame'] === 'true';
+J.UTILS.Metadata = new J_UtilsPluginMetadata('J-SystemUtilities', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -82,6 +115,28 @@ J.UTILS.Helpers = {};
 J.UTILS.Helpers.depth = (o) =>
   Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTILS.Helpers.depth)) : 0;
 
+/**
+ * Overrides {@link Bitmap#_createCanvas}.<br>
+ * Adds an additional "willReadFrequently" attribute set to true on the canvas.
+ * This forces software-based rendering, which is supposedly optimal based
+ * on the way this code is written, according to Chromium's warning.
+ * @param {number} width The width in pixels of the canvas.
+ * @param {number} height The height in pixels of the canvas.
+ * @private
+ * @override
+ */
+Bitmap.prototype._createCanvas = function(width, height)
+{
+  this._canvas = document.createElement("canvas");
+
+  // applies the new attribute to change it to software rendering.
+  this._context = this._canvas.getContext("2d", { willReadFrequently: true });
+
+  this._canvas.width = width;
+  this._canvas.height = height;
+  this._createBaseTexture(this._canvas);
+};
+
 //region Input
 /**
  * Extends the existing mapper to track additional inputs.
@@ -97,7 +152,7 @@ Input.keyMapper =
 //endregion Input
 
 /**
- * Extends {@link Game_Actor.onLearnNewSkill}.
+ * Extends {@link Game_Actor.onLearnNewSkill}.<br>
  * Wraps the function so that if a new skill is learned, it'll echo to the console.
  */
 J.UTILS.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewSkill);
@@ -111,7 +166,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
 };
 
 /**
- * Extends {@link Game_Actor.onForgetSkill}.
+ * Extends {@link Game_Actor.onForgetSkill}.<br>
  * Wraps the function so that if a skill is forgotten, it'll echo back to the console.
  */
 J.UTILS.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetSkill);
@@ -126,7 +181,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId)
 
 /**
  * Now you can retrieve the player's battler from the player.
- * This is synonymous with {@link Game_Party.leader}.
+ * This is synonymous with {@link Game_Party.leader}.<br>
  * @returns {Game_Actor|null}
  */
 Game_Player.prototype.battler = function()
@@ -146,7 +201,7 @@ Game_Player.prototype.battler = function()
 };
 
 /**
- * Extends {@link Game_Temp.prototype.initMembers}.
+ * Extends {@link Game_Temp.prototype.initMembers}.<br>
  * Intializes all additional members of this class.
  */
 J.UTILS.Aliased.Game_Temp.set('initMembers', Game_Temp.prototype.initMembers);
@@ -280,8 +335,8 @@ Scene_Base.prototype.toggleVolume = function()
 J.UTILS.Aliased.Scene_Boot.set('startNormalGame', Scene_Boot.prototype.startNormalGame);
 Scene_Boot.prototype.startNormalGame = function()
 {
-  // if using the "auto-newgame" feature, then skip straight to a new game.
-  if (J.UTILS.Metadata.AutoNewgame)
+  // if using the "autostart-newgame" feature, then skip straight to a new game.
+  if (J.UTILS.Metadata.autostartNewgame)
   {
     this.checkPlayerLocation();
     DataManager.setupNewGame();
@@ -293,10 +348,31 @@ Scene_Boot.prototype.startNormalGame = function()
     J.UTILS.Aliased.Scene_Boot.get('startNormalGame').call(this);
   }
 };
+
+/**
+ * Extends {@link #start}.<br>
+ * Also shows the devtools window because I need that to do dev things.
+ */
+J.UTILS.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
+Scene_Boot.prototype.start = function()
+{
+  // perform original logic.
+  J.UTILS.Aliased.Scene_Boot.get('start').call(this);
+
+  // if using the "autoload-devtools" feature, then also load this up.
+  if (J.UTILS.Metadata.autoloadDevtools)
+  {
+    // show the dev tools automatically.
+    SceneManager.showDevTools();
+
+    // set a timer for after the devtools has loaded to focus the game window.
+    setTimeout(() => nw.Window.get().focus(), 1000);
+  }
+};
 //endregion Scene_Boot
 
 /**
- * OVERWRITES {@link Scene_Map.onMapTouch}.
+ * Overrides {@link Scene_Map.onMapTouch}.<br>
  * Disables auto-movement when clicking a tile on the map.
  * Logs event data of clicked events.
  */

@@ -91,6 +91,13 @@ J.OMNI.EXT.MONSTER.Metadata.Command.Symbol = "monster-pedia";
 J.OMNI.EXT.MONSTER.Metadata.Command.IconIndex = 14;
 
 /**
+ * The id of the switch that will represent whether or not the command
+ * should be visible in the Omnipedia menu.
+ * @type {number}
+ */
+J.OMNI.EXT.MONSTER.Metadata.EnabledSwitch = 103;
+
+/**
  * A collection of all aliased methods for this plugin.
  */
 J.OMNI.EXT.MONSTER.Aliased = {};
@@ -434,7 +441,7 @@ Game_Enemy.prototype.getMonsterPediaObservations = function()
 };
 
 /**
- * Extends {@link #onDeath}.
+ * Extends {@link #onDeath}.<br>
  * Also updates the monsterpedia observations for this enemy.
  */
 J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeath);
@@ -533,7 +540,7 @@ Game_Enemy.prototype.learnMonsterpediaParameters = function()
 };
 
 /**
- * Extends {@link #makeDropItems}.
+ * Extends {@link #makeDropItems}.<br>
  * Also observes each drop dropped for monsterpedia purposes.
  */
 J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.makeDropItems);
@@ -591,7 +598,7 @@ Game_Enemy.prototype.observeElement = function(elementId)
 
 //region Game_Party
 /**
- * Extends {@link #initOmnipediaMembers}.
+ * Extends {@link #initOmnipediaMembers}.<br>
  * Includes monsterpedia members.
  */
 J.OMNI.EXT.MONSTER.Aliased.Game_Party.set('initOmnipediaMembers', Game_Party.prototype.initOmnipediaMembers);
@@ -993,8 +1000,8 @@ class Scene_Monsterpedia extends Scene_MenuBase
   }
 
   /**
-   * Overwrites {@link Scene_MenuBase.prototype.createBackground}.
-   * Changes the filter to a different type from {@link PIXI.filters}.
+   * Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
+   * Changes the filter to a different type from {@link PIXI.filters}.<br>
    */
   createBackground()
   {
@@ -1241,7 +1248,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
 //region Scene_Omnipedia
 //region root actions
 /**
- * Extends {@link #onRootPediaSelection}.
+ * Extends {@link #onRootPediaSelection}.<br>
  * When the monsterpedia is selected, open the monsterpedia.
  */
 J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia.set('onRootPediaSelection', Scene_Omnipedia.prototype.onRootPediaSelection);
@@ -1617,7 +1624,7 @@ class Window_MonsterpediaDetail extends Window_Base
   //endregion image caching
 
   /**
-   * Extends {@link #clearContent}.
+   * Extends {@link #clearContent}.<br>
    * Also hides all cached images.
    */
   clearContent()
@@ -1633,7 +1640,7 @@ class Window_MonsterpediaDetail extends Window_Base
   }
 
   /**
-   * Implements {@link Window_Base.drawContent}.
+   * Implements {@link Window_Base.drawContent}.<br>
    * Draws a header and some detail for the omnipedia list header.
    */
   drawContent()
@@ -2362,7 +2369,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
 
     // grab the corresponding panel with this key.
-    const panel = $gameSystem.getSdpByKey(sdpKey);
+    const panel = $gameParty.getSdpByKey(sdpKey);
 
     // if there is no panel, then don't try to render it.
     if (!panel) return;
@@ -2701,7 +2708,7 @@ class Window_MonsterpediaList extends Window_Command
   }
 
   /**
-   * Implements {@link #makeCommandList}.
+   * Implements {@link #makeCommandList}.<br>
    * Creates the command list of omnipedia entries available for this window.
    */
   makeCommandList()
@@ -2807,7 +2814,7 @@ class Window_MonsterpediaList extends Window_Command
 //endregion Window_MonsterpediaList
 
 /**
- * Extends {@link #buildCommands}.
+ * Extends {@link #buildCommands}.<br>
  * Adds the monsterpedia command to the list of commands in the omnipedia.
  */
 J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.set('buildCommands', Window_OmnipediaList.prototype.buildCommands);
@@ -2841,6 +2848,9 @@ Window_OmnipediaList.prototype.buildCommands = function()
  */
 Window_OmnipediaList.prototype.canAddMonsterpediaCommand = function()
 {
+  // if the necessary switch isn't ON, don't render the command at all.
+  if (!$gameSwitches.value(J.OMNI.EXT.MONSTER.Metadata.EnabledSwitch)) return false;
+
   // add the command!
   return true;
 };

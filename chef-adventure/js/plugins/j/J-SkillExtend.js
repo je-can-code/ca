@@ -240,7 +240,7 @@ class OverlayManager
     // if we don't have a caster for some reason, don't process anything.
     if (!caster)
     {
-      console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.`);
+      console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.<br>`);
       return $dataSkills[skillId];
     }
 
@@ -989,7 +989,7 @@ class OverlayManager
 
 //region Game_Action
 /**
- * Overwrites {@link #setSkill}.
+ * Overrides {@link #setSkill}.<br>
  * If a caster is available to this action, then update the udnerlying skill with
  * the overlayed skill instead.
  */
@@ -1014,7 +1014,7 @@ Game_Action.prototype.setSkill = function(skillId)
 };
 
 /**
- * Overwrites {@link #setItemObject}.
+ * Overrides {@link #setItemObject}.<br>
  * If a caster is available to this action, then update the underlying item with the data.
  */
 J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
@@ -1035,7 +1035,7 @@ Game_Action.prototype.setItemObject = function(itemObject)
 };
 
 /**
- * Extends {@link #apply}.
+ * Extends {@link #apply}.<br>
  * Also applies on-hit states.
  */
 J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
@@ -1076,7 +1076,7 @@ Game_Action.prototype.onHitSelfStates = function()
 };
 
 /**
- * Extends {@link #applyItemUserEffect}.
+ * Extends {@link #applyItemUserEffect}.<br>
  * Also applies on-cast states.
  */
 J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.applyItemUserEffect);

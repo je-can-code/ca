@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.2 JABS] Enables combat to be carried out on the map.
+ * [v3.3.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -47,8 +47,8 @@
  *
  * CHANGELOG:
  * - 3.3.0
- *    Added ability to generate enemies on the map dynamically.
- *    Added ability to generate loot on the map dynamically.
+ *    Added plugin command to generate enemies on the map dynamically.
+ *    Added plugin command to generate loot on the map dynamically.
  *    Refactored away manual getter/setters of JABS_Engine.
  * - 3.2.2
  *    JABS quick menu now honors menu access via event control.
@@ -337,6 +337,22 @@
  * convenient tag!
  *    <jabsConfig:inanimate>
  *    <jabsConfig:notInanimate>
+ *
+ * ============================================================================
+ * FIRST TIME SETUP, THE ENEMY MAP:
+ * While you can create enemies on the map as much as your heart desires, it
+ * is also possible to dynamically generate enemies on-the-fly with plugin
+ * commands or script commands in events. If you hope to make use of this, you
+ * will need to define an "enemy clone map", aka a map of premade enemy events
+ * that are exclusively used by the plugin/script commands for spawning
+ * enemies, as the commands in question refer to enemyEventIds that would be
+ * derived from the "enemy clone map".
+ *
+ * NOTE:
+ * If you have zero chance of using this functionality, JABS will operate
+ * completely fine as long as the map defined as "enemy clone map" in the
+ * plugin configuration does indeed exist- just know that the dynamic spawning
+ * will be broken unless that map gets implemented as it was intended.
  *
  * ============================================================================
  * SETTING UP THE ENEMIES IN THE DATABASE:
@@ -1039,6 +1055,12 @@
  * locking the player on the map or forcing the item into the player's
  * inventory via eventing.
  *
+ * ----------------------------------------------------------------------------
+ * DYNAMICALLY SPAWNING LOOT:
+ * In addition to configuring the loot, if you so desire, one can also use
+ * plugin/script commands to dynamically generate and spawn loot at a specified
+ * location on the map. See the plugin commands for input parameter details.
+ *
  * ============================================================================
  * SETTING UP STATES:
  * States are obviously an important part of any good RPG! So naturally, when
@@ -1061,6 +1083,7 @@
  * ----------------------------------------------------------------------------
  * ROOTED:
  * A state with the "rooted" tag will lock the battler's movement.
+ * This includes Dodge skills for the player and allies.
  *    <rooted>
  *
  * ----------------------------------------------------------------------------
@@ -1859,7 +1882,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.2.2';
+J.ABS.Metadata.Version = '3.3.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2280,7 +2303,7 @@ J.ABS.RegExp = {
   PrepareTime: /<prepare:[ ]?([0-9]*)>/i,
 
   // bonus concepts.
-  VisionMultiplier: /<visionMultiplier:[ ]?(-?[\d]+)>/i,
+  VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
 
   // alert-related.
   AlertDuration: /<alertDuration:[ ]?([0-9]*)>/i,
@@ -3500,7 +3523,7 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
 
 //region JABS_AI
 /**
- * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.
+ * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.<br>
  */
 class JABS_AI
 {
@@ -7714,43 +7737,6 @@ JABS_Battler.prototype.setLastUsedSlot = function(slotKey)
 };
 
 /**
- * Gets all allies to this battler within a large range.
- * (Not map-wide because that could result in unexpected behavior)
- * @returns {JABS_Battler[]}
- */
-JABS_Battler.prototype.getAllNearbyAllies = function()
-{
-  return JABS_AiManager.getAlliedBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
-};
-
-/**
- * Gets the ally ai associated with this battler.
- * @returns {JABS_AllyAI}
- */
-JABS_Battler.prototype.getAllyAiMode = function()
-{
-  // enemies do not have ally ai.
-  if (this.isEnemy()) return null;
-
-  return this.getBattler().getAllyAI();
-};
-
-/**
- * Applies the battle memory to the battler.
- * Only applicable to allies (for now).
- * @param {JABS_BattleMemory} newMemory The new memory to apply to this battler.
- */
-JABS_Battler.prototype.applyBattleMemories = function(newMemory)
-{
-  // enemies do not (yet) track battle memories.
-  if (this.isEnemy()) return;
-
-  return this.getBattler()
-    .getAllyAI()
-    .applyMemory(newMemory);
-};
-
-/**
  * Gets the id of the battler associated with this battler
  * that has been assigned via the battler core data.
  * @returns {number}
@@ -7831,7 +7817,7 @@ JABS_Battler.prototype.getSkillIdsFromEnemy = function()
 };
 
 /**
- * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.
+ * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.<br>
  * @param {RPG_Skill} skill The skill being verified.
  * @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
  */
@@ -8550,7 +8536,7 @@ JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
     const log = new MapLogBuilder()
       .setupUsedLastItem(item.id)
       .build();
-    $gameTextLog.addLog(log);
+    $mapLogManager.addLog(log);
   }
   else
   {
@@ -8706,7 +8692,7 @@ JABS_Battler.prototype.createToolLog = function(item)
   const log = new MapLogBuilder()
     .setupUsedItem(this.getReferenceData().name, item.id)
     .build();
-  $gameTextLog.addLog(log);
+  $mapLogManager.addLog(log);
 };
 
 /**
@@ -9225,7 +9211,7 @@ JABS_Battler.prototype.changeCharacterSprite = function(skill)
   const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
 
   // stitch the file path together with the sprite url.
-  const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
+  const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.<br>png`;
 
   // check if the sprite exists.
   const spriteExists = StorageManager.fileExists(spritePath);
@@ -10822,7 +10808,7 @@ class JABS_EnemyAI extends JABS_AI
   }
 
   /**
-   * Overwrites {@link #aiComboChanceModifier}.
+   * Overrides {@link #aiComboChanceModifier}.<br>
    * Calculates the combo chance modifier based on the various AI traits that are
    * associated with this AI.
    * This is summed together with the {@link #baseComboChance} to determine whether or not
@@ -13696,7 +13682,7 @@ RPG_BaseBattler.prototype.extractJabsTeamId = function()
 /**
  * The JABS prepare time for this battler.
  * This number represents how many frames must pass before this battler can
- * decide an action to perform when controlled by the {@link JABS_AiManager}.
+ * decide an action to perform when controlled by the {@link JABS_AiManager}.<br>
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsPrepareTime",
@@ -13730,7 +13716,7 @@ RPG_BaseBattler.prototype.extractJabsPrepareTime = function()
 /**
  * The JABS sight range for this battler.
  * This number represents how many tiles this battler can see before
- * engaging in combat when controlled by the {@link JABS_AiManager}.
+ * engaging in combat when controlled by the {@link JABS_AiManager}.<br>
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsSightRange",
@@ -13764,7 +13750,7 @@ RPG_BaseBattler.prototype.extractJabsSightRange = function()
 /**
  * The JABS pursuit range for this battler.
  * This number represents how many tiles this battler can see after
- * engaging in combat when controlled by the {@link JABS_AiManager}.
+ * engaging in combat when controlled by the {@link JABS_AiManager}.<br>
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsPursuitRange",
@@ -13798,7 +13784,7 @@ RPG_BaseBattler.prototype.extractJabsPursuitRange = function()
 /**
  * The JABS alert duration for this battler.
  * This number represents how many frames this battler will remain alerted
- * when controlled by the {@link JABS_AiManager}.
+ * when controlled by the {@link JABS_AiManager}.<br>
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsAlertDuration",
@@ -13832,7 +13818,7 @@ RPG_BaseBattler.prototype.extractJabsAlertDuration = function()
 /**
  * The JABS alerted sight boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
- * outside of combat when controlled by the {@link JABS_AiManager}.
+ * outside of combat when controlled by the {@link JABS_AiManager}.<br>
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsAlertedSightBoost",
@@ -13866,7 +13852,7 @@ RPG_BaseBattler.prototype.extractJabsAlertedSightBoost = function()
 /**
  * The JABS alerted pursuit boost for this battler.
  * This number represents the sight bonus applied while this battler is alerted
- * inside of combat when controlled by the {@link JABS_AiManager}.
+ * inside of combat when controlled by the {@link JABS_AiManager}.<br>
  *
  * It is important to note that enemies cannot be alerted during combat, but their
  * alert duration may spill over into the beginning of combat.
@@ -13901,7 +13887,7 @@ RPG_BaseBattler.prototype.extractJabsAlertedPursuitBoost = function()
 
 //region ai
 /**
- * The compiled {@link JABS_EnemyAI}.
+ * The compiled {@link JABS_EnemyAI}.<br>
  * This defines how this battler's AI will be controlled.
  * @type {JABS_EnemyAI}
  */
@@ -16810,7 +16796,7 @@ var $gameEnemies = null;
 var $actionMap = null;
 
 /**
- * Extends {@link DataManager.createGameObjects}.
+ * Extends {@link DataManager.createGameObjects}.<br>
  * Includes creation of our global game objects.
  */
 J.ABS.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
@@ -17061,7 +17047,7 @@ class JABS_AiManager
   }
 
   /**
-   * Finds a battler by its {@link Game_Event.eventId}.
+   * Finds a battler by its {@link Game_Event.eventId}.<br>
    * @param {number} eventId The event id to find a battler for.
    * @returns {JABS_Battler|undefined}
    */
@@ -17237,7 +17223,7 @@ class JABS_AiManager
    */
   static getActorBattlers()
   {
-    // filter on whether or not the battler is a {@link Game_Actor}.
+    // filter on whether or not the battler is a {@link Game_Actor}.<br>
     return this.getAllBattlers()
       .filter(battler => battler.isActor());
   }
@@ -17248,7 +17234,7 @@ class JABS_AiManager
    */
   static getEnemyBattlers()
   {
-    // filter on whether or not the battler is a {@link Game_Enemy}.
+    // filter on whether or not the battler is a {@link Game_Enemy}.<br>
     return this.getAllBattlers()
       .filter(battler => battler.isEnemy());
   }
@@ -18870,7 +18856,7 @@ class JABS_Engine
   /**
    * Updates all battlers registered as "players" to JABS.
    * "Players" are battlers that are always polling for actions rather
-   * than only as a part of {@link JABS_AiManager.aiPhase2}.
+   * than only as a part of {@link JABS_AiManager.aiPhase2}.<br>
    */
   updatePlayers()
   {
@@ -19454,7 +19440,7 @@ class JABS_Engine
     const log = new MapLogBuilder()
       .setupPartyCycle(player1.battlerName())
       .build();
-    $gameTextLog.addLog(log);
+    $mapLogManager.addLog(log);
   }
 
   /**
@@ -20666,10 +20652,6 @@ class JABS_Engine
   {
     // checks for retaliation from the target.
     this.checkRetaliate(action, target);
-
-    // apply the battle memories to the target.
-    const result = target.getBattler().result();
-    this.applyBattleMemories(result, action, target);
   }
 
   /**
@@ -20812,7 +20794,7 @@ class JABS_Engine
    * This will attempt to execute all counterguard/counterparry skill ids available
    * in the given slot.
    * @param {JABS_Battler} battler The battler doing the autocounter.
-   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
   doAutoCounter(battler, slot = JABS_Button.Offhand)
   {
@@ -20826,7 +20808,7 @@ class JABS_Engine
   /**
    * Executes any counterguard skills available to the given battler.
    * @param {JABS_Battler} battler The battler to perform the skills.
-   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
   doCounterGuard(battler, slot = JABS_Button.Offhand)
   {
@@ -20844,7 +20826,7 @@ class JABS_Engine
   /**
    * Executes any counterparry skills available to the given battler.
    * @param {JABS_Battler} battler The battler to perform the skills.
-   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.
+   * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
   doCounterParry(battler, slot = JABS_Button.Offhand)
   {
@@ -20900,30 +20882,6 @@ class JABS_Engine
         }
       })
     }
-  }
-
-  /**
-   * Applies a battle memory to the target.
-   * Only applicable to actors (for now).
-   * @param {Game_ActionResult} result The effective result of the action against the target.
-   * @param {JABS_Action} action The action executed against the target.
-   * @param {JABS_Battler} target The target the action was applied to.
-   */
-  applyBattleMemories(result, action, target)
-  {
-    // only applicable to allies.
-    if (target.isEnemy()) return;
-
-    // only works if the code is there to process.
-    if (!J.ABS.EXT.ALLYAI) return;
-
-    const newMemory = new JABS_BattleMemory(
-      target.getBattlerId(),
-      action.getBaseSkill().id,
-      action.getAction()
-        .calculateRawElementRate(target.getBattler()),
-      result.hpDamage);
-    target.applyBattleMemories(newMemory);
   }
 
   /**
@@ -21016,7 +20974,7 @@ class JABS_Engine
       const parryLog = new MapLogBuilder()
         .setupParry(targetName, casterName, skill.id, result.parried)
         .build();
-      $gameTextLog.addLog(parryLog);
+      $mapLogManager.addLog(parryLog);
       return;
     }
     // create evasion logs if it was evaded.
@@ -21025,7 +20983,7 @@ class JABS_Engine
       const dodgeLog = new MapLogBuilder()
         .setupDodge(targetName, casterName, skill.id)
         .build();
-      $gameTextLog.addLog(dodgeLog);
+      $mapLogManager.addLog(dodgeLog);
       return;
     }
     // create retaliation logs if it was a retaliation.
@@ -21034,7 +20992,7 @@ class JABS_Engine
       const retaliationLog = new MapLogBuilder()
         .setupRetaliation(casterName)
         .build();
-      $gameTextLog.addLog(retaliationLog);
+      $mapLogManager.addLog(retaliationLog);
     }
     // if no damage of any kind was dealt, and no states were applied, then you get a special message!
     else if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length)
@@ -21042,7 +21000,7 @@ class JABS_Engine
       const log = new MapLogBuilder()
         .setupUndamaged(targetName, casterName, skill.id)
         .build();
-      $gameTextLog.addLog(log);
+      $mapLogManager.addLog(log);
       return;
     }
     if (result.hpDamage)
@@ -21062,7 +21020,7 @@ class JABS_Engine
       const log = new MapLogBuilder()
         .setupExecution(targetName, casterName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical)
         .build();
-      $gameTextLog.addLog(log);
+      $mapLogManager.addLog(log);
       // fall through in case there were states that were also applied, such as defeating the target.
     }
 
@@ -21077,7 +21035,7 @@ class JABS_Engine
           const log = new MapLogBuilder()
             .setupTargetDefeated(targetName)
             .build();
-          $gameTextLog.addLog(log);
+          $mapLogManager.addLog(log);
           return;
         }
 
@@ -21085,7 +21043,7 @@ class JABS_Engine
         const log = new MapLogBuilder()
           .setupStateAfflicted(targetName, stateId)
           .build();
-        $gameTextLog.addLog(log);
+        $mapLogManager.addLog(log);
       });
     }
   }
@@ -21813,7 +21771,7 @@ class JABS_Engine
     // check if we are using the level scaling functionality.
     if (J.LEVEL && J.LEVEL.Metadata.Enabled)
     {
-      // calculate the multiplier using scaling based on enemy and actor.
+      // calculate the reverse multiplier using scaling based on enemy and actor.
       // if the enemy is higher, then the rewards will be greater.
       // if the actor is higher, then the rewards will be lesser.
       multiplier = LevelScaling.multiplier(enemy.level, actor.getBattler().level);
@@ -21943,7 +21901,7 @@ class JABS_Engine
       const expLog = new MapLogBuilder()
         .setupExperienceGained(caster.getReferenceData().name, experience)
         .build();
-      $gameTextLog.addLog(expLog);
+      $mapLogManager.addLog(expLog);
     }
 
     if (gold !== 0)
@@ -21951,7 +21909,7 @@ class JABS_Engine
       const goldLog = new MapLogBuilder()
         .setupGoldFound(gold)
         .build();
-      $gameTextLog.addLog(goldLog);
+      $mapLogManager.addLog(goldLog);
     }
   }
 
@@ -21998,7 +21956,7 @@ class JABS_Engine
     const lootLog = new MapLogBuilder()
       .setupLootObtained(this.getPlayer1().getReferenceData().name, lootType, item.id)
       .build();
-    $gameTextLog.addLog(lootLog);
+    $mapLogManager.addLog(lootLog);
   }
 
   /**
@@ -22113,7 +22071,7 @@ class JABS_Engine
 
     const battler = jabsBattler.getBattler();
     const log = this.configureLevelUpLog(battler.name(), battler.level);
-    $gameTextLog.addLog(log);
+    $mapLogManager.addLog(log);
   }
 
   /**
@@ -22194,7 +22152,7 @@ class JABS_Engine
     if (!J.LOG) return;
 
     const log = this.configureSkillLearnLog(player.getReferenceData().name, skill.id);
-    $gameTextLog.addLog(log);
+    $mapLogManager.addLog(log);
   }
 
   /**
@@ -22216,7 +22174,7 @@ class JABS_Engine
 
 //region Game_Action
 /**
- * Overwrites {@link #subject}.
+ * Overrides {@link #subject}.<br>
  * On the map there is no context of a $gameTroop. This means that an
  * action must accommodate both enemy and actor alike. In order to handle
  * this, we check to see which id was set and respond accordingly.
@@ -22248,7 +22206,7 @@ Game_Action.prototype.subject = function()
 };
 
 /**
- * Overwrites {@link #setSubject}.
+ * Overrides {@link #setSubject}.<br>
  * On the map there is no context of a $gameTroop. This means that an
  * action must accommodate both enemy and actor alike. In order to handle
  * this, we check to see which id was set and respond accordingly.
@@ -22276,7 +22234,7 @@ Game_Action.prototype.setSubject = function(subject)
 
 //region action application
 /**
- * Overwrites {@link #apply}.
+ * Overrides {@link #apply}.<br>
  * Adjusts how a skill is applied to a target in the context of JABS.
  * While JABS is disabled, the normal application is used instead.
  */
@@ -22375,7 +22333,7 @@ Game_Action.prototype.isHitCritical = function(target)
 };
 
 /**
- * Overwrites {@link #itemHit}.
+ * Overrides {@link #itemHit}.<br>
  * This overwrite converts the success rate of a skill into the value
  * representing what percent of your hit is used in the hit chance formula.
  * @returns {number}
@@ -22393,7 +22351,7 @@ Game_Action.prototype.itemHit = function()
 };
 
 /**
- * Extends {@link #makeDamageValue}.
+ * Extends {@link #makeDamageValue}.<br>
  * Includes consideration of guard effects of the target.
  */
 J.ABS.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
@@ -22643,7 +22601,7 @@ Game_Action.prototype.applyPercentDamageReduction = function(baseDamage, jabsBat
 
 //region state-related effect application
 /**
- * Extends {@link #itemEffectAddState}.
+ * Extends {@link #itemEffectAddState}.<br>
  * Adds a conditional check to see if adding state-related effects is allowed
  * against the target.
  * @param {Game_Battler} target The target battler potentially being afflicted.
@@ -22679,7 +22637,7 @@ Game_Action.prototype.canItemEffectAddState = function(target, effect)
 };
 
 /**
- * Overwrites {@link #itemEffectAddAttackState}.
+ * Overrides {@link #itemEffectAddAttackState}.<br>
  * When a "Normal Attack" effect is used and a state is applied, then
  * all of the battler's attack states have an opportunity to be applied
  * based on all the various rates and calculations.
@@ -22713,7 +22671,7 @@ Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
 };
 
 /**
- * Overwrites {@link #itemEffectAddNormalState}.
+ * Overrides {@link #itemEffectAddNormalState}.<br>
  * Updates the method to be more modifyable, and considers attackers
  * when applying states.
  *
@@ -22825,7 +22783,7 @@ Game_Action.prototype.applyStateEffect = function(target, stateId)
 
 //region Game_ActionResult
 /**
- * Extends {@link Game_ActionResult.initialize}.
+ * Extends {@link Game_ActionResult.initialize}.<br>
  * Initializes additional members.
  */
 J.ABS.Aliased.Game_ActionResult.set('initialize', Game_ActionResult.prototype.initialize);
@@ -22879,7 +22837,7 @@ Game_ActionResult.prototype.isHit = function()
 
 //region Game_Actor
 /**
- * Extends {@link #initJabsMembers}.
+ * Extends {@link #initJabsMembers}.<br>
  * Includes additional actor-specific members.
  */
 J.ABS.Aliased.Game_Actor.set('initJabsMembers', Game_Actor.prototype.initJabsMembers);
@@ -22935,7 +22893,7 @@ Game_Actor.prototype.jabsRefresh = function()
 };
 
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Adds a hook for performing actions when the battler's data hase changed.
  */
 J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
@@ -23554,7 +23512,7 @@ Game_Actor.prototype.jabsLevelUp = function()
 };
 
 /**
- * Extends {@link #onLevelDown}.
+ * Extends {@link #onLevelDown}.<br>
  * Also refresh sprites' danger indicator.
  */
 J.ABS.Aliased.Game_Actor.set('onLevelDown', Game_Actor.prototype.onLevelDown);
@@ -23795,7 +23753,7 @@ Game_Actor.prototype.turnEndOnMap = function()
 
 //region Game_Battler
 /**
- * Extends {@link Game_Battler.initMembers}.
+ * Extends {@link Game_Battler.initMembers}.<br>
  * Includes JABS parameter initialization.
  */
 J.ABS.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
@@ -24744,7 +24702,7 @@ Game_Character.prototype.getJabsActionNeedsRemoving = function()
 };
 
 /**
- * Gets the `uuid` of the underlying {@link JABS_Action}.
+ * Gets the `uuid` of the underlying {@link JABS_Action}.<br>
  * @return {string|String.empty} The uuid when there is an action, {@link String.empty} otherwise.
  */
 Game_Character.prototype.getJabsActionUuid = function()
@@ -24961,7 +24919,7 @@ Game_Character.prototype.requestAnimation = function(animationId)
 };
 
 /**
- * Extends {@link Game_Character.isMovementSucceeded}.
+ * Extends {@link Game_Character.isMovementSucceeded}.<br>
  * Includes handling for battlers being move-locked by JABS.
  * @returns {boolean}
  */
@@ -25178,7 +25136,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 
 //region Game_CharacterBase
 /**
- * Extends the {@link Game_CharacterBase.initMembers}.
+ * Extends the {@link Game_CharacterBase.initMembers}.<br>
  * Allows custom move speeds and dashing.
  */
 J.ABS.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase.prototype.initMembers);
@@ -25221,7 +25179,7 @@ Game_CharacterBase.prototype.getRealMoveSpeed = function()
 };
 
 /**
- * Overwrites {@link Game_CharacterBase.realMoveSpeed}.
+ * Overrides {@link Game_CharacterBase.realMoveSpeed}.<br>
  * Replaces the value to return our custom real move speed instead, along with dash boosts.
  * @returns {number}
  */
@@ -25277,7 +25235,7 @@ Game_CharacterBase.prototype.dashSpeed = function()
 };
 
 /**
- * Extends {@link Game_CharacterBase.setMoveSpeed}.
+ * Extends {@link Game_CharacterBase.setMoveSpeed}.<br>
  * Also modifies custom move speeds.
  */
 J.ABS.Aliased.Game_CharacterBase.set('setMoveSpeed', Game_CharacterBase.prototype.setMoveSpeed);
@@ -25320,7 +25278,7 @@ Game_CharacterBase.prototype.isDodging = function()
 
 //region Game_Enemy
 /**
- * Extends {@link Game_Enemy.setup}.
+ * Extends {@link Game_Enemy.setup}.<br>
  * Includes JABS skill initialization.
  */
 J.ABS.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
@@ -25354,7 +25312,7 @@ Game_Enemy.prototype.jabsRefresh = function()
 };
 
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Adds a hook for performing actions when the battler's data hase changed.
  */
 J.ABS.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
@@ -25866,7 +25824,7 @@ Game_Event.prototype.refresh = function()
 };
 
 /**
- * Replaces {@link Game_Event.refresh}.
+ * Replaces {@link Game_Event.refresh}.<br>
  * Safely handles battler transformation and page index reassignment.
  *
  * Sometimes the page index reassignment can get out of hand and requires guardrails.
@@ -27724,7 +27682,7 @@ Game_Player.prototype.removeLoot = function(lootEvent)
 
 //region Game_Switches
 /**
- * Extends {@link #onChange}.
+ * Extends {@link #onChange}.<br>
  * Also refreshes the JABS menu when a switch is toggled.
  */
 J.ABS.Aliased.Game_Switches.set('onChange', Game_Switches.prototype.onChange);
@@ -27740,7 +27698,7 @@ Game_Switches.prototype.onChange = function()
 
 //region Game_Unit
 /**
- * Overwrites {@link Game_Unit.inBattle}.
+ * Overrides {@link Game_Unit.inBattle}.<br>
  * If JABS is enabled, combat is always active.
  *
  * TODO: update this to be on a timer based on last hit target + any engaged enemies?
@@ -27756,7 +27714,7 @@ Game_Unit.prototype.inBattle = function()
 
 //region Scene_Load
 /**
- * Overwrites {@link Scene_Load.reloadMapIfUpdated}.
+ * Overrides {@link Scene_Load.reloadMapIfUpdated}.<br>
  * When loading, the map needs to be refreshed to load the enemies properly.
  */
 J.ABS.Aliased.Scene_Load.set('reloadMapIfUpdated', Scene_Load.prototype.reloadMapIfUpdated);
@@ -27781,7 +27739,7 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
 //region Scene_Map
 //region init
 /**
- * Extends {@link #initialize}.
+ * Extends {@link #initialize}.<br>
  * Also initializes all additional properties for JABS.
  */
 J.ABS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
@@ -27800,7 +27758,7 @@ Scene_Map.prototype.initialize = function()
 };
 
 /**
- * Extends {@link #onMapLoaded}.
+ * Extends {@link #onMapLoaded}.<br>
  * Safety net for ensuring the player's battler is initialized with the map load.
  */
 J.ABS.Aliased.Scene_Map.set('onMapLoaded', Scene_Map.prototype.onMapLoaded);
@@ -28953,7 +28911,7 @@ Scene_Map.prototype.setJabsHelpText = function(text)
 
 //region update
 /**
- * Extends {@link #update}.
+ * Extends {@link #update}.<br>
  * Also updates JABS.
  */
 J.ABS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
@@ -29062,7 +29020,7 @@ Scene_Map.prototype.manageAbsMenu = function()
 //endregion update
 
 /**
- * Extends {@link #callMenu}.
+ * Extends {@link #callMenu}.<br>
  * Disables the ability to directly call the menu by pressing the given key.
  */
 J.ABS.Aliased.Scene_Map.set('callMenu', Scene_Map.prototype.callMenu);
@@ -29571,8 +29529,8 @@ Sprite_Character.prototype.isJabsBattler = function()
 };
 
 /**
- * Gets whether or not the underlying {@link Game_Character} is a {@link JABS_Action}.
- * If there is no underlying character, then it is still considered not a {@link JABS_Action}.
+ * Gets whether or not the underlying {@link Game_Character} is a {@link JABS_Action}.<br>
+ * If there is no underlying character, then it is still considered not a {@link JABS_Action}.<br>
  * @returns {boolean}
  */
 Sprite_Character.prototype.isJabsAction = function()

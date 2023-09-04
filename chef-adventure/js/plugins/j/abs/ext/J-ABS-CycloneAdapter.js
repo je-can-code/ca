@@ -84,7 +84,7 @@ JABS_Battler.prototype.setDodgeSteps = function(stepCount)
 };
 
 /**
- * Extends {@link #destroy}.
+ * Extends {@link #destroy}.<br>
  * Reloads the collision table in case the enemy was a part of the tileset.
  */
 J.ABS.EXT.CYCLE.Aliased.JABS_Battler.set('destroy', JABS_Battler.prototype.destroy);
@@ -113,7 +113,7 @@ Game_Character.repeatableMoveCommandCodes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 
 
 //region properties
 /**
- * Extends {@link Game_Character.initMembers}.
+ * Extends {@link Game_Character.initMembers}.<br>
  * Includes our cyclone movement repeat trackers.
  */
 J.ABS.EXT.CYCLE.Aliased.Game_Character.set('initMembers', Game_Character.prototype.initMembers);
@@ -208,7 +208,7 @@ Game_Character.prototype.modRepeatingMovementCount = function(amount = -1)
 //endregion properties
 
 /**
- * Overwrites {@link Game_Character.updateRoutineMove}.
+ * Overrides {@link Game_Character.updateRoutineMove}.<br>
  * Accommodates move routes for events to repeat their movements for as many steps as defined
  * in the plugin configuration for Cyclone-Movement.
  *
@@ -327,7 +327,7 @@ Game_Character.prototype.updateRepeatedMovements = function()
 };
 
 /**
- * Overwrites {@link Game_Follower.chaseCharacter}.
+ * Overrides {@link Game_Follower.chaseCharacter}.<br>
  * Prevents the follower from chasing after the player while they are in combat.
  * @param {Game_Character} character The character this follower is following.
  */
@@ -386,7 +386,7 @@ Game_Player.prototype.shouldTriggerEvent = function(event, triggers, normal)
 };
 
 /**
- * Overwrites {@link #checkEventTriggerThere}.
+ * Overrides {@link #checkEventTriggerThere}.<br>
  * Rounds the x2,y2 coordinates down so that counter-checks work properly.
  * @param {[number, number, number]} triggers The type of event triggers that are being used.
  */

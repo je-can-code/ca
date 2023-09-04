@@ -746,7 +746,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args
 //region DifficultyBattlerEffects
 /**
  * A collection of all applicable multipliers against core parameters
- * that are a part of a {@link DifficultyMetadata}.
+ * that are a part of a {@link DifficultyMetadata}.<br>
  */
 class DifficultyBattlerEffects
 {
@@ -1002,7 +1002,7 @@ class DifficultyBuilder
 class DifficultyConfig
 {
   /**
-   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.
+   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.<br>
    * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
    * @returns {DifficultyLayer} The new difficulty based on the metadata.
    */
@@ -1076,7 +1076,7 @@ class DifficultyConfig
 class DifficultyLayer
 {
   /**
-   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.
+   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.<br>
    * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
    * @returns {DifficultyLayer} The new difficulty based on the metadata.
    */
@@ -1458,7 +1458,7 @@ class DifficultyMetadata
 //endregion Difficulty
 
 /**
- * Extends {@link DataManager.setupNewGame}.
+ * Extends {@link DataManager.setupNewGame}.<br>
  * Includes difficulty setup for new games.
  */
 J.DIFFICULTY.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
@@ -1671,7 +1671,7 @@ class DifficultyManager
 
 //region Game_Actor
 /**
- * Extends {@link #param}.
+ * Extends {@link #param}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1692,7 +1692,7 @@ Game_Actor.prototype.param = function(paramId)
 };
 
 /**
- * Extends {@link #sparam}.
+ * Extends {@link #sparam}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1713,7 +1713,7 @@ Game_Actor.prototype.sparam = function(sparamId)
 };
 
 /**
- * Extends {@link #xparam}.
+ * Extends {@link #xparam}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1736,7 +1736,7 @@ Game_Actor.prototype.xparam = function(xparamId)
 
 //region Game_Enemy
 /**
- * Extends {@link #param}.
+ * Extends {@link #param}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1757,7 +1757,7 @@ Game_Enemy.prototype.param = function(paramId)
 };
 
 /**
- * Extends {@link #sparam}.
+ * Extends {@link #sparam}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1778,7 +1778,7 @@ Game_Enemy.prototype.sparam = function(sparamId)
 };
 
 /**
- * Extends {@link #xparam}.
+ * Extends {@link #xparam}.<br>
  * Also modifies the value based on the applied difficulty.
  * @returns {number}
  */
@@ -1959,7 +1959,7 @@ Game_System.prototype.initDifficultyMembers = function()
 };
 
 /**
- * Extends {@link #onAfterLoad}.
+ * Extends {@link #onAfterLoad}.<br>
  * Updates the list of all available difficulties from the latest plugin metadata.
  */
 J.DIFFICULTY.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
@@ -2130,7 +2130,7 @@ Game_Temp.prototype.initMembers = function()
   /**
    * The "applied" difficulty.
    * This is effectively a combination of all currently enabled difficulties as
-   * a single {@link DifficultyLayer}.
+   * a single {@link DifficultyLayer}.<br>
    * @type {DifficultyLayer}
    */
   this._j._difficulty._appliedDifficulty = DifficultyLayer.defaultLayer;
@@ -2451,7 +2451,7 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Extends {@link #start}.
+   * Extends {@link #start}.<br>
    * Handles the post-scene setup.
    */
   start()
@@ -2470,7 +2470,7 @@ class Scene_Difficulty extends Scene_MenuBase
   }
 
   /**
-   * Extends {@link #create}.
+   * Extends {@link #create}.<br>
    * Creates our scene's windows.
    */
   create()
@@ -3264,7 +3264,7 @@ class Window_DifficultyEffects extends Window_Command
   }
 
   /**
-   * Implements {@link #makeCommandList}.
+   * Implements {@link #makeCommandList}.<br>
    * Renders all the effect of the hovered difficulty layer.
    */
   makeCommandList()
@@ -3891,7 +3891,7 @@ class Window_DifficultyEffects extends Window_Command
   }
 
   /**
-   * Overwrites {@link #itemHeight}.
+   * Overrides {@link #itemHeight}.<br>
    * Makes the command rows bigger so there can be additional lines.
    * @returns {number}
    */
@@ -3915,7 +3915,7 @@ class Window_DifficultyList extends Window_Command
   }
 
   /**
-   * Implements {@link #makeCommandList}.
+   * Implements {@link #makeCommandList}.<br>
    * Creates the command list of difficulties for this window.
    */
   makeCommandList()
@@ -4057,7 +4057,7 @@ class Window_DifficultyPoints extends Window_Base
   }
 
   /**
-   * Implements {@link Window_Base.drawContent}.
+   * Implements {@link Window_Base.drawContent}.<br>
    * Draws the various data points surrounding the difficulty layer points
    * and how they are affected by the difficulty layer currently being
    * hovered over by the player.

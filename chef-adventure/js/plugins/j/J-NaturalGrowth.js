@@ -406,7 +406,7 @@ J.NATURAL.RegExp = {
 
 //region Game_Actor
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Includes parameter buff initialization.
  */
 J.NATURAL.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
@@ -420,7 +420,7 @@ Game_Actor.prototype.setup = function(actorId)
 };
 
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Also refreshes all natural parameter buff values on the battler.
  */
 J.NATURAL.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
@@ -1902,7 +1902,7 @@ Game_Battler.prototype.getBaseMaxTp = function()
 
 //region Game_Enemy
 /**
- * Extends {@link Game_Enemy.setup}.
+ * Extends {@link Game_Enemy.setup}.<br>
  * Includes parameter buff initialization.
  */
 J.NATURAL.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
@@ -1916,7 +1916,7 @@ Game_Enemy.prototype.setup = function(enemyId, x, y)
 };
 
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Also refreshes all natural parameter buff values on the battler.
  */
 J.NATURAL.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
@@ -2126,7 +2126,7 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, ba
 
 //region Game_Party
 /**
- * Extends {@link #gainItem}.
+ * Extends {@link #gainItem}.<br>
  * Also refreshes the passive states for the party.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
  * @param {number} amount The amount to modify the quantity by.
@@ -2155,7 +2155,7 @@ Game_Party.prototype.refreshAllParameterBuffsForAll = function()
 
 //region Scene_Equip
 /**
- * Extends {@link #executeEquipChange}.
+ * Extends {@link #executeEquipChange}.<br>
  * Also refreshes all natural parameter data.
  */
 J.NATURAL.Aliased.Scene_Equip.set('executeEquipChange', Scene_Equip.prototype.executeEquipChange);
@@ -2171,7 +2171,7 @@ Scene_Equip.prototype.executeEquipChange = function()
 
 //region Window_EquipItem
 /**
- * Extends {@link #postEquipSetupActorClone}.
+ * Extends {@link #postEquipSetupActorClone}.<br>
  * Updates the buffs associated with the cloned actor so that it reflects in the
  * status window comparison.
  * @param {Game_Actor} actorClone The clone of the actor.
