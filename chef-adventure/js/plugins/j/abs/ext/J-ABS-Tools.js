@@ -311,7 +311,7 @@ JABS_Battler.prototype.clearGapCloseDestination = function()
 };
 
 /**
- * Extends {@link JABS_Battler.update}.
+ * Extends {@link JABS_Battler.update}.<br>
  * Also updates the gap closing process.
  */
 J.ABS.EXT.TOOLS.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
@@ -699,7 +699,7 @@ Game_Battler.prototype.isGapClosable = function()
 };
 
 /**
- * Extends {@link Game_CharacterBase.initMembers}.
+ * Extends {@link Game_CharacterBase.initMembers}.<br>
  * Also initializes our new members.
  */
 J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase.prototype.initMembers);
@@ -782,7 +782,7 @@ Game_Event.prototype.isGapClosable = function()
 
 
 /**
- * Extends {@link Game_System.initMembers}.
+ * Extends {@link Game_System.initMembers}.<br>
  * Also initializes our new members.
  */
 J.ABS.EXT.TOOLS.Aliased.Game_System.set('initMembers', Game_System.prototype.initMembers);

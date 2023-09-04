@@ -30,7 +30,7 @@
  * that is provided via the tags. Having multiple of this party ability will
  * not further double the multiplier.
  * ============================================================================
- * PERCENTAGE DROPS
+ * PERCENTAGE DROPS:
  * Have you ever wanted an enemy to drop something say... 40% of the time, but
  * realized you can't put decimal numbers into the enemy drop "denominator"
  * field in the editor, or go dig up your probability section out of your math
@@ -42,29 +42,27 @@
  * in the database, it will be treated as "a 40/100 chance of acquiring the
  * loot, aka 40% chance".
  *
- * NOTE 1:
+ * NOTE ABOUT USING THIS PLUGIN:
  * By having this plugin enabled, you opt into the PERCENTAGE DROPS feature
- * and cannot disable it. It is required. Sorry.
+ * and cannot disable it. It is required, and probably the reason you're using
+ * this plugin anyway.
  *
- * NOTE 2:
+ * NOTE ABOUT TREASURE HUNTER GODLINESS:
  * If the percentage chance exceeds 100%, the drop item will always drop.
  * This sounds obvious, but remember this when looking at the TAG EXAMPLES.
  * ============================================================================
- * ADDITIONAL ITEMS
+ * ADDITIONAL ITEMS:
  * Have you ever wanted to drop more items than just three per enemy? Well now
  * you can with the proper tags applied to enemies in the database!
  *
- * NOTE 1:
+ * NOTE ABOUT NATIVE DROP INTERACTIONS:
  * This is additive in the sense that if you specify drop items using the
  * editor and also have one or more of these tags on an enemy, it will add
  * all of them together as potential drops, exceeding the limit of 3.
  *
- * NOTE 2:
+ * NOTE ABOUT DUPLICATE TAGS:
  * You can have more than one of the same item drop, at the same or different
  * rates and they will individually be processed.
- *
- * NOTE 3:
- * Drop multipliers apply to items dropped using ADDITIONAL DROP tags, too.
  *
  * TAG USAGE:
  * - Enemies only.
@@ -159,6 +157,16 @@
  *  <goldMultiplier:100>
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
+ * CHANGELOG:
+ * - 2.0.0
+ *    Retroactively added this CHANGELOG.
+ *    Refactored various data retrieval methods from given battlers.
+ *    Fixed issue with mismapped level calculations.
+ *    Added more jsdocs and comments to explain better the logical flow.
+ *    Removed useless methods.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
  */
 
 /**
@@ -189,9 +197,10 @@ J.DROPS.Metadata = {
 /**
  * All regular expressions used by this plugin.
  */
-J.DROPS.RegExp = {
-  ExtraDrop: /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i,
-}
+J.DROPS.RegExp = {};
+J.DROPS.RegExp.ExtraDrop = /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i;
+J.DROPS.RegExp.DropMultiplier = /<dropMultiplier:[ ]?(-?\d+)>/i;
+J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
 
 /**
  * The collection of all aliased classes for extending.
@@ -293,7 +302,7 @@ class RPG_DropItemBuilder
 
   //region builders
   /**
-   * Sets the id aka `dataId` of this {@link RPG_DropItem}.
+   * Sets the id aka `dataId` of this {@link RPG_DropItem}.<br>
    * @param {number} id The database id of the item.
    * @returns {RPG_DropItemBuilder} This builder for fluent-chaining.
    */
@@ -304,7 +313,7 @@ class RPG_DropItemBuilder
   }
 
   /**
-   * Sets the typeId aka `kind` of this {@link RPG_DropItem}.
+   * Sets the typeId aka `kind` of this {@link RPG_DropItem}.<br>
    * @param {number} typeId The typeId of this loot.
    * @returns {RPG_DropItemBuilder} This builder for fluent-chaining.
    */
@@ -400,42 +409,66 @@ RPG_Enemy.prototype.validDropItemFilter = function(dropItem)
   return true;
 };
 
+/**
+ * A class representing a static collection of party strategies relating to rewards.
+ */
+class DropsPartyStrategy
+{
+  constructor()
+  {
+    console.warn(`Attempted to instantiate the PartyStrategy class.`);
+    console.warn(`Please directly use the static properties on it instead of instantiating it.`);
+    console.trace();
+    throw new Error(`PartyStrategy is a static class that cannot be instantiated.`);
+  }
+
+  /**
+   * The strategy used in niche cases like in games backed by ABS engines.
+   * This defines where only the leader will influence reward rates.
+   * @type {string}
+   */
+  static AbsStyle = "leader-only";
+
+  /**
+   * The strategy used most commonly in games wielding standard turn-based battle systems.
+   * This defines where the active combat party, usually about 4 including the leader,
+   * will influence reward rates.
+   * @type {string}
+   */
+  static CombatPartyStyle = "combat-party";
+
+  /**
+   * The strategy used most often as an alternative to {@link DropsPartyStrategy.CombatPartyStyle}.
+   * This defines where every single member of the party, reserve or otherwise,
+   * will influence reward rates.
+   * @type {string}
+   */
+  static FullPartyStyle = "full-party";
+}
+
 //region Game_Actor
 /**
  * Gets this actor's bonus drop multiplier.
  * @returns {number}
  */
-Game_Actor.prototype.getDropMultiplier = function()
+Game_Actor.prototype.getDropMultiplierBonus = function()
 {
-  let dropMultiplier = 0;
+  // define the base multiplier.
+  let baseMultiplier = 0;
+
+  // grab all the notes.
   const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => (dropMultiplier += this.extractDropMultiplier(obj)));
-  return (dropMultiplier / 100);
-};
 
-/**
- * Gets the bonus drop multiplier from a given database object.
- * @param {RPG_BaseItem} referenceData The database object in question.
- * @returns {number}
- */
-Game_Actor.prototype.extractDropMultiplier = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return 0;
+  // get the multiplier from anything this battler has available.
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.DROPS.RegExp.DropMultiplier);
 
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<dropMultiplier:[ ]?(-?[\d]+)>/i;
-  let dropMultiplier = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const multiplier = parseInt(RegExp.$1);
-      dropMultiplier += multiplier;
-    }
-  });
+  // calculate the multiplier factor.
+  const factor = (multiplierBonus + baseMultiplier) / 100;
 
-  return dropMultiplier;
+  // return the factor.
+  return factor;
 };
 
 /**
@@ -444,35 +477,22 @@ Game_Actor.prototype.extractDropMultiplier = function(referenceData)
  */
 Game_Actor.prototype.getGoldMultiplier = function()
 {
-  let goldMultiplier = 0;
+  // define the base multiplier.
+  let baseMultiplier = 0;
+
+  // grab all the notes.
   const objectsToCheck = this.getAllNotes();
-  objectsToCheck.forEach(obj => (goldMultiplier += this.extractGoldMultiplier(obj)));
-  return (goldMultiplier / 100);
-};
 
-/**
- * Gets the bonus gold multiplier from a given database object.
- * @param {RPG_BaseItem} referenceData The database object in question.
- * @returns {number}
- */
-Game_Actor.prototype.extractGoldMultiplier = function(referenceData)
-{
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return 0;
+  // get the multiplier from anything this battler has available.
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
+    objectsToCheck,
+    J.DROPS.RegExp.GoldMultiplier);
 
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<goldMultiplier:[ ]?(-?[\d]+)>/i;
-  let goldMultiplier = 0;
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const multiplier = parseInt(RegExp.$1);
-      goldMultiplier += multiplier;
-    }
-  });
+  // calculate the multiplier factor.
+  const factor = (multiplierBonus + baseMultiplier) / 100;
 
-  return goldMultiplier;
+  // return the factor.
+  return factor;
 };
 //endregion Game_Actor
 
@@ -552,7 +572,7 @@ Game_Enemy.prototype.makeDropItems = function()
   const itemsFound = [];
 
   // get the chance multiplier for loot dropping.
-  const multiplier = this.getDropMultiplier();
+  const multiplier = this.getDropMultiplierBonus();
 
   // iterate over all drops to see what we got.
   dropList.forEach(drop =>
@@ -567,7 +587,7 @@ Game_Enemy.prototype.makeDropItems = function()
     const treasureHunterSkip = rate >= 100;
 
     // roll the dice and see if we get some loot.
-    const foundLoot = (Math.random() * 100) < rate;
+    const foundLoot = this.didFindLoot();
     const item = this.itemObject(drop.kind, drop.dataId);
 
     // if we earned the loot...
@@ -580,6 +600,28 @@ Game_Enemy.prototype.makeDropItems = function()
 
   // return all earned loot!
   return itemsFound;
+};
+
+/**
+ * Determines whether or not loot was found based on the provided rate.
+ * This is not deterministic, and the same (non-100) rate
+ * @param {number} rate The 0-100 integer rate of which to find this loot.
+ * @returns {boolean} True if we found loot this time, false otherwise.
+ */
+Game_Enemy.prototype.didFindLoot = function(rate)
+{
+  // roll the dice and see if we won!
+  let chance = RPGManager.chanceIn100(rate);
+
+  // check if anyone in the party has the double-drop trait.
+  if ($gameParty.hasDropItemDouble())
+  {
+    // double the ratio!
+    chance *= 2;
+  }
+
+  // return the result.
+  return chance;
 };
 
 /**
@@ -652,13 +694,13 @@ Game_Enemy.prototype.dropSources = function()
  * Gets the multiplier against the RNG of an item dropping.
  * @returns {number}
  */
-Game_Enemy.prototype.getDropMultiplier = function()
+Game_Enemy.prototype.getDropMultiplierBonus = function()
 {
   // the base/default drop multiplier rate.
   let multiplier = this.getBaseDropRate();
 
   // get the party's bonus drop multiplier.
-  multiplier += $gameParty.getDropMultiplier();
+  multiplier += $gameParty.getPartyDropMultiplier();
 
   // if someone in the party has the "double drops" accessory, then double the rate.
   multiplier *= this.dropItemRate();
@@ -680,14 +722,23 @@ Game_Enemy.prototype.getBaseDropRate = function()
 
 //region Game_Party
 /**
- * Gets the collective multiplier for gold drops for the entire party.
+ * Gets the collective sum multiplier for gold drops for the entire party.
  * @returns {number}
  */
 Game_Party.prototype.getGoldMultiplier = function()
 {
-  let goldMultiplier = 1;
+  // initialize a base multiplier.
+  const baseMultiplier = 1;
+
+  // determine the members for consideration.
   const membersToConsider = this.goldMultiplierMembers();
-  membersToConsider.forEach(actor => goldMultiplier += actor.getGoldMultiplier());
+
+  // calculate the total.
+  const goldMultiplier = membersToConsider.reduce(
+    (runningTotal, currentActor) => runningTotal + currentActor.getGoldMultiplier(),
+    baseMultiplier);
+
+  // return the result.
   return goldMultiplier;
 };
 
@@ -695,28 +746,50 @@ Game_Party.prototype.getGoldMultiplier = function()
  * Gets the selection of actors to consider when determining gold bonus multipliers.
  * @returns {Game_Actor[]}
  */
-Game_Party.prototype.goldMultiplierMembers = function()
+Game_Party.prototype.goldMultiplierMembers = function(strategy = DropsPartyStrategy.CombatPartyStyle)
 {
+  // default to no members considered.
   const membersToConsider = [];
-  membersToConsider.push(...$gameParty.battleMembers());
 
-  // if only the leader should influence drop bonuses (for ABS style).
-  // membersToConsider.push($gameParty.leader());
+  // pivot on the strategy.
+  switch (strategy)
+  {
+    // consider only the leader should influence drop bonuses (for ABS style).
+    case DropsPartyStrategy.AbsStyle:
+      membersToConsider.push($gameParty.leader());
+      break;
+    // consider the currently active members of the party.
+    case DropsPartyStrategy.CombatPartyStyle:
+      membersToConsider.push(...$gameParty.battleMembers());
+      break;
+    // consider all party members, including reserve (different preferences).
+    case DropsPartyStrategy.FullPartyStyle:
+      membersToConsider.push(...$gameParty.members());
+      break;
+  }
 
-  // or everyone including reserve members (different preferences).
-  // membersToConsider.push(...$gameParty.members());
+  // return all that were applicable.
   return membersToConsider;
 };
 
 /**
- * Gets the collective multiplier for loot drops for the entire party.
+ * Gets the collective sum multiplier for loot drops for the entire party.
  * @returns {number}
  */
-Game_Party.prototype.getDropMultiplier = function()
+Game_Party.prototype.getPartyDropMultiplier = function()
 {
-  let dropMultiplier = 0;
+  // initialize a base multiplier.
+  const baseMultiplier = 1;
+
+  // determine the members for consideration.
   const membersToConsider = this.dropMultiplierMembers();
-  membersToConsider.forEach(actor => dropMultiplier += actor.getDropMultiplier());
+
+  // calculate the total.
+  const dropMultiplier = membersToConsider.reduce(
+    (runningTotal, currentActor) => runningTotal + currentActor.getDropMultiplierBonus(),
+    baseMultiplier);
+
+  // return the result.
   return dropMultiplier;
 };
 
@@ -724,16 +797,29 @@ Game_Party.prototype.getDropMultiplier = function()
  * Gets the selection of actors to consider when determining bonus drop multipliers.
  * @returns {Game_Actor[]}
  */
-Game_Party.prototype.dropMultiplierMembers = function()
+Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrategy.CombatPartyStyle)
 {
+  // default to no members considered.
   const membersToConsider = [];
-  membersToConsider.push(...$gameParty.battleMembers());
 
-  // if only the leader should influence drop bonuses (for ABS style).
-  // membersToConsider.push($gameParty.leader());
+  // pivot on the strategy.
+  switch (strategy)
+  {
+    // consider only the leader should influence drop bonuses (for ABS style).
+    case DropsPartyStrategy.AbsStyle:
+      membersToConsider.push($gameParty.leader());
+      break;
+    // consider the currently active members of the party.
+    case DropsPartyStrategy.CombatPartyStyle:
+      membersToConsider.push(...$gameParty.battleMembers());
+      break;
+    // consider all party members, including reserve (different preferences).
+    case DropsPartyStrategy.FullPartyStyle:
+      membersToConsider.push(...$gameParty.members());
+      break;
+  }
 
-  // or everyone including reserve members (different preferences).
-  // membersToConsider.push(...$gameParty.members());
+  // return all that were applicable.
   return membersToConsider;
 };
 //endregion Game_Party

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v1.2.0 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -115,6 +115,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Removed ally AI code from core JABS and added here.
+ *    Fixed issue where battle memories were not correctly applied.
  * - 1.1.1
  *    Updated JABS menu integration with help text.
  * - 1.1.0
@@ -254,7 +257,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.2.2';
+  const requiredJabsVersion = '3.3.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -274,7 +277,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '1.1.1';
+J.ABS.EXT.ALLYAI.Metadata.Version = '1.2.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -602,7 +605,7 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
   // filter all available skills down to what we recall as effective.
   if (memoriesOfTarget.length)
   {
-    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills);
+    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills, memoriesOfTarget);
   }
 
   // if no skill was effective, or there were no memories, just pick a random skill and call it good.
@@ -662,7 +665,7 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
   if (memoriesOfTarget.length)
   {
     // filter the available skills by what was remembered to be effective.
-    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills);
+    tempAvailableSkills = this.filterMemoriesByEffectiveness(tempAvailableSkills, memoriesOfTarget);
   }
 
   // check if we have no known effective skills.
@@ -1091,7 +1094,7 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
 //endregion support
 
 /**
- * Overwrites {@link #aiComboChanceModifier}.
+ * Overrides {@link #aiComboChanceModifier}.<br>
  * Adjusts the bonus combo chance modifier based on the selected ally AI mode.
  * @returns {number}
  */
@@ -1143,7 +1146,16 @@ JABS_AllyAI.prototype.applyMemory = function(newMemory)
  */
 JABS_AllyAI.prototype.getMemory = function(battlerId, skillId)
 {
-  return this.memory.find(mem => mem.battlerId === battlerId && mem.skillId === skillId);
+  return this.getMemories().find(mem => mem.battlerId === battlerId && mem.skillId === skillId);
+};
+
+/**
+ * Gets all memories currently saved by this ally.
+ * @returns {JABS_BattleMemory[]}
+ */
+JABS_AllyAI.prototype.getMemories = function()
+{
+  return this.memory;
 };
 
 /**
@@ -1163,11 +1175,19 @@ JABS_AllyAI.prototype.addMemory = function(newMemory)
 JABS_AllyAI.prototype.updateMemory = function(newMemory)
 {
   let memory = this.getMemory(newMemory.battlerId, newMemory.skillId);
-  memory = newMemory;
+  memory.effectiveness = newMemory.effectiveness;
+  memory.damageApplied = newMemory.damageApplied;
   this.memory.sort();
 };
 
-JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills)
+/**
+ * Filters out all "ineffective" skills from a list of possible skills based on
+ * ones own memories.
+ * @param {number[]} usableSkills The collection of skillIds that are being filtered.
+ * @param {JABS_BattleMemory[]} memoriesOfTarget All currently stored memories this AI has for a given target.
+ * @returns {number[]} All "effective" skills after the filtering has taken place.
+ */
+JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills, memoriesOfTarget)
 {
   // a filtering function for filtering out unknown or ineffective skill ids.
   const filtering = skillId =>
@@ -1186,7 +1206,7 @@ JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills)
   };
 
   // return the filtered list of skills.
-  return usableSkills.filter(filtering);
+  return usableSkills.filter(filtering, this);
 };
 //endregion battle memory
 //endregion JABS_AllyAI
@@ -1302,14 +1322,51 @@ JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
   // return the determination.
   return shouldEngage;
 };
+
+/**
+ * Gets all allies to this battler within a large range.
+ * (Not map-wide because that could result in unexpected behavior)
+ * @returns {JABS_Battler[]}
+ */
+JABS_Battler.prototype.getAllNearbyAllies = function()
+{
+  return JABS_AiManager.getAlliedBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
+};
+
+/**
+ * Gets the ally ai associated with this battler.
+ * @returns {JABS_AllyAI}
+ */
+JABS_Battler.prototype.getAllyAiMode = function()
+{
+  // enemies do not have ally ai.
+  if (this.isEnemy()) return null;
+
+  return this.getBattler().getAllyAI();
+};
+
+/**
+ * Applies the battle memory to the battler.
+ * Only applicable to allies (for now).
+ * @param {JABS_BattleMemory} newMemory The new memory to apply to this battler.
+ */
+JABS_Battler.prototype.applyBattleMemories = function(newMemory)
+{
+  // enemies do not (yet) track battle memories.
+  if (this.isEnemy()) return;
+
+  return this.getBattler()
+    .getAllyAI()
+    .applyMemory(newMemory);
+};
 //endregion JABS_Battler
 
 //region JABS_AiManager
-J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 /**
  * Extends `aiPhase0()` to accommodate the possibility of actors having an idle phase.
  * @param {JABS_Battler} battler The batter to decide for.
  */
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
 JABS_AiManager.aiPhase0 = function(battler)
 {
   // check if this is an enemy's ai being managed.
@@ -1357,7 +1414,7 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
 };
 
 /**
- * Extends {@link #decideAiPhase2Action}.
+ * Extends {@link #decideAiPhase2Action}.<br>
  * Includes handling ally AI as well as enemy.
  * @param {JABS_Battler} battler The battler deciding the action.
  */
@@ -1436,7 +1493,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
 
 //region JABS_Engine
 /**
- * Extends {@link JABS_Engine.prePartyCycling}.
+ * Extends {@link JABS_Engine.prePartyCycling}.<br>
  * Jumps all followers to the player upon party cycling.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('prePartyCycling', JABS_Engine.prototype.prePartyCycling);
@@ -1449,9 +1506,8 @@ JABS_Engine.prototype.prePartyCycling = function()
   $gamePlayer.jumpFollowersToMe();
 };
 
-
 /**
- * Overwrites {@link JABS_Engine.handlePartyCycleMemberChanges}.
+ * Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
  * Jumps all followers to the player upon party cycling.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('handlePartyCycleMemberChanges', JABS_Engine.prototype.handlePartyCycleMemberChanges);
@@ -1472,6 +1528,60 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
 
   // rebuild all allies.
   $gameMap.updateAllies();
+};
+
+/**
+ * Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
+ * Also applies battle memories as-necessary.
+ */
+J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('continuedPrimaryBattleEffects', JABS_Engine.prototype.continuedPrimaryBattleEffects);
+JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target)
+{
+  // perform original logic.
+  J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.get('continuedPrimaryBattleEffects').call(this, action, target);
+
+  // apply the battle memories to the target.
+  const result = target.getBattler().result();
+  this.applyBattleMemories(result, action, target);
+};
+
+/**
+ * Applies battle memories against the target based on the action being impacted.
+ * @param result
+ * @param action
+ * @param target
+ */
+JABS_Engine.prototype.applyBattleMemories = function(result, action, target)
+{
+  // only apply if allowed.
+  if (this.canApplyBattleMemories(target)) return;
+
+  // generate the new battle memory of the action and its result for the target.
+  const newMemory = new JABS_BattleMemory(
+    target.getBattlerId(),
+    action.getBaseSkill().id,
+    action.getAction().calculateRawElementRate(target.getBattler()),
+    result.hpDamage);
+
+  // determine the one who who executed the action.
+  const attacker = action.getCaster();
+
+  // save the memory of the action execution to the caster.
+  attacker.applyBattleMemories(newMemory);
+};
+
+/**
+ * Determines whether or not battle memories should be applied to the target.
+ * @param {JABS_Battler} target The target battler to potentially apply abttle memories to.
+ * @returns {boolean}
+ */
+JABS_Engine.prototype.canApplyBattleMemories = function(target)
+{
+  // enemies do not use battle memories like ally AI does.
+  if (target.isEnemy()) return false;
+
+  // apply the memories!
+  return true;
 };
 //endregion JABS_Engine
 
@@ -1494,7 +1604,7 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
 
 //region Game_Actor
 /**
- * Extends {@link #initMembers}.
+ * Extends {@link #initMembers}.<br>
  * Also tracks JABS ally AI.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
@@ -1535,7 +1645,7 @@ Game_Actor.prototype.initAllyAiMembers = function()
 };
 
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Also initializes ally AI.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
@@ -1647,7 +1757,7 @@ Game_Follower.prototype.chaseCharacter = function(character)
 };
 
 /**
- * Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.
+ * Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.<br>
  * @returns {boolean} True if this follower should be controlled, false otherwise.
  */
 Game_Follower.prototype.canObeyJabsAi = function()
@@ -1729,7 +1839,7 @@ Game_Follower.prototype.shouldObeyJabsCombatAi = function()
 
 /**
  * Handles the flow of logic for the movement of this character while available
- * to do combat things according to the {@link JABS_AiManager}.
+ * to do combat things according to the {@link JABS_AiManager}.<br>
  * @param character
  */
 Game_Follower.prototype.handleJabsCombatAi = function(character)
@@ -1794,7 +1904,7 @@ Game_Follower.prototype.handleJabsCombatInactiveAi = function(character)
 };
 
 /**
- * Extends {@link Game_Follower.update}.
+ * Extends {@link Game_Follower.update}.<br>
  * If this follower should be controlled by JABS AI, then modify the way it updates.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('update', Game_Follower.prototype.update);
@@ -2000,7 +2110,7 @@ Game_Interpreter.prototype.command205 = function(params)
 
 //region Game_Map
 /**
- * Extends {@link Game_Map.parseBattlers}.
+ * Extends {@link Game_Map.parseBattlers}.<br>
  * Also parses ally battlers as well as events.
  * @returns {JABS_Battler[]}
  */
@@ -2142,7 +2252,7 @@ Game_Party.prototype.becomePassive = function()
 };
 
 /**
- * Extends {@link Game_Party.addActor}.
+ * Extends {@link Game_Party.addActor}.<br>
  * Also updates allies to accommodate the addition of the actor.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
@@ -2156,7 +2266,7 @@ Game_Party.prototype.addActor = function(actorId)
 };
 
 /**
- * Extends {@link Game_Party.removeActor}.
+ * Extends {@link Game_Party.removeActor}.<br>
  * Also updates allies to accommodate the removal of the actor.
  */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
@@ -2394,7 +2504,7 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
 
 //region Window_AbsMenu
 /**
- * Extends {@link #buildCommands}.
+ * Extends {@link #buildCommands}.<br>
  * Adds the ally ai management command at the end of the list.
  * @returns {BuiltWindowCommand[]}
  */

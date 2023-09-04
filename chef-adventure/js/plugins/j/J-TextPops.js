@@ -69,6 +69,12 @@
  * Or if you're in a plugin, the only real difference would be how the
  * character is retrieved, with the rest being the same.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Removed extraneous event emitter that was being tested.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 
 /**
@@ -1913,52 +1919,3 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   this.addDuration(60);
 };
 //endregion Sprite_Damage
-
-//region Spriteset_Map
-J.POPUPS.Aliased.Spriteset_Map.set('initialize', Spriteset_Base.prototype.initialize);
-Spriteset_Base.prototype.initialize = function()
-{
-  // perform original logic.
-  J.POPUPS.Aliased.Spriteset_Map.get('initialize').call(this);
-
-  this.initPopupsMembers();
-};
-
-Spriteset_Base.prototype.initPopupsMembers = function()
-{
-  this._j ||= {};
-
-  this._j._popups = {};
-
-  this._j._popups._pops = [];
-
-  this._j._popups._secret = "cats are best";
-
-  this._j._popups._emitter = J.POPUPS.Helpers.PopupEmitter;
-
-  this.setupPopupsEmitter();
-};
-
-/**
- *
- * @returns {J_EventEmitter}
- */
-Spriteset_Base.prototype.getPopupsEmitter = function()
-{
-  return this._j._popups._emitter;
-};
-
-Spriteset_Base.prototype.setupPopupsEmitter = function()
-{
-  const popupsEmitter = this.getPopupsEmitter();
-
-  popupsEmitter.on("some-event", this.doWork, this);
-  console.log("emitter setup!");
-};
-
-Spriteset_Base.prototype.doWork = function(a, b)
-{
-  console.log(this._j._popups._secret);
-  console.log(a, b);
-};
-//endregion Spriteset_Map

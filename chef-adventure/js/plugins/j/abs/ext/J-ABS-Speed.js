@@ -6,6 +6,7 @@
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
+ * @base J-ABS
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @help
@@ -108,6 +109,9 @@ J.ABS.EXT.SPEED.Aliased = {
   Game_Character: new Map(),
   Game_Battler: new Map(),
   Game_Enemy: new Map(),
+
+  TextManager: new Map(),
+  IconManager: new Map(),
 };
 
 /**
@@ -150,9 +154,93 @@ RPG_Base.prototype.extractJabsSpeedBoost = function()
 };
 //endregion RPG_Base
 
+//region IconManager
+/**
+ * Extend {@link #longParam}.<br>
+ * First checks if the paramId was the move speed boost, then checks others.
+ */
+J.ABS.EXT.SPEED.Aliased.IconManager.set('longParam', IconManager.longParam)
+IconManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 31:
+      return this.movespeed(); // move
+    default:
+      return J.ABS.EXT.SPEED.Aliased.IconManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the icon index for the move speed boost.
+ * @returns {number}
+ */
+IconManager.movespeed = function()
+{
+  return 978;
+};
+//endregion IconManager
+
+//region TextManager
+/**
+ * Extends {@link #longParam}.<br>
+ * First checks if this is the move speed parameter, then checks others.
+ */
+J.ABS.EXT.SPEED.Aliased.TextManager.set('longParam', TextManager.longParam);
+TextManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 31:
+      return this.movespeed(); // move speed boost
+    default:
+      // perform original logic.
+      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the proper name of "move speed boost".
+ * @returns {string}
+ */
+TextManager.movespeed = function()
+{
+  return "Move Boost";
+};
+
+/**
+ * Extends {@link #longParamDescription}.<br>
+ * First checks if this is the move speed parameter, then checks others.
+ */
+J.ABS.EXT.SPEED.Aliased.TextManager.set('longParamDescription', TextManager.longParamDescription);
+TextManager.longParamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    case 31:
+      return this.moveSpeedDescription(); // move speed boost
+    default:
+      // perform original logic.
+      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the description text for the move speed boost.
+ * @returns {string[]}
+ */
+TextManager.moveSpeedDescription = function()
+{
+  return [
+    "The percentage modifier against this character's base movespeed.",
+    "Higher amounts of this result in faster walk and run speeds."
+  ];
+};
+//endregion TextManager
+
 //region Game_Actor
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Refreshes movement speed boosts when the battler's data changes.
  */
 J.ABS.EXT.SPEED.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
@@ -168,7 +256,7 @@ Game_Actor.prototype.onBattlerDataChange = function()
 
 //region Game_Battler
 /**
- * Extends {@link Game_Battler.initMembers}.
+ * Extends {@link Game_Battler.initMembers}.<br>
  */
 J.ABS.EXT.SPEED.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function()
@@ -250,7 +338,7 @@ Game_Battler.prototype.refreshSpeedBoosts = function()
 
 //region Game_Character
 /**
- * Extends {@link Game_Character.distancePerFrame}.
+ * Extends {@link Game_Character.distancePerFrame}.<br>
  * Enables modification of the character's movement speed on the map.
  * @return {number} The modified distance per frame to move.
  */
@@ -327,7 +415,7 @@ Game_Character.prototype.minimumDistancePerFrame = function()
 
 //region Game_Enemy
 /**
- * Extends {@link #onBattlerDataChange}.
+ * Extends {@link #onBattlerDataChange}.<br>
  * Refreshes movement speed boosts when the battler's data changes.
  */
 J.ABS.EXT.SPEED.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);

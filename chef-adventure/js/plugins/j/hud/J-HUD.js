@@ -859,7 +859,7 @@ Game_System.prototype.getHudAlliesVisible = function()
 //region Scene_Map
 //region init
 /**
- * Extends {@link #initMembers}.
+ * Extends {@link #initMembers}.<br>
  * Also initializes the HUD members.
  */
 J.HUD.Aliased.Scene_Map.set('initMembers', Scene_Map.prototype.initMembers);
@@ -913,7 +913,7 @@ Scene_Map.prototype.updateHudFrames = function()
 };
 
 /**
- * Extends {@link #onPartyRotate}.
+ * Extends {@link #onPartyRotate}.<br>
  * Refreshes the HUD on party rotation.
  */
 J.HUD.Aliased.Scene_Map.set('onPartyRotate', Scene_Map.prototype.onPartyRotate);

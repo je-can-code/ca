@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 LEVEL] Allows levels to have greater control and purpose.
+ * [v1.1.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -14,7 +14,11 @@
  * enemies, meaning they too can leverage their level in damage formulas for
  * skills and whatever other scripting shenanigans you want to do.
  *
- * The various data points included are damage, experience, and gold.
+ * The various data points include:
+ * - damage
+ * - experience
+ * - gold
+ *
  * See below SAMPLE CALCULATIONS to understand how the scaling works.
  *
  * CAUTION:
@@ -57,7 +61,7 @@
  * adding the appropriate tags to various locations in the database, you too
  * can scale numbers to your hearts content!
  *
- * NOTE:
+ * NOTE ABOUT LEVEL ZERO:
  * The level-scaling utility has no concept of actor or enemy when performing
  * its calculations. With that in mind, be cognizant of the magic level of
  * zero. If a level ever ends up being zero, that battler will be identified
@@ -65,6 +69,13 @@
  * from that battler will be 1.0x. Level can drop below zero, though, so just
  * stay aware when doing unusual things, like trying to add a state that grants
  * bonus levels for a scaling bonus to a non-level enemy.
+ *
+ * NOTE ABOUT REWARDS:
+ * The way the math works out for the level-scaling calculations, the inputs
+ * for levels are entered in reverse from the way they are in combat formulas!
+ * If it helps you, you can think of it like enemies using a skill against
+ * each member of your party that gives experience- and is affected by the
+ * normal level-scaling mechanics. The same applies to gold rewards.
  *
  * DETAILS:
  * This was initially designed only for enemies, but has since been expanded to
@@ -133,37 +144,41 @@
  * Damage is increased; 1.1x for this attack.
  *
  * Goblin attacks Gilbert!
- * Goblin is 1 levels over Gilbert.
- * There is 1 level of lower invariance.
+ * The attacker(Goblin) is 1 level over the defender(Gilbert).
+ * There is 1 level of upper invariance.
  * The actual variance is 0 level difference.
  * Damage is not modified; 1.0x.
  *
  * Gigagoblin attacks Susan!
- * Gigagoblin is 6 levels over Susan.
- * There is 1 level of lower invariance.
+ * The attacker(Gigagoblin) is 6 levels over the defender(Susan).
+ * There is 1 level of upper invariance.
  * The actual variance is +5 level difference.
  * The growth per level of difference is 0.1x.
  * Damage is increased; 1.5x for this attack.
  *
  * Ophelia attacks Gigagoblin!
- * Ophelia is 15 levels over the Gigagoblin.
+ * The attacker(Ophelia) is 15 levels over the defender(Gigagoblin).
  * There is 1 level of lower invariance.
  * The actual variance is +14 level difference.
  * The growth per level of difference is 0.1x.
- * The maximum multiplier is 2.0x.
+ * The actual multiplier is 2.4x.
+ * The cap multiplier is 2.0x.
  * Damage is increased; capped at 2.0x (from 2.4x).
  *
  * Frank attacks Red Slime!
- * Frank is 5 levels under the Red Slime.
+ * The attacker(Frank) is 5 levels under the defender(Red Slime).
  * There is 1 level of lower invariance.
  * The actual variance is -4 level difference.
  * The reduction per level of difference is -0.1x.
  * Damage is reduced; 0.6x for this attack.
  *
  * Gigagoblin attacks Ophelia!
- * Gigagoblin is 15 levels under Ophelia.
+ * The attacker(Gigagoblin) is 15 levels under the defender(Ophelia).
  * There is 1 level of lower invariance.
  * The actual variance is -14 level difference.
+ * The reduction per level of difference is -0.1x.
+ * The actual multiplier is -0.4x.
+ * (which would actually heal the defender!!!)
  * The minimum multiplier is 0.1x.
  * Damage is reduced; capped at 0.1x for this attack.
  *
@@ -182,6 +197,16 @@
  * Each member of the party gains 92.8 experience.
  *
  * This same logic is again applied to gold from each defeated enemy.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Refactored various data retrieval methods from given battlers.
+ *    Fixed issue with mismapped level calculations.
+ *    Added more jsdocs and comments to explain better the logical flow.
+ *    Removed useless methods.
+ *    Updated example battle scenario to be more verbose.
+ * - 1.0.0
+ *    The initial release.
  * ============================================================================
  * @param useScaling
  * @type boolean
@@ -400,20 +425,20 @@ class LevelScaling
    * Determines the multiplier based on the target's and user's levels.
    *
    * This gives a multiplier in relation to the user.
-   * @param {number} targetLevel The level of the target.
    * @param {number} userLevel The level of the user, typically the actor.
+   * @param {number} targetLevel The level of the target.
    * @returns {number} A decimal representing the multiplier for the scaling.
    */
-  static multiplier(targetLevel, userLevel)
+  static multiplier(userLevel, targetLevel)
   {
     // if the scaling functionality is disabled, then just return 1x.
     if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
 
     // if one of the inputs is invalid or just zero, then default to 1x.
-    if (!this.#isValid(targetLevel, userLevel)) return this.#defaultScalingMultiplier;
+    if (!this.#isValid(userLevel, targetLevel)) return this.#defaultScalingMultiplier;
 
     // determine the difference in level.
-    const levelDifference = this.determineLevelDifference(targetLevel, userLevel);
+    const levelDifference = userLevel - targetLevel;
 
     // return the calculated multiplier based on the given level difference.
     return this.calculate(levelDifference);
@@ -433,18 +458,6 @@ class LevelScaling
 
     // valid!
     return true;
-  }
-
-  /**
-   * Determine the difference in level between two battlers.
-   * @param {number} targetLevel The level of the target.
-   * @param {number} userLevel The level of the user.
-   * @returns {number} A decimal representing the multiplier for the scaling.
-   */
-  static determineLevelDifference(targetLevel, userLevel)
-  {
-    // determine the difference between the target and user in relation to the user.
-    return targetLevel - userLevel;
   }
 
   /**

@@ -1482,7 +1482,7 @@ Game_Event.prototype.showTargetText = function()
 
 //region Scene_Map
 /**
- * Extends {@link #initHudMembers}.
+ * Extends {@link #initHudMembers}.<br>
  * Includes initialization of the target frame members.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
@@ -1513,7 +1513,7 @@ Scene_Map.prototype.initHudMembers = function()
 };
 
 /**
- * Extends {@link #createAllWindows}.
+ * Extends {@link #createAllWindows}.<br>
  * Includes creation of the target frame window.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
@@ -1600,7 +1600,7 @@ Scene_Map.prototype.setTargetFrameWindow = function(window)
 //endregion target frame
 
 /**
- * Extends {@link #updateHudFrames}.
+ * Extends {@link #updateHudFrames}.<br>
  * Includes updating the target frame.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);

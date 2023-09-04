@@ -1568,7 +1568,7 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 
 J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
 /**
- * Extends {@link RPG_Base._generate}.
+ * Extends {@link RPG_Base._generate}.<br>
  *
  * Also mirrors additional JAFTING-related values to the new object.
  * @param {RPG_Base} overrides The overriding object.
@@ -2624,7 +2624,7 @@ class Window_JaftingEquip
             {
               enabled = false;
               iconIndex = 90;
-              errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.\n`;
+              errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.<br>\n`;
             }
           }
 
@@ -2638,7 +2638,7 @@ class Window_JaftingEquip
           {
             enabled = false;
             iconIndex = 92
-            errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.\n`;
+            errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.<br>\n`;
           }
         }
 

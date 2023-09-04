@@ -393,7 +393,7 @@ BattleManager.origin = function()
 };
 
 /**
- * Extends {@link DataManager.createGameObjects}.
+ * Extends {@link DataManager.createGameObjects}.<br>
  * Includes fetching the enemy map and storing it memory.
  */
 J.ABS.EXT.STAR.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
@@ -471,7 +471,7 @@ DataManager.onEnemyMapGet = function(xhr, name, src, url)
 };
 
 /**
- * Overwrites {@link Game_Interpreter.command301}.
+ * Overrides {@link Game_Interpreter.command301}.<br>
  * Alters the event command handler of "Battle Processing".
  * Replaces the default battle setup with our star battle setup instead.
  * @param {any} params The parameters from the event command.
@@ -535,7 +535,7 @@ Game_Interpreter.prototype.command301convertToTroopId = function(designationType
 };
 
 /**
- * Extends {@link Game_Map.update}.
+ * Extends {@link Game_Map.update}.<br>
  * Also update the flow of star battle.
  */
 J.ABS.EXT.STAR.Aliased.Game_Map.set('update', Game_Map.prototype.update);
@@ -666,7 +666,7 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
   // stop generating enemies if we reached the max count.
   if (index >= J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount) 
   {
-    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.`);
+    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.<br>`);
     return;
   }
 
@@ -698,7 +698,7 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
 
 //region phase 2 - inbattle
 /**
- * The second phase of star battle, {@link StarPhases.INBATTLE}.
+ * The second phase of star battle, {@link StarPhases.INBATTLE}.<br>
  * Handles the monitoring of victory conditions for battle, to switch to the
  * next star phase.
  */
@@ -706,7 +706,7 @@ Game_Map.prototype.starPhaseInBattle = function()
 {
   // check if there are enemies still alive on this map.
   const enemiesRemaining = $gameTroop.areEnemiesAlive();
-  console.log(`enemies remaining: ${enemiesRemaining}.`);
+  console.log(`enemies remaining: ${enemiesRemaining}.<br>`);
 
   // the only victory condition is to eliminate all enemies on the map.
   if (enemiesRemaining <= 0) 
@@ -738,7 +738,7 @@ Game_Map.prototype.onStarVictory = function()
 
 //region phase 3 - finished
 /**
- * The third phase of star battle, {@link StarPhases.CLEANUP}.
+ * The third phase of star battle, {@link StarPhases.CLEANUP}.<br>
  * This is typically the conclusion of battle, including replacing the character
  * and moving onto the next phase.
  */
@@ -773,7 +773,7 @@ Game_Map.prototype.returnPlayerToOrigin = function()
 //endregion phase 5 - backtomap
 
 /**
- * Extends {@link Game_Player.clearTransferInfo}.
+ * Extends {@link Game_Player.clearTransferInfo}.<br>
  * Parse out enemy data from the troop and convert them into JABS battlers.
  */
 J.ABS.EXT.STAR.Aliased.Game_Player.set('clearTransferInfo', Game_Player.prototype.clearTransferInfo);
@@ -787,7 +787,7 @@ Game_Player.prototype.clearTransferInfo = function()
 };
 
 /**
- * Extends {@link Game_Player.executeEncounter}.
+ * Extends {@link Game_Player.executeEncounter}.<br>
  * Includes preparation for the stars of battle.
  */
 J.ABS.EXT.STAR.Aliased.Game_Player.set('executeEncounter', Game_Player.prototype.executeEncounter);
@@ -814,7 +814,7 @@ Game_Player.prototype.reserveOriginTransfer = function()
 };
 
 /**
- * Extends {@link Game_Troop.initialize}.
+ * Extends {@link Game_Troop.initialize}.<br>
  * Initializes our additional members for STABS.
  */
 J.ABS.EXT.STAR.Aliased.Game_Troop.set('initialize', Game_Troop.prototype.initialize);
@@ -876,7 +876,7 @@ Game_Troop.prototype.areEnemiesAlive = function()
 };
 
 /**
- * Overwrites {@link Scene_Map.updateEncounter}.
+ * Overrides {@link Scene_Map.updateEncounter}.<br>
  * Disables base encounter scene management.
  */
 Scene_Map.prototype.updateEncounter = function() 

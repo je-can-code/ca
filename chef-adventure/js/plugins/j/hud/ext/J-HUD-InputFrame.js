@@ -677,7 +677,7 @@ class Sprite_CooldownGauge extends Sprite
   }
 
   /**
-   * Extends {@link Sprite.update}.
+   * Extends {@link Sprite.update}.<br>
    * Also updates the drawing of this gauge.
    */
   update()

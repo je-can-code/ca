@@ -124,7 +124,7 @@ J.MESSAGE.Aliased.Window_Base = new Map();
 //region Window_Base
 //region more database text codes
 /**
- * Extends {@link #convertEscapeCharacters}.
+ * Extends {@link #convertEscapeCharacters}.<br>
  * Adds handling for new text codes for various database objects.
  */
 J.MESSAGE.Aliased.Window_Base.set('convertEscapeCharacters', Window_Base.prototype.convertEscapeCharacters);
@@ -409,7 +409,7 @@ Window_Base.prototype.translateSdpTextCode = function(text)
     if (!sdpKey) return text;
 
     // grab the panel by its key.
-    const sdp = $gameSystem.getSdpByKey(sdpKey);
+    const sdp = $gameParty.getSdpByKey(sdpKey);
 
     // if the panel doesn't exist, then do not parse the panel.
     if (!sdp) return text;
