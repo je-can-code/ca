@@ -1820,15 +1820,20 @@ Sprite_Damage.prototype.updateNonDamageSpriteMotion = function(sprite)
  */
 Sprite_Damage.prototype.updateDamageSpriteMotion = function(sprite)
 {
+  this.defaultDamageSpriteMotion(sprite);
+
+  return;
+
+
   // check if the damage sprite is a healing sprite.
-  if (this.isHealing())
-  {
-    this.flyawayDamageSpriteMotion(sprite);
-  }
-  else
-  {
-    this.defaultDamageSpriteMotion(sprite);
-  }
+  // if (this.isHealing())
+  // {
+  //   this.flyawayDamageSpriteMotion(sprite);
+  // }
+  // else
+  // {
+  //   this.defaultDamageSpriteMotion(sprite);
+  // }
 };
 
 /**

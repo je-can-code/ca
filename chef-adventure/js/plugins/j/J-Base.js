@@ -38,6 +38,7 @@
  * CHANGELOG:
  * - 2.1.4
  *    Added parent class for subclassing to strongly type plugin metadata.
+ *    Added Game_Character#isVehicle function.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -4318,7 +4319,7 @@ class RPGManager
   static getArraysFromNotesByRegex(noteObject, structure, tryParse = true)
   {
     // get the note data from this skill.
-    const fromNote = noteObject.split(/[\r\n]+/);
+    const noteLines = noteObject.split(/[\r\n]+/);
 
     // initialize the value.
     let val = [];
@@ -4327,13 +4328,16 @@ class RPGManager
     let hasMatch = false;
 
     // iterate the note data array.
-    fromNote.forEach(note =>
+    noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (note.match(structure))
+      if (line.match(structure))
       {
+        // extract the captured formula.
+        const [,result] = structure.exec(line);
+
         // parse the value out of the regex capture group.
-        val.push(RegExp.$1);
+        val.push(result);
 
         // flag that we found a match.
         hasMatch = true;
@@ -4371,7 +4375,7 @@ class RPGManager
   static getArrayFromNotesByRegex(noteObject, structure, tryParse = true)
   {
     // get the note data from this skill.
-    const fromNote = noteObject.split(/[\r\n]+/);
+    const noteLines = noteObject.split(/[\r\n]+/);
 
     // initialize the value.
     let val = null;
@@ -4380,13 +4384,16 @@ class RPGManager
     let hasMatch = false;
 
     // iterate the note data array.
-    fromNote.forEach(note =>
+    noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (note.match(structure))
+      if (line.match(structure))
       {
+        // extract the captured formula.
+        const [,result] = structure.exec(line);
+
         // parse the value out of the regex capture group.
-        val = JSON.parse(RegExp.$1);
+        val = JSON.parse(result);
 
         // flag that we found a match.
         hasMatch = true;
@@ -6612,6 +6619,15 @@ Game_Character.prototype.isErased = function()
 };
 
 /**
+ * Determines whether or not this character is actually a vehicle.
+ * @return {boolean} True if this is a vehicle, false otherwise.
+ */
+Game_Character.prototype.isVehicle = function()
+{
+  return false;
+};
+
+/**
  * Gets the distance in tiles between this character and the player.
  * @returns {number} The distance.
  */
@@ -6931,6 +6947,15 @@ Game_Event.prototype.isErased = function()
 };
 //endregion Game_Event
 
+/**
+ * Whether or not this character is a follower.
+ * @returns {boolean} True if this is a follower, false otherwise.
+ */
+Game_Follower.prototype.isFollower = function()
+{
+  return true;
+};
+
 //region Game_Map
 /**
  * Gets the note for the current map.
@@ -7191,6 +7216,17 @@ Game_Temp.prototype.initMembers = function()
 {
 };
 //endregion Game_Temp
+
+//region Game_Vehicle
+/**
+ * Vehicles are in fact vehicles.
+ * @return {boolean}
+ */
+Game_Vehicle.prototype.isVehicle = function()
+{
+  return true;
+};
+//endregion Game_Vehicle
 
 /**
  * Extends {@link #initialize}.<br>

@@ -1,1155 +1,3 @@
-//region Introduction
-/*:
- * @target MZ
- * @plugindesc
- * [v1.0.0 JAFT-REFINE] Extends JAFTING to include refinement.
- * @author JE
- * @url https://github.com/je-can-code/ca
- * @base J-Base
- * @base J-JAFTING
- * @orderAfter J-Base
- * @orderAfter J-JAFTING
- * @help
- * ============================================================================
- * [INTRODUCTION]:
- * This is an extension of the JAFTING plugin to enable the ability to "refine"
- * equipment. "Refinement" is defined as "transfering the traits of one item
- * onto another". It is also important to note that "transferable traits" are
- * defined as "all traits on an equip in the database that are below the
- * divider".
- *
- * The "divider" is another trait: 'Collapse Effect'. It doesn't matter which
- * option you select in the dropdown for this (for now). Traits that are above
- * the "divider" are considered "passive" traits that cannot be transfered.
- *
- * This plugin does not handle trait removal, so do keep that in mind.
- *
- * [DESCRIPTION]:
- * This functionality's exclusive target is equipment. The most common use case
- * for this type of plugin is to repeatedly upgrade a weapon or armor of a
- * given type with new/improved traits, allowing the player to keep their
- * equipment relevant longer (or hang onto stuff for sentimental reasons, I
- * guess). It works in tandem with a basic crafting system (the JAFTING base
- * system) to allow you, the RM dev, to come up with fun ways to allow not only
- * you, but the player as well, to flex creativity by using recipes to make
- * stuff, then using refinement to upgrade it. With a wide variety of traits
- * spread across various equipment, combined with the notetags below, this
- * extension on JAFTING can make for some interesting situations in-game (good
- * and bad).
- *
- * [NOTE TAGS]:
- * Obviously, being able to willy nilly refine any equips with any equips could
- * be volatile for the RM dev being able to keep control on what the player
- * should be doing (such as refining a unique equipment onto another and there
- * by losing said unique equipment that could've been required for story!).
- *
- * As such, I've introduced a few tags that can be applied onto weapons/armor:
- *
- * <noRefine>
- * Placing this tag onto equipment renders it unavailable to be refined at all.
- * That means it simply won't show up in the refinement menu's equip lists.
- *
- * <notRefinementBase>
- * Placing this tag onto equipment means it will be a disabled option when
- * selecting a base equip to refine. This most commonly would be used by
- * perhaps some kind of "fragile" types of equipment, or for equipment you
- * designed explicitly as a material.
- *
- * <notRefinementMaterial>
- * Placing this tag onto equipment means it will be a disabled option when
- * selecting a material equip to refine onto the base. This most commonly would
- * be used for preventing the player from sacrificing an equipment that is
- * required for story purposes.
- *
- * <maxRefineCount:NUM>
- * Where NUM is a number that represents how many times this can be refined.
- * Placing this tag onto equipment means it can only be used as a base for
- * refinement NUM number of times.
- *
- * <maxRefinedTraits:NUM>
- * Where NUM is a number that represents how many combined traits it can have.
- * Placing this tag onto equipment means it can only be used as a base as long
- * as the number of combined trait slots (see the screen while refining) is
- * lesser than or equal to NUM. This most commonly would be used to prevent
- * the player from adding an unreasonable number of traits onto an equip.
- *
- * [PLUGIN PARAMETERS]:
- * There are just a couple that will control the visibility of the actual
- * command that shows up for refinement in the JAFTING mode select window.
- *
- * I debated on putting all the various text bits that show up
- * throughout the menu here for translation, but instead I captured them all
- * and put them in the J.JAFTING.EXT.REFINE.Messages object. If you want to change the
- * text, feel free to edit that instead. Additionally, for the various traits
- * text, you can find that text hard-coded english starting at line 2164 by
- * trait code.
- * ============================================================================
- * CHANGELOG:
- *
- * - 1.0.0
- *    Initial release.
- * ============================================================================
- *
- * @command hideJaftingRefinement
- * @text Hide Refinement Option
- * @desc Removes the "refinement" option from the JAFTING mode selection window.
- *
- * @command showJaftingRefinement
- * @text Show Refinement Option
- * @desc Adds the "refinement" option to the JAFTING mode selection window.
- *
- * @command disableJaftingRefinement
- * @text Disable Refinement Option
- * @desc Disables the "refinement" option in the JAFTING mode selection window.
- *
- * @command enableJaftingRefinement
- * @text Enable Refinement Option
- * @desc Enables the "refinement" option in the JAFTING mode selection window.
- */
-
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.2';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-JAFTING plugin.
-  const requiredJaftingVersion = '2.0.0';
-  const hasJaftingRequirement = J.BASE.Helpers.satisfies(J.JAFTING.Metadata.Version, requiredJaftingVersion);
-  if (!hasJaftingRequirement)
-  {
-    throw new Error(`Either missing J-JAFTING or has a lower version than the required: ${requiredJaftingVersion}`);
-  }
-})();
-//endregion version check
-
-/**
- * The plugin umbrella that governs all things related to this extension plugin.
- */
-J.JAFTING.EXT.REFINE = {};
-
-/**
- * The `metadata` associated with this plugin, such as version.
- */
-J.JAFTING.EXT.REFINE.Metadata = {};
-J.JAFTING.EXT.REFINE.Metadata.Version = '1.0.0';
-J.JAFTING.EXT.REFINE.Metadata.Name = `J-JAFTING-Refinement`;
-
-/**
- * A helpful mapping of the various messages that we use in JAFTING.
- */
-J.JAFTING.EXT.REFINE.Messages = {
-  /**
-   * The name of the command for Refinement on the JAFTING mode menu.
-   */
-  RefineCommandName: "Refine",
-
-  /**
-   * The name of the command that executes refinement.
-   */
-  ExecuteRefinementCommandName: "Execute Refinement",
-
-  /**
-   * The name of the command that cancels the refinement process.
-   */
-  CancelRefinementCommandName: "Cancel",
-
-  /**
-   * When an item hasn't been selected somehow, this message shows in the help window.
-   */
-  NoItemSelected: "Nothing is selected.",
-
-  /**
-   * When the item being hovered over cannot be used in refinement as a base, show this.
-   */
-  CannotUseAsBase: "This cannot be used as a base for refinement.",
-
-  /**
-   * When the item being hovered over cannot be used in refinement as a material, show this.
-   */
-  CannotUseAsMaterial: "This cannot be used as a material for refinement.",
-
-  /**
-   * When the list window is the selection of a base to refine, this shows up in the mini window.
-   */
-  ChooseRefinementBase: "Choose Refinement Base",
-
-  /**
-   * When the list window is the selection of a material to add, this shows up in the mini window.
-   */
-  ChooseRefinementMaterial: "Choose Material to Add",
-
-  /**
-   * When a material has no traits, this message shows up in the help window.
-   */
-  NoTraitsOnMaterial: "This material has no traits to refine the base with.",
-
-  /**
-   * When the refinement would result in going over the base's max refine count, this shows up.
-   */
-  ExceedRefineCount: "Refining with this would result in exceeding refine count max:",
-
-  /**
-   * When the refinement would result in going over the base's max trait count, this shows up.
-   */
-  ExceedTraitCount: "Refining with this would result in exceeding trait count max:",
-
-  /**
-   * When the player hovers over an equip that has already reached it's max refine count, this shows up.
-   */
-  AlreadyMaxRefineCount: "This has already been refined the maximum number of times.",
-
-  /**
-   * When the player hovers over an equip that has already reached it's max trait count, this shows up.
-   */
-  AlreadyMaxTraitCount: "This has already been refined with as many traits as it can hold.",
-
-  /**
-   * This shows up over the base equip during refinement.
-   */
-  TitleBase: "Refinement Base",
-
-  /**
-   * This shows up over the material equip during refinement.
-   */
-  TitleMaterial: "Refinement Material",
-
-  /**
-   * This shows up over the output equip during refinement.
-   */
-  TitleOutput: "Refinement Output",
-
-  /**
-   * Shown when a material is disabled because it has no traits to grant the base equip.
-   */
-  NoTransferableTraits: "No transferable traits.",
-};
-
-/**
- * A helpful mapping of all the various RMMZ classes being extended.
- */
-J.JAFTING.EXT.REFINE.Aliased = {
-  DataManager: new Map(),
-
-  RPG_Base: new Map(),
-
-  Game_Item: new Map(),
-
-  Scene_Map: new Map(),
-
-  Window_JaftingModeMenu: {},
-};
-
-/**
- * All regular expressions used by this plugin.
- */
-J.JAFTING.EXT.REFINE.RegExp = {};
-J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
-J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
-J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<unrefinable>/i;
-J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
-J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
-
-/**
- * A global object for storing data related to JAFTING.
- * @global
- * @type {Game_JAFTING}
- */
-var $gameJAFTING = null;
-
-/**
- * Plugin command for hiding the refinement option in the JAFTING mode selection window.
- */
-PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "hideJaftingRefinement", () =>
-{
-  $gameJAFTING.hideRefinement();
-});
-
-/**
- * Plugin command for showing the refinement option in the JAFTING mode selection window.
- */
-PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "showJaftingRefinement", () =>
-{
-  $gameJAFTING.showRefinement();
-});
-
-/**
- * Plugin command for disabling the refinement option in the JAFTING mode selection window.
- */
-PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "disableJaftingRefinement", () =>
-{
-  $gameJAFTING.disableRefinement();
-});
-
-/**
- * Plugin command for enabling the refinement option in the JAFTING mode selection window.
- */
-PluginManager.registerCommand(`${J.JAFTING.EXT.REFINE.Metadata.Name}-Refinement`, "enableJaftingRefinement", () =>
-{
-  $gameJAFTING.enableRefinement();
-});
-//endregion Introduction
-
-//region Game_JAFTING
-/**
- * A class for managing all things related to JAFTING.
- */
-function Game_JAFTING()
-{
-  this.initialize(...arguments)
-}
-Game_JAFTING.prototype = {};
-Game_JAFTING.prototype.constructor = Game_JAFTING;
-
-/**
- * A collection of categories of equipment that are refinable.
- */
-Game_JAFTING.RefinementTypes = {
-  Armor: "armor",
-  Weapon: "weapon",
-};
-
-/**
- * The starting index that we will start counting up from for both of
- * the $dataArmors and $dataWeapons arrays. This should never change once a game
- * has begun, or else we could end up with clobbered or missing data.
- * @type {number}
- */
-Game_JAFTING.startingIndex = 2001;
-
-/**
- * Initializes all members of this class.
- */
-Game_JAFTING.prototype.initialize = function()
-{
-  /**
-   * Whether or not this option is enabled in the JAFTING mode menu.
-   * @type {boolean}
-   */
-  this._enabled = true;
-
-  /**
-   * Whether or not this option is rendered in the JAFTING mode menu.
-   * @type {boolean}
-   */
-  this._hidden = false;
-
-  /**
-   * The starting index. I was going to make this configurable, but I figured since the
-   * default max for the database was 2000, i'd lock this at 2001 and call it a day.
-   *
-   * This defines where the custom refined equips will be injected into the database
-   * weapons/armors objects.
-   * @type {number}
-   */
-  this._startingIndex = 2001;
-
-  /**
-   * A collection of all weapons that have been refined.
-   * @type {RPG_EquipItem[]}
-   */
-  this._refinedWeapons = [];
-
-  /**
-   * A collection of all armors that have been refined.
-   * @type {RPG_EquipItem[]}
-   */
-  this._refinedArmors = [];
-
-  /**
-   * A collection of all current increment indices for refinable equipment types.
-   * This ensures no refined equipment gets overwritten by another refined equipment.
-   * @type {number}
-   */
-  this._refinementIncrements ||= {};
-
-  /**
-   * The refinement increment index for armors.
-   * @type {number}
-   */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Armor] ||= Game_JAFTING.startingIndex;
-
-  /**
-   * The refinement increment index for weapons.
-   * @type {number}
-   */
-  this._refinementIncrements[Game_JAFTING.RefinementTypes.Weapon] ||= Game_JAFTING.startingIndex;
-};
-
-/**
- * Enables the refine mode in the JAFTING mode selection menu.
- */
-Game_JAFTING.prototype.enableRefinement = function()
-{
-  this._enabled = true;
-};
-
-/**
- * Disables the refine mode in the JAFTING mode selection menu.
- */
-Game_JAFTING.prototype.disableRefinement = function()
-{
-  this._enabled = false;
-};
-
-/**
- * Gets whether or not the refine option is enabled in the JAFTING mode selection window.
- * @returns {boolean}
- */
-Game_JAFTING.prototype.isRefinementEnabled = function()
-{
-  return this._enabled;
-};
-
-/**
- * Hides the refine option in the JAFTING mode selection menu.
- */
-Game_JAFTING.prototype.hideRefinement = function()
-{
-  this._hidden = true;
-};
-
-/**
- * Shows the refine option in the JAFTING mode selection menu.
- */
-Game_JAFTING.prototype.showRefinement = function()
-{
-  this._hidden = false;
-};
-
-/**
- * Gets whether or not the refine mode option is rendered in the JAFTING
- * mode selection menu.
- * @returns {boolean}
- */
-Game_JAFTING.prototype.isRefinementHidden = function()
-{
-  return this._hidden;
-};
-/**
- * Increments the refinement index for a particular datastore.
- * @param {string} refinementType One of the refinement types.
- */
-Game_JAFTING.prototype.incrementRefinementCounter = function(refinementType)
-{
-  this._refinementIncrements[refinementType]++;
-};
-
-/**
- * Gets the current increment for a particular datastore's latest index.
- * @param {string} refinementType One of the refinement types.
- * @returns {number}
- */
-Game_JAFTING.prototype.getRefinementCounter = function(refinementType)
-{
-  return this._refinementIncrements[refinementType];
-};
-
-/**
- * Adds a newly refined weapon to the collection for tracking purposes.
- * @param {RPG_EquipItem} weapon The newly refined weapon.
- */
-Game_JAFTING.prototype.trackRefinedWeapon = function(weapon)
-{
-  this._refinedWeapons.push(weapon);
-};
-
-/**
- * Adds a newly refined armor to the collection for tracking purposes.
- * @param {RPG_EquipItem} armor The newly refined armor.
- */
-Game_JAFTING.prototype.trackRefinedArmor = function(armor)
-{
-  this._refinedArmors.push(armor);
-};
-
-/**
- * Gets all tracked weapons that have been refined.
- * @returns {RPG_EquipItem[]}
- */
-Game_JAFTING.prototype.getRefinedWeapons = function()
-{
-  return this._refinedWeapons;
-};
-
-/**
- * Gets all tracked armors that have been refined.
- * @returns {RPG_EquipItem[]}
- */
-Game_JAFTING.prototype.getRefinedArmors = function()
-{
-  return this._refinedArmors;
-};
-
-/**
- * Updates the $dataWeapons collection to include the player's collection of
- * refined weapons.
- */
-Game_JAFTING.prototype.updateDataWeapons = function()
-{
-  this.getRefinedWeapons().forEach(weapon =>
-  {
-    const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
-    $dataWeapons[updatedWeapon._key()] = updatedWeapon;
-  });
-};
-
-/**
- * Updates the $dataArmors collection to include the player's collection of
- * refined armors.
- */
-Game_JAFTING.prototype.updateDataArmors = function()
-{
-  this.getRefinedArmors().forEach(armor =>
-  {
-    const updatedArmor = new RPG_Armor(armor, armor.index);
-    $dataArmors[updatedArmor._key()] = updatedArmor;
-  });
-};
-
-/**
- * Determines the result of refining a given base with a given material.
- * @param {RPG_EquipItem} base An equip to parse traits off of.
- * @param {RPG_EquipItem} material An equip to parse traits off of.
- * @returns {RPG_EquipItem}
- */
-Game_JAFTING.prototype.determineRefinementOutput = function(base, material)
-{
-  // don't process if we are missing a parameter.
-  if (!base || !material) return null;
-
-  let baseTraits = this.parseTraits(base);
-  let materialTraits = this.parseTraits(material);
-
-  [baseTraits, materialTraits] = this.removeIncompatibleTraits(baseTraits, materialTraits);
-
-  [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
-
-  // copy of primary equip that represents the projected result.
-  const output = base._generate(base, base._index());
-
-  // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
-  if (!baseTraits.length)
-  {
-    // add a divider trait at the end of the primary equip's trait list.
-    output.traits.push(JAFTING_Trait.divider());
-  }
-  else
-  {
-    // determine the divider's index.
-    const index = output.traits.findIndex(trait => trait.code === 63);
-
-    // check if we have a valid divider index and there is stuff after the divider.
-    if (index > -1 && !!output.traits[index])
-    {
-      // if we have stuff after the divider, get rid of it.
-      output.traits.splice(index + 1);
-    }
-
-    // add our modified primary traits.
-    baseTraits.forEach(trait => output.traits.push(trait.convertToRmTrait()));
-  }
-
-  // iterate over all the secondary traits that can be transferred to the refined primary equip.
-  materialTraits.forEach(trait =>
-  {
-    // if the trait is non-transferable, then skip it.
-    if (!this.isTransferableTrait(output, trait)) return;
-
-    // create and add the new trait from the material onto the base.
-    const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
-    output.traits.push(newTrait);
-  });
-
-  if (material.jaftingRefinedCount > 0)
-  {
-    // the -1 at the end is to accommodate the default of +1 that occurs when an equip is refined.
-    output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
-  }
-
-  return output;
-};
-
-/**
- * Parses all traits off the equipment that are below the "divider".
- * The divider is NOT parameterized, the "collapse effect" trait is the perfect trait
- * to use for this purpose since it has 0 use on actor equipment.
- * @param {RPG_EquipItem} equip An equip to parse traits off of.
- * @returns {JAFTING_Trait[]}
- */
-Game_JAFTING.prototype.parseTraits = function(equip)
-{
-  const allTraits = [...equip.traits];//JsonEx.makeDeepCopy(equip.traits);
-  const divider = allTraits.findIndex(trait => trait.code === 63);
-  if (divider > -1)
-  {
-    const availableTraits = allTraits.splice(divider + 1);
-
-    // if we have no leftover traits after splicing off the stuff after, then stop.
-    if (!availableTraits.length) return [];
-
-    let jaftingTraits = availableTraits.map(t => new JAFTING_Trait(t.code, t.dataId, t.value));
-    jaftingTraits = this.combineAllParameterTraits(jaftingTraits);
-    return jaftingTraits;
-  }
-  else
-  {
-    return [];
-  }
-};
-
-/**
- * Determines whether or not a trait should be transfered to the refined base equip.
- * @param {RPG_EquipItem} output The to-be refined base equip.
- * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
- * @returns {boolean}
- */
-Game_JAFTING.prototype.isTransferableTrait = (output, jaftingTrait) =>
-{
-  switch (jaftingTrait._code)
-  {
-    case 11: // elemental damage rate - stackable.
-    case 12: // debuff rate - stackable.
-    case 13: // state rate - stackable.
-    case 14: // state immunity - don't add the same twice.
-    case 21: // base parameter rate - stackable.
-    case 22: // ex-parameter rate - stackable.
-    case 23: // sp-parameter rate - stackable.
-    case 31: // attack element - uniquely stackable.
-    case 32: // apply state chance - stackable.
-    case 33: // skill speed - stackable.
-    case 34: // repeat times - stackable.
-    case 35: // change basic attack skill - overwrite.
-    case 41: // unlock skill type - one or the other or none.
-    case 42: // lock skill type - one or the other or none.
-    case 43: // learn skill while equipped - one or the other or none.
-    case 44: // unlearn skill while equipped - one or the other or none.
-    case 51: // can use new weapon type - don't add the same twice.
-    case 52: // can use new armor type - don't add the same twice.
-    case 53: // (lock)cannot change equipment from slot.
-    case 55: // enable/disable dual-wielding - overwrite.
-    case 61: // action times percent boost - stackable.
-    case 62: // special flag - don't add the same twice.
-    case 64: // party ability - don't add the same twice.
-      return true;
-
-    case 54: // (seal) slot is not equippable while equipped.
-      const sealingOwnEquipType = (jaftingTrait._dataId === output.etypeId);
-      // don't transfer over slot sealing if it would seal the slot the equip is on.
-      return !sealingOwnEquipType;
-    default:
-      console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
-      return false;
-  }
-};
-
-/**
- * Compares traits on the base item against those on the material, and purges
- * all conflicting traits from the result.
- * @param {JAFTING_Trait[]} baseTraits The traits from the base item.
- * @param {JAFTING_Trait[]} materialTraits The traits from the material.
- * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
- */
-Game_JAFTING.prototype.removeIncompatibleTraits = function(baseTraits, materialTraits)
-{
-  // a list of traits that should be purged from the secondary list if found.
-  const noDuplicateTraitCodes = [14, 31, 41, 42, 43, 44, 51, 52, 53, 54, 55, 62, 64];
-  baseTraits.forEach(jaftingTrait =>
-  {
-    if (noDuplicateTraitCodes.includes(jaftingTrait._code))
-    {
-      this.purgeDuplicateTrait(jaftingTrait, materialTraits, jaftingTrait._code);
-    }
-  });
-
-  // handle lock/unlock skills types.
-  [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 41, 42);
-
-  // handle lock/unlock skills.
-  [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 43, 44);
-
-  // overwrite basic attack skill.
-  [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 35);
-
-  // overwrite enable/disable of dual-wield (unique case!)
-  [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 55);
-
-  return [baseTraits, materialTraits];
-};
-
-/**
- * Compare one trait with a rolling trait list to see if the list has any conflicting
- * traits with it. If so, remove them.
- * @param {JAFTING_Trait} potentialJaftingTrait The trait potentially to add if it doesn't already exist.
- * @param {JAFTING_Trait[]} rollingJaftingTraitList The trait list to compare against.
- */
-Game_JAFTING.prototype.purgeDuplicateTrait = function(potentialJaftingTrait, rollingJaftingTraitList)
-{
-  let donePurging = false;
-  while (!donePurging)
-  {
-    const index = rollingJaftingTraitList.findIndex(trait => trait._code === potentialJaftingTrait._code);
-    if (index > -1 && rollingJaftingTraitList[index]._dataId === potentialJaftingTrait._dataId)
-    {
-      rollingJaftingTraitList.splice(index, 1);
-    }
-    else
-    {
-      donePurging = true;
-    }
-  }
-};
-
-/**
- * Compares two lists of traits and looks for a pair of codes that could possibly be
- * opposing one another. If one code is found in one list, and the opposing code is found
- * in the other list, the traits are removed from their respective lists. This will look
- * in both lists for both codes, so repeating this function for both orders is not necessary.
- * This will also retroactively remove both codes if they somehow live in the same list.
- * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
- * @param {number} code One of the codes to compare.
- * @param {number} opposingCode The opposing code to compare.
- * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
- */
-Game_JAFTING.prototype.removeOppositeTrait = function(baseTraitList, materialTraitList, code, opposingCode)
-{
-  const hasTraitCode = trait => trait._code === code;
-  const hasOpposingTraitCode = trait => trait._code === opposingCode;
-  const baseHasCode = baseTraitList.findIndex(hasTraitCode);
-  const materialHasCode = materialTraitList.findIndex(hasTraitCode);
-  const baseHasOpposingCode = baseTraitList.findIndex(hasOpposingTraitCode);
-  const materialHasOpposingCode = materialTraitList.findIndex(hasOpposingTraitCode);
-
-  // if the primary has the base code, and secondary has opposing, remove both.
-  if (baseHasCode > -1 && materialHasOpposingCode > -1)
-  {
-    if (baseTraitList[baseHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
-    {
-      baseTraitList.splice(baseHasCode, 1, null);
-      materialTraitList.splice(materialHasOpposingCode, 1, null);
-    }
-  }
-
-  // if the secondary has the base code, and primary has opposing, remove both.
-  if (materialHasCode > -1 && baseHasOpposingCode > -1)
-  {
-    if (baseTraitList[baseHasOpposingCode]._dataId === materialTraitList[materialHasCode]._dataId)
-    {
-      baseTraitList.splice(baseHasOpposingCode, 1, null);
-      materialTraitList.splice(materialHasCode, 1, null);
-    }
-  }
-
-  // if the primary list has both codes, remove both traits.
-  if (baseHasCode > -1 && baseHasOpposingCode > -1)
-  {
-    if (baseTraitList[baseHasCode]._dataId === baseTraitList[baseHasOpposingCode]._dataId)
-    {
-      baseTraitList.splice(baseHasCode, 1, null);
-      baseTraitList.splice(baseHasOpposingCode, 1, null);
-    }
-  }
-
-  // if the secondary list has both codes, remove both traits.
-  if (materialHasCode > -1 && materialHasOpposingCode > -1)
-  {
-    if (materialTraitList[materialHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
-    {
-      materialTraitList.splice(materialHasCode, 1, null);
-      materialTraitList.splice(materialHasOpposingCode, 1, null);
-    }
-  }
-
-  baseTraitList = baseTraitList.filter(trait => !!trait);
-  materialTraitList = materialTraitList.filter(trait => !!trait);
-
-  return [baseTraitList, materialTraitList];
-};
-
-/**
- * Combines all parameter-related traits where applicable.
- * @param {JAFTING_Trait[]} traitList The list of traits.
- * @returns {JAFTING_Trait[]}
- */
-Game_JAFTING.prototype.combineAllParameterTraits = function(traitList)
-{
-  traitList = this.combineBaseParameterTraits(traitList);
-  traitList = this.combineExParameterTraits(traitList);
-  traitList = this.combineSpParameterTraits(traitList);
-  return traitList;
-};
-
-/**
- * Combines all b-parameter-traits that are applicable.
- * @param {JAFTING_Trait[]} traitList The list of traits.
- * @returns {JAFTING_Trait[]}
- */
-Game_JAFTING.prototype.combineBaseParameterTraits = function(traitList)
-{
-  const canCombineCode = 21;
-  let tempTraitList = JsonEx.makeDeepCopy(traitList);
-  const traitTracker = {};
-  const indices = [];
-  traitList.forEach((trait, index) =>
-  {
-    if (trait._code !== canCombineCode) return;
-
-    if (!traitTracker[trait._dataId])
-    {
-      // if we haven't started tracking it yet, add it.
-      traitTracker[trait._dataId] = trait._value;
-    }
-    else
-    {
-      // if we have started tracking it, then increase the value by the bonus amount.
-      traitTracker[trait._dataId] += trait._value - 1;
-    }
-
-    // mark the index to be removed and replaced later.
-    indices.push(index);
-  });
-
-  // if we didn't have any traits to combine, then we're done.
-  if (!indices.length)
-  {
-    return traitList;
-  }
-
-  // get rid of all the old traits.
-  indices.forEach(i => tempTraitList.splice(i, 1, null));
-  tempTraitList = tempTraitList.filter(element => !!element);
-
-  // make the new combined traits and add them to the list.
-  for (const dataId in traitTracker)
-  {
-    const value = parseFloat(traitTracker[dataId].toFixed(2));
-    const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-    tempTraitList.push(newTrait);
-  }
-
-  return tempTraitList;
-};
-
-/**
- * Combines all ex-parameter-traits that are applicable.
- * @param {JAFTING_Trait[]} traitList The list of traits.
- * @returns {JAFTING_Trait[]}
- */
-Game_JAFTING.prototype.combineExParameterTraits = function(traitList)
-{
-  const canCombineCode = 22;
-  let tempTraitList = JsonEx.makeDeepCopy(traitList);
-  const traitTracker = {};
-  const indices = [];
-  traitList.forEach((trait, index) =>
-  {
-    if (trait._code !== canCombineCode) return;
-
-    if (!traitTracker[trait._dataId])
-    {
-      // if we haven't started tracking it yet, add it.
-      traitTracker[trait._dataId] = trait._value;
-    }
-    else
-    {
-      // if we have started tracking it, then increase the value by the bonus amount.
-      traitTracker[trait._dataId] += trait._value;
-    }
-
-    // mark the index to be removed and replaced later.
-    indices.push(index);
-  });
-
-  // if we didn't have any traits to combine, then we're done.
-  if (!indices.length)
-  {
-    return traitList;
-  }
-
-  // get rid of all the old traits.
-  indices.forEach(i => tempTraitList.splice(i, 1, null));
-  tempTraitList = tempTraitList.filter(element => !!element);
-
-  // make the new combined traits and add them to the list.
-  for (const dataId in traitTracker)
-  {
-    const value = parseFloat(traitTracker[dataId].toFixed(2));
-    const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-    tempTraitList.push(newTrait);
-  }
-
-  return tempTraitList;
-};
-
-/**
- * Combines all sp-parameter-traits that are applicable.
- * @param {JAFTING_Trait[]} traitList The list of traits.
- * @returns {JAFTING_Trait[]}
- */
-Game_JAFTING.prototype.combineSpParameterTraits = function(traitList)
-{
-  const canCombineCode = 23;
-  let tempTraitList = JsonEx.makeDeepCopy(traitList);
-  const traitTracker = {};
-  const indices = [];
-  traitList.forEach((trait, index) =>
-  {
-    if (trait._code !== canCombineCode) return;
-
-    if (!traitTracker[trait._dataId])
-    {
-      // if we haven't started tracking it yet, add it.
-      traitTracker[trait._dataId] = trait._value - 1;
-    }
-    else
-    {
-      // if we have started tracking it, then increase the value by the bonus amount.
-      traitTracker[trait._dataId] += trait._value - 1;
-    }
-
-    // mark the index to be removed and replaced later.
-    indices.push(index);
-  });
-
-  // if we didn't have any traits to combine, then we're done.
-  if (!indices.length)
-  {
-    return traitList;
-  }
-
-  // get rid of all the old traits.
-  indices.forEach(i => tempTraitList.splice(i, 1, null));
-  tempTraitList = tempTraitList.filter(element => !!element);
-
-  // make the new combined traits and add them to the list.
-  for (const dataId in traitTracker)
-  {
-    const value = parseFloat(traitTracker[dataId].toFixed(2)) + 1;
-    const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-    tempTraitList.push(newTrait);
-  }
-
-  return tempTraitList;
-};
-
-/**
- * Removes a trait from the primary list if the same trait also lives on the secondary
- * list. This gives the illusion of overwriting the trait with the new one.
- * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
- * @param {number} code The code to overwrite if it exists in both lists.
- * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
- */
-Game_JAFTING.prototype.replaceTrait = function(baseTraitList, materialTraitList, code)
-{
-  const hasTraitCode = trait => trait._code === code;
-  const baseHasCode = baseTraitList.findIndex(hasTraitCode);
-  const materialHasCode = materialTraitList.findIndex(hasTraitCode);
-
-  // if both lists have the same trait, remove from base list.
-  if (baseHasCode > -1 && materialHasCode > -1)
-  {
-    baseTraitList.splice(baseHasCode, 1, null);
-  }
-
-  baseTraitList = baseTraitList.filter(trait => !!trait);
-  return [baseTraitList, materialTraitList];
-};
-
-/**
- * Overwrites all traits from the two lists depending on which is better as applicable.
- * @param {JAFTING_Trait[]} baseTraits The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
- * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
- */
-Game_JAFTING.prototype.overwriteAllOverwritableTraits = function(baseTraits, materialTraits)
-{
-  const overwritableCodes = [11, 12, 13, 32, 33, 34, 61];
-  overwritableCodes.forEach(code =>
-  {
-    [baseTraits, materialTraits] = this.overwriteIfBetter(baseTraits, materialTraits, code);
-  });
-
-  return [baseTraits, materialTraits];
-};
-
-/**
- * Checks the material trait list to see if better versions of the traits in the base
- * trait list are already there. If so, purges them from the base to allow for "overwriting"
- * from the material.
- * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
- * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
- * @param {number} code The code to overwrite if it exists in both lists.
- * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
- */
-Game_JAFTING.prototype.overwriteIfBetter = function(baseTraitList, materialTraitList, code)
-{
-  const higherIsBetterCodes = [32, 33, 34, 61];
-  const lowerIsBetterCodes = [11, 12, 13];
-
-  // a quick function to use against each element of the base trait list
-  // to check and see if the material trait list has any of the same codes with dataIds
-  const hasTraitCodeAndDataIdWithBetterValue = trait =>
-  {
-    if (trait._code !== code) return false;
-
-    // check if another version of the trait exists on the material.
-    const index = materialTraitList.findIndex(jaftingTrait =>
-      jaftingTrait._code === code &&
-      jaftingTrait._dataId === trait._dataId);
-    return index > -1;
-  };
-
-  // get all indices that return true for the above function and store them.
-  const sameIndices = [];
-  baseTraitList.forEach((jaftingTrait, index) =>
-  {
-    if (hasTraitCodeAndDataIdWithBetterValue(jaftingTrait))
-    {
-      sameIndices.push(index);
-    }
-  });
-
-  // if we have no matches to combine, then just return the lists untouched.
-  if (!sameIndices.length) return [baseTraitList, materialTraitList];
-
-  // create copies for working with.
-  let tempBaseList = JsonEx.makeDeepCopy(baseTraitList);
-  let tempMaterialList = JsonEx.makeDeepCopy(materialTraitList);
-
-  // iterate over all shared traits to analyze them further.
-  sameIndices.forEach(i =>
-  {
-    const baseTrait = baseTraitList[i];
-    const materialTraitIndex = materialTraitList
-      .findIndex(t => t._code === baseTrait._code && t._dataId === baseTrait._dataId);
-    const materialTrait = materialTraitList[materialTraitIndex];
-    // if the trait code prefers higher values, then compare that way.
-    if (higherIsBetterCodes.includes(baseTrait._code))
-    {
-      if (baseTrait._value > materialTrait._value)
-      {
-        // if better on the base, then remove it from the material.
-        tempMaterialList.splice(materialTraitIndex, 1, null);
-      }
-      else
-      {
-        // if better on the material, then remove it from the base.
-        tempBaseList.splice(i, 1, null);
-      }
-      // if the trait code prefers lower values, then compare that way.
-    }
-    else if (lowerIsBetterCodes.includes(baseTrait._code))
-    {
-      if (baseTrait._value < materialTrait._value)
-      {
-        // if better on the base, then remove it from the material.
-        tempMaterialList.splice(materialTraitIndex, 1, null);
-      }
-      else
-      {
-        // if better on the material, then remove it from the base.
-        tempBaseList.splice(i, 1, null);
-      }
-    }
-  });
-
-  tempBaseList = tempBaseList
-    .filter(t => !!t)
-    .map(t => new JAFTING_Trait(t._code, t._dataId, t._value));
-  tempMaterialList = tempMaterialList
-    .filter(t => !!t)
-    .map(t => new JAFTING_Trait(t._code, t._dataId, t._value));
-
-  return [tempBaseList, tempMaterialList];
-};
-
-/**
- * Takes the refinement result equip and creates it in the appropriate datastore, and adds it to
- * the player's inventory.
- * @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
- */
-Game_JAFTING.prototype.createRefinedOutput = function(outputEquip)
-{
-  if (outputEquip.wtypeId)
-  {
-    this.generateRefinedEquip($dataWeapons, outputEquip, Game_JAFTING.RefinementTypes.Weapon);
-  }
-  else if (outputEquip.atypeId)
-  {
-    this.generateRefinedEquip($dataArmors, outputEquip, Game_JAFTING.RefinementTypes.Armor);
-  }
-};
-
-/**
- * Generates the new entry in the corresponding datastore for the new equip data that was refined.
- * @param {RPG_Weapon[]|RPG_Armor[]} datastore The datastore to extend with new data.
- * @param {RPG_EquipItem} equip The equip to generate and add to the player's inventory.
- * @param {string} refinementType The type of equip this is; for incrementing the counter on custom data.
- * @returns {RPG_EquipItem}
- */
-Game_JAFTING.prototype.generateRefinedEquip = function(datastore, equip, refinementType)
-{
-  equip.jaftingRefinedCount++;
-  const suffix = `+${equip.jaftingRefinedCount}`;
-  if (equip.jaftingRefinedCount === 1)
-  {
-    // first time refining, they don't have a name to replace.
-    equip.name = `${equip.name} ${suffix}`;
-  }
-  else
-  {
-    // second or later time refining, they need to replace the suffix.
-    const index = equip.name.indexOf("+");
-    if (index > -1)
-    {
-      equip.name = `${equip.name.slice(0, index)}${suffix}`;
-    }
-    else
-    {
-      equip.name = `${equip.name} ${suffix}`;
-    }
-  }
-
-  // generate the new entry in the database.
-  const newIndex = this.getRefinementCounter(refinementType);
-  equip._updateIndex(newIndex);
-  datastore[newIndex] = equip;
-
-  // gain the actual item.
-  $gameParty.gainItem(datastore[newIndex], 1);
-
-  // increment the index to ensure we don't overwrite it.
-  this.incrementRefinementCounter(refinementType);
-
-  // add it to our running list of everything we've literally ever created ever.
-  if (equip.wtypeId)
-  {
-    this.trackRefinedWeapon(equip);
-  }
-  else if (equip.atypeId)
-  {
-    this.trackRefinedArmor(equip);
-  }
-  else
-  {
-    console.error(`The following equip failed to be captured because it was neither weapon nor armor.`);
-    console.warn(equip);
-    throw new Error("please stop crafting stuff that isn't valid.");
-  }
-};
-//endregion Game_JAFTING
-
 //region JAFT_RefinementData
 /**
  * A class containing all the various data points extracted from notes.
@@ -1566,7 +414,378 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 };
 //endregion JAFTING_Trait
 
-J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
+//region Introduction
+/*:
+ * @target MZ
+ * @plugindesc
+ * [v1.0.0 JAFT-Refine] An extension for JAFTING to enable equip refinement.
+ * @author JE
+ * @url https://github.com/je-can-code/rmmz-plugins
+ * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-JAFTING
+ * @help
+ * ============================================================================
+ * OVERVIEW
+ * This plugin enables the "refine" functionality of JAFTING.
+ * The "refine" functionality is basically a trait transferrence system with
+ * some guardrails in-place.
+ *
+ * Integrates with others of mine plugins:
+ * - J-Base; to be honest this is just required for all my plugins.
+ * - J-JAFTING; the core that this engine hooks into to enable upgrading.
+ *
+ * ============================================================================
+ * UPGRADING
+ * Ever want to upgrade your equips by sacrificing others in the name of
+ * ascending to godliness? Well now you can! By using a variety of tags placed
+ * deliberately on your equips throughout the database, you too can have a
+ * dynamic and powerful upgrading system for equipment.
+ *
+ * HOW DOES IT WORK?
+ * This is an extension of the JAFTING plugin to enable the ability to "refine"
+ * equipment. "Refinement" is defined as "transfering the traits of one item
+ * onto another". It is also important to note that "transferable traits" are
+ * defined as "all traits on an equip in the database that are below the
+ * divider".
+ *
+ * NOTE ABOUT THE DIVIDER
+ * The "divider" is another trait: 'Collapse Effect'. It doesn't matter which
+ * option you select in the dropdown for this (for now). Traits that are above
+ * the "divider" are considered "passive" traits that cannot be transfered.
+ *
+ * NOTE ABOUT TRAIT REMOVAL
+ * This plugin does not handle trait removal, so do keep that in mind.
+ *
+ * This functionality's exclusive target is equipment. The most common use case
+ * for this type of plugin is to repeatedly upgrade a weapon or armor of a
+ * given type with new/improved traits, allowing the player to keep their
+ * equipment relevant longer (or hang onto stuff for sentimental reasons, I
+ * guess). It works in tandem with a basic crafting system (the JAFTING base
+ * system) to allow you, the RM dev, to come up with fun ways to allow not only
+ * you, but the player as well, to flex creativity by using recipes to make
+ * stuff, then using refinement to upgrade it. With a wide variety of traits
+ * spread across various equipment, combined with the notetags below, this
+ * extension on JAFTING can make for some interesting situations in-game (good
+ * and bad).
+ * ============================================================================
+ * MENU MANAGEMENT
+ * In order to enable or disable menu access for this plugin, you can use the
+ * plugin parameter that identifies the switch and toggle that in-editor. The
+ * enabling of the menu option for refinement will match the state of the
+ * switch in the plugin parameters.
+ *
+ * ============================================================================
+ * TAGS
+ * Obviously, being able to willy nilly refine any equips with any equips could
+ * be volatile for the RM dev being able to keep control on what the player
+ * should be doing (such as refining a unique equipment onto another and there
+ * by losing said unique equipment that could've been required for story!).
+ *
+ * TAG USAGE
+ * - Weapons
+ * - Armors
+ *
+ * ----------------------------------------------------------------------------
+ * DISABLE REFINEMENT
+ * Placing this tag onto equipment renders it unavailable to be refined at all.
+ * That means it simply won't show up in the refinement menu's equip lists.
+ *
+ * TAG FORMAT
+ *  <noRefine>
+ *
+ * ----------------------------------------------------------------------------
+ * DISALLOW USING AS A "BASE"
+ * Placing this tag onto equipment means it will be a disabled option when
+ * selecting a base equip to refine. This most commonly would be used by
+ * perhaps some kind of "fragile" types of equipment, or for equipment you
+ * designed explicitly as a material.
+ *
+ * TAG FORMAT
+ *  <notRefinementBase>
+ *
+ * ----------------------------------------------------------------------------
+ * DISALLOW USING AS A "MATERIAL"
+ * Placing this tag onto equipment means it will be a disabled option when
+ * selecting a material equip to refine onto the base. This most commonly would
+ * be used for preventing the player from sacrificing an equipment that is
+ * required for story purposes.
+ *
+ * TAG FORMAT
+ *  <notRefinementMaterial>
+ *
+ * ----------------------------------------------------------------------------
+ * MAXIMUM REFINEMENT COUNT
+ * Where NUM is a number that represents how many times this can be refined.
+ * Placing this tag onto equipment means it can only be used as a base for
+ * refinement NUM number of times.
+ *
+ * TAG FORMAT
+ *  <maxRefineCount:NUM>
+ *
+ * TAG EXAMPLES
+ *  <maxRefinementCount:3>
+ * An equip with this can only be used as a "base" for refinement 3 times
+ * OR
+ * An equip can only achieve be fused to or beyond +3 once
+ * (whichever comes first)
+ *
+ * NOTE ABOUT LIMITS
+ * While the refinement count may be fixed, you can still refine equips beyond
+ * their limits by leveraging already-refined equipment as the material. The
+ * system will allow fusing something if there are still refinement counts
+ * available, even if the material has +8 when there is only 1 count left.
+ *
+ * ----------------------------------------------------------------------------
+ * MAXIMUM TRAITS PER EQUIP
+ * Where NUM is a number that represents how many combined traits it can have.
+ * Placing this tag onto equipment means it can only be used as a base as long
+ * as the number of combined trait slots (see the screen while refining) is
+ * lesser than or equal to NUM. This most commonly would be used to prevent
+ * the player from adding an unreasonable number of traits onto an equip.
+ *
+ * TAG FORMAT
+ *  <maxRefinedTraits:NUM>
+ *
+ * TAG EXAMPLES
+ *  <maxRefinedTraits:3>
+ * An equip with this can only have a total of 3 unique traits.
+ *
+ * NOTE ABOUT LIMITS
+ * Attempting to fuse beyond the max will not be allowed, even if there are
+ * additional refinement counts available. However, traits will intelligently
+ * stack if they are the same, and powering up existing traits will still be
+ * allowed.
+ *
+ * ============================================================================
+ * CHANGELOG:
+ *
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
+ *
+ * @param parentConfig
+ * @text SETUP
+ *
+ * @param menu-switch
+ * @parent parentConfig
+ * @type switch
+ * @text Menu Switch ID
+ * @desc When this switch is ON, then this command is visible in the menu.
+ * @default 106
+ *
+ * @param menu-name
+ * @parent parentConfig
+ * @type string
+ * @text Menu Name
+ * @desc The name of the command used for JAFTING's Refinement.
+ * @default Refinement
+ *
+ * @param menu-icon
+ * @parent parentConfig
+ * @type number
+ * @text Menu Icon
+ * @desc The icon of the command used for JAFTING's Refinement.
+ * @default 2565
+ *
+ */
+
+//region plugin metadata
+/**
+ * Plugin metadata for the refinement JAFTING plugin.<br>
+ * Because this plugin has little to be configured, it is pretty light.
+ */
+class J_CraftingRefinePluginMetadata extends PluginMetadata
+{
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+
+  /**
+   *  Extends {@link #postInitialize}.<br>
+   *  Includes translation of plugin parameters.
+   */
+  postInitialize()
+  {
+    // execute original logic.
+    super.postInitialize();
+
+    // initialize this plugin from configuration.
+    this.initializeMetadata();
+  }
+
+  /**
+   * Initializes the metadata associated with this plugin.
+   */
+  initializeMetadata()
+  {
+    /**
+     * The id of a switch that represents whether or not this system is accessible
+     * in the menu.
+     * @type {number}
+     */
+    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+
+    /**
+     * The name used for the command when visible in a menu.
+     * @type {string}
+     */
+    this.commandName = this.parsedPluginParameters['menu-name'] ?? 'Refinement';
+
+    /**
+     * The icon used alongside the command's name when visible in the menu.
+     * @type {number}
+     */
+    this.commandIconIndex = parseInt(this.parsedPluginParameters['menu-icon']) ?? 0;
+  }
+}
+//endregion plugin metadata
+
+/**
+ * The core where all of my extensions live: in the `J` object.
+ */
+var J = J || {};
+
+/**
+ * The plugin umbrella that governs all things related to this extension plugin.
+ */
+J.JAFTING.EXT.REFINE = {};
+
+/**
+ * The `metadata` associated with this plugin, such as version.
+ */
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata('J-JAFTING-Refinement', '1.0.0');
+
+
+/**
+ * A helpful mapping of the various messages that we use in JAFTING.
+ */
+J.JAFTING.EXT.REFINE.Messages = {
+  /**
+   * The name of the command for Refinement on the JAFTING mode menu.
+   */
+  RefineCommandName: "Refine",
+
+  /**
+   * The name of the command that executes refinement.
+   */
+  ExecuteRefinementCommandName: "Execute Refinement",
+
+  /**
+   * The name of the command that cancels the refinement process.
+   */
+  CancelRefinementCommandName: "Cancel",
+
+  /**
+   * When an item hasn't been selected somehow, this message shows in the help window.
+   */
+  NoItemSelected: "Nothing is selected.",
+
+  /**
+   * When the item being hovered over cannot be used in refinement as a base, show this.
+   */
+  CannotUseAsBase: "This cannot be used as a base for refinement.",
+
+  /**
+   * When the item being hovered over cannot be used in refinement as a material, show this.
+   */
+  CannotUseAsMaterial: "This cannot be used as a material for refinement.",
+
+  /**
+   * When the list window is the selection of a base to refine, this shows up in the mini window.
+   */
+  ChooseRefinementBase: "Choose Refinement Base",
+
+  /**
+   * When the list window is the selection of a material to add, this shows up in the mini window.
+   */
+  ChooseRefinementMaterial: "Choose Material to Add",
+
+  /**
+   * When a material has no traits, this message shows up in the help window.
+   */
+  NoTraitsOnMaterial: "This material has no traits to refine the base with.",
+
+  /**
+   * When the refinement would result in going over the base's max refine count, this shows up.
+   */
+  ExceedRefineCount: "Refining with this would result in exceeding refine count max:",
+
+  /**
+   * When the refinement would result in going over the base's max trait count, this shows up.
+   */
+  ExceedTraitCount: "Refining with this would result in exceeding trait count max:",
+
+  /**
+   * When the player hovers over an equip that has already reached it's max refine count, this shows up.
+   */
+  AlreadyMaxRefineCount: "This has already been refined the maximum number of times.",
+
+  /**
+   * When the player hovers over an equip that has already reached it's max trait count, this shows up.
+   */
+  AlreadyMaxTraitCount: "This has already been refined with as many traits as it can hold.",
+
+  /**
+   * This shows up over the base equip during refinement.
+   */
+  TitleBase: "Refinement Base",
+
+  /**
+   * This shows up over the material equip during refinement.
+   */
+  TitleMaterial: "Refinement Material",
+
+  /**
+   * This shows up over the output equip during refinement.
+   */
+  TitleOutput: "Refinement Output",
+
+  /**
+   * Shown when a material is disabled because it has no traits to grant the base equip.
+   */
+  NoTransferableTraits: "No transferable traits.",
+};
+
+/**
+ * A helpful mapping of all the various RMMZ classes being extended.
+ */
+J.JAFTING.EXT.REFINE.Aliased = {};
+J.JAFTING.EXT.REFINE.Aliased.Game_Item = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Game_Party = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Game_System = new Map();
+J.JAFTING.EXT.REFINE.Aliased.RPG_Base = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList = new Map();
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.JAFTING.EXT.REFINE.RegExp = {};
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase = /<notRefinementBase>/i;
+J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
+J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<unrefinable>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
+J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
+//endregion Introduction
+
+//region plugin commands
+/**
+ * A plugin command.<br>
+ * Calls the JAFTING refinement menu.
+ */
+PluginManager.registerCommand(
+  J.JAFTING.EXT.REFINE.Metadata.name,
+  "call-menu", () =>
+{
+  Scene_JaftingRefine.callScene();
+});
+//endregion plugin commands
+
 /**
  * Extends {@link RPG_Base._generate}.<br>
  *
@@ -1575,6 +794,7 @@ J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._gener
  * @param {number} index The new index.
  * @returns {this}
  */
+J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._generate);
 RPG_Base.prototype._generate = function(overrides, index)
 {
   // perform original logic.
@@ -1775,52 +995,668 @@ RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
 };
 //endregion maxRefineCount
 
-//region DataManager
-//region save/load data
+//region JaftingManager
 /**
- * Extends the game object creation to include creating the JAFTING manager.
+ * A class responsible for handling interactions between the JAFTING data stores,
+ * and the mutating the data itself.
  */
-J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects = DataManager.createGameObjects;
-DataManager.createGameObjects = function()
+class JaftingManager
 {
-  J.JAFTING.EXT.REFINE.Aliased.DataManager.createGameObjects.call(this);
-  $gameJAFTING = new Game_JAFTING();
-};
+  /**
+   * A collection of categories of equipment that are refinable.
+   */
+  static RefinementTypes = {
+    Armor: "armor",
+    Weapon: "weapon",
+  }
 
-/**
- * Extends the save content creation to include creating JAFTING data.
- */
-J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents = DataManager.makeSaveContents;
-DataManager.makeSaveContents = function()
-{
-  const contents = J.JAFTING.EXT.REFINE.Aliased.DataManager.makeSaveContents.call(this);
-  contents.jafting = $gameJAFTING;
-  return contents;
-};
+  /**
+   * The starting index for when our custom refined equips will be saved into the
+   * target datastore.
+   * @type {number}
+   */
+  static StartingIndex = 2001;
 
-/**
- * Extends the save content extraction to include extracting JAFTING data.
- *
- * NOTE: This is the first function encountered where I actually extend it _twice_.
- * As such, we accommodated that by numbering it.
- *
- * TODO: change this plugin to use EXT_REFINE so there is no collision.
- */
-J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2 = DataManager.extractSaveContents;
-DataManager.extractSaveContents = function(contents)
-{
-  // perform original logic.
-  J.JAFTING.EXT.REFINE.Aliased.DataManager.extractSaveContents2.call(this, contents);
+  /**
+   * Parses all traits off the equipment that are below the "divider".
+   * The divider is NOT parameterized, the "collapse effect" trait is the perfect trait
+   * to use for this purpose since it has 0 use on actor equipment.
+   * @param {RPG_EquipItem} equip An equip to parse traits off of.
+   * @returns {JAFTING_Trait[]}
+   */
+  static parseTraits(equip)
+  {
+    // shallow copy of the traits (which is all we need- traits aren't layered).
+    const allTraits = [...equip.traits];
 
-  // grab the jafting contents out.
-  $gameJAFTING = contents.jafting;
+    // identify where the divider is.
+    const divider = allTraits.findIndex(trait => trait.code === 63);
 
-  // update the weapons & armor.
-  $gameJAFTING.updateDataWeapons();
-  $gameJAFTING.updateDataArmors();
-};
-//endregion save/load data
-//endregion DataManager
+    // if there was no divider, then there are no traits to parse.
+    if (divider === -1) return Array.empty;
+
+    // grab all the traits AFTER the divider.
+    const availableTraits = allTraits.splice(divider + 1);
+
+    // if we had a divider but nothing after it, then there are no traits to parse.
+    if (availableTraits.length === 0) return Array.empty;
+
+    // map all the traits into JAFTING traits for managing them properly.
+    let jaftingTraits = availableTraits.map(t => new JAFTING_Trait(t.code, t.dataId, t.value));
+
+    // combine all the various parameter-based traits.
+    jaftingTraits = this.combineAllParameterTraits(jaftingTraits);
+
+    // return the newly parsed traits.
+    return jaftingTraits;
+  }
+
+  /**
+   * Combines all parameter-related traits where applicable.
+   * @param {JAFTING_Trait[]} traitList The list of traits.
+   * @returns {JAFTING_Trait[]}
+   */
+  static combineAllParameterTraits(traitList)
+  {
+    traitList = this.combineBaseParameterTraits(traitList);
+    traitList = this.combineExParameterTraits(traitList);
+    traitList = this.combineSpParameterTraits(traitList);
+    return traitList;
+  }
+
+  /**
+   * Combines all b-parameter-traits that are applicable.
+   * @param {JAFTING_Trait[]} traitList The list of traits.
+   * @returns {JAFTING_Trait[]}
+   */
+  static combineBaseParameterTraits(traitList)
+  {
+    const canCombineCode = 21;
+    let tempTraitList = JsonEx.makeDeepCopy(traitList);
+    const traitTracker = {};
+    const indices = [];
+    traitList.forEach((trait, index) =>
+    {
+      if (trait._code !== canCombineCode) return;
+
+      if (!traitTracker[trait._dataId])
+      {
+        // if we haven't started tracking it yet, add it.
+        traitTracker[trait._dataId] = trait._value;
+      }
+      else
+      {
+        // if we have started tracking it, then increase the value by the bonus amount.
+        traitTracker[trait._dataId] += trait._value - 1;
+      }
+
+      // mark the index to be removed and replaced later.
+      indices.push(index);
+    });
+
+    // if we didn't have any traits to combine, then we're done.
+    if (!indices.length)
+    {
+      return traitList;
+    }
+
+    // get rid of all the old traits.
+    indices.forEach(i => tempTraitList.splice(i, 1, null));
+    tempTraitList = tempTraitList.filter(element => !!element);
+
+    // make the new combined traits and add them to the list.
+    for (const dataId in traitTracker)
+    {
+      const value = parseFloat(traitTracker[dataId].toFixed(2));
+      const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
+      tempTraitList.push(newTrait);
+    }
+
+    return tempTraitList;
+  }
+
+  /**
+   * Combines all ex-parameter-traits that are applicable.
+   * @param {JAFTING_Trait[]} traitList The list of traits.
+   * @returns {JAFTING_Trait[]}
+   */
+  static combineExParameterTraits(traitList)
+  {
+    const canCombineCode = 22;
+    let tempTraitList = JsonEx.makeDeepCopy(traitList);
+    const traitTracker = {};
+    const indices = [];
+    traitList.forEach((trait, index) =>
+    {
+      if (trait._code !== canCombineCode) return;
+
+      if (!traitTracker[trait._dataId])
+      {
+        // if we haven't started tracking it yet, add it.
+        traitTracker[trait._dataId] = trait._value;
+      }
+      else
+      {
+        // if we have started tracking it, then increase the value by the bonus amount.
+        traitTracker[trait._dataId] += trait._value;
+      }
+
+      // mark the index to be removed and replaced later.
+      indices.push(index);
+    });
+
+    // if we didn't have any traits to combine, then we're done.
+    if (!indices.length)
+    {
+      return traitList;
+    }
+
+    // get rid of all the old traits.
+    indices.forEach(i => tempTraitList.splice(i, 1, null));
+    tempTraitList = tempTraitList.filter(element => !!element);
+
+    // make the new combined traits and add them to the list.
+    for (const dataId in traitTracker)
+    {
+      const value = parseFloat(traitTracker[dataId].toFixed(2));
+      const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
+      tempTraitList.push(newTrait);
+    }
+
+    return tempTraitList;
+  }
+
+  /**
+   * Combines all sp-parameter-traits that are applicable.
+   * @param {JAFTING_Trait[]} traitList The list of traits.
+   * @returns {JAFTING_Trait[]}
+   */
+  static combineSpParameterTraits(traitList)
+  {
+    const canCombineCode = 23;
+    let tempTraitList = JsonEx.makeDeepCopy(traitList);
+    const traitTracker = {};
+    const indices = [];
+    traitList.forEach((trait, index) =>
+    {
+      if (trait._code !== canCombineCode) return;
+
+      if (!traitTracker[trait._dataId])
+      {
+        // if we haven't started tracking it yet, add it.
+        traitTracker[trait._dataId] = trait._value - 1;
+      }
+      else
+      {
+        // if we have started tracking it, then increase the value by the bonus amount.
+        traitTracker[trait._dataId] += trait._value - 1;
+      }
+
+      // mark the index to be removed and replaced later.
+      indices.push(index);
+    });
+
+    // if we didn't have any traits to combine, then we're done.
+    if (!indices.length)
+    {
+      return traitList;
+    }
+
+    // get rid of all the old traits.
+    indices.forEach(i => tempTraitList.splice(i, 1, null));
+    tempTraitList = tempTraitList.filter(element => !!element);
+
+    // make the new combined traits and add them to the list.
+    for (const dataId in traitTracker)
+    {
+      const value = parseFloat(traitTracker[dataId].toFixed(2)) + 1;
+      const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
+      tempTraitList.push(newTrait);
+    }
+
+    return tempTraitList;
+  }
+
+  /**
+   * Determines the result of refining a given base with a given material.
+   * @param {RPG_EquipItem} base An equip to parse traits off of.
+   * @param {RPG_EquipItem} material An equip to parse traits off of.
+   * @returns {RPG_EquipItem}
+   */
+  static determineRefinementOutput(base, material)
+  {
+    // don't process if we are missing a parameter.
+    if (!base || !material) return null;
+
+    let baseTraits = this.parseTraits(base);
+    let materialTraits = this.parseTraits(material);
+
+    [baseTraits, materialTraits] = this.removeIncompatibleTraits(baseTraits, materialTraits);
+
+    [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
+
+    // copy of primary equip that represents the projected result.
+    const output = base._generate(base, base._index());
+
+    // if the primary equip doesn't have any transferrable traits, then it also won't have a divider.
+    if (!baseTraits.length)
+    {
+      // add a divider trait at the end of the primary equip's trait list.
+      output.traits.push(JAFTING_Trait.divider());
+    }
+    else
+    {
+      // determine the divider's index.
+      const index = output.traits.findIndex(trait => trait.code === 63);
+
+      // check if we have a valid divider index and there is stuff after the divider.
+      if (index > -1 && !!output.traits[index])
+      {
+        // if we have stuff after the divider, get rid of it.
+        output.traits.splice(index + 1);
+      }
+
+      // add our modified primary traits.
+      baseTraits.forEach(trait => output.traits.push(trait.convertToRmTrait()));
+    }
+
+    // iterate over all the secondary traits that can be transferred to the refined primary equip.
+    materialTraits.forEach(trait =>
+    {
+      // if the trait is non-transferable, then skip it.
+      if (!this.isTransferableTrait(output, trait)) return;
+
+      // create and add the new trait from the material onto the base.
+      const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
+      output.traits.push(newTrait);
+    });
+
+    if (material.jaftingRefinedCount > 0)
+    {
+      // the -1 at the end is to accommodate the default of +1 that occurs when an equip is refined.
+      output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
+    }
+
+    return output;
+  }
+
+  /**
+   * Compares traits on the base item against those on the material, and purges
+   * all conflicting traits from the result.
+   * @param {JAFTING_Trait[]} baseTraits The traits from the base item.
+   * @param {JAFTING_Trait[]} materialTraits The traits from the material.
+   * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
+   */
+  static removeIncompatibleTraits(baseTraits, materialTraits)
+  {
+    // a list of traits that should be purged from the secondary list if found.
+    const noDuplicateTraitCodes = [14, 31, 41, 42, 43, 44, 51, 52, 53, 54, 55, 62, 64];
+    baseTraits.forEach(jaftingTrait =>
+    {
+      if (noDuplicateTraitCodes.includes(jaftingTrait._code))
+      {
+        this.purgeDuplicateTrait(jaftingTrait, materialTraits, jaftingTrait._code);
+      }
+    });
+
+    // handle lock/unlock skills types.
+    [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 41, 42);
+
+    // handle lock/unlock skills.
+    [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 43, 44);
+
+    // overwrite basic attack skill.
+    [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 35);
+
+    // overwrite enable/disable of dual-wield (unique case!)
+    [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 55);
+
+    return [baseTraits, materialTraits];
+  }
+
+  /**
+   * Compare one trait with a rolling trait list to see if the list has any conflicting
+   * traits with it. If so, remove them.
+   * @param {JAFTING_Trait} potentialJaftingTrait The trait potentially to add if it doesn't already exist.
+   * @param {JAFTING_Trait[]} rollingJaftingTraitList The trait list to compare against.
+   */
+  static purgeDuplicateTrait(potentialJaftingTrait, rollingJaftingTraitList)
+  {
+    let donePurging = false;
+    while (!donePurging)
+    {
+      const index = rollingJaftingTraitList.findIndex(trait => trait._code === potentialJaftingTrait._code);
+      if (index > -1 && rollingJaftingTraitList[index]._dataId === potentialJaftingTrait._dataId)
+      {
+        rollingJaftingTraitList.splice(index, 1);
+      }
+      else
+      {
+        donePurging = true;
+      }
+    }
+  }
+
+  /**
+   * Compares two lists of traits and looks for a pair of codes that could possibly be
+   * opposing one another. If one code is found in one list, and the opposing code is found
+   * in the other list, the traits are removed from their respective lists. This will look
+   * in both lists for both codes, so repeating this function for both orders is not necessary.
+   * This will also retroactively remove both codes if they somehow live in the same list.
+   * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
+   * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
+   * @param {number} code One of the codes to compare.
+   * @param {number} opposingCode The opposing code to compare.
+   * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
+   */
+  static removeOppositeTrait(baseTraitList, materialTraitList, code, opposingCode)
+  {
+    const hasTraitCode = trait => trait._code === code;
+    const hasOpposingTraitCode = trait => trait._code === opposingCode;
+    const baseHasCode = baseTraitList.findIndex(hasTraitCode);
+    const materialHasCode = materialTraitList.findIndex(hasTraitCode);
+    const baseHasOpposingCode = baseTraitList.findIndex(hasOpposingTraitCode);
+    const materialHasOpposingCode = materialTraitList.findIndex(hasOpposingTraitCode);
+
+    // if the primary has the base code, and secondary has opposing, remove both.
+    if (baseHasCode > -1 && materialHasOpposingCode > -1)
+    {
+      if (baseTraitList[baseHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
+      {
+        baseTraitList.splice(baseHasCode, 1, null);
+        materialTraitList.splice(materialHasOpposingCode, 1, null);
+      }
+    }
+
+    // if the secondary has the base code, and primary has opposing, remove both.
+    if (materialHasCode > -1 && baseHasOpposingCode > -1)
+    {
+      if (baseTraitList[baseHasOpposingCode]._dataId === materialTraitList[materialHasCode]._dataId)
+      {
+        baseTraitList.splice(baseHasOpposingCode, 1, null);
+        materialTraitList.splice(materialHasCode, 1, null);
+      }
+    }
+
+    // if the primary list has both codes, remove both traits.
+    if (baseHasCode > -1 && baseHasOpposingCode > -1)
+    {
+      if (baseTraitList[baseHasCode]._dataId === baseTraitList[baseHasOpposingCode]._dataId)
+      {
+        baseTraitList.splice(baseHasCode, 1, null);
+        baseTraitList.splice(baseHasOpposingCode, 1, null);
+      }
+    }
+
+    // if the secondary list has both codes, remove both traits.
+    if (materialHasCode > -1 && materialHasOpposingCode > -1)
+    {
+      if (materialTraitList[materialHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
+      {
+        materialTraitList.splice(materialHasCode, 1, null);
+        materialTraitList.splice(materialHasOpposingCode, 1, null);
+      }
+    }
+
+    baseTraitList = baseTraitList.filter(trait => !!trait);
+    materialTraitList = materialTraitList.filter(trait => !!trait);
+
+    return [baseTraitList, materialTraitList];
+  }
+
+  /**
+   * Removes a trait from the primary list if the same trait also lives on the secondary
+   * list. This gives the illusion of overwriting the trait with the new one.
+   * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
+   * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
+   * @param {number} code The code to overwrite if it exists in both lists.
+   * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
+   */
+  static replaceTrait(baseTraitList, materialTraitList, code)
+  {
+    const hasTraitCode = trait => trait._code === code;
+    const baseHasCode = baseTraitList.findIndex(hasTraitCode);
+    const materialHasCode = materialTraitList.findIndex(hasTraitCode);
+
+    // if both lists have the same trait, remove from base list.
+    if (baseHasCode > -1 && materialHasCode > -1)
+    {
+      baseTraitList.splice(baseHasCode, 1, null);
+    }
+
+    baseTraitList = baseTraitList.filter(trait => !!trait);
+    return [baseTraitList, materialTraitList];
+  }
+
+  /**
+   * Overwrites all traits from the two lists depending on which is better as applicable.
+   * @param {JAFTING_Trait[]} baseTraits The primary list of traits.
+   * @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
+   * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
+   */
+  static overwriteAllOverwritableTraits(baseTraits, materialTraits)
+  {
+    const overwritableCodes = [11, 12, 13, 32, 33, 34, 61];
+    overwritableCodes.forEach(code =>
+    {
+      [baseTraits, materialTraits] = this.overwriteIfBetter(baseTraits, materialTraits, code);
+    });
+
+    return [baseTraits, materialTraits];
+  }
+
+  /**
+   * Checks the material trait list to see if better versions of the traits in the base
+   * trait list are already there. If so, purges them from the base to allow for "overwriting"
+   * from the material.
+   * @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
+   * @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
+   * @param {number} code The code to overwrite if it exists in both lists.
+   * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
+   */
+  static overwriteIfBetter(baseTraitList, materialTraitList, code)
+  {
+    // a quick function to use against each element of the base trait list
+    // to check and see if the material trait list has any of the same codes with dataIds
+    const hasTraitCodeAndDataIdWithBetterValue = trait =>
+    {
+      if (trait._code !== code) return false;
+
+      // check if another version of the trait exists on the material.
+      const index = materialTraitList.findIndex(jaftingTrait =>
+        jaftingTrait._code === code &&
+        jaftingTrait._dataId === trait._dataId);
+      return index > -1;
+    };
+
+    // get all indices that return true for the above function and store them.
+    const sameIndices = [];
+    baseTraitList.forEach((jaftingTrait, index) =>
+    {
+      if (hasTraitCodeAndDataIdWithBetterValue(jaftingTrait))
+      {
+        sameIndices.push(index);
+      }
+    });
+
+    // if we have no matches to combine, then just return the lists untouched.
+    if (!sameIndices.length) return [baseTraitList, materialTraitList];
+
+    // create copies for working with.
+    let tempBaseList = JsonEx.makeDeepCopy(baseTraitList);
+    let tempMaterialList = JsonEx.makeDeepCopy(materialTraitList);
+
+    const higherIsBetterCodes = [32, 33, 34, 61];
+    const lowerIsBetterCodes = [11, 12, 13];
+
+    // iterate over all shared traits to analyze them further.
+    sameIndices.forEach(i =>
+    {
+      const baseTrait = baseTraitList[i];
+      const materialTraitIndex = materialTraitList
+        .findIndex(t => t._code === baseTrait._code && t._dataId === baseTrait._dataId);
+      const materialTrait = materialTraitList[materialTraitIndex];
+      // if the trait code prefers higher values, then compare that way.
+      if (higherIsBetterCodes.includes(baseTrait._code))
+      {
+        if (baseTrait._value > materialTrait._value)
+        {
+          // if better on the base, then remove it from the material.
+          tempMaterialList.splice(materialTraitIndex, 1, null);
+        }
+        else
+        {
+          // if better on the material, then remove it from the base.
+          tempBaseList.splice(i, 1, null);
+        }
+        // if the trait code prefers lower values, then compare that way.
+      }
+      else if (lowerIsBetterCodes.includes(baseTrait._code))
+      {
+        if (baseTrait._value < materialTrait._value)
+        {
+          // if better on the base, then remove it from the material.
+          tempMaterialList.splice(materialTraitIndex, 1, null);
+        }
+        else
+        {
+          // if better on the material, then remove it from the base.
+          tempBaseList.splice(i, 1, null);
+        }
+      }
+    });
+
+    tempBaseList = tempBaseList
+      .filter(t => !!t)
+      .map(t => new JAFTING_Trait(t._code, t._dataId, t._value));
+    tempMaterialList = tempMaterialList
+      .filter(t => !!t)
+      .map(t => new JAFTING_Trait(t._code, t._dataId, t._value));
+
+    return [tempBaseList, tempMaterialList];
+  }
+
+  /**
+   * Determines whether or not a trait should be transfered to the refined base equip.
+   * @param {RPG_EquipItem} output The to-be refined base equip.
+   * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
+   * @returns {boolean}
+   */
+  static isTransferableTrait(output, jaftingTrait)
+  {
+    switch (jaftingTrait._code)
+    {
+      case 11: // elemental damage rate - stackable.
+      case 12: // debuff rate - stackable.
+      case 13: // state rate - stackable.
+      case 14: // state immunity - don't add the same twice.
+      case 21: // base parameter rate - stackable.
+      case 22: // ex-parameter rate - stackable.
+      case 23: // sp-parameter rate - stackable.
+      case 31: // attack element - uniquely stackable.
+      case 32: // apply state chance - stackable.
+      case 33: // skill speed - stackable.
+      case 34: // repeat times - stackable.
+      case 35: // change basic attack skill - overwrite.
+      case 41: // unlock skill type - one or the other or none.
+      case 42: // lock skill type - one or the other or none.
+      case 43: // learn skill while equipped - one or the other or none.
+      case 44: // unlearn skill while equipped - one or the other or none.
+      case 51: // can use new weapon type - don't add the same twice.
+      case 52: // can use new armor type - don't add the same twice.
+      case 53: // (lock)cannot change equipment from slot.
+      case 55: // enable/disable dual-wielding - overwrite.
+      case 61: // action times percent boost - stackable.
+      case 62: // special flag - don't add the same twice.
+      case 64: // party ability - don't add the same twice.
+        return true;
+
+      case 54: // (seal) slot is not equippable while equipped.
+        const sealingOwnEquipType = (jaftingTrait._dataId === output.etypeId);
+        // don't transfer over slot sealing if it would seal the slot the equip is on.
+        return !sealingOwnEquipType;
+      default:
+        console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
+        return false;
+    }
+  }
+
+  /**
+   * Takes the refinement result equip and creates it in the appropriate datastore, and adds it to
+   * the player's inventory.
+   * @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
+   */
+  static createRefinedOutput(outputEquip)
+  {
+    if (outputEquip.wtypeId)
+    {
+      this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon);
+    }
+    else if (outputEquip.atypeId)
+    {
+      this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor);
+    }
+  };
+
+  /**
+   * Generates the new entry in the corresponding datastore for the new equip data that was refined.
+   * @param {RPG_Weapon[]|RPG_Armor[]} datastore The datastore to extend with new data.
+   * @param {RPG_EquipItem} equip The equip to generate and add to the player's inventory.
+   * @param {string} refinementType The type of equip this is; for incrementing the counter on custom data.
+   * @returns {RPG_EquipItem}
+   */
+  static generateRefinedEquip(datastore, equip, refinementType)
+  {
+    equip.jaftingRefinedCount++;
+    const suffix = `+${equip.jaftingRefinedCount}`;
+    if (equip.jaftingRefinedCount === 1)
+    {
+      // first time refining, they don't have a name to replace.
+      equip.name = `${equip.name} ${suffix}`;
+    }
+    else
+    {
+      // second or later time refining, they need to replace the suffix.
+      const index = equip.name.indexOf("+");
+      if (index > -1)
+      {
+        equip.name = `${equip.name.slice(0, index)}${suffix}`;
+      }
+      else
+      {
+        equip.name = `${equip.name} ${suffix}`;
+      }
+    }
+
+    // generate the new entry in the database.
+    const newIndex = $gameParty.getRefinementCounter(refinementType);
+    equip._updateIndex(newIndex);
+    datastore[newIndex] = equip;
+
+    // gain the actual item.
+    $gameParty.gainItem(datastore[newIndex], 1);
+
+    // increment the index to ensure we don't overwrite it.
+    $gameParty.incrementRefinementCounter(refinementType);
+
+    // add it to our running list of everything we've literally ever created ever.
+    if (equip.wtypeId)
+    {
+      $gameParty.addRefinedWeapon(equip);
+    }
+    else if (equip.atypeId)
+    {
+      $gameParty.addRefinedArmor(equip);
+    }
+    else
+    {
+      console.error(`The following equip failed to be captured because it was neither weapon nor armor.`);
+      console.warn(equip);
+      throw new Error("please stop crafting stuff that isn't valid.");
+    }
+  }
+}
+//endregion JaftingManager
 
 //region Game_Item
 /**
@@ -1840,605 +1676,1006 @@ Game_Item.prototype.setObject = function(item)
 };
 //endregion Game_Item
 
-//region Scene_Map
-//region window initialization
+//region Game_Party
 /**
- * Extends the initialization of the JAFTING menu to include the refinment windows.
+ * Extends {@link #initialize}.<br>
+ * Also initializes our jafting members.
  */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu = Scene_Map.prototype.initJaftingMenu;
-Scene_Map.prototype.initJaftingMenu = function()
+J.JAFTING.EXT.REFINE.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
+Game_Party.prototype.initialize = function()
 {
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.initJaftingMenu.call(this);
+  // perform original logic.
+  J.JAFTING.EXT.REFINE.Aliased.Game_Party.get('initialize').call(this);
 
-  // create empty refinement windows.
-  this._j._jaftingMenu._refinePrimaryEquipWindow = null;
-  this._j._jaftingMenu._refineSecondaryEquipWindow = null;
-  this._j._jaftingMenu._refineProjectedResultsWindow = null;
-  this._j._jaftingMenu._refineGuidingWindow = null;
-  this._j._jaftingMenu._refineConfirmationWindow = null;
-
-  // create empty slots for target and material equipment.
-  this._j._jaftingMenu._refinePrimarySlot = null;
-  this._j._jaftingMenu._refineSecondarySlot = null;
-  this._j._jaftingMenu._refineHoverForDetails = null;
-  this._j._jaftingMenu._refineProjectedOutput = null;
+  // init the members.
+  this.initJaftingRefinementMembers();
 };
 
 /**
- * Extends the creation of the JAFTING windows to include the refinement windows.
+ * Initializes all refinement-related JAFTING members of this class.
  */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu = Scene_Map.prototype.createJaftingMenu;
-Scene_Map.prototype.createJaftingMenu = function()
+Game_Party.prototype.initJaftingRefinementMembers = function()
 {
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingMenu.call(this);
-  this.createJaftingRefinementModeWindows();
+  /**
+   * The shared root namespace for all of J's plugin data.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with the jafting system.
+   */
+  this._j._refinement ||= {};
+
+  /**
+   * A collection of all weapons that have been refined.
+   * @type {RPG_EquipItem[]}
+   */
+  this._j._refinement._weapons = [];
+
+  /**
+   * A collection of all armors that have been refined.
+   * @type {RPG_EquipItem[]}
+   */
+  this._j._refinement._armors = [];
+
+  /**
+   * A collection of all current increment indices for refinable equipment types.
+   * This ensures no refined equipment gets overwritten by another refined equipment.
+   * @type {number}
+   */
+  this._j._refinement._increments = {};
+
+  /**
+   * The refinement increment index for weapons.
+   * @type {number}
+   */
+  this._j._refinement._increments[JaftingManager.RefinementTypes.Weapon] = JaftingManager.StartingIndex;
+
+  /**
+   * The refinement increment index for armors.
+   * @type {number}
+   */
+  this._j._refinement._increments[JaftingManager.RefinementTypes.Armor] = JaftingManager.StartingIndex;
 };
 
 /**
- * Creates the mode selection window used to determine which type of JAFTING
- * that the player will perform.
+ * Gets all tracked weapons that have been refined.
+ * @returns {RPG_EquipItem[]}
  */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow = Scene_Map.prototype.createJaftingModeWindow;
-Scene_Map.prototype.createJaftingModeWindow = function()
+Game_Party.prototype.getRefinedWeapons = function()
 {
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.createJaftingModeWindow.call(this);
-  this._j._jaftingMenu._modeWindow.setHandler('refine-mode', this.chooseJaftingRefineMode.bind(this));
+  return this._j._refinement._weapons;
 };
 
 /**
- * The actions to perform when selecting the "refinement" mode.
- * Opens up the equipment-only window for picking a base item to refine further.
+ * Gets all tracked armors that have been refined.
+ * @returns {RPG_EquipItem[]}
  */
-Scene_Map.prototype.chooseJaftingRefineMode = function()
+Game_Party.prototype.getRefinedArmors = function()
 {
-  this.setWindowFocus("refine-primary");
-  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
+  return this._j._refinement._armors;
 };
 
 /**
- * Initializes all the windows for use in refinement mode.
+ * Adds a newly refined weapon to the collection for tracking purposes.
+ * @param {RPG_EquipItem} equip The newly refined weapon.
  */
-Scene_Map.prototype.createJaftingRefinementModeWindows = function()
+Game_Party.prototype.addRefinedWeapon = function(equip)
 {
-  this.createJaftingRefinementPrimaryEquipWindow();
-  this.createJaftingRefinementSecondaryEquipWindow();
-  this.createJaftingRefinementProjectedResultsWindow();
-  this.createJaftingRefinementGuidingWindow();
-  this.createJaftingRefinementConfirmationWindow();
+  this._j._refinement._weapons.push(equip);
 };
 
 /**
- * Creates the "choose refinement target" window.
+ * Adds a newly refined armor to the collection for tracking purposes.
+ * @param {RPG_EquipItem} equip The newly refined armor.
  */
-Scene_Map.prototype.createJaftingRefinementPrimaryEquipWindow = function()
+Game_Party.prototype.addRefinedArmor = function(equip)
 {
-  const w = 350;
-  const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 72;
-  const x = 0;
-  const y = this._j._jaftingMenu._helpWindow.height + 64;
-  const rect = new Rectangle(x, y, w, h);
-  const wind = new Window_JaftingEquip(rect);
-  wind.isPrimary = true;
-  wind.setHandler('cancel', this.closeJaftingWindow.bind(this, "refine-primary"));
-  wind.setHandler('refine-object', this.choosePrimaryEquip.bind(this));
-  this._j._jaftingMenu._refinePrimaryEquipWindow = wind;
-  this._j._jaftingMenu._refinePrimaryEquipWindow.close();
-  this._j._jaftingMenu._refinePrimaryEquipWindow.hide();
-  this.addWindow(this._j._jaftingMenu._refinePrimaryEquipWindow);
+  this._j._refinement._armors.push(equip);
 };
 
 /**
- * Creates the "choose refinement materials" window.
+ * Updates the $dataWeapons collection to include the player's collection of
+ * refined weapons.
  */
-Scene_Map.prototype.createJaftingRefinementSecondaryEquipWindow = function()
+Game_Party.prototype.refreshDatabaseWeapons = function()
 {
-  const w = 350;
-  const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 72;
-  const x = 0;
-  const y = this._j._jaftingMenu._helpWindow.height + 64;
-  const rect = new Rectangle(x, y, w, h);
-  const wind = new Window_JaftingEquip(rect);
-  wind.setHandler('cancel', this.closeJaftingWindow.bind(this, "refine-secondary"));
-  wind.setHandler('refine-object', this.chooseSecondaryEquip.bind(this));
-  this._j._jaftingMenu._refineSecondaryEquipWindow = wind;
-  this._j._jaftingMenu._refineSecondaryEquipWindow.close();
-  this._j._jaftingMenu._refineSecondaryEquipWindow.hide();
-  this.addWindow(this._j._jaftingMenu._refineSecondaryEquipWindow);
-};
-
-/**
- * Creates the projected results window for the refinement process.
- */
-Scene_Map.prototype.createJaftingRefinementProjectedResultsWindow = function()
-{
-  const w = this._j._jaftingMenu._helpWindow.width - (this._j._jaftingMenu._refinePrimaryEquipWindow.width);
-  const h = Graphics.height - this._j._jaftingMenu._helpWindow.height - 8;
-  const x = this._j._jaftingMenu._recipeListWindow.width;
-  const y = this._j._jaftingMenu._helpWindow.height;
-  const rect = new Rectangle(x, y, w, h);
-  const wind = new Window_JaftingRefinementOutput(rect);
-  this._j._jaftingMenu._refineProjectedResultsWindow = wind;
-  this._j._jaftingMenu._refineProjectedResultsWindow.close();
-  this._j._jaftingMenu._refineProjectedResultsWindow.hide();
-  this.addWindow(this._j._jaftingMenu._refineProjectedResultsWindow);
-};
-
-/**
- * Creates a small window to show some text above the equipment select list.
- * Guides the player with text like "Choose Refinement Base".
- */
-Scene_Map.prototype.createJaftingRefinementGuidingWindow = function()
-{
-  const w = 350;
-  const h = 64;
-  const x = 0;
-  const y = this._j._jaftingMenu._helpWindow.height;
-  const rect = new Rectangle(x, y, w, h);
-  const wind = new Window_Help(rect);
-  this._j._jaftingMenu._refineGuidingWindow = wind;
-  this._j._jaftingMenu._refineGuidingWindow.close();
-  this._j._jaftingMenu._refineGuidingWindow.hide();
-  this.addWindow(this._j._jaftingMenu._refineGuidingWindow);
-};
-
-/**
- * Creates a window that acts as a safety net in case the player was mashing buttons.
- * Requires confirmation to execute a refinement and potentially losing an equip forever.
- */
-Scene_Map.prototype.createJaftingRefinementConfirmationWindow = function()
-{
-  const w = 350;
-  const h = 120;
-  const x = (Graphics.boxWidth - w) / 2;
-  const y = (Graphics.boxHeight - h) / 2;
-  const rect = new Rectangle(x, y, w, h);
-  this._j._jaftingMenu._refineConfirmationWindow = new Window_JaftingRefinementConfirmation(rect);
-  this._j._jaftingMenu._refineConfirmationWindow.setHandler('ok', this.onRefineConfirm.bind(this));
-  this._j._jaftingMenu._refineConfirmationWindow.setHandler('cancel', this.onRefineCancel.bind(this));
-  this._j._jaftingMenu._refineConfirmationWindow.hide();
-  this.addWindow(this._j._jaftingMenu._refineConfirmationWindow);
-};
-//endregion window initialization
-
-/**
- * When a refinement target is selected, perform this logic.
- */
-Scene_Map.prototype.choosePrimaryEquip = function()
-{
-  this.setPrimaryRefineSlot(this.getHoverForDetails().data);
-  this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementMaterial);
-  this.setWindowFocus("refine-secondary");
-};
-
-/**
- * When a refinement material is selected, perform this logic.
- */
-Scene_Map.prototype.chooseSecondaryEquip = function()
-{
-  this.setSecondaryRefineSlot(this.getHoverForDetails().data);
-  this.setWindowFocus("refine-confirm");
-};
-
-/**
- * When the player confirms they want to refine, then execute refinement!
- */
-Scene_Map.prototype.onRefineConfirm = function()
-{
-  this.executeRefinement();
-  this.closeJaftingWindow("refine-confirm-okay");
-};
-
-/**
- * If the player cancels the refinement, return back to the material selection.
- */
-Scene_Map.prototype.onRefineCancel = function()
-{
-  this.closeJaftingWindow("refine-confirm-cancel");
-};
-
-/**
- * Executes the refinement, including removing old equips, creating the new equip, and refreshing.
- */
-Scene_Map.prototype.executeRefinement = function()
-{
-  this.removeRefinementEquips();
-  this.generateRefinementOutput();
-  this.refreshJafting();
-};
-
-/**
- * Removes the two equips used to perform the refinement from the player's inventory.
- */
-Scene_Map.prototype.removeRefinementEquips = function()
-{
-  $gameParty.gainItem(this.getPrimaryRefineSlot(), -1);
-  $gameParty.gainItem(this.getSecondaryRefineSlot(), -1);
-};
-
-/**
- * Generates the equip and adds it to the player's inventory.
- */
-Scene_Map.prototype.generateRefinementOutput = function()
-{
-  $gameJAFTING.createRefinedOutput(this._j._jaftingMenu._refineProjectedResultsWindow.outputEquip);
-};
-
-/**
- * Gets the projected result of refinement.
- * @returns {RPG_EquipItem}
- */
-Scene_Map.prototype.getRefinementProjectedResult = function()
-{
-  return this._j._jaftingMenu._refineProjectedOutput;
-};
-
-/**
- * Sets the projected result of refinement to the designated equip.
- * @param {RPG_EquipItem} output The equip to set as the projected result.
- */
-Scene_Map.prototype.setRefinementProjectedResult = function(output)
-{
-  this._j._jaftingMenu._refineProjectedOutput = output;
-};
-
-/**
- * Gets the object that is "being hovered over" in the equip lists.
- * @returns {RPG_EquipItem}
- */
-Scene_Map.prototype.getHoverForDetails = function()
-{
-  return this._j._jaftingMenu._refineHoverForDetails;
-};
-
-/**
- * Sets the object that is "being hovered over" in the equip lists.
- * @param {RPG_EquipItem} equip The equip to set for viewing in the output window.
- */
-Scene_Map.prototype.setHoverForDetails = function(equip)
-{
-  this._j._jaftingMenu._refineHoverForDetails = equip;
-};
-
-/**
- * Sets the given equipment to the primary refinement slot.
- * @param {RPG_EquipItem} equip The equip to set the primary refinement slot to.
- */
-Scene_Map.prototype.setPrimaryRefineSlot = function(equip)
-{
-  this._j._jaftingMenu._refinePrimarySlot = equip;
-  this._j._jaftingMenu._refineProjectedResultsWindow.primaryEquip = equip;
-
-  // also assign the same thing to the secondary window to prevent using the same item twice.
-  this._j._jaftingMenu._refineSecondaryEquipWindow.baseSelection = equip;
-  this._j._jaftingMenu._refineSecondaryEquipWindow.refresh();
-};
-
-/**
- * Gets the equipment in the primary refinement slot.
- * @returns {RPG_EquipItem}
- */
-Scene_Map.prototype.getPrimaryRefineSlot = function()
-{
-  return this._j._jaftingMenu._refinePrimarySlot;
-};
-
-/**
- * Sets the given equipment to the secondary refinement slot.
- * @param {RPG_EquipItem} equip The equip to set the primary refinement slot to.
- */
-Scene_Map.prototype.setSecondaryRefineSlot = function(equip)
-{
-  this._j._jaftingMenu._refineSecondarySlot = equip;
-  this._j._jaftingMenu._refineProjectedResultsWindow.secondaryEquip = equip;
-};
-
-/**
- * Gets the equipment in the secondary refinement slot.
- * @returns {RPG_EquipItem}
- */
-Scene_Map.prototype.getSecondaryRefineSlot = function()
-{
-  return this._j._jaftingMenu._refineSecondarySlot;
-};
-
-/**
- * Sets the text in the refinement guiding window.
- * @param {string} text The text to display in the guiding window.
- */
-Scene_Map.prototype.setGuidingWindowText = function(text)
-{
-  this._j._jaftingMenu._refineGuidingWindow.setText(text);
-};
-
-/**
- * Refreshes all windows that could possibly require refreshing when requested.
- * As an example, if the player gains/loses an item, all windows will need refreshing
- * to reflect the change in quantity.
- */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting = Scene_Map.prototype.refreshJafting;
-Scene_Map.prototype.refreshJafting = function()
-{
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.refreshJafting.call(this);
-  this._j._jaftingMenu._refinePrimaryEquipWindow.refresh();
-  this._j._jaftingMenu._refineSecondaryEquipWindow.refresh();
-  this._j._jaftingMenu._refineProjectedResultsWindow.refresh();
-};
-
-/**
- * Extends the jafting window focus management to accommodate refinement mode.
- */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu = Scene_Map.prototype.manageJaftingMenu;
-Scene_Map.prototype.manageJaftingMenu = function()
-{
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.manageJaftingMenu.call(this);
-
-  // extend for refinement focuses.
-  switch (this.getWindowFocus())
+  this.getRefinedWeapons().forEach(weapon =>
   {
-    case "refine-primary":
-      this.toggleJaftingModeWindow(false);
-      this.toggleJaftingRefinePrimaryWindow(true);
-      this.toggleJaftingRefineSecondaryWindow(false);
-      this.toggleJaftingRefineOutputWindow(true);
-      this.toggleJaftingRefineGuidingWindow(true);
-      this.determineRefinementHelpWindowText();
-      break;
-    case "refine-secondary":
-      this.toggleJaftingRefinePrimaryWindow(false);
-      this.toggleJaftingRefineSecondaryWindow(true);
-      this.toggleJaftingRefineOutputWindow(true);
-      this.determineRefinementHelpWindowText();
-      break;
-    case "refine-confirm":
-      this.toggleJaftingRefineConfirmationWindow(true);
-      break;
-  }
+    const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
+    $dataWeapons[updatedWeapon._key()] = updatedWeapon;
+  });
 };
 
 /**
- * Extends the jafting window closing-by-tag function to accommodate refinement mode.
- * @param {string} jaftingWindowToClose The type of window we're closing.
+ * Updates the $dataArmors collection to include the player's collection of
+ * refined armors.
  */
-J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow = Scene_Map.prototype.closeJaftingWindow;
-Scene_Map.prototype.closeJaftingWindow = function(jaftingWindowToClose)
+Game_Party.prototype.refreshDatabaseArmors = function()
 {
-  J.JAFTING.EXT.REFINE.Aliased.Scene_Map.closeJaftingWindow.call(this, jaftingWindowToClose);
-  switch (jaftingWindowToClose)
+  this.getRefinedArmors().forEach(armor =>
   {
-    case "refine-primary":
-      this.setPrimaryRefineSlot(null);
-      this.setHoverForDetails(null);
-      this.toggleJaftingRefinePrimaryWindow(false);
-      this.toggleJaftingRefineOutputWindow(false);
-      this.toggleJaftingModeWindow(true);
-      this.setGuidingWindowText("");
-      this.toggleJaftingRefineGuidingWindow(false);
-      this.toggleJaftingRefineConfirmationWindow(false);
-      this.setWindowFocus("main");
-      break;
-    case "refine-secondary":
-      this.setSecondaryRefineSlot(null);
-      this.setHoverForDetails(null);
-      this.toggleJaftingRefineSecondaryWindow(false);
-      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
-      this.toggleJaftingRefineConfirmationWindow(false);
-      this.setWindowFocus("refine-primary");
-      break;
-    case "refine-confirm-okay":
-      this.toggleJaftingRefineConfirmationWindow(false);
-      this.setPrimaryRefineSlot(null);
-      this.setSecondaryRefineSlot(null);
-      this.setHoverForDetails(null);
-      this.setGuidingWindowText(J.JAFTING.EXT.REFINE.Messages.ChooseRefinementBase);
-      this.setWindowFocus("refine-primary");
-      break;
-    case "refine-confirm-cancel":
-      this.toggleJaftingRefineConfirmationWindow(false);
-      this.setWindowFocus("refine-secondary");
-      break;
-  }
+    const updatedArmor = new RPG_Armor(armor, armor.index);
+    $dataArmors[updatedArmor._key()] = updatedArmor;
+  });
 };
 
 /**
- * Sets the text of the help window for the mode selection based on
- * the currently selected category.
+ * Gets the current increment for a particular datastore's latest index.
+ * @param {string} refinementType One of the refinement types.
+ * @returns {number}
  */
-Scene_Map.prototype.determineRefinementHelpWindowText = function()
+Game_Party.prototype.getRefinementCounter = function(refinementType)
 {
-  if (this._j._jaftingMenu._refinePrimaryEquipWindow.active)
+  return this._j._refinement._increments[refinementType];
+};
+
+/**
+ * Increments the refinement index for a particular datastore.
+ * @param {string} refinementType One of the refinement types.
+ */
+Game_Party.prototype.incrementRefinementCounter = function(refinementType)
+{
+  this._j._refinement._increments[refinementType]++;
+};
+//endregion Game_Party
+
+//region Game_System
+/**
+ * Extends {@link #onAfterLoad}.<br>
+ * Updates the database with the tracked refined equips.
+ */
+J.JAFTING.EXT.REFINE.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.JAFTING.EXT.REFINE.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update the weapons & armor.
+  $gameParty.refreshDatabaseWeapons();
+  $gameParty.refreshDatabaseArmors();
+};
+//endregion Game_System
+
+//region Scene_Jafting
+/**
+ * Extends {@link #onRootJaftingSelection}.<br>
+ * When JAFTING is selected, open the root JAFTING menu.
+ */
+J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting
+  .set('onRootJaftingSelection', Scene_Jafting.prototype.onRootJaftingSelection);
+Scene_Jafting.prototype.onRootJaftingSelection = function()
+{
+  // grab which JAFTING mode was selected.
+  const currentSelection = this.getRootJaftingKey();
+
+  // check if the current selection is create.
+  if (currentSelection === Scene_JaftingRefine.KEY)
   {
-    this.drawRefinementPrimaryHelpWindowText()
+    // execute the monsterpedia.
+    this.jaftingRefinementSelected();
   }
-  else if (this._j._jaftingMenu._refineSecondaryEquipWindow.active)
-  {
-    this.drawRefinementSecondaryHelpWindowText();
-  }
-
-  // draws the help text based on the hovered item.
-  this.drawRefineHelpText();
-};
-
-/**
- * Handles the help window text during refinement when the target is being selected.
- */
-Scene_Map.prototype.drawRefinementPrimaryHelpWindowText = function()
-{
-  const index = this._j._jaftingMenu._refinePrimaryEquipWindow.index();
-  // don't update the text if the index matches! (prevents tons of unnecessary updates)
-  if (index === this._j._jaftingMenu._refinePrimaryEquipWindow.currentIndex) return;
-
-  this.setRefinementProjectedResult(null);
-
-  // sets the currently hovered over equipItem for the help and output windows.
-  const hoveredOver = this._j._jaftingMenu._refinePrimaryEquipWindow.currentExt();
-  if (!hoveredOver?.data) return;
-
-  this.setHoverForDetails(hoveredOver);
-  this._j._jaftingMenu._refinePrimaryEquipWindow.currentIndex = index;
-  this._j._jaftingMenu._refineProjectedResultsWindow.primaryEquip = hoveredOver.data;
-};
-
-/**
- * Handles the help window text during refinement when the material is being selected.
- */
-Scene_Map.prototype.drawRefinementSecondaryHelpWindowText = function()
-{
-  const index = this._j._jaftingMenu._refineSecondaryEquipWindow.index();
-  // don't update the text if the index matches! (prevents tons of unnecessary updates)
-  if (index === this._j._jaftingMenu._refineSecondaryEquipWindow.currentIndex) return;
-
-  // sets the currently hovered over equipItem for the help and output windows.
-  const hoveredOver = this._j._jaftingMenu._refineSecondaryEquipWindow.currentExt();
-  if (!hoveredOver?.data) return;
-
-  this.setHoverForDetails(hoveredOver);
-
-  this._j._jaftingMenu._refineSecondaryEquipWindow.currentIndex = index;
-  this._j._jaftingMenu._refineProjectedResultsWindow.secondaryEquip = hoveredOver.data;
-};
-
-/**
- * Draws the actual text into the top help window.
- */
-Scene_Map.prototype.drawRefineHelpText = function()
-{
-  const item = this.getHoverForDetails();
-  if (item && item.data)
-  {
-    if (item.data.jaftingNotRefinementBase && this._j._jaftingMenu._refinePrimaryEquipWindow.active)
-    {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsBase);
-    }
-    else if (item.data.jaftingNotRefinementMaterial && this._j._jaftingMenu._refineSecondaryEquipWindow.active)
-    {
-      this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.CannotUseAsMaterial);
-    }
-    else if (item.error !== "")
-    {
-      this._j._jaftingMenu._helpWindow.setText(item.error);
-    }
-    else
-    {
-      this._j._jaftingMenu._helpWindow.setItem(item.data);
-    }
-  }
+  // the current selection is not create.
   else
   {
-    this._j._jaftingMenu._helpWindow.setText(J.JAFTING.EXT.REFINE.Messages.NoItemSelected);
+    // possibly activate other choices.
+    J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting.get('onRootJaftingSelection').call(this);
   }
 };
 
 /**
- * Toggles the visibility for the refinement target selection while JAFTING.
- * @param {boolean} visible Whether or not to show this window.
+ * Switch to the jafting creation scene when selected from the root jafting list.
  */
-Scene_Map.prototype.toggleJaftingRefinePrimaryWindow = function(visible)
+Scene_Jafting.prototype.jaftingRefinementSelected = function()
 {
-  if (visible)
+  // close the root jafting windows.
+  this.closeRootJaftingWindows();
+
+  // call the creation scene.
+  Scene_JaftingRefine.callScene();
+};
+//endregion Scene_Jafting
+
+//region Scene_JaftingRefine
+class Scene_JaftingRefine extends Scene_MenuBase
+{
+  /**
+   * Pushes this current scene onto the stack, forcing it into action.
+   */
+  static callScene()
   {
-    this._j._jaftingMenu._refinePrimaryEquipWindow.show();
-    this._j._jaftingMenu._refinePrimaryEquipWindow.open();
-    this._j._jaftingMenu._refinePrimaryEquipWindow.activate();
+    SceneManager.push(this);
   }
-  else
+
+  /**
+   * The symbol representing the command for this scene from other menus.
+   * @type {string}
+   */
+  static KEY = 'jafting-refine';
+
+  /**
+   * Constructor.
+   */
+  constructor()
   {
-    this._j._jaftingMenu._refinePrimaryEquipWindow.close();
-    this._j._jaftingMenu._refinePrimaryEquipWindow.hide();
-    this._j._jaftingMenu._refinePrimaryEquipWindow.deactivate();
-    this._j._jaftingMenu._refinePrimaryEquipWindow.forceSelect(0);
-    this._j._jaftingMenu._refinePrimaryEquipWindow.currentIndex = null;
+    // call super when having extended constructors.
+    super();
+
+    // jumpstart initialization on creation.
+    this.initialize();
   }
+
+  //region init
+  /**
+   * Initialize the window and all properties required by the scene.
+   */
+  initialize()
+  {
+    // perform original logic.
+    super.initialize();
+
+    // also initialize our scene properties.
+    this.initMembers();
+  }
+
+  /**
+   * Initialize all properties for our omnipedia.
+   */
+  initMembers()
+  {
+    // initialize the root-namespace definition members.
+    this.initCoreMembers();
+
+    // initialize the monsterpedia members.
+    this.initPrimaryMembers();
+  }
+
+  /**
+   * The core properties of this scene are the root namespace definitions for this plugin.
+   */
+  initCoreMembers()
+  {
+    /**
+     * The shared root namespace for all of J's plugin data.
+     */
+    this._j ||= {};
+
+    /**
+     * A grouping of all properties associated with the omnipedia.
+     */
+    this._j._crafting = {};
+  }
+
+  /**
+   * The primary properties of the scene are the initial properties associated with
+   * the main list containing all pedias unlocked by the player along with some subtext of
+   * what the pedia entails.
+   */
+  initPrimaryMembers()
+  {
+    /**
+     * A grouping of all properties associated with the jafting type of refinement.
+     * Refinement is a subcategory of the jafting system.
+     */
+    this._j._crafting._refine = {};
+
+    /**
+     * The window that shows the tertiary information about a refinable.
+     * @type {Window_RefinementDescription}
+     */
+    this._j._crafting._refine._refinementDescription = null;
+
+    /**
+     * The window that shows the list of equips that can be used as a base for refinement.
+     * @type {Window_RefinableList}
+     */
+    this._j._crafting._refine._baseRefinableList = null;
+
+    /**
+     * The window that shows the list of equips that can be used as fodder for refinement.
+     * @type {Window_RefinableList}
+     */
+    this._j._crafting._refine._consumedRefinableList = null;
+
+    /**
+     * The window that shows the details of the refinement given the selected entries.
+     * @type {Window_RefinementDetails}
+     */
+    this._j._crafting._refine._refinementDetails = null;
+
+    /**
+     * The window that shows the list of ingredients on the currently selected recipe.
+     * @type {Window_RecipeIngredientList}
+     */
+    this._j._crafting._refine._confirmationPrompt = null;
+
+
+    /**
+     * The window that shows the list of tools on the currently selected recipe.
+     * @type {Window_RecipeToolList}
+     */
+    this._j._crafting._refine._baseSelected = null;
+
+    /**
+     * The window that shows the list of outputs on the currently selected recipe.
+     * @type {Window_RecipeOutputList}
+     */
+    this._j._crafting._refine._consumedSelected = null;
+  }
+
+  getBaseSelected()
+  {
+    return this._j._crafting._refine._baseSelected;
+  }
+
+  setBaseSelected(equip)
+  {
+    this._j._crafting._refine._baseSelected = equip;
+  }
+
+  getConsumedSelected()
+  {
+    return this._j._crafting._refine._consumedSelected;
+  }
+
+  setConsumedSelected(equip)
+  {
+    this._j._crafting._refine._consumedSelected = equip;
+  }
+  //endregion init
+
+  //region create
+  /**
+   * Initialize all resources required for this scene.
+   */
+  create()
+  {
+    // perform original logic.
+    super.create();
+
+    // create the various display objects on the screen.
+    this.createDisplayObjects();
+  }
+
+  /**
+   * Creates the display objects for this scene.
+   */
+  createDisplayObjects()
+  {
+    // create all our windows.
+    this.createAllWindows();
+
+    // configure window relations and such now that they are all created.
+    this.configureAllWindows();
+  }
+
+  /**
+   * Creates all windows in this scene.
+   */
+  createAllWindows()
+  {
+    // create all the windows.
+    this.createRefinementDescriptionWindow();
+    this.createBaseRefinableListWindow();
+    this.createConsumableRefinableListWindow();
+    this.createRefinementDetailsWindow();
+    this.createRefinementConfirmationWindow();
+  }
+
+  /**
+   * Configures all windows.
+   */
+  configureAllWindows()
+  {
+    const listWindow = this.getBaseRefinableListWindow();
+
+    // also update with the currently selected item, if one exists.
+    this.getRefinementDescriptionWindow().setText(listWindow.currentHelpText() ?? String.empty);
+
+    const selected = listWindow.currentExt();
+    this.setBaseSelected(selected.data);
+
+    const detailsWindow = this.getRefinementDetailsWindow();
+    detailsWindow.primaryEquip = selected?.data;
+  }
+
+  /**
+   * Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
+   * Changes the filter to a different type from {@link PIXI.filters}.<br>
+   */
+  createBackground()
+  {
+    this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
+    this._backgroundSprite = new Sprite();
+    this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
+    this._backgroundSprite.filters = [this._backgroundFilter];
+    this.addChild(this._backgroundSprite);
+    //this.setBackgroundOpacity(220);
+  }
+
+  /**
+   * Overrides {@link #createButtons}.<br>
+   * Disables the creation of the buttons.
+   * @override
+   */
+  createButtons()
+  {
+  }
+  //endregion create
+
+  //region refinement description
+  /**
+   * Creates the RefinementDescription window.
+   */
+  createRefinementDescriptionWindow()
+  {
+    // create the window.
+    const window = this.buildRefinementDescriptionWindow();
+
+    // update the tracker with the new window.
+    this.setRefinementDescriptionWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  buildRefinementDescriptionWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.getRefinementDescriptionRectangle();
+
+    // create the window with the rectangle.
+    const window = new Window_RefinementDescription(rectangle);
+
+    // return the built and configured window.
+    return window;
+  }
+
+  /**
+   * Gets the rectangle associated with this window.
+   * @returns {Rectangle}
+   */
+  getRefinementDescriptionRectangle()
+  {
+    // grab the rect for the recipe list this should be next to.
+    const listWindow = this.getBaseRefinableListRectangle();
+
+    // the description should live at the right side of the list.
+    const x = listWindow.width + Graphics.horizontalPadding;
+
+    // the window's origin coordinates are the box window's origin as well.
+    const [ _, y ] = Graphics.boxOrigin;
+
+    // define the width of the window.
+    const width = Graphics.boxWidth - listWindow.width - Graphics.horizontalPadding;
+
+    // define the height of the window.
+    const height = 100;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the RefinementDescription window being tracked.
+   */
+  getRefinementDescriptionWindow()
+  {
+    return this._j._crafting._refine._refinementDescription;
+  }
+
+  /**
+   * Sets the RefinementDescription window tracking.
+   */
+  setRefinementDescriptionWindow(someWindow)
+  {
+    this._j._crafting._refine._refinementDescription = someWindow;
+  }
+  //endregion refinement description
+
+  //region base refinable list
+  /**
+   * Creates the base RefinableList window.
+   */
+  createBaseRefinableListWindow()
+  {
+    // create the window.
+    const window = this.buildRefinableListWindow();
+
+    // update the tracker with the new window.
+    this.setBaseRefinableListWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  buildRefinableListWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.getBaseRefinableListRectangle();
+
+    // create the window with the rectangle.
+    const window = new Window_RefinableList(rectangle);
+
+    // designate this refinable list window as the primary.
+    window.isPrimary = true;
+
+    // assign cancel functionality.
+    window.setHandler('cancel', this.onBaseRefinableListCancel.bind(this));
+
+    // assign on-select functionality.
+    window.setHandler('ok', this.onBaseRefinableListSelection.bind(this));
+
+    // overwrite the onIndexChange hook with our local hook.
+    window.onIndexChange = this.onBaseRefinableListIndexChange.bind(this);
+
+    // return the built and configured window.
+    return window;
+  }
+
+  /**
+   * Gets the rectangle associated with this window.
+   * @returns {Rectangle}
+   */
+  getBaseRefinableListRectangle()
+  {
+    // the window's origin coordinates are the box window's origin as well.
+    const [x, y] = Graphics.boxOrigin;
+
+    // define the width of the window.
+    const width = 350;
+
+    // define the height of the window.
+    const height = Graphics.boxHeight - (Graphics.verticalPadding);
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the RefinableList window being tracked.
+   */
+  getBaseRefinableListWindow()
+  {
+    return this._j._crafting._refine._baseRefinableList;
+  }
+
+  /**
+   * Sets the RefinableList window tracking.
+   */
+  setBaseRefinableListWindow(someWindow)
+  {
+    this._j._crafting._refine._baseRefinableList = someWindow;
+  }
+
+  selectBaseRefinableListWindow()
+  {
+    // grab the window.
+    const listWindow = this.getBaseRefinableListWindow();
+
+    // reveal the window.
+    listWindow.show();
+    listWindow.activate();
+
+    this.getRefinementDescriptionWindow()
+      .setText(listWindow.currentHelpText());
+  }
+
+  deselectBaseRefinableListWindow()
+  {
+    // grab the window.
+    const listWindow = this.getBaseRefinableListWindow();
+
+    // reveal the window.
+    listWindow.hide();
+    listWindow.deactivate();
+  }
+
+  onBaseRefinableListIndexChange()
+  {
+    const listWindow = this.getBaseRefinableListWindow();
+
+    const helpText = listWindow.currentHelpText();
+    this.getRefinementDescriptionWindow().setText(helpText ?? String.empty);
+
+    const baseRefinable = listWindow.currentExt();
+    this.getRefinementDetailsWindow().primaryEquip = baseRefinable?.data;
+  }
+
+  onBaseRefinableListCancel()
+  {
+    // revert to the previous scene.
+    SceneManager.pop();
+  }
+
+  onBaseRefinableListSelection()
+  {
+    const baseRefinableListWindow = this.getBaseRefinableListWindow();
+
+    const baseRefinable = baseRefinableListWindow.currentExt().data;
+    this.setBaseSelected(baseRefinable);
+
+    this.deselectBaseRefinableListWindow();
+    this.selectConsumableRefinableListWindow();
+  }
+  //endregion base refinable list
+
+  //region consumable refinable list
+  /**
+   * Creates the consumable RefinableList window.
+   */
+  createConsumableRefinableListWindow()
+  {
+    // create the window.
+    const window = this.buildConsumableRefinableListWindow();
+
+    // update the tracker with the new window.
+    this.setConsumableRefinableListWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  buildConsumableRefinableListWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.getConsumableRefinableListRectangle();
+
+    // create the window with the rectangle.
+    const window = new Window_RefinableList(rectangle);
+
+    // assign cancel functionality.
+    window.setHandler('cancel', this.onConsumableRefinableListCancel.bind(this));
+
+    // assign on-select functionality.
+    window.setHandler('ok', this.onConsumableRefinableListSelection.bind(this));
+
+    // overwrite the onIndexChange hook with our local hook.
+    window.onIndexChange = this.onConsumableRefinableListIndexChange.bind(this);
+
+    // also put the window away.
+    window.hide();
+    window.deactivate();
+
+    // return the built and configured window.
+    return window;
+  }
+
+  /**
+   * Gets the rectangle associated with this window.
+   * @returns {Rectangle}
+   */
+  getConsumableRefinableListRectangle()
+  {
+    // the window's origin coordinates are the box window's origin as well.
+    const [x, y] = Graphics.boxOrigin;
+
+    // define the width of the window.
+    const width = 350;
+
+    // define the height of the window.
+    const height = Graphics.boxHeight - (Graphics.verticalPadding);
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the consumable RefinableList window being tracked.
+   */
+  getConsumableRefinableListWindow()
+  {
+    return this._j._crafting._refine._consumedRefinableList;
+  }
+
+  /**
+   * Sets the consumable RefinableList window tracking.
+   */
+  setConsumableRefinableListWindow(someWindow)
+  {
+    this._j._crafting._refine._consumedRefinableList = someWindow;
+  }
+
+  selectConsumableRefinableListWindow()
+  {
+    // grab the window.
+    const listWindow = this.getConsumableRefinableListWindow();
+
+    // reveal the window.
+    listWindow.baseSelection = this.getBaseSelected();
+    listWindow.refresh();
+    listWindow.show();
+    listWindow.activate();
+
+    const selected = listWindow.currentExt()?.data;
+    this.setConsumedSelected(selected);
+    this.getRefinementDetailsWindow().secondaryEquip = selected;
+
+    this.getRefinementDescriptionWindow()
+      .setText(listWindow.currentHelpText());
+
+  }
+
+  deselectConsumableRefinableListWindow()
+  {
+    // grab the window.
+    const listWindow = this.getConsumableRefinableListWindow();
+
+    // reveal the window.
+    listWindow.hide();
+    listWindow.deactivate();
+  }
+
+  onConsumableRefinableListIndexChange()
+  {
+    const listWindow = this.getConsumableRefinableListWindow();
+
+    const helpText = listWindow.currentHelpText();
+    this.getRefinementDescriptionWindow().setText(helpText ?? String.empty);
+
+    const consumedRefinable = listWindow.currentExt();
+    this.getRefinementDetailsWindow().secondaryEquip = consumedRefinable.data;
+  }
+
+  onConsumableRefinableListCancel()
+  {
+    this.deselectConsumableRefinableListWindow();
+
+    this.selectBaseRefinableListWindow();
+  }
+
+  onConsumableRefinableListSelection()
+  {
+    const listWindow = this.getConsumableRefinableListWindow();
+
+    const consumedRefinable = listWindow.currentExt().data;
+    this.setConsumedSelected(consumedRefinable);
+
+    //this.deselectConsumableRefinableListWindow();
+    this.selectRefinementConfirmationWindow();
+  }
+  //endregion consumable refinable list
+
+  //region refinement details
+  /**
+   * Creates the RefinementDetails window.
+   */
+  createRefinementDetailsWindow()
+  {
+    // create the window.
+    const window = this.buildRefinementDetailsWindow();
+
+    // update the tracker with the new window.
+    this.setRefinementDetailsWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  buildRefinementDetailsWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.getRefinementDetailsRectangle();
+
+    // create the window with the rectangle.
+    const window = new Window_RefinementDetails(rectangle);
+
+    // return the built and configured window.
+    return window;
+  }
+
+  /**
+   * Gets the rectangle associated with this window.
+   * @returns {Rectangle}
+   */
+  getRefinementDetailsRectangle()
+  {
+    const widthReduction = this.getBaseRefinableListRectangle().width + Graphics.horizontalPadding;
+    const x = 0 + widthReduction;
+
+    const heightReduction = (this.getRefinementDescriptionWindow().height + Graphics.verticalPadding);
+    const y = 0 + heightReduction;
+
+    // define the width of the window.
+    const width = Graphics.boxWidth - widthReduction;
+
+    // define the height of the window.
+    const height = Graphics.boxHeight - heightReduction;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the RefinementDetails window being tracked.
+   */
+  getRefinementDetailsWindow()
+  {
+    return this._j._crafting._refine._refinementDetails;
+  }
+
+  /**
+   * Sets the RefinementDetails window tracking.
+   */
+  setRefinementDetailsWindow(someWindow)
+  {
+    this._j._crafting._refine._refinementDetails = someWindow;
+  }
+  //endregion refinement details
+
+  //region confirmation prompt
+  /**
+   * Creates the RefinementConfirmation window.
+   */
+  createRefinementConfirmationWindow()
+  {
+    // create the window.
+    const window = this.buildRefinementConfirmationWindow();
+
+    // update the tracker with the new window.
+    this.setRefinementConfirmationWindow(window);
+
+    // add the window to the scene manager's tracking.
+    this.addWindow(window);
+  }
+
+  buildRefinementConfirmationWindow()
+  {
+    // define the rectangle of the window.
+    const rectangle = this.getRefinementConfirmationRectangle();
+
+    // create the window with the rectangle.
+    const window = new Window_RefinementConfirmation(rectangle);
+
+    // assign cancel functionality.
+    window.setHandler('cancel', this.onRefinementConfirmationCancel.bind(this));
+
+    // assign on-select functionality.
+    window.setHandler('ok', this.onRefinementConfirmationSelection.bind(this));
+
+    // also put the window away.
+    window.hide();
+    window.deactivate();
+
+    // return the built and configured window.
+    return window;
+  }
+
+  /**
+   * Gets the rectangle associated with this window.
+   * @returns {Rectangle}
+   */
+  getRefinementConfirmationRectangle()
+  {
+    // define the width of the window.
+    const width = 350;
+
+    // define the height of the window.
+    const height = 120;
+
+    // define the window's origin coordinates.
+    const x = (Graphics.boxWidth - width) / 2;
+    const y = (Graphics.boxHeight - height) / 2;
+
+    // build the rectangle to return.
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the RefinementConfirmation window being tracked.
+   */
+  getRefinementConfirmationWindow()
+  {
+    return this._j._crafting._refine._confirmationPrompt;
+  }
+
+  selectRefinementConfirmationWindow()
+  {
+    // grab the window.
+    const listWindow = this.getRefinementConfirmationWindow();
+
+    // reveal the window.
+    listWindow.show();
+    listWindow.activate();
+  }
+
+  deselectRefinementConfirmationWindow()
+  {
+    // grab the window.
+    const listWindow = this.getRefinementConfirmationWindow();
+
+    // reveal the window.
+    listWindow.hide();
+    listWindow.deactivate();
+  }
+
+  /**
+   * Sets the RefinementConfirmation window tracking.
+   */
+  setRefinementConfirmationWindow(someWindow)
+  {
+    this._j._crafting._refine._confirmationPrompt = someWindow;
+  }
+
+  onRefinementConfirmationCancel()
+  {
+    this.deselectRefinementConfirmationWindow();
+    this.selectConsumableRefinableListWindow();
+  }
+
+  onRefinementConfirmationSelection()
+  {
+    // remove the materials being refined.
+    $gameParty.gainItem(this.getBaseSelected(), -1);
+    $gameParty.gainItem(this.getConsumedSelected(), -1);
+
+    // generate the output.
+    const detailsWindow = this.getRefinementDetailsWindow();
+    const output = detailsWindow.outputEquip;
+    JaftingManager.createRefinedOutput(output);
+
+    // clear the existing data from the details window.
+    detailsWindow.primaryEquip = null;
+    detailsWindow.secondaryEquip = null;
+
+    // reselect the original window.
+    this.deselectConsumableRefinableListWindow();
+    this.deselectRefinementConfirmationWindow();
+    this.selectBaseRefinableListWindow();
+
+    // clear the materials that were just used.
+    this.setBaseSelected(null);
+    this.setConsumedSelected(null);
+
+    const listWindow = this.getBaseRefinableListWindow();
+    listWindow.refresh();
+    listWindow.select(0);
+
+    this.getConsumableRefinableListWindow().refresh();
+  }
+  //endregion confirmation prompt
+}
+//endregion
+
+//region Window_JaftingList
+/**
+ * Extends {@link #buildCommands}.<br>
+ * Includes the refinement command as well as the rest.
+ */
+J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.set('buildCommands', Window_JaftingList.prototype.buildCommands);
+Window_JaftingList.prototype.buildCommands = function()
+{
+  // get the original list of commands.
+  const commands = J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.get('buildCommands').call(this);
+
+  // add the creation command.
+  commands.push(this.buildRefinementCommand());
+
+  // return the compiled list.
+  return commands;
 };
 
 /**
- * Toggles the visibility for the refinement material selection while JAFTING.
- * @param {boolean} visible Whether or not to show this window.
+ * Builds the jafting refinement command for the main jafting types menu.
+ * @return {BuiltWindowCommand}
  */
-Scene_Map.prototype.toggleJaftingRefineSecondaryWindow = function(visible)
+Window_JaftingList.prototype.buildRefinementCommand = function()
 {
-  if (visible)
-  {
-    this._j._jaftingMenu._refineSecondaryEquipWindow.show();
-    this._j._jaftingMenu._refineSecondaryEquipWindow.open();
-    this._j._jaftingMenu._refineSecondaryEquipWindow.activate();
-  }
-  else
-  {
-    this._j._jaftingMenu._refineSecondaryEquipWindow.close();
-    this._j._jaftingMenu._refineSecondaryEquipWindow.hide();
-    this._j._jaftingMenu._refineSecondaryEquipWindow.deactivate();
-    this._j._jaftingMenu._refineSecondaryEquipWindow.forceSelect(0);
-    this._j._jaftingMenu._refineSecondaryEquipWindow.currentIndex = null;
-  }
+  return new WindowCommandBuilder(J.JAFTING.EXT.REFINE.Metadata.commandName)
+    .setSymbol(Scene_JaftingRefine.KEY)
+    .setEnabled($gameSwitches.value(J.JAFTING.EXT.REFINE.Metadata.menuSwitchId))
+    .addSubTextLine("Give your equipment a personal touch.")
+    .addSubTextLine("Modify your equips with trait transferrence and reach for godlihood!")
+    .setIconIndex(J.JAFTING.EXT.REFINE.Metadata.commandIconIndex)
+    .build();
 };
-
-/**
- * Toggles the visibility for the refinement output window while JAFTING.
- * @param {boolean} visible Whether or not to show this window.
- */
-Scene_Map.prototype.toggleJaftingRefineOutputWindow = function(visible)
-{
-  if (visible)
-  {
-    this._j._jaftingMenu._refineProjectedResultsWindow.show();
-    this._j._jaftingMenu._refineProjectedResultsWindow.open();
-    this._j._jaftingMenu._refineProjectedResultsWindow.activate();
-  }
-  else
-  {
-    this._j._jaftingMenu._refineProjectedResultsWindow.close();
-    this._j._jaftingMenu._refineProjectedResultsWindow.hide();
-    this._j._jaftingMenu._refineProjectedResultsWindow.deactivate();
-  }
-};
-
-/**
- * Toggles the visibility for the refinement help window while JAFTING.
- * @param {boolean} visible Whether or not to show this window.
- */
-Scene_Map.prototype.toggleJaftingRefineGuidingWindow = function(visible)
-{
-  if (visible)
-  {
-    this._j._jaftingMenu._refineGuidingWindow.show();
-    this._j._jaftingMenu._refineGuidingWindow.open();
-    this._j._jaftingMenu._refineGuidingWindow.activate();
-  }
-  else
-  {
-    this._j._jaftingMenu._refineGuidingWindow.close();
-    this._j._jaftingMenu._refineGuidingWindow.hide();
-    this._j._jaftingMenu._refineGuidingWindow.deactivate();
-  }
-};
-
-/**
- * Toggles the visibility for the refinement confirmation window while JAFTING.
- * @param {boolean} visible Whether or not to show this window.
- */
-Scene_Map.prototype.toggleJaftingRefineConfirmationWindow = function(visible)
-{
-  if (visible)
-  {
-    this._j._jaftingMenu._refineConfirmationWindow.show();
-    this._j._jaftingMenu._refineConfirmationWindow.open();
-    this._j._jaftingMenu._refineConfirmationWindow.activate();
-  }
-  else
-  {
-    this._j._jaftingMenu._refineConfirmationWindow.close();
-    this._j._jaftingMenu._refineConfirmationWindow.hide();
-    this._j._jaftingMenu._refineConfirmationWindow.deactivate();
-  }
-};
-//endregion Scene_Map
+//endregion Window_JaftingList
 
 //region Window_JaftingEquip
 /**
  * A window that shows a list of all equipment.
  */
-class Window_JaftingEquip
-  extends Window_Command
+class Window_RefinableList extends Window_Command
 {
   /**
    * @constructor
@@ -2479,23 +2716,6 @@ class Window_JaftingEquip
      * @type {RPG_EquipItem}
      */
     this._projectedOutput = null;
-  }
-
-  /**
-   * Gets the current index that was last assigned of this window.
-   * @returns {number}
-   */
-  get currentIndex()
-  {
-    return this._currentIndex;
-  }
-
-  /**
-   * Sets the current index to a given value.
-   */
-  set currentIndex(index)
-  {
-    this._currentIndex = index;
   }
 
   /**
@@ -2576,6 +2796,8 @@ class Window_JaftingEquip
       // don't render equipment that are totally unrefinable. That's a tease!
       if (equip.jaftingUnrefinable) return;
 
+      const equipCount = $gameParty.numItems(equip);
+
       const hasDuplicatePrimary = $gameParty.numItems(this.baseSelection) > 1;
       const isBaseSelection = equip === this.baseSelection;
       const canSelectBaseAgain = (isBaseSelection && hasDuplicatePrimary) || !isBaseSelection;
@@ -2598,7 +2820,7 @@ class Window_JaftingEquip
       if (!this.isPrimary)
       {
         // and the equipment has no transferable traits, then disable it.
-        if (!$gameJAFTING.parseTraits(equip).length)
+        if (!JaftingManager.parseTraits(equip).length)
         {
           enabled = false;
           errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
@@ -2631,8 +2853,8 @@ class Window_JaftingEquip
           // check the max traits of the base equip and compare with the projected result of this item.
           // if the count is greater than the max (if there is a max), then prevent this item from being used.
           const baseMaxTraitCount = this.baseSelection.jaftingMaxTraitCount;
-          const projectedResult = $gameJAFTING.determineRefinementOutput(this.baseSelection, equip);
-          const projectedResultTraitCount = $gameJAFTING.parseTraits(projectedResult).length;
+          const projectedResult = JaftingManager.determineRefinementOutput(this.baseSelection, equip);
+          const projectedResultTraitCount = JaftingManager.parseTraits(projectedResult).length;
           const overMaxTraitCount = baseMaxTraitCount > 0 && projectedResultTraitCount > baseMaxTraitCount;
           if (overMaxTraitCount)
           {
@@ -2651,7 +2873,7 @@ class Window_JaftingEquip
           : equip.jaftingMaxRefineCount <= equip.jaftingRefinedCount;
         const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0
           ? false // 0 max traits means you can have as many as you want.
-          : equip.jaftingMaxTraitCount <= $gameJAFTING.parseTraits(equip).length;
+          : equip.jaftingMaxTraitCount <= JaftingManager.parseTraits(equip).length;
         if (equipIsMaxRefined)
         {
           enabled = false;
@@ -2682,43 +2904,29 @@ class Window_JaftingEquip
 
       const extData = {data: equip, error: errorText};
 
-      this.addCommand(equip.name, 'refine-object', enabled, extData, iconIndex);
+      const command = new WindowCommandBuilder(equip.name)
+        .setSymbol('refine-object')
+        .setEnabled(enabled)
+        .setExtensionData(extData)
+        .setIconIndex(iconIndex)
+        .setRightText(`x${equipCount}`)
+        .setHelpText(equip.description)
+        .build();
+
+      this.addBuiltCommand(command);
+
+      // this.addCommand(equip.name, 'refine-object', enabled, extData, iconIndex);
     });
   }
 }
 //endregion Window_JaftingEquip
-
-//region Window_JaftingModeMenu
-/**
- * Extends the mode command creation to include a new command for refinement.
- */
-J.JAFTING.EXT.REFINE.Aliased.Window_JaftingModeMenu.makeCommandList = Window_JaftingModeMenu.prototype.makeCommandList;
-Window_JaftingModeMenu.prototype.makeCommandList = function()
-{
-  J.JAFTING.EXT.REFINE.Aliased.Window_JaftingModeMenu.makeCommandList.call(this);
-  if ($gameJAFTING.isRefinementHidden()) return;
-
-  const hasEquipment = $gameParty.equipItems().length > 1; // need at least 2 items to refine.
-  const refineAllowed = $gameJAFTING.isRefinementEnabled();
-  const canRefine = hasEquipment && refineAllowed;
-  const refineCommand = {
-    name: J.JAFTING.EXT.REFINE.Messages.RefineCommandName,
-    symbol: `refine-mode`,
-    enabled: canRefine,
-    ext: null,
-    icon: 223
-  };
-  this._list.splice(1, 0, refineCommand);
-};
-//endregion Window_JaftingModeMenu
 
 //region Window_JaftingRefinementConfirmation
 /**
  * A window that gives the player a chance to confirm or cancel their
  * refinement before executing.
  */
-class Window_JaftingRefinementConfirmation
-  extends Window_Command
+class Window_RefinementConfirmation extends Window_Command
 {
   /**
    * @constructor
@@ -2741,12 +2949,21 @@ class Window_JaftingRefinementConfirmation
 }
 //endregion Window_JaftingRefinementConfirmation
 
-//region Window_JaftingRefinementOutput
+//region Window_RefinementDescription
+class Window_RefinementDescription extends Window_Help
+{
+  constructor(rect)
+  {
+    super(rect);
+  }
+}
+//endregion Window_RefinementDescription
+
+//region Window_RefinementDetails
 /**
  * The window containing the chosen equips for refinement and also the projected results.
  */
-class Window_JaftingRefinementOutput
-  extends Window_Base
+class Window_RefinementDetails extends Window_Base
 {
   /**
    * @constructor
@@ -2861,9 +3078,34 @@ class Window_JaftingRefinementOutput
     // if we don't have anything in the target slot, do not draw anything.
     if (!this.primaryEquip) return;
 
+    this.drawRefinementHeaders();
+
     this.drawRefinementTarget();
     this.drawRefinementMaterial();
     this.drawRefinementResult();
+  }
+
+  /**
+   * Draws all columns' titles.
+   */
+  drawRefinementHeaders()
+  {
+    const columnWidth = 350;
+    const ox = 0;
+
+    this.modFontSize(6);
+    this.toggleBold(true);
+
+    const baseX = ox + (columnWidth * 0);
+    this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleBase, baseX, 0, 200);
+
+    const consumableX = ox + (columnWidth * 1);
+    this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleMaterial, consumableX, 0, 200);
+
+    const outputX = ox + (columnWidth * 2);
+    this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleOutput, outputX, 0, 200);
+
+    this.resetFontSettings();
   }
 
   /**
@@ -2894,12 +3136,8 @@ class Window_JaftingRefinementOutput
    */
   drawEquip(equip, x, type)
   {
-    if (type === "output")
-    {
-      console.log();
-    }
-    const parsedTraits = $gameJAFTING.parseTraits(equip);
-    const jaftingTraits = $gameJAFTING.combineBaseParameterTraits(parsedTraits);
+    const parsedTraits = JaftingManager.parseTraits(equip);
+    const jaftingTraits = JaftingManager.combineBaseParameterTraits(parsedTraits);
     this.drawEquipTitle(equip, x, type);
     this.drawEquipTraits(jaftingTraits, x);
   }
@@ -2913,19 +3151,6 @@ class Window_JaftingRefinementOutput
   drawEquipTitle(equip, x, type)
   {
     const lh = this.lineHeight();
-    const cw = 300;
-    switch (type)
-    {
-      case "base":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleBase}`, x + (cw * 0), lh * 0, 200);
-        break;
-      case "material":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleMaterial}`, x + (cw * 1), lh * 0, 200);
-        break;
-      case "output":
-        this.drawTextEx(`\\PX[16]${J.JAFTING.EXT.REFINE.Messages.TitleOutput}`, x + (cw * 2), lh * 0, 200);
-        break;
-    }
 
     if (type === "output")
     {
@@ -2960,7 +3185,7 @@ class Window_JaftingRefinementOutput
 
   /**
    * Draws all transferable traits on this piece of equipment.
-   * @param {RPG_Trait[]} traits A list of transferable traits.
+   * @param {JAFTING_Trait[]} traits A list of transferable traits.
    * @param {number} x The `x` coordinate to start drawing at.
    */
   drawEquipTraits(traits, x)
@@ -2990,7 +3215,7 @@ class Window_JaftingRefinementOutput
     if (!this.primaryEquip || !this.secondaryEquip) return;
 
     // produce the potential result if confirmed.
-    const result = $gameJAFTING.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
+    const result = JaftingManager.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
 
     // render the projected merge results.
     this.drawEquip(result, 700, "output");
@@ -2998,6 +3223,5 @@ class Window_JaftingRefinementOutput
     // assign it for ease of retrieving from the scene.
     this.outputEquip = result;
   }
-
 }
-//endregion Window_JaftingRefinementOutput
+//endregion Window_RefinementDetails

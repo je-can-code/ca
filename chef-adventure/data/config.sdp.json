@@ -12,70 +12,60 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi %",
         "parameterId": 1,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Endurance %",
         "parameterId": 3,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Resistance %",
         "parameterId": 5,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed %",
         "parameterId": 6,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck %",
         "parameterId": 7,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹ItemEffects",
         "parameterId": 21,
         "perRank": 2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ExperienceUP",
         "parameterId": 27,
         "perRank": 1.0,
         "isFlat": true,
@@ -98,56 +88,48 @@
     "multGrowthCost": 2.0,
     "panelParameters": [
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 2.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck %",
         "parameterId": 7,
         "perRank": 2.50,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Autocounter",
         "parameterId": 14,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TpRegen",
         "parameterId": 17,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagicReflect",
         "parameterId": 13,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ItemEffects",
         "parameterId": 21,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 3.0,
         "isFlat": true,
@@ -186,35 +168,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 20.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 3.0,
         "isFlat": true,
@@ -243,49 +220,42 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 15.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 30.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": -1.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiCost",
         "parameterId": 22,
         "perRank": -1.0,
         "isFlat": true,
@@ -297,11 +267,6 @@
         "rewardName": "Unlock: \\sdp[ENC_3]",
         "rankRequired": 0,
         "effect": "$gameParty.unlockSdp(\"ENC_3\");"
-      },
-      {
-        "rewardName": "gimme da munny 💰",
-        "rankRequired": 0,
-        "effect": "$gameParty.gainGold(100000000);"
       }
     ],
     "rarity": 0
@@ -319,56 +284,48 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 20.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 50.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi %",
         "parameterId": 1,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiCost",
         "parameterId": 22,
         "perRank": -1.0,
         "isFlat": true,
@@ -397,70 +354,60 @@
     "multGrowthCost": 1.6,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 60.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi %",
         "parameterId": 1,
         "perRank": 1.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": -2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 7.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -0.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
@@ -489,70 +436,60 @@
     "multGrowthCost": 1.75,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 35.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 0.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 75.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi %",
         "parameterId": 1,
         "perRank": 2.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": -4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 2.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -0.5,
         "isFlat": true,
@@ -575,35 +512,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 2.0,
         "isFlat": true,
@@ -632,49 +564,42 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 40.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -1.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Accuracy",
         "parameterId": 8,
         "perRank": 3.0,
         "isFlat": true,
@@ -703,56 +628,48 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 80.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 20.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Accuracy",
         "parameterId": 8,
         "perRank": 5.0,
         "isFlat": true,
@@ -781,70 +698,60 @@
     "multGrowthCost": 1.6,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 100.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Accuracy",
         "parameterId": 8,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Autocounter",
         "parameterId": 14,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritBlock",
         "parameterId": 29,
         "perRank": 1.0,
         "isFlat": true,
@@ -873,70 +780,60 @@
     "multGrowthCost": 1.7,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 110.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 30.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 12.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Accuracy",
         "parameterId": 8,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ParryExtend",
         "parameterId": 9,
         "perRank": 2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Parry %",
         "parameterId": 19,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹PhysDmgRate",
         "parameterId": 24,
         "perRank": -0.5,
         "isFlat": true,
@@ -959,28 +856,24 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨Endurance",
         "parameterId": 3,
         "perRank": -0.25,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 2.0,
         "isFlat": true,
@@ -1003,35 +896,30 @@
     "multGrowthCost": 1.7,
     "panelParameters": [
       {
-        "parameterName": "✨Endurance",
         "parameterId": 3,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Resistance",
         "parameterId": 5,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritBlock",
         "parameterId": 29,
         "perRank": 1.0,
         "isFlat": true,
@@ -1060,41 +948,51 @@
     "multGrowthCost": 1.15,
     "panelParameters": [
       {
-        "parameterName": "✨Endurance",
         "parameterId": 3,
         "perRank": -0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Aggro",
         "parameterId": 18,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ParryExtend",
         "parameterId": 9,
         "perRank": 1.5,
         "isFlat": true,
         "isCore": false
       }
     ],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
+    "name": "_Tsukumogami (tbd)",
+    "key": "GHO_4",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
     "panelRewards": [],
     "rarity": 0
   },
@@ -1111,49 +1009,42 @@
     "multGrowthCost": 1.25,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HpRegen",
         "parameterId": 15,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Endurance",
         "parameterId": 3,
         "perRank": 1.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TechCost",
         "parameterId": 23,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹LightFooted",
         "parameterId": 26,
         "perRank": -2.0,
         "isFlat": true,
@@ -1176,35 +1067,30 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": 60.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HpRegen",
         "parameterId": 15,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Autocounter",
         "parameterId": 14,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Parry",
         "parameterId": 19,
         "perRank": 2.0,
         "isFlat": true,
@@ -1233,35 +1119,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": 40.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HpRegen",
         "parameterId": 15,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Endurance %",
         "parameterId": 3,
         "perRank": 3.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Resistance",
         "parameterId": 5,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": 2.0,
         "isFlat": true,
@@ -1290,42 +1171,36 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": 20.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HpRegen %",
         "parameterId": 15,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 15.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ParryExtend",
         "parameterId": 9,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Autocounter",
         "parameterId": 14,
         "perRank": 2.0,
         "isFlat": true,
@@ -1354,21 +1229,18 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": 100.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HpRegen",
         "parameterId": 15,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Resistance",
         "parameterId": 5,
         "perRank": 5.0,
         "isFlat": true,
@@ -1397,28 +1269,24 @@
     "multGrowthCost": 2.0,
     "panelParameters": [
       {
-        "parameterName": "✨Accuracy",
         "parameterId": 8,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨ParryExtend",
         "parameterId": 9,
         "perRank": 2.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Autocounter",
         "parameterId": 14,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 2.0,
         "isFlat": true,
@@ -1447,35 +1315,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨Accuracy",
         "parameterId": 8,
         "perRank": 4.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨ParryExtend",
         "parameterId": 9,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 2.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
@@ -1504,35 +1367,30 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨MaxMagi %",
         "parameterId": 1,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Parry",
         "parameterId": 19,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 8.0,
         "isFlat": true,
@@ -1555,35 +1413,30 @@
     "multGrowthCost": 1.33,
     "panelParameters": [
       {
-        "parameterName": "✨MaxMagi %",
         "parameterId": 1,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Parry",
         "parameterId": 19,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -0.5,
         "isFlat": true,
@@ -1612,42 +1465,36 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨Endurance",
         "parameterId": 3,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Resistance",
         "parameterId": 5,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TpRegen",
         "parameterId": 17,
         "perRank": 0.1,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 1.5,
         "isFlat": true,
@@ -1676,42 +1523,36 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "✨Endurance",
         "parameterId": 3,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Resistance",
         "parameterId": 5,
         "perRank": -2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Endurance %",
         "parameterId": 3,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HealingRate",
         "parameterId": 20,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritBlock",
         "parameterId": 29,
         "perRank": 0.5,
         "isFlat": true,
@@ -1728,6 +1569,21 @@
     "rarity": 23
   },
   {
+    "name": "_Grimfang (tbd)",
+    "key": "BER_3",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Orcan Obediance",
     "key": "ORC_1",
     "iconIndex": 471,
@@ -1740,35 +1596,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨MaxTech",
         "parameterId": 30,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Autocounter",
         "parameterId": 14,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": -3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 2.0,
         "isFlat": true,
@@ -1797,56 +1648,48 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨MaxTech %",
         "parameterId": 30,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Autocounter",
         "parameterId": 14,
         "perRank": 0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Endurance %",
         "parameterId": 3,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -1.0,
         "isFlat": true,
@@ -1875,28 +1718,24 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "✨Accuracy",
         "parameterId": 8,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨MpRegen",
         "parameterId": 16,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": -0.5,
         "isFlat": true,
@@ -1925,42 +1764,36 @@
     "multGrowthCost": 1.25,
     "panelParameters": [
       {
-        "parameterName": "✨Accuracy %",
         "parameterId": 8,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨MpRegen",
         "parameterId": 16,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 30.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Resistance",
         "parameterId": 5,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": -1.0,
         "isFlat": true,
@@ -1989,28 +1822,24 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨Accuracy",
         "parameterId": 8,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨MpRegen %",
         "parameterId": 16,
         "perRank": 0.5,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 2.5,
         "isFlat": true,
@@ -2033,35 +1862,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨ExperienceUP",
         "parameterId": 27,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨Speed",
         "parameterId": 6,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": -1.0,
         "isFlat": true,
@@ -2090,21 +1914,18 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "✨Speed",
         "parameterId": 6,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨TpRegen",
         "parameterId": 17,
         "perRank": 0.25,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹ParryExtend",
         "parameterId": 9,
         "perRank": 1.0,
         "isFlat": true,
@@ -2127,28 +1948,24 @@
     "multGrowthCost": 1.6,
     "panelParameters": [
       {
-        "parameterName": "✨Speed",
         "parameterId": 6,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨TpRegen",
         "parameterId": 17,
         "perRank": 0.1,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹HpRegen %",
         "parameterId": 15,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹HealingRate",
         "parameterId": 20,
         "perRank": 3.0,
         "isFlat": true,
@@ -2171,35 +1988,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨Speed",
         "parameterId": 6,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨TpRegen",
         "parameterId": 17,
         "perRank": 0.25,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxTech %",
         "parameterId": 30,
         "perRank": 5.0,
         "isFlat": false,
@@ -2228,49 +2040,42 @@
     "multGrowthCost": 1.25,
     "panelParameters": [
       {
-        "parameterName": "✨PhysDmgRate",
         "parameterId": 24,
         "perRank": 0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨MagiCost",
         "parameterId": 22,
         "perRank": -0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 15.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 1.5,
         "isFlat": true,
@@ -2287,6 +2092,21 @@
     "rarity": 20
   },
   {
+    "name": "_Onryo (tbd)",
+    "key": "WIL_2",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Bullheaded",
     "key": "MIN_1",
     "iconIndex": 2392,
@@ -2299,21 +2119,18 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife %",
         "parameterId": 0,
         "perRank": 1.5,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Power",
         "parameterId": 2,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹ExperienceUP",
         "parameterId": 27,
         "perRank": 1.0,
         "isFlat": true,
@@ -2336,28 +2153,24 @@
     "multGrowthCost": 1.6,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife %",
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Power",
         "parameterId": 2,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Parry",
         "parameterId": 19,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ExperienceUP",
         "parameterId": 27,
         "perRank": 1.0,
         "isFlat": true,
@@ -2380,42 +2193,36 @@
     "multGrowthCost": 1.0,
     "panelParameters": [
       {
-        "parameterName": "✨Autocounter",
         "parameterId": 14,
         "perRank": 0.2,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨ItemEffects",
         "parameterId": 21,
         "perRank": -3.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power %",
         "parameterId": 2,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 1.0,
         "isFlat": false,
@@ -2444,35 +2251,30 @@
     "multGrowthCost": 1.25,
     "panelParameters": [
       {
-        "parameterName": "✨MpRegen",
         "parameterId": 16,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨MagiCost",
         "parameterId": 22,
         "perRank": 0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxMagi",
         "parameterId": 1,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Resistance %",
         "parameterId": 5,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": -1.0,
         "isFlat": true,
@@ -2495,28 +2297,24 @@
     "multGrowthCost": 1.15,
     "panelParameters": [
       {
-        "parameterName": "✨Force",
         "parameterId": 4,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Force %",
         "parameterId": 4,
         "perRank": 0.5,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 1.0,
         "isFlat": true,
@@ -2545,35 +2343,30 @@
     "multGrowthCost": 2.2,
     "panelParameters": [
       {
-        "parameterName": "✨Speed %",
         "parameterId": 6,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨ItemEffects",
         "parameterId": 21,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 1.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": 1.0,
         "isFlat": true,
@@ -2602,42 +2395,36 @@
     "multGrowthCost": 1.9,
     "panelParameters": [
       {
-        "parameterName": "✨Speed %",
         "parameterId": 6,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨ItemEffects",
         "parameterId": 21,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MaxTech",
         "parameterId": 30,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TpRegen",
         "parameterId": 17,
         "perRank": 0.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TechCost",
         "parameterId": 23,
         "perRank": -0.5,
         "isFlat": true,
@@ -2660,42 +2447,36 @@
     "multGrowthCost": 2.5,
     "panelParameters": [
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed %",
         "parameterId": 6,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TpRegen",
         "parameterId": 17,
         "perRank": 0.25,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹TechCost",
         "parameterId": 23,
         "perRank": -0.5,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 2.5,
         "isFlat": true,
@@ -2718,35 +2499,30 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "✨Power",
         "parameterId": 2,
         "perRank": -3.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨LightFooted",
         "parameterId": 26,
         "perRank": -5.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Accuracy",
         "parameterId": 8,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹HpRegen",
         "parameterId": 15,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ItemEffects",
         "parameterId": 21,
         "perRank": -0.4,
         "isFlat": true,
@@ -2775,56 +2551,48 @@
     "multGrowthCost": 1.8,
     "panelParameters": [
       {
-        "parameterName": "✨Power %",
         "parameterId": 2,
         "perRank": 2.5,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨LightFooted",
         "parameterId": 26,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Endurance",
         "parameterId": 3,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Resistance",
         "parameterId": 5,
         "perRank": 6.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Parry",
         "parameterId": 19,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritBlock",
         "parameterId": 29,
         "perRank": 2.5,
         "isFlat": true,
@@ -2853,35 +2621,30 @@
     "multGrowthCost": 1.0,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": -30.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HealingRate",
         "parameterId": 20,
         "perRank": -3.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Endurance",
         "parameterId": 3,
         "perRank": -3.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Luck",
         "parameterId": 7,
         "perRank": 8.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ExperienceUP",
         "parameterId": 27,
         "perRank": 3.0,
         "isFlat": true,
@@ -2910,49 +2673,42 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨MaxLife",
         "parameterId": 0,
         "perRank": -10.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨HealingRate",
         "parameterId": 20,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹ParryExtend",
         "parameterId": 9,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritDodge",
         "parameterId": 11,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 3.0,
         "isFlat": true,
@@ -2975,35 +2731,30 @@
     "multGrowthCost": 1.3,
     "panelParameters": [
       {
-        "parameterName": "✨CritAmp",
         "parameterId": 28,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "✨TechCost",
         "parameterId": 23,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Speed",
         "parameterId": 6,
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritRate",
         "parameterId": 10,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Parry",
         "parameterId": 19,
         "perRank": -1.0,
         "isFlat": true,
@@ -3026,35 +2777,30 @@
     "multGrowthCost": 1.5,
     "panelParameters": [
       {
-        "parameterName": "✨CritAmp %",
         "parameterId": 28,
         "perRank": 0.5,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨TechCost",
         "parameterId": 23,
         "perRank": -0.5,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Endurance",
         "parameterId": 3,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MpRegen",
         "parameterId": 16,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Parry",
         "parameterId": 19,
         "perRank": 2.0,
         "isFlat": true,
@@ -3071,6 +2817,21 @@
     "rarity": 23
   },
   {
+    "name": "_Asp (tbd)",
+    "key": "SNK_3",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Dragonic Sacrifice",
     "key": "DRG_1",
     "iconIndex": 14,
@@ -3083,42 +2844,36 @@
     "multGrowthCost": 1.2,
     "panelParameters": [
       {
-        "parameterName": "✨Power %",
         "parameterId": 2,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨TpRegen",
         "parameterId": 17,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 50.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Force",
         "parameterId": 4,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Aggro",
         "parameterId": 18,
         "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹CritAmp",
         "parameterId": 28,
         "perRank": 3.0,
         "isFlat": true,
@@ -3147,42 +2902,36 @@
     "multGrowthCost": 1.4,
     "panelParameters": [
       {
-        "parameterName": "✨Power %",
         "parameterId": 2,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨MaxTech",
         "parameterId": 30,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹MaxLife",
         "parameterId": 0,
         "perRank": 50.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹Power",
         "parameterId": 2,
         "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹PhysDmgRate",
         "parameterId": 24,
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterName": "🔹MagiDmgRate",
         "parameterId": 25,
         "perRank": 1.0,
         "isFlat": true,
@@ -3205,28 +2954,24 @@
     "multGrowthCost": 1.6,
     "panelParameters": [
       {
-        "parameterName": "✨CritBlock %",
         "parameterId": 29,
         "perRank": 2.0,
         "isFlat": false,
         "isCore": true
       },
       {
-        "parameterName": "✨Parry",
         "parameterId": 19,
         "perRank": 3.0,
         "isFlat": true,
         "isCore": true
       },
       {
-        "parameterName": "🔹Parry %",
         "parameterId": 19,
         "perRank": 1.0,
         "isFlat": false,
         "isCore": false
       },
       {
-        "parameterName": "🔹PhysDmgRate",
         "parameterId": 24,
         "perRank": -1.0,
         "isFlat": true,
