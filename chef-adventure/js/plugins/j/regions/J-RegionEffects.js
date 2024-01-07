@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGIONS] A plugin that controls passage by region ids.
+ * @plugindesc [v1.0.1 REGIONS] A plugin that controls passage by region ids.
  * @author JE
  * @url https://github.com/je-can-code/ca
  * @base J-Base
@@ -45,6 +45,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Created plugin extension namespace for REGIONS plugin extensions.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -73,6 +75,11 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.REGIONS = {};
+
+/**
+ * The parent namespace for all REGIONS extensions.
+ */
+J.REGIONS.EXT = {};
 
 /**
  * The `metadata` associated with this plugin; such as version.
@@ -265,7 +272,7 @@ Game_Map.prototype.setup = function(mapId)
   // perform original logic.
   J.REGIONS.Aliased.Game_Map.get('setup').call(this, mapId);
 
-  // update rare/named enemy variable.
+  // setup all region effects.
   this.setupRegionEffects();
 };
 
@@ -446,7 +453,7 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
 {
   // accommodate cyclone movement if available.
   const increment = CycloneMovement
-    ? (1 / CycloneMovement.stepCount)
+    ? (1 / CycloneMovement?.stepCount ?? 1)
     : 1;
 
   // default the projected coordinates to the current.

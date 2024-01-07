@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * This plugin extends the functionality of skills. It features additional
@@ -1138,23 +1138,20 @@ Game_Action.prototype.selfStateSources = function()
 /**
  * Applies the given states to the target.
  * @param target {Game_Actor|Game_Enemy} The target to apply states to.
- * @param stateChances {JABS_OnChanceEffect[]} The various states to potentially apply.
+ * @param jabsOnChanceEffects {JABS_OnChanceEffect[]} The various states to potentially apply.
  */
-Game_Action.prototype.applyStates = function(target, stateChances)
+Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects)
 {
-  if (stateChances.length)
+  if (jabsOnChanceEffects.length)
   {
     // iterate over each of them and see if we should apply them.
-    stateChances.forEach(stateChance =>
+    jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
     {
-      // extract the data points from the on-chance effect.
-      const { shouldTrigger, skillId } = stateChance;
-
       // roll the dice to see if the on-chance effect applies.
-      if (shouldTrigger())
+      if (jabsOnChanceEffect.shouldTrigger())
       {
         // apply the given state to the caster, with the caster as the attacker.
-        target.addState(skillId, this.subject());
+        target.addState(jabsOnChanceEffect.skillId, this.subject());
       }
     });
   }

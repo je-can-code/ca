@@ -580,26 +580,42 @@ Game_Enemy.prototype.makeDropItems = function()
     // we don't deal with empty loot here.
     if (drop.kind === 0) return;
 
+    // determine the loot we're finding.
+    const item = this.itemObject(drop.kind, drop.dataId);
+
+    // check if this loot is findable.
+    if (!this.canFindLoot(item)) return;
+
     // here we're using the number from the database as a percentage chance instead.
     const rate = drop.denominator * multiplier;
 
     // if the multiplier was so great that the rate is above 100, we always get it.
     const treasureHunterSkip = rate >= 100;
 
-    // roll the dice and see if we get some loot.
-    const foundLoot = this.didFindLoot();
-    const item = this.itemObject(drop.kind, drop.dataId);
+    // determine if the loot was found.
+    const foundLoot = treasureHunterSkip
+      ? true                    // we were already a boss.
+      : this.didFindLoot(rate); // roll the dice!
 
-    // if we earned the loot...
-    if (treasureHunterSkip || foundLoot)
+    // check if we earned the loot.
+    if (foundLoot)
     {
-      // ...add it to the list of earned drops from this enemy!
+      // add it to the list of earned drops from this enemy.
       itemsFound.push(item);
     }
   });
 
   // return all earned loot!
   return itemsFound;
+};
+
+/**
+ * Determines if the item is allowed to be found.
+ * @param {RPG_BaseItem} item The item to find.
+ */
+Game_Enemy.prototype.canFindLoot = function(item)
+{
+  return true;
 };
 
 /**
@@ -610,8 +626,8 @@ Game_Enemy.prototype.makeDropItems = function()
  */
 Game_Enemy.prototype.didFindLoot = function(rate)
 {
-  // roll the dice and see if we won!
-  let chance = RPGManager.chanceIn100(rate);
+  // locally assign the percent chance to find something..
+  let chance = rate;
 
   // check if anyone in the party has the double-drop trait.
   if ($gameParty.hasDropItemDouble())
@@ -620,8 +636,11 @@ Game_Enemy.prototype.didFindLoot = function(rate)
     chance *= 2;
   }
 
+  // roll the dice and see if we won!
+  const found = RPGManager.chanceIn100(chance);
+
   // return the result.
-  return chance;
+  return found;
 };
 
 /**
