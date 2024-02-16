@@ -1,5 +1,3 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
@@ -193,7 +191,7 @@ J.ABS.EXT.TIMING.RegExp = {
 
 //region JABS_Action
 /**
- * Extends {@link JABS_Action.getCastTime}.
+ * Extends {@link JABS_Action.getCastTime}.<br>
  * Applies cast speed into the equation of determining cast time.
  */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
@@ -216,7 +214,7 @@ JABS_Action.prototype.getCastTime = function()
 };
 
 /**
- * Extends {@link JABS_Action.getCooldown}.
+ * Extends {@link JABS_Action.getCooldown}.<br>
  * Applies fast cooldown into the equation of determining cooldown time.
  */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);

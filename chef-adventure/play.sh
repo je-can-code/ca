@@ -1,0 +1,1 @@
+../../utilities/nwjs-linux/nw ./project &>/dev/null &

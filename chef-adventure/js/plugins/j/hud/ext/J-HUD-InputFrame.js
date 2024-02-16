@@ -1,5 +1,3 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 13:49:28 GMT-0800 (Pacific Standard Time)  */
-
 //region introduction
 /*:
  * @target MZ
@@ -679,7 +677,7 @@ class Sprite_CooldownGauge extends Sprite
   }
 
   /**
-   * Extends {@link Sprite.update}.
+   * Extends {@link Sprite.update}.<br>
    * Also updates the drawing of this gauge.
    */
   update()

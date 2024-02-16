@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "outDir": "./output",
-    "outFile": "output.js",
-    "target": "ESNext",
-    "sourceMap": false,
-    "allowJs": true,
-  }
-}

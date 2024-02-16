@@ -1,5 +1,3 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
@@ -259,6 +257,9 @@ J.PROF.Aliased =
     Game_Battler: new Map(),
     Game_Enemy: new Map(),
     Game_System: new Map(),
+
+    IconManager: new Map(),
+    TextManager: new Map(),
   };
 
 /**
@@ -438,6 +439,92 @@ SkillProficiency.prototype.improve = function(value)
 };
 //endregion SkillProficiency
 
+//region IconManager
+/**
+ * Extend {@link #longParam}.<br>
+ * First checks if the paramId was the proficiency boost before checking others.
+ */
+J.PROF.Aliased.IconManager.set('longParam', IconManager.longParam)
+IconManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 32:
+      return this.proficiencyBoost(); // prof
+    default:
+      return J.PROF.Aliased.IconManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the icon index for the proficiency boost.
+ * @return {number}
+ */
+IconManager.proficiencyBoost = function()
+{
+  return 979;
+};
+//endregion IconManager
+
+//region TextManager
+/**
+ * Extends {@link #longParam}.<br>
+ * First checks if it is the proficiency paramId before searching for others.
+ * @returns {string}
+ */
+J.PROF.Aliased.TextManager.set('longParam', TextManager.longParam);
+TextManager.longParam = function(paramId)
+{
+  switch (paramId)
+  {
+    case 32:
+      return this.proficiencyBonus(); // proficiency boost
+    default:
+      // perform original logic.
+      return J.PROF.Aliased.TextManager.get('longParam').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the proper name of "proficiency bonus", which is quite long, really.
+ * @returns {string}
+ */
+TextManager.proficiencyBonus = function()
+{
+  return "Proficiency+";
+};
+
+/**
+ * Extends {@link #longParamDescription}.<br>
+ * First checks if it is the proficiency paramId before searching for others.
+ * @returns {string[]}
+ */
+J.PROF.Aliased.TextManager.set('longParamDescription', TextManager.longParamDescription);
+TextManager.longParamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    case 32:
+      return this.proficiencyDescription(); // proficiency boost
+    default:
+      // perform original logic.
+      return J.PROF.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+  }
+};
+
+/**
+ * Gets the description text for the proficiency boost.
+ * @returns {string[]}
+ */
+TextManager.proficiencyDescription = function()
+{
+  return [
+    "The numeric bonus of proficiency gained when gaining proficiency.",
+    "Higher amounts of this means achieving proficiency mastery faster."
+  ];
+};
+//endregion TextManager
+
 //region Game_Action
 /**
  * Extends the .apply() to include consideration of prof.
@@ -524,7 +611,7 @@ Game_Action.prototype.skillProficiency = function()
 if (J.ABS)
 {
   /**
-   * Extends {@link Game_Action.onParry}.
+   * Extends {@link Game_Action.onParry}.<br>
    * Also gains proficiency for the parry if possible.
    * @param {JABS_Battler} jabsBattler The battler that is parrying.
    */
@@ -539,7 +626,7 @@ if (J.ABS)
   };
 
   /**
-   * Extends {@link Game_Action.onGuard}.
+   * Extends {@link Game_Action.onGuard}.<br>
    * Also gains proficiency for the guard if possible.
    * @param {JABS_Battler} jabsBattler The battler that is guarding.
    */
@@ -805,7 +892,7 @@ Game_Actor.prototype.executeJsRewards = function(conditional)
   }
   catch (error)
   {
-    console.error(`there was an error executing the reward for: ${c.key}.`);
+    console.error(`there was an error executing the reward for: ${c.key}.<br>`);
     console.log(error);
   }
 };
@@ -859,7 +946,7 @@ Game_Actor.prototype.addSkillProficiency = function(skillId, initialProficiency 
   const exists = this.skillProficiencyBySkillId(skillId);
   if (exists)
   {
-    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
+    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.<br>`);
     return exists;
   }
 
@@ -1147,7 +1234,7 @@ Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency 
   const exists = this.skillProficiencyBySkillId(skillId);
   if (exists)
   {
-    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
+    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.<br>`);
     return exists;
   }
 

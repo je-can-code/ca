@@ -1,5 +1,3 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region Initialization
 /*:
  * @target MZ
