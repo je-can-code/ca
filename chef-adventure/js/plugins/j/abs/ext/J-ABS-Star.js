@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.0.0 STAR] Converts random encounters into star battles.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

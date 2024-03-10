@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.1 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-ABS
  * @base J-DropsControl

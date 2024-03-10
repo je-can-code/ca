@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 ELEM] Enables greater control over elements.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * This plugin enables the ability to modify skills with note tags to to

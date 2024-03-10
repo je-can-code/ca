@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CMS_S] A redesign of the status menu.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

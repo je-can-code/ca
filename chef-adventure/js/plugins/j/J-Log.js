@@ -4,7 +4,7 @@
  * @plugindesc
  * [v2.1.0 LOG] A log window for viewing on the map.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-MessageTextCodes
  * @orderAfter J-Base

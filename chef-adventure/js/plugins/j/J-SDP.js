@@ -164,10 +164,10 @@ class StatDistributionPanel
   }
 
   calculateBonusByRank(
-  paramId,
-  currentRank,
-  baseParam = 0,
-  fractional = false)
+    paramId,
+    currentRank,
+    baseParam = 0,
+    fractional = false)
   {
     // determine all the applicable panel parameters.
     const panelParameters = this.panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
@@ -730,7 +730,7 @@ PanelTracking.prototype.lock = function()
  * @plugindesc
  * [v2.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-DropsControl
  * @orderAfter J-Base
@@ -967,7 +967,7 @@ class J_SdpPluginMetadata extends PluginMetadata
    * The path where the config for panels is located.
    * @type {string}
    */
-  static SDP_PATH = 'data/config.sdp.json';
+  static CONFIG_PATH = 'data/config.sdp.json';
 
   /**
    * Converts the JSON-parsed blob into classified {@link StatDistributionPanel}s.
@@ -1064,7 +1064,7 @@ class J_SdpPluginMetadata extends PluginMetadata
   initializePanels()
   {
     // parse the files as an actual list of objects from the JSON configuration.
-    const parsedPanels = JSON.parse(StorageManager.fsReadFile(J_SdpPluginMetadata.SDP_PATH));
+    const parsedPanels = JSON.parse(StorageManager.fsReadFile(J_SdpPluginMetadata.CONFIG_PATH));
     if (parsedPanels === null)
     {
       console.error('no SDP configuration was found in the /data directory of the project.');
@@ -1090,7 +1090,9 @@ class J_SdpPluginMetadata extends PluginMetadata
      */
     this.panelsMap = panelMap;
 
-    console.log(`${this.panels.length} SDPs loaded from file ${J_SdpPluginMetadata.SDP_PATH}.`);
+    console.log(`loaded:
+      - ${this.panels.length} panels
+      from file ${J_SdpPluginMetadata.CONFIG_PATH}.`);
   }
 
   initializeMetadata()
@@ -2331,7 +2333,6 @@ Game_Party.prototype.initSdpMembers = function()
    * There should always be one for every panel imported from the
    * configuration.
    * @type {PanelTracking[]}
-   * @private
    */
   this._j._sdp._trackings = [];
 };
@@ -2473,7 +2474,7 @@ Game_Party.prototype.getAllSdpsAsMap = function()
  */
 Game_Party.prototype.getSdpByKey = function(key)
 {
-  return this.getAllSdpsAsMap().get(key)
+  return this.getAllSdpsAsMap().get(key);
 };
 
 /**

@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 INPUT] A manager for overseeing the input of JABS.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base J-Base
  * @orderAfter J-ABS

@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CYCLE] An adapter to accommodate Cyclone-Movement in JABS.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base Cyclone-Movement
  * @orderAfter J-ABS

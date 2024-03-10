@@ -1233,7 +1233,7 @@ class JaftingManager
 
     [baseTraits, materialTraits] = this.removeIncompatibleTraits(baseTraits, materialTraits);
 
-    [baseTraits, materialTraits] = this.overwriteAllOverwritableTraits(baseTraits, materialTraits);
+    [baseTraits, materialTraits] = this.#overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
     // copy of primary equip that represents the projected result.
     const output = base._generate(base, base._index());
@@ -1264,7 +1264,7 @@ class JaftingManager
     materialTraits.forEach(trait =>
     {
       // if the trait is non-transferable, then skip it.
-      if (!this.isTransferableTrait(output, trait)) return;
+      if (!this.#isTransferableTrait(output, trait)) return;
 
       // create and add the new trait from the material onto the base.
       const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
@@ -1351,15 +1351,21 @@ class JaftingManager
    */
   static removeOppositeTrait(baseTraitList, materialTraitList, code, opposingCode)
   {
+    // determine (if any) the index of any designated trait codes.
     const hasTraitCode = trait => trait._code === code;
-    const hasOpposingTraitCode = trait => trait._code === opposingCode;
     const baseHasCode = baseTraitList.findIndex(hasTraitCode);
     const materialHasCode = materialTraitList.findIndex(hasTraitCode);
+
+    // determine (if any) the index of any opposing trait codes.
+    const hasOpposingTraitCode = trait => trait._code === opposingCode;
     const baseHasOpposingCode = baseTraitList.findIndex(hasOpposingTraitCode);
     const materialHasOpposingCode = materialTraitList.findIndex(hasOpposingTraitCode);
 
+    // a re-usable function for checking if two indices were "found".
+    const hasBothCodes = (leftIndex, rightIndex) => (leftIndex > -1 && rightIndex > -1);
+
     // if the primary has the base code, and secondary has opposing, remove both.
-    if (baseHasCode > -1 && materialHasOpposingCode > -1)
+    if (hasBothCodes(baseHasCode, materialHasOpposingCode))
     {
       if (baseTraitList[baseHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
       {
@@ -1369,7 +1375,7 @@ class JaftingManager
     }
 
     // if the secondary has the base code, and primary has opposing, remove both.
-    if (materialHasCode > -1 && baseHasOpposingCode > -1)
+    if (hasBothCodes(materialHasCode, baseHasOpposingCode))
     {
       if (baseTraitList[baseHasOpposingCode]._dataId === materialTraitList[materialHasCode]._dataId)
       {
@@ -1379,7 +1385,7 @@ class JaftingManager
     }
 
     // if the primary list has both codes, remove both traits.
-    if (baseHasCode > -1 && baseHasOpposingCode > -1)
+    if (hasBothCodes(baseHasCode, baseHasOpposingCode))
     {
       if (baseTraitList[baseHasCode]._dataId === baseTraitList[baseHasOpposingCode]._dataId)
       {
@@ -1389,7 +1395,7 @@ class JaftingManager
     }
 
     // if the secondary list has both codes, remove both traits.
-    if (materialHasCode > -1 && materialHasOpposingCode > -1)
+    if (hasBothCodes(materialHasCode, materialHasOpposingCode))
     {
       if (materialTraitList[materialHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId)
       {
@@ -1398,6 +1404,7 @@ class JaftingManager
       }
     }
 
+    // cleanup both our lists from any messy falsy traits.
     baseTraitList = baseTraitList.filter(trait => !!trait);
     materialTraitList = materialTraitList.filter(trait => !!trait);
 
@@ -1414,16 +1421,21 @@ class JaftingManager
    */
   static replaceTrait(baseTraitList, materialTraitList, code)
   {
+    // determine (if any) the index of any designated trait codes.
     const hasTraitCode = trait => trait._code === code;
     const baseHasCode = baseTraitList.findIndex(hasTraitCode);
     const materialHasCode = materialTraitList.findIndex(hasTraitCode);
 
+    // a re-usable function for checking if two indices were "found".
+    const hasBothCodes = (leftIndex, rightIndex) => (leftIndex > -1 && rightIndex > -1);
+
     // if both lists have the same trait, remove from base list.
-    if (baseHasCode > -1 && materialHasCode > -1)
+    if (hasBothCodes(baseHasCode, materialHasCode))
     {
       baseTraitList.splice(baseHasCode, 1, null);
     }
 
+    // cleanup both our lists from any removed traits.
     baseTraitList = baseTraitList.filter(trait => !!trait);
     return [baseTraitList, materialTraitList];
   }
@@ -1434,12 +1446,12 @@ class JaftingManager
    * @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
    * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
    */
-  static overwriteAllOverwritableTraits(baseTraits, materialTraits)
+  static #overwriteAllOverwritableTraits(baseTraits, materialTraits)
   {
     const overwritableCodes = [11, 12, 13, 32, 33, 34, 61];
     overwritableCodes.forEach(code =>
     {
-      [baseTraits, materialTraits] = this.overwriteIfBetter(baseTraits, materialTraits, code);
+      [baseTraits, materialTraits] = this.#overwriteIfBetter(baseTraits, materialTraits, code);
     });
 
     return [baseTraits, materialTraits];
@@ -1454,7 +1466,7 @@ class JaftingManager
    * @param {number} code The code to overwrite if it exists in both lists.
    * @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
    */
-  static overwriteIfBetter(baseTraitList, materialTraitList, code)
+  static #overwriteIfBetter(baseTraitList, materialTraitList, code)
   {
     // a quick function to use against each element of the base trait list
     // to check and see if the material trait list has any of the same codes with dataIds
@@ -1542,7 +1554,7 @@ class JaftingManager
    * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
    * @returns {boolean}
    */
-  static isTransferableTrait(output, jaftingTrait)
+  static #isTransferableTrait(output, jaftingTrait)
   {
     switch (jaftingTrait._code)
     {

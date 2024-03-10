@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.1.0 MESSAGE] Gives access to more text codes in windows.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

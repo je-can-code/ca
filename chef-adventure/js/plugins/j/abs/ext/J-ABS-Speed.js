@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 MOVE] Enable modifying move speeds.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-ABS
  * @orderAfter J-Base

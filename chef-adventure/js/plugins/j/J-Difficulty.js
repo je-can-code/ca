@@ -5,7 +5,7 @@
  * @plugindesc
  * [v2.0.0 DIFFICULTY] A layered difficulty system.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-DropsControl

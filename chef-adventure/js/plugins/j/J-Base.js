@@ -4,7 +4,7 @@
  * @plugindesc
  * [v2.1.4 BASE] The base class for all J plugins.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * OVERVIEW:
@@ -17,6 +17,29 @@
  * If you are not a dev, you can stop reading if you want (or read on to learn
  * more about the code underneath).
  * ============================================================================
+ * MAX ITEM QUANTITY:
+ * Have you ever wanted to define a max quantity for items/weapons/armors in
+ * the database? Like, not just 99? Well now you can! By applying the correct
+ * tags to the relevant entries in the database, you too can have various fixed
+ * and maximum item quantities.
+ *
+ * NOTE ABOUT FUNCTIONALITY PERMANENCE:
+ * This max quantity stuff will likely get shifted to its own plugin eventually.
+ *
+ * TAG USAGE:
+ * - Items
+ * - Weapons
+ * - Armors
+ *
+ * TAG FORMAT:
+ *  <max:VALUE>
+ *    Where VALUE represents the maximum quantity allowed for this item.
+ *
+ * TAG EXAMPLES:
+ *  <max:15>
+ * The maximum amount of the database entry decorated with this is 15.
+ * ============================================================================
+ *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
  * Many helper functions that probably should've existed were added, and coding
@@ -39,6 +62,7 @@
  * - 2.1.4
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
+ *    Added max item quantity functionality with tag.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -201,6 +225,7 @@ J.BASE.Traits = {
  * All regular expressions used by this plugin.
  */
 J.BASE.RegExp = {};
+J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
 
 /**
  * The definition of what a parsable comment in an event looks like.
@@ -813,6 +838,18 @@ class RPG_SkillDamage
 class RPG_Trait
 {
   /**
+   * Constructs a new {@link RPG_Trait} from only its triad of base values.
+   * @param {number} code The code that designates what kind of trait this is.
+   * @param {number} dataId The identifier that further defines the trait.
+   * @param {number} value The value of the trait, for traits that have numeric values.
+   * @returns {RPG_Trait}
+   */
+  static fromValues(code, dataId, value)
+  {
+    return new RPG_Trait({code, dataId, value});
+  }
+  
+  /**
    * The code that designates what kind of trait this is.
    * @type {number}
    */
@@ -838,21 +875,208 @@ class RPG_Trait
    */
   constructor(trait)
   {
+
     this.code = trait.code;
     this.dataId = trait.dataId;
     this.value = trait.value;
   }
 
   /**
-   * Constructs a new {@link RPG_Trait} from only its triad of base values.
-   * @param {number} code The code that designates what kind of trait this is.
-   * @param {number} dataId The identifier that further defines the trait.
-   * @param {number} value The value of the trait, for traits that have numeric values.
-   * @returns {RPG_Trait}
+   * Gets a combined textual name and value of this trait.
+   * @return {string}
    */
-  static fromValues(code, dataId, value)
+  textNameAndValue()
   {
-    return new RPG_Trait({code, dataId, value});
+    return `${this.textName()} ${this.textValue()}`;
+  }
+
+  /**
+   * Gets the underlying name of the trait as text.
+   * @return {string}
+   */
+  textName()
+  {
+    switch (this.code)
+    {
+      // first tab.
+      case 11:
+        return `${$dataSystem.elements[this.dataId]} dmg`;
+      case 12:
+        return `${TextManager.param(this.dataId)} debuff rate`;
+      case 13:
+        return `${$dataStates[this.dataId].name} resist`;
+      case 14:
+        return 'Immune to';
+
+      // second tab.
+      case 21:
+        return `${TextManager.param(this.dataId)}`;
+      case 22:
+        return `${TextManager.xparam(this.dataId)}`;
+      case 23:
+        return `${TextManager.sparam(this.dataId)}`;
+
+      // third tab.
+      case 31:
+        return 'Element:';
+      case 32:
+        return `${$dataStates[this.dataId].name} on-hit`;
+      case 33:
+        return 'Skill Speed';
+      case 34:
+        return 'Times';
+      case 35:
+        return 'Basic Attack w/';
+
+      // fourth tab.
+      case 41:
+        return `Unlock:`;
+      case 42:
+        return `Lock:`;
+      case 43:
+        return `Learn:`;
+      case 44:
+        return `Seal:`;
+
+      // fifth tab.
+      case 51:
+        return `${$dataSystem.weaponTypes[this.dataId]}`;
+      case 52:
+        return `${$dataSystem.armorTypes[this.dataId]}`;
+      case 53:
+        return `${$dataSystem.equipTypes[this.dataId]}`;
+      case 54:
+        return `${$dataSystem.equipTypes[this.dataId]}`;
+      case 55:
+        return `${this.dataId ? "Enable" : "Disable"}`;
+
+      // sixth tab.
+      case 61:
+        return 'Another turn chance:';
+      case 62:
+        return `${this.translateSpecialFlag()}`;
+      case 64:
+        return `${this.translatePartyAbility()}`;
+
+      case 63:
+        return 'TRANSFERABLE TRAITS';
+      default:
+        return 'Is this a custom trait?';
+    }
+  }
+
+  /**
+   * Gets the underlying value of the trait as text.
+   * @return {*|string}
+   */
+  textValue()
+  {
+    switch (this.code)
+    {
+      // first tab.
+      case 11:
+        const calculatedElementalRate = Math.round(100 - (this.value * 100));
+        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+      case 12:
+        const calculatedDebuffRate = Math.round((this.value * 100) - 100);
+        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+      case 13:
+        const calculatedStateRate = Math.round(100 - (this.value * 100));
+        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+      case 14:
+        return $dataStates[this.dataId].name;
+
+      // second tab.
+      case 21:
+        const calculatedBParam = Math.round((this.value * 100) - 100);
+        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+      case 22:
+        const calculatedXParam = Math.round((this.value * 100));
+        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+      case 23:
+        const calculatedSParam = Math.round((this.value * 100) - 100);
+        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+
+      // third tab.
+      case 31:
+        return `${$dataSystem.elements.at(this.dataId)}`;
+      case 32:
+        return `${(this.value * 100)}%`;
+      case 33:
+        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+      case 34:
+        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+      case 35:
+        return `${$dataSkills[this.value].name}`;
+
+      // fourth tab.
+      case 41:
+        return `${$dataSystem.skillTypes[this.dataId]}`;
+      case 42:
+        return `${$dataSystem.skillTypes[this.dataId]}`;
+      case 43:
+        return `${$dataSkills[this.dataId].name}`;
+      case 44:
+        return `${$dataSkills[this.dataId].name}`;
+
+      // fifth tab.
+      case 51:
+        return 'proficiency';
+      case 52:
+        return 'proficiency';
+      case 53:
+        return 'is locked';
+      case 54:
+        return 'is sealed';
+      case 55:
+        return 'Dual-wield';
+
+      // sixth tab.
+      case 61:
+        return `${Math.round(this.value * 100)}%`;
+      case 62:
+        return String.empty;
+      case 64:
+        return String.empty;
+      case 63:
+        return String.empty;
+      default:
+        return "is this a custom trait?";
+    }
+  }
+
+  translateSpecialFlag()
+  {
+    switch (this.dataId)
+    {
+      case 0:
+        return 'Autobattle';
+      case 1:
+        return 'Empowered Guard';
+      case 2:
+        return 'Cover/Substitute';
+      case 3:
+        return 'Preserve TP';
+    }
+  }
+
+  translatePartyAbility()
+  {
+    switch (this.dataId)
+    {
+      case 0:
+        return 'Encounter Half';
+      case 1:
+        return 'Encounter None';
+      case 2:
+        return 'Prevent Surprise';
+      case 3:
+        return 'Frequent Pre-emptive';
+      case 4:
+        return 'Gold Dropped 2x';
+      case 5:
+        return 'Loot Drop Chance 2x';
+    }
   }
 }
 //endregion RPG_Trait
@@ -901,6 +1125,59 @@ class RPG_UsableEffect
     this.value1 = effect.value1;
     this.value2 = effect.value2;
   }
+
+  textName()
+  {
+    switch (this.code)
+    {
+      case 11: return "Recover Life";
+      case 12: return "Recover Magi";
+      case 13: return "Recover Tech";
+      case 21: return "Add State";
+      case 22: return "Remove State";
+      case 31: return "Add Buff";
+      case 32: return "Add Debuff";
+      case 33: return "Remove Buff";
+      case 34: return "Remove Debuff";
+      case 41: return "Special";
+      case 42: return "Core Stat Growth";
+      case 43: return "Learn Skill";
+      case 44: return "Execute Common Event";
+      default:
+        console.warn(`Unsupported code of [${this.code}] was provided.`);
+        return "UNKNOWN";
+    }
+  }
+
+  textValue()
+  {
+    switch (this.code)
+    {
+      case 11:
+        const flatHp = this.value2;
+        const percHp = this.value1 * 100;
+        let msg = '';
+        if (flatHp) msg += flatHp;
+        if (percHp) msg += ` ${percHp}%`;
+        if (flatHp === 0 && percHp === 0) msg = '0';
+        return msg.trim();
+      case 12: return "Recover Magi";
+      case 13: return "Recover Tech";
+      case 21: return "Add State";
+      case 22: return "Remove State";
+      case 31: return "Add Buff";
+      case 32: return "Add Debuff";
+      case 33: return "Remove Buff";
+      case 34: return "Remove Debuff";
+      case 41: return "Special";
+      case 42: return "Core Stat Growth";
+      case 43: return "Learn Skill";
+      case 44: return "Execute Common Event";
+      default:
+        console.warn(`Unsupported code of [${this.code}] was provided.`);
+        return "UNKNOWN";
+    }
+  }
 }
 //endregion RPG_UsableEffect
 
@@ -941,6 +1218,7 @@ class RPG_Base
 
   /**
    * The entry's name.
+   * @type {string}
    */
   name = String.empty;
 
@@ -3498,7 +3776,15 @@ class IconManager
   }
 
   /**
-   * Gets the iconIndex for a given reward parameter.
+   * Gets the iconIndex for a given reward parameter.<br>
+   * Reward Param mapping:<br>
+   * <pre>
+   * - 0: experience
+   * - 1: gold/currency
+   * - 2: drops or drop rate
+   * - 3: encounters or encounter rate
+   * - 4: SDP
+   * </pre>
    * @param {number} paramId The param id to get the icon index for.
    * @returns {number}
    */
@@ -5064,6 +5350,34 @@ TextManager.isValidTypeId = function(id, types)
   // get the name!
   return true;
 }
+
+/**
+ * Translates a usable effect code into its textual name.
+ * @param {number} code The numeric code for the effect.
+ * @return {string}
+ */
+TextManager.usableEffectByCode = function(code)
+{
+  switch (code)
+  {
+    case 11: return "Recover Life";
+    case 12: return "Recover Magi";
+    case 13: return "Recover Tech";
+    case 21: return "Add State";
+    case 22: return "Remove State";
+    case 31: return "Add Buff";
+    case 32: return "Add Debuff";
+    case 33: return "Remove Buff";
+    case 34: return "Remove Debuff";
+    case 41: return "Special";
+    case 42: return "Core Stat Growth";
+    case 43: return "Learn Skill";
+    case 44: return "Execute Common Event";
+    default:
+      console.warn(`Unsupported code of [${code}] was provided.`);
+      return "UNKNOWN";
+  }
+};
 //endregion TextManager
 
 /**
@@ -7063,29 +7377,30 @@ Game_Party.prototype.processContainerlessItemGain = function(item, amount, inclu
 };
 
 /**
- * Extends maximum quantity management.
+ * Extends {@link #maxItems}.<br>
+ * Adds more handling regarding maximum quantities for your inventory.
  */
 J.BASE.Aliased.Game_Party.set('maxItems', Game_Party.prototype.maxItems);
 Game_Party.prototype.maxItems = function(item = null)
 {
-  // if we weren't passed an item, then return the default.
-  if (!item) return this.defaultMaxItems();
+  // determine the default max for any item.
+  const defaultMax = this.defaultMaxItems();
 
-  // grab the original max quantity is for this item.
-  const baseMax = J.BASE.Aliased.Game_Party.get('maxItems').call(this, item);
+  // if we weren't passed a valid item, then return the default.
+  if (!item) return defaultMax;
 
-  // check to make sure we got a valid value.
-  if (!baseMax || isNaN(baseMax))
+  // grab the individual item's max quantity.
+  const maxForItem = item.getNumberFromNotesByRegex(J.BASE.RegExp.MaxItems, true);
+
+  // check to ensure that quantity is defined.
+  if (maxForItem !== null)
   {
-    // if there is a problem with someone elses' plugins, return our max.
-    return defaultMaxItems;
+    // we found the max for this item!
+    return maxForItem;
   }
-  // our value is valid.
-  else
-  {
-    // return the original max quantity for this item.
-    return baseMax;
-  }
+
+  // thats it, just return the default if there is none defined.
+  return defaultMax;
 };
 
 /**
@@ -7192,6 +7507,61 @@ Game_System.prototype.initialize = function()
  */
 Game_System.prototype.initMembers = function()
 {
+};
+
+Game_System.prototype.gainAllEverything = function(count = 1)
+{
+  this.gainAllItems(count);
+  this.gainAllWeapons(count);
+  this.gainAllArmors(count);
+};
+
+Game_System.prototype.gainAllItems = function(count = 1)
+{
+  $dataItems
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+Game_System.prototype.gainAllWeapons = function(count = 1)
+{
+  $dataWeapons
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+Game_System.prototype.gainAllArmors = function(count = 1)
+{
+  $dataArmors
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+/**
+ * Whether or not an entry from the database can be gained in the context
+ * of the various "gainAll*" methods.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} entry The database entry being gained.
+ * @return {boolean} True if the entry can be gained, false otherwise.
+ */
+Game_System.prototype.canGainEntry = function(entry)
+{
+  // skip entries that are null.
+  if (entry == null) return false;
+
+  // skip entries with empty names.
+  if (entry.name.trim().length === 0) return false;
+
+  // skip entries that start with an underscore (arbitrary).
+  if (entry.name.startsWith('_')) return false;
+
+  // skip entries that start with a double equals (arbitrary).
+  if (entry.name.startsWith('==')) return false;
+
+  // skip entries that are the "empty" name (arbitrary).
+  if (entry.name.includes('-- empty --')) return false;
+
+  // we can gain it!
+  return true;
 };
 
 //region Game_Temp
@@ -8523,7 +8893,7 @@ Window_Command.prototype.drawItem = function(index)
   const subtexts = this.commandSubtext(index);
 
   // calculate the x of the command name.
-  const commandNameX = rectX + 4;
+  const commandNameX = rectX + 40;
 
   // initialize the y of the command name.
   let commandNameY = rectY;
@@ -8539,6 +8909,13 @@ Window_Command.prototype.drawItem = function(index)
 
     // move the command name up a bit if we have subtext.
     commandNameY -= this.subtextLineHeight();
+  }
+
+  const commandIcon = this.commandIcon(index);
+  if (commandIcon)
+  {
+    const iconY = rectY;
+    this.drawIcon(commandIcon, commandNameX - 36, iconY);
   }
 
   // render the command name.
@@ -8617,7 +8994,7 @@ Window_Command.prototype.buildCommandName = function(index)
   commandName = this.handleColor(commandName, index);
 
   // prepend the icon for the command if applicable.
-  commandName = this.handleIcon(commandName, index);
+  // commandName = this.handleIcon(commandName, index);
 
   // return what we have.
   return commandName;
@@ -8738,6 +9115,7 @@ Window_Command.prototype.commandColor = function(index)
   return this.commandList().at(index).color;
 };
 
+//region adding commands
 /**
  * Overrides {@link #addCommand}.<br>
  * Adds additional metadata to a command.
@@ -8802,6 +9180,7 @@ Window_Command.prototype.prependBuiltCommand = function(command)
 {
   this.commandList().unshift(command);
 };
+//endregion adding commands
 //endregion Window_Command
 
 //region Window_EquipItem

@@ -4,7 +4,7 @@
  * @plugindesc
  * [v2.0.1 NATURAL] Enables level-based growth of all parameters.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @help
  * ============================================================================

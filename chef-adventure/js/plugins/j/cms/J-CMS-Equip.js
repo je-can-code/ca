@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CMS_E] A redesign of the equip menu.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
@@ -968,7 +968,7 @@ class Window_MoreEquipData extends Window_MoreData
     this.addCommand(maxRefineCommand, null, true, null, maxRefineIcon);
 
     const maxTraitIcon = IconManager.jaftingParameterIcon(IconManager.JAFTING_PARAMETER.MAX_TRAITS);
-    const currentTraitCount = $gameJAFTING.parseTraits(this.item).length;
+    const currentTraitCount = JaftingManager.parseTraits(this.item).length;
     let maxTraitCommand = `Transferable Traits: ${currentTraitCount}`;
     if (jaftingMaxTraitCount)
     {

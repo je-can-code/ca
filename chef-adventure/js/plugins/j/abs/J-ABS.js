@@ -12873,9 +12873,9 @@ JABS_SkillSlotManager.prototype.getSlotComboId = function(key)
   {
     console.warn(key);
     console.warn(this);
-    // use gigashock in place of the error.
+    // TODO: fix this; but until fixed, use skillId#1 in place of the error.
 
-    return 150;
+    return 1;
   }
 
   return this.getSkillSlotByKey(key)

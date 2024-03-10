@@ -3,7 +3,7 @@
  * @target MZ
  * @plugindesc [v1.0.1 REGIONS] A plugin that controls passage by region ids.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
