@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @orderAfter J-ABS
  * @help

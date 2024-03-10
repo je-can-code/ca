@@ -3,7 +3,7 @@
  * @plugindesc
  * [v1.0.0 PIXEL] WIP Enables pixel movement.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ==============================================================================
  * Enables 8-directional pixel movement.

@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @help
  * ============================================================================

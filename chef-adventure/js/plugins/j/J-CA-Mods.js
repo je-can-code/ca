@@ -3,7 +3,7 @@
  * @target MZ
  * @plugindesc [CAMODS] JS Mods exclusive to Chef Adventure.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * OVERVIEW:

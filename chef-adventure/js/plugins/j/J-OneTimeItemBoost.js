@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 OTIB] Enables items to grant a one time item boost, permanently.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-TpGrowth

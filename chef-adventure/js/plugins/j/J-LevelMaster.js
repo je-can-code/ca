@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.1.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

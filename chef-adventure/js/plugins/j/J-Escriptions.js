@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

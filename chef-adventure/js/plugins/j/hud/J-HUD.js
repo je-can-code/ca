@@ -4,7 +4,7 @@
  * @plugindesc
  * [v2.0.0 HUD] Provides core functionality for this HUD system.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base J-Base
  * @base J-HUD

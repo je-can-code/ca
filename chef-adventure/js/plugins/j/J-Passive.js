@@ -4,7 +4,7 @@
  * @plugindesc
  * [v2.0.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

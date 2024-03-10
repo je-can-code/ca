@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @orderAfter J-ABS
  * @help

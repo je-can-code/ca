@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 CMS_K] A redesign of the skill menu.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help

@@ -4,7 +4,7 @@
  * @plugindesc
  * [v1.0.0 POPUPS] Enable text pops on the map.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @orderAfter J-ABS
  * @help
  * ============================================================================
