@@ -983,7 +983,7 @@
     {
       "name": "",
       "key": "food_mahogany-melody",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -1035,7 +1035,7 @@
     {
       "name": "",
       "key": "food_erociberry-toast",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -1082,7 +1082,7 @@
     {
       "name": "",
       "key": "food_beef-shakshuka",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -1154,7 +1154,7 @@
     {
       "name": "",
       "key": "food_snoopy-jambalaya",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -1221,7 +1221,7 @@
     {
       "name": "",
       "key": "food_herbal-tea",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -1278,7 +1278,7 @@
     {
       "name": "",
       "key": "food_gel-o",
-      "iconIndex": 0,
+      "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
@@ -4003,12 +4003,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-lifegem-1",
+      "key": "a-gems-life-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4043,12 +4045,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-magigem-1",
+      "key": "a-gems-magi-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4083,12 +4087,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-powergem-1",
+      "key": "a-gems-power-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4123,12 +4129,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-endurancegem-1",
+      "key": "a-gems-endurance-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4163,12 +4171,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-forcegem-1",
+      "key": "a-gems-force-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4203,12 +4213,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-resistgem-1",
+      "key": "a-gems-resist-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4243,12 +4255,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-speedgem-1",
+      "key": "a-gems-speed-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4283,12 +4297,14 @@
     },
     {
       "name": "",
-      "key": "a-alch-luckgem-1",
+      "key": "a-gems-luck-1",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
       "tools": [
         {
           "id": 107,
@@ -4316,6 +4332,288 @@
       "outputs": [
         {
           "id": 232,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-heatglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 11,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 60,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 205,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-liquidglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 66,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 206,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-airglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 17,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 62,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 207,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-groundglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 20,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 64,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 208,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-energyglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 23,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 70,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 209,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-voidglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 26,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 68,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 210,
           "type": "a",
           "count": 1
         }
@@ -4401,10 +4699,17 @@
       "unlockedByDefault": false
     },
     {
-      "name": "Alchemy",
-      "key": "ALCH_ERO",
+      "name": "Runic Creations",
+      "key": "alchemy-runes",
       "iconIndex": 177,
-      "description": "Alchemy. The powerhouse JAFTING profession for those seeking to upgrade their gear.\r\nIngredients of all sorts are used for this, but most commonly: elementals are used.",
+      "description": "One who can create the runes can control the world- or so they say.\r\n\"Runes\" are typically just enhancements for equips relating to optimizing combat potential.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Gemology",
+      "key": "alchemy-gems",
+      "iconIndex": 0,
+      "description": "The alchemy of gems is a wild science that many correlate with the Philosopher's Stone or\r\nwith turning shit into gold. How about turning shit into gems that give your stats a boost?",
       "unlockedByDefault": false
     }
   ]
