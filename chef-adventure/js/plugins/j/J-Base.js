@@ -4875,41 +4875,49 @@ TextManager.bparamDescription = function(paramId)
 {
   switch (paramId)
   {
+    // MHP (Max Hit Points)
     case 0:
       return [
         "The base resource that defines life and death.",
         "Enemies and allies alike obey the rule of '0hp = dead'."
       ];
+    // MMP (Max Magic Points)
     case 1:
       return [
         "The base resource that most magic-based spells consume.",
         "Without this, spells typically cannot be cast."
       ];
+    // ATK (ATtacK)
     case 2:
       return [
         "The base stat that influences physical damage.",
         "Higher amounts of this yield higher physical damage output."
       ];
+    // DEF (DEFense)
     case 3:
       return [
         "The base stat that reduces physical damage.",
         "Higher amounts of this will reduce incoming physical damage."
       ];
+    // MAT (Magic ATtack)
     case 4:
       return [
         "The base stat that influences magical damage.",
         "Higher amounts of this yield higher magical damage output."
       ];
+    // MDF (Magic DeFense)
     case 5:
       return [
         "The base stat that reduces magical damage.",
         "Higher amounts of this will reduce incoming magical damage."
       ];
+    // AGI (AGIlity)
     case 6:
       return [
         "The base stat that governs movement and agility.",
         "The effects of this are unknown at higher levels."
       ];
+    // LUK (LUcK)
     case 7:
       return [
         "The base stat that governs fortune and luck.",
@@ -5112,7 +5120,7 @@ TextManager.sparam = function(sParamId)
     case 7:
       return "Magi Dmg Rate"; //J.Param.MDR_text;
     case 8:
-      return "Light-footed"; //J.Param.FDR_text;
+      return "Environ Dmg Rate"; //J.Param.FDR_text;
     case 9:
       return "Experience UP"; //J.Param.EXR_text;
   }
@@ -6855,27 +6863,54 @@ Game_BattlerBase.knownSpParameterIds = function()
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 };
 
+/**
+ * Whether or not the given long-parameter id is a known base parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
+ */
 Game_BattlerBase.isBaseParam = function(longParameterId)
 {
   return this.knownBaseParameterIds().includes(longParameterId);
 };
 
+/**
+ * Whether or not the given long-parameter id is a known ex parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
+ */
 Game_BattlerBase.isExParam = function(longParameterId)
 {
   return this.knownExParameterIds().includes(longParameterId - 8);
 };
 
+/**
+ * Whether or not the given long-parameter id is a known sp parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
+ */
 Game_BattlerBase.isSpParam = function(longParameterId)
 {
   return this.knownSpParameterIds().includes(longParameterId - 18);
 };
 
+/**
+ * Whether or not the given ex-parameter id is a known parameter.
+ * Use {@link #isRegenLongParamId} for long-parameter ids.
+ * @param {number} paramId The ex-parameter id to validate.
+ * @returns {boolean}
+ */
 Game_BattlerBase.isRegenParamId = function(paramId)
 {
   const regenParamIds = [7, 8, 9];
   return regenParamIds.includes(paramId);
 };
 
+/**
+ * Whether or not the given long-parameter id is a known parameter.
+ * Use {@link #isRegenParamId} for ex-parameter ids.
+ * @param {number} longParamId The long-parameter id to validate.
+ * @returns {boolean}
+ */
 Game_BattlerBase.isRegenLongParamId = function(longParamId)
 {
   const regenParamIds = [7, 8, 9];

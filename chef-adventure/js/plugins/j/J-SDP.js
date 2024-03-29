@@ -1072,7 +1072,7 @@ class J_SdpPluginMetadata extends PluginMetadata
       throw new Error('SDP plugin is being used, but no config file is present.');
     }
 
-    // class-ify over each panel.
+    // classify each panel.
     const classifiedPanels = J_SdpPluginMetadata.classifyPanels(parsedPanels);
 
     /**

@@ -1,3 +1,724 @@
+//region DifficultyBattlerEffects
+/**
+ * A collection of all applicable multipliers against core parameters
+ * that are a part of a {@link DifficultyMetadata}.<br>
+ */
+class DifficultyBattlerEffects
+{
+  /**
+   * Creates a new {@link DifficultyBattlerEffects} with the given parameters.
+   * @param {number[]} bparams The bparams.
+   * @param {number[]} xparams The xparams.
+   * @param {number[]} sparams The sparams.
+   * @param {number[]} cparams The cparams.
+   * @returns {DifficultyBattlerEffects}
+   */
+  static fromRaw(bparams, xparams, sparams, cparams)
+  {
+    // start with a fresh effects.
+    const battlerEffects = new DifficultyBattlerEffects();
+
+    // assign the parameters.
+    battlerEffects.bparams = bparams;
+    battlerEffects.xparams = xparams;
+    battlerEffects.sparams = sparams;
+    battlerEffects.cparams = cparams;
+
+    // return the predefined effects.
+    return battlerEffects;
+  }
+
+  //region params
+  /**
+   * The base/b-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number]}
+   */
+  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
+
+  /**
+   * The secondary/s-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   */
+  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
+  /**
+   * The extraneous/x-parameter multipliers.
+   * The array aligns percent multipliers against the matching index's parameters.
+   * @type {[number, number, number, number, number, number, number, number, number, number]}
+   */
+  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+
+  /**
+   * The custom/c-parameter multipliers.
+   * This array is loosely defined based on index of custom parameters.
+   * @type {number[]}
+   */
+  cparams = [];
+  //endregion params
+}
+//endregion DifficultyBattlerEffects
+
+class DifficultyBonusEffects
+{
+  /**
+   * The bonus multiplier for experience earned by the player.
+   * @type {number}
+   */
+  exp = 100;
+
+  /**
+   * The bonus multiplier for gold found by the player.
+   * @type {number}
+   */
+  gold = 100;
+
+  /**
+   * The bonus multiplier for sdp acquired by the player.
+   * @type {number}
+   */
+  sdp = 100;
+
+  /**
+   * The bonus multiplier for drops (potentially) gained by the player.
+   * @type {number}
+   */
+  drops = 100;
+
+  /**
+   * The bonus multiplier for the encounter rate for the player.
+   * @type {number}
+   */
+  encounters = 100;
+}
+
+//region DifficultyBuilder
+/**
+ * The fluent-builder for easily creating new difficulties.
+ */
+class DifficultyBuilder 
+{
+  #name = String.empty;
+  #key = String.empty;
+  #description = String.empty;
+  #iconIndex = 0;
+  #cost = 0;
+
+  #actorEffects = new DifficultyBattlerEffects();
+  #enemyEffects = new DifficultyBattlerEffects();
+
+  #rewards = new DifficultyBonusEffects();
+
+  #enabled = false;
+  #unlocked = true;
+  #hidden = false;
+
+  /**
+   * Constructor.
+   * @param {string} name The name of this difficulty.
+   * @param {string} key The unique key of this difficulty.
+   */
+  constructor(name, key) 
+  {
+    this.setName(name);
+    this.setKey(key);
+  }
+
+  /**
+   * Builds the difficulty with its current configuration.
+   * @returns {DifficultyMetadata}
+   */
+  build()
+  {
+    // start the difficulty here.
+    const difficulty = new DifficultyMetadata();
+
+    // assign the core data.
+    difficulty.name = this.#name;
+    difficulty.key = this.#key;
+    difficulty.description = this.#description;
+    difficulty.iconIndex = this.#iconIndex;
+    difficulty.cost = this.#cost;
+
+    // assign the battler effects.
+    difficulty.actorEffects = this.#actorEffects;
+    difficulty.enemyEffects = this.#enemyEffects;
+
+    // assign the bonuses.
+    difficulty.rewards = this.#rewards;
+
+    // assign the access booleans.
+    difficulty.enabled = this.#enabled;
+    difficulty.unlocked = this.#unlocked;
+    difficulty.hidden = this.#hidden;
+
+    // return the built product.
+    return difficulty;
+  }
+
+  buildAsLayer()
+  {
+    // start the difficulty here.
+    const difficulty = new DifficultyLayer(this.#key);
+
+    // assign the core data.
+    difficulty.name = this.#name;
+    difficulty.description = this.#description;
+    difficulty.iconIndex = this.#iconIndex;
+    difficulty.cost = this.#cost;
+
+    // assign the battler effects.
+    difficulty.actorEffects = this.#actorEffects;
+    difficulty.enemyEffects = this.#enemyEffects;
+
+    // assign the bonuses.
+    difficulty.rewards = this.#rewards;
+
+    // assign the access booleans.
+    difficulty.enabled = this.#enabled;
+    difficulty.unlocked = this.#unlocked;
+    difficulty.hidden = this.#hidden;
+
+    // return the built product.
+    return difficulty;
+  }
+
+  setName(name) 
+  {
+    this.#name = name;
+    return this;
+  }
+
+  setKey(key) 
+  {
+    this.#key = key;
+    return this;
+  }
+
+  setDescription(description) 
+  {
+    this.#description = description;
+    return this;
+  }
+
+  setIconIndex(iconIndex) 
+  {
+    this.#iconIndex = iconIndex;
+    return this;
+  }
+
+  setCost(cost) 
+  {
+    this.#cost = cost;
+    return this;
+  }
+
+  setActorEffects(effects) 
+  {
+    this.#actorEffects = effects;
+    return this;
+  }
+
+  setEnemyEffects(effects)
+  {
+    this.#enemyEffects = effects;
+    return this;
+  }
+
+  setRewards(rewards)
+  {
+    this.#rewards = rewards;
+    return this;
+  }
+
+  setUnlocked(unlocked)
+  {
+    this.#unlocked = unlocked;
+    return this;
+  }
+
+  setEnabled(enabled)
+  {
+    this.#enabled = enabled;
+    return this;
+  }
+
+  setHidden(hidden)
+  {
+    this.#hidden = hidden;
+    return this;
+  }
+}
+//endregion DifficultyBuilder
+
+//region DifficultyConfig
+class DifficultyConfig
+{
+  /**
+   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.<br>
+   * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
+   * @returns {DifficultyLayer} The new difficulty based on the metadata.
+   */
+  static fromMetadata(difficultyMetadata)
+  {
+    // initialize the config.
+    const difficultyConfig = new DifficultyConfig();
+
+    // core information.
+    difficultyConfig.key = difficultyMetadata.key;
+
+    // access modifiers.
+    difficultyConfig.enabled = difficultyMetadata.enabled;
+    difficultyConfig.unlocked = difficultyMetadata.unlocked;
+    difficultyConfig.hidden = difficultyMetadata.hidden;
+
+    // return our translated config.
+    return difficultyConfig;
+  }
+
+  //region properties
+  /**
+   * The unique identifier of the difficulty, used for lookup and reference.
+   * @type {string}
+   */
+  key = String.empty;
+  //endregion properties
+
+  //region access
+  /**
+   * Whether or not this difficulty is enabled.
+   * When a difficulty is enabled, its global effects are applied.
+   * @type {boolean}
+   */
+  enabled = false;
+
+  /**
+   * Whether or not this difficulty is unlocked and can be enabled/disabled.
+   * @type {boolean}
+   */
+  unlocked = true;
+
+  /**
+   * Whether or not this difficulty is hidden from selection.
+   * @type {boolean}
+   */
+  hidden = false;
+  //endregion access
+
+  /**
+   * Constructor.
+   * @param {string} key The key of the difficulty.
+   * @param {boolean} enabled Whether or not this difficulty's effects are applied from the start.
+   * @param {boolean} unlocked Whether or not this difficulty is unlocked for application.
+   * @param {boolean} hidden Whether or not this difficulty is visible in the list.
+   */
+  constructor(key = String.empty, enabled = false, unlocked = true, hidden = false)
+  {
+    this.key = key;
+    this.enabled = enabled;
+    this.unlocked = unlocked;
+    this.hidden = hidden;
+  }
+}
+//endregion DifficultyConfig
+
+//region DifficultyLayer
+/**
+ * A class governing a single difficulty and the way it impacts the game parameters.
+ */
+class DifficultyLayer
+{
+  //#region mapping
+  /**
+   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.
+   * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
+   * @returns {DifficultyLayer} The new difficulty based on the metadata.
+   */
+  static fromMetadata(difficultyMetadata)
+  {
+    // initialize the difficulty.
+    const difficultyLayer = new DifficultyLayer(difficultyMetadata.key);
+
+    // core information.
+    difficultyLayer.name = difficultyMetadata.name;
+    difficultyLayer.description = difficultyMetadata.description;
+    difficultyLayer.iconIndex = difficultyMetadata.iconIndex;
+    difficultyLayer.cost = difficultyMetadata.cost;
+
+    // combat modifiers.
+    difficultyLayer.actorEffects = new DifficultyBattlerEffects();
+    difficultyLayer.actorEffects.bparams = [...difficultyMetadata.actorEffects.bparams];
+    difficultyLayer.actorEffects.sparams = [...difficultyMetadata.actorEffects.sparams];
+    difficultyLayer.actorEffects.xparams = [...difficultyMetadata.actorEffects.xparams];
+    difficultyLayer.actorEffects.cparams = [...difficultyMetadata.actorEffects.cparams];
+
+    difficultyLayer.enemyEffects = new DifficultyBattlerEffects();
+    difficultyLayer.enemyEffects.bparams = [...difficultyMetadata.enemyEffects.bparams];
+    difficultyLayer.enemyEffects.sparams = [...difficultyMetadata.enemyEffects.sparams];
+    difficultyLayer.enemyEffects.xparams = [...difficultyMetadata.enemyEffects.xparams];
+    difficultyLayer.enemyEffects.cparams = [...difficultyMetadata.enemyEffects.cparams];
+
+    // reward modifiers.
+    difficultyLayer.rewards = new DifficultyBonusEffects();
+    difficultyLayer.rewards.exp = difficultyMetadata.rewards.exp;
+    difficultyLayer.rewards.gold = difficultyMetadata.rewards.gold;
+    difficultyLayer.rewards.drops = difficultyMetadata.rewards.drops;
+    difficultyLayer.rewards.encounters = difficultyMetadata.rewards.encounters;
+    difficultyLayer.rewards.sdp = difficultyMetadata.rewards.sdp;
+
+    // return our translated metadata.
+    return difficultyLayer;
+  }
+
+  /**
+   * Creates a new instance of {@link DifficultyLayer} from another {@link DifficultyLayer}.
+   * @param {DifficultyLayer} layer The metadata to build from.
+   * @returns {DifficultyLayer} The new difficulty based on the layer.
+   */
+  static fromLayer(layer)
+  {
+    // initialize the difficulty.
+    const difficultyLayer = new DifficultyLayer(layer.key);
+
+    // core information.
+    difficultyLayer.name = layer.name;
+    difficultyLayer.description = layer.description;
+    difficultyLayer.iconIndex = layer.iconIndex;
+    difficultyLayer.cost = layer.cost;
+
+    // combat modifiers.
+    difficultyLayer.actorEffects = new DifficultyBattlerEffects();
+    difficultyLayer.actorEffects.bparams = [...layer.actorEffects.bparams];
+    difficultyLayer.actorEffects.sparams = [...layer.actorEffects.sparams];
+    difficultyLayer.actorEffects.xparams = [...layer.actorEffects.xparams];
+    difficultyLayer.actorEffects.cparams = [...layer.actorEffects.cparams];
+
+    difficultyLayer.enemyEffects = new DifficultyBattlerEffects();
+    difficultyLayer.enemyEffects.bparams = [...layer.enemyEffects.bparams];
+    difficultyLayer.enemyEffects.sparams = [...layer.enemyEffects.sparams];
+    difficultyLayer.enemyEffects.xparams = [...layer.enemyEffects.xparams];
+    difficultyLayer.enemyEffects.cparams = [...layer.enemyEffects.cparams];
+
+    // reward modifiers.
+    difficultyLayer.rewards = new DifficultyBonusEffects();
+    difficultyLayer.rewards.exp = layer.rewards.exp;
+    difficultyLayer.rewards.gold = layer.rewards.gold;
+    difficultyLayer.rewards.drops = layer.rewards.drops;
+    difficultyLayer.rewards.encounters = layer.rewards.encounters;
+    difficultyLayer.rewards.sdp = layer.rewards.sdp;
+
+    // return our translated metadata.
+    return difficultyLayer;
+  }
+  //#endregion mapping
+
+  /**
+   * The key associated with the applied difficulty.
+   * @type {string}
+   */
+  static appliedKey = `000_applied-difficulty`;
+
+  /**
+   * The name of the applied difficulty.
+   * @type {string}
+   */
+  static appliedName = `Applied Difficulty`;
+
+  /**
+   * The description of the applied difficulty.
+   * @type {string}
+   */
+  static appliedDescription = `The combined effects of all enabled difficulties.`
+
+  /**
+   * Constructor to instantiate a layer of difficulty with a key.
+   * @param {string} key The key of this layer.
+   */
+  constructor(key)
+  {
+    this.key = key;
+  }
+
+  /**
+   * Checks whether or not this difficulty layer is actually the default layer.
+   * @returns {boolean}
+   */
+  isDefaultLayer()
+  {
+    return this.key === J.DIFFICULTY.Metadata.defaultKey;
+  }
+
+  /**
+   * Checks whether or not this difficulty layer is actually the applied difficulty layer.
+   * @returns {boolean}
+   */
+  isAppliedLayer()
+  {
+    return this.key === DifficultyLayer.appliedKey;
+  }
+
+  //region properties
+  /**
+   * The name of the difficulty, visually to the player.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The unique identifier of the difficulty, used for lookup and reference.
+   * @type {string}
+   */
+  key = String.empty;
+
+  /**
+   * The description of the difficulty, displayed in the help window at the top.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The icon used when the name of the difficulty is displayed in the scene.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * The cost required to enable this difficulty.
+   * @type {number}
+   */
+  cost = 0;
+
+  /**
+   * The various parameter effects that apply to actors.
+   * @type {DifficultyBattlerEffects}
+   */
+  actorEffects = new DifficultyBattlerEffects();
+
+  /**
+   * The various parameter effects that apply to enemies.
+   * @type {DifficultyBattlerEffects}
+   */
+  enemyEffects = new DifficultyBattlerEffects();
+
+  /**
+   * The various reward effects that apply to the party.
+   * @type {DifficultyBonusEffects}
+   */
+  rewards = new DifficultyBonusEffects();
+  //endregion properties
+
+  //region access
+  /**
+   * Whether or not this difficulty's cost can be covered by the remaining layer points.
+   * @returns {boolean} True if the cost can be paid, false otherwise.
+   */
+  canPayCost()
+  {
+    // payment is defined by having at least this layer's cost remaining
+    const canPay = this.cost <= $gameSystem.getRemainingLayerPoints();
+
+    // return our determination.
+    return canPay;
+  }
+
+  /**
+   * Determines whether or not this difficulty is unlocked.
+   * @returns {boolean}
+   */
+  isUnlocked()
+  {
+    // grab whether or not the the difficulty was unlocked.
+    const { unlocked } = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // return what we found.
+    return unlocked;
+  }
+
+  /**
+   * Locks this difficulty, making it unavailable for the player to enable/disable.
+   */
+  lock()
+  {
+    // grab the configuration to lock.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // lock it.
+    config.unlocked = false;
+  }
+
+  /**
+   * Unlocks this difficulty, making it available for the player to enable/disable.
+   */
+  unlock()
+  {
+    // grab the configuration to unlock.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // unlock it.
+    config.unlocked = true;
+  }
+
+  /**
+   * Determines whether or not this difficulty is hidden in the list.
+   * @returns {boolean}
+   */
+  isHidden()
+  {
+    // grab whether or not the difficulty was hidden.
+    const { hidden } = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // return what we found.
+    return hidden;
+  }
+
+  /**
+   * Hides this difficulty, making it no longer listed in the difficulty list.
+   */
+  hide()
+  {
+    // grab the configuration to hide.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // hide it.
+    config.hidden = true;
+  }
+
+  /**
+   * Unhides this difficulty, making it visible in the difficulty list.
+   */
+  unhide()
+  {
+    // grab the configuration to unhide.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // unhide it.
+    config.hidden = false;
+  }
+
+  /**
+   * Determines whether or not this difficulty is currently enabled.
+   * @returns {boolean} True if this difficulty is enabled, false otherwise.
+   */
+  isEnabled()
+  {
+    // grab whether or not the difficulty was enabled.
+    const { enabled } = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // return what we found.
+    return enabled;
+  }
+
+  /**
+   * Enables this difficulty layer.
+   */
+  enable()
+  {
+    // grab the configuration to enable.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // enable it.
+    config.enabled = true;
+  }
+
+  /**
+   * Disables this difficulty layer.
+   */
+  disable()
+  {
+    // grab the configuration to disable.
+    const config = $gameSystem.getDifficultyConfigByKey(this.key);
+
+    // disable it.
+    config.enabled = false;
+  }
+  //endregion access
+}
+//endregion DifficultyLayer
+
+//region Difficulty
+/**
+ * A class governing a single difficulty and the way it impacts the game parameters.
+ */
+class DifficultyMetadata
+{
+  //region properties
+  /**
+   * The name of the difficulty, visually to the player.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The unique identifier of the difficulty, used for lookup and reference.
+   * @type {string}
+   */
+  key = String.empty;
+
+  /**
+   * The description of the difficulty, displayed in the help window at the top.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The icon used when the name of the difficulty is displayed in the scene.
+   * @type {number}
+   */
+  iconIndex = 0;
+
+  /**
+   * The cost required to enable this difficulty.
+   * @type {number}
+   */
+  cost = 0;
+  //endregion properties
+
+  //region params
+  /**
+   * The various battler effects that apply against actors.
+   * @type {DifficultyBattlerEffects}
+   */
+  actorEffects = new DifficultyBattlerEffects();
+
+  /**
+   * The various battler effects that apply against enemies.
+   * @type {DifficultyBattlerEffects}
+   */
+  enemyEffects = new DifficultyBattlerEffects();
+  //endregion params
+
+  //region bonuses
+  /**
+   * The various reward modifiers applied against the party.
+   * @type {DifficultyBonusEffects}
+   */
+  rewards = new DifficultyBonusEffects();
+  //endregion bonuses
+
+  //region access
+  /**
+   * Whether or not this difficulty is enabled.
+   * When a difficulty is enabled, its global effects are applied.
+   * @type {boolean}
+   */
+  enabled = false;
+
+  /**
+   * Whether or not this difficulty is unlocked and can be enabled/disabled.
+   * @type {boolean}
+   */
+  unlocked = true;
+
+  /**
+   * Whether or not this difficulty is hidden from selection.
+   * @type {boolean}
+   */
+  hidden = false;
+  //endregion access
+}
+//endregion Difficulty
+
 //region introduction
 /* eslint-disable */
 /*:
@@ -349,6 +1070,206 @@
  */
 /* eslint-enable */
 
+//region plugin metadata
+class J_DiffPluginMetadata extends PluginMetadata
+{
+  /**
+   * The path where the config for panels is located.
+   * @type {string}
+   */
+  static CONFIG_PATH = 'data/config.difficulty.json';
+
+  /**
+   * The underlying layer that represents the default.<br>
+   * It is null by default but is updated at initiation and during modification of layers.
+   * @type {DifficultyLayer|null}
+   */
+  static #default = null;
+
+  /**
+   * A default {@link DifficultyLayer} with all unmodified parameters and bonuses.
+   * When all layers are disabled, this is the default layer used.
+   * @type {DifficultyLayer}
+   */
+  static defaultLayer()
+  {
+    return this.#default;
+  }
+
+  /**
+   * Updates the default layer with a new default.
+   * @param {DifficultyLayer} layer
+   */
+  static updateDefaultLayer(layer)
+  {
+    this.#default = layer;
+  }
+
+  /**
+   * Converts the JSON-parsed blob into classified {@link DifficultyLayer}s.
+   * @param {any} parsedBlob The already-parsed JSON blob.
+   * @return {Map<string, DifficultyMetadata>} A map of the difficulty layers by their keys.
+   */
+  static classifyDifficulties(parsedBlob)
+  {
+    /** @type {Map<string, DifficultyMetadata>} */
+    const difficultiesMap = new Map();
+
+    // a map function for iterating and parsing blobs.
+    const forEacher = parsedDifficultyBlob =>
+    {
+      // extract the data points from the blob.
+      const {
+        key, name, description, iconIndex, cost,
+        actorEffects, enemyEffects, rewards,
+        enabled, unlocked, hidden
+      } = parsedDifficultyBlob;
+
+      // an iterator function for updating all param collections for these battler effects.
+      const battlerEffectsMapper = battlerEffects =>
+      {
+        // initialize the params to defaults.
+        const newBParams = [100, 100, 100, 100, 100, 100, 100, 100];
+        const newXParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+        const newSParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+        const newCParams = [];
+
+        // extract all the raw parameters.
+        const { bparams, xparams, sparams, cparams } = battlerEffects;
+
+        // update the bparams for the effects.
+        bparams.forEach((paramRate, paramId) => newBParams[paramId] = paramRate);
+
+        // update the xparams for the effects.
+        xparams.forEach((paramRate, paramId) => newXParams[paramId] = paramRate);
+
+        // update the sparams for the effects.
+        sparams.forEach((paramRate, paramId) => newSParams[paramId] = paramRate);
+
+        // update the sparams for the effects.
+        cparams.forEach((paramRate, paramId) => newCParams[paramId] = paramRate);
+
+        // create a new battler effects based on the modified params.
+        const modifiedBattlerEffects = DifficultyBattlerEffects.fromRaw(newBParams, newXParams, newSParams, newCParams);
+
+        // return the built battler effects.
+        return modifiedBattlerEffects;
+      };
+
+      // parse the actor battler effects.
+      const mappedActorEffects = battlerEffectsMapper(actorEffects);
+
+      // parse the enemy battler effects.
+      const mappedEnemyEffects = battlerEffectsMapper(enemyEffects);
+
+      // instantiate the builder with the base data.
+      /** @type {DifficultyMetadata} */
+      const completeDifficulty = new DifficultyBuilder(name, key)
+        // assign the core data.
+        .setDescription(description)
+        .setIconIndex(iconIndex)
+        .setCost(cost)
+        // assign the accessors.
+        .setEnabled(enabled)
+        .setHidden(hidden)
+        .setUnlocked(unlocked)
+        // assign the battler data.
+        .setActorEffects(mappedActorEffects)
+        .setEnemyEffects(mappedEnemyEffects)
+        // assign reward data.
+        .setRewards(rewards)
+        // build the complete object.
+        .build();
+
+      // check for duplicates in case a warning is necessary.
+      if (difficultiesMap.get(key))
+      {
+        console.warn(`Duplicate difficulty key definition detected for [${key}].`);
+      }
+
+      // set the difficulty!
+      difficultiesMap.set(key, completeDifficulty);
+    };
+
+    // iterate over each blob and do it.
+    parsedBlob.forEach(forEacher);
+
+    // return what we parsed.
+    return difficultiesMap;
+  }
+
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+
+  /**
+   *  Extends {@link #postInitialize}.<br>
+   *  Includes translation of plugin parameters.
+   */
+  postInitialize()
+  {
+    // execute original logic.
+    super.postInitialize();
+
+    // initialize the panels from plugin configuration.
+    this.initializeDifficulties();
+
+    // initialize the other miscellaneous plugin configuration.
+    this.initializeMetadata();
+  }
+
+  /**
+   * Initializes the SDPs that exist in the SDP configuration.
+   */
+  initializeDifficulties()
+  {
+    // parse the files as an actual list of objects from the JSON configuration.
+    const parsedDifficulties = JSON.parse(StorageManager.fsReadFile(J_DiffPluginMetadata.CONFIG_PATH));
+    if (parsedDifficulties === null)
+    {
+      console.error('no Difficulty configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('Difficulty plugin is being used, but no config file is present.');
+    }
+
+    // classify each difficulty.
+    const classifiedMetadatas = J_DiffPluginMetadata.classifyDifficulties(parsedDifficulties);
+
+    /**
+     * A map of difficulty layer metadatas by their key.
+     * @type {Map<string, DifficultyMetadata>}
+     */
+    this.allMetadatas = classifiedMetadatas;
+
+    console.log(`loaded:
+      - ${this.allMetadatas.size} difficulty layers
+      from file ${J_DiffPluginMetadata.CONFIG_PATH}.`);
+  }
+
+  initializeMetadata()
+  {
+    /**
+     * The key for the default difficulty.
+     * @type {string}
+     */
+    this.defaultKey = this.parsedPluginParameters['defaultDifficulty'] || "default_undefined";
+
+    /**
+     * The default point max for allocating difficulty layers.
+     */
+    this.initialPoints = parseInt(this.parsedPluginParameters['initialPoints'] || 0);
+
+    // update the default layer as well.
+    const defaultLayer = DifficultyLayer.fromMetadata(this.allMetadatas.get(this.defaultKey));
+    J_DiffPluginMetadata.updateDefaultLayer(defaultLayer);
+  }
+}
+//endregion plugin metadata
+
 //region metadata
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -376,258 +1297,12 @@ J.DIFFICULTY = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.DIFFICULTY.Metadata = {};
-J.DIFFICULTY.Metadata.Version = '2.0.0';
-J.DIFFICULTY.Metadata.Name = `J-Difficulty`;
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata('J-Difficulty', '3.0.0');
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
  */
-J.DIFFICULTY.PluginParameters = PluginManager.parameters(J.DIFFICULTY.Metadata.Name);
-
-/**
- * A collection of helper functions for various global duties around this plugin.
- */
-J.DIFFICULTY.Helpers = {};
-
-/**
- * Parses the plugin data into metadata for the plugin to operate.
- * @param {string} rawJson The raw json extracted from the plugin manager.
- * @returns {Map<string, DifficultyMetadata>} The map of parsed difficulties.
- */
-J.DIFFICULTY.Helpers.toDifficultiesMap = rawJson =>
-{
-  // start by parsing the overarching plugin parameters for this difficulty plugin.
-  const parsedDifficultyBlobs = JSON.parse(rawJson);
-
-  /** @type {Map<string, DifficultyMetadata>} */
-  const difficultiesMap = new Map();
-
-  // a map function for iterating and parsing blobs.
-  const forEacher = rawDifficultyBlob =>
-  {
-    // parse the overarching blob of difficulties.
-    const parsedDifficultyBlob = JSON.parse(rawDifficultyBlob);
-
-    // extract the data points from the blob.
-    const {
-      key, name, description, iconIndex, cost,
-      actorEffects, enemyEffects, bonuses,
-      enabled, unlocked, hidden
-    } = parsedDifficultyBlob;
-
-    // parse the icon index.
-    const parsedIconIndex = parseInt(iconIndex);
-
-    // parse the cost.
-    const parsedCost = parseInt(cost);
-
-    // an iterator function for updating all param collections for these battler effects.
-    const battlerEffectsMapper = battlerEffects =>
-    {
-      // initialize the params to defaults.
-      const newBParams = [100, 100, 100, 100, 100, 100, 100, 100];
-      const newXParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-      const newSParams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-      // extract all the raw parameters.
-      const {
-        bparams, xparams, sparams,
-      } = battlerEffects;
-
-      // an iterator function for updating bparams.
-      const bParamForEacher = rawParam =>
-      {
-        // parse the parameter pair.
-        const parsedParam = JSON.parse(rawParam);
-
-        // destructure this parameter.
-        const { parameterId, parameterRate } = parsedParam;
-
-        // parse out the parameter id.
-        const parsedParameterId = parseInt(parameterId);
-
-        // parse out the rate.
-        const parsedParameterRate = parseInt(parameterRate)
-
-        // if the id is -1, then it is for all parameters.
-        if (parsedParameterId === -1)
-        {
-          // set all the params to this rate.
-          Game_BattlerBase.knownBaseParameterIds()
-            .forEach(paramId => newBParams[paramId] = parsedParameterRate);
-        }
-        else
-        {
-          // set the new param.
-          newBParams[parsedParameterId] = parsedParameterRate;
-        }
-      };
-
-      // parse bparams from the layer.
-      const parsedBParams = JSON.parse(bparams);
-
-      // update the bparams for the effects.
-      parsedBParams.forEach(bParamForEacher, this);
-
-      // an iterator function for updating xparams.
-      const xParamForEacher = rawParam =>
-      {
-        // parse the parameter pair.
-        const parsedParam = JSON.parse(rawParam);
-
-        // destructure this parameter.
-        const { parameterId, parameterRate } = parsedParam;
-
-        // parse out the parameter id.
-        const parsedParameterId = parseInt(parameterId);
-
-        // parse out the rate.
-        const parsedParameterRate = parseInt(parameterRate)
-
-        // if the id is -1, then it is for all parameters.
-        if (parsedParameterId === -1)
-        {
-          // set all the params to this rate.
-          Game_BattlerBase.knownExParameterIds()
-            .forEach(paramId => newXParams[paramId] = parsedParameterRate);
-        }
-        else
-        {
-          // set the new param.
-          newXParams[parsedParameterId] = parsedParameterRate;
-        }
-      };
-
-      // parse xparams from this layer.
-      const parsedXParams = JSON.parse(xparams);
-
-      // update the xparams for the effects.
-      parsedXParams.forEach(xParamForEacher, this);
-
-      // an iterator function for updating sparams.
-      const sParamForEacher = rawParam =>
-      {
-        // parse the parameter pair.
-        const parsedParam = JSON.parse(rawParam);
-
-        // destructure this parameter.
-        const { parameterId, parameterRate } = parsedParam;
-
-        // parse out the parameter id.
-        const parsedParameterId = parseInt(parameterId);
-
-        // parse out the rate.
-        const parsedParameterRate = parseInt(parameterRate)
-
-        // if the id is -1, then it is for all parameters.
-        if (parsedParameterId === -1)
-        {
-          // set all the params to this rate.
-          Game_BattlerBase.knownSpParameterIds()
-            .forEach(paramId => newSParams[paramId] = parsedParameterRate);
-        }
-        else
-        {
-          // set the new param.
-          newSParams[parsedParameterId] = parsedParameterRate;
-        }
-      };
-
-      // parse sparams from this layer.
-      const parsedSParams = JSON.parse(sparams);
-
-      // update the sparams for the effects.
-      parsedSParams.forEach(sParamForEacher, this);
-
-      // create a new battler effects based on the modified params.
-      const modifiedBattlerEffects = DifficultyBattlerEffects.fromRaw(newBParams, newXParams, newSParams);
-
-      // return the built battler effects.
-      return modifiedBattlerEffects;
-    };
-
-    // parse the actor battler effects.
-    const parsedActorEffects = JSON.parse(actorEffects);
-    const mappedActorEffects = battlerEffectsMapper(parsedActorEffects);
-
-    // parse the enemy battler effects.
-    const parsedEnemyEffects = JSON.parse(enemyEffects);
-    const mappedEnemyEffects = battlerEffectsMapper(parsedEnemyEffects);
-
-    // instantiate the builder with the base data.
-    const builder = new DifficultyBuilder(name, key)
-      // assign the core data.
-      .setDescription(description)
-      .setIconIndex(parsedIconIndex)
-      .setCost(parsedCost)
-      // assign the accessors.
-      .setEnabled(enabled === "true")
-      .setHidden(hidden === "true")
-      .setUnlocked(unlocked === "true")
-      // assign the battler data.
-      .setActorEffects(mappedActorEffects)
-      .setEnemyEffects(mappedEnemyEffects);
-
-    // parse the bonuses from the layer.
-    const parsedBonuses = JSON.parse(bonuses);
-
-    // iterate over each of the bonuses and add it to the builder.
-    parsedBonuses.forEach(rawBonus =>
-    {
-      // parse out the bonus JSON.
-      const bonus = JSON.parse(rawBonus);
-
-      // extract and parse the bonus properties.
-      const { bonusId, bonusRate } = bonus;
-      const parsedBonusId = parseInt(bonusId);
-      const parsedBonusRate = parseInt(bonusRate);
-
-      // switch on the bonus id.
-      switch (parsedBonusId)
-      {
-        case 0: // exp modifier.
-          builder.setExp(parsedBonusRate);
-          break;
-        case 1: // gold modifier.
-          builder.setGold(parsedBonusRate);
-          break;
-        case 2: // sdp rate modifier.
-          builder.setSdp(parsedBonusRate);
-          break;
-        case 3: // drop rate modifier.
-          builder.setDrops(parsedBonusRate);
-          break;
-        case 4: // encounters modifier.
-          builder.setEncounters(parsedBonusRate);
-          break;
-      }
-    });
-
-    // build the difficulty and add it to the running collection.
-    const completeDifficulty = builder.build();
-
-    // set the difficulty!
-    difficultiesMap.set(completeDifficulty.key, completeDifficulty);
-  };
-
-  // iterate over each blob and do it.
-  parsedDifficultyBlobs.forEach(forEacher);
-
-  // return what we parsed.
-  return difficultiesMap;
-};
-
-/**
- * The key for the default difficulty.
- * @type {string}
- */
-J.DIFFICULTY.Metadata.DefaultDifficulty = J.DIFFICULTY.PluginParameters['defaultDifficulty'] || String.empty;
-
-/**
- * The default point max for allocating difficulty layers.
- */
-J.DIFFICULTY.Metadata.DefaultLayerPointMax = parseInt(J.DIFFICULTY.PluginParameters['initialPoints']) || 0;
+J.DIFFICULTY.PluginParameters = PluginManager.parameters(J.DIFFICULTY.Metadata.name);
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -643,6 +1318,7 @@ J.DIFFICULTY.Aliased = {
 
   Scene_Map: new Map(),
 };
+//endregion metadata
 
 //region plugin commands
 /**
@@ -741,721 +1417,6 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args
   $gameSystem.modLayerPointMax(parsedAmount);
 });
 //endregion plugin commands
-//endregion metadata
-
-//region DifficultyBattlerEffects
-/**
- * A collection of all applicable multipliers against core parameters
- * that are a part of a {@link DifficultyMetadata}.<br>
- */
-class DifficultyBattlerEffects
-{
-  /**
-   * Creates a new {@link DifficultyBattlerEffects} with the given parameters.
-   * @param {number[]} bparams The bparams.
-   * @param {number[]} xparams The xparams.
-   * @param {number[]} sparams The sparams.
-   * @returns {DifficultyBattlerEffects}
-   */
-  static fromRaw(bparams, xparams, sparams)
-  {
-    // start with a fresh effects.
-    const battlerEffects = new DifficultyBattlerEffects();
-
-    // assign the parameters.
-    battlerEffects.bparams = bparams;
-    battlerEffects.xparams = xparams;
-    battlerEffects.sparams = sparams;
-
-    // return the predefined effects.
-    return battlerEffects;
-  }
-
-  //region params
-  /**
-   * The base/b-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number]}
-   */
-  bparams = [100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The secondary/s-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  sparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-
-  /**
-   * The extraneous/x-parameter multipliers.
-   * The array aligns percent multipliers against the matching index's parameters.
-   * @type {[number, number, number, number, number, number, number, number, number, number]}
-   */
-  xparams = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
-  //endregion params
-
-  setBParam()
-  {
-
-  }
-}
-//endregion DifficultyBattlerEffects
-
-class DifficultyBonusEffects
-{
-  /**
-   * The bonus multiplier for experience earned by the player.
-   * @type {number}
-   */
-  exp = 100;
-
-  /**
-   * The bonus multiplier for gold found by the player.
-   * @type {number}
-   */
-  gold = 100;
-
-  /**
-   * The bonus multiplier for sdp acquired by the player.
-   * @type {number}
-   */
-  sdp = 100;
-
-  /**
-   * The bonus multiplier for drops (potentially) gained by the player.
-   * @type {number}
-   */
-  drops = 100;
-
-  /**
-   * The bonus multiplier for the encounter rate for the player.
-   * @type {number}
-   */
-  encounters = 100;
-}
-
-//region DifficultyBuilder
-/**
- * The fluent-builder for easily creating new difficulties.
- */
-class DifficultyBuilder 
-{
-  #name = String.empty;
-  #key = String.empty;
-  #description = String.empty;
-  #iconIndex = 0;
-  #cost = 0;
-
-  #actorEffects = new DifficultyBattlerEffects();
-  #enemyEffects = new DifficultyBattlerEffects();
-
-  #exp = 100;
-  #gold = 100;
-  #sdp = 100;
-  #drops = 100;
-  #encounters = 100;
-
-  #enabled = false;
-  #unlocked = true;
-  #hidden = false;
-
-  /**
-   * Constructor.
-   * @param {string} name The name of this difficulty.
-   * @param {string} key The unique key of this difficulty.
-   */
-  constructor(name, key) 
-  {
-    this.setName(name);
-    this.setKey(key);
-  }
-
-  /**
-   * Builds the difficulty with its current configuration.
-   * @returns {DifficultyMetadata}
-   */
-  build() 
-  {
-    // start the difficulty here.
-    const difficulty = new DifficultyMetadata();
-
-    // assign the core data.
-    difficulty.name = this.#name;
-    difficulty.key = this.#key;
-    difficulty.description = this.#description;
-    difficulty.iconIndex = this.#iconIndex;
-    difficulty.cost = this.#cost;
-
-    // assign the battler effects.
-    difficulty.actorEffects = this.#actorEffects;
-    difficulty.enemyEffects = this.#enemyEffects;
-
-    // assign the bonuses.
-    difficulty.exp = this.#exp;
-    difficulty.gold = this.#gold;
-    difficulty.sdp = this.#sdp;
-    difficulty.drops = this.#drops;
-    difficulty.encounters = this.#encounters;
-
-    // assign the access booleans.
-    difficulty.enabled = this.#enabled;
-    difficulty.unlocked = this.#unlocked;
-    difficulty.hidden = this.#hidden;
-
-    // return the built product.
-    return difficulty;
-  }
-
-  setName(name) 
-  {
-    this.#name = name;
-    return this;
-  }
-
-  setKey(key) 
-  {
-    this.#key = key;
-    return this;
-  }
-
-  setDescription(description) 
-  {
-    this.#description = description;
-    return this;
-  }
-
-  setIconIndex(iconIndex) 
-  {
-    this.#iconIndex = iconIndex;
-    return this;
-  }
-
-  setCost(cost) 
-  {
-    this.#cost = cost;
-    return this;
-  }
-
-  setActorEffects(effects) 
-  {
-    this.#actorEffects = effects;
-    return this;
-  }
-
-  setEnemyEffects(effects)
-  {
-    this.#enemyEffects = effects;
-    return this;
-  }
-
-  setExp(exp)
-  {
-    this.#exp = exp;
-    return this;
-  }
-
-  setGold(gold)
-  {
-    this.#gold = gold;
-    return this;
-  }
-
-  setSdp(sdp)
-  {
-    this.#sdp = sdp;
-    return this;
-  }
-
-  setDrops(drops)
-  {
-    this.#drops = drops;
-    return this;
-  }
-
-  setEncounters(encounters)
-  {
-    this.#encounters = encounters;
-    return this;
-  }
-
-  setUnlocked(unlocked)
-  {
-    this.#unlocked = unlocked;
-    return this;
-  }
-
-  setEnabled(enabled)
-  {
-    this.#enabled = enabled;
-    return this;
-  }
-
-  setHidden(hidden)
-  {
-    this.#hidden = hidden;
-    return this;
-  }
-}
-//endregion DifficultyBuilder
-
-//region DifficultyConfig
-class DifficultyConfig
-{
-  /**
-   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.<br>
-   * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
-   * @returns {DifficultyLayer} The new difficulty based on the metadata.
-   */
-  static fromMetadata(difficultyMetadata)
-  {
-    // initialize the config.
-    const difficultyConfig = new DifficultyConfig();
-
-    // core information.
-    difficultyConfig.key = difficultyMetadata.key;
-
-    // access modifiers.
-    difficultyConfig.enabled = difficultyMetadata.enabled;
-    difficultyConfig.unlocked = difficultyMetadata.unlocked;
-    difficultyConfig.hidden = difficultyMetadata.hidden;
-
-    // return our translated config.
-    return difficultyConfig;
-  }
-
-  //region properties
-  /**
-   * The unique identifier of the difficulty, used for lookup and reference.
-   * @type {string}
-   */
-  key = String.empty;
-  //endregion properties
-
-  //region access
-  /**
-   * Whether or not this difficulty is enabled.
-   * When a difficulty is enabled, its global effects are applied.
-   * @type {boolean}
-   */
-  enabled = false;
-
-  /**
-   * Whether or not this difficulty is unlocked and can be enabled/disabled.
-   * @type {boolean}
-   */
-  unlocked = true;
-
-  /**
-   * Whether or not this difficulty is hidden from selection.
-   * @type {boolean}
-   */
-  hidden = false;
-  //endregion access
-
-  /**
-   * Constructor.
-   * @param {string} key The key of the difficulty.
-   * @param {boolean} enabled Whether or not this difficulty's effects are applied from the start.
-   * @param {boolean} unlocked Whether or not this difficulty is unlocked for application.
-   * @param {boolean} hidden Whether or not this difficulty is visible in the list.
-   */
-  constructor(key = String.empty, enabled = false, unlocked = true, hidden = false)
-  {
-    this.key = key;
-    this.enabled = enabled;
-    this.unlocked = unlocked;
-    this.hidden = hidden;
-  }
-}
-//endregion DifficultyConfig
-
-//region DifficultyLayer
-/**
- * A class governing a single difficulty and the way it impacts the game parameters.
- */
-class DifficultyLayer
-{
-  /**
-   * Creates a new instance of {@link DifficultyLayer} from a {@link DifficultyMetadata}.<br>
-   * @param {DifficultyMetadata} difficultyMetadata The metadata to build from.
-   * @returns {DifficultyLayer} The new difficulty based on the metadata.
-   */
-  static fromMetadata(difficultyMetadata)
-  {
-    // initialize the difficulty.
-    const difficultyLayer = new DifficultyLayer(difficultyMetadata.key);
-
-    // core information.
-    difficultyLayer.name = difficultyMetadata.name;
-    difficultyLayer.description = difficultyMetadata.description;
-    difficultyLayer.iconIndex = difficultyMetadata.iconIndex;
-    difficultyLayer.cost = difficultyMetadata.cost;
-
-    // combat modifiers.
-    difficultyLayer.actorEffects = difficultyMetadata.actorEffects;
-    difficultyLayer.enemyEffects = difficultyMetadata.enemyEffects;
-
-    // reward modifiers.
-    difficultyLayer.exp = difficultyMetadata.exp;
-    difficultyLayer.gold = difficultyMetadata.gold;
-    difficultyLayer.drops = difficultyMetadata.drops;
-    difficultyLayer.encounters = difficultyMetadata.encounters;
-
-    // custom modifiers.
-    difficultyLayer.sdp = difficultyMetadata.sdp;
-
-    // return our translated metadata.
-    return difficultyLayer;
-  }
-
-  /**
-   * A default {@link DifficultyLayer} with all unmodified parameters and bonuses.
-   * When all layers are disabled, this is the default layer used.
-   * @type {DifficultyLayer}
-   */
-  static defaultLayer = new DifficultyLayer(J.DIFFICULTY.Metadata.DefaultDifficulty);
-
-  /**
-   * The key associated with the applied difficulty.
-   * @type {string}
-   */
-  static appliedKey = `000_applied-difficulty`;
-
-  /**
-   * Constructor to instantiate a layer of difficulty with a key.
-   * @param {string} key The key of this layer.
-   */
-  constructor(key)
-  {
-    this.key = key;
-  }
-
-  /**
-   * Checks whether or not this difficulty layer is actually the default layer.
-   * @returns {boolean}
-   */
-  isDefaultLayer()
-  {
-    return this.key === J.DIFFICULTY.Metadata.DefaultDifficulty;
-  }
-
-  /**
-   * Checks whether or not this difficulty layer is actually the applied difficulty layer.
-   * @returns {boolean}
-   */
-  isAppliedLayer()
-  {
-    return this.key === DifficultyLayer.appliedKey;
-  }
-
-  //region properties
-  /**
-   * The name of the difficulty, visually to the player.
-   * @type {string}
-   */
-  name = String.empty;
-
-  /**
-   * The unique identifier of the difficulty, used for lookup and reference.
-   * @type {string}
-   */
-  key = String.empty;
-
-  /**
-   * The description of the difficulty, displayed in the help window at the top.
-   * @type {string}
-   */
-  description = String.empty;
-
-  /**
-   * The icon used when the name of the difficulty is displayed in the scene.
-   * @type {number}
-   */
-  iconIndex = 0;
-
-  /**
-   * The cost required to enable this difficulty.
-   * @type {number}
-   */
-  cost = 0;
-
-  /**
-   * The various parameter effects that apply to actors.
-   * @type {DifficultyBattlerEffects}
-   */
-  actorEffects = new DifficultyBattlerEffects();
-
-  /**
-   * The various parameter effects that apply to enemies.
-   * @type {DifficultyBattlerEffects}
-   */
-  enemyEffects = new DifficultyBattlerEffects();
-
-  /**
-   * The bonus multiplier for experience earned by the player.
-   * @type {number}
-   */
-  exp = 100;
-
-  /**
-   * The bonus multiplier for gold found by the player.
-   * @type {number}
-   */
-  gold = 100;
-
-  /**
-   * The bonus multiplier for sdp acquired by the player.
-   * @type {number}
-   */
-  sdp = 100;
-
-  /**
-   * The bonus multiplier for drops (potentially) gained by the player.
-   * @type {number}
-   */
-  drops = 100;
-
-  /**
-   * The bonus multiplier for the encounter rate for the player.
-   * @type {number}
-   */
-  encounters = 100;
-  //endregion properties
-
-  //region access
-  /**
-   * Whether or not this difficulty's cost can be covered by the remaining layer points.
-   * @returns {boolean} True if the cost can be paid, false otherwise.
-   */
-  canPayCost()
-  {
-    // payment is defined by having at least this layer's cost remaining
-    const canPay = this.cost <= $gameSystem.getRemainingLayerPoints();
-
-    // return our determination.
-    return canPay;
-  }
-
-  /**
-   * Determines whether or not this difficulty is unlocked.
-   * @returns {boolean}
-   */
-  isUnlocked()
-  {
-    // grab whether or not the the difficulty was unlocked.
-    const { unlocked } = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // return what we found.
-    return unlocked;
-  }
-
-  /**
-   * Locks this difficulty, making it unavailable for the player to enable/disable.
-   */
-  lock()
-  {
-    // grab the configuration to lock.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // lock it.
-    config.unlocked = false;
-  }
-
-  /**
-   * Unlocks this difficulty, making it available for the player to enable/disable.
-   */
-  unlock()
-  {
-    // grab the configuration to unlock.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // unlock it.
-    config.unlocked = true;
-  }
-
-  /**
-   * Determines whether or not this difficulty is hidden in the list.
-   * @returns {boolean}
-   */
-  isHidden()
-  {
-    // grab whether or not the difficulty was hidden.
-    const { hidden } = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // return what we found.
-    return hidden;
-  }
-
-  /**
-   * Hides this difficulty, making it no longer listed in the difficulty list.
-   */
-  hide()
-  {
-    // grab the configuration to hide.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // hide it.
-    config.hidden = true;
-  }
-
-  /**
-   * Unhides this difficulty, making it visible in the difficulty list.
-   */
-  unhide()
-  {
-    // grab the configuration to unhide.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // unhide it.
-    config.hidden = false;
-  }
-
-  /**
-   * Determines whether or not this difficulty is currently enabled.
-   * @returns {boolean} True if this difficulty is enabled, false otherwise.
-   */
-  isEnabled()
-  {
-    // grab whether or not the difficulty was enabled.
-    const { enabled } = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // return what we found.
-    return enabled;
-  }
-
-  /**
-   * Enables this difficulty layer.
-   */
-  enable()
-  {
-    // grab the configuration to enable.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // enable it.
-    config.enabled = true;
-  }
-
-  /**
-   * Disables this difficulty layer.
-   */
-  disable()
-  {
-    // grab the configuration to disable.
-    const config = $gameSystem.getDifficultyConfigByKey(this.key);
-
-    // disable it.
-    config.enabled = false;
-  }
-  //endregion access
-}
-//endregion DifficultyLayer
-
-//region Difficulty
-/**
- * A class governing a single difficulty and the way it impacts the game parameters.
- */
-class DifficultyMetadata
-{
-  //region properties
-  /**
-   * The name of the difficulty, visually to the player.
-   * @type {string}
-   */
-  name = String.empty;
-
-  /**
-   * The unique identifier of the difficulty, used for lookup and reference.
-   * @type {string}
-   */
-  key = String.empty;
-
-  /**
-   * The description of the difficulty, displayed in the help window at the top.
-   * @type {string}
-   */
-  description = String.empty;
-
-  /**
-   * The icon used when the name of the difficulty is displayed in the scene.
-   * @type {number}
-   */
-  iconIndex = 0;
-
-  /**
-   * The cost required to enable this difficulty.
-   * @type {number}
-   */
-  cost = 0;
-  //endregion properties
-
-  //region params
-  /**
-   * The various battler effects that apply against actors.
-   * @type {DifficultyBattlerEffects}
-   */
-  actorEffects = new DifficultyBattlerEffects();
-
-  /**
-   * The various battler effects that apply against enemies.
-   * @type {DifficultyBattlerEffects}
-   */
-  enemyEffects = new DifficultyBattlerEffects();
-  //endregion params
-
-  //region bonuses
-  /**
-   * The bonus multiplier for experience earned by the player.
-   * @type {number}
-   */
-  exp = 100;
-
-  /**
-   * The bonus multiplier for gold found by the player.
-   * @type {number}
-   */
-  gold = 100;
-
-  /**
-   * The bonus multiplier for sdp acquired by the player.
-   * @type {number}
-   */
-  sdp = 100;
-
-  /**
-   * The bonus multiplier for drops (potentially) gained by the player.
-   * @type {number}
-   */
-  drops = 100;
-
-  /**
-   * The bonus multiplier for the encounter rate for the player.
-   * @type {number}
-   */
-  encounters = 100;
-  //endregion bonuses
-
-  //region access
-  /**
-   * Whether or not this difficulty is enabled.
-   * When a difficulty is enabled, its global effects are applied.
-   * @type {boolean}
-   */
-  enabled = false;
-
-  /**
-   * Whether or not this difficulty is unlocked and can be enabled/disabled.
-   * @type {boolean}
-   */
-  unlocked = true;
-
-  /**
-   * Whether or not this difficulty is hidden from selection.
-   * @type {boolean}
-   */
-  hidden = false;
-  //endregion access
-}
-//endregion Difficulty
 
 /**
  * Extends {@link DataManager.setupNewGame}.<br>
@@ -1949,7 +1910,7 @@ Game_System.prototype.initDifficultyMembers = function()
    * The max points available to allocate to difficulty layers.
    * @type {number}
    */
-  this._j._difficulty._layerPointMax = J.DIFFICULTY.Metadata.DefaultLayerPointMax;
+  this._j._difficulty._layerPointMax = J.DIFFICULTY.Metadata.initialPoints;
 
   /**
    * The current number of points allocated to difficulty layers.
@@ -2112,8 +2073,7 @@ Game_Temp.prototype.initMembers = function()
    * All difficulties that were defined in the plugin metadata.
    * @type {Map<string, DifficultyMetadata>}
    */
-  this._j._difficulty._metadata = J.DIFFICULTY.Helpers.toDifficultiesMap(
-    J.DIFFICULTY.PluginParameters['difficulties']);
+  this._j._difficulty._metadata = J.DIFFICULTY.Metadata.allMetadatas;
 
   /**
    * All difficulties available for use.
@@ -2133,7 +2093,7 @@ Game_Temp.prototype.initMembers = function()
    * a single {@link DifficultyLayer}.<br>
    * @type {DifficultyLayer}
    */
-  this._j._difficulty._appliedDifficulty = DifficultyLayer.defaultLayer;
+  this._j._difficulty._appliedDifficulty = J_DiffPluginMetadata.defaultLayer();
 };
 
 /**
@@ -2194,7 +2154,7 @@ Game_Temp.prototype.setupDifficultySystem = function()
  */
 Game_Temp.prototype.getAppliedDifficulty = function()
 {
-  return this._j._difficulty._appliedDifficulty ?? DifficultyLayer.defaultLayer;
+  return this._j._difficulty._appliedDifficulty;
 };
 
 /**
@@ -2234,7 +2194,7 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   if (enabledDifficulties.length === 0)
   {
     // we'll just apply the default layer.
-    return DifficultyLayer.defaultLayer;
+    return J_DiffPluginMetadata.defaultLayer();
   }
 
   // initialize the battler effects.
@@ -2242,11 +2202,14 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   const enabledEnemyEffects = new DifficultyBattlerEffects();
 
   // destructure the direct values out.
-  let { exp, gold, drops, encounters, sdp, cost } = DifficultyLayer.defaultLayer;
+  let { cost, rewards } = DifficultyLayer.fromLayer(J_DiffPluginMetadata.defaultLayer());
 
   // iterate over each difficulty layer and apply it multiplicatively to the running amounts.
   enabledDifficulties.forEach(layer =>
   {
+    // accumulate the cost.
+    cost += layer.cost;
+
     // extract the effects data.
     const { actorEffects, enemyEffects } = layer;
 
@@ -2260,16 +2223,6 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
       enabledActorEffects.bparams[bIndex] *= bParamFactor;
     });
 
-    // iterate over each of the s-params.
-    actorEffects.sparams.forEach((sparam, sIndex) =>
-    {
-      // calculate the factor.
-      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
-
-      // apply the multiplier.
-      enabledActorEffects.sparams[sIndex] *= sParamFactor;
-    });
-
     // iterate over each of the x-params.
     actorEffects.xparams.forEach((xparam, xIndex) =>
     {
@@ -2278,6 +2231,16 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
 
       // apply the multiplier.
       enabledActorEffects.xparams[xIndex] *= xParamFactor;
+    });
+
+    // iterate over each of the s-params.
+    actorEffects.sparams.forEach((sparam, sIndex) =>
+    {
+      // calculate the factor.
+      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
+
+      // apply the multiplier.
+      enabledActorEffects.sparams[sIndex] *= sParamFactor;
     });
 
     // iterate over each of the b-params.
@@ -2290,16 +2253,6 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
       enabledEnemyEffects.bparams[bIndex] *= bParamFactor;
     });
 
-    // iterate over each of the s-params.
-    enemyEffects.sparams.forEach((sparam, sIndex) =>
-    {
-      // calculate the factor.
-      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
-
-      // apply the multiplier.
-      enabledEnemyEffects.sparams[sIndex] *= sParamFactor;
-    });
-
     // iterate over each of the x-params.
     enemyEffects.xparams.forEach((xparam, xIndex) =>
     {
@@ -2310,71 +2263,58 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
       enabledEnemyEffects.xparams[xIndex] *= xParamFactor;
     });
 
-    // calculate the factor.
-    const expFactor = parseFloat((layer.exp / 100).toFixed(3));
+    // iterate over each of the s-params.
+    enemyEffects.sparams.forEach((sparam, sIndex) =>
+    {
+      // calculate the factor.
+      const sParamFactor = parseFloat((sparam / 100).toFixed(3));
 
-    // apply the multiplier.
-    exp *= expFactor;
-
-    // calculate the factor.
-    const goldFactor = parseFloat((layer.gold / 100).toFixed(3));
-
-    // apply the multiplier.
-    gold *= goldFactor;
+      // apply the multiplier.
+      enabledEnemyEffects.sparams[sIndex] *= sParamFactor;
+    });
 
     // calculate the factor.
-    const dropsFactor = parseFloat((layer.drops / 100).toFixed(3));
+    const expFactor = parseFloat((layer.rewards.exp / 100).toFixed(3));
 
     // apply the multiplier.
-    drops *= dropsFactor;
+    rewards.exp *= expFactor;
 
     // calculate the factor.
-    const encountersFactor = parseFloat((layer.encounters / 100).toFixed(3));
+    const goldFactor = parseFloat((layer.rewards.gold / 100).toFixed(3));
 
     // apply the multiplier.
-    encounters *= encountersFactor;
+    rewards.gold *= goldFactor;
 
     // calculate the factor.
-    const sdpFactor = parseFloat((layer.sdp / 100).toFixed(3));
+    const dropsFactor = parseFloat((layer.rewards.drops / 100).toFixed(3));
 
     // apply the multiplier.
-    sdp *= sdpFactor;
+    rewards.drops *= dropsFactor;
 
-    // accumulate the cost.
-    cost += layer.cost;
+    // calculate the factor.
+    const encountersFactor = parseFloat((layer.rewards.encounters / 100).toFixed(3));
+
+    // apply the multiplier.
+    rewards.encounters *= encountersFactor;
+
+    // calculate the factor.
+    const sdpFactor = parseFloat((layer.rewards.sdp / 100).toFixed(3));
+
+    // apply the multiplier.
+    rewards.sdp *= sdpFactor;
   }, this);
 
-  // find the default layer.
-  const defaultLayer = enabledDifficulties.find(layer => layer.isDefaultLayer());
-
-  // validate the layer's definition.
-  if (defaultLayer)
-  {
-    // update the default layer with this one.
-    DifficultyLayer.defaultLayer = defaultLayer;
-  }
-  // we do not have a defined default layer.
-  else
-  {
-    throw new Error(`Must have a default difficulty defined in plugin parameters.`);
-  }
+  // deconstruct the static descriptors of the applied difficulty layer.
+  const { appliedKey, appliedName, appliedDescription } = DifficultyLayer;
 
   // build the new applied difficulty layer.
-  const newDifficulty = new DifficultyLayer(DifficultyLayer.appliedKey);
-  newDifficulty.name = "Applied Difficulty";
-  newDifficulty.description = "The combined effects of all enabled difficulties.";
-  newDifficulty.cost = cost;
-
-  // params.
-  newDifficulty.actorEffects = enabledActorEffects;
-  newDifficulty.enemyEffects = enabledEnemyEffects;
-
-  // bonuses.
-  newDifficulty.exp = exp;
-  newDifficulty.gold = gold;
-  newDifficulty.drops = drops;
-  newDifficulty.encounters = encounters;
-  newDifficulty.sdp = sdp;
+  const newDifficulty = new DifficultyBuilder(appliedName, appliedKey)
+      .setDescription(appliedDescription)
+      .setCost(cost)
+      .setActorEffects(enabledActorEffects)
+      .setEnemyEffects(enabledEnemyEffects)
+      .setRewards(rewards)
+      .buildAsLayer();
 
   // return the compiled difficulty.
   return newDifficulty;
@@ -2977,7 +2917,7 @@ class Scene_Difficulty extends Scene_MenuBase
       // extract the data points from the window.
       const {
         exp, gold, sdp, drops, encounters
-      } = this.hoveredDifficulty();
+      } = this.hoveredDifficulty().rewards;
 
       // build the bonus effects.
       const bonusEffects = new DifficultyBonusEffects();
@@ -3006,7 +2946,7 @@ class Scene_Difficulty extends Scene_MenuBase
       // extract the data points from the window.
       const {
         exp, gold, sdp, drops, encounters
-      } = this.hoveredDifficulty();
+      } = this.hoveredDifficulty().rewards;
 
       // build the bonus effects.
       const bonusEffects = new DifficultyBonusEffects();

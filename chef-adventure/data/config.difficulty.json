@@ -1,0 +1,457 @@
+[
+  {
+    "key": "000_default",
+    "name": "Default",
+    "iconIndex": 883,
+    "description": "Your expected gameplay difficulty.|Nothing is modified.",
+    "cost": 0,
+    "actorEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "enemyEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "rewards": {
+      "exp": 100,
+      "gold": 100,
+      "drops": 100,
+      "encounters": 100,
+      "sdp": 100
+    },
+    "enabled": true,
+    "unlocked": true,
+    "hidden": false
+  },
+  {
+    "key": "001_easy-1",
+    "name": "Favor of the Food Lord I",
+    "iconIndex": 74,
+    "description": "The Food Lord favors you slightly!|Enemies have reduced parameters and actors have improved support parameters.",
+    "cost": 1,
+    "actorEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        150,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        200,
+        200,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "enemyEffects": {
+      "bparams": [
+        80,
+        100,
+        80,
+        100,
+        80,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        50,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        50,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "rewards": {
+      "exp": 80,
+      "gold": 100,
+      "drops": 100,
+      "encounters": 100,
+      "sdp": 100
+    },
+    "enabled": false,
+    "unlocked": true,
+    "hidden": false
+  },
+  {
+    "key": "006_hard-1",
+    "name": "Challenge of the Food Lord I",
+    "iconIndex": 73,
+    "description": "The Food Lord snubs you.|Enemies are tougher, and actors have a harder time.",
+    "cost": 1,
+    "actorEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        50,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        150,
+        150,
+        100,
+        100,
+        200,
+        100
+      ],
+      "cparams": []
+    },
+    "enemyEffects": {
+      "bparams": [
+        120,
+        100,
+        100,
+        120,
+        100,
+        120,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "rewards": {
+      "exp": 150,
+      "gold": 100,
+      "drops": 150,
+      "encounters": 100,
+      "sdp": 100
+    },
+    "enabled": false,
+    "unlocked": true,
+    "hidden": false
+  },
+  {
+    "key": "111_crit-exchange",
+    "name": "Critical Exchange",
+    "iconIndex": 126,
+    "description": "Enemies can no longer dodge critical hits.|In exchange for unlucky enemies, they have improved crit chance.",
+    "cost": 5,
+    "actorEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "enemyEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        400,
+        0,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "rewards": {
+      "exp": 120,
+      "gold": 120,
+      "drops": 120,
+      "encounters": 100,
+      "sdp": 120
+    },
+    "enabled": false,
+    "unlocked": true,
+    "hidden": false
+  },
+  {
+    "key": "112_sturdy-looting",
+    "name": "Sturdy Looting",
+    "iconIndex": 210,
+    "description": "Enemies have more Life, Endurance, Resist, and have reduced physical/magical damage.|In exchange for beefcake enemies, they will be more likely to drop loot.",
+    "cost": 7,
+    "actorEffects": {
+      "bparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "enemyEffects": {
+      "bparams": [
+        150,
+        100,
+        100,
+        150,
+        100,
+        150,
+        100,
+        100
+      ],
+      "xparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "sparams": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        50,
+        50,
+        100,
+        100
+      ],
+      "cparams": []
+    },
+    "rewards": {
+      "exp": 100,
+      "gold": 200,
+      "drops": 100,
+      "encounters": 100,
+      "sdp": 150
+    },
+    "enabled": false,
+    "unlocked": true,
+    "hidden": false
+  }
+]
