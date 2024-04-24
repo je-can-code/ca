@@ -2285,6 +2285,52 @@
     "rarity": 23
   },
   {
+    "name": "_Jelliton (tbd)",
+    "key": "JEL_2",
+    "iconIndex": 2214,
+    "unlockedByDefault": false,
+    "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n\\\r\n",
+    "topFlavorText": "What a massive fucking jelli carrying around this node.",
+    "maxRank": 10,
+    "baseCost": 1500.0,
+    "flatGrowthCost": 250.0,
+    "multGrowthCost": 1.2,
+    "panelParameters": [
+      {
+        "parameterId": 16,
+        "perRank": 2.5,
+        "isFlat": false,
+        "isCore": true
+      },
+      {
+        "parameterId": 22,
+        "perRank": 1.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 5,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 12,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 14,
+        "perRank": -1.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
+    "panelRewards": [],
+    "rarity": 3
+  },
+  {
     "name": "Scorn of Fae",
     "key": "FAE_1",
     "iconIndex": 5,
