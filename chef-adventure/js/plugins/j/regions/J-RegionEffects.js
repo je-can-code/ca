@@ -1,11 +1,9 @@
-/*  BUNDLED TIME: Thu Dec 29 2022 09:06:09 GMT-0800 (Pacific Standard Time)  */
-
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGIONS] A plugin that controls passage by region ids.
+ * @plugindesc [v1.0.1 REGIONS] A plugin that controls passage by region ids.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
@@ -47,6 +45,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Created plugin extension namespace for REGIONS plugin extensions.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -75,6 +75,11 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.REGIONS = {};
+
+/**
+ * The parent namespace for all REGIONS extensions.
+ */
+J.REGIONS.EXT = {};
 
 /**
  * The `metadata` associated with this plugin; such as version.
@@ -144,7 +149,7 @@ J.REGIONS.RegExp.DenyRegions = /<denyRegions:[ ]?(\[[\d, ]+])>/gi;
 
 //region Game_Map
 /**
- * Extends {@link #initialize}.
+ * Extends {@link #initialize}.<br>
  * Also initializes the region effects properties.
  */
 J.REGIONS.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
@@ -258,7 +263,7 @@ Game_Map.prototype.clearDenyEffectRegionIds = function()
 //endregion properties
 
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Also initializes this map's allow/deny region ids.
  */
 J.REGIONS.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
@@ -267,7 +272,7 @@ Game_Map.prototype.setup = function(mapId)
   // perform original logic.
   J.REGIONS.Aliased.Game_Map.get('setup').call(this, mapId);
 
-  // update rare/named enemy variable.
+  // setup all region effects.
   this.setupRegionEffects();
 };
 
@@ -360,7 +365,7 @@ Game_Map.prototype.refreshDenyRegionEffects = function()
 };
 
 /**
- * Extends {@link #isPassable}.
+ * Extends {@link #isPassable}.<br>
  * Also considers region effects for passability.
  */
 J.REGIONS.Aliased.Game_Map.set('isPassable', Game_Map.prototype.isPassable);
@@ -448,7 +453,7 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
 {
   // accommodate cyclone movement if available.
   const increment = CycloneMovement
-    ? (1 / CycloneMovement.stepCount)
+    ? (1 / CycloneMovement?.stepCount ?? 1)
     : 1;
 
   // default the projected coordinates to the current.

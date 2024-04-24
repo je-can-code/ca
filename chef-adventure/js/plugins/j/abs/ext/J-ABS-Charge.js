@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Mon Jan 02 2023 14:42:35 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @orderAfter J-ABS
  * @help
@@ -269,7 +267,7 @@ J.ABS.EXT.CHARGE.RegExp = {
 
 //region JABS_Battler
 /**
- * Extends {@link JABS_Battler.initBattleInfo}.
+ * Extends {@link JABS_Battler.initBattleInfo}.<br>
  * Also initializes the charge-related data.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('initBattleInfo', JABS_Battler.prototype.initBattleInfo);
@@ -801,7 +799,7 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData)
 };
 
 /**
- * Extends {@link JABS_Battler.update}.
+ * Extends {@link JABS_Battler.update}.<br>
  * Also updates charging as-needed.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
@@ -1046,7 +1044,7 @@ class JABS_ChargingTier
   maxDuration = 0;
 
   /**
-   * The tier number for this {@link JABS_ChargingTier}.
+   * The tier number for this {@link JABS_ChargingTier}.<br>
    * @type {number}
    */
   tier = 0;
@@ -1333,7 +1331,7 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
 
 //region mainhand
 /**
- * Extends {@link JABS_InputController.updateMainhandAction}.
+ * Extends {@link JABS_InputController.updateMainhandAction}.<br>
  * Handles charging capability for this input.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1445,7 +1443,7 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
 
 //region offhand
 /**
- * Extends {@link JABS_InputController.updateOffhandAction}.
+ * Extends {@link JABS_InputController.updateOffhandAction}.<br>
  * Handles charging capability to the offhand.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1603,7 +1601,7 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
 
 //region combat skill 1
 /**
- * Extends {@link JABS_InputController.updateCombatAction1}.
+ * Extends {@link JABS_InputController.updateCombatAction1}.<br>
  * Handles charging capability for this input.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1671,7 +1669,7 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
 
 //region combat skill 2
 /**
- * Extends {@link JABS_InputController.updateCombatAction2}.
+ * Extends {@link JABS_InputController.updateCombatAction2}.<br>
  * Handles charging capability for this input.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1739,7 +1737,7 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
 
 //region combat skill 3
 /**
- * Extends {@link JABS_InputController.updateCombatAction3}.
+ * Extends {@link JABS_InputController.updateCombatAction3}.<br>
  * Handles charging capability for this input.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1807,7 +1805,7 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
 
 //region combat skill 4
 /**
- * Extends {@link JABS_InputController.updateCombatAction4}.
+ * Extends {@link JABS_InputController.updateCombatAction4}.<br>
  * Handles charging capability for this input.
  */
 J.ABS.EXT.CHARGE.Aliased.JABS_InputController
@@ -1909,7 +1907,7 @@ RPG_Base.prototype.extractJabsChargeData = function()
 
 //region SoundManager
 /**
- * Extends {@link SoundManager.preloadImportantSounds}.
+ * Extends {@link SoundManager.preloadImportantSounds}.<br>
  * Also preloads the charging-related sound effects.
  */
 J.ABS.EXT.CHARGE.Aliased.SoundManager.set('preloadImportantSounds', SoundManager.preloadImportantSounds);

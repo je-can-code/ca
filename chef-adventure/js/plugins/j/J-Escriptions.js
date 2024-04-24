@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
@@ -468,7 +466,7 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function()
 };
 
 /**
- * Extends {@link Game_Event.update}.
+ * Extends {@link Game_Event.update}.<br>
  * Also updates the describe proximity information of the player for the describe data.
  */
 J.ESCRIBE.Aliased.Game_Event.set('update', Game_Event.prototype.update);
@@ -885,7 +883,7 @@ Sprite_Character.prototype.characterCanSeeIcon = function()
 };
 
 /**
- * Extends {@link Sprite_Character.isEmptyCharacter}.
+ * Extends {@link Sprite_Character.isEmptyCharacter}.<br>
  * If the character has describe data, don't make it invisible for the time being.
  * @returns {boolean} True if the character should be drawn, false otherwise.
  */
@@ -920,7 +918,7 @@ Sprite_Character.prototype.refreshCharacterEscription = function()
 
 //region setup describe sprites
 /**
- * Extends {@link Sprite_Character.setCharacterBitmap}.
+ * Extends {@link Sprite_Character.setCharacterBitmap}.<br>
  * Sets up the initial escription sprites and renders them as applicable.
  */
 J.ESCRIBE.Aliased.Sprite_Character.set('setCharacterBitmap', Sprite_Character.prototype.setCharacterBitmap);

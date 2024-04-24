@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 ELEM] Enables greater control over elements.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * This plugin enables the ability to modify skills with note tags to to

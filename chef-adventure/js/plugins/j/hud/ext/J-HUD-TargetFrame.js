@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base J-Base
  * @base J-HUD
@@ -1484,7 +1482,7 @@ Game_Event.prototype.showTargetText = function()
 
 //region Scene_Map
 /**
- * Extends {@link #initHudMembers}.
+ * Extends {@link #initHudMembers}.<br>
  * Includes initialization of the target frame members.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
@@ -1515,7 +1513,7 @@ Scene_Map.prototype.initHudMembers = function()
 };
 
 /**
- * Extends {@link #createAllWindows}.
+ * Extends {@link #createAllWindows}.<br>
  * Includes creation of the target frame window.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
@@ -1566,10 +1564,19 @@ Scene_Map.prototype.buildTargetFrameWindow = function()
  */
 Scene_Map.prototype.targetFrameWindowRect = function()
 {
+  // define the width of the window.
   const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
+
+  // define the height of the window.
   const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
+
+  // define the origin x of the window.
   const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
+
+  // define the origin y of the window.
   const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
+
+  // return the built rectangle.
   return new Rectangle(x, y, width, height);
 };
 
@@ -1593,7 +1600,7 @@ Scene_Map.prototype.setTargetFrameWindow = function(window)
 //endregion target frame
 
 /**
- * Extends {@link #updateHudFrames}.
+ * Extends {@link #updateHudFrames}.<br>
  * Includes updating the target frame.
  */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);

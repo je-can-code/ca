@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 13:49:28 GMT-0800 (Pacific Standard Time)  */
-
 //region introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base J-Base
  * @base J-HUD
@@ -679,7 +677,7 @@ class Sprite_CooldownGauge extends Sprite
   }
 
   /**
-   * Extends {@link Sprite.update}.
+   * Extends {@link Sprite.update}.<br>
    * Also updates the drawing of this gauge.
    */
   update()
@@ -2406,9 +2404,6 @@ class Window_InputFrame extends Window_Frame
 
     // if we cannot draw the hud, we cannot draw.
     if (!$hudManager.canShowHud()) return false;
-
-    // if we are JAFTING, we cannot draw.
-    if ($gameSystem.isJafting()) return false;
 
     // if we don't need to draw it, we cannot draw.
     if (!this.needsInternalRefresh()) return false;

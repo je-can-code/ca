@@ -1,0 +1,4716 @@
+{
+  "recipes": [
+    {
+      "name": "",
+      "key": "_RECIPES-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "food_erocian-pudding",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 401,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 151,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_yellow-soup",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 436,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 152,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_grilled-bearcat",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 386,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 153,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_panseared-cod",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 426,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 154,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_fried-cheesy-eggs",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 155,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_RECIPES-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "food_potato-beef-cake",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 84,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 386,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_charred-beef-ribs",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 396,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 157,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_acorn-pie",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 158,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_jelli-pilaf",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 159,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_lemonroasted-carrots",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 160,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_mushroom-bisque",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 86,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 161,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_tasty-stew",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 87,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 162,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_RECIPE-JOURNAL-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "food_steamed-imp-tongue",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 391,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 164,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_wilted-wolftrap-salad",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 436,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 321,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 446,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 165,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_tender-coral-and-trout",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 427,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 343,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 166,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_bloody-trap-soup",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 447,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 79,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 167,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_vanilla-bleu-cone",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 168,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_molten-fried-rice",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 418,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 169,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_flame-kissed-rack",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 397,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 170,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_RECIPE-JOURNAL-2",
+      "iconIndex": 0,
+      "description": "a new recipe, ripe for a plump and savory definition.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "food_mahogany-melody",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 86,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 171,
+          "type": "i",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_erociberry-toast",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 88,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 172,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_beef-shakshuka",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 348,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 79,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 84,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 73,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 173,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_snoopy-jambalaya",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 358,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 93,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 78,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 93,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 174,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_herbal-tea",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 175,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_gel-o",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 418,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 403,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 176,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_BLUEPRINTS",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "w-sword-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 1,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-sword-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 1,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 2,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-sword-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 2,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 26,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 4,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-greatsword-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 1,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 11,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-greatsword-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 11,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 12,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 21,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 23,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-spear-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 311,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-spear-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 311,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 32,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-spear-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 34,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-basher-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 41,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-basher-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 41,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 43,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-javelin-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 326,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 51,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-javelin-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 51,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 5
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 53,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-pistol-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 331,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 61,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-pistol-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 331,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 62,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-pistol-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 64,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-taser-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 306,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 71,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-taser-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 71,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 73,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-shotgun-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 81,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-shotgun-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 81,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 83,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-hatchet-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 91,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-hatchet-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 446,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 92,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-hatchet-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 92,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 94,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-battleaxe-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 101,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-battleaxe-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 101,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 103,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-twinaxe-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 111,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-twinaxe-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 111,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 113,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-staff-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 121,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-staff-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 121,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 122,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-staff-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 122,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "outputs": [
+        {
+          "id": 124,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-wand-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 121,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 311,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 416,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 131,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-wand-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 131,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 132,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-tome-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 121,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 48,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 406,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 141,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-tome-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 141,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 407,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 143,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-fist-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 301,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 151,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-fist-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 151,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 301,
+          "type": "a",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 152,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-fist-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 152,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 154,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-claw-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 151,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 351,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 161,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-claw-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 161,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 163,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-beat-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 151,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 366,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 171,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-beat-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 171,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
+      ],
+      "outputs": [
+        {
+          "id": 173,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_PATTERNS",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "a-off-light-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 336,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 1,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-light-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 1,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 336,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 26,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 2,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-light-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 2,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 3,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-medium-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 11,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-medium-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 11,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 12,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-medium-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 12,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 13,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-heavy-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 21,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-heavy-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 21,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 22,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-heavy-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 22,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 23,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-light-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 301,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 31,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-light-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 301,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 421,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 32,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-light-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 301,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 421,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 33,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-medium-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 376,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 41,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-medium-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 41,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 376,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 42,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-medium-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 42,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 376,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 377,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 43,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-heavy-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 51,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-heavy-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 51,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 52,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-heavy-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 52,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 53,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-light-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 301,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 61,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-light-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 301,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 62,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-light-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 441,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 63,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-heavy-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 71,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-heavy-2",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 71,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 72,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-heavy-3",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 73,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "_ALCHEMY",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "a-gems-life-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 412,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 371,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 225,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-magi-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 391,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 371,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 226,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-power-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 60,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 227,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-endurance-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 64,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 228,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-force-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 66,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 229,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-resist-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 68,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 23,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 230,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-speed-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 231,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-gems-luck-1",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 70,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 26,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 232,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-heatglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 11,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 60,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 205,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-liquidglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 66,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 206,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-airglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 17,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 62,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 207,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-groundglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 20,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 64,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 208,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-energyglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 23,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 70,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 209,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-voidglyph",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 26,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 68,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 210,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "name": "Chef de Cuisine",
+      "key": "cook-meal",
+      "iconIndex": 2056,
+      "description": "Cooking of the finest calibur, refined to the MAX.\r\nAdmittedly, the ingredients available in these parts make for some strange dishes.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Bar's Tender",
+      "key": "cook-drink",
+      "iconIndex": 0,
+      "description": "One must understand that drinks can make or break the tension like a hot knife through butter.\r\nOr through a hot rum cocktail, or even a cold glass of chocolate malk.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Bladesmithing",
+      "key": "smith-blade",
+      "iconIndex": 402,
+      "description": "\\C[1]Bladesmithing\\C[0] is an ancient and very hot trade.\r\nLiterally, because anvils and hammers and shit are required to make your one and two handers, and dual-wielders.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Spearcrafting",
+      "key": "smith-spear",
+      "iconIndex": 409,
+      "description": "Ye olde \\C[1]Spearcrafting\\C[0] is a means to bond nature's long with sharp.\r\nCrafting clubs, spears, and javelins will enable you to hunt at any distance.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Gungineering",
+      "key": "smith-gun",
+      "iconIndex": 436,
+      "description": "The amazing \\C[1]Gungineering\\C[0] is a stupendous means of making machines for war.\r\nNot just any machines, in fact only pistols, shotguns, and tasers.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Axeworkery",
+      "key": "smith-axe",
+      "iconIndex": 434,
+      "description": "\\C[1]Axeworkery\\C[0] is the slapdash method of creating axes.\r\nWith practice, anyone can put out some impressive one or two handers, and eventually even a twin axe.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Wandfusion",
+      "key": "smith-wand",
+      "iconIndex": 389,
+      "description": "Legendary \\C[1]Wandfusion\\C[0] is the technomancy behind the creation of wands and the like.\r\nThe wizards and wizardesses of yore used to empower staves and wands, and even books nowadays to do the deeds.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Fistmanship",
+      "key": "smith-fist",
+      "iconIndex": 461,
+      "description": "The art of \\C[1]Fistmanship\\C[0] goes back as far as 178k years ago.\r\nTo master fistmanship is to master not just the fists, but the claws and the arms.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Sole Defender",
+      "key": "survive-off",
+      "iconIndex": 462,
+      "description": "The craft of the \\C[1]Sole Defender\\C[0] creates unparalleled defensive armaments.\r\nOutputs ranging from magical support relics to beefy kite shields, your defenses can be saved here.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "The Weaver",
+      "key": "survive-body",
+      "iconIndex": 483,
+      "description": "The deliberate hand of \\C[1]The Weaver\\C[0] is unmatched.\r\nProducing both delicate mystical robes and enduring steel plate mail, your defenses shall be saved here.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Fabulous Footwork",
+      "key": "survive-feet",
+      "iconIndex": 472,
+      "description": "A light-hearted adventurer is he who started the \\C[1]Fabulous Footwork\\C[0] club.\r\nOnly those most dedicated to comfort and protection of the feet dare apply here.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Runic Creations",
+      "key": "alchemy-runes",
+      "iconIndex": 177,
+      "description": "One who can create the runes can control the world- or so they say.\r\n\"Runes\" are typically just enhancements for equips relating to optimizing combat potential.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "Gemology",
+      "key": "alchemy-gems",
+      "iconIndex": 0,
+      "description": "The alchemy of gems is a wild science that many correlate with the Philosopher's Stone or\r\nwith turning shit into gold. How about turning shit into gems that give your stats a boost?",
+      "unlockedByDefault": false
+    }
+  ]
+}

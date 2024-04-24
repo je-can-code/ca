@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Sun Jan 29 2023 09:05:21 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.3 BASE] The base class for all J plugins.
+ * [v2.1.4 BASE] The base class for all J plugins.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * OVERVIEW:
@@ -19,6 +17,29 @@
  * If you are not a dev, you can stop reading if you want (or read on to learn
  * more about the code underneath).
  * ============================================================================
+ * MAX ITEM QUANTITY:
+ * Have you ever wanted to define a max quantity for items/weapons/armors in
+ * the database? Like, not just 99? Well now you can! By applying the correct
+ * tags to the relevant entries in the database, you too can have various fixed
+ * and maximum item quantities.
+ *
+ * NOTE ABOUT FUNCTIONALITY PERMANENCE:
+ * This max quantity stuff will likely get shifted to its own plugin eventually.
+ *
+ * TAG USAGE:
+ * - Items
+ * - Weapons
+ * - Armors
+ *
+ * TAG FORMAT:
+ *  <max:VALUE>
+ *    Where VALUE represents the maximum quantity allowed for this item.
+ *
+ * TAG EXAMPLES:
+ *  <max:15>
+ * The maximum amount of the database entry decorated with this is 15.
+ * ============================================================================
+ *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
  * Many helper functions that probably should've existed were added, and coding
@@ -34,9 +55,14 @@
  * - adds an API for retrieving specific regex-based comments from an event.
  * - adds an API for getting all notes associated with given battlers.
  * - adds a few reusable sprites for convenience, like faces, icons, and text.
+ * - adds a parent class for subclassing to strongly type plugin metadata.
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.4
+ *    Added parent class for subclassing to strongly type plugin metadata.
+ *    Added Game_Character#isVehicle function.
+ *    Added max item quantity functionality with tag.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -199,6 +225,7 @@ J.BASE.Traits = {
  * All regular expressions used by this plugin.
  */
 J.BASE.RegExp = {};
+J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
 
 /**
  * The definition of what a parsable comment in an event looks like.
@@ -360,106 +387,6 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
 };
 
 /**
- * Parses a object into whatever its given data type is.
- * @param {any} obj The unknown object to parse.
- * @returns {any|null}
- */
-J.BASE.Helpers.parseObject = function(obj)
-{
-  // do not attempt to parse if the input is null.
-  if (obj === null || obj === undefined) return null;
-
-  // check if the object to parse is a string.
-  if (typeof obj === "string")
-  {
-    // check if the string is an unparsed array.
-    if (obj.startsWith("[") && obj.endsWith("]"))
-    {
-      // expose the stringified segments of the array.
-      return this.parseArrayFromString(obj);
-    }
-
-    // no check for special string values.
-    return this.parseString(obj);
-  }
-
-  // check if the object to parse is a collection.
-  if (Array.isArray(obj))
-  {
-    // iterate over the array and parse each item.
-    return obj.map(this.parseObject, this);
-  }
-
-  // number, boolean, or otherwise unidentifiable object.
-  return obj;
-}
-
-/**
- * Parses a presumed array by peeling off the `[` and `]` and parsing the
- * exposed insides.
- *
- * This does not handle multiple nested arrays properly.
- * @param {string} strArr An string presumed to be an array.
- * @returns {any} The parsed exposed insides of the string array.
- */
-J.BASE.Helpers.parseArrayFromString = function(strArr)
-{
-  // expose the stringified segments of the array.
-  const exposedArray = strArr
-    // peel off the outer brackets.
-    .slice(1, strArr.length-1)
-    // split string into an array by comma or space+comma.
-    .split(/, |,/);
-
-  // grab the index of any possible inner arrays.
-  const innerArrayStartIndex = exposedArray.findIndex(element => element.startsWith("["));
-
-  // check if we found an opening inner array bracket.
-  if (innerArrayStartIndex > -1)
-  {
-    // grab the last closing inner array bracket.
-    const outerArrayEndIndex = exposedArray.findLastIndex(element => element.endsWith("]"));
-
-    // slice the array contents that we believe is an inner array.
-    const slicedArrayString = exposedArray
-      .slice(innerArrayStartIndex, outerArrayEndIndex+1)
-      .toString();
-
-    // convert the inner array contents into a proper array.
-    const innerArray = this.parseArrayFromString(slicedArrayString);
-
-    // splice the inner array into the original array replacing all elements.
-    exposedArray.splice(
-      innerArrayStartIndex,
-      ((outerArrayEndIndex+1) - innerArrayStartIndex),
-      innerArray);
-  }
-
-  // with the content exposed, attempt to continue parsing.
-  return this.parseObject(exposedArray);
-};
-
-/**
- * Parses a metadata object from a string into possibly a boolean or number.
- * If the conversion to those fail, then it'll proceed as a string.
- * @param {string} str The string object to parse.
- * @returns {boolean|number|string}
- */
-J.BASE.Helpers.parseString = function(str)
-{
-  // check if its actually boolean true.
-  if (str.toLowerCase() === "true") return true;
-  // check if its actually boolean false.
-  else if (str.toLowerCase() === "false") return false;
-
-  // check if its actually a number.
-  if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
-
-  // it must just be a word or something.
-  return str;
-}
-
-/**
  * Extends the global javascript {@link String} object.
  * Adds a new property: {@link String.empty}, which is just an empty string.
  *
@@ -516,7 +443,7 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
 //endregion Helpers
 
 /**
- * A polyfill for {@link Array.prototype.at}.
+ * A polyfill for {@link Array.prototype.at}.<br>
  * If this is not present in the available runtime, then this implementation
  * will be used instead.
  */
@@ -541,6 +468,103 @@ if (![].at)
   };
   /* eslint-enable */
 }
+
+//region JsonMapper
+class JsonMapper {
+  /**
+   * Parses a object into whatever its given data type is.
+   * @param {any} obj The unknown object to parse.
+   * @returns {any|null}
+   */
+  static parseObject(obj) {
+    // do not attempt to parse if the input is null.
+    if (obj === null || obj === undefined) return null;
+
+    // check if the object to parse is a string.
+    if (typeof obj === "string") {
+      // check if the string is an unparsed array.
+      if (obj.startsWith("[") && obj.endsWith("]")) {
+        // expose the stringified segments of the array.
+        return this.parseArrayFromString(obj);
+      }
+
+      // no check for special string values.
+      return this.parseString(obj);
+    }
+
+    // check if the object to parse is a collection.
+    if (Array.isArray(obj)) {
+      // iterate over the array and parse each item.
+      return obj.map(this.parseObject, this);
+    }
+
+    // number, boolean, or otherwise unidentifiable object.
+    return obj;
+  }
+
+  /**
+   * Parses a presumed array by peeling off the `[` and `]` and parsing the
+   * exposed insides.
+   *
+   * This does not handle multiple nested arrays properly.
+   * @param {string} strArr An string presumed to be an array.
+   * @returns {any} The parsed exposed insides of the string array.
+   */
+  static parseArrayFromString(strArr) {
+    // expose the stringified segments of the array.
+    const exposedArray = strArr
+      // peel off the outer brackets.
+      .slice(1, strArr.length - 1)
+      // split string into an array by comma or space+comma.
+      .split(/, |,/);
+
+    // grab the index of any possible inner arrays.
+    const innerArrayStartIndex = exposedArray.findIndex(element => element.startsWith("["));
+
+    // check if we found an opening inner array bracket.
+    if (innerArrayStartIndex > -1) {
+      // grab the last closing inner array bracket.
+      const outerArrayEndIndex = exposedArray.findLastIndex(element => element.endsWith("]"));
+
+      // slice the array contents that we believe is an inner array.
+      const slicedArrayString = exposedArray
+        .slice(innerArrayStartIndex, outerArrayEndIndex + 1)
+        .toString();
+
+      // convert the inner array contents into a proper array.
+      const innerArray = this.parseArrayFromString(slicedArrayString);
+
+      // splice the inner array into the original array replacing all elements.
+      exposedArray.splice(
+        innerArrayStartIndex,
+        ((outerArrayEndIndex + 1) - innerArrayStartIndex),
+        innerArray);
+    }
+
+    // with the content exposed, attempt to continue parsing.
+    return this.parseObject(exposedArray);
+  };
+
+  /**
+   * Parses a metadata object from a string into possibly a boolean or number.
+   * If the conversion to those fail, then it'll proceed as a string.
+   * @param {string} str The string object to parse.
+   * @returns {boolean|number|string}
+   */
+  static parseString(str) {
+    // check if its actually boolean true.
+    if (str.toLowerCase() === "true") return true;
+    // check if its actually boolean false.
+    else if (str.toLowerCase() === "false") return false;
+
+    // check if its actually a number.
+    if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
+
+    // it must just be a word or something.
+    return str;
+  }
+}
+//endregion JsonMapper
 
 //region RPG_ClassLearning
 /**
@@ -814,6 +838,18 @@ class RPG_SkillDamage
 class RPG_Trait
 {
   /**
+   * Constructs a new {@link RPG_Trait} from only its triad of base values.
+   * @param {number} code The code that designates what kind of trait this is.
+   * @param {number} dataId The identifier that further defines the trait.
+   * @param {number} value The value of the trait, for traits that have numeric values.
+   * @returns {RPG_Trait}
+   */
+  static fromValues(code, dataId, value)
+  {
+    return new RPG_Trait({code, dataId, value});
+  }
+  
+  /**
    * The code that designates what kind of trait this is.
    * @type {number}
    */
@@ -839,21 +875,208 @@ class RPG_Trait
    */
   constructor(trait)
   {
+
     this.code = trait.code;
     this.dataId = trait.dataId;
     this.value = trait.value;
   }
 
   /**
-   * Constructs a new {@link RPG_Trait} from only its triad of base values.
-   * @param {number} code The code that designates what kind of trait this is.
-   * @param {number} dataId The identifier that further defines the trait.
-   * @param {number} value The value of the trait, for traits that have numeric values.
-   * @returns {RPG_Trait}
+   * Gets a combined textual name and value of this trait.
+   * @return {string}
    */
-  static fromValues(code, dataId, value)
+  textNameAndValue()
   {
-    return new RPG_Trait({code, dataId, value});
+    return `${this.textName()} ${this.textValue()}`;
+  }
+
+  /**
+   * Gets the underlying name of the trait as text.
+   * @return {string}
+   */
+  textName()
+  {
+    switch (this.code)
+    {
+      // first tab.
+      case 11:
+        return `${$dataSystem.elements[this.dataId]} dmg`;
+      case 12:
+        return `${TextManager.param(this.dataId)} debuff rate`;
+      case 13:
+        return `${$dataStates[this.dataId].name} resist`;
+      case 14:
+        return 'Immune to';
+
+      // second tab.
+      case 21:
+        return `${TextManager.param(this.dataId)}`;
+      case 22:
+        return `${TextManager.xparam(this.dataId)}`;
+      case 23:
+        return `${TextManager.sparam(this.dataId)}`;
+
+      // third tab.
+      case 31:
+        return 'Element:';
+      case 32:
+        return `${$dataStates[this.dataId].name} on-hit`;
+      case 33:
+        return 'Skill Speed';
+      case 34:
+        return 'Times';
+      case 35:
+        return 'Basic Attack w/';
+
+      // fourth tab.
+      case 41:
+        return `Unlock:`;
+      case 42:
+        return `Lock:`;
+      case 43:
+        return `Learn:`;
+      case 44:
+        return `Seal:`;
+
+      // fifth tab.
+      case 51:
+        return `${$dataSystem.weaponTypes[this.dataId]}`;
+      case 52:
+        return `${$dataSystem.armorTypes[this.dataId]}`;
+      case 53:
+        return `${$dataSystem.equipTypes[this.dataId]}`;
+      case 54:
+        return `${$dataSystem.equipTypes[this.dataId]}`;
+      case 55:
+        return `${this.dataId ? "Enable" : "Disable"}`;
+
+      // sixth tab.
+      case 61:
+        return 'Another turn chance:';
+      case 62:
+        return `${this.translateSpecialFlag()}`;
+      case 64:
+        return `${this.translatePartyAbility()}`;
+
+      case 63:
+        return 'TRANSFERABLE TRAITS';
+      default:
+        return 'Is this a custom trait?';
+    }
+  }
+
+  /**
+   * Gets the underlying value of the trait as text.
+   * @return {*|string}
+   */
+  textValue()
+  {
+    switch (this.code)
+    {
+      // first tab.
+      case 11:
+        const calculatedElementalRate = Math.round(100 - (this.value * 100));
+        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+      case 12:
+        const calculatedDebuffRate = Math.round((this.value * 100) - 100);
+        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+      case 13:
+        const calculatedStateRate = Math.round(100 - (this.value * 100));
+        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+      case 14:
+        return $dataStates[this.dataId].name;
+
+      // second tab.
+      case 21:
+        const calculatedBParam = Math.round((this.value * 100) - 100);
+        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+      case 22:
+        const calculatedXParam = Math.round((this.value * 100));
+        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+      case 23:
+        const calculatedSParam = Math.round((this.value * 100) - 100);
+        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+
+      // third tab.
+      case 31:
+        return `${$dataSystem.elements.at(this.dataId)}`;
+      case 32:
+        return `${(this.value * 100)}%`;
+      case 33:
+        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+      case 34:
+        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+      case 35:
+        return `${$dataSkills[this.value].name}`;
+
+      // fourth tab.
+      case 41:
+        return `${$dataSystem.skillTypes[this.dataId]}`;
+      case 42:
+        return `${$dataSystem.skillTypes[this.dataId]}`;
+      case 43:
+        return `${$dataSkills[this.dataId].name}`;
+      case 44:
+        return `${$dataSkills[this.dataId].name}`;
+
+      // fifth tab.
+      case 51:
+        return 'proficiency';
+      case 52:
+        return 'proficiency';
+      case 53:
+        return 'is locked';
+      case 54:
+        return 'is sealed';
+      case 55:
+        return 'Dual-wield';
+
+      // sixth tab.
+      case 61:
+        return `${Math.round(this.value * 100)}%`;
+      case 62:
+        return String.empty;
+      case 64:
+        return String.empty;
+      case 63:
+        return String.empty;
+      default:
+        return "is this a custom trait?";
+    }
+  }
+
+  translateSpecialFlag()
+  {
+    switch (this.dataId)
+    {
+      case 0:
+        return 'Autobattle';
+      case 1:
+        return 'Empowered Guard';
+      case 2:
+        return 'Cover/Substitute';
+      case 3:
+        return 'Preserve TP';
+    }
+  }
+
+  translatePartyAbility()
+  {
+    switch (this.dataId)
+    {
+      case 0:
+        return 'Encounter Half';
+      case 1:
+        return 'Encounter None';
+      case 2:
+        return 'Prevent Surprise';
+      case 3:
+        return 'Frequent Pre-emptive';
+      case 4:
+        return 'Gold Dropped 2x';
+      case 5:
+        return 'Loot Drop Chance 2x';
+    }
   }
 }
 //endregion RPG_Trait
@@ -902,6 +1125,59 @@ class RPG_UsableEffect
     this.value1 = effect.value1;
     this.value2 = effect.value2;
   }
+
+  textName()
+  {
+    switch (this.code)
+    {
+      case 11: return "Recover Life";
+      case 12: return "Recover Magi";
+      case 13: return "Recover Tech";
+      case 21: return "Add State";
+      case 22: return "Remove State";
+      case 31: return "Add Buff";
+      case 32: return "Add Debuff";
+      case 33: return "Remove Buff";
+      case 34: return "Remove Debuff";
+      case 41: return "Special";
+      case 42: return "Core Stat Growth";
+      case 43: return "Learn Skill";
+      case 44: return "Execute Common Event";
+      default:
+        console.warn(`Unsupported code of [${this.code}] was provided.`);
+        return "UNKNOWN";
+    }
+  }
+
+  textValue()
+  {
+    switch (this.code)
+    {
+      case 11:
+        const flatHp = this.value2;
+        const percHp = this.value1 * 100;
+        let msg = '';
+        if (flatHp) msg += flatHp;
+        if (percHp) msg += ` ${percHp}%`;
+        if (flatHp === 0 && percHp === 0) msg = '0';
+        return msg.trim();
+      case 12: return "Recover Magi";
+      case 13: return "Recover Tech";
+      case 21: return "Add State";
+      case 22: return "Remove State";
+      case 31: return "Add Buff";
+      case 32: return "Add Debuff";
+      case 33: return "Remove Buff";
+      case 34: return "Remove Debuff";
+      case 41: return "Special";
+      case 42: return "Core Stat Growth";
+      case 43: return "Learn Skill";
+      case 44: return "Execute Common Event";
+      default:
+        console.warn(`Unsupported code of [${this.code}] was provided.`);
+        return "UNKNOWN";
+    }
+  }
 }
 //endregion RPG_UsableEffect
 
@@ -942,6 +1218,7 @@ class RPG_Base
 
   /**
    * The entry's name.
+   * @type {string}
    */
   name = String.empty;
 
@@ -1446,12 +1723,15 @@ class RPG_Base
     let val = 0;
 
     // establish a variable to be used as "a" in the formula- the battler.
+    // eslint-disable-next-line no-unused-vars
     const a = context;
 
     // establish a variable to be used as "b" in the formula- the base parameter value.
+    // eslint-disable-next-line no-unused-vars
     const b = baseParam;
 
     // establish a variable to be used as "v" in the formula- access to variables if needed.
+    // eslint-disable-next-line no-unused-vars
     const v = $gameVariables._data;
 
     // iterate over each valid line of the note.
@@ -2672,7 +2952,7 @@ class RPG_Weapon extends RPG_EquipItem
 //endregion RPG_Weapon
 
 /**
- * The structure of the data points required to play a sound effect using the {@link SoundManager}.
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.<br>
  */
 class RPG_SoundEffect
 {
@@ -3424,7 +3704,7 @@ DataManager.isArmor = function(unidentified)
 
 //region Graphics
 /**
- * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.
+ * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.<br>
  * When combined with {@link Graphics.verticalPadding}, the origin x,y can be easily
  * determined.
  * @returns {number} Always positive.
@@ -3438,7 +3718,7 @@ Object.defineProperty(Graphics, "horizontalPadding",
   });
 
 /**
- * The vertical padding between {@link Graphics.height} and {@link Graphics.boxHeight}.
+ * The vertical padding between {@link Graphics.height} and {@link Graphics.boxHeight}.<br>
  * @returns {number} Always positive.
  */
 Object.defineProperty(Graphics, "verticalPadding",
@@ -3487,33 +3767,6 @@ class IconManager
   }
 
   /**
-   * Gets the `iconIndex` for SDP Multiplier.
-   * @returns {number}
-   */
-  static sdpMultiplier()
-  {
-    return 2229;
-  }
-
-  /**
-   * Gets the `iconIndex` for proficiency boost.
-   * @returns {number}
-   */
-  static proficiencyBoost()
-  {
-    return 979;
-  }
-
-  /**
-   * Gets the `iconIndex` for move speed boost.
-   * @returns {number}
-   */
-  static movespeed()
-  {
-    return 978;
-  }
-
-  /**
    * Gets the `iconIndex` for max tp.
    * @returns {number} The `iconIndex`.
    */
@@ -3523,7 +3776,15 @@ class IconManager
   }
 
   /**
-   * Gets the iconIndex for a given reward parameter.
+   * Gets the iconIndex for a given reward parameter.<br>
+   * Reward Param mapping:<br>
+   * <pre>
+   * - 0: experience
+   * - 1: gold/currency
+   * - 2: drops or drop rate
+   * - 3: encounters or encounter rate
+   * - 4: SDP
+   * </pre>
    * @param {number} paramId The param id to get the icon index for.
    * @returns {number}
    */
@@ -3707,12 +3968,7 @@ class IconManager
         return this.sparam(paramId - 18); // exr
       case 30:
         return this.maxTp(); // mtp
-      case 31:
-        return this.movespeed(); // move
-      case 32:
-        return this.proficiencyBoost(); // prof
-      case 33:
-        return this.sdpMultiplier(); // sdp
+
       default:
         console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
         return 0;
@@ -4349,7 +4605,7 @@ class RPGManager
   static getArraysFromNotesByRegex(noteObject, structure, tryParse = true)
   {
     // get the note data from this skill.
-    const fromNote = noteObject.split(/[\r\n]+/);
+    const noteLines = noteObject.split(/[\r\n]+/);
 
     // initialize the value.
     let val = [];
@@ -4358,13 +4614,16 @@ class RPGManager
     let hasMatch = false;
 
     // iterate the note data array.
-    fromNote.forEach(note =>
+    noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (note.match(structure))
+      if (line.match(structure))
       {
+        // extract the captured formula.
+        const [,result] = structure.exec(line);
+
         // parse the value out of the regex capture group.
-        val.push(RegExp.$1);
+        val.push(result);
 
         // flag that we found a match.
         hasMatch = true;
@@ -4378,7 +4637,7 @@ class RPGManager
     if (tryParse)
     {
       // attempt the parsing.
-      val = val.map(J.BASE.Helpers.parseObject, J.BASE.Helpers);
+      val = val.map(JsonMapper.parseObject, JsonMapper);
     }
 
     // return the found value.
@@ -4402,7 +4661,7 @@ class RPGManager
   static getArrayFromNotesByRegex(noteObject, structure, tryParse = true)
   {
     // get the note data from this skill.
-    const fromNote = noteObject.split(/[\r\n]+/);
+    const noteLines = noteObject.split(/[\r\n]+/);
 
     // initialize the value.
     let val = null;
@@ -4411,13 +4670,16 @@ class RPGManager
     let hasMatch = false;
 
     // iterate the note data array.
-    fromNote.forEach(note =>
+    noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (note.match(structure))
+      if (line.match(structure))
       {
+        // extract the captured formula.
+        const [,result] = structure.exec(line);
+
         // parse the value out of the regex capture group.
-        val = JSON.parse(RegExp.$1);
+        val = JSON.parse(result);
 
         // flag that we found a match.
         hasMatch = true;
@@ -4431,7 +4693,7 @@ class RPGManager
     if (tryParse)
     {
       // attempt the parsing.
-      val = val.map(J.BASE.Helpers.parseObject, J.BASE.Helpers);
+      val = val.map(JsonMapper.parseObject, JsonMapper);
     }
 
     // return the found value.
@@ -4451,10 +4713,11 @@ SoundManager.playSoundEffect = function(se)
 };
 //endregion SoundManager
 
+//region StorageManager
 /**
  * Checks whether or not a file exists given the path with the file name.
- * @param pathWithFile
- * @returns {boolean}
+ * @param {string} pathWithFile The path including the filename and extension.
+ * @returns {boolean} True if the file is present, false otherwise.
  */
 StorageManager.fileExists = function(pathWithFile)
 {
@@ -4464,44 +4727,9 @@ StorageManager.fileExists = function(pathWithFile)
   // return whether or not a file exists at the given path.
   return fs.existsSync(pathWithFile);
 };
+//endregion StorageManager
 
 //region TextManager
-/**
- * Gets the proper name for the points used by the SDP system.
- * @returns {string}
- */
-TextManager.sdpPoints = function()
-{
-  return "SDPs";
-};
-
-/**
- * Gets the proper name of "SDP Multiplier".
- * @returns {string}
- */
-TextManager.sdpMultiplier = function()
-{
-  return "SDP Multiplier";
-};
-
-/**
- * Gets the proper name of "proficiency bonus", which is quite long, really.
- * @returns {string}
- */
-TextManager.proficiencyBonus = function()
-{
-  return "Proficiency+";
-};
-
-/**
- * Gets the proper name of "move speed boost".
- * @returns {string}
- */
-TextManager.movespeed = function()
-{
-  return "Move Boost";
-};
-
 /**
  * Gets the proper name of "max tp".
  * @returns {string} The name of the parameter.
@@ -4570,6 +4798,74 @@ TextManager.rewardDescription = function(paramId)
   }
 };
 
+TextManager.longParamDescription = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0:
+      return this.bparamDescription(paramId); // mhp
+    case  1:
+      return this.bparamDescription(paramId); // mmp
+    case  2:
+      return this.bparamDescription(paramId); // atk
+    case  3:
+      return this.bparamDescription(paramId); // def
+    case  4:
+      return this.bparamDescription(paramId); // mat
+    case  5:
+      return this.bparamDescription(paramId); // mdf
+    case  6:
+      return this.bparamDescription(paramId); // agi
+    case  7:
+      return this.bparamDescription(paramId); // luk
+    case  8:
+      return this.xparamDescription(paramId - 8); // hit
+    case  9:
+      return this.xparamDescription(paramId - 8); // eva (parry boost)
+    case 10:
+      return this.xparamDescription(paramId - 8); // cri
+    case 11:
+      return this.xparamDescription(paramId - 8); // cev
+    case 12:
+      return this.xparamDescription(paramId - 8); // mev (unused)
+    case 13:
+      return this.xparamDescription(paramId - 8); // mrf
+    case 14:
+      return this.xparamDescription(paramId - 8); // cnt (autocounter)
+    case 15:
+      return this.xparamDescription(paramId - 8); // hrg
+    case 16:
+      return this.xparamDescription(paramId - 8); // mrg
+    case 17:
+      return this.xparamDescription(paramId - 8); // trg
+    case 18:
+      return this.sparamDescription(paramId - 18); // trg (aggro)
+    case 19:
+      return this.sparamDescription(paramId - 18); // grd (parry)
+    case 20:
+      return this.sparamDescription(paramId - 18); // rec
+    case 21:
+      return this.sparamDescription(paramId - 18); // pha
+    case 22:
+      return this.sparamDescription(paramId - 18); // mcr (mp cost)
+    case 23:
+      return this.sparamDescription(paramId - 18); // tcr (tp cost)
+    case 24:
+      return this.sparamDescription(paramId - 18); // pdr
+    case 25:
+      return this.sparamDescription(paramId - 18); // mdr
+    case 26:
+      return this.sparamDescription(paramId - 18); // fdr
+    case 27:
+      return this.sparamDescription(paramId - 18); // exr
+    case 30:
+      return this.maxTp(); // max tp
+    default:
+      console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
+      return String.empty;
+  }
+};
+
 /**
  * The double-line descriptions for the b-parameters.
  * @param {number} paramId The id of the parameter.
@@ -4579,41 +4875,49 @@ TextManager.bparamDescription = function(paramId)
 {
   switch (paramId)
   {
+    // MHP (Max Hit Points)
     case 0:
       return [
         "The base resource that defines life and death.",
         "Enemies and allies alike obey the rule of '0hp = dead'."
       ];
+    // MMP (Max Magic Points)
     case 1:
       return [
         "The base resource that most magic-based spells consume.",
         "Without this, spells typically cannot be cast."
       ];
+    // ATK (ATtacK)
     case 2:
       return [
         "The base stat that influences physical damage.",
         "Higher amounts of this yield higher physical damage output."
       ];
+    // DEF (DEFense)
     case 3:
       return [
         "The base stat that reduces physical damage.",
         "Higher amounts of this will reduce incoming physical damage."
       ];
+    // MAT (Magic ATtack)
     case 4:
       return [
         "The base stat that influences magical damage.",
         "Higher amounts of this yield higher magical damage output."
       ];
+    // MDF (Magic DeFense)
     case 5:
       return [
         "The base stat that reduces magical damage.",
         "Higher amounts of this will reduce incoming magical damage."
       ];
+    // AGI (AGIlity)
     case 6:
       return [
         "The base stat that governs movement and agility.",
         "The effects of this are unknown at higher levels."
       ];
+    // LUK (LUcK)
     case 7:
       return [
         "The base stat that governs fortune and luck.",
@@ -4816,7 +5120,7 @@ TextManager.sparam = function(sParamId)
     case 7:
       return "Magi Dmg Rate"; //J.Param.MDR_text;
     case 8:
-      return "Light-footed"; //J.Param.FDR_text;
+      return "Environ Dmg Rate"; //J.Param.FDR_text;
     case 9:
       return "Experience UP"; //J.Param.EXR_text;
   }
@@ -4924,12 +5228,6 @@ TextManager.longParam = function(paramId)
       return this.sparam(paramId - 18); // exr
     case 30:
       return this.maxTp(); // max tp
-    case 31:
-      return this.movespeed(); // move speed boost
-    case 32:
-      return this.proficiencyBonus(); // proficiency boost
-    case 33:
-      return this.sdpMultiplier(); // sdp multiplier
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -5060,6 +5358,34 @@ TextManager.isValidTypeId = function(id, types)
   // get the name!
   return true;
 }
+
+/**
+ * Translates a usable effect code into its textual name.
+ * @param {number} code The numeric code for the effect.
+ * @return {string}
+ */
+TextManager.usableEffectByCode = function(code)
+{
+  switch (code)
+  {
+    case 11: return "Recover Life";
+    case 12: return "Recover Magi";
+    case 13: return "Recover Tech";
+    case 21: return "Add State";
+    case 22: return "Remove State";
+    case 31: return "Add Buff";
+    case 32: return "Add Debuff";
+    case 33: return "Remove Buff";
+    case 34: return "Remove Debuff";
+    case 41: return "Special";
+    case 42: return "Core Stat Growth";
+    case 43: return "Learn Skill";
+    case 44: return "Execute Common Event";
+    default:
+      console.warn(`Unsupported code of [${code}] was provided.`);
+      return "UNKNOWN";
+  }
+};
 //endregion TextManager
 
 /**
@@ -5086,6 +5412,12 @@ class BuiltWindowCommand
    * @type {string}
    */
   #rightText = String.empty;
+
+  /**
+   * The text color index the right-aligned text will be rendered with.
+   * @type {number}
+   */
+  #rightColorIndex = 0;
 
   /**
    * The symbol of this command.
@@ -5135,6 +5467,7 @@ class BuiltWindowCommand
     iconIndex = 0,
     colorIndex = 0,
     rightText = String.empty,
+    rightColorIndex = 0,
     lines = [],
     helpText = String.empty)
   {
@@ -5145,6 +5478,7 @@ class BuiltWindowCommand
     this.#iconIndex = iconIndex;
     this.#colorIndex = colorIndex;
     this.#rightText = rightText;
+    this.#rightColorIndex = rightColorIndex;
     this.#lines = lines;
     this.#helpText = helpText;
   }
@@ -5175,6 +5509,15 @@ class BuiltWindowCommand
   get rightText()
   {
     return this.#rightText;
+  }
+
+  /**
+   * Gets the right-aligned color index of this command, if one is available.
+   * @returns {number}
+   */
+  get rightColor()
+  {
+    return this.#rightColorIndex;
   }
 
   /**
@@ -5237,14 +5580,318 @@ class BuiltWindowCommand
 /**
  * A custom event emitter for providing an event-driven approach to targeted
  * cross-domain communication.
+ *
+ * Consider reviewing nodejs documentation about the {@link EventEmitter} class
+ * for usage instructions.
  */
 class J_EventEmitter extends PIXI.utils.EventEmitter
 {
 }
 //endregion J_EventEmitter
 
+//region PluginMetadata
+class PluginMetadata
+{
+  /**
+   * A name:metadata map of all registered plugins in the this plugin ecosystem.
+   * @type {Map<string, PluginMetadata>}
+   */
+  static #plugins = new Map();
+
+  /**
+   * The name of the plugin.
+   * This typically matches the filename, without the extension.
+   * @type {string}
+   */
+  name = String.empty;
+
+  /**
+   * The version of the plugin.
+   * @type {PluginVersion}
+   */
+  version = null;
+
+  /**
+   * The raw plugin parameters string that is supposed to be "JSON-like".
+   * @type {string}
+   */
+  rawPluginParameters = '[]';
+
+  /**
+   * The parsed object for later manipulation.
+   * This is almost always iterable.
+   * @type {any[]}
+   */
+  parsedPluginParameters = null;
+
+  /**
+   * Constructor.
+   * @param {string} name The name of this plugin. Should match the filename.
+   * @param {string} version The version of this plugin. Should be "semver"-formatted.
+   */
+  constructor(name = '', version = '')
+  {
+    if (!name || !version)
+    {
+      console.trace(`Emergency! Erroneous plugin metadata was provided!`);
+      const message = `Erroneous plugin metadata provided: name=[${name}], version=[${version}]`;
+      throw new Error(message);
+    }
+
+    // assign the required properties.
+    this.name = name;
+    this.#applyVersion(version);
+
+    // do first-time setup of the plugin.
+    this.initializePlugin();
+  }
+
+  /**
+   * Whether or not a given plugin has registered its metadata.
+   * @param {string} pluginName The name of the plugin to check for.
+   * @return {boolean}
+   */
+  static hasPlugin(pluginName)
+  {
+    return this.#plugins.has(pluginName);
+  }
+
+  /**
+   * Registers a plugin for tracking.
+   * @param {PluginMetadata} pluginMetadata The metadata to track.
+   */
+  static #registerPlugin(pluginMetadata)
+  {
+    if (this.hasPlugin(pluginMetadata.name))
+    {
+      throw new Error(`Duplicate plugin entry detected: [${pluginMetadata.name}] !`);
+    }
+
+    this.#plugins.set(pluginMetadata.name, pluginMetadata);
+  }
+
+  /**
+   * Takes the stringy version of the version to validate and set.
+   * @param {string} version The "semver"-formatted string.
+   */
+  #applyVersion(version)
+  {
+    // deconstructs the patch values out to ensure we have them all.
+    const [ major, minor, patch ] = version
+      .split('.')
+      .map(parseInt);
+
+    // use the builder to build the version.
+    const pluginVersion = PluginVersion.builder
+      .major(major)
+      .minor(minor)
+      .patch(patch)
+      .build();
+
+    // set the version for later use.
+    this.version = pluginVersion;
+  }
+
+  /**
+   *  Initializes the plugin.
+   *  This method is intended to be extended.
+   */
+  initializePlugin()
+  {
+    // assign the raw plugin parameters.
+    this.rawPluginParameters = PluginManager.parameters(this.name);
+
+    // set the parsed plugin parameters.
+    this.parsedPluginParameters = JsonMapper.parseObject(this.rawPluginParameters);
+
+    // register this plugin.
+    PluginMetadata.#registerPlugin(this);
+
+    // execute post initialization logic, like setup of custom child metadata stuff.
+    this.postInitialize();
+  }
+
+  /**
+   * Post initialization logic for setting up additional properties from the
+   * plugin parameters or whatever else.
+   */
+  postInitialize()
+  {
+  }
+}
+//endregion PluginMetadata
+
+//region PluginVersion
+class PluginVersion
+{
+  /**
+   * The major version of this plugin.
+   * @type {number}
+   */
+  major = 0;
+
+  /**
+   * The minor version of this plugin.
+   * @type {number}
+   */
+  minor = 0
+
+  /**
+   * The patch version of this plugin.
+   * @type {number}
+   */
+  patch = 0
+
+  /**
+   * Constructor.
+   * It is strongly recommended to use the {@link PluginVersion.builder} to
+   * create these classes due to their string-parsing sensitivity.
+   * @param {string} version
+   */
+  constructor(version)
+  {
+    // the string should be three whole integer parts.
+    const semverParts = version
+      .split('.')
+      .map(parseInt);
+
+    // the order is as below:
+    const [ major, minor, patch ] = semverParts;
+
+    // assign the properties.
+    this.major = major;
+    this.minor = minor;
+    this.patch = patch;
+  }
+
+  /**
+   * Gets the string version of this overall version.
+   * @return {string}
+   */
+  version()
+  {
+    return [this.major, this.minor, this.patch].join('.');
+  }
+
+  /**
+   * Checks if this {@link PluginVersion} is at or above another.
+   * @param {PluginVersion} pluginVersion The other version to check satisfaction with.
+   */
+  satisfiesPluginVersion(pluginVersion)
+  {
+    // if our major version is higher than the target, then we always win.
+    if (this.major > pluginVersion.major) return true;
+
+    // if our major is below the target, then they always win.
+    if (this.major < pluginVersion.major) return false;
+
+    // major versions must be equal.
+
+    // if our major.minor is higher than the target, then we win.
+    if (this.minor > pluginVersion.minor) return true;
+
+    // if our major.minor is below the target, then they win.
+    if (this.minor < pluginVersion.minor) return false;
+
+    // minor versions also equal.
+
+    // if our major.minor.patch is higher than the target, then we win.
+    if (this.patch > pluginVersion.patch) return true;
+
+    // if our major.minor.patch is below the target, then they win.
+    if (this.patch < pluginVersion.patch) return false;
+
+    // the versions are actually the same, so we win :).
+    return true;
+  }
+
+  /**
+   * A static builder class for more easily building {@link PluginVersion}s.
+   * @type {PluginVersionBuilder}
+   */
+  static builder = new class PluginVersionBuilder
+  {
+    //region parameters
+    #major = 0;
+    #minor = 0;
+    #patch = 0;
+    //endregion parameters
+
+    /**
+     * Build the {@link PluginVersion} with the current parameters.
+     * Any unassigned parameters are defaulted to zero.
+     * @return {PluginVersion}
+     */
+    build()
+    {
+      // group all the parts in the correct order.
+      const semverParts = [this.#major, this.#minor, this.#patch];
+
+      // join the semver parts into a string as the 3 parts.
+      const semver = semverParts.join('.');
+      const pluginVersion = new PluginVersion(semver)
+
+      // clear the builder parameters.
+      this.#clear();
+
+      // return the newly-built plugin version.
+      return pluginVersion;
+    }
+
+    /**
+     * The major version, typically incremented on breaking changes or
+     * with drastic changes to existing functionality.
+     * @param {number} version The numeric value of the version.
+     * @return {PluginVersionBuilder} The builder for chaining.
+     */
+    major(version)
+    {
+      const parsedVersion = parseInt(version);
+      this.#major = parsedVersion;
+      return this;
+    }
+
+    /**
+     * The minor version, typically incremented on non-breaking changes or
+     * additions in functionality.
+     * @param {number} version The numeric value of the version.
+     * @return {PluginVersionBuilder} The builder for chaining.
+     */
+    minor(version)
+    {
+      const parsedVersion = parseInt(version);
+      this.#minor = parsedVersion;
+      return this;
+    }
+
+    /**
+     * The patch version, typically incremented on tiny non-breaking changes
+     * or fixes to existing functionality.
+     * @param {number} version The numeric value of the version.
+     * @return {PluginVersionBuilder} The builder for chaining.
+     */
+    patch(version)
+    {
+      const parsedVersion = parseInt(version);
+      this.#patch = parsedVersion;
+      return this;
+    }
+
+    /**
+     * Clears the data in the builder.
+     */
+    #clear()
+    {
+      this.#major = 0;
+      this.#minor = 0
+      this.#patch = 0
+    }
+  }
+}
+//endregion PluginVersion
+
 /**
- * A builder class for constructing {@link BuiltWindowCommand}.
+ * A builder class for constructing {@link BuiltWindowCommand}.<br>
  */
 class WindowCommandBuilder
 {
@@ -5267,6 +5914,12 @@ class WindowCommandBuilder
    * @type {string}
    */
   #rightText = String.empty;
+
+  /**
+   * The text color index the right text of this command will be rendered with.
+   * @type {number}
+   */
+  #rightColorIndex = 0;
 
   /**
    * The symbol of this command.
@@ -5333,6 +5986,7 @@ class WindowCommandBuilder
       this.#iconIndex,
       this.#colorIndex,
       this.#rightText,
+      this.#rightColorIndex,
       this.#lines,
       this.#helpText
     );
@@ -5393,6 +6047,17 @@ class WindowCommandBuilder
   setRightText(rightText)
   {
     this.#rightText = rightText;
+    return this;
+  }
+
+  /**
+   * Sets the color index of the right-aligned text of this command.
+   * @param {number} rightColorIndex The color index for the right-text of this command.
+   * @returns {this} This builder for fluent-building.
+   */
+  setRightColorIndex(rightColorIndex)
+  {
+    this.#rightColorIndex = rightColorIndex;
     return this;
   }
 
@@ -5602,7 +6267,7 @@ Game_Actor.prototype.getNotesSources = function()
 };
 
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Adds a hook for performing actions when an actor is setup.
  */
 J.BASE.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
@@ -5626,7 +6291,7 @@ Game_Actor.prototype.onSetup = function(actorId)
 };
 
 /**
- * Extends {@link #learnSkill}.
+ * Extends {@link #learnSkill}.<br>
  * Adds a hook for performing actions when a new skill is learned.
  * If the skill is already known, it will not trigger any on-skill-learned effects.
  */
@@ -5655,7 +6320,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
 };
 
 /**
- * Extends {@link #learnSkill}.
+ * Extends {@link #learnSkill}.<br>
  * Adds a hook for performing actions when a new skill is learned.
  * If the skill is already known, it will not trigger any on-skill-learned effects.
  */
@@ -5684,7 +6349,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId)
 };
 
 /**
- * Extends {@link #die}.
+ * Extends {@link #die}.<br>
  * Adds a toggle of the death effects.
  */
 J.BASE.Aliased.Game_Actor.set('die', Game_Actor.prototype.die);
@@ -5707,7 +6372,7 @@ Game_Actor.prototype.onDeath = function()
 };
 
 /**
- * Extends {@link #revive}.
+ * Extends {@link #revive}.<br>
  * Handles on-revive effects at the actor-level.
  */
 J.BASE.Aliased.Game_Actor.set('revive', Game_Actor.prototype.revive);
@@ -5758,7 +6423,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp)
 };
 
 /**
- * Extends {@link #changeEquip}.
+ * Extends {@link #changeEquip}.<br>
  * Adds a hook for performing actions when equipment on the actor has changed state.
  */
 J.BASE.Aliased.Game_Actor.set('changeEquip', Game_Actor.prototype.changeEquip);
@@ -5782,7 +6447,7 @@ Game_Actor.prototype.changeEquip = function(slotId, item)
 };
 
 /**
- * Extends {@link #discardEquip}.
+ * Extends {@link #discardEquip}.<br>
  * Adds a hook for performing actions when equipment on the actor has been discarded.
  */
 J.BASE.Aliased.Game_Actor.set('discardEquip', Game_Actor.prototype.discardEquip);
@@ -5806,7 +6471,7 @@ Game_Actor.prototype.discardEquip = function(item)
 };
 
 /**
- * Extends {@link #forceChangeEquip}.
+ * Extends {@link #forceChangeEquip}.<br>
  * Adds a hook for performing actions when equipment on the actor has been forcefully changed.
  */
 J.BASE.Aliased.Game_Actor.set('forceChangeEquip', Game_Actor.prototype.forceChangeEquip);
@@ -5830,7 +6495,7 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item)
 };
 
 /**
- * Extends {@link #releaseUnequippableItems}.
+ * Extends {@link #releaseUnequippableItems}.<br>
  * Adds a hook for performing actions when equipment on the actor has been released due to internal change.
  */
 J.BASE.Aliased.Game_Actor.set('releaseUnequippableItems', Game_Actor.prototype.releaseUnequippableItems);
@@ -5908,7 +6573,7 @@ Game_Actor.prototype.onLevelUp = function()
 };
 
 /**
- * Extends {@link #levelUp}.
+ * Extends {@link #levelUp}.<br>
  * Adds a hook for performing actions when an the actor levels up.
  */
 J.BASE.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
@@ -5930,7 +6595,7 @@ Game_Actor.prototype.onLevelDown = function()
 };
 
 /**
- * Extends {@link #levelDown}.
+ * Extends {@link #levelDown}.<br>
  * Adds a hook for performing actions when an the actor levels down.
  */
 J.BASE.Aliased.Game_Actor.set('levelDown', Game_Actor.prototype.levelDown);
@@ -6055,7 +6720,7 @@ Game_Battler.prototype.state = function(stateId)
 };
 
 /**
- * Overwrites {@link #states}.
+ * Overrides {@link #states}.<br>
  * Returns all states from the view of this battler.
  * @returns {RPG_State[]}
  */
@@ -6065,7 +6730,7 @@ Game_Battler.prototype.states = function()
 };
 
 /**
- * Extends {@link #eraseState}.
+ * Extends {@link #eraseState}.<br>
  * Adds a hook for performing actions when a state is removed from the battler.
  */
 J.BASE.Aliased.Game_Battler.set('eraseState', Game_Battler.prototype.eraseState);
@@ -6099,7 +6764,7 @@ Game_Battler.prototype.onStateRemoval = function(stateId)
 };
 
 /**
- * Extends {@link #addNewState}.
+ * Extends {@link #addNewState}.<br>
  * Adds a hook for performing actions when a state is added on the battler.
  */
 J.BASE.Aliased.Game_Battler.set('addNewState', Game_Battler.prototype.addNewState);
@@ -6181,6 +6846,15 @@ Game_BattlerBase.knownBaseParameterIds = function()
 };
 
 /**
+ * Returns a list of known ex-parameter ids.
+ * @returns {number[]}
+ */
+Game_BattlerBase.knownExParameterIds = function()
+{
+  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+};
+
+/**
  * Returns a list of known sp-parameter ids.
  * @returns {number[]}
  */
@@ -6190,12 +6864,57 @@ Game_BattlerBase.knownSpParameterIds = function()
 };
 
 /**
- * Returns a list of known ex-parameter ids.
- * @returns {number[]}
+ * Whether or not the given long-parameter id is a known base parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
  */
-Game_BattlerBase.knownExParameterIds = function()
+Game_BattlerBase.isBaseParam = function(longParameterId)
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return this.knownBaseParameterIds().includes(longParameterId);
+};
+
+/**
+ * Whether or not the given long-parameter id is a known ex parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
+ */
+Game_BattlerBase.isExParam = function(longParameterId)
+{
+  return this.knownExParameterIds().includes(longParameterId - 8);
+};
+
+/**
+ * Whether or not the given long-parameter id is a known sp parameter.
+ * @param {number} longParameterId The long-parameter id to validate.
+ * @returns {boolean}
+ */
+Game_BattlerBase.isSpParam = function(longParameterId)
+{
+  return this.knownSpParameterIds().includes(longParameterId - 18);
+};
+
+/**
+ * Whether or not the given ex-parameter id is a known parameter.
+ * Use {@link #isRegenLongParamId} for long-parameter ids.
+ * @param {number} paramId The ex-parameter id to validate.
+ * @returns {boolean}
+ */
+Game_BattlerBase.isRegenParamId = function(paramId)
+{
+  const regenParamIds = [7, 8, 9];
+  return regenParamIds.includes(paramId);
+};
+
+/**
+ * Whether or not the given long-parameter id is a known parameter.
+ * Use {@link #isRegenParamId} for ex-parameter ids.
+ * @param {number} longParamId The long-parameter id to validate.
+ * @returns {boolean}
+ */
+Game_BattlerBase.isRegenLongParamId = function(longParamId)
+{
+  const regenParamIds = [7, 8, 9];
+  return regenParamIds.includes(longParamId - 8);
 };
 
 /**
@@ -6244,6 +6963,15 @@ Game_Character.prototype.isFollower = function()
  * @returns {boolean}
  */
 Game_Character.prototype.isErased = function()
+{
+  return false;
+};
+
+/**
+ * Determines whether or not this character is actually a vehicle.
+ * @return {boolean} True if this is a vehicle, false otherwise.
+ */
+Game_Character.prototype.isVehicle = function()
 {
   return false;
 };
@@ -6376,7 +7104,7 @@ Game_Enemy.prototype.databaseData = function()
 };
 
 /**
- * Extends {@link #setup}.
+ * Extends {@link #setup}.<br>
  * Adds a hook for performing actions when an enemy is setup.
  */
 J.BASE.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
@@ -6432,7 +7160,7 @@ Game_Enemy.prototype.hasSkill = function(skillId)
 };
 
 /**
- * Extends {@link #die}.
+ * Extends {@link #die}.<br>
  * Adds a toggle of the death effects.
  */
 J.BASE.Aliased.Game_Enemy.set('die', Game_Enemy.prototype.die);
@@ -6545,7 +7273,7 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
   if (!andParse) return val;
 
   // return the parsed result instead.
-  return J.BASE.Helpers.parseObject(val);
+  return JsonMapper.parseObject(val);
 };
 
 /**
@@ -6568,6 +7296,15 @@ Game_Event.prototype.isErased = function()
 };
 //endregion Game_Event
 
+/**
+ * Whether or not this character is a follower.
+ * @returns {boolean} True if this is a follower, false otherwise.
+ */
+Game_Follower.prototype.isFollower = function()
+{
+  return true;
+};
+
 //region Game_Map
 /**
  * Gets the note for the current map.
@@ -6587,7 +7324,7 @@ Game_Map.prototype.note = function()
 
 //region Game_Party
 /**
- * Overwrites {@link #gainItem}.
+ * Overrides {@link #gainItem}.<br>
  * Replaces item gain and management with index-based management instead.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
  * @param {number} amount The amount to modify the quantity by.
@@ -6670,34 +7407,35 @@ Game_Party.prototype.processItemGain = function(item, amount, includeEquip)
 Game_Party.prototype.processContainerlessItemGain = function(item, amount, includeEquip)
 {
   // do something.
-  console.warn(`an item was gained that is not flagged as a database object; ${item.name}.`);
+  console.warn(`an item was gained that is not flagged as a database object; ${item.name}.<br>`);
   console.error(item, amount, includeEquip);
 };
 
 /**
- * Extends maximum quantity management.
+ * Extends {@link #maxItems}.<br>
+ * Adds more handling regarding maximum quantities for your inventory.
  */
 J.BASE.Aliased.Game_Party.set('maxItems', Game_Party.prototype.maxItems);
 Game_Party.prototype.maxItems = function(item = null)
 {
-  // if we weren't passed an item, then return the default.
-  if (!item) return this.defaultMaxItems();
+  // determine the default max for any item.
+  const defaultMax = this.defaultMaxItems();
 
-  // grab the original max quantity is for this item.
-  const baseMax = J.BASE.Aliased.Game_Party.get('maxItems').call(this, item);
+  // if we weren't passed a valid item, then return the default.
+  if (!item) return defaultMax;
 
-  // check to make sure we got a valid value.
-  if (!baseMax || isNaN(baseMax))
+  // grab the individual item's max quantity.
+  const maxForItem = item.getNumberFromNotesByRegex(J.BASE.RegExp.MaxItems, true);
+
+  // check to ensure that quantity is defined.
+  if (maxForItem !== null)
   {
-    // if there is a problem with someone elses' plugins, return our max.
-    return defaultMaxItems;
+    // we found the max for this item!
+    return maxForItem;
   }
-  // our value is valid.
-  else
-  {
-    // return the original max quantity for this item.
-    return baseMax;
-  }
+
+  // thats it, just return the default if there is none defined.
+  return defaultMax;
 };
 
 /**
@@ -6786,7 +7524,7 @@ Game_Player.prototype.isPlayer = function()
 //endregion Game_Player
 
 /**
- * Extends {@link Game_System.initialize}.
+ * Extends {@link Game_System.initialize}.<br>
  * Initializes all members of this class and adds our custom members.
  */
 J.BASE.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
@@ -6800,15 +7538,70 @@ Game_System.prototype.initialize = function()
 };
 
 /**
- * A hook for initializing additional members in {@link Game_System}.
+ * A hook for initializing additional members in {@link Game_System}.<br>
  */
 Game_System.prototype.initMembers = function()
 {
 };
 
+Game_System.prototype.gainAllEverything = function(count = 1)
+{
+  this.gainAllItems(count);
+  this.gainAllWeapons(count);
+  this.gainAllArmors(count);
+};
+
+Game_System.prototype.gainAllItems = function(count = 1)
+{
+  $dataItems
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+Game_System.prototype.gainAllWeapons = function(count = 1)
+{
+  $dataWeapons
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+Game_System.prototype.gainAllArmors = function(count = 1)
+{
+  $dataArmors
+    .filter(this.canGainEntry)
+    .forEach(entry => $gameParty.gainItem(entry, count));
+};
+
+/**
+ * Whether or not an entry from the database can be gained in the context
+ * of the various "gainAll*" methods.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} entry The database entry being gained.
+ * @return {boolean} True if the entry can be gained, false otherwise.
+ */
+Game_System.prototype.canGainEntry = function(entry)
+{
+  // skip entries that are null.
+  if (entry == null) return false;
+
+  // skip entries with empty names.
+  if (entry.name.trim().length === 0) return false;
+
+  // skip entries that start with an underscore (arbitrary).
+  if (entry.name.startsWith('_')) return false;
+
+  // skip entries that start with a double equals (arbitrary).
+  if (entry.name.startsWith('==')) return false;
+
+  // skip entries that are the "empty" name (arbitrary).
+  if (entry.name.includes('-- empty --')) return false;
+
+  // we can gain it!
+  return true;
+};
+
 //region Game_Temp
 /**
- * Extends {@link Game_Temp.initialize}.
+ * Extends {@link Game_Temp.initialize}.<br>
  * Initializes all members of this class and adds our custom members.
  */
 J.BASE.Aliased.Game_Temp.set('initialize', Game_Temp.prototype.initialize);
@@ -6822,15 +7615,26 @@ Game_Temp.prototype.initialize = function()
 };
 
 /**
- * A hook for initializing temporary members in {@link Game_Temp}.
+ * A hook for initializing temporary members in {@link Game_Temp}.<br>
  */
 Game_Temp.prototype.initMembers = function()
 {
 };
 //endregion Game_Temp
 
+//region Game_Vehicle
 /**
- * Extends {@link #initialize}.
+ * Vehicles are in fact vehicles.
+ * @return {boolean}
+ */
+Game_Vehicle.prototype.isVehicle = function()
+{
+  return true;
+};
+//endregion Game_Vehicle
+
+/**
+ * Extends {@link #initialize}.<br>
  * Adds extension for initializing custom members for scenes.
  */
 J.BASE.Aliased.Scene_Base.set('initialize', Scene_Base.prototype.initialize);
@@ -7852,7 +8656,7 @@ Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 
 //region Window_Base
 /**
- * All alignments available for {@link Window_Base.prototype.drawText}.
+ * All alignments available for {@link Window_Base.prototype.drawText}.<br>
  */
 Window_Base.TextAlignments = {
   /**
@@ -7945,7 +8749,7 @@ Window_Base.prototype.drawContent = function()
 };
 
 /**
- * Extends {@link Window_Base.resetFontSettings}.
+ * Extends {@link Window_Base.resetFontSettings}.<br>
  * Also resets bold and italics.
  */
 J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetFontSettings);
@@ -8070,6 +8874,15 @@ Window_Command.prototype.commandList = function()
 };
 
 /**
+ * Checks whether or not there are any commands in this list.
+ * @return {boolean}
+ */
+Window_Command.prototype.hasCommands = function()
+{
+  return this.commandList().length > 0;
+};
+
+/**
  * Get the unmodified line height, which should always be `36`.
  * @returns {36}
  */
@@ -8094,7 +8907,7 @@ Window_Command.prototype.preDrawItem = function(index)
 };
 
 /**
- * Overwrites {@link #drawItem}.
+ * Overrides {@link #drawItem}.<br>
  * Renders the text along with any additional data that is available to the command.
  */
 Window_Command.prototype.drawItem = function(index)
@@ -8115,7 +8928,7 @@ Window_Command.prototype.drawItem = function(index)
   const subtexts = this.commandSubtext(index);
 
   // calculate the x of the command name.
-  const commandNameX = rectX + 4;
+  const commandNameX = rectX + 40;
 
   // initialize the y of the command name.
   let commandNameY = rectY;
@@ -8131,6 +8944,13 @@ Window_Command.prototype.drawItem = function(index)
 
     // move the command name up a bit if we have subtext.
     commandNameY -= this.subtextLineHeight();
+  }
+
+  const commandIcon = this.commandIcon(index);
+  if (commandIcon)
+  {
+    const iconY = rectY;
+    this.drawIcon(commandIcon, commandNameX - 36, iconY);
   }
 
   // render the command name.
@@ -8157,7 +8977,10 @@ Window_Command.prototype.drawItem = function(index)
       // move the command name up a bit if we have subtext.
       rightTextY -= this.subtextLineHeight();
     }
-    
+
+    // execute the color change for right text.
+    this.processColorChange(this.commandRightColorIndex(index));
+
     // render the right-aligned text.
     this.drawText(rightText, rightTextX, rightTextY, textWidth, "right");
 
@@ -8206,7 +9029,7 @@ Window_Command.prototype.buildCommandName = function(index)
   commandName = this.handleColor(commandName, index);
 
   // prepend the icon for the command if applicable.
-  commandName = this.handleIcon(commandName, index);
+  // commandName = this.handleIcon(commandName, index);
 
   // return what we have.
   return commandName;
@@ -8242,6 +9065,19 @@ Window_Command.prototype.commandRightText = function(index)
 };
 
 /**
+ * Gets the right-aligned text color index for this command.
+ * @param {number} index The index to get the right-color-index for.
+ * @returns {number}
+ */
+Window_Command.prototype.commandRightColorIndex = function(index)
+{
+  const command = this.commandList().at(index);
+  const commandColor = this.commandList().at(index).rightColor;
+  const color = command.rightColor;
+  return color;
+};
+
+/**
  * Gets the help text for the command at the given index.
  * @param {number} index The index to get the help text for.
  * @returns {string}
@@ -8257,7 +9093,7 @@ Window_Command.prototype.commandHelpText = function(index)
  */
 Window_Command.prototype.currentHelpText = function()
 {
-  return this.commandList().at(this.index()).helpText ?? String.empty;
+  return this.commandHelpText(this.index()) ?? String.empty;
 };
 
 /**
@@ -8314,8 +9150,9 @@ Window_Command.prototype.commandColor = function(index)
   return this.commandList().at(index).color;
 };
 
+//region adding commands
 /**
- * Overwrites {@link #addCommand}.
+ * Overrides {@link #addCommand}.<br>
  * Adds additional metadata to a command.
  * @param {string} name The visible name of this command.
  * @param {string} symbol The symbol for this command.
@@ -8378,11 +9215,12 @@ Window_Command.prototype.prependBuiltCommand = function(command)
 {
   this.commandList().unshift(command);
 };
+//endregion adding commands
 //endregion Window_Command
 
 //region Window_EquipItem
 /**
- * Overwrites {@link #updateHelp}.
+ * Overrides {@link #updateHelp}.<br>
  * Enables extension of the method's logic for various menu needs.
  */
 Window_EquipItem.prototype.updateHelp = function()
@@ -8547,7 +9385,7 @@ Window_Help.prototype.getSecondaryNewline = function()
 };
 
 /**
- * Overwrites {@link #refresh}.
+ * Overrides {@link #refresh}.<br>
  * Extracts the text rendering out into its own function, but this function
  * still does the same thing: clears and redraws the contents of the window.
  */

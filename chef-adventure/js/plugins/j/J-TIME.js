@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 TIME] A system for tracking time- real or artificial.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ==============================================================================
  * This is a system that tracks time, either artificial or real, and manipulates

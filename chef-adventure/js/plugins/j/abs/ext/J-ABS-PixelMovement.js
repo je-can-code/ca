@@ -1,11 +1,9 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:42 GMT-0800 (Pacific Standard Time)  */
-
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 PIXEL] WIP Enables pixel movement.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ==============================================================================
  * Enables 8-directional pixel movement.
@@ -71,7 +69,7 @@ J.ABS.EXT.PIXEL.Aliased =
 //endregion metadata
 
 /**
- * Extends {@link processMoveCommand}.
+ * Extends {@link processMoveCommand}.<br>
  * Ensures when move routes are being processed, that we adjust the x,y coordinates.
  * @param {rm.types.EventCommand} command The commands associated with this movement.
  */
@@ -94,7 +92,7 @@ Game_Character.prototype.processMoveCommand = function(command)
 };
 
 /**
- * Extends {@link Game_CharacterBase.initMembers}.
+ * Extends {@link Game_CharacterBase.initMembers}.<br>
  * Includes this plugin's extra properties as well.
  */
 J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase.prototype.initMembers);
@@ -1147,7 +1145,7 @@ Game_Follower.prototype.pixelFaceCharacter = function(otherCharacter = $gamePlay
 };
 
 /**
- * Overwrites {@link Game_Player.checkEventTriggerHere}.
+ * Overrides {@link Game_Player.checkEventTriggerHere}.<br>
  * Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
  * @param {number[]} triggers The numeric triggers for this event.
  */
@@ -1166,7 +1164,7 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers)
 };
 
 /**
- * Extends {@link checkEventTriggerThere}.
+ * Extends {@link checkEventTriggerThere}.<br>
  * Includes the rounding of the x,y coordinates when checking event triggers for things infront of you.
  * @param {number[]} triggers The triggers associated with checking the event at the location.
  * TODO: does this actually need to round?
@@ -1189,7 +1187,7 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers)
 };
 
 /**
- * Extends {@link checkEventTriggerTouch}.
+ * Extends {@link checkEventTriggerTouch}.<br>
  * Handles the triggering of events by using a threshold-type formula to determine if actually touched.
  */
 J.ABS.EXT.PIXEL.Aliased.Game_Player.set('checkEventTriggerTouch', Game_Player.prototype.checkEventTriggerTouch);
@@ -1237,7 +1235,7 @@ Game_Player.prototype.updateDashing = function()
 };
 
 /**
- * Overwrites {@link Game_Player.moveByInput}.
+ * Overrides {@link Game_Player.moveByInput}.<br>
  * The meat and potatoes for pixel movement of the player.
  */
 Game_Player.prototype.moveByInput = function() 
@@ -1318,7 +1316,7 @@ Game_Player.prototype.moveByInput = function()
 };
 
 /**
- * Extends {@link #onStep}.
+ * Extends {@link #onStep}.<br>
  * Also processes on-step effects for the player.
  */
 J.ABS.EXT.PIXEL.Aliased.Game_Player.set('onStep', Game_Player.prototype.onStep);

@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v2.0.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
@@ -154,7 +152,7 @@ J.PASSIVE = {};
  */
 J.PASSIVE.Metadata = {};
 J.PASSIVE.Metadata.Name = `J-Passive`;
-J.PASSIVE.Metadata.Version = '1.1.0';
+J.PASSIVE.Metadata.Version = '2.0.0';
 
 /**
  * All regular expressions used by this plugin.
@@ -446,7 +444,7 @@ RPG_Class.prototype.extractUniqueEquippedPassiveStateIds = function()
 
 //region Game_Actor
 /**
- * Extends {@link #onSetup}.
+ * Extends {@link #onSetup}.<br>
  * Also refreshes the passive states on this battler for the first time.
  * @param {number} actorId The battler's id.
  */
@@ -489,7 +487,7 @@ Game_Actor.prototype.getPassiveStateSources = function()
 };
 
 /**
- * Extends {@link #traitObjects}.
+ * Extends {@link #traitObjects}.<br>
  * When considering traits, also include the actor's and party's passive states.
  */
 J.PASSIVE.Aliased.Game_Actor.set('traitObjects', Game_Actor.prototype.traitObjects);
@@ -509,7 +507,7 @@ Game_Actor.prototype.traitObjects = function()
 };
 
 /**
- * Extends {@link #onLearnNewSkill}.
+ * Extends {@link #onLearnNewSkill}.<br>
  * Triggers a refresh of passive states when learning a new skill.
  */
 J.PASSIVE.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewSkill);
@@ -523,7 +521,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
 };
 
 /**
- * Extends {@link #onForgetSkill}.
+ * Extends {@link #onForgetSkill}.<br>
  * Triggers a refresh of passive states when forgetting a skill.
  */
 J.PASSIVE.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetSkill);
@@ -537,7 +535,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId)
 };
 
 /**
- * Extends {@link #onEquipChange}.
+ * Extends {@link #onEquipChange}.<br>
  * Triggers a refresh of passive states when equipment changes.
  */
 J.PASSIVE.Aliased.Game_Actor.set('onEquipChange', Game_Actor.prototype.onEquipChange);
@@ -551,7 +549,7 @@ Game_Actor.prototype.onEquipChange = function()
 };
 
 /**
- * Extends {@link #onClassChange}.
+ * Extends {@link #onClassChange}.<br>
  * Triggers a refresh of passive states when the class changes.
  */
 J.PASSIVE.Aliased.Game_Actor.set('onClassChange', Game_Actor.prototype.onClassChange);
@@ -565,7 +563,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp)
 };
 
 /**
- * Extends {@link #getNotesSources}.
+ * Extends {@link #getNotesSources}.<br>
  * Includes passive skill states from this actor and also the party.
  * @returns {RPG_BaseItem[]}
  */
@@ -594,7 +592,7 @@ Game_Actor.prototype.getNotesSources = function()
 
 //region Game_Battler
 /**
- * Extends {@link #initMembers}.
+ * Extends {@link #initMembers}.<br>
  * Also initializes the passive states properties for this battler.
  */
 J.PASSIVE.Aliased.Game_BattlerBase.set('initMembers', Game_Battler.prototype.initMembers);
@@ -676,7 +674,9 @@ Game_Battler.prototype.addPassiveStateId = function(stateId, allowDuplicates = t
 Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 {
   // if we don't allow duplicates and already are have this stateId, then don't add it.
-  if (!allowDuplicates && this.getPassiveStateIds().has(stateId)) return false;
+  if (!allowDuplicates && this.getPassiveStateIds().includes(stateId)) return false;
+
+  // TODO: check for blacklisted ids as well.
 
   // we can add this stateId!
   return true;
@@ -689,19 +689,6 @@ Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 Game_Battler.prototype.getPassiveStates = function()
 {
   return this.getPassiveStateIds().map(this.state, this);
-};
-
-/**
- * Adds a state to the passive state cache of converted passive state ids.
- * @param {RPG_State} state The passive state.
- */
-Game_Battler.prototype.addPassiveState = function(state)
-{
-  // grab all the current cached passive states.
-  const cachedPassiveStates = this.getPassiveStates();
-
-  // add the given state to the cache.
-  cachedPassiveStates.push(state);
 };
 
 /**
@@ -874,7 +861,7 @@ Game_Battler.prototype.isPassiveState = function(stateId)
 };
 
 /**
- * Extends {@link #allStates}.
+ * Extends {@link #allStates}.<br>
  * Includes states from passive skills as well.
  * @returns {RPG_State[]}
  */
@@ -892,7 +879,7 @@ Game_Battler.prototype.allStates = function()
 };
 
 /**
- * Extends {@link #isStateAddable}.
+ * Extends {@link #isStateAddable}.<br>
  * Prevents adding states if they are identified as passive.
  */
 J.PASSIVE.Aliased.Game_Battler.set('isStateAddable', Game_Battler.prototype.isStateAddable);
@@ -906,7 +893,7 @@ Game_Battler.prototype.isStateAddable = function(stateId)
 };
 
 /**
- * Extends {@link #onStateAdded}.
+ * Extends {@link #onStateAdded}.<br>
  * Triggers a refresh of passive states when a state is added.
  * @param {number} stateId The state id being added.
  */
@@ -921,7 +908,7 @@ Game_Battler.prototype.onStateAdded = function(stateId)
 };
 
 /**
- * Extends {@link #removeState}.
+ * Extends {@link #removeState}.<br>
  * Prevent removal of states if they are identified as passive.
  */
 J.PASSIVE.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState);
@@ -935,7 +922,7 @@ Game_Battler.prototype.removeState = function(stateId)
 };
 
 /**
- * Extends {@link #onStateRemoval}.
+ * Extends {@link #onStateRemoval}.<br>
  * Triggers a refresh of passive states when a state is removed.
  * @param {number} stateId The state id being removed.
  */
@@ -952,7 +939,7 @@ Game_Battler.prototype.onStateRemoval = function(stateId)
 
 //region Game_Enemy
 /**
- * Extends {@link #onSetup}.
+ * Extends {@link #onSetup}.<br>
  * Also refreshes the passive states on this battler for the first time.
  * @param {number} enemyId The battler's id.
  */
@@ -967,7 +954,7 @@ Game_Enemy.prototype.onSetup = function(enemyId)
 };
 
 /**
- * Extends {@link #traitObjects}.
+ * Extends {@link #traitObjects}.<br>
  * When considering traits, also include the enemy's passive states.
  */
 J.PASSIVE.Aliased.Game_Enemy.set('traitObjects', Game_Enemy.prototype.traitObjects);
@@ -984,7 +971,7 @@ Game_Enemy.prototype.traitObjects = function()
 };
 
 /**
- * Extends {@link #getNotesSources}.
+ * Extends {@link #getNotesSources}.<br>
  * Includes passive states from this enemy.
  * @returns {RPG_BaseItem[]}
  */
@@ -1010,7 +997,7 @@ Game_Enemy.prototype.getNotesSources = function()
 
 //region Game_Party
 /**
- * Extends {@link #initialize}.
+ * Extends {@link #initialize}.<br>
  * Includes our custom members as well.
  */
 J.PASSIVE.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
@@ -1219,7 +1206,7 @@ Game_Party.prototype.getAllStackablePassiveStateIds = function()
 };
 
 /**
- * Extends {@link #gainItem}.
+ * Extends {@link #gainItem}.<br>
  * Also refreshes the passive states for the party.
  * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
  * @param {number} amount The amount to modify the quantity by.
@@ -1238,7 +1225,7 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
 
 //region Window_MoreEquipData
 /**
- * Extends {@link #addJabsEquipmentData}.
+ * Extends {@link #addJabsEquipmentData}.<br>
  * Includes additional entries about passive states provided by the equipment.
  */
 J.PASSIVE.Aliased.Window_MoreEquipData.set('addJabsEquipmentData', Window_MoreEquipData.prototype.addJabsEquipmentData);

@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Sat Jan 07 2023 11:45:16 GMT-0800 (Pacific Standard Time)  */
-
 //region introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 HUD-BOSS] A HUD frame that displays a single target, like a boss.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-ABS
  * @base J-HUD
@@ -22,6 +20,10 @@
  * JABS. It generates a window on the map displaying a single target at a much
  * bigger scale than the J-HUD-TargetFrame does.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 
 /**
@@ -33,7 +35,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.2';
+  const requiredBaseVersion = '2.1.3';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -380,7 +382,7 @@ class BossFrameManager
 
 //region Scene_Map
 /**
- * Extends {@link #initHudMembers}.
+ * Extends {@link #initHudMembers}.<br>
  * Includes initialization of the boss frame members.
  */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
@@ -404,7 +406,7 @@ Scene_Map.prototype.initHudMembers = function()
 };
 
 /**
- * Extends {@link #createAllWindows}.
+ * Extends {@link #createAllWindows}.<br>
  * Includes creation of the boss frame window.
  */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
@@ -491,7 +493,7 @@ Scene_Map.prototype.setBossFrameWindow = function(window)
 //endregion boss frame
 
 /**
- * Extends {@link #updateHudFrames}.
+ * Extends {@link #updateHudFrames}.<br>
  * Includes updating the target frame.
  */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);

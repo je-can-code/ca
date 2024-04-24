@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Mon Jan 02 2023 10:29:40 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.1 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @help
  * ============================================================================
@@ -147,7 +145,7 @@ Game_System.prototype.canCallOmnipediaScene = function()
 
 //region Scene_Map
 /**
- * Extends {@link #createJabsAbsMenuMainWindow}.
+ * Extends {@link #createJabsAbsMenuMainWindow}.<br>
  * Adds additional handling in the list for the omnipedia command.
  */
 J.OMNI.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.createJabsAbsMenuMainWindow);
@@ -580,7 +578,7 @@ class Scene_Omnipedia extends Scene_MenuBase
 if (J.ABS)
 {
   /**
-   * Extends {@link #buildCommands}.
+   * Extends {@link #buildCommands}.<br>
    * Adds the sdp command at the end of the list.
    * @returns {BuiltWindowCommand[]}
    */
@@ -639,7 +637,7 @@ if (J.ABS)
 
 //region Window_MenuCommand
 /**
- * Extends {@link #makeCommandList}.
+ * Extends {@link #makeCommandList}.<br>
  * Also adds the omnipedia command.
  */
 J.OMNI.Aliased.Window_MenuCommand.set('makeCommandList', Window_MenuCommand.prototype.makeCommandList);
@@ -705,7 +703,7 @@ class Window_OmnipediaList extends Window_Command
   }
 
   /**
-   * Implements {@link #makeCommandList}.
+   * Implements {@link #makeCommandList}.<br>
    * Creates the command list of omnipedia entries available for this window.
    */
   makeCommandList()
@@ -751,7 +749,7 @@ class Window_OmnipediaList extends Window_Command
   }
 
   /**
-   * Overwrites {@link #itemHeight}.
+   * Overrides {@link #itemHeight}.<br>
    * Makes the command rows bigger so there can be additional lines.
    * @returns {number}
    */
@@ -775,7 +773,7 @@ class Window_OmnipediaListHeader extends Window_Base
   }
 
   /**
-   * Implements {@link Window_Base.drawContent}.
+   * Implements {@link Window_Base.drawContent}.<br>
    * Draws a header and some detail for the omnipedia list header.
    */
   drawContent()

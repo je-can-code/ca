@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:40 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.0.1 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
  * This plugin extends the functionality of skills. It features additional
@@ -176,6 +174,13 @@
  * When using non-JABS, this applies when a skill is being executed against a
  * target. This happens regardless the outcome of the skill.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Fixed reference error when attempting to extend skills w/ on-hit effects.
+ *    Retroactively added this CHANGELOG.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 
 //region Metadata
@@ -242,7 +247,7 @@ class OverlayManager
     // if we don't have a caster for some reason, don't process anything.
     if (!caster)
     {
-      console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.`);
+      console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.<br>`);
       return $dataSkills[skillId];
     }
 
@@ -991,7 +996,7 @@ class OverlayManager
 
 //region Game_Action
 /**
- * Overwrites {@link #setSkill}.
+ * Overrides {@link #setSkill}.<br>
  * If a caster is available to this action, then update the udnerlying skill with
  * the overlayed skill instead.
  */
@@ -1016,7 +1021,7 @@ Game_Action.prototype.setSkill = function(skillId)
 };
 
 /**
- * Overwrites {@link #setItemObject}.
+ * Overrides {@link #setItemObject}.<br>
  * If a caster is available to this action, then update the underlying item with the data.
  */
 J.EXTEND.Aliased.Game_Action.set('setItemObject', Game_Action.prototype.setItemObject);
@@ -1037,7 +1042,7 @@ Game_Action.prototype.setItemObject = function(itemObject)
 };
 
 /**
- * Extends {@link #apply}.
+ * Extends {@link #apply}.<br>
  * Also applies on-hit states.
  */
 J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
@@ -1078,7 +1083,7 @@ Game_Action.prototype.onHitSelfStates = function()
 };
 
 /**
- * Extends {@link #applyItemUserEffect}.
+ * Extends {@link #applyItemUserEffect}.<br>
  * Also applies on-cast states.
  */
 J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.applyItemUserEffect);
@@ -1140,23 +1145,20 @@ Game_Action.prototype.selfStateSources = function()
 /**
  * Applies the given states to the target.
  * @param target {Game_Actor|Game_Enemy} The target to apply states to.
- * @param stateChances {JABS_OnChanceEffect[]} The various states to potentially apply.
+ * @param jabsOnChanceEffects {JABS_OnChanceEffect[]} The various states to potentially apply.
  */
-Game_Action.prototype.applyStates = function(target, stateChances)
+Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects)
 {
-  if (stateChances.length)
+  if (jabsOnChanceEffects.length)
   {
     // iterate over each of them and see if we should apply them.
-    stateChances.forEach(stateChance =>
+    jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
     {
-      // extract the data points from the on-chance effect.
-      const { shouldTrigger, skillId } = stateChance;
-
       // roll the dice to see if the on-chance effect applies.
-      if (shouldTrigger())
+      if (jabsOnChanceEffect.shouldTrigger())
       {
         // apply the given state to the caster, with the caster as the attacker.
-        target.addState(skillId, this.subject());
+        target.addState(jabsOnChanceEffect.skillId, this.subject());
       }
     });
   }

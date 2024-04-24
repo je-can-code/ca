@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Wed Dec 28 2022 08:49:41 GMT-0800 (Pacific Standard Time)  */
-
 //region Introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 CMS_S] A redesign of the status menu.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
@@ -948,7 +946,7 @@ class Window_StatusParameters extends Window_Base
   /**
    * Creates a new parameter object that contains the necessary data to draw it into the window.
    * @param {number} longParamId The "long" parameter id.
-   * @returns {StatusParameter} The compiled {@link StatusParameter}.
+   * @returns {StatusParameter} The compiled {@link StatusParameter}.<br>
    */
   makeParameter(longParamId)
   {

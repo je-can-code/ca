@@ -1,12 +1,10 @@
-/*  BUNDLED TIME: Sun Jan 15 2023 07:52:56 GMT-0800 (Pacific Standard Time)  */
-
 //region introduction
 /*:
  * @target MZ
  * @plugindesc
  * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
- * @url https://github.com/je-can-code/ca
+ * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @base J-Base
  * @base J-HUD
