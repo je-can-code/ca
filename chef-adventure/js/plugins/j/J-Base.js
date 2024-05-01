@@ -2510,10 +2510,10 @@ class RPG_Class extends RPG_Base
     // map the class data to this object.
     this.expParams = classData.expParams;
     this.learnings = classData.learnings
-    .map(learning => new RPG_ClassLearning(learning));
+      .map(learning => new RPG_ClassLearning(learning));
     this.params = classData.params;
     this.traits = classData.traits
-    .map(trait => new RPG_Trait(trait));
+      .map(trait => new RPG_Trait(trait));
   }
 }
 //endregion RPG_Class

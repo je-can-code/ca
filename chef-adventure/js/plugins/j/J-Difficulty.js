@@ -1773,7 +1773,7 @@ Game_Enemy.prototype.exp = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.exp / 100;
+  const multiplier = appliedDifficulty.rewards.exp / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -1793,7 +1793,7 @@ Game_Enemy.prototype.gold = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.gold / 100;
+  const multiplier = appliedDifficulty.rewards.gold / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -1817,7 +1817,7 @@ if (J.DROPS)
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
-    const multiplier = appliedDifficulty.drops / 100;
+    const multiplier = appliedDifficulty.rewards.drops / 100;
 
     // return the rounded product of the multiplier and the original value.
     return Math.round(originalValue * multiplier);
@@ -1841,7 +1841,7 @@ if (J.SDP)
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
-    const multiplier = appliedDifficulty.sdp / 100;
+    const multiplier = appliedDifficulty.rewards.sdp / 100;
 
     // return the rounded product of the multiplier and the original value.
     return Math.round(originalValue * multiplier);
@@ -1864,7 +1864,7 @@ Game_Map.prototype.encounterStep = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.encounters / 100;
+  const multiplier = appliedDifficulty.rewards.encounters / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
