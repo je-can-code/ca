@@ -1,5 +1,9 @@
 # Nodes
 
+> NOTE: This is WIP; I am writing it for myself at this time so I can return back to this more seamlessly later.
+>   This will likely be enhanced as a full guide as time goes on. If you found this without me personally directing
+>   you to it, read at your own discretion!
+
 "Nodes" are the fancy name given to the "panels" of my "Stat Distribution Panel System" aka SDP system. A single "Node"
 represents a collection of parameters that will increase or decrease as the node is leveled up via a node-specific
 currency.
@@ -17,6 +21,7 @@ Adventure, Nodes are MOSTLY acquired by chopping up monsters. As such, Nodes are
 monsters from which they come from. This means that (in Chef Adventure at least), Nodes also have "families" and share
 some characteristics! There are exceptions to the rule, and we will actually start with those.
 
+---
 ### Family: Enchanter
 #### Core Parameters
 This family does not have core parameters.
@@ -36,6 +41,7 @@ ranked up throughout the game, and mastering a panel will unlock another.
 | `ENC_4` | Sorcel Pledge     |
 | `ENC_5` | Arcane Oath       |
 
+---
 ### Family: Fighter
 #### Core Parameters
 This family does not have core parameters.
@@ -49,12 +55,13 @@ ranked up throughout the game, and mastering a panel will unlock another.
 #### Implemented Nodes:
 | Key     | Name              |
 |---------|-------------------|
-| `ENC_1` | Enchanter's Guile |
-| `ENC_2` | Mages' Hands      |
-| `ENC_3` | Warlock's Rage    |
-| `ENC_4` | Sorcel Pledge     |
-| `ENC_5` | Arcane Oath       |
+| `FGT_1` | Fighter's Spirit  |
+| `FGT_2` | Solders' Grit     |
+| `FGT_3` | Warrior's Edge    |
+| `FGT_4` | Berserker Pride   |
+| `FGT_5` | Oath of Vengeance |
 
+---
 ### Family: Ghosty
 #### Core Parameters
 - `Endurance`

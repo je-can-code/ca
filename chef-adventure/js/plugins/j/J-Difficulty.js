@@ -1324,7 +1324,7 @@ J.DIFFICULTY.Aliased = {
 /**
  * Plugin command for calling the Difficulty scene/menu.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", () =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "callDifficultyMenu", () =>
 {
   Scene_Difficulty.callScene();
 });
@@ -1332,7 +1332,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", 
 /**
  * Plugin command for calling the locking one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "lockDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "lockDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1345,7 +1345,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "lockDifficulty", args
 /**
  * Plugin command for calling the unlocking one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "unlockDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1358,7 +1358,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", ar
 /**
  * Plugin command for hiding one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "hideDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1371,7 +1371,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args
 /**
  * Plugin command for unhiding one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "unhideDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1384,7 +1384,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", ar
 /**
  * Plugin command for enabling one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "enableDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1397,7 +1397,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", ar
 /**
  * Plugin command for disabling one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "disableDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1410,7 +1410,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", a
 /**
  * Plugin command for modifying the max layer points.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "modifyLayerMax", args =>
 {
   const { amount } = args;
   const parsedAmount = parseInt(amount);
@@ -1464,10 +1464,14 @@ class DifficultyManager
   static availableDifficulties()
   {
     // a filtering function for the list of difficulties to populate the list.
+    /** @param {DifficultyLayer} difficultyLayer */
     const filtering = difficultyLayer =>
     {
       // if the difficulty isn't visible, it isn't "available".
       if (difficultyLayer.isHidden()) return false;
+
+      // if a difficulty isn't unlocked, it isn't "available".
+      if (!difficultyLayer.isUnlocked()) return false;
 
       // this layer is available.
       return true;
