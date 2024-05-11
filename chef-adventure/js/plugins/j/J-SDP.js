@@ -2202,8 +2202,8 @@ Game_Battler.prototype.sdpMultiplier = function()
  */
 Game_BattlerBase.prototype.critSdpBonuses = function(critParamId, baseParam)
 {
-    // by default, there are no crit bonuses at the root level.
-    return 0;
+  // by default, there are no crit bonuses at the root level.
+  return 0;
 };
 //endregion Game_BattlerBase
 

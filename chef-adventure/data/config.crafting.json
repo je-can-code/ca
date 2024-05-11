@@ -4631,7 +4631,7 @@
     {
       "name": "Bar's Tender",
       "key": "cook-drink",
-      "iconIndex": 0,
+      "iconIndex": 2091,
       "description": "One must understand that drinks can make or break the tension like a hot knife through butter.\r\nOr through a hot rum cocktail, or even a cold glass of chocolate malk.",
       "unlockedByDefault": false
     },

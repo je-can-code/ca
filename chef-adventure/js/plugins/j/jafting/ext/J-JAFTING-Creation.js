@@ -967,7 +967,7 @@ class CraftingRecipe
 }
 //endregion CraftingRecipe
 
-//region CraftRecipe_Tracking
+//region RecipeTracking
 /**
  * A data model representing the tracking of a single crafting recipe key.
  */
@@ -1059,7 +1059,7 @@ RecipeTracking.prototype.craftingProficiency = function()
 {
   return this.proficiency;
 };
-//endregion CraftRecipe_Tracking
+//endregion RecipeTracking
 
 //region annoations
 /*:
@@ -1860,6 +1860,45 @@ Game_Party.prototype.getUnlockedCategories = function()
 };
 
 /**
+ * Gets all unlocked recipes that are a part of a given category.
+ * @param {string} categoryKey The category to get all unlocked recipes for.
+ * @returns {CraftingRecipe[]}
+ */
+Game_Party.prototype.getUnlockedRecipesByCategory = function(categoryKey)
+{
+  const recipes = this.getUnlockedRecipes();
+  const unlocked = recipes.filter(recipe => recipe.categoryKeys.includes(categoryKey));
+
+  return unlocked;
+};
+
+/**
+ * Gets all unlocked recipes that are a part of a given category that have
+ * also been crafted at least once.
+ * @param {string} categoryKey The category to get all unlocked recipes for.
+ * @returns {CraftingRecipe[]}
+ */
+Game_Party.prototype.getCraftedRecipeCountByCategoryKey = function(categoryKey)
+{
+  // get all unlocked recipes of a given category.
+  const unlocked = this.getUnlockedRecipesByCategory(categoryKey);
+
+  if (!unlocked.length) return 0;
+
+  // grab the keys of all the unlocked recipes.
+  const keys = unlocked.map(recipe => recipe.key);
+
+  // filter the unlocked recipe trackings to the ones that are relevant and crafted.
+  const trackings = this
+    .getUnlockedRecipeTrackings()
+    .filter(recipe => keys.includes(recipe.key))
+    .filter(recipe => recipe.hasBeenCrafted());
+
+  // return what we found.
+  return trackings.length;
+};
+
+/**
  * Returns a map of all jafting recipes keyed by the recipe's key.
  * @return {Map<string, CraftingRecipe>}
  */
@@ -2054,7 +2093,7 @@ Game_Party.prototype.lockAllRecipes = function()
 Game_Party.prototype.canGainEntry = function(name)
 {
   // skip entries that are null.
-  if (name == null) return false;
+  if (name === null) return false;
 
   // skip entries with empty names.
   if (name.trim().length === 0) return false;
@@ -2093,6 +2132,22 @@ Game_Party.prototype.unlockEverythingCompletely = function()
   this.unlockAllRecipes();
   this.unlockAllCategories();
   this.revealAllKnownRecipes();
+};
+
+Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(variableId, ...categoryKeys)
+{
+  // initialize with zero crafted entries.
+  let count = 0;
+
+  // iterate over each of the category keys.
+  categoryKeys.forEach(categoryKey =>
+  {
+    // add the crafted amount for each category passed.
+    count += this.getCraftedRecipeCountByCategoryKey(categoryKey);
+  }, this);
+
+  // update the variable requested with the total count.
+  $gameVariables.setValue(variableId, count);
 };
 //endregion Game_Party
 
