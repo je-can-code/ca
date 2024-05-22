@@ -4,17 +4,20 @@
 >   This will likely be enhanced as a full guide as time goes on. If you found this without me personally directing
 >   you to it, read at your own discretion!
 
-## Overview
+### Overview
 Chapter 1 is the main introductory chapter. It'll cover all the way up through an introduction to the hub city of the
 game, Raevula. At this point, it isn't really made clear that the town is the "hub city" of the game, but that will be
 gradually introduced as the player is continually returned to the city.
+
+> All named enemies except for the tutorial named enemy have a (50%) chance to drop either blueprint scrap available in
+> this chapter. Before you ask, you could potentially get both from a single named enemy.
 
 | Chapter 1 Guide                                           |
 |-----------------------------------------------------------|
 | [Step 1: Learning from the Lair of Erocian Death](#step1) |
 | [Step 2: Going to Raevula](#step2)                        |
 | [Step 3: Navigating Raevula](#step3)                      |
-
+| [Step 4: First Spelunk in the Pearl Salt Mines](#step4)   |
 
 ### <a name="step1" /> Step 1: Learning from the Lair of Erocian Death
 
@@ -24,13 +27,11 @@ is to introduce the player to the basic controls.
 
 As such, the player will be forced to navigate forward through the cave to continue the story.
 
-> NOTE: the "Ghosty" and "Gilbert Von Ghosty" both drop the same Node.
-
 | name                | drop % | description                                                   |
-|---------------------|--------|---------------------------------------------------------------|
-| Ghosty              | 30%    | Reduces defenses and aggro generation, but increases offense. |
-| !Gilbert Von Ghosty | 50%    | Reduces defenses and aggro generation, but increases offense. |
-| Erocian Slime*      | `--`   | `This enemy does not drop a panel.`                           |
+|---------------------|:------:|---------------------------------------------------------------|
+| Ghosty              |  30%   | Reduces defenses and aggro generation, but increases offense. |
+| !Gilbert Von Ghosty |  50%   | (an improved drop rate of the Ghosty's panel)                 |
+| Erocian Slime*      |  `--`  | `This enemy does not drop a panel.`                           |
 
 #### Room 1: Where you start
 Nothing special happens here. It just opens and informs the player that they should proceed. The player should also be
@@ -93,12 +94,12 @@ well be on your way to the "hub city"!
 >   the story, it is almost required that the player farm Nodes to some extent.
 
 | name              | drop % | description                                                                       |
-|-------------------|--------|-----------------------------------------------------------------------------------|
-| Needler           | 8%     | Grants a mobility skill upon mastery, along with other useful offensive stats.    |
-| Wolftrap          | 5%     | Improves Max MP and other supporting magi-centric stats.                          |
-| Bearcat           | 5%     | Both offensive and defensive parameters; a great beginner node for any character. |
-| Kappa             | 2%     | A rare family of panels that grants fortune and accuracy and a new skill.         |
-| Erocian Slimette* | 2%     | All in on survivability with Max HP and regen.                                    |
+|-------------------|:------:|-----------------------------------------------------------------------------------|
+| Needler           |   8%   | Grants a mobility skill upon mastery, along with other useful offensive stats.    |
+| Wolftrap          |   5%   | Improves Max MP and other supporting magi-centric stats.                          |
+| Bearcat           |   5%   | Both offensive and defensive parameters; a great beginner node for any character. |
+| Kappa             |   2%   | A rare family of panels that grants fortune and accuracy and a new skill.         |
+| Erocian Slimette* |   2%   | All in on survivability with Max HP and regen.                                    |
 
 #### Map 1: Adventurer's Road
 This is the first map including proper greenery, and thus including a much more upbeat BGM (thanks to Ys9)! Here, the
@@ -191,7 +192,104 @@ Enter into the building, and after a few steps, `Jerald` will chime in to let yo
 "point of no return". Though you will eventually return, you'll be forced to go through an entire dungeon without being
 able to restock on items or other craftable goodies.
 
-Once ready, proceed past the "point of no return" and watch some story interactions 
+Once ready, proceed past the "point of no return" and watch some story interactions between `Jerald` and `Rupert`, and
+the Mayor and his Page.
+
+Ultimately, you'll be led to "the Western Wing", where the Page will mention that there were adventurers that
+previously came through here, but disappeared mysteriously. When `Jerald` notices that exiting the room is impossible
+thanks to the overpowered guard, you'll be prompted to explore the room.
+
+> It is encouraged to check out the two shelves right of the cooking station in this room. You'll get a bundle of free
+> cooking equipment and ingredients to craft some food for the dungeon ahead!
+
+When you're ready to move on, interact with the twinkling statue in the top-right area of the room, specifically the
+**upper left statue**. `Rupert` will notice that the statue has been moved, so obviously `Jerald` should move it, too.
+So he does, exposing a patchwork mess of a wall that you'll get to knock down through combat, twice. Jumping down the
+hole will lead to the first real dungeon of the game, `The Pearl Salt Mines`.
+
+### <a name="step4" /> Step 4: First Spelunk in the Pearl Salt Mines
+
+#### Recommended Level: 7-9
+Since this is the first on-your-own dungeon, going forward there will be a level recommendation for each area as you
+progress so you can ensure you're not getting totally stomped, or steamrolling the place (of course you may end up
+steamrolling the place thanks to `nodes`, but level also makes a significant difference in damage given/taken!).
+
+The level recommendation for the first pass through this dungeon is somewhere between 7 and 9. The lowest level enemy
+here is the `Cave Bat` at level 6, while the highest level enemies are the `Minitaur` and `Wraith` at level 10. As long
+as you are strong enough to hack up the bats without much issue, you'll probably be alright chopping up the rest of the
+enemies as you progress.
+
+This dungeon is infamously long and drawn out for a first dungeon, but the enemies will only get easier as you grow
+stronger and stronger thanks to your `node junction system` and levels.
+
+> TIP: It is strongly recommended to AVOID AT ALL COSTS the orc-looking enemies strewn throughout the mines!
+>   They are intentionally too strong for you to defeat now, but you'll come back later and can farm them for their
+>   nodes to your heart's content. Due to this, their monster information will be absent from this step's walkthrough.
+
+| name           | drop % | description                                                                   |
+|----------------|:------:|-------------------------------------------------------------------------------|
+| Cave Bat       |   5%   | A simple panel with speed, but also the elusive TP Regen.                     |
+| Will 'o' Wisp  |   1%   | The first legendary panel, bestowing tremendous magical offensive powers!     |
+| Minitaur       |   5%   | Primarily a physical offensive panel, but grants a bonus to EXP gains.        |
+| Wraith         |   8%   | A panel bearing high amounts of magic resistance and surprisibly, crit block. |
+| !Spoop Maestro |   8%   | `an improved drop rate of the Wraith's panel`                                 |
+
+##### Time-sensitive Side quest: Loot all four of the previous fallen adventurers from the `West Wing`
+This side quest can be activated by interacting with any of the four fallen heroes. The goal of the side quest is
+pretty simple: just interact with all four of the fallen heroes that are strewn across the various maps that make up
+the first pass through the mines. For brevity, the four can be found in the following maps that will be walked through
+below:
+- `Mansion Entrance`: "The Generic Warrior" (`Javelin` and food)
+- `Northwestern Depths`: "The Primary Mage" (`Dark Ball` and food)
+- `Double Vision`: "The Slow and Heavy Hitter" (`Basic Arm` and food)
+- `Downward Spiral`: "The Primary Healer" (`Old Tome` and food)
+
+> If you choose not to do this before exiting the mines, you will not ever be able to get this loot again. There is
+> nothing unique amidst this loot, just craftable weapons and an offhand, but why pass up free loot?
+
+#### Map: Mansions Entrance
+You land here after escaping the West Wing in `Raevula`. After a short discussion between `Rupert` and `Jerald`, you
+will also be forced to notice your first accomplishable side quest described above. You can choose not to interact with
+them if you prefer, but it is free loot, so it is encouraged.
+
+By interacting with all four, the quest will be completed. 
+
+done with mines around level 11-14.
+
+### <a name="step5" /> Step 5: First Stroll Through the Forest of Dreams
+
+A dungeon immediately after a dungeon isn't easy, but at this point, your goal is to explore the depths of `The Forest
+of Dreams`. "The depths of the forest" defined as trying to head not-north. Heading north in general will eventually
+lead you back to `Raevula` where you can restock, hit up Viktor for some smithing, or otherwise.
+
+| name               | drop % | description                                                                          |
+|--------------------|:------:|--------------------------------------------------------------------------------------|
+| Fungrowth          |   5%   | Purely offensive, adding both Power and Force at the cost of item effectiveness.     |
+| Jelly              |   1%   | Magi-centric with all of Max MP, Magi Cost, and MP Regen among other things.         |
+| Dryad              |   5%   | Offensive panel with high Force gains, but also increases Aggro.                     |
+| !Queen of Stone    |  50%   | `an improved drop rate of the Dryad's panel`                                         |
+| Bandit             |   8%   | A very fast panel with a bit of luck and Crit Dodge.                                 |
+| Gluttonwolf (Boss) |  `--`  | `This enemy does not drop a panel.`                                                  |
+| Gluttonwolf        |   1%   | Extremely rare, but bears a lot of supporting stats, including TP Regen and Crit Amp.|
+
+
+
+done with forest at around level 18-20.
+
+### <a name="step6" /> Step 6: First Dive Into the Forlorn Basin
+
+The `Forlorn Basin` is another dungeon-within-a-dungeon. To reach there, just go directly south 2 maps from `Millie`
+the "Nature Lover", and there will be a cave that previously was unexplorable due to the path being blocked by `The
+Alchemist`, but he is notably missing, granting entry to the dungeon.
+
+| name           | drop % | description                                                                       |
+|----------------|:------:|-----------------------------------------------------------------------------------|
+| Crawler        |   4%   | A rare panel that trades Power for improved Hit and resistance to Environ Damage. |
+| Goobat         |  10%   | An unusual panel that reduces speed, but improves HP/TP regen and healing rate.   |
+| Will 'o' Wisp  |   1%   | The first legendary panel, bestowing tremendous magical offensive powers!         |
+| !Blister       |  50%   | `an improved drop rate of the Will 'o' Wisp's panel`                              |
+| Stonefur       |   4%   | A physically defensive panel that also gives a buff to ones healing rate.         |
+| Pudding (Boss) |  `--`  | `This enemy does not drop a panel.`                                               |
 
 ---
 [1]: ../unlockables/flux-drives

@@ -2494,26 +2494,34 @@ PluginManager.registerCommand(
   J.ABS.Metadata.Name,
   "Spawn Enemy",
   args =>
-{
-  // extract the eventId and coordinates from the plugin args.
-  const { x, y, enemyEventId, spawnAnimationId } = args;
-
-  // translate the args.
-  const parsedX = parseInt(x);
-  const parsedY = parseInt(y);
-  const parsedEnemyEventId = parseInt(enemyEventId);
-  const parsedAnimationId = parseInt(spawnAnimationId);
-
-  // spawn the enemy on the map.
-  const addedEnemy = $jabsEngine.addEnemyToMap(parsedX, parsedY, parsedEnemyEventId);
-
-  // check if there is a spawn animation.
-  if (parsedAnimationId)
   {
-    // execute the animation on the newly spawned enemy.
-    setTimeout(() => addedEnemy.requestAnimation(parsedAnimationId), 50);
-  }
-});
+  // extract the eventId and coordinates from the plugin args.
+    const { x, y, enemyEventId, spawnAnimationId } = args;
+
+    // translate the args.
+    const parsedX = parseInt(x);
+    const parsedY = parseInt(y);
+    const parsedEnemyEventId = parseInt(enemyEventId);
+    const parsedAnimationId = parseInt(spawnAnimationId);
+
+    // spawn the enemy on the map.
+    const addedEnemy = $jabsEngine.addEnemyToMap(parsedX, parsedY, parsedEnemyEventId);
+
+    // check if there is a spawn animation.
+    if (parsedAnimationId)
+    {
+      if (!addedEnemy)
+      {
+        console.error('enemy failed to be dynamically generated.');
+        console.warn(addedEnemy);
+        
+        return;
+      }
+
+      // execute the animation on the newly spawned enemy.
+      setTimeout(() => addedEnemy.requestAnimation(parsedAnimationId), 50);
+    }
+  });
 
 /**
  * Registers a plugin command for dynamically spawning loot onto the map.

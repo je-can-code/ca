@@ -469,7 +469,7 @@ class MapLogBuilder
     const defender = this.#wrapName(targetName, 16);
 
     // construct the message.
-    const message = `Party cycled to ${defender}.<br>`;
+    const message = `Party cycled to ${defender}.`;
 
     // assign the message to this log.
     this.setMessage(message);
