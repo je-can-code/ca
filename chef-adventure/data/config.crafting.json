@@ -1695,7 +1695,7 @@
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
       "categoryKeys": [
-        "smith-blade"
+        "smith-spear"
       ],
       "tools": [
         {
@@ -1784,7 +1784,7 @@
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
       "categoryKeys": [
-        "smith-blade"
+        "smith-spear"
       ],
       "tools": [
         {
@@ -3018,6 +3018,466 @@
       ]
     },
     {
+      "name": "===NEW RECIPE===",
+      "key": "_UPGRADES",
+      "iconIndex": 0,
+      "description": "a new recipe, ripe for a plump and savory definition.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "up-iron",
+      "iconIndex": 0,
+      "description": "Smelts raw iron ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 31,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-silver",
+      "iconIndex": 0,
+      "description": "Smelts raw silver ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 33,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-bleu",
+      "iconIndex": 0,
+      "description": "Smelts raw bleu ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 35,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-sandwraith",
+      "iconIndex": 0,
+      "description": "Smelts raw sandwraith ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 36,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 37,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-engle",
+      "iconIndex": 0,
+      "description": "Smelts raw engle ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 38,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-deep",
+      "iconIndex": 0,
+      "description": "Smelts raw deep ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 40,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 41,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-might",
+      "iconIndex": 0,
+      "description": "Smelts raw might ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 42,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 43,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-ultanium",
+      "iconIndex": 0,
+      "description": "Smelts raw ultanium ore into refined ingots.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 44,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 45,
+          "type": "i",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-oak",
+      "iconIndex": 0,
+      "description": "Shaves oak into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 48,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-dreamwood",
+      "iconIndex": 0,
+      "description": "Shaves dreamwood into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 49,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 50,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-negapine",
+      "iconIndex": 0,
+      "description": "Shaves negapine into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 51,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 52,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-grimwood",
+      "iconIndex": 0,
+      "description": "Shaves grimwood into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 53,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 54,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-subwood",
+      "iconIndex": 0,
+      "description": "Shaves subwood into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 55,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 56,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "up-heartwood",
+      "iconIndex": 0,
+      "description": "Shaves heartwood into insanely thin slices of paper.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-upgrade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 57,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 58,
+          "type": "i",
+          "count": 10
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "_PATTERNS",
       "iconIndex": -1,
@@ -3152,6 +3612,48 @@
     },
     {
       "name": "",
+      "key": "a-off-light-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 3,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 23,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 4,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "a-off-medium-1",
       "iconIndex": -1,
       "description": "",
@@ -3266,6 +3768,48 @@
       "outputs": [
         {
           "id": 13,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-off-medium-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 13,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 14,
           "type": "a",
           "count": 1
         }
@@ -3399,6 +3943,58 @@
     },
     {
       "name": "",
+      "key": "a-off-heavy-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 23,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 24,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "a-body-light-1",
       "iconIndex": -1,
       "description": "",
@@ -3518,6 +4114,53 @@
       "outputs": [
         {
           "id": 33,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-body-light-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 33,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 34,
           "type": "a",
           "count": 1
         }
@@ -3651,6 +4294,38 @@
     },
     {
       "name": "",
+      "key": "a-body-medium-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 43,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "outputs": [
+        {
+          "id": 44,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "a-body-heavy-1",
       "iconIndex": -1,
       "description": "",
@@ -3767,6 +4442,53 @@
     },
     {
       "name": "",
+      "key": "a-body-heavy-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 53,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 418,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 54,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "a-feet-light-1",
       "iconIndex": -1,
       "description": "",
@@ -3858,6 +4580,53 @@
       "outputs": [
         {
           "id": 63,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-light-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 63,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 64,
           "type": "a",
           "count": 1
         }
@@ -3984,6 +4753,63 @@
       "outputs": [
         {
           "id": 73,
+          "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-feet-heavy-4",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 74,
           "type": "a",
           "count": 1
         }
@@ -4678,6 +5504,13 @@
       "unlockedByDefault": false
     },
     {
+      "name": "Material Mastery",
+      "key": "material-mastery",
+      "iconIndex": 73,
+      "description": "Mastery over materials is paramount in this land.\r\nThis will cover all your crafty needs regarding material upgrades.",
+      "unlockedByDefault": false
+    },
+    {
       "name": "Sole Defender",
       "key": "survive-off",
       "iconIndex": 462,
@@ -4696,6 +5529,13 @@
       "key": "survive-feet",
       "iconIndex": 472,
       "description": "A light-hearted adventurer is he who started the \\C[1]Fabulous Footwork\\C[0] club.\r\nOnly those most dedicated to comfort and protection of the feet dare apply here.",
+      "unlockedByDefault": false
+    },
+    {
+      "name": "===NEW CATEGORY===",
+      "key": "survive-",
+      "iconIndex": 0,
+      "description": "",
       "unlockedByDefault": false
     },
     {

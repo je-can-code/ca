@@ -2033,7 +2033,7 @@
     "iconIndex": 2188,
     "unlockedByDefault": false,
     "description": "When the flames caress you, the power swells within.|It might be something else swelling, though.",
-    "topFlavorText": "Learn the skill \"Willow's Flame\" when this panel is maxed.",
+    "topFlavorText": "Learn the skill \\Skill[214] when this node is maxed.",
     "maxRank": 30,
     "baseCost": 70.0,
     "flatGrowthCost": 30.0,
@@ -2092,17 +2092,36 @@
     "rarity": 20
   },
   {
-    "name": "_Onryo (tbd)",
+    "name": "Yokai Blaze",
     "key": "WIL_2",
-    "iconIndex": 0,
+    "iconIndex": 2188,
     "unlockedByDefault": false,
-    "description": "",
-    "topFlavorText": "",
-    "maxRank": 1,
-    "baseCost": 50.0,
-    "flatGrowthCost": 1.0,
-    "multGrowthCost": 1.0,
-    "panelParameters": [],
+    "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag.",
+    "topFlavorText": "The wrathful blaze of a dead dead thing is scary.",
+    "maxRank": 5,
+    "baseCost": 3000.0,
+    "flatGrowthCost": 1500.0,
+    "multGrowthCost": 1.1,
+    "panelParameters": [
+      {
+        "parameterId": 24,
+        "perRank": 1.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 22,
+        "perRank": -0.75,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 9,
+        "perRank": 7.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
     "panelRewards": [],
     "rarity": 0
   },
@@ -2133,6 +2152,12 @@
       {
         "parameterId": 27,
         "perRank": 1.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 12,
+        "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       }
@@ -2285,11 +2310,11 @@
     "rarity": 23
   },
   {
-    "name": "_Jelliton (tbd)",
+    "name": "Jelicious Jaunt",
     "key": "JEL_2",
     "iconIndex": 2214,
     "unlockedByDefault": false,
-    "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n\\\r\n",
+    "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n",
     "topFlavorText": "What a massive fucking jelli carrying around this node.",
     "maxRank": 10,
     "baseCost": 1500.0,

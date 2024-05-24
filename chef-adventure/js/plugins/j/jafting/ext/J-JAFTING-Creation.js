@@ -971,9 +971,9 @@ class CraftingRecipe
 /**
  * A data model representing the tracking of a single crafting recipe key.
  */
-function RecipeTracking(key, unlocked, timesCrafted)
+function RecipeTracking(recipeKey, unlocked, timesCrafted)
 {
-  this.initialize(...arguments);
+  this.initialize(recipeKey, unlocked, timesCrafted);
 }
 
 RecipeTracking.prototype = {};
@@ -1004,7 +1004,7 @@ RecipeTracking.prototype.initialize = function(recipeKey, unlocked, timesCrafted
    * The number of times a recipe with this key has been crafted.
    * @type {number}
    */
-  this.proficiency = 0;
+  this.proficiency = timesCrafted;
 };
 
 /**
@@ -1065,7 +1065,7 @@ RecipeTracking.prototype.craftingProficiency = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.0.1 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1197,6 +1197,8 @@ RecipeTracking.prototype.craftingProficiency = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Recipes & Categories can now be updated for existing save files.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -1576,6 +1578,7 @@ J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Cr
  */
 J.JAFTING.EXT.CREATE.Aliased = {};
 J.JAFTING.EXT.CREATE.Aliased.Game_Party = new Map();
+J.JAFTING.EXT.CREATE.Aliased.Game_System = new Map();
 J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting = new Map();
 J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList = new Map();
 
@@ -1718,7 +1721,8 @@ J.JAFTING.EXT.CREATE.Aliased.Game_Party.set('initialize', Game_Party.prototype.i
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.JAFTING.EXT.CREATE.Aliased.Game_Party.get('initialize').call(this);
+  J.JAFTING.EXT.CREATE.Aliased.Game_Party.get('initialize')
+    .call(this);
 
   // init the members.
   this.initJaftingCreationMembers();
@@ -1772,6 +1776,61 @@ Game_Party.prototype.populateJaftingTrackings = function()
 };
 
 /**
+ * Refreshes all the recipe trackings from the plugin metadata.
+ */
+Game_Party.prototype.updateRecipesFromConfig = function()
+{
+  // grab the current list of trackings by reference.
+  const trackings = this.getAllRecipeTrackings();
+
+  // iterate over all of the ones defined in the plugin metadata.
+  J.JAFTING.EXT.CREATE.Metadata.recipes.forEach(recipe =>
+  {
+    // skip ones that we shouldn't be adding.
+    // NOTE: recipes typically only leverage the key.
+    if (!this.canGainEntry(recipe.key)) return;
+
+    // find one by the same key in the existing trackings.
+    const foundTracking = trackings.find(tracking => tracking.key === recipe.key);
+
+    // check if we found a tracking.
+    if (!foundTracking)
+    {
+      console.log(`adding new recipe; ${recipe.key}`);
+      // we didn't find one, so create and add a new tracking.
+      const newTracking = new RecipeTracking(recipe.key, recipe.unlockedByDefault);
+      trackings.push(newTracking);
+    }
+  });
+};
+
+Game_Party.prototype.updateCategoriesFromConfig = function()
+{
+  // grab the current list of trackings by reference.
+  const trackings = this.getAllCategoryTrackings();
+
+  // iterate over all of the ones defined in the plugin metadata.
+  J.JAFTING.EXT.CREATE.Metadata.categories.forEach(category =>
+  {
+    // skip ones that we shouldn't be adding.
+    // NOTE: categories can leverage both key and name.
+    if (!this.canGainEntry(category.key) || !this.canGainEntry(category.name)) return;
+
+    // find one by the same key in the existing trackings.
+    const found = trackings.find(tracking => tracking.key === category.key);
+
+    // check if we found a tracking.
+    if (!found)
+    {
+      console.log(`adding new category; ${category.name} : ${category.key}`);
+      // we didn't find one, so create and add a new tracking.
+      const newTracking = new CategoryTracking(category.key, category.unlockedByDefault);
+      trackings.push(newTracking);
+    }
+  });
+};
+
+/**
  * Gets all jafting recipe trackings.
  * @return {RecipeTracking[]}
  */
@@ -1795,7 +1854,8 @@ Game_Party.prototype.getAllCategoryTrackings = function()
  */
 Game_Party.prototype.getUnlockedRecipeTrackings = function()
 {
-  return this.getAllRecipeTrackings().filter(recipe => recipe.isUnlocked());
+  return this.getAllRecipeTrackings()
+    .filter(recipe => recipe.isUnlocked());
 };
 
 /**
@@ -1804,7 +1864,8 @@ Game_Party.prototype.getUnlockedRecipeTrackings = function()
  */
 Game_Party.prototype.getUnlockedCategoryTrackings = function()
 {
-  return this.getAllCategoryTrackings().filter(category => category.isUnlocked());
+  return this.getAllCategoryTrackings()
+    .filter(category => category.isUnlocked());
 };
 
 /**
@@ -1817,17 +1878,18 @@ Game_Party.prototype.getUnlockedRecipes = function()
   const unlockedRecipes = [];
 
   // iterate over each of the unlocked trackings.
-  this.getUnlockedRecipeTrackings().forEach(tracking =>
-  {
-    // grab the recipe associated with the key.
-    const recipe = this.getRecipeByKey(tracking.key);
+  this.getUnlockedRecipeTrackings()
+    .forEach(tracking =>
+    {
+      // grab the recipe associated with the key.
+      const recipe = this.getRecipeByKey(tracking.key);
 
-    // skip unfound keys if we have those somehow.
-    if (!recipe) return;
+      // skip unfound keys if we have those somehow.
+      if (!recipe) return;
 
-    // add the recipe to the list.
-    unlockedRecipes.push(recipe);
-  });
+      // add the recipe to the list.
+      unlockedRecipes.push(recipe);
+    });
 
   // return what we found.
   return unlockedRecipes;
@@ -1843,17 +1905,18 @@ Game_Party.prototype.getUnlockedCategories = function()
   const unlockedCategories = [];
 
   // iterate over each of the unlocked trackings.
-  this.getUnlockedCategoryTrackings().forEach(tracking =>
-  {
-    // grab the category associated with the key.
-    const category = this.getCategoryByKey(tracking.key);
+  this.getUnlockedCategoryTrackings()
+    .forEach(tracking =>
+    {
+      // grab the category associated with the key.
+      const category = this.getCategoryByKey(tracking.key);
 
-    // skip unfound keys if we have those somehow.
-    if (!category) return;
+      // skip unfound keys if we have those somehow.
+      if (!category) return;
 
-    // add the category to the list.
-    unlockedCategories.push(category);
-  });
+      // add the category to the list.
+      unlockedCategories.push(category);
+    });
 
   // return what we found.
   return unlockedCategories;
@@ -1925,7 +1988,8 @@ Game_Party.prototype.getRecipeTrackingByKey = function(key)
  */
 Game_Party.prototype.getRecipeByKey = function(key)
 {
-  return this.getAllRecipesAsMap().get(key);
+  return this.getAllRecipesAsMap()
+    .get(key);
 };
 
 /**
@@ -1944,7 +2008,8 @@ Game_Party.prototype.getAllCategoriesAsMap = function()
  */
 Game_Party.prototype.getCategoryByKey = function(key)
 {
-  return this.getAllCategoriesAsMap().get(key);
+  return this.getAllCategoriesAsMap()
+    .get(key);
 };
 
 /**
@@ -2101,8 +2166,8 @@ Game_Party.prototype.canGainEntry = function(name)
   // skip entries that start with an underscore (arbitrary).
   if (name.startsWith('_')) return false;
 
-  // skip entries that start with a double equals (arbitrary).
-  if (name.startsWith('==')) return false;
+  // skip entries that start with a multiple equals (arbitrary).
+  if (name.startsWith('==') || name.startsWith('===')) return false;
 
   // skip entries that are the "empty" name (arbitrary).
   if (name.includes('-- empty --')) return false;
@@ -2150,6 +2215,23 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
   $gameVariables.setValue(variableId, count);
 };
 //endregion Game_Party
+
+//region Game_System
+/**
+ * Extends {@link #onAfterLoad}.<br>
+ * Updates the database with the tracked refined equips.
+ */
+J.JAFTING.EXT.CREATE.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.JAFTING.EXT.CREATE.Aliased.Game_System.get('onAfterLoad').call(this);
+
+  // update the recipes & categories.
+  $gameParty.updateRecipesFromConfig();
+  $gameParty.updateCategoriesFromConfig();
+};
+//endregion Game_System
 
 //region Scene_Jafting
 /**
