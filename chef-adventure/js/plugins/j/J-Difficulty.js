@@ -1207,8 +1207,8 @@ class J_DiffPluginMetadata extends PluginMetadata
   }
 
   /**
-   *  Extends {@link #postInitialize}.<br>
-   *  Includes translation of plugin parameters.
+   * Extends {@link #postInitialize}.<br>
+   * Includes translation of plugin parameters.
    */
   postInitialize()
   {
@@ -2094,7 +2094,7 @@ Game_Temp.prototype.initMembers = function()
   /**
    * The "applied" difficulty.
    * This is effectively a combination of all currently enabled difficulties as
-   * a single {@link DifficultyLayer}.<br>
+   * a single {@link DifficultyLayer}.
    * @type {DifficultyLayer}
    */
   this._j._difficulty._appliedDifficulty = J_DiffPluginMetadata.defaultLayer();

@@ -728,7 +728,7 @@ PanelTracking.prototype.lock = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v2.0.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -786,7 +786,18 @@ PanelTracking.prototype.lock = function()
  * generating and modifying SDPs in just about every way you could need.
  *
  * If this configuration file is missing, the game will not run.
+ * ----------------------------------------------------------------------------
+ * NOTE ABOUT PANEL NAMES:
+ * Generally speaking, you can name your chosen panels (described in the
+ * configuration file mentioned above) whatever you want- with a couple of
+ * exceptions for organizational purposes within the JMZ Data Editor.
  *
+ * If a panel starts with any of the following characters:
+ * - "__" (double underscore)
+ * - "--" (double hyphen/dash)
+ * - "==" (double equals)
+ * Then the panel will not be included in the list that is parsed from the
+ * configuration file upon starting the game.
  * ============================================================================
  * SDP POINTS:
  * Ever want enemies to drop SDP Points? Well now they can! By applying the
@@ -842,6 +853,8 @@ PanelTracking.prototype.lock = function()
  * will now gain 50% increased SDP points (80 - 30 = 50).
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.1
+ *    Added filter for skipping panels that start with particular characters.
  * - 2.0.0
  *    Major breaking changes related to plugin parameters.
  *    Updated to extend common plugin metadata patterns.
@@ -978,12 +991,20 @@ class J_SdpPluginMetadata extends PluginMetadata
   {
     const parsedPanels = [];
 
-    // build an SDP from each parsed item provided.
-    parsedBlob.forEach(parsedPanel =>
+    const foreacher = parsedPanel =>
     {
+      // validate the name is not one of the organizational names for the editor-only.
+      const panelName = parsedPanel.name;
+      if (panelName.startsWith("__")) return;
+      if (panelName.startsWith("==")) return;
+      if (panelName.startsWith("--")) return;
+
+      // destructure the details we care about.
+      const { panelParameters, panelRewards } = parsedPanel;
+
       // parse and assign all the various panel parameters.
       const parsedPanelParameters = [];
-      parsedPanel.panelParameters.forEach(paramBlob =>
+      panelParameters.forEach(paramBlob =>
       {
         const parsedParameter = paramBlob;
         const panelParameter = new PanelParameter({
@@ -997,10 +1018,9 @@ class J_SdpPluginMetadata extends PluginMetadata
 
       // parse out all the panel rewards if there are any.
       const parsedPanelRewards = [];
-      const panelRewardsBlob = parsedPanel.panelRewards;
-      if (panelRewardsBlob)
+      if (panelRewards)
       {
-        panelRewardsBlob.forEach(reward =>
+        panelRewards.forEach(reward =>
         {
           const parsedReward = reward;
           const panelReward = new PanelRankupReward(
@@ -1029,7 +1049,10 @@ class J_SdpPluginMetadata extends PluginMetadata
         .build();
 
       parsedPanels.push(panel);
-    });
+    }
+
+    // build an SDP from each parsed item provided.
+    parsedBlob.forEach(foreacher, this);
 
     return parsedPanels;
   }

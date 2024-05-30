@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.4 BASE] The base class for all J plugins.
+ * [v2.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -59,10 +59,11 @@
  *
  * ============================================================================
  * CHANGELOG:
- * - 2.1.4
+ * - 2.2.0
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
  *    Added max item quantity functionality with tag.
+ *    Added note grouping methods specific to actors/enemies.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -109,7 +110,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.1.3';
+J.BASE.Metadata.Version = '2.2.0';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -2952,7 +2953,7 @@ class RPG_Weapon extends RPG_EquipItem
 //endregion RPG_Weapon
 
 /**
- * The structure of the data points required to play a sound effect using the {@link SoundManager}.<br>
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.
  */
 class RPG_SoundEffect
 {
@@ -6242,6 +6243,25 @@ Game_Actor.prototype.isLeader = function()
 };
 
 /**
+ * Gets all notes associated with the actor and its class.
+ * @returns {[RPG_Actor,RPG_Class]}
+ */
+Game_Actor.prototype.getActorNotes = function()
+{
+  // grab reference to the actor.
+  const actor = this.actor();
+
+  // return a collection of all things related to this actor.
+  return [
+    // add the actor itself to the source list.
+    actor,
+
+    // add the actor's class to the source list.
+    this.class(actor.classId)
+  ];
+};
+
+/**
  * All sources this actor battler has available to it.
  * @returns {(RPG_Actor|RPG_State|RPG_Class|RPG_Skill|RPG_EquipItem)[]}
  */
@@ -7101,6 +7121,22 @@ Game_Enemy.prototype.battlerId = function()
 Game_Enemy.prototype.databaseData = function()
 {
   return this.enemy();
+};
+
+/**
+ * Gets all notes associated with the enemy and its class.
+ * @returns {[RPG_Enemy]}
+ */
+Game_Enemy.prototype.getEnemyNotes = function()
+{
+  // grab reference to the enemy.
+  const enemy = this.enemy();
+
+  // return a collection of all things related to this enemy.
+  return [
+    // add the enemy itself to the source list.
+    enemy
+  ];
 };
 
 /**
