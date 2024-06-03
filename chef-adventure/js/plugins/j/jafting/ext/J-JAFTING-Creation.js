@@ -1367,6 +1367,10 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
     return jaftingRecipes;
   }
 
+  /**
+   * Converts the JSON-parsed blob into classified {@link CraftingCategory}s.
+   * @param {any} parsedRecipesBlob The already-parsed JSON blob.
+   */
   static parseCategories(parsedCategoriesBlob)
   {
     // a maping function for classify the categories of the configuration.

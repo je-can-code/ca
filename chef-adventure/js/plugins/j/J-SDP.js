@@ -212,6 +212,40 @@ class StatDistributionPanel
     return val;
   }
 
+  /**
+   * Gets the rarity, aka the color index of the rarity of this panel.
+   * @returns {number}
+   */
+  getPanelRarityColorIndex()
+  {
+    return this.rarity;
+  }
+
+  /**
+   * Gets the text associated with the rarity of this panel.
+   * @returns {string}
+   */
+  getPanelRarityText()
+  {
+    switch(this.rarity)
+    {
+      case 0:
+        return "Common";
+      case 3:
+        return "Magical";
+      case 23:
+        return "Rare";
+      case 31:
+        return "Epic";
+      case 20:
+        return "Legendary";
+      case 25:
+        return "Godlike";
+      default:
+        return `unknown rarity: [ ${this.rarity} ]`;
+    }
+  }
+
   static Builder = class SDPBuilder
   {
     //region properties
@@ -786,6 +820,17 @@ PanelTracking.prototype.lock = function()
  * generating and modifying SDPs in just about every way you could need.
  *
  * If this configuration file is missing, the game will not run.
+ *
+ * Additionally, due to the way RMMZ base code is designed, by loading external
+ * files for configuration like this, a project made with this plugin will
+ * simply crash when attempting to load in a web context with an error akin to:
+ *    "ReferenceError require is not defined"
+ * This error is a result of attempting to leverage nodejs's "require" loader
+ * to load the "fs" (file system) library to then load the plugin's config
+ * file. Normally a web deployed game will alternatively use "forage" instead
+ * to handle things that need to be read or saved, but because the config file
+ * is just that- a file sitting in the /data directory rather than loaded into
+ * forage storage- it becomes unaccessible.
  * ----------------------------------------------------------------------------
  * NOTE ABOUT PANEL NAMES:
  * Generally speaking, you can name your chosen panels (described in the
@@ -855,7 +900,9 @@ PanelTracking.prototype.lock = function()
  * CHANGELOG:
  * - 2.0.1
  *    Added filter for skipping panels that start with particular characters.
+ *    Retroactively added note about breaking web deploys for this plugin.
  * - 2.0.0
+ *    THIS UPDATE BREAKS WEB DEPLOY FUNCTIONALITY FOR YOUR GAME.
  *    Major breaking changes related to plugin parameters.
  *    Updated to extend common plugin metadata patterns.
  *    Panel data is now strictly data.
@@ -864,7 +911,6 @@ PanelTracking.prototype.lock = function()
  *    Panels being unlocked/locked are stored on the party.
  *    Updated SDP scene to display rewards.
  *    Updated SDP rewards to have names.
- *
  * - 1.3.0
  *    Added new tag for unlocking panels on use of item.
  * - 1.2.3
@@ -3409,6 +3455,8 @@ class Scene_SDP extends Scene_MenuBase
     // update the cost data window.
     const panelRanking = currentActor.getSdpByKey(currentPanel.key);
     this.getSdpRankDataWindow().setRankData(
+      currentPanel.getPanelRarityColorIndex(),
+      currentPanel.getPanelRarityText(),
       panelRanking.currentRank,
       currentPanel.maxRank,
       currentPanel.rankUpCost(panelRanking.currentRank),
@@ -3893,7 +3941,9 @@ class Window_SdpParameterList extends Window_Command
     let paramValue = this.currentActor.longParam(parameterId);
     const isPercentParamValue = this.isPercentParameter(parameterId);
     const percentValue = isPercentParamValue ? '%' : String.empty;
-    if (!Game_BattlerBase.isBaseParam(parameterId))
+
+    // non-base parameters (and not max tp) get multiplied by 100.
+    if (!Game_BattlerBase.isBaseParam(parameterId) && parameterId !== 30)
     {
       paramValue *= 100;
     }
@@ -4204,6 +4254,18 @@ class Window_SdpPoints extends Window_Base
 class Window_SdpRankData extends Window_Base
 {
   /**
+   * The color index of the rarity of the panel selected.
+   * @type {number}
+   */
+  rarityColorIndex = 0;
+
+  /**
+   * The text describing the rarity of this panel.
+   * @type {string}
+   */
+  rarityText = String.empty;
+
+  /**
    * The current rank of the panel selected.
    * @type {number}
    */
@@ -4238,8 +4300,10 @@ class Window_SdpRankData extends Window_Base
   /**
    * Sets all the various data points for the window.
    */
-  setRankData(currentRank, maxRank, costToNext, sdpPoints)
+  setRankData(rarityColor, rarityText, currentRank, maxRank, costToNext, sdpPoints)
   {
+    this.rarityColorIndex = rarityColor;
+    this.rarityText = rarityText;
     this.currentRank = currentRank;
     this.maxRank = maxRank;
     this.costToNext = costToNext;
@@ -4252,26 +4316,82 @@ class Window_SdpRankData extends Window_Base
    */
   drawContent()
   {
-    // draw the current/max rank data.
-    this.drawRankDetails();
+    // draw the rarity information.
+    this.drawPanelRarity(0);
 
     // draw the cost-to-next-rank data, colorized.
-    this.drawCostDetails();
+    this.drawCostDetails(1);
+
+    // draw the current/max rank data.
+    this.drawRankDetails(2);
   }
 
-  drawRankDetails()
+  /**
+   * Draws the rarity information for this panel.
+   * @param {number} rowCount The row number this should be drawn on.
+   */
+  drawPanelRarity(rowCount)
   {
     // define some variables.
     const lh = this.lineHeight();
     const ox = 0;
+    const rowY = lh * rowCount;
+
+    const rarityColor = ColorManager.textColor(this.rarityColorIndex);
+    this.changeTextColor(rarityColor);
+    this.toggleBold();
+    this.toggleItalics();
+    this.modFontSize(16);
+    this.drawText(this.rarityText, ox, rowY, 200, "left");
+    this.resetFontSettings();
+  }
+
+  /**
+   * Draws the cost information of ranking this panel up.
+   * @param {number} rowCount The row number this should be drawn on.
+   */
+  drawCostDetails(rowCount)
+  {
+    // define some variables.
+    const lh = this.lineHeight();
+    const ox = 0;
+    const rowY = lh * rowCount;
+
+    // calculate the color (not-index) for the cost.
+    const costColor = this.#determineCostColor(this.costToNext);
+
+    // draw the cost to rank up this panel.
+    this.drawText(`Cost:`, ox, rowY, 200, "left");
+    if (costColor)
+    {
+      this.changeTextColor(costColor);
+      this.drawText(`${this.costToNext}`, ox + 100, rowY, 120, "left");
+      this.resetTextColor();
+    }
+    else
+    {
+      this.drawText(`---`, ox + 100, rowY, 80, "left");
+    }
+  }
+
+  /**
+   * Draws the current rank information for this panel.
+   * @param {number} rowCount The row number this should be drawn on.
+   */
+  drawRankDetails(rowCount)
+  {
+    // define some variables.
+    const lh = this.lineHeight();
+    const ox = 0;
+    const rowY = lh * rowCount;
 
     // draw the current and max rank, colorized.
-    this.drawText(`Rank:`, ox, lh * 1, 200, "left");
+    this.drawText(`Rank:`, ox, rowY, 200, "left");
     this.changeTextColor(this.#determinePanelRankColor(this.currentRank, this.maxRank));
-    this.drawText(`${this.currentRank}`, ox + 55, lh * 1, 50, "right");
+    this.drawText(`${this.currentRank}`, ox + 55, rowY, 50, "right");
     this.resetTextColor();
-    this.drawText(`/`, ox + 110, lh * 1, 30, "left");
-    this.drawText(`${this.maxRank}`, ox + 130, lh * 1, 50, "left");
+    this.drawText(`/`, ox + 110, rowY, 30, "left");
+    this.drawText(`${this.maxRank}`, ox + 130, rowY, 50, "left");
   }
 
   /**
@@ -4293,32 +4413,6 @@ class Window_SdpRankData extends Window_Base
 
     // who knows what situation this happens in, but return normal if we do.
     return ColorManager.normalColor();
-  }
-
-  /**
-   * Draws the cost information of ranking this panel up.
-   */
-  drawCostDetails()
-  {
-    // define some variables.
-    const lh = this.lineHeight();
-    const ox = 0;
-
-    // calculate the color (not-index) for the cost.
-    const costColor = this.#determineCostColor(this.costToNext);
-
-    // draw the cost to rank up this panel.
-    this.drawText(`Cost:`, ox, lh * 0, 200, "left");
-    if (costColor)
-    {
-      this.changeTextColor(costColor);
-      this.drawText(`${this.costToNext}`, ox + 100, lh * 0, 120, "left");
-      this.resetTextColor();
-    }
-    else
-    {
-      this.drawText(`---`, ox + 100, lh * 0, 80, "left");
-    }
   }
 
   /**

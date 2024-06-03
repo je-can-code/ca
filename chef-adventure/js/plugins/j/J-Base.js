@@ -1630,12 +1630,17 @@ class RPG_Base
     // iterate over each valid line of the note.
     lines.forEach(line =>
     {
+      // grab the regex execution result for this note line.
+      const result = structure.exec(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (result === null) return;
+
       // extract the captured formula.
-      // eslint-disable-next-line prefer-destructuring
-      const result = structure.exec(line)[1];
+      const [ /* skip first index */, numericResult ] = result;
 
       // regular parse it and add it to the running total.
-      val += parseFloat(result);
+      val += parseFloat(numericResult);
     });
 
     // return the
@@ -4716,7 +4721,8 @@ SoundManager.playSoundEffect = function(se)
 
 //region StorageManager
 /**
- * Checks whether or not a file exists given the path with the file name.
+ * Checks whether or not a file exists given the path with the file name.<br><br>
+ * This is incompatible with a game that has been web deployed.
  * @param {string} pathWithFile The path including the filename and extension.
  * @returns {boolean} True if the file is present, false otherwise.
  */
@@ -4799,6 +4805,12 @@ TextManager.rewardDescription = function(paramId)
   }
 };
 
+/**
+ * Gets the double-line description for parameters by their long parameter id.
+ * @param {number} paramId The long parameter id.
+ * @returns {string[]}
+ */
+// eslint-disable-next-line complexity
 TextManager.longParamDescription = function(paramId)
 {
   switch (paramId)
@@ -4807,6 +4819,8 @@ TextManager.longParamDescription = function(paramId)
       return this.bparamDescription(paramId); // mhp
     case  1:
       return this.bparamDescription(paramId); // mmp
+    case 30:
+      return this.bparamDescription(paramId); // mtp
     case  2:
       return this.bparamDescription(paramId); // atk
     case  3:
@@ -4859,8 +4873,6 @@ TextManager.longParamDescription = function(paramId)
       return this.sparamDescription(paramId - 18); // fdr
     case 27:
       return this.sparamDescription(paramId - 18); // exr
-    case 30:
-      return this.maxTp(); // max tp
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -4923,6 +4935,11 @@ TextManager.bparamDescription = function(paramId)
       return [
         "The base stat that governs fortune and luck.",
         "The effects of this are wide and varied."
+      ];
+    case 30:
+      return [
+        "The base resource that many weapon-based skills utilize.",
+        "Without this, techniques typically cannot be executed."
       ];
   }
 };

@@ -694,7 +694,7 @@ class MapLogManager
   getLogs()
   {
     return this.#logs;
-  };
+  }
 
   /**
    * Adds a new log to this log manager's log tracker.<br>
@@ -712,7 +712,7 @@ class MapLogManager
 
     // alert any listeners that we have a new log.
     this.flagForProcessing();
-  };
+  }
 
   /**
    * Maintains this log manager's the log tracker to stay under the max log count.
