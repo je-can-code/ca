@@ -677,8 +677,11 @@ class TextPopBuilder
         // set it to the hp damage color.
         this.setTextColorIndex(this.#textColors.hpDamage);
 
-        // add no y variance when working with hp damage.
-        this.setYVariance(0);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
       }
       // if negative, it must be healing.
       else
@@ -686,8 +689,11 @@ class TextPopBuilder
         // set it to the hp healing color.
         this.setTextColorIndex(this.#textColors.hpHealing);
 
-        // add some y variance when working with hp damage.
-        this.setYVariance(16);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
 
         // add a plus because we know its healing.
         this.setPrefix(`+`);
@@ -713,11 +719,14 @@ class TextPopBuilder
       // if positive, it must be damage.
       if (!this.#isHealing)
       {
-        // set it to the hp damage color.
+        // set it to the mp damage color.
         this.setTextColorIndex(this.#textColors.mpDamage);
 
-        // add some y variance when working with mp damage.
-        this.setYVariance(32);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
       }
       // if negative, it must be healing.
       else
@@ -725,8 +734,11 @@ class TextPopBuilder
         // set it to the mp healing color.
         this.setTextColorIndex(this.#textColors.mpHealing);
 
-        // add some y variance when working with mp healing.
-        this.setYVariance(48);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
 
         // add a plus because we know its healing.
         this.setPrefix(`+`);
@@ -755,8 +767,11 @@ class TextPopBuilder
         // set it to the tp damage color.
         this.setTextColorIndex(this.#textColors.tpDamage);
 
-        // add some y variance when working with tp damage.
-        this.setYVariance(64);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
       }
       // if negative, it must be healing.
       else
@@ -764,8 +779,11 @@ class TextPopBuilder
         // set it to the tp healing color.
         this.setTextColorIndex(this.#textColors.tpHealing);
 
-        // add some y variance when working with tp healing.
-        this.setYVariance(80);
+        // randomize the variance a bit.
+        const rngX = Math.randomInt(48);
+        const rngY = Math.randomInt(48);
+        this.setXVariance(rngX);
+        this.setYVariance(rngY);
 
         // add a plus because we know its healing.
         this.setPrefix(`+`);
@@ -865,10 +883,10 @@ class TextPopBuilder
     this.setTextColorIndex(1);
 
     // add some x variance when working with experience.
-    this.setXVariance(32);
+    this.setXVariance(y);
 
     // add some y variance when working with experience.
-    this.setYVariance(y);
+    this.setYVariance(0);
 
     // return the builder for fluent chaining.
     return this;
@@ -910,7 +928,7 @@ class TextPopBuilder
     this.setIconIndex(skillIconIndex);
 
     // add some x variance when working with experience.
-    this.setXVariance(64);
+    this.setYVariance(64);
 
     // return the builder for fluent chaining.
     return this;
@@ -979,7 +997,7 @@ class TextPopSpriteManager
     // check if there is an iconIndex present.
     if (popup.iconIndex > -1)
     {
-      // add the found icon to the sprite.
+      // add the found icon to the sprite
       sprite.addIcon(popup.iconIndex);
     }
 
@@ -1021,7 +1039,7 @@ class TextPopSpriteManager
       case Map_TextPop.Types.HpDamage:
       case Map_TextPop.Types.MpDamage:
       case Map_TextPop.Types.TpDamage:
-        return 60;
+        return 30;
       case Map_TextPop.Types.Experience:
       case Map_TextPop.Types.Gold:
       case Map_TextPop.Types.Sdp:
@@ -1625,12 +1643,13 @@ Sprite_Damage.prototype.setHealingFlag = function(isHealing)
  */
 Sprite_Damage.prototype.getXVariance = function()
 {
+  return this._j._popups._yVariance;
   // check if this is a healing popup.
-  return this.isHealing()
-    // if it is, return the Y variance instead.
-    ? (this._j._popups._yVariance - 48)
-    // otherwise, return the x variance as expected.
-    : this._j._popups._xVariance;
+  // return this.isHealing()
+  //   // if it is, return the Y variance instead.
+  //   ? (this._j._popups._yVariance - 48)
+  //   // otherwise, return the x variance as expected.
+  //   : this._j._popups._xVariance;
 };
 
 /**
@@ -1648,12 +1667,13 @@ Sprite_Damage.prototype.setXVariance = function(xVariance)
  */
 Sprite_Damage.prototype.getYVariance = function()
 {
+  return this._j._popups._xVariance;
   // check if this is a healing popup.
-  return this.isHealing()
-    // if it is, return the X variance instead.
-    ? this._j._popups._xVariance
-    // otherwise, return the y variance as expected.
-    : this._j._popups._yVariance;
+  // return this.isHealing()
+  //   // if it is, return the X variance instead.
+  //   ? this._j._popups._xVariance
+  //   // otherwise, return the y variance as expected.
+  //   : this._j._popups._yVariance;
 };
 
 /**
@@ -1692,7 +1712,7 @@ Sprite_Damage.prototype.setupMotionData = function(sprite)
   sprite.yf2 = 0;
   sprite.yf3 = 0;
   sprite.ex = false;
-  sprite.bounceMaxX = sprite.x + 60;
+  sprite.bounceMaxX = sprite.x + 260;
 };
 
 /**
@@ -1820,20 +1840,15 @@ Sprite_Damage.prototype.updateNonDamageSpriteMotion = function(sprite)
  */
 Sprite_Damage.prototype.updateDamageSpriteMotion = function(sprite)
 {
-  this.defaultDamageSpriteMotion(sprite);
-
-  return;
-
-
   // check if the damage sprite is a healing sprite.
-  // if (this.isHealing())
-  // {
-  //   this.flyawayDamageSpriteMotion(sprite);
-  // }
-  // else
-  // {
-  //   this.defaultDamageSpriteMotion(sprite);
-  // }
+  if (this.isHealing())
+  {
+    //this.flyawayDamageSpriteMotion(sprite);
+  }
+  else
+  {
+    //this.defaultDamageSpriteMotion(sprite);
+  }
 };
 
 /**
@@ -1853,7 +1868,7 @@ Sprite_Damage.prototype.defaultDamageSpriteMotion = function(sprite)
 
   if (sprite.x < sprite.bounceMaxX)
   {
-    sprite.x -= -0.7;
+    sprite.x -= -1.1;
   }
 
   sprite.y = Math.round(sprite.ry);

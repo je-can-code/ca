@@ -1839,7 +1839,7 @@ Game_Follower.prototype.shouldObeyJabsCombatAi = function()
 
 /**
  * Handles the flow of logic for the movement of this character while available
- * to do combat things according to the {@link JABS_AiManager}.<br>
+ * to do combat things according to the {@link JABS_AiManager}.
  * @param character
  */
 Game_Follower.prototype.handleJabsCombatAi = function(character)

@@ -360,7 +360,7 @@
       "sdp": 120
     },
     "enabled": false,
-    "unlocked": true,
+    "unlocked": false,
     "hidden": false
   },
   {
@@ -445,13 +445,13 @@
     },
     "rewards": {
       "exp": 100,
-      "gold": 200,
-      "drops": 100,
+      "gold": 150,
+      "drops": 150,
       "encounters": 100,
       "sdp": 150
     },
     "enabled": false,
-    "unlocked": true,
+    "unlocked": false,
     "hidden": false
   }
 ]

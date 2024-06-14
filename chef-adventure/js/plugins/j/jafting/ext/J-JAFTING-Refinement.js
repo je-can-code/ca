@@ -588,6 +588,11 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
  * @desc The icon of the command used for JAFTING's Refinement.
  * @default 2565
  *
+ *
+ * @command call-menu
+ * @text Call the Refinement Menu
+ * @desc Calls the JAFTING Refinement scene.
+ *
  */
 
 //region plugin metadata
@@ -780,10 +785,10 @@ J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
  */
 PluginManager.registerCommand(
   J.JAFTING.EXT.REFINE.Metadata.name,
-  "call-menu", () =>
-{
-  Scene_JaftingRefine.callScene();
-});
+  "call-menu", () => 
+  {
+    Scene_JaftingRefine.callScene();
+  });
 //endregion plugin commands
 
 /**

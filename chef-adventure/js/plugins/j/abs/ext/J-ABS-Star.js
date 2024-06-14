@@ -666,7 +666,7 @@ Game_Map.prototype.generateStarEnemy = function(gameEnemy, index)
   // stop generating enemies if we reached the max count.
   if (index >= J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount) 
   {
-    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.<br>`);
+    console.warn(`Exceeded enemy count limit of ${J.ABS.EXT.STAR.DefaultValues.MaxEnemyCount}.`);
     return;
   }
 
@@ -706,7 +706,7 @@ Game_Map.prototype.starPhaseInBattle = function()
 {
   // check if there are enemies still alive on this map.
   const enemiesRemaining = $gameTroop.areEnemiesAlive();
-  console.log(`enemies remaining: ${enemiesRemaining}.<br>`);
+  console.log(`enemies remaining: ${enemiesRemaining}.`);
 
   // the only victory condition is to eliminate all enemies on the map.
   if (enemiesRemaining <= 0) 

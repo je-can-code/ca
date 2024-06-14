@@ -1,5 +1,20 @@
 [
   {
+    "name": "==TRAINER PANELS==",
+    "key": "NEW_0",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Novice Trainer",
     "key": "TUT_1",
     "iconIndex": 188,
@@ -95,7 +110,7 @@
       },
       {
         "parameterId": 7,
-        "perRank": 2.50,
+        "perRank": 2.5,
         "isFlat": false,
         "isCore": false
       },
@@ -156,11 +171,26 @@
     "rarity": 3
   },
   {
+    "name": "==RUPERT PANELS==",
+    "key": "NEW_1",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Enchanter's Guile",
     "key": "ENC_1",
     "iconIndex": 79,
     "unlockedByDefault": false,
-    "description": "The first steps on the path to becoming a true War-Magi.|Max this panel to unlock \\sdp[ENC_2].",
+    "description": "The first steps on the path to becoming a true War-Magi.",
     "topFlavorText": "Enhances the bearer's ability to do magical things.",
     "maxRank": 10,
     "baseCost": 50.0,
@@ -212,7 +242,7 @@
     "key": "ENC_2",
     "iconIndex": 79,
     "unlockedByDefault": false,
-    "description": "The next steps on the path to becoming a true War-Magi.|Max this panel to unlock \\sdp[ENC_3].",
+    "description": "The next steps on the path to becoming a true War-Magi.",
     "topFlavorText": "Further enhances the bearer's ability to do magical things.",
     "maxRank": 10,
     "baseCost": 150.0,
@@ -428,7 +458,7 @@
     "key": "ENC_5",
     "iconIndex": 79,
     "unlockedByDefault": false,
-    "description": "The path moves ever-forward to becoming a true War-Magi.",
+    "description": "The path marches ever-forward to becoming a true War-Magi.",
     "topFlavorText": "Tremendously enhances the bearer's ability to do magical things.",
     "maxRank": 30,
     "baseCost": 500.0,
@@ -500,11 +530,26 @@
     "rarity": 23
   },
   {
+    "name": "==JERALD PANELS==",
+    "key": "NEW_2",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Fighter's Spirit",
     "key": "FGT_1",
     "iconIndex": 77,
     "unlockedByDefault": false,
-    "description": "The first steps on the path to becoming a true War-Lord.|Max this panel to unlock \\C[1]\"Soldiers' Grit\"\\C[0].",
+    "description": "The first steps on the path to becoming a true War-Lord.",
     "topFlavorText": "Improves the combat prowess and instincts of the bearer.",
     "maxRank": 10,
     "baseCost": 50.0,
@@ -556,7 +601,7 @@
     "key": "FGT_2",
     "iconIndex": 77,
     "unlockedByDefault": false,
-    "description": "The next steps on the path to becoming a true War-Lord.|Max this panel to unlock \\C[1]\"Warrior's Edge\"\\C[0].",
+    "description": "The next steps on the path to becoming a true War-Lord.",
     "topFlavorText": "Further improves the combat prowess and instincts of the bearer.",
     "maxRank": 10,
     "baseCost": 150.0,
@@ -690,7 +735,7 @@
     "key": "FGT_4",
     "iconIndex": 77,
     "unlockedByDefault": false,
-    "description": "More steps on the path to becoming a true War-Lord.",
+    "description": "The halfway point on the path to becoming a true War-Lord.",
     "topFlavorText": "Significantly improves the combat prowess and instincts of the bearer.",
     "maxRank": 20,
     "baseCost": 400.0,
@@ -844,6 +889,21 @@
     "rarity": 23
   },
   {
+    "name": "==GHOSTY==",
+    "key": "NEW_3",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Ghosty Presence",
     "key": "GHO_1",
     "iconIndex": 2210,
@@ -870,12 +930,6 @@
       {
         "parameterId": 4,
         "perRank": 4.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 2,
-        "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       }
@@ -910,12 +964,6 @@
       {
         "parameterId": 5,
         "perRank": 5.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 25,
-        "perRank": -1.0,
         "isFlat": true,
         "isCore": false
       },
@@ -960,20 +1008,8 @@
         "isCore": true
       },
       {
-        "parameterId": 4,
-        "perRank": 4.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 7,
-        "perRank": 2.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 9,
-        "perRank": 1.5,
+        "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       }
@@ -982,8 +1018,78 @@
     "rarity": 0
   },
   {
-    "name": "_Tsukumogami (tbd)",
+    "name": "Ghastly Plating",
     "key": "GHO_4",
+    "iconIndex": 2210,
+    "unlockedByDefault": false,
+    "description": "The \\Enemy[83] somehow are known even in local lands to you, but here they are just armored ghosty foes.|Destroying them is tantamount to your mission.",
+    "topFlavorText": "Defeating ghosty enemies is tough, but when they wear armor that is just downright unfair.",
+    "maxRank": 15,
+    "baseCost": 2000.0,
+    "flatGrowthCost": 250.0,
+    "multGrowthCost": 1.15,
+    "panelParameters": [
+      {
+        "parameterId": 3,
+        "perRank": 1.0,
+        "isFlat": false,
+        "isCore": true
+      },
+      {
+        "parameterId": 18,
+        "perRank": -3.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 0,
+        "perRank": 1.0,
+        "isFlat": false,
+        "isCore": false
+      },
+      {
+        "parameterId": 3,
+        "perRank": 5.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 11,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 14,
+        "perRank": 0.5,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 24,
+        "perRank": -1.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 29,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
+    "panelRewards": [
+      {
+        "rewardName": "Learn \\Skill[433]",
+        "rankRequired": 0,
+        "effect": "a.learnSkill(433);"
+      }
+    ],
+    "rarity": 25
+  },
+  {
+    "name": "==SLIME==",
+    "key": "NEW_4",
     "iconIndex": 0,
     "unlockedByDefault": false,
     "description": "",
@@ -1091,7 +1197,7 @@
         "isCore": false
       },
       {
-        "parameterId": 19,
+        "parameterId": 9,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
@@ -1132,12 +1238,6 @@
       },
       {
         "parameterId": 3,
-        "perRank": 3.0,
-        "isFlat": false,
-        "isCore": false
-      },
-      {
-        "parameterId": 5,
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
@@ -1205,6 +1305,12 @@
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
+      },
+      {
+        "parameterId": 27,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
       }
     ],
     "panelRewards": [
@@ -1257,6 +1363,21 @@
     "rarity": 0
   },
   {
+    "name": "==BEES==",
+    "key": "NEW_5",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Sting like a Bee",
     "key": "BEE_1",
     "iconIndex": 298,
@@ -1289,6 +1410,12 @@
       {
         "parameterId": 28,
         "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 30,
+        "perRank": 10.0,
         "isFlat": true,
         "isCore": false
       }
@@ -1327,20 +1454,8 @@
         "isCore": true
       },
       {
-        "parameterId": 6,
-        "perRank": 5.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 7,
-        "perRank": 2.5,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 10,
-        "perRank": 1.0,
+        "perRank": 2.5,
         "isFlat": true,
         "isCore": false
       }
@@ -1352,6 +1467,21 @@
         "effect": "a.learnSkill(235);"
       }
     ],
+    "rarity": 0
+  },
+  {
+    "name": "==TENTACLES==",
+    "key": "NEW_6",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
     "rarity": 0
   },
   {
@@ -1377,12 +1507,6 @@
         "perRank": 2.0,
         "isFlat": true,
         "isCore": true
-      },
-      {
-        "parameterId": 4,
-        "perRank": 4.0,
-        "isFlat": true,
-        "isCore": false
       },
       {
         "parameterId": 6,
@@ -1425,18 +1549,6 @@
         "isCore": true
       },
       {
-        "parameterId": 4,
-        "perRank": 1.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 6,
-        "perRank": 2.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 25,
         "perRank": -0.5,
         "isFlat": true,
@@ -1450,6 +1562,21 @@
         "effect": "a.learnSkill(231);"
       }
     ],
+    "rarity": 0
+  },
+  {
+    "name": "==BEARS==",
+    "key": "NEW_7",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
     "rarity": 0
   },
   {
@@ -1516,7 +1643,7 @@
     "iconIndex": 105,
     "unlockedByDefault": false,
     "description": "The panel derived from centuries of breeding. Not selective or anything, just regular ol' breeding.|Probably started with a goal in mind, but ya know, bear urges happened.",
-    "topFlavorText": "Learn the skill \"Ferocious Swing\" when this panel is maxed.",
+    "topFlavorText": "It was rather difficult finding this panel on the bear considering it had fur made of stone.",
     "maxRank": 10,
     "baseCost": 400.0,
     "flatGrowthCost": 120.0,
@@ -1547,12 +1674,6 @@
         "isCore": false
       },
       {
-        "parameterId": 20,
-        "perRank": 1.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 29,
         "perRank": 0.5,
         "isFlat": true,
@@ -1569,8 +1690,60 @@
     "rarity": 23
   },
   {
-    "name": "_Grimfang (tbd)",
+    "name": "Descend into Darkness",
     "key": "BER_3",
+    "iconIndex": 105,
+    "unlockedByDefault": false,
+    "description": "A void-consumed bear proved difficult to defeat considering its vast amount of life, but at least|you managed to pry this node from its dead bear mitts.",
+    "topFlavorText": "The deepest desires of a bear apparently have always been to descend into darkness.",
+    "maxRank": 10,
+    "baseCost": 600.0,
+    "flatGrowthCost": 250.0,
+    "multGrowthCost": 1.1,
+    "panelParameters": [
+      {
+        "parameterId": 3,
+        "perRank": -2.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 5,
+        "perRank": 1.0,
+        "isFlat": false,
+        "isCore": true
+      },
+      {
+        "parameterId": 15,
+        "perRank": -0.5,
+        "isFlat": false,
+        "isCore": false
+      },
+      {
+        "parameterId": 20,
+        "perRank": -3.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 5,
+        "perRank": -5.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 18,
+        "perRank": -2.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
+    "panelRewards": [],
+    "rarity": 31
+  },
+  {
+    "name": "==ORCS==",
+    "key": "NEW_8",
     "iconIndex": 0,
     "unlockedByDefault": false,
     "description": "",
@@ -1611,18 +1784,6 @@
         "parameterId": 0,
         "perRank": 1.0,
         "isFlat": false,
-        "isCore": false
-      },
-      {
-        "parameterId": 4,
-        "perRank": -3.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 6,
-        "perRank": 2.0,
-        "isFlat": true,
         "isCore": false
       }
     ],
@@ -1688,12 +1849,6 @@
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
-      },
-      {
-        "parameterId": 25,
-        "perRank": -1.0,
-        "isFlat": true,
-        "isCore": false
       }
     ],
     "panelRewards": [
@@ -1704,6 +1859,21 @@
       }
     ],
     "rarity": 20
+  },
+  {
+    "name": "==KAPPAS==",
+    "key": "NEW_9",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Impish Insight",
@@ -1798,6 +1968,12 @@
         "perRank": -1.0,
         "isFlat": true,
         "isCore": false
+      },
+      {
+        "parameterId": 26,
+        "perRank": 1.0,
+        "isFlat": true,
+        "isCore": false
       }
     ],
     "panelRewards": [
@@ -1844,10 +2020,31 @@
         "perRank": 2.5,
         "isFlat": true,
         "isCore": false
+      },
+      {
+        "parameterId": 11,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
       }
     ],
     "panelRewards": [],
     "rarity": 23
+  },
+  {
+    "name": "==RODENTS==",
+    "key": "NEW_10",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Resourceful Ratactics",
@@ -1874,12 +2071,6 @@
         "isCore": true
       },
       {
-        "parameterId": 0,
-        "perRank": 25.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 7,
         "perRank": 1.0,
         "isFlat": true,
@@ -1900,6 +2091,21 @@
       }
     ],
     "rarity": 3
+  },
+  {
+    "name": "==BATS==",
+    "key": "NEW_11",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Skies of the Cave",
@@ -1973,7 +2179,7 @@
       }
     ],
     "panelRewards": [],
-    "rarity": 0
+    "rarity": 3
   },
   {
     "name": "Crimson Gaze",
@@ -2028,12 +2234,27 @@
     "rarity": 23
   },
   {
+    "name": "==WISPS==",
+    "key": "NEW_12",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Flame's Caress",
     "key": "WIL_1",
     "iconIndex": 2188,
     "unlockedByDefault": false,
     "description": "When the flames caress you, the power swells within.|It might be something else swelling, though.",
-    "topFlavorText": "Learn the skill \"Willow's Flame\" when this panel is maxed.",
+    "topFlavorText": "Learn the skill \\Skill[214] when this node is maxed.",
     "maxRank": 30,
     "baseCost": 70.0,
     "flatGrowthCost": 30.0,
@@ -2092,8 +2313,42 @@
     "rarity": 20
   },
   {
-    "name": "_Onryo (tbd)",
+    "name": "Yokai Blaze",
     "key": "WIL_2",
+    "iconIndex": 2188,
+    "unlockedByDefault": false,
+    "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag.",
+    "topFlavorText": "The wrathful blaze of a dead dead thing is scary.",
+    "maxRank": 5,
+    "baseCost": 3000.0,
+    "flatGrowthCost": 1500.0,
+    "multGrowthCost": 1.1,
+    "panelParameters": [
+      {
+        "parameterId": 24,
+        "perRank": 1.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 22,
+        "perRank": -0.75,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 4,
+        "perRank": 10.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
+    "name": "==MINOTAURS=",
+    "key": "NEW_13",
     "iconIndex": 0,
     "unlockedByDefault": false,
     "description": "",
@@ -2135,6 +2390,12 @@
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
+      },
+      {
+        "parameterId": 12,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
       }
     ],
     "panelRewards": [],
@@ -2165,13 +2426,13 @@
         "isCore": true
       },
       {
-        "parameterId": 19,
-        "perRank": 1.0,
+        "parameterId": 11,
+        "perRank": 2.0,
         "isFlat": true,
         "isCore": false
       },
       {
-        "parameterId": 27,
+        "parameterId": 29,
         "perRank": 1.0,
         "isFlat": true,
         "isCore": false
@@ -2179,6 +2440,21 @@
     ],
     "panelRewards": [],
     "rarity": 23
+  },
+  {
+    "name": "==FLORA==",
+    "key": "NEW_14",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Pissed Off Sprout",
@@ -2236,7 +2512,22 @@
         "effect": "a.learnSkill(217);"
       }
     ],
-    "rarity": 3
+    "rarity": 31
+  },
+  {
+    "name": "==JELLIES==",
+    "key": "NEW_15",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Flowing Fluids",
@@ -2285,11 +2576,11 @@
     "rarity": 23
   },
   {
-    "name": "_Jelliton (tbd)",
+    "name": "Jelicious Jaunt",
     "key": "JEL_2",
-    "iconIndex": 2214,
+    "iconIndex": 2144,
     "unlockedByDefault": false,
-    "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n\\\r\n",
+    "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n",
     "topFlavorText": "What a massive fucking jelli carrying around this node.",
     "maxRank": 10,
     "baseCost": 1500.0,
@@ -2309,8 +2600,8 @@
         "isCore": true
       },
       {
-        "parameterId": 5,
-        "perRank": 2.0,
+        "parameterId": 6,
+        "perRank": 4.0,
         "isFlat": true,
         "isCore": false
       },
@@ -2319,16 +2610,25 @@
         "perRank": 2.0,
         "isFlat": true,
         "isCore": false
-      },
-      {
-        "parameterId": 14,
-        "perRank": -1.0,
-        "isFlat": true,
-        "isCore": false
       }
     ],
     "panelRewards": [],
     "rarity": 3
+  },
+  {
+    "name": "==FAERIES==",
+    "key": "NEW_16",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Scorn of Fae",
@@ -2352,7 +2652,7 @@
         "parameterId": 4,
         "perRank": 0.5,
         "isFlat": false,
-        "isCore": false
+        "isCore": true
       },
       {
         "parameterId": 10,
@@ -2375,6 +2675,21 @@
       }
     ],
     "rarity": 3
+  },
+  {
+    "name": "==BANDITS==",
+    "key": "NEW_17",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Thief's Code",
@@ -2481,26 +2796,41 @@
     "rarity": 23
   },
   {
+    "name": "==SINS==",
+    "key": "NEW_18",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Glutton's Dogma",
     "key": "SIN_1",
     "iconIndex": 1547,
     "unlockedByDefault": false,
     "description": "The dogma of the Glutton is held above all else: \"thou must satiate thine hunger\".",
-    "topFlavorText": "This panel radiates with a strange energy...",
+    "topFlavorText": "This node radiates with a strange energy...",
     "maxRank": 20,
     "baseCost": 0.0,
-    "flatGrowthCost": 100.0,
+    "flatGrowthCost": 250.0,
     "multGrowthCost": 2.5,
     "panelParameters": [
       {
         "parameterId": 0,
-        "perRank": 10.0,
+        "perRank": 25.0,
         "isFlat": true,
         "isCore": false
       },
       {
         "parameterId": 6,
-        "perRank": 1.0,
+        "perRank": 1.5,
         "isFlat": false,
         "isCore": false
       },
@@ -2512,13 +2842,13 @@
       },
       {
         "parameterId": 17,
-        "perRank": 0.25,
+        "perRank": 0.5,
         "isFlat": true,
         "isCore": false
       },
       {
         "parameterId": 23,
-        "perRank": -0.5,
+        "perRank": -0.25,
         "isFlat": true,
         "isCore": false
       },
@@ -2526,11 +2856,78 @@
         "parameterId": 28,
         "perRank": 2.5,
         "isFlat": true,
-        "isCore": false
+        "isCore": true
       }
     ],
     "panelRewards": [],
     "rarity": 31
+  },
+  {
+    "name": "Wrath's Dogma",
+    "key": "SIN_2",
+    "iconIndex": 1547,
+    "unlockedByDefault": false,
+    "description": "The dogma of the Wrath is held above all else: \"thou must satiate thine rage\".",
+    "topFlavorText": "This node radiates with a strange energy...",
+    "maxRank": 20,
+    "baseCost": 0.0,
+    "flatGrowthCost": 500.0,
+    "multGrowthCost": 2.5,
+    "panelParameters": [
+      {
+        "parameterId": 1,
+        "perRank": 10.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 4,
+        "perRank": 5.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 4,
+        "perRank": 1.5,
+        "isFlat": false,
+        "isCore": false
+      },
+      {
+        "parameterId": 8,
+        "perRank": 3.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 10,
+        "perRank": 2.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 20,
+        "perRank": 5.0,
+        "isFlat": true,
+        "isCore": true
+      }
+    ],
+    "panelRewards": [],
+    "rarity": 31
+  },
+  {
+    "name": "==WORMS==",
+    "key": "NEW_19",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Burrow Burr",
@@ -2567,12 +2964,6 @@
         "perRank": 4.0,
         "isFlat": true,
         "isCore": false
-      },
-      {
-        "parameterId": 21,
-        "perRank": -0.4,
-        "isFlat": true,
-        "isCore": false
       }
     ],
     "panelRewards": [
@@ -2590,7 +2981,7 @@
     "iconIndex": 1684,
     "unlockedByDefault": false,
     "description": "While the burrowing worms are scary, worms that burrow through lava are even more frightening.|Their \\Skill[425] is nothing to shake a stick at, so shove that stick down their throat and spare yourself the burns.",
-    "topFlavorText": "Learn the skill \\Skill[425] when this panel is maxed.",
+    "topFlavorText": "Why did worms have to become immune to magma and be so aggressive?",
     "maxRank": 5,
     "baseCost": 1250.0,
     "flatGrowthCost": 750.0,
@@ -2655,6 +3046,21 @@
     "rarity": 25
   },
   {
+    "name": "==SKELETONS==",
+    "key": "NEW_20",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Boney Situation",
     "key": "SKE_1",
     "iconIndex": 298,
@@ -2679,20 +3085,8 @@
         "isCore": true
       },
       {
-        "parameterId": 3,
-        "perRank": -3.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 7,
         "perRank": 8.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 27,
-        "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       }
@@ -2743,26 +3137,29 @@
         "isCore": false
       },
       {
-        "parameterId": 9,
-        "perRank": 2.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
         "parameterId": 11,
         "perRank": 2.0,
-        "isFlat": true,
-        "isCore": false
-      },
-      {
-        "parameterId": 18,
-        "perRank": 3.0,
         "isFlat": true,
         "isCore": false
       }
     ],
     "panelRewards": [],
     "rarity": 23
+  },
+  {
+    "name": "==SNAKES==",
+    "key": "NEW_21",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Princely Flourish",
@@ -2801,8 +3198,14 @@
         "isCore": false
       },
       {
-        "parameterId": 19,
+        "parameterId": 9,
         "perRank": -1.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 30,
+        "perRank": 5.0,
         "isFlat": true,
         "isCore": false
       }
@@ -2863,8 +3266,66 @@
     "rarity": 23
   },
   {
-    "name": "_Asp (tbd)",
+    "name": "Last Gasp",
     "key": "SNK_3",
+    "iconIndex": 1797,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 5,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [
+      {
+        "parameterId": 28,
+        "perRank": 10.0,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 23,
+        "perRank": 1.5,
+        "isFlat": true,
+        "isCore": true
+      },
+      {
+        "parameterId": 0,
+        "perRank": 25.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 11,
+        "perRank": 4.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 9,
+        "perRank": 5.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 21,
+        "perRank": 10.0,
+        "isFlat": true,
+        "isCore": false
+      },
+      {
+        "parameterId": 30,
+        "perRank": 20.0,
+        "isFlat": true,
+        "isCore": false
+      }
+    ],
+    "panelRewards": [],
+    "rarity": 20
+  },
+  {
+    "name": "==DRAGONS==",
+    "key": "NEW_22",
     "iconIndex": 0,
     "unlockedByDefault": false,
     "description": "",
@@ -2936,6 +3397,21 @@
     "rarity": 31
   },
   {
+    "name": "==TITANS==",
+    "key": "NEW_23",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
+  },
+  {
     "name": "Titan's Girth",
     "key": "TIT_1",
     "iconIndex": 466,
@@ -2986,6 +3462,21 @@
     ],
     "panelRewards": [],
     "rarity": 23
+  },
+  {
+    "name": "==CRABS==",
+    "key": "NEW_24",
+    "iconIndex": 0,
+    "unlockedByDefault": false,
+    "description": "",
+    "topFlavorText": "",
+    "maxRank": 1,
+    "baseCost": 50.0,
+    "flatGrowthCost": 1.0,
+    "multGrowthCost": 1.0,
+    "panelParameters": [],
+    "panelRewards": [],
+    "rarity": 0
   },
   {
     "name": "Crabtastical Crunchiness",

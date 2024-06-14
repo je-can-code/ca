@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.4 BASE] The base class for all J plugins.
+ * [v2.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -59,10 +59,11 @@
  *
  * ============================================================================
  * CHANGELOG:
- * - 2.1.4
+ * - 2.2.0
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
  *    Added max item quantity functionality with tag.
+ *    Added note grouping methods specific to actors/enemies.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -109,7 +110,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.1.3';
+J.BASE.Metadata.Version = '2.2.0';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -435,7 +436,7 @@ Array.iterate = function(times, func, thisArg = undefined)
 J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
 {
   // the regexp for what to mask.
-  const structure = /[0-9A-Za-z\-()*!?'"=@,.]/ig;
+  const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/ig;
 
   // return the masked string content.
   return stringToMask.toString().replace(structure, maskingCharacter);
@@ -1629,12 +1630,17 @@ class RPG_Base
     // iterate over each valid line of the note.
     lines.forEach(line =>
     {
+      // grab the regex execution result for this note line.
+      const result = structure.exec(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (result === null) return;
+
       // extract the captured formula.
-      // eslint-disable-next-line prefer-destructuring
-      const result = structure.exec(line)[1];
+      const [ /* skip first index */, numericResult ] = result;
 
       // regular parse it and add it to the running total.
-      val += parseFloat(result);
+      val += parseFloat(numericResult);
     });
 
     // return the
@@ -2510,10 +2516,10 @@ class RPG_Class extends RPG_Base
     // map the class data to this object.
     this.expParams = classData.expParams;
     this.learnings = classData.learnings
-    .map(learning => new RPG_ClassLearning(learning));
+      .map(learning => new RPG_ClassLearning(learning));
     this.params = classData.params;
     this.traits = classData.traits
-    .map(trait => new RPG_Trait(trait));
+      .map(trait => new RPG_Trait(trait));
   }
 }
 //endregion RPG_Class
@@ -2952,7 +2958,7 @@ class RPG_Weapon extends RPG_EquipItem
 //endregion RPG_Weapon
 
 /**
- * The structure of the data points required to play a sound effect using the {@link SoundManager}.<br>
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.
  */
 class RPG_SoundEffect
 {
@@ -4715,7 +4721,8 @@ SoundManager.playSoundEffect = function(se)
 
 //region StorageManager
 /**
- * Checks whether or not a file exists given the path with the file name.
+ * Checks whether or not a file exists given the path with the file name.<br><br>
+ * This is incompatible with a game that has been web deployed.
  * @param {string} pathWithFile The path including the filename and extension.
  * @returns {boolean} True if the file is present, false otherwise.
  */
@@ -4798,6 +4805,12 @@ TextManager.rewardDescription = function(paramId)
   }
 };
 
+/**
+ * Gets the double-line description for parameters by their long parameter id.
+ * @param {number} paramId The long parameter id.
+ * @returns {string[]}
+ */
+// eslint-disable-next-line complexity
 TextManager.longParamDescription = function(paramId)
 {
   switch (paramId)
@@ -4806,6 +4819,8 @@ TextManager.longParamDescription = function(paramId)
       return this.bparamDescription(paramId); // mhp
     case  1:
       return this.bparamDescription(paramId); // mmp
+    case 30:
+      return this.bparamDescription(paramId); // mtp
     case  2:
       return this.bparamDescription(paramId); // atk
     case  3:
@@ -4858,8 +4873,6 @@ TextManager.longParamDescription = function(paramId)
       return this.sparamDescription(paramId - 18); // fdr
     case 27:
       return this.sparamDescription(paramId - 18); // exr
-    case 30:
-      return this.maxTp(); // max tp
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -4923,6 +4936,11 @@ TextManager.bparamDescription = function(paramId)
         "The base stat that governs fortune and luck.",
         "The effects of this are wide and varied."
       ];
+    case 30:
+      return [
+        "The base resource that many weapon-based skills utilize.",
+        "Without this, techniques typically cannot be executed."
+      ];
   }
 };
 
@@ -4955,7 +4973,7 @@ TextManager.xparamDescription = function(paramId)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "This is directly reduced by a target's critical evasion."
+        "Critical hits will deal percent-increased damage."
       ];
 
     // CEV (Critical hit Evasion)
@@ -6242,6 +6260,25 @@ Game_Actor.prototype.isLeader = function()
 };
 
 /**
+ * Gets all notes associated with the actor and its class.
+ * @returns {[RPG_Actor,RPG_Class]}
+ */
+Game_Actor.prototype.getActorNotes = function()
+{
+  // grab reference to the actor.
+  const actor = this.actor();
+
+  // return a collection of all things related to this actor.
+  return [
+    // add the actor itself to the source list.
+    actor,
+
+    // add the actor's class to the source list.
+    this.class(actor.classId)
+  ];
+};
+
+/**
  * All sources this actor battler has available to it.
  * @returns {(RPG_Actor|RPG_State|RPG_Class|RPG_Skill|RPG_EquipItem)[]}
  */
@@ -7101,6 +7138,22 @@ Game_Enemy.prototype.battlerId = function()
 Game_Enemy.prototype.databaseData = function()
 {
   return this.enemy();
+};
+
+/**
+ * Gets all notes associated with the enemy and its class.
+ * @returns {[RPG_Enemy]}
+ */
+Game_Enemy.prototype.getEnemyNotes = function()
+{
+  // grab reference to the enemy.
+  const enemy = this.enemy();
+
+  // return a collection of all things related to this enemy.
+  return [
+    // add the enemy itself to the source list.
+    enemy
+  ];
 };
 
 /**

@@ -746,6 +746,10 @@ Window_Base.prototype.loadPopMessageWindowskin = function() {
 		return this.windowskin = ImageManager.loadSystem(skin);
 	} else {
 		// use the default settings
+		if (!$gameSystem._mStyles)
+		{
+			$gameSystem.buildMStyles();
+		}
 		return this.windowskin = ImageManager.loadSystem($gameSystem._mStyles[0].windowskin);
 	}
 };

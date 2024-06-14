@@ -350,7 +350,9 @@ ProficiencyConditional.prototype.initialize = function(key, actorIds, requiremen
    */
   this.jsRewards = jsRewards;
 };
+//endregion ProficiencyConditional
 
+//region proficiencyRequirement
 /**
  * A single requirement of a skill prof conditional.
  * @constructor
@@ -380,7 +382,7 @@ ProficiencyRequirement.prototype.initialize = function(skillId, proficiency)
    */
   this.proficiency = proficiency;
 };
-//endregion ProficiencyConditional
+//endregion proficiencyRequirement
 
 //region SkillProficiency
 /**
