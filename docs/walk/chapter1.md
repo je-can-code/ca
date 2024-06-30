@@ -10,14 +10,16 @@ game, Raevula. At this point, it isn't really made clear that the town is the "h
 gradually introduced as the player is continually returned to the city.
 
 > All named enemies except for the tutorial named enemy have a (50%) chance to drop either blueprint scrap available in
-> this chapter. Before you ask, you could potentially get both from a single named enemy.
+> this chapter. Yes, that does mean you could potentially get both from a single named enemy.
 
-| Chapter 1 Guide                                           |
-|-----------------------------------------------------------|
-| [Step 1: Learning from the Lair of Erocian Death](#step1) |
-| [Step 2: Going to Raevula](#step2)                        |
-| [Step 3: Navigating Raevula](#step3)                      |
-| [Step 4: First Spelunk in the Pearl Salt Mines](#step4)   |
+| Chapter 1 Guide                                             |
+|-------------------------------------------------------------|
+| [Step 1: Learning from the Lair of Erocian Death](#step1)   |
+| [Step 2: Going to Raevula](#step2)                          |
+| [Step 3: Navigating Raevula](#step3)                        |
+| [Step 4: First Spelunk in the Pearl Salt Mines](#step4)     |
+| [Step 5: First Stroll Through the Forest of Dreams](#step5) |
+| [Step 6: First Dive Into the Forlorn Basin](#step6)         |
 
 ### <a name="step1" /> Step 1: Learning from the Lair of Erocian Death
 
@@ -262,15 +264,15 @@ A dungeon immediately after a dungeon isn't easy, but at this point, your goal i
 of Dreams`. "The depths of the forest" defined as trying to head not-north. Heading north in general will eventually
 lead you back to `Raevula` where you can restock, hit up Viktor for some smithing, or otherwise.
 
-| name               | drop % | description                                                                          |
-|--------------------|:------:|--------------------------------------------------------------------------------------|
-| Fungrowth          |   5%   | Purely offensive, adding both Power and Force at the cost of item effectiveness.     |
-| Jelly              |   1%   | Magi-centric with all of Max MP, Magi Cost, and MP Regen among other things.         |
-| Dryad              |   5%   | Offensive panel with high Force gains, but also increases Aggro.                     |
-| !Queen of Stone    |  50%   | `an improved drop rate of the Dryad's panel`                                         |
-| Bandit             |   8%   | A very fast panel with a bit of luck and Crit Dodge.                                 |
-| Gluttonwolf (Boss) |  `--`  | `This enemy does not drop a panel.`                                                  |
-| Gluttonwolf        |   1%   | Extremely rare, but bears a lot of supporting stats, including TP Regen and Crit Amp.|
+| name               | drop % | description                                                                           |
+|--------------------|:------:|---------------------------------------------------------------------------------------|
+| Fungrowth          |   5%   | Purely offensive, adding both Power and Force at the cost of item effectiveness.      |
+| Jelly              |   1%   | Magi-centric with all of Max MP, Magi Cost, and MP Regen among other things.          |
+| Dryad              |   5%   | Offensive panel with high Force gains, but also increases Aggro.                      |
+| !Queen of Stone    |  50%   | `an improved drop rate of the Dryad's panel`                                          |
+| Bandit             |   8%   | A very fast panel with a bit of luck and Crit Dodge.                                  |
+| Gluttonwolf (Boss) |  `--`  | `This enemy does not drop a panel.`                                                   |
+| Gluttonwolf        |   1%   | Extremely rare, but bears a lot of supporting stats, including TP Regen and Crit Amp. |
 
 
 
@@ -290,6 +292,9 @@ Alchemist`, but he is notably missing, granting entry to the dungeon.
 | !Blister       |  50%   | `an improved drop rate of the Will 'o' Wisp's panel`                              |
 | Stonefur       |   4%   | A physically defensive panel that also gives a buff to ones healing rate.         |
 | Pudding (Boss) |  `--`  | `This enemy does not drop a panel.`                                               |
+
+
+done with basin at around level 23-25.
 
 ---
 [1]: ../unlockables/flux-drives
