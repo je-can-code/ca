@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 LOG] A log window for viewing on the map.
+ * [v2.2.0 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12,28 +12,108 @@
  * @orderAfter J-MessageTextCodes
  * @help
  * ============================================================================
- * This plugin enables the ability to add and view logs in a window while on
- * the map. By itself, this plugin only creates the log window and gives access
- * to a couple utilities to build logs and add them to the window.
+ * OVERVIEW
+ * This plugin enables logging functionality.
+ * It has three built in logging managers:
+ * - Action Log
+ * - Loot Log
+ * - DiaLog
+ *
+ * Each of the logging managers is responsible for different types of logging
+ * for the player to observe.
  *
  * This plugin was designed for JABS, but doesn't require it.
  * If added while using JABS, the log window will automatically register all
- * actions taken, damage/healing dealth, and various other details that one
- * might expect to find in this sort of window.
+ * actions taken, damage/healing dealth, loot and such picked up, and more.
  *
  * Additionally, the log window is a command window under the covers, so it
- * also supports scrolling via mouse or touch.
+ * also supports scrolling via mouse/touch.
  *
  * Controller/keyboard support for the log window is not supported.
  *
- * This plugin has two dependencies that all must be present to work:
+ * Depends on other plugins of mine:
  * - J-Base (used for drawing the logs properly onto the window)
  * - J-MessageTextCodes (used for translating text codes in logging)
- * The MZ editor will inform you where this plugin needs to be relative to the
- * other plugins (above/below/etc).
+ *
+ * Integrates with others of mine plugins:
+ * - J-ABS; enables logging of the player/allies/enemies' actions.
+ * - J-SDP; enables logging of SDP gains.
+ * ============================================================================
+ * THE ACTION LOG
+ * This log is designed for the player to view various interactions that happen
+ * through the course of playing the game. While this plugin doesn't require
+ * it, it was designed to be used with JABS.
+ *
+ * Things that get reported to the Action Log (with JABS):
+ * - a skill being used (player/allies/enemies)
+ * - a target being defeated (player/allies/enemies)
+ * - a skill being learned (player/allies/enemies)
+ * - a level up (player/allies)
+ * - a state being applied to oneself (player/allies/enemies)
+ * - a retaliation (player/allies/enemies)
+ * - a skill being parried (player/allies/enemies)
+ * - a skill being dodged (player/allies/enemies)
+ * - a skill not affecting a target (player/allies/enemies)
+ * - the act of party cycling (player)
+ * - the experience gained (the leader, others gain it, but no logs are added)
+ * - the sdp points found (the leader, others gain it, but no logs are added)
+ *
+ * Without JABS, nothing is added by default and must be woven into wherever
+ * a developer wants it to show up since most usages and executions would
+ * happen in a non-Scene_Map context.
+ *
+ * This window is effectively just a Window_Command under the covers, which
+ * means it is nothing more special than your average Show Choices window or
+ * what have you. However, it is not accessible to the keyboard or controller,
+ * which means only a mouse may interact with it (due to the fact that it
+ * cannot be "selected").
+ *
+ * ============================================================================
+ * THE LOOT LOG
+ * This log is designed for the player to exclusively messages related to items
+ * and their acquisition or loss.
+ *
+ * Things that get reported to the Loot Log (with JABS):
+ * - the gold found (on enemy defeat)
+ * - an item being used (player)
+ *   - also if the last item in the party's possession was used (player)
+ *
+ * Without JABS, nothing is added by default. It was a conscious decision not
+ * to integrate the loot log with the Game_Party#gainItem() function- so that
+ * other devs may have control over when it the logs are added, in case there
+ * were items that should be added silently.
+ *
+ * ============================================================================
+ * THE DIALOG
+ * This log is designed for the player to view messages that occur while things
+ * on the map are still executing. This portion of the plugin has nothing to do
+ * with JABS and is not influenced by it.
+ *
+ * To add messages to the DiaLog, you'll need to utilize a plugin command.
+ * In it, you will find the parameters are similar to that of a regular message
+ * window, except that it is smaller, and in the upper right corner. You can
+ * specify the message (max of three lines), and optionally a face image and
+ * index to accompany the message to enable chatter that doesn't interrupt the
+ * flow of gameplay.
+ *
+ * It is worth noting that the DiaLog window is an extended version of the
+ * Action Log window, and bears many of the same sorts of functionality,
+ * including the ability to scroll with the mouse and not control it with the
+ * keyboard/controller. It will automagically become invisible after lack of
+ * interaction.
+ *
+ * When setting up events that add to the DiaLog, it is encouraged to consider
+ * using parallel events that add the messages with Waits in between each
+ * message to give it a proper dialogue-like effect rather than dumping all the
+ * messages in at once, but not being able to see them because the player has
+ * to scroll up.
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Added DiaLog functionality, enabling passive chats to happen on the map.
+ *    Added Loot Log functionality, where loot-related logs now show up.
+ *    Refactored around the various log-related classes.
  * - 2.1.0
  *    Refactor the text log manager to use different syntax.
  * - 2.0.1
@@ -50,20 +130,87 @@
  * @default 300
  *
  *
- * @command showLog
- * @text Show Log Window
- * @desc Turns the log window visible to allow logs to be displayed.
+ * @command showActionLog
+ * @text Show Action Log Window
+ * @desc Turns the action log window visible to allow logs to be displayed.
  *
- * @command hideLog
- * @text Hide Log Window
- * @desc Turns the log window invisible. Logs still get logged, but can't be seen.
+ * @command hideActionLog
+ * @text Hide Action Log Window
+ * @desc Turns the action log window invisible. Logs still get logged, but can't be seen.
  *
- * @command addLog
+ * @command addActionLog
  * @text Add Log
  * @desc Arbitrarily create a log for the log window. Respects text codes.
  * @arg text
  * @type string
  * @default One potion was found!
+ *
+ * @command clearActionLog
+ * @text Clear Action Logs
+ * @desc Clears all the logs out of the action log.
+ *
+ *
+ * @command showDiaLog
+ * @text Show DiaLog Window
+ * @desc Turns the adialog window visible to allow logs to be displayed.
+ *
+ * @command hideDiaLog
+ * @text Hide DiaLog Window
+ * @desc Turns the dialog window invisible. Logs still get logged, but can't be seen.
+ *
+ * @command addDiaLog
+ * @text Add DiaLog
+ * @desc Adds a single DiaLog into the DiaLog Window. Respects text codes.
+ * @arg lines
+ * @type multiline_string
+ * @text Message
+ * @desc The message for the window; it should never be more than 3 lines.
+ * @default Hello World!
+ * @arg faceName
+ * @type file
+ * @text Face Filename
+ * @desc The filename for the face to use; use empty string for no face.
+ * @default
+ * @arg faceIndex
+ * @type number
+ * @text Face Index
+ * @desc The index of the face on the given face file; use -1 for no face.
+ * @min -1
+ * @max 7
+ * @default -1
+ *
+ * @command clearDiaLog
+ * @text Clear DiaLog
+ * @desc Clears all the logs out of the dialog log.
+ *
+ *
+ * @command showLootLog
+ * @text Show Loot Log Window
+ * @desc Turns the action log window visible to allow logs to be displayed.
+ *
+ * @command hideLootLog
+ * @text Hide Loot Log Window
+ * @desc Turns the action log window invisible. Logs still get logged, but can't be seen.
+ *
+ * @command addLootLog
+ * @text Add Loot Log
+ * @desc Arbitrarily create a log for the log window. Respects text codes.
+ * @arg lootId
+ * @type number
+ * @default 1
+ * @arg lootType
+ * @type select
+ * @option Item
+ * @value item
+ * @option Weapon
+ * @value weapon
+ * @option Armor
+ * @value armor
+ *
+ * @command clearLootLog
+ * @text Clear Loot Logs
+ * @desc Clears all the logs out of the action log.
+ *
  */
 
 /**
@@ -110,39 +257,160 @@ J.LOG.Aliased.DataManager = new Map();
 J.LOG.Aliased.Scene_Map = new Map();
 
 /**
+ * One of the log managers that are for {@link Scene_Map}.<br/>
+ * This manager handles the window that contains the combat and loot interactions.
+ * @type {MapLogManager}
+ */
+var $actionLogManager = null;
+
+/**
+ * One of the log managers that are for {@link Scene_Map}.<br/>
+ * This manager handles the window that contains the various chat messages.
+ * @type {MapLogManager}
+ */
+var $diaLogManager = null;
+
+/**
+ * One of the log managers that are for {@link Scene_Map}.<br/>
+ * This manager handles the window that contains the various loot messages.
+ * @type {MapLogManager}
+ */
+var $lootLogManager = null;
+//endregion introduction
+
+//region plugin commands
+//region action log
+/**
  * Plugin command for enabling the text log and showing it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "showLog", () =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "showActionLog", () =>
 {
-  $mapLogManager.showMapLog();
+  $actionLogManager.showLog();
 });
 
 /**
  * Plugin command for disabling the text log and hiding it.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "hideLog", () =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "hideActionLog", () =>
 {
-  $mapLogManager.hideMapLog();
+  $actionLogManager.hideLog();
 });
 
 /**
- * Plugin command for adding an arbitrary log to the log window.
+ * Plugin command for adding an arbitrary log to the action log window.
  */
-PluginManager.registerCommand(J.LOG.Metadata.Name, "addLog", args =>
+PluginManager.registerCommand(J.LOG.Metadata.Name, "addActionLog", args =>
 {
   const { text } = args;
-  const log = new MapLogBuilder()
+  const customActionLog = new ActionLogBuilder()
     .setMessage(text)
     .build();
-  $mapLogManager.addLog(log);
+  $actionLogManager.addLog(customActionLog);
 });
-//endregion introduction
 
-//region Map_Log
+/**
+ * Plugin command for adding an arbitrary log to the dialog window.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "clearActionLog", () =>
+{
+  $actionLogManager.clearLogs();
+});
+
+//endregion action log
+
+//region dia log
+/**
+ * Plugin command for enabling the dialog and showing it.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "showDiaLog", () =>
+{
+  $diaLogManager.showLog();
+});
+
+/**
+ * Plugin command for disabling the dialog and hiding it.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "hideDiaLog", () =>
+{
+  $diaLogManager.hideLog();
+});
+
+/**
+ * Plugin command for adding an arbitrary log to the dialog window.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "addDiaLog", args =>
+{
+  const {
+    lines,
+    faceName,
+    faceIndex
+  } = args;
+  const actualLines = lines.split(/[\r\n]+/);
+  const log = new DiaLogBuilder()
+    .setLines(actualLines)
+    .setFaceName(faceName)
+    .setFaceIndex(faceIndex)
+    .build();
+  $diaLogManager.addLog(log);
+});
+
+/**
+ * Plugin command for adding an arbitrary log to the dialog window.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "clearDiaLog", () =>
+{
+  $diaLogManager.clearLogs();
+});
+//endregion dia log
+
+//region loot log
+/**
+ * Plugin command for enabling the loot log and showing it.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "showLootLog", () =>
+{
+  $lootLogManager.showLog();
+});
+
+/**
+ * Plugin command for disabling the loot log and hiding it.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "hideLootLog", () =>
+{
+  $lootLogManager.hideLog();
+});
+
+/**
+ * Plugin command for adding an arbitrary log to the loot log window.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "addLootLog", args =>
+{
+  const {
+    lootId,
+    lootType
+  } = args;
+  const log = new LootLogBuilder()
+    .setupLootObtained(lootType, lootId)
+    .build();
+  $lootLogManager.addLog(log);
+});
+
+/**
+ * Plugin command for clearing the loot log window.
+ */
+PluginManager.registerCommand(J.LOG.Metadata.Name, "clearLootLog", () =>
+{
+  $lootLogManager.clearLogs();
+});
+//endregion loot log
+
+//endregion plugin commands
+
+//region ActionLog
 /**
  * A model representing a single log in the log window.
  */
-class Map_Log
+class ActionLog
 {
   /**
    * The message of this log.
@@ -179,13 +447,13 @@ class Map_Log
     return this.#message;
   }
 }
-//endregion Map_Log
+//endregion ActionLog
 
 //region MapLogBuilder
 /**
- * A fluent-builder for the logger on the map.
+ * A fluent-builder for building action-related logs for the {@link Window_MapLog}.
  */
-class MapLogBuilder
+class ActionLogBuilder
 {
   /**
    * The current message that this log contains.
@@ -195,12 +463,12 @@ class MapLogBuilder
 
   /**
    * Builds the log based on the currently provided info.
-   * @returns {Map_Log} The built log.
+   * @returns {ActionLog} The built log.
    */
   build()
   {
     // instantiate the log.
-    const log = new Map_Log(this.#message);
+    const log = new ActionLog(this.#message);
 
     // clear this builder of its instance data.
     this.#clear();
@@ -276,6 +544,36 @@ class MapLogBuilder
     // construct the message.
     // eslint-disable-next-line max-len
     const message = `${aggressor} ${hurtOrHeal} ${defender} with \\Skill[${skillId}] for \\C[${color}]${amount}\\C[0]${reduction}!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  }
+
+  setupTerrainDamage(targetName, skillId, amount, reduction, isHealing, isCritical)
+  {
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // determine the type of execution this is, hurting or healing.
+    let hurtOrHeal;
+    if (isCritical)
+    {
+      hurtOrHeal = isHealing ? "critically healed" : "devastatingly damaged";
+    }
+    else
+    {
+      hurtOrHeal = isHealing ? "restored" : "struck";
+    }
+
+    // the text color index is based on whether or not its flagged as healing.
+    const color = isHealing ? 29 : 10;
+
+    // construct the message.
+    // eslint-disable-next-line max-len
+    const message = `${defender} was ${hurtOrHeal} by \\Skill[${skillId}] for \\C[${color}]${amount}\\C[0]${reduction}!`;
 
     // assign the message to this log.
     this.setMessage(message);
@@ -479,18 +777,290 @@ class MapLogBuilder
   }
 
   /**
-   * Sets up a message based on the context of a battler using an item.
-   * @param {string} targetName The name of the battler being party cycled to.
-   * @param {number} itemId The id of the item we're using the last of.
+   * Sets up a message based on teh context of a battler earning experience.
+   * @param {string} targetName The name of the battler earning experience.
+   * @param {number} expGained The amount of experience earned by the battler.
    * @returns {this} This builder, for fluent chaining.
    */
-  setupUsedItem(targetName, itemId)
+  setupExperienceGained(targetName, expGained)
+  {
+    // wrap the amount in the appropriate color.
+    const exp = `\\C[6]${expGained}\\C[0]`;
+
+    // the target's name, wrapped in a defender color.
+    const defender = this.#wrapName(targetName, 16);
+
+    // construct the message.
+    const message = `${defender} gained \\*${exp}\\* experience.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  }
+
+  /**
+   * Sets up a message based on the context of a battler earning SDP points.
+   * @param {string} targetName The name of the battler earning points.
+   * @param {number} amount The amount of SDP points earned.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupSdpAcquired(targetName, amount)
   {
     // the target's name, wrapped in a defender color.
     const defender = this.#wrapName(targetName, 16);
 
     // construct the message.
-    const message = `${defender} used the \\Item[${itemId}].`;
+    const message = `${defender} acquired \\*${amount}\\* SDP points.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  }
+}
+//endregion MapLogBuilder
+
+//region DiaLog
+/**
+ * A single log message designed for the {@link Window_DiaLog} to display.
+ */
+class DiaLog
+{
+  /**
+   * The lines that make up the text for this log.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
+   * The filename of the face image associated with this log.
+   * @type {string|String.empty}
+   */
+  #faceName = String.empty;
+
+  /**
+   * The index of the face image associated with this log.
+   * @type {number}
+   */
+  #faceIndex = -1;
+
+  /**
+   * Constructor.<br/>
+   * All parameters have defaults.
+   * @param {string[]=} messageLines The lines that make up the message portion of this log.
+   * @param {string=} faceName The filename that contains the face for this log.
+   * @param {number=} faceIndex The index that maps to the face for this log.
+   */
+  constructor(messageLines = [], faceName = "", faceIndex = -1)
+  {
+    this.#setLines(messageLines);
+    this.#setFaceName(faceName);
+    this.#setFaceIndex(faceIndex);
+  }
+
+  /**
+   * Sets the lines that make up this message log.
+   * @param {string[]} lines The lines of the message.
+   */
+  #setLines(lines)
+  {
+    if (!Array.isArray(lines))
+    {
+      console.warn('Attempted to set the lines of a DiaLog with a non-array.');
+      console.warn(lines);
+    }
+
+    this.#lines = lines;
+  }
+
+  /**
+   * Gets the lines that make up this message log.
+   * @returns {string[]}
+   */
+  lines()
+  {
+    return this.#lines;
+  }
+
+  /**
+   * Sets the filename of the face image associated with this message.
+   * @param {string} faceName The filename of the face image for this message.
+   */
+  #setFaceName(faceName)
+  {
+    this.#faceName = faceName;
+  }
+
+  /**
+   * Gets the filename of the face associated with this message.
+   * @returns {string}
+   */
+  faceName()
+  {
+    return this.#faceName;
+  }
+
+  /**
+   * Sets the face index to the given index.
+   * @param {number} faceIndex The face index for this message.
+   */
+  #setFaceIndex(faceIndex)
+  {
+    this.#faceIndex = faceIndex;
+  }
+
+  /**
+   * Gets the face index associated with this message.
+   * @returns {number}
+   */
+  faceIndex()
+  {
+    return this.#faceIndex;
+  }
+}
+//endregion DiaLog
+
+//region DiaLogBuilder
+/**
+ * A fluent-builder for building chat-related logs for the {@link Window_DiaLog}.
+ */
+class DiaLogBuilder
+{
+  /**
+   * The lines that make up the text for this log.
+   * @type {string[]}
+   */
+  #lines = [];
+
+  /**
+   * The filename of the face image associated with this log.
+   * @type {string|String.empty}
+   */
+  #faceName = String.empty;
+
+  /**
+   * The index of the face image associated with this log.
+   * @type {number}
+   */
+  #faceIndex = -1;
+
+  /**
+   * Builds the log in its current state.
+   * @returns {ActionLog}
+   */
+  build()
+  {
+    // build the log.
+    const log = new DiaLog(
+      // copy the lines over.
+      [...this.#lines],
+      // assign the face information.
+      this.#faceName,
+      this.#faceIndex);
+
+    // empty out the data from the builder.
+    this.clear();
+
+    // return what was built.
+    return log;
+  }
+
+  /**
+   * Clears the log data to a blank slate.
+   * @returns {DiaLogBuilder}
+   */
+  clear()
+  {
+    this.#lines = [];
+    return this;
+  }
+
+  addLine(line)
+  {
+    this.#lines.push(line);
+    return this;
+  }
+
+  setLines(lines)
+  {
+    this.#lines = lines;
+    return this;
+  }
+
+  setFaceName(faceName)
+  {
+    this.#faceName = faceName;
+    return this;
+  }
+
+  setFaceIndex(faceIndex)
+  {
+    this.#faceIndex = faceIndex;
+    return this;
+  }
+}
+//endregion DiaLogBuilder
+
+//region LootLogBuilder
+/**
+ * A fluent-builder for building loot-related logs for the {@link Window_LootLog}.
+ */
+class LootLogBuilder
+{
+  /**
+   * The current message that this log contains.
+   * @type {string}
+   */
+  #message = "message-unset";
+
+  /**
+   * Builds the log based on the currently provided info.
+   * @returns {ActionLog} The built log.
+   */
+  build()
+  {
+    // instantiate the log.
+    const log = new ActionLog(this.#message);
+
+    // clear this builder of its instance data.
+    this.#clear();
+
+    // return the log.
+    return log;
+  }
+
+  /**
+   * Clears the current parameters for this log.<br/>
+   * This automatically runs after `build()` is run.
+   */
+  #clear()
+  {
+    this.#message = String.empty;
+  }
+
+  /**
+   * Sets the message of this log.
+   * @param {string} message The message to set for this log to display.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setMessage(message)
+  {
+    this.#message = message;
+    return this;
+  }
+
+  /**
+   * Sets up a message based on the usage of an item.
+   * @param {number} itemId The id of the item we're using the last of.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupUsedItem(itemId)
+  {
+    // construct the message.
+    const message = `Used the \\Item[${itemId}].`;
 
     // assign the message to this log.
     this.setMessage(message);
@@ -507,31 +1077,7 @@ class MapLogBuilder
   setupUsedLastItem(itemId)
   {
     // construct the message.
-    const message = `The last \\Item[${itemId}] was consumed and unequipped.`;
-
-    // assign the message to this log.
-    this.setMessage(message);
-
-    // return the builder for continuous building.
-    return this;
-  }
-
-  /**
-   * Sets up a message based on teh context of a battler earning experience.
-   * @param {string} targetName The name of the battler earning experience.
-   * @param {number} expGained The amount of experience earned by the battler.
-   * @returns {this} This builder, for fluent chaining.
-   */
-  setupExperienceGained(targetName, expGained)
-  {
-    // wrap the amount in the appropriate color.
-    const exp = this.#translateReward("exp", expGained);
-
-    // the target's name, wrapped in a defender color.
-    const defender = this.#wrapName(targetName, 16);
-
-    // construct the message.
-    const message = `${defender} gained \\*${exp}\\* experience.`;
+    const message = `The last \\Item[${itemId}] was used.`;
 
     // assign the message to this log.
     this.setMessage(message);
@@ -548,10 +1094,10 @@ class MapLogBuilder
   setupGoldFound(goldFound)
   {
     // wrap the amount in the appropriate color.
-    const gold = this.#translateReward("gold", goldFound);
+    const gold = `\\C[14]${goldFound}\\C[0]`;
 
     // construct the message.
-    const message = `The party found \\*${gold}\\* gold.`;
+    const message = `Found \\*${gold}\\* gold.`;
 
     // assign the message to this log.
     this.setMessage(message);
@@ -560,36 +1106,19 @@ class MapLogBuilder
     return this;
   }
 
-  #translateReward(rewardType, amount)
-  {
-    switch (rewardType)
-    {
-      case "exp":
-        return `\\C[6]${amount}\\C[0]`;
-      case "gold":
-        return `\\C[14]${amount}\\C[0]`;
-      default:
-        return amount;
-    }
-  }
-
   /**
    * Sets up a message based on the context of the player picking up loot.
-   * @param {string} targetName The name of the player.
    * @param {"armor"|"weapon"|"item"} lootType One of "armor", "weapon", or "item".
    * @param {number} lootId The id of the loot from the database.
    * @returns {this} This builder, for fluent chaining.
    */
-  setupLootObtained(targetName, lootType, lootId)
+  setupLootObtained(lootType, lootId)
   {
-    // the target's name, wrapped in a defender color.
-    const defender = this.#wrapName(targetName, 16);
-
     // translate the loot based on type and id.
-    const loot = this.#translateLoot(lootType, lootId);
+    const lootName = this.#translateLoot(lootType, lootId);
 
-    // construct the message.
-    const message = `${defender} obtained the \\*${loot}\\*.`;
+    // construct the bold message.
+    const message = `\\*${lootName}\\* acquired.`;
 
     // assign the message to this log.
     this.setMessage(message);
@@ -618,37 +1147,11 @@ class MapLogBuilder
         return String.empty;
     }
   }
-
-  /**
-   * Sets up a message based on the context of a battler earning SDP points.
-   * @param {string} targetName The name of the battler earning points.
-   * @param {number} amount The amount of SDP points earned.
-   * @returns {this} This builder, for fluent chaining.
-   */
-  setupSdpAcquired(targetName, amount)
-  {
-    // the target's name, wrapped in a defender color.
-    const defender = this.#wrapName(targetName, 16);
-
-    // construct the message.
-    const message = `${defender} acquired \\*${amount}\\* SDP points.`;
-
-    // assign the message to this log.
-    this.setMessage(message);
-
-    // return the builder for continuous building.
-    return this;
-  }
 }
-//endregion MapLogBuilder
+
+//endregion LootLogBuilder
 
 //region DataManager
-/**
- * The global text logger.
- * @type {MapLogManager}
- */
-var $mapLogManager = null;
-
 /**
  * Hooks into `DataManager` to create the game objects.
  */
@@ -658,8 +1161,17 @@ DataManager.createGameObjects = function()
   // perform original logic.
   J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
 
-  // generate a new instance of the text log.
-  $mapLogManager = new MapLogManager();
+  // generate a new instance of the action log manager.
+  $actionLogManager = new MapLogManager();
+  $actionLogManager.setMaxLogCount(30);
+
+  // generate a new instance of the dia log manager.
+  $diaLogManager = new MapLogManager();
+  $diaLogManager.setMaxLogCount(10);
+
+  // generate a new instance of the loot log manager.
+  $lootLogManager = new MapLogManager();
+  $lootLogManager.setMaxLogCount(100);
 };
 //endregion DataManager
 
@@ -669,7 +1181,7 @@ class MapLogManager
   //region properties
   /**
    * The logs currently being managed.
-   * @type {Map_Log[]}
+   * @type {ActionLog[]|DiaLog[]}
    */
   #logs = [];
 
@@ -684,12 +1196,14 @@ class MapLogManager
    * @type {boolean}
    */
   #visible = true;
+
+  #maxLogCount = 100;
   //endregion properties
 
   /**
    * Gets all logs that are currently being tracked by this log manager.<br>
    * The logs will be in reverse order from that of which they are displayed in the window.
-   * @returns {Map_Log[]}
+   * @returns {ActionLog[]|DiaLog[]|LootLog[]}
    */
   getLogs()
   {
@@ -700,7 +1214,7 @@ class MapLogManager
    * Adds a new log to this log manager's log tracker.<br>
    * If there are more than the maximum capacity of logs currently being tracked,
    * this will also start dropping logs from the tail until the limit is reached.
-   * @param {Map_Log} log The new log to add.
+   * @param {ActionLog} log The new log to add.
    */
   addLog(log)
   {
@@ -733,7 +1247,7 @@ class MapLogManager
    */
   hasTooManyLogs()
   {
-    return (this.#logs.length > this._maxLogCount());
+    return (this.#logs.length > this.maxLogCount());
   }
 
   /**
@@ -743,9 +1257,18 @@ class MapLogManager
    * @returns {number}
    * @private
    */
-  _maxLogCount()
+  maxLogCount()
   {
-    return 100;
+    return this.#maxLogCount;
+  }
+
+  /**
+   * Sets the max log count to a given amount.
+   * @param newMaxLogCount
+   */
+  setMaxLogCount(newMaxLogCount)
+  {
+    this.#maxLogCount = newMaxLogCount;
   }
 
   /**
@@ -778,6 +1301,7 @@ class MapLogManager
   clearLogs()
   {
     this.#logs.splice(0, this.#logs.length);
+    this.flagForProcessing();
   }
 
   /**
@@ -801,7 +1325,7 @@ class MapLogManager
   /**
    * Hides this log manager.
    */
-  hideMapLog()
+  hideLog()
   {
     this.#visible = false;
   }
@@ -809,7 +1333,7 @@ class MapLogManager
   /**
    * Reveals this log manager.
    */
-  showMapLog()
+  showLog()
   {
     this.#visible = true;
   }
@@ -841,6 +1365,12 @@ Scene_Map.prototype.initialize = function()
    * @type {Window_MapLog}
    */
   this._j._log._actionLog = null;
+
+  /**
+   * The chat-centric log for the map.
+   * @type {Window_DiaLog}
+   */
+  this._j._log._diaLog = null;
 };
 
 /**
@@ -853,8 +1383,14 @@ Scene_Map.prototype.createAllWindows = function()
   // perform original logic.
   J.LOG.Aliased.Scene_Map.get('createAllWindows').call(this);
 
-  // create the log.
+  // create the actions log.
   this.createActionLogWindow();
+
+  // create the chat log.
+  this.createDiaLogWindow();
+
+  // create the loot log.
+  this.createLootLogWindow();
 };
 
 //region action log
@@ -883,7 +1419,7 @@ Scene_Map.prototype.buildActionLogWindow = function()
   const rectangle = this.actionLogWindowRect();
 
   // create the window with the rectangle.
-  const window = new Window_MapLog(rectangle);
+  const window = new Window_MapLog(rectangle, $actionLogManager);
 
   // deselect/deactivate the window so we don't have it look interactable.
   window.deselect();
@@ -891,7 +1427,7 @@ Scene_Map.prototype.buildActionLogWindow = function()
 
   // return the built and configured window.
   return window;
-}
+};
 
 /**
  * Creates the rectangle representing the window for the action log.
@@ -925,7 +1461,7 @@ Scene_Map.prototype.actionLogWindowRect = function()
 Scene_Map.prototype.getActionLogWindow = function()
 {
   return this._j._log._actionLog;
-}
+};
 
 /**
  * Set the currently tracked action log window to the given window.
@@ -934,13 +1470,179 @@ Scene_Map.prototype.getActionLogWindow = function()
 Scene_Map.prototype.setActionLogWindow = function(window)
 {
   this._j._log._actionLog = window;
-}
+};
 //endregion action log
+
+//region dia log
+/**
+ * Creates the dia log window and adds it to tracking.
+ */
+Scene_Map.prototype.createDiaLogWindow = function()
+{
+  // create the window.
+  const window = this.buildDiaLogWindow();
+
+  // update the tracker with the new window.
+  this.setDiaLogWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the dia log window.
+ * @returns {Window_DiaLog}
+ */
+Scene_Map.prototype.buildDiaLogWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.diaLogWindowRect();
+
+  // create the window with the rectangle.
+  const window = new Window_DiaLog(rectangle, $diaLogManager);
+
+  // deselect/deactivate the window so we don't have it look interactable.
+  window.deselect();
+  window.deactivate();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Creates the rectangle representing the window for the dia log.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.diaLogWindowRect = function()
+{
+  // an arbitrary number of rows.
+  const rows = 3;
+
+  // define the width of the window.
+  const width = 700;
+
+  // define the height of the window.
+  const height = (Window_DiaLog.rowHeight * (rows)) + 24;
+
+  // define the origin x of the window.
+  const x = Graphics.boxWidth - width;
+
+  // define the origin y of the window.
+  const y = Graphics.verticalPadding;
+
+  // return the built rectangle.
+  return new Rectangle(x, y, width, height);
+};
+
+/**
+ * Gets the currently tracked dia log window.
+ * @returns {Window_DiaLog}
+ */
+Scene_Map.prototype.getDiaLogWindow = function()
+{
+  return this._j._log._diaLog;
+};
+
+/**
+ * Set the currently tracked dia log window to the given window.
+ * @param {Window_DiaLog} window The window to track.
+ */
+Scene_Map.prototype.setDiaLogWindow = function(window)
+{
+  this._j._log._diaLog = window;
+};
+//endregion dia log
+
+//region loot log
+/**
+ * Creates the dia log window and adds it to tracking.
+ */
+Scene_Map.prototype.createLootLogWindow = function()
+{
+  // create the window.
+  const window = this.buildLootLogWindow();
+
+  // update the tracker with the new window.
+  this.setLootLogWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the loot log window.
+ * @returns {Window_LootLog}
+ */
+Scene_Map.prototype.buildLootLogWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.lootLogWindowRect();
+
+  // create the window with the rectangle.
+  const window = new Window_LootLog(rectangle, $lootLogManager);
+
+  // deselect/deactivate the window so we don't have it look interactable.
+  window.deselect();
+  window.deactivate();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Creates the rectangle representing the window for the loot log.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.lootLogWindowRect = function()
+{
+  // an arbitrary number of rows.
+  const rows = 12;
+
+  // define the width of the window.
+  const width = 350;
+
+  // define the height of the window.
+  const height = (Window_LootLog.rowHeight * (rows)) + 24;
+
+  // define the origin x of the window.
+  const x = Graphics.boxWidth - width;
+
+  // define the origin y of the window.
+  const y = (Graphics.boxHeight / 2) - (height / 2);
+
+  // return the built rectangle.
+  return new Rectangle(x, y, width, height);
+};
+
+/**
+ * Gets the currently tracked loot log window.
+ * @returns {Window_LootLog}
+ */
+Scene_Map.prototype.getLootLogWindow = function()
+{
+  return this._j._log._diaLog;
+};
+
+/**
+ * Set the currently tracked loot log window to the given window.
+ * @param {Window_LootLog} window The window to track.
+ */
+Scene_Map.prototype.setLootLogWindow = function(window)
+{
+  this._j._log._diaLog = window;
+};
+//endregion loot log
 //endregion Scene_Map
+
+/* NOTE: the file is prefixed with an underscore explicitly because the build script I use concats files in order of
+  which they are found alphabetically in their folders. This class is being extended by the Window_DiaLog class, and
+  so it must be ordered to be found ahead of that.
+*/
 
 //region Window_MapLog
 /**
- * A window containing the logs.
+ * A base window that manages standard log management in a command window.<br/>
+ * The default {@link Window_MapLog} is used for the action log.
  */
 class Window_MapLog extends Window_Command
 {
@@ -964,12 +1666,22 @@ class Window_MapLog extends Window_Command
   defaultInactivityDuration = J.LOG.Metadata.InactivityTimerDuration;
 
   /**
+   * The underlying data source that logs are derived from.
+   * @type {MapLogManager}
+   */
+  logManager = null;
+
+  /**
    * Constructor.
    * @param {Rectangle} rect The rectangle that represents this window.
+   * @param {MapLogManager} logManager the manager that this window leverages to get logs from.
    */
-  constructor(rect)
+  constructor(rect, logManager)
   {
     super(rect);
+
+    // bind this log manager.
+    this.logManager = logManager;
   }
 
   /**
@@ -983,7 +1695,8 @@ class Window_MapLog extends Window_Command
   }
 
   /**
-   * OVERWRITE Initialize this class, but with our things, too.
+   * Extends {@link #initialize}.<br/>
+   * Initialize this class, but with our things, too.
    * @param {Rectangle} rect The rectangle representing the shape of this window.
    */
   initialize(rect)
@@ -1017,7 +1730,7 @@ class Window_MapLog extends Window_Command
    */
   isScrollEnabled()
   {
-    if ($mapLogManager.isHidden()) return false;
+    if (this.logManager.isHidden()) return false;
 
     return super.isScrollEnabled();
   }
@@ -1044,8 +1757,12 @@ class Window_MapLog extends Window_Command
     // perform original logic.
     super.smoothScrollTo(x, y);
 
-    // forces the window to show if scrolling through it.
-    this.showWindow();
+    // validate there are commands in this window, first.
+    if (this.hasCommands())
+    {
+      // forces the window to show if scrolling through it.
+      this.showWindow();
+    }
   }
 
   /**
@@ -1130,6 +1847,7 @@ class Window_MapLog extends Window_Command
     // because we didn't draw a full-sized icon, we move the textState.x back a bit.
     textState.x -= 16;
   }
+
   //endregion overwrites
 
   /**
@@ -1171,7 +1889,7 @@ class Window_MapLog extends Window_Command
       this.processNewLogs();
 
       // acknowledge the new logs.
-      $mapLogManager.acknowledgeProcessing();
+      this.logManager.acknowledgeProcessing();
     }
   }
 
@@ -1182,7 +1900,7 @@ class Window_MapLog extends Window_Command
   shouldUpdate()
   {
     // check if we have a new log.
-    return $mapLogManager.needsProcessing();
+    return this.logManager.needsProcessing();
   }
 
   /**
@@ -1212,24 +1930,43 @@ class Window_MapLog extends Window_Command
    */
   makeCommandList()
   {
-    this.drawLogs();
+    // empty the current list.
+    this.clearCommandList();
+
+    // grab all the listings available.
+    const commands = this.buildCommands();
+
+    // add all the built commands into the list.
+    commands.forEach(this.addBuiltCommand, this);
+
+    // after drawing all the logs, scroll to the bottom.
+    this.smoothScrollDown(this.commandList().length);
   }
 
   /**
-   * Draws all items from the log tracker into our command window.
+   * Builds all commands for this action log window.
+   * @returns {BuiltWindowCommand[]}
    */
-  drawLogs()
+  buildCommands()
   {
-    // iterate over each log.
-    $mapLogManager.getLogs().forEach((log, index) =>
-    {
-      // add the message as a "command" into the log window.
-      this.addCommand(`\\FS[14]${log.message()}`, `log-${index}`, true, null, null, 0);
-    });
+    // do nothing if the log manager is not yet set.
+    if (!this.logManager) return [];
 
-    // after drawing all the logs, scroll to the bottom.
-    this.smoothScrollDown(this._list.length);
+    // iterate over each log and build a command for them.
+    const commands = this.logManager.getLogs()
+      .map((log, index) =>
+      {
+        // add the message as a "command" into the log window.
+        return new WindowCommandBuilder(`\\FS[14]${log.message()}`)
+          .setSymbol(`log-${index}`)
+          .setEnabled(true)
+          .build();
+      });
+
+    // return the built commands.
+    return commands;
   }
+
   //endregion update logging
 
   //region update visibility
@@ -1241,7 +1978,7 @@ class Window_MapLog extends Window_Command
   updateVisibility()
   {
     // if the text log is flagged as hidden, then don't show it.
-    if ($mapLogManager.isHidden() || $gameMessage.isBusy())
+    if (this.logManager.isHidden() || $gameMessage.isBusy())
     {
       // hide the window.
       this.hideWindow();
@@ -1280,9 +2017,18 @@ class Window_MapLog extends Window_Command
    */
   playerInterference()
   {
+    // identify where on the screen the player is.
     const playerX = $gamePlayer.screenX();
     const playerY = $gamePlayer.screenY();
-    return (playerX < this.width) && (playerY > this.y);
+
+    // check if the player is to the right of this window's origin X
+    // check if the player is below this window's origin Y.
+    const xInterference = (playerX > this.x) && playerX < (this.x + this.width);
+    const yInterference = (playerY > this.y) && playerY < (this.y + this.height);
+    const isInterfering = (xInterference) && (yInterference);
+
+    // return what we deduced.
+    return isInterfering;
   }
 
   /**
@@ -1391,7 +2137,7 @@ class Window_MapLog extends Window_Command
   showWindow()
   {
     // if the text log is flagged as hidden, then we shouldn't show it again.
-    if ($mapLogManager.isHidden()) return;
+    if (this.logManager.isHidden()) return;
 
     // refresh the timer back to 5 seconds.
     this.setInactivityTimer(this.defaultInactivityDuration);
@@ -1399,6 +2145,159 @@ class Window_MapLog extends Window_Command
     // refresh the opacity so the logs can be seen again.
     this.contentsOpacity = 255;
   }
+
   //endregion update visibility
 }
+
 //endregion Window_MapLog
+
+//region Window_DiaLog
+/**
+ * An extension/modification of the base {@link Window_MapLog}.<br/>
+ * The {@link Window_DiaLog} is used for the chatter log.
+ */
+class Window_DiaLog extends Window_MapLog
+{
+  /**
+   * The height of one row; 48.<br/>
+   * This is intended to be equivalent to three regular log lines.
+   * @type {number}
+   */
+  static rowHeight = 64;
+
+  /**
+   * Constructor.
+   * @param {Rectangle} rect The rectangle that represents this window.
+   * @param {MapLogManager} logManager the manager that this window leverages to get logs from.
+   */
+  constructor(rect, logManager)
+  {
+    super(rect, logManager);
+  }
+
+  //region overwrites
+  /**
+   * Overrides {@link drawFace}.<br/>
+   * Blits the face image at a size fitted to each row instead of the full image size.
+   */
+  drawFace(faceName, faceIndex, x, y, width, height)
+  {
+    // copy pasta of the original face drawing techniques.
+    const actualWidth = width || ImageManager.faceWidth;
+    const actualHeight = height || ImageManager.faceHeight;
+    const bitmap = ImageManager.loadFace(faceName);
+    const pw = ImageManager.faceWidth;
+    const ph = ImageManager.faceHeight;
+    const sw = Math.min(actualWidth, pw);
+    const sh = Math.min(actualHeight, ph);
+    const dx = Math.floor(x + Math.max(actualWidth - pw, 0) / 2);
+    const dy = Math.floor(y + Math.max(actualHeight - ph, 0) / 2);
+    const sx = Math.floor((faceIndex % 4) * pw + (pw - sw) / 2);
+    const sy = Math.floor(Math.floor(faceIndex / 4) * ph + (ph - sh) / 2);
+
+    // designate that the image should be rendered at a smaller w:h size.
+    const widthHeight = Window_DiaLog.rowHeight;
+    this.contents.blt(bitmap, sx, sy, sw, sh, dx, dy, widthHeight, widthHeight);
+  }
+
+  /**
+   * Overrides {@link #itemHeight}.<br>
+   * Reduces the item height further to allow for more rows to be visible at once
+   * within a smaller window.
+   * @returns {number} The adjusted height of each row.
+   * @override
+   */
+  itemHeight()
+  {
+    return Window_DiaLog.rowHeight;
+  }
+
+  /**
+   * Overrides {@link drawBackgroundRect}.<br/>
+   * Re-provides a background to each item in the log window to improve visibility.
+   * @param {Rectangle} rect The rectangle of the background image.
+   */
+  drawBackgroundRect(rect)
+  {
+    // perform real original logic.
+    Window_Selectable.prototype.drawBackgroundRect.call(this, rect);
+  }
+  //endregion overwrites
+
+  /**
+   * Builds all commands for this dialog window.
+   * @returns {BuiltWindowCommand[]}
+   */
+  buildCommands()
+  {
+    // do nothing if the log manager is not yet set.
+    if (!this.logManager) return [];
+
+    // build all the commands from the dia logs.
+    const commands = this.logManager.getLogs()
+      .map((log, index) =>
+      {
+        /** @type {DiaLog} */
+        const currentLog = log;
+        // build the new command.
+        // use the first line for the "main" line of the message.
+        return new WindowCommandBuilder(currentLog.lines().at(0))
+          .setSymbol(`log-${index}`)
+          .setEnabled(true)
+          // use everything after the first line for the rest of the message.
+          .setTextLines(currentLog.lines().slice(1))
+          .flagAsMultiline()
+          .setFaceName(currentLog.faceName())
+          .setFaceIndex(currentLog.faceIndex())
+          .build();
+      });
+
+    // return the built commands.
+    return commands;
+  }
+}
+//endregion Window_DiaLog
+
+//region Window_LootLog
+/**
+ * An extension/modification of the base {@link Window_MapLog}.<br/>
+ * The {@link Window_DiaLog} is used for the chatter log.
+ */
+class Window_LootLog extends Window_MapLog
+{
+  /**
+   * Constructor.
+   * @param {Rectangle} rect The rectangle that represents this window.
+   * @param {MapLogManager} logManager the manager that this window leverages to get logs from.
+   */
+  constructor(rect, logManager)
+  {
+    super(rect, logManager);
+  }
+
+  /**
+   * Builds all commands for this action log window.
+   * @returns {BuiltWindowCommand[]}
+   */
+  buildCommands()
+  {
+    // do nothing if the log manager is not yet set.
+    if (!this.logManager) return [];
+
+    // iterate over each log and build a command for them.
+    const commands = this.logManager.getLogs()
+      .map((log, index) =>
+      {
+        // add the message as a "command" into the log window.
+        return new WindowCommandBuilder(`\\FS[14]${log.message()}`)
+          .setSymbol(`log-${index}`)
+          .setEnabled(true)
+          .build();
+      });
+
+    // return the built commands.
+    return commands;
+  }
+}
+
+//endregion Window_LootLog

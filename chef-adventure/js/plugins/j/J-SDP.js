@@ -775,7 +775,7 @@ PanelTracking.prototype.lock = function()
  * @orderAfter J-Proficiency
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is a form of "stat distribution"- an alternative to the standard
  * of leveling up to raise an actor's stats.
  *
@@ -1697,10 +1697,10 @@ if (J.ABS)
   {
     if (!J.LOG) return;
 
-    const sdpLog = new MapLogBuilder()
+    const sdpLog = new ActionLogBuilder()
       .setupSdpAcquired(battler.battlerName(), sdpPoints)
       .build();
-    $mapLogManager.addLog(sdpLog);
+    $actionLogManager.addLog(sdpLog);
   };
 }
 //endregion JABS_Engine
@@ -3959,7 +3959,7 @@ class Window_SdpParameterList extends Window_Command
     // construct the command.
     const command = new WindowCommandBuilder(commandName)
       .setSymbol(parameterId)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .setIconIndex(paramIcon)
       .setColorIndex(colorIndex)
       .setRightText(modifierText)

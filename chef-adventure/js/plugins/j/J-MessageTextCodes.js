@@ -9,6 +9,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
+ * OVERVIEW
  * This plugin extends the variety of text codes available in windows.
  *
  * The message window is the main area most would benefit from, but if you are

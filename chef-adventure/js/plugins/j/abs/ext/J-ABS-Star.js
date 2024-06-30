@@ -8,7 +8,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is an extension to JABS, that enables standard "encounters" as
  * interpreted by RMMZ to be converted into on-the-map field-based encounters
  * leveraging JABS combat.

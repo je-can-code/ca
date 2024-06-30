@@ -23,8 +23,8 @@ Shotgun `Blaster`       : ? (maybe Negative Peaks?)
 Twin    `Trainee Baton`   : ? (maybe Deluge Plains?)
 
 ### Wands
-Staff `Flame's Mind`  : ? (Maybe Forest of Dreams?)
-Wand  `Wet Dream`     : ? (Maybe Pearl Salt Mines?)
+Staff `Flame's Mind`  : ? (maybe Forest of Dreams?)
+Wand  `Wet Dream`     : ? (maybe Pearl Salt Mines?)
 Tome  `Tonguetwister` : ? (maybe Fallen Kingdom?)
 
 ### Fists

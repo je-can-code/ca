@@ -9,6 +9,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
+ * OVERVIEW
  * This plugin scales various data points based on the difference between the
  * actor and enemy's levels. This also bestows a new "level" property upon
  * enemies, meaning they too can leverage their level in damage formulas for

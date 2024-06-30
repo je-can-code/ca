@@ -11,7 +11,7 @@
  * @orderAfter Cyclone-Movement
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is an adapter to fix a few quirks with the way JABS interacts
  * with the pixel movement plugin "Cyclone-Movement".
  *

@@ -11,7 +11,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables modifications of movespeed for characters on the map.
  *
  * This plugin requires JABS.

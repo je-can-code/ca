@@ -9,7 +9,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is the core menu system that other JAFTING menus plug into.
  * It was designed as an extensible wrapper scene for all JAFTING modes.
  *

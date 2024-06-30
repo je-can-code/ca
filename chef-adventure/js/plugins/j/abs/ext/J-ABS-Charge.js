@@ -9,7 +9,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the ability to charge certain skills by holding down
  * the input associated with the skill slot.
  *

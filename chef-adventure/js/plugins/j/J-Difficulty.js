@@ -733,7 +733,7 @@ class DifficultyMetadata
  * @orderAfter J-SDP
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the ability to apply one to many "difficulty layers",
  * defined as a collection of parameter modifications and bonuses against both
  * actors and enemies alike.
@@ -3322,7 +3322,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3365,7 +3365,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3408,7 +3408,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3451,7 +3451,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3512,7 +3512,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3593,7 +3593,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.
@@ -3635,7 +3635,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.
@@ -3677,7 +3677,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.

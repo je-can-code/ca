@@ -373,12 +373,9 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
  */
 Game_Enemy.prototype.showDangerIndicator = function()
 {
-  // grab all the things that could have this tag.
-  const enemyToCheck = [this.enemy()];
-
   // check if any of the things have this tag on it.
-  const hasNoIndicatorTag = RPGManager.checkForBooleanFromAllNotesByRegex(
-    enemyToCheck,
+  const hasNoIndicatorTag = RPGManager.checkForBooleanFromNoteByRegex(
+    this.enemy(),
     J.ABS.EXT.DANGER.RegExp.NoIndicator);
 
   // check if we found the tag.

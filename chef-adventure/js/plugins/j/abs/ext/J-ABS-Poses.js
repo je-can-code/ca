@@ -11,7 +11,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables "action poses", or "character sprite animations" within
  * the JABS engine.
  *

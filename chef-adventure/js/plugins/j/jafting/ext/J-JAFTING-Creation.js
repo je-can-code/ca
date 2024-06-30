@@ -1074,7 +1074,7 @@ RecipeTracking.prototype.craftingProficiency = function()
  * @orderAfter J-JAFTING
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the "create" functionality of JAFTING.
  * The "create" functionality is a flexible but straight-forward adaptation of
  * a traditional crafting system.
@@ -1590,7 +1590,6 @@ J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList = new Map();
  * All regular expressions used by this plugin.
  */
 J.JAFTING.EXT.CREATE.RegExp = {};
-J.JAFTING.EXT.CREATE.RegExp.Points = /<tag:[ ]?(\d+)>/i;
 //endregion initialization
 
 //region plugin commands
@@ -3292,8 +3291,8 @@ Window_JaftingList.prototype.buildCreationCommand = function()
   return new WindowCommandBuilder(J.JAFTING.EXT.CREATE.Metadata.commandName)
     .setSymbol(Scene_JaftingCreate.KEY)
     .setEnabled($gameSwitches.value(J.JAFTING.EXT.CREATE.Metadata.menuSwitchId))
-    .addSubTextLine("The crux of creation.")
-    .addSubTextLine("Create items and equips from various categories of crafting- as your heart desires.")
+    .addTextLine("The crux of creation.")
+    .addTextLine("Create items and equips from various categories of crafting- as your heart desires.")
     .setIconIndex(J.JAFTING.EXT.CREATE.Metadata.commandIconIndex)
     .build();
 };
@@ -3990,7 +3989,7 @@ class Window_RecipeIngredientList extends Window_Command
 
       .setRightText(needQuantity)
       .setRightColorIndex(haveTextColor)
-      .setSubtextLines(subtexts)
+      .setTextLines(subtexts)
       .build();
   }
 
@@ -4241,7 +4240,7 @@ class Window_RecipeOutputList extends Window_Command
       .setIconIndex(component.getIconIndex())
       .setHelpText(component.getName())
       .setRightText(`+${component.quantity()}`)
-      .addSubTextLine(subTextLine)
+      .addTextLine(subTextLine)
 
       // TODO: when i/w/a rarity is implemented, add it here.
       //.setColorIndex(rarityColorIndex)
@@ -4377,7 +4376,7 @@ class Window_RecipeToolList extends Window_Command
 
       .setRightText(needQuantity)
       .setRightColorIndex(haveTextColor)
-      .setSubtextLines(subtexts)
+      .setTextLines(subtexts)
       .build();
   }
 
