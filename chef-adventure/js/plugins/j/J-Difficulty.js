@@ -733,7 +733,7 @@ class DifficultyMetadata
  * @orderAfter J-SDP
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the ability to apply one to many "difficulty layers",
  * defined as a collection of parameter modifications and bonuses against both
  * actors and enemies alike.
@@ -1207,8 +1207,8 @@ class J_DiffPluginMetadata extends PluginMetadata
   }
 
   /**
-   *  Extends {@link #postInitialize}.<br>
-   *  Includes translation of plugin parameters.
+   * Extends {@link #postInitialize}.<br>
+   * Includes translation of plugin parameters.
    */
   postInitialize()
   {
@@ -1324,7 +1324,7 @@ J.DIFFICULTY.Aliased = {
 /**
  * Plugin command for calling the Difficulty scene/menu.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", () =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "callDifficultyMenu", () =>
 {
   Scene_Difficulty.callScene();
 });
@@ -1332,7 +1332,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "callDifficultyMenu", 
 /**
  * Plugin command for calling the locking one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "lockDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "lockDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1345,7 +1345,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "lockDifficulty", args
 /**
  * Plugin command for calling the unlocking one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "unlockDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1358,7 +1358,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unlockDifficulty", ar
 /**
  * Plugin command for hiding one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "hideDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1371,7 +1371,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "hideDifficulty", args
 /**
  * Plugin command for unhiding one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "unhideDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1384,7 +1384,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "unhideDifficulty", ar
 /**
  * Plugin command for enabling one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "enableDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1397,7 +1397,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "enableDifficulty", ar
 /**
  * Plugin command for disabling one or many difficulties.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "disableDifficulty", args =>
 {
   let {keys} = args;
   keys = JSON.parse(keys);
@@ -1410,7 +1410,7 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "disableDifficulty", a
 /**
  * Plugin command for modifying the max layer points.
  */
-PluginManager.registerCommand(J.DIFFICULTY.Metadata.Name, "modifyLayerMax", args =>
+PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "modifyLayerMax", args =>
 {
   const { amount } = args;
   const parsedAmount = parseInt(amount);
@@ -1464,10 +1464,14 @@ class DifficultyManager
   static availableDifficulties()
   {
     // a filtering function for the list of difficulties to populate the list.
+    /** @param {DifficultyLayer} difficultyLayer */
     const filtering = difficultyLayer =>
     {
       // if the difficulty isn't visible, it isn't "available".
       if (difficultyLayer.isHidden()) return false;
+
+      // if a difficulty isn't unlocked, it isn't "available".
+      if (!difficultyLayer.isUnlocked()) return false;
 
       // this layer is available.
       return true;
@@ -1773,7 +1777,7 @@ Game_Enemy.prototype.exp = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.exp / 100;
+  const multiplier = appliedDifficulty.rewards.exp / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -1793,7 +1797,7 @@ Game_Enemy.prototype.gold = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.gold / 100;
+  const multiplier = appliedDifficulty.rewards.gold / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -1817,7 +1821,7 @@ if (J.DROPS)
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
-    const multiplier = appliedDifficulty.drops / 100;
+    const multiplier = appliedDifficulty.rewards.drops / 100;
 
     // return the rounded product of the multiplier and the original value.
     return Math.round(originalValue * multiplier);
@@ -1841,7 +1845,7 @@ if (J.SDP)
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // determine the multiplier for the bonus according to the difficulty.
-    const multiplier = appliedDifficulty.sdp / 100;
+    const multiplier = appliedDifficulty.rewards.sdp / 100;
 
     // return the rounded product of the multiplier and the original value.
     return Math.round(originalValue * multiplier);
@@ -1864,7 +1868,7 @@ Game_Map.prototype.encounterStep = function()
   const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
   // determine the multiplier for the bonus according to the difficulty.
-  const multiplier = appliedDifficulty.encounters / 100;
+  const multiplier = appliedDifficulty.rewards.encounters / 100;
 
   // return the rounded product of the multiplier and the original value.
   return Math.round(originalValue * multiplier);
@@ -2090,7 +2094,7 @@ Game_Temp.prototype.initMembers = function()
   /**
    * The "applied" difficulty.
    * This is effectively a combination of all currently enabled difficulties as
-   * a single {@link DifficultyLayer}.<br>
+   * a single {@link DifficultyLayer}.
    * @type {DifficultyLayer}
    */
   this._j._difficulty._appliedDifficulty = J_DiffPluginMetadata.defaultLayer();
@@ -3318,7 +3322,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3361,7 +3365,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3404,7 +3408,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3447,7 +3451,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3508,7 +3512,7 @@ class Window_DifficultyEffects extends Window_Command
         .setIconIndex(paramIconIndex)
         .setRightText(`${paramSign}${paramValue-100}`)
         .setColorIndex(paramColorIndex)
-        .addSubTextLines(paramDescription)
+        .addTextLines(paramDescription)
         .build();
 
       // add the built command.
@@ -3589,7 +3593,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.
@@ -3631,7 +3635,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.
@@ -3673,7 +3677,7 @@ class Window_DifficultyEffects extends Window_Command
       .setIconIndex(paramIconIndex)
       .setRightText(`${paramSign}${paramValue-100}`)
       .setColorIndex(paramColorIndex)
-      .addSubTextLines(paramDescription)
+      .addTextLines(paramDescription)
       .build();
 
     // return the built command.

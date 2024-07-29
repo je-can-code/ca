@@ -8,7 +8,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables passage control via region ids while on the map.
  *
  * DETAILS:
@@ -16,6 +16,7 @@
  * control the following:
  * - force-restrict passage by region id(s).
  * - force-permit passage by region id(s).
+ *
  * ============================================================================
  * REGION PASSAGE:
  * Have you ever wanted a character on a particular map have the ability to
@@ -42,6 +43,13 @@
  * NOTE ABOUT OVERLAPPING IDS IN TAGS:
  * If you use the same region id in both tags on the same map, the deny will
  * take priority and prevent passage.
+ *
+ * NOTE ABOUT PLUGIN PARAMETERS:
+ * In addition to the per-map per-tag configuration, there is also a global
+ * array for both allow and deny in case you want to specify some regionIds
+ * that will always be either allow/deny. The regionIds that are identified as
+ * "global" are not given any special treatment, and are simply concatenated
+ * into any found tags on the maps.
  *
  * ============================================================================
  * CHANGELOG:
@@ -156,7 +164,8 @@ J.REGIONS.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
 Game_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.REGIONS.Aliased.Game_Map.get('initialize').call(this);
+  J.REGIONS.Aliased.Game_Map.get('initialize')
+    .call(this);
 
   // initialize the region effects.
   this.initRegionEffectsMembers();
@@ -270,7 +279,8 @@ J.REGIONS.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
 Game_Map.prototype.setup = function(mapId)
 {
   // perform original logic.
-  J.REGIONS.Aliased.Game_Map.get('setup').call(this, mapId);
+  J.REGIONS.Aliased.Game_Map.get('setup')
+    .call(this, mapId);
 
   // setup all region effects.
   this.setupRegionEffects();
@@ -337,7 +347,7 @@ Game_Map.prototype.refreshAllowRegionEffects = function()
 {
   // grab the regions.
   const allowedRegions = RPGManager.getArrayFromNotesByRegex(
-    this.note(),
+    { note: this.note() },
     J.REGIONS.RegExp.AllowRegions)
 
   // stop processing if there was nothing found.
@@ -354,7 +364,7 @@ Game_Map.prototype.refreshDenyRegionEffects = function()
 {
   // grab the regions.
   const deniedRegions = RPGManager.getArrayFromNotesByRegex(
-    this.note(),
+    { note: this.note() },
     J.REGIONS.RegExp.DenyRegions)
 
   // stop processing if there was nothing found.
@@ -392,7 +402,8 @@ Game_Map.prototype.isPassable = function(x, y, d)
   }
 
   // if we reached here, then perform original logic and return that value.
-  return J.REGIONS.Aliased.Game_Map.get('isPassable').call(this, x, y, d);
+  return J.REGIONS.Aliased.Game_Map.get('isPassable')
+    .call(this, x, y, d);
 };
 
 /**
@@ -470,7 +481,7 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
       projectedX -= increment;
       break;
     case 6:
-      projectedX += increment*2; // not sure why only this requires 2x?
+      projectedX += increment * 2; // not sure why only this requires 2x?
       break;
     case 8:
       projectedY += increment;
@@ -478,6 +489,6 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
   }
 
   // return the projected results.
-  return [projectedX, projectedY];
+  return [ projectedX, projectedY ];
 };
 //endregion Game_Map

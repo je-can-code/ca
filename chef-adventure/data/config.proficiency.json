@@ -1,0 +1,2377 @@
+[
+  {
+    "key": "JR-1H-SWD_COMBO-5-6",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 4,
+        "proficiency": 800
+      }
+    ],
+    "skillRewards": [
+      5,
+      6
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-2H-SWD_COMBO-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 9,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      10
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-DUAL-SWD_COMBO-5",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 14,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      15
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-SPEAR_COMBO-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 18,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      19
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-BASHER_EXTEND-5",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 23,
+        "proficiency": 250
+      }
+    ],
+    "skillRewards": [
+      24
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-BASHER_EXTEND-6",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 23,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      25
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-BASHER_EXTEND-7",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 23,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      26
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-JAVELIN_EXTEND-3-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 28,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      29,
+      30
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-PISTOL_MELEE-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 33,
+        "proficiency": 250
+      },
+      {
+        "skillId": 35,
+        "proficiency": 400
+      }
+    ],
+    "skillRewards": [
+      34
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-TASER_EXTEND-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 40,
+        "proficiency": 400
+      }
+    ],
+    "skillRewards": [
+      41
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-TASER_EXTEND-5",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 40,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      42
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-SHOTGUN_EXTEND-3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 44,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      45
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-1H-AXE_EXTEND-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 48,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      49
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-2H-AXE_EXTEND-5",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 54,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      55
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-2H-AXE_EXTEND-6",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 54,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      56
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-TWIN-AXE_COMBO-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 59,
+        "proficiency": 1250
+      }
+    ],
+    "skillRewards": [
+      60
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-STAFF_EXTEND-3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 62,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      63
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-STAFF_EXTEND-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 62,
+        "proficiency": 2000
+      }
+    ],
+    "skillRewards": [
+      64,
+      65
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-WAND_EXTEND-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 68,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      69,
+      70
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-TOME_EXTEND-3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 72,
+        "proficiency": 750
+      }
+    ],
+    "skillRewards": [
+      73
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-TOME_EXTEND-3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 72,
+        "proficiency": 2000
+      }
+    ],
+    "skillRewards": [
+      74,
+      75
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-FIST_COMBO-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 78,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      79
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-FIST_EXTEND-5",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 79,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      80
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-CLAW_EXTEND-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 83,
+        "proficiency": 400
+      }
+    ],
+    "skillRewards": [
+      84
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-CLAW_EXTEND-5",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 83,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      85,
+      86
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-BEAT_EXTEND-3-4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 88,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      89,
+      90
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-LIQUID_OFFHAND_EXTEND-1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 191,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      192
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-LIQUID_OFFHAND_EXTEND-2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 191,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      193
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-ENERGY_OFFHAND_EXTEND-1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 194,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      195
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-ENERGY_OFFHAND_EXTEND-2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 194,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      196
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-VOID_OFFHAND_EXTEND-1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 197,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      198
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "JR-VOID_OFFHAND_EXTEND-2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 197,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      199
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SONICSLASH_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 101,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      102
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SONICSLASH_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 101,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      103
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SONICSLASH_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 101,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      104
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SONICSLASH_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 101,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      105
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BOULDERDASH_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 106,
+        "proficiency": 200
+      }
+    ],
+    "skillRewards": [
+      107
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BOULDERDASH_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 106,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      108
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BOULDERDASH_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 106,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      109
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BOULDERDASH_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 106,
+        "proficiency": 2000
+      }
+    ],
+    "skillRewards": [
+      110
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VBLADE_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 111,
+        "proficiency": 50
+      }
+    ],
+    "skillRewards": [
+      112
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VBLADE_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 111,
+        "proficiency": 250
+      }
+    ],
+    "skillRewards": [
+      113
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VBLADE_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 111,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      114
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VBLADE_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 111,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      115
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSTOMP_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 116,
+        "proficiency": 50
+      }
+    ],
+    "skillRewards": [
+      117
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSTOMP_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 116,
+        "proficiency": 200
+      }
+    ],
+    "skillRewards": [
+      118
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSTOMP_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 116,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      119
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSTOMP_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 116,
+        "proficiency": 800
+      }
+    ],
+    "skillRewards": [
+      119
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VACUUMTWIST_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 121,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      122
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VACUUMTWIST_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 121,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      123
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VACUUMTWIST_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 121,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      124
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "VACUUMTWIST_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 121,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      125
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "GEOSHOT_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 126,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      127
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "GEOSHOT_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 126,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      128
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "GEOSHOT_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 126,
+        "proficiency": 800
+      }
+    ],
+    "skillRewards": [
+      129
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "GEOSHOT_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 126,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      130
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BREATHE_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 131,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      132
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BREATHE_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 131,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      133
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BREATHE_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 131,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      134
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BREATHE_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 131,
+        "proficiency": 700
+      }
+    ],
+    "skillRewards": [
+      135
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENARMOR_1",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 136,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      137
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENARMOR_2",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 136,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      138
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENARMOR_3",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 136,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      139
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENARMOR_4",
+    "actorIds": [
+      1
+    ],
+    "requirements": [
+      {
+        "skillId": 136,
+        "proficiency": 700
+      }
+    ],
+    "skillRewards": [
+      140
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "FIREBALL_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 151,
+        "proficiency": 150
+      }
+    ],
+    "skillRewards": [
+      152
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "FIREBALL_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 151,
+        "proficiency": 450
+      }
+    ],
+    "skillRewards": [
+      153
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "FIREBALL_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 151,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      154
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "FIREBALL_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 151,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      155
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "NOVA_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 156,
+        "proficiency": 150
+      }
+    ],
+    "skillRewards": [
+      157
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "NOVA_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 156,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      158
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "NOVA_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 156,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      159
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "NOVA_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 156,
+        "proficiency": 1500
+      }
+    ],
+    "skillRewards": [
+      160
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DRAGONBREATH_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 161,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      162
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DRAGONBREATH_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 161,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      163
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DRAGONBREATH_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 161,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      164
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DRAGONBREATH_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 161,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      165
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LAVAWHIP_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 166,
+        "proficiency": 250
+      }
+    ],
+    "skillRewards": [
+      167
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LAVAWHIP_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 166,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      168
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LAVAWHIP_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 166,
+        "proficiency": 750
+      }
+    ],
+    "skillRewards": [
+      169
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LAVAWHIP_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 166,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      170
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "MOLTENWISDOM_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 171,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      172
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "MOLTENWISDOM_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 171,
+        "proficiency": 250
+      }
+    ],
+    "skillRewards": [
+      173
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "MOLTENWISDOM_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 171,
+        "proficiency": 400
+      }
+    ],
+    "skillRewards": [
+      174
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "MOLTENWISDOM_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 171,
+        "proficiency": 550
+      }
+    ],
+    "skillRewards": [
+      175
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RAPIDCINDERS_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 176,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      177
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RAPIDCINDERS_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 176,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      178
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RAPIDCINDERS_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 176,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      179
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RAPIDCINDERS_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 176,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      180
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SUNSTOUCH_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 181,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      182
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SUNSTOUCH_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 181,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      183
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SUNSTOUCH_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 181,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      184
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SUNSTOUCH_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 181,
+        "proficiency": 700
+      }
+    ],
+    "skillRewards": [
+      185
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "ERUPTION_1",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 186,
+        "proficiency": 150
+      }
+    ],
+    "skillRewards": [
+      187
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "ERUPTION_2",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 186,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      188
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "ERUPTION_3",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 186,
+        "proficiency": 450
+      }
+    ],
+    "skillRewards": [
+      189
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "ERUPTION_4",
+    "actorIds": [
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 186,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      190
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BLOOM_1",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 301,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      302
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BLOOM_2",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 301,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      303
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BLOOM_3",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 301,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      304
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "BLOOM_4",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 301,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      305
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSHELL_1",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 306,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      307
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSHELL_2",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 306,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      308
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSHELL_3",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 306,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      309
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "SIESMICSHELL_4",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 306,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      310
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "OVERGROWTH_1",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 311,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      312
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "OVERGROWTH_2",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 311,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      313
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "OVERGROWTH_3",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 311,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      314
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "OVERGROWTH_4",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 311,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      315
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENFORCE_1",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 316,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      317
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENFORCE_2",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 316,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      318
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENFORCE_3",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 316,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      319
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "EARTHENFORCE_4",
+    "actorIds": [
+      3
+    ],
+    "requirements": [
+      {
+        "skillId": 316,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      320
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RIPTIDE_1",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 321,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      322
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RIPTIDE_2",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 321,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      323
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RIPTIDE_3",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 321,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      324
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "RIPTIDE_4",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 321,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      325
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERYSTRIKE_1",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 326,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      327
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERYSTRIKE_2",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 326,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      328
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERYSTRIKE_3",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 326,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      329
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERYSTRIKE_4",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 326,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      330
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERSPUME_1",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 331,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      332
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERSPUME_2",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 331,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      333
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERSPUME_3",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 331,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      334
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "WATERSPUME_4",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 331,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      335
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LIQUIDFORCE_1",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 336,
+        "proficiency": 300
+      }
+    ],
+    "skillRewards": [
+      337
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LIQUIDFORCE_2",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 336,
+        "proficiency": 600
+      }
+    ],
+    "skillRewards": [
+      338
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LIQUIDFORCE_3",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 336,
+        "proficiency": 900
+      }
+    ],
+    "skillRewards": [
+      339
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "LIQUIDFORCE_4",
+    "actorIds": [
+      6
+    ],
+    "requirements": [
+      {
+        "skillId": 336,
+        "proficiency": 1200
+      }
+    ],
+    "skillRewards": [
+      340
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_PARRY_1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 251,
+        "proficiency": 50
+      }
+    ],
+    "skillRewards": [
+      252,
+      253
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_COUNTER_1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 253,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      254
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_COUNTER_2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 251,
+        "proficiency": 400
+      },
+      {
+        "skillId": 253,
+        "proficiency": 200
+      }
+    ],
+    "skillRewards": [
+      255
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_PARRY_2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 253,
+        "proficiency": 400
+      }
+    ],
+    "skillRewards": [
+      256
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_COUNTER_3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 251,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      257
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_PARRY_3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 253,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      258
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_COUNTER_4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 251,
+        "proficiency": 2000
+      }
+    ],
+    "skillRewards": [
+      259
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "DEFLECT_GIGA",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 251,
+        "proficiency": 3000
+      },
+      {
+        "skillId": 253,
+        "proficiency": 1000
+      }
+    ],
+    "skillRewards": [
+      260
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_GUARD_1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 100
+      }
+    ],
+    "skillRewards": [
+      262
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_COUNTER_1",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 250
+      }
+    ],
+    "skillRewards": [
+      263,
+      264
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_GUARD_2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 2000
+      }
+    ],
+    "skillRewards": [
+      265
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_GUARD_3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 4000
+      }
+    ],
+    "skillRewards": [
+      266
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_COUNTER_2",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 264,
+        "proficiency": 500
+      }
+    ],
+    "skillRewards": [
+      267
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_COUNTER_3",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 264,
+        "proficiency": 1250
+      }
+    ],
+    "skillRewards": [
+      268
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_GUARD_4",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 6000
+      }
+    ],
+    "skillRewards": [
+      269
+    ],
+    "jsRewards": ""
+  },
+  {
+    "key": "PROTECT_GIGA",
+    "actorIds": [
+      1,
+      2
+    ],
+    "requirements": [
+      {
+        "skillId": 261,
+        "proficiency": 7500
+      },
+      {
+        "skillId": 264,
+        "proficiency": 2500
+      }
+    ],
+    "skillRewards": [
+      270
+    ],
+    "jsRewards": ""
+  }
+]

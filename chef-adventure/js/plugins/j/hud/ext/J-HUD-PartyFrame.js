@@ -13,7 +13,7 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Party Frame, which displays the leader and allied members that
@@ -655,27 +655,28 @@ class Window_PartyFrame extends Window_Base
     const gaugeTypes = this.gaugeTypes();
 
     // iterate over each of the battle members in the party.
-    $gameParty.battleMembers().forEach(actor =>
-    {
-      // cache the full-sized face images for each actor.
-      this.getOrCreateFullSizeFaceSprite(actor);
-
-      // cache the mini-sized face images for each actor.
-      this.getOrCreateMiniSizeFaceSprite(actor);
-
-      // for this actor, create all the gauges, too.
-      gaugeTypes.forEach(gaugeType =>
+    $gameParty.battleMembers()
+      .forEach(actor =>
       {
-        // create the full-sized gauge sprite for this type.
-        this.getOrCreateFullSizeGaugeSprite(actor, gaugeType);
+        // cache the full-sized face images for each actor.
+        this.getOrCreateFullSizeFaceSprite(actor);
 
-        // create the mini-sized gauge sprite for this type.
-        this.getOrCreateMiniSizeGaugeSprite(actor, gaugeType);
+        // cache the mini-sized face images for each actor.
+        this.getOrCreateMiniSizeFaceSprite(actor);
 
-        // create the corresponding actor value sprite for this gauge.
-        this.getOrCreateActorValueSprite(actor, gaugeType);
+        // for this actor, create all the gauges, too.
+        gaugeTypes.forEach(gaugeType =>
+        {
+          // create the full-sized gauge sprite for this type.
+          this.getOrCreateFullSizeGaugeSprite(actor, gaugeType);
+
+          // create the mini-sized gauge sprite for this type.
+          this.getOrCreateMiniSizeGaugeSprite(actor, gaugeType);
+
+          // create the corresponding actor value sprite for this gauge.
+          this.getOrCreateActorValueSprite(actor, gaugeType);
+        });
       });
-    });
   }
 
   /**
@@ -788,7 +789,9 @@ class Window_PartyFrame extends Window_Base
    */
   makeGaugeSpriteKey(actor, isFull, gaugeType)
   {
-    const gaugeSize = isFull ? `full` : `mini`;
+    const gaugeSize = isFull
+      ? `full`
+      : `mini`;
     return `gauge-${gaugeType}-${gaugeSize}-${actor.name()}-${actor.actorId()}`;
   }
 
@@ -836,7 +839,9 @@ class Window_PartyFrame extends Window_Base
     const gaugeHeight = this.fullGaugeHeight(gaugeType);
 
     // determine gauge width based on gauge type.
-    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 114 : 144;
+    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP
+      ? 114
+      : 144;
 
     // create a new full-sized gauge sprite of the actor.
     const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 32);
@@ -904,7 +909,9 @@ class Window_PartyFrame extends Window_Base
     const gaugeHeight = this.miniGaugeHeight(gaugeType);
 
     // determine gauge width based on gauge type.
-    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 42 : 96;
+    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP
+      ? 42
+      : 96;
 
     // create a new mini-sized gauge sprite of the actor.
     const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 24);
@@ -1095,6 +1102,7 @@ class Window_PartyFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
+
   //endregion caching
 
   /**
@@ -1220,6 +1228,7 @@ class Window_PartyFrame extends Window_Base
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }
+
   //endregion visibility
 
   /**
@@ -1280,7 +1289,7 @@ class Window_PartyFrame extends Window_Base
     // locate the hp gauge.
     const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x-24, y);
+    hpGauge.move(x - 24, y);
     hpGauge.show();
 
     // locate the hp numbers.
@@ -1291,23 +1300,23 @@ class Window_PartyFrame extends Window_Base
     // grab and locate the sprite.
     const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x-24, y + lh-2 - mpGauge.bitmapHeight());
+    mpGauge.move(x - 24, y + lh - 2 - mpGauge.bitmapHeight());
     mpGauge.show();
 
     // locate the mp numbers.
     const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.MP);
-    mpNumbers.move(x, y+19);
+    mpNumbers.move(x, y + 19);
     mpNumbers.show();
 
     // grab and locate the sprite.
     const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x-24, y+46-tpGauge.bitmapHeight());
+    tpGauge.move(x - 24, y + 46 - tpGauge.bitmapHeight());
     tpGauge.show();
 
     // locate the tp numbers.
     const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.TP);
-    tpNumbers.move(x, y+33);
+    tpNumbers.move(x, y + 33);
     tpNumbers.show();
   }
 
@@ -1320,7 +1329,7 @@ class Window_PartyFrame extends Window_Base
     const xpY = y;
     const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
-    xpGauge.move(x+5, xpY);
+    xpGauge.move(x + 5, xpY);
     xpGauge.show();
 
     // locate the xp numbers.
@@ -1330,7 +1339,7 @@ class Window_PartyFrame extends Window_Base
 
     // locate the level numbers.
     const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
-    levelNumbers.move(x+84, xpY);
+    levelNumbers.move(x + 84, xpY);
     levelNumbers.show();
   }
 
@@ -1414,6 +1423,8 @@ class Window_PartyFrame extends Window_Base
         iconSprite.hide();
         timerSprite.hide();
       });
+
+      this.clearContent();
     }
   }
 
@@ -1431,8 +1442,21 @@ class Window_PartyFrame extends Window_Base
     iconSprite.show();
 
     const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
-    timerSprite.move(ox-4, y+20);
+    timerSprite.move(ox - 4, y + 20);
     timerSprite.show();
+
+    this.modFontSize(-0);
+    this.toggleBold();
+    this.toggleItalics();
+
+    this.drawText(
+      `x${trackedState.stackCount}`,
+      ox ,
+      y - 30,
+      64,
+      Window_Base.TextAlignments.Left);
+
+    this.resetFontSettings()
   }
 
   /**
@@ -1446,17 +1470,18 @@ class Window_PartyFrame extends Window_Base
     const lh = this.lineHeight() + 26;
 
     // iterate over each ally.
-    $gameParty.battleMembers().forEach((ally, index) =>
-    {
-      // the leader is always index 0, and they are being drawn separately.
-      if (index === 0) return;
+    $gameParty.battleMembers()
+      .forEach((ally, index) =>
+      {
+        // the leader is always index 0, and they are being drawn separately.
+        if (index === 0) return;
 
-      const adjustedIndex = index - 1;
+        const adjustedIndex = index - 1;
 
-      // draw the ally at the designated coordinates.
-      const y = oy - (lh * adjustedIndex);
-      this.drawAlly(ally, x, y);
-    });
+        // draw the ally at the designated coordinates.
+        const y = oy - (lh * adjustedIndex);
+        this.drawAlly(ally, x, y);
+      });
   }
 
   /**
@@ -1471,7 +1496,7 @@ class Window_PartyFrame extends Window_Base
     this.drawAllyFace(ally, x, oy);
 
     // draw the ally's mini gauges.
-    this.drawAllyGauges(ally, x+40, oy+6);
+    this.drawAllyGauges(ally, x + 40, oy + 6);
   }
 
   /**
@@ -1502,20 +1527,21 @@ class Window_PartyFrame extends Window_Base
     // locate the hp gauge.
     const hpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x-24, oy + lh*0);
+    hpGauge.move(x - 24, oy + lh * 0);
     hpGauge.show();
 
     // grab and locate the sprite.
     const mpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x-24, oy + lh*1);
+    mpGauge.move(x - 24, oy + lh * 1);
     mpGauge.show();
 
     // grab and locate the sprite.
     const tpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x-24, oy + lh*2);
+    tpGauge.move(x - 24, oy + lh * 2);
     tpGauge.show();
   }
 }
+
 //endregion Window_PartyFrame

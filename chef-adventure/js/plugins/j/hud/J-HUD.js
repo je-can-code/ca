@@ -13,7 +13,7 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is the core of the J-HUD system, and contains plugin commands
  * for managing the state of your JABS HUD.
  *

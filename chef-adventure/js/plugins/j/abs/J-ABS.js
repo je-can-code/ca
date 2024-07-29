@@ -1,2568 +1,3 @@
-/* eslint-disable max-len */
-/*:
- * @target MZ
- * @plugindesc
- * [v3.3.0 JABS] Enables combat to be carried out on the map.
- * @author JE
- * @url https://github.com/je-can-code/rmmz-plugins
- * @base J-Base
- * @orderAfter J-Base
- * @help
- * ============================================================================
- * OVERVIEW:
- * This plugin is JABS: J's Action Battle System.
- * Using this plugin will enable you to carry out combat directly on the map
- * in real-time, similar to popular game franchises like Zelda.
- *
- * ----------------------------------------------------------------------------
- * DETAILS:
- * Have you ever wanted to decorate events with tons of event comments and
- * watch them come to life as AI-controlled allies/enemies in an action battle
- * system for your button-mashing hack-n-slash pleasure? Well now you can! Just
- * slap some tags on the various everything across the entire RMMZ editor, and
- * you too can have a functional ABS, aka JABS!
- *
- * ============================================================================
- * INTEGRATIONS:
- * In addition to JABS, I've written a suite(20+) of other plugins that add
- * new systems or modify existing systems.
- *
- * All plugins I have written are highly compatible with eachother, and JABS.
- * Many of them were written to compliment JABS, such as the HUD or Ally AI.
- *
- * If you find issue with how my plugins are interacting with one another, feel
- * free to reach out and let me know and I'll see if I can fix it.
- *
- * If you find issue with how JABS is interacting with someone elses' plugin,
- * I encourage you communicate with that plugin author to have them reach out
- * to me and we shall discuss the problem and try to come to a solution if one
- * exists for the problem.
- *
- * As an alternative to the above, you are also welcome to file an issue
- * against my github repository describing the issue and how to reproduce it
- * minimally, and I will look into it when possible.
- * ============================================================================
- * Due to the sheer length of instruction provided below, the changelog for
- * JABS lives at the top instead of the bottom like the rest of my plugins.
- *
- * CHANGELOG:
- * - 3.3.0
- *    Added plugin command to generate enemies on the map dynamically.
- *    Added plugin command to generate loot on the map dynamically.
- *    Refactored away manual getter/setters of JABS_Engine.
- * - 3.2.2
- *    JABS quick menu now honors menu access via event control.
- *    Actor-based JABS parameter retrieval has been refactored.
- *    Enabled auto-counter for enemies.
- *    Fixed issue where states weren't reapplied properly.
- *    Fixed issue where inanimate battlers could endlessly alert allies.
- * - 3.2.1
- *    Refactored slip effects to accommodate the J-Passives update.
- *    Fixed issue where endlessly delaying actions would never expire.
- * - 3.2.0
- *    Fixed bug where actions couldn't connect if the attacker was too close.
- *    Upgraded AI to be able to leverage combos (ally AI, too).
- *    Refactored code surrounding AI action decision-making.
- * - 3.1.2
- *    Refactored some of the JABS menu in a non-breaking way.
- *    Optimized/centralized note tag retrieval in many cases.
- * - 3.1.1
- *    Retroactively added this CHANGELOG.
- * - 3.1.0
- *    Optimized battler tracking and management.
- *    Optimized state tracking and management.
- *    Optimized integrations with my other plugins.
- *    Added proper guidance in the plugin description.
- *    Added state duration modifiers functionality.
- *    Fixed "ignore all parry" tag.
- *    Added "Skill Charging" as JABS extension.
- *    Added "Casting Modifiers" as JABS extension.
- *    Added "Map Tools" as JABS extension.
- *    Added "Cyclone-Movement" adapter as JABS extension.
- *    Updated distance-centric tags to now allow for decimals (like "range").
- *    Added "circle" hitbox.
- *    Updated hitbox logic.
- *    Updated tags surrounding enemy event configuration.
- *    Updated tags surrounding AI definition for enemies.
- *    Optimized AI decision-making capabilities based on AI traits.
- * - 3.0.0
- *    Extracted "Text Pops" as a JABS extension plugin.
- *    Extracted "Input Management" as a JABS extension plugin.
- *    Extracted "Diagonal Movements" as a JABS extension plugin.
- *    Extracted "Movespeed Modifiers" as a JABS extension plugin.
- *    Integrated "Ally AI" as JABS extension.
- *    Added Aggro functionality.
- *    Added skill delay functionality (like bombs).
- *    Adjusted numerous data points to be customizable in plugin parameters.
- *    Further optimized "under-the-hood" parts of JABS.
- * - 2.3.1
- *    Updated loot drop functionality to be less wonky.
- *    Other miscellaneous bugfixes.
- * - 2.3.0
- *    Updated plugin parameters format to be cleaner.
- *    Added "Danger Indicator" functionality (see indicator on enemies on map).
- *    Added "Battler Name" functionality (see names of enemies on map).
- *    Other miscellaneous bugfixes.
- * - 2.2.0
- *    Added 2 new AI types: "leader" and "follower".
- *    Shifted tag location for enemies from event notebox to comment format.
- *    Other miscellaneous bugfixes.
- * - 2.1.0
- *    Implemented party cycling between members of the party.
- *    Added refresh command for JABS quick menu.
- *    Added "bonus hits" functionality.
- *    Disabled native RMMZ regeneration.
- *    Modified dash functionality to be controlled by JABS instead.
- *    Enemies now perform their active event page upon defeat.
- *    Disabled on-hit effects against targets that parry.
- *    Added "counter-guard" and "counter-parry" functionality.
- *    Added visual indicator for "action decided" for AI-controlled battlers.
- *    Excessive number of bugfixes.
- * - 2.0.0
- *    Added guarding functionality.
- *    Added counterattack functionality.
- *    Added projectile count modifiers.
- *    Enemy loot is now dropped on the ground.
- *    Added movespeed modifier functionality (for player only).
- *    Greatly optimized "under-the-hood" parts of JABS.
- * - 1.0.0
- *    The initial release.
- * ============================================================================
- * SETTING UP YOUR ENEMY EVENTS:
- * There are a lot of potential tags that you can place all across the database
- * to accomplish various goals, so lets get started with setting up an enemy
- * event.
- *
- * First and foremost, all tags will be living inside comment event commands:
- *    "Event Commands > Flow Control > Comment"
- *
- * NOTE ABOUT PRIORITY OF TAGS:
- * With the exception of the ENEMY ID tag and MOVE SPEED tag in an event, all
- * the rest are mostly optional. If you place the same tags for ENEMY EVENTS
- * in the database, then they will become the defaults for enemies, where the
- * tags in the ENEMY EVENTS will act as "overrides".
- * So the priority order looks like this:
- *    1st: tags in the ENEMY EVENT.
- *    2nd: tags in the database on that particular enemy.
- *    3rd: the defaults listed in the plugin parameters.
- * ----------------------------------------------------------------------------
- * ENEMY ID:
- * If you want an event to be tagged as an enemy, then the system needs a way
- * to associate the event with the enemy. To accomplish this, we'll use the
- * "enemy" tag:
- *    <enemyId:ENEMY_ID>
- *  Where ENEMY_ID is the id from the database of the enemy for this event.
- *
- * ----------------------------------------------------------------------------
- * SIGHT RADIUS:
- * The "sight" of an enemy, is the radius around the enemy that it can perceive
- * the player. When the player comes within this radius, the enemy will try to
- * attack the player. To define the "sight" radius of an enemy, we'll use the
- * "sight" tag:
- *    <sight:RADIUS>
- *  Where RADIUS is the distance in tiles this enemy can see.
- *
- * NOTE: Enemy sight ignores obstacles like walls. They have x-ray vision.
- *
- * This can also be placed in the database on the enemy to set it as a default.
- *
- * ----------------------------------------------------------------------------
- * PURSUIT RADIUS:
- * The "pursuit" of an enemy is the radius around the enemy that if will
- * pursue the player once in combat. Effectively, this is the enemy's sight
- * radius after it is engaged in combat. This is typically designed to be
- * bigger than the sight radius. To define the "pursuit" radius of an enemy,
- * we'll use the "pursuit" tag:
- *    <pursuit:RADIUS>
- *  Where RADIUS is the distance in tiles this enemy can pursue combatants.
- *
- * This can also be placed in the database on the enemy to set it as a default.
- *
- * ----------------------------------------------------------------------------
- * ALERTING:
- * When an enemy is struck with a skill from outside of its sight/pursuit
- * range, the enemy will enter an "alerted" state. While in said "alerted"
- * state, they can have heightened sight and pursuit, and will navigate to the
- * point of which they believe the attacker resides. It is encouraged to use
- * this functionality, or else enemies can be easily defeated with ranged
- * skills and no risk. To leverage this functionality, there are a few tags you
- * may want to use:
- *    <alertDuration:DURATION>
- *  Where DURATION is the duration in frames to remain alerted.
- *
- *    <alertedSightBoost:RADIUS_BOOST>
- *  Where RADIUS_BOOST is the amount of bonus sight gained while alerted.
- *
- *    <alertedPursuitBoost:RADIUS_BOOST>
- *  Where RADIUS_BOOST is the amount of bonus pursuit gained while alerted.
- *
- * This can also be placed in the database on the enemy to set it as a default.
- *
- * ----------------------------------------------------------------------------
- * MOVE SPEED:
- * Sometimes, you want an enemy to move somewhere between 3 and 4 movespeed,
- * because 3 to 4 movespeed is literally a 2x jump in movespeed. If you want
- * to assign a number like 3.7 as an enemy's move speed, you can use this tag:
- *    <moveSpeed:SPEED>
- *  Where SPEED is the numeric value to represent the move speed.
- *
- * NOTE: This will override whatever the native RMMZ event page is set to.
- * NOTE: I have found a good balance is between 3.5 and 4.5 for move speed.
- *
- * ----------------------------------------------------------------------------
- * AI TRAITS:
- * While the basic AI works, you may want to modify the AI a bit for various
- * enemies. To do this, I've built some tags that flex the various themes that
- * the AI can perform. These tags should be added alongside wherever you might
- * add the above tags for things like enemy id and sight radius.
- *
- * NOTE: Enemies have a default AI in the sense that they will still attack
- * and perform skills, but mostly its just at random if you don't slap some
- * ai traits on them. Though, skills still can only be used as often as their
- * cooldown and resources permit.
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:careful>
- * Enemies with the Careful AI trait will be more calculating about their
- * strategies, and avoid using things that would benefit you, such as skills
- * that are elementally ineffective. This also influences decision-making for
- * other AI traits.
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:executor>
- * Enemies with the Executor AI trait will prioritize leveraging skills that
- * maximize damage and target weak spots. They know everything and will
- * use every skill in their arsenal to destroy you.
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:reckless>
- * Enemies with the Reckless AI trait will never use their basic attack, and
- * will spam their learned skills until they are out of resources instead.
- * This also influences decision-making for other AI traits.
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:healer>
- * Enemies with the Healer AI trait will monitor their nearby allies while they
- * use their various skills and prioritize their own healing skills to keep
- * their allies alive. If an enemy has the Reckless AI trait alongside this,
- * they will disregard efficiency and just use the strongest healing skill to
- * heal their allies. If an enemy has the Careful AI trait, they will be more
- * calculating and use the "best fitted" healing skill for the situation.
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:follower>
- * Enemies with the Follower AI trait are restricted to only using their basic
- * attack skill when without a leader. When another enemy is in the nearby
- * vicinity that has the Leader AI Trait, then the leader enemy will decide
- * actions on behalf of the follower enemy to perform. This AI trait is
- * typically used to create "dormant" enemies that awaken when a leader is
- * present and can utilize their skills. You can also gate healing skills
- * behind requiring a leader to leverage them.
- *
- * NOTE: Leader/Follower traits have not been heavily tested, use with care!
- *
- * ----------------------------------------------------------------------------
- * <aiTrait:leader>
- * Enemies with the Leader AI trait are just like normal enemies and will obey
- * their other AI traits, but also they will take over and make decisions on
- * behalf of any available followers in the nearby vicinity using their own
- * AI traits to decide what skills for the follower to use.
- *
- * NOTE: Leader/Follower traits have not been heavily tested, use with care!
- *
- * ============================================================================
- * TEAMS:
- * By default, when an enemy is created, they are assigned a numeric team value
- * of 1. When allied battlers (such as the player) are created, they are given
- * the team value of 0. Because these two battlers are on different teams, they
- * are able to deal damage to each other with skills. If your game is more
- * complex than "good guy" & "bad guy", you may require additional teams. While
- * it isn't greatly supported in the sense that there is team relationships
- * and associations you can create (such as two separate teams that consider
- * eachother allies, or neutral teams), you can still add a tag to enemies on
- * the map that will redefine their team id, to potentially allow enemies to
- * fight eachother.
- *
- * By default, the following teams are already setup:
- * - 0 is for the player/allies.
- * - 1 is for enemies/monsters.
- * - 2 is for "neutral", aka inanimate objects.
- *
- *    <teamId:TEAM>
- *  Where TEAM is the numeric id to assign.
- *
- * ============================================================================
- * CIRCUMSTANTIAL CONFIG OPTIONS:
- * There are a few more tags that you may want to be aware of that modify the
- * base functionality of how enemies on the map look or act. Add these to the
- * enemy somehow, and the defaults can be changed.
- *
- * ----------------------------------------------------------------------------
- * IDLING:
- * By default, enemies will kinda idle about in a 2-tile radius surrounding
- * wherever they are placed on the map. If you want to change this, or undo
- * your defaults, there are tags for that!
- *    <jabsConfig:noIdle>
- *    <jabsConfig:canIdle>
- *
- * ----------------------------------------------------------------------------
- * HP BAR:
- * Enemies by default will have small hp bars beneath them on the map. It is a
- * nice visual indicator that it is an enemy and displays their current health.
- * However, if you have a reason to hide it (or show it), you can use the tags
- * below to do this.
- *    <jabsConfig:noHpBar>
- *    <jabsConfig:showHpBar>
- *
- * ----------------------------------------------------------------------------
- * BATTLER NAME:
- * The name of enemies is shown beneath the battler's character itself. If you
- * want to conceal or reveal this name, you can use the below tags to do that.
- *    <jabsConfig:noName>
- *    <jabsConfig:showName>
- *
- * ----------------------------------------------------------------------------
- * INVINCIBLE:
- * Enemies don't always need to be defeatable. If you want to make an enemy
- * completely invincible (combat actions will not connect with this enemy), or
- * disable said invincibility, you can using the tags below.
- *    <jabsConfig:invincible>
- *    <jabsConfig:notInvincible>
- *
- * ----------------------------------------------------------------------------
- * INANIMATE:
- * Some enemies actually aren't enemies. They are pots, crates, bushes, or
- * other various inanimate objects that are just there to be chopped up. You
- * can disable an enemy's AI, movement, knockback, hp bar, etc., all from one
- * convenient tag!
- *    <jabsConfig:inanimate>
- *    <jabsConfig:notInanimate>
- *
- * ============================================================================
- * FIRST TIME SETUP, THE ENEMY MAP:
- * While you can create enemies on the map as much as your heart desires, it
- * is also possible to dynamically generate enemies on-the-fly with plugin
- * commands or script commands in events. If you hope to make use of this, you
- * will need to define an "enemy clone map", aka a map of premade enemy events
- * that are exclusively used by the plugin/script commands for spawning
- * enemies, as the commands in question refer to enemyEventIds that would be
- * derived from the "enemy clone map".
- *
- * NOTE:
- * If you have zero chance of using this functionality, JABS will operate
- * completely fine as long as the map defined as "enemy clone map" in the
- * plugin configuration does indeed exist- just know that the dynamic spawning
- * will be broken unless that map gets implemented as it was intended.
- *
- * ============================================================================
- * SETTING UP THE ENEMIES IN THE DATABASE:
- * While you may wish that the enemies would just... work out of the box as
- * soon as you set them up on the map, there is a bit more to it than that! We
- * still need to define a couple of the basics for them in the database. Rather
- * than tons of notes, it'll be a bit of trait management and clicking.
- *
- * NOTE:
- * Most configuration you want to universally apply to all enemies of a given
- * id can be applied to the notes of the enemies in the database instead of on
- * every single event you create of that enemy.
- *
- * ----------------------------------------------------------------------------
- * BASIC ATTACK:
- * All enemies probably should have a "basic attack".
- * This is defined by the "Attack Skill" trait, found on the top of the third
- * page in the trait picker for enemies.
- *
- * PREPARE SPEED:
- * To emulate a "turn speed" of sorts, enemies all have a fixed amount of time
- * that they must wait before they take action. This value is defined by the
- * "Attack Speed" trait, found in the middle of the third page in the trait
- * picker for enemies.
- * ----------------------------------------------------------------------------
- * AVAILABLE SKILLS:
- * Any skills listed in the "Action Patterns" section of an enemy in the
- * database will be considered an "available skill" for use. To create a skill
- * that is usable by battlers in JABS (actors or enemies), see the "SETTING UP
- * YOUR SKILLS" section below.
- *
- * NOTE ABOUT CONDITIONS:
- * Enemies do not currently obey any conditions; they will obey their AI in
- * combination with skill cooldowns and such.
- *
- * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
- * If you are leveraging my other plugin "J-SkillExtend", then something to
- * consider is that for a skill to be extended, it must be known to the enemy
- * in some way. If a skill has a skill extend tag, they will not be available
- * for enemies to choose as a skill to perform in combat, but it will still
- * apply any extension effects as applicable.
- *
- * ============================================================================
- * FIRST TIME SETUP, THE ACTION MAP:
- * If you're not using the demo as a base, then you'll need to add a new map to
- * your project where all the "action events" will live. These events represent
- * the visual components of skills executed on the map and are mapped by adding
- * a tag to the skills that associate your skill with the designated event on
- * the action map. Once you've created the map, you'll need to take note of the
- * map id and align it in the plugin parameters with the "Action Map Id" param.
- *
- * ============================================================================
- * SETTING UP YOUR SKILLS:
- * In addition to setting up your enemies, you'll need to setup skills as well.
- * There are a huge variety of tags to be used, but there are a few that you'll
- * probably include on most skills.
- *
- * NOTE ABOUT THROUGH:
- * I would strongly encourage when building actions on the action map, to set
- * your action events to have "through" checked. Otherwise, they may get stuck
- * on various events or terrains unexpectedly- especially if using any kind of
- * pixel movement plugins/adapters.
- *
- * ----------------------------------------------------------------------------
- * ACTION ID:
- * You setup the action map, right?
- * Well, now that you did and defined some events in there, you'll need to pick
- * one to represent what this skill looks like on the map.
- *    <actionId:EVENT_ID>
- *  Where EVENT_ID is the id of the event from the action map for this skill.
- *
- * ----------------------------------------------------------------------------
- * DURATION:
- * The duration of a skill defines how long its corresponding action event will
- * remain on the map.
- *    <duration:FRAMES>
- *  Where FRAMES is the amount of time in frames this event will exist.
- *
- * NOTE ABOUT HIT COUNT:
- * When a skill has hit it's maximum number of times (once by default, or as
- * many times as defined by the "pierce" tag), it will disappear.
- *
- * NOTE ABOUT MIN DURATION:
- * Skills still have an arbitrary minimum duration of 8 frames.
- *
- * ----------------------------------------------------------------------------
- * COOLDOWN MANAGEMENT:
- * In interest of not letting the player endlessly spam their skills, you'll
- * probably want to introduce cooldowns to their skills. There are two tags for
- * handling that you'll probably want to use.
- *
- * COOLDOWN:
- * The cooldown is the primary tag to handle cooldowns. This tag defines an
- * amount of time in frames that must pass before the battler can use the skill
- * again.
- *    <cooldown:VAL>
- *  Where VAL is the cooldown amount in frames for this skill.
- *
- * NOTE ABOUT SLOTS ON COOLDOWN:
- * JABS permits the assignment of the same skill to multiple slots on a single
- * battler. By default, when using a skill with a cooldown, if any other skills
- * are equipped that share the same skill ID, they too will go on cooldown for
- * the same amount as defined in the skill. However, you can change this
- * functionality by using the next tag.
- *
- * UNIQUE COOLDOWN:
- * Using the "unique cooldown" tag on a skill will force each slot a skill is
- * equipped to to handle their cooldown independently, even if the skill shares
- * the same skill ID as another slot.
- *    <uniqueCooldown>
- *
- * ----------------------------------------------------------------------------
- * RADIUS:
- * The radius represents how big the "hitbox" of this skill using tiles as the
- * measurement. This must be a positive integer value.
- *    <radius:VAL>
- *  Where VAL is the radius value for this skill.
- *
- * ----------------------------------------------------------------------------
- * PROXIMITY:
- * The proximity represents how close an AI-controlled battler must get to the
- * target before they are able to execute a skill. This has a unique
- * interaction with "direct" skills.
- *    <proximity:VAL>
- *  Where VAL is the proximity value for this skill.
- *
- * ----------------------------------------------------------------------------
- * DIRECT:
- * For a skill with the "direct" tag, there will be no projectile produced.
- * Instead, the skill will directly target the nearest foe that is within the
- * caster's PROXIMITY. The skill will still obey other tags like CAST TIME,
- * RADIUS, HITBOX, and so on. The most common use case I can think of would
- * probably be to use this tag for healing skills, or skills you don't want to
- * have a chance at being dodged.
- *    <direct>
- *
- * NOTE ABOUT PARRYING:
- * A "direct" skill can still be parried if the conditions are met.
- *
- * ----------------------------------------------------------------------------
- * PROJECTILE:
- * The "projectile" value will define how many projectiles will be fired when
- * the skill is executed. This works a bit differently than you probably think.
- * The values available for this are:
- *  1: A single projectile that will fire forward.
- *  2: Two projectiles in a V shape firing forward.
- *  3: Three projectiles in a W shape firing forward.
- *  4: Four projectiles, one in each of the cardinal directions.
- *  8: Eight projectiles, one in each of the cardinal and diagonal directions.
- *
- *    <projectile:VAL>
- *  Where VAL is one of the valid numeric values listed above.
- *
- * NOTE ABOUT PROJECTILE MOTION:
- * I would strongly encourage when building your actions on the action map,
- * to use "turn X degrees" instead of "turn X direction", as they can mess up
- * the illusion of the projectiles obeying the direction they were fired in.
- * In that same vein, I'd also encourage using "1 step forward/backward" in
- * place of "Move up/down/left/right" for the same reason.
- *
- * NOTE ABOUT DIAGONALS:
- * I would also encourage using my "J-ABS-Diagonals" plugin to gain access to
- * more precise rotation within the custom move routes among other things.
- *
- * NOTE ABOUT FUTURE PLANS:
- * There is developer dreams to refine the projectile functionality into
- * something a bit cleaner, so this is tentative to change.
- *
- * ----------------------------------------------------------------------------
- * HITBOX:
- * The hitbox defines the shape of the hitbox for this skill (surprise!).
- * The value for this must be selected from the given list, and each can
- * interact a bit differently with the "radius" tag.
- *
- * NOTE ABOUT COLLISION:
- * It is important to remember that while the hitbox defines the shape of
- * collision, the hitbox is always centered on the action event (with some
- * exceptions), and can definitely be moving.
- *
- * NOTE ABOUT PROJECTILES:
- * If this skill has multiple projectiles, ALL projectiles will share the same
- * hitbox.
- *
- * CIRCLE:
- * The "circle" hitbox is just what you'd think: a circle that grows in size
- * the greater the radius.
- *    <hitbox:circle>
- *
- * RHOMBUS:
- * The "rhombus" hitbox is effectively a diamond that grows in size the
- * greater the "radius" value is.
- *    <hitbox:rhombus>
- *
- * ARC:
- * The "arc" hitbox is similar to rhombus, but instead of being a full diamond
- * all around the action event, the side that is not the direction the action
- * event is facing is omitted.
- *    <hitbox:arc>
- *
- * SQUARE:
- * The "square" hitbox is an equal square, with the "radius" defining what the
- * length of the side of the square is.
- *    <hitbox:square>
- *
- * FRONTSQUARE:
- * The "frontsquare" hitbox is similar to square, but instead of being a full
- * square all around the action event, the side that is not the direction the
- * action event is facing is omitted.
- *    <hitbox:frontsquare>
- *
- * LINE:
- * The "line" hitbox is a single 1-width line with the "radius" defining what
- * the length of this line is.
- *    <hitbox:line>
- *
- * WALL:
- * The "wall" hitbox is a single 1-height line with the "radius" defining what
- * the width of this line is. This is kind of a strange one, but easy to
- * visualize if you think of it as an inverted line hitbox.
- *    <hitbox:wall>
- *
- * CROSS:
- * The "cross" hitbox is basically just the combination of both line and wall
- * hitboxes in one. The "radius" determines how far the cross will reach.
- *    <hitbox:cross>
- *
- * ----------------------------------------------------------------------------
- * CAST TIME:
- * The "cast time" is probably what you think: a number of frames that the
- * battler executing a skill must wait helplessly before a skill is performed.
- * While the battler is casting, the "cast animation" will loop if the skill
- * has a cast animation value.
- *    <castTime:VAL>
- *  Where VAL is the number of frames to cast this skill.
- *
- * ----------------------------------------------------------------------------
- * CAST ANIMATION:
- * The "cast animation" is simply a numeric value that represents an animation
- * that will play on the caster while the skill being casted.
- *    <castAnimation:VAL>
- *  Where VAL is the animation id to repeatedly loop while casting.
- *
- * ----------------------------------------------------------------------------
- * SELF ANIMATION:
- * The "self animation" is simply a numeric value that represents an animation
- * that will play on the caster when the skill hits a target.
- *    <selfAnimationId:VAL>
- *  Where VAL is the animation id to execute once finished casting.
- *
- * ----------------------------------------------------------------------------
- * PIERCING:
- * The "pierce" tag is a tag that enables a skill to hit multiple targets
- * multiple times, potentially with a delay between each hit.
- *    <pierce:[TIMES,DELAY]>
- *  Where TIMES is the maximum number of times this skill can pierce.
- *  Where DELAY is the number of frames between each hit.
- *
- * NOTE ABOUT HIT FREQUENCY:
- * The most a skill can hit via "pierce" is once per frame. If the DELAY
- * is set to 0, then it will hit each frame that the skill's hitbox collides
- * with the target.
- *
- * NOTE ABOUT SKILL REPEATS:
- * The "repeats" field from the database is added onto the TIMES value,
- * even if there is no "pierce" tag on the skill, meaning if you omit the
- * "pierce" tag and add "5 repeats" via the database editor, the skill will
- * effectively have this tag on it:
- *    <pierce:[6,0]>
- *
- * ----------------------------------------------------------------------------
- * KNOCKBACK:
- * The "knockback" tag defines how many tiles the target will be knocked back
- * when hit by this skill.
- *    <knockback:VAL>
- *  Where VAL is distance the target will be knocked back.
- *
- * ----------------------------------------------------------------------------
- * DELAY:
- * The "delay" tag is a bit of a tricky one that allows a skill to exist on the
- * map for a duration of time before triggering. The simplest example of this
- * would be like a time bomb, or a time landmine. If you want an action to
- * persist indefinitely, you can set the DURATION to -1 and it will not
- * disappear until it is touched.
- *    <delay:[DURATION,TOUCHABLE]>
- *  Where DURATION is number of frames to exist on the map before detonating.
- *  Where TOUCHABLE a boolean defining whether or not it triggers when touched.
- *
- * EXAMPLE:
- *    <delay:[300,true]>
- * As an example, the above tag would result in an action that was placed where
- * the caster was at time of skill execution, and sit there for 300 frames
- * (which is roughly 5 seconds). If an enemy touched this action, the action
- * would trigger.
- *
- * NOTE ABOUT TOUCHING:
- * "touched" is a term used loosely. To "touch" an action, you simply need to
- * collide with it, which can be deceiving if its a bomb with a large hitbox.
- *
- * WARNING ABOUT INDEFINITE DELAY:
- * If the DURATION is set to -1, don't forget to set the TOUCHABLE to "true"!
- * If you do not, the action will sit there forever and never trigger due to
- * not being touchable.
- *
- * ----------------------------------------------------------------------------
- * POSE SUFFIX:
- * The "pose suffix" tag enables a sort of "animation" for battlers when
- * performing their skills. The engine will seek out a file that matches their
- * own character sprite's name along with the appended suffix in the tag and
- * if that matches a valid character set, it'll swap out the current set for
- * the "pose" for the defined amount of time and switch back after.
- *    <poseSuffix:[SUFFIX,INDEX,DURATION]>
- *  Where SUFFIX is the suffix of the filename you want to swap out for.
- *  Where INDEX is the index in the character file to become.
- *  Where DURATION is the amount of frames to remain in this pose.
- *
- * EXAMPLE:
- *    <poseSuffix:[-spell,0,25]>
- * As an example, if the character using the skill was a player with a
- * character sprite named "Actor1", the above tag would look for "Actor1-spell"
- * and swap to the 0th index (the upper left-most character) for 25 frames
- * (which is about a half second).
- *
- * WARNING:
- * This is not a highly tested feature of JABS and may not work as intended.
- *
- * ----------------------------------------------------------------------------
- * COMBOS:
- * This is a somewhat broad topic encompassing multiple tags, but "comboing"
- * can also be a feature of JABS if desired.
- *
- * COMBO ACTION:
- * The "combo action" tag will define what skill can be followed when using
- * this skill. This will cause a skill to temporarily be replaced by the
- * COMBOSKILLID in the tag, and be executable after LINKTIME frames.
- *    <combo:[COMBO_SKILL_ID,LINK_TIME]>
- *  Where COMBO_SKILL_ID is the skill ID that will be combo'd into.
- *  Where LINK_TIME is the number of frames until the combo is available.
- *
- * If a skill has a combo tag on it like this, the cooldown of the skill must
- * have a longer cooldown than the LINK_TIME frames, otherwise it will never be
- * usable. After the original skill's cooldown time expires (as in, the skill
- * that initiated the combo), it will undo all subsequent combo effects and
- * return back to the original skill. Keep in mind that with each subsequent
- * combo action executed, the remaining cooldown gets extended by the LINK_TIME
- * frames amount, allowing the combo to continue.
- *
- * This sounds complicated, but take a look at the sample project for examples
- * and play around with it a bit to gain a firmer grasp on it.
- *
- * EXAMPLE:
- *      <combo:[2,10]>
- * As an example, if skill contained the above tag and a battler used this
- * this skill, their skill would become skill ID 2, and be usable after
- * 10 frames (roughly 1/6 of a second).
- *
- * COMBO STARTER:
- * While combo action tags work as you might suspect for when the player is
- * controlling a particular battler, AI-controlled battlers require a bit of
- * extra hand-holding in order to use combos. The main tag for that is the
- * "combo starter" tag, that looks something like this:
- *    <comboStarter>
- *
- * That is it. By default, AI-controlled battlers will dismiss skills that
- * have the "combo action" tag on them, but if you add the "combo starter"
- * tag to the skills that are intended to start a combo, the AI will know that
- * it can use that skill as well. The chance of pursuing a combo is dependent
- * on the AI configuration (ally or enemy), but generally hovers between 50-100
- * percent chance of obeying the "combo action" tag. More on that down in the
- * AI traits section, and in the J-ABS-AllyAI plugin.
- *
- * NOTE ABOUT FOLLOW-UP COMBOS:
- * In order for a combo action to become available, it REQUIRES the skill to
- * connect with a target. However, if you want a skill to not require hitting
- * anything and instead become available as soon as the skill is executed,
- * then check the next tag.
- *
- * FREECOMBO:
- * In some cases, you may want a skill to not have a requirement to hit
- * anything in order to combo. In these cases, there is another tag to add to
- * your skill that you want to freely combo into another.
- *    <freeCombo>
- *
- * Using this will instantly make the next combo skill available to execute.
- *
- * AI SKILL EXCLUSION:
- * While this isn't explicitly related to combos, this is most likely to be
- * used in conjunction with combo tags. The "ai skill exclusion" tag does
- * exactly what you probably suspect it will do: exclude the skill from the
- * list of available skills that an AI-controlled battler can leverage. You
- * may ask "why would I want to add a skill to an enemy, and then exclude it?"
- * and the answer is "because its a part of a combo". As you may recall from
- * the many paragraphs of combo information above, in order for a skill to be
- * usable within a combo, the battler must know the skill. However, a skill
- * that is the end of a combo typically won't have a combo tag, meaning the
- * AI will be able to randomly also select the combo-ender skill while deciding
- * actions. By adding the "ai skill exclusion" tag to said combo-ender skills,
- * you can avoid this behavior with grace. You can also use this to exclude
- * skills that perform other functionalities that shouldn't be executed in
- * battle, such as "passive" skills.
- *    <aiSkillExclusion>
- *
- * NOTE ABOUT SKILL EXTENSION SKILLS:
- * If also using the "J-SkillExtend" plugin, by default all extension skills
- * will be excluded from random selection, identical in behavior to the
- * "ai skill exclusion" tag above.
- *
- * ----------------------------------------------------------------------------
- * GUARDING:
- * Guarding is a first-class citizen of functionality in JABS! If you want a
- * skill to be considered a guard skill, there are a variety of tags you can
- * use to build full-featured defending fun.
- *
- * NOTE ABOUT GUARD SKILL TYPES:
- * It is important to note that a skill must have the "Guard Skill Type" id in
- * order for it to be even recognized as a guard skill. That is defined by you
- * in the plugin parameters.
- *
- * GUARD:
- * The most basic of guarding requires the "guard" tag. This is a tag made up
- * of a pair of values to define damage reduction/amplification.
- *    <guard:[FLAT,PERCENT]>
- *  Where FLAT is the flat amount to modify damage by.
- *  Where PERCENT is the percent amount to modify damage by.
- *
- * The FLAT and PERCENT values should likely be negative most of the time,
- * unless your intent is to make it so that guarding increases damage instead.
- *
- * EXAMPLE:
- *      <guard:[-10,-25]>
- * As an example, if a guard skill contained the above tag, then the damage
- * would be reduced by a flat 10 and then reduced by 25%.
- * This order favors the player, because we want our players to have fun!
- *
- * PARRY:
- * Parrying as a functionality is a means to completely mitigate an incoming
- * attack if the player guards at "just the right time". Using this tag, you
- * can define how large the window is for "just the right time".
- *    <parry:VAL>
- *  Where VAL is the number of frames parrying is available.
- *
- * The window of "just the right time" always starts when guarding starts and
- * counts down VAL number of frames until zero. The parry window is visually
- * identified by its unique blue flash on the guarding battler.
- *
- * NOTE ABOUT CONSECUTIVE PARRIES:
- * Do be aware that upon successful parry, all guarding stops automatically
- * and the parry window is immediately ended. However, the character will
- * still be in "pivot mode", where they can rotate in place. To guard or
- * parry again, you will need to release the button and press it again.
- *
- * COUNTER-GUARD/COUNTER-PARRY:
- * In addition to just guarding to reduce damage and/or parrying to mitigate,
- * you can define guard skills that can have a chance (or always) result in
- * retaliating with a skill in response to being hit while guarding or
- * parrying.
- *    <counterGuard:[SKILL,CHANCE]>
- *  Where SKILL is the skill ID to potentially counter with when guarding.
- *  Where CHANCE is the percent chance to execute the SKILL per hit guarded.
- *
- *    <counterParry:[SKILL,CHANCE]>
- *  Where SKILL is the skill ID to potentially counter with when parrying.
- *  Where CHANCE is the percent chance to execute the SKILL on-parry.
- *
- * NOTE ABOUT COUNTER PRIORITIES:
- * Counter-parrying takes precedence over counter-guarding. If both
- * counter-guard and counter-parry are available on the same battler and RNG
- * favors you, only counter-parry will be executed.
- *
- * UNPARRYABLE:
- * Should the need arise that you need a particular skill skip the possibility
- * of being parried (like for an important skill that should always hit), then
- * we have a tag for that too.
- *    <unparryable>
- *
- * Using this tag will make a skill simply unable to be parried, even should
- * all requirements be met.
- *
- * ============================================================================
- * USING SKILLS:
- * Now that you've spent all this time setting up skills with a massive pile of
- * tags, you'll probably want to execute them to chop up your trash mobs!
- * Fortunately for you, that is relatively straight forward. There are two ways
- * to do this.
- *
- * NOTE ABOUT SKILL USABILITY:
- * In addition to the default RMMZ skill usage requirements (cost etc), it is
- * extremely important to note that the battler MUST know the skill in order to
- * execute it. That sounds silly, but given the nature of being able to equip
- * gear that uses a skill (potentially without having ever learned it), this is
- * an important fact to be aware of- especially in the mainhand/offhand slots.
- *
- * A LITTLE ABOUT SKILL SLOTS FIRST:
- * JABS makes use of what is called "skill slots". There are eight of them, all
- * of which I arbitrarily just made up.
- * - mainhand
- * - offhand
- * - tool
- * - dodge
- * - combat skill 1
- * - combat skill 2
- * - combat skill 3
- * - combat skill 4
- *
- * ----------------------------------------------------------------------------
- * MAINHAND AND OFFHAND SLOTS:
- * The "mainhand" and "offhand" slots are typically slots the player does not
- * assign directly. They are instead autoassigned via equipment. Normally, the
- * weapon slot will translate to your mainhand slot, and the shield will define
- * your offhand slot. If the actor is dual-wielding, then the second weapon
- * slot will fill the offhand slot instead. In order to designate what skills
- * the equipment grant to the actor, you'll use the "skill ID" tag:
- *    <skillId:SKILL_ID>
- *  Where SKILL_ID is the skill to be assigned to the equip slot.
- *
- * The usability of the skill in the equip slot is defined by the skill itself.
- * If you want the shield to have an attack skill of some kind, then you can
- * assign it as such. However, ONLY THE OFFHAND CAN DEFINE A GUARD SKILL. So
- * keep that in mind.
- *
- * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
- * Should you find yourself the need to have certain items/skills that should
- * never appear in the assignment menu for a given slot, use this tag:
- *    <hideFromJabsMenu>
- *
- * This hiding applies to "dodge" and "combat" skills, as well as "tools".
- * Anything hidden from the quick menu will still be revealed in the main menu.
- *
- * ----------------------------------------------------------------------------
- * TOOL SLOT:
- * The "tool" slot is always player-assigned (or via plugin commands if you
- * want). The "tool" slot represents usable items. These can be potions, bombs,
- * or whatever else you want. Similar to equipment, you'll only need assign a
- * SKILL_ID to them and they become usable with the given effects defined in
- * the database:
- *    <skillId:SKILL_ID>
- *  Where SKILL_ID is the skill to be performed by the tool slot.
- *
- * ----------------------------------------------------------------------------
- * DODGE SLOT:
- * The "dodge" slot is also always player-assigned. This slot represents a
- * unique "mobility" type skill (normally), where there are additional tags
- * that can help define how the player moves when executing the skill. Keep
- * in mind that in order for a skill to be identified as a "dodge" skill, it
- * will not only need some tags below, but also need to be a part of the skill
- * type that is defined in the plugin parameters for "dodge skill type".
- *
- * DODGE MOVETYPE:
- * The "move type" defines one of three kinds of movetypes available for the
- * dodge skill.
- *    <moveType:TYPE>
- *  Where TYPE is one of "forward", "backward", or "directional".
- *
- * The "forward move type" will force the dodge skill to move the player in
- * the same direction they are facing.
- *
- * The "backward move type" will force the dodge skill to move the player in
- * the opposite direction they are facing.
- *
- * The "directional move type" will grant the player the ability to move in
- * whatever direction they are pressing when the skill is executed.
- *
- * DODGE INVINCIBILITY:
- * Normally when performing a dodge skill, the player is simply being
- * forcefully moved by the skill, but are still susceptible to interruption by
- * enemy attacks if they collide with something. If you want the player to
- * instead be invincible for the duration of the movement, then you can use
- * this tag.
- *    <invincibleDodge>
- *
- * DODGE DISTANCE:
- * Sometimes you may want the player to only dodge a couple steps, maybe other
- * times you'll want them to be able to dodge across the map. In either case,
- * if you want to define this distance, you'll use the "radius" tag that is
- * already used to define distance for skills:
- *    <radius:DISTANCE>
- *  Where DISTANCE is the number of tiles to be forcefully moved.
- *
- * ----------------------------------------------------------------------------
- * COMBAT SKILL SLOTS:
- * There are four combat skill slots available, and all four are assigned by
- * the player. They are designed to be swappable anytime from the quickmenu
- * from whatever skills the player currently knows and also have been setup.
- * Using all the various tags you've learned about above (and below), those are
- * the skills that can be designated as "combat skills".
- *
- * ============================================================================
- * AGGRO MANAGEMENT:
- * When it comes to AI and allies and enemies all taking swings at eachother,
- * sometimes certain allies should be grabbing the attention of enemies and
- * vice versa. Thus we have an aggro system- a numeric representation of how
- * mad a battler is at another. Any AI-controlled battler will always target
- * the battler with the highest aggro value in relation to them.
- *
- * It is worth noting that there are a bundle of plugin parameter tags that
- * revolve around defaults of aggro generation, so do be sure to review them.
- *
- * Additionally, there are a few basics that are simply the way this system
- * functions. There is no way to change this without going into the code and
- * manually changing it, so pay attention!
- *
- * Aggro always starts with the base amount defined in the plugin params.
- * Aggro accumulates the HP then MP then TP damage calculations next.
- * Aggro accumulates the HP Drain next (MP/TP not considered!)
- * Aggro accumulates the amount when parried if applicable next.
- *  (the target parrying also aggros the attacker!)
- * Aggro then accumulates any bonus aggro from tags described below.
- * Aggro then multiplies any bonus rates from tags described below.
- * Aggro then multiplies iteratively over every attacker state from tags below.
- * Aggro then multiplies iteratively over every target state from tags below.
- * Aggro then multiplies based on the attacker's TGR stat.
- * Aggro then multiplies based on the player-unique multiplier if applicable.
- *
- * By default, you don't need to do anything special to utilize this system,
- * but if you want to manipulate it in any way, like making skills that will
- * generate more aggro than others, or lock aggro, or reduce aggro, then you
- * will want to leverage the following tags.
- *
- * ----------------------------------------------------------------------------
- * AGGRO TAGS FOR SKILLS:
- * There are a couple of tags that you can place on skills to affect aggro.
- * They will influence how much or little a skill will affect the aggro
- * generation based on the above aggro logic.
- *
- * BONUS AGGRO:
- * As suggested, this tag will cause skills to generate additional aggro. This
- * can also be used to reduce aggro if you opt to make the amount negative.
- *    <aggro:VAL>
- *  Where VAL is the numeric amount of aggro to gain (or lose).
- *
- * AGGRO MULTIPLIER:
- * The aggro multiplier tag can be used to make skills still use all the same
- * formulas, but then just pile on an extra multiplier atop that to further
- * amplify aggro.
- *    <aggroMultiplier:VAL>
- *  Where VAL is a decimal multiplier against aggro.
- *
- * NOTE ABOUT DEFAULT AGGRO MULTIPLIERS:
- * The default is 1.0 if unspecified, so when adding a multiplier to skills,
- * you'll probably want it to be some fractional number between ~0.1 and ~10.
- *
- * ----------------------------------------------------------------------------
- * AGGRO TAGS FOR STATES:
- * There are also a couple of tags that you can place on states to affect
- * aggro. These will be in effect for the duration of the state on the battler.
- *
- * AGGRO LOCK:
- * To lock a battler's aggro means it cannot be changed while the state is
- * applied to the battler. They can still influence other battler's aggro, but
- * they themselves cannot have their aggro adjusted by any means.
- *    <aggroLock>
- *
- * AGGRO OUT AMPLIFIER:
- * As the title suggests, applying this tag to a state will cause all aggro
- * this battler generates to be multiplied by a given amount.
- *    <aggroOutAmp:VAL>
- *  Where VAL is the decimal multiplier against outgoing aggro.
- *
- * AGGRO IN AMPLIFIER:
- * Similar to the AGGRO OUT AMPLIFIER, applying this tag to a state will cause
- * all received aggro for this battler to be multiplied by a given amount.
- *    <aggroInAmp:VAL>
- *  Where VAL is the decimal multiplier against incoming aggro.
- *
- * ============================================================================
- * CONFIGURING LOOT:
- * After a hard day of chopping up trash mobs, you should be a benevolent RMMZ
- * developer and reward your player with loot. Any droppable item that is
- * listed in the database can be dropped and subsequently collected. However,
- * the setup is kind of clumsy by default. I would encourage using another of
- * my plugins called "J-DropsControl". Regardless if you do or don't, there
- * are a couple of tags you may want to consider using in tandem with the
- * plugin parameters for loot drops.
- *
- * ----------------------------------------------------------------------------
- * USE ON PICKUP:
- * The "heart" drop, made iconic by the Zelda franchise, is an item that when
- * picked up, will immediately heal for a given amount. Should you also want to
- * create such functionality, you can use the "use on pickup" tag. Simply add
- * the tag to an ITEM that can be dropped from a foe on defeat, and when the
- * player collects the loot, it will instead be immediately performed as if
- * using the item on oneself.
- *    <useOnPickup>
- *
- * While I use the classic "heart" drop from Zelda as an example, it does not
- * have to be a healing item that is immediately used. Get creative!
- *
- * ----------------------------------------------------------------------------
- * EXPIRATION:
- * In the plugin parameters, you can set the default duration for which an loot
- * drop can persist on the map after being dropped. While it could be set for
- * loot to persist indefinitely, if you should ever need to make a particular
- * loot drop only last for a designated amount of time, then this is the tag
- * for you.
- *    <expires:DURATION>
- *  Where DURATION is the number of frames to persist after being dropped.
- *
- * NOTE ABOUT MAP TRANSFERS:
- * All loot is erased upon transfering maps. This is an intended functionality.
- * If you want to demand the player collect loot, you should consider either
- * locking the player on the map or forcing the item into the player's
- * inventory via eventing.
- *
- * ----------------------------------------------------------------------------
- * DYNAMICALLY SPAWNING LOOT:
- * In addition to configuring the loot, if you so desire, one can also use
- * plugin/script commands to dynamically generate and spawn loot at a specified
- * location on the map. See the plugin commands for input parameter details.
- *
- * ============================================================================
- * SETTING UP STATES:
- * States are obviously an important part of any good RPG! So naturally, when
- * you go about building states with JABS, there are a few additional details
- * that you should understand when it comes to their setup and functionality.
- * There is one tag for defining what is a "negative" state, and four tags
- * for locking core functionality on a battler. Additionally, there are a host
- * of other tags that grant other useful functionality. Read on to learn more!
- *
- * ----------------------------------------------------------------------------
- * NEGATIVE:
- * Functionally, a state being "negative" does not impact how it operates, but
- * it does influence how the AI perceives the states and considers actions when
- * attempting to heal (like by trying to purge states). Thus, if you want a
- * state to be considered negative and thus AI-controlled battlers will attempt
- * to heal this state when using either <aiTrait:healer> or setting ally AI to
- * "support", then add this tag to the state.
- *    <negative>
- *
- * ----------------------------------------------------------------------------
- * ROOTED:
- * A state with the "rooted" tag will lock the battler's movement.
- * This includes Dodge skills for the player and allies.
- *    <rooted>
- *
- * ----------------------------------------------------------------------------
- * DISARMED:
- * A state with the "disarmed" tag will lock the battler's basic attacks.
- * Basic attacks are considered either the main or offhand for actor battlers,
- * and the "basic attack" traited skill for enemy battlers.
- *    <disarmed>
- *
- * ----------------------------------------------------------------------------
- * MUTED:
- * A state with the "muted" tag will lock the battler's combat actions.
- * Combat actions are considered either the four extra equippable slots for
- * actor battlers, and any non-basic-attack skills for enemy battlers.
- *    <muted>
- *
- * ----------------------------------------------------------------------------
- * PARALYZED:
- * A state with the "paralyzed" tag will lock everything about a battler.
- * It is functionally the same as being "rooted", "disarmed", and "muted", all
- * at the same time.
- *    <paralyzed>
- *
- * ----------------------------------------------------------------------------
- * ----------------------------------------------------------------------------
- * SLIP DAMAGE:
- * For those unfamiliar with the term, "slip damage" is an alternative naming
- * for "damage over time". There are three types of tags for each of the three
- * categories of slip damage. It is important to note that the values you place
- * in the value portion of these tags equals "this much per 5 seconds". See the
- * examples for more details on that. But if you want to think about math, then
- * just consider it that the tick value you see will be about 1/20 of that VAL.
- * And that the tick happens 4 times per second.
- *
- * ----------------------------------------------------------------------------
- * SLIP DAMAGE AS A CONCEPT:
- * Battlers have three pools of parameters that are conventionally replenished
- * or diminished by some means or another, those being hp/mp/tp. Slip damage in
- * the context of JABS revolves around manipulation of these three parameters.
- *
- * NEGATIVE SLIP DAMAGE:
- * When the aim of a state is to diminish a target's pools, use negative slip
- * damage. Common examples of this are:
- * - Poison for reducing HP steadily for a time.
- * - Forgetful for reducing MP steadily for a time.
- * - Exhaustion for reducing TP steadily for a time.
- *
- * POSITIVE SLIP DAMAGE:
- * When the aim of a state is to replenish a target's pools, use positive slip
- * damage. Common examples of this are:
- * - Regenerate for increasing HP steadily for a time.
- * - Zen for increasing MP steadily for a time.
- * - Focused for increasing TP steadily for a time.
- *
- * With this in mind, the tags are grouped into three categories, and named with
- * clarity in mind when reading the tag. This means there are three permutations
- * of three categories of ways slip damage is applied. You can read about them
- * in the three subsections below.
- *
- * IMPORTANT NOTE ABOUT DAMAGE FREQUENCY:
- * It is important to note that the values in all three categories of damage
- * application are assumed to be the amount of damage/healing applied over the
- * spread of five seconds. The amount is spread over a total of 20 ticks per
- * five seconds, translating to four ticks per second. This was an arbitrary
- * decision, but important to comprehend the magic formula of which each tick
- * will translate to based on the amount you enter as VAL in the values of the
- * tags below:
- *    VAL / 20 = AMOUNT_PER_TICK
- *
- * FLAT:
- * Flat damage is just that, a fixed amount of unmitigatable damage or healing
- * against the given parameter.
- *    <hpFlat:VAL>
- *    <mpFlat:VAL>
- *    <tpFlat:VAL>
- *  Where VAL is the amount to lose per 5.
- *
- * PERCENT:
- * Percent damage will eat a portion of the battler's max value per tick.
- * Use this tag with care, because it adds up fast!
- *    <hpPercent:VAL>
- *    <mpPercent:VAL>
- *    <tpPercent:VAL>
- *  Where VAL is the % of max value to lose per 5.
- *
- * FORMULA:
- * Formula-driven damage allows you to build formulas that can potentially
- * scale with a battler's stats. Similar to the damage formula you define in
- * skills, you can define a similar formula within the brackets to deal
- * formula-based damage with every tick. This formula will have access to the
- * one afflicted with the state as "a", the one who applied the state as "b",
- * the collection of variables as "v", and the state object itself as "s".
- *    <hpFormula:[FORMULA]>
- *    <mpFormula:[FORMULA]>
- *    <tpFormula:[FORMULA]>
- *  Where FORMULA is the damage-like formula to calculate VAL to lose per 5.
- *
- * EXAMPLES:
- *    <hpFlat:-100>
- *  A battler with this tag would lose 100 HP over five seconds, at the rate of
- *  5 damage per tick.
- *
- *    <mpPercent:50>
- *  A battler would lose 50% of their max MP over five seconds, at the rate of
- *  2.5% damage per tick.
- *
- *    <tpFormula:[(a.atk * 2)]>
- *  A battler would gain TP equal to "200% of own attack" over five seconds, at
- * the rate of 10% healing per tick.
- *
- *    <hpPercent:80>
- *  A battler would gain 80% of their max HP over five seconds, at the rate of
- *  4% healing per tick.
- *
- *    <mpFormula:[a.mdf + b.mdf]>
- *  A battler would gain MP equal to "100% of my own and the afflicter's magic
- *  defense" over five seconds, at the rate of 5% healing per tick.
- *
- *    <tpFlat:-20>
- *  A battler would lose 20 TP over five seconds, at the rate of exactly
- *  1 damage per tick.
- *
- * NOTE ABOUT VAL OUTPUT:
- * Making the output VAL a multiple of 20x is an easy mental and visual way to
- * control the damage or healing by increments of 1. For example, having the
- * healing output change between 20 to 40 to 60 to 80 would visually be
- * outputed as seeing popups change from 1, to 2, to 3, to 4, and onward. The
- * same concept applies if the output is negative.
- *
- * STATE DURATIONS:
- * After all that talk about manipulation of health and stuff via states, you
- * might be saying "you've told me that everything is outputed as per five
- * seconds, but how do I specify how long they last?". To accommodate the fact
- * that I wanted governance over durations to be accessible, I opted to
- * repurposes the "stepstoRemove" property on states, which is the "Remove by
- * Walking" number box in the database editor. The number entered into that box
- * will be the number of frames that a state will persist. Considering RMMZ
- * runs natively at roughly 60 frames per second, you can assume that if you
- * make a state duration last 300 frames, that it will roughly afflict the
- * battler with exactly as much as you specify in the VAL output of the slip
- * damage or other effects.
- *
- * NOTE ABOUT FRAMES PER SECOND:
- * I do say "roughly" a number of times in the section above. That is because
- * while the engine assumes you'll be running at 60 frames per second, the
- * reality is that it teeters somewhere between 30 and 60 depending on the
- * level of action and how powerful your computer is, etc. This means that
- * even though the state may be designated to last 300 frames, and you convert
- * that in your head to 5 seconds, it may actually be longer than 5 seconds if
- * your frames per second are spending a lot of time below 60.
- * Keep that in mind when designing states.
- * ============================================================================
- * STATE DURATION EXTENSIONS:
- * In some cases, you may want the player to acquire armor or have states to
- * apply modifiers to how long states last. To accomplish this functionality,
- * we have another trio of tags that can modify the duration of states applied
- * by a given battler.
- *
- * NOTE ABOUT SCOPE OF USE:
- * This is for outgoing state duration only!
- * This does NOT extend or reduce state durations for incoming states.
- *
- * NOTE ABOUT POSITIVE OR NEGATIVE:
- * Any of the below values can be positive or negative and will modify the
- * base duration accordingly.
- *
- * NOTE ABOUT MULTIPLE TAGS:
- * All tags are summed up into their respective groups and added together
- * from all available note-containing sources applicable to the battler.
- *
- * FLAT:
- * Flat state duration boosts are exactly as you might suspect, a flat number
- * of frames that will be added to the base duration.
- *    <stateDurationFlat: VAL>
- *  Where VAL is the number of frames to add onto the base duration.
- *
- * PERCENT:
- * Percent state duration boosts are also what you might expect: a percent
- * modifier of the base duration added to the base duration.
- *    <stateDurationPerc: VAL>
- *  Where VAL is the % of base duration to be added onto the base duration.
- *
- * FORMULA:
- * For more complex scenarios, you may want to use a formula to calculate the
- * bonus state duration to be added to the base duration.
- *    <stateDurationForm:[FORMULA]>
- *  Where FORMULA is the damage-like formula to calculate VAL to add onto
- *  the base duration.
- *
- *  Within the FORMULA, there are pre-defined variables available for use:
- *    - "a": which represents the battler afflicted with the state.
- *    - "b": which represents the base duration of the state.
- *    - "v": which represents access to the variable store.
- *
- * ============================================================================
- * @param baseConfigs
- * @text BASE SETUP
- *
- * @param maxAiUpdateRange
- * @parent baseConfigs
- * @type number
- * @min 10
- * @text Max AI Update Range
- * @desc CHANGE THIS VALUE WITH CAUTION. MAKING THIS TOO HIGH WILL CAUSE LAG IF THERE ARE LOTS(30+) OF ENEMIES IN RANGE.
- * @default 15
- *
- * @param actionMapId
- * @parent baseConfigs
- * @type number
- * @text Action Map Id
- * @desc The default id of the map used for cloning action events off of.
- * @default 2
- *
- * @param enemyMapId
- * @parent baseConfigs
- * @type number
- * @text Enemy Map Id
- * @desc The id of the map used for cloning enemy events off of.
- * @default
- *
- * @param dodgeSkillTypeId
- * @parent baseConfigs
- * @type number
- * @text Dodge Skill Type Id
- * @desc The default id of the skill type that acts as a classification for dodge skills.
- * @default 1
- *
- * @param guardSkillTypeId
- * @parent baseConfigs
- * @type number
- * @text Rotate Skill Type Id
- * @desc The default id of the skill type that acts as a classification for guard skills.
- * @default 2
- *
- * @param weaponSkillTypeId
- * @parent baseConfigs
- * @type number
- * @text Weapon Skill Type Id
- * @desc The default id of the skill type that acts as a classification for weapon skills.
- * @default 7
- *
- * @param enemyDefaultConfigs
- * @text ENEMY BATTLER DEFAULTS
- *
- * @param defaultEnemyPrepareTime
- * @parent enemyDefaultConfigs
- * @type number
- * @text Default Enemy Prepare Time
- * @desc The default number of frames for "prepare" time.
- * @default 180
- *
- * @param defaultEnemyAttackSkillId
- * @parent enemyDefaultConfigs
- * @type number
- * @min 1
- * @text Default Enemy Attack Skill
- * @desc The default skill id used for an enemy basic attack where their animation is "normal attack".
- * @default 1
- *
- * @param defaultEnemySightRange
- * @parent enemyDefaultConfigs
- * @type number
- * @min 1
- * @text Default Enemy Sight Range
- * @desc The default range from a battler that they can engage in combat from.
- * @default 4
- *
- * @param defaultEnemyPursuitRange
- * @parent enemyDefaultConfigs
- * @type number
- * @min 1
- * @text Default Enemy Pursuit Range
- * @desc The default range from a battler that they can remain in combat within.
- * @default 6
- *
- * @param defaultEnemyAlertedSightBoost
- * @parent enemyDefaultConfigs
- * @type number
- * @min 1
- * @text Default Enemy Alerted Sight Boost
- * @desc The default boost to sight an enemy gains while alerted (alerted: hit from out of combat).
- * @default 2
- *
- * @param defaultEnemyAlertedPursuitBoost
- * @parent enemyDefaultConfigs
- * @type number
- * @min 1
- * @text Default Enemy Alerted Pursuit Boost
- * @desc The default boost to pursuit an enemy gains while alerted (alerted: hit from out of combat).
- * @default 4
- *
- * @param defaultEnemyAlertDuration
- * @parent enemyDefaultConfigs
- * @type number
- * @min 60
- * @text Default Enemy Alert Duration
- * @desc The default number of frames an enemy remains alerted (alerted: hit from out of combat).
- * @default 300
- *
- * @param defaultEnemyCanIdle
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Can Idle
- * @desc The default for whether or not enemies can idle.
- * @default true
- *
- * @param defaultEnemyShowHpBar
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Show HP Bar
- * @desc The default for whether or not enemies' HP bars are visible.
- * @default true
- *
- * @param defaultEnemyShowBattlerName
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Show Battler Name
- * @desc The default for whether or not enemies' names are visible.
- * @default true
- *
- * @param defaultEnemyIsInvincible
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Is Invincible
- * @desc Setting this to true will cause all enemies to be invincible by default. USE WITH CAUTION.
- * @default false
- *
- * @param defaultEnemyIsInanimate
- * @parent enemyDefaultConfigs
- * @type boolean
- * @text Default Enemy Is Inanimate
- * @desc Setting this to true will cause all enemies to be inanimate by default. USE WITH CAUTION.
- * @default false
- *
- * @param defaultConfigs
- * @text WHEN UNASSIGNED
- *
- * @param defaultToolCooldownTime
- * @parent defaultConfigs
- * @type number
- * @text Default Tool Cooldown Time
- * @desc The default number of frames for an item's cooldown if one isn't specified.
- * @default 300
- *
- * @param defaultLootExpiration
- * @parent defaultConfigs
- * @type number
- * @min -1
- * @text Default Loot Duration
- * @desc The default number of frames before an item expires from the map. Set to -1 for no expiration.
- * @default 900
- *
- * @param defaultAttackAnimationId
- * @parent defaultConfigs
- * @type number
- * @text Default Attack Animation Id
- * @desc The default id of the animation for battlers when none is defined.
- * @default 1
- *
- * @param iconConfigs
- * @text ICON CONFIGURATIONS
- *
- * @param useElementalIcons
- * @parent iconConfigs
- * @type boolean
- * @text Use Elemental Icons
- * @desc Enable or disable the display of elemental icons on damage popups with this option.
- * @default true
- *
- * @param elementalIconData
- * @parent iconConfigs
- * @type struct<ElementalIconStruct>[]
- * @text Elemental Icon Data
- * @desc The collection of element ids and their icon indices.
- * @default ["{\"elementId\":\"0\",\"iconIndex\":\"127\"}","{\"elementId\":\"1\",\"iconIndex\":\"97\"}","{\"elementId\":\"2\",\"iconIndex\":\"107\"}","{\"elementId\":\"3\",\"iconIndex\":\"110\"}","{\"elementId\":\"4\",\"iconIndex\":\"64\"}","{\"elementId\":\"5\",\"iconIndex\":\"67\"}","{\"elementId\":\"6\",\"iconIndex\":\"69\"}","{\"elementId\":\"7\",\"iconIndex\":\"68\"}","{\"elementId\":\"8\",\"iconIndex\":\"70\"}","{\"elementId\":\"9\",\"iconIndex\":\"71\"}"]
- *
- * @param animationConfigs
- * @text ACTION DECIDED ANIMATIONS
- *
- * @param attackDecidedAnimationId
- * @parent animationConfigs
- * @type animation
- * @text Attack Decided Animation Id
- * @desc The animation id that plays on the ai-controlled battler when they decide an attack-action.
- * @default 135
- *
- * @param supportDecidedAnimationId
- * @parent animationConfigs
- * @type animation
- * @text Support Decided Animation Id
- * @desc The animation id that plays on the ai-controlled battler when they decide a support-action.
- * @default 136
- *
- * @param aggroConfigs
- * @text AGGRO DEFAULTS
- *
- * @param baseAggro
- * @parent aggroConfigs
- * @type number
- * @text Base Aggro
- * @desc The base amount of aggro generated by every action, in addition to the rest of the formula.
- * @default 100
- *
- * @param aggroPerHp
- * @parent aggroConfigs
- * @type number
- * @text Aggro per HP damage
- * @desc The amount of aggro generated per 1 HP damage dealt to a non-allied target.
- * @default 1
- *
- * @param aggroPerMp
- * @parent aggroConfigs
- * @type number
- * @text Aggro per MP damage
- * @desc The amount of aggro generated per 1 MP damage dealt to a non-allied target.
- * @default 2
- *
- * @param aggroPerTp
- * @parent aggroConfigs
- * @type number
- * @text Aggro per TP damage
- * @desc The amount of aggro generated per 1 TP damage dealt to a non-allied target.
- * @default 10
- *
- * @param aggroDrainMultiplier
- * @parent aggroConfigs
- * @type number
- * @text Aggro Drain Multiplier
- * @desc If the skill was an HP Drain, then generate an additional X aggro per HP drained.
- * @default 4
- *
- * @param aggroParryFlatAmount
- * @parent aggroConfigs
- * @type number
- * @min -999999
- * @text Aggro Parry Flat Amount
- * @desc If the skill didn't connect because it was parried, add this much instead. Can be negative.
- * @default -50
- *
- * @param aggroParryUserGain
- * @parent aggroConfigs
- * @type number
- * @text Aggro Parry User Gain
- * @desc If the skill didn't connect because it was parried, aggro the attacker this much.
- * @default 200
- *
- * @param aggroPlayerReduction
- * @parent aggroConfigs
- * @type number
- * @text Aggro Player Reduction
- * @desc The player can attack much faster than AI, so reducing their aggro output by default is sensible.
- * @decimals 2
- * @default 0.50
- *
- * @param miscConfigs
- * @text MISCELLANEOUS SETUP
- *
- * @param lootPickupDistance
- * @parent miscConfigs
- * @type number
- * @text Loot Pickup Distance
- * @desc The distance of which the player must be to collect loot on the ground.
- * @decimals 2
- * @default 1.50
- *
- * @param disableTextPops
- * @parent miscConfigs
- * @type boolean
- * @text Disable Text Pops
- * @desc Whether or not to disable the text popups, including: damage, rewards, parry, etc.
- * @default false
- *
- * @param lootPickupDistance
- * @parent miscConfigs
- * @type number
- * @decimals 2
- * @text Loot Pickup Distance
- * @desc The distance of which the player must be to collect loot on the ground.
- * @default 1.50
- *
- * @param allyRubberbandAdjustment
- * @parent miscConfigs
- * @type number
- * @decimals 2
- * @text Ally Rubberband Adjustment
- * @desc A modifier on the ally rubber band range (defaults of 10). This also affects the ally AI plugin if used.
- * @default 2.00
- *
- * @param dashSpeedBoost
- * @parent miscConfigs
- * @type number
- * @decimals 2
- * @text Dash Movespeed Boost
- * @desc The boost to movement speed when dashing. You may need to toy with this a bit to get it right.
- * @default 1.25
- *
- * @param quickmenuConfigs
- * @text QUICKMENU SETUP
- *
- * @param equipCombatSkillsText
- * @parent quickmenuConfigs
- * @type string
- * @text Equip Combat Skills Text
- * @desc The text that shows up in the JABS quickmenu for the "equip combat skills" command.
- * @default Equip Combat Skills
- *
- * @param equipDodgeSkillsText
- * @parent quickmenuConfigs
- * @type string
- * @text Equip Dodge Skills Text
- * @desc The text that shows up in the JABS quickmenu for the "equip dodge skills" command.
- * @default Equip Dodge Skills
- *
- * @param equipToolsText
- * @parent quickmenuConfigs
- * @type string
- * @text Equip Tools Text
- * @desc The text that shows up in the JABS quickmenu for the "equip tools" command.
- * @default Equip Tools
- *
- * @param mainMenuText
- * @parent quickmenuConfigs
- * @type string
- * @text Main MenuText
- * @desc The text that shows up in the JABS quickmenu for the "main menu" command.
- * @default Full Menu
- *
- * @param cancelText
- * @parent quickmenuConfigs
- * @type string
- * @text Cancel Text
- * @desc The text that shows up in the JABS quickmenu for the "cancel" command.
- * @default Cancel
- *
- * @param clearSlotText
- * @parent quickmenuConfigs
- * @type string
- * @text Clear Slot Text
- * @desc The text that shows up in the JABS quickmenu for the "clear slot" command.
- * @default Clear Slot...
- *
- * @param unassignedText
- * @parent quickmenuConfigs
- * @type string
- * @text UnassignedText
- * @desc The text that shows up in the JABS quickmenu for the "- unassigned -" command.
- * @default - unassigned -
- *
- *
- *
- *
- * @command Enable JABS
- * @text Enable JABS
- * @desc Enables the JABS engine allowing battles on the map to take place.
- *
- * @command Disable JABS
- * @text Disable JABS
- * @desc Disables the JABS engine.
- *
- * @command Set JABS Skill
- * @text Assign a JABS skill
- * @desc
- * Assigns a specific skill id or (item id) to a designated slot.
- * Assigned skills will be removed if not learned (unless locked).
- * @arg actorId
- * @type actor
- * @text Choose Actor
- * @desc
- * The actor to have the skill assigned to.
- * Please don't choose "none", that'll cause the game to crash.
- * @default 1
- *
- * @arg skillId
- * @type skill
- * @text Choose Skill
- * @desc
- * The skill to be assigned to the actor.
- * You may choose "none" if you want to unassign the slot.
- * @default 0
- *
- * @arg itemId
- * @type item
- * @text Choose Item
- * @desc
- * The item to be assigned to the actor.
- * This is only for use if assigning to the "tool" slot.
- * @default 0
- *
- * @arg slot
- * @type select
- * @text Choose Slot
- * @desc The slot to assign the skill to for this actor.
- * @option Tool
- * @option Dodge
- * @option L1A
- * @option L1B
- * @option L1X
- * @option L1Y
- * @default L1A
- * @arg locked
- * @type boolean
- * @on Lock Skill
- * @off Don't Lock
- * @desc Locked skills cannot be unequipped until unlocked.
- * @default false
- *
- * @command Unlock JABS Skill Slot
- * @text Unlock a single JABS skill slot
- * @desc Unlocks a single JABS skill slot for the leader.
- * @arg Slot
- * @type select
- * @option Tool
- * @option Dodge
- * @option L1A
- * @option L1B
- * @option L1X
- * @option L1Y
- *
- * @command Unlock All JABS Skill Slots
- * @text Unlock all JABS skill slots
- * @desc Unlocks all JABS skill slots for the leader.
- *
- * @command Rotate Party Members
- * @text Cycle to next leader
- * @desc Cycles the leader to the back and shifts all members forward one slot.
- *
- * @command Disable Party Rotation
- * @text Disable Party Rotation
- * @desc Disables the player from being able to rotate the party leader.
- * (This only affects the JABS party rotate functionality.)
- *
- * @command Enable Party Rotation
- * @text Enable Party Rotation
- * @desc (Re-)Enables the ability to execute a party rotate.
- * Other conditions still apply (like not rotating to a dead member).
- *
- * @command Refresh JABS Menu
- * @text Refresh JABS Menu
- * @desc Refreshes the JABS menu in case there were any adjustments made to it.
- *
- * @command Spawn Enemy
- * @text Spawn Enemy
- * @desc Dynamically spawn an enemy onto the map from the enemy clone map.
- * @arg x
- * @type number
- * @desc The x coordinate of where on the current map to spawn the enemy.
- * @default 1
- * @arg y
- * @type number
- * @desc The y coordinate of where on the current map to spawn the enemy.
- * @default 1
- * @arg enemyEventId
- * @type number
- * @desc The id of the event from the enemy clone map to spawn onto this map.
- * @default 1
- * @arg spawnAnimationId
- * @type animation
- * @desc The animation to execute upon the newly spawned enemy.
- * By default, no animation will play.
- * @default 0
- *
- * @command Spawn Loot
- * @text Spawn Loot
- * @desc Dynamically spawn some loot onto the map from the database.
- * If multiple loot ids are defined, then multiple will be dropped.
- * @arg x
- * @type number
- * @desc The x coordinate of where on the current map to spawn the loot.
- * @default 1
- * @arg y
- * @type number
- * @desc The y coordinate of where on the current map to spawn the loot.
- * @default 1
- * @arg lootItemIds
- * @type item[]
- * @desc The items to be dropped as loot.
- * @default []
- * @arg lootWeaponIds
- * @type weapon[]
- * @desc The weapons to be dropped as loot.
- * @default []
- * @arg lootArmorIds
- * @type armor[]
- * @desc The armors to be dropped as loot.
- * @default []
- * @arg spawnAnimationId
- * @type animation
- * @desc The animation to execute upon the newly spawned enemy.
- * By default, no animation will play.
- * @default 0
- */
-//=================================================================================================
-/*~struct~ElementalIconStruct:
- * @param elementId
- * @type number
- * @desc The id of the element to match an icon to.
- * @default 0
- *
- * @param iconIndex
- * @type number
- * @desc The index of the icon for this element.
- * @default 64
-*/
-//=================================================================================================
-/* eslint-enable max-len */
-
-//region Metadata
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.3';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-})();
-//endregion version check
-
-//region plugin setup and configuration
-/**
- * The plugin umbrella that governs all things related to this plugin.
- */
-J.ABS = {};
-
-/**
- * The parent namespace for all JABS extensions.
- */
-J.ABS.EXT = {}
-
-//region helpers
-/**
- * A collection of helpful functions for use within this plugin.
- */
-J.ABS.Helpers = {};
-
-/**
- * A collection of helper functions for the use with the plugin manager.
- */
-J.ABS.Helpers.PluginManager = {};
-
-/**
- * A helpful function for translating a plugin command's slot to a valid slot.
- * @param {string} slot The slot from the plugin command to translate.
- * @returns {string} The translated slot.
- */
-J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
-{
-  switch (slot)
-  {
-    case "Tool":
-      return JABS_Button.Tool;
-    case "Dodge":
-      return JABS_Button.Dodge;
-    case "L1A":
-      return JABS_Button.CombatSkill1;
-    case "L1B":
-      return JABS_Button.CombatSkill2;
-    case "L1X":
-      return JABS_Button.CombatSkill3;
-    case "L1Y":
-      return JABS_Button.CombatSkill4;
-  }
-};
-
-/**
- * A helpful function for translating raw JSON from the plugin settings into elemental icon objects.
- * @param {string} obj The raw JSON.
- * @returns {{element: number, icon: number}[]} The translated elemental icon objects.
- */
-J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
-{
-  // no element icons identified.
-  if (!obj) return [];
-
-  const arr = JSON.parse(obj);
-  if (!arr.length) return [];
-  return arr.map(el =>
-  {
-    const kvp = JSON.parse(el);
-    const { elementId, iconIndex } = kvp;
-    return {element: parseInt(elementId), icon: parseInt(iconIndex)};
-  });
-};
-//endregion helpers
-
-//region metadata
-/**
- * The `metadata` associated with this plugin, such as version.
- */
-J.ABS.Metadata = {};
-J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '3.3.0';
-
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
-
-// the most important configuration!
-J.ABS.Metadata.MaxAiUpdateRange = Number(J.ABS.PluginParameters['maxAiUpdateRange']) || 20;
-
-// defaults configurations.
-J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
-J.ABS.Metadata.DefaultEnemyMapId = Number(J.ABS.PluginParameters['enemyMapId']);
-J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
-J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['guardSkillTypeId']);
-J.ABS.Metadata.DefaultWeaponSkillTypeId = Number(J.ABS.PluginParameters['weaponSkillTypeId']);
-J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
-J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
-J.ABS.Metadata.DefaultLootExpiration = Number(J.ABS.PluginParameters['defaultLootExpiration']);
-
-// enemy battler default configurations.
-J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
-J.ABS.Metadata.DefaultEnemyAttackSkillId = Number(J.ABS.PluginParameters['defaultEnemyAttackSkillId']);
-J.ABS.Metadata.DefaultEnemySightRange = Number(J.ABS.PluginParameters['defaultEnemySightRange']);
-J.ABS.Metadata.DefaultEnemyPursuitRange = Number(J.ABS.PluginParameters['defaultEnemyPursuitRange']);
-J.ABS.Metadata.DefaultEnemyAlertedSightBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedSightBoost']);
-J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedPursuitBoost']);
-J.ABS.Metadata.DefaultEnemyAlertDuration = Number(J.ABS.PluginParameters['defaultEnemyAlertDuration']);
-J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === "true");
-J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === "true");
-J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === "true");
-J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
-J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
-
-// custom data configurations.
-J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === "true";
-J.ABS.Metadata.ElementalIcons =
-  J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
-
-// action decided configurations.
-J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
-J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['supportDecidedAnimationId']);
-
-// aggro configurations.
-J.ABS.Metadata.BaseAggro = Number(J.ABS.PluginParameters['baseAggro']);
-J.ABS.Metadata.AggroPerHp = Number(J.ABS.PluginParameters['aggroPerHp']);
-J.ABS.Metadata.AggroPerMp = Number(J.ABS.PluginParameters['aggroPerMp']);
-J.ABS.Metadata.AggroPerTp = Number(J.ABS.PluginParameters['aggroPerTp']);
-J.ABS.Metadata.AggroDrain = Number(J.ABS.PluginParameters['aggroDrainMultiplier']);
-J.ABS.Metadata.AggroParryFlatAmount = Number(J.ABS.PluginParameters['aggroParryFlatAmount']);
-J.ABS.Metadata.AggroParryUserGain = Number(J.ABS.PluginParameters['aggroParryUserGain']);
-J.ABS.Metadata.AggroPlayerReduction = Number(J.ABS.PluginParameters['aggroPlayerReduction']);
-
-// miscellaneous configurations.
-J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
-J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === "true");
-J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
-J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
-
-// quick menu commands configurations.
-J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
-J.ABS.Metadata.EquipDodgeSkillsText = J.ABS.PluginParameters['equipDodgeSkillsText'];
-J.ABS.Metadata.EquipToolsText = J.ABS.PluginParameters['equipToolsText'];
-J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
-J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
-J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
-J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
-//endregion metadata
-
-/**
- * The various default values across the engine. Often configurable.
- */
-J.ABS.DefaultValues = {
-  /**
-   * When an enemy JABS battler has no "prepare" defined.
-   * @type {number}
-   */
-  EnemyNoPrepare: J.ABS.Metadata.DefaultEnemyPrepareTime,
-
-  /**
-   * The ID of the map that will contain the actions for replication.
-   * @type {number}
-   */
-  ActionMap: J.ABS.Metadata.DefaultActionMapId,
-
-  /**
-   * The ID of the map that will contain the enemies for replication.
-   * @type {number}
-   */
-  EnemyMap: J.ABS.Metadata.DefaultEnemyMapId,
-
-  /**
-   * The default animation id for skills when it is set to "normal attack".
-   * Typically used for enemies or weaponless battlers.
-   * @type {number}
-   */
-  AttackAnimationId: J.ABS.Metadata.DefaultAttackAnimationId,
-
-  /**
-   * The skill category that governs skills that are identified as "dodge" skills.
-   * @type {number}
-   */
-  DodgeSkillTypeId: J.ABS.Metadata.DefaultDodgeSkillTypeId,
-
-  /**
-   * The skill category that governs skills that are identified as "guard" skills.
-   * @type {number}
-   */
-  GuardSkillTypeId: J.ABS.Metadata.DefaultGuardSkillTypeId,
-
-  /**
-   * The skill category that governs skills that are identified as "weapon" skills.
-   * @type {number}
-   */
-  WeaponSkillTypeId: J.ABS.Metadata.DefaultWeaponSkillTypeId,
-
-  /**
-   * When an item has no cooldown defined.
-   * @type {number}
-   */
-  CooldownlessItems: J.ABS.Metadata.DefaultToolCooldownTime,
-};
-
-/**
- * A collection of helpful mappings for emoji balloons
- * to their numeric ID.
- */
-J.ABS.Balloons = {
-  /**
-   * An exclamation point balloon.
-   */
-  Exclamation: 1,
-
-  /**
-   * A question mark balloon.
-   */
-  Question: 2,
-
-  /**
-   * A music note balloon.
-   */
-  MusicNote: 3,
-
-  /**
-   * A heart balloon.
-   */
-  Heart: 4,
-
-  /**
-   * An anger balloon.
-   */
-  Anger: 5,
-
-  /**
-   * A sweat drop balloon.
-   */
-  Sweat: 6,
-
-  /**
-   * A frustrated balloon.
-   */
-  Frustration: 7,
-
-  /**
-   * A elipses (...) or triple-dot balloon.
-   */
-  Silence: 8,
-
-  /**
-   * A light bulb or realization balloon.
-   */
-  LightBulb: 9,
-
-  /**
-   * A double-Z (zz) balloon.
-   */
-  Asleep: 10,
-
-  /**
-   * A green checkmark.
-   */
-  Check: 11,
-};
-
-/**
- * A collection of helpful mappings for `Game_Character` directions
- * to their numeric ID.
- */
-J.ABS.Directions = {
-
-  /**
-   * Represents the UP direction, or 8.
-   * @type {8}
-   */
-  UP: 8,
-
-  /**
-   * Represents the RIGTH direction, or 6.
-   * @type {6}
-   */
-  RIGHT: 6,
-
-  /**
-   * Represents the LEFT direction, or 4.
-   * @type {4}
-   */
-  LEFT: 4,
-
-  /**
-   * Represents the DOWN direction, or 2.
-   * @type {2}
-   */
-  DOWN: 2,
-
-  /**
-   * Represents the diagonal LOWER LEFT direction, or 1.
-   * @type {1}
-   */
-  LOWERLEFT: 1,
-
-  /**
-   * Represents the diagonal LOWER RIGHT direction, or 3.
-   * @type {3}
-   */
-  LOWERRIGHT: 3,
-
-  /**
-   * Represents the diagonal UPPER LEFT direction, or 7.
-   * @type {7}
-   */
-  UPPERLEFT: 7,
-
-  /**
-   * Represents the diagonal UPPER RIGHT direction, or 9.
-   * @type {9}
-   */
-  UPPERRIGHT: 9,
-};
-
-/**
- * The various collision shapes an attack can be.
- */
-J.ABS.Shapes = {
-  /**
-   * A circle shaped hitbox.
-   */
-  Circle: "circle",
-
-  /**
-   * A rhombus (aka diamond) shaped hitbox.
-   */
-  Rhombus: "rhombus",
-
-  /**
-   * A square around the target hitbox.
-   */
-  Square: "square",
-
-  /**
-   *  A square in front of the target hitbox.
-   */
-  FrontSquare: "frontsquare",
-
-  /**
-   * A line from the target hitbox.
-   */
-  Line: "line",
-
-  /**
-   * An arc shape hitbox in front of the action.
-   */
-  Arc: "arc",
-
-  /**
-   * A wall in front of the target hitbox.
-   */
-  Wall: "wall",
-
-  /**
-   * A cross from the target hitbox.
-   */
-  Cross: "cross"
-};
-
-/**
- * A collection of helpful mappings for `notes` that are placed in
- * various locations, like events on the map, or in a database enemy.
- */
-J.ABS.Notetags = {
-  // battler-related (goes in database on enemy/actor).
-  KnockbackResist: "knockbackResist",
-  MoveType: {
-    Forward: "forward",
-    Backward: "backward",
-    Directional: "directional",
-  }
-};
-
-/**
- * All regular expressions used by this plugin.
- */
-J.ABS.RegExp = {
-  //region ON SKILLS
-  ActionId: /<actionId:[ ]?(\d+)>/gi,
-
-  // pre-execution-related.
-  CastTime: /<castTime:[ ]?(\d+)>/gi,
-  CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
-
-  // post-execution-related.
-  Cooldown: /<cooldown:[ ]?(\d+)>/gi,
-  UniqueCooldown: /<uniqueCooldown>/gi,
-
-  // projectile-related.
-  Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Projectile: /<projectile:[ ]?([12348])>/gi,
-  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
-  Direct: /<direct>/gi,
-  Duration: /<duration:[ ]?(\d+)>/gi,
-  Knockback: /<knockback:[ ]?(\d+)>/gi,
-  DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
-
-  // animation-related.
-  SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
-  PoseSuffix: /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi,
-
-  // combo-related.
-  ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
-  ComboStarter: /<comboStarter>/gi,
-  AiSkillExclusion: /<aiSkillExclusion>/gi,
-  FreeCombo: /<freeCombo>/gi,
-
-  // learning-related
-  AutoAssign: /<autoAssignSkills>/gi,
-  AssignInPlaceOf: /<autoAssignOnLearning:(\d+)>/gi,
-
-  // aggro-related.
-  BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
-  AggroMultiplier: /<aggroMultiplier:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-
-  // hits-related.
-  Unparryable: /<unparryable>/gi,
-  BonusHits: /<bonusHits:[ ]?(\d+)>/gi,
-  PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
-
-  // guarding-related.
-  Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
-  Parry: /<parry:[ ]?(\d+)>/gi,
-  CounterParry: /<counterParry:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
-  CounterGuard: /<counterGuard:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
-
-  // dodge-related.
-  MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
-  InvincibleDodge: /<invincibleDodge>/gi,
-
-  // counter-related (on-chance-effect template)
-  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  //endregion ON SKILLS
-
-  //region ON EQUIPS
-  // skill-related.
-  SkillId: /<skillId:[ ]?(\d+)>/gi,
-  OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
-
-  // knockback-related.
-  KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
-
-  // parry-related.
-  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
-  //endregion ON EQUIPS
-
-  //region ON ITEMS
-  UseOnPickup: /<useOnPickup>/gi,
-  Expires: /<expires:[ ]?(\d+)>/gi,
-  //endregion ON ITEMS
-
-  //region ON STATES
-  // definition-related.
-  Negative: /<negative>/gi,
-
-  // jabs core ailment functionalities.
-  Paralyzed: /<paralyzed>/gi,
-  Rooted: /<rooted>/gi,
-  Disarmed: /<disabled>/gi,
-  Muted: /<muted>/gi,
-
-  // aggro-related.
-  AggroLock: /<aggroLock>/gi,
-  AggroOutAmp: /<aggroOutAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  AggroInAmp: /<aggroInAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-
-  // slip hp/mp/tp effects.
-  SlipHpFlat: /<hpFlat:[ ]?(-?\d+)>/gi,
-  SlipMpFlat: /<mpFlat:[ ]?(-?\d+)>/gi,
-  SlipTpFlat: /<tpFlat:[ ]?(-?\d+)>/gi,
-  SlipHpPercent: /<hpPercent:[ ]?(-?\d+)%?>/gi,
-  SlipMpPercent: /<mpPercent:[ ]?(-?\d+)%?>/gi,
-  SlipTpPercent: /<tpPercent:[ ]?(-?\d+)%?>/gi,
-  SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
-  SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
-  SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
-
-  // state duration-related.
-  StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
-  StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
-  StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
-  //endregion ON STATES
-
-  //region ON BATTLERS
-  // core concepts.
-  EnemyId: /<enemyId:[ ]?([0-9]*)>/i,
-  TeamId: /<teamId:[ ]?([0-9]*)>/g,
-  Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
-  Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
-  MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
-  PrepareTime: /<prepare:[ ]?([0-9]*)>/i,
-
-  // bonus concepts.
-  VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
-
-  // alert-related.
-  AlertDuration: /<alertDuration:[ ]?([0-9]*)>/i,
-  AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
-  AlertedPursuitBoost: /<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
-
-  // ai traits.
-  AiTraitCareful: /<aiTrait:[ ]?careful>/i,
-  AiTraitExecutor: /<aiTrait:[ ]?executor>/i,
-  AiTraitReckless: /<aiTrait:[ ]?reckless>/i,
-  AiTraitHealer: /<aiTrait:[ ]?healer>/i,
-  AiTraitFollower: /<aiTrait:[ ]?follower>/i,
-  AiTraitLeader: /<aiTrait:[ ]?leader>/i,
-
-  // miscellaneous combat configurables.
-  ConfigNoIdle: /<jabsConfig:[ ]?noIdle>/i,
-  ConfigCanIdle: /<jabsConfig:[ ]?canIdle>/i,
-  ConfigNoHpBar: /<jabsConfig:[ ]?noHpBar>/i,
-  ConfigShowHpBar: /<jabsConfig:[ ]?showHpBar>/i,
-  ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
-  ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
-  ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
-  ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
-  ConfigNoName: /<jabsConfig:[ ]?noName>/i,
-  ConfigShowName: /<jabsConfig:[ ]?showName>/i,
-  //endregion ON BATTLERS
-
-  //region ON ACTORS/CLASSES
-  ConfigNoSwitch: /<noSwitch>/i,
-  //endregion ON ACTORS/CLASSES
-};
-
-/**
- * A collection of all aliased methods for this plugin.
- */
-J.ABS.Aliased = {
-  DataManager: new Map(),
-
-  Game_Actor: new Map(),
-  Game_Action: new Map(),
-  Game_ActionResult: new Map(),
-  Game_Battler: new Map(),
-  Game_Character: new Map(),
-  Game_CharacterBase: new Map(),
-  Game_Enemy: new Map(),
-  Game_Event: new Map(),
-  Game_Interpreter: {},
-  Game_Map: new Map(),
-  Game_Party: new Map(),
-  Game_Player: new Map(),
-  Game_Switches: new Map(),
-  Game_Unit: new Map(),
-
-  RPG_Actor: new Map(),
-  RPG_Enemy: new Map(),
-  RPG_Skill: new Map(),
-
-  Scene_Load: new Map(),
-  Scene_Map: new Map(),
-
-  Spriteset_Map: new Map(),
-  Sprite_Character: new Map(),
-  Sprite_Gauge: new Map(),
-};
-//endregion Plugin setup & configuration
-//endregion Metadata
-
-//region Plugin Command Registration
-/**
- * Plugin command for enabling JABS.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable JABS", () =>
-{
-  $jabsEngine.absEnabled = true;
-});
-
-/**
- * Plugin command for disabling JABS.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
-{
-  $jabsEngine.absEnabled = false;
-});
-
-/**
- * Plugin command for assigning and locking a skill to a designated slot.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
-{
-  // extract the values out of the various args.
-  const { actorId, skillId, itemId, slot, locked } = args;
-
-  // convert the text option to one of the available slots.
-  const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
-
-  // determine the actor.
-  const actor = $gameActors.actor(parseInt(actorId));
-
-  // designate the default assigned id to be the skill id.
-  let assignedId = parseInt(skillId);
-
-  // check if we are assigning to the tool slot and have an item id available.
-  if (itemId !== 0 && skillSlotKey === JABS_Button.Tool)
-  {
-    // overwrite any possible skill id with the item id instead.
-    assignedId = parseInt(itemId);
-  }
-
-  // don't try to assign anything if we don't have an id to assign.
-  if (assignedId === 0) return;
-
-  // determine the locked state of the skill being assigned.
-  const isLocked = locked === 'true';
-
-  // assign the id to the slot.
-  actor.setEquippedSkill(skillSlotKey, assignedId, isLocked);
-});
-
-/**
- * Plugin command for unlocking a specific JABS skill slot.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", args =>
-{
-  const leader = $gameParty.leader();
-  if (!leader)
-  {
-    console.warn("There is no leader to manage skills for.");
-    return;
-  }
-
-  const { Slot } = args;
-  const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
-  leader.unlockSlot(translation);
-});
-
-/**
- * Plugin command for unlocking all JABS skill slots.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots", () =>
-{
-  const leader = $gameParty.leader();
-  if (!leader)
-  {
-    console.warn("There is no leader to manage skills for.");
-    return;
-  }
-
-  leader.unlockAllSlots();
-});
-
-/**
- * Plugin command for cycling through party members forcefully.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Rotate Party Members", () =>
-{
-  JABS_InputAdapter.performPartyCycling(true);
-});
-
-/**
- * Plugin command for disabling the ability to rotate party members.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable Party Rotation", () =>
-{
-  $gameParty.disablePartyCycling();
-});
-
-/**
- * Plugin command for enabling the ability to rotate party members.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable Party Rotation", () =>
-{
-  $gameParty.enablePartyCycling();
-});
-
-/**
- * Plugin command for updating the JABS menu.
- */
-PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
-{
-  $jabsEngine.requestJabsMenuRefresh = true;
-});
-
-/**
- * Registers a plugin command for dynamically spawning an enemy onto the map.
- * The enemy spawned will be a clone from the enemy clone map.
- */
-PluginManager.registerCommand(
-  J.ABS.Metadata.Name,
-  "Spawn Enemy",
-  args =>
-{
-  // extract the eventId and coordinates from the plugin args.
-  const { x, y, enemyEventId, spawnAnimationId } = args;
-
-  // translate the args.
-  const parsedX = parseInt(x);
-  const parsedY = parseInt(y);
-  const parsedEnemyEventId = parseInt(enemyEventId);
-  const parsedAnimationId = parseInt(spawnAnimationId);
-
-  // spawn the enemy on the map.
-  const addedEnemy = $jabsEngine.addEnemyToMap(parsedX, parsedY, parsedEnemyEventId);
-
-  // check if there is a spawn animation.
-  if (parsedAnimationId)
-  {
-    // execute the animation on the newly spawned enemy.
-    setTimeout(() => addedEnemy.requestAnimation(parsedAnimationId), 50);
-  }
-});
-
-/**
- * Registers a plugin command for dynamically spawning loot onto the map.
- */
-PluginManager.registerCommand(
-  J.ABS.Metadata.Name,
-  "Spawn Loot",
-  args =>
-  {
-    // extract the eventId and coordinates from the plugin args.
-    const { x, y, lootItemIds, lootWeaponIds, lootArmorIds, spawnAnimationId } = args;
-
-    // translate the args.
-    const parsedX = parseInt(x);
-    const parsedY = parseInt(y);
-    const parsedItems = JSON.parse(lootItemIds).map(id => $dataItems.at(parseInt(id)));
-    const parsedWeapons = JSON.parse(lootWeaponIds).map(id => $dataWeapons.at(parseInt(id)));
-    const parsedArmors = JSON.parse(lootArmorIds).map(id => $dataArmors.at(parseInt(id)));
-    const parsedAnimationId = parseInt(spawnAnimationId);
-    /** @type {Game_Event} */
-    let lastDropped = null;
-
-    // iterate and drop all the item loot.
-    parsedItems.forEach(parsedItem =>
-    {
-      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedItem);
-    });
-
-    // iterate and drop all the weapon loot.
-    parsedWeapons.forEach(parsedWeapon =>
-    {
-      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedWeapon);
-    });
-
-    // iterate and drop all the armor loot.
-    parsedArmors.forEach(parsedArmor =>
-    {
-      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedArmor);
-    });
-
-    // check if there is a spawn animation.
-    if (parsedAnimationId)
-    {
-      // execute the animation on the newly spawned enemy.
-      setTimeout(() => lastDropped.requestAnimation(parsedAnimationId), 50);
-    }
-  });
-//endregion Plugin Command Registration
-
 //region JABS_Action
 /**
  * An object that binds a `Game_Action` to a `Game_Event` on the map.
@@ -2581,43 +16,27 @@ class JABS_Action
   }
 
   /**
-   * @constructor
-   * @param {string} uuid This action's unique identifier.
-   * @param {RPG_Skill} baseSkill The skill retrieved from `$dataSkills[id]`.
-   * @param {number} teamId A shorthand for the team id this skill belongs to.
+   * Constructor.
    * @param {Game_Action} gameAction The underlying action associated with this `JABS_Action`.
    * @param {JABS_Battler} caster The `JABS_Battler` who created this `JABS_Action`.
    * @param {boolean} isRetaliation Whether or not this is a retaliation action.
    * @param {number} direction The direction this action will face initially.
-   * @param {string?} cooldownKey Whether or not this is a direct action.
+   * @param {string?} cooldownKey The cooldown key associated with this action.
+   * @param {boolean=} isTerrainDamage Whether or not the action is a result of terrain damage.
    */
-  constructor({uuid, baseSkill, teamId, gameAction, caster, isRetaliation, direction, cooldownKey})
+  constructor(gameAction, caster, isRetaliation, direction, cooldownKey, isTerrainDamage)
   {
     /**
-     * The unique identifier for this action.
-     *
-     * All actions that are bound to an event have this.
-     * @type {string}
+     * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
+     * @type {Game_Action}
      */
-    this._uuid = uuid;
+    this._gameAction = gameAction;
 
     /**
      * The base skill object, in case needed for something.
      * @type {RPG_Skill}
      */
     this._baseSkill = gameAction.item();
-
-    /**
-     * The team the owner of this skill is a part of.
-     * @type {number}
-     */
-    this._teamId = teamId;
-
-    /**
-     * The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
-     * @type {Game_Action}
-     */
-    this._gameAction = gameAction;
 
     /**
      * The `JABS_Battler` that used created this `JABS_Action`.
@@ -2641,7 +60,31 @@ class JABS_Action
      * The type of action this is. Used for mapping cooldowns to the appropriate slot on the caster.
      * @type {string}
      */
-    this._actionCooldownType = cooldownKey ?? "global";
+    this._actionCooldownType = cooldownKey ?? J.ABS.Globals.GlobalCooldownKey;
+
+    /**
+     * Whether or not this action is a result of terrain damage.
+     * @type {boolean}
+     */
+    this._isTerrainDamage = isTerrainDamage;
+
+    // init other non-arg-related members.
+    this.initMembers();
+  }
+
+  //region init
+  /**
+   * Initializes all properties on this class.
+   */
+  initMembers()
+  {
+    /**
+     * The unique identifier for this action.
+     *
+     * All actions that are bound to an event have this.
+     * @type {string}
+     */
+    this._uuid = J.BASE.Helpers.generateUuid();
 
     /**
      * Whether or not this action has collided with at least one target.
@@ -2649,14 +92,6 @@ class JABS_Action
      */
     this._hitAtLeastOne = false;
 
-    this.initMembers();
-  }
-
-  /**
-   * Initializes all properties on this class.
-   */
-  initMembers()
-  {
     // initialize core functionality data.
     this.initVisuals();
 
@@ -2769,6 +204,8 @@ class JABS_Action
     return pierceCount;
   }
 
+  //endregion init
+
   /**
    * Executes additional logic before this action is disposed.
    */
@@ -2842,15 +279,6 @@ class JABS_Action
   }
 
   /**
-   * Gets the team id of the caster of this action.
-   * @returns {number} The team id of the caster of this `JABS_Action`.
-   */
-  getTeamId()
-  {
-    return this.getCaster().getTeam();
-  }
-
-  /**
    * The base game action this `JABS_Action` is based on.
    * @returns {Game_Action} The base game action for this action.
    */
@@ -2909,6 +337,15 @@ class JABS_Action
   direction()
   {
     return this._facing || this.getActionSprite().direction();
+  }
+
+  /**
+   * Whether or not this action was a result of terrain damage.
+   * @returns {boolean}
+   */
+  isTerrainDamage()
+  {
+    return this._isTerrainDamage;
   }
 
   /**
@@ -3417,8 +854,355 @@ class JABS_Action
   {
     return this._hitAtLeastOne;
   }
+
+  /**
+   * A factory that generates builders for creating {@link JABS_Action}s.
+   * @returns {JABS_ActionBuilder}
+   */
+  static Builder = () => new JABS_ActionBuilder();
 }
+
 //endregion JABS_Action
+
+//region JABS_ActionBuilder
+/**
+ * A builder for creating {@link JABS_Action}s.
+ * @returns {JABS_ActionBuilder}
+ */
+class JABS_ActionBuilder
+{
+  /**
+   * The compiled skill-action data of the action being executed.
+   * @type {Game_Action}
+   */
+  #gameAction = null;
+
+  /**
+   * The battler that executed this action.
+   * @type {JABS_Battler}
+   */
+  #caster = null;
+
+  /**
+   * Whether or not the action is the retaliation of another battler.
+   * @type {boolean}
+   */
+  #isRetaliation = false;
+
+  /**
+   * The direction that this action will be pointed when first starting its move route.
+   * @type {number}
+   */
+  #initialDirection = J.ABS.Directions.DOWN;
+
+  /**
+   * The cooldown key associated with this action.
+   * @type {string}
+   */
+  #cooldownKey = J.ABS.Globals.GlobalCooldownKey;
+
+  /**
+   * Whether or not this action was a result of terrain damage.
+   * @type {boolean}
+   */
+  #isTerrainDamage = false;
+
+  /**
+   * Builds a new instance of the action based on the built parameters.
+   * @returns {JABS_Action}
+   */
+  build()
+  {
+    const mapAction = new JABS_Action(
+      this.#gameAction,
+      this.#caster,
+      this.#isRetaliation,
+      this.#initialDirection,
+      this.#cooldownKey,
+      this.#isTerrainDamage);
+
+    this.clear();
+
+    return mapAction;
+  }
+
+  clear()
+  {
+    this.#gameAction = null;
+    this.#caster = null;
+    this.#isRetaliation = false;
+    this.#initialDirection = J.ABS.Directions.DOWN;
+    this.#cooldownKey = J.ABS.Globals.GlobalCooldownKey;
+    this.#isTerrainDamage = false;
+  }
+
+  setGameAction(gameAction)
+  {
+    this.#gameAction = gameAction;
+    return this;
+  }
+
+  setCaster(caster)
+  {
+    this.#caster = caster;
+    return this;
+  }
+
+  setIsRetaliation(isRetaliation)
+  {
+    this.#isRetaliation = isRetaliation;
+    return this;
+  }
+
+  setInitialDirection(direction)
+  {
+    this.#initialDirection = direction;
+    return this;
+  }
+
+  setCooldownKey(cooldownKey)
+  {
+    this.#cooldownKey = cooldownKey;
+    return this;
+  }
+
+  setIsTerrainDamage(isTerrainDamage)
+  {
+    this.#isTerrainDamage = isTerrainDamage;
+    return this;
+  }
+
+  /**
+   * Applies the {@link JABS_ActionOptions} to this builder.
+   * @param {JABS_ActionOptions} actionOptions The options to apply to this builder.
+   * @returns {this} This builder for fluent-chaining.
+   */
+  setActionOptions(actionOptions)
+  {
+    this.#isRetaliation = actionOptions.isActionRetaliation();
+    this.#cooldownKey = actionOptions.getCooldownKey();
+    this.#isTerrainDamage = actionOptions.isTerrainDamage();
+    return this;
+  }
+}
+//endregion JABS_ActionBuilder
+
+//region JABS_ActionOptions
+/**
+ * Options associated with a set of {@link JABS_Action}s.
+ */
+class JABS_ActionOptions
+{
+  /**
+   * Whether or not the action is a retaliation of another battler.<br/>
+   * This is used to prevent recursive retaliations.
+   * @type {boolean}
+   */
+  #isRetaliation = false;
+
+  /**
+   * The cooldown's key associated with the action being executed.<br/>
+   * If none is assigned, the global "global" cooldown key will be used.
+   * @type {string|"global"}
+   */
+  #cooldownKey = J.ABS.Globals.GlobalCooldownKey;
+
+  /**
+   * The location of the target of this action, and where it will originate.<br/>
+   * Typically used when the action is originating by force.<br/>
+   * If not provided, an empty location will be defaulted (all nulls).
+   * @type {JABS_Location}
+   */
+  #location = null;
+
+  /**
+   * Whether or not the action is a result of terrain damage.<br/>
+   * When terrain damage is the source, the logging will be more generic.
+   * @type {boolean}
+   */
+  #terrainDamage = false;
+
+  /**
+   * Constructor.<br/>
+   * Use the {@link JABS_ActionOptionsBuilder} to fluently and properly build these.
+   * @param {boolean} isRetaliation Whether or not the action is a retaliation of another battler.
+   * @param {string} cooldownKey The cooldown's key associated with the action being executed.
+   * @param {JABS_Location} location The location of the target of this action, and where it will originate.
+   * @param {boolean} terrainDamage Whether or not the action is a result of terrain damage.
+   */
+  constructor(isRetaliation, cooldownKey, location, terrainDamage)
+  {
+    this.#isRetaliation = isRetaliation;
+    this.#cooldownKey = cooldownKey;
+    this.#location = location;
+    this.#terrainDamage = terrainDamage;
+  }
+
+  /**
+   * Whether or not the action is a retaliation of another battler.<br/>
+   * This is used to prevent recursive retaliations.
+   * @returns {boolean}
+   */
+  isActionRetaliation()
+  {
+    return this.#isRetaliation;
+  }
+
+  /**
+   * The cooldown's key associated with the action being executed.<br/>
+   * If none is assigned, the global "global" cooldown key will be used.
+   * @returns {string|"global"}
+   */
+  getCooldownKey()
+  {
+    return this.#cooldownKey;
+  }
+
+  /**
+   * The location of the target of this action, and where it will originate.<br/>
+   * Typically used when the action is originating by force.<br/>
+   * If not provided, an empty location will be defaulted (all nulls).
+   * @returns {JABS_Location}
+   */
+  getTargetLocation()
+  {
+    return this.#location;
+  }
+
+  /**
+   * Whether or not the action is a result of terrain damage.<br/>
+   * When terrain damage is the source, the logging will be more generic.
+   * @returns {boolean}
+   */
+  isTerrainDamage()
+  {
+    return this.#terrainDamage;
+  }
+
+  /**
+   * A factory that generates {@link JABS_ActionOptions} with all default values.
+   * @returns {JABS_ActionOptions}
+   */
+  static Default = () => this.Builder()
+    .build();
+
+  /**
+   * A factory that generates builders for creating {@link JABS_ActionOptions}.
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  static Builder = () => new JABS_ActionOptionsBuilder();
+}
+//endregion JABS_ActionOptions
+
+//region JABS_ActionOptionsBuilder
+/**
+ * A builder for creating {@link JABS_ActionOptions}.
+ */
+class JABS_ActionOptionsBuilder
+{
+  /**
+   * Whether or not the action is a retaliation of another battler.
+   * @type {boolean}
+   */
+  #isRetaliation = false;
+
+  /**
+   * The cooldown's key associated with the action being executed.
+   * @type {string}
+   */
+  #cooldownKey = J.ABS.Globals.GlobalCooldownKey;
+
+  /**
+   * The location of the target of this action, where it will originate.
+   * @type {JABS_Location}
+   */
+  #sourceLocation = null;
+
+  /**
+   * Whether or not the action is terrain damage.
+   * @type {boolean}
+   */
+  #isTerrainDamage = false;
+
+  /**
+   * Builds a new instance of the options based on the built parameters.
+   * @returns {JABS_ActionOptions}
+   */
+  build()
+  {
+    // use an empty location if none was provided.
+    const locationToClone = this.#sourceLocation ?? JABS_Location.Builder().build();
+
+    // compile a new action.
+    const newJabsActionOptions = new JABS_ActionOptions(
+      this.#isRetaliation,
+      this.#cooldownKey,
+      JABS_Location.Clone(locationToClone),
+      this.#isTerrainDamage);
+
+    // clear out the previous data.
+    this.clear();
+
+    // return what was built.
+    return newJabsActionOptions;
+  }
+
+  /**
+   * Clears the builder for re-use.<br/>
+   * Not recommended unless performing sequential re-uses.
+   */
+  clear()
+  {
+    this.#isRetaliation = false;
+    this.#cooldownKey = J.ABS.Globals.GlobalCooldownKey;
+    this.#sourceLocation = null;
+    this.#isTerrainDamage = false;
+  }
+
+  /**
+   * Sets whether or not the action is a retaliation of another battler.
+   * @param {boolean} isRetaliation
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  setIsRetaliation(isRetaliation)
+  {
+    this.#isRetaliation = isRetaliation;
+    return this;
+  }
+
+  /**
+   * Sets the cooldown key to the given cooldown key.
+   * @param {string} cooldownKey
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  setCooldownKey(cooldownKey)
+  {
+    this.#cooldownKey = cooldownKey;
+    return this;
+  }
+
+  /**
+   * Sets the location to the given location.
+   * @param {JABS_Location} location
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  setLocation(location)
+  {
+    this.#sourceLocation = location;
+    return this;
+  }
+
+  /**
+   * Sets whether or not the action is terrain damage.
+   * @param {boolean} isTerrainDamage
+   */
+  setIsTerrainDamage(isTerrainDamage)
+  {
+    this.#isTerrainDamage = isTerrainDamage;
+    return this;
+  }
+}
+//endregion JABS_ActionOptionsBuilder
 
 //region JABS_Aggro
 /**
@@ -3523,7 +1307,7 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
 
 //region JABS_AI
 /**
- * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.<br>
+ * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.
  */
 class JABS_AI
 {
@@ -3701,7 +1485,7 @@ class JABS_AI
 
     // return the strongest found skill id.
     return strongestSkillId;
-  };
+  }
 }
 //endregion JABS_AI
 
@@ -3709,10 +1493,13 @@ class JABS_AI
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
  * This can be for either the player, an ally, or an enemy.
+ * @param {Game_Event} event The event the battler is bound to.
+ * @param {Game_Actor|Game_Enemy} battler The battler data itself.
+ * @param {JABS_BattlerCoreData} battlerCoreData The core data for the battler.
  */
-function JABS_Battler()
+function JABS_Battler(event, battler, battlerCoreData)
 {
-  this.initialize(...arguments);
+  this.initialize(event, battler, battlerCoreData);
 }
 
 //region initialize battler
@@ -3751,8 +1538,8 @@ JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData)
   this.initGeneralInfo();
   this.initBattleInfo();
   this.initIdleInfo();
-  this.initPoseInfo();
   this.initCooldowns();
+  this.initPoseInfo();
 };
 
 /**
@@ -4015,7 +1802,7 @@ JABS_Battler.prototype.initBattleInfo = function()
    * at the time this battler was alerted.
    * @type {[number, number]}
    */
-  this._alertedCoordinates = [0, 0];
+  this._alertedCoordinates = [ 0, 0 ];
 
   /**
    * Whether or not the battler is in position to execute an action.
@@ -4185,37 +1972,6 @@ JABS_Battler.prototype.initIdleInfo = function()
 };
 
 /**
- * Initializes the properties of this battler that are related to the character posing.
- */
-JABS_Battler.prototype.initPoseInfo = function()
-{
-  /**
-   * The number of frames to pose for.
-   * @type {number}
-   */
-  this._poseFrames = 0;
-
-  /**
-   * Whether or not this battler is currently posing.
-   * @type {boolean}
-   */
-  this._posing = false;
-
-  /**
-   * The name of the file that contains this battler's character sprite (without extension).
-   * @type {string}
-   */
-  this._baseSpriteImage = "";
-
-  /**
-   * The index of this battler's character sprite in the `_baseSpriteImage`.
-   * @type {number}
-   */
-  this._baseSpriteIndex = 0;
-  this.captureBaseSpriteInfo();
-};
-
-/**
  * Initializes the cooldowns for this battler.
  */
 JABS_Battler.prototype.initCooldowns = function()
@@ -4224,9 +1980,1596 @@ JABS_Battler.prototype.initCooldowns = function()
   const battler = this.getBattler();
 
   // setup the skill slots for the enemy.
-  battler.getSkillSlotManager().setupSlots(battler);
+  battler.getSkillSlotManager()
+    .setupSlots(battler);
 };
 //endregion initialize battler
+
+//region reference helpers
+/**
+ * Reassigns the character to something else.
+ * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
+ */
+JABS_Battler.prototype.setCharacter = function(newCharacter)
+{
+  this._event = newCharacter;
+};
+
+/**
+ * Gets the battler's name.
+ * @returns {string}
+ */
+JABS_Battler.prototype.battlerName = function()
+{
+  return this.getBattlerDatabaseData().name;
+};
+
+/**
+ * Events that have no actual conditions associated with them may have a -1 index.
+ * Ignore that if that's the case.
+ */
+JABS_Battler.prototype.hasEventActions = function()
+{
+  // only events can have event commands.
+  if (!this.isEvent()) return false;
+
+  const event = this.getCharacter();
+  return event._pageIndex !== -1;
+};
+
+/**
+ * Destroys this battler by removing it from tracking and erasing the character.
+ */
+JABS_Battler.prototype.destroy = function()
+{
+  // set the battler as invincible to prevent further hitting.
+  this.setInvincible();
+
+  // remove the battler from tracking.
+  JABS_AiManager.removeBattler(this);
+
+  // grab the character.
+  const character = this.getCharacter();
+
+  // erase the underlying character.
+  character.erase();
+
+  // flag the sprite for removal.
+  character.setActionSpriteNeedsRemoving();
+};
+
+/**
+ * Reveals this battler onto the map.
+ */
+JABS_Battler.prototype.revealHiddenBattler = function()
+{
+  this._hidden = false;
+};
+
+/**
+ * Hides this battler from the current battle map.
+ */
+JABS_Battler.prototype.hideBattler = function()
+{
+  this._hidden = true;
+};
+
+/**
+ * Whether or not this battler is hidden on the current battle map.
+ */
+JABS_Battler.prototype.isHidden = function()
+{
+  return this._hidden;
+};
+
+/**
+ * Whether or not this battler is in a state of dying.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isDying = function()
+{
+  return this._dying;
+};
+
+/**
+ * Sets whether or not this battler is in a state of dying.
+ * @param {boolean} dying The new state of dying.
+ */
+JABS_Battler.prototype.setDying = function(dying)
+{
+  this._dying = dying;
+};
+
+/**
+ * Calculates whether or not this battler should continue fighting it's target.
+ * @param {JABS_Battler} target The target we're trying to see.
+ * @param {number} distance The distance from this battler to the target.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.inPursuitRange = function(target, distance)
+{
+  // grab the current pursuit radius.
+  let pursuitRadius = this.getPursuitRadius();
+
+  // apply the modification from the actor, if any.
+  const visionMultiplier = target.getBattler()
+    .getVisionModifier();
+
+  // apply the multiplier to the base.
+  pursuitRadius *= visionMultiplier;
+
+  // return whether or not we're in range.
+  return (distance <= pursuitRadius);
+};
+
+/**
+ * Calculates whether or not this battler should engage the nearest battler.
+ * @param {JABS_Battler} target The target we're trying to see.
+ * @param {number} distance The distance from this battler to the target.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.inSightRange = function(target, distance)
+{
+  // grab the sight for this battler.
+  const sightRadius = this.getSightRadius();
+
+  // apply the modification from the actor, if any.
+  const modifiedSight = this.applyVisionMultiplier(target, sightRadius);
+
+  // determine whether or not the target is in sight.
+  const isInSightRange = (distance <= modifiedSight);
+
+  // return the answer.
+  return isInSightRange;
+};
+
+/**
+ * Determines whether or not this battler is "out of range" of a given target.
+ * At or beyond the designated range usually results in dropping cognition of one another.
+ * @param {JABS_Battler} target The target to check if within range of.
+ * @returns {boolean} True if this battler is out of range of the target, false otherwise.
+ */
+JABS_Battler.prototype.outOfRange = function(target)
+{
+  // if the target is invalid, then they are out of range.
+  if (!target) return true;
+
+  // if they are actually out of update range, then they are out of range.
+  if (this.distanceToDesignatedTarget(target) > JABS_AiManager.maxAiRange) return true;
+
+  // they are not out of range.
+  return false;
+};
+
+/**
+ * Applies the vision multiplier against the base vision radius in question.
+ * @param {JABS_Battler} target The target we're trying to see.
+ * @param {number} originalRadius The original vision radius.
+ */
+JABS_Battler.prototype.applyVisionMultiplier = function(target, originalRadius)
+{
+  // get this battler's vision multiplier factor.
+  const visionMultiplier = target.getBattler()
+    .getVisionModifier();
+
+  // calculate the new radius.
+  const modifiedVisionRadius = (originalRadius * visionMultiplier);
+
+  // return our calculation.
+  return modifiedVisionRadius;
+};
+
+/**
+ * Gets this battler's unique identifier.
+ * @returns {string}
+ */
+JABS_Battler.prototype.getUuid = function()
+{
+  // if there is problems with the battler, return nothing.
+  if (!this.getBattler()) return String.empty;
+
+  return this.getBattler()
+    .getUuid();
+};
+
+/**
+ * Gets whether or not this battler has any pending actions decided
+ * by this battler's leader.
+ */
+JABS_Battler.prototype.hasLeaderDecidedActions = function()
+{
+  // if you don't have a leader, you don't perform the actions.
+  if (!this.hasLeader()) return false;
+
+  return this._leaderDecidedAction;
+};
+
+/**
+ * Gets the next skill id from the queue of leader-decided actions.
+ * Also removes it from the current queue.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getNextLeaderDecidedAction = function()
+{
+  const action = this._leaderDecidedAction;
+  this.clearLeaderDecidedActionsQueue();
+  return action;
+};
+
+/**
+ * Adds a new action decided by the leader for the follower to perform.
+ * @param {number} skillId The skill id decided by the leader.
+ */
+JABS_Battler.prototype.setLeaderDecidedAction = function(skillId)
+{
+  this._leaderDecidedAction = skillId;
+};
+
+/**
+ * Clears all unused leader-decided actions that this follower had pending.
+ */
+JABS_Battler.prototype.clearLeaderDecidedActionsQueue = function()
+{
+  this._leaderDecidedAction = null;
+};
+
+/**
+ * Gets the leader's `uuid` of this battler.
+ */
+JABS_Battler.prototype.getLeader = function()
+{
+  return this._leaderUuid;
+};
+
+/**
+ * Gets the battler for this battler's leader.
+ * @returns {JABS_Battler}
+ */
+JABS_Battler.prototype.getLeaderBattler = function()
+{
+  if (this._leaderUuid)
+  {
+    return JABS_AiManager.getBattlerByUuid(this._leaderUuid);
+  }
+
+  return null;
+
+};
+
+/**
+ * Sets the `uuid` of the leader of this battler.
+ * @param {string} newLeader The leader's `uuid`.
+ */
+JABS_Battler.prototype.setLeader = function(newLeader)
+{
+  const leader = JABS_AiManager.getBattlerByUuid(newLeader);
+  if (leader)
+  {
+    this._leaderUuid = newLeader;
+    leader.addFollower(this.getUuid());
+  }
+};
+
+/**
+ * Gets whether or not this battler has a leader.
+ * Only battlers with the ai-trait of `follower` can have leaders.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.hasLeader = function()
+{
+  return !!this._leaderUuid;
+};
+
+/**
+ * Gets all followers associated with this battler.
+ * Only leaders can have followers.
+ * @return {string[]} The `uuid`s of all followers.
+ */
+JABS_Battler.prototype.getFollowers = function()
+{
+  return this._followers;
+};
+
+/**
+ * Gets the whole battler of the follower matching the `uuid` provided.
+ * @param {string} followerUuid The `uuid` of the follower to find.
+ * @returns {JABS_Battler}
+ */
+JABS_Battler.prototype.getFollowerByUuid = function(followerUuid)
+{
+  // if we don't have followers, just return null.
+  if (!this.hasFollowers()) return null;
+
+  // search through the followers to find the matching battler.
+  const foundUuid = this._followers.find(uuid => uuid === followerUuid);
+  if (foundUuid)
+  {
+    return JABS_AiManager.getBattlerByUuid(foundUuid);
+  }
+
+  return null;
+
+};
+
+/**
+ * Adds a follower to the leader's collection.
+ * @param {string} newFollowerUuid The new uuid of the follower now being tracked.
+ */
+JABS_Battler.prototype.addFollower = function(newFollowerUuid)
+{
+  const found = this.getFollowerByUuid(newFollowerUuid);
+  if (found)
+  {
+    console.error("this follower already existed within the follower list.");
+  }
+  else
+  {
+    this._followers.push(newFollowerUuid);
+  }
+};
+
+/**
+ * Removes the follower from
+ * @param {string} oldFollowerUuid The `uuid` of the follower to remove from tracking.
+ */
+JABS_Battler.prototype.removeFollower = function(oldFollowerUuid)
+{
+  const index = this._followers.indexOf(uuid => uuid === oldFollowerUuid);
+  if (index !== -1)
+  {
+    this._followers.splice(index, 1);
+  }
+  else
+  {
+    console.error("could not find follower to remove from the list.", oldFollowerUuid);
+  }
+};
+
+/**
+ * Clears all current followers from this battler.
+ */
+JABS_Battler.prototype.clearFollowers = function()
+{
+  // first de-assign leadership from all followers for this leader...
+  this._followers.forEach(followerUuid =>
+  {
+    $gameMap.clearLeaderDataByUuid(followerUuid);
+  });
+
+  // ...then empty the collection.
+  this._followers.splice(0, this._followers.length);
+};
+
+/**
+ * Removes this follower's leader.
+ */
+JABS_Battler.prototype.clearLeader = function()
+{
+  // get the leader's uuid for searching.
+  const leaderUuid = this.getLeader();
+  // if found, remove this follower from that leader.
+  if (leaderUuid)
+  {
+    const uuid = this.getUuid();
+    // in some instances, "this" may not be alive anymore so handle that.
+    if (!uuid) return;
+
+    const leader = JABS_AiManager.getBattlerByUuid(leaderUuid);
+    if (!leader) return;
+
+    leader.removeFollowerByUuid(uuid);
+  }
+};
+
+/**
+ * Removes a follower from it's current leader.
+ * @param {string} uuid The `uuid` of the follower to remove from the leader.
+ */
+JABS_Battler.prototype.removeFollowerByUuid = function(uuid)
+{
+  const index = this._followers.indexOf(uuid);
+  if (index !== -1)
+  {
+    this._followers.splice(index, 1);
+  }
+};
+
+/**
+ * Removes the leader data from this battler.
+ */
+JABS_Battler.prototype.clearLeaderData = function()
+{
+  this.setLeader("");
+  this.clearLeaderDecidedActionsQueue();
+};
+
+/**
+ * Gets whether or not this battler has followers.
+ * Only battlers with the AI trait of "leader" will have followers.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.hasFollowers = function()
+{
+  // if you're not a leader, you can't have followers.
+  if (!this.getAiMode().leader) return false;
+
+  return this._followers.length > 0;
+};
+
+/**
+ * Gets the database data for this battler.
+ * @returns {RPG_Actor|RPG_Enemy} The battler data.
+ */
+JABS_Battler.prototype.getBattlerDatabaseData = function()
+{
+  // if somehow we don't have a battler, return an empty object.
+  if (!this.getBattler()) return {};
+
+  //
+  return this.getBattler()
+    .databaseData();
+};
+
+/**
+ * Determines if this battler is facing its target.
+ * @param {Game_Character} target The target `Game_Character` to check facing for.
+ */
+JABS_Battler.prototype.isFacingTarget = function(target)
+{
+  const userDir = this.getCharacter()
+    .direction();
+  const targetDir = target.direction();
+
+  switch (userDir)
+  {
+    case J.ABS.Directions.DOWN:
+      return targetDir === J.ABS.Directions.UP;
+    case J.ABS.Directions.UP:
+      return targetDir === J.ABS.Directions.DOWN;
+    case J.ABS.Directions.LEFT:
+      return targetDir === J.ABS.Directions.RIGHT;
+    case J.ABS.Directions.RIGHT:
+      return targetDir === J.ABS.Directions.LEFT;
+  }
+
+  return false;
+};
+
+/**
+ * Whether or not this battler is actually the `Game_Player`.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isPlayer = function()
+{
+  return this.getCharacter()
+    .isPlayer();
+};
+
+/**
+ * Whether or not this battler is a `Game_Actor`.
+ * The player counts as a `Game_Actor`, too.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isActor = function()
+{
+  return (this.isPlayer() || this.getBattler() instanceof Game_Actor)
+};
+
+/**
+ * Whether or not this battler is based on a follower.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isFollower = function()
+{
+  return this.getCharacter()
+    .isFollower();
+};
+
+/**
+ * Whether or not this battler is a `Game_Enemy`.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isEnemy = function()
+{
+  return (this.getBattler() instanceof Game_Enemy);
+};
+
+/**
+ * Whether or not this battler is based on an event.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isEvent = function()
+{
+  return this.getCharacter()
+    .isEvent();
+};
+
+/**
+ * Compares the user with a provided target team to see if they are the same.
+ * @param {number} targetTeam The id of the team to check.
+ * @returns {boolean} True if the user and target are on the same team, false otherwise.
+ */
+JABS_Battler.prototype.isSameTeam = function(targetTeam)
+{
+  return (this.getTeam() === targetTeam);
+};
+
+/**
+ * Gets whether or not the provided target team is considered "friendly".
+ * @param {number} targetTeam The id of the team to check.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isFriendlyTeam = function(targetTeam)
+{
+  // TODO: parameterize in objects what are "opposing" teams.
+  return [ this.getTeam() ].includes(targetTeam);
+};
+
+/**
+ * Gets whether or not the provided target team is considered "opposing".
+ * @param {number} targetTeam The id of the team to check.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isOpposingTeam = function(targetTeam)
+{
+  // TODO: parameterize in objects what are "friendly" teams.
+  return !(targetTeam === this.getTeam());
+  //return [].includes(targetTeam);
+};
+
+/**
+ * Gets this battler's team id.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getTeam = function()
+{
+  return this._team;
+};
+
+/**
+ * Gets the phase of battle this battler is currently in.
+ * The player does not have any phases.
+ * @returns {number} The phase this `JABS_Battler` is in.
+ */
+JABS_Battler.prototype.getPhase = function()
+{
+  return this._phase;
+};
+
+/**
+ * Gets whether or not this battler is invincible.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isInvincible = function()
+{
+  return this._invincible;
+};
+
+/**
+ * Gets whether or not this battler is inanimate.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isInanimate = function()
+{
+  return this._inanimate;
+};
+
+/**
+ * Sets this battler to be invincible, rendering them unable to be collided
+ * with by map actions of any kind.
+ * @param {boolean} invincible True if uncollidable, false otherwise (default: true).
+ */
+JABS_Battler.prototype.setInvincible = function(invincible = true)
+{
+  this._invincible = invincible;
+};
+
+/**
+ * Sets the phase of battle that this battler should be in.
+ * @param {number} newPhase The new phase the battler is entering.
+ */
+JABS_Battler.prototype.setPhase = function(newPhase)
+{
+  this._phase = newPhase;
+};
+
+/**
+ * Resets the phase of this battler back to one and resets all flags.
+ */
+JABS_Battler.prototype.resetPhases = function()
+{
+  this.setPhase(1);
+  this._prepareReady = false;
+  this._prepareCounter = 0;
+  this._postActionCooldownComplete = false;
+  this.setDecidedAction(null);
+  this.setAllyTarget(null);
+  this.setInPosition(false);
+};
+
+/**
+ * Gets whether or not this battler is in position for a given skill.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isInPosition = function()
+{
+  return this._inPosition;
+};
+
+/**
+ * Sets this battler to be identified as "in position" to execute their
+ * decided skill.
+ * @param {boolean} inPosition
+ */
+JABS_Battler.prototype.setInPosition = function(inPosition = true)
+{
+  this._inPosition = inPosition;
+};
+
+/**
+ * Gets whether or not this battler has decided an action.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isActionDecided = function()
+{
+  return this._decidedAction !== null;
+};
+
+/**
+ * Gets the battler's decided action.
+ * @returns {JABS_Action[]|null}
+ */
+JABS_Battler.prototype.getDecidedAction = function()
+{
+  return this._decidedAction;
+};
+
+/**
+ * Sets this battler's decided action to this action.
+ * @param {JABS_Action[]} action The action this battler has decided on.
+ */
+JABS_Battler.prototype.setDecidedAction = function(action)
+{
+  this._decidedAction = action;
+};
+
+/**
+ * Clears this battler's decided action.
+ */
+JABS_Battler.prototype.clearDecidedAction = function()
+{
+  this._decidedAction = null;
+};
+
+/**
+ * Resets the idle action back to a not-ready state.
+ */
+JABS_Battler.prototype.resetIdleAction = function()
+{
+  this._idleActionReady = false;
+};
+
+/**
+ * Returns the `Game_Character` that this `JABS_Battler` is bound to.
+ * For the player, it'll return a subclass instead: `Game_Player`.
+ * @returns {Game_Event|Game_Player|Game_Follower} The event this `JABS_Battler` is bound to.
+ */
+JABS_Battler.prototype.getCharacter = function()
+{
+  return this._event;
+};
+
+/**
+ * Returns the `Game_Battler` that this `JABS_Battler` represents.
+ *
+ * This may be either a `Game_Actor`, or `Game_Enemy`.
+ * @returns {Game_Actor|Game_Enemy} The `Game_Battler` this battler represents.
+ */
+JABS_Battler.prototype.getBattler = function()
+{
+  return this._battler;
+};
+
+/**
+ * Gets whether or not the underlying battler is dead.
+ * @returns {boolean} True if they are dead, false otherwise.
+ */
+JABS_Battler.prototype.isDead = function()
+{
+  return this.getBattler()
+    .isDead();
+};
+
+/**
+ * Whether or not the event is actually loaded and valid.
+ * @returns {boolean} True if the event is valid (non-player) and loaded, false otherwise.
+ */
+JABS_Battler.prototype.isEventReady = function()
+{
+  const character = this.getCharacter();
+  if (character instanceof Game_Player)
+  {
+    return false;
+  }
+
+  return !!character.event();
+
+};
+
+/**
+ * The radius a battler of a different team must enter to cause this unit to engage.
+ * @returns {number} The sight radius for this `JABS_Battler`.
+ */
+JABS_Battler.prototype.getSightRadius = function()
+{
+  let sight = this._sightRadius;
+  if (this.isAlerted())
+  {
+    sight += this._alertedSightBoost;
+  }
+
+  return sight;
+};
+
+/**
+ * The maximum distance a battler of a different team may reach before this unit disengages.
+ * @returns {number} The pursuit radius for this `JABS_Battler`.
+ */
+JABS_Battler.prototype.getPursuitRadius = function()
+{
+  let pursuit = this._pursuitRadius;
+  if (this.isAlerted())
+  {
+    pursuit += this._alertedPursuitBoost;
+  }
+
+  return pursuit;
+};
+
+/**
+ * Sets whether or not this battler is engaged.
+ * @param {boolean} isEngaged Whether or not this battler is engaged.
+ */
+JABS_Battler.prototype.setEngaged = function(isEngaged)
+{
+  this._engaged = isEngaged;
+};
+
+/**
+ * Whether or not this `JABS_Battler` is currently engaged in battle with a target.
+ * @returns {boolean} Whether or not this battler is engaged.
+ */
+JABS_Battler.prototype.isEngaged = function()
+{
+  return this._engaged;
+};
+
+/**
+ * Engage battle with the target battler.
+ * @param {JABS_Battler} target The target this battler is engaged with.
+ */
+JABS_Battler.prototype.engageTarget = function(target)
+{
+  // this battler cannot engage with targets right now.
+  if (this.isEngagementLocked()) return;
+
+  // enable engagement.
+  this.setIdle(false);
+  this.setEngaged(true);
+
+  // setup the target and their aggro.
+  this.setTarget(target);
+  this.addUpdateAggro(target.getUuid(), 0);
+
+  // check if this is an actor-based character.
+  if (this.isActor())
+  {
+    // disable walking through walls while the follower is engaged.
+    this.getCharacter()
+      .setThrough(false);
+  }
+
+  // if we're alerted, also clear the alert state.
+  this.clearAlert();
+
+  // TODO: abstract this.
+  this.showBalloon(J.ABS.Balloons.Exclamation);
+};
+
+/**
+ * Disengage from the target.
+ */
+JABS_Battler.prototype.disengageTarget = function()
+{
+  // clear any targeting.
+  this.setTarget(null);
+  this.setAllyTarget(null);
+
+  // disable being engaged.
+  this.setEngaged(false);
+
+  // disable the alert when disengaging.
+  this.clearAlert();
+
+  // remove leader/follower data.
+  this.clearFollowers();
+  this.clearLeaderData();
+
+  // forget decided action.
+  this.clearDecidedAction();
+
+  // reset all the phases back to default.
+  this.resetPhases();
+
+  // TODO: abstract this.
+  //this.showBalloon(J.ABS.Balloons.Frustration);
+};
+
+/**
+ * Gets whether or not this battler is currently barred from engagement.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isEngagementLocked = function()
+{
+  return this._engagementLock;
+};
+
+/**
+ * Locks engagement.
+ * Disables the ability for this battler to acquire a target and do battle.
+ */
+JABS_Battler.prototype.lockEngagement = function()
+{
+  this._engagementLock = true;
+};
+
+/**
+ * Unlocks engagement.
+ * Allows this battler to engage with targets and do battle.
+ */
+JABS_Battler.prototype.unlockEngagement = function()
+{
+  this._engagementLock = false;
+};
+
+/**
+ * Gets the current target of this battler.
+ * @returns {JABS_Battler|null}
+ */
+JABS_Battler.prototype.getTarget = function()
+{
+  return this._target;
+};
+
+/**
+ * Sets the target of this battler.
+ * @param {JABS_Battler} newTarget The new target.
+ */
+JABS_Battler.prototype.setTarget = function(newTarget)
+{
+  this._target = newTarget;
+};
+
+/**
+ * Gets the last battler struck by this battler.
+ * @returns {JABS_Battler}
+ */
+JABS_Battler.prototype.getBattlerLastHit = function()
+{
+  if (this._lastHit && this._lastHit.isDead())
+  {
+    // if the last hit battler was defeated or something, remove it.
+    this.setBattlerLastHit(null);
+  }
+
+  return this._lastHit;
+};
+
+/**
+ * Sets the last battler struck by this battler.
+ * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
+ */
+JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
+{
+  this._lastHit = battlerLastHit;
+
+  // the player-controlled character cannot have a target by normal means due
+  // to them not being controlled by AI. However, their "last hit" is basically
+  // the same thing, so assign their target as well.
+  if (this.isPlayer())
+  {
+    this.setTarget(this._lastHit);
+  }
+};
+
+/**
+ * Gets whether or not this has a last battler hit currently stored.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.hasBattlerLastHit = function()
+{
+  return !!this.getBattlerLastHit();
+};
+
+/**
+ * Clears the last battler hit tracker from this battler.
+ */
+JABS_Battler.prototype.clearBattlerLastHit = function()
+{
+  this.setBattlerLastHit(null);
+  this.setLastBattlerHitCountdown(0);
+
+  // when clearing the last battler hit, also remove the player's target that
+  // was likely added via the above function of "setBattlerLastHit".
+  if (this.isPlayer())
+  {
+    this.setTarget(null);
+  }
+};
+
+/**
+ * Sets the last battler hit countdown.
+ * @param {number} duration The duration in frames (60/s).
+ */
+JABS_Battler.prototype.setLastBattlerHitCountdown = function(duration = 900)
+{
+  this._lastHitCountdown = duration;
+};
+
+/**
+ * Counts down the last hit counter.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.countdownLastHit = function()
+{
+  if (this._lastHitCountdown <= 0)
+  {
+    this._lastHitCountdown = 0;
+    if (this.hasBattlerLastHit())
+    {
+      this.clearBattlerLastHit();
+    }
+  }
+
+  if (this._lastHitCountdown > 0)
+  {
+    this._lastHitCountdown--;
+  }
+};
+
+/**
+ * Gets whether or not this battler is dead inside.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isDead = function()
+{
+  const battler = this.getBattler();
+
+  if (!battler)
+  { // has no battler.
+    return true;
+  }
+  else if (!JABS_AiManager.getBattlerByUuid(battler.getUuid()))
+  { // battler isn't on the map.
+    return true;
+  }
+  else if (battler.isDead() || this.isDying())
+  { // battler is actually dead.
+    return true;
+  }
+  // battler is OK!
+  return false;
+
+};
+
+/**
+ * Gets the current allied target of this battler.
+ * @returns {JABS_Battler}
+ */
+JABS_Battler.prototype.getAllyTarget = function()
+{
+  return this._allyTarget;
+};
+
+/**
+ * Sets the allied target of this battler.
+ * @param {JABS_Battler} newAlliedTarget The new target.
+ */
+JABS_Battler.prototype.setAllyTarget = function(newAlliedTarget)
+{
+  this._allyTarget = newAlliedTarget;
+};
+
+/**
+ * Determines the distance from this battler and the point.
+ * @param {number|null} x2 The x coordinate to check.
+ * @param {number|null} y2 The y coordinate to check.
+ * @returns {number|null} The distance from the battler to the point.
+ */
+JABS_Battler.prototype.distanceToPoint = function(x2, y2)
+{
+  if ((x2 ?? y2) === null) return null;
+  const x1 = this.getX();
+  const y1 = this.getY();
+  const distance = Math.hypot(x2 - x1, y2 - y1)
+    .toFixed(2);
+  return parseFloat(distance);
+};
+
+/**
+ * Determines distance from this battler and the target.
+ * @param {JABS_Battler} target The target that this battler is checking distance against.
+ * @returns {number|null} The distance from this battler to the provided target.
+ */
+JABS_Battler.prototype.distanceToDesignatedTarget = function(target)
+{
+  if (!target) return null;
+
+  return this.distanceToPoint(target.getX(), target.getY());
+};
+
+/**
+ * Determines distance from this battler and the current target.
+ * @returns {number|null} The distance.
+ */
+JABS_Battler.prototype.distanceToCurrentTarget = function()
+{
+  const target = this.getTarget();
+  if (!target) return null;
+
+  return this.distanceToPoint(target.getX(), target.getY());
+};
+
+/**
+ * Determines distance from this battler and the current ally target.
+ * @returns {number|null} The distance.
+ */
+JABS_Battler.prototype.distanceToAllyTarget = function()
+{
+  const target = this.getAllyTarget();
+  if (!target) return null;
+
+  return this.distanceToPoint(target.getX(), target.getY());
+};
+
+/**
+ * A shorthand reference to the distance this battler is from it's home.
+ * @returns {number} The distance.
+ */
+JABS_Battler.prototype.distanceToHome = function()
+{
+  return this.distanceToPoint(this._homeX, this._homeY);
+};
+
+/**
+ * Gets whether or not this battler will move around while idle.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canIdle = function()
+{
+  return this._canIdle;
+};
+
+/**
+ * Gets whether or not this battler should show its hp bar.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.showHpBar = function()
+{
+  return this._showHpBar;
+};
+
+/**
+ * Gets whether or not this battler should show its name.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.showBattlerName = function()
+{
+  return this._showBattlerName;
+};
+
+/**
+ * Gets whether or not this battler is in an `alerted` state.
+ * @returns {boolean} True if this battler is alerted, false otherwise.
+ */
+JABS_Battler.prototype.isAlerted = function()
+{
+  return this._alerted;
+};
+
+/**
+ * Sets the alerted state for this battler.
+ * @param {boolean} alerted The new alerted state (default = true).
+ */
+JABS_Battler.prototype.setAlerted = function(alerted = true)
+{
+  this._alerted = alerted;
+};
+
+/**
+ * Gets whether or not this battler is in an `alerted` state.
+ * @returns {number} The duration remaining for this alert state.
+ */
+JABS_Battler.prototype.getAlertDuration = function()
+{
+  return this._alertDuration;
+};
+
+/**
+ * Sets the alerted counter to this number of frames.
+ * @param {number} alertedFrames The duration in frames for how long to be alerted.
+ */
+JABS_Battler.prototype.setAlertedCounter = function(alertedFrames)
+{
+  this._alertedCounter = alertedFrames;
+  if (this._alertedCounter > 0)
+  {
+    this.setIdle(false);
+    this.setAlerted();
+  }
+  else if (this._alertedCounter <= 0)
+  {
+    this.setAlerted(false);
+  }
+};
+
+/**
+ * Gets the alerted coordinates.
+ * @returns {[number, number]} The `[x, y]` of the alerter.
+ */
+JABS_Battler.prototype.getAlertedCoordinates = function()
+{
+  return this._alertedCoordinates;
+};
+
+/**
+ * Sets the alerted coordinates.
+ * @param {number} x The `x` of the alerter.
+ * @param {number} y The `y` of the alerter.
+ */
+JABS_Battler.prototype.setAlertedCoordinates = function(x, y)
+{
+  this._alertedCoordinates = [ x, y ];
+};
+
+/**
+ * Whether or not this battler is at it's home coordinates.
+ * @returns {boolean} True if the battler is home, false otherwise.
+ */
+JABS_Battler.prototype.isHome = function()
+{
+  return (this._event.x === this._homeX && this._event.y === this._homeY);
+};
+
+/**
+ * Returns the X coordinate of the event portion's initial placement.
+ * @returns {number} The X coordinate of this event's home.
+ */
+JABS_Battler.prototype.getHomeX = function()
+{
+  return this._homeX;
+};
+
+/**
+ * Returns the Y coordinate of the event portion's initial placement.
+ * @returns {number} The Y coordinate of this event's home.
+ */
+JABS_Battler.prototype.getHomeY = function()
+{
+  return this._homeY;
+};
+
+/**
+ * Returns the X coordinate of the event.
+ * @returns {number} The X coordinate of this event.
+ */
+JABS_Battler.prototype.getX = function()
+{
+  return this.getCharacter()._realX;
+};
+
+/**
+ * Returns the Y coordinate of the event.
+ * @returns {number} The Y coordinate of this event.
+ */
+JABS_Battler.prototype.getY = function()
+{
+  return this.getCharacter()._realY;
+};
+
+/**
+ * Retrieves the AI associated with this battler.
+ * @returns {JABS_EnemyAI} This battler's AI.
+ */
+JABS_Battler.prototype.getAiMode = function()
+{
+  return this._aiMode;
+};
+
+/**
+ * Gets this follower's leader's AI.
+ * @returns {JABS_EnemyAI} This battler's leader's AI.
+ */
+JABS_Battler.prototype.getLeaderAiMode = function()
+{
+  // if we don't have a leader, don't.
+  if (!this.hasLeader()) return null;
+
+  const leader = JABS_AiManager.getBattlerByUuid(this.getLeader());
+  if (!leader) return null;
+
+  return leader.getAiMode();
+};
+
+/**
+ * Tries to move this battler away from its current target.
+ * This may fail if the battler is pinned in a corner or something.
+ */
+JABS_Battler.prototype.moveAwayFromTarget = function()
+{
+  const battler = this.getCharacter();
+  const target = this.getTarget();
+  if (!target) return;
+  const character = target.getCharacter();
+
+  battler.moveAwayFromCharacter(character);
+};
+
+/**
+ * Tries to move this battler away from its current target.
+ *
+ * There is no pathfinding away, but if its not able to move directly
+ * away, it will try a different direction to wiggle out of corners.
+ */
+JABS_Battler.prototype.smartMoveAwayFromTarget = function()
+{
+  const battler = this.getCharacter();
+  const target = this.getTarget();
+  if (!target) return;
+
+  battler.moveAwayFromCharacter(target.getCharacter());
+  if (!battler.isMovementSucceeded())
+  {
+    const threatDir = battler.reverseDir(battler.direction());
+    let newDir = (Math.randomInt(4) + 1) * 2;
+    while (newDir === threatDir)
+    {
+      newDir = (Math.randomInt(4) + 1) * 2;
+    }
+    battler.moveStraight(newDir);
+  }
+};
+
+/**
+ * Tries to move this battler towards its current target.
+ */
+JABS_Battler.prototype.smartMoveTowardTarget = function()
+{
+  const target = this.getTarget();
+  if (!target) return;
+
+  this.smartMoveTowardCoordinates(target.getX(), target.getY());
+};
+
+/**
+ * Tries to move this battler towards its ally target.
+ */
+JABS_Battler.prototype.smartMoveTowardAllyTarget = function()
+{
+  const target = this.getAllyTarget();
+  if (!target) return;
+
+  this.smartMoveTowardCoordinates(target.getX(), target.getY());
+};
+
+/**
+ * Tries to move this battler toward a set of coordinates.
+ * @param {number} x The `x` coordinate to reach.
+ * @param {number} y The `y` coordinate to reach.
+ */
+JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y)
+{
+  const character = this.getCharacter();
+  const nextDir = CycloneMovement
+    ? character.findDirectionTo(x, y)
+    : character.findDiagonalDirectionTo(x, y);
+
+  if (character.isDiagonalDirection(nextDir))
+  {
+    const horzvert = character.getDiagonalDirections(nextDir);
+    character.moveDiagonally(horzvert[0], horzvert[1]);
+  }
+  else
+  {
+    character.moveStraight(nextDir);
+  }
+};
+
+/**
+ * Turns this battler towards it's current target.
+ */
+JABS_Battler.prototype.turnTowardTarget = function()
+{
+  const character = this.getCharacter();
+  const target = this.getTarget();
+  if (!target) return;
+
+  character.turnTowardCharacter(target.getCharacter());
+};
+
+/**
+ * Whether or not the battler is able to use attacks based on states.
+ * @returns {boolean} True if the battler can attack, false otherwise.
+ */
+JABS_Battler.prototype.canBattlerUseAttacks = function()
+{
+  const states = this.getBattler()
+    .states();
+  if (!states.length)
+  {
+    return true;
+  }
+
+  const disabled = states.find(state => (state.jabsDisarmed || state.jabsParalyzed));
+  return !disabled;
+
+};
+
+/**
+ * Whether or not the battler is able to use skills based on states.
+ * @returns {boolean} True if the battler can use skills, false otherwise.
+ */
+JABS_Battler.prototype.canBattlerUseSkills = function()
+{
+  const states = this.getBattler()
+    .states();
+  if (!states.length)
+  {
+    return true;
+  }
+
+  const muted = states.find(state => (state.jabsMuted || state.jabsParalyzed));
+  return !muted;
+
+};
+
+/**
+ * Gets the skill id of the last skill that this battler executed.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getLastUsedSkillId = function()
+{
+  return this._lastUsedSkillId;
+};
+
+/**
+ * Sets the skill id of the last skill that this battler executed.
+ * @param {number} skillId The skill id of the last skill used.
+ */
+JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
+{
+  this._lastUsedSkillId = skillId;
+};
+
+/**
+ * Gets the key of the last used slot.
+ * @returns {string}
+ */
+JABS_Battler.prototype.getLastUsedSlot = function()
+{
+  return this._lastUsedSlot;
+};
+
+/**
+ * Sets the last used slot to the given slot key.
+ * @param {string} slotKey The key of the last slot used.
+ */
+JABS_Battler.prototype.setLastUsedSlot = function(slotKey)
+{
+  this._lastUsedSlot = slotKey;
+};
+
+/**
+ * Gets the id of the battler associated with this battler
+ * that has been assigned via the battler core data.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getBattlerId = function()
+{
+  return this._battlerId;
+};
+
+/**
+ * Gets the skill id of the next combo action in the sequence.
+ * @returns {number} The skill id of the next combo action.
+ */
+JABS_Battler.prototype.getComboNextActionId = function(cooldownKey)
+{
+  const nextComboId = this.getBattler()
+    .getSkillSlotManager()
+    .getSlotComboId(cooldownKey);
+
+  return nextComboId;
+};
+
+/**
+ * Sets the skill id for the next combo action in the sequence.
+ * @param {string} cooldownKey The cooldown key to check readiness for.
+ * @param {number} nextComboId The skill id for the next combo action.
+ */
+JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
+{
+  this.getBattler()
+    .getSkillSlotManager()
+    .setSlotComboId(cooldownKey, nextComboId);
+};
+
+/**
+ * Determines whether or not at least one slot has a combo skill id pending.
+ * @returns {boolean} True if at least one slot's combo skill id is pending, false otherwise.
+ */
+JABS_Battler.prototype.hasComboReady = function()
+{
+  return this.getBattler()
+    .getSkillSlotManager()
+    .getAllSlots()
+    .some(slot => slot.comboId !== 0);
+};
+
+/**
+ * Gets all skills that are available to this enemy battler.
+ * These skills disclude "extend" skills and non-combo-starter skills.
+ * @returns {number[]} The skill ids available to this enemy.
+ */
+JABS_Battler.prototype.getSkillIdsFromEnemy = function()
+{
+  // grab the database data for this enemy.
+  const battlerActions = this.getBattler()
+    .enemy().actions;
+
+  // a filter function for building the skill to check if it should be filtered.
+  const filtering = action =>
+  {
+    // determine the skill of this action.
+    const skill = this.getBattler()
+      .skill(action.skillId);
+
+    // determine if we're keeping it.
+    const keep = this.aiSkillFilter(skill);
+
+    // return what we found out.
+    return keep;
+  };
+
+  // determine the valid actions available for this enemy.
+  const validActions = battlerActions.filter(filtering, this);
+
+  // extract all the skill ids of the actions.
+  const validSkillIds = validActions.map(action => action.skillId);
+
+  // return the list of filtered skill ids this battler can use.
+  return validSkillIds;
+};
+
+/**
+ * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.<br>
+ * @param {RPG_Skill} skill The skill being verified.
+ * @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
+ */
+JABS_Battler.prototype.aiSkillFilter = function(skill)
+{
+  // extract the combo data points.
+  const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion, isSkillExtender } = skill;
+
+  // this skill is explicitly excluded from the skill pool.
+  if (jabsAiSkillExclusion) return false;
+
+  // skill extender skills are excluded from the skill pool.
+  if (isSkillExtender) return false;
+
+  // determine if this skill is a combo action.
+  const isCombo = !!jabsComboAction;
+
+  // determine if this skill is a combo starter.
+  const isComboStarter = !!jabsComboStarter;
+
+  // we can only include combo starter combo skills.
+  const isNonComboStarterSkill = (isCombo && !isComboStarter);
+
+  // combo skills that are not combo starters are excluded from the skill pool.
+  if (isNonComboStarterSkill) return false;
+
+  // valid skill!
+  return true;
+};
+
+/**
+ * Retrieves the skillId of the basic attack for this enemy.
+ * @returns {number} The skillId of the basic attack.
+ */
+JABS_Battler.prototype.getEnemyBasicAttack = function()
+{
+  return this.getBattler()
+    .basicAttackSkillId();
+};
+
+/**
+ * Gets all skill ids that this battler has access to, including the basic attack.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
+{
+  // grab all the added skills.
+  const skills = this.getSkillIdsFromEnemy();
+
+  // grab this enemy's basic attack.
+  const basicAttackSkillId = this.getEnemyBasicAttack();
+
+  // add the basic attack to the list of skills.
+  skills.push(basicAttackSkillId);
+
+  // return the built list.
+  return skills;
+};
+
+/**
+ * Gets the number of additional/bonus hits per basic attack.
+ * Skills (such as magic) do not receive bonus hits at this time.
+ * @param {RPG_Skill} skill The skill to consider regarding bonus hits.
+ * @param {boolean} isBasicAttack True if this is a basic attack, false otherwise.
+ * @returns {number} The number of bonus hits per attack.
+ */
+JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
+{
+  let bonusHits = 0;
+  const battler = this.getBattler();
+  if (isBasicAttack)
+  {
+    // TODO: split "basic attack" bonus hits from "skill" and "all" bonus hits.
+    bonusHits += battler.getBonusHits();
+    if (skill.repeats > 1)
+    {
+      bonusHits += skill.repeats - 1;
+    }
+  }
+  else
+  {
+    // check for skills that may have non-pierce-related bonus hits?
+  }
+
+  return bonusHits;
+};
+
+/**
+ * Forces a display of a emoji balloon above this battler's head.
+ * @param {number} balloonId The id of the balloon to display on this character.
+ */
+JABS_Battler.prototype.showBalloon = function(balloonId)
+{
+  $gameTemp.requestBalloon(this._event, balloonId);
+};
+
+/**
+ * Displays an animation on the battler.
+ * @param {number} animationId The id of the animation to play on the battler.
+ */
+JABS_Battler.prototype.showAnimation = function(animationId)
+{
+  this.getCharacter()
+    .requestAnimation(animationId);
+};
+
+/**
+ * Checks if there is currently an animation playing on this character.
+ * @returns {boolean} True if there is an animation playing, false otherwise.
+ */
+JABS_Battler.prototype.isShowingAnimation = function()
+{
+  return this.getCharacter()
+    .isAnimationPlaying();
+};
+//endregion reference helpers
+
 
 //region statics
 /**
@@ -4239,8 +3582,11 @@ JABS_Battler.createPlayer = function()
   const battler = $gameParty.leader();
 
   // if they are ready to be initialized, then do so.
-  const actorId = battler ? battler.actorId() : 0;
-  const coreData = new JABS_CoreDataBuilder(actorId)
+  const actorId = battler
+    ? battler.actorId()
+    : 0;
+  const coreData = JABS_BattlerCoreData.Builder()
+    .setBattlerId(actorId)
     .isPlayer()
     .build();
 
@@ -4338,7 +3684,6 @@ JABS_Battler.isWeaponSkillById = function(id)
   // its a weapon skill!
   return true;
 };
-
 
 /**
  * Determines whether or not a skill should be visible
@@ -4457,7 +3802,6 @@ JABS_Battler.prototype.update = function()
   // don't update map battlers if JABS is disabled.
   if (!$jabsEngine.absEnabled) return;
 
-  this.updatePoseEffects();
   this.updateCooldowns();
   this.updateTimers();
   this.updateEngagement();
@@ -4514,121 +3858,15 @@ JABS_Battler.prototype.canProcessQueuedActions = function()
 };
 //endregion queued player actions
 
-//region update pose effects
-/**
- * Update all character sprite animations executing on this battler.
- */
-JABS_Battler.prototype.updatePoseEffects = function()
-{
-  // if we cannot update pose effects, then do not.
-  if (!this.canUpdatePoseEffects()) return;
-
-  // countdown the timer for posing.
-  this.countdownPoseTimer();
-
-  // manage the actual adjustments to the character's pose pattern.
-  this.handlePosePattern();
-};
-
-/**
- * Determines whether or not this battler can update its own pose effects.
- * @returns {boolean}
- */
-JABS_Battler.prototype.canUpdatePoseEffects = function()
-{
-  // we need to be currently animating in order to update animations.
-  if (!this.isPosing()) return false;
-
-  // update animations!
-  return true;
-};
-
-/**
- * Gets whether or not this battler is currently posing.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isPosing = function()
-{
-  return this._posing;
-};
-
-/**
- * Counts down the pose animation frames and manages the pose pattern.
- */
-JABS_Battler.prototype.countdownPoseTimer = function()
-{
-  // if guarding, then do not countdown the pose frames.
-  if (this.guarding()) return;
-
-  // check if we are still posing.
-  if (this._poseFrames > 0)
-  {
-    // decrement the pose frames.
-    this._poseFrames--;
-  }
-};
-
-/**
- * Manages whether or not this battler is posing based on pose frames.
- */
-JABS_Battler.prototype.handlePosePattern = function()
-{
-  // check if we are still posing.
-  if (this._poseFrames > 0)
-  {
-    // manage the current pose pattern based on the animation frame count.
-    this.managePosePattern();
-  }
-  // we are done posing now.
-  else
-  {
-    // reset the pose back to default.
-    this.resetAnimation();
-  }
-};
-
-/**
- * Watches the current pose frames and adjusts the pose pattern accordingly.
- */
-JABS_Battler.prototype.managePosePattern = function()
-{
-  // if the battler has 4 or less frames left.
-  if (this._poseFrames < 4)
-  {
-    // set the pose pattern to 0, the left side.
-    this.setPosePattern(0);
-  }
-  // check fi the battler has more than 10 frames left.
-  else if (this._poseFrames > 10)
-  {
-    // set the pose pattern to 2, the right side.
-    this.setPosePattern(2);
-  }
-  // the battler is between 5-9 pose frames.
-  else
-  {
-    // set the pose pattern to 1, the middle.
-    this.setPosePattern(1);
-  }
-};
-
-/**
- * Sets this battler's underlying character's pose pattern.
- * @param {number} pattern The pattern to set for this character.
- */
-JABS_Battler.prototype.setPosePattern = function(pattern)
-{
-  this.getCharacter()._pattern = pattern;
-};
-//endregion update pose effects
-
 //region update cooldowns
 /**
  * Updates all cooldowns for this battler.
  */
 JABS_Battler.prototype.updateCooldowns = function()
 {
-  this.getBattler().getSkillSlotManager().updateCooldowns();
+  this.getBattler()
+    .getSkillSlotManager()
+    .updateCooldowns();
 };
 //endregion update cooldowns
 
@@ -4674,7 +3912,8 @@ JABS_Battler.prototype.processParryTimer = function()
   // if parrying, update the parry timer.
   if (this.parrying())
   {
-    this.getCharacter().requestAnimation(131);
+    this.getCharacter()
+      .requestAnimation(131);
     this.countdownParryWindow();
   }
 };
@@ -4922,7 +4161,8 @@ JABS_Battler.prototype.handleDodgeMovement = function()
 JABS_Battler.prototype.canDodgeMove = function()
 {
   // if the character is currently moving, don't dodge move.
-  if (this.getCharacter().isMoving()) return false;
+  if (this.getCharacter()
+    .isMoving()) return false;
 
   // if the battler cannot move, don't dodge move.
   if (!this.canBattlerMove()) return false;
@@ -4943,7 +4183,8 @@ JABS_Battler.prototype.canDodgeMove = function()
 JABS_Battler.prototype.executeDodgeMovement = function()
 {
   // move the character.
-  this.getCharacter().moveStraight(this._dodgeDirection);
+  this.getCharacter()
+    .moveStraight(this._dodgeDirection);
 
   // reduce the dodge steps.
   this._dodgeSteps--;
@@ -4968,7 +4209,8 @@ JABS_Battler.prototype.handleDodgeEnd = function()
 JABS_Battler.prototype.shouldEndDodge = function()
 {
   // if we are out of dodge steps and we're done moving, end the dodge.
-  if (this.getDodgeSteps() <= 0 && !this.getCharacter().isMoving()) return true;
+  if (this.getDodgeSteps() <= 0 && !this.getCharacter()
+    .isMoving()) return true;
 
   // KEEP DODGING.
   return false;
@@ -5003,7 +4245,8 @@ JABS_Battler.prototype.updateDeathHandling = function()
   if (this.isWaiting()) return;
 
   // if the event is erased officially, ignore it.
-  if (this.getCharacter().isErased()) return;
+  if (this.getCharacter()
+    .isErased()) return;
 
   // if we are dying, self-destruct.
   if (this.isDying() && !$gameMap.isEventRunning())
@@ -5014,144 +4257,357 @@ JABS_Battler.prototype.updateDeathHandling = function()
 //endregion update death handling
 //endregion updates
 
-//region update helpers
-//region timers
+//region aggro
 /**
- * Sets the battler's wait duration to a number. If this number is greater than
- * zero, then the battler must wait before doing anything else.
- * @param {number} wait The duration for this battler to wait.
+ * Adjust the currently engaged target based on aggro.
  */
-JABS_Battler.prototype.setWaitCountdown = function(wait)
+JABS_Battler.prototype.adjustTargetByAggro = function()
 {
-  // reset the wait timer to start over.
-  this._waitTimer.reset();
+  // don't process aggro for inanimate battlers.
+  if (this.isInanimate()) return;
 
-  // set the wait timer's max to a new time.
-  this._waitTimer.setMaxTime(wait);
-};
+  // extract the uuid of the current highest aggro.
+  const highestAggroUuid = this.getHighestAggro()
+    .uuid();
 
-/**
- * Gets whether or not this battler is currently waiting.
- * @returns {boolean} True if waiting, false otherwise.
- */
-JABS_Battler.prototype.isWaiting = function()
-{
-  return !this._waitTimer.isTimerComplete();
-};
-
-/**
- * Counts down the duration for this battler's cast time.
- */
-JABS_Battler.prototype.countdownCastTime = function()
-{
-  this.performCastAnimation();
-  if (this._castTimeCountdown > 0)
+  // check if we currently don't have a target.
+  if (!this.getTarget())
   {
-    this._castTimeCountdown--;
+    // grab the battler for that uuid.
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroUuid);
+
+    // make sure the battler exists before setting it.
+    if (newTarget)
+    {
+      // set it.
+      this.setTarget(newTarget);
+    }
+
+    // stop processing .
     return;
   }
 
-  if (this._castTimeCountdown <= 0)
+  // if the target is no longer valid, disengage and end combat.
+  this.removeAggroIfInvalid(this.getTarget()
+    .getUuid());
+
+  const allAggros = this.getAggrosSortedHighestToLowest();
+
+  // if there is no aggros remaining, disengage.
+  if (allAggros.length === 0)
   {
-    this._casting = false;
-    this._castTimeCountdown = 0;
-  }
-};
-
-/**
- * Performs the cast animation if possible on this battler.
- */
-JABS_Battler.prototype.performCastAnimation = function()
-{
-  // check if we can perform a cast animation.
-  if (!this.canPerformCastAnimation()) return;
-
-  // get the cast animation id.
-  const animationId = this.getDecidedAction()[0].getCastAnimation();
-
-  // show the animation.
-  this.showAnimation(animationId);
-};
-
-/**
- * Determines whether or not we can perform a cast animation.
- * @returns {boolean}
- */
-JABS_Battler.prototype.canPerformCastAnimation = function()
-{
-  // if we don't have a decided action somehow, then don't do cast animation things.
-  if (!this.getDecidedAction()) return false;
-
-  // if we don't have a cast animation, then don't do cast animation things.
-  if (!this.getDecidedAction()[0].getCastAnimation()) return false;
-
-  // don't show casting animations while other animations are playing on you.
-  if (this.isShowingAnimation()) return false;
-
-  // show cast animations!
-  return true;
-};
-
-/**
- * Sets the cast time duration to a number. If this number is greater than
- * zero, then the battler must spend this duration in frames casting before
- * executing the skill.
- * @param {number} castTime The duration in frames to spend casting.
- */
-JABS_Battler.prototype.setCastCountdown = function(castTime)
-{
-  this._castTimeCountdown = castTime;
-  if (this._castTimeCountdown > 0)
-  {
-    this._casting = true;
-  }
-
-  if (this._castTimeCountdown <= 0)
-  {
-    this._casting = false;
-    this._castTimeCountdown = 0;
-  }
-};
-
-/**
- * Gets whether or not this battler is currently casting a skill.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isCasting = function()
-{
-  return this._casting;
-};
-
-/**
- * Counts down the alertedness of this battler.
- */
-JABS_Battler.prototype.countdownAlert = function()
-{
-  if (this._alertedCounter > 0)
-  {
-    this._alertedCounter--;
+    this.disengageTarget();
     return;
   }
 
-  if (this._alertedCounter <= 0)
+  // if there is only 1 aggro remaining
+  if (allAggros.length === 1)
   {
-    this.clearAlert();
+    // if there is no target, just stop that shit.
+    if (!this.getTarget()) return;
+
+    // grab the uuid of the first aggro in the list.
+    const zerothAggroUuid = allAggros.at(0)
+      .uuid();
+
+    // check to see if the last aggro in the list belongs to the current target.
+    if (!(this.getTarget()
+      .getUuid() === zerothAggroUuid))
+    {
+      // if it doesn't, then get that battler.
+      const newTarget = JABS_AiManager.getBattlerByUuid(zerothAggroUuid);
+      if (newTarget)
+      {
+        // then switch to that target!
+        this.setTarget(newTarget);
+      }
+      else
+      {
+        // if the battler doesn't exist but the aggro does, purge it.
+        this.removeAggro(zerothAggroUuid);
+      }
+    }
+
+    // stop processing.
+    return;
+  }
+
+  // if you still don't have a target but have multiple aggros, then just give up.
+  if (!this.getTarget()) return;
+
+  // filtered aggros containing only aggros of enemies that are nearby.
+  const filteredAggros = allAggros.filter(aggro =>
+  {
+    // the battler associated with the aggro.
+    const potentialTarget = JABS_AiManager.getBattlerByUuid(aggro.uuid());
+
+    // if the target is invalid somehow, then it is not a valid aggro.
+    if (!potentialTarget) return false;
+
+    // if the target is too far away, don't consider it.
+    if (this.getPursuitRadius() < this.distanceToDesignatedTarget(potentialTarget)) return false;
+
+    // this aggro target is fine!
+    return true;
+  });
+
+  // all aggro'd targets are too far, don't adjust targets.
+  if (filteredAggros.length === 0) return;
+
+  // find the highest aggro target currently being tracked.
+  const highestAggroTargetUuid = filteredAggros.at(0)
+    .uuid();
+
+  // grab the current target of this battler at the moment.
+  const currentTargetUuid = this.getTarget()
+    .getUuid();
+
+  // if the current target isn't the highest target, then switch!
+  if (highestAggroTargetUuid !== currentTargetUuid)
+  {
+    // find the new target to change to that has more aggro than the current target.
+    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTargetUuid);
+
+    // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
+    if (!newTarget)
+    {
+      // get the index to remove...
+      this.removeAggro(highestAggroTargetUuid);
+    }
+    else
+    {
+      // we found it, let's engage!
+      this.engageTarget(newTarget);
+    }
+  }
+
+  // the current target IS the highest aggro! Continue as-usual.
+};
+
+/**
+ * Gets all aggros on this battler.
+ * @returns {JABS_Aggro[]}
+ */
+JABS_Battler.prototype.getAllAggros = function()
+{
+  return this._aggros;
+};
+
+/**
+ * Gets the highest aggro currently tracked by this battler.
+ * If the top two highest aggros are the same, this will add +1 to one of them
+ * and use that instead to prevent infinite looping.
+ * @returns {JABS_Aggro}
+ */
+JABS_Battler.prototype.getHighestAggro = function()
+{
+  // grab the aggros pre-sorted.
+  const sortedAggros = this.getAggrosSortedHighestToLowest();
+
+  // validate we have aggros.
+  if (sortedAggros.length === 0)
+  {
+    // no aggros means no highest.
+    return null;
+  }
+
+  // check if we only have a single aggro tracked.
+  if (sortedAggros.length === 1)
+  {
+    // return that one aggro.
+    return sortedAggros.at(0);
+  }
+
+  // otherwise, grab the first and second highest aggros.
+  const [ highestAggro, secondHighestAggro, ] = sortedAggros;
+
+  // check if the top two aggros are the same.
+  if (highestAggro.aggro === secondHighestAggro.aggro)
+  {
+    // modify the first one by 1 to actually be higher.
+    highestAggro.modAggro(1, true);
+  }
+
+  // return the result.
+  return highestAggro;
+};
+
+/**
+ * Gets all the aggros for this battler, sorted from highest to lowest.
+ * @returns {JABS_Aggro[]}
+ */
+JABS_Battler.prototype.getAggrosSortedHighestToLowest = function()
+{
+  // a sorting function for determining the highest aggro from a collection.
+  const sorting = (a, b) =>
+  {
+    if (a.aggro < b.aggro)
+    {
+      return 1
+    }
+    else if (a.aggro > b.aggro)
+    {
+      return -1;
+    }
+
+    return 0;
+  };
+
+  // grab the aggros.
+  const aggros = this.getAllAggros();
+
+  // sort them by their aggro rating.
+  aggros.sort(sorting);
+
+  // return the sorted aggros.
+  return aggros;
+};
+
+/**
+ * If the target is invalid somehow, then stop tracking its aggro.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
+ */
+JABS_Battler.prototype.removeAggroIfInvalid = function(uuid)
+{
+  // check if any of the captured conditions are true.
+  if (this.isAggroInvalid(uuid))
+  {
+    // remove the aggro from this battler's tracking.
+    this.removeAggro(uuid);
   }
 };
 
 /**
- * Removes and clears the alert state from this battler.
+ * Determines whether or not this battler's aggro against a given target is invalid.
+ * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
+ * @returns {boolean} True if the aggro is invalid, false otherwise.
  */
-JABS_Battler.prototype.clearAlert = function()
+JABS_Battler.prototype.isAggroInvalid = function(uuid)
 {
-  this.setAlerted(false);
-  this._alertedCounter = 0;
-  // if (!this.isEngaged())
-  // {
-  //   this.showBalloon(J.ABS.Balloons.Silence);
-  // }
+  // grab the battler from tracking.
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+
+  // if the battler doesn't exist, then the aggro is invalid.
+  if (!battler) return true;
+
+  // if the battler is actually dead, then the aggro is invalid.
+  if (battler.isDead()) return true;
+
+  // if the battler is too far from this battler, then the aggro is invalid.
+  if (battler.outOfRange(this)) return true;
+
+  // the aggro must be valid.
+  return false;
 };
-//endregion timers
+
+/**
+ * Removes a single aggro by its `uuid`.
+ * @param {string} uuid The `uuid` of the aggro to remove.
+ */
+JABS_Battler.prototype.removeAggro = function(uuid)
+{
+  // get the index to remove...
+  const indexToRemove = this._aggros.findIndex(aggro => aggro.uuid() === uuid);
+  if (indexToRemove > -1)
+  {
+    // if currently engaged with the dead target, then disengage.
+    if (this.getTarget()
+      .getUuid() === uuid)
+    {
+      this.disengageTarget();
+    }
+
+    // ...and remove it.
+    this._aggros.splice(indexToRemove, 1);
+  }
+};
+
+/**
+ * Adds a new aggro tracker to this battler, or updates an existing one.
+ * @param {string} uuid The unique identifier of the target.
+ * @param {number} aggroValue The amount of aggro being modified.
+ * @param {boolean} forced If provided, then this application will bypass locks.
+ */
+JABS_Battler.prototype.addUpdateAggro = function(uuid, aggroValue, forced = false)
+{
+  // if the aggro is locked, don't adjust it.
+  if (this.getBattler()
+    .isAggroLocked() && !forced)
+  {
+    return;
+  }
+
+  const foundAggro = this.aggroExists(uuid);
+  if (foundAggro)
+  {
+    foundAggro.modAggro(aggroValue, forced);
+  }
+  else
+  {
+    const newAggro = new JABS_Aggro(uuid);
+    newAggro.setAggro(aggroValue, forced);
+    this._aggros.push(newAggro);
+  }
+};
+
+/**
+ * Resets the aggro for a particular target.
+ * @param {string} uuid The unique identifier of the target to reset.
+ * @param {boolean} forced If provided, then this application will bypass locks.
+ */
+JABS_Battler.prototype.resetOneAggro = function(uuid, forced = false)
+{
+  // if the aggro is locked, don't adjust it.
+  if (this.getBattler()
+    .isAggroLocked() && !forced)
+  {
+    return;
+  }
+
+  const foundAggro = this.aggroExists(uuid);
+  if (foundAggro)
+  {
+    foundAggro.resetAggro(forced);
+  }
+  else
+  {
+    // if the uuid provided is empty, then do nothing with it.
+    if (!uuid) return;
+
+    // otherwise, create a new aggro for this battler.
+    this.addUpdateAggro(uuid, 0, forced);
+  }
+};
+
+/**
+ * Resets all aggro on this battler.
+ * @param {string} uuid The unique identifier of the target resetting this battler's aggro.
+ * @param {boolean} forced If provided, then this application will bypass locks.
+ */
+JABS_Battler.prototype.resetAllAggro = function(uuid, forced = false)
+{
+  // if the aggro is locked, don't adjust it.
+  if (this.getBattler()
+    .isAggroLocked() && !forced) return;
+
+  // reset the aggro of the battler that triggered this reset to prevent pursuit.
+  this.resetOneAggro(uuid, forced);
+
+  // and reset all aggros this battler has.
+  this._aggros.forEach(aggro => aggro.resetAggro(forced));
+};
+
+/**
+ * Gets an aggro by its unique identifier.
+ * If the aggro doesn't exist, then returns undefined.
+ * @param {string} uuid The unique identifier of the target resetting this battler's aggro.
+ * @returns {JABS_Aggro}
+ */
+JABS_Battler.prototype.aggroExists = function(uuid)
+{
+  return this._aggros.find(aggro => aggro.uuid() === uuid);
+};
+//endregion aggro
 
 //region dodging
 /**
@@ -5234,16 +4690,14 @@ JABS_Battler.prototype.tryDodgeSkill = function()
  */
 JABS_Battler.prototype.executeDodgeSkill = function(skill)
 {
-  // change over to the action pose for the skill.
-  this.performActionPose(skill);
-
   // trigger invincibility for dodging if applicable.
   this.setInvincible(skill.jabsInvincibleDodge);
 
   // increase the move speed while dodging to give the illusion of "dodge-rolling".
   // TODO: get dodge modifier from skill.
   const dodgeSpeedBonus = 2;
-  this.getCharacter().setDodgeModifier(dodgeSpeedBonus);
+  this.getCharacter()
+    .setDodgeModifier(dodgeSpeedBonus);
 
   // set the number of steps this dodge will roll you.
   this.setDodgeSteps(skill.jabsRadius);
@@ -5253,7 +4707,8 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.setDodgeDirection(dodgeDirection);
 
   // pay whatever costs are associated with the skill.
-  this.getBattler().paySkillCost(skill);
+  this.getBattler()
+    .paySkillCost(skill);
 
   // apply the cooldowns for the dodge.
   this.modCooldownCounter(JABS_Button.Dodge, skill.jabsCooldown);
@@ -5309,6 +4764,1431 @@ JABS_Battler.prototype.determineDodgeDirection = function(moveType)
 };
 //endregion dodging
 
+//region guarding
+/**
+ * Whether or not the precise-parry window is active.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.parrying = function()
+{
+  return this._parryWindow > 0;
+};
+
+/**
+ * Sets the battlers precise-parry window frames.
+ * @param {number} parryFrames The number of frames available for precise-parry.
+ */
+JABS_Battler.prototype.setParryWindow = function(parryFrames)
+{
+  if (parryFrames < 0)
+  {
+    this._parryWindow = 0;
+  }
+  else
+  {
+    this._parryWindow = parryFrames;
+  }
+};
+
+/**
+ * Get whether or not this battler is currently guarding.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.guarding = function()
+{
+  return this._isGuarding;
+};
+
+/**
+ * Set whether or not this battler is currently guarding.
+ * @param {boolean} isGuarding True if the battler is guarding, false otherwise.
+ */
+JABS_Battler.prototype.setGuarding = function(isGuarding)
+{
+  this._isGuarding = isGuarding;
+};
+
+/**
+ * The flat amount to reduce damage by when guarding.
+ * @returns {number}
+ */
+JABS_Battler.prototype.flatGuardReduction = function()
+{
+  if (!this.guarding()) return 0;
+
+  return this._guardFlatReduction;
+};
+
+/**
+ * Sets the battler's flat reduction when guarding.
+ * @param {number} flatReduction The flat amount to reduce when guarding.
+ */
+JABS_Battler.prototype.setFlatGuardReduction = function(flatReduction)
+{
+  this._guardFlatReduction = flatReduction;
+};
+
+/**
+ * The percent amount to reduce damage by when guarding.
+ * @returns {number}
+ */
+JABS_Battler.prototype.percGuardReduction = function()
+{
+  if (!this.guarding()) return 0;
+
+  return this._guardPercReduction;
+};
+
+/**
+ * Sets the battler's percent reduction when guarding.
+ * @param {number} percReduction The percent amount to reduce when guarding.
+ */
+JABS_Battler.prototype.setPercGuardReduction = function(percReduction)
+{
+  this._guardPercReduction = percReduction;
+};
+
+/**
+ * Checks to see if retrieving the counter-guard skill id is appropriate.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.counterGuard = function()
+{
+  return this.guarding()
+    ? this.counterGuardIds()
+    : [];
+};
+
+/**
+ * Gets the id of the skill for counter-guarding.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.counterGuardIds = function()
+{
+  return this._counterGuardIds;
+};
+
+/**
+ * Sets the battler's retaliation id for guarding.
+ * @param {number[]} counterGuardSkillIds The skill id to counter with while guarding.
+ */
+JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillIds)
+{
+  this._counterGuardIds = counterGuardSkillIds;
+};
+
+/**
+ * Checks to see if retrieving the counter-parry skill id is appropriate.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.counterParry = function()
+{
+  return this.guarding()
+    ? this.counterParryIds()
+    : [];
+};
+
+/**
+ * Gets the ids of the skill for counter-parrying.
+ * @returns {number[]}
+ */
+JABS_Battler.prototype.counterParryIds = function()
+{
+  return this._counterParryIds;
+};
+
+/**
+ * Sets the id of the skill to retaliate with when successfully precise-parrying.
+ * @param {number[]} counterParrySkillIds The skill ids of the counter-parry skill.
+ */
+JABS_Battler.prototype.setCounterParry = function(counterParrySkillIds)
+{
+  this._counterParryIds = counterParrySkillIds;
+};
+
+/**
+ * Gets the guard skill id most recently assigned.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getGuardSkillId = function()
+{
+  return this._guardSkillId;
+};
+
+/**
+ * Sets the guard skill id to a designated skill id.
+ *
+ * This gets removed when guarding/parrying.
+ * @param guardSkillId
+ */
+JABS_Battler.prototype.setGuardSkillId = function(guardSkillId)
+{
+  this._guardSkillId = guardSkillId;
+};
+
+/**
+ * Gets all data associated with guarding for this battler.
+ * @returns {JABS_GuardData|null}
+ */
+JABS_Battler.prototype.getGuardData = function(cooldownKey)
+{
+  // shorthand the battler of which we're getting data for.
+  const battler = this.getBattler();
+
+  // determine the skill in the given slot.
+  const skillId = battler.getEquippedSkillId(cooldownKey);
+
+  // if we have no skill to guard with, then we don't guard.
+  if (!skillId) return null;
+
+  // if the skill isn't a guard skill, then it won't have guard data.
+  if (!JABS_Battler.isGuardSkillById(skillId)) return null;
+
+  // get the skill.
+  const skill = this.getSkill(skillId);
+
+  // check also to make sure we can use the guard skill in the slot.
+  const canUse = battler.meetsSkillConditions(skill);
+
+  // if we cannot use the guard skill due to constraints, then we don't guard.
+  if (!canUse) return null;
+
+  // return the guard data off the skill.
+  return skill.jabsGuardData;
+};
+
+/**
+ * Determines whether or not the skill slot is a guard-type skill or not.
+ * @param {string} cooldownKey The key to determine if its a guard skill or not.
+ * @returns {boolean} True if it is a guard skill, false otherwise.
+ */
+JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
+{
+  // get the equipped skill in the given slot.
+  const skillId = this.getBattler()
+    .getEquippedSkillId(cooldownKey);
+
+  // if we don't hve a skill id, it isn't a guard skill.
+  if (!skillId) return false;
+
+  // if it it isn't a guard skill by its id, then ... it isn't a guard skill.
+  if (!JABS_Battler.isGuardSkillById(skillId)) return false;
+
+  // its a guard skill!
+  return true;
+};
+
+/**
+ * Triggers and maintains the guard state.
+ * @param {boolean} guarding True if the battler is guarding, false otherwise.
+ * @param {string} skillSlot The skill slot to build guard data from.
+ */
+JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
+{
+  // if we're still guarding, and already in a guard state, don't reset.
+  if (guarding && this.guarding()) return;
+
+  // if not guarding anymore, turn off the guard state.
+  if (!guarding && this.guarding())
+  {
+    // stop guarding.
+    this.endGuarding();
+
+    // stop processing.
+    return;
+  }
+
+  // if we aren't guarding now, and weren't guarding before, don't do anything.
+  if (!guarding) return;
+
+  // if not guarding, wasn't guarding before, but want to guard, then let's guard!
+  const guardData = this.getGuardData(skillSlot);
+
+  // if we cannot guard, then don't try.
+  if (!guardData || !guardData.canGuard()) return;
+
+  // begin guarding!
+  this.startGuarding(skillSlot);
+};
+
+/**
+ * Begin guarding with the given skill slot.
+ * @param {string} skillSlot The skill slot containing the guard data.
+ */
+JABS_Battler.prototype.startGuarding = function(skillSlot)
+{
+  // grab the guard data.
+  const guardData = this.getGuardData(skillSlot);
+
+  // begin guarding!
+  this.setGuarding(true);
+  this.setFlatGuardReduction(guardData.flatGuardReduction);
+  this.setPercGuardReduction(guardData.percGuardReduction);
+  this.setCounterGuard(guardData.counterGuardIds);
+  this.setCounterParry(guardData.counterParryIds);
+  this.setGuardSkillId(guardData.skillId);
+
+  // calculate parry frames, include eva bonus to parry.
+  const totalParryFrames = this.getBonusParryFrames(guardData) + guardData.parryDuration;
+
+  // if the guarding skill has a parry window, apply those frames once.
+  if (guardData.canParry()) this.setParryWindow(totalParryFrames);
+};
+
+/**
+ * Ends the guarding stance for this battler.
+ */
+JABS_Battler.prototype.endGuarding = function()
+{
+  // end the guarding tracker.
+  this.setGuarding(false);
+
+  // remove any remaining parry time.
+  this.setParryWindow(0);
+
+  // stop posing.
+  this.endAnimation();
+};
+
+/**
+ * Abstraction of the definition of how to determine what the bonus to parry frames is.
+ * @param {JABS_GuardData} guardData The guard data.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getBonusParryFrames = function(guardData)
+{
+  return Math.floor((this.getBattler().eva) * guardData.parryDuration);
+};
+
+/**
+ * Counts down the parry window that occurs when guarding is first activated.
+ */
+JABS_Battler.prototype.countdownParryWindow = function()
+{
+  if (this.parrying())
+  {
+    this._parryWindow--;
+  }
+
+  if (this._parryWindow < 0)
+  {
+    this._parryWindow = 0;
+  }
+};
+//endregion guarding
+
+
+//region create/apply effects
+/**
+ * Performs a preliminary check to see if the target is actually able to be hit.
+ * @returns {boolean} True if actions can potentially connect, false otherwise.
+ */
+JABS_Battler.prototype.canActionConnect = function()
+{
+  // this battler is untargetable.
+  if (this.isInvincible()) return false;
+
+  // the player cannot be targeted while holding the DEBUG button.
+  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Debug)) return false;
+
+  // precise timing allows for battlers to hit other battlers the instant they
+  // meet event conditions, and that is not grounds to hit enemies.
+  if (this.getCharacter()
+    .isJabsAction())
+  {
+    return false;
+  }
+
+  // passes all the criteria.
+  return true;
+};
+
+/**
+ * Determines whether or not this battler is available as a target based on the
+ * provided action's scopes.
+ * @param {JABS_Action} action The action to check validity for.
+ * @param {JABS_Battler} target The potential candidate for hitting with this action.
+ * @param {boolean} alreadyHitOne Whether or not this action has already hit a target.
+ */
+// eslint-disable-next-line complexity
+JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne = false)
+{
+  const user = action.getCaster();
+  const gameAction = action.getAction();
+  const scopeAlly = gameAction.isForFriend();
+  const scopeOpponent = gameAction.isForOpponent();
+  const scopeSingle = gameAction.isForOne();
+  const scopeSelf = gameAction.isForUser();
+  const scopeMany = gameAction.isForAll();
+  const scopeEverything = gameAction.isForEveryone();
+  const scopeAllAllies = scopeAlly && scopeMany;
+  const scopeAllOpponents = scopeOpponent && scopeMany;
+
+  const targetIsSelf = (user.getUuid() === target.getUuid() || (action.getAction()
+    .isForUser()));
+  const actionIsSameTeam = user.getTeam() === this.getTeam();
+  const targetIsOpponent = !user.isSameTeam(this.getTeam());
+
+  // scope is for 1 target, and we already found one.
+  if (scopeSingle && alreadyHitOne)
+  {
+    return false;
+  }
+
+  // the caster and target are the same.
+  if (targetIsSelf && (scopeSelf || scopeAlly || scopeAllAllies || scopeEverything))
+  {
+    return true;
+  }
+
+  // action is from one of the target's allies.
+  // inanimate battlers cannot be targeted by their allies with direct skills.
+  if (actionIsSameTeam &&
+    (scopeAlly || scopeAllAllies || scopeEverything) &&
+    !(action.isDirectAction() && target.isInanimate()))
+  {
+    return true;
+  }
+
+  // action is for enemy battlers and scope is for opponents.
+  if (targetIsOpponent && (scopeOpponent || scopeAllOpponents || scopeEverything))
+  {
+    return true;
+  }
+
+  // meets no criteria, target is not within scope of this action.
+  return false;
+};
+
+/**
+ * Creates a new collection of `JABS_Action`s from a skill id.
+ * @param {number} skillId The id of the skill to create the `JABS_Action`s from.
+ * @param {JABS_ActionOptions=} actionOptions The options associated with this action.
+ * @returns {JABS_Action[]} The `JABS_Action`s based on the skill id provided.
+ */
+JABS_Battler.prototype.createJabsActionFromSkill = function(skillId, actionOptions = JABS_ActionOptions.Default())
+{
+  // create the underlying skill for the action.
+  const action = new Game_Action(this.getBattler(), false);
+
+  // set the skill which also applies all applicable overlays.
+  action.setSkill(skillId);
+
+  // grab the potentially extended skill.
+  const skill = this.getSkill(skillId);
+
+  // calculate the projectile count and directions.
+  const projectileCount = skill.jabsProjectile ?? 1;
+  const projectileDirections = $jabsEngine.determineActionDirections(
+    this.getCharacter()
+      .direction(),
+    projectileCount);
+
+  // calculate how many actions will be generated to accommodate the directions.
+  const actions = this.convertProjectileDirectionsToActions(projectileDirections, action, actionOptions);
+
+  return actions;
+};
+
+/**
+ * Generates actions for each projectile direction given.
+ * @param {number[]} projectileDirections The directions that should be mapped to actions.
+ * @param {Game_Action} action The underlying action data.
+ * @param {JABS_ActionOptions} actionOptions The options for this action.
+ * @returns {JABS_Action[]}
+ */
+JABS_Battler.prototype.convertProjectileDirectionsToActions = function(projectileDirections, action, actionOptions)
+{
+  const mapper = projectileDirection => JABS_Action.Builder()
+    .setCaster(this)
+    .setGameAction(action)
+    .setInitialDirection(projectileDirection)
+    .setActionOptions(actionOptions)
+    .build();
+
+  const actions = projectileDirections.map(mapper, this);
+  return actions;
+};
+
+/**
+ * Constructs the attack data from this battler's skill slot.
+ * @param {string} cooldownKey The cooldown key.
+ * @returns {JABS_Action[]} The constructed `JABS_Action`s.
+ */
+JABS_Battler.prototype.getAttackData = function(cooldownKey)
+{
+  // grab the underlying battler.
+  const battler = this.getBattler();
+
+  // get the skill equipped in the designated slot.
+  const skillId = this.getSkillIdForAction(cooldownKey);
+
+  // if there isn't one, then we don't do anything.
+  if (!skillId) return [];
+
+  // check to make sure we can actually use the skill.
+  if (!battler.meetsSkillConditions(battler.skill(skillId))) return [];
+
+  // check to make sure we actually know the skill, too.
+  if (!battler.hasSkill(skillId)) return [];
+
+  const actionOptions = JABS_ActionOptions.Builder()
+    .setCooldownKey(cooldownKey)
+    .build();
+
+  // otherwise, use the skill from the slot to build an action.
+  return this.createJabsActionFromSkill(skillId, actionOptions);
+};
+
+/**
+ * Gets the next skill id to create an action from for the given slot.
+ * Accommodates combo actions.
+ * @param {string} slot The slot for the skill to check.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getSkillIdForAction = function(slot)
+{
+  // grab the underlying battler.
+  const battler = this.getBattler();
+
+  // check the slot for a combo action.
+  let skillId;
+
+  // check if we have a skill id in the next combo action id slot.
+  if (this.getComboNextActionId(slot) !== 0)
+  {
+    // capture the combo action id.
+    skillId = this.getComboNextActionId(slot);
+  }
+  // if no combo...
+  else
+  {
+    // then just grab the skill id in the slot.
+    skillId = battler.getEquippedSkillId(slot);
+  }
+
+  // return whichever skill id was found.
+  return skillId;
+};
+
+/**
+ * Consumes an item and performs its effects.
+ * @param {number} toolId The id of the tool/item to be used.
+ * @param {boolean} isLoot Whether or not this is a loot pickup.
+ */
+// eslint-disable-next-line complexity
+JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
+{
+  // grab the item data.
+  const item = $dataItems.at(toolId);
+
+  // grab this battler.
+  const battler = this.getBattler();
+
+  // force the player to use the item.
+  battler.consumeItem(item);
+
+  // flag the slot for refresh.
+  battler.getSkillSlotManager()
+    .getToolSlot()
+    .flagSkillSlotForRefresh();
+
+  // also generate an action based on this tool.
+  const gameAction = new Game_Action(battler, false);
+  gameAction.setItem(toolId);
+
+  // handle scopes of the tool.
+  const scopeNone = gameAction.item().scope === 0;
+  const scopeSelf = gameAction.isForUser();
+  const scopeAlly = gameAction.isForFriend();
+  const scopeOpponent = gameAction.isForOpponent();
+  const scopeSingle = gameAction.isForOne();
+  const scopeAll = gameAction.isForAll();
+  const scopeEverything = gameAction.isForEveryone();
+
+  const scopeAllAllies = scopeEverything || (scopeAll && scopeAlly);
+  const scopeAllOpponents = scopeEverything || (scopeAll && scopeOpponent);
+  const scopeOneAlly = (scopeSingle && scopeAlly);
+  const scopeOneOpponent = (scopeSingle && scopeOpponent);
+
+  // apply tool effects based on scope.
+  if (scopeSelf || scopeOneAlly)
+  {
+    this.applyToolToPlayer(toolId);
+  }
+  else if (scopeEverything)
+  {
+    this.applyToolForAllAllies(toolId);
+    this.applyToolForAllOpponents(toolId);
+  }
+  else if (scopeOneOpponent)
+  {
+    this.applyToolForOneOpponent(toolId);
+  }
+  else if (scopeAllAllies)
+  {
+    this.applyToolForAllAllies(toolId);
+  }
+  else if (scopeAllOpponents)
+  {
+    this.applyToolForAllOpponents(toolId);
+  }
+  else if (scopeNone)
+  {
+    // do nothing, the item has no scope and must be relying purely on the skillId.
+  }
+  else
+  {
+    console.warn(`unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
+  }
+
+  // applies common events that may be a part of an item's effect.
+  gameAction.applyGlobal();
+
+  // create the log for the tool use.
+  this.createToolLog(item);
+
+  // extract the cooldown and skill id from the item.
+  const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
+
+  // it was an item with a skill attached.
+  if (itemSkillId)
+  {
+    const mapAction = this.createJabsActionFromSkill(itemSkillId);
+    mapAction.forEach(action =>
+    {
+      action.setCooldownType(JABS_Button.Tool);
+      $jabsEngine.executeMapAction(this, action);
+    });
+  }
+
+  // if the last item was consumed, unequip it.
+  if (!isLoot && !$gameParty.items()
+    .includes(item))
+  {
+    // remove the item from the slot.
+    battler.getSkillSlotManager()
+      .clearSlot(JABS_Button.Tool);
+
+    // build a lot for it.
+    const lastUsedItemLog = new LootLogBuilder()
+      .setupUsedLastItem(item.id)
+      .build();
+    $lootLogManager.addLog(lastUsedItemLog);
+  }
+  else
+  {
+    // it is an item with a custom cooldown.
+    if (itemCooldown)
+    {
+      if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
+    }
+
+    // it was an item, didn't have a skill attached, and didn't have a cooldown.
+    if (!itemCooldown && !itemSkillId && !isLoot)
+    {
+      this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
+    }
+  }
+};
+
+/**
+ * Applies the effects of the tool against the leader.
+ * @param {number} toolId The id of the tool/item being used.
+ */
+JABS_Battler.prototype.applyToolToPlayer = function(toolId)
+{
+  // apply tool effects against player.
+  const battler = this.getBattler();
+  const gameAction = new Game_Action(battler, false);
+  gameAction.setItem(toolId);
+  gameAction.apply(battler);
+
+  // display popup from item.
+  this.generatePopItem(gameAction, toolId);
+
+  // show tool animation.
+  this.showAnimation($dataItems.at(toolId).animationId);
+};
+
+/**
+ * Generates a popup based on the item used.
+ * @param {Game_Action} gameAction The action describing the tool's effect.
+ * @param {number} itemId The target having the action applied against.
+ * @param {JABS_Battler} target The target for calculating damage; defaults to self.
+ */
+JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = this)
+{
+  // if we are not using popups, then don't do this.
+  if (!J.POPUPS) return;
+
+  // grab some shorthand variables for local use.
+  const character = this.getCharacter();
+  const toolData = $dataItems.at(itemId);
+
+  if (toolData.sdpKey !== String.empty)
+  {
+    $jabsEngine.generatePopItemBulk([ toolData ], character);
+    return;
+  }
+
+  // generate the textpop.
+  const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
+
+  // add the pop to the target's tracking.
+  character.addTextPop(itemPop);
+  character.requestTextPop();
+};
+
+/**
+ * Applies the effects of the tool against all allies on the team.
+ * @param {number} toolId The id of the tool/item being used.
+ */
+JABS_Battler.prototype.applyToolForAllAllies = function(toolId)
+{
+  const battlers = $gameParty.battleMembers();
+  if (battlers.length > 1)
+  {
+    battlers.shift(); // remove the leader, because that's the player.
+    battlers.forEach(battler =>
+    {
+      const gameAction = new Game_Action(battler, false);
+      gameAction.setItem(toolId);
+      gameAction.apply(battler);
+    });
+  }
+
+  // also apply effects to player/leader.
+  this.applyToolToPlayer(toolId);
+};
+
+/**
+ * Applies the effects of the tool against all opponents on the map.
+ * @param {number} toolId The id of the tool/item being used.
+ */
+JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
+{
+  const item = $dataItems[toolId];
+  let jabsBattler = this.getTarget();
+  if (!jabsBattler)
+  {
+    // if we don't have a target, get the last hit battler instead.
+    jabsBattler = this.getBattlerLastHit();
+  }
+
+  if (!jabsBattler)
+  {
+    // if we don't have a last hit battler, then give up on this.
+    return;
+  }
+
+  // grab the battler being affected by this item.
+  const battler = jabsBattler.getBattler();
+
+  // create the game action based on the data.
+  const gameAction = new Game_Action(battler, false);
+
+  // apply the effects against the battler.
+  gameAction.apply(battler);
+
+  // generate the text popup for the item usage on the target.
+  this.generatePopItem(gameAction, toolId, jabsBattler);
+};
+
+/**
+ * Applies the effects of the tool against all opponents on the map.
+ * @param {number} toolId The id of the tool/item being used.
+ */
+JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
+{
+  const battlers = JABS_AiManager.getEnemyBattlers();
+  battlers.forEach(jabsBattler =>
+  {
+    // grab the battler being affected by this item.
+    const battler = jabsBattler.getBattler();
+
+    // create the game action based on the data.
+    const gameAction = new Game_Action(battler, false);
+
+    // apply the effects against the battler.
+    gameAction.apply(battler);
+
+    // generate the text popup for the item usage on the target.
+    this.generatePopItem(gameAction, toolId);
+  }, this);
+};
+
+/**
+ * Creates the text log entry for executing an tool effect.
+ * @param {RPG_Item} item The tool being used in the log.
+ */
+JABS_Battler.prototype.createToolLog = function(item)
+{
+  // if not enabled, skip this.
+  if (!J.LOG) return;
+
+  const toolUsedLog = new LootLogBuilder()
+    .setupUsedItem(item.id)
+    .build();
+  $lootLogManager.addLog(toolUsedLog);
+};
+
+/**
+ * Executes the pre-defeat processing for a battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.performPredefeatEffects = function(victor)
+{
+  // handle death animations first.
+  this.handleOnDeathAnimations();
+
+  // handle the skills executed when this battler is defeated.
+  this.handleOnOwnDefeatSkills(victor);
+
+  // handle skills executed when the victor defeats a target.
+  this.handleOnTargetDefeatSkills(victor);
+};
+
+/**
+ * Handles the on-death animations associated with this battler.
+ */
+JABS_Battler.prototype.handleOnDeathAnimations = function()
+{
+  // grab the loser battler.
+  const battler = this.getBattler();
+
+  // check if this is an actor with a death effect.
+  if (battler.isActor() && battler.needsDeathEffect())
+  {
+    // perform the actor death animation.
+    this.handleActorOnDeathAnimation();
+  }
+  // if not actor, then check for an enemy.
+  else if (battler.isEnemy())
+  {
+    // perform the enemy death animation.
+    this.handleEnemyOnDeathAnimation();
+  }
+};
+
+/**
+ * Handles the on-death animation for actors.
+ * Since actors will persist as followers after defeat, they require additional
+ * logic to prevent the repeated loop of death animation.
+ */
+JABS_Battler.prototype.handleActorOnDeathAnimation = function()
+{
+  // perform the actor death animation.
+  this.showAnimation(152);
+
+  // flag the death effect as "performed".
+  this.getBattler()
+    .toggleDeathEffect();
+};
+
+/**
+ * Handle the on-death animation for enemies.
+ * Since they are instantly removed after, their logic doesn't require
+ * toggling of battler death effects.
+ */
+JABS_Battler.prototype.handleEnemyOnDeathAnimation = function()
+{
+  // perform the enemy death animation.
+  this.showAnimation(151);
+};
+
+/**
+ * Handles the execution of any on-own-defeat skills the defeated battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
+{
+  // grab the loser battler.
+  const battler = this.getBattler();
+
+  // grab all of the loser battler's on-death skills to execute.
+  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
+
+  // an iterator function for executing all relevant on-own-defeat skills.
+  const forEacher = onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-own-death skill.
+    if (onDefeatSkill.shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = onDefeatSkill.appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(this, skillId, false, victor.getX(), victor.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(this, skillId, false);
+      }
+    }
+  };
+
+  // iterate over each of the on-death skills.
+  onOwnDefeatSkills.forEach(forEacher, this);
+};
+
+/**
+ * Handles the execution of any on-target-defeat skills the victorious battler may possess.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
+{
+  // grab all of the victor battler's on-target-defeat skills.
+  const onTargetDefeatSkills = victor.getBattler()
+    .onTargetDefeatSkillIds();
+
+  // an iterator function for executing all relevant on-target-defeat skills.
+  const forEacher = onDefeatSkill =>
+  {
+    // extract out the data points from the skill.
+    const { skillId } = onDefeatSkill;
+
+    // roll the dice and see if we should trigger this on-target-defeat skill.
+    if (onDefeatSkill.shouldTrigger())
+    {
+      // extract whether or not this on-defeat skill should be cast from the target.
+      const castFromTarget = onDefeatSkill.appearOnTarget();
+
+      // check if the skill should be cast from the target.
+      if (castFromTarget)
+      {
+        // execute it from the target!
+        $jabsEngine.forceMapAction(victor, skillId, false, this.getX(), this.getY());
+      }
+      // it should be cast from the victor.
+      else
+      {
+        // execute it from the caster like default.
+        $jabsEngine.forceMapAction(victor, skillId, false);
+      }
+    }
+  };
+
+  // iterate over each the on-target-defeat skills.
+  onTargetDefeatSkills.forEach(forEacher, this);
+};
+
+/**
+ * Executes the post-defeat processing for a defeated battler.
+ * @param {JABS_Battler} victor The battler that defeated this battler.
+ */
+JABS_Battler.prototype.performPostdefeatEffects = function(victor)
+{
+  // check if the defeated battler is an actor.
+  if (this.isActor())
+  {
+    // flag them for death.
+    this.setDying(true);
+  }
+};
+//endregion apply effects
+
+//region movement
+/**
+ * Gets whether or not this battler's movement is locked.
+ * @returns {boolean} True if the battler's movement is locked, false otherwise.
+ */
+JABS_Battler.prototype.isMovementLocked = function()
+{
+  return this._movementLock;
+};
+
+/**
+ * Sets the battler's movement lock.
+ * @param {boolean} locked Whether or not the battler's movement is locked (default = true).
+ */
+JABS_Battler.prototype.setMovementLock = function(locked = true)
+{
+  this._movementLock = locked;
+};
+
+/**
+ * Whether or not the battler is able to move.
+ * A variety of things can impact the ability for a battler to move.
+ * @returns {boolean} True if the battler can move, false otherwise.
+ */
+JABS_Battler.prototype.canBattlerMove = function()
+{
+  // battlers cannot move if they are movement locked by choice (rotating/guarding/etc).
+  if (this.isMovementLocked()) return false;
+
+  // battlers cannot move if they are movement locked by state.
+  if (this.isMovementLockedByState()) return false;
+
+  // battler can move!
+  return true;
+};
+
+/**
+ * Checks all states to see if any are movement-locking.
+ * @returns {boolean} True if there is at least one locking movement, false otherwise.
+ */
+JABS_Battler.prototype.isMovementLockedByState = function()
+{
+  // grab the states to check for movement-blocking effects.
+  const states = this.getBattler()
+    .states();
+
+  // if we have no states,
+  if (!states.length) return false;
+
+  // check all our states to see if any are blocking movement.
+  const lockedByState = states.some(state => (state.jabsRooted || state.jabsParalyzed));
+
+  // return what we found.
+  return lockedByState;
+};
+//endregion movement
+
+//region isReady & cooldowns
+/**
+ * Initializes a cooldown with the given key.
+ * @param {string} cooldownKey The key of this cooldown.
+ * @param {number} duration The duration to initialize this cooldown with.
+ */
+JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
+{
+  // grab the slot being worked with.
+  const skillSlot = this.getBattler()
+    .getSkillSlot(cooldownKey);
+
+  // if we don't have a slot, then do not process.
+  if (!skillSlot) return;
+
+  // set the skillslot's cooldown frames to the default.
+  skillSlot.getCooldown()
+    .setFrames(duration);
+};
+
+/**
+ * Gets the cooldown data for a given cooldown key.
+ * @param {string} cooldownKey The cooldown to lookup.
+ * @returns {JABS_Cooldown}
+ */
+JABS_Battler.prototype.getCooldown = function(cooldownKey)
+{
+  // grab the slot of the given key.
+  const skillSlot = this.getBattler()
+    .getSkillSlot(cooldownKey);
+
+  // check that there is a skill slot.
+  if (!skillSlot)
+  {
+    console.warn('omg');
+
+    // TODO: make sure enemies get assigned their slots.
+
+    return null;
+  }
+
+  return skillSlot.getCooldown();
+};
+
+/**
+ * Gets the cooldown and skill slot data for a given key.
+ * @param {string} key The slot to get the data for.
+ * @returns {{ cooldown: JABS_Cooldown, skillslot: JABS_SkillSlot }}
+ */
+JABS_Battler.prototype.getActionKeyData = function(key)
+{
+  const cooldown = this.getCooldown(key);
+  const skillslot = this.getBattler()
+    .getSkillSlot(key);
+
+  if (!cooldown || !skillslot) return null;
+
+  return {
+    cooldown,
+    skillslot
+  }
+};
+
+/**
+ * Whether or not this battler has finished it's post-action cooldown phase.
+ * @returns {boolean} True if the battler is cooled down, false otherwise.
+ */
+JABS_Battler.prototype.isPostActionCooldownComplete = function()
+{
+  if (this._postActionCooldownComplete)
+  {
+    // we are ready to do idle things.
+    return true;
+  }
+
+  if (this._postActionCooldown <= this._postActionCooldownMax)
+  {
+    // we are still charging up...
+    this._postActionCooldown++;
+    return false;
+  }
+  this._postActionCooldownComplete = true;
+  this._postActionCooldown = 0;
+
+  // we are ready to finish phase3!
+  return true;
+
+};
+
+/**
+ * Starts the post-action cooldown for this battler.
+ * @param {number} cooldown The cooldown duration.
+ */
+JABS_Battler.prototype.startPostActionCooldown = function(cooldown)
+{
+  this._postActionCooldownComplete = false;
+  this._postActionCooldown = 0;
+  this._postActionCooldownMax = cooldown;
+};
+
+/**
+ * Retrieves the battler's idle state.
+ * @returns {boolean} True if the battler is idle, false otherwise.
+ */
+JABS_Battler.prototype.isIdle = function()
+{
+  return this._idle;
+};
+
+/**
+ * Sets whether or not this battler is idle.
+ * @param {boolean} isIdle True if this battler is idle, false otherwise.
+ */
+JABS_Battler.prototype.setIdle = function(isIdle)
+{
+  this._idle = isIdle;
+};
+
+/**
+ * Whether or not this battler is ready to perform an idle action.
+ * @returns {boolean} True if the battler is idle-ready, false otherwise.
+ */
+JABS_Battler.prototype.isIdleActionReady = function()
+{
+  if (this._idleActionReady)
+  {
+    // we are ready to do idle things.
+    return true;
+  }
+
+  if (this._idleActionCount <= this._idleActionCountMax)
+  {
+    // we are still charging up...
+    this._idleActionCount++;
+    return false;
+  }
+  this._idleActionReady = true;
+  this._idleActionCount = 0;
+
+  // we are ready to idle!
+  return true;
+
+};
+
+/**
+ * Whether or not the skilltype has a base or combo cooldown ready.
+ * @param {string} cooldownKey The cooldown key to check readiness for.
+ * @returns {boolean} True if the given skilltype is ready, false otherwise.
+ */
+JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey)
+{
+  const isAnyReady = this.getBattler()
+    .getSkillSlotManager()
+    .isAnyCooldownReadyForSlot(cooldownKey);
+  return isAnyReady;
+};
+
+/**
+ * Modifies the cooldown for this key by a given amount.
+ * @param {string} cooldownKey The key of this cooldown.
+ * @param {number} duration The duration of this cooldown.
+ */
+JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
+{
+  this.getCooldown(cooldownKey)
+    .modBaseFrames(duration);
+};
+
+/**
+ * Set the cooldown timer to a designated number.
+ * @param {string} cooldownKey The key of this cooldown.
+ * @param {number} duration The duration of this cooldown.
+ */
+JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration)
+{
+  this.getCooldown(cooldownKey)
+    .setFrames(duration);
+};
+
+/**
+ * Resets this battler's combo information.
+ * @param {string} cooldownKey The key of this cooldown.
+ */
+JABS_Battler.prototype.resetComboData = function(cooldownKey)
+{
+  this.getBattler()
+    .getSkillSlotManager()
+    .getSkillSlotByKey(cooldownKey)
+    .resetCombo();
+};
+
+/**
+ * Sets the combo frames to be a given value.
+ * @param {string} cooldownKey The key associated with the cooldown.
+ * @param {number} duration The number of frames until this combo action is ready.
+ */
+JABS_Battler.prototype.setComboFrames = function(cooldownKey, duration)
+{
+  this.getCooldown(cooldownKey)
+    .setComboFrames(duration);
+};
+
+/**
+ * Whether or not this battler is ready to take action of any kind.
+ * @returns {boolean} True if the battler is ready, false otherwise.
+ */
+JABS_Battler.prototype.isActionReady = function()
+{
+  if (this._prepareReady)
+  {
+    // we are ready to take action.
+    return true;
+  }
+
+  if (this._prepareCounter < this._prepareMax)
+  {
+    // we are still charging up...
+    this._prepareCounter++;
+    return false;
+  }
+
+  this._prepareReady = true;
+  this._prepareCounter = 0;
+  // we are charged up now!
+  return true;
+
+};
+
+/**
+ * Determines the number of frames between opportunity to take the next action.
+ * This maps to time spent in phase1 of JABS AI.
+ * @returns {number} The number of frames between actions.
+ */
+JABS_Battler.prototype.getPrepareTime = function()
+{
+  return this.getBattler()
+    .prepareTime();
+};
+
+/**
+ * Determines whether or not a skill can be executed based on restrictions or not.
+ * This is used by AI.
+ * @param {number} chosenSkillId The skill id to be executed.
+ * @returns {boolean} True if this skill can be executed, false otherwise.
+ */
+JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
+{
+  // if there is no chosen skill, then we obviously cannot execute it.
+  if (!chosenSkillId) return false;
+
+  // check if the battler can use skills.
+  const canUseSkills = this.canBattlerUseSkills();
+
+  // check if the battler can use basic attacks.
+  const canUseAttacks = this.canBattlerUseAttacks();
+
+  // if can't use basic attacks or skills, then autofail.
+  if (!canUseSkills && !canUseAttacks)
+  {
+    return false;
+  }
+
+  // check if the chosen skill is the enemy's basic attack.
+  const isBasicAttack = this.isSkillIdBasicAttack(chosenSkillId);
+
+  // check if basic attacks are blocked plus this being a basic attack.
+  if (!canUseAttacks && isBasicAttack)
+  {
+    // if the skill is a basic attack, but the battler can't attack, then fail.
+    return false;
+  }
+
+  // if the skill is an assigned skill, but the battler can't use skills, then fail.
+  if (!canUseSkills && !isBasicAttack)
+  {
+    return false;
+  }
+
+  // check if this battler can pay the costs for the given skill id.
+  if (!this.canPaySkillCost(chosenSkillId))
+  {
+    // cannot pay the cost.
+    return false;
+  }
+
+  // build the cooldown key based on the skill data.
+  const skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
+
+  // check to make sure we have a key.
+  if (!skillSlotKey)
+  {
+    // if there is no key, then this skill clearly isn't ready.
+    return false;
+  }
+
+  // grab the cooldown itself.
+  const cooldown = this.getCooldown(skillSlotKey);
+
+  // check if the skill was actually a remembered effective skill from a follower.
+  if (!cooldown)
+  {
+    // please stop trying to cast your follower's skills.
+    console.warn(this, skillSlotKey);
+    console.trace();
+    return false;
+  }
+
+  // check if the chosen skill is actually a combo for this slot.
+  const isCombo = this.getBattler()
+    .getSkillSlot(skillSlotKey).comboId === chosenSkillId;
+
+  // check if the base is off cooldown yet.
+  if (!isCombo && !cooldown.isBaseReady())
+  {
+    // cooldown is not ready yet.
+    return false;
+  }
+
+  // cast the skill!
+  return true;
+};
+
+/**
+ * Gets the key of the cooldown based on the given skill id from this battler.
+ * @param {number} skillId The id of the skill to retrieve a key for.
+ * @returns {null|string} Null if the skill wasn't found in the slots, the key otherwise.
+ */
+JABS_Battler.prototype.getCooldownKeyBySkillId = function(skillId)
+{
+  // handle accordingly for enemies.
+  if (this.isEnemy())
+  {
+    // grab the skill itself.
+    const skill = this.getSkill(skillId);
+
+    // return the arbitrary key.
+    return `${skill.id}-${skill.name}`;
+  }
+  // handle accordingly for actors.
+  else if (this.isActor())
+  {
+    // grab the first slot that the id lives in.
+    const slot = this.getBattler()
+      .findSlotForSkillId(skillId);
+
+    // if there is no slot with this skill, then its not a basic attack.
+    if (!slot) return null;
+
+    // return the found key.
+    return slot.key;
+  }
+
+  // if somehow it is neither actor nor enemy, then return global.
+  return J.ABS.Globals.GlobalCooldownKey;
+};
+
+/**
+ * Determines whether or not the given skill id is actually a basic attack
+ * skill used by this battler. Basic attack includes main and off hands.
+ * @param {number} skillId The skill id to check.
+ * @returns {boolean} True if the skill is a basic attack, false otherwise.
+ */
+JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
+{
+  // handle accordingly if an enemy.
+  if (this.isEnemy())
+  {
+    // grab the enemy basic attack.
+    const basicAttackSkillId = this.getEnemyBasicAttack();
+
+    // check if the chosen skill is the enemy's basic attack.
+    return (skillId === basicAttackSkillId);
+  }
+  // handle accordingly if an actor.
+  else if (this.isActor())
+  {
+    // grab the first slot that the id lives in.
+    const slot = this.getBattler()
+      .findSlotForSkillId(skillId);
+
+    // if there is no slot with this skill, then its not a basic attack.
+    if (!slot) return false;
+
+    // if the slot key matches our mainhand, then it is a basic attack.
+    return (slot.key === JABS_Button.Mainhand || slot.key === JABS_Button.Offhand);
+  }
+
+  // handle accordingly if not actor or enemy.
+  console.warn(`non-actor/non-enemy checked for basic attack.`, this);
+  return false;
+};
+
+/**
+ * Gets the proper skill based on the skill id.
+ * Accommodates J-SkillExtend and/or J-Passives.
+ * @param {number} skillId The skill id to retrieve.
+ * @returns {RPG_Skill|null}
+ */
+JABS_Battler.prototype.getSkill = function(skillId)
+{
+  // check to make sure we actually have a skill id first.
+  if (!skillId)
+  {
+    // return null if we do not.
+    return null;
+  }
+
+  // return the skill assocaited with the underlying battler.
+  return this.getBattler()
+    .skill(skillId);
+};
+
+/**
+ * Determines whether or not this battler can pay the cost of a given skill id.
+ * Accommodates skill extensions.
+ * @param {number} skillId The skill id to check.
+ * @returns {boolean} True if this battler can pay the cost, false otherwise.
+ */
+JABS_Battler.prototype.canPaySkillCost = function(skillId)
+{
+  // if the skill cost is more than the battler has resources for, then fail.
+  const skill = this.getSkill(skillId);
+
+  // check if the battler can pay the cost.
+  if (!this.getBattler()
+    .canPaySkillCost(skill))
+  {
+    return false;
+  }
+
+  // we can pay the cost!
+  return true;
+};
+//endregion isReady & cooldowns
+
+
 //region regeneration
 /**
  * Updates all regenerations and ticks four times per second.
@@ -5323,13 +6203,18 @@ JABS_Battler.prototype.updateRG = function()
   this.setRegenCounter(15);
 };
 
+/**
+ * Determines whether or not the regeneration can be updated.
+ * @returns {boolean}
+ */
 JABS_Battler.prototype.canUpdateRG = function()
 {
   // check if the regen is even ready for this battler.
   if (!this.isRegenReady()) return false;
 
   // if its ready but
-  if (this.getBattler().isDead()) return false;
+  if (this.getBattler()
+    .isDead()) return false;
 
   return true;
 };
@@ -5340,13 +6225,13 @@ JABS_Battler.prototype.canUpdateRG = function()
  */
 JABS_Battler.prototype.isRegenReady = function()
 {
-  if (this._regenCounter <= 0)
+  if (this.getRegenCounter() <= 0)
   {
     this.setRegenCounter(0);
     return true;
   }
 
-  this._regenCounter--;
+  this.decrementRegenCounter();
   return false;
 };
 
@@ -5357,6 +6242,14 @@ JABS_Battler.prototype.isRegenReady = function()
 JABS_Battler.prototype.getRegenCounter = function()
 {
   return this._regenCounter;
+};
+
+/**
+ * Decrements the regen counter by one.
+ */
+JABS_Battler.prototype.decrementRegenCounter = function()
+{
+  this.setRegenCounter(this.getRegenCounter() - 1);
 };
 
 /**
@@ -5389,6 +6282,7 @@ JABS_Battler.prototype.performRegeneration = function()
   // clean-up all the states that are somehow applied but not tracked.
   states = states.filter(this.shouldProcessState, this);
 
+  // TODO: modify to interact with state stacks.
   // handle all the tag-specific hp/mp/tp regenerations.
   this.processStateRegens(states);
 };
@@ -5412,6 +6306,10 @@ JABS_Battler.prototype.processNaturalHpRegen = function()
 {
   // shorthand the battler.
   const battler = this.getBattler();
+
+  // TODO: modify to reduce effectiveness of healing while in combat.
+  // TODO: if engaged, reduce regen???
+  var test = this.isEngaged();
 
   // check if we need to regenerate.
   if (battler.hp < battler.mhp)
@@ -5482,7 +6380,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
 
   // default the regenerations to the battler's innate regens.
   const { rec } = battler;
-  const regens = [0, 0, 0];
+  const regens = [ 0, 0, 0 ];
 
   // process each state for slip actions.
   for (const state of states)
@@ -5833,3479 +6731,143 @@ JABS_Battler.prototype.configureSlipPop = function(amount, type)
 };
 //endregion regeneration
 
+//region timers
 /**
- * Gets whether or not this battler's movement is locked.
- * @returns {boolean} True if the battler's movement is locked, false otherwise.
+ * Sets the battler's wait duration to a number. If this number is greater than
+ * zero, then the battler must wait before doing anything else.
+ * @param {number} wait The duration for this battler to wait.
  */
-JABS_Battler.prototype.isMovementLocked = function()
+JABS_Battler.prototype.setWaitCountdown = function(wait)
 {
-  return this._movementLock;
+  // reset the wait timer to start over.
+  this._waitTimer.reset();
+
+  // set the wait timer's max to a new time.
+  this._waitTimer.setMaxTime(wait);
 };
 
 /**
- * Sets the battler's movement lock.
- * @param {boolean} locked Whether or not the battler's movement is locked (default = true).
+ * Gets whether or not this battler is currently waiting.
+ * @returns {boolean} True if waiting, false otherwise.
  */
-JABS_Battler.prototype.setMovementLock = function(locked = true)
+JABS_Battler.prototype.isWaiting = function()
 {
-  this._movementLock = locked;
+  return !this._waitTimer.isTimerComplete();
 };
 
 /**
- * Whether or not the battler is able to move.
- * A variety of things can impact the ability for a battler to move.
- * @returns {boolean} True if the battler can move, false otherwise.
+ * Counts down the duration for this battler's cast time.
  */
-JABS_Battler.prototype.canBattlerMove = function()
+JABS_Battler.prototype.countdownCastTime = function()
 {
-  // battlers cannot move if they are movement locked by choice (rotating/guarding/etc).
-  if (this.isMovementLocked()) return false;
+  this.performCastAnimation();
+  if (this._castTimeCountdown > 0)
+  {
+    this._castTimeCountdown--;
+    return;
+  }
 
-  // battlers cannot move if they are movement locked by state.
-  if (this.isMovementLockedByState()) return false;
+  if (this._castTimeCountdown <= 0)
+  {
+    this._casting = false;
+    this._castTimeCountdown = 0;
+  }
+};
 
-  // battler can move!
+/**
+ * Performs the cast animation if possible on this battler.
+ */
+JABS_Battler.prototype.performCastAnimation = function()
+{
+  // check if we can perform a cast animation.
+  if (!this.canPerformCastAnimation()) return;
+
+  // get the cast animation id.
+  const animationId = this.getDecidedAction()[0].getCastAnimation();
+
+  // show the animation.
+  this.showAnimation(animationId);
+};
+
+/**
+ * Determines whether or not we can perform a cast animation.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canPerformCastAnimation = function()
+{
+  // if we don't have a decided action somehow, then don't do cast animation things.
+  if (!this.getDecidedAction()) return false;
+
+  // if we don't have a cast animation, then don't do cast animation things.
+  if (!this.getDecidedAction()[0].getCastAnimation()) return false;
+
+  // don't show casting animations while other animations are playing on you.
+  if (this.isShowingAnimation()) return false;
+
+  // show cast animations!
   return true;
 };
 
 /**
- * Checks all states to see if any are movement-locking.
- * @returns {boolean} True if there is at least one locking movement, false otherwise.
+ * Sets the cast time duration to a number. If this number is greater than
+ * zero, then the battler must spend this duration in frames casting before
+ * executing the skill.
+ * @param {number} castTime The duration in frames to spend casting.
  */
-JABS_Battler.prototype.isMovementLockedByState = function()
+JABS_Battler.prototype.setCastCountdown = function(castTime)
 {
-  // grab the states to check for movement-blocking effects.
-  const states = this.getBattler().states();
-
-  // if we have no states,
-  if (!states.length) return false;
-
-  // check all our states to see if any are blocking movement.
-  const lockedByState = states.some(state => (state.jabsRooted || state.jabsParalyzed));
-
-  // return what we found.
-  return lockedByState;
-};
-
-/**
- * Whether or not the battler is able to use attacks based on states.
- * @returns {boolean} True if the battler can attack, false otherwise.
- */
-JABS_Battler.prototype.canBattlerUseAttacks = function()
-{
-  const states = this.getBattler().states();
-  if (!states.length)
+  this._castTimeCountdown = castTime;
+  if (this._castTimeCountdown > 0)
   {
-    return true;
+    this._casting = true;
   }
 
-  const disabled = states.find(state => (state.jabsDisarmed || state.jabsParalyzed));
-  return !disabled;
-
-};
-
-/**
- * Whether or not the battler is able to use skills based on states.
- * @returns {boolean} True if the battler can use skills, false otherwise.
- */
-JABS_Battler.prototype.canBattlerUseSkills = function()
-{
-  const states = this.getBattler().states();
-  if (!states.length)
+  if (this._castTimeCountdown <= 0)
   {
-    return true;
+    this._casting = false;
+    this._castTimeCountdown = 0;
   }
-
-  const muted = states.find(state => (state.jabsMuted || state.jabsParalyzed));
-  return !muted;
-
 };
 
 /**
- * Initializes the sprite info for this battler.
- */
-JABS_Battler.prototype.captureBaseSpriteInfo = function()
-{
-  this.setBaseSpriteName(this.getCharacterSpriteName());
-  this.setBaseSpriteIndex(this.getCharacterSpriteIndex());
-};
-
-/**
- * Gets the name of this battler's current character sprite.
- * @returns {string}
- */
-JABS_Battler.prototype.getCharacterSpriteName = function()
-{
-  return this.getCharacter()._characterName;
-};
-
-/**
- * Gets the index of this battler's current character sprite.
- * @returns {number}
- */
-JABS_Battler.prototype.getCharacterSpriteIndex = function()
-{
-  return this.getCharacter()._characterIndex;
-};
-
-/**
- * Sets the name of this battler's original character sprite.
- * @param {string} name The name to set.
- */
-JABS_Battler.prototype.setBaseSpriteName = function(name)
-{
-  this._baseSpriteImage = name;
-};
-
-/**
- * Sets the index of this battler's original character sprite.
- * @param {number} index The index to set.
- */
-JABS_Battler.prototype.setBaseSpriteIndex = function(index)
-{
-  this._baseSpriteIndex = index;
-};
-//endregion update helpers
-
-//region reference helpers
-/**
- * Reassigns the character to something else.
- * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
- */
-JABS_Battler.prototype.setCharacter = function(newCharacter)
-{
-  this._event = newCharacter;
-};
-
-/**
- * Gets the battler's name.
- * @returns {string}
- */
-JABS_Battler.prototype.battlerName = function()
-{
-  return this.getReferenceData().name;
-};
-
-/**
- * Events that have no actual conditions associated with them may have a -1 index.
- * Ignore that if that's the case.
- */
-JABS_Battler.prototype.hasEventActions = function()
-{
-  // only events can have event commands.
-  if (!this.isEvent()) return false;
-
-  const event = this.getCharacter();
-  return event._pageIndex !== -1;
-};
-
-/**
- * Destroys this battler by removing it from tracking and erasing the character.
- */
-JABS_Battler.prototype.destroy = function()
-{
-  // set the battler as invincible to prevent further hitting.
-  this.setInvincible();
-
-  // remove the battler from tracking.
-  JABS_AiManager.removeBattler(this);
-
-  // grab the character.
-  const character = this.getCharacter();
-
-  // erase the underlying character.
-  character.erase();
-
-  // flag the sprite for removal.
-  character.setActionSpriteNeedsRemoving();
-};
-
-/**
- * Reveals this battler onto the map.
- */
-JABS_Battler.prototype.revealHiddenBattler = function()
-{
-  this._hidden = false;
-};
-
-/**
- * Hides this battler from the current battle map.
- */
-JABS_Battler.prototype.hideBattler = function()
-{
-  this._hidden = true;
-};
-
-/**
- * Whether or not this battler is hidden on the current battle map.
- */
-JABS_Battler.prototype.isHidden = function()
-{
-  return this._hidden;
-};
-
-/**
- * Whether or not this battler is in a state of dying.
+ * Gets whether or not this battler is currently casting a skill.
  * @returns {boolean}
  */
-JABS_Battler.prototype.isDying = function()
+JABS_Battler.prototype.isCasting = function()
 {
-  return this._dying;
+  return this._casting;
 };
 
 /**
- * Sets whether or not this battler is in a state of dying.
- * @param {boolean} dying The new state of dying.
+ * Counts down the alertedness of this battler.
  */
-JABS_Battler.prototype.setDying = function(dying)
+JABS_Battler.prototype.countdownAlert = function()
 {
-  this._dying = dying;
-};
-
-/**
- * Calculates whether or not this battler should continue fighting it's target.
- * @param {JABS_Battler} target The target we're trying to see.
- * @param {number} distance The distance from this battler to the target.
- * @returns {boolean}
- */
-JABS_Battler.prototype.inPursuitRange = function(target, distance)
-{
-  // grab the current pursuit radius.
-  let pursuitRadius = this.getPursuitRadius();
-
-  // apply the modification from the actor, if any.
-  const visionMultiplier = target.getBattler().getVisionModifier();
-
-  // apply the multiplier to the base.
-  pursuitRadius *= visionMultiplier;
-
-  // return whether or not we're in range.
-  return (distance <= pursuitRadius);
-};
-
-/**
- * Calculates whether or not this battler should engage the nearest battler.
- * @param {JABS_Battler} target The target we're trying to see.
- * @param {number} distance The distance from this battler to the target.
- * @returns {boolean}
- */
-JABS_Battler.prototype.inSightRange = function(target, distance)
-{
-  // grab the sight for this battler.
-  const sightRadius = this.getSightRadius();
-
-  // apply the modification from the actor, if any.
-  const modifiedSight = this.applyVisionMultiplier(target, sightRadius);
-
-  // determine whether or not the target is in sight.
-  const isInSightRange = (distance <= modifiedSight);
-
-  // return the answer.
-  return isInSightRange;
-};
-
-/**
- * Determines whether or not this battler is "out of range" of a given target.
- * At or beyond the designated range usually results in dropping cognition of one another.
- * @param {JABS_Battler} target The target to check if within range of.
- * @returns {boolean} True if this battler is out of range of the target, false otherwise.
- */
-JABS_Battler.prototype.outOfRange = function(target)
-{
-  // if the target is invalid, then they are out of range.
-  if (!target) return true;
-
-  // if they are actually out of update range, then they are out of range.
-  if (this.distanceToDesignatedTarget(target) > JABS_AiManager.maxAiRange) return true;
-
-  // they are not out of range.
-  return false;
-};
-
-/**
- * Applies the vision multiplier against the base vision radius in question.
- * @param {JABS_Battler} target The target we're trying to see.
- * @param {number} originalRadius The original vision radius.
- */
-JABS_Battler.prototype.applyVisionMultiplier = function(target, originalRadius)
-{
-  // get this battler's vision multiplier factor.
-  const visionMultiplier = target.getBattler().getVisionModifier();
-
-  // calculate the new radius.
-  const modifiedVisionRadius = (originalRadius * visionMultiplier);
-
-  // return our calculation.
-  return modifiedVisionRadius;
-};
-
-/**
- * Gets this battler's unique identifier.
- * @returns {string}
- */
-JABS_Battler.prototype.getUuid = function()
-{
-  // if there is problems with the battler, return nothing.
-  if (!this.getBattler()) return String.empty;
-
-  return this.getBattler().getUuid();
-};
-
-/**
- * Gets whether or not this battler has any pending actions decided
- * by this battler's leader.
- */
-JABS_Battler.prototype.hasLeaderDecidedActions = function()
-{
-  // if you don't have a leader, you don't perform the actions.
-  if (!this.hasLeader()) return false;
-
-  return this._leaderDecidedAction;
-};
-
-/**
- * Gets the next skill id from the queue of leader-decided actions.
- * Also removes it from the current queue.
- * @returns {number}
- */
-JABS_Battler.prototype.getNextLeaderDecidedAction = function()
-{
-  const action = this._leaderDecidedAction;
-  this.clearLeaderDecidedActionsQueue();
-  return action;
-};
-
-/**
- * Adds a new action decided by the leader for the follower to perform.
- * @param {number} skillId The skill id decided by the leader.
- */
-JABS_Battler.prototype.setLeaderDecidedAction = function(skillId)
-{
-  this._leaderDecidedAction = skillId;
-};
-
-/**
- * Clears all unused leader-decided actions that this follower had pending.
- */
-JABS_Battler.prototype.clearLeaderDecidedActionsQueue = function()
-{
-  this._leaderDecidedAction = null;
-};
-
-/**
- * Gets the leader's `uuid` of this battler.
- */
-JABS_Battler.prototype.getLeader = function()
-{
-  return this._leaderUuid;
-};
-
-/**
- * Gets the battler for this battler's leader.
- * @returns {JABS_Battler}
- */
-JABS_Battler.prototype.getLeaderBattler = function()
-{
-  if (this._leaderUuid)
-  {
-    return JABS_AiManager.getBattlerByUuid(this._leaderUuid);
-  }
-
-  return null;
-
-};
-
-/**
- * Sets the `uuid` of the leader of this battler.
- * @param {string} newLeader The leader's `uuid`.
- */
-JABS_Battler.prototype.setLeader = function(newLeader)
-{
-  const leader = JABS_AiManager.getBattlerByUuid(newLeader);
-  if (leader)
-  {
-    this._leaderUuid = newLeader;
-    leader.addFollower(this.getUuid());
-  }
-};
-
-/**
- * Gets whether or not this battler has a leader.
- * Only battlers with the ai-trait of `follower` can have leaders.
- * @returns {boolean}
- */
-JABS_Battler.prototype.hasLeader = function()
-{
-  return !!this._leaderUuid;
-};
-
-/**
- * Gets all followers associated with this battler.
- * Only leaders can have followers.
- * @return {string[]} The `uuid`s of all followers.
- */
-JABS_Battler.prototype.getFollowers = function()
-{
-  return this._followers;
-};
-
-/**
- * Gets the whole battler of the follower matching the `uuid` provided.
- * @param {string} followerUuid The `uuid` of the follower to find.
- * @returns {JABS_Battler}
- */
-JABS_Battler.prototype.getFollowerByUuid = function(followerUuid)
-{
-  // if we don't have followers, just return null.
-  if (!this.hasFollowers()) return null;
-
-  // search through the followers to find the matching battler.
-  const foundUuid = this._followers.find(uuid => uuid === followerUuid);
-  if (foundUuid)
-  {
-    return JABS_AiManager.getBattlerByUuid(foundUuid);
-  }
-
-  return null;
-
-};
-
-/**
- * Adds a follower to the leader's collection.
- * @param {string} newFollowerUuid The new uuid of the follower now being tracked.
- */
-JABS_Battler.prototype.addFollower = function(newFollowerUuid)
-{
-  const found = this.getFollowerByUuid(newFollowerUuid);
-  if (found)
-  {
-    console.error("this follower already existed within the follower list.");
-  }
-  else
-  {
-    this._followers.push(newFollowerUuid);
-  }
-};
-
-/**
- * Removes the follower from
- * @param {string} oldFollowerUuid The `uuid` of the follower to remove from tracking.
- */
-JABS_Battler.prototype.removeFollower = function(oldFollowerUuid)
-{
-  const index = this._followers.indexOf(uuid => uuid === oldFollowerUuid);
-  if (index !== -1)
-  {
-    this._followers.splice(index, 1);
-  }
-  else
-  {
-    console.error("could not find follower to remove from the list.", oldFollowerUuid);
-  }
-};
-
-/**
- * Clears all current followers from this battler.
- */
-JABS_Battler.prototype.clearFollowers = function()
-{
-  // first de-assign leadership from all followers for this leader...
-  this._followers.forEach(followerUuid =>
-  {
-    $gameMap.clearLeaderDataByUuid(followerUuid);
-  });
-
-  // ...then empty the collection.
-  this._followers.splice(0, this._followers.length);
-};
-
-/**
- * Removes this follower's leader.
- */
-JABS_Battler.prototype.clearLeader = function()
-{
-  // get the leader's uuid for searching.
-  const leaderUuid = this.getLeader();
-  // if found, remove this follower from that leader.
-  if (leaderUuid)
-  {
-    const uuid = this.getUuid();
-    // in some instances, "this" may not be alive anymore so handle that.
-    if (!uuid) return;
-
-    const leader = JABS_AiManager.getBattlerByUuid(leaderUuid);
-    if (!leader) return;
-
-    leader.removeFollowerByUuid(uuid);
-  }
-};
-
-/**
- * Removes a follower from it's current leader.
- * @param {string} uuid The `uuid` of the follower to remove from the leader.
- */
-JABS_Battler.prototype.removeFollowerByUuid = function(uuid)
-{
-  const index = this._followers.indexOf(uuid);
-  if (index !== -1)
-  {
-    this._followers.splice(index, 1);
-  }
-};
-
-/**
- * Removes the leader data from this battler.
- */
-JABS_Battler.prototype.clearLeaderData = function()
-{
-  this.setLeader("");
-  this.clearLeaderDecidedActionsQueue();
-};
-
-/**
- * Gets whether or not this battler has followers.
- * Only battlers with the AI trait of "leader" will have followers.
- * @returns {boolean}
- */
-JABS_Battler.prototype.hasFollowers = function()
-{
-  // if you're not a leader, you can't have followers.
-  if (!this.getAiMode().leader) return false;
-
-  return this._followers.length > 0;
-};
-
-/**
- * Gets the database data for this battler.
- * @returns {RPG_Actor|RPG_Enemy} The battler data.
- */
-JABS_Battler.prototype.getReferenceData = function()
-{
-  // if somehow we don't have a battler, return an empty object.
-  if (!this.getBattler()) return {};
-
-  // if it is an actor, return the actor database data.
-  if (this.isActor())
-  {
-    return this.getBattler()
-      .actor();
-  }
-
-  // if it is an enemy, return the enemy database data.
-  if (this.getBattler()
-    .isEnemy())
-  {
-    return this.getBattler()
-      .enemy();
-  }
-};
-
-/**
- * Determines if this battler is facing its target.
- * @param {Game_Character} target The target `Game_Character` to check facing for.
- */
-JABS_Battler.prototype.isFacingTarget = function(target)
-{
-  const userDir = this.getCharacter()
-    .direction();
-  const targetDir = target.direction();
-
-  switch (userDir)
-  {
-    case J.ABS.Directions.DOWN:
-      return targetDir === J.ABS.Directions.UP;
-    case J.ABS.Directions.UP:
-      return targetDir === J.ABS.Directions.DOWN;
-    case J.ABS.Directions.LEFT:
-      return targetDir === J.ABS.Directions.RIGHT;
-    case J.ABS.Directions.RIGHT:
-      return targetDir === J.ABS.Directions.LEFT;
-  }
-
-  return false;
-};
-
-/**
- * Whether or not this battler is actually the `Game_Player`.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isPlayer = function()
-{
-  return this.getCharacter().isPlayer();
-};
-
-/**
- * Whether or not this battler is a `Game_Actor`.
- * The player counts as a `Game_Actor`, too.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isActor = function()
-{
-  return (this.isPlayer() || this.getBattler() instanceof Game_Actor)
-};
-
-/**
- * Whether or not this battler is based on a follower.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isFollower = function()
-{
-  return this.getCharacter().isFollower();
-};
-
-/**
- * Whether or not this battler is a `Game_Enemy`.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isEnemy = function()
-{
-  return (this.getBattler() instanceof Game_Enemy);
-};
-
-/**
- * Whether or not this battler is based on an event.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isEvent = function()
-{
-  return this.getCharacter().isEvent();
-};
-
-/**
- * Compares the user with a provided target team to see if they are the same.
- * @param {number} targetTeam The id of the team to check.
- * @returns {boolean} True if the user and target are on the same team, false otherwise.
- */
-JABS_Battler.prototype.isSameTeam = function(targetTeam)
-{
-  return (this.getTeam() === targetTeam);
-};
-
-/**
- * Gets whether or not the provided target team is considered "friendly".
- * @param {number} targetTeam The id of the team to check.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isFriendlyTeam = function(targetTeam)
-{
-  // TODO: parameterize in objects what are "opposing" teams.
-  return [this.getTeam()].includes(targetTeam);
-};
-
-/**
- * Gets whether or not the provided target team is considered "opposing".
- * @param {number} targetTeam The id of the team to check.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isOpposingTeam = function(targetTeam)
-{
-  // TODO: parameterize in objects what are "friendly" teams.
-  return !(targetTeam === this.getTeam());
-  //return [].includes(targetTeam);
-};
-
-/**
- * Gets this battler's team id.
- * @returns {number}
- */
-JABS_Battler.prototype.getTeam = function()
-{
-  return this._team;
-};
-
-/**
- * Gets the phase of battle this battler is currently in.
- * The player does not have any phases.
- * @returns {number} The phase this `JABS_Battler` is in.
- */
-JABS_Battler.prototype.getPhase = function()
-{
-  return this._phase;
-};
-
-/**
- * Gets whether or not this battler is invincible.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isInvincible = function()
-{
-  return this._invincible;
-};
-
-/**
- * Gets whether or not this battler is inanimate.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isInanimate = function()
-{
-  return this._inanimate;
-};
-
-/**
- * Sets this battler to be invincible, rendering them unable to be collided
- * with by map actions of any kind.
- * @param {boolean} invincible True if uncollidable, false otherwise (default: true).
- */
-JABS_Battler.prototype.setInvincible = function(invincible = true)
-{
-  this._invincible = invincible;
-};
-
-/**
- * Sets the phase of battle that this battler should be in.
- * @param {number} newPhase The new phase the battler is entering.
- */
-JABS_Battler.prototype.setPhase = function(newPhase)
-{
-  this._phase = newPhase;
-};
-
-/**
- * Resets the phase of this battler back to one and resets all flags.
- */
-JABS_Battler.prototype.resetPhases = function()
-{
-  this.setPhase(1);
-  this._prepareReady = false;
-  this._prepareCounter = 0;
-  this._postActionCooldownComplete = false;
-  this.setDecidedAction(null);
-  this.setAllyTarget(null);
-  this.setInPosition(false);
-};
-
-/**
- * Gets whether or not this battler is in position for a given skill.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isInPosition = function()
-{
-  return this._inPosition;
-};
-
-/**
- * Sets this battler to be identified as "in position" to execute their
- * decided skill.
- * @param {boolean} inPosition
- */
-JABS_Battler.prototype.setInPosition = function(inPosition = true)
-{
-  this._inPosition = inPosition;
-};
-
-/**
- * Gets whether or not this battler has decided an action.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isActionDecided = function()
-{
-  return this._decidedAction !== null;
-};
-
-/**
- * Gets the battler's decided action.
- * @returns {JABS_Action[]|null}
- */
-JABS_Battler.prototype.getDecidedAction = function()
-{
-  return this._decidedAction;
-};
-
-/**
- * Sets this battler's decided action to this action.
- * @param {JABS_Action[]} action The action this battler has decided on.
- */
-JABS_Battler.prototype.setDecidedAction = function(action)
-{
-  this._decidedAction = action;
-};
-
-/**
- * Clears this battler's decided action.
- */
-JABS_Battler.prototype.clearDecidedAction = function()
-{
-  this._decidedAction = null;
-};
-
-/**
- * Resets the idle action back to a not-ready state.
- */
-JABS_Battler.prototype.resetIdleAction = function()
-{
-  this._idleActionReady = false;
-};
-
-/**
- * Returns the `Game_Character` that this `JABS_Battler` is bound to.
- * For the player, it'll return a subclass instead: `Game_Player`.
- * @returns {Game_Event|Game_Player|Game_Follower} The event this `JABS_Battler` is bound to.
- */
-JABS_Battler.prototype.getCharacter = function()
-{
-  return this._event;
-};
-
-/**
- * Returns the `Game_Battler` that this `JABS_Battler` represents.
- *
- * This may be either a `Game_Actor`, or `Game_Enemy`.
- * @returns {Game_Actor|Game_Enemy} The `Game_Battler` this battler represents.
- */
-JABS_Battler.prototype.getBattler = function()
-{
-  return this._battler;
-};
-
-/**
- * Gets whether or not the underlying battler is dead.
- * @returns {boolean} True if they are dead, false otherwise.
- */
-JABS_Battler.prototype.isDead = function()
-{
-  return this.getBattler().isDead();
-};
-
-/**
- * Whether or not the event is actually loaded and valid.
- * @returns {boolean} True if the event is valid (non-player) and loaded, false otherwise.
- */
-JABS_Battler.prototype.isEventReady = function()
-{
-  const character = this.getCharacter();
-  if (character instanceof Game_Player)
-  {
-    return false;
-  }
-
-  return !!character.event();
-
-};
-
-/**
- * The radius a battler of a different team must enter to cause this unit to engage.
- * @returns {number} The sight radius for this `JABS_Battler`.
- */
-JABS_Battler.prototype.getSightRadius = function()
-{
-  let sight = this._sightRadius;
-  if (this.isAlerted())
-  {
-    sight += this._alertedSightBoost;
-  }
-
-  return sight;
-};
-
-/**
- * The maximum distance a battler of a different team may reach before this unit disengages.
- * @returns {number} The pursuit radius for this `JABS_Battler`.
- */
-JABS_Battler.prototype.getPursuitRadius = function()
-{
-  let pursuit = this._pursuitRadius;
-  if (this.isAlerted())
-  {
-    pursuit += this._alertedPursuitBoost;
-  }
-
-  return pursuit;
-};
-
-/**
- * Sets whether or not this battler is engaged.
- * @param {boolean} isEngaged Whether or not this battler is engaged.
- */
-JABS_Battler.prototype.setEngaged = function(isEngaged)
-{
-  this._engaged = isEngaged;
-};
-
-/**
- * Whether or not this `JABS_Battler` is currently engaged in battle with a target.
- * @returns {boolean} Whether or not this battler is engaged.
- */
-JABS_Battler.prototype.isEngaged = function()
-{
-  return this._engaged;
-};
-
-/**
- * Engage battle with the target battler.
- * @param {JABS_Battler} target The target this battler is engaged with.
- */
-JABS_Battler.prototype.engageTarget = function(target)
-{
-  // this battler cannot engage with targets right now.
-  if (this.isEngagementLocked()) return;
-
-  // enable engagement.
-  this.setIdle(false);
-  this.setEngaged(true);
-
-  // setup the target and their aggro.
-  this.setTarget(target);
-  this.addUpdateAggro(target.getUuid(), 0);
-
-  // check if this is an actor-based character.
-  if (this.isActor())
-  {
-    // disable walking through walls while the follower is engaged.
-    this.getCharacter().setThrough(false);
-  }
-
-  // if we're alerted, also clear the alert state.
-  this.clearAlert();
-
-  // TODO: abstract this.
-  this.showBalloon(J.ABS.Balloons.Exclamation);
-};
-
-/**
- * Disengage from the target.
- */
-JABS_Battler.prototype.disengageTarget = function()
-{
-  // clear any targeting.
-  this.setTarget(null);
-  this.setAllyTarget(null);
-
-  // disable being engaged.
-  this.setEngaged(false);
-
-  // disable the alert when disengaging.
-  this.clearAlert();
-
-  // remove leader/follower data.
-  this.clearFollowers();
-  this.clearLeaderData();
-
-  // forget decided action.
-  this.clearDecidedAction();
-
-  // reset all the phases back to default.
-  this.resetPhases();
-
-  // TODO: abstract this.
-  //this.showBalloon(J.ABS.Balloons.Frustration);
-};
-
-/**
- * Gets whether or not this battler is currently barred from engagement.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isEngagementLocked = function()
-{
-  return this._engagementLock;
-};
-
-/**
- * Locks engagement.
- * Disables the ability for this battler to acquire a target and do battle.
- */
-JABS_Battler.prototype.lockEngagement = function()
-{
-  this._engagementLock = true;
-};
-
-/**
- * Unlocks engagement.
- * Allows this battler to engage with targets and do battle.
- */
-JABS_Battler.prototype.unlockEngagement = function()
-{
-  this._engagementLock = false;
-};
-
-/**
- * Gets the current target of this battler.
- * @returns {JABS_Battler|null}
- */
-JABS_Battler.prototype.getTarget = function()
-{
-  return this._target;
-};
-
-/**
- * Sets the target of this battler.
- * @param {JABS_Battler} newTarget The new target.
- */
-JABS_Battler.prototype.setTarget = function(newTarget)
-{
-  this._target = newTarget;
-};
-
-/**
- * Gets the last battler struck by this battler.
- * @returns {JABS_Battler}
- */
-JABS_Battler.prototype.getBattlerLastHit = function()
-{
-  if (this._lastHit && this._lastHit.isDead())
-  {
-    // if the last hit battler was defeated or something, remove it.
-    this.setBattlerLastHit(null);
-  }
-
-  return this._lastHit;
-};
-
-/**
- * Sets the last battler struck by this battler.
- * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
- */
-JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
-{
-  this._lastHit = battlerLastHit;
-
-  // the player-controlled character cannot have a target by normal means due
-  // to them not being controlled by AI. However, their "last hit" is basically
-  // the same thing, so assign their target as well.
-  if (this.isPlayer())
-  {
-    this.setTarget(this._lastHit);
-  }
-};
-
-/**
- * Gets whether or not this has a last battler hit currently stored.
- * @returns {boolean}
- */
-JABS_Battler.prototype.hasBattlerLastHit = function()
-{
-  return !!this.getBattlerLastHit();
-};
-
-/**
- * Clears the last battler hit tracker from this battler.
- */
-JABS_Battler.prototype.clearBattlerLastHit = function()
-{
-  this.setBattlerLastHit(null);
-  this.setLastBattlerHitCountdown(0);
-
-  // when clearing the last battler hit, also remove the player's target that
-  // was likely added via the above function of "setBattlerLastHit".
-  if (this.isPlayer())
-  {
-    this.setTarget(null);
-  }
-};
-
-/**
- * Sets the last battler hit countdown.
- * @param {number} duration The duration in frames (60/s).
- */
-JABS_Battler.prototype.setLastBattlerHitCountdown = function(duration = 900)
-{
-  this._lastHitCountdown = duration;
-};
-
-/**
- * Counts down the last hit counter.
- * @returns {boolean}
- */
-JABS_Battler.prototype.countdownLastHit = function()
-{
-  if (this._lastHitCountdown <= 0)
-  {
-    this._lastHitCountdown = 0;
-    if (this.hasBattlerLastHit())
-    {
-      this.clearBattlerLastHit();
-    }
-  }
-
-  if (this._lastHitCountdown > 0)
-  {
-    this._lastHitCountdown--;
-  }
-};
-
-/**
- * Gets whether or not this battler is dead inside.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isDead = function()
-{
-  const battler = this.getBattler();
-
-  if (!battler)
-  { // has no battler.
-    return true;
-  }
-  else if (!JABS_AiManager.getBattlerByUuid(battler.getUuid()))
-  { // battler isn't on the map.
-    return true;
-  }
-  else if (battler.isDead() || this.isDying())
-  { // battler is actually dead.
-    return true;
-  }
-  // battler is OK!
-  return false;
-
-};
-
-/**
- * Gets the current allied target of this battler.
- * @returns {JABS_Battler}
- */
-JABS_Battler.prototype.getAllyTarget = function()
-{
-  return this._allyTarget;
-};
-
-/**
- * Sets the allied target of this battler.
- * @param {JABS_Battler} newAlliedTarget The new target.
- */
-JABS_Battler.prototype.setAllyTarget = function(newAlliedTarget)
-{
-  this._allyTarget = newAlliedTarget;
-};
-
-/**
- * Determines the distance from this battler and the point.
- * @param {number|null} x2 The x coordinate to check.
- * @param {number|null} y2 The y coordinate to check.
- * @returns {number|null} The distance from the battler to the point.
- */
-JABS_Battler.prototype.distanceToPoint = function(x2, y2)
-{
-  if ((x2 ?? y2) === null) return null;
-  const x1 = this.getX();
-  const y1 = this.getY();
-  const distance = Math.hypot(x2 - x1, y2 - y1).toFixed(2);
-  return parseFloat(distance);
-};
-
-/**
- * Determines distance from this battler and the target.
- * @param {JABS_Battler} target The target that this battler is checking distance against.
- * @returns {number|null} The distance from this battler to the provided target.
- */
-JABS_Battler.prototype.distanceToDesignatedTarget = function(target)
-{
-  if (!target) return null;
-
-  return this.distanceToPoint(target.getX(), target.getY());
-};
-
-/**
- * Determines distance from this battler and the current target.
- * @returns {number|null} The distance.
- */
-JABS_Battler.prototype.distanceToCurrentTarget = function()
-{
-  const target = this.getTarget();
-  if (!target) return null;
-
-  return this.distanceToPoint(target.getX(), target.getY());
-};
-
-/**
- * Determines distance from this battler and the current ally target.
- * @returns {number|null} The distance.
- */
-JABS_Battler.prototype.distanceToAllyTarget = function()
-{
-  const target = this.getAllyTarget();
-  if (!target) return null;
-
-  return this.distanceToPoint(target.getX(), target.getY());
-};
-
-/**
- * A shorthand reference to the distance this battler is from it's home.
- * @returns {number} The distance.
- */
-JABS_Battler.prototype.distanceToHome = function()
-{
-  return this.distanceToPoint(this._homeX, this._homeY);
-};
-
-/**
- * Gets whether or not this battler will move around while idle.
- * @returns {boolean}
- */
-JABS_Battler.prototype.canIdle = function()
-{
-  return this._canIdle;
-};
-
-/**
- * Gets whether or not this battler should show its hp bar.
- * @returns {boolean}
- */
-JABS_Battler.prototype.showHpBar = function()
-{
-  return this._showHpBar;
-};
-
-/**
- * Gets whether or not this battler should show its name.
- * @returns {boolean}
- */
-JABS_Battler.prototype.showBattlerName = function()
-{
-  return this._showBattlerName;
-};
-
-/**
- * Gets whether or not this battler is in an `alerted` state.
- * @returns {boolean} True if this battler is alerted, false otherwise.
- */
-JABS_Battler.prototype.isAlerted = function()
-{
-  return this._alerted;
-};
-
-/**
- * Sets the alerted state for this battler.
- * @param {boolean} alerted The new alerted state (default = true).
- */
-JABS_Battler.prototype.setAlerted = function(alerted = true)
-{
-  this._alerted = alerted;
-};
-
-/**
- * Gets whether or not this battler is in an `alerted` state.
- * @returns {number} The duration remaining for this alert state.
- */
-JABS_Battler.prototype.getAlertDuration = function()
-{
-  return this._alertDuration;
-};
-
-/**
- * Sets the alerted counter to this number of frames.
- * @param {number} alertedFrames The duration in frames for how long to be alerted.
- */
-JABS_Battler.prototype.setAlertedCounter = function(alertedFrames)
-{
-  this._alertedCounter = alertedFrames;
   if (this._alertedCounter > 0)
   {
-    this.setIdle(false);
-    this.setAlerted();
-  }
-  else if (this._alertedCounter <= 0)
-  {
-    this.setAlerted(false);
-  }
-};
-
-/**
- * Gets the alerted coordinates.
- * @returns {[number, number]} The `[x, y]` of the alerter.
- */
-JABS_Battler.prototype.getAlertedCoordinates = function()
-{
-  return this._alertedCoordinates;
-};
-
-/**
- * Sets the alerted coordinates.
- * @param {number} x The `x` of the alerter.
- * @param {number} y The `y` of the alerter.
- */
-JABS_Battler.prototype.setAlertedCoordinates = function(x, y)
-{
-  this._alertedCoordinates = [x, y];
-};
-
-/**
- * Whether or not this battler is at it's home coordinates.
- * @returns {boolean} True if the battler is home, false otherwise.
- */
-JABS_Battler.prototype.isHome = function()
-{
-  return (this._event.x === this._homeX && this._event.y === this._homeY);
-};
-
-/**
- * Returns the X coordinate of the event portion's initial placement.
- * @returns {number} The X coordinate of this event's home.
- */
-JABS_Battler.prototype.getHomeX = function()
-{
-  return this._homeX;
-};
-
-/**
- * Returns the Y coordinate of the event portion's initial placement.
- * @returns {number} The Y coordinate of this event's home.
- */
-JABS_Battler.prototype.getHomeY = function()
-{
-  return this._homeY;
-};
-
-/**
- * Returns the X coordinate of the event.
- * @returns {number} The X coordinate of this event.
- */
-JABS_Battler.prototype.getX = function()
-{
-  return this.getCharacter()._realX;
-};
-
-/**
- * Returns the Y coordinate of the event.
- * @returns {number} The Y coordinate of this event.
- */
-JABS_Battler.prototype.getY = function()
-{
-  return this.getCharacter()._realY;
-};
-
-/**
- * Retrieves the AI associated with this battler.
- * @returns {JABS_EnemyAI} This battler's AI.
- */
-JABS_Battler.prototype.getAiMode = function()
-{
-  return this._aiMode;
-};
-
-/**
- * Gets this follower's leader's AI.
- * @returns {JABS_EnemyAI} This battler's leader's AI.
- */
-JABS_Battler.prototype.getLeaderAiMode = function()
-{
-  // if we don't have a leader, don't.
-  if (!this.hasLeader()) return null;
-
-  const leader = JABS_AiManager.getBattlerByUuid(this.getLeader());
-  if (!leader) return null;
-
-  return leader.getAiMode();
-};
-
-/**
- * Tries to move this battler away from its current target.
- * This may fail if the battler is pinned in a corner or something.
- */
-JABS_Battler.prototype.moveAwayFromTarget = function()
-{
-  const battler = this.getCharacter();
-  const target = this.getTarget();
-  if (!target) return;
-  const character = target.getCharacter();
-
-  battler.moveAwayFromCharacter(character);
-};
-
-/**
- * Tries to move this battler away from its current target.
- *
- * There is no pathfinding away, but if its not able to move directly
- * away, it will try a different direction to wiggle out of corners.
- */
-JABS_Battler.prototype.smartMoveAwayFromTarget = function()
-{
-  const battler = this.getCharacter();
-  const target = this.getTarget();
-  if (!target) return;
-
-  battler.moveAwayFromCharacter(target.getCharacter());
-  if (!battler.isMovementSucceeded())
-  {
-    const threatDir = battler.reverseDir(battler.direction());
-    let newDir = (Math.randomInt(4) + 1) * 2;
-    while (newDir === threatDir)
-    {
-      newDir = (Math.randomInt(4) + 1) * 2;
-    }
-    battler.moveStraight(newDir);
-  }
-};
-
-/**
- * Tries to move this battler towards its current target.
- */
-JABS_Battler.prototype.smartMoveTowardTarget = function()
-{
-  const target = this.getTarget();
-  if (!target) return;
-
-  this.smartMoveTowardCoordinates(target.getX(), target.getY());
-};
-
-/**
- * Tries to move this battler towards its ally target.
- */
-JABS_Battler.prototype.smartMoveTowardAllyTarget = function()
-{
-  const target = this.getAllyTarget();
-  if (!target) return;
-
-  this.smartMoveTowardCoordinates(target.getX(), target.getY());
-};
-
-/**
- * Tries to move this battler toward a set of coordinates.
- * @param {number} x The `x` coordinate to reach.
- * @param {number} y The `y` coordinate to reach.
- */
-JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y)
-{
-  const character = this.getCharacter();
-  const nextDir = CycloneMovement
-    ? character.findDirectionTo(x, y)
-    : character.findDiagonalDirectionTo(x, y);
-
-  if (character.isDiagonalDirection(nextDir))
-  {
-    const horzvert = character.getDiagonalDirections(nextDir);
-    character.moveDiagonally(horzvert[0], horzvert[1]);
-  }
-  else
-  {
-    character.moveStraight(nextDir);
-  }
-};
-
-/**
- * Turns this battler towards it's current target.
- */
-JABS_Battler.prototype.turnTowardTarget = function()
-{
-  const character = this.getCharacter();
-  const target = this.getTarget();
-  if (!target) return;
-
-  character.turnTowardCharacter(target.getCharacter());
-};
-//endregion reference helpers
-
-//region isReady & cooldowns
-/**
- * Initializes a cooldown with the given key.
- * @param {string} cooldownKey The key of this cooldown.
- * @param {number} duration The duration to initialize this cooldown with.
- */
-JABS_Battler.prototype.initializeCooldown = function(cooldownKey, duration)
-{
-  // grab the slot being worked with.
-  const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
-
-  // if we don't have a slot, then do not process.
-  if (!skillSlot) return;
-
-  // set the skillslot's cooldown frames to the default.
-  skillSlot.getCooldown().setFrames(duration);
-};
-
-/**
- * Gets the cooldown data for a given cooldown key.
- * @param {string} cooldownKey The cooldown to lookup.
- * @returns {JABS_Cooldown}
- */
-JABS_Battler.prototype.getCooldown = function(cooldownKey)
-{
-  // grab the slot of the given key.
-  const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
-
-  // check that there is a skill slot.
-  if (!skillSlot)
-  {
-    console.warn('omg');
-
-    // TODO: make sure enemies get assigned their slots.
-
-    return null;
-  }
-
-  return skillSlot.getCooldown();
-};
-
-/**
- * Gets the cooldown and skill slot data for a given key.
- * @param {string} key The slot to get the data for.
- * @returns {{ cooldown: JABS_Cooldown, skillslot: JABS_SkillSlot }}
- */
-JABS_Battler.prototype.getActionKeyData = function(key)
-{
-  const cooldown = this.getCooldown(key);
-  const skillslot = this.getBattler().getSkillSlot(key);
-
-  if (!cooldown || !skillslot) return null;
-
-  return {
-    cooldown,
-    skillslot
-  }
-};
-
-/**
- * Whether or not this battler has finished it's post-action cooldown phase.
- * @returns {boolean} True if the battler is cooled down, false otherwise.
- */
-JABS_Battler.prototype.isPostActionCooldownComplete = function()
-{
-  if (this._postActionCooldownComplete)
-  {
-    // we are ready to do idle things.
-    return true;
-  }
-
-  if (this._postActionCooldown <= this._postActionCooldownMax)
-  {
-    // we are still charging up...
-    this._postActionCooldown++;
-    return false;
-  }
-  this._postActionCooldownComplete = true;
-  this._postActionCooldown = 0;
-
-  // we are ready to finish phase3!
-  return true;
-
-};
-
-/**
- * Starts the post-action cooldown for this battler.
- * @param {number} cooldown The cooldown duration.
- */
-JABS_Battler.prototype.startPostActionCooldown = function(cooldown)
-{
-  this._postActionCooldownComplete = false;
-  this._postActionCooldown = 0;
-  this._postActionCooldownMax = cooldown;
-};
-
-/**
- * Retrieves the battler's idle state.
- * @returns {boolean} True if the battler is idle, false otherwise.
- */
-JABS_Battler.prototype.isIdle = function()
-{
-  return this._idle;
-};
-
-/**
- * Sets whether or not this battler is idle.
- * @param {boolean} isIdle True if this battler is idle, false otherwise.
- */
-JABS_Battler.prototype.setIdle = function(isIdle)
-{
-  this._idle = isIdle;
-};
-
-/**
- * Whether or not this battler is ready to perform an idle action.
- * @returns {boolean} True if the battler is idle-ready, false otherwise.
- */
-JABS_Battler.prototype.isIdleActionReady = function()
-{
-  if (this._idleActionReady)
-  {
-    // we are ready to do idle things.
-    return true;
-  }
-
-  if (this._idleActionCount <= this._idleActionCountMax)
-  {
-    // we are still charging up...
-    this._idleActionCount++;
-    return false;
-  }
-  this._idleActionReady = true;
-  this._idleActionCount = 0;
-
-  // we are ready to idle!
-  return true;
-
-};
-
-/**
- * Whether or not the skilltype has a base or combo cooldown ready.
- * @param {string} cooldownKey The cooldown key to check readiness for.
- * @returns {boolean} True if the given skilltype is ready, false otherwise.
- */
-JABS_Battler.prototype.isSkillTypeCooldownReady = function(cooldownKey)
-{
-  const isAnyReady = this.getBattler()
-    .getSkillSlotManager()
-    .isAnyCooldownReadyForSlot(cooldownKey);
-  return isAnyReady;
-};
-
-/**
- * Modifies the cooldown for this key by a given amount.
- * @param {string} cooldownKey The key of this cooldown.
- * @param {number} duration The duration of this cooldown.
- */
-JABS_Battler.prototype.modCooldownCounter = function(cooldownKey, duration)
-{
-  this.getCooldown(cooldownKey).modBaseFrames(duration);
-};
-
-/**
- * Set the cooldown timer to a designated number.
- * @param {string} cooldownKey The key of this cooldown.
- * @param {number} duration The duration of this cooldown.
- */
-JABS_Battler.prototype.setCooldownCounter = function(cooldownKey, duration)
-{
-  this.getCooldown(cooldownKey).setFrames(duration);
-};
-
-/**
- * Resets this battler's combo information.
- * @param {string} cooldownKey The key of this cooldown.
- */
-JABS_Battler.prototype.resetComboData = function(cooldownKey)
-{
-  this.getBattler()
-    .getSkillSlotManager()
-    .getSkillSlotByKey(cooldownKey)
-    .resetCombo();
-};
-
-/**
- * Sets the combo frames to be a given value.
- * @param {string} cooldownKey The key associated with the cooldown.
- * @param {number} duration The number of frames until this combo action is ready.
- */
-JABS_Battler.prototype.setComboFrames = function(cooldownKey, duration)
-{
-  this.getCooldown(cooldownKey).setComboFrames(duration);
-};
-
-/**
- * Whether or not this battler is ready to take action of any kind.
- * @returns {boolean} True if the battler is ready, false otherwise.
- */
-JABS_Battler.prototype.isActionReady = function()
-{
-  if (this._prepareReady)
-  {
-    // we are ready to take action.
-    return true;
-  }
-
-  if (this._prepareCounter < this._prepareMax)
-  {
-    // we are still charging up...
-    this._prepareCounter++;
-    return false;
-  }
-
-  this._prepareReady = true;
-  this._prepareCounter = 0;
-  // we are charged up now!
-  return true;
-
-};
-
-/**
- * Determines the number of frames between opportunity to take the next action.
- * This maps to time spent in phase1 of JABS AI.
- * @returns {number} The number of frames between actions.
- */
-JABS_Battler.prototype.getPrepareTime = function()
-{
-  return this.getBattler().prepareTime();
-};
-
-/**
- * Determines whether or not a skill can be executed based on restrictions or not.
- * This is used by AI.
- * @param {number} chosenSkillId The skill id to be executed.
- * @returns {boolean} True if this skill can be executed, false otherwise.
- */
-JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
-{
-  // if there is no chosen skill, then we obviously cannot execute it.
-  if (!chosenSkillId) return false;
-
-  // check if the battler can use skills.
-  const canUseSkills = this.canBattlerUseSkills();
-
-  // check if the battler can use basic attacks.
-  const canUseAttacks = this.canBattlerUseAttacks();
-
-  // if can't use basic attacks or skills, then autofail.
-  if (!canUseSkills && !canUseAttacks)
-  {
-    return false;
-  }
-
-  // check if the chosen skill is the enemy's basic attack.
-  const isBasicAttack = this.isSkillIdBasicAttack(chosenSkillId);
-
-  // check if basic attacks are blocked plus this being a basic attack.
-  if (!canUseAttacks && isBasicAttack)
-  {
-    // if the skill is a basic attack, but the battler can't attack, then fail.
-    return false;
-  }
-
-  // if the skill is an assigned skill, but the battler can't use skills, then fail.
-  if (!canUseSkills && !isBasicAttack)
-  {
-    return false;
-  }
-
-  // check if this battler can pay the costs for the given skill id.
-  if (!this.canPaySkillCost(chosenSkillId))
-  {
-    // cannot pay the cost.
-    return false;
-  }
-
-  // build the cooldown key based on the skill data.
-  const skillSlotKey = this.getCooldownKeyBySkillId(chosenSkillId);
-
-  // check to make sure we have a key.
-  if (!skillSlotKey)
-  {
-    // if there is no key, then this skill clearly isn't ready.
-    return false;
-  }
-
-  // grab the cooldown itself.
-  const cooldown = this.getCooldown(skillSlotKey);
-
-  // check if the skill was actually a remembered effective skill from a follower.
-  if (!cooldown)
-  {
-    // please stop trying to cast your follower's skills.
-    console.warn(this, skillSlotKey);
-    console.trace();
-    return false;
-  }
-
-  // check if the chosen skill is actually a combo for this slot.
-  const isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
-
-  // check if the base is off cooldown yet.
-  if (!isCombo && !cooldown.isBaseReady())
-  {
-    // cooldown is not ready yet.
-    return false;
-  }
-
-  // cast the skill!
-  return true;
-};
-
-JABS_Battler.prototype.getCooldownKeyBySkillId = function(skillId)
-{
-  // handle accordingly for enemies.
-  if (this.isEnemy())
-  {
-    // grab the skill itself.
-    const skill = this.getSkill(skillId);
-
-    // return the arbitrary key.
-    return `${skill.id}-${skill.name}`;
-  }
-  // handle accordingly for actors.
-  else if (this.isActor())
-  {
-    // grab the first slot that the id lives in.
-    const slot = this.getBattler().findSlotForSkillId(skillId);
-
-    // if there is no slot with this skill, then its not a basic attack.
-    if (!slot) return null;
-
-    // return the found key.
-    return slot.key;
-  }
-
-  // if somehow it is neither actor nor enemy, then return global.
-  return "Global";
-};
-
-/**
- * Determines whether or not the given skill id is actually a basic attack
- * skill used by this battler. Basic attack includes main and off hands.
- * @param {number} skillId The skill id to check.
- * @returns {boolean} True if the skill is a basic attack, false otherwise.
- */
-JABS_Battler.prototype.isSkillIdBasicAttack = function(skillId)
-{
-  // handle accordingly if an enemy.
-  if (this.isEnemy())
-  {
-    // grab the enemy basic attack.
-    const basicAttackSkillId = this.getEnemyBasicAttack();
-
-    // check if the chosen skill is the enemy's basic attack.
-    return (skillId === basicAttackSkillId);
-  }
-  // handle accordingly if an actor.
-  else if (this.isActor())
-  {
-    // grab the first slot that the id lives in.
-    const slot = this.getBattler().findSlotForSkillId(skillId);
-
-    // if there is no slot with this skill, then its not a basic attack.
-    if (!slot) return false;
-
-    // if the slot key matches our mainhand, then it is a basic attack.
-    return (slot.key === JABS_Button.Mainhand || slot.key === JABS_Button.Offhand);
-  }
-
-  // handle accordingly if not actor or enemy.
-  console.warn(`non-actor/non-enemy checked for basic attack.`, this);
-  return false;
-};
-
-/**
- * Gets the proper skill based on the skill id.
- * Accommodates J-SkillExtend and/or J-Passives.
- * @param {number} skillId The skill id to retrieve.
- * @returns {RPG_Skill|null}
- */
-JABS_Battler.prototype.getSkill = function(skillId)
-{
-  // check to make sure we actually have a skill id first.
-  if (!skillId)
-  {
-    // return null if we do not.
-    return null;
-  }
-
-  // return the skill assocaited with the underlying battler.
-  return this.getBattler().skill(skillId);
-};
-
-/**
- * Determines whether or not this battler can pay the cost of a given skill id.
- * Accommodates skill extensions.
- * @param {number} skillId The skill id to check.
- * @returns {boolean} True if this battler can pay the cost, false otherwise.
- */
-JABS_Battler.prototype.canPaySkillCost = function(skillId)
-{
-  // if the skill cost is more than the battler has resources for, then fail.
-  const skill = this.getSkill(skillId);
-
-  // check if the battler can pay the cost.
-  if (!this.getBattler().canPaySkillCost(skill))
-  {
-    return false;
-  }
-
-  // we can pay the cost!
-  return true;
-};
-//endregion isReady & cooldowns
-
-//region get data
-/**
- * Gets the skill id of the last skill that this battler executed.
- * @returns {number}
- */
-JABS_Battler.prototype.getLastUsedSkillId = function()
-{
-  return this._lastUsedSkillId;
-};
-
-/**
- * Sets the skill id of the last skill that this battler executed.
- * @param {number} skillId The skill id of the last skill used.
- */
-JABS_Battler.prototype.setLastUsedSkillId = function(skillId)
-{
-  this._lastUsedSkillId = skillId;
-};
-
-/**
- * Gets the key of the last used slot.
- * @returns {string}
- */
-JABS_Battler.prototype.getLastUsedSlot = function()
-{
-  return this._lastUsedSlot;
-};
-
-/**
- * Sets the last used slot to the given slot key.
- * @param {string} slotKey The key of the last slot used.
- */
-JABS_Battler.prototype.setLastUsedSlot = function(slotKey)
-{
-  this._lastUsedSlot = slotKey;
-};
-
-/**
- * Gets the id of the battler associated with this battler
- * that has been assigned via the battler core data.
- * @returns {number}
- */
-JABS_Battler.prototype.getBattlerId = function()
-{
-  return this._battlerId;
-};
-
-/**
- * Gets the skill id of the next combo action in the sequence.
- * @returns {number} The skill id of the next combo action.
- */
-JABS_Battler.prototype.getComboNextActionId = function(cooldownKey)
-{
-  const nextComboId = this.getBattler()
-    .getSkillSlotManager()
-    .getSlotComboId(cooldownKey);
-
-  return nextComboId;
-};
-
-/**
- * Sets the skill id for the next combo action in the sequence.
- * @param {string} cooldownKey The cooldown key to check readiness for.
- * @param {number} nextComboId The skill id for the next combo action.
- */
-JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
-{
-  this.getBattler()
-    .getSkillSlotManager()
-    .setSlotComboId(cooldownKey, nextComboId);
-};
-
-/**
- * Determines whether or not at least one slot has a combo skill id pending.
- * @returns {boolean} True if at least one slot's combo skill id is pending, false otherwise.
- */
-JABS_Battler.prototype.hasComboReady = function()
-{
-  return this.getBattler()
-    .getSkillSlotManager()
-    .getAllSlots()
-    .some(slot => slot.comboId !== 0);
-};
-
-/**
- * Gets all skills that are available to this enemy battler.
- * These skills disclude "extend" skills and non-combo-starter skills.
- * @returns {number[]} The skill ids available to this enemy.
- */
-JABS_Battler.prototype.getSkillIdsFromEnemy = function()
-{
-  // grab the database data for this enemy.
-  const battlerActions = this.getBattler().enemy().actions;
-
-  // a filter function for building the skill to check if it should be filtered.
-  const filtering = action =>
-  {
-    // determine the skill of this action.
-    const skill = this.getBattler().skill(action.skillId);
-
-    // determine if we're keeping it.
-    const keep = this.aiSkillFilter(skill);
-
-    // return what we found out.
-    return keep;
-  };
-
-  // determine the valid actions available for this enemy.
-  const validActions = battlerActions.filter(filtering, this);
-
-  // extract all the skill ids of the actions.
-  const validSkillIds = validActions.map(action => action.skillId);
-
-  // return the list of filtered skill ids this battler can use.
-  return validSkillIds;
-};
-
-/**
- * Determine whether or not this skill is a valid skill for selection by the {@link JABS_AiManager}.<br>
- * @param {RPG_Skill} skill The skill being verified.
- * @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
- */
-JABS_Battler.prototype.aiSkillFilter = function(skill)
-{
-  // extract the combo data points.
-  const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion, isSkillExtender } = skill;
-
-  // this skill is explicitly excluded from the skill pool.
-  if (jabsAiSkillExclusion) return false;
-
-  // skill extender skills are excluded from the skill pool.
-  if (isSkillExtender) return false;
-
-  // determine if this skill is a combo action.
-  const isCombo = !!jabsComboAction;
-
-  // determine if this skill is a combo starter.
-  const isComboStarter = !!jabsComboStarter;
-
-  // we can only include combo starter combo skills.
-  const isNonComboStarterSkill = (isCombo && !isComboStarter);
-
-  // combo skills that are not combo starters are excluded from the skill pool.
-  if (isNonComboStarterSkill) return false;
-
-  // valid skill!
-  return true;
-};
-
-/**
- * Retrieves the skillId of the basic attack for this enemy.
- * @returns {number} The skillId of the basic attack.
- */
-JABS_Battler.prototype.getEnemyBasicAttack = function()
-{
-  return this.getBattler().basicAttackSkillId();
-};
-
-/**
- * Gets all skill ids that this battler has access to, including the basic attack.
- * @returns {number[]}
- */
-JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
-{
-  // grab all the added skills.
-  const skills = this.getSkillIdsFromEnemy();
-
-  // grab this enemy's basic attack.
-  const basicAttackSkillId = this.getEnemyBasicAttack();
-
-  // add the basic attack to the list of skills.
-  skills.push(basicAttackSkillId);
-
-  // return the built list.
-  return skills;
-};
-
-/**
- * Gets the number of additional/bonus hits per basic attack.
- * Skills (such as magic) do not receive bonus hits at this time.
- * @param {RPG_Skill} skill The skill to consider regarding bonus hits.
- * @param {boolean} isBasicAttack True if this is a basic attack, false otherwise.
- * @returns {number} The number of bonus hits per attack.
- */
-JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
-{
-  let bonusHits = 0;
-  const battler = this.getBattler();
-  if (isBasicAttack)
-  {
-    // TODO: split "basic attack" bonus hits from "skill" and "all" bonus hits.
-    bonusHits += battler.getBonusHits();
-    if (skill.repeats > 1)
-    {
-      bonusHits += skill.repeats - 1;
-    }
-  }
-  else
-  {
-    // check for skills that may have non-pierce-related bonus hits?
-  }
-
-  return bonusHits;
-};
-//endregion get data
-
-//region aggro
-/**
- * Adjust the currently engaged target based on aggro.
- */
-JABS_Battler.prototype.adjustTargetByAggro = function()
-{
-  // don't process aggro for inanimate battlers.
-  if (this.isInanimate()) return;
-
-  // extract the uuid of the current highest aggro.
-  const highestAggroUuid = this.getHighestAggro().uuid();
-
-  // check if we currently don't have a target.
-  if (!this.getTarget())
-  {
-    // grab the battler for that uuid.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroUuid);
-
-    // make sure the battler exists before setting it.
-    if (newTarget)
-    {
-      // set it.
-      this.setTarget(newTarget);
-    }
-
-    // stop processing .
+    this._alertedCounter--;
     return;
   }
 
-  // if the target is no longer valid, disengage and end combat.
-  this.removeAggroIfInvalid(this.getTarget().getUuid());
-
-  const allAggros = this.getAggrosSortedHighestToLowest();
-
-  // if there is no aggros remaining, disengage.
-  if (allAggros.length === 0)
+  if (this._alertedCounter <= 0)
   {
-    this.disengageTarget();
-    return;
-  }
-
-  // if there is only 1 aggro remaining
-  if (allAggros.length === 1)
-  {
-    // if there is no target, just stop that shit.
-    if (!this.getTarget()) return;
-
-    // grab the uuid of the first aggro in the list.
-    const zerothAggroUuid = allAggros.at(0).uuid();
-
-    // check to see if the last aggro in the list belongs to the current target.
-    if (!(this.getTarget().getUuid() === zerothAggroUuid))
-    {
-      // if it doesn't, then get that battler.
-      const newTarget = JABS_AiManager.getBattlerByUuid(zerothAggroUuid);
-      if (newTarget)
-      {
-        // then switch to that target!
-        this.setTarget(newTarget);
-      }
-      else
-      {
-        // if the battler doesn't exist but the aggro does, purge it.
-        this.removeAggro(zerothAggroUuid);
-      }
-    }
-
-    // stop processing.
-    return;
-  }
-
-  // if you still don't have a target but have multiple aggros, then just give up.
-  if (!this.getTarget()) return;
-
-  // filtered aggros containing only aggros of enemies that are nearby.
-  const filteredAggros = allAggros.filter(aggro =>
-  {
-    // the battler associated with the aggro.
-    const potentialTarget = JABS_AiManager.getBattlerByUuid(aggro.uuid());
-
-    // if the target is invalid somehow, then it is not a valid aggro.
-    if (!potentialTarget) return false;
-
-    // if the target is too far away, don't consider it.
-    if (this.getPursuitRadius() < this.distanceToDesignatedTarget(potentialTarget)) return false;
-
-    // this aggro target is fine!
-    return true;
-  });
-
-  // all aggro'd targets are too far, don't adjust targets.
-  if (filteredAggros.length === 0) return;
-
-  // find the highest aggro target currently being tracked.
-  const highestAggroTargetUuid = filteredAggros.at(0).uuid();
-
-  // grab the current target of this battler at the moment.
-  const currentTargetUuid = this.getTarget().getUuid();
-
-  // if the current target isn't the highest target, then switch!
-  if (highestAggroTargetUuid !== currentTargetUuid)
-  {
-    // find the new target to change to that has more aggro than the current target.
-    const newTarget = JABS_AiManager.getBattlerByUuid(highestAggroTargetUuid);
-
-    // if we can't find the target on the map somehow, then try to remove it from the list of aggros.
-    if (!newTarget)
-    {
-      // get the index to remove...
-      this.removeAggro(highestAggroTargetUuid);
-    }
-    else
-    {
-      // we found it, let's engage!
-      this.engageTarget(newTarget);
-    }
-  }
-
-  // the current target IS the highest aggro! Continue as-usual.
-};
-
-/**
- * Gets all aggros on this battler.
- * @returns {JABS_Aggro[]}
- */
-JABS_Battler.prototype.getAllAggros = function()
-{
-  return this._aggros;
-};
-
-/**
- * Gets the highest aggro currently tracked by this battler.
- * If the top two highest aggros are the same, this will add +1 to one of them
- * and use that instead to prevent infinite looping.
- * @returns {JABS_Aggro}
- */
-JABS_Battler.prototype.getHighestAggro = function()
-{
-  // grab the aggros pre-sorted.
-  const sortedAggros = this.getAggrosSortedHighestToLowest();
-
-  // validate we have aggros.
-  if (sortedAggros.length === 0)
-  {
-    // no aggros means no highest.
-    return null;
-  }
-
-  // check if we only have a single aggro tracked.
-  if (sortedAggros.length === 1)
-  {
-    // return that one aggro.
-    return sortedAggros.at(0);
-  }
-
-  // otherwise, grab the first and second highest aggros.
-  const [ highestAggro, secondHighestAggro, ] = sortedAggros;
-
-  // check if the top two aggros are the same.
-  if (highestAggro.aggro === secondHighestAggro.aggro)
-  {
-    // modify the first one by 1 to actually be higher.
-    highestAggro.modAggro(1, true);
-  }
-
-  // return the result.
-  return highestAggro;
-};
-
-/**
- * Gets all the aggros for this battler, sorted from highest to lowest.
- * @returns {JABS_Aggro[]}
- */
-JABS_Battler.prototype.getAggrosSortedHighestToLowest = function()
-{
-  // a sorting function for determining the highest aggro from a collection.
-  const sorting = (a, b) =>
-  {
-    if (a.aggro < b.aggro)
-    {
-      return 1
-    }
-    else if (a.aggro > b.aggro)
-    {
-      return -1;
-    }
-
-    return 0;
-  };
-
-  // grab the aggros.
-  const aggros = this.getAllAggros();
-
-  // sort them by their aggro rating.
-  aggros.sort(sorting);
-
-  // return the sorted aggros.
-  return aggros;
-};
-
-/**
- * If the target is invalid somehow, then stop tracking its aggro.
- * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
- */
-JABS_Battler.prototype.removeAggroIfInvalid = function(uuid)
-{
-  // check if any of the captured conditions are true.
-  if (this.isAggroInvalid(uuid))
-  {
-    // remove the aggro from this battler's tracking.
-    this.removeAggro(uuid);
+    this.clearAlert();
   }
 };
 
 /**
- * Determines whether or not this battler's aggro against a given target is invalid.
- * @param {string} uuid The uuid of the target to potentially invalidate aggro for.
- * @returns {boolean} True if the aggro is invalid, false otherwise.
+ * Removes and clears the alert state from this battler.
  */
-JABS_Battler.prototype.isAggroInvalid = function(uuid)
+JABS_Battler.prototype.clearAlert = function()
 {
-  // grab the battler from tracking.
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-
-  // if the battler doesn't exist, then the aggro is invalid.
-  if (!battler) return true;
-
-  // if the battler is actually dead, then the aggro is invalid.
-  if (battler.isDead()) return true;
-
-  // if the battler is too far from this battler, then the aggro is invalid.
-  if (battler.outOfRange(this)) return true;
-
-  // the aggro must be valid.
-  return false;
+  this.setAlerted(false);
+  this._alertedCounter = 0;
+  // if (!this.isEngaged())
+  // {
+  //   this.showBalloon(J.ABS.Balloons.Silence);
+  // }
 };
-
-/**
- * Removes a single aggro by its `uuid`.
- * @param {string} uuid The `uuid` of the aggro to remove.
- */
-JABS_Battler.prototype.removeAggro = function(uuid)
-{
-  // get the index to remove...
-  const indexToRemove = this._aggros.findIndex(aggro => aggro.uuid() === uuid);
-  if (indexToRemove > -1)
-  {
-    // if currently engaged with the dead target, then disengage.
-    if (this.getTarget().getUuid() === uuid)
-    {
-      this.disengageTarget();
-    }
-
-    // ...and remove it.
-    this._aggros.splice(indexToRemove, 1);
-  }
-};
-
-/**
- * Adds a new aggro tracker to this battler, or updates an existing one.
- * @param {string} uuid The unique identifier of the target.
- * @param {number} aggroValue The amount of aggro being modified.
- * @param {boolean} forced If provided, then this application will bypass locks.
- */
-JABS_Battler.prototype.addUpdateAggro = function(uuid, aggroValue, forced = false)
-{
-  // if the aggro is locked, don't adjust it.
-  if (this.getBattler()
-    .isAggroLocked() && !forced)
-  {
-    return;
-  }
-
-  const foundAggro = this.aggroExists(uuid);
-  if (foundAggro)
-  {
-    foundAggro.modAggro(aggroValue, forced);
-  }
-  else
-  {
-    const newAggro = new JABS_Aggro(uuid);
-    newAggro.setAggro(aggroValue, forced);
-    this._aggros.push(newAggro);
-  }
-};
-
-/**
- * Resets the aggro for a particular target.
- * @param {string} uuid The unique identifier of the target to reset.
- * @param {boolean} forced If provided, then this application will bypass locks.
- */
-JABS_Battler.prototype.resetOneAggro = function(uuid, forced = false)
-{
-  // if the aggro is locked, don't adjust it.
-  if (this.getBattler()
-    .isAggroLocked() && !forced)
-  {
-    return;
-  }
-
-  const foundAggro = this.aggroExists(uuid);
-  if (foundAggro)
-  {
-    foundAggro.resetAggro(forced);
-  }
-  else
-  {
-    // if the uuid provided is empty, then do nothing with it.
-    if (!uuid) return;
-
-    // otherwise, create a new aggro for this battler.
-    this.addUpdateAggro(uuid, 0, forced);
-  }
-};
-
-/**
- * Resets all aggro on this battler.
- * @param {string} uuid The unique identifier of the target resetting this battler's aggro.
- * @param {boolean} forced If provided, then this application will bypass locks.
- */
-JABS_Battler.prototype.resetAllAggro = function(uuid, forced = false)
-{
-  // if the aggro is locked, don't adjust it.
-  if (this.getBattler().isAggroLocked() && !forced) return;
-
-  // reset the aggro of the battler that triggered this reset to prevent pursuit.
-  this.resetOneAggro(uuid, forced);
-
-  // and reset all aggros this battler has.
-  this._aggros.forEach(aggro => aggro.resetAggro(forced));
-};
-
-/**
- * Gets an aggro by its unique identifier.
- * If the aggro doesn't exist, then returns undefined.
- * @param {string} uuid The unique identifier of the target resetting this battler's aggro.
- * @returns {JABS_Aggro}
- */
-JABS_Battler.prototype.aggroExists = function(uuid)
-{
-  return this._aggros.find(aggro => aggro.uuid() === uuid);
-};
-
-//endregion aggro
-
-//region create/apply effects
-/**
- * Performs a preliminary check to see if the target is actually able to be hit.
- * @returns {boolean} True if actions can potentially connect, false otherwise.
- */
-JABS_Battler.prototype.canActionConnect = function()
-{
-  // this battler is untargetable.
-  if (this.isInvincible()) return false;
-
-  // the player cannot be targeted while holding the DEBUG button.
-  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Debug)) return false;
-
-  // precise timing allows for battlers to hit other battlers the instant they
-  // meet event conditions, and that is not grounds to hit enemies.
-  if (this.getCharacter().isJabsAction())
-  {
-    return false;
-  }
-
-  // passes all the criteria.
-  return true;
-};
-
-/**
- * Determines whether or not this battler is available as a target based on the
- * provided action's scopes.
- * @param {JABS_Action} action The action to check validity for.
- * @param {JABS_Battler} target The potential candidate for hitting with this action.
- * @param {boolean} alreadyHitOne Whether or not this action has already hit a target.
- */
-JABS_Battler.prototype.isWithinScope = function(action, target, alreadyHitOne = false)
-{
-  const user = action.getCaster();
-  const gameAction = action.getAction();
-  const scopeAlly = gameAction.isForFriend();
-  const scopeOpponent = gameAction.isForOpponent();
-  const scopeSingle = gameAction.isForOne();
-  const scopeSelf = gameAction.isForUser();
-  const scopeMany = gameAction.isForAll();
-  const scopeEverything = gameAction.isForEveryone();
-  const scopeAllAllies = scopeAlly && scopeMany;
-  const scopeAllOpponents = scopeOpponent && scopeMany;
-
-  const targetIsSelf = (user.getUuid() === target.getUuid() || (action.getAction()
-    .isForUser()));
-  const actionIsSameTeam = user.getTeam() === this.getTeam();
-  const targetIsOpponent = !user.isSameTeam(this.getTeam());
-
-  // scope is for 1 target, and we already found one.
-  if (scopeSingle && alreadyHitOne)
-  {
-    return false;
-  }
-
-  // the caster and target are the same.
-  if (targetIsSelf && (scopeSelf || scopeAlly || scopeAllAllies || scopeEverything))
-  {
-    return true;
-  }
-
-  // action is from one of the target's allies.
-  // inanimate battlers cannot be targeted by their allies with direct skills.
-  if (actionIsSameTeam &&
-    (scopeAlly || scopeAllAllies || scopeEverything) &&
-    !(action.isDirectAction() && target.isInanimate()))
-  {
-    return true;
-  }
-
-  // action is for enemy battlers and scope is for opponents.
-  if (targetIsOpponent && (scopeOpponent || scopeAllOpponents || scopeEverything))
-  {
-    return true;
-  }
-
-  // meets no criteria, target is not within scope of this action.
-  return false;
-};
-
-/**
- * Creates a new `JABS_Action` from a skill id.
- * @param {number} skillId The id of the skill to create a `JABS_Action` from.
- * @param {boolean} isRetaliation True if this is a retaliation action, false otherwise.
- * @param {string} cooldownKey The cooldown key associated with this action.
- * @returns {JABS_Action[]} The `JABS_Action` based on the skill id provided.
- */
-JABS_Battler.prototype.createJabsActionFromSkill = function(
-  skillId,
-  isRetaliation = false,
-  cooldownKey = null)
-{
-  // create the underlying skill for the action.
-  const action = new Game_Action(
-    this.getBattler(),
-    false);
-
-  // set the skill which also applies all applicable overlays.
-  action.setSkill(skillId);
-
-  // grab the potentially extended skill.
-  const skill = this.getSkill(skillId);
-
-  // calculate the projectile count and directions.
-  const projectileCount = skill.jabsProjectile ?? 1;
-  const projectileDirections = $jabsEngine.determineActionDirections(
-    this.getCharacter().direction(),
-    projectileCount);
-
-  // calculate how many actions will be generated to accommodate the directions.
-  const actions = [];
-  projectileDirections.forEach(direction =>
-  {
-    const mapAction = new JABS_Action({
-      uuid: J.BASE.Helpers.generateUuid(),
-      baseSkill: action.item(),
-      teamId: this.getTeam(),
-      gameAction: action,
-      caster: this,
-      isRetaliation: isRetaliation,
-      direction: direction,
-      cooldownKey: cooldownKey,
-    });
-
-    actions.push(mapAction);
-  }, this);
-
-  return actions;
-};
-
-/**
- * Constructs the attack data from this battler's skill slot.
- * @param {string} cooldownKey The cooldown key.
- * @returns {JABS_Action[]} The constructed `JABS_Action`s.
- */
-JABS_Battler.prototype.getAttackData = function(cooldownKey)
-{
-  // grab the underlying battler.
-  const battler = this.getBattler();
-
-  // get the skill equipped in the designated slot.
-  const skillId = this.getSkillIdForAction(cooldownKey);
-
-  // if there isn't one, then we don't do anything.
-  if (!skillId) return [];
-
-  // check to make sure we can actually use the skill.
-  if (!battler.meetsSkillConditions(battler.skill(skillId))) return [];
-
-  // check to make sure we actually know the skill, too.
-  if (!battler.hasSkill(skillId)) return [];
-
-  // otherwise, use the skill from the slot to build an action.
-  return this.createJabsActionFromSkill(skillId, false, cooldownKey);
-};
-
-/**
- * Gets the next skill id to create an action from for the given slot.
- * Accommodates combo actions.
- * @param {string} slot The slot for the skill to check.
- * @returns {number}
- */
-JABS_Battler.prototype.getSkillIdForAction = function(slot)
-{
-  // grab the underlying battler.
-  const battler = this.getBattler();
-
-  // check the slot for a combo action.
-  let skillId;
-
-  // check if we have a skill id in the next combo action id slot.
-  if (this.getComboNextActionId(slot) !== 0)
-  {
-    // capture the combo action id.
-    skillId = this.getComboNextActionId(slot);
-  }
-  // if no combo...
-  else
-  {
-    // then just grab the skill id in the slot.
-    skillId = battler.getEquippedSkillId(slot);
-  }
-
-  // return whichever skill id was found.
-  return skillId;
-};
-
-/**
- * Consumes an item and performs its effects.
- * @param {number} toolId The id of the tool/item to be used.
- * @param {boolean} isLoot Whether or not this is a loot pickup.
- */
-// eslint-disable-next-line complexity
-JABS_Battler.prototype.applyToolEffects = function(toolId, isLoot = false)
-{
-  // grab the item data.
-  const item = $dataItems.at(toolId);
-
-  // grab this battler.
-  const battler = this.getBattler();
-
-  // force the player to use the item.
-  battler.consumeItem(item);
-
-  // flag the slot for refresh.
-  battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
-
-  // also generate an action based on this tool.
-  const gameAction = new Game_Action(battler, false);
-  gameAction.setItem(toolId);
-
-  // handle scopes of the tool.
-  const scopeNone = gameAction.item().scope === 0;
-  const scopeSelf = gameAction.isForUser();
-  const scopeAlly = gameAction.isForFriend();
-  const scopeOpponent = gameAction.isForOpponent();
-  const scopeSingle = gameAction.isForOne();
-  const scopeAll = gameAction.isForAll();
-  const scopeEverything = gameAction.isForEveryone();
-
-  const scopeAllAllies = scopeEverything || (scopeAll && scopeAlly);
-  const scopeAllOpponents = scopeEverything || (scopeAll && scopeOpponent);
-  const scopeOneAlly = (scopeSingle && scopeAlly);
-  const scopeOneOpponent = (scopeSingle && scopeOpponent);
-
-  // apply tool effects based on scope.
-  if (scopeSelf || scopeOneAlly)
-  {
-    this.applyToolToPlayer(toolId);
-  }
-  else if (scopeEverything)
-  {
-    this.applyToolForAllAllies(toolId);
-    this.applyToolForAllOpponents(toolId);
-  }
-  else if (scopeOneOpponent)
-  {
-    this.applyToolForOneOpponent(toolId);
-  }
-  else if (scopeAllAllies)
-  {
-    this.applyToolForAllAllies(toolId);
-  }
-  else if (scopeAllOpponents)
-  {
-    this.applyToolForAllOpponents(toolId);
-  }
-  else if (scopeNone)
-  {
-    // do nothing, the item has no scope and must be relying purely on the skillId.
-  }
-  else
-  {
-    console.warn(`unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
-  }
-
-  // applies common events that may be a part of an item's effect.
-  gameAction.applyGlobal();
-
-  // create the log for the tool use.
-  this.createToolLog(item);
-
-  // extract the cooldown and skill id from the item.
-  const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
-
-  // it was an item with a skill attached.
-  if (itemSkillId)
-  {
-    const mapAction = this.createJabsActionFromSkill(itemSkillId);
-    mapAction.forEach(action =>
-    {
-      action.setCooldownType(JABS_Button.Tool);
-      $jabsEngine.executeMapAction(this, action);
-    });
-  }
-
-  // if the last item was consumed, unequip it.
-  if (!isLoot && !$gameParty.items().includes(item))
-  {
-    // remove the item from the slot.
-    battler.getSkillSlotManager().clearSlot(JABS_Button.Tool);
-
-    // build a lot for it.
-    const log = new MapLogBuilder()
-      .setupUsedLastItem(item.id)
-      .build();
-    $mapLogManager.addLog(log);
-  }
-  else
-  {
-    // it is an item with a custom cooldown.
-    if (itemCooldown)
-    {
-      if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
-    }
-
-    // it was an item, didn't have a skill attached, and didn't have a cooldown.
-    if (!itemCooldown && !itemSkillId && !isLoot)
-    {
-      this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
-    }
-  }
-};
-
-/**
- * Applies the effects of the tool against the leader.
- * @param {number} toolId The id of the tool/item being used.
- */
-JABS_Battler.prototype.applyToolToPlayer = function(toolId)
-{
-  // apply tool effects against player.
-  const battler = this.getBattler();
-  const gameAction = new Game_Action(battler, false);
-  gameAction.setItem(toolId);
-  gameAction.apply(battler);
-
-  // display popup from item.
-  this.generatePopItem(gameAction, toolId);
-
-  // show tool animation.
-  this.showAnimation($dataItems.at(toolId).animationId);
-};
-
-/**
- * Generates a popup based on the item used.
- * @param {Game_Action} gameAction The action describing the tool's effect.
- * @param {number} itemId The target having the action applied against.
- * @param {JABS_Battler} target The target for calculating damage; defaults to self.
- */
-JABS_Battler.prototype.generatePopItem = function(gameAction, itemId, target = this)
-{
-  // if we are not using popups, then don't do this.
-  if (!J.POPUPS) return;
-
-  // grab some shorthand variables for local use.
-  const character = this.getCharacter();
-  const toolData = $dataItems.at(itemId);
-
-  if (toolData.sdpKey !== String.empty)
-  {
-    $jabsEngine.generatePopItemBulk([toolData], character);
-    return;
-  }
-
-  // generate the textpop.
-  const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
-
-  // add the pop to the target's tracking.
-  character.addTextPop(itemPop);
-  character.requestTextPop();
-};
-
-/**
- * Applies the effects of the tool against all allies on the team.
- * @param {number} toolId The id of the tool/item being used.
- */
-JABS_Battler.prototype.applyToolForAllAllies = function(toolId)
-{
-  const battlers = $gameParty.battleMembers();
-  if (battlers.length > 1)
-  {
-    battlers.shift(); // remove the leader, because that's the player.
-    battlers.forEach(battler =>
-    {
-      const gameAction = new Game_Action(battler, false);
-      gameAction.setItem(toolId);
-      gameAction.apply(battler);
-    });
-  }
-
-  // also apply effects to player/leader.
-  this.applyToolToPlayer(toolId);
-};
-
-/**
- * Applies the effects of the tool against all opponents on the map.
- * @param {number} toolId The id of the tool/item being used.
- */
-JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
-{
-  const item = $dataItems[toolId];
-  let jabsBattler = this.getTarget();
-  if (!jabsBattler)
-  {
-    // if we don't have a target, get the last hit battler instead.
-    jabsBattler = this.getBattlerLastHit();
-  }
-
-  if (!jabsBattler)
-  {
-    // if we don't have a last hit battler, then give up on this.
-    return;
-  }
-
-  // grab the battler being affected by this item.
-  const battler = jabsBattler.getBattler();
-
-  // create the game action based on the data.
-  const gameAction = new Game_Action(battler, false);
-
-  // apply the effects against the battler.
-  gameAction.apply(battler);
-
-  // generate the text popup for the item usage on the target.
-  this.generatePopItem(gameAction, toolId, jabsBattler);
-};
-
-/**
- * Applies the effects of the tool against all opponents on the map.
- * @param {number} toolId The id of the tool/item being used.
- */
-JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
-{
-  const battlers = JABS_AiManager.getEnemyBattlers();
-  battlers.forEach(jabsBattler =>
-  {
-    // grab the battler being affected by this item.
-    const battler = jabsBattler.getBattler();
-
-    // create the game action based on the data.
-    const gameAction = new Game_Action(battler, false);
-
-    // apply the effects against the battler.
-    gameAction.apply(battler);
-
-    // generate the text popup for the item usage on the target.
-    this.generatePopItem(gameAction, toolId);
-  }, this);
-};
-
-/**
- * Creates the text log entry for executing an tool effect.
- * @param {RPG_Item} item The tool being used in the log.
- */
-JABS_Battler.prototype.createToolLog = function(item)
-{
-  // if not enabled, skip this.
-  if (!J.LOG) return;
-
-  const log = new MapLogBuilder()
-    .setupUsedItem(this.getReferenceData().name, item.id)
-    .build();
-  $mapLogManager.addLog(log);
-};
-
-/**
- * Executes the pre-defeat processing for a battler.
- * @param {JABS_Battler} victor The battler that defeated this battler.
- */
-JABS_Battler.prototype.performPredefeatEffects = function(victor)
-{
-  // handle death animations first.
-  this.handleOnDeathAnimations();
-
-  // handle the skills executed when this battler is defeated.
-  this.handleOnOwnDefeatSkills(victor);
-
-  // handle skills executed when the victor defeats a target.
-  this.handleOnTargetDefeatSkills(victor);
-};
-
-/**
- * Handles the on-death animations associated with this battler.
- */
-JABS_Battler.prototype.handleOnDeathAnimations = function()
-{
-  // grab the loser battler.
-  const battler = this.getBattler();
-
-  // check if this is an actor with a death effect.
-  if (battler.isActor() && battler.needsDeathEffect())
-  {
-    // perform the actor death animation.
-    this.handleActorOnDeathAnimation();
-  }
-  // if not actor, then check for an enemy.
-  else if (battler.isEnemy())
-  {
-    // perform the enemy death animation.
-    this.handleEnemyOnDeathAnimation();
-  }
-};
-
-/**
- * Handles the on-death animation for actors.
- * Since actors will persist as followers after defeat, they require additional
- * logic to prevent the repeated loop of death animation.
- */
-JABS_Battler.prototype.handleActorOnDeathAnimation = function()
-{
-  // perform the actor death animation.
-  this.showAnimation(152);
-
-  // flag the death effect as "performed".
-  this.getBattler().toggleDeathEffect();
-};
-
-/**
- * Handle the on-death animation for enemies.
- * Since they are instantly removed after, their logic doesn't require
- * toggling of battler death effects.
- */
-JABS_Battler.prototype.handleEnemyOnDeathAnimation = function()
-{
-  // perform the enemy death animation.
-  this.showAnimation(151);
-};
-
-/**
- * Handles the execution of any on-own-defeat skills the defeated battler may possess.
- * @param {JABS_Battler} victor The battler that defeated this battler.
- */
-JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
-{
-  // grab the loser battler.
-  const battler = this.getBattler();
-
-  // grab all of the loser battler's on-death skills to execute.
-  const onOwnDefeatSkills = battler.onOwnDefeatSkillIds();
-
-  // an iterator function for executing all relevant on-own-defeat skills.
-  const forEacher = onDefeatSkill =>
-  {
-    // extract out the data points from the skill.
-    const { skillId } = onDefeatSkill;
-
-    // roll the dice and see if we should trigger this on-own-death skill.
-    if (onDefeatSkill.shouldTrigger())
-    {
-      // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = onDefeatSkill.appearOnTarget();
-
-      // check if the skill should be cast from the target.
-      if (castFromTarget)
-      {
-        // execute it from the target!
-        $jabsEngine.forceMapAction(this, skillId, false, victor.getX(), victor.getY());
-      }
-      // it should be cast from the victor.
-      else
-      {
-        // execute it from the caster like default.
-        $jabsEngine.forceMapAction(this, skillId, false);
-      }
-    }
-  };
-
-  // iterate over each of the on-death skills.
-  onOwnDefeatSkills.forEach(forEacher, this);
-};
-
-/**
- * Handles the execution of any on-target-defeat skills the victorious battler may possess.
- * @param {JABS_Battler} victor The battler that defeated this battler.
- */
-JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
-{
-  // grab all of the victor battler's on-target-defeat skills.
-  const onTargetDefeatSkills = victor.getBattler().onTargetDefeatSkillIds();
-
-  // an iterator function for executing all relevant on-target-defeat skills.
-  const forEacher = onDefeatSkill =>
-  {
-    // extract out the data points from the skill.
-    const { skillId } = onDefeatSkill;
-
-    // roll the dice and see if we should trigger this on-target-defeat skill.
-    if (onDefeatSkill.shouldTrigger())
-    {
-      // extract whether or not this on-defeat skill should be cast from the target.
-      const castFromTarget = onDefeatSkill.appearOnTarget();
-
-      // check if the skill should be cast from the target.
-      if (castFromTarget)
-      {
-        // execute it from the target!
-        $jabsEngine.forceMapAction(victor, skillId, false, this.getX(), this.getY());
-      }
-      // it should be cast from the victor.
-      else
-      {
-        // execute it from the caster like default.
-        $jabsEngine.forceMapAction(victor, skillId, false);
-      }
-    }
-  };
-
-  // iterate over each the on-target-defeat skills.
-  onTargetDefeatSkills.forEach(forEacher, this);
-};
-
-/**
- * Executes the post-defeat processing for a defeated battler.
- * @param {JABS_Battler} victor The battler that defeated this battler.
- */
-JABS_Battler.prototype.performPostdefeatEffects = function(victor)
-{
-  // check if the defeated battler is an actor.
-  if (this.isActor())
-  {
-    // flag them for death.
-    this.setDying(true);
-  }
-};
-//endregion apply effects
-
-//region guarding
-/**
- * Whether or not the precise-parry window is active.
- * @returns {boolean}
- */
-JABS_Battler.prototype.parrying = function()
-{
-  return this._parryWindow > 0;
-};
-
-/**
- * Sets the battlers precise-parry window frames.
- * @param {number} parryFrames The number of frames available for precise-parry.
- */
-JABS_Battler.prototype.setParryWindow = function(parryFrames)
-{
-  if (parryFrames < 0)
-  {
-    this._parryWindow = 0;
-  }
-  else
-  {
-    this._parryWindow = parryFrames;
-  }
-};
-
-/**
- * Get whether or not this battler is currently guarding.
- * @returns {boolean}
- */
-JABS_Battler.prototype.guarding = function()
-{
-  return this._isGuarding;
-};
-
-/**
- * Set whether or not this battler is currently guarding.
- * @param {boolean} isGuarding True if the battler is guarding, false otherwise.
- */
-JABS_Battler.prototype.setGuarding = function(isGuarding)
-{
-  this._isGuarding = isGuarding;
-};
-
-/**
- * The flat amount to reduce damage by when guarding.
- * @returns {number}
- */
-JABS_Battler.prototype.flatGuardReduction = function()
-{
-  if (!this.guarding()) return 0;
-
-  return this._guardFlatReduction;
-};
-
-/**
- * Sets the battler's flat reduction when guarding.
- * @param {number} flatReduction The flat amount to reduce when guarding.
- */
-JABS_Battler.prototype.setFlatGuardReduction = function(flatReduction)
-{
-  this._guardFlatReduction = flatReduction;
-};
-
-/**
- * The percent amount to reduce damage by when guarding.
- * @returns {number}
- */
-JABS_Battler.prototype.percGuardReduction = function()
-{
-  if (!this.guarding()) return 0;
-
-  return this._guardPercReduction;
-};
-
-/**
- * Sets the battler's percent reduction when guarding.
- * @param {number} percReduction The percent amount to reduce when guarding.
- */
-JABS_Battler.prototype.setPercGuardReduction = function(percReduction)
-{
-  this._guardPercReduction = percReduction;
-};
-
-/**
- * Checks to see if retrieving the counter-guard skill id is appropriate.
- * @returns {number[]}
- */
-JABS_Battler.prototype.counterGuard = function()
-{
-  return this.guarding()
-    ? this.counterGuardIds()
-    : [];
-};
-
-/**
- * Gets the id of the skill for counter-guarding.
- * @returns {number[]}
- */
-JABS_Battler.prototype.counterGuardIds = function()
-{
-  return this._counterGuardIds;
-};
-
-/**
- * Sets the battler's retaliation id for guarding.
- * @param {number[]} counterGuardSkillIds The skill id to counter with while guarding.
- */
-JABS_Battler.prototype.setCounterGuard = function(counterGuardSkillIds)
-{
-  this._counterGuardIds = counterGuardSkillIds;
-};
-
-/**
- * Checks to see if retrieving the counter-parry skill id is appropriate.
- * @returns {number[]}
- */
-JABS_Battler.prototype.counterParry = function()
-{
-  return this.guarding()
-    ? this.counterParryIds()
-    : [];
-};
-
-/**
- * Gets the ids of the skill for counter-parrying.
- * @returns {number[]}
- */
-JABS_Battler.prototype.counterParryIds = function()
-{
-  return this._counterParryIds;
-};
-
-/**
- * Sets the id of the skill to retaliate with when successfully precise-parrying.
- * @param {number[]} counterParrySkillIds The skill ids of the counter-parry skill.
- */
-JABS_Battler.prototype.setCounterParry = function(counterParrySkillIds)
-{
-  this._counterParryIds = counterParrySkillIds;
-};
-
-/**
- * Gets the guard skill id most recently assigned.
- * @returns {number}
- */
-JABS_Battler.prototype.getGuardSkillId = function()
-{
-  return this._guardSkillId;
-};
-
-/**
- * Sets the guard skill id to a designated skill id.
- *
- * This gets removed when guarding/parrying.
- * @param guardSkillId
- */
-JABS_Battler.prototype.setGuardSkillId = function(guardSkillId)
-{
-  this._guardSkillId = guardSkillId;
-};
-
-/**
- * Gets all data associated with guarding for this battler.
- * @returns {JABS_GuardData|null}
- */
-JABS_Battler.prototype.getGuardData = function(cooldownKey)
-{
-  // shorthand the battler of which we're getting data for.
-  const battler = this.getBattler();
-
-  // determine the skill in the given slot.
-  const skillId = battler.getEquippedSkillId(cooldownKey);
-
-  // if we have no skill to guard with, then we don't guard.
-  if (!skillId) return null;
-
-  // if the skill isn't a guard skill, then it won't have guard data.
-  if (!JABS_Battler.isGuardSkillById(skillId)) return null;
-
-  // get the skill.
-  const skill = this.getSkill(skillId);
-
-  // check also to make sure we can use the guard skill in the slot.
-  const canUse = battler.meetsSkillConditions(skill);
-
-  // if we cannot use the guard skill due to constraints, then we don't guard.
-  if (!canUse) return null;
-
-  // return the guard data off the skill.
-  return skill.jabsGuardData;
-};
-
-/**
- * Determines whether or not the skill slot is a guard-type skill or not.
- * @param {string} cooldownKey The key to determine if its a guard skill or not.
- * @returns {boolean} True if it is a guard skill, false otherwise.
- */
-JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
-{
-  // get the equipped skill in the given slot.
-  const skillId = this.getBattler().getEquippedSkillId(cooldownKey);
-
-  // if we don't hve a skill id, it isn't a guard skill.
-  if (!skillId) return false;
-
-  // if it it isn't a guard skill by its id, then ... it isn't a guard skill.
-  if (!JABS_Battler.isGuardSkillById(skillId)) return false;
-
-  // its a guard skill!
-  return true;
-};
-
-/**
- * Triggers and maintains the guard state.
- * @param {boolean} guarding True if the battler is guarding, false otherwise.
- * @param {string} skillSlot The skill slot to build guard data from.
- */
-JABS_Battler.prototype.executeGuard = function(guarding, skillSlot)
-{
-  // if we're still guarding, and already in a guard state, don't reset.
-  if (guarding && this.guarding()) return;
-
-  // if not guarding anymore, turn off the guard state.
-  if (!guarding && this.guarding())
-  {
-    // stop guarding.
-    this.endGuarding();
-
-    // stop processing.
-    return;
-  }
-
-  // if we aren't guarding now, and weren't guarding before, don't do anything.
-  if (!guarding) return;
-
-  // if not guarding, wasn't guarding before, but want to guard, then let's guard!
-  const guardData = this.getGuardData(skillSlot);
-
-  // if we cannot guard, then don't try.
-  if (!guardData || !guardData.canGuard()) return;
-
-  // begin guarding!
-  this.startGuarding(skillSlot);
-};
-
-/**
- * Begin guarding with the given skill slot.
- * @param {string} skillSlot The skill slot containing the guard data.
- */
-JABS_Battler.prototype.startGuarding = function(skillSlot)
-{
-  // grab the guard data.
-  const guardData = this.getGuardData(skillSlot);
-
-  // begin guarding!
-  this.setGuarding(true);
-  this.setFlatGuardReduction(guardData.flatGuardReduction);
-  this.setPercGuardReduction(guardData.percGuardReduction);
-  this.setCounterGuard(guardData.counterGuardIds);
-  this.setCounterParry(guardData.counterParryIds);
-  this.setGuardSkillId(guardData.skillId);
-
-  // calculate parry frames, include eva bonus to parry.
-  const totalParryFrames = this.getBonusParryFrames(guardData) + guardData.parryDuration;
-
-  // if the guarding skill has a parry window, apply those frames once.
-  if (guardData.canParry()) this.setParryWindow(totalParryFrames);
-
-  // set the pose!
-  const skillId = this.getBattler().getEquippedSkillId(skillSlot);
-  this.performActionPose(this.getSkill(skillId));
-};
-
-/**
- * Ends the guarding stance for this battler.
- */
-JABS_Battler.prototype.endGuarding = function()
-{
-  // end the guarding tracker.
-  this.setGuarding(false);
-
-  // remove any remaining parry time.
-  this.setParryWindow(0);
-
-  // stop posing.
-  this.endAnimation();
-};
-
-/**
- * Abstraction of the definition of how to determine what the bonus to parry frames is.
- * @param {JABS_GuardData} guardData The guard data.
- * @returns {number}
- */
-JABS_Battler.prototype.getBonusParryFrames = function(guardData)
-{
-  return Math.floor((this.getBattler().eva) * guardData.parryDuration);
-};
-
-/**
- * Counts down the parry window that occurs when guarding is first activated.
- */
-JABS_Battler.prototype.countdownParryWindow = function()
-{
-  if (this.parrying())
-  {
-    this._parryWindow--;
-  }
-
-  if (this._parryWindow < 0)
-  {
-    this._parryWindow = 0;
-  }
-};
-//endregion guarding
-
-//region actionposes/animations
-/**
- * Executes an action pose.
- * Will silently fail if the asset is missing.
- * @param {RPG_Skill} skill The skill to pose for.
- */
-JABS_Battler.prototype.performActionPose = function(skill)
-{
-  // if we are still animating from a previous skill, prematurely end it.
-  if (this._posing)
-  {
-    this.endAnimation();
-  }
-
-  // if we have a pose suffix for this skill, then try to perform the pose.
-  if (skill.jabsPoseData)
-  {
-    this.changeCharacterSprite(skill);
-  }
-};
-
-/**
- * Executes the change of character sprite based on the action pose data
- * from within a skill's notes.
- * @param {RPG_Skill} skill The skill to pose for.
- */
-JABS_Battler.prototype.changeCharacterSprite = function(skill)
-{
-  // establish the base sprite data.
-  const baseSpriteName = this.getCharacterSpriteName();
-  this.captureBaseSpriteInfo();
-
-  // define the duration for this pose.
-  this.setAnimationCount(skill.jabsPoseDuration);
-
-  // determine the new action pose sprite name.
-  const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
-
-  // stitch the file path together with the sprite url.
-  const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.<br>png`;
-
-  // check if the sprite exists.
-  const spriteExists = StorageManager.fileExists(spritePath);
-
-  // only actually switch to the other character sprite if it exists.
-  if (spriteExists)
-  {
-    // load the character into cache.
-    ImageManager.loadCharacter(newCharacterSprite);
-
-    // actually set the character.
-    this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
-  }
-};
-
-/**
- * Forcefully ends the pose animation.
- */
-JABS_Battler.prototype.endAnimation = function()
-{
-  this.setAnimationCount(0);
-  this.resetAnimation();
-};
-
-/**
- * Sets the pose animation count to a given amount.
- * @param {number} count The number of frames to animate for.
- */
-JABS_Battler.prototype.setAnimationCount = function(count)
-{
-  this._poseFrames = count;
-  if (this._poseFrames > 0)
-  {
-    this._posing = true;
-  }
-
-  if (this._poseFrames <= 0)
-  {
-    this._posing = false;
-    this._poseFrames = 0;
-  }
-};
-
-/**
- * Resets the pose animation for this battler.
- */
-JABS_Battler.prototype.resetAnimation = function()
-{
-  if (!this._baseSpriteImage && !this._baseSpriteIndex) return;
-  if (this._posing)
-  {
-    this.endAnimation();
-  }
-
-  const originalImage = this._baseSpriteImage;
-  const originalIndex = this._baseSpriteIndex;
-  const currentImage = this.getCharacterSpriteName();
-  const currentIndex = this.getCharacterSpriteIndex();
-  const character = this.getCharacter();
-  if (originalImage !== currentImage || originalIndex !== currentIndex)
-  {
-    character.setImage(originalImage, originalIndex);
-  }
-};
-//endregion actionposes/animations
-
-//region utility helpers
-/**
- * Forces a display of a emoji balloon above this battler's head.
- * @param {number} balloonId The id of the balloon to display on this character.
- */
-JABS_Battler.prototype.showBalloon = function(balloonId)
-{
-  $gameTemp.requestBalloon(this._event, balloonId);
-};
-
-/**
- * Displays an animation on the battler.
- * @param {number} animationId The id of the animation to play on the battler.
- */
-JABS_Battler.prototype.showAnimation = function(animationId)
-{
-  this.getCharacter().requestAnimation(animationId);
-};
-
-/**
- * Checks if there is currently an animation playing on this character.
- * @returns {boolean} True if there is an animation playing, false otherwise.
- */
-JABS_Battler.prototype.isShowingAnimation = function()
-{
-  return this.getCharacter().isAnimationPlaying();
-};
-//endregion utility helpers
+//endregion timers
 //endregion JABS_Battler
 
 //region JABS_BattlerCoreData
@@ -9561,7 +7123,390 @@ JABS_BattlerCoreData.prototype.isInanimate = function()
 {
   return this._isInanimate;
 };
+
+/**
+ * A factory for generating builders for creating {@link JABS_BattlerCoreData}s.
+ * @returns {JABS_BattlerCoreDataBuilder}
+ */
+JABS_BattlerCoreData.Builder = function()
+{
+  return new JABS_BattlerCoreDataBuilder();
+};
 //endregion JABS_BattlerCoreData
+
+//region JABS_BattlerCoreDataBuilder
+/**
+ * A builder for creating {@link JABS_BattlerCoreData}s.
+ */
+class JABS_BattlerCoreDataBuilder
+{
+  //region properties
+  /**
+   * The battler's id, such as the actor id or enemy id.
+   * @type {number}
+   * @private
+   */
+  #battlerId = 0;
+
+  /**
+   * The team id that this battler belongs to.
+   * @type {number}
+   * @private
+   */
+  #teamId = JABS_Battler.enemyTeamId();
+
+  /**
+   * The AI of this battler.
+   * @type {JABS_AI}
+   * @private
+   */
+  #battlerAi = new JABS_AI();
+
+  /**
+   * The sight range of this battler.
+   * @type {number}
+   * @private
+   */
+  #sightRange = J.ABS.Metadata.DefaultEnemySightRange;
+
+  /**
+   * The alerted sight boost of this battler.
+   * @type {number}
+   * @private
+   */
+  #alertedSightBoost = J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
+
+  /**
+   * The pursuit range of this battler.
+   * @type {number}
+   * @private
+   */
+  #pursuitRange = J.ABS.Metadata.DefaultEnemyPursuitRange;
+
+  /**
+   * The alerted pursuit boost of this battler.
+   * @type {number}
+   * @private
+   */
+  #alertedPursuitBoost = J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
+
+  /**
+   * The duration this battler remains alerted.
+   * @type {number}
+   * @private
+   */
+  #alertDuration = J.ABS.Metadata.DefaultEnemyAlertDuration;
+
+  /**
+   * Whether or not this battler is allowed to idle about.
+   * @type {boolean}
+   * @private
+   */
+  #canIdle = J.ABS.Metadata.DefaultEnemyCanIdle;
+
+  /**
+   * Whether or not this battler has a visible hp bar.
+   * @type {boolean}
+   * @private
+   */
+  #showHpBar = J.ABS.Metadata.DefaultEnemyShowHpBar;
+
+  /**
+   * Whether or not this battler has a visible hp bar.
+   * @type {boolean}
+   * @private
+   */
+  #showDangerIndicator = J.ABS.EXT.DANGER ? J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
+
+  /**
+   * Whether or not this battler's name is visible.
+   * @type {boolean}
+   * @private
+   */
+  #showBattlerName = J.ABS.Metadata.DefaultEnemyShowBattlerName;
+
+  /**
+   * Whether or not this battler is invincible.
+   * @type {boolean}
+   * @private
+   */
+  #isInvincible = J.ABS.Metadata.DefaultEnemyIsInvincible;
+
+  /**
+   * Whether or not this battler is inanimate.
+   * @type {boolean}
+   * @private
+   */
+  #isInanimate = J.ABS.Metadata.DefaultEnemyIsInanimate;
+  //endregion properties
+
+  /**
+   * Constructor.
+   * @param {number} battlerId The id of the battler from the database.
+   */
+  constructor(battlerId)
+  {
+    this.setBattlerId(battlerId);
+  }
+
+  /**
+   * Builds the core data with the current set of parameters.
+   * @returns {JABS_BattlerCoreData}
+   */
+  build()
+  {
+    const core = new JABS_BattlerCoreData({
+      // configure core battler data.
+      battlerId: this.#battlerId,
+      teamId: this.#teamId,
+      battlerAI: this.#battlerAi,
+
+      // configure sight and alert battler data.
+      sightRange: this.#sightRange,
+      alertedSightBoost: this.#alertedSightBoost,
+      pursuitRange: this.#pursuitRange,
+      alertedPursuitBoost: this.#alertedPursuitBoost,
+      alertDuration: this.#alertDuration,
+
+      // configure on-the-map settings.
+      canIdle: this.#canIdle,
+      showHpBar: this.#showHpBar,
+      showBattlerName: this.#showBattlerName,
+      isInvincible: this.#isInvincible,
+      isInanimate: this.#isInanimate
+    });
+
+    // if using danger indicators, then set that, too.
+    if (J.ABS.EXT.DANGER)
+    {
+      core.setDangerIndicator(this.#showDangerIndicator);
+    }
+
+    return core;
+  }
+
+  //region setters
+  /**
+   * Sets all properties based on this battler's own data except id.
+   * @param {Game_Battler} battler
+   * @returns {this} This builder for fluent-building.
+   */
+  setBattler(battler)
+  {
+    this.#battlerId = battler.battlerId();
+    this.#teamId = battler.teamId();
+    this.#battlerAi = battler.ai();
+
+    this.#sightRange = battler.sightRange();
+    this.#alertedSightBoost = battler.alertedSightBoost();
+    this.#pursuitRange = battler.pursuitRange();
+    this.#alertedPursuitBoost = battler.alertedPursuitBoost();
+    this.#alertDuration = battler.alertDuration();
+
+    this.#canIdle = battler.canIdle();
+    this.#showHpBar = battler.showHpBar();
+    this.#showDangerIndicator = battler.showDangerIndicator();
+    this.#showBattlerName = battler.showBattlerName();
+    this.#isInvincible = battler.isInvincible();
+    this.#isInanimate = battler.isInanimate();
+
+    return this;
+  }
+
+  /**
+   * Sets all properties based on the assumption that this is for the player.
+   * Effectively, all ranges are set to 0, and all booleans are set to false.
+   * @returns {this} This builder for fluent-building.
+   */
+  isPlayer()
+  {
+    this.#teamId = JABS_Battler.allyTeamId();
+
+    this.#sightRange = 0;
+    this.#alertedSightBoost = 0;
+    this.#pursuitRange = 0;
+    this.#alertedPursuitBoost = 0;
+    this.#alertDuration = 0;
+
+    this.#canIdle = false;
+    this.#showHpBar = false;
+    this.#showBattlerName = false;
+    this.#isInvincible = false;
+    this.#isInanimate = false;
+
+    return this;
+  }
+
+  /**
+   * Sets all properties based on the assumption that this is a dummy enemy.
+   * Only the defaults are used because this isn't a real enemy to engage on the map.
+   * @param {boolean} isFriendly Whether or not this is an allied dummy.
+   * @returns {this} This builder for fluent-building.
+   */
+  isDummy(isFriendly = false)
+  {
+    this.#teamId = isFriendly
+      ? JABS_Battler.allyTeamId()
+      : JABS_Battler.enemyTeamId();
+    return this;
+  }
+
+  /**
+   * Sets the battler id of this core data.
+   * @param {number} battlerId The id of the battler from the database.
+   * @returns {this} This builder for fluent-building.
+   */
+  setBattlerId(battlerId)
+  {
+    this.#battlerId = battlerId;
+    return this;
+  }
+
+  /**
+   * Sets the team id of this core data.
+   * @param {number} teamId The id of the team this battler belongs to.
+   * @returns {this} This builder for fluent-building.
+   */
+  setTeamId(teamId)
+  {
+    this.#teamId = teamId;
+    return this;
+  }
+
+  /**
+   * Sets the AI of this core data.
+   * @param {JABS_EnemyAI} battlerAi The AI of this battler.
+   * @returns {this} This builder for fluent-building.
+   */
+  setBattlerAi(battlerAi)
+  {
+    this.#battlerAi = battlerAi;
+    return this;
+  }
+
+  /**
+   * Sets the sight range of this core data.
+   * @param {number} sightRange The sight range of this battler.
+   * @returns {this} This builder for fluent-building.
+   */
+  setSightRange(sightRange)
+  {
+    this.#sightRange = sightRange;
+    return this;
+  }
+
+  /**
+   * Sets the alerted sight boost of this core data.
+   * @param {number} alertedSightBoost The alerted sight boost of this battler.
+   * @returns {this} This builder for fluent-building.
+   */
+  setAlertedSightBoost(alertedSightBoost)
+  {
+    this.#alertedSightBoost = alertedSightBoost;
+    return this;
+  }
+
+  /**
+   * Sets the pursuit range of this core data.
+   * @param {number} pursuitRange The pursuit range of this battler.
+   * @returns {this} This builder for fluent-building.
+   */
+  setPursuitRange(pursuitRange)
+  {
+    this.#pursuitRange = pursuitRange;
+    return this;
+  }
+
+  /**
+   * Sets the alerted pursuit boost of this core data.
+   * @param {number} alertedPursuitBoost The alerted pursuit boost of this battler.
+   * @returns {this} This builder for fluent-building.
+   */
+  setAlertedPursuitBoost(alertedPursuitBoost)
+  {
+    this.#alertedPursuitBoost = alertedPursuitBoost;
+    return this;
+  }
+
+  /**
+   * Sets the alerted duration of this core data.
+   * @param {number} alertDuration The duration of which this battler remains alerted.
+   * @returns {this} This builder for fluent-building.
+   */
+  setAlertDuration(alertDuration)
+  {
+    this.#alertDuration = alertDuration;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler can idle while not in combat.
+   * @param {boolean} canIdle Whether or not this battler can idle about.
+   * @returns {this} This builder for fluent-building.
+   */
+  setCanIdle(canIdle)
+  {
+    this.#canIdle = canIdle;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler's hp bar is visible.
+   * @param {boolean} showHpBar Whether or not the hp bar is visible.
+   * @returns {this} This builder for fluent-building.
+   */
+  setShowHpBar(showHpBar)
+  {
+    this.#showHpBar = showHpBar;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler's danger indicator is visible.
+   * @param {boolean} showDangerIndicator Whether or not the danger indicator is visible.
+   * @returns {this} This builder for fluent-building.
+   */
+  setShowDangerIndicator(showDangerIndicator)
+  {
+    this.#showDangerIndicator = showDangerIndicator;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler's name is visible.
+   * @param {boolean} showBattlerName Whether or not the battler name is visible.
+   * @returns {this} This builder for fluent-building.
+   */
+  setShowBattlerName(showBattlerName)
+  {
+    this.#showBattlerName = showBattlerName;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler is invincible.
+   * @param {boolean} isInvincible Whether or not the battler is invincible.
+   * @returns {this} This builder for fluent-building.
+   */
+  setIsInvincible(isInvincible)
+  {
+    this.#isInvincible = isInvincible;
+    return this;
+  }
+
+  /**
+   * Sets whether or not this battler is inanimate.
+   * @param {boolean} isInanimate Whether or not the battler is inanimate.
+   * @returns {this} This builder for fluent-building.
+   */
+  setIsInanimate(isInanimate)
+  {
+    this.#isInanimate = isInanimate;
+    return this;
+  }
+  //endregion setters
+}
+//endregion JABS_BattlerCoreDataBuilder
 
 //region JABS_Cooldown
 /**
@@ -9967,366 +7912,6 @@ JABS_Cooldown.prototype.unlock = function()
 };
 //endregion locking
 //endregion JABS_Cooldown
-
-//region JABS_CoreDataBuilder
-/**
- * A builder class for constructing `JABS_BattlerCoreData`.
- */
-class JABS_CoreDataBuilder
-{
-  //region properties
-  /**
-   * The battler's id, such as the actor id or enemy id.
-   * @type {number}
-   * @private
-   */
-  #battlerId = 0;
-
-  /**
-   * The team id that this battler belongs to.
-   * @type {number}
-   * @private
-   */
-  #teamId = JABS_Battler.enemyTeamId();
-
-  /**
-   * The AI of this battler.
-   * @type {string}
-   * @private
-   */
-  #battlerAi = "11000000";
-
-  /**
-   * The sight range of this battler.
-   * @type {number}
-   * @private
-   */
-  #sightRange = J.ABS.Metadata.DefaultEnemySightRange;
-
-  /**
-   * The alerted sight boost of this battler.
-   * @type {number}
-   * @private
-   */
-  #alertedSightBoost = J.ABS.Metadata.DefaultEnemyAlertedSightBoost;
-
-  /**
-   * The pursuit range of this battler.
-   * @type {number}
-   * @private
-   */
-  #pursuitRange = J.ABS.Metadata.DefaultEnemyPursuitRange;
-
-  /**
-   * The alerted pursuit boost of this battler.
-   * @type {number}
-   * @private
-   */
-  #alertedPursuitBoost = J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost;
-
-  /**
-   * The duration this battler remains alerted.
-   * @type {number}
-   * @private
-   */
-  #alertDuration = J.ABS.Metadata.DefaultEnemyAlertDuration;
-
-  /**
-   * Whether or not this battler is allowed to idle about.
-   * @type {boolean}
-   * @private
-   */
-  #canIdle = J.ABS.Metadata.DefaultEnemyCanIdle;
-
-  /**
-   * Whether or not this battler has a visible hp bar.
-   * @type {boolean}
-   * @private
-   */
-  #showHpBar = J.ABS.Metadata.DefaultEnemyShowHpBar;
-
-  /**
-   * Whether or not this battler has a visible hp bar.
-   * @type {boolean}
-   * @private
-   */
-  #showDangerIndicator = J.ABS.EXT.DANGER ? J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator : false;
-
-  /**
-   * Whether or not this battler's name is visible.
-   * @type {boolean}
-   * @private
-   */
-  #showBattlerName = J.ABS.Metadata.DefaultEnemyShowBattlerName;
-
-  /**
-   * Whether or not this battler is invincible.
-   * @type {boolean}
-   * @private
-   */
-  #isInvincible = J.ABS.Metadata.DefaultEnemyIsInvincible;
-
-  /**
-   * Whether or not this battler is inanimate.
-   * @type {boolean}
-   * @private
-   */
-  #isInanimate = J.ABS.Metadata.DefaultEnemyIsInanimate;
-  //endregion properties
-
-  /**
-   * Constructor.
-   * @param {number} battlerId The id of the battler from the database.
-   */
-  constructor(battlerId)
-  {
-    this.setBattlerId(battlerId);
-  }
-
-  /**
-   * Builds the core data with the current set of parameters.
-   * @returns {JABS_BattlerCoreData}
-   */
-  build()
-  {
-    const core = new JABS_BattlerCoreData({
-      // configure core battler data.
-      battlerId: this.#battlerId,
-      teamId: this.#teamId,
-      battlerAI: this.#battlerAi,
-
-      // configure sight and alert battler data.
-      sightRange: this.#sightRange,
-      alertedSightBoost: this.#alertedSightBoost,
-      pursuitRange: this.#pursuitRange,
-      alertedPursuitBoost: this.#alertedPursuitBoost,
-      alertDuration: this.#alertDuration,
-
-      // configure on-the-map settings.
-      canIdle: this.#canIdle,
-      showHpBar: this.#showHpBar,
-      showBattlerName: this.#showBattlerName,
-      isInvincible: this.#isInvincible,
-      isInanimate: this.#isInanimate
-    });
-
-    // if using danger indicators, then set that, too.
-    if (J.ABS.EXT.DANGER)
-    {
-      core.setDangerIndicator(this.#showDangerIndicator);
-    }
-
-    return core;
-  }
-
-  //region setters
-  /**
-   * Sets all properties based on this battler's own data except id.
-   * @param {Game_Battler} battler
-   * @returns {this} This builder for fluent-building.
-   */
-  setBattler(battler)
-  {
-    this.#battlerId = battler.battlerId();
-    this.#teamId = battler.teamId();
-    this.#battlerAi = battler.ai();
-
-    this.#sightRange = battler.sightRange();
-    this.#alertedSightBoost = battler.alertedSightBoost();
-    this.#pursuitRange = battler.pursuitRange();
-    this.#alertedPursuitBoost = battler.alertedPursuitBoost();
-    this.#alertDuration = battler.alertDuration();
-
-    this.#canIdle = battler.canIdle();
-    this.#showHpBar = battler.showHpBar();
-    this.#showDangerIndicator = battler.showDangerIndicator();
-    this.#showBattlerName = battler.showBattlerName();
-    this.#isInvincible = battler.isInvincible();
-    this.#isInanimate = battler.isInanimate();
-
-    return this;
-  }
-
-  /**
-   * Sets all properties based on the assumption that this is for the player.
-   * Effectively, all ranges are set to 0, and all booleans are set to false.
-   * @returns {this} This builder for fluent-building.
-   */
-  isPlayer()
-  {
-    this.#teamId = JABS_Battler.allyTeamId();
-
-    this.#sightRange = 0;
-    this.#alertedSightBoost = 0;
-    this.#pursuitRange = 0;
-    this.#alertedPursuitBoost = 0;
-    this.#alertDuration = 0;
-
-    this.#canIdle = false;
-    this.#showHpBar = false;
-    this.#showBattlerName = false;
-    this.#isInvincible = false;
-    this.#isInanimate = false;
-
-    return this;
-  }
-
-  /**
-   * Sets the battler id of this core data.
-   * @param {number} battlerId The id of the battler from the database.
-   * @returns {this} This builder for fluent-building.
-   */
-  setBattlerId(battlerId)
-  {
-    this.#battlerId = battlerId;
-    return this;
-  }
-
-  /**
-   * Sets the team id of this core data.
-   * @param {number} teamId The id of the team this battler belongs to.
-   * @returns {this} This builder for fluent-building.
-   */
-  setTeamId(teamId)
-  {
-    this.#teamId = teamId;
-    return this;
-  }
-
-  /**
-   * Sets the AI of this core data.
-   * @param {JABS_EnemyAI} battlerAi The AI of this battler.
-   * @returns {this} This builder for fluent-building.
-   */
-  setBattlerAi(battlerAi)
-  {
-    this.#battlerAi = battlerAi;
-    return this;
-  }
-
-  /**
-   * Sets the sight range of this core data.
-   * @param {number} sightRange The sight range of this battler.
-   * @returns {this} This builder for fluent-building.
-   */
-  setSightRange(sightRange)
-  {
-    this.#sightRange = sightRange;
-    return this;
-  }
-
-  /**
-   * Sets the alerted sight boost of this core data.
-   * @param {number} alertedSightBoost The alerted sight boost of this battler.
-   * @returns {this} This builder for fluent-building.
-   */
-  setAlertedSightBoost(alertedSightBoost)
-  {
-    this.#alertedSightBoost = alertedSightBoost;
-    return this;
-  }
-
-  /**
-   * Sets the pursuit range of this core data.
-   * @param {number} pursuitRange The pursuit range of this battler.
-   * @returns {this} This builder for fluent-building.
-   */
-  setPursuitRange(pursuitRange)
-  {
-    this.#pursuitRange = pursuitRange;
-    return this;
-  }
-
-  /**
-   * Sets the alerted pursuit boost of this core data.
-   * @param {number} alertedPursuitBoost The alerted pursuit boost of this battler.
-   * @returns {this} This builder for fluent-building.
-   */
-  setAlertedPursuitBoost(alertedPursuitBoost)
-  {
-    this.#alertedPursuitBoost = alertedPursuitBoost;
-    return this;
-  }
-
-  /**
-   * Sets the alerted duration of this core data.
-   * @param {number} alertDuration The duration of which this battler remains alerted.
-   * @returns {this} This builder for fluent-building.
-   */
-  setAlertDuration(alertDuration)
-  {
-    this.#alertDuration = alertDuration;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler can idle while not in combat.
-   * @param {boolean} canIdle Whether or not this battler can idle about.
-   * @returns {this} This builder for fluent-building.
-   */
-  setCanIdle(canIdle)
-  {
-    this.#canIdle = canIdle;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler's hp bar is visible.
-   * @param {boolean} showHpBar Whether or not the hp bar is visible.
-   * @returns {this} This builder for fluent-building.
-   */
-  setShowHpBar(showHpBar)
-  {
-    this.#showHpBar = showHpBar;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler's danger indicator is visible.
-   * @param {boolean} showDangerIndicator Whether or not the danger indicator is visible.
-   * @returns {this} This builder for fluent-building.
-   */
-  setShowDangerIndicator(showDangerIndicator)
-  {
-    this.#showDangerIndicator = showDangerIndicator;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler's name is visible.
-   * @param {boolean} showBattlerName Whether or not the battler name is visible.
-   * @returns {this} This builder for fluent-building.
-   */
-  setShowBattlerName(showBattlerName)
-  {
-    this.#showBattlerName = showBattlerName;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler is invincible.
-   * @param {boolean} isInvincible Whether or not the battler is invincible.
-   * @returns {this} This builder for fluent-building.
-   */
-  setIsInvincible(isInvincible)
-  {
-    this.#isInvincible = isInvincible;
-    return this;
-  }
-
-  /**
-   * Sets whether or not this battler is inanimate.
-   * @param {boolean} isInanimate Whether or not the battler is inanimate.
-   * @returns {this} This builder for fluent-building.
-   */
-  setIsInanimate(isInanimate)
-  {
-    this.#isInanimate = isInanimate;
-    return this;
-  }
-  //endregion setters
-}
-//endregion JABS_CoreDataBuilder
 
 //region JABS_EnemyAI
 /**
@@ -10817,8 +8402,8 @@ class JABS_EnemyAI extends JABS_AI
    */
   aiComboChanceModifier()
   {
-    // default the modifier to 0.
-    let comboChanceModifier = 0;
+    // default the modifier to 50%.
+    let comboChanceModifier = 50;
 
     // extract out this AI's traits.
     const { careful, executor, reckless, leader, follower, healer } = this;
@@ -11646,6 +9231,193 @@ class JABS_InputAdapter
 }
 //endregion JABS_InputAdapter
 
+//region JABS_Location
+/**
+ * A class representing the location of a JABS entity.
+ */
+class JABS_Location
+{
+  /**
+   * The X coordinate of this location.
+   * @type {null|number}
+   */
+  x = null;
+
+  /**
+   * The Y coordinate of this location.
+   * @type {null|number}
+   */
+  y = null;
+
+  /**
+   * The direction of the entity at this location.
+   * @type {number}
+   */
+  d = 5;
+
+  /**
+   * Constructor.
+   * @param {number=} x The X coordinate.
+   * @param {number=} y The Y coordinate.
+   * @param {1|2|3|4|6|7|8|9=} d The numpad direction.
+   */
+  constructor(x = null, y = null, d = null)
+  {
+    this.x = x;
+    this.y = y;
+    this.d = d;
+  }
+
+  /**
+   * Create a new instance with the same location values as another instance.
+   * @param {JABS_Location} sourceLocation The source location to copy the values of.
+   * @returns {JABS_Location} A new instance of the same location.
+   */
+  static Clone = sourceLocation => new JABS_Location(sourceLocation?.x, sourceLocation?.y, sourceLocation?.d);
+
+  /**
+   * A factory that generates builders for creating {@link JABS_Location}s.
+   * @type {JABS_LocationBuilder}
+   */
+  static Builder = () => new JABS_LocationBuilder();
+}
+
+//endregion JABS_Location
+
+//region JABS_LocationBuilder
+/**
+ * A builder for creating {@link JABS_Location}s.
+ */
+class JABS_LocationBuilder
+{
+  #x = null;
+  #y = null;
+  #d = null;
+
+  build()
+  {
+    const newLocation = new JABS_Location(this.#x, this.#y, this.#d);
+    this.clear();
+    return newLocation;
+  }
+
+  clear()
+  {
+    this.#x = null;
+    this.#y = null;
+    this.#d = null;
+    return this;
+  }
+
+  setX(x)
+  {
+    this.#x = x;
+    return this;
+  }
+
+  setY(y)
+  {
+    this.#y = y;
+    return this;
+  }
+
+  /**
+   * Sets the direction of this location to a given numpad-direction.
+   * @param {1|2|3|4|6|7|8|9} d One of the 8 cardinal numpad directions.
+   * @returns {JABS_LocationBuilder} This builder for fluent-chaining.
+   */
+  setDirection(d)
+  {
+    this.#d = d;
+    return this;
+  }
+
+  facingUp()
+  {
+    return this.setDirection(J.ABS.Directions.UP);
+  }
+
+  facingUpperLeft()
+  {
+    return this.setDirection(J.ABS.Directions.UPPERLEFT);
+
+  }
+
+  facingUpperRight()
+  {
+    return this.setDirection(J.ABS.Directions.UPPERRIGHT);
+
+  }
+
+  facingLeft()
+  {
+    return this.setDirection(J.ABS.Directions.LEFT);
+
+  }
+
+  facingRight()
+  {
+    return this.setDirection(J.ABS.Directions.RIGHT);
+
+  }
+
+  facingLowerLeft()
+  {
+    return this.setDirection(J.ABS.Directions.LOWERLEFT);
+  }
+
+  facingLowerRight()
+  {
+    return this.setDirection(J.ABS.Directions.LOWERRIGHT);
+  }
+
+  facingDown()
+  {
+    return this.setDirection(J.ABS.Directions.DOWN);
+  }
+
+  /**
+   * Face the same direction as another {@link JABS_Location}.
+   * @param {JABS_Location} targetLocation The location to copy the facing of.
+   */
+  faceSame(targetLocation)
+  {
+    return this.setDirection(targetLocation.d);
+  }
+
+  /**
+   * Face the opposite direction as another {@link JABS_Location}.
+   * @param {JABS_Location} targetLocation The location to reverse the facing of.
+   */
+  faceReverse(targetLocation)
+  {
+    switch (targetLocation.d)
+    {
+      case J.ABS.Directions.LOWERLEFT:
+        return this.facingUpperRight();
+      case J.ABS.Directions.DOWN:
+        return this.facingUp();
+      case J.ABS.Directions.LOWERRIGHT:
+        return this.facingUpperLeft;
+      case J.ABS.Directions.LEFT:
+        return this.facingRight();
+      case J.ABS.Directions.RIGHT:
+        return this.facingLeft();
+      case J.ABS.Directions.UPPERLEFT:
+        return this.facingLowerRight();
+      case J.ABS.Directions.UP:
+        return this.facingDown();
+      case J.ABS.Directions.UPPERRIGHT:
+        this.#d = J.ABS.Directions.LOWERLEFT;
+        return this.facingLowerLeft();
+      case null:
+        console.warn('Attempted to face reverse a null direction.');
+        return this.facingUp();
+    }
+  }
+}
+//endregion JABS_LocationBuilder
+
 //region JABS_LootDrop
 /**
  * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
@@ -12228,7 +10000,8 @@ JABS_SkillSlot.prototype.getCooldown = function()
 JABS_SkillSlot.prototype.updateCooldown = function()
 {
   // update the cooldown.
-  this.getCooldown().update();
+  this.getCooldown()
+    .update();
 
   // handle the need to clear the combo id from this slot.
   this.handleComboReadiness();
@@ -12651,7 +10424,9 @@ JABS_SkillSlotManager.prototype.getAllSlots = function()
   return this._slots;
 };
 
-
+/**
+ * Initializes the slot collection to a new collection of slots.
+ */
 JABS_SkillSlotManager.prototype.initializeBattlerSlots = function()
 {
   // initialize the slots.
@@ -12801,7 +10576,8 @@ JABS_SkillSlotManager.prototype.getDodgeSlot = function()
  */
 JABS_SkillSlotManager.prototype.getEquippedSlots = function()
 {
-  return this.getAllSlots().filter(skillSlot => skillSlot.isUsable());
+  return this.getAllSlots()
+    .filter(skillSlot => skillSlot.isUsable());
 };
 
 /**
@@ -12810,7 +10586,8 @@ JABS_SkillSlotManager.prototype.getEquippedSlots = function()
  */
 JABS_SkillSlotManager.prototype.getEmptySecondarySlots = function()
 {
-  return this.getAllSecondarySlots().filter(skillSlot => skillSlot.isEmpty());
+  return this.getAllSecondarySlots()
+    .filter(skillSlot => skillSlot.isEmpty());
 };
 
 /**
@@ -12947,7 +10724,8 @@ JABS_SkillSlotManager.prototype.isAnyCooldownReadyForSlot = function(key)
  */
 JABS_SkillSlotManager.prototype.clearSlot = function(key)
 {
-  this.getSkillSlotByKey(key).clear();
+  this.getSkillSlotByKey(key)
+    .clear();
 };
 
 /**
@@ -12955,7 +10733,8 @@ JABS_SkillSlotManager.prototype.clearSlot = function(key)
  */
 JABS_SkillSlotManager.prototype.unlockAllSlots = function()
 {
-  this.getAllSlots().forEach(slot => slot.unlock());
+  this.getAllSlots()
+    .forEach(slot => slot.unlock());
 };
 //endregion JABS_SkillSlotManager
 
@@ -12972,16 +10751,19 @@ class JABS_State
   static reapplicationType = {
     /**
      * "Refresh" will refresh the duration of a state when reapplied.
+     * @type {"refresh"}
      */
     Refresh: "refresh",
 
     /**
      * "Extend" will add the remaining duration onto the new duration when reapplied.
+     * @type {"extend"}
      */
     Extend: "extend",
 
     /**
      * "Stack" will add an additional stack of the state when reapplied.
+     * @type {"stack"}
      */
     Stack: "stack",
   }
@@ -13043,6 +10825,20 @@ class JABS_State
    * @type {number}
    */
   stackCount = 0;
+
+  /**
+   * The number of times this state has been refreshed.<br/>
+   * This only matters when the reapplication type is {@link JABS_State.reapplicationType.Refresh}.
+   * @type {number}
+   */
+  timesRefreshed = 0;
+
+  /**
+   * The number of frames until
+   * @type {number}
+   */
+  #refreshResetCounter = 0;
+
   //endregion properties
 
   /**
@@ -13096,6 +10892,16 @@ class JABS_State
   }
 
   /**
+   * Whether or not this state has been refreshed recently enough that the refresh effects are diminished due to
+   * repetition of being reapplied over and over again in a short amount of time.
+   * @returns {boolean}
+   */
+  hasDiminishingRefresh()
+  {
+    return this.#refreshResetCounter > 0;
+  }
+
+  /**
    * Refresh the recently applied counter.
    */
   refreshRecentlyAppliedCounter()
@@ -13105,39 +10911,47 @@ class JABS_State
   }
 
   /**
+   * Refresh the refresh reset counter.
+   * @param {number=} newRefreshResetAmount The count to refresh the refresh reset counter to.
+   */
+  refreshRefreshResetCounter(newRefreshResetAmount = J.ABS.Metadata.DefaultStateRefreshReset)
+  {
+    this.#refreshResetCounter = newRefreshResetAmount
+  }
+
+  /**
    * The update loop for this tracked state.
    * Handles decrementing the counter and removing the state as applicable.
    */
   update()
   {
-    // countdown the recently applied timer for this state.
-    this.decrementRecentlyAppliedCounter();
-
-    // countdown if there is still time left to be counted down.
-    this.decrementCounter();
+    // handle all counters associated with the state.
+    this.handleCounters();
 
     // remove stacks as-needed.
     this.decrementStacks();
 
-    // check if we can and should remove this state from the battler.
-    if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler())
-    {
-      // actually remove the state from the battler.
-      this.removeFromBattler();
-    }
+    // handle the removal if applicable.
+    this.handleExpiration();
+
+    // reset the refresh reset counter and times refreshed counter if necessary.
+    this.handleDiminishedRefresh();
   }
 
   /**
-   * Decrements the duration as-needed.
+   * Handle all the counters that countdown on this state, like the recently applied counter, the refresh reset counter,
+   * and the actual duration counter.
    */
-  decrementCounter()
+  handleCounters()
   {
-    // check if we still have time left on the clock.
-    if (this.duration > 0)
-    {
-      // decrement the timer.
-      this.duration--;
-    }
+    // countdown the recently applied timer for this state.
+    this.decrementRecentlyAppliedCounter();
+
+    // countdown the refresh reset timer for this state.
+    this.decrementRefreshResetCounter();
+
+    // countdown if there is still time left to be counted down.
+    this.decrementDuration();
   }
 
   /**
@@ -13154,6 +10968,32 @@ class JABS_State
   }
 
   /**
+   * Decrements the refresh reset counter as-needed.
+   */
+  decrementRefreshResetCounter()
+  {
+    // check if we still have any counter left.
+    if (this.#refreshResetCounter > 0)
+    {
+      // decrement it as-needed.
+      this.#refreshResetCounter--;
+    }
+  }
+
+  /**
+   * Decrements the duration as-needed.
+   */
+  decrementDuration()
+  {
+    // check if we still have time left on the clock.
+    if (this.duration > 0)
+    {
+      // decrement the timer.
+      this.duration--;
+    }
+  }
+
+  /**
    * Decrement the stack counter as-needed.
    */
   decrementStacks()
@@ -13161,8 +11001,13 @@ class JABS_State
     // check if we are at 0 duration and have stacks remaining.
     if (this.duration <= 0 && this.stackCount > 0 && !this.hasEternalDuration())
     {
-      // decrement the stack counter.
-      this.stackCount--;
+      // grab whether or not to lose all stacks at once.
+      const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
+
+      // decrement the stack counter accordingly.
+      this.stackCount -= loseAllStacksAtOnce
+        ? this.stackCount
+        : 1;
 
       // check if we STILL have stacks remaining.
       if (this.stackCount > 0)
@@ -13179,6 +11024,9 @@ class JABS_State
    */
   refreshDuration(newDuration = this.#baseDuration)
   {
+    // don't refresh the state if the provided duration is actually 0.
+    if (newDuration <= 0) return;
+
     // refresh the duration.
     this.duration = newDuration;
 
@@ -13186,7 +11034,43 @@ class JABS_State
     this.expired = false;
 
     // flag this as recently applied.
-    this.#recentlyAppliedCounter = 6;
+    this.refreshRecentlyAppliedCounter();
+
+    // also reset the refresh reset counter.
+    this.refreshRefreshResetCounter();
+
+    // when new states are revived, they may be revived with zero stacks.
+    if (this.stackCount === 0)
+    {
+      // they should actually be revived with a single stack.
+      this.stackCount = 1;
+    }
+  }
+
+  /**
+   * Handles the removal of the state from the afflicted battler if applicable.
+   */
+  handleExpiration()
+  {
+    // check if we can and should remove this state from the battler.
+    if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler())
+    {
+      // actually remove the state from the battler.
+      this.removeFromBattler();
+    }
+  }
+
+  /**
+   * Handle reset circumstances for the refresh reset counter and times refreshed counter.
+   */
+  handleDiminishedRefresh()
+  {
+    // check if we have refreshed repeatedly, but the reset counter reached zero.
+    if (this.timesRefreshed > 0 && this.#refreshResetCounter === 0)
+    {
+      // reset the number of times this state has been refreshed.
+      this.timesRefreshed = 0;
+    }
   }
 
   /**
@@ -13196,8 +11080,7 @@ class JABS_State
   incrementStacks(stackIncrease = 1)
   {
     // grab the max number of stacks for this state.
-    // TODO: get this from the state data.
-    const maxStacks = 5;
+    const maxStacks = this.battler.state(this.stateId).jabsStateStackMax;
 
     // check if we still have room to add more stacks.
     if (this.stackCount < maxStacks)
@@ -13306,6 +11189,7 @@ class JABS_State
     return (this.#recentlyAppliedCounter > 0);
   }
 }
+
 //endregion JABS_State
 
 //region JABS_Timer
@@ -13588,6 +11472,2784 @@ class JABS_Timer
 }
 //endregion JABS_Timer
 
+/* eslint-disable max-len */
+/*:
+ * @target MZ
+ * @plugindesc
+ * [v3.4.0 JABS] Enables combat to be carried out on the map.
+ * @author JE
+ * @url https://github.com/je-can-code/rmmz-plugins
+ * @base J-Base
+ * @orderAfter J-Base
+ * @help
+ * ============================================================================
+ * OVERVIEW
+ * This plugin is JABS: J's Action Battle System.
+ * Using this plugin will enable you to carry out combat directly on the map
+ * in real-time, similar to popular game franchises like Zelda.
+ *
+ * ----------------------------------------------------------------------------
+ * DETAILS:
+ * Have you ever wanted to decorate events with tons of event comments and
+ * watch them come to life as AI-controlled allies/enemies in an action battle
+ * system for your button-mashing hack-n-slash pleasure? Well now you can! Just
+ * slap some tags on the various everything across the entire RMMZ editor, and
+ * you too can have a functional ABS, aka JABS!
+ *
+ * ============================================================================
+ * INTEGRATIONS:
+ * In addition to JABS, I've written a suite(20+) of other plugins that add
+ * new systems or modify existing systems.
+ *
+ * All plugins I have written are highly compatible with eachother, and JABS.
+ * Many of them were written to compliment JABS, such as the HUD or Ally AI.
+ *
+ * If you find issue with how my plugins are interacting with one another, feel
+ * free to reach out and let me know and I'll see if I can fix it.
+ *
+ * If you find issue with how JABS is interacting with someone elses' plugin,
+ * I encourage you communicate with that plugin author to have them reach out
+ * to me and we shall discuss the problem and try to come to a solution if one
+ * exists for the problem.
+ *
+ * As an alternative to the above, you are also welcome to file an issue
+ * against my github repository describing the issue and how to reproduce it
+ * minimally, and I will look into it when possible.
+ * ============================================================================
+ * Due to the sheer length of instruction provided below, the changelog for
+ * JABS lives at the top instead of the bottom like the rest of my plugins.
+ *
+ * CHANGELOG:
+ * - 3.4.0
+ *    Added functionality surrounding skill auto-assignment.
+ *    Extracted "poses" functionality to an extension for future enhancements.
+ *    Added Scene_Map#forceCloseAbsMenu() to programmatically close the menu.
+ * - 3.3.0
+ *    Added plugin command to generate enemies on the map dynamically.
+ *    Added plugin command to generate loot on the map dynamically.
+ *    Refactored away manual getter/setters of JABS_Engine.
+ * - 3.2.2
+ *    JABS quick menu now honors menu access via event control.
+ *    Actor-based JABS parameter retrieval has been refactored.
+ *    Enabled auto-counter for enemies.
+ *    Fixed issue where states weren't reapplied properly.
+ *    Fixed issue where inanimate battlers could endlessly alert allies.
+ * - 3.2.1
+ *    Refactored slip effects to accommodate the J-Passives update.
+ *    Fixed issue where endlessly delaying actions would never expire.
+ * - 3.2.0
+ *    Fixed bug where actions couldn't connect if the attacker was too close.
+ *    Upgraded AI to be able to leverage combos (ally AI, too).
+ *    Refactored code surrounding AI action decision-making.
+ * - 3.1.2
+ *    Refactored some of the JABS menu in a non-breaking way.
+ *    Optimized/centralized note tag retrieval in many cases.
+ * - 3.1.1
+ *    Retroactively added this CHANGELOG.
+ * - 3.1.0
+ *    Optimized battler tracking and management.
+ *    Optimized state tracking and management.
+ *    Optimized integrations with my other plugins.
+ *    Added proper guidance in the plugin description.
+ *    Added state duration modifiers functionality.
+ *    Fixed "ignore all parry" tag.
+ *    Added "Skill Charging" as JABS extension.
+ *    Added "Casting Modifiers" as JABS extension.
+ *    Added "Map Tools" as JABS extension.
+ *    Added "Cyclone-Movement" adapter as JABS extension.
+ *    Updated distance-centric tags to now allow for decimals (like "range").
+ *    Added "circle" hitbox.
+ *    Updated hitbox logic.
+ *    Updated tags surrounding enemy event configuration.
+ *    Updated tags surrounding AI definition for enemies.
+ *    Optimized AI decision-making capabilities based on AI traits.
+ * - 3.0.0
+ *    Extracted "Text Pops" as a JABS extension plugin.
+ *    Extracted "Input Management" as a JABS extension plugin.
+ *    Extracted "Diagonal Movements" as a JABS extension plugin.
+ *    Extracted "Movespeed Modifiers" as a JABS extension plugin.
+ *    Integrated "Ally AI" as JABS extension.
+ *    Added Aggro functionality.
+ *    Added skill delay functionality (like bombs).
+ *    Adjusted numerous data points to be customizable in plugin parameters.
+ *    Further optimized "under-the-hood" parts of JABS.
+ * - 2.3.1
+ *    Updated loot drop functionality to be less wonky.
+ *    Other miscellaneous bugfixes.
+ * - 2.3.0
+ *    Updated plugin parameters format to be cleaner.
+ *    Added "Danger Indicator" functionality (see indicator on enemies on map).
+ *    Added "Battler Name" functionality (see names of enemies on map).
+ *    Other miscellaneous bugfixes.
+ * - 2.2.0
+ *    Added 2 new AI types: "leader" and "follower".
+ *    Shifted tag location for enemies from event notebox to comment format.
+ *    Other miscellaneous bugfixes.
+ * - 2.1.0
+ *    Implemented party cycling between members of the party.
+ *    Added refresh command for JABS quick menu.
+ *    Added "bonus hits" functionality.
+ *    Disabled native RMMZ regeneration.
+ *    Modified dash functionality to be controlled by JABS instead.
+ *    Enemies now perform their active event page upon defeat.
+ *    Disabled on-hit effects against targets that parry.
+ *    Added "counter-guard" and "counter-parry" functionality.
+ *    Added visual indicator for "action decided" for AI-controlled battlers.
+ *    Excessive number of bugfixes.
+ * - 2.0.0
+ *    Added guarding functionality.
+ *    Added counterattack functionality.
+ *    Added projectile count modifiers.
+ *    Enemy loot is now dropped on the ground.
+ *    Added movespeed modifier functionality (for player only).
+ *    Greatly optimized "under-the-hood" parts of JABS.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
+ * SETTING UP YOUR ENEMY EVENTS:
+ * There are a lot of potential tags that you can place all across the database
+ * to accomplish various goals, so lets get started with setting up an enemy
+ * event.
+ *
+ * First and foremost, all tags will be living inside comment event commands:
+ *    "Event Commands > Flow Control > Comment"
+ *
+ * NOTE ABOUT PRIORITY OF TAGS:
+ * With the exception of the ENEMY ID tag and MOVE SPEED tag in an event, all
+ * the rest are mostly optional. If you place the same tags for ENEMY EVENTS
+ * in the database, then they will become the defaults for enemies, where the
+ * tags in the ENEMY EVENTS will act as "overrides".
+ * So the priority order looks like this:
+ *    1st: tags in the ENEMY EVENT.
+ *    2nd: tags in the database on that particular enemy.
+ *    3rd: the defaults listed in the plugin parameters.
+ * ----------------------------------------------------------------------------
+ * ENEMY ID:
+ * If you want an event to be tagged as an enemy, then the system needs a way
+ * to associate the event with the enemy. To accomplish this, we'll use the
+ * "enemy" tag:
+ *    <enemyId:ENEMY_ID>
+ *  Where ENEMY_ID is the id from the database of the enemy for this event.
+ *
+ * ----------------------------------------------------------------------------
+ * SIGHT RADIUS:
+ * The "sight" of an enemy, is the radius around the enemy that it can perceive
+ * the player. When the player comes within this radius, the enemy will try to
+ * attack the player. To define the "sight" radius of an enemy, we'll use the
+ * "sight" tag:
+ *    <sight:RADIUS>
+ *  Where RADIUS is the distance in tiles this enemy can see.
+ *
+ * NOTE: Enemy sight ignores obstacles like walls. They have x-ray vision.
+ *
+ * This can also be placed in the database on the enemy to set it as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * PURSUIT RADIUS:
+ * The "pursuit" of an enemy is the radius around the enemy that if will
+ * pursue the player once in combat. Effectively, this is the enemy's sight
+ * radius after it is engaged in combat. This is typically designed to be
+ * bigger than the sight radius. To define the "pursuit" radius of an enemy,
+ * we'll use the "pursuit" tag:
+ *    <pursuit:RADIUS>
+ *  Where RADIUS is the distance in tiles this enemy can pursue combatants.
+ *
+ * This can also be placed in the database on the enemy to set it as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * ALERTING:
+ * When an enemy is struck with a skill from outside of its sight/pursuit
+ * range, the enemy will enter an "alerted" state. While in said "alerted"
+ * state, they can have heightened sight and pursuit, and will navigate to the
+ * point of which they believe the attacker resides. It is encouraged to use
+ * this functionality, or else enemies can be easily defeated with ranged
+ * skills and no risk. To leverage this functionality, there are a few tags you
+ * may want to use:
+ *    <alertDuration:DURATION>
+ *  Where DURATION is the duration in frames to remain alerted.
+ *
+ *    <alertedSightBoost:RADIUS_BOOST>
+ *  Where RADIUS_BOOST is the amount of bonus sight gained while alerted.
+ *
+ *    <alertedPursuitBoost:RADIUS_BOOST>
+ *  Where RADIUS_BOOST is the amount of bonus pursuit gained while alerted.
+ *
+ * This can also be placed in the database on the enemy to set it as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * MOVE SPEED:
+ * Sometimes, you want an enemy to move somewhere between 3 and 4 movespeed,
+ * because 3 to 4 movespeed is literally a 2x jump in movespeed. If you want
+ * to assign a number like 3.7 as an enemy's move speed, you can use this tag:
+ *    <moveSpeed:SPEED>
+ *  Where SPEED is the numeric value to represent the move speed.
+ *
+ * NOTE: This will override whatever the native RMMZ event page is set to.
+ * NOTE: I have found a good balance is between 3.5 and 4.5 for move speed.
+ *
+ * ----------------------------------------------------------------------------
+ * AI TRAITS:
+ * While the basic AI works, you may want to modify the AI a bit for various
+ * enemies. To do this, I've built some tags that flex the various themes that
+ * the AI can perform. These tags should be added alongside wherever you might
+ * add the above tags for things like enemy id and sight radius.
+ *
+ * NOTE: Enemies have a default AI in the sense that they will still attack
+ * and perform skills, but mostly its just at random if you don't slap some
+ * ai traits on them. Though, skills still can only be used as often as their
+ * cooldown and resources permit.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:careful>
+ * Enemies with the Careful AI trait will be more calculating about their
+ * strategies, and avoid using things that would benefit you, such as skills
+ * that are elementally ineffective. This also influences decision-making for
+ * other AI traits.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:executor>
+ * Enemies with the Executor AI trait will prioritize leveraging skills that
+ * maximize damage and target weak spots. They know everything and will
+ * use every skill in their arsenal to destroy you.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:reckless>
+ * Enemies with the Reckless AI trait will never use their basic attack, and
+ * will spam their learned skills until they are out of resources instead.
+ * This also influences decision-making for other AI traits.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:healer>
+ * Enemies with the Healer AI trait will monitor their nearby allies while they
+ * use their various skills and prioritize their own healing skills to keep
+ * their allies alive. If an enemy has the Reckless AI trait alongside this,
+ * they will disregard efficiency and just use the strongest healing skill to
+ * heal their allies. If an enemy has the Careful AI trait, they will be more
+ * calculating and use the "best fitted" healing skill for the situation.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:follower>
+ * Enemies with the Follower AI trait are restricted to only using their basic
+ * attack skill when without a leader. When another enemy is in the nearby
+ * vicinity that has the Leader AI Trait, then the leader enemy will decide
+ * actions on behalf of the follower enemy to perform. This AI trait is
+ * typically used to create "dormant" enemies that awaken when a leader is
+ * present and can utilize their skills. You can also gate healing skills
+ * behind requiring a leader to leverage them.
+ *
+ * NOTE: Leader/Follower traits have not been heavily tested, use with care!
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:leader>
+ * Enemies with the Leader AI trait are just like normal enemies and will obey
+ * their other AI traits, but also they will take over and make decisions on
+ * behalf of any available followers in the nearby vicinity using their own
+ * AI traits to decide what skills for the follower to use.
+ *
+ * NOTE: Leader/Follower traits have not been heavily tested, use with care!
+ *
+ * ============================================================================
+ * TEAMS:
+ * By default, when an enemy is created, they are assigned a numeric team value
+ * of 1. When allied battlers (such as the player) are created, they are given
+ * the team value of 0. Because these two battlers are on different teams, they
+ * are able to deal damage to each other with skills. If your game is more
+ * complex than "good guy" & "bad guy", you may require additional teams. While
+ * it isn't greatly supported in the sense that there is team relationships
+ * and associations you can create (such as two separate teams that consider
+ * eachother allies, or neutral teams), you can still add a tag to enemies on
+ * the map that will redefine their team id, to potentially allow enemies to
+ * fight eachother.
+ *
+ * By default, the following teams are already setup:
+ * - 0 is for the player/allies.
+ * - 1 is for enemies/monsters.
+ * - 2 is for "neutral", aka inanimate objects.
+ *
+ *    <teamId:TEAM>
+ *  Where TEAM is the numeric id to assign.
+ *
+ * ============================================================================
+ * CIRCUMSTANTIAL CONFIG OPTIONS:
+ * There are a few more tags that you may want to be aware of that modify the
+ * base functionality of how enemies on the map look or act. Add these to the
+ * enemy somehow, and the defaults can be changed.
+ *
+ * ----------------------------------------------------------------------------
+ * IDLING:
+ * By default, enemies will kinda idle about in a 2-tile radius surrounding
+ * wherever they are placed on the map. If you want to change this, or undo
+ * your defaults, there are tags for that!
+ *    <jabsConfig:noIdle>
+ *    <jabsConfig:canIdle>
+ *
+ * ----------------------------------------------------------------------------
+ * HP BAR:
+ * Enemies by default will have small hp bars beneath them on the map. It is a
+ * nice visual indicator that it is an enemy and displays their current health.
+ * However, if you have a reason to hide it (or show it), you can use the tags
+ * below to do this.
+ *    <jabsConfig:noHpBar>
+ *    <jabsConfig:showHpBar>
+ *
+ * ----------------------------------------------------------------------------
+ * BATTLER NAME:
+ * The name of enemies is shown beneath the battler's character itself. If you
+ * want to conceal or reveal this name, you can use the below tags to do that.
+ *    <jabsConfig:noName>
+ *    <jabsConfig:showName>
+ *
+ * ----------------------------------------------------------------------------
+ * INVINCIBLE:
+ * Enemies don't always need to be defeatable. If you want to make an enemy
+ * completely invincible (combat actions will not connect with this enemy), or
+ * disable said invincibility, you can using the tags below.
+ *    <jabsConfig:invincible>
+ *    <jabsConfig:notInvincible>
+ *
+ * ----------------------------------------------------------------------------
+ * INANIMATE:
+ * Some enemies actually aren't enemies. They are pots, crates, bushes, or
+ * other various inanimate objects that are just there to be chopped up. You
+ * can disable an enemy's AI, movement, knockback, hp bar, etc., all from one
+ * convenient tag!
+ *    <jabsConfig:inanimate>
+ *    <jabsConfig:notInanimate>
+ *
+ * ============================================================================
+ * FIRST TIME SETUP, THE ENEMY MAP:
+ * While you can create enemies on the map as much as your heart desires, it
+ * is also possible to dynamically generate enemies on-the-fly with plugin
+ * commands or script commands in events. If you hope to make use of this, you
+ * will need to define an "enemy clone map", aka a map of premade enemy events
+ * that are exclusively used by the plugin/script commands for spawning
+ * enemies, as the commands in question refer to enemyEventIds that would be
+ * derived from the "enemy clone map".
+ *
+ * NOTE:
+ * If you have zero chance of using this functionality, JABS will operate
+ * completely fine as long as the map defined as "enemy clone map" in the
+ * plugin configuration does indeed exist- just know that the dynamic spawning
+ * will be broken unless that map gets implemented as it was intended.
+ *
+ * ============================================================================
+ * SETTING UP THE ENEMIES IN THE DATABASE:
+ * While you may wish that the enemies would just... work out of the box as
+ * soon as you set them up on the map, there is a bit more to it than that! We
+ * still need to define a couple of the basics for them in the database. Rather
+ * than tons of notes, it'll be a bit of trait management and clicking.
+ *
+ * NOTE:
+ * Most configuration you want to universally apply to all enemies of a given
+ * id can be applied to the notes of the enemies in the database instead of on
+ * every single event you create of that enemy.
+ *
+ * ----------------------------------------------------------------------------
+ * BASIC ATTACK:
+ * All enemies probably should have a "basic attack".
+ * This is defined by the "Attack Skill" trait, found on the top of the third
+ * page in the trait picker for enemies.
+ *
+ * PREPARE SPEED:
+ * To emulate a "turn speed" of sorts, enemies all have a fixed amount of time
+ * that they must wait before they take action. This value is defined by the
+ * "Attack Speed" trait, found in the middle of the third page in the trait
+ * picker for enemies.
+ * ----------------------------------------------------------------------------
+ * AVAILABLE SKILLS:
+ * Any skills listed in the "Action Patterns" section of an enemy in the
+ * database will be considered an "available skill" for use. To create a skill
+ * that is usable by battlers in JABS (actors or enemies), see the "SETTING UP
+ * YOUR SKILLS" section below.
+ *
+ * NOTE ABOUT CONDITIONS:
+ * Enemies do not currently obey any conditions; they will obey their AI in
+ * combination with skill cooldowns and such.
+ *
+ * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
+ * If you are leveraging my other plugin "J-SkillExtend", then something to
+ * consider is that for a skill to be extended, it must be known to the enemy
+ * in some way. If a skill has a skill extend tag, they will not be available
+ * for enemies to choose as a skill to perform in combat, but it will still
+ * apply any extension effects as applicable.
+ *
+ * ============================================================================
+ * FIRST TIME SETUP, THE ACTION MAP:
+ * If you're not using the demo as a base, then you'll need to add a new map to
+ * your project where all the "action events" will live. These events represent
+ * the visual components of skills executed on the map and are mapped by adding
+ * a tag to the skills that associate your skill with the designated event on
+ * the action map. Once you've created the map, you'll need to take note of the
+ * map id and align it in the plugin parameters with the "Action Map Id" param.
+ *
+ * ============================================================================
+ * SETTING UP YOUR SKILLS:
+ * In addition to setting up your enemies, you'll need to setup skills as well.
+ * There are a huge variety of tags to be used, but there are a few that you'll
+ * probably include on most skills.
+ *
+ * NOTE ABOUT THROUGH:
+ * I would strongly encourage when building actions on the action map, to set
+ * your action events to have "through" checked. Otherwise, they may get stuck
+ * on various events or terrains unexpectedly- especially if using any kind of
+ * pixel movement plugins/adapters.
+ *
+ * ----------------------------------------------------------------------------
+ * ACTION ID:
+ * You setup the action map, right?
+ * Well, now that you did and defined some events in there, you'll need to pick
+ * one to represent what this skill looks like on the map.
+ *    <actionId:EVENT_ID>
+ *  Where EVENT_ID is the id of the event from the action map for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * DURATION:
+ * The duration of a skill defines how long its corresponding action event will
+ * remain on the map.
+ *    <duration:FRAMES>
+ *  Where FRAMES is the amount of time in frames this event will exist.
+ *
+ * NOTE ABOUT HIT COUNT:
+ * When a skill has hit it's maximum number of times (once by default, or as
+ * many times as defined by the "pierce" tag), it will disappear.
+ *
+ * NOTE ABOUT MIN DURATION:
+ * Skills still have an arbitrary minimum duration of 8 frames.
+ *
+ * ----------------------------------------------------------------------------
+ * COOLDOWN MANAGEMENT:
+ * In interest of not letting the player endlessly spam their skills, you'll
+ * probably want to introduce cooldowns to their skills. There are two tags for
+ * handling that you'll probably want to use.
+ *
+ * COOLDOWN:
+ * The cooldown is the primary tag to handle cooldowns. This tag defines an
+ * amount of time in frames that must pass before the battler can use the skill
+ * again.
+ *    <cooldown:VAL>
+ *  Where VAL is the cooldown amount in frames for this skill.
+ *
+ * NOTE ABOUT SLOTS ON COOLDOWN:
+ * JABS permits the assignment of the same skill to multiple slots on a single
+ * battler. By default, when using a skill with a cooldown, if any other skills
+ * are equipped that share the same skill ID, they too will go on cooldown for
+ * the same amount as defined in the skill. However, you can change this
+ * functionality by using the next tag.
+ *
+ * UNIQUE COOLDOWN:
+ * Using the "unique cooldown" tag on a skill will force each slot a skill is
+ * equipped to to handle their cooldown independently, even if the skill shares
+ * the same skill ID as another slot.
+ *    <uniqueCooldown>
+ *
+ * ----------------------------------------------------------------------------
+ * RADIUS:
+ * The radius represents how big the "hitbox" of this skill using tiles as the
+ * measurement. This must be a positive integer value.
+ *    <radius:VAL>
+ *  Where VAL is the radius value for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * PROXIMITY:
+ * The proximity represents how close an AI-controlled battler must get to the
+ * target before they are able to execute a skill. This has a unique
+ * interaction with "direct" skills.
+ *    <proximity:VAL>
+ *  Where VAL is the proximity value for this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * DIRECT:
+ * For a skill with the "direct" tag, there will be no projectile produced.
+ * Instead, the skill will directly target the nearest foe that is within the
+ * caster's PROXIMITY. The skill will still obey other tags like CAST TIME,
+ * RADIUS, HITBOX, and so on. The most common use case I can think of would
+ * probably be to use this tag for healing skills, or skills you don't want to
+ * have a chance at being dodged.
+ *    <direct>
+ *
+ * NOTE ABOUT PARRYING:
+ * A "direct" skill can still be parried if the conditions are met.
+ *
+ * ----------------------------------------------------------------------------
+ * PROJECTILE:
+ * The "projectile" value will define how many projectiles will be fired when
+ * the skill is executed. This works a bit differently than you probably think.
+ * The values available for this are:
+ *  1: A single projectile that will fire forward.
+ *  2: Two projectiles in a V shape firing forward.
+ *  3: Three projectiles in a W shape firing forward.
+ *  4: Four projectiles, one in each of the cardinal directions.
+ *  8: Eight projectiles, one in each of the cardinal and diagonal directions.
+ *
+ *    <projectile:VAL>
+ *  Where VAL is one of the valid numeric values listed above.
+ *
+ * NOTE ABOUT PROJECTILE MOTION:
+ * I would strongly encourage when building your actions on the action map,
+ * to use "turn X degrees" instead of "turn X direction", as they can mess up
+ * the illusion of the projectiles obeying the direction they were fired in.
+ * In that same vein, I'd also encourage using "1 step forward/backward" in
+ * place of "Move up/down/left/right" for the same reason.
+ *
+ * NOTE ABOUT DIAGONALS:
+ * I would also encourage using my "J-ABS-Diagonals" plugin to gain access to
+ * more precise rotation within the custom move routes among other things.
+ *
+ * NOTE ABOUT FUTURE PLANS:
+ * There is developer dreams to refine the projectile functionality into
+ * something a bit cleaner, so this is tentative to change.
+ *
+ * ----------------------------------------------------------------------------
+ * HITBOX:
+ * The hitbox defines the shape of the hitbox for this skill (surprise!).
+ * The value for this must be selected from the given list, and each can
+ * interact a bit differently with the "radius" tag.
+ *
+ * NOTE ABOUT COLLISION:
+ * It is important to remember that while the hitbox defines the shape of
+ * collision, the hitbox is always centered on the action event (with some
+ * exceptions), and can definitely be moving.
+ *
+ * NOTE ABOUT PROJECTILES:
+ * If this skill has multiple projectiles, ALL projectiles will share the same
+ * hitbox.
+ *
+ * CIRCLE:
+ * The "circle" hitbox is just what you'd think: a circle that grows in size
+ * the greater the radius.
+ *    <hitbox:circle>
+ *
+ * RHOMBUS:
+ * The "rhombus" hitbox is effectively a diamond that grows in size the
+ * greater the "radius" value is.
+ *    <hitbox:rhombus>
+ *
+ * ARC:
+ * The "arc" hitbox is similar to rhombus, but instead of being a full diamond
+ * all around the action event, the side that is not the direction the action
+ * event is facing is omitted.
+ *    <hitbox:arc>
+ *
+ * SQUARE:
+ * The "square" hitbox is an equal square, with the "radius" defining what the
+ * length of the side of the square is.
+ *    <hitbox:square>
+ *
+ * FRONTSQUARE:
+ * The "frontsquare" hitbox is similar to square, but instead of being a full
+ * square all around the action event, the side that is not the direction the
+ * action event is facing is omitted.
+ *    <hitbox:frontsquare>
+ *
+ * LINE:
+ * The "line" hitbox is a single 1-width line with the "radius" defining what
+ * the length of this line is.
+ *    <hitbox:line>
+ *
+ * WALL:
+ * The "wall" hitbox is a single 1-height line with the "radius" defining what
+ * the width of this line is. This is kind of a strange one, but easy to
+ * visualize if you think of it as an inverted line hitbox.
+ *    <hitbox:wall>
+ *
+ * CROSS:
+ * The "cross" hitbox is basically just the combination of both line and wall
+ * hitboxes in one. The "radius" determines how far the cross will reach.
+ *    <hitbox:cross>
+ *
+ * ----------------------------------------------------------------------------
+ * CAST TIME:
+ * The "cast time" is probably what you think: a number of frames that the
+ * battler executing a skill must wait helplessly before a skill is performed.
+ * While the battler is casting, the "cast animation" will loop if the skill
+ * has a cast animation value.
+ *    <castTime:VAL>
+ *  Where VAL is the number of frames to cast this skill.
+ *
+ * ----------------------------------------------------------------------------
+ * CAST ANIMATION:
+ * The "cast animation" is simply a numeric value that represents an animation
+ * that will play on the caster while the skill being casted.
+ *    <castAnimation:VAL>
+ *  Where VAL is the animation id to repeatedly loop while casting.
+ *
+ * ----------------------------------------------------------------------------
+ * SELF ANIMATION:
+ * The "self animation" is simply a numeric value that represents an animation
+ * that will play on the caster when the skill hits a target.
+ *    <selfAnimationId:VAL>
+ *  Where VAL is the animation id to execute once finished casting.
+ *
+ * ----------------------------------------------------------------------------
+ * PIERCING:
+ * The "pierce" tag is a tag that enables a skill to hit multiple targets
+ * multiple times, potentially with a delay between each hit.
+ *    <pierce:[TIMES,DELAY]>
+ *  Where TIMES is the maximum number of times this skill can pierce.
+ *  Where DELAY is the number of frames between each hit.
+ *
+ * NOTE ABOUT HIT FREQUENCY:
+ * The most a skill can hit via "pierce" is once per frame. If the DELAY
+ * is set to 0, then it will hit each frame that the skill's hitbox collides
+ * with the target.
+ *
+ * NOTE ABOUT SKILL REPEATS:
+ * The "repeats" field from the database is added onto the TIMES value,
+ * even if there is no "pierce" tag on the skill, meaning if you omit the
+ * "pierce" tag and add "5 repeats" via the database editor, the skill will
+ * effectively have this tag on it:
+ *    <pierce:[6,0]>
+ *
+ * ----------------------------------------------------------------------------
+ * KNOCKBACK:
+ * The "knockback" tag defines how many tiles the target will be knocked back
+ * when hit by this skill.
+ *    <knockback:VAL>
+ *  Where VAL is distance the target will be knocked back.
+ *
+ * ----------------------------------------------------------------------------
+ * DELAY:
+ * The "delay" tag is a bit of a tricky one that allows a skill to exist on the
+ * map for a duration of time before triggering. The simplest example of this
+ * would be like a time bomb, or a time landmine. If you want an action to
+ * persist indefinitely, you can set the DURATION to -1 and it will not
+ * disappear until it is touched.
+ *    <delay:[DURATION,TOUCHABLE]>
+ *  Where DURATION is number of frames to exist on the map before detonating.
+ *  Where TOUCHABLE a boolean defining whether or not it triggers when touched.
+ *
+ * EXAMPLE:
+ *    <delay:[300,true]>
+ * As an example, the above tag would result in an action that was placed where
+ * the caster was at time of skill execution, and sit there for 300 frames
+ * (which is roughly 5 seconds). If an enemy touched this action, the action
+ * would trigger.
+ *
+ * NOTE ABOUT TOUCHING:
+ * "touched" is a term used loosely. To "touch" an action, you simply need to
+ * collide with it, which can be deceiving if its a bomb with a large hitbox.
+ *
+ * WARNING ABOUT INDEFINITE DELAY:
+ * If the DURATION is set to -1, don't forget to set the TOUCHABLE to "true"!
+ * If you do not, the action will sit there forever and never trigger due to
+ * not being touchable.
+ *
+ * ----------------------------------------------------------------------------
+ * COMBOS:
+ * This is a somewhat broad topic encompassing multiple tags, but "comboing"
+ * can also be a feature of JABS if desired.
+ *
+ * COMBO ACTION:
+ * The "combo action" tag will define what skill can be followed when using
+ * this skill. This will cause a skill to temporarily be replaced by the
+ * COMBOSKILLID in the tag, and be executable after LINKTIME frames.
+ *    <combo:[COMBO_SKILL_ID,LINK_TIME]>
+ *  Where COMBO_SKILL_ID is the skill ID that will be combo'd into.
+ *  Where LINK_TIME is the number of frames until the combo is available.
+ *
+ * If a skill has a combo tag on it like this, the cooldown of the skill must
+ * have a longer cooldown than the LINK_TIME frames, otherwise it will never be
+ * usable. After the original skill's cooldown time expires (as in, the skill
+ * that initiated the combo), it will undo all subsequent combo effects and
+ * return back to the original skill. Keep in mind that with each subsequent
+ * combo action executed, the remaining cooldown gets extended by the LINK_TIME
+ * frames amount, allowing the combo to continue.
+ *
+ * This sounds complicated, but take a look at the sample project for examples
+ * and play around with it a bit to gain a firmer grasp on it.
+ *
+ * EXAMPLE:
+ *      <combo:[2,10]>
+ * As an example, if skill contained the above tag and a battler used this
+ * this skill, their skill would become skill ID 2, and be usable after
+ * 10 frames (roughly 1/6 of a second).
+ *
+ * COMBO STARTER:
+ * While combo action tags work as you might suspect for when the player is
+ * controlling a particular battler, AI-controlled battlers require a bit of
+ * extra hand-holding in order to use combos. The main tag for that is the
+ * "combo starter" tag, that looks something like this:
+ *    <comboStarter>
+ *
+ * That is it. By default, AI-controlled battlers will dismiss skills that
+ * have the "combo action" tag on them, but if you add the "combo starter"
+ * tag to the skills that are intended to start a combo, the AI will know that
+ * it can use that skill as well. The chance of pursuing a combo is dependent
+ * on the AI configuration (ally or enemy), but generally hovers between 50-100
+ * percent chance of obeying the "combo action" tag. More on that down in the
+ * AI traits section, and in the J-ABS-AllyAI plugin.
+ *
+ * NOTE ABOUT FOLLOW-UP COMBOS:
+ * In order for a combo action to become available, it REQUIRES the skill to
+ * connect with a target. However, if you want a skill to not require hitting
+ * anything and instead become available as soon as the skill is executed,
+ * then check the next tag.
+ *
+ * FREECOMBO:
+ * In some cases, you may want a skill to not have a requirement to hit
+ * anything in order to combo. In these cases, there is another tag to add to
+ * your skill that you want to freely combo into another.
+ *    <freeCombo>
+ *
+ * Using this will instantly make the next combo skill available to execute.
+ *
+ * AI SKILL EXCLUSION:
+ * While this isn't explicitly related to combos, this is most likely to be
+ * used in conjunction with combo tags. The "ai skill exclusion" tag does
+ * exactly what you probably suspect it will do: exclude the skill from the
+ * list of available skills that an AI-controlled battler can leverage. You
+ * may ask "why would I want to add a skill to an enemy, and then exclude it?"
+ * and the answer is "because its a part of a combo". As you may recall from
+ * the many paragraphs of combo information above, in order for a skill to be
+ * usable within a combo, the battler must know the skill. However, a skill
+ * that is the end of a combo typically won't have a combo tag, meaning the
+ * AI will be able to randomly also select the combo-ender skill while deciding
+ * actions. By adding the "ai skill exclusion" tag to said combo-ender skills,
+ * you can avoid this behavior with grace. You can also use this to exclude
+ * skills that perform other functionalities that shouldn't be executed in
+ * battle, such as "passive" skills.
+ *    <aiSkillExclusion>
+ *
+ * NOTE ABOUT SKILL EXTENSION SKILLS:
+ * If also using the "J-SkillExtend" plugin, by default all extension skills
+ * will be excluded from random selection, identical in behavior to the
+ * "ai skill exclusion" tag above.
+ *
+ * ----------------------------------------------------------------------------
+ * GUARDING:
+ * Guarding is a first-class citizen of functionality in JABS! If you want a
+ * skill to be considered a guard skill, there are a variety of tags you can
+ * use to build full-featured defending fun.
+ *
+ * NOTE ABOUT GUARD SKILL TYPES:
+ * It is important to note that a skill must have the "Guard Skill Type" id in
+ * order for it to be even recognized as a guard skill. That is defined by you
+ * in the plugin parameters.
+ *
+ * GUARD:
+ * The most basic of guarding requires the "guard" tag. This is a tag made up
+ * of a pair of values to define damage reduction/amplification.
+ *    <guard:[FLAT,PERCENT]>
+ *  Where FLAT is the flat amount to modify damage by.
+ *  Where PERCENT is the percent amount to modify damage by.
+ *
+ * The FLAT and PERCENT values should likely be negative most of the time,
+ * unless your intent is to make it so that guarding increases damage instead.
+ *
+ * EXAMPLE:
+ *      <guard:[-10,-25]>
+ * As an example, if a guard skill contained the above tag, then the damage
+ * would be reduced by a flat 10 and then reduced by 25%.
+ * This order favors the player, because we want our players to have fun!
+ *
+ * PARRY:
+ * Parrying as a functionality is a means to completely mitigate an incoming
+ * attack if the player guards at "just the right time". Using this tag, you
+ * can define how large the window is for "just the right time".
+ *    <parry:VAL>
+ *  Where VAL is the number of frames parrying is available.
+ *
+ * The window of "just the right time" always starts when guarding starts and
+ * counts down VAL number of frames until zero. The parry window is visually
+ * identified by its unique blue flash on the guarding battler.
+ *
+ * NOTE ABOUT CONSECUTIVE PARRIES:
+ * Do be aware that upon successful parry, all guarding stops automatically
+ * and the parry window is immediately ended. However, the character will
+ * still be in "pivot mode", where they can rotate in place. To guard or
+ * parry again, you will need to release the button and press it again.
+ *
+ * COUNTER-GUARD/COUNTER-PARRY:
+ * In addition to just guarding to reduce damage and/or parrying to mitigate,
+ * you can define guard skills that can have a chance (or always) result in
+ * retaliating with a skill in response to being hit while guarding or
+ * parrying.
+ *    <counterGuard:[SKILL,CHANCE]>
+ *  Where SKILL is the skill ID to potentially counter with when guarding.
+ *  Where CHANCE is the percent chance to execute the SKILL per hit guarded.
+ *
+ *    <counterParry:[SKILL,CHANCE]>
+ *  Where SKILL is the skill ID to potentially counter with when parrying.
+ *  Where CHANCE is the percent chance to execute the SKILL on-parry.
+ *
+ * NOTE ABOUT COUNTER PRIORITIES:
+ * Counter-parrying takes precedence over counter-guarding. If both
+ * counter-guard and counter-parry are available on the same battler and RNG
+ * favors you, only counter-parry will be executed.
+ *
+ * UNPARRYABLE:
+ * Should the need arise that you need a particular skill skip the possibility
+ * of being parried (like for an important skill that should always hit), then
+ * we have a tag for that too.
+ *    <unparryable>
+ *
+ * Using this tag will make a skill simply unable to be parried, even should
+ * all requirements be met.
+ *
+ * ============================================================================
+ * USING SKILLS:
+ * Now that you've spent all this time setting up skills with a massive pile of
+ * tags, you'll probably want to execute them to chop up your trash mobs!
+ * Fortunately for you, that is relatively straight forward. There are two ways
+ * to do this.
+ *
+ * NOTE ABOUT SKILL USABILITY:
+ * In addition to the default RMMZ skill usage requirements (cost etc), it is
+ * extremely important to note that the battler MUST know the skill in order to
+ * execute it. That sounds silly, but given the nature of being able to equip
+ * gear that uses a skill (potentially without having ever learned it), this is
+ * an important fact to be aware of- especially in the mainhand/offhand slots.
+ *
+ * A LITTLE ABOUT SKILL SLOTS FIRST:
+ * JABS makes use of what is called "skill slots". There are eight of them, all
+ * of which I arbitrarily just made up.
+ * - mainhand
+ * - offhand
+ * - tool
+ * - dodge
+ * - combat skill 1
+ * - combat skill 2
+ * - combat skill 3
+ * - combat skill 4
+ *
+ * ----------------------------------------------------------------------------
+ * MAINHAND AND OFFHAND SLOTS:
+ * The "mainhand" and "offhand" slots are typically slots the player does not
+ * assign directly. They are instead autoassigned via equipment. Normally, the
+ * weapon slot will translate to your mainhand slot, and the shield will define
+ * your offhand slot. If the actor is dual-wielding, then the second weapon
+ * slot will fill the offhand slot instead. In order to designate what skills
+ * the equipment grant to the actor, you'll use the "skill ID" tag:
+ *    <skillId:SKILL_ID>
+ *  Where SKILL_ID is the skill to be assigned to the equip slot.
+ *
+ * The usability of the skill in the equip slot is defined by the skill itself.
+ * If you want the shield to have an attack skill of some kind, then you can
+ * assign it as such. However, ONLY THE OFFHAND CAN DEFINE A GUARD SKILL. So
+ * keep that in mind.
+ *
+ * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
+ * Should you find yourself the need to have certain items/skills that should
+ * never appear in the assignment menu for a given slot, use this tag:
+ *    <hideFromJabsMenu>
+ *
+ * This hiding applies to "dodge" and "combat" skills, as well as "tools".
+ * Anything hidden from the quick menu will still be revealed in the main menu.
+ *
+ * ----------------------------------------------------------------------------
+ * TOOL SLOT:
+ * The "tool" slot is always player-assigned (or via plugin commands if you
+ * want). The "tool" slot represents usable items. These can be potions, bombs,
+ * or whatever else you want. Similar to equipment, you'll only need assign a
+ * SKILL_ID to them and they become usable with the given effects defined in
+ * the database:
+ *    <skillId:SKILL_ID>
+ *  Where SKILL_ID is the skill to be performed by the tool slot.
+ *
+ * ----------------------------------------------------------------------------
+ * DODGE SLOT:
+ * The "dodge" slot is also always player-assigned. This slot represents a
+ * unique "mobility" type skill (normally), where there are additional tags
+ * that can help define how the player moves when executing the skill. Keep
+ * in mind that in order for a skill to be identified as a "dodge" skill, it
+ * will not only need some tags below, but also need to be a part of the skill
+ * type that is defined in the plugin parameters for "dodge skill type".
+ *
+ * DODGE MOVETYPE:
+ * The "move type" defines one of three kinds of movetypes available for the
+ * dodge skill.
+ *    <moveType:TYPE>
+ *  Where TYPE is one of "forward", "backward", or "directional".
+ *
+ * The "forward move type" will force the dodge skill to move the player in
+ * the same direction they are facing.
+ *
+ * The "backward move type" will force the dodge skill to move the player in
+ * the opposite direction they are facing.
+ *
+ * The "directional move type" will grant the player the ability to move in
+ * whatever direction they are pressing when the skill is executed.
+ *
+ * DODGE INVINCIBILITY:
+ * Normally when performing a dodge skill, the player is simply being
+ * forcefully moved by the skill, but are still susceptible to interruption by
+ * enemy attacks if they collide with something. If you want the player to
+ * instead be invincible for the duration of the movement, then you can use
+ * this tag.
+ *    <invincibleDodge>
+ *
+ * DODGE DISTANCE:
+ * Sometimes you may want the player to only dodge a couple steps, maybe other
+ * times you'll want them to be able to dodge across the map. In either case,
+ * if you want to define this distance, you'll use the "radius" tag that is
+ * already used to define distance for skills:
+ *    <radius:DISTANCE>
+ *  Where DISTANCE is the number of tiles to be forcefully moved.
+ *
+ * ----------------------------------------------------------------------------
+ * COMBAT SKILL SLOTS:
+ * There are four combat skill slots available, and all four are assigned by
+ * the player. They are designed to be swappable anytime from the quickmenu
+ * from whatever skills the player currently knows and also have been setup.
+ * Using all the various tags you've learned about above (and below), those are
+ * the skills that can be designated as "combat skills".
+ *
+ * ----------------------------------------------------------------------------
+ * AUTO ASSIGNMENT OF SKILLS:
+ * For convenience of the developer, there are a few additional tags that can
+ * automatically assign new skills to the combat slots upon learning. Skills
+ * that are auto assigned can only be assigned to the four combat skill slots,
+ * not the primary slots.
+ *
+ * AUTO ASSIGNMENT CONDITIONALS:
+ * The entire chain of checking whether or not a skill can be auto assigned
+ * upon learning looks like this:
+ * 1) the actor or class learning the skill has the "enable auto assign" tag.
+ * 2) the actor doesn't already have the skill equipped.
+ * 3) the actor does have empty slots to equip this skill to.
+ * 4) the learned skill itself is blocked from auto assignment.
+ * 5) the learned skill itself is not upgrade-only.
+ * 6) the learned skill is not among the blacklisted skill types.
+ * If all of the above are true, then the skill can be auto assigned.
+ *
+ * ENABLE AUTO ASSIGN:
+ * To enable the auto assignment of skills in any capacity, the actor or its
+ * class must have the appropriate tag:
+ *    <autoAssignSkills>
+ *
+ * BLOCK AUTO ASSIGNMENT PER SKILL TYPE:
+ * Sometimes there are particular families of skills that you don't want to
+ * ever be auto assigned, and when that is the case, you should use the
+ * blacklist skill type tag:
+ *    <noAutoAssignType:[TYPE_IDS...]>
+ * Where TYPE_IDS is a comma-delimited list of skill type ids found in your
+ * database that you don't want to ever be auto assigned.
+ *
+ * BLOCK AUTO ASSIGNMENT PER INDIVIDUAL SKILL:
+ * Sometimes blocking an entire category of skill is simply not feasible, in
+ * which case instead you can use the individual version of skill blocking by
+ * placing the appropriate tag on the designated skill that should never be
+ * automatically assigned.
+ *    <noAutoAssign>
+ *
+ * AUTO [ASSIGNMENT OF] SKILL UPGRADES:
+ * Auto upgrading skills builds ontop of the auto assignment functionality, but
+ * has its own set of tags that should be considered. The core concept behind a
+ * "skill upgrade", is that it replaces a skill that is already equipped to the
+ * actor's skill slots. With the flexible tags below, you can set up your game
+ * to do this as well.
+ *
+ * SKILL UPGRADE CONDITIONALS:
+ * 1) The actor or class upgrading the skill has the "enable auto upgrade" tag.
+ * 2) The learned skill has the "upgrade over skill" tag.
+ * 3) The learned skill isn't tagged with "no upgrade".
+ * If all the above are true, then the skill learned will replace the
+ * designated skill.
+ *
+ * UPGRADE OVER SKILL:
+ * To make a skill replace another currently-equipped skill, it should be
+ * tagged accordingly:
+ *    <upgradeOverSkill:NUM>
+ * Where NUM is the skill id this skill should replace.
+ * (NOTE: this doesn't unlearn the previous skill, only replaces it on the
+ * battler's equipped skill slot)
+ *
+ * Generally speaking, the upgrade functionality would probably end up getting
+ * used to do things like upgrading a skillslot from "Fire 1" to "Fire 2".
+ * However, it doesn't have to be used like that, and can absolutely be used
+ * to replace any skill regardless of semantics or context. "Fire 1" could be
+ * replaced with "Tsunami" or "Super Duper Cutter" if you desired.
+ *
+ * Additionally, if the target skill id that this skill should upgrade over,
+ * that doesn't mean the skill won't be auto assigned. It just means it will
+ * not replace any existing slots with this skill. To give creative liberty to
+ * the dev, the skill will still be auto assigned unless it has another tag to
+ * prevent it.
+ *
+ * UPGRADE ONLY SKILL:
+ * If the dev decides to place a firmer restriction on the availability of the
+ * player adjusting their own skill slots, then this tag can help by preventing
+ * a skill from be auto assigned if the battler also has the "enable auto
+ * assign" tag.
+ *    <onlyUpgrade>
+ *
+ * NO UPGRADING A SKILL:
+ * If for whatever reason, you the dev decide to utilize this, there is also
+ * a tag for preventing a skill from being upgradeable, even if a newly
+ * learned skill has the "upgrade over skill" tag that aligns with the skill
+ * tagged with this:
+ *    <noUpgrade>
+ *
+ * ============================================================================
+ * AGGRO MANAGEMENT:
+ * When it comes to AI and allies and enemies all taking swings at eachother,
+ * sometimes certain allies should be grabbing the attention of enemies and
+ * vice versa. Thus we have an aggro system- a numeric representation of how
+ * mad a battler is at another. Any AI-controlled battler will always target
+ * the battler with the highest aggro value in relation to them.
+ *
+ * It is worth noting that there are a bundle of plugin parameter tags that
+ * revolve around defaults of aggro generation, so do be sure to review them.
+ *
+ * Additionally, there are a few basics that are simply the way this system
+ * functions. There is no way to change this without going into the code and
+ * manually changing it, so pay attention!
+ *
+ * Aggro always starts with the base amount defined in the plugin params.
+ * Aggro accumulates the HP then MP then TP damage calculations next.
+ * Aggro accumulates the HP Drain next (MP/TP not considered!)
+ * Aggro accumulates the amount when parried if applicable next.
+ *  (the target parrying also aggros the attacker!)
+ * Aggro then accumulates any bonus aggro from tags described below.
+ * Aggro then multiplies any bonus rates from tags described below.
+ * Aggro then multiplies iteratively over every attacker state from tags below.
+ * Aggro then multiplies iteratively over every target state from tags below.
+ * Aggro then multiplies based on the attacker's TGR stat.
+ * Aggro then multiplies based on the player-unique multiplier if applicable.
+ *
+ * By default, you don't need to do anything special to utilize this system,
+ * but if you want to manipulate it in any way, like making skills that will
+ * generate more aggro than others, or lock aggro, or reduce aggro, then you
+ * will want to leverage the following tags.
+ *
+ * ----------------------------------------------------------------------------
+ * AGGRO TAGS FOR SKILLS:
+ * There are a couple of tags that you can place on skills to affect aggro.
+ * They will influence how much or little a skill will affect the aggro
+ * generation based on the above aggro logic.
+ *
+ * BONUS AGGRO:
+ * As suggested, this tag will cause skills to generate additional aggro. This
+ * can also be used to reduce aggro if you opt to make the amount negative.
+ *    <aggro:VAL>
+ *  Where VAL is the numeric amount of aggro to gain (or lose).
+ *
+ * AGGRO MULTIPLIER:
+ * The aggro multiplier tag can be used to make skills still use all the same
+ * formulas, but then just pile on an extra multiplier atop that to further
+ * amplify aggro.
+ *    <aggroMultiplier:VAL>
+ *  Where VAL is a decimal multiplier against aggro.
+ *
+ * NOTE ABOUT DEFAULT AGGRO MULTIPLIERS:
+ * The default is 1.0 if unspecified, so when adding a multiplier to skills,
+ * you'll probably want it to be some fractional number between ~0.1 and ~10.
+ *
+ * ----------------------------------------------------------------------------
+ * AGGRO TAGS FOR STATES:
+ * There are also a couple of tags that you can place on states to affect
+ * aggro. These will be in effect for the duration of the state on the battler.
+ *
+ * AGGRO LOCK:
+ * To lock a battler's aggro means it cannot be changed while the state is
+ * applied to the battler. They can still influence other battler's aggro, but
+ * they themselves cannot have their aggro adjusted by any means.
+ *    <aggroLock>
+ *
+ * AGGRO OUT AMPLIFIER:
+ * As the title suggests, applying this tag to a state will cause all aggro
+ * this battler generates to be multiplied by a given amount.
+ *    <aggroOutAmp:VAL>
+ *  Where VAL is the decimal multiplier against outgoing aggro.
+ *
+ * AGGRO IN AMPLIFIER:
+ * Similar to the AGGRO OUT AMPLIFIER, applying this tag to a state will cause
+ * all received aggro for this battler to be multiplied by a given amount.
+ *    <aggroInAmp:VAL>
+ *  Where VAL is the decimal multiplier against incoming aggro.
+ *
+ * ============================================================================
+ * CONFIGURING LOOT:
+ * After a hard day of chopping up trash mobs, you should be a benevolent RMMZ
+ * developer and reward your player with loot. Any droppable item that is
+ * listed in the database can be dropped and subsequently collected. However,
+ * the setup is kind of clumsy by default. I would encourage using another of
+ * my plugins called "J-DropsControl". Regardless if you do or don't, there
+ * are a couple of tags you may want to consider using in tandem with the
+ * plugin parameters for loot drops.
+ *
+ * ----------------------------------------------------------------------------
+ * USE ON PICKUP:
+ * The "heart" drop, made iconic by the Zelda franchise, is an item that when
+ * picked up, will immediately heal for a given amount. Should you also want to
+ * create such functionality, you can use the "use on pickup" tag. Simply add
+ * the tag to an ITEM that can be dropped from a foe on defeat, and when the
+ * player collects the loot, it will instead be immediately performed as if
+ * using the item on oneself.
+ *    <useOnPickup>
+ *
+ * While I use the classic "heart" drop from Zelda as an example, it does not
+ * have to be a healing item that is immediately used. Get creative!
+ *
+ * ----------------------------------------------------------------------------
+ * EXPIRATION:
+ * In the plugin parameters, you can set the default duration for which an loot
+ * drop can persist on the map after being dropped. While it could be set for
+ * loot to persist indefinitely, if you should ever need to make a particular
+ * loot drop only last for a designated amount of time, then this is the tag
+ * for you.
+ *    <expires:DURATION>
+ *  Where DURATION is the number of frames to persist after being dropped.
+ *
+ * NOTE ABOUT MAP TRANSFERS:
+ * All loot is erased upon transfering maps. This is an intended functionality.
+ * If you want to demand the player collect loot, you should consider either
+ * locking the player on the map or forcing the item into the player's
+ * inventory via eventing.
+ *
+ * ----------------------------------------------------------------------------
+ * DYNAMICALLY SPAWNING LOOT:
+ * In addition to configuring the loot, if you so desire, one can also use
+ * plugin/script commands to dynamically generate and spawn loot at a specified
+ * location on the map. See the plugin commands for input parameter details.
+ *
+ * ============================================================================
+ * SETTING UP STATES:
+ * States are obviously an important part of any good RPG! So naturally, when
+ * you go about building states with JABS, there are a few additional details
+ * that you should understand when it comes to their setup and functionality.
+ * There is one tag for defining what is a "negative" state, and four tags
+ * for locking core functionality on a battler. Additionally, there are a host
+ * of other tags that grant other useful functionality. Read on to learn more!
+ *
+ * ----------------------------------------------------------------------------
+ * NEGATIVE:
+ * Functionally, a state being "negative" does not impact how it operates, but
+ * it does influence how the AI perceives the states and considers actions when
+ * attempting to heal (like by trying to purge states). Thus, if you want a
+ * state to be considered negative and thus AI-controlled battlers will attempt
+ * to heal this state when using either <aiTrait:healer> or setting ally AI to
+ * "support", then add this tag to the state.
+ *    <negative>
+ *
+ * ----------------------------------------------------------------------------
+ * ROOTED:
+ * A state with the "rooted" tag will lock the battler's movement.
+ * This includes Dodge skills for the player and allies.
+ *    <rooted>
+ *
+ * ----------------------------------------------------------------------------
+ * DISARMED:
+ * A state with the "disarmed" tag will lock the battler's basic attacks.
+ * Basic attacks are considered either the main or offhand for actor battlers,
+ * and the "basic attack" traited skill for enemy battlers.
+ *    <disarmed>
+ *
+ * ----------------------------------------------------------------------------
+ * MUTED:
+ * A state with the "muted" tag will lock the battler's combat actions.
+ * Combat actions are considered either the four extra equippable slots for
+ * actor battlers, and any non-basic-attack skills for enemy battlers.
+ *    <muted>
+ *
+ * ----------------------------------------------------------------------------
+ * PARALYZED:
+ * A state with the "paralyzed" tag will lock everything about a battler.
+ * It is functionally the same as being "rooted", "disarmed", and "muted", all
+ * at the same time.
+ *    <paralyzed>
+ *
+ * ----------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
+ * SLIP DAMAGE:
+ * For those unfamiliar with the term, "slip damage" is an alternative naming
+ * for "damage over time". There are three types of tags for each of the three
+ * categories of slip damage. It is important to note that the values you place
+ * in the value portion of these tags equals "this much per 5 seconds". See the
+ * examples for more details on that. But if you want to think about math, then
+ * just consider it that the tick value you see will be about 1/20 of that VAL.
+ * And that the tick happens 4 times per second.
+ *
+ * ----------------------------------------------------------------------------
+ * SLIP DAMAGE AS A CONCEPT:
+ * Battlers have three pools of parameters that are conventionally replenished
+ * or diminished by some means or another, those being hp/mp/tp. Slip damage in
+ * the context of JABS revolves around manipulation of these three parameters.
+ *
+ * NEGATIVE SLIP DAMAGE:
+ * When the aim of a state is to diminish a target's pools, use negative slip
+ * damage. Common examples of this are:
+ * - Poison for reducing HP steadily for a time.
+ * - Forgetful for reducing MP steadily for a time.
+ * - Exhaustion for reducing TP steadily for a time.
+ *
+ * POSITIVE SLIP DAMAGE:
+ * When the aim of a state is to replenish a target's pools, use positive slip
+ * damage. Common examples of this are:
+ * - Regenerate for increasing HP steadily for a time.
+ * - Zen for increasing MP steadily for a time.
+ * - Focused for increasing TP steadily for a time.
+ *
+ * With this in mind, the tags are grouped into three categories, and named with
+ * clarity in mind when reading the tag. This means there are three permutations
+ * of three categories of ways slip damage is applied. You can read about them
+ * in the three subsections below.
+ *
+ * IMPORTANT NOTE ABOUT DAMAGE FREQUENCY:
+ * It is important to note that the values in all three categories of damage
+ * application are assumed to be the amount of damage/healing applied over the
+ * spread of five seconds. The amount is spread over a total of 20 ticks per
+ * five seconds, translating to four ticks per second. This was an arbitrary
+ * decision, but important to comprehend the magic formula of which each tick
+ * will translate to based on the amount you enter as VAL in the values of the
+ * tags below:
+ *    VAL / 20 = AMOUNT_PER_TICK
+ *
+ * FLAT:
+ * Flat damage is just that, a fixed amount of unmitigatable damage or healing
+ * against the given parameter.
+ *    <hpFlat:VAL>
+ *    <mpFlat:VAL>
+ *    <tpFlat:VAL>
+ *  Where VAL is the amount to lose per 5.
+ *
+ * PERCENT:
+ * Percent damage will eat a portion of the battler's max value per tick.
+ * Use this tag with care, because it adds up fast!
+ *    <hpPercent:VAL>
+ *    <mpPercent:VAL>
+ *    <tpPercent:VAL>
+ *  Where VAL is the % of max value to lose per 5.
+ *
+ * FORMULA:
+ * Formula-driven damage allows you to build formulas that can potentially
+ * scale with a battler's stats. Similar to the damage formula you define in
+ * skills, you can define a similar formula within the brackets to deal
+ * formula-based damage with every tick. This formula will have access to the
+ * one afflicted with the state as "a", the one who applied the state as "b",
+ * the collection of variables as "v", and the state object itself as "s".
+ *    <hpFormula:[FORMULA]>
+ *    <mpFormula:[FORMULA]>
+ *    <tpFormula:[FORMULA]>
+ *  Where FORMULA is the damage-like formula to calculate VAL to lose per 5.
+ *
+ * EXAMPLES:
+ *    <hpFlat:-100>
+ *  A battler with this tag would lose 100 HP over five seconds, at the rate of
+ *  5 damage per tick.
+ *
+ *    <mpPercent:50>
+ *  A battler would lose 50% of their max MP over five seconds, at the rate of
+ *  2.5% damage per tick.
+ *
+ *    <tpFormula:[(a.atk * 2)]>
+ *  A battler would gain TP equal to "200% of own attack" over five seconds, at
+ * the rate of 10% healing per tick.
+ *
+ *    <hpPercent:80>
+ *  A battler would gain 80% of their max HP over five seconds, at the rate of
+ *  4% healing per tick.
+ *
+ *    <mpFormula:[a.mdf + b.mdf]>
+ *  A battler would gain MP equal to "100% of my own and the afflicter's magic
+ *  defense" over five seconds, at the rate of 5% healing per tick.
+ *
+ *    <tpFlat:-20>
+ *  A battler would lose 20 TP over five seconds, at the rate of exactly
+ *  1 damage per tick.
+ *
+ * NOTE ABOUT VAL OUTPUT:
+ * Making the output VAL a multiple of 20x is an easy mental and visual way to
+ * control the damage or healing by increments of 1. For example, having the
+ * healing output change between 20 to 40 to 60 to 80 would visually be
+ * outputed as seeing popups change from 1, to 2, to 3, to 4, and onward. The
+ * same concept applies if the output is negative.
+ *
+ * STATE DURATIONS:
+ * After all that talk about manipulation of health and stuff via states, you
+ * might be saying "you've told me that everything is outputed as per five
+ * seconds, but how do I specify how long they last?". To accommodate the fact
+ * that I wanted governance over durations to be accessible, I opted to
+ * repurposes the "stepstoRemove" property on states, which is the "Remove by
+ * Walking" number box in the database editor. The number entered into that box
+ * will be the number of frames that a state will persist. Considering RMMZ
+ * runs natively at roughly 60 frames per second, you can assume that if you
+ * make a state duration last 300 frames, that it will roughly afflict the
+ * battler with exactly as much as you specify in the VAL output of the slip
+ * damage or other effects.
+ *
+ * NOTE ABOUT FRAMES PER SECOND:
+ * I do say "roughly" a number of times in the section above. That is because
+ * while the engine assumes you'll be running at 60 frames per second, the
+ * reality is that it teeters somewhere between 30 and 60 depending on the
+ * level of action and how powerful your computer is, etc. This means that
+ * even though the state may be designated to last 300 frames, and you convert
+ * that in your head to 5 seconds, it may actually be longer than 5 seconds if
+ * your frames per second are spending a lot of time below 60.
+ * Keep that in mind when designing states.
+ * ============================================================================
+ * STATE DURATION EXTENSIONS:
+ * In some cases, you may want the player to acquire armor or have states to
+ * apply modifiers to how long states last. To accomplish this functionality,
+ * we have another trio of tags that can modify the duration of states applied
+ * by a given battler.
+ *
+ * NOTE ABOUT SCOPE OF USE:
+ * This is for outgoing state duration only!
+ * This does NOT extend or reduce state durations for incoming states.
+ *
+ * NOTE ABOUT POSITIVE OR NEGATIVE:
+ * Any of the below values can be positive or negative and will modify the
+ * base duration accordingly.
+ *
+ * NOTE ABOUT MULTIPLE TAGS:
+ * All tags are summed up into their respective groups and added together
+ * from all available note-containing sources applicable to the battler.
+ *
+ * FLAT:
+ * Flat state duration boosts are exactly as you might suspect, a flat number
+ * of frames that will be added to the base duration.
+ *    <stateDurationFlat: VAL>
+ *  Where VAL is the number of frames to add onto the base duration.
+ *
+ * PERCENT:
+ * Percent state duration boosts are also what you might expect: a percent
+ * modifier of the base duration added to the base duration.
+ *    <stateDurationPerc: VAL>
+ *  Where VAL is the % of base duration to be added onto the base duration.
+ *
+ * FORMULA:
+ * For more complex scenarios, you may want to use a formula to calculate the
+ * bonus state duration to be added to the base duration.
+ *    <stateDurationForm:[FORMULA]>
+ *  Where FORMULA is the damage-like formula to calculate VAL to add onto
+ *  the base duration.
+ *
+ *  Within the FORMULA, there are pre-defined variables available for use:
+ *    - "a": which represents the battler afflicted with the state.
+ *    - "b": which represents the base duration of the state.
+ *    - "v": which represents access to the variable store.
+ *
+ * ============================================================================
+ * @param baseConfigs
+ * @text BASE SETUP
+ *
+ * @param maxAiUpdateRange
+ * @parent baseConfigs
+ * @type number
+ * @min 10
+ * @text Max AI Update Range
+ * @desc CHANGE THIS VALUE WITH CAUTION. MAKING THIS TOO HIGH WILL CAUSE LAG IF THERE ARE LOTS(30+) OF ENEMIES IN RANGE.
+ * @default 15
+ *
+ * @param actionMapId
+ * @parent baseConfigs
+ * @type number
+ * @text Action Map Id
+ * @desc The default id of the map used for cloning action events off of.
+ * @default 2
+ *
+ * @param enemyMapId
+ * @parent baseConfigs
+ * @type number
+ * @text Enemy Map Id
+ * @desc The id of the map used for cloning enemy events off of.
+ * @default
+ *
+ * @param dodgeSkillTypeId
+ * @parent baseConfigs
+ * @type number
+ * @text Dodge Skill Type Id
+ * @desc The default id of the skill type that acts as a classification for dodge skills.
+ * @default 1
+ *
+ * @param guardSkillTypeId
+ * @parent baseConfigs
+ * @type number
+ * @text Rotate Skill Type Id
+ * @desc The default id of the skill type that acts as a classification for guard skills.
+ * @default 2
+ *
+ * @param weaponSkillTypeId
+ * @parent baseConfigs
+ * @type number
+ * @text Weapon Skill Type Id
+ * @desc The default id of the skill type that acts as a classification for weapon skills.
+ * @default 7
+ *
+ * @param enemyDefaultConfigs
+ * @text ENEMY BATTLER DEFAULTS
+ *
+ * @param defaultEnemyPrepareTime
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @text Default Enemy Prepare Time
+ * @desc The default number of frames for "prepare" time.
+ * @default 180
+ *
+ * @param defaultEnemyAttackSkillId
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Attack Skill
+ * @desc The default skill id used for an enemy basic attack where their animation is "normal attack".
+ * @default 1
+ *
+ * @param defaultEnemySightRange
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Sight Range
+ * @desc The default range from a battler that they can engage in combat from.
+ * @default 4
+ *
+ * @param defaultEnemyPursuitRange
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Pursuit Range
+ * @desc The default range from a battler that they can remain in combat within.
+ * @default 6
+ *
+ * @param defaultEnemyAlertedSightBoost
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Alerted Sight Boost
+ * @desc The default boost to sight an enemy gains while alerted (alerted: hit from out of combat).
+ * @default 2
+ *
+ * @param defaultEnemyAlertedPursuitBoost
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 1
+ * @text Default Enemy Alerted Pursuit Boost
+ * @desc The default boost to pursuit an enemy gains while alerted (alerted: hit from out of combat).
+ * @default 4
+ *
+ * @param defaultEnemyAlertDuration
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @min 60
+ * @text Default Enemy Alert Duration
+ * @desc The default number of frames an enemy remains alerted (alerted: hit from out of combat).
+ * @default 300
+ *
+ * @param defaultEnemyCanIdle
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Can Idle
+ * @desc The default for whether or not enemies can idle.
+ * @default true
+ *
+ * @param defaultEnemyShowHpBar
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Show HP Bar
+ * @desc The default for whether or not enemies' HP bars are visible.
+ * @default true
+ *
+ * @param defaultEnemyShowBattlerName
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Show Battler Name
+ * @desc The default for whether or not enemies' names are visible.
+ * @default true
+ *
+ * @param defaultEnemyIsInvincible
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Is Invincible
+ * @desc Setting this to true will cause all enemies to be invincible by default. USE WITH CAUTION.
+ * @default false
+ *
+ * @param defaultEnemyIsInanimate
+ * @parent enemyDefaultConfigs
+ * @type boolean
+ * @text Default Enemy Is Inanimate
+ * @desc Setting this to true will cause all enemies to be inanimate by default. USE WITH CAUTION.
+ * @default false
+ *
+ * @param defaultConfigs
+ * @text WHEN UNASSIGNED
+ *
+ * @param defaultToolCooldownTime
+ * @parent defaultConfigs
+ * @type number
+ * @text Default Tool Cooldown Time
+ * @desc The default number of frames for an item's cooldown if one isn't specified.
+ * @default 300
+ *
+ * @param defaultLootExpiration
+ * @parent defaultConfigs
+ * @type number
+ * @min -1
+ * @text Default Loot Duration
+ * @desc The default number of frames before an item expires from the map. Set to -1 for no expiration.
+ * @default 900
+ *
+ * @param defaultAttackAnimationId
+ * @parent defaultConfigs
+ * @type number
+ * @text Default Attack Animation Id
+ * @desc The default id of the animation for battlers when none is defined.
+ * @default 1
+ *
+ * @param iconConfigs
+ * @text ICON CONFIGURATIONS
+ *
+ * @param useElementalIcons
+ * @parent iconConfigs
+ * @type boolean
+ * @text Use Elemental Icons
+ * @desc Enable or disable the display of elemental icons on damage popups with this option.
+ * @default true
+ *
+ * @param elementalIconData
+ * @parent iconConfigs
+ * @type struct<ElementalIconStruct>[]
+ * @text Elemental Icon Data
+ * @desc The collection of element ids and their icon indices.
+ * @default ["{\"elementId\":\"0\",\"iconIndex\":\"127\"}","{\"elementId\":\"1\",\"iconIndex\":\"97\"}","{\"elementId\":\"2\",\"iconIndex\":\"107\"}","{\"elementId\":\"3\",\"iconIndex\":\"110\"}","{\"elementId\":\"4\",\"iconIndex\":\"64\"}","{\"elementId\":\"5\",\"iconIndex\":\"67\"}","{\"elementId\":\"6\",\"iconIndex\":\"69\"}","{\"elementId\":\"7\",\"iconIndex\":\"68\"}","{\"elementId\":\"8\",\"iconIndex\":\"70\"}","{\"elementId\":\"9\",\"iconIndex\":\"71\"}"]
+ *
+ * @param animationConfigs
+ * @text ACTION DECIDED ANIMATIONS
+ *
+ * @param attackDecidedAnimationId
+ * @parent animationConfigs
+ * @type animation
+ * @text Attack Decided Animation Id
+ * @desc The animation id that plays on the ai-controlled battler when they decide an attack-action.
+ * @default 135
+ *
+ * @param supportDecidedAnimationId
+ * @parent animationConfigs
+ * @type animation
+ * @text Support Decided Animation Id
+ * @desc The animation id that plays on the ai-controlled battler when they decide a support-action.
+ * @default 136
+ *
+ * @param aggroConfigs
+ * @text AGGRO DEFAULTS
+ *
+ * @param baseAggro
+ * @parent aggroConfigs
+ * @type number
+ * @text Base Aggro
+ * @desc The base amount of aggro generated by every action, in addition to the rest of the formula.
+ * @default 100
+ *
+ * @param aggroPerHp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per HP damage
+ * @desc The amount of aggro generated per 1 HP damage dealt to a non-allied target.
+ * @default 1
+ *
+ * @param aggroPerMp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per MP damage
+ * @desc The amount of aggro generated per 1 MP damage dealt to a non-allied target.
+ * @default 2
+ *
+ * @param aggroPerTp
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro per TP damage
+ * @desc The amount of aggro generated per 1 TP damage dealt to a non-allied target.
+ * @default 10
+ *
+ * @param aggroDrainMultiplier
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Drain Multiplier
+ * @desc If the skill was an HP Drain, then generate an additional X aggro per HP drained.
+ * @default 4
+ *
+ * @param aggroParryFlatAmount
+ * @parent aggroConfigs
+ * @type number
+ * @min -999999
+ * @text Aggro Parry Flat Amount
+ * @desc If the skill didn't connect because it was parried, add this much instead. Can be negative.
+ * @default -50
+ *
+ * @param aggroParryUserGain
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Parry User Gain
+ * @desc If the skill didn't connect because it was parried, aggro the attacker this much.
+ * @default 200
+ *
+ * @param aggroPlayerReduction
+ * @parent aggroConfigs
+ * @type number
+ * @text Aggro Player Reduction
+ * @desc The player can attack much faster than AI, so reducing their aggro output by default is sensible.
+ * @decimals 2
+ * @default 0.50
+ *
+ * @param stateConfigs
+ * @text STATE DEFAULTS
+ *
+ * @param defaultStateReapplyType
+ * @parent stateConfigs
+ * @type select
+ * @text Reapply Type
+ * @desc The strategy used when applying a state on a battler already afflicted with the same state.
+ * @default refresh
+ * @option Refresh
+ * @value refresh
+ * @option Extend
+ * @value extend
+ * @option Stack
+ * @value stack
+ *
+ * @param refreshConfigs
+ * @parent stateConfigs
+ * @text "REFRESH" CONFIG
+ * @desc "Refresh" means that the state will have its duration reset to its original duration.
+ *
+ * @param extendConfigs
+ * @parent stateConfigs
+ * @text "EXTEND" CONFIG
+ * @desc "Extend" means that the state will have its duration increased by its original duration.
+ *
+ * @param stackConfigs
+ * @parent stateConfigs
+ * @text "STACK" CONFIG
+ * @desc "Stack" means that a state will gain an additional instance and be "refreshed".
+ *
+ * @param defaultStateRefreshDiminish
+ * @parent refreshConfigs
+ * @type number
+ * @text Refresh Diminishment
+ * @desc When a state is "refreshed", it will have this many frames less in duration added.
+ * @default 120
+ *
+ * @param defaultStateRefreshReset
+ * @parent refreshConfigs
+ * @type number
+ * @text Diminishment Reset
+ * @desc After this many frames, the diminishing returns on a state being "refreshed" will reset. (60 frames = 1 second)
+ * @default 900
+ *
+ *
+ * @param defaultStateExtendAmount
+ * @parent extendConfigs
+ * @type number
+ * @text Extend Amount
+ * @desc When a state is "extended", it will instead extend remaining duration by this many frames.
+ * @default 120
+ *
+ * @param defaultStateExtendMax
+ * @parent extendConfigs
+ * @type number
+ * @text Extend Amount
+ * @desc When a state is "extended", it will instead extend remaining duration by this many frames.
+ * @default 216000
+ *
+ *
+ * @param defaultStateStackMax
+ * @parent stackConfigs
+ * @type number
+ * @text Stack Cap
+ * @desc When a state "stacks", there is a limit of this many stacks.
+ * @default 5
+ *
+ * @param defaultStateApplicationCount
+ * @parent stackConfigs
+ * @type number
+ * @text Stacks per Application
+ * @desc When "stacking" a state, it will apply this many stacks by default.
+ * @default 1
+ *
+ * @param defaultStateLoseAllStacksAtOnce
+ * @parent stackConfigs
+ * @type boolean
+ * @text Lose All Stacks
+ * @desc If true, then all state "stacks" will be lost upon expiration. If false, then one will be lost and "refresh".
+ * @default false
+ *
+ *
+ * @param miscConfigs
+ * @text MISCELLANEOUS SETUP
+ *
+ * @param lootPickupDistance
+ * @parent miscConfigs
+ * @type number
+ * @text Loot Pickup Distance
+ * @desc The distance of which the player must be to collect loot on the ground.
+ * @decimals 2
+ * @default 1.50
+ *
+ * @param disableTextPops
+ * @parent miscConfigs
+ * @type boolean
+ * @text Disable Text Pops
+ * @desc Whether or not to disable the text popups, including: damage, rewards, parry, etc.
+ * @default false
+ *
+ * @param lootPickupDistance
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Loot Pickup Distance
+ * @desc The distance of which the player must be to collect loot on the ground.
+ * @default 1.50
+ *
+ * @param allyRubberbandAdjustment
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Ally Rubberband Adjustment
+ * @desc A modifier on the ally rubber band range (defaults of 10). This also affects the ally AI plugin if used.
+ * @default 2.00
+ *
+ * @param dashSpeedBoost
+ * @parent miscConfigs
+ * @type number
+ * @decimals 2
+ * @text Dash Movespeed Boost
+ * @desc The boost to movement speed when dashing. You may need to toy with this a bit to get it right.
+ * @default 1.25
+ *
+ * @param quickmenuConfigs
+ * @text QUICKMENU SETUP
+ *
+ * @param equipCombatSkillsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Combat Skills Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip combat skills" command.
+ * @default Equip Combat Skills
+ *
+ * @param equipDodgeSkillsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Dodge Skills Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip dodge skills" command.
+ * @default Equip Dodge Skills
+ *
+ * @param equipToolsText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Tools Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip tools" command.
+ * @default Equip Tools
+ *
+ * @param mainMenuText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Main MenuText
+ * @desc The text that shows up in the JABS quickmenu for the "main menu" command.
+ * @default Full Menu
+ *
+ * @param cancelText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Cancel Text
+ * @desc The text that shows up in the JABS quickmenu for the "cancel" command.
+ * @default Cancel
+ *
+ * @param clearSlotText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Clear Slot Text
+ * @desc The text that shows up in the JABS quickmenu for the "clear slot" command.
+ * @default Clear Slot...
+ *
+ * @param unassignedText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text UnassignedText
+ * @desc The text that shows up in the JABS quickmenu for the "- unassigned -" command.
+ * @default - unassigned -
+ *
+ *
+ *
+ *
+ * @command Enable JABS
+ * @text Enable JABS
+ * @desc Enables the JABS engine allowing battles on the map to take place.
+ *
+ * @command Disable JABS
+ * @text Disable JABS
+ * @desc Disables the JABS engine.
+ *
+ * @command Set JABS Skill
+ * @text Assign a JABS skill
+ * @desc
+ * Assigns a specific skill id or (item id) to a designated slot.
+ * Assigned skills will be removed if not learned (unless locked).
+ * @arg actorId
+ * @type actor
+ * @text Choose Actor
+ * @desc
+ * The actor to have the skill assigned to.
+ * Please don't choose "none", that'll cause the game to crash.
+ * @default 1
+ *
+ * @arg skillId
+ * @type skill
+ * @text Choose Skill
+ * @desc
+ * The skill to be assigned to the actor.
+ * You may choose "none" if you want to unassign the slot.
+ * @default 0
+ *
+ * @arg itemId
+ * @type item
+ * @text Choose Item
+ * @desc
+ * The item to be assigned to the actor.
+ * This is only for use if assigning to the "tool" slot.
+ * @default 0
+ *
+ * @arg slot
+ * @type select
+ * @text Choose Slot
+ * @desc The slot to assign the skill to for this actor.
+ * @option Tool
+ * @option Dodge
+ * @option L1A
+ * @option L1B
+ * @option L1X
+ * @option L1Y
+ * @default L1A
+ * @arg locked
+ * @type boolean
+ * @on Lock Skill
+ * @off Don't Lock
+ * @desc Locked skills cannot be unequipped until unlocked.
+ * @default false
+ *
+ * @command Unlock JABS Skill Slot
+ * @text Unlock a single JABS skill slot
+ * @desc Unlocks a single JABS skill slot for the leader.
+ * @arg Slot
+ * @type select
+ * @option Tool
+ * @option Dodge
+ * @option L1A
+ * @option L1B
+ * @option L1X
+ * @option L1Y
+ *
+ * @command Unlock All JABS Skill Slots
+ * @text Unlock all JABS skill slots
+ * @desc Unlocks all JABS skill slots for the leader.
+ *
+ * @command Rotate Party Members
+ * @text Cycle to next leader
+ * @desc Cycles the leader to the back and shifts all members forward one slot.
+ *
+ * @command Disable Party Rotation
+ * @text Disable Party Rotation
+ * @desc Disables the player from being able to rotate the party leader.
+ * (This only affects the JABS party rotate functionality.)
+ *
+ * @command Enable Party Rotation
+ * @text Enable Party Rotation
+ * @desc (Re-)Enables the ability to execute a party rotate.
+ * Other conditions still apply (like not rotating to a dead member).
+ *
+ * @command Refresh JABS Menu
+ * @text Refresh JABS Menu
+ * @desc Refreshes the JABS menu in case there were any adjustments made to it.
+ *
+ * @command Spawn Enemy
+ * @text Spawn Enemy
+ * @desc Dynamically spawn an enemy onto the map from the enemy clone map.
+ * @arg x
+ * @type number
+ * @desc The x coordinate of where on the current map to spawn the enemy.
+ * @default 1
+ * @arg y
+ * @type number
+ * @desc The y coordinate of where on the current map to spawn the enemy.
+ * @default 1
+ * @arg enemyEventId
+ * @type number
+ * @desc The id of the event from the enemy clone map to spawn onto this map.
+ * @default 1
+ * @arg spawnAnimationId
+ * @type animation
+ * @desc The animation to execute upon the newly spawned enemy.
+ * By default, no animation will play.
+ * @default 0
+ *
+ * @command Spawn Loot
+ * @text Spawn Loot
+ * @desc Dynamically spawn some loot onto the map from the database.
+ * If multiple loot ids are defined, then multiple will be dropped.
+ * @arg x
+ * @type number
+ * @desc The x coordinate of where on the current map to spawn the loot.
+ * @default 1
+ * @arg y
+ * @type number
+ * @desc The y coordinate of where on the current map to spawn the loot.
+ * @default 1
+ * @arg lootItemIds
+ * @type item[]
+ * @desc The items to be dropped as loot.
+ * @default []
+ * @arg lootWeaponIds
+ * @type weapon[]
+ * @desc The weapons to be dropped as loot.
+ * @default []
+ * @arg lootArmorIds
+ * @type armor[]
+ * @desc The armors to be dropped as loot.
+ * @default []
+ * @arg spawnAnimationId
+ * @type animation
+ * @desc The animation to execute upon the newly spawned enemy.
+ * By default, no animation will play.
+ * @default 0
+ */
+//=================================================================================================
+/*~struct~ElementalIconStruct:
+ * @param elementId
+ * @type number
+ * @desc The id of the element to match an icon to.
+ * @default 0
+ *
+ * @param iconIndex
+ * @type number
+ * @desc The index of the icon for this element.
+ * @default 64
+*/
+//=================================================================================================
+/* eslint-enable max-len */
+
+//region Metadata
+/**
+ * The core where all of my extensions live: in the `J` object.
+ */
+var J = J || {};
+
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '2.1.3';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
+
+//region plugin setup and configuration
+/**
+ * The plugin umbrella that governs all things related to this plugin.
+ */
+J.ABS = {};
+
+/**
+ * The parent namespace for all JABS extensions.
+ */
+J.ABS.EXT = {}
+
+//region helpers
+/**
+ * A collection of helpful functions for use within this plugin.
+ */
+J.ABS.Helpers = {};
+
+/**
+ * A collection of helper functions for the use with the plugin manager.
+ */
+J.ABS.Helpers.PluginManager = {};
+
+/**
+ * A helpful function for translating a plugin command's slot to a valid slot.
+ * @param {string} slot The slot from the plugin command to translate.
+ * @returns {string} The translated slot.
+ */
+J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
+{
+  switch (slot)
+  {
+    case "Tool":
+      return JABS_Button.Tool;
+    case "Dodge":
+      return JABS_Button.Dodge;
+    case "L1A":
+      return JABS_Button.CombatSkill1;
+    case "L1B":
+      return JABS_Button.CombatSkill2;
+    case "L1X":
+      return JABS_Button.CombatSkill3;
+    case "L1Y":
+      return JABS_Button.CombatSkill4;
+  }
+};
+
+/**
+ * A helpful function for translating raw JSON from the plugin settings into elemental icon objects.
+ * @param {string} obj The raw JSON.
+ * @returns {{element: number, icon: number}[]} The translated elemental icon objects.
+ */
+J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
+{
+  // no element icons identified.
+  if (!obj) return [];
+
+  const arr = JSON.parse(obj);
+  if (!arr.length) return [];
+  return arr.map(el =>
+  {
+    const kvp = JSON.parse(el);
+    const { elementId, iconIndex } = kvp;
+    return {element: parseInt(elementId), icon: parseInt(iconIndex)};
+  });
+};
+//endregion helpers
+
+//region metadata
+/**
+ * The `metadata` associated with this plugin, such as version.
+ */
+J.ABS.Metadata = {};
+J.ABS.Metadata.Name = 'J-ABS';
+J.ABS.Metadata.Version = '3.3.0';
+
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
+J.ABS.PluginParameters = PluginManager.parameters(J.ABS.Metadata.Name);
+
+// the most important configuration!
+J.ABS.Metadata.MaxAiUpdateRange = Number(J.ABS.PluginParameters['maxAiUpdateRange']) || 20;
+
+// defaults configurations.
+J.ABS.Metadata.DefaultActionMapId = Number(J.ABS.PluginParameters['actionMapId']);
+J.ABS.Metadata.DefaultEnemyMapId = Number(J.ABS.PluginParameters['enemyMapId']);
+J.ABS.Metadata.DefaultDodgeSkillTypeId = Number(J.ABS.PluginParameters['dodgeSkillTypeId']);
+J.ABS.Metadata.DefaultGuardSkillTypeId = Number(J.ABS.PluginParameters['guardSkillTypeId']);
+J.ABS.Metadata.DefaultWeaponSkillTypeId = Number(J.ABS.PluginParameters['weaponSkillTypeId']);
+J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
+J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
+J.ABS.Metadata.DefaultLootExpiration = Number(J.ABS.PluginParameters['defaultLootExpiration']);
+
+// enemy battler default enemy setup configurations.
+J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
+J.ABS.Metadata.DefaultEnemyAttackSkillId = Number(J.ABS.PluginParameters['defaultEnemyAttackSkillId']);
+J.ABS.Metadata.DefaultEnemySightRange = Number(J.ABS.PluginParameters['defaultEnemySightRange']);
+J.ABS.Metadata.DefaultEnemyPursuitRange = Number(J.ABS.PluginParameters['defaultEnemyPursuitRange']);
+J.ABS.Metadata.DefaultEnemyAlertedSightBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedSightBoost']);
+J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedPursuitBoost']);
+J.ABS.Metadata.DefaultEnemyAlertDuration = Number(J.ABS.PluginParameters['defaultEnemyAlertDuration']);
+J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === "true");
+J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === "true");
+J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === "true");
+J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
+J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
+
+// custom data configurations.
+J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === "true";
+J.ABS.Metadata.ElementalIcons =
+  J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
+
+// action decided configurations.
+J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
+J.ABS.Metadata.SupportDecidedAnimationId = Number(J.ABS.PluginParameters['supportDecidedAnimationId']);
+
+// aggro configurations.
+J.ABS.Metadata.BaseAggro = Number(J.ABS.PluginParameters['baseAggro']);
+J.ABS.Metadata.AggroPerHp = Number(J.ABS.PluginParameters['aggroPerHp']);
+J.ABS.Metadata.AggroPerMp = Number(J.ABS.PluginParameters['aggroPerMp']);
+J.ABS.Metadata.AggroPerTp = Number(J.ABS.PluginParameters['aggroPerTp']);
+J.ABS.Metadata.AggroDrain = Number(J.ABS.PluginParameters['aggroDrainMultiplier']);
+J.ABS.Metadata.AggroParryFlatAmount = Number(J.ABS.PluginParameters['aggroParryFlatAmount']);
+J.ABS.Metadata.AggroParryUserGain = Number(J.ABS.PluginParameters['aggroParryUserGain']);
+J.ABS.Metadata.AggroPlayerReduction = Number(J.ABS.PluginParameters['aggroPlayerReduction']);
+
+// state configurations.
+J.ABS.Metadata.DefaultStateReapplyType =
+  J.ABS.PluginParameters['defaultStateReapplyType'] || JABS_State.reapplicationType.Refresh;
+
+J.ABS.Metadata.DefaultStateRefreshDiminish =
+  Number(J.ABS.PluginParameters['defaultStateRefreshDiminish']) || 120;
+J.ABS.Metadata.DefaultStateRefreshReset =
+  Number(J.ABS.PluginParameters['defaultStateRefreshReset']) || 900;
+
+J.ABS.Metadata.DefaultStateExtendAmount = Number(J.ABS.PluginParameters['defaultStateExtendAmount']) || 180;
+J.ABS.Metadata.DefaultStateExtendMax = Number(J.ABS.PluginParameters['defaultStateExtendMax']) || 216000;
+
+J.ABS.Metadata.DefaultStateStackMax = Number(J.ABS.PluginParameters['defaultStateStackMax']) || 5;
+J.ABS.Metadata.DefaultStateApplicationCount =
+  Number(J.ABS.PluginParameters['defaultStateApplicationCount']) || 1;
+J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce =
+  (J.ABS.PluginParameters['defaultStateLoseAllStacksAtOnce'] === 'true') || false;
+
+// miscellaneous configurations.
+J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
+J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === "true");
+J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
+J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
+
+// quick menu commands configurations.
+J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
+J.ABS.Metadata.EquipDodgeSkillsText = J.ABS.PluginParameters['equipDodgeSkillsText'];
+J.ABS.Metadata.EquipToolsText = J.ABS.PluginParameters['equipToolsText'];
+J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
+J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
+J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
+J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
+//endregion metadata
+
+/**
+ * The various default values across the engine. Often configurable.
+ */
+J.ABS.DefaultValues = {
+  /**
+   * When an enemy JABS battler has no "prepare" defined.
+   * @type {number}
+   */
+  EnemyNoPrepare: J.ABS.Metadata.DefaultEnemyPrepareTime,
+
+  /**
+   * The ID of the map that will contain the actions for replication.
+   * @type {number}
+   */
+  ActionMap: J.ABS.Metadata.DefaultActionMapId,
+
+  /**
+   * The ID of the map that will contain the enemies for replication.
+   * @type {number}
+   */
+  EnemyMap: J.ABS.Metadata.DefaultEnemyMapId,
+
+  /**
+   * The default animation id for skills when it is set to "normal attack".
+   * Typically used for enemies or weaponless battlers.
+   * @type {number}
+   */
+  AttackAnimationId: J.ABS.Metadata.DefaultAttackAnimationId,
+
+  /**
+   * The skill category that governs skills that are identified as "dodge" skills.
+   * @type {number}
+   */
+  DodgeSkillTypeId: J.ABS.Metadata.DefaultDodgeSkillTypeId,
+
+  /**
+   * The skill category that governs skills that are identified as "guard" skills.
+   * @type {number}
+   */
+  GuardSkillTypeId: J.ABS.Metadata.DefaultGuardSkillTypeId,
+
+  /**
+   * The skill category that governs skills that are identified as "weapon" skills.
+   * @type {number}
+   */
+  WeaponSkillTypeId: J.ABS.Metadata.DefaultWeaponSkillTypeId,
+
+  /**
+   * When an item has no cooldown defined.
+   * @type {number}
+   */
+  CooldownlessItems: J.ABS.Metadata.DefaultToolCooldownTime,
+};
+
+/**
+ * A collection of non-user-modifiable global values that are used throughout the JABS system.
+ * Each variable should be documented for absolute clarity.
+ */
+J.ABS.Globals = {};
+
+/**
+ * The cooldown key that will be used for the "global" cooldown of a battler.<br/>
+ * Battler cooldowns for both ally and enemy are bound to slots by their cooldown key.<br/>
+ * The cooldown key is normally a dynamic value, but every battler also has a "global" cooldown slot as well that
+ * is used when no other is defined. This "global" slot generally is not used to describe regular skills being used
+ * but instead to describe exceptional events that block other skills while it remains on cooldown*.
+ *
+ * * TODO: implement the global cooldown blocking other cooldowns.
+ * * TODO: alternatively, consider applying cooldowns against global to all slots on a battler.
+ * @type {"global"}
+ */
+J.ABS.Globals.GlobalCooldownKey = "global";
+
+/**
+ * A collection of helpful mappings for emoji balloons
+ * to their numeric ID.
+ */
+J.ABS.Balloons = {
+  /**
+   * An exclamation point balloon.
+   */
+  Exclamation: 1,
+
+  /**
+   * A question mark balloon.
+   */
+  Question: 2,
+
+  /**
+   * A music note balloon.
+   */
+  MusicNote: 3,
+
+  /**
+   * A heart balloon.
+   */
+  Heart: 4,
+
+  /**
+   * An anger balloon.
+   */
+  Anger: 5,
+
+  /**
+   * A sweat drop balloon.
+   */
+  Sweat: 6,
+
+  /**
+   * A frustrated balloon.
+   */
+  Frustration: 7,
+
+  /**
+   * A elipses (...) or triple-dot balloon.
+   */
+  Silence: 8,
+
+  /**
+   * A light bulb or realization balloon.
+   */
+  LightBulb: 9,
+
+  /**
+   * A double-Z (zz) balloon.
+   */
+  Asleep: 10,
+
+  /**
+   * A green checkmark.
+   */
+  Check: 11,
+};
+
+/**
+ * A collection of helpful mappings for `Game_Character` directions
+ * to their numeric ID.
+ */
+J.ABS.Directions = {
+
+  /**
+   * Represents the UP direction, or 8.
+   * @type {8}
+   */
+  UP: 8,
+
+  /**
+   * Represents the RIGTH direction, or 6.
+   * @type {6}
+   */
+  RIGHT: 6,
+
+  /**
+   * Represents the LEFT direction, or 4.
+   * @type {4}
+   */
+  LEFT: 4,
+
+  /**
+   * Represents the DOWN direction, or 2.
+   * @type {2}
+   */
+  DOWN: 2,
+
+  /**
+   * Represents the diagonal LOWER LEFT direction, or 1.
+   * @type {1}
+   */
+  LOWERLEFT: 1,
+
+  /**
+   * Represents the diagonal LOWER RIGHT direction, or 3.
+   * @type {3}
+   */
+  LOWERRIGHT: 3,
+
+  /**
+   * Represents the diagonal UPPER LEFT direction, or 7.
+   * @type {7}
+   */
+  UPPERLEFT: 7,
+
+  /**
+   * Represents the diagonal UPPER RIGHT direction, or 9.
+   * @type {9}
+   */
+  UPPERRIGHT: 9,
+};
+
+/**
+ * The various collision shapes an attack can be.
+ */
+J.ABS.Shapes = {
+  /**
+   * A circle shaped hitbox.
+   */
+  Circle: "circle",
+
+  /**
+   * A rhombus (aka diamond) shaped hitbox.
+   */
+  Rhombus: "rhombus",
+
+  /**
+   * A square around the target hitbox.
+   */
+  Square: "square",
+
+  /**
+   *  A square in front of the target hitbox.
+   */
+  FrontSquare: "frontsquare",
+
+  /**
+   * A line from the target hitbox.
+   */
+  Line: "line",
+
+  /**
+   * An arc shape hitbox in front of the action.
+   */
+  Arc: "arc",
+
+  /**
+   * A wall in front of the target hitbox.
+   */
+  Wall: "wall",
+
+  /**
+   * A cross from the target hitbox.
+   */
+  Cross: "cross"
+};
+
+/**
+ * A collection of helpful mappings for `notes` that are placed in
+ * various locations, like events on the map, or in a database enemy.
+ */
+J.ABS.Notetags = {
+  // battler-related (goes in database on enemy/actor).
+  KnockbackResist: "knockbackResist",
+  MoveType: {
+    Forward: "forward",
+    Backward: "backward",
+    Directional: "directional",
+  }
+};
+
+/**
+ * All regular expressions used by this plugin.
+ */
+J.ABS.RegExp = {
+  //region ON SKILLS
+  ActionId: /<actionId:[ ]?(\d+)>/gi,
+
+  // pre-execution-related.
+  CastTime: /<castTime:[ ]?(\d+)>/gi,
+  CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
+
+  // post-execution-related.
+  Cooldown: /<cooldown:[ ]?(\d+)>/gi,
+  UniqueCooldown: /<uniqueCooldown>/gi,
+
+  // projectile-related.
+  Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+  Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+  Projectile: /<projectile:[ ]?([12348])>/gi,
+  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Direct: /<direct>/gi,
+  Duration: /<duration:[ ]?(\d+)>/gi,
+  Knockback: /<knockback:[ ]?(\d+)>/gi,
+  DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)])>/gi,
+
+  // animation-related.
+  SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
+
+  // combo-related.
+  ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
+  ComboStarter: /<comboStarter>/gi,
+  AiSkillExclusion: /<aiSkillExclusion>/gi,
+  FreeCombo: /<freeCombo>/gi,
+
+  // learning-related
+  ConfigAutoAssignSkills: /<autoAssignSkills>/gi,
+  NoAutoAssign: /<noAutoAssign>/gi,
+  BlacklistAutoAssignSkillType: /<noAutoAssignType:[ ]?(\[[\d, ]+])>/gi,
+  ConfigAutoUpgradeSkills: /<autoUpgradeSkills>/gi,
+  UpgradeOverSkill: /<upgradeOverSkill:[ ]?(\d+)>/i,
+  NoSkillUpgrading: /<noUpgrade>/i,
+  UpgradeOnlySkill: /<onlyUpgrade>/i,
+
+  // aggro-related.
+  BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
+  AggroMultiplier: /<aggroMultiplier:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+
+  // hits-related.
+  Unparryable: /<unparryable>/gi,
+  BonusHits: /<bonusHits:[ ]?(\d+)>/gi,
+  PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
+
+  // guarding-related.
+  Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  Parry: /<parry:[ ]?(\d+)>/gi,
+  CounterParry: /<counterParry:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
+  CounterGuard: /<counterGuard:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
+
+  // dodge-related.
+  MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
+  InvincibleDodge: /<invincibleDodge>/gi,
+
+  // counter-related (on-chance-effect template)
+  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  //endregion ON SKILLS
+
+  //region ON EQUIPS
+  // skill-related.
+  SkillId: /<skillId:[ ]?(\d+)>/gi,
+  OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
+
+  // knockback-related.
+  KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
+
+  // parry-related.
+  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+  //endregion ON EQUIPS
+
+  //region ON ITEMS
+  UseOnPickup: /<useOnPickup>/gi,
+  Expires: /<expires:[ ]?(\d+)>/gi,
+  //endregion ON ITEMS
+
+  //region ON STATES
+  // definition-related.
+  Negative: /<negative>/gi,
+
+  // function-related.
+  ReapplyType: /<stackType:[ ]?(refresh|extend|stack)>/gi,
+
+  ReapplyRefreshDiminish: /<stateRefreshDiminish:[ ]?(-?\d+)>/gi,
+  ReapplyRefreshReset: /<stateRefreshReset:[ ]?(\d+)>/gi,
+
+  ReapplyExtendAmount: /<stackExtendAmount:[ ]?(\d+)>/gi,
+  ReapplyExtendMax: /<stackExtendMax:[ ]?(\d+)>/gi,
+
+  ReapplyStackMax: /<stackMax:[ ]?(\d+)>/gi,
+  StateApplicationAmount: /<applyStacks:[ ]?(\d+)>/gi,
+  LoseAllStacksAtOnce: /<loseAllStacksAtOnce>/gi,
+
+  // jabs core ailment functionalities.
+  Paralyzed: /<paralyzed>/gi,
+  Rooted: /<rooted>/gi,
+  Disarmed: /<disabled>/gi,
+  Muted: /<muted>/gi,
+
+  // aggro-related.
+  AggroLock: /<aggroLock>/gi,
+  AggroOutAmp: /<aggroOutAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+  AggroInAmp: /<aggroInAmp:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+
+  // slip hp/mp/tp effects.
+  SlipHpFlat: /<hpFlat:[ ]?(-?\d+)>/gi,
+  SlipMpFlat: /<mpFlat:[ ]?(-?\d+)>/gi,
+  SlipTpFlat: /<tpFlat:[ ]?(-?\d+)>/gi,
+  SlipHpPercent: /<hpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipMpPercent: /<mpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipTpPercent: /<tpPercent:[ ]?(-?\d+)%?>/gi,
+  SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
+  SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
+  SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
+
+  // state duration-related.
+  StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
+  StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
+  StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
+  //endregion ON STATES
+
+  //region ON BATTLERS
+  // core concepts.
+  EnemyId: /<enemyId:[ ]?(\d+)>/i,
+  TeamId: /<teamId:[ ]?(\d+)>/g,
+  Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  PrepareTime: /<prepare:[ ]?(\d+)>/i,
+
+  // bonus concepts.
+  VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
+
+  // alert-related.
+  AlertDuration: /<alertDuration:[ ]?(\d+)>/i,
+  AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  AlertedPursuitBoost: /<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+
+  // ai traits.
+  AiTraitCareful: /<aiTrait:[ ]?careful>/i,
+  AiTraitExecutor: /<aiTrait:[ ]?executor>/i,
+  AiTraitReckless: /<aiTrait:[ ]?reckless>/i,
+  AiTraitHealer: /<aiTrait:[ ]?healer>/i,
+  AiTraitFollower: /<aiTrait:[ ]?follower>/i,
+  AiTraitLeader: /<aiTrait:[ ]?leader>/i,
+
+  // miscellaneous combat configurables.
+  ConfigNoIdle: /<jabsConfig:[ ]?noIdle>/i,
+  ConfigCanIdle: /<jabsConfig:[ ]?canIdle>/i,
+  ConfigNoHpBar: /<jabsConfig:[ ]?noHpBar>/i,
+  ConfigShowHpBar: /<jabsConfig:[ ]?showHpBar>/i,
+  ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
+  ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
+  ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
+  ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
+  ConfigNoName: /<jabsConfig:[ ]?noName>/i,
+  ConfigShowName: /<jabsConfig:[ ]?showName>/i,
+  //endregion ON BATTLERS
+
+  //region ON ACTORS/CLASSES
+  ConfigNoSwitch: /<noSwitch>/i,
+  //endregion ON ACTORS/CLASSES
+};
+
+/**
+ * A collection of all aliased methods for this plugin.
+ */
+J.ABS.Aliased = {
+  DataManager: new Map(),
+
+  Game_Actor: new Map(),
+  Game_Action: new Map(),
+  Game_ActionResult: new Map(),
+  Game_Battler: new Map(),
+  Game_Character: new Map(),
+  Game_CharacterBase: new Map(),
+  Game_Enemy: new Map(),
+  Game_Event: new Map(),
+  Game_Interpreter: {},
+  Game_Map: new Map(),
+  Game_Party: new Map(),
+  Game_Player: new Map(),
+  Game_Switches: new Map(),
+  Game_Unit: new Map(),
+
+  RPG_Actor: new Map(),
+  RPG_Enemy: new Map(),
+  RPG_Skill: new Map(),
+
+  Scene_Load: new Map(),
+  Scene_Map: new Map(),
+
+  Spriteset_Map: new Map(),
+  Sprite_Character: new Map(),
+  Sprite_Gauge: new Map(),
+};
+//endregion Plugin setup & configuration
+//endregion Metadata
+
+//region Plugin Command Registration
+/**
+ * Plugin command for enabling JABS.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable JABS", () =>
+{
+  $jabsEngine.absEnabled = true;
+});
+
+/**
+ * Plugin command for disabling JABS.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable JABS", () =>
+{
+  $jabsEngine.absEnabled = false;
+});
+
+/**
+ * Plugin command for assigning and locking a skill to a designated slot.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
+{
+  // extract the values out of the various args.
+  const { actorId, skillId, itemId, slot, locked } = args;
+
+  // convert the text option to one of the available slots.
+  const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
+
+  // determine the actor.
+  const actor = $gameActors.actor(parseInt(actorId));
+
+  // designate the default assigned id to be the skill id.
+  let assignedId = parseInt(skillId);
+
+  // check if we are assigning to the tool slot and have an item id available.
+  if (itemId !== 0 && skillSlotKey === JABS_Button.Tool)
+  {
+    // overwrite any possible skill id with the item id instead.
+    assignedId = parseInt(itemId);
+  }
+
+  // don't try to assign anything if we don't have an id to assign.
+  if (assignedId === 0) return;
+
+  // determine the locked state of the skill being assigned.
+  const isLocked = locked === 'true';
+
+  // assign the id to the slot.
+  actor.setEquippedSkill(skillSlotKey, assignedId, isLocked);
+});
+
+/**
+ * Plugin command for unlocking a specific JABS skill slot.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock JABS Skill Slot", args =>
+{
+  const leader = $gameParty.leader();
+  if (!leader)
+  {
+    console.warn("There is no leader to manage skills for.");
+    return;
+  }
+
+  const { Slot } = args;
+  const translation = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(Slot);
+  leader.unlockSlot(translation);
+});
+
+/**
+ * Plugin command for unlocking all JABS skill slots.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Unlock All JABS Skill Slots", () =>
+{
+  const leader = $gameParty.leader();
+  if (!leader)
+  {
+    console.warn("There is no leader to manage skills for.");
+    return;
+  }
+
+  leader.unlockAllSlots();
+});
+
+/**
+ * Plugin command for cycling through party members forcefully.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Rotate Party Members", () =>
+{
+  JABS_InputAdapter.performPartyCycling(true);
+});
+
+/**
+ * Plugin command for disabling the ability to rotate party members.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Disable Party Rotation", () =>
+{
+  $gameParty.disablePartyCycling();
+});
+
+/**
+ * Plugin command for enabling the ability to rotate party members.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Enable Party Rotation", () =>
+{
+  $gameParty.enablePartyCycling();
+});
+
+/**
+ * Plugin command for updating the JABS menu.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
+{
+  $jabsEngine.requestJabsMenuRefresh = true;
+});
+
+/**
+ * Registers a plugin command for dynamically spawning an enemy onto the map.
+ * The enemy spawned will be a clone from the enemy clone map.
+ */
+PluginManager.registerCommand(
+  J.ABS.Metadata.Name,
+  "Spawn Enemy",
+  args =>
+  {
+  // extract the eventId and coordinates from the plugin args.
+    const { x, y, enemyEventId, spawnAnimationId } = args;
+
+    // translate the args.
+    const parsedX = parseInt(x);
+    const parsedY = parseInt(y);
+    const parsedEnemyEventId = parseInt(enemyEventId);
+    const parsedAnimationId = parseInt(spawnAnimationId);
+
+    // spawn the enemy on the map.
+    const addedEnemy = $jabsEngine.addEnemyToMap(parsedX, parsedY, parsedEnemyEventId);
+
+    // check if there is a spawn animation.
+    if (parsedAnimationId)
+    {
+      if (!addedEnemy)
+      {
+        console.error('enemy failed to be dynamically generated.');
+        console.warn(addedEnemy);
+        
+        return;
+      }
+
+      // execute the animation on the newly spawned enemy.
+      setTimeout(() => addedEnemy.requestAnimation(parsedAnimationId), 50);
+    }
+  });
+
+/**
+ * Registers a plugin command for dynamically spawning loot onto the map.
+ */
+PluginManager.registerCommand(
+  J.ABS.Metadata.Name,
+  "Spawn Loot",
+  args =>
+  {
+    // extract the eventId and coordinates from the plugin args.
+    const { x, y, lootItemIds, lootWeaponIds, lootArmorIds, spawnAnimationId } = args;
+
+    // translate the args.
+    const parsedX = parseInt(x);
+    const parsedY = parseInt(y);
+    const parsedItems = JSON.parse(lootItemIds).map(id => $dataItems.at(parseInt(id)));
+    const parsedWeapons = JSON.parse(lootWeaponIds).map(id => $dataWeapons.at(parseInt(id)));
+    const parsedArmors = JSON.parse(lootArmorIds).map(id => $dataArmors.at(parseInt(id)));
+    const parsedAnimationId = parseInt(spawnAnimationId);
+    /** @type {Game_Event} */
+    let lastDropped = null;
+
+    // iterate and drop all the item loot.
+    parsedItems.forEach(parsedItem =>
+    {
+      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedItem);
+    });
+
+    // iterate and drop all the weapon loot.
+    parsedWeapons.forEach(parsedWeapon =>
+    {
+      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedWeapon);
+    });
+
+    // iterate and drop all the armor loot.
+    parsedArmors.forEach(parsedArmor =>
+    {
+      lastDropped = $jabsEngine.addLootDropToMap(parsedX, parsedY, parsedArmor);
+    });
+
+    // check if there is a spawn animation.
+    if (parsedAnimationId)
+    {
+      // execute the animation on the newly spawned enemy.
+      setTimeout(() => lastDropped.requestAnimation(parsedAnimationId), 50);
+    }
+  });
+//endregion Plugin Command Registration
+
 //region RPG_BaseBattler
 //region bonusHits
 /**
@@ -13693,7 +14355,7 @@ RPG_BaseBattler.prototype.extractJabsTeamId = function()
 /**
  * The JABS prepare time for this battler.
  * This number represents how many frames must pass before this battler can
- * decide an action to perform when controlled by the {@link JABS_AiManager}.<br>
+ * decide an action to perform when controlled by the {@link JABS_AiManager}.
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsPrepareTime",
@@ -13727,7 +14389,7 @@ RPG_BaseBattler.prototype.extractJabsPrepareTime = function()
 /**
  * The JABS sight range for this battler.
  * This number represents how many tiles this battler can see before
- * engaging in combat when controlled by the {@link JABS_AiManager}.<br>
+ * engaging in combat when controlled by the {@link JABS_AiManager}.
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsSightRange",
@@ -13761,7 +14423,7 @@ RPG_BaseBattler.prototype.extractJabsSightRange = function()
 /**
  * The JABS pursuit range for this battler.
  * This number represents how many tiles this battler can see after
- * engaging in combat when controlled by the {@link JABS_AiManager}.<br>
+ * engaging in combat when controlled by the {@link JABS_AiManager}.
  * @returns {number|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsPursuitRange",
@@ -14205,7 +14867,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowHpBar",
   {
     get: function()
     {
-      return this.getJabsConfigCanIdle();
+      return this.getJabsConfigShowHpBar();
     },
   });
 
@@ -14213,16 +14875,16 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowHpBar",
  * Checks whether or not this battler can idle.
  * @returns {boolean|null}
  */
-RPG_BaseBattler.prototype.getJabsConfigCanIdle = function()
+RPG_BaseBattler.prototype.getJabsConfigShowHpBar = function()
 {
-  return this.extractJabsConfigCanIdle();
+  return this.extractJabsConfigShowHpBar();
 };
 
 /**
  * Extracts the value from this battler's notes.
  * @returns {boolean|null}
  */
-RPG_BaseBattler.prototype.extractJabsConfigCanIdle = function()
+RPG_BaseBattler.prototype.extractJabsConfigShowHpBar = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigShowHpBar, true);
 };
@@ -14238,7 +14900,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoHpBar",
   {
     get: function()
     {
-      return this.getJabsConfigNoIdle();
+      return this.getJabsConfigNoHpBar();
     },
   });
 
@@ -14246,16 +14908,16 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoHpBar",
  * Checks whether or not this battler can idle.
  * @returns {boolean|null}
  */
-RPG_BaseBattler.prototype.getJabsConfigNoIdle = function()
+RPG_BaseBattler.prototype.getJabsConfigNoHpBar = function()
 {
-  return this.extractJabsConfigNoIdle();
+  return this.extractJabsConfigNoHpBar();
 };
 
 /**
  * Extracts the value from this battler's notes.
  * @returns {boolean|null}
  */
-RPG_BaseBattler.prototype.extractJabsConfigNoIdle = function()
+RPG_BaseBattler.prototype.extractJabsConfigNoHpBar = function()
 {
   return this.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigNoHpBar, true);
 };
@@ -15705,78 +16367,6 @@ RPG_BaseItem.prototype.extractJabsKnockbackResist = function()
 //endregion RPG_BaseItem
 //endregion knockbackResist
 
-//region poseSuffix
-/**
- * Gets the JABS pose suffix data for this skill.
- *
- * The zeroth index is the string suffix itself (no quotes needed).
- * The first index is the index on the suffixed character sheet.
- * The second index is the number of frames to spend in this pose.
- * @type {[string, number, number]|null}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseData",
-  {
-    get: function()
-    {
-      return this.getJabsPoseData();
-    },
-  });
-
-/**
- * Gets the JABS pose suffix for this skill.
- * @type {string}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix",
-  {
-    get: function()
-    {
-      return this.jabsPoseData[0];
-    },
-  });
-
-/**
- * Gets the JABS pose index for this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex",
-  {
-    get: function()
-    {
-      return this.jabsPoseData[1];
-    },
-  });
-
-/**
- * Gets the JABS pose duration for this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration",
-  {
-    get: function()
-    {
-      return this.jabsPoseData[2];
-    },
-  });
-
-/**
- * Gets the JABS pose suffix data for this skill.
- * @returns {[string, number, number]|null}
- */
-RPG_Skill.prototype.getJabsPoseData = function()
-{
-  return this.extractJabsPoseData();
-};
-
-/**
- * Extracts the JABS pose suffix data for this skill from its notes.
- * @returns {[string, number, number]|null}
- */
-RPG_Skill.prototype.extractJabsPoseData = function()
-{
-  return this.getArrayFromNotesByRegex(J.ABS.RegExp.PoseSuffix, true);
-};
-//endregion poseSuffix
-
 //region ignoreParry
 /**
  * The amount of parry rating ignored by this skill.
@@ -16235,6 +16825,143 @@ RPG_State.prototype.extractJabsOffhandSkillId = function()
   return this.getNumberFromNotesByRegex(J.ABS.RegExp.OffhandSkillId, true);
 };
 //endregion offhand skillId
+
+/**
+ * The state reapplication strategy for this state in the context of JABS.<br/>
+ * Will either return one of the {@link JABS_State.reapplicationType}, or null if none was found.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateReapplyType",
+  {
+    get: function()
+    {
+      const type = RPGManager.getStringFromNoteByRegex(
+        this,
+        J.ABS.RegExp.ReapplyType,
+        true);
+
+      switch (type)
+      {
+        case JABS_State.reapplicationType.Refresh:
+        case JABS_State.reapplicationType.Extend:
+        case JABS_State.reapplicationType.Stack:
+          return type;
+        default:
+          return null;
+      }
+    },
+  });
+
+/**
+ * The customized number of frames to reduce lesser the base duration when this state is reapplied.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Refresh}.<br/>
+ * Will either return the custom number of frames defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateRefreshDiminish",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.ReapplyRefreshDiminish,
+        true) ?? J.ABS.Metadata.DefaultStateRefreshDiminish;
+    },
+  });
+
+/**
+ * The customized number of frames until a state can be fully refreshed again without diminishing returns.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Refresh}.<br/>
+ * Will either return the custom number of frames defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateRefreshReset",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.ReapplyRefreshReset,
+        true) ?? J.ABS.Metadata.DefaultStateRefreshReset;
+    },
+  });
+
+/**
+ * The customized number of frames to extend the duration of this state when reapplied.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Extend}.<br/>
+ * Will either return the custom number of frames defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateExtendAmount",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.ReapplyExtendAmount,
+        true) ?? J.ABS.Metadata.DefaultStateExtendAmount;
+    },
+  });
+
+/**
+ * The maximum number of frames a state can have its duration extended when reapplied.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Extend}.<br/>
+ * Will either return the max number of frames defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateExtendMax",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.ReapplyExtendMax,
+        true);
+    },
+  });
+
+/**
+ * The max number of stacks a state can stack.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.<br/>
+ * Will either return the custom number of stacks defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateStackMax",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.ReapplyStackMax,
+        true) ?? J.ABS.Metadata.DefaultStateStackMax;
+    },
+  });
+
+/**
+ * How many stacks of a state will be applied upon stacking.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.<br/>
+ * Will either return the custom number of stacks defined on the state, or the default from configuration.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsStateStacksApplied",
+  {
+    get: function()
+    {
+      return RPGManager.getSumFromAllNotesByRegex(
+        [this],
+        J.ABS.RegExp.StateApplicationAmount,
+        true) ?? J.ABS.Metadata.DefaultStateApplicationCount;
+    },
+  });
+
+/**
+ * Whether or not all stacks of a state will be removed upon duration expiration.<br/>
+ * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.<br/>
+ * If no value is defined on the state, the default from configuration will be used.
+ */
+Object.defineProperty(RPG_State.prototype, "jabsLoseAllStacksAtOnce",
+  {
+    get: function()
+    {
+      return RPGManager.checkForBooleanFromNoteByRegex(
+        this,
+        J.ABS.RegExp.LoseAllStacksAtOnce,
+        true) ?? J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce;
+    },
+  });
 
 //region slipHp
 //region flat
@@ -16985,7 +17712,7 @@ Input.keyMapper = {
   81: J.ABS.Input.SkillTrigger, // q
   17: J.ABS.Input.StrafeTrigger,// ctrl
   69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab (overwrite)
+  9: J.ABS.Input.MobilitySkill,// tab (overwrite)S
 
   // quickmenu button.
   13: J.ABS.Input.Quickmenu,    // enter (overwrite)
@@ -17058,7 +17785,7 @@ class JABS_AiManager
   }
 
   /**
-   * Finds a battler by its {@link Game_Event.eventId}.<br>
+   * Finds a battler by its {@link Game_Event.eventId}.
    * @param {number} eventId The event id to find a battler for.
    * @returns {JABS_Battler|undefined}
    */
@@ -17234,7 +17961,7 @@ class JABS_AiManager
    */
   static getActorBattlers()
   {
-    // filter on whether or not the battler is a {@link Game_Actor}.<br>
+    // filter on whether or not the battler is a {@link Game_Actor}.
     return this.getAllBattlers()
       .filter(battler => battler.isActor());
   }
@@ -17245,7 +17972,7 @@ class JABS_AiManager
    */
   static getEnemyBattlers()
   {
-    // filter on whether or not the battler is a {@link Game_Enemy}.<br>
+    // filter on whether or not the battler is a {@link Game_Enemy}.
     return this.getAllBattlers()
       .filter(battler => battler.isEnemy());
   }
@@ -17509,7 +18236,8 @@ class JABS_AiManager
    */
   static convertFollowersToBattlers(followers)
   {
-    return $gamePlayer.followers().data()
+    return followers
+    // return $gamePlayer.followers().data()
       .map(this.convertFollowerToBattler, this)
       .filter(follower => !!follower);
   }
@@ -17535,7 +18263,7 @@ class JABS_AiManager
     const battler = follower.actor();
 
     // create a builder to step through for this battler.
-    const builder = new JABS_CoreDataBuilder(0);
+    const builder = JABS_BattlerCoreData.Builder();
 
     // set the battler.
     builder.setBattler(battler);
@@ -18468,6 +19196,12 @@ class JABS_AiManager
  */
 class JABS_Engine
 {
+  /**
+   * The events array of the enemy cloning map.
+   * @type {rm.types.Event[]|null}
+   */
+  static #enemyCloneList = null;
+
   // TODO: implement them as a map.
   /**
    * A cached collection of actions keyed by their uuids.
@@ -18475,11 +19209,67 @@ class JABS_Engine
    */
   cachedActions = new Map();
 
+  //region properties
   /**
-   * The events array of the enemy cloning map.
-   * @type {rm.types.Event[]|null}
+   * Retrieves whether or not the ABS is currently enabled.
+   * @returns {boolean} True if enabled, false otherwise.
    */
-  static #enemyCloneList = null;
+  absEnabled = true;
+  /**
+   * Retrieves whether or not the ABS is currently paused.
+   * @returns {boolean} True if paused, false otherwise.
+   */
+  absPause = false;
+  /**
+   * Checks whether or not we have a need to request the JABS quick menu.
+   * @returns {boolean} True if menu requested, false otherwise.
+   */
+  requestAbsMenu = false;
+  /**
+   * Gets whether or not there is a request to cycle through party members.
+   * @returns {boolean}
+   */
+  requestPartyRotation = false;
+  /**
+   * Gets whether or not there is a request to refresh the JABS menu.
+   * The most common use case for this is adding new commands to the menu.
+   * @returns {boolean}
+   */
+  requestJabsMenuRefresh = false;
+  /**
+   * Checks whether or not we have a need to request rendering for new actions.
+   * @returns {boolean} True if needing to render actions, false otherwise.
+   */
+  requestActionRendering = false;
+  /**
+   * Checks whether or not we have a need to request rendering for new loot sprites.
+   * @returns {boolean} True if needing to render loot, false otherwise.
+   */
+  requestLootRendering = false;
+
+  //#endregion static properties
+  /**
+   * Checks whether or not we have a need to request a clearing of the action sprites
+   * on the current map.
+   * @returns {boolean} True if clear map requested, false otherwise.
+   */
+  requestClearMap = false;
+  /**
+   * Checks whether or not we have a need to request a clearing of the loot sprites
+   * on the current map.
+   * @returns {boolean} True if clear loot requested, false otherwise.
+   */
+  requestClearLoot = false;
+  /**
+   * Checks whether or not we have a need to refresh all character sprites on the current map.
+   * @returns {boolean} True if refresh is requested, false otherwise.
+   */
+  requestSpriteRefresh = false;
+  /**
+   * Whether or not there is a request issued for rendering newly generated battler sprites.
+   * @type {boolean}
+   */
+  requestBattlerRendering = false;
 
   /**
    * @constructor
@@ -18538,77 +19328,7 @@ class JABS_Engine
       .then(data => data.json())
       .then(dataMap => JABS_Engine.setEnemyCloneList(dataMap.events));
   }
-  //#endregion static properties
 
-  //region properties
-  /**
-   * Retrieves whether or not the ABS is currently enabled.
-   * @returns {boolean} True if enabled, false otherwise.
-   */
-  absEnabled = true;
-
-  /**
-   * Retrieves whether or not the ABS is currently paused.
-   * @returns {boolean} True if paused, false otherwise.
-   */
-  absPause = false;
-
-  /**
-   * Checks whether or not we have a need to request the JABS quick menu.
-   * @returns {boolean} True if menu requested, false otherwise.
-   */
-  requestAbsMenu = false;
-
-  /**
-   * Gets whether or not there is a request to cycle through party members.
-   * @returns {boolean}
-   */
-  requestPartyRotation = false;
-
-  /**
-   * Gets whether or not there is a request to refresh the JABS menu.
-   * The most common use case for this is adding new commands to the menu.
-   * @returns {boolean}
-   */
-  requestJabsMenuRefresh = false;
-
-  /**
-   * Checks whether or not we have a need to request rendering for new actions.
-   * @returns {boolean} True if needing to render actions, false otherwise.
-   */
-  requestActionRendering = false;
-
-  /**
-   * Checks whether or not we have a need to request rendering for new loot sprites.
-   * @returns {boolean} True if needing to render loot, false otherwise.
-   */
-  requestLootRendering = false;
-
-  /**
-   * Checks whether or not we have a need to request a clearing of the action sprites
-   * on the current map.
-   * @returns {boolean} True if clear map requested, false otherwise.
-   */
-  requestClearMap = false;
-
-  /**
-   * Checks whether or not we have a need to request a clearing of the loot sprites
-   * on the current map.
-   * @returns {boolean} True if clear loot requested, false otherwise.
-   */
-  requestClearLoot = false;
-
-  /**
-   * Checks whether or not we have a need to refresh all character sprites on the current map.
-   * @returns {boolean} True if refresh is requested, false otherwise.
-   */
-  requestSpriteRefresh = false;
-
-  /**
-   * Whether or not there is a request issued for rendering newly generated battler sprites.
-   * @type {boolean}
-   */
-  requestBattlerRendering = false;
   //endregion properties
 
   /**
@@ -18740,7 +19460,8 @@ class JABS_Engine
       // the caster was not an enemy.
 
       // grab the weapons of the caster.
-      const weapons = caster.getBattler().weapons();
+      const weapons = caster.getBattler()
+        .weapons();
 
       // check to make sure we have weapons.
       if (weapons.length > 0)
@@ -18867,7 +19588,7 @@ class JABS_Engine
   /**
    * Updates all battlers registered as "players" to JABS.
    * "Players" are battlers that are always polling for actions rather
-   * than only as a part of {@link JABS_AiManager.aiPhase2}.<br>
+   * than only as a part of {@link JABS_AiManager.aiPhase2}.
    */
   updatePlayers()
   {
@@ -19102,9 +19823,11 @@ class JABS_Engine
     // grab the tracked state being updated.
     const oldJabsState = jabsStates.get(newJabsState.stateId);
 
+    // grab the database data of the state being updated.
+    const state = oldJabsState.battler.state(oldJabsState.stateId);
+
     // the type of update to perform on the state.
-    // TODO: get this from plugin params?
-    const updateType = JABS_State.reapplicationType.Extend;
+    const updateType = state.jabsStateReapplyType ?? J.ABS.Metadata.DefaultStateReapplyType;
 
     // handle the state tracker data update.
     this.handleJabsStateUpdate(updateType, oldJabsState, newJabsState);
@@ -19129,8 +19852,6 @@ class JABS_Engine
       case JABS_State.reapplicationType.Stack:
         this.stackJabsState(jabsState, newJabsState);
         break;
-      default:
-        break;
     }
   }
 
@@ -19145,8 +19866,23 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
+    // grab the database data of the state being refreshed.
+    const state = jabsState.battler.state(jabsState.stateId);
+
+    // calculate the amount to diminish from the refresh.
+    const diminishmentAmount = jabsState.timesRefreshed * state.jabsStateRefreshDiminish;
+
+    // calculate the refreshed amount.
+    const refreshAmount = newJabsState.duration - diminishmentAmount;
+
+    // safely capture the duration.
+    const actualDuration = Math.max(refreshAmount, 0);
+
+    // refresh the refresh reset counter since this state is being refreshed.
+    jabsState.refreshRefreshResetCounter(state.jabsStateRefreshReset);
+
     // refresh the duration of the existing state.
-    jabsState.refreshDuration(newJabsState.duration);
+    jabsState.refreshDuration(actualDuration);
   }
 
   /**
@@ -19160,11 +19896,20 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
+    // grab the database data of the state being extended.
+    const state = jabsState.battler.state(newJabsState.stateId);
+
+    // amount to extend the state.
+    const amountToExtend = state.jabsStateExtendAmount;
+
     // calculate the new duration.
-    const newDuration = jabsState.duration + newJabsState.duration;
+    const newDuration = jabsState.duration + amountToExtend;
+
+    // determine the capped extended duration.
+    const actualDuration = Math.min(newDuration, state.jabsStateExtendMax);
 
     // refresh the duration of the state.
-    jabsState.refreshDuration(newDuration);
+    jabsState.refreshDuration(actualDuration);
   }
 
   /**
@@ -19178,9 +19923,11 @@ class JABS_Engine
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
 
+    // grab the added stacks from the state if applicable.
+    const addedStackAmount = newJabsState.battler.state(newJabsState.stateId).jabsStateStacksApplied;
+
     // increment the stack of the state.
-    // TODO: get stack count bonus from new state data.
-    jabsState.incrementStacks();
+    jabsState.incrementStacks(addedStackAmount);
 
     // update the underlying base duration to the latest stack's duration.
     jabsState.setBaseDuration(newJabsState.duration);
@@ -19221,6 +19968,7 @@ class JABS_Engine
       jabsStates.forEach(jabsState => jabsState.update());
     });
   }
+
   //endregion state tracking
   //endregion update player
 
@@ -19290,11 +20038,13 @@ class JABS_Engine
     if (target.isDying()) return false;
 
     // do not re-handle defeated targets.
-    if (target.isEnemy() && target.getCharacter().isErased()) return false;
+    if (target.isEnemy() && target.getCharacter()
+      .isErased()) return false;
 
     // target is defeated!
     return true;
   }
+
   //endregion update ai battlers
 
   //region update input
@@ -19397,7 +20147,8 @@ class JABS_Engine
     $gameParty.swapLeaderWithFollower(nextAllyIndex);
 
     // also trigger an update against the new leader.
-    $gameParty.leader().onBattlerDataChange();
+    $gameParty.leader()
+      .onBattlerDataChange();
 
     // recreate the JABS player battler and set it to the player character.
     this.refreshPlayer1Data();
@@ -19433,7 +20184,8 @@ class JABS_Engine
     const player1 = this.getPlayer1();
 
     // perform the party cycle animation.
-    player1.getCharacter().requestAnimation(40);
+    player1.getCharacter()
+      .requestAnimation(40);
   }
 
   /**
@@ -19448,10 +20200,10 @@ class JABS_Engine
     const player1 = this.getPlayer1();
 
     // build and write the log.
-    const log = new MapLogBuilder()
+    const partyCycleLog = new ActionLogBuilder()
       .setupPartyCycle(player1.battlerName())
       .build();
-    $mapLogManager.addLog(log);
+    $actionLogManager.addLog(partyCycleLog);
   }
 
   /**
@@ -19489,6 +20241,7 @@ class JABS_Engine
     // perform!
     return true;
   }
+
   //endregion update input
 
   //region update actions
@@ -19506,6 +20259,7 @@ class JABS_Engine
     // update each of the actions.
     actionEvents.forEach(action => action.update());
   }
+
   //endregion update actions
   //endregion update
 
@@ -19513,24 +20267,37 @@ class JABS_Engine
   //region action execution
   /**
    * Generates a new `JABS_Action` based on a skillId, and executes the skill.
-   * This overrides the need for costs or cooldowns, and is intended to be
-   * used from the map, within an event's custom move routes.
+   * This overrides the need for costs or cooldowns.<br/>
+   * This is intended to be used for programmatically forcing battlers to execute skills, and can be
+   * used from within an event's move route, or anywhere else you have a reference to a {@link JABS_Battler}.
    * @param {JABS_Battler} caster The battler executing the skill.
    * @param {number} skillId The skill to be executed.
    * @param {boolean=} isRetaliation Whether or not this skill is from a retaliation; defaults to false.
-   * @param {number=} x The target's `x` coordinate; defaults to null.
-   * @param {number=} y The target's `y` coordinate; defaults to null.
+   * @param {number=} targetX The target's `x` coordinate; defaults to null.
+   * @param {number=} targetY The target's `y` coordinate; defaults to null.
+   * @param {boolean=} isMapDamage Whether or not this skill is from an environmental hazard.
    */
-  forceMapAction(caster, skillId, isRetaliation = false, x = null, y = null)
+  forceMapAction(caster, skillId, isRetaliation = false, targetX = null, targetY = null, isMapDamage = false)
   {
+    // build options based on inputs.
+    const actionLocation = JABS_Location.Builder()
+      .setX(targetX)
+      .setY(targetY)
+      .build();
+    const actionOptions = JABS_ActionOptions.Builder()
+      .setIsRetaliation(isRetaliation)
+      .setLocation(actionLocation)
+      .setIsTerrainDamage(isMapDamage)
+      .build();
+
     // generate the forced actions based on the given skill id.
-    const actions = caster.createJabsActionFromSkill(skillId, isRetaliation);
+    const actions = caster.createJabsActionFromSkill(skillId, actionOptions);
 
     // if we cannot execute map actions, then do not.
     if (!this.canExecuteMapActions(caster, actions)) return;
 
     // iterate over each action and execute them as the caster.
-    actions.forEach(action => this.executeMapAction(caster, action, x, y));
+    actions.forEach(action => this.executeMapAction(caster, action, targetX, targetY));
   }
 
   /**
@@ -19569,8 +20336,8 @@ class JABS_Engine
 
   /**
    * Applies any on-execution effects to the caster based on the actions.
-   * @param caster
-   * @param primaryAction
+   * @param {JABS_Battler} caster The battler executing the skill.
+   * @param {JABS_Action} primaryAction The 0th index action.
    */
   applyOnExecutionEffects(caster, primaryAction)
   {
@@ -19598,9 +20365,6 @@ class JABS_Engine
     // handle the possibility of "freecombo".
     this.handleActionCombo(caster, action);
 
-    // handle the pose for this action.
-    this.handleActionPose(caster, action);
-
     // handle the cast animation for this action.
     this.handleActionCastAnimation(caster, action);
 
@@ -19624,17 +20388,6 @@ class JABS_Engine
   }
 
   /**
-   * Handles the pose functionality behind this action.
-   * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
-   * @param {JABS_Action} action The `JABS_Action` to execute.
-   */
-  handleActionPose(caster, action)
-  {
-    // perform the action's corresponding pose.
-    caster.performActionPose(action.getBaseSkill());
-  }
-
-  /**
    * Handles the cast animation functionality behind this action.
    * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
    * @param {JABS_Action} action The `JABS_Action` to execute.
@@ -19646,7 +20399,8 @@ class JABS_Engine
     if (casterAnimation)
     {
       // execute the cast animation.
-      caster.getCharacter().requestAnimation(casterAnimation);
+      caster.getCharacter()
+        .requestAnimation(casterAnimation);
     }
   }
 
@@ -19747,28 +20501,44 @@ class JABS_Engine
     switch (direction)
     {
       case J.ABS.Directions.UP:
-        newDirection = clockwise ? 9 : 7;
+        newDirection = clockwise
+          ? 9
+          : 7;
         break;
       case J.ABS.Directions.RIGHT:
-        newDirection = clockwise ? 3 : 9;
+        newDirection = clockwise
+          ? 3
+          : 9;
         break;
       case J.ABS.Directions.LEFT:
-        newDirection = clockwise ? 7 : 1;
+        newDirection = clockwise
+          ? 7
+          : 1;
         break;
       case J.ABS.Directions.DOWN:
-        newDirection = clockwise ? 1 : 3;
+        newDirection = clockwise
+          ? 1
+          : 3;
         break;
       case J.ABS.Directions.LOWERLEFT:
-        newDirection = clockwise ? 4 : 2;
+        newDirection = clockwise
+          ? 4
+          : 2;
         break;
       case J.ABS.Directions.LOWERRIGHT:
-        newDirection = clockwise ? 2 : 6;
+        newDirection = clockwise
+          ? 2
+          : 6;
         break;
       case J.ABS.Directions.UPPERLEFT:
-        newDirection = clockwise ? 8 : 4;
+        newDirection = clockwise
+          ? 8
+          : 4;
         break;
       case J.ABS.Directions.UPPERRIGHT:
-        newDirection = clockwise ? 6 : 8;
+        newDirection = clockwise
+          ? 6
+          : 8;
         break;
       default:
         console.warn('non-dir8 provided, no rotation performed.');
@@ -19790,28 +20560,44 @@ class JABS_Engine
     switch (direction)
     {
       case J.ABS.Directions.UP:
-        newDirection = clockwise ? 6 : 4;
+        newDirection = clockwise
+          ? 6
+          : 4;
         break;
       case J.ABS.Directions.RIGHT:
-        newDirection = clockwise ? 2 : 8;
+        newDirection = clockwise
+          ? 2
+          : 8;
         break;
       case J.ABS.Directions.LEFT:
-        newDirection = clockwise ? 8 : 2;
+        newDirection = clockwise
+          ? 8
+          : 2;
         break;
       case J.ABS.Directions.DOWN:
-        newDirection = clockwise ? 4 : 6;
+        newDirection = clockwise
+          ? 4
+          : 6;
         break;
       case J.ABS.Directions.LOWERLEFT:
-        newDirection = clockwise ? 7 : 3;
+        newDirection = clockwise
+          ? 7
+          : 3;
         break;
       case J.ABS.Directions.LOWERRIGHT:
-        newDirection = clockwise ? 1 : 9;
+        newDirection = clockwise
+          ? 1
+          : 9;
         break;
       case J.ABS.Directions.UPPERLEFT:
-        newDirection = clockwise ? 9 : 1;
+        newDirection = clockwise
+          ? 9
+          : 1;
         break;
       case J.ABS.Directions.UPPERRIGHT:
-        newDirection = clockwise ? 3 : 7;
+        newDirection = clockwise
+          ? 3
+          : 7;
         break;
       default:
         console.warn('non-dir8 provided, no rotation performed.');
@@ -19918,7 +20704,8 @@ class JABS_Engine
     }
 
     // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
-    const equippedSkills = caster.getBattler().getAllEquippedSkills();
+    const equippedSkills = caster.getBattler()
+      .getAllEquippedSkills();
     equippedSkills.forEach(skillSlot =>
     {
       if (skillSlot.id === skill.id)
@@ -19956,13 +20743,13 @@ class JABS_Engine
 
     // give it a name.
     const skillName = action.getBaseSkill().name;
-    const casterName = action.getCaster().battlerName();
+    const casterName = action.getCaster()
+      .battlerName();
     actionEventSprite.__actionName = `_${casterName}-${skillName}`;
 
     // on rare occasions, the timing of adding an action to the map coincides
     // with the removal of the caster which breaks the ordering of the events.
-    // the result will throw an error and break. This should catch that, and if
-    // not, then the try-catch will.
+    // the result will throw an error and break. This should catch that.
     if (!actionEventData || !actionEventData.pages.length)
     {
       console.error("that rare error occurred!");
@@ -20052,7 +20839,8 @@ class JABS_Engine
     }
 
     // grab the enemy event data to clone from.
-    const originalEnemyData = JABS_Engine.getEnemyCloneList().at(enemyCloneEventId);
+    const originalEnemyData = JABS_Engine.getEnemyCloneList()
+      .at(enemyCloneEventId);
 
     // if there is no data, then we can't clone that id.
     if (!originalEnemyData)
@@ -20124,7 +20912,8 @@ class JABS_Engine
     let isUnparryable = action.isUnparryable();
 
     // check if the target is a player and also dashing.
-    if (target.isPlayer() && target.getCharacter().isDashButtonPressed())
+    if (target.isPlayer() && target.getCharacter()
+      .isDashButtonPressed())
     {
       // dashing players cannot parry anything, making the action unparryable.
       isUnparryable = true;
@@ -20207,7 +20996,8 @@ class JABS_Engine
     if (attacker.isSameTeam(target.getTeam())) return;
 
     // grab the result on the target, from the action executed.
-    const result = target.getBattler().result();
+    const result = target.getBattler()
+      .result();
 
     // the default/base aggro.
     let aggro = J.ABS.Metadata.BaseAggro;
@@ -20251,22 +21041,26 @@ class JABS_Engine
     aggro *= action.aggroMultiplier();
 
     // apply any aggro amplification from states.
-    attacker.getBattler().states().forEach(state =>
-    {
-      if (state.jabsAggroOutAmp >= 0)
+    attacker.getBattler()
+      .states()
+      .forEach(state =>
       {
-        aggro *= state.jabsAggroOutAmp;
-      }
-    });
+        if (state.jabsAggroOutAmp >= 0)
+        {
+          aggro *= state.jabsAggroOutAmp;
+        }
+      });
 
     // apply any aggro reduction from states.
-    target.getBattler().states().forEach(state =>
-    {
-      if (state.jabsAggroInAmp >= 0)
+    target.getBattler()
+      .states()
+      .forEach(state =>
       {
-        aggro *= state.jabsAggroInAmp;
-      }
-    });
+        if (state.jabsAggroInAmp >= 0)
+        {
+          aggro *= state.jabsAggroInAmp;
+        }
+      });
 
     // apply the TGR multiplier from the attacker.
     aggro *= attacker.getBattler().tgr;
@@ -20290,7 +21084,8 @@ class JABS_Engine
   applyOnHitEffects(action, target)
   {
     // if the result isn't a hit or a parry, then we don't process on-hit effects.
-    const result = target.getBattler().result();
+    const result = target.getBattler()
+      .result();
     if (!result.isHit() && !result.parried) return;
 
     // it was a hit, so process the on-hit effects.
@@ -20312,10 +21107,13 @@ class JABS_Engine
     // get the animation id associated with this skill.
     const targetAnimationId = this.getAnimationId(skill, caster);
 
-    const result = target.getBattler().result();
+    const result = target.getBattler()
+      .result();
 
     // if the skill should animate on the target, then animate as normal.
-    const animationId = result.parried ? 122 : targetAnimationId;
+    const animationId = result.parried
+      ? 122
+      : targetAnimationId;
     targetCharacter.requestAnimation(animationId);
 
     // if there is a self-animation id, apply that to yourself for every hit.
@@ -20352,8 +21150,8 @@ class JABS_Engine
     if (targetSprite.isJumping()) return;
 
     // get the knockback resist for this target.
-    const targetReferenceData = target.getReferenceData();
-    const targetMeta = targetReferenceData.meta;
+    const targetBattlerDatabaseData = target.getBattlerDatabaseData();
+    const targetMeta = targetBattlerDatabaseData.meta;
     let knockbackResist = 1.00;
     if (targetMeta && targetMeta[J.ABS.Notetags.KnockbackResist])
     {
@@ -20478,7 +21276,8 @@ class JABS_Engine
     if (!skill.jabsComboAction) return false;
 
     // if the battler doesn't know the combo skill, we cannot combo.
-    if (!caster.getBattler().hasSkill(skill.jabsComboSkillId)) return false;
+    if (!caster.getBattler()
+      .hasSkill(skill.jabsComboSkillId)) return false;
 
     // execute combo actions!
     return true;
@@ -20572,7 +21371,7 @@ class JABS_Engine
     const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
 
     // calculate the hit rate (rng + bonus hit).
-    const hit = parseFloat((Math.random() + bonusHit).toFixed(3));
+    const calculatedHitRate = parseFloat((Math.random() + bonusHit).toFixed(3));
 
     // grab the amount of parry ignored.
     const parryIgnored = (action.getBaseSkill().jabsIgnoreParry ?? 0) / 100;
@@ -20581,12 +21380,32 @@ class JABS_Engine
     const targetGuardRate = (targetBattler.grd - 1) - parryIgnored;
 
     // truncate the parry rate to 3 places.
-    const parry = parseFloat((targetGuardRate).toFixed(3));
+    const parryRate = parseFloat((targetGuardRate).toFixed(3));
+
+    // set to true for debugging.
+    const useDebug = false;
+    if (useDebug)
+    {
+      console.log(`logs for ${caster.battlerName()} using ${action.getBaseSkill().name}.`);
+      console.log(`calculatedHitRate: [ ${calculatedHitRate} ].`);
+      console.log(`parryIgnored: [ ${parryIgnored} ].`);
+      console.log(`targetGuardRate: [ ${targetGuardRate} ].`);
+      console.log(`parryRate: [ ${parryRate} ].`);
+      const result = (calculatedHitRate < parryRate)
+        ? 'NO-PARRY'
+        : 'YES-PARRY';
+      console.log(`result: ${result}`);
+    }
 
     // return whether or not the hit was successful.
-    return hit < parry;
+    return calculatedHitRate < parryRate;
   }
 
+  /**
+   * Determines whether or not the target can actually parry the caster based on certain circumstances.
+   * @param {JABS_Battler} caster The one executing the skill against the target.
+   * @param {JABS_Battler} target The one being attacked by the caster.
+   */
   isParryPossible(caster, target)
   {
     // cannot parry if not facing target.
@@ -20594,11 +21413,12 @@ class JABS_Engine
     if (!isFacing) return false;
 
     // if the target battler has 0 GRD, they can't parry.
-    if (target.getBattler().grd === 0) return false;
+    if (target.getBattler().grd <= 0) return false;
 
 
     // if the attacker has a state that ignores all parry, then skip parrying.
-    if (caster.getBattler().ignoreAllParry()) return false;
+    if (caster.getBattler()
+      .ignoreAllParry()) return false;
 
     // parrying is possible!
     return true;
@@ -20676,7 +21496,8 @@ class JABS_Engine
     if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
-    if (action.getCaster().isSameTeam(targetBattler.getTeam())) return;
+    if (action.getCaster()
+      .isSameTeam(targetBattler.getTeam())) return;
 
     // check if the target battler is an actor.
     if (targetBattler.isActor())
@@ -20699,39 +21520,32 @@ class JABS_Engine
   handleActorRetaliation(battler)
   {
     // grab the action result.
-    const actionResult = battler.getBattler().result();
+    const actionResult = battler.getBattler()
+      .result();
 
-    // if auto-counter is available, then just do that.
-    this.handleAutoCounter(battler);
-
-    // check if we need to perform any sort of countering.
-    const needsCounterParry = actionResult.parried;
+    // for tracking to prevent both counterguarding AND counterparrying simultaneously.
+    let didCounterParry = false;
 
     // check if the action is parryable.
-    if (needsCounterParry)
+    if (actionResult.parried)
     {
       // handle the battler's parry reaction.
-      this.handleCounterParry(battler);
+      didCounterParry = this.handleCounterParry(battler);
     }
 
-    // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
-    const needsCounterGuard = !needsCounterParry && battler.guarding() && battler.counterGuard().length;
+    // handle counter-guarding next.
+    const didCounterGuard = this.handleCounterGuard(didCounterParry, battler)
 
-    // if we should be counter-guarding.
-    if (needsCounterGuard)
+    // if we have autocounter, trigger those if we haven't already done the other.
+    if (!didCounterParry && !didCounterGuard)
     {
-      // execute the counterguard.
-      this.doCounterGuard(battler, JABS_Button.Offhand);
+      // TODO: is it unbalanced to auto-counter with every hit?
+      this.handleAutoCounter(battler);
     }
-
-    // TODO: is it unbalanced to auto-counter with every hit?
-    // if (actionResult.parried)
-    // {
-    //    this.handleAutoCounter(battler);
-    // }
 
     // grab all the retaliation skills for this battler.
-    const retaliationSkills = battler.getBattler().retaliationSkills();
+    const retaliationSkills = battler.getBattler()
+      .retaliationSkills();
 
     // if there are any passive retaliation skills to perform...
     if (retaliationSkills.length)
@@ -20754,10 +21568,13 @@ class JABS_Engine
   handleCounterParry(battler)
   {
     // validate the battler can parry.
-    if (!this.canBattlerParry(battler)) return;
+    if (!this.canBattlerParry(battler)) return false;
 
     // execute the counterparry.
     this.doCounterParry(battler, JABS_Button.Offhand);
+
+    // indicate we did a counterparry.
+    return true;
   }
 
   /**
@@ -20774,9 +21591,26 @@ class JABS_Engine
     return true;
   }
 
-  handleCounterGuard(battler)
+  handleCounterGuard(battler, alreadyCounterParried)
   {
+    // do nothing if the battler already counter-parried, no double-dipping!
+    if (alreadyCounterParried) return false;
 
+    // NOTE: you cannot perform both a counterguard AND a counterparry- counterparry takes priority!
+    const needsCounterGuard = battler.guarding() && battler.counterGuard().length;
+
+    // if we should be counter-guarding.
+    if (needsCounterGuard)
+    {
+      // execute the counterguard.
+      this.doCounterGuard(battler, JABS_Button.Offhand);
+
+      // indicate we did counterguard.
+      return true;
+    }
+
+    // we did not counterguard.
+    return false;
   }
 
   /**
@@ -20879,7 +21713,8 @@ class JABS_Engine
   handleEnemyRetaliation(enemy)
   {
     // assumes enemy battler is enemy.
-    const retaliationSkills = enemy.getBattler().retaliationSkills();
+    const retaliationSkills = enemy.getBattler()
+      .retaliationSkills();
 
     // if there are any passive retaliation skills to perform...
     if (retaliationSkills.length)
@@ -20946,11 +21781,13 @@ class JABS_Engine
     if (!J.POPUPS) return;
 
     // inanimate objects do not have skill usage pops.
-    if (action.getCaster().isInanimate()) return;
+    if (action.getCaster()
+      .isInanimate()) return;
 
     // gather shorthand variables for use.
     const skill = action.getBaseSkill();
-    const character = action.getCaster().getCharacter();
+    const character = action.getCaster()
+      .getCharacter();
 
     // generate the textpop.
     const skillUsagePop = this.configureSkillUsedPop(skill);
@@ -20972,46 +21809,47 @@ class JABS_Engine
     if (!J.LOG) return;
 
     // gather shorthand variables for use.
-    const result = target.getBattler().result();
+    const result = target.getBattler()
+      .result();
     const caster = action.getCaster();
     const skill = action.getBaseSkill();
 
-    const casterName = caster.getReferenceData().name;
-    const targetName = target.getReferenceData().name;
+    const casterName = caster.getBattlerDatabaseData().name;
+    const targetName = target.getBattlerDatabaseData().name;
 
     // create parry logs if it was parried.
     if (result.parried)
     {
-      const parryLog = new MapLogBuilder()
+      const parryLog = new ActionLogBuilder()
         .setupParry(targetName, casterName, skill.id, result.parried)
         .build();
-      $mapLogManager.addLog(parryLog);
+      $actionLogManager.addLog(parryLog);
       return;
     }
     // create evasion logs if it was evaded.
     else if (result.evaded)
     {
-      const dodgeLog = new MapLogBuilder()
+      const dodgeLog = new ActionLogBuilder()
         .setupDodge(targetName, casterName, skill.id)
         .build();
-      $mapLogManager.addLog(dodgeLog);
+      $actionLogManager.addLog(dodgeLog);
       return;
     }
     // create retaliation logs if it was a retaliation.
     else if (action.isRetaliation())
     {
-      const retaliationLog = new MapLogBuilder()
+      const retaliationLog = new ActionLogBuilder()
         .setupRetaliation(casterName)
         .build();
-      $mapLogManager.addLog(retaliationLog);
+      $actionLogManager.addLog(retaliationLog);
     }
     // if no damage of any kind was dealt, and no states were applied, then you get a special message!
     else if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length)
     {
-      const log = new MapLogBuilder()
+      const undamagedLog = new ActionLogBuilder()
         .setupUndamaged(targetName, casterName, skill.id)
         .build();
-      $mapLogManager.addLog(log);
+      $actionLogManager.addLog(undamagedLog);
       return;
     }
     if (result.hpDamage)
@@ -21020,7 +21858,10 @@ class JABS_Engine
       // get the base damage dealt and clean that up.
       let roundedDamage = Math.round(result.hpDamage);
       const isNotHeal = roundedDamage > 0;
-      roundedDamage = roundedDamage >= 0 ? roundedDamage : roundedDamage.toString().replace("-", "");
+      roundedDamage = roundedDamage >= 0
+        ? roundedDamage
+        : roundedDamage.toString()
+          .replace("-", "");
       const damageReduction = Math.round(result.reduced);
       let reducedAmount = "";
       if (damageReduction)
@@ -21028,10 +21869,22 @@ class JABS_Engine
         reducedAmount = `(${parseInt(damageReduction)})`;
       }
 
-      const log = new MapLogBuilder()
-        .setupExecution(targetName, casterName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical)
-        .build();
-      $mapLogManager.addLog(log);
+      // when its terrain damage slapping you, show the logs a bit differently.
+      if (action.isTerrainDamage())
+      {
+        const terrainAttackLog = new ActionLogBuilder()
+          .setupTerrainDamage(targetName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical)
+          .build();
+        $actionLogManager.addLog(terrainAttackLog);
+      }
+      else
+      {
+        const actionExecutedLog = new ActionLogBuilder()
+          .setupExecution(targetName, casterName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical)
+          .build();
+        $actionLogManager.addLog(actionExecutedLog);
+      }
+
       // fall through in case there were states that were also applied, such as defeating the target.
     }
 
@@ -21041,20 +21894,21 @@ class JABS_Engine
       result.addedStates.forEach(stateId =>
       {
         // show a custom line when an enemy is defeated.
-        if (stateId === target.getBattler().deathStateId())
+        if (stateId === target.getBattler()
+          .deathStateId())
         {
-          const log = new MapLogBuilder()
+          const targetDefeatedLog = new ActionLogBuilder()
             .setupTargetDefeated(targetName)
             .build();
-          $mapLogManager.addLog(log);
+          $actionLogManager.addLog(targetDefeatedLog);
           return;
         }
 
         // show all the rest of the non-death states.
-        const log = new MapLogBuilder()
+        const stateAfflictedLog = new ActionLogBuilder()
           .setupStateAfflicted(targetName, stateId)
           .build();
-        $mapLogManager.addLog(log);
+        $actionLogManager.addLog(stateAfflictedLog);
       });
     }
   }
@@ -21139,13 +21993,13 @@ class JABS_Engine
       case actionResult.mpDamage !== 0:
         textPopBuilder
           .setValue(actionResult.mpDamage)
-          .isHpDamage();
+          .isMpDamage();
         break;
       // if the result is tp damage, treat it as such.
       case actionResult.tpDamage !== 0:
         textPopBuilder
           .setValue(actionResult.tpDamage)
-          .isHpDamage();
+          .isTpDamage();
         break;
       // if for some reason its something else, they are probably immune.
       default:
@@ -21175,17 +22029,18 @@ class JABS_Engine
     // if not using the elemental icons, don't return one.
     if (!J.ABS.Metadata.UseElementalIcons) return 0;
 
-    let {elementId} = skill.damage;
+    let { elementId } = skill.damage;
 
     // if the battler is an actor and the action is based on the weapon's elements
     // probe the weapon's traits for its actual element.
     if (elementId === -1 && caster.isActor())
     {
-      const attackElements = caster.getBattler().attackElements();
+      const attackElements = caster.getBattler()
+        .attackElements();
       if (attackElements.length)
       {
         // we pick only the first element!
-        [elementId,] = attackElements;
+        [ elementId, ] = attackElements;
       }
       else
       {
@@ -21201,98 +22056,119 @@ class JABS_Engine
 
     const iconData = J.ABS.Metadata.ElementalIcons;
     const elementalIcon = iconData.find(data => data.element === elementId);
-    return elementalIcon ? elementalIcon.icon : 0;
+    return elementalIcon
+      ? elementalIcon.icon
+      : 0;
   }
+
   //endregion action execution
 
   //region collision
   /**
    * Checks this `JABS_Action` against all map battlers to determine collision.
    * If there is a collision, then a `Game_Action` is applied.
-   * @param {JABS_Action} action The `JABS_Action` to check against all battlers.
+   * @param {JABS_Action} jabsAction The `JABS_Action` to check against all battlers.
    * @returns {JABS_Battler[]} A collection of `JABS_Battler`s that this action hit.
    */
-  getCollisionTargets(action)
+  getCollisionTargets(jabsAction)
   {
-    if (action.getAction().isForUser())
+    // start by grabbing the action and running through priority of collision.
+    const gameAction = jabsAction.getAction();
+    const casterJabsBattler = jabsAction.getCaster();
+
+    // self-targeting takes FIRST PRIORITY.
+    if (gameAction.isForUser())
     {
-      return [action.getCaster()];
+      return [ casterJabsBattler ];
     }
 
-    const actionSprite = action.getActionSprite();
-    const range = action.getRange();
-    const shape = action.getShape();
-    const casterJabsBattler = action.getCaster();
-
-    const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
-    let hitOne = false;
-    const targetsHit = [];
-
+    // grab the allied target selected by the caster of this action.
     const allyTarget = casterJabsBattler.getAllyTarget();
-    if (allyTarget && action.getAction().isForOne())
+
+    // ally targeting takes SECOND PRIORITY.
+    if (allyTarget && gameAction.isForOne())
     {
-      if (allyTarget.canActionConnect() && allyTarget.isWithinScope(action, allyTarget, hitOne))
+      // validate the action can connect with the targeted ally.
+      if (allyTarget.canActionConnect() && allyTarget.isWithinScope(jabsAction, allyTarget, false))
       {
-        targetsHit.push(allyTarget);
-        return targetsHit;
+        // hit the ally only.
+        return [ allyTarget ];
       }
     }
 
-    battlers
-      .filter(battler =>
-      {
-        // this battler is untargetable.
-        if (!battler.canActionConnect()) return false;
+    // filter to only the battlers that can connect with this action.
+    const canActionConnectWithBattler = battler =>
+    {
+      // this battler is untargetable.
+      if (!battler.canActionConnect()) return false;
 
-        // the action's scopes don't meet the criteria for this target.
-        // excludes the "single"-hitonce check.
-        if (!battler.isWithinScope(action, battler)) return false;
+      // the action's scopes don't meet the criteria for this target.
+      // excludes the "single"-hitonce check.
+      if (!battler.isWithinScope(jabsAction, battler)) return false;
 
-        // if the attacker is an enemy, do not consider inanimate targets.
-        if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
+      // if the attacker is an enemy, do not consider inanimate targets.
+      if (casterJabsBattler.isEnemy() && battler.isInanimate()) return false;
 
-        // this battler is potentially hit-able.
-        return true;
-      })
-      .forEach(battler =>
-      {
+      // this battler is potentially hit-able.
+      return true;
+    };
+
+    // a few definitions used within collision processing.
+    const actionSprite = jabsAction.getActionSprite();
+    const range = jabsAction.getRange();
+    const shape = jabsAction.getShape();
+    const targetsHit = [];
+    let hitOne = false;
+
+    // actually process the collision.
+    const battlerCollisionProccessor = battler =>
+    {
       // this time, it is effectively checking for the single-scope.
-        if (!battler.isWithinScope(action, battler, hitOne)) return;
+      if (!battler.isWithinScope(jabsAction, battler, hitOne)) return;
 
-        // if the action is a direct-targeting action,
-        // then only check distance between the caster and target.
-        if (action.isDirectAction())
+      // if the action is a direct-targeting action,
+      // then only check distance between the caster and target.
+      if (jabsAction.isDirectAction())
+      {
+        if (gameAction.isForUser())
         {
-          if (action.getAction().isForUser())
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-            return;
-          }
-          const maxDistance = action.getProximity();
-          const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
-          if (distance <= maxDistance)
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-          }
-
-          // if the action is a standard projectile-based action,
-          // then check to see if this battler is now in range.
+          targetsHit.push(battler);
+          hitOne = true;
+          return;
         }
-        else
+
+        const maxDistance = jabsAction.getProximity();
+        const distance = casterJabsBattler.distanceToDesignatedTarget(battler);
+        if (distance <= maxDistance)
         {
-          const sprite = battler.getCharacter();
-          const actionDirection = actionSprite.direction();
-          const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
-          if (result)
-          {
-            targetsHit.push(battler);
-            hitOne = true;
-          }
+          targetsHit.push(battler);
+          hitOne = true;
         }
-      });
+      }
+      // if the action is a standard projectile-based action,
+      // then check to see if this battler is now in range.
+      else
+      {
+        const sprite = battler.getCharacter();
+        const actionDirection = actionSprite.direction();
+        const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
+        if (result)
+        {
+          targetsHit.push(battler);
+          hitOne = true;
+        }
+      }
+    };
 
+    // grab all the battlers that could possibly be hit.
+    const battlers = JABS_AiManager.getAllBattlersDistanceSortedFromBattler(casterJabsBattler);
+
+    // LAST PRIORITY is just regular "did I get hit" sort of stuff.
+    battlers
+      .filter(canActionConnectWithBattler, this)
+      .forEach(battlerCollisionProccessor, this);
+
+    // return what we found.
     return targetsHit;
   }
 
@@ -21345,7 +22221,7 @@ class JABS_Engine
   {
     // calculate the distance between the target and action.
     const distance = $gameMap.distance(target.x, target.y, action.x, action.y);
-    
+
     // determine whether or not the target is within range of being hit.
     const inRange = distance <= range;
 
@@ -21636,6 +22512,7 @@ class JABS_Engine
     // return the result.
     return inRange;
   }
+
   //endregion collision
   //endregion functional
 
@@ -21909,18 +22786,18 @@ class JABS_Engine
 
     if (experience !== 0)
     {
-      const expLog = new MapLogBuilder()
-        .setupExperienceGained(caster.getReferenceData().name, experience)
+      const expLog = new ActionLogBuilder()
+        .setupExperienceGained(caster.getBattlerDatabaseData().name, experience)
         .build();
-      $mapLogManager.addLog(expLog);
+      $actionLogManager.addLog(expLog);
     }
 
     if (gold !== 0)
     {
-      const goldLog = new MapLogBuilder()
+      const goldLog = new LootLogBuilder()
         .setupGoldFound(gold)
         .build();
-      $mapLogManager.addLog(goldLog);
+      $lootLogManager.addLog(goldLog);
     }
   }
 
@@ -21935,7 +22812,8 @@ class JABS_Engine
     if (target.isActor()) return;
 
     // if we have no drops, don't bother.
-    const items = target.getBattler().makeDropItems();
+    const items = target.getBattler()
+      .makeDropItems();
     if (items.length === 0) return;
 
     items.forEach(item => this.addLootDropToMap(target.getX(), target.getY(), item));
@@ -21964,10 +22842,10 @@ class JABS_Engine
     }
 
     // the player is always going to be the one collecting the loot- for now.
-    const lootLog = new MapLogBuilder()
-      .setupLootObtained(this.getPlayer1().getReferenceData().name, lootType, item.id)
+    const lootLog = new LootLogBuilder()
+      .setupLootObtained(lootType, item.id)
       .build();
-    $mapLogManager.addLog(lootLog);
+    $lootLogManager.addLog(lootLog);
   }
 
   /**
@@ -21984,7 +22862,7 @@ class JABS_Engine
     itemDataList.forEach((itemData, index) =>
     {
       // generate a pop that moves based on index.
-      this.generatePopItem(itemData, character, 64+(index*24));
+      this.generatePopItem(itemData, character, 32 + (index * 24));
     }, this);
 
     // flag the character for processing pops.
@@ -22082,18 +22960,18 @@ class JABS_Engine
 
     const battler = jabsBattler.getBattler();
     const log = this.configureLevelUpLog(battler.name(), battler.level);
-    $mapLogManager.addLog(log);
+    $actionLogManager.addLog(log);
   }
 
   /**
    * Configures the log for the actor reaching a new level.
    * @param {string} targetName The name of the battler leveling up.
    * @param {number} newLevel The level being reached.
-   * @returns {Map_Log}
+   * @returns {ActionLog}
    */
   configureLevelUpLog(targetName, newLevel)
   {
-    return new MapLogBuilder()
+    return new ActionLogBuilder()
       .setupLevelUp(targetName, newLevel)
       .build();
   }
@@ -22162,25 +23040,26 @@ class JABS_Engine
   {
     if (!J.LOG) return;
 
-    const log = this.configureSkillLearnLog(player.getReferenceData().name, skill.id);
-    $mapLogManager.addLog(log);
+    const log = this.configureSkillLearnLog(player.getBattlerDatabaseData().name, skill.id);
+    $actionLogManager.addLog(log);
   }
 
   /**
    * Configures the log for the skill learned.
    * @param {string} targetName The name of the target learning the skill.
    * @param {number} learnedSkillId The id of the skill learned.
-   * @returns {Map_Log}
+   * @returns {ActionLog}
    */
   configureSkillLearnLog(targetName, learnedSkillId)
   {
-    return new MapLogBuilder()
+    return new ActionLogBuilder()
       .setupSkillLearn(targetName, learnedSkillId)
       .build();
   }
 
 //endregion defeated target aftermath
 }
+
 //endregion JABS_Engine
 
 //region Game_Action
@@ -22513,14 +23392,8 @@ Game_Action.prototype.onParry = function(jabsBattler)
  */
 Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, originalDamage)
 {
-  // assign the damage to a local variable because good coding practices.
-  let modifiedDamage = originalDamage;
-
-  // parry damage reduction is always 100%.
-  modifiedDamage = 0;
-
   // return the parry-modified damage.
-  return modifiedDamage;
+  return 0;
 };
 
 /**
@@ -22907,7 +23780,8 @@ J.ABS.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('setup').call(this, actorId);
+  J.ABS.Aliased.Game_Actor.get('setup')
+    .call(this, actorId);
 
   // setup all the JABS skill slots for the first time.
   this.initAbsSkills();
@@ -22936,7 +23810,8 @@ J.ABS.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattl
 Game_Actor.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+  J.ABS.Aliased.Game_Actor.get('onBattlerDataChange')
+    .call(this);
 
   // update JABS-related things.
   this.jabsRefresh();
@@ -22949,7 +23824,8 @@ Game_Actor.prototype.onBattlerDataChange = function()
 Game_Actor.prototype.initAbsSkills = function()
 {
   // setup the skill slots for the first time.
-  this.getSkillSlotManager().setupSlots(this);
+  this.getSkillSlotManager()
+    .setupSlots(this);
 
   // update them with data.
   this.refreshBasicAttackSkills();
@@ -22987,7 +23863,8 @@ Game_Actor.prototype.canRefreshBasicAttackSkills = function()
   if (!this.getSkillSlotManager()) return false;
 
   // don't refresh if setup hasn't been completed.
-  if (!this.getSkillSlotManager().isSetupComplete()) return false;
+  if (!this.getSkillSlotManager()
+    .isSetupComplete()) return false;
 
   // refresh!
   return true;
@@ -23012,7 +23889,7 @@ Game_Actor.prototype.updateMainhandSkill = function()
 Game_Actor.prototype.getMainhandSkill = function()
 {
   // grab the mainhand of the actor.
-  const [mainhand,] = this.equips();
+  const [ mainhand, ] = this.equips();
 
   // default the mainhand skill to 0.
   let mainhandSkill = 0;
@@ -23060,7 +23937,7 @@ Game_Actor.prototype.getOffhandSkill = function()
   }
 
   // grab the offhand of the actor.
-  const [,offhand] = this.equips();
+  const [ , offhand ] = this.equips();
 
   // default the offhand skill to 0.
   let offhandSkill = 0;
@@ -23087,10 +23964,10 @@ Game_Actor.prototype.offhandSkillOverride = function()
   let overrideSkillId = 0;
 
   // grab all states to start.
-  const objectsToCheck = [...this.states()];
+  const objectsToCheck = [ ...this.states() ];
 
   // grab the weapon of the actor.
-  const [weapon,] = this.equips();
+  const [ weapon, ] = this.equips();
 
   // check if we have a weapon.
   if (weapon)
@@ -23122,7 +23999,8 @@ Game_Actor.prototype.offhandSkillOverride = function()
 Game_Actor.prototype.removeInvalidSkills = function()
 {
   // grab all the slots this actor has.
-  const slots = this.getSkillSlotManager().getAllSlots();
+  const slots = this.getSkillSlotManager()
+    .getAllSlots();
 
   // iterate over each of them.
   slots.forEach(skillSlot =>
@@ -23414,7 +24292,8 @@ J.ABS.Aliased.Game_Actor.set('onRevive', Game_Actor.prototype.onRevive);
 Game_Actor.prototype.onRevive = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onRevive').call(this);
+  J.ABS.Aliased.Game_Actor.get('onRevive')
+    .call(this);
 
   // stops this battler from being flagged as dead by JABS.
   this.stopDying();
@@ -23443,7 +24322,8 @@ Game_Actor.prototype.stopDying = function()
  */
 Game_Actor.prototype.getAllPrimarySkills = function()
 {
-  return this.getSkillSlotManager().getAllPrimarySlots();
+  return this.getSkillSlotManager()
+    .getAllPrimarySlots();
 };
 
 /**
@@ -23452,7 +24332,8 @@ Game_Actor.prototype.getAllPrimarySkills = function()
  */
 Game_Actor.prototype.getAllCombatSkillSlots = function()
 {
-  return this.getSkillSlotManager().getAllSecondarySlots();
+  return this.getSkillSlotManager()
+    .getAllSecondarySlots();
 };
 
 /**
@@ -23461,7 +24342,8 @@ Game_Actor.prototype.getAllCombatSkillSlots = function()
  */
 Game_Actor.prototype.getToolSkillSlot = function()
 {
-  return this.getSkillSlotManager().getToolSlot();
+  return this.getSkillSlotManager()
+    .getToolSlot();
 };
 
 /**
@@ -23470,7 +24352,8 @@ Game_Actor.prototype.getToolSkillSlot = function()
  */
 Game_Actor.prototype.getDodgeSkillSlot = function()
 {
-  return this.getSkillSlotManager().getDodgeSlot();
+  return this.getSkillSlotManager()
+    .getDodgeSlot();
 };
 
 /**
@@ -23482,7 +24365,8 @@ Game_Actor.prototype.getValidEquippedSkillSlots = function()
   // don't try to get slots if we are not setup yet.
   if (!this.getSkillSlotManager()) return [];
 
-  return this.getSkillSlotManager().getEquippedSlots();
+  return this.getSkillSlotManager()
+    .getEquippedSlots();
 };
 
 /**
@@ -23529,7 +24413,8 @@ J.ABS.Aliased.Game_Actor.set('onLevelUp', Game_Actor.prototype.onLevelUp);
 Game_Actor.prototype.onLevelUp = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onLevelUp').call(this);
+  J.ABS.Aliased.Game_Actor.get('onLevelUp')
+    .call(this);
 
   // perform JABS-related things for leveling up.
   this.jabsLevelUp();
@@ -23555,7 +24440,8 @@ J.ABS.Aliased.Game_Actor.set('onLevelDown', Game_Actor.prototype.onLevelDown);
 Game_Actor.prototype.onLevelDown = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onLevelDown').call(this);
+  J.ABS.Aliased.Game_Actor.get('onLevelDown')
+    .call(this);
 
   // perform JABS-related things for leveling down.
   this.jabsLevelDown();
@@ -23583,7 +24469,8 @@ J.ABS.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNewS
 Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
+  J.ABS.Aliased.Game_Actor.get('onLearnNewSkill')
+    .call(this, skillId);
 
   // perform JABS-related things for learning a new skill.
   this.jabsLearnNewSkill(skillId);
@@ -23611,70 +24498,81 @@ Game_Actor.prototype.jabsLearnNewSkill = function(skillId)
  */
 Game_Actor.prototype.jabsProcessLearnedSkill = function(skillId)
 {
-  // upgrade the skill if permissable.
-  this.upgradeSkillIfUpgraded(skillId);
+  // upgrade existing skills first if necessary.
+  this.autoUpgradeSkillIfRequired(skillId);
 
-  // autoassign skills if necessary.
-  this.autoAssignSkillsIfRequired(skillId);
+  // if not upgradeable, then just autoassign it if possible.
+  this.autoAssignSkillIfRequired(skillId);
 
   // do nothing if we don't have a slot manager to work with.
   if (!this.getSkillSlotManager()) return;
 
   // flag skills on the skillslot manager for refreshing.
-  this.getSkillSlotManager().flagAllSkillSlotsForRefresh();
+  this.getSkillSlotManager()
+    .flagAllSkillSlotsForRefresh();
 };
 
 /**
  * If a skill that was upgraded is equipped currently, upgrade it.
- * "Upgrading" a skill is defined as "has the yanfly tag for hiding if another
- * skill id happens to be learned", in which case it'll replace that slot.
+ * "Upgrading" in the context of JABS is tag-defined skill slot replacement.
  * @param {number} skillId The skill id to upgrade.
  */
-Game_Actor.prototype.upgradeSkillIfUpgraded = function(skillId)
+Game_Actor.prototype.autoUpgradeSkillIfRequired = function(skillId)
 {
   // grab all the upgradable skill slots.
   const upgradableSkillsSlots = this.getUpgradableSkillSlots();
 
-  //
-  if (!upgradableSkillsSlots)
-  {
-    return;
-  }
+  // if there are no upgradeable slots, then don't try to upgrade them.
+  if (!upgradableSkillsSlots || !upgradableSkillsSlots.length) return;
 
-  upgradableSkillsSlots.forEach(skillSlot =>
+  // a local function for upgrading the skill slot.
+  const upgrader = skillSlot =>
   {
-    const skillData = this.skill(skillSlot.id);
-    const upgradeSkillId = parseInt(skillData.meta["Hide if learned Skill"]);
-    if (upgradeSkillId === skillId)
-    {
-      this.setEquippedSkill(skillSlot.key, skillId);
-    }
-  }, this);
+    // identify the skill based on the current skillslot.
+    const canUpgrade = this.canUpgradeSkill(skillSlot, skillId);
+
+    // validate we can upgrade before proceeding.
+    if (!canUpgrade) return;
+
+    // it looks like we should upgrade the skill according to JABS.
+    this.setEquippedSkill(skillSlot.key, skillId);
+  };
+
+  // iterate over each of the skillslots to see if we should upgrade them.
+  upgradableSkillsSlots.forEach(upgrader, this);
 };
 
 /**
- * Gets whether or not there are notes that indicate skills should be autoassigned
- * when leveling up.
- * @returns {boolean}
+ * Determines whether or not this skill slot can be upgraded with this new skill.
+ * This applies even to battlers that are not under the auto assign control.
+ * @param {JABS_SkillSlot} skillSlot The target skill slot to potentially upgrade.
+ * @param {number} skillId The id of the skill learned to potentially auto-assign.
  */
-Game_Actor.prototype.autoAssignOnLevelup = function()
+Game_Actor.prototype.canUpgradeSkill = function(skillSlot, skillId)
 {
-  const objectsToCheck = this.getAllNotes();
-  const structure = /<autoAssignSkills>/i;
-  let autoAssign = false;
-  objectsToCheck.forEach(obj =>
-  {
-    const notedata = obj.note.split(/[\r\n]+/);
-    notedata.forEach(line =>
-    {
-      if (line.match(structure))
-      {
-        autoAssign = true;
-      }
-    });
-  });
+  // grab all the things that could have this tag.
+  const objectsToCheck = this.getActorNotes();
 
-  return autoAssign;
+  // if the actor is not allowed to auto upgrade skills, then do not.
+  const canAutoUpgrade = objectsToCheck
+    .some(object => object.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigAutoUpgradeSkills));
+  if (!canAutoUpgrade) return false;
+
+  // identify the skill based on the current skillslot.
+  const currentSkillData = this.skill(skillSlot.id);
+
+  // if auto-assignment is disallowed explicitly, then don't upgrade this slot.
+  const isSkillAutoUpgradeBlocked = currentSkillData
+    .getBooleanFromNotesByRegex(J.ABS.RegExp.NoSkillUpgrading);
+  if (isSkillAutoUpgradeBlocked) return false;
+
+  // if the current skillslot's skill isn't the one that should be upgraded, then don't upgrade.
+  const upgradeOverThisSkillId = this.skill(skillId)
+    .getNumberFromNotesByRegex(J.ABS.RegExp.UpgradeOverSkill);
+  if (skillSlot.id !== upgradeOverThisSkillId) return false;
+
+  // we should upgrade this skill with this new skillId!
+  return true;
 };
 
 /**
@@ -23683,22 +24581,69 @@ Game_Actor.prototype.autoAssignOnLevelup = function()
  * If all slots are full, no action is taken.
  * @param {number} skillId The skillId to auto-assign to a slot.
  */
-Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
+Game_Actor.prototype.autoAssignSkillIfRequired = function(skillId)
 {
-  // if we are not auto-assigning, then do not.
-  if (!this.autoAssignOnLevelup()) return;
+  // validate we should be autoassigning, and are allowed to.
+  if (!this.canAutoAssignSkillOnLevelup(skillId)) return;
 
-  // grab all the empty combat skill slots.
-  const emptySlots = this.getEmptySecondarySkills();
-
-  // if we have no additional empty slots, then do not auto-assign.
-  if (emptySlots.length === 0) return;
-
-  // extract the key of the empty slot to be assigned.
-  const { key } = emptySlots.at(0);
+  // grab the first slot that we'll be working with.
+  const firstEmptySlot = this.getEmptySecondarySkills().at(0);
 
   // assign the given skill to the slot.
-  this.setEquippedSkill(key, skillId);
+  this.setEquippedSkill(firstEmptySlot.key, skillId);
+};
+
+/**
+ * Gets whether or not there are notes that indicate skills should be autoassigned
+ * when leveling up.
+ * @param {number} skillId The skillId to auto-assign to a slot.
+ */
+Game_Actor.prototype.canAutoAssignSkillOnLevelup = function(skillId)
+{
+  // grab all the things that could have this tag.
+  const objectsToCheck = this.getActorNotes();
+
+  // if the actor is not allowed to auto assign skills, then do not.
+  const canAutoAssign = objectsToCheck
+    .some(object => object.getBooleanFromNotesByRegex(J.ABS.RegExp.ConfigAutoAssignSkills));
+  if (!canAutoAssign) return false;
+
+  // if we already have the skill equipped, don't equip it again.
+  const combatSkillSlots = this.getAllCombatSkillSlots();
+  const alreadyEquipped = combatSkillSlots.some(skillSlot => skillSlot.id === skillId);
+  if (alreadyEquipped) return false;
+
+  // if we have no additional empty slots, then do not auto-assign.
+  const emptySlots = this.getEmptySecondarySkills();
+  if (emptySlots.length === 0) return false;
+
+  // shorthand the data of this skill.
+  const skillData = this.skill(skillId);
+
+  // if the skill is preventing auto assignment, don't auto assign.
+  const isSkillAutoAssignBlocked = skillData.getBooleanFromNotesByRegex(J.ABS.RegExp.NoAutoAssign);
+  if (isSkillAutoAssignBlocked) return false;
+
+  // skills that are upgrade-only cannot be assigned to blank slots.
+  const onlyUpgradeable = skillData.getBooleanFromNotesByRegex(J.ABS.RegExp.UpgradeOnlySkill);
+  if (onlyUpgradeable) return false;
+
+  // if the skill type is blacklisted, don't allow auto assigning.
+  const blacklistedBySkillTypeId = objectsToCheck.some(object =>
+  {
+    // grab the blacklisted skills by the actor/class.
+    const skillTypeIds = object.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.EquippedPassiveStateIds);
+
+    // if the skill's type was amongst the blacklisted types, don't auto assign it.
+    if (skillTypeIds.includes(skillData.stypeId)) return true;
+
+    // this can be autoassigned.
+    return false;
+  });
+  if (blacklistedBySkillTypeId) return false;
+
+  // we should try to auto assign this skill!
+  return true;
 };
 
 /**
@@ -23707,7 +24652,8 @@ Game_Actor.prototype.autoAssignSkillsIfRequired = function(skillId)
 Game_Actor.prototype.refreshAutoEquippedSkills = function()
 {
   // iterate over each of the skills and auto-assign/equip them where applicable.
-  this.skills().forEach(skill => this.jabsProcessLearnedSkill(skill.id), this);
+  this.skills()
+    .forEach(skill => this.jabsProcessLearnedSkill(skill.id), this);
 };
 //endregion learning
 
@@ -23729,13 +24675,13 @@ Game_Actor.prototype.getBonusHitsSources = function()
     this.states(),
 
     // the actor itself may contain bonus hits.
-    [this.databaseData()],
+    [ this.databaseData() ],
 
     // the equipment may contain bonus hits.
     this.equips(),
 
     // the class may contain bonus hits.
-    [this.currentClass()],
+    [ this.currentClass() ],
   ];
 };
 //endregion JABS bonus hits
@@ -23751,7 +24697,8 @@ Game_Actor.prototype.performMapDamage = function()
   if (!$jabsEngine.absEnabled)
   {
     // perform original logic.
-    J.ABS.Aliased.Game_Actor.get('performMapDamage').call(this);
+    J.ABS.Aliased.Game_Actor.get('performMapDamage')
+      .call(this);
   }
   // JABS is definitely enabled.
   else
@@ -23782,7 +24729,8 @@ Game_Actor.prototype.turnEndOnMap = function()
   if (!$jabsEngine.absEnabled) return;
 
   // do normal turn-end things while JABS is disabled.
-  J.ABS.Aliased.Game_Actor.get('turnEndOnMap').call(this);
+  J.ABS.Aliased.Game_Actor.get('turnEndOnMap')
+    .call(this);
 };
 //endregion map effects
 //endregion Game_Actor
@@ -23796,7 +24744,8 @@ J.ABS.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.Aliased.Game_Battler.get('initMembers')
+    .call(this);
 
   // initialize our custom members.
   this.initJabsMembers();
@@ -24063,7 +25012,8 @@ Game_Battler.prototype.isInanimate = function()
  */
 Game_Battler.prototype.isAggroLocked = function()
 {
-  return this.states().some(state => state.jabsAggroLock ?? false);
+  return this.states()
+    .some(state => state.jabsAggroLock ?? false);
 };
 //endregion JABS battler properties
 
@@ -24083,7 +25033,8 @@ Game_Battler.prototype.getSkillSlotManager = function()
  */
 Game_Battler.prototype.getAllEquippedSkills = function()
 {
-  return this.getSkillSlotManager().getAllSlots();
+  return this.getSkillSlotManager()
+    .getAllSlots();
 };
 
 /**
@@ -24093,7 +25044,8 @@ Game_Battler.prototype.getAllEquippedSkills = function()
  */
 Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
 {
-  return this.getSkillSlotManager().getSlotBySkillId(skillIdToFind);
+  return this.getSkillSlotManager()
+    .getSlotBySkillId(skillIdToFind);
 };
 
 /**
@@ -24113,7 +25065,8 @@ Game_Battler.prototype.getEquippedSkillId = function(slot)
  */
 Game_Battler.prototype.getSkillSlot = function(slot)
 {
-  return this.getSkillSlotManager().getSkillSlotByKey(slot);
+  return this.getSkillSlotManager()
+    .getSkillSlotByKey(slot);
 };
 
 /**
@@ -24122,7 +25075,8 @@ Game_Battler.prototype.getSkillSlot = function(slot)
  */
 Game_Battler.prototype.getEmptySecondarySkills = function()
 {
-  return this.getSkillSlotManager().getEmptySecondarySlots();
+  return this.getSkillSlotManager()
+    .getEmptySecondarySlots();
 };
 
 /**
@@ -24149,7 +25103,8 @@ Game_Battler.prototype.setEquippedSkill = function(slot, skillId, locked = false
     if (J.HUD && J.HUD.EXT.INPUT)
     {
       // flag the slot for refresh.
-      skillSlotManager.getSkillSlotByKey(slot).flagSkillSlotForRefresh();
+      skillSlotManager.getSkillSlotByKey(slot)
+        .flagSkillSlotForRefresh();
 
       // request an update to the input frame.
       $hudManager.requestRefreshInputFrame();
@@ -24210,7 +25165,8 @@ Game_Battler.prototype.unlockSlot = function(slot)
  */
 Game_Battler.prototype.unlockAllSlots = function()
 {
-  this.getSkillSlotManager().unlockAllSlots();
+  this.getSkillSlotManager()
+    .unlockAllSlots();
 };
 //endregion JABS skill slot management
 
@@ -24271,6 +25227,55 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function()
 //endregion on-chance effects
 
 //region JABS state management
+J.ABS.Aliased.Game_Battler.set('states', Game_Battler.prototype.states);
+/**
+ * Overrides {@link #states}.<br/>
+ * Returns the proper states for all that are afflicted on this battler.<br/>
+ * Accommodates stacking.
+ * @returns {RPG_State[]}
+ */
+Game_Battler.prototype.states = function()
+{
+  // grab the original states as they were.
+  /** @type {RPG_State[]} */
+  const originalStates = J.ABS.Aliased.Game_Battler.get('states')
+    .call(this);
+
+  // grab all the states the user is currently afflicted with- as far as JABS is concerned.
+  const currentAfflictedStates = $jabsEngine.getJabsStatesByUuid(this.getUuid());
+
+  // prepare a collection of states that represent duplicates for the stacks.
+  const stackedStates = [];
+
+  // an iterating function for duplicating the number of states applied to a battler.
+  const forEacher = state =>
+  {
+    // grab the JABS tracker for the state.
+    const jabsState = currentAfflictedStates.get(state.id);
+
+    // the battler is not afflicted with this state, so nothing special should be done.
+    if (!jabsState) return;
+
+    // check the current number of stacks applied.
+    const appliedStacks = jabsState.stackCount;
+
+    if (appliedStacks < 2) return;
+
+    // we start the counter at 1 because there is already 1 copy of the state in the collection.
+    for (let counter = 1; counter < appliedStacks; counter++)
+    {
+      // add a clone of the stacked state.
+      stackedStates.push(state._clone());
+    }
+  };
+
+  // iterate over each of the original states and calculate which need stacks.
+  originalStates.forEach(forEacher, this);
+
+  // return the concatenated collection of stacked states.
+  return originalStates.concat(stackedStates);
+};
+
 /**
  * OVERWRITE Rewrites the handling for state application. The attacker is
  * now relevant to the state being applied.
@@ -24284,31 +25289,42 @@ Game_Battler.prototype.addState = function(stateId, attacker)
   if (!attacker || !$jabsEngine.absEnabled)
   {
     // perform original logic.
-    J.ABS.Aliased.Game_Battler.get('addState').call(this, stateId);
+    J.ABS.Aliased.Game_Battler.get('addState')
+      .call(this, stateId);
 
     // stop processing this state.
     return;
   }
 
-  // check if we can add the state to the battler.
-  if (this.isStateAddable(stateId))
+  // hand-off the state handling to JABS.
+  this.handleAddingJabsState(stateId, attacker);
+};
+
+/**
+ * Handles logic surrounding state application in regards to JABS.
+ * @param {number} stateId The state being applied.
+ * @param {Game_Actor|Game_Enemy|Game_Battler} attacker The assailant applying the state.
+ */
+Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker)
+{
+  // if the state isn't addable, then don't add it.
+  if (!this.isStateAddable(stateId)) return;
+
+  // see if we need to track this state for the first time.
+  if (!this.isStateAffected(stateId))
   {
-    // check to make sure we're not already afflicted with the state.
-    if (!this.isStateAffected(stateId))
-    {
-      // add the new state with the attacker data.
-      this.addNewState(stateId, attacker);
+    // add the new state with the attacker data.
+    this.addNewState(stateId, attacker);
 
-      // refresh this battler.
-      this.refresh();
-    }
-
-    // reset the state counts for the battler.
-    this.resetStateCounts(stateId, attacker);
-
-    // add the new state to the action result on this battler.
-    this._result.pushAddedState(stateId);
+    // refresh this battler.
+    this.refresh();
   }
+
+  // reset the state counts for the battler.
+  this.resetStateCounts(stateId, attacker);
+
+  // add the new state to the action result on this battler.
+  this._result.pushAddedState(stateId);
 };
 
 /**
@@ -24320,7 +25336,8 @@ J.ABS.Aliased.Game_Battler.set('addNewState', Game_Battler.prototype.addNewState
 Game_Battler.prototype.addNewState = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.get('addNewState').call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('addNewState')
+    .call(this, stateId);
 
   // add the jabs state.
   this.addJabsState(stateId, attacker);
@@ -24335,7 +25352,8 @@ J.ABS.Aliased.Game_Battler.set('resetStateCounts', Game_Battler.prototype.resetS
 Game_Battler.prototype.resetStateCounts = function(stateId, attacker)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.get('resetStateCounts').call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('resetStateCounts')
+    .call(this, stateId);
 
   // add the state to the battler.
   this.addJabsState(stateId, attacker);
@@ -24349,7 +25367,8 @@ J.ABS.Aliased.Game_Battler.set('removeState', Game_Battler.prototype.removeState
 Game_Battler.prototype.removeState = function(stateId)
 {
   // perform original logic.
-  J.ABS.Aliased.Game_Battler.get('removeState').call(this, stateId);
+  J.ABS.Aliased.Game_Battler.get('removeState')
+    .call(this, stateId);
 
   // query for the state to remove from the engine.
   const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
@@ -24401,11 +25420,17 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
     totalDuration = -1;
   }
 
-  // TODO: get this from the state?
-  const stacks = 1;
+  // grab the number of stacks to apply at once.
+  const stacks = state.jabsStateStacksApplied;
 
   // build the new state.
-  const jabsState = new JABS_State(this, stateId, iconIndex, totalDuration, stacks, assailant);
+  const jabsState = new JABS_State(
+    this,
+    stateId,
+    iconIndex,
+    totalDuration,
+    stacks,
+    assailant);
 
   // add the state to the engine's tracker.
   $jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
@@ -24488,7 +25513,7 @@ Game_Battler.prototype.getBonusHitsSources = function()
 {
   return [
     this.states(),
-    [this.databaseData()],
+    [ this.databaseData() ],
   ];
 };
 
@@ -24564,7 +25589,7 @@ Game_Battler.prototype.ignoreAllParry = function()
   // check if any of the note objects possibly could be granting ignore parry.
   const unparryable = RPGManager.checkForBooleanFromAllNotesByRegex(
     objectsToCheck,
-    J.ABS.RegExp.Unparryable) ?? false;
+    J.ABS.RegExp.Unparryable);
 
   // return what we found.
   return unparryable;
@@ -25361,6 +26386,33 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.jabsRefresh();
 };
 
+/**
+ * A hook for performing actions when an actor learns a new skill.
+ * @param {number} skillId The skill id of the skill learned.
+ */
+Game_Enemy.prototype.onLearnNewSkill = function(skillId)
+{
+  // flag this battler for needing a data update.
+  this.onBattlerDataChange();
+};
+
+J.ABS.Aliased.Game_Enemy.set('learnSkill', Game_Enemy.prototype.learnSkill);
+Game_Enemy.prototype.learnSkill = function(skillId)
+{
+  // perform original logic.
+  const learnedSkill = J.ABS.Aliased.Game_Enemy.get('learnSkill').call(this, skillId);
+
+  // check if a new skill was learned.
+  if (learnedSkill)
+  {
+    // trigger on-skill-learning effects.
+    this.onLearnNewSkill(skillId);
+
+    // re-initialize the skill slots with the new skill.
+    this.initAbsSkills();
+  }
+};
+
 //region JABS basic attack skills
 /**
  * Gets the enemy's basic attack skill id.
@@ -25860,7 +26912,7 @@ Game_Event.prototype.refresh = function()
 };
 
 /**
- * Replaces {@link Game_Event.refresh}.<br>
+ * Overrides {@link Game_Event.refresh}.<br>
  * Safely handles battler transformation and page index reassignment.
  *
  * Sometimes the page index reassignment can get out of hand and requires guardrails.
@@ -25993,7 +27045,8 @@ Game_Event.prototype.parseEnemyComments = function()
   }
 
   // build the core data.
-  const battlerCoreData = new JABS_CoreDataBuilder(battlerId)
+  const battlerCoreData = JABS_BattlerCoreData.Builder()
+    .setBattlerId(battlerId)
     .setBattlerAi(ai)
     .setTeamId(teamId)
     .setSightRange(sightRange)
@@ -27282,8 +28335,17 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
   const direction = player.direction();
   const x1 = player.x;
   const y1 = player.y;
-  const x2 = $gameMap.roundXWithDirection(x1, direction);
-  const y2 = $gameMap.roundYWithDirection(y1, direction);
+  let x2 = $gameMap.roundXWithDirection(x1, direction);
+  let y2 = $gameMap.roundYWithDirection(y1, direction);
+
+  // when using cyclone's movement plugin, rounding is necessary to accommodate interacting with events
+  // without actually executing your weapon attack.
+  if (J.ABS.EXT?.CYCLE)
+  {
+    x2 = Math.round($gameMap.roundXWithDirection(x1, direction));
+    y2 = Math.round($gameMap.roundYWithDirection(y1, direction));
+  }
+
   const triggers = [0, 1, 2];
 
   // look over events directly infront of the player.
@@ -27773,7 +28835,8 @@ J.ABS.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Scene_Map.get('initialize').call(this);
+  J.ABS.Aliased.Scene_Map.get('initialize')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -27799,7 +28862,8 @@ Scene_Map.prototype.onMapLoaded = function()
   }
 
   // perform original logic.
-  J.ABS.Aliased.Scene_Map.get('onMapLoaded').call(this);
+  J.ABS.Aliased.Scene_Map.get('onMapLoaded')
+    .call(this);
 };
 
 /**
@@ -27956,7 +29020,7 @@ Scene_Map.prototype.setJabsMenuMainWindow = function(window)
 
 /**
  * Get the currently tracked JABS menu skill list window.
- * @returns {Window_DifficultyList}
+ * @returns {Window_AbsMenuSelect}
  */
 Scene_Map.prototype.getJabsSkillListWindow = function()
 {
@@ -28075,7 +29139,8 @@ Scene_Map.prototype.createAllWindows = function()
   this.createJabsAbsMenu();
 
   // perform original logic.
-  J.ABS.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.ABS.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 };
 
 /**
@@ -28662,7 +29727,8 @@ Scene_Map.prototype.onJabsMenuHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsCombatSkillListHoverChange = function()
@@ -28674,7 +29740,8 @@ Scene_Map.prototype.onJabsCombatSkillListHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsEquippedCombatSkillsHoverChange = function()
@@ -28686,7 +29753,8 @@ Scene_Map.prototype.onJabsEquippedCombatSkillsHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsToolListHoverChange = function()
@@ -28698,7 +29766,8 @@ Scene_Map.prototype.onJabsToolListHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsEquippedToolHoverChange = function()
@@ -28710,7 +29779,8 @@ Scene_Map.prototype.onJabsEquippedToolHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsDodgeSkillListHoverChange = function()
@@ -28722,7 +29792,8 @@ Scene_Map.prototype.onJabsDodgeSkillListHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 
 Scene_Map.prototype.onJabsEquippedDodgeSkillHoverChange = function()
@@ -28734,7 +29805,8 @@ Scene_Map.prototype.onJabsEquippedDodgeSkillHoverChange = function()
   const text = menu.currentHelpText();
 
   // update the help window with some text.
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 //endregion onHover
 
@@ -28756,13 +29828,17 @@ Scene_Map.prototype.commandSkill = function()
   this.setJabsMenuFocus(JABS_MenuType.Skill);
 
   // refresh the window.
-  this.getJabsSkillListWindow().refresh();
+  this.getJabsSkillListWindow()
+    .refresh();
 
   // show the related equipped window.
-  this.getJabsEquippedCombatSkillsWindow().refresh();
+  this.getJabsEquippedCombatSkillsWindow()
+    .refresh();
   this.showJabsEquippedCombatSkillsWindow();
-  this.getJabsEquippedCombatSkillsWindow().deselect();
-  this.getJabsEquippedCombatSkillsWindow().deactivate();
+  this.getJabsEquippedCombatSkillsWindow()
+    .deselect();
+  this.getJabsEquippedCombatSkillsWindow()
+    .deactivate();
 
   // show the window.
   this.showJabsSkillListWindow();
@@ -28780,13 +29856,17 @@ Scene_Map.prototype.commandItem = function()
   this.setJabsMenuFocus(JABS_MenuType.Tool);
 
   // refresh the window.
-  this.getJabsToolListWindow().refresh();
+  this.getJabsToolListWindow()
+    .refresh();
 
   // show the related equipped window.
-  this.getJabsEquippedToolWindow().refresh();
+  this.getJabsEquippedToolWindow()
+    .refresh();
   this.showJabsEquippedToolWindow();
-  this.getJabsEquippedToolWindow().deselect();
-  this.getJabsEquippedToolWindow().deactivate();
+  this.getJabsEquippedToolWindow()
+    .deselect();
+  this.getJabsEquippedToolWindow()
+    .deactivate();
 
   // show the window.
   this.showJabsToolListWindow();
@@ -28804,13 +29884,17 @@ Scene_Map.prototype.commandDodge = function()
   this.setJabsMenuFocus(JABS_MenuType.Dodge);
 
   // refresh the window.
-  this.getJabsDodgeSkillListWindow().refresh();
+  this.getJabsDodgeSkillListWindow()
+    .refresh();
 
   // show the related equipped window.
-  this.getJabsEquippedDodgeSkillWindow().refresh();
+  this.getJabsEquippedDodgeSkillWindow()
+    .refresh();
   this.showJabsEquippedDodgeSkillWindow();
-  this.getJabsEquippedDodgeSkillWindow().deselect();
-  this.getJabsEquippedDodgeSkillWindow().deactivate();
+  this.getJabsEquippedDodgeSkillWindow()
+    .deselect();
+  this.getJabsEquippedDodgeSkillWindow()
+    .deactivate();
 
   // show the window.
   this.showJabsDodgeSkillListWindow();
@@ -28894,18 +29978,24 @@ Scene_Map.prototype.commandAssign = function()
   {
     case JABS_MenuType.Skill:
       // update with combat skill information and the given slot.
-      equippedActionSlot = this.getJabsEquippedCombatSkillsWindow().currentExt();
-      nextActionSkill = this.getJabsSkillListWindow().currentExt();
+      equippedActionSlot = this.getJabsEquippedCombatSkillsWindow()
+        .currentExt();
+      nextActionSkill = this.getJabsSkillListWindow()
+        .currentExt();
       break;
     case JABS_MenuType.Tool:
       // update with tool information and the given slot.
-      equippedActionSlot = this.getJabsEquippedToolWindow().currentExt();
-      nextActionSkill = this.getJabsToolListWindow().currentExt();
+      equippedActionSlot = this.getJabsEquippedToolWindow()
+        .currentExt();
+      nextActionSkill = this.getJabsToolListWindow()
+        .currentExt();
       break;
     case JABS_MenuType.Dodge:
       // update with dodge skill information and the given slot.
-      equippedActionSlot = this.getJabsEquippedDodgeSkillWindow().currentExt();
-      nextActionSkill = this.getJabsDodgeSkillListWindow().currentExt();
+      equippedActionSlot = this.getJabsEquippedDodgeSkillWindow()
+        .currentExt();
+      nextActionSkill = this.getJabsDodgeSkillListWindow()
+        .currentExt();
       break;
   }
 
@@ -28923,7 +30013,8 @@ Scene_Map.prototype.commandAssign = function()
  */
 Scene_Map.prototype.setJabsHelpItem = function(item)
 {
-  this.getJabsMenuHelpWindow().setItem(item);
+  this.getJabsMenuHelpWindow()
+    .setItem(item);
 };
 
 /**
@@ -28932,7 +30023,8 @@ Scene_Map.prototype.setJabsHelpItem = function(item)
  */
 Scene_Map.prototype.setJabsHelpText = function(text)
 {
-  this.getJabsMenuHelpWindow().setText(text);
+  this.getJabsMenuHelpWindow()
+    .setText(text);
 };
 //endregion actions
 
@@ -28945,7 +30037,8 @@ J.ABS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Scene_Map.get('update').call(this);
+  J.ABS.Aliased.Scene_Map.get('update')
+    .call(this);
 
   // update JABS.
   this.updateJabs();
@@ -29010,7 +30103,8 @@ Scene_Map.prototype.onPartyRotate = function()
 Scene_Map.prototype.refreshJabsMenu = function()
 {
   // refresh the main menu window.
-  this.getJabsMainListWindow().refresh();
+  this.getJabsMainListWindow()
+    .refresh();
 
   // acknowledge jabs menu refresh request.
   $jabsEngine.requestJabsMenuRefresh = false;
@@ -29057,7 +30151,8 @@ Scene_Map.prototype.callMenu = function()
   if ($jabsEngine.absEnabled) return;
 
   // perform original logic.
-  J.ABS.Aliased.Scene_Map.get('callMenu').call(this);
+  J.ABS.Aliased.Scene_Map.get('callMenu')
+    .call(this);
 };
 
 //region show/hide
@@ -29274,23 +30369,19 @@ Scene_Map.prototype.hideJabsEquippedDodgeSkillWindow = function()
  */
 Scene_Map.prototype.hideAllJabsWindows = function()
 {
-  // hide the help window.
-  this.getJabsMenuHelpWindow().hide();
+  this.hideJabsDodgeSkillListWindow();
+  this.hideJabsEquippedDodgeSkillWindow();
 
-  // hide the main window.
-  this.getJabsMainListWindow().hide();
+  this.hideJabsToolListWindow();
+  this.hideJabsEquippedToolWindow();
 
-  // hide the skill windows.
-  this.getJabsSkillListWindow().hide();
-  this.getJabsEquippedCombatSkillsWindow().hide();
+  this.hideJabsCombatSkillListWindow();
+  this.hideJabsEquippedCombatSkillsWindow();
 
-  // hide the tool windows.
-  this.getJabsToolListWindow().hide();
-  this.getJabsEquippedToolWindow().hide();
+  this.hideJabsMenuHelpWindow();
+  this.hideJabsMainWindow();
 
-  // hide the dodge windows.
-  this.getJabsDodgeSkillListWindow().hide();
-  this.getJabsEquippedDodgeSkillWindow().hide();
+  this.closeAbsMenu();
 };
 
 /**
@@ -29311,10 +30402,16 @@ Scene_Map.prototype.showJabsMenuWindow = function(window)
  */
 Scene_Map.prototype.hideJabsMenuWindow = function(window)
 {
+  // if its a selectable window, be sure to deselect it.
+  if (window instanceof Window_Selectable)
+  {
+    window.deselect();
+  }
+
   // negatively close it.
-  window.hide();
   window.close();
   window.deactivate();
+  window.hide();
 };
 //endregion show/hide
 
@@ -29366,19 +30463,22 @@ Scene_Map.prototype.redirectToParentAssignMenu = function()
       const equippedCombatSkillsWindow = this.getJabsEquippedCombatSkillsWindow();
       equippedCombatSkillsWindow.deselect();
       equippedCombatSkillsWindow.refresh();
-      this.getJabsSkillListWindow().activate();
+      this.getJabsSkillListWindow()
+        .activate();
       break;
     case JABS_MenuType.Tool:
       const equippedToolWindow = this.getJabsEquippedToolWindow();
       equippedToolWindow.deselect();
       equippedToolWindow.refresh();
-      this.getJabsToolListWindow().activate();
+      this.getJabsToolListWindow()
+        .activate();
       break;
     case JABS_MenuType.Dodge:
       const equippedDodgeSkillWindow = this.getJabsEquippedDodgeSkillWindow();
       equippedDodgeSkillWindow.deselect();
       equippedDodgeSkillWindow.refresh();
-      this.getJabsDodgeSkillListWindow().activate();
+      this.getJabsDodgeSkillListWindow()
+        .activate();
       break;
   }
 };
@@ -29388,7 +30488,23 @@ Scene_Map.prototype.redirectToParentAssignMenu = function()
  */
 Scene_Map.prototype.closeAbsMenu = function()
 {
-  this.getJabsMainListWindow().closeMenu();
+  this.getJabsMainListWindow()
+    .closeMenu();
+};
+
+/**
+ * Force closes the JABS quick menu entirely.
+ */
+Scene_Map.prototype.forceCloseAbsMenu = function()
+{
+  this.closeAbsWindow(JABS_MenuType.Assign);
+  this.closeAbsWindow(JABS_MenuType.Skill);
+  this.closeAbsWindow(JABS_MenuType.Tool);
+  this.closeAbsWindow(JABS_MenuType.Dodge);
+
+  this.setJabsMenuEquipType(String.empty);
+  this.closeAbsWindow(JABS_MenuType.Main);
+  this.setJabsMenuFocus(JABS_MenuType.Main);
 };
 //endregion Scene_Map
 
@@ -29936,7 +31052,7 @@ Sprite_Character.prototype.createBattlerNameSprite = function()
     .setFontSize(10)
     .setAlignment(Sprite_BaseText.Alignments.Left)
     .setColor("#ffffff");
-  sprite.setText(battlerName);
+  sprite.setText(battlerName); // TODO: is this second assignment necessary???
 
   // relocate the sprite to a better position.
   sprite.move(-30, 8);
@@ -30806,9 +31922,10 @@ class Window_AbsMenu extends Window_Command
     if (!this.isClosed())
     {
       this.close();
-      $jabsEngine.absPause = false;
-      $jabsEngine.requestAbsMenu = false;
     }
+
+    $jabsEngine.absPause = false;
+    $jabsEngine.requestAbsMenu = false;
   }
 }
 //endregion Window_AbsMenu

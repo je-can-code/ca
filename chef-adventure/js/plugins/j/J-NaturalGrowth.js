@@ -8,7 +8,7 @@
  * @base J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables "Natural Growth", aka formulaic parameter growth, for
  * battlers. This "Natural Growth" enables temporary/permanent stat growth while
  * various tags are applied.

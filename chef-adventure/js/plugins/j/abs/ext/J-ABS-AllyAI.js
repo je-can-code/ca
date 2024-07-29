@@ -12,7 +12,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables allies to leverage one of a selection of ally AI modes.
  *
  * This plugin requires JABS.
@@ -1421,13 +1421,13 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
 J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
 JABS_AiManager.decideAiPhase2Action = function(battler)
 {
-  // check if the battler is an enemy.
+  // check if the battler is literally an Game_Enemy battler.
   if (battler.isEnemy())
   {
     // perform original logic for enemies.
     J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action').call(this, battler);
   }
-  // it isn't an enemy, it must be an ally.
+  // it is a Game_Actor battler, so it gets different treatment.
   else
   {
     // perform ally AI instead.
@@ -1839,7 +1839,7 @@ Game_Follower.prototype.shouldObeyJabsCombatAi = function()
 
 /**
  * Handles the flow of logic for the movement of this character while available
- * to do combat things according to the {@link JABS_AiManager}.<br>
+ * to do combat things according to the {@link JABS_AiManager}.
  * @param character
  */
 Game_Follower.prototype.handleJabsCombatAi = function(character)

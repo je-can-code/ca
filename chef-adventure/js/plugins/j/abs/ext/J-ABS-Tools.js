@@ -11,7 +11,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables new tags that give tool-like functionality to skills.
  *
  * Enables:

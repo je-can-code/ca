@@ -7,7 +7,7 @@
  * @base J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin provides a small set of system utility functions that may or
  * may not be helpful to all users.
  *
