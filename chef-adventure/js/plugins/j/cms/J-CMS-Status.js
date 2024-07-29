@@ -946,7 +946,7 @@ class Window_StatusParameters extends Window_Base
   /**
    * Creates a new parameter object that contains the necessary data to draw it into the window.
    * @param {number} longParamId The "long" parameter id.
-   * @returns {StatusParameter} The compiled {@link StatusParameter}.<br>
+   * @returns {StatusParameter} The compiled {@link StatusParameter}.
    */
   makeParameter(longParamId)
   {

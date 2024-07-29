@@ -235,6 +235,12 @@ J.ELEM.Aliased = {
   Game_Actor: new Map(),
   Game_Enemy: new Map(),
 };
+
+J.ELEM.RegExp = {};
+J.ELEM.RegExp.AttackElementIds = /<attackElements:[ ]?(\[[\d, ]+])>/i;
+J.ELEM.RegExp.AbsorbElementIds = /<absorbElements:[ ]?(\[[\d, ]+])>/i;
+J.ELEM.RegExp.StrictElementIds = /<strictElements:[ ]?(\[[\d, ]+])>/i;
+J.ELEM.RegExp.BoostElement = /<boostElement:(\d+):(-?\+?[\d]+)>/i;
 //endregion Introduction
 
 //region Game_Action
@@ -335,27 +341,14 @@ Game_Action.prototype.getApplicableElements = function(target)
 
 /**
  * Extracts all extra attack elements from a skill's notes.
- * @param {RPG_UsableItem} referenceData The database object of this action.
+ * @param {RPG_UsableItem} databaseObject The database object of this action.
  * @returns {number[]} The additional attack elements.
  */
-Game_Action.extractElementsFromAction = function(referenceData)
+Game_Action.extractElementsFromAction = function(databaseObject)
 {
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const notedata = referenceData.note.split(/[\r\n]+/);
-  const structure = /<attackElements:[ ]?(\[[\d, ]+])>/i;
-  const elements = [];
-  notedata.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      elements.push(...data);
-    }
-  });
-
-  return elements;
+  return RPGManager.getNumbersFromNoteByRegex(
+    databaseObject,
+    J.ELEM.RegExp.AttackElementIds);
 };
 
 /**
@@ -734,28 +727,14 @@ Game_Battler.prototype.elementsAbsorbed = function()
 /**
  * Gets all absorbed element ids from a given object on this battler.
  *
- * @todo Potentially lift this to J.BASE.Helpers
- * @param {RPG_BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} databaseObject The database data object.
  * @returns {number[]}
  */
-Game_Battler.prototype.extractAbsorbedElements = function(referenceData)
+Game_Battler.prototype.extractAbsorbedElements = function(databaseObject)
 {
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const lines = referenceData.note.split(/[\r\n]+/);
-  const structure = /<absorbElements:[ ]?(\[\d+,?[ ]?\d*?])>/i;
-  const elements = [];
-  lines.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      elements.push(...data);
-    }
-  });
-
-  return elements;
+  return RPGManager.getNumbersFromNoteByRegex(
+    databaseObject,
+    J.ELEM.RegExp.AbsorbElementIds);
 };
 
 /**
@@ -773,28 +752,14 @@ Game_Battler.prototype.strictElements = function()
 /**
  * Gets the strict element ids from a given object on this battler.
  *
- * @todo Potentially lift this to J.BASE.Helpers
- * @param {RPG_BaseItem} referenceData The database data object.
+ * @param {RPG_BaseItem} databaseObject The database data object.
  * @returns {number[]}
  */
-Game_Battler.prototype.extractStrictElements = function(referenceData)
+Game_Battler.prototype.extractStrictElements = function(databaseObject)
 {
-  // if for some reason there is no note, then don't try to parse it.
-  if (!referenceData.note) return [];
-
-  const lines = referenceData.note.split(/[\r\n]+/);
-  const structure = /<strictElements:[ ]?(\[\d+,?[ ]?\d*?])>/i;
-  const elements = [];
-  lines.forEach(line =>
-  {
-    if (line.match(structure))
-    {
-      const data = JSON.parse(RegExp.$1);
-      elements.push(...data);
-    }
-  });
-
-  return elements;
+  return RPGManager.getNumbersFromNoteByRegex(
+    databaseObject,
+    J.ELEM.RegExp.StrictElementIds);
 };
 
 /**
@@ -817,13 +782,12 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
   if (!referenceData.note) return [];
 
   const lines = referenceData.note.split(/[\r\n]+/);
-  const structure = /<boostElements:(\d+):(-?\+?[\d]+)>/i;
   const boostedElements = [];
 
   // get all the boosts first.
   lines.forEach(line =>
   {
-    if (line.match(structure))
+    if (line.match(J.ELEM.RegExp.BoostElement))
     {
       const id = parseInt(RegExp.$1);
       const boost = parseInt(RegExp.$2);

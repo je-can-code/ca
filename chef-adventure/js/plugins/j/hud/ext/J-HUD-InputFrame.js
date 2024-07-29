@@ -13,7 +13,7 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin is an extension of the J-HUD system.
  *
  * This is the Input Frame, which displays the various action keys and their

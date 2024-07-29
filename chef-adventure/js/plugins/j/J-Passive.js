@@ -9,7 +9,7 @@
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the ability to have a various database objects provide
  * passive effects in the form of states.
  *

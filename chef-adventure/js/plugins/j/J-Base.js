@@ -2,12 +2,12 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.4 BASE] The base class for all J plugins.
+ * [v2.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This is the base class that is required for basically ALL of J-* plugins.
  * Please be sure this is above all other J-* plugins, and keep it up to date!
  * ----------------------------------------------------------------------------
@@ -59,10 +59,12 @@
  *
  * ============================================================================
  * CHANGELOG:
- * - 2.1.4
+ * - 2.2.0
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
  *    Added max item quantity functionality with tag.
+ *    Added note grouping methods specific to actors/enemies.
+ *    Added Window_Command updates to enable drawing faces as well.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -109,7 +111,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.1.3';
+J.BASE.Metadata.Version = '2.2.0';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -435,7 +437,7 @@ Array.iterate = function(times, func, thisArg = undefined)
 J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
 {
   // the regexp for what to mask.
-  const structure = /[0-9A-Za-z\-()*!?'"=@,.]/ig;
+  const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/ig;
 
   // return the masked string content.
   return stringToMask.toString().replace(structure, maskingCharacter);
@@ -469,21 +471,53 @@ if (![].at)
   /* eslint-enable */
 }
 
+class ArrayHelper
+{
+  /**
+   * A filter function for ignoring null or undefined.
+   * @param {any} value The value of the array being filtered.
+   * @returns {boolean} False if the value is null or undefined, true otherwise.
+   */
+  static NoNulls(value)
+  {
+    if (value === undefined || value === null)
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * A filter function for ignoring any falsey values.
+   * @param {any} value The value of the array being filtered.
+   * @returns {boolean} True if the value is truthy, false if the value is falsey.
+   */
+  static NoFalsey(value)
+  {
+    return !!value;
+  }
+}
+
 //region JsonMapper
-class JsonMapper {
+class JsonMapper
+{
   /**
    * Parses a object into whatever its given data type is.
    * @param {any} obj The unknown object to parse.
    * @returns {any|null}
    */
-  static parseObject(obj) {
+  static parseObject(obj)
+  {
     // do not attempt to parse if the input is null.
     if (obj === null || obj === undefined) return null;
 
     // check if the object to parse is a string.
-    if (typeof obj === "string") {
+    if (typeof obj === "string")
+    {
       // check if the string is an unparsed array.
-      if (obj.startsWith("[") && obj.endsWith("]")) {
+      if (obj.startsWith("[") && obj.endsWith("]"))
+      {
         // expose the stringified segments of the array.
         return this.parseArrayFromString(obj);
       }
@@ -493,7 +527,8 @@ class JsonMapper {
     }
 
     // check if the object to parse is a collection.
-    if (Array.isArray(obj)) {
+    if (Array.isArray(obj))
+    {
       // iterate over the array and parse each item.
       return obj.map(this.parseObject, this);
     }
@@ -510,7 +545,8 @@ class JsonMapper {
    * @param {string} strArr An string presumed to be an array.
    * @returns {any} The parsed exposed insides of the string array.
    */
-  static parseArrayFromString(strArr) {
+  static parseArrayFromString(strArr)
+  {
     // expose the stringified segments of the array.
     const exposedArray = strArr
       // peel off the outer brackets.
@@ -522,7 +558,8 @@ class JsonMapper {
     const innerArrayStartIndex = exposedArray.findIndex(element => element.startsWith("["));
 
     // check if we found an opening inner array bracket.
-    if (innerArrayStartIndex > -1) {
+    if (innerArrayStartIndex > -1)
+    {
       // grab the last closing inner array bracket.
       const outerArrayEndIndex = exposedArray.findLastIndex(element => element.endsWith("]"));
 
@@ -543,7 +580,7 @@ class JsonMapper {
 
     // with the content exposed, attempt to continue parsing.
     return this.parseObject(exposedArray);
-  };
+  }
 
   /**
    * Parses a metadata object from a string into possibly a boolean or number.
@@ -551,7 +588,8 @@ class JsonMapper {
    * @param {string} str The string object to parse.
    * @returns {boolean|number|string}
    */
-  static parseString(str) {
+  static parseString(str)
+  {
     // check if its actually boolean true.
     if (str.toLowerCase() === "true") return true;
     // check if its actually boolean false.
@@ -1629,12 +1667,17 @@ class RPG_Base
     // iterate over each valid line of the note.
     lines.forEach(line =>
     {
+      // grab the regex execution result for this note line.
+      const result = structure.exec(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (result === null) return;
+
       // extract the captured formula.
-      // eslint-disable-next-line prefer-destructuring
-      const result = structure.exec(line)[1];
+      const [ /* skip first index */, numericResult ] = result;
 
       // regular parse it and add it to the running total.
-      val += parseFloat(result);
+      val += parseFloat(numericResult);
     });
 
     // return the
@@ -2033,21 +2076,21 @@ class RPG_Base
     const fromNote = this.notedata();
 
     // initialize the value.
-    const data = [];
+    const matchingLines = [];
 
     // iterate the note data array.
-    fromNote.forEach(note =>
+    fromNote.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (note.match(structure))
+      if (line.match(structure))
       {
         // parse the value out of the regex capture group.
-        data.push(note);
+        matchingLines.push(line);
       }
     });
 
     // return the found value.
-    return data;
+    return matchingLines;
   }
   //endregion note
 }
@@ -2510,10 +2553,10 @@ class RPG_Class extends RPG_Base
     // map the class data to this object.
     this.expParams = classData.expParams;
     this.learnings = classData.learnings
-    .map(learning => new RPG_ClassLearning(learning));
+      .map(learning => new RPG_ClassLearning(learning));
     this.params = classData.params;
     this.traits = classData.traits
-    .map(trait => new RPG_Trait(trait));
+      .map(trait => new RPG_Trait(trait));
   }
 }
 //endregion RPG_Class
@@ -2952,7 +2995,7 @@ class RPG_Weapon extends RPG_EquipItem
 //endregion RPG_Weapon
 
 /**
- * The structure of the data points required to play a sound effect using the {@link SoundManager}.<br>
+ * The structure of the data points required to play a sound effect using the {@link SoundManager}.
  */
 class RPG_SoundEffect
 {
@@ -4434,6 +4477,323 @@ class RPGManager
   }
 
   /**
+   * Gets the last instance of a string matching the regex from the given database object.
+   * @param {RPG_BaseItem} databaseData The database object to inspect.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   * @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
+   */
+  static getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
+  {
+    // validate the incoming data object.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : String.empty;
+    }
+
+    // initialize the value.
+    let val = String.empty;
+
+    // get the note data from this skill.
+    const lines = databaseData.note.split(/[\r\n]+/);
+
+    // validate the notes to ensure there even are any.
+    if (lines.length === 0)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : String.empty;
+    }
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // grab the regex execution result for this note line.
+      const result = structure.exec(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (result === null) return;
+
+      // extract the captured formula.
+      const [ /* skip first index */, stringResult] = result;
+
+      // set this to what we found.
+      val = stringResult;
+    });
+
+    // validate the actual findings to evaluate return values.
+    if (!val)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : String.empty;
+    }
+
+    // return the found value.
+    return val;
+  }
+
+  /**
+   * Gets the last instance of a string matching the regex from the given database object collection.
+   * @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
+   * @param {RegExp} structure The RegExp structure to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+   * @returns {string|null} A string if "nullIfEmpty=false", null otherwise.
+   */
+  static getStringFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // initialize the value.
+    let val = String.empty;
+
+    // iterate over each of the database objects for inspection.
+    databaseDatas.forEach(databaseData =>
+    {
+      // capture what we found.
+      const found = this.getStringFromNoteByRegex(databaseData, structure, nullIfEmpty);
+
+      // validate we found something.
+      if (found)
+      {
+        // and update the value with that finding.
+        val = found;
+      }
+    }, this);
+
+    // validate the actual value that was found.
+    if (!val)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : String.empty;
+    }
+
+    // return what we found.
+    return val;
+  }
+
+  /**
+   * Gets the last numeric value based on the provided regex structure.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RPG_Base} databaseData The database object to inspect.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  static getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
+  {
+    // validate the incoming data object.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : 0;
+    }
+
+    // get the note data from this skill.
+    const lines = databaseData.note.split(/[\r\n]+/);
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty ? null : 0;
+    }
+
+    // initialize the value.
+    let val = 0;
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // grab the regex execution result for this note line.
+      const result = structure.exec(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (result === null) return;
+
+      // extract the captured formula.
+      const [ /* skip first index */, numericResult ] = result;
+
+      // regular parse it and add it to the running total.
+      val = parseFloat(numericResult);
+    });
+
+    // return the
+    return val;
+  }
+
+  /**
+   * Gets the last numeric value based on the provided regex structure from a collection of database objects.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default 0 as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RPG_Base[]} databaseDatas The database object to inspect.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  static getNumberFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // initialize the value.
+    let val = 0;
+
+    // iterate over each of the database objects for inspection.
+    databaseDatas.forEach(databaseData =>
+    {
+      // capture what we found.
+      const found = this.getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty);
+
+      // validate we found something.
+      if (found)
+      {
+        // and update the value with that finding.
+        val = found;
+      }
+    }, this);
+
+    // validate the actual value that was found.
+    if (!val)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : String.empty;
+    }
+
+    // return what we found.
+    return val;
+  }
+
+  /**
+   * Gets all numbers found in arrays on the database object provided.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default [] as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RPG_Base} databaseData The database object to inspect.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {number[]|null}
+   */
+  static getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
+  {
+    // initialize the collection.
+    let vals = [];
+
+    // validate we have a database object to work with.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : vals;
+    }
+
+    // capture what we found.
+    const found = this.getArrayFromNotesByRegex(databaseData, structure, true);
+
+    // validate we found something.
+    if (found !== null)
+    {
+      // and update the value with that finding.
+      vals = found;
+    }
+
+    // validate the actual value that was found.
+    if (!vals.length)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : vals;
+    }
+
+    // filter out any possible nulls that we found.
+    const noNullVals = vals.filter(ArrayHelper.NoNulls, this);
+
+    // return what we found.
+    return noNullVals;
+  }
+
+  /**
+   * Gets all numbers found in arrays across the collection of database objects provided.
+   *
+   * This accepts a regex structure, assuming the capture group is an numeric value,
+   * and adds all values together from each line in the notes that match the provided
+   * regex structure.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default [] as an indicator we didn't find
+   * anything from the notes of this skill.
+   *
+   * This can handle both integers and decimal numbers.
+   * @param {RPG_Base[]} databaseDatas The database object to inspect.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {number|null} The combined value added from the notes of this object, or zero/null.
+   */
+  static getNumbersFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // initialize the collection.
+    const vals = [];
+
+    // iterate over each of the database objects for inspection.
+    databaseDatas.forEach(databaseData =>
+    {
+      // capture what we found.
+      const found = this.getNumbersFromNoteByRegex(databaseData, structure, true);
+
+      // validate we found something.
+      if (found !== null)
+      {
+        // and update the value with that finding.
+        vals.push(...found);
+      }
+    }, this);
+
+    // validate the actual value that was found.
+    if (!vals.length)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : vals;
+    }
+
+    // return what we found.
+    return noNullVals;
+  }
+
+  /**
    * Gets the sum of all values from the notes of a collection of database objects.
    * @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
    * @param {RegExp} structure The RegExp structure to find values for.
@@ -4456,7 +4816,7 @@ class RPGManager
     databaseDatas.forEach(databaseData =>
     {
       // add the value from all the notes of each database object.
-      val += databaseData.getNumberFromNotesByRegex(structure);
+      val += this.getNumberFromNoteByRegex(databaseData, structure);
     });
 
     // check if we turned up empty and are using the nullIfEmpty flag.
@@ -4574,18 +4934,121 @@ class RPGManager
   }
 
   /**
-   * Checks if any of the database datas containing notes matches the regex structure provided.
-   * @param {RPG_Base[]} databaseDatas The list of database objects to parse.
-   * @param {RegExp} structure The boolean regex structure to parse for.
-   * @returns {boolean|null} True if the regex was found, false otherwise.
+   * Gets whether or not there is a matching regex tag on this database entry.
+   *
+   * Do be aware of the fact that with this type of tag, we are checking only
+   * for existence, not the value. As such, it will be `true` if found, and `false` if
+   * not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+   * `null` instead of `false` when missing, or use a string regex pattern and add
+   * something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+   *
+   * This accepts a regex structure, but does not leverage a capture group.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default `false` as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RPG_Base} databaseData The regular expression to filter notes by.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+   * @returns {boolean|null} The found value from the notes of this object, or empty/null.
    */
-  static checkForBooleanFromAllNotesByRegex(databaseDatas, structure)
+  static checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
   {
-    // a predicate for checking if the regex existed on the given database data.
-    const regexMatchExists = databaseData => databaseData.getBooleanFromNotesByRegex(structure, true);
+    // validate the incoming data object.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : false;
+    }
 
-    // scan all the database datas.
-    return databaseDatas.some(regexMatchExists);
+    // get the note data from this skill.
+    const lines = databaseData.note.split(/[\r\n]+/);
+
+    // initialize the value.
+    let val = false;
+
+    // default to not having a match.
+    let hasMatch = false;
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // grab the regex execution result for this note line.
+      const hasStructure = structure.test(line);
+
+      // skip if we somehow encounter something amiss here.
+      if (hasStructure)
+      {
+        // parse the value out of the regex capture group.
+        val = true;
+
+        // flag that we found a match.
+        hasMatch = true;
+      }
+    });
+
+    // check if we didn't find a match, and we want null instead of empty.
+    if (!hasMatch && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+    // we want a "false" or the found value.
+    else
+    {
+      // return the found value.
+      return val;
+    }
+  }
+
+  /**
+   * Gets whether or not there is a matching regex tag from a collection of database objects.
+   *
+   * Do be aware of the fact that with this type of tag, we are checking only
+   * for existence, not the value. As such, it will be `true` if found, and `false` if
+   * not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+   * `null` instead of `false` when missing, or use a string regex pattern and add
+   * something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+   *
+   * This accepts a regex structure, but does not leverage a capture group.
+   *
+   * If the optional flag `nullIfEmpty` receives true passed in, then the result of
+   * this will be `null` instead of the default `false` as an indicator we didn't find
+   * anything from the notes of this skill.
+   * @param {RPG_Base[]} databaseDatas The objects to inspect.
+   * @param {RegExp} structure The regular expression to filter notes by.
+   * @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+   * @returns {boolean|null} The found value from the notes of this object, or empty/null.
+   */
+  static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // get all results from all objects that could have true/false/null values.
+    const results = databaseDatas.map(databaseData =>
+      this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+
+    // filter away the non-values.
+    const onlyTrueRemains = results
+      .filter(result => result !== null)
+      .filter(result => result !== false);
+
+    // check if we have any truthy values remaining.
+    if (onlyTrueRemains.length === 0)
+    {
+      // check if we turned up empty and are using the nullIfEmpty flag.
+      if (nullIfEmpty)
+      {
+        // we are both, so return null.
+        return null;
+      }
+
+      // we didn't find it.
+      return false;
+    }
+
+    // by this point, we know we found at least one true.
+    return true;
   }
 
   /**
@@ -4597,15 +5060,15 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} noteObject The contents of the note of a given object.
+   * @param {string} databaseObject The contents of the note of a given object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
    * @returns {any[][]|null} The array of arrays from the notes, or null.
    */
-  static getArraysFromNotesByRegex(noteObject, structure, tryParse = true)
+  static getArraysFromNotesByRegex(databaseObject, structure, tryParse = true)
   {
     // get the note data from this skill.
-    const noteLines = noteObject.split(/[\r\n]+/);
+    const noteLines = databaseObject.note.split(/[\r\n]+/);
 
     // initialize the value.
     let val = [];
@@ -4620,7 +5083,7 @@ class RPGManager
       if (line.match(structure))
       {
         // extract the captured formula.
-        const [,result] = structure.exec(line);
+        const [, result] = structure.exec(line);
 
         // parse the value out of the regex capture group.
         val.push(result);
@@ -4653,15 +5116,16 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} noteObject The contents of the note of a given object.
+   * @param {string} databaseObject The contents of the note of a given object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
+   * @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
    * @returns {any[]|null} The array from the notes, or null.
    */
-  static getArrayFromNotesByRegex(noteObject, structure, tryParse = true)
+  static getArrayFromNotesByRegex(databaseObject, structure, tryParse = true, nullIfEmpty = false)
   {
     // get the note data from this skill.
-    const noteLines = noteObject.split(/[\r\n]+/);
+    const noteLines = databaseObject.note.split(/[\r\n]+/);
 
     // initialize the value.
     let val = null;
@@ -4676,7 +5140,7 @@ class RPGManager
       if (line.match(structure))
       {
         // extract the captured formula.
-        const [,result] = structure.exec(line);
+        const [, result] = structure.exec(line);
 
         // parse the value out of the regex capture group.
         val = JSON.parse(result);
@@ -4687,7 +5151,13 @@ class RPGManager
     });
 
     // if we didn't find a match, return null instead of attempting to parse.
-    if (!hasMatch) return null;
+    if (!hasMatch)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : [];
+    }
 
     // check if we're going to attempt to parse it, too.
     if (tryParse)
@@ -4700,6 +5170,7 @@ class RPGManager
     return val;
   }
 }
+
 //endregion RPGManager
 
 //region SoundManager
@@ -4715,7 +5186,8 @@ SoundManager.playSoundEffect = function(se)
 
 //region StorageManager
 /**
- * Checks whether or not a file exists given the path with the file name.
+ * Checks whether or not a file exists given the path with the file name.<br><br>
+ * This is incompatible with a game that has been web deployed.
  * @param {string} pathWithFile The path including the filename and extension.
  * @returns {boolean} True if the file is present, false otherwise.
  */
@@ -4798,6 +5270,12 @@ TextManager.rewardDescription = function(paramId)
   }
 };
 
+/**
+ * Gets the double-line description for parameters by their long parameter id.
+ * @param {number} paramId The long parameter id.
+ * @returns {string[]}
+ */
+// eslint-disable-next-line complexity
 TextManager.longParamDescription = function(paramId)
 {
   switch (paramId)
@@ -4806,6 +5284,8 @@ TextManager.longParamDescription = function(paramId)
       return this.bparamDescription(paramId); // mhp
     case  1:
       return this.bparamDescription(paramId); // mmp
+    case 30:
+      return this.bparamDescription(paramId); // mtp
     case  2:
       return this.bparamDescription(paramId); // atk
     case  3:
@@ -4858,8 +5338,6 @@ TextManager.longParamDescription = function(paramId)
       return this.sparamDescription(paramId - 18); // fdr
     case 27:
       return this.sparamDescription(paramId - 18); // exr
-    case 30:
-      return this.maxTp(); // max tp
     default:
       console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
       return String.empty;
@@ -4923,6 +5401,11 @@ TextManager.bparamDescription = function(paramId)
         "The base stat that governs fortune and luck.",
         "The effects of this are wide and varied."
       ];
+    case 30:
+      return [
+        "The base resource that many weapon-based skills utilize.",
+        "Without this, techniques typically cannot be executed."
+      ];
   }
 };
 
@@ -4955,7 +5438,7 @@ TextManager.xparamDescription = function(paramId)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "This is directly reduced by a target's critical evasion."
+        "Critical hits will deal percent-increased damage."
       ];
 
     // CEV (Critical hit Evasion)
@@ -5408,6 +5891,13 @@ class BuiltWindowCommand
   #lines = [];
 
   /**
+   * Whether or not the additional lines are actually subtext.<br/>
+   * Additional lines are classified as subtext by default.
+   * @type {boolean}
+   */
+  #isSubtext = true;
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -5457,6 +5947,19 @@ class BuiltWindowCommand
    * @type {number}
    */
   #colorIndex = 0;
+
+  /**
+   * The filename of the face image associated with this log.
+   * @type {string|String.empty}
+   */
+  #faceName = String.empty;
+
+  /**
+   * The index of the face image associated with this log.
+   * @type {number}
+   */
+  #faceIndex = -1;
+
   //endregion properties
 
   constructor(
@@ -5469,7 +5972,10 @@ class BuiltWindowCommand
     rightText = String.empty,
     rightColorIndex = 0,
     lines = [],
-    helpText = String.empty)
+    helpText = String.empty,
+    isSubtext = true,
+    faceData = [String.empty, -1]
+  )
   {
     this.#name = name;
     this.#key = symbol;
@@ -5481,6 +5987,11 @@ class BuiltWindowCommand
     this.#rightColorIndex = rightColorIndex;
     this.#lines = lines;
     this.#helpText = helpText;
+    this.#isSubtext = isSubtext;
+
+    const [faceName, faceIndex] = faceData;
+    this.#faceName = faceName;
+    this.#faceIndex = faceIndex;
   }
 
   //region getters
@@ -5499,7 +6010,33 @@ class BuiltWindowCommand
    */
   get subText()
   {
+    // if this is a command without subtext, then the subtext should be empty.
+    if (!this.isSubtext) return [];
+
+    // the additional lines are subtext, just return them.
     return this.#lines;
+  }
+
+  /**
+   * Gets the extra lines that make up this multiline command.
+   * @returns {string[]}
+   */
+  get lines()
+  {
+    // if this is a command with subtext, then lines should be empty.
+    if (this.isSubtext) return [];
+
+    // the additional lines are part of a multiline command, just return them.
+    return this.#lines;
+  }
+
+  /**
+   * Gets whether or not this command's additional lines were actually subtext.
+   * @returns {boolean}
+   */
+  get isSubtext()
+  {
+    return this.#isSubtext;
   }
 
   /**
@@ -5572,6 +6109,11 @@ class BuiltWindowCommand
   get helpText()
   {
     return this.#helpText;
+  }
+
+  get faceData()
+  {
+    return [this.#faceName, this.#faceIndex];
   }
   //endregion getters
 }
@@ -5910,6 +6452,13 @@ class WindowCommandBuilder
   #lines = [];
 
   /**
+   * Whether or not the additional lines are actually subtext.<br/>
+   * Additional lines are classified as subtext by default.
+   * @type {boolean}
+   */
+  #isSubtext = true;
+
+  /**
    * The text that will be right-aligned for this command.
    * @type {string}
    */
@@ -5959,6 +6508,18 @@ class WindowCommandBuilder
    * @type {number}
    */
   #colorIndex = 0;
+
+  /**
+   * The filename of the face image associated with this log.
+   * @type {string|String.empty}
+   */
+  #faceName = String.empty;
+
+  /**
+   * The index of the face image associated with this log.
+   * @type {number}
+   */
+  #faceIndex = -1;
   //endregion properties
 
   /**
@@ -5988,7 +6549,9 @@ class WindowCommandBuilder
       this.#rightText,
       this.#rightColorIndex,
       this.#lines,
-      this.#helpText
+      this.#helpText,
+      this.#isSubtext,
+      [this.#faceName, this.#faceIndex]
     );
 
     // return the built command.
@@ -6011,7 +6574,7 @@ class WindowCommandBuilder
    * @param {string} line The line of subtext to add.
    * @returns {this} This builder for fluent-building.
    */
-  addSubTextLine(line)
+  addTextLine(line)
   {
     this.#lines.push(line);
     return this;
@@ -6022,7 +6585,7 @@ class WindowCommandBuilder
    * @param {string[]} lines The lines of subtext to add.
    * @returns {this} This builder for fluent-building.
    */
-  addSubTextLines(lines)
+  addTextLines(lines)
   {
     this.#lines.push(...lines);
     return this;
@@ -6033,9 +6596,29 @@ class WindowCommandBuilder
    * @param {string[]} lines The lines of subtext to set.
    * @returns {this} This builder for fluent-building.
    */
-  setSubtextLines(lines)
+  setTextLines(lines)
   {
     this.#lines = lines;
+    return this;
+  }
+
+  /**
+   * Sets this command to identify its additional lines as a multiline command rather than subtext.
+   * @returns {WindowCommandBuilder}
+   */
+  flagAsMultiline()
+  {
+    this.#isSubtext = false;
+    return this;
+  }
+
+  /**
+   * Sets this command to identify its additiona lines as subtext rather than a multiline command.
+   * @returns {WindowCommandBuilder}
+   */
+  flagAsSubText()
+  {
+    this.#isSubtext = true;
     return this;
   }
 
@@ -6124,6 +6707,28 @@ class WindowCommandBuilder
   setHelpText(helpText)
   {
     this.#helpText = helpText;
+    return this;
+  }
+
+  /**
+   * Sets the filename of the face associated with this command.
+   * @param {string} faceName The filename containing the face.
+   * @returns {this} This builder for fluent-building.
+   */
+  setFaceName(faceName)
+  {
+    this.#faceName = faceName;
+    return this;
+  }
+
+  /**
+   * Sets the index of the face on the face sheet associated with this command.
+   * @param {number} faceIndex The index on the face sheet aligning to the face.
+   * @returns {this} This builder for fluent-building.
+   */
+  setFaceIndex(faceIndex)
+  {
+    this.#faceIndex = faceIndex;
     return this;
   }
 }
@@ -6239,6 +6844,25 @@ Game_Actor.prototype.databaseData = function()
 Game_Actor.prototype.isLeader = function()
 {
   return $gameParty.leader() === this;
+};
+
+/**
+ * Gets all notes associated with the actor and its class.
+ * @returns {[RPG_Actor,RPG_Class]}
+ */
+Game_Actor.prototype.getActorNotes = function()
+{
+  // grab reference to the actor.
+  const actor = this.actor();
+
+  // return a collection of all things related to this actor.
+  return [
+    // add the actor itself to the source list.
+    actor,
+
+    // add the actor's class to the source list.
+    this.class(actor.classId)
+  ];
 };
 
 /**
@@ -7047,7 +7671,7 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
 
 //region Game_Enemies
 /**
- * A class that acts as a lazy dictionary for {@link Game_Enemy} data.
+ * A class that acts as a lazy dictionary for {@link Game_Enemy} data.<br/>
  * Do not use the enemies from this class as actual battlers!
  */
 class Game_Enemies
@@ -7104,6 +7728,22 @@ Game_Enemy.prototype.databaseData = function()
 };
 
 /**
+ * Gets all notes associated with the enemy and its class.
+ * @returns {[RPG_Enemy]}
+ */
+Game_Enemy.prototype.getEnemyNotes = function()
+{
+  // grab reference to the enemy.
+  const enemy = this.enemy();
+
+  // return a collection of all things related to this enemy.
+  return [
+    // add the enemy itself to the source list.
+    enemy
+  ];
+};
+
+/**
  * Extends {@link #setup}.<br>
  * Adds a hook for performing actions when an enemy is setup.
  */
@@ -7111,7 +7751,8 @@ J.BASE.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
 Game_Enemy.prototype.setup = function(enemyId)
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Enemy.get('setup').call(this, enemyId);
+  J.BASE.Aliased.Game_Enemy.get('setup')
+    .call(this, enemyId);
 
   // execute the on-setup hook.
   this.onSetup(enemyId);
@@ -7135,7 +7776,8 @@ Game_Enemy.prototype.onSetup = function(enemyId)
 Game_Enemy.prototype.skills = function()
 {
   // grab the actions for the enemy.
-  const actions = this.enemy().actions
+  const actions = this.enemy()
+    .actions
     .map(action => this.skill(action.skillId), this);
 
   // grab any additional skills added via traits.
@@ -7156,7 +7798,35 @@ Game_Enemy.prototype.skills = function()
  */
 Game_Enemy.prototype.hasSkill = function(skillId)
 {
-  return this.skills().some(skill => skill.id === skillId);
+  return this.skills()
+    .some(skill => skill.id === skillId);
+};
+
+/**
+ * Forces this enemy to learn the skill of the given id.<br/>
+ * Will not learn the skill again if it is already learned.
+ * @param {number} skillId The skill id to learn.
+ * @returns {boolean} True if the enemy learned the new skill, false if it already knew it.
+ */
+Game_Enemy.prototype.learnSkill = function(skillId)
+{
+  // don't try to learn the skill if its already known.
+  if (this.hasSkill(skillId)) return false;
+
+  // build the new underlying action to be detected by the enemy.
+  const rpgEnemyAction = {
+    "conditionParam1": 0,
+    "conditionParam2": 0,
+    "conditionType": 0,
+    "rating": 5,
+    "skillId": skillId
+  };
+
+  // add the action to the enemy's list of known skills.
+  this.enemy().actions.push(rpgEnemyAction);
+
+  // indicate that a new skill was learned to any callers that might be interested.
+  return true;
 };
 
 /**
@@ -7167,7 +7837,8 @@ J.BASE.Aliased.Game_Enemy.set('die', Game_Enemy.prototype.die);
 Game_Enemy.prototype.die = function()
 {
   // perform original effects.
-  J.BASE.Aliased.Game_Enemy.get('die').call(this);
+  J.BASE.Aliased.Game_Enemy.get('die')
+    .call(this);
 
   // perform on-death effects.
   this.onDeath();
@@ -8916,7 +9587,11 @@ Window_Command.prototype.drawItem = function(index)
   this.preDrawItem(index);
 
   // grab the rectangle for the line item.
-  const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
+  const {
+    x: rectX,
+    y: rectY,
+    width: rectWidth
+  } = this.itemLineRect(index);
 
   // build the command name.
   let commandName = this.buildCommandName(index);
@@ -8925,16 +9600,23 @@ Window_Command.prototype.drawItem = function(index)
   const rightText = this.commandRightText(index);
 
   // grab the subtext for this command.
+  const isSubtext = this.isCommandSubtext(index)
   const subtexts = this.commandSubtext(index);
 
+  // grab the extra lines for this command.
+  const extraLines = this.commandLines(index);
+
   // calculate the x of the command name.
-  const commandNameX = rectX + 40;
+  let commandNameX = rectX + 40;
 
   // initialize the y of the command name.
   let commandNameY = rectY;
 
   // determine if we have subtext to draw.
-  const hasSubtexts = subtexts.length > 0;
+  const hasSubtexts = subtexts.length > 0 && isSubtext;
+
+  // determine if we have multiline text to draw.
+  const hasMultilineText = extraLines.length > 0 && !isSubtext;
 
   // check if we have any subtext.
   if (hasSubtexts)
@@ -8945,10 +9627,38 @@ Window_Command.prototype.drawItem = function(index)
     // move the command name up a bit if we have subtext.
     commandNameY -= this.subtextLineHeight();
   }
-
-  const commandIcon = this.commandIcon(index);
-  if (commandIcon)
+  // check if we alternatively have multiline text instead.
+  else if (hasMultilineText)
   {
+    // move the command name up a bit if we have additional lines.
+    commandNameY -= this.multilineLineHeight();
+  }
+
+  // destruct the face data.
+  const [ faceName, faceIndex ] = this.commandFaceData(index);
+
+  // validate the data is not default non-data.
+  const hasFaceData = faceName !== String.empty && (faceIndex > -1 && faceIndex < 8);
+  if (hasFaceData)
+  {
+    const faceY = rectY;
+    this.drawFace(
+      faceName.substring(faceName.lastIndexOf('/') + 1),
+      faceIndex,
+      commandNameX - 36,
+      faceY - 12,
+      ImageManager.faceWidth,
+      ImageManager.faceHeight);
+    commandNameX += 36;
+  }
+
+  // identify the icon for this command.
+  const commandIcon = this.commandIcon(index);
+
+  // validate we have an icon to draw, and we didn't already render face data.
+  if (commandIcon && !hasFaceData)
+  {
+    // place the icon at the left-most side of the command.
     const iconY = rectY;
     this.drawIcon(commandIcon, commandNameX - 36, iconY);
   }
@@ -8989,7 +9699,7 @@ Window_Command.prototype.drawItem = function(index)
   }
 
   // check if we have any subtext available.
-  if (subtexts.length > 0)
+  if (hasSubtexts)
   {
     // iterate over each of the subtexts.
     subtexts.forEach((subtext, subtextIndex) =>
@@ -9013,6 +9723,30 @@ Window_Command.prototype.drawItem = function(index)
       this.drawTextEx(sizedSubtext, subtextX, subtextY, rectWidth);
     }, this);
   }
+  else if (hasMultilineText)
+  {
+    // calculate the x coordinate for all subtext.
+    let extraLineX = rectX + 32;
+
+    // if there was face data rendered, then move this over some.
+    if (hasFaceData)
+    {
+      extraLineX += 44;
+    }
+
+    // iterate over each of the subtexts.
+    extraLines.forEach((extraLine, extraLineIndex) =>
+    {
+      // TODO: is this needed?
+      const actualIndex = extraLineIndex + 0;
+
+      // calculate the new y coordinate for the line.
+      const extraLineY = rectY + (actualIndex * this.multilineLineHeight()) + 2;
+
+      // render the subtext line.
+      this.drawTextEx(extraLine, extraLineX, extraLineY, rectWidth);
+    }, this);
+  }
 };
 
 /**
@@ -9028,9 +9762,6 @@ Window_Command.prototype.buildCommandName = function(index)
   // prepend the color for the command if applicable.
   commandName = this.handleColor(commandName, index);
 
-  // prepend the icon for the command if applicable.
-  // commandName = this.handleIcon(commandName, index);
-
   // return what we have.
   return commandName;
 };
@@ -9042,7 +9773,25 @@ Window_Command.prototype.buildCommandName = function(index)
  */
 Window_Command.prototype.commandSubtext = function(index)
 {
-  return this.commandList().at(index).subText ?? [];
+  return this.commandList()
+    .at(index).subText ?? [];
+};
+
+/**
+ * Gets the subtext for the command at the given index.
+ * @param {number} index The index to get subtext for.
+ * @returns {string[]} The lines if available, an empty array otherwise.
+ */
+Window_Command.prototype.commandLines = function(index)
+{
+  return this.commandList()
+    .at(index).lines ?? [];
+};
+
+Window_Command.prototype.isCommandSubtext = function(index)
+{
+  return this.commandList()
+    .at(index).isSubtext ?? true;
 };
 
 /**
@@ -9055,13 +9804,23 @@ Window_Command.prototype.subtextLineHeight = function()
 };
 
 /**
+ * The line height explicitly used for multiline commands.
+ * @returns {number}
+ */
+Window_Command.prototype.multilineLineHeight = function()
+{
+  return 16;
+};
+
+/**
  * Gets the right-aligned text for this command.
  * @param {number} index The index to get the right-text for.
  * @returns {string}
  */
 Window_Command.prototype.commandRightText = function(index)
 {
-  return this.commandList().at(index).rightText;
+  return this.commandList()
+    .at(index).rightText;
 };
 
 /**
@@ -9071,8 +9830,10 @@ Window_Command.prototype.commandRightText = function(index)
  */
 Window_Command.prototype.commandRightColorIndex = function(index)
 {
-  const command = this.commandList().at(index);
-  const commandColor = this.commandList().at(index).rightColor;
+  const command = this.commandList()
+    .at(index);
+  const commandColor = this.commandList()
+    .at(index).rightColor;
   const color = command.rightColor;
   return color;
 };
@@ -9084,7 +9845,8 @@ Window_Command.prototype.commandRightColorIndex = function(index)
  */
 Window_Command.prototype.commandHelpText = function(index)
 {
-  return this.commandList().at(index).helpText;
+  return this.commandList()
+    .at(index).helpText;
 };
 
 /**
@@ -9094,23 +9856,6 @@ Window_Command.prototype.commandHelpText = function(index)
 Window_Command.prototype.currentHelpText = function()
 {
   return this.commandHelpText(this.index()) ?? String.empty;
-};
-
-/**
- * Prepends the icon for this command if applicable.
- * @param {string} command The comman as raw text.
- * @param {number} index The index of this command in the window.
- * @returns {string}
- */
-Window_Command.prototype.handleIcon = function(command, index)
-{
-  const commandIcon = this.commandIcon(index);
-  if (commandIcon)
-  {
-    return `\\I[${commandIcon}]${command}`;
-  }
-
-  return command;
 };
 
 /**
@@ -9137,7 +9882,8 @@ Window_Command.prototype.handleColor = function(command, index)
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this.commandList().at(index).icon;
+  return this.commandList()
+    .at(index).icon;
 };
 
 /**
@@ -9147,7 +9893,14 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this.commandList().at(index).color;
+  return this.commandList()
+    .at(index).color;
+};
+
+Window_Command.prototype.commandFaceData = function(index)
+{
+  return this.commandList()
+    .at(index).faceData ?? [ String.empty, -1 ];
 };
 
 //region adding commands
@@ -9170,7 +9923,15 @@ Window_Command.prototype.addCommand = function(
   color = 0,
 )
 {
-  this.commandList().push({name, symbol, enabled, ext, icon, color});
+  this.commandList()
+    .push({
+      name,
+      symbol,
+      enabled,
+      ext,
+      icon,
+      color
+    });
 };
 
 /**
@@ -9179,7 +9940,8 @@ Window_Command.prototype.addCommand = function(
  */
 Window_Command.prototype.addBuiltCommand = function(command)
 {
-  this.commandList().push(command);
+  this.commandList()
+    .push(command);
 };
 
 /**
@@ -9202,7 +9964,15 @@ Window_Command.prototype.prependCommand = function(
   color = 0,
 )
 {
-  this.commandList().unshift({name, symbol, enabled, ext, icon, color});
+  this.commandList()
+    .unshift({
+      name,
+      symbol,
+      enabled,
+      ext,
+      icon,
+      color
+    });
 };
 
 /**
@@ -9213,7 +9983,8 @@ Window_Command.prototype.prependCommand = function(
  */
 Window_Command.prototype.prependBuiltCommand = function(command)
 {
-  this.commandList().unshift(command);
+  this.commandList()
+    .unshift(command);
 };
 //endregion adding commands
 //endregion Window_Command

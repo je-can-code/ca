@@ -8,7 +8,7 @@
  * @base J-Base
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables a new scene called the "Omnipedia".
  * This scene is designed with extendability in mind, and can/will/does
  * contain a number of other sub-datasets, such as:

@@ -9,7 +9,7 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW:
+ * OVERVIEW
  * This plugin enables the ability to charge certain skills by holding down
  * the input associated with the skill slot.
  *
@@ -1044,7 +1044,7 @@ class JABS_ChargingTier
   maxDuration = 0;
 
   /**
-   * The tier number for this {@link JABS_ChargingTier}.<br>
+   * The tier number for this {@link JABS_ChargingTier}.
    * @type {number}
    */
   tier = 0;
