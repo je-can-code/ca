@@ -17712,7 +17712,7 @@ Input.keyMapper = {
   81: J.ABS.Input.SkillTrigger, // q
   17: J.ABS.Input.StrafeTrigger,// ctrl
   69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab (overwrite)S
+  9: J.ABS.Input.MobilitySkill,// tab (overwrite)
 
   // quickmenu button.
   13: J.ABS.Input.Quickmenu,    // enter (overwrite)
@@ -18237,7 +18237,6 @@ class JABS_AiManager
   static convertFollowersToBattlers(followers)
   {
     return followers
-    // return $gamePlayer.followers().data()
       .map(this.convertFollowerToBattler, this)
       .filter(follower => !!follower);
   }

@@ -74,6 +74,7 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/omni/J-Omnipedia","status":true,"description":"[v1.0.1 OMNI] Enables the \"omnipedia\" data-centric scene.","parameters":{}},
 {"name":"j/omni/ext/J-Omni-Monsters","status":true,"description":"[v1.0.1 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.","parameters":{}},
+{"name":"j/omni/ext/J-Omni-Questopedia","status":true,"description":"[v1.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/J-SystemUtilities","status":true,"description":"[v1.1.0 UTIL] Various system utilities.","parameters":{"autostart-newgame":"false","autoload-devtools":"true"}},
 {"name":"j/J-CA-Mods","status":true,"description":"[CAMODS] JS Mods exclusive to Chef Adventure.","parameters":{}},

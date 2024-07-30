@@ -1,0 +1,65 @@
+[
+  {
+    "name": "super cool quest",
+    "key": "main-1",
+    "categoryKey": "msq",
+    "unknownHint": "you get no hint and you like it",
+    "objectives": [
+      {
+        "id": 1,
+        "type": -1,
+        "hiddenByDefault": false,
+        "isOptional": true,
+        "description": "the indiscriminate objective to complete arbitrarily",
+        "logs": {
+          "discovered": "you gotta do the objective or else!",
+          "completed": "doing the objective never made you feel better than this.",
+          "failed": "after failing, you feel like a miserable shite.",
+          "missed": "how did you even miss this objective you scrubmuffin???"
+        }
+      }
+    ]
+  },
+  {
+    "name": "mega cool quest",
+    "key": "main-2",
+    "categoryKey": "msq",
+    "unknownHint": "you get no hint and you like it",
+    "objectives": [
+      {
+        "id": 1,
+        "type": -1,
+        "hiddenByDefault": false,
+        "isOptional": true,
+        "description": "the indiscriminate objective to complete arbitrarily",
+        "logs": {
+          "discovered": "you gotta do the objective or else!",
+          "completed": "doing the objective never made you feel better than this.",
+          "failed": "after failing, you feel like a miserable shite.",
+          "missed": "how did you even miss this objective you scrubmuffin???"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ultra cool quest",
+    "key": "main-3",
+    "categoryKey": "msq",
+    "unknownHint": "you get no hint and you like it",
+    "objectives": [
+      {
+        "id": 1,
+        "type": -1,
+        "hiddenByDefault": false,
+        "isOptional": true,
+        "description": "the indiscriminate objective to complete arbitrarily",
+        "logs": {
+          "discovered": "you gotta do the objective or else!",
+          "completed": "doing the objective never made you feel better than this.",
+          "failed": "after failing, you feel like a miserable shite.",
+          "missed": "how did you even miss this objective you scrubmuffin???"
+        }
+      }
+    ]
+  }
+]

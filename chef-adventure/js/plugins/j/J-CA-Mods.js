@@ -647,6 +647,10 @@ Game_Map.prototype.setup = function(mapId)
 //endregion Game_Map
 
 //region Game_Party
+/**
+ * The actorIds that correlate with elemental actors in regards to Chef Adventure.
+ * @type {number[]}
+ */
 Game_Party.ELEMENTAL_ALLY_ACTOR_IDS = [ 3, 4, 5, 6 ];
 
 /**
