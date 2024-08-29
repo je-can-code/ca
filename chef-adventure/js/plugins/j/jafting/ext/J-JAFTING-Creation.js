@@ -1369,7 +1369,7 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
 
   /**
    * Converts the JSON-parsed blob into classified {@link CraftingCategory}s.
-   * @param {any} parsedRecipesBlob The already-parsed JSON blob.
+   * @param {any} parsedCategoriesBlob The already-parsed JSON blob.
    */
   static parseCategories(parsedCategoriesBlob)
   {
@@ -1462,7 +1462,7 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
     console.log(`loaded:
       - ${this.recipes.length} recipes
       - ${this.categories.length} categories
-      from file ${J_CraftingPluginMetadata.CONFIG_PATH}.`);
+      from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
   }
 
   /**
@@ -1807,6 +1807,9 @@ Game_Party.prototype.updateRecipesFromConfig = function()
   });
 };
 
+/**
+ * Refreshes all the category trackings from the plugin metadata.
+ */
 Game_Party.prototype.updateCategoriesFromConfig = function()
 {
   // grab the current list of trackings by reference.
@@ -2170,7 +2173,7 @@ Game_Party.prototype.canGainEntry = function(name)
   if (name.startsWith('_')) return false;
 
   // skip entries that start with a multiple equals (arbitrary).
-  if (name.startsWith('==') || name.startsWith('===')) return false;
+  if (name.startsWith('==')) return false;
 
   // skip entries that are the "empty" name (arbitrary).
   if (name.includes('-- empty --')) return false;

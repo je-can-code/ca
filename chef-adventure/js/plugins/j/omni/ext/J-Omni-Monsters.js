@@ -2685,7 +2685,6 @@ class Window_MonsterpediaDetail extends Window_Base
   sections include
   - regions found
   - ailmentalistics
-  - elementalistics
    */
 }
 

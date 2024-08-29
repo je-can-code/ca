@@ -414,12 +414,12 @@ class LevelScaling
   //endregion properties
 
   /**
-   * Constructor; however, this is a static class designed to have its methods used
-   * directly instead of instantiating for later use.
+   * The constructor is not designed to be called.
+   * This is a static class.
    */
   constructor()
   {
-    throw new Error(`"LevelScaling" is a static class; use its methods directly.`);
+    throw new Error("This is a static class.");
   }
 
   /**

@@ -1,65 +1,249 @@
-[
-  {
-    "name": "super cool quest",
-    "key": "main-1",
-    "categoryKey": "msq",
-    "unknownHint": "you get no hint and you like it",
-    "objectives": [
-      {
-        "id": 1,
-        "type": -1,
-        "hiddenByDefault": false,
-        "isOptional": true,
-        "description": "the indiscriminate objective to complete arbitrarily",
-        "logs": {
-          "discovered": "you gotta do the objective or else!",
-          "completed": "doing the objective never made you feel better than this.",
-          "failed": "after failing, you feel like a miserable shite.",
-          "missed": "how did you even miss this objective you scrubmuffin???"
+{
+  "quests": [
+    {
+      "name": "Testing the Power of Quests",
+      "key": "main-1",
+      "categoryKey": "main",
+      "tagKeys": ["ch1"],
+      "unknownHint": "Check with the Quest Manager in the Test Oasis.",
+      "overview": "As a flex of your amazing skills, you get the honor of executing a number of mundane tasks that the Quest Lord has dictated must be done.\nEach one is a test of the system and not of your skill, so don't feel bad if you suck and fail to complete them.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": -1,
+          "description": "The Quest Manager seems kinda pushy about talking to him again...",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "The Quest Manager claims to have a 'choice' that you should interact with that matters apparently?.",
+            "completed": "To no one's surprise, the Quest Manager had nothing meaningful to say. What a waste.",
+            "failed": "You decided to give up on questing forever and just be a potato.",
+            "missed": "You opted against talking to the Quest Manager, it was too much work."
+          },
+          "fulfillmentData": ["Use the unique 'choice' that shows up when talking to the Quest Manager."],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": 0,
+          "description": "The AI Oasis looks pretty cool, so you should go downstairs and take a peek.",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "As a flex of the destination-type objectives, you just need to go to the AI Oasis downstairs .",
+            "completed": "You're not sure what you gained from walking over those tiles, but at least the objectives seem to progress.",
+            "failed": "You decided going into the AI Oasis was for noobs- fuck this whole ass quest.",
+            "missed": "You opted against going into the AI Oasis, and life went on."
+          },
+          "fulfillmentData": [
+            201,
+            14,
+            13,
+            14,
+            14
+          ],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": 1,
+          "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver (like with the debugger).",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "Somehow acquire 5x \\Item[151]s to complete the fetch-type objective.",
+            "completed": "Regardless of how you acquired the \\Item[151]s, you're ready for something more exciting.",
+            "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
+            "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
+          },
+          "fulfillmentData": [
+            0,
+            151,
+            5
+          ],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": 2,
+          "description": "The Quest Manager has requested you slay 3x \\Enemy[11]s- and who doesn't like chopping them up?",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "You didn't need an objective to chop up \\Enemy[11]s, but doing so will complete the objective.",
+            "completed": "While you slayed the requisite mount of \\Enemy[11]s, no one will shame you for slaying more.",
+            "failed": "You said 'fuck it' to slaying those 3x \\Enemy[11]s; he wept.",
+            "missed": "You forgot to slay 3x \\Enemy[11]s, and the Quest Manager was severely disillusioned."
+          },
+          "fulfillmentData": [
+            11,
+            3
+          ],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": 3,
+          "description": "The Quest Manager has requested you complete \\Quest[side-1] before continuing any further.",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "Complete \\Quest[side-1] to complete the objective.",
+            "completed": "Doing a quest to complete another quest objective never felt better.",
+            "failed": "Quest-ception is kinda stupid, so you said 'fuck this quest'.",
+            "missed": "Oops, completing a quest to complete another quest was too complicated I guess?"
+          },
+          "fulfillmentData": [],
+          "fulfillmentQuestKeys": [
+            "side-1"
+          ],
+          "hiddenByDefault": true,
+          "isOptional": false
         }
-      }
-    ]
-  },
-  {
-    "name": "mega cool quest",
-    "key": "main-2",
-    "categoryKey": "msq",
-    "unknownHint": "you get no hint and you like it",
-    "objectives": [
-      {
-        "id": 1,
-        "type": -1,
-        "hiddenByDefault": false,
-        "isOptional": true,
-        "description": "the indiscriminate objective to complete arbitrarily",
-        "logs": {
-          "discovered": "you gotta do the objective or else!",
-          "completed": "doing the objective never made you feel better than this.",
-          "failed": "after failing, you feel like a miserable shite.",
-          "missed": "how did you even miss this objective you scrubmuffin???"
+      ]
+    },
+    {
+      "name": "Slay three \\Enemy[11]",
+      "key": "side-1",
+      "categoryKey": "side",
+      "tagKeys": ["ch1"],
+      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
+      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
+      "recommendedLevel": 15,
+      "objectives": [
+        {
+          "id": 0,
+          "type": 2,
+          "description": "The Quest Manager has requested you slay 1x \\Enemy[11]s- and who doesn't like chopping them up?",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "Slay 1x \\Enemy[11]s to complete the objective.",
+            "completed": "After slaying the \\Enemy[11], you feel like a better servant to society.",
+            "failed": "You said 'fuck it' to slaying the \\Enemy[11]s; he wept.",
+            "missed": "You forgot to slay the \\Enemy[11]s, and the Quest Manager was severely disillusioned."
+          },
+          "fulfillmentData": [11, 3],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
         }
-      }
-    ]
-  },
-  {
-    "name": "ultra cool quest",
-    "key": "main-3",
-    "categoryKey": "msq",
-    "unknownHint": "you get no hint and you like it",
-    "objectives": [
-      {
-        "id": 1,
-        "type": -1,
-        "hiddenByDefault": false,
-        "isOptional": true,
-        "description": "the indiscriminate objective to complete arbitrarily",
-        "logs": {
-          "discovered": "you gotta do the objective or else!",
-          "completed": "doing the objective never made you feel better than this.",
-          "failed": "after failing, you feel like a miserable shite.",
-          "missed": "how did you even miss this objective you scrubmuffin???"
+      ]
+    },
+    {
+      "name": "Need for pudding",
+      "key": "side-2",
+      "categoryKey": "side",
+      "tagKeys": ["ch1"],
+      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
+      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
+      "recommendedLevel": 15,
+      "objectives": [
+        {
+          "id": 0,
+          "type": 1,
+          "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver.",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "Acquire somehow 5x \\Item[151]s to complete the objective.",
+            "completed": "After acquiring so many \\Item[151]s, you feel you'll never want to see them again.",
+            "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
+            "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
+          },
+          "fulfillmentData": [
+            0,
+            151,
+            5
+          ],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
         }
-      }
-    ]
-  }
-]
+      ]
+    },
+    {
+      "name": "Hunter: \\Enemy[11] Edition",
+      "key": "hidden-1",
+      "categoryKey": "side",
+      "tagKeys": ["ch1"],
+      "unknownHint": "",
+      "overview": "Aside from this quest revolving around slaughtering \\Enemy[11]s, it seems to serve little purpose.",
+      "recommendedLevel": 15,
+      "objectives": [
+        {
+          "id": 0,
+          "type": 2,
+          "description": "You feel compelled to strike out and chop up \\_a lot\\_ of ghosties.",
+          "logs": {
+            "inactive": "Only chopping up enough \\Enemy[11]s will sate this bloodlust.",
+            "active": "Nothing will settle your raging beserker's heart more than to slay 30x \\Enemy[11]s.",
+            "completed": "You revel in your glory for chopping up a whopping 30x \\Enemy[11]s, wondering if anyone will remember them after this genocide.",
+            "failed": "You opted to spare the \\Enemy[11] species for another day.",
+            "missed": "You forgot to slay the \\Enemy[11]s, and your poor berserker's heart was severely disillusioned."
+          },
+          "fulfillmentData": [11, 30],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": false,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": -1,
+          "description": "After chopping all those ghosties up, you need to boast to someone about it.",
+          "logs": {
+            "inactive": "",
+            "active": "Report your amazing slaughterfest to the Quest Manager.",
+            "completed": "The Quest Manager was delighted to hear you curbed the ghosty menace.",
+            "failed": "No one was able to hear of your incredible exploits...",
+            "missed": "You didn't share your exploits with anyone, and the world was none-the-wiser."
+          },
+          "fulfillmentData": [],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "key": "ch1",
+      "name": "Chapter 1",
+      "description": "A quest found and executed in chapter 1.",
+      "iconIndex": 2062
+    },
+    {
+      "key": "ch2",
+      "name": "Chapter 2",
+      "description": "A quest found and executed in chapter 2.",
+      "iconIndex": 2058
+    },
+    {
+      "key": "ch3",
+      "name": "Chapter 3",
+      "description": "A quest found and executed in chapter 3.",
+      "iconIndex": 2056
+    },
+    {
+      "key": "ch4",
+      "name": "Chapter 4",
+      "description": "A quest found and executed in chapter 4.",
+      "iconIndex": 2061
+    }
+  ],
+  "categories": [
+    {
+      "key": "main",
+      "name": "Progression",
+      "iconIndex": 189
+    },
+    {
+      "key": "side",
+      "name": "Optional",
+      "iconIndex": 193
+    }
+  ]
+}

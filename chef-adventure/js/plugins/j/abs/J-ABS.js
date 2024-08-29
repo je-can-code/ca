@@ -17753,12 +17753,12 @@ class JABS_AiManager
   static maxAiRange = J.ABS.Metadata.MaxAiUpdateRange;
 
   /**
-   * Constructor.
+   * The constructor is not designed to be called.
    * This is a static class.
    */
   constructor()
   {
-    throw new Error("The JABS_AiManager is a static class.");
+    throw new Error("This is a static class.");
   }
 
   //region get battlers

@@ -497,7 +497,7 @@ Sprite_StateTimer.prototype.fontFace = function()
 
 //region Window_PartyFrame
 /**
- * A window containing the HUD data for the map.
+ * A window containing the HUD data for the {@link Game_Party}.
  */
 class Window_PartyFrame extends Window_Base
 {

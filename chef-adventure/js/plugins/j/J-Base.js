@@ -394,7 +394,7 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
  *
  * This is used to more clearly show developer intent rather than just arbitrarily
  * adding empty double quotes all over the place.
- * @type {""}
+ * @type {string}
  */
 Object.defineProperty(String, "empty", { value: "", writable: false });
 
@@ -1341,7 +1341,6 @@ class RPG_Base
     return new this.constructor(overrides, index);
   }
 
-
   /**
    * The unique key that is used to register this object against
    * its corresponding container when the party has one or more of these
@@ -2093,6 +2092,42 @@ class RPG_Base
     return matchingLines;
   }
   //endregion note
+
+  /**
+   * Whether or not this database entry is an item.
+   * @returns {boolean}
+   */
+  isItem()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is an armor.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is a skill.
+   * @returns {boolean}
+   */
+  isSkill()
+  {
+    return false;
+  }
 }
 //endregion RPG_Base
 
@@ -2503,6 +2538,15 @@ class RPG_Armor extends RPG_EquipItem
     // map the data.
     this.atypeId = armor.atypeId;
   }
+
+  /**
+   * Whether or not this database entry is an armor.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return true;
+  }
 }
 //endregion RPG_Armor
 
@@ -2688,6 +2732,15 @@ class RPG_Item extends RPG_UsableItem
     this.itypeId = item.itypeId;
     this.price = item.price;
   }
+
+  /**
+   * Whether or not this database entry is an item.
+   * @returns {boolean}
+   */
+  isItem()
+  {
+    return true;
+  }
 }
 //endregion RPG_Item
 
@@ -2777,6 +2830,15 @@ class RPG_Skill extends RPG_UsableItem
     this.requiredWtypeId2 = skill.requiredWtypeId2;
     this.stypeId = skill.stypeId;
     this.tpCost = skill.tpCost;
+  }
+
+  /**
+   * Whether or not this database entry is a skill.
+   * @returns {boolean}
+   */
+  isSkill()
+  {
+    return true;
   }
 }
 //endregion RPG_Skill
@@ -2990,6 +3052,15 @@ class RPG_Weapon extends RPG_EquipItem
     // map the data.
     this.animationId = weapon.animationId;
     this.wtypeId = weapon.wtypeId;
+  }
+
+  /**
+   * Whether or not this database entry is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return true;
   }
 }
 //endregion RPG_Weapon
@@ -3263,11 +3334,193 @@ ColorManager.sdp = function(rarity)
 };
 //endregion ColorManager
 
+// noinspection SillyAssignmentJS
+
+/**
+ * This rule is being disabled so that my personal IDE will recognize the data types and allow for intellisense to
+ * actually work as-expected. The IDE gets confused due to the fact that these are globally defined as "var" and
+ * reassigned in multiple locations, the last checked being "null" or otherwise unknown (like from file loading).
+ */
+
 //region DataManager
 /**
  * The over-arching object containing all of my added parameters.
  */
 DataManager._j ||= {};
+
+/**
+ * A mapped collection of actors from the database.
+ * @type {RPG_Actor[]}
+ */
+$dataActors = $dataActors;
+
+/**
+ * A mapped collection of classes from the database.
+ * @type {RPG_Class[]}
+ */
+$dataClasses = $dataClasses;
+
+/**
+ * A mapped collection of skills from the database.
+ * @type {RPG_Skill[]}
+ */
+$dataSkills = $dataSkills;
+
+/**
+ * A mapped collection of items from the database.
+ * @type {RPG_Item[]}
+ */
+$dataItems = $dataItems;
+
+/**
+ * A mapped collection of weapons from the database.
+ * @type {RPG_Weapon[]}
+ */
+$dataWeapons = $dataWeapons;
+
+/**
+ * A mapped collection of armors from the database.
+ * @type {RPG_Armor[]}
+ */
+$dataArmors = $dataArmors;
+
+/**
+ * A mapped collection of enemies from the database.
+ * @type {RPG_Enemy[]}
+ */
+$dataEnemies = $dataEnemies;
+
+/**
+ * A mapped collection of troops from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataTroops = $dataTroops;
+
+/**
+ * The mapped collection of states from the database.
+ * @type {RPG_State[]}
+ */
+$dataStates = $dataStates;
+
+/**
+ * The mapped collection of animations from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataAnimations = $dataAnimations;
+
+/**
+ * The mapped collection of tilesets from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataTilesets = $dataTilesets;
+
+/**
+ * The mapped collection of common events from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataCommonEvents = $dataCommonEvents;
+
+/**
+ * The various data points written into the system tabs of the database.
+ * @type {object} (this is not a type that has been declared)
+ */
+$dataSystem = $dataSystem;
+
+/**
+ * (need to go look at this to understand what it is and map it)
+ * @type {object[]}
+ */
+$dataMapInfos = $dataMapInfos;
+
+/**
+ * The metadata from the database about the current map.
+ * @type {object} (this is not a type that has been declared)
+ */
+$dataMap = $dataMap;
+
+/**
+ * The temp data for this current play session that isn't saved.
+ * @type {Game_Temp}
+ */
+$gameTemp = $gameTemp;
+
+/**
+ * The current state of the system in this save file.
+ * @type {Game_System}
+ */
+$gameSystem = $gameSystem;
+
+/**
+ * The current state of the screen and manager thereof.
+ * @type {Game_Screen}
+ */
+$gameScreen = $gameScreen;
+
+/**
+ * The timer manager.
+ * @type {Game_Timer}
+ */
+$gameTimer = $gameTimer;
+
+/**
+ * The message manager.
+ * @type {Game_Message}
+ */
+$gameMessage = $gameMessage;
+
+/**
+ * The current state of all switches in this save file.
+ * @type {Game_Switches}
+ */
+$gameSwitches = $gameSwitches;
+
+/**
+ * The current state of all variables in this save file.
+ * @type {Game_Variables}
+ */
+$gameVariables = $gameVariables;
+
+/**
+ * The current state of all self-switches in this save file.
+ * @type {Game_SelfSwitches}
+ */
+$gameSelfSwitches = $gameSelfSwitches;
+
+/**
+ * The current state of all actors in this save file.
+ * @type {Game_Actors}
+ */
+$gameActors = $gameActors;
+
+/**
+ * The party manager- but for actors.
+ * @type {Game_Party}
+ */
+$gameParty = $gameParty;
+
+/**
+ * The party manager- but for enemies.
+ * @type {Game_Troop}
+ */
+$gameTroop = $gameTroop;
+
+/**
+ * The overarching map object that is rebuilt every map transition to manage the currently-running map.
+ * @type {Game_Map}
+ */
+$gameMap = $gameMap;
+
+/**
+ * The current state of the player-controlled {@link Game_Character} on the map.
+ * @type {Game_Player}
+ */
+$gamePlayer = $gamePlayer;
+
+/**
+ * An event purely for testing.
+ * @type {Game_Event}
+ */
+$testEvent = $testEvent;
 
 //region rewrite data
 /**
@@ -3797,7 +4050,7 @@ class IconManager
    */
   constructor()
   {
-    throw new Error("The IconManager is a static class.");
+    throw new Error("This is a static class.");
   }
 
   /**
@@ -5640,6 +5893,7 @@ TextManager.xparam = function(xParamId)
       return "TP Regen"; //J.Param.TRG_text;
   }
 };
+
 /**
  * Gets the `parameter name` based on the "long" parameter id.
  *
@@ -6613,7 +6867,7 @@ class WindowCommandBuilder
   }
 
   /**
-   * Sets this command to identify its additiona lines as subtext rather than a multiline command.
+   * Sets this command to identify its additional lines as subtext rather than a multiline command.
    * @returns {WindowCommandBuilder}
    */
   flagAsSubText()
@@ -7865,17 +8119,40 @@ Game_Event.prototype.getValidCommentCommands = function()
   if (!this.canGetValidCommentCommands()) return Array.empty;
 
   // otherwise, return the filtered list.
-  return this.list().filter(command =>
-  {
-    // if it is not a comment, then don't include it.
-    if (!this.matchesControlCode(command.code)) return false;
+  return this.list().filter(this.filterInvalidEventCommand, this);
+};
 
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
+/**
+ * Gets all valid-shaped comment event commands from a designated page.
+ * @param {rm.types.Page} page The event page to parse comments from.
+ */
+Game_Event.prototype.getValidCommentCommandsFromPage = function(page)
+{
+  // grab the list of commands from the given page.
+  const commands = page.list;
 
-    // consider this comment valid if it passes, skip it otherwise.
-    return J.BASE.RegExp.ParsableComment.test(comment);
-  }, this);
+  // don't process if we have no event commands.
+  if (commands.length === 0) return Array.empty;
+
+  // otherwise, return the filtered list.
+  return commands.filter(this.filterInvalidEventCommand, this);
+};
+
+/**
+ * Filters out event commands that are not comments intended for regex parsing.
+ * @param {rm.types.EventCommand} command The command to evaluate.
+ * @returns {boolean}
+ */
+Game_Event.prototype.filterInvalidEventCommand = function(command)
+{
+  // if it is not a comment, then don't include it.
+  if (!this.matchesControlCode(command.code)) return false;
+
+  // shorthand the comment into a variable.
+  const [comment,] = command.parameters;
+
+  // consider this comment valid if it passes, skip it otherwise.
+  return J.BASE.RegExp.ParsableComment.test(comment);
 };
 
 /**
@@ -7885,7 +8162,11 @@ Game_Event.prototype.getValidCommentCommands = function()
 Game_Event.prototype.canGetValidCommentCommands = function()
 {
   // if we are missing anything here, just don't try.
-  if (!this || !this.page() || !this.page().list || !this.list() || this.list().length === 0) return false;
+  if (!this) return false;
+  if (!this.page()) return false;
+  if (!this.page().list) return false;
+  if (!this.list()) return false;
+  if (this.list().length === 0) return false;
 
   // get those comment commands!
   return true;
@@ -7936,6 +8217,41 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
     // extract the regex capture group.
     [,val] = regexResult;
   });
+
+  // if we did not find anything, return the default.
+  if (val === defaultValue) return val;
+
+  // if we are not parsing, then return the raw findings.
+  if (!andParse) return val;
+
+  // return the parsed result instead.
+  return JsonMapper.parseObject(val);
+};
+
+/**
+ * Extracts a value out of an event's comments based on the provided structure.
+ * If there are multiple matches in the comments, only the last one will be returned.
+ * @param {RegExp} structure The regex to find values for.
+ * @param {any=} defaultValue The default value to start with; defaults to null.
+ * @param {boolean=} andParse Whether or not to parse the results; defaults to true.
+ * @returns {any} The last found value, or the default if nothing was found.
+ */
+Game_Event.prototype.getDataForCommandByRegex = function(command, structure, defaultValue = null, andParse = true)
+{
+  // initalize to the provided default.
+  let val = defaultValue;
+
+  // shorthand the comment into a variable.
+  const [comment,] = command.parameters;
+
+  // check if the comment matches the regex.
+  const regexResult = structure.exec(comment);
+
+  // if the comment didn't match, then don't try to parse it.
+  if (!regexResult) return;
+
+  // extract the regex capture group.
+  [,val] = regexResult;
 
   // if we did not find anything, return the default.
   if (val === defaultValue) return val;
@@ -8010,7 +8326,7 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
     return;
   }
 
-  // grab the container of items.
+  // grab the container of items.S
   const container = this.itemContainer(item);
 
   // check to make sure we have a container.
