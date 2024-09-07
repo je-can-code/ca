@@ -1,108 +1,20 @@
 {
   "quests": [
     {
-      "key": "giga-1337",
-      "name": "The Journey Continues",
-      "iconIndex": 0,
-      "categoryKey": "main",
-      "tagKeys": [
-        "ch4"
-      ],
-      "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
-      "overview": "A new quest for brave adventurers to undertake the journey of a lifetime.",
-      "recommendedLevel": 1,
-      "objectives": [
-        {
-          "id": 0,
-          "type": "Indiscriminate",
-          "description": "You have firm instructions that you must go dither to slay the beast or something.",
-          "logs": {
-            "inactive": "",
-            "active": "You've been told to do the thing.",
-            "completed": "You did the thing, it was not that exciting after all.",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "You need to do the thing."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 1,
-          "type": "Indiscriminate",
-          "description": "Boasting about defeating mighty fiends is always acceptable- in case that needed to be said.",
-          "logs": {
-            "inactive": "",
-            "active": "Go and boast about this magnificent feat to the old man.",
-            "completed": "Fucking Trainer Lord bamboozled me again.",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Just go boast big and strong about it to the old man who issued the quest."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        }
-      ]
-    },
-    {
       "key": "main-1",
       "name": "Testing the Power of Quests",
       "iconIndex": 0,
       "categoryKey": "main",
-      "tagKeys": [],
+      "tagKeys": [
+        "ch1"
+      ],
       "unknownHint": "Check with the Quest Manager in the Test Oasis.",
       "overview": "As a flex of your amazing skills, you get the honor of executing a number of mundane tasks that the Quest Lord has dictated must be done.\nEach one is a test of the system and not of your skill, so don't feel bad if you suck and fail to complete them.",
       "recommendedLevel": 1,
       "objectives": [
         {
           "id": 0,
-          "type": "Indiscriminate",
+          "type": -1,
           "description": "The Quest Manager seems kinda pushy about talking to him again...",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -111,36 +23,16 @@
             "failed": "You decided to give up on questing forever and just be a potato.",
             "missed": "You opted against talking to the Quest Manager, it was too much work."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Use the unique 'choice' that shows up when talking to the Quest Manager."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            "Use the unique 'choice' that shows up when talking to the Quest Manager."
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         },
         {
           "id": 1,
-          "type": "Destination",
+          "type": 0,
           "description": "The AI Oasis looks pretty cool, so you should go downstairs and take a peek.",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -149,36 +41,20 @@
             "failed": "You decided going into the AI Oasis was for noobs- fuck this whole ass quest.",
             "missed": "You opted against going into the AI Oasis, and life went on."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": 201,
-              "x1": 14,
-              "y1": 13,
-              "x2": 14,
-              "y2": 14
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            201,
+            14,
+            13,
+            14,
+            14
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         },
         {
           "id": 2,
-          "type": "Fetch",
+          "type": 1,
           "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver (like with the debugger).",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -187,36 +63,18 @@
             "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
             "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Item",
-              "id": 151,
-              "amount": 5
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            0,
+            151,
+            5
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         },
         {
           "id": 3,
-          "type": "Slay",
+          "type": 2,
           "description": "The Quest Manager has requested you slay 3x \\Enemy[11]s- and who doesn't like chopping them up?",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -225,36 +83,17 @@
             "failed": "You said 'fuck it' to slaying those 3x \\Enemy[11]s; he wept.",
             "missed": "You forgot to slay 3x \\Enemy[11]s, and the Quest Manager was severely disillusioned."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 11,
-              "amount": 3
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            11,
+            3
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         },
         {
           "id": 4,
-          "type": "Quest",
+          "type": 3,
           "description": "The Quest Manager has requested you complete \\Quest[side-1] before continuing any further.",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -263,91 +102,18 @@
             "failed": "Quest-ception is kinda stupid, so you said 'fuck this quest'.",
             "missed": "Oops, completing a quest to complete another quest was too complicated I guess?"
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": [
-                "side-1"
-              ]
-            }
-          },
+          "fulfillmentData": [],
+          "fulfillmentQuestKeys": [
+            "side-1"
+          ],
           "hiddenByDefault": true,
           "isOptional": false
         }
       ]
     },
     {
-      "key": "side-1",
       "name": "Slay three \\Enemy[11]",
-      "iconIndex": 0,
-      "categoryKey": "side",
-      "tagKeys": [],
-      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
-      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
-      "recommendedLevel": 15,
-      "objectives": [
-        {
-          "id": 0,
-          "type": "Slay",
-          "description": "The Quest Manager has requested you slay 1x \\Enemy[11]s- and who doesn't like chopping them up?",
-          "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "Slay 1x \\Enemy[11]s to complete the objective.",
-            "completed": "After slaying the \\Enemy[11], you feel like a better servant to society.",
-            "failed": "You said 'fuck it' to slaying the \\Enemy[11]s; he wept.",
-            "missed": "You forgot to slay the \\Enemy[11]s, and the Quest Manager was severely disillusioned."
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 11,
-              "amount": 1
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        }
-      ]
-    },
-    {
-      "key": "side-2",
-      "name": "Need for pudding",
-      "iconIndex": 0,
+      "key": "side-1",
       "categoryKey": "side",
       "tagKeys": [
         "ch1"
@@ -358,7 +124,39 @@
       "objectives": [
         {
           "id": 0,
-          "type": "Fetch",
+          "type": 2,
+          "description": "The Quest Manager has requested you slay 1x \\Enemy[11]s- and who doesn't like chopping them up?",
+          "logs": {
+            "inactive": "The objective has yet to be discovered.",
+            "active": "Slay 1x \\Enemy[11]s to complete the objective.",
+            "completed": "After slaying the \\Enemy[11], you feel like a better servant to society.",
+            "failed": "You said 'fuck it' to slaying the \\Enemy[11]s; he wept.",
+            "missed": "You forgot to slay the \\Enemy[11]s, and the Quest Manager was severely disillusioned."
+          },
+          "fulfillmentData": [
+            11,
+            3
+          ],
+          "fulfillmentQuestKeys": [],
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "name": "Need for pudding",
+      "key": "side-2",
+      "categoryKey": "side",
+      "tagKeys": [
+        "ch1"
+      ],
+      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
+      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
+      "recommendedLevel": 15,
+      "objectives": [
+        {
+          "id": 0,
+          "type": 1,
           "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver.",
           "logs": {
             "inactive": "The objective has yet to be discovered.",
@@ -367,48 +165,31 @@
             "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
             "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Item",
-              "id": 151,
-              "amount": 5
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            0,
+            151,
+            5
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         }
       ]
     },
     {
-      "key": "hidden-1",
       "name": "Hunter: \\Enemy[11] Edition",
-      "iconIndex": 0,
+      "key": "hidden-1",
       "categoryKey": "side",
-      "tagKeys": [],
+      "tagKeys": [
+        "ch1"
+      ],
       "unknownHint": "",
       "overview": "Aside from this quest revolving around slaughtering \\Enemy[11]s, it seems to serve little purpose.",
       "recommendedLevel": 15,
       "objectives": [
         {
           "id": 0,
-          "type": "Slay",
+          "type": 2,
           "description": "You feel compelled to strike out and chop up \\_a lot\\_ of ghosties.",
           "logs": {
             "inactive": "Only chopping up enough \\Enemy[11]s will sate this bloodlust.",
@@ -417,36 +198,17 @@
             "failed": "You opted to spare the \\Enemy[11] species for another day.",
             "missed": "You forgot to slay the \\Enemy[11]s, and your poor berserker's heart was severely disillusioned."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 11,
-              "amount": 30
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [
+            11,
+            30
+          ],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": false,
           "isOptional": false
         },
         {
           "id": 1,
-          "type": "Indiscriminate",
+          "type": -1,
           "description": "After chopping all those ghosties up, you need to boast to someone about it.",
           "logs": {
             "inactive": "",
@@ -455,34 +217,38 @@
             "failed": "No one was able to hear of your incredible exploits...",
             "missed": "You didn't share your exploits with anyone, and the world was none-the-wiser."
           },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Go boast to the Quest Manager about your amazing feats."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
+          "fulfillmentData": [],
+          "fulfillmentQuestKeys": [],
           "hiddenByDefault": true,
           "isOptional": false
         }
       ]
+    }
+  ],
+  "tags": [
+    {
+      "key": "ch1",
+      "name": "Chapter 1",
+      "description": "A quest found and executed in chapter 1.",
+      "iconIndex": 2062
+    },
+    {
+      "key": "ch2",
+      "name": "Chapter 2",
+      "description": "A quest found and executed in chapter 2.",
+      "iconIndex": 2058
+    },
+    {
+      "key": "ch3",
+      "name": "Chapter 3",
+      "description": "A quest found and executed in chapter 3.",
+      "iconIndex": 2056
+    },
+    {
+      "key": "ch4",
+      "name": "Chapter 4",
+      "description": "A quest found and executed in chapter 4.",
+      "iconIndex": 2061
     }
   ],
   "categories": [
@@ -495,28 +261,6 @@
       "key": "side",
       "name": "Optional",
       "iconIndex": 193
-    }
-  ],
-  "tags": [
-    {
-      "key": "ch1",
-      "name": "Chapter 1",
-      "iconIndex": 2062
-    },
-    {
-      "key": "ch2",
-      "name": "Chapter 2",
-      "iconIndex": 2058
-    },
-    {
-      "key": "ch3",
-      "name": "Chapter 3",
-      "iconIndex": 2056
-    },
-    {
-      "key": "ch4",
-      "name": "Chapter 4",
-      "iconIndex": 2061
     }
   ]
 }

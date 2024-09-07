@@ -850,12 +850,35 @@ TrackedOmniObjective.prototype.populateFulfillmentData = function(fulfillmentDat
 
 //region state check
 /**
- * Returns whether or not this objective has had some form of finalization from {@link OmniObjective.States.Inactive}.
+ * Returns whether or not this objective has moved beyond being {@link OmniObjective.States.Inactive}.
  * @returns {boolean}
  */
 TrackedOmniObjective.prototype.isKnown = function()
 {
-  return !this.isInactive();
+  // objectives that are inactive but NOT hidden are "known".
+  if (!this.hidden && this.isInactive()) return true;
+
+  // objectives that have been at least started or even finished count as "known".
+  if (!this.isInactive()) return true;
+
+  // the objective is unknown at this time.
+  return false;
+};
+
+/**
+ * Returns whether or not this objective has had some form of finalization from another state. This most commonly will
+ * be completed, failed, or missed.
+ * @returns {boolean}
+ */
+TrackedOmniObjective.prototype.isFinalized = function()
+{
+  // completed/failed/missed are all forms of finalization.
+  if (this.isCompleted()) return true;
+  if (this.isFailed()) return true;
+  if (this.isMissed()) return true;
+
+  // active/inactive are not considered finalized.
+  return false;
 };
 
 /**
@@ -4407,6 +4430,7 @@ class Window_QuestopediaDescription extends Window_Base
     // draw the text.
     this.drawTextEx(resizedText, x, y, textWidth);
   }
+
 
   drawQuestRecommendedLevel(x, y)
   {
