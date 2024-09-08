@@ -556,7 +556,7 @@ class Window_QuestFrame extends Window_Base
     let noObjectivesText;
     switch (true)
     {
-      case quest.isComplete():
+      case quest.isCompleted():
         noObjectivesText = `✅ Quest is complete.`;
         break;
       case quest.isFailed():
@@ -566,14 +566,18 @@ class Window_QuestFrame extends Window_Base
         noObjectivesText = `❓ Quest is missed.`;
         break;
       default:
-        noObjectivesText = `⁉️🌫️ Quest is in a state with no known objectives active.`;
+        const secretObjective = quest.objectives.find(objective => !objective.isHidden());
+        noObjectivesText = secretObjective
+          ? secretObjective.fulfillmentText()
+          : `🍈 Quest is in a state with no known objectives active.`;
         break;
     }
 
     // render the line and count it.
+    const text = this.modFontSizeForText(-8, noObjectivesText);
     const nonObjectiveX = x + 10;
-    const objectiveTextWidth = this.textWidth(noObjectivesText);
-    this.drawTextEx(noObjectivesText, nonObjectiveX, y, objectiveTextWidth);
+    const objectiveTextWidth = this.textWidth(text);
+    this.drawTextEx(text, nonObjectiveX, y, objectiveTextWidth);
   }
 
   /**
