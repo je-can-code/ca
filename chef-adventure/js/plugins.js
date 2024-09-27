@@ -79,7 +79,7 @@ var $plugins =
 {"name":"j/omni/ext/J-Omni-Questopedia","status":true,"description":"[v1.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"j/hud/ext/J-HUD-QuestFrame","status":true,"description":"[v1.0.0 HUD-QUEST] A HUD frame that displays quest objective information.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
-{"name":"j/J-SystemUtilities","status":true,"description":"[v1.1.0 UTIL] Various system utilities.","parameters":{"autostart-newgame":"true","autoload-devtools":"true"}},
+{"name":"j/J-SystemUtilities","status":true,"description":"[v1.1.0 UTIL] Various system utilities.","parameters":{"autostart-newgame":"false","autoload-devtools":"true"}},
 {"name":"j/J-CA-Mods","status":true,"description":"[CAMODS] JS Mods exclusive to Chef Adventure.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"casper/CGMZ_Core","status":true,"description":"Core CGMZ Plugin, should be placed above all other CGMZ Plugins.","parameters":{"Check for Updates":"false","Dev Tools on Start":"false","Show FPS Counter":"false","Fullscreen":"false","Simulate Production Env":"false"}},

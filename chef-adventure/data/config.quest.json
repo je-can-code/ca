@@ -1,31 +1,31 @@
 {
   "quests": [
     {
-      "key": "giga-1337",
-      "name": "The Journey Continues",
+      "key": "main-000",
+      "name": "The Journey Begins With Darkness",
       "iconIndex": 0,
       "categoryKey": "main",
       "tagKeys": [
-        "ch4"
+        "ch1"
       ],
-      "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
-      "overview": "A new quest for brave adventurers to undertake the journey of a lifetime.",
+      "unknownHint": "",
+      "overview": "On an island residing on some distant lesser-known planet exists a land its people call 'Erocia'. The land is largely overrun by monsters with the exception of a few sparse settlements. Deep in the depths of the Lair of Erocian Death, resides a particular slime monster whose goopy exomorpha is uniquely known to breakdown into a supposedly ambrosia-like pudding.\r\n\r\nThis quest begins there, with our protagonists(?) having come far searching for this delectable treat.",
       "recommendedLevel": 1,
       "objectives": [
         {
           "id": 0,
           "type": "Indiscriminate",
-          "description": "You have firm instructions that you must go dither to slay the beast or something.",
+          "description": "The supposed slime is somewhere in the depths of the Lair of Erocian Death, travel deeper to find it!",
           "logs": {
             "inactive": "",
-            "active": "You've been told to do the thing.",
-            "completed": "You did the thing, it was not that exciting after all.",
+            "active": "Go learn about attacking so you don't die in this death cave.",
+            "completed": "Attacking is important, you'll use it lots.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "You need to do the thing."
+              "hint": "Head in deeper into the cave, and practice attacking."
             },
             "destination": {
               "mapId": -1,
@@ -53,17 +53,17 @@
         {
           "id": 1,
           "type": "Indiscriminate",
-          "description": "Boasting about defeating mighty fiends is always acceptable- in case that needed to be said.",
+          "description": "Tutorials aren't very exciting, but it seems this cave is full of them.",
           "logs": {
             "inactive": "",
-            "active": "Go and boast about this magnificent feat to the old man.",
-            "completed": "Fucking Trainer Lord bamboozled me again.",
+            "active": "Go learn about executing skills so you can kill shit faster.",
+            "completed": "Skills are useful, spam them where necessary to save thineself.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Just go boast big and strong about it to the old man who issued the quest."
+              "hint": "Head in even deeper into the cave, and practice skills."
             },
             "destination": {
               "mapId": -1,
@@ -71,94 +71,6 @@
               "y1": -1,
               "x2": -1,
               "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        }
-      ]
-    },
-    {
-      "key": "main-1",
-      "name": "Testing the Power of Quests",
-      "iconIndex": 0,
-      "categoryKey": "main",
-      "tagKeys": [],
-      "unknownHint": "Check with the Quest Manager in the Test Oasis.",
-      "overview": "As a flex of your amazing skills, you get the honor of executing a number of mundane tasks that the Quest Lord has dictated must be done.\nEach one is a test of the system and not of your skill, so don't feel bad if you suck and fail to complete them.",
-      "recommendedLevel": 1,
-      "objectives": [
-        {
-          "id": 0,
-          "type": "Indiscriminate",
-          "description": "The Quest Manager seems kinda pushy about talking to him again...",
-          "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "The Quest Manager claims to have a 'choice' that you should interact with that matters apparently?.",
-            "completed": "To no one's surprise, the Quest Manager had nothing meaningful to say. What a waste.",
-            "failed": "You decided to give up on questing forever and just be a potato.",
-            "missed": "You opted against talking to the Quest Manager, it was too much work."
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Use the unique 'choice' that shows up when talking to the Quest Manager."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Unset",
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 1,
-          "type": "Destination",
-          "description": "The AI Oasis looks pretty cool, so you should go downstairs and take a peek.",
-          "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "As a flex of the destination-type objectives, you just need to go to the AI Oasis downstairs .",
-            "completed": "You're not sure what you gained from walking over those tiles, but at least the objectives seem to progress.",
-            "failed": "You decided going into the AI Oasis was for noobs- fuck this whole ass quest.",
-            "missed": "You opted against going into the AI Oasis, and life went on."
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": 201,
-              "x1": 14,
-              "y1": 13,
-              "x2": 14,
-              "y2": 14
             },
             "fetch": {
               "type": "Unset",
@@ -178,18 +90,18 @@
         },
         {
           "id": 2,
-          "type": "Fetch",
-          "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver (like with the debugger).",
+          "type": "Indiscriminate",
+          "description": "More tutorials? Well, get learning, bitch.",
           "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "Somehow acquire 5x \\Item[151]s to complete the fetch-type objective.",
-            "completed": "Regardless of how you acquired the \\Item[151]s, you're ready for something more exciting.",
-            "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
-            "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
+            "inactive": "",
+            "active": "Go learn about guarding so you can defend yourself.",
+            "completed": "If you're lazy you'll probably never use this, but its pretty cool once you get the hang of it.",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": ""
+              "hint": "Head deeper yet into the cave, and practice guarding."
             },
             "destination": {
               "mapId": -1,
@@ -199,9 +111,9 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Item",
-              "id": 151,
-              "amount": 5
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
             },
             "slay": {
               "id": 0,
@@ -217,17 +129,17 @@
         {
           "id": 3,
           "type": "Slay",
-          "description": "The Quest Manager has requested you slay 3x \\Enemy[11]s- and who doesn't like chopping them up?",
+          "description": "\\N[1] is good at melee stuff, time to get some hands-on combat practice!",
           "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "You didn't need an objective to chop up \\Enemy[11]s, but doing so will complete the objective.",
-            "completed": "While you slayed the requisite mount of \\Enemy[11]s, no one will shame you for slaying more.",
-            "failed": "You said 'fuck it' to slaying those 3x \\Enemy[11]s; he wept.",
-            "missed": "You forgot to slay 3x \\Enemy[11]s, and the Quest Manager was severely disillusioned."
+            "inactive": "",
+            "active": "Chopping up ghostys never felt so exciting!",
+            "completed": "After chopping up the ghostys, you feel proud.",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": ""
+              "hint": "Head in deeper into the cave, and show off what you've learned."
             },
             "destination": {
               "mapId": -1,
@@ -243,7 +155,7 @@
             },
             "slay": {
               "id": 11,
-              "amount": 3
+              "amount": 8
             },
             "quest": {
               "keys": []
@@ -254,18 +166,18 @@
         },
         {
           "id": 4,
-          "type": "Quest",
-          "description": "The Quest Manager has requested you complete \\Quest[side-1] before continuing any further.",
+          "type": "Indiscriminate",
+          "description": "Tutorials are pretty boring but they are a necessary evil.",
           "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "Complete \\Quest[side-1] to complete the objective.",
-            "completed": "Doing a quest to complete another quest objective never felt better.",
-            "failed": "Quest-ception is kinda stupid, so you said 'fuck this quest'.",
-            "missed": "Oops, completing a quest to complete another quest was too complicated I guess?"
+            "inactive": "",
+            "active": "You'll need to progress further before more objectives unlock themselves.",
+            "completed": "Who knew there'd be more combat practice?",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": ""
+              "hint": "Spelunk further into the cave."
             },
             "destination": {
               "mapId": -1,
@@ -284,36 +196,98 @@
               "amount": 0
             },
             "quest": {
-              "keys": [
-                "side-1"
-              ]
+              "keys": []
             }
           },
           "hiddenByDefault": true,
           "isOptional": false
-        }
-      ]
-    },
-    {
-      "key": "side-1",
-      "name": "Slay three \\Enemy[11]",
-      "iconIndex": 0,
-      "categoryKey": "side",
-      "tagKeys": [],
-      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
-      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
-      "recommendedLevel": 15,
-      "objectives": [
+        },
         {
-          "id": 0,
+          "id": 5,
           "type": "Slay",
-          "description": "The Quest Manager has requested you slay 1x \\Enemy[11]s- and who doesn't like chopping them up?",
+          "description": "\\N[2] is good at ranged stuff, time to get some more hands-on combat practice!",
           "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "Slay 1x \\Enemy[11]s to complete the objective.",
-            "completed": "After slaying the \\Enemy[11], you feel like a better servant to society.",
-            "failed": "You said 'fuck it' to slaying the \\Enemy[11]s; he wept.",
-            "missed": "You forgot to slay the \\Enemy[11]s, and the Quest Manager was severely disillusioned."
+            "inactive": "",
+            "active": "Blasting ghostys never felt so exciting!",
+            "completed": "After blasting the ghostys, you feel proud.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Head in deeper into the cave, and show off what you've learned."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 12,
+              "amount": 4
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 6,
+          "type": "Indiscriminate",
+          "description": "Where is the slime? It has to be deeper yet...",
+          "logs": {
+            "inactive": "",
+            "active": "Descend deeper and find the slime you seek.",
+            "completed": "The slime was located!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Head in deeper into the cave, and hopefully encounter no more tutorials omg."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 7,
+          "type": "Slay",
+          "description": "It is pretty unlikely the \\Enemy[14] will willingly give you its flesh, so that means you get to take it by force.",
+          "logs": {
+            "inactive": "",
+            "active": "Chop up the \\Enemy[14] and carve off a chunk of its exomorpha!",
+            "completed": "The \\Armor[401] was acquired, fucking finally.",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
@@ -332,7 +306,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 11,
+              "id": 14,
               "amount": 1
             },
             "quest": {
@@ -345,81 +319,31 @@
       ]
     },
     {
-      "key": "side-2",
-      "name": "Need for pudding",
+      "key": "main-001",
+      "name": "Trekking to Town",
       "iconIndex": 0,
-      "categoryKey": "side",
+      "categoryKey": "main",
       "tagKeys": [
         "ch1"
       ],
-      "unknownHint": "Check with the test quest giver in the Test Oasis for this short side quest.",
-      "overview": "This is just some random side quest that doesn't offer a lot of value, but does demonstrate what a single-objective quest looks like.",
-      "recommendedLevel": 15,
-      "objectives": [
-        {
-          "id": 0,
-          "type": "Fetch",
-          "description": "The Quest Manager has requested 5x \\Item[151]s- and you shall deliver.",
-          "logs": {
-            "inactive": "The objective has yet to be discovered.",
-            "active": "Acquire somehow 5x \\Item[151]s to complete the objective.",
-            "completed": "After acquiring so many \\Item[151]s, you feel you'll never want to see them again.",
-            "failed": "You said 'fuck it' to getting the Quest Manager those 5x \\Item[151]s; he wept.",
-            "missed": "You forgot to acquire the 5x \\Item[151]s, and the Quest Manager was severely disillusioned."
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": "Item",
-              "id": 151,
-              "amount": 5
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        }
-      ]
-    },
-    {
-      "key": "hidden-1",
-      "name": "Hunter: \\Enemy[11] Edition",
-      "iconIndex": 0,
-      "categoryKey": "side",
-      "tagKeys": [],
       "unknownHint": "",
-      "overview": "Aside from this quest revolving around slaughtering \\Enemy[11]s, it seems to serve little purpose.",
-      "recommendedLevel": 15,
+      "overview": "If cooking is the goal, then our protagonists will need a kitchen. Chances are, a town would probably have a kitchen available, which makes the next leg of this journey a trip to the nearest town.",
+      "recommendedLevel": 5,
       "objectives": [
         {
           "id": 0,
-          "type": "Slay",
-          "description": "You feel compelled to strike out and chop up \\_a lot\\_ of ghosties.",
+          "type": "Indiscriminate",
+          "description": "If you hope to cook, you'll need a kitchen- and there isn't one in the cave. Get outta here!",
           "logs": {
-            "inactive": "Only chopping up enough \\Enemy[11]s will sate this bloodlust.",
-            "active": "Nothing will settle your raging beserker's heart more than to slay 30x \\Enemy[11]s.",
-            "completed": "You revel in your glory for chopping up a whopping 30x \\Enemy[11]s, wondering if anyone will remember them after this genocide.",
-            "failed": "You opted to spare the \\Enemy[11] species for another day.",
-            "missed": "You forgot to slay the \\Enemy[11]s, and your poor berserker's heart was severely disillusioned."
+            "inactive": "",
+            "active": "Unless you want to farm more slime, just get out of here.",
+            "completed": "Whoa its so bright outside!",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": ""
+              "hint": "Leave the Lair of Erocian Death."
             },
             "destination": {
               "mapId": -1,
@@ -434,30 +358,68 @@
               "amount": 0
             },
             "slay": {
-              "id": 11,
-              "amount": 30
+              "id": 0,
+              "amount": 0
             },
             "quest": {
               "keys": []
             }
           },
-          "hiddenByDefault": false,
+          "hiddenByDefault": true,
           "isOptional": false
         },
         {
           "id": 1,
           "type": "Indiscriminate",
-          "description": "After chopping all those ghosties up, you need to boast to someone about it.",
+          "description": "Apparently \\N[2] spotted a town to the \\C[1]West\\C[0]. Go forth!",
           "logs": {
             "inactive": "",
-            "active": "Report your amazing slaughterfest to the Quest Manager.",
-            "completed": "The Quest Manager was delighted to hear you curbed the ghosty menace.",
-            "failed": "No one was able to hear of your incredible exploits...",
-            "missed": "You didn't share your exploits with anyone, and the world was none-the-wiser."
+            "active": "Looks like there was a town nearby called \\C[1]Raevula\\C[0], hopefully they have a kitchen.",
+            "completed": "The town ain't half bad. With a few fixes, this could become a nice Quest Hub...",
+            "failed": "",
+            "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Go boast to the Quest Manager about your amazing feats."
+              "hint": "Follow the path to the \\C[2]West\\C[0] and reach \\C[1]Raevula\\C[0]."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "Any respectable town has an inn, and where there is an inn, there is probably a kitchen. Check it out!",
+          "logs": {
+            "inactive": "",
+            "active": "Go check-in with the inn and speak with the innkeeper.",
+            "completed": "Of course its never as simple as 'go to the inn and cook the shit'...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Enter the inn."
             },
             "destination": {
               "mapId": -1,

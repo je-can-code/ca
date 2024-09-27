@@ -17637,7 +17637,7 @@ J.ABS.Input.Tool = "tab";
 J.ABS.Input.GuardTrigger = "pagedown";
 J.ABS.Input.SkillTrigger = "pageup";
 
-// this section of inputs are newly implemented, and thus shouldn't
+// this section of inputs are newly implemented.
 J.ABS.Input.MobilitySkill = "r2";
 J.ABS.Input.StrafeTrigger = "l2";
 J.ABS.Input.Quickmenu = "start";
@@ -17660,7 +17660,7 @@ J.ABS.Input.CombatSkill4 = "combat-skill-4";
  *
  * This includes:
  * - D-Pad up, down, left, right
- * - A/cross, B/circle, X/square, Y/triangle
+ * - A/kross, B/circle, X/square, Y/triangle
  * - L1/LB, R1/RB
  * - NEW: select/options, start/menu
  * - NEW: L2/LT, R2/RT
@@ -17668,21 +17668,21 @@ J.ABS.Input.CombatSkill4 = "combat-skill-4";
  * - OVERWRITE: Y now is the tool button, and start is the menu.
  */
 Input.gamepadMapper = {
-  0: J.ABS.Input.Mainhand,      // cross
-  1: J.ABS.Input.Offhand,        // circle
+  0: J.ABS.Input.Mainhand,      // kross
+  1: J.ABS.Input.Offhand,       // circle
   2: J.ABS.Input.Dash,          // square
   3: J.ABS.Input.Tool,          // triangle
 
-  4: J.ABS.Input.SkillTrigger,  // left bumper
-  5: J.ABS.Input.GuardTrigger,  // right bumper
-  6: J.ABS.Input.StrafeTrigger, // left trigger
-  7: J.ABS.Input.MobilitySkill, // right trigger
+  4: J.ABS.Input.SkillTrigger,  // (L1) left bumper
+  5: J.ABS.Input.GuardTrigger,  // (R1) right bumper
+  6: J.ABS.Input.StrafeTrigger, // (L2) left trigger
+  7: J.ABS.Input.MobilitySkill, // (R2) right trigger
 
-  8: J.ABS.Input.PartyCycle,        // select
-  9: J.ABS.Input.Quickmenu,         // start
+  8: J.ABS.Input.PartyCycle,    // select
+  9: J.ABS.Input.Quickmenu,     // start
 
-  10: J.ABS.Input.L3,           // left stick button
-  11: J.ABS.Input.R3,           // right stick button
+  10: J.ABS.Input.L3,           // (L3) left stick button
+  11: J.ABS.Input.R3,           // (R3) right stick button
 
   12: J.ABS.Input.DirUp,        // d-pad up
   13: J.ABS.Input.DirDown,      // d-pad down
@@ -17712,7 +17712,7 @@ Input.keyMapper = {
   81: J.ABS.Input.SkillTrigger, // q
   17: J.ABS.Input.StrafeTrigger,// ctrl
   69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab (overwrite)
+  9:  J.ABS.Input.MobilitySkill,// tab (overwrite)
 
   // quickmenu button.
   13: J.ABS.Input.Quickmenu,    // enter (overwrite)
