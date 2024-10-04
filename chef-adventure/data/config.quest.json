@@ -1,8 +1,58 @@
 {
   "quests": [
     {
+      "key": "neo-9999",
+      "name": "=== MAIN QUESTS",
+      "iconIndex": 0,
+      "categoryKey": "",
+      "tagKeys": [],
+      "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
+      "overview": "A new quest for brave adventurers to undertake the journey of a lifetime.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "",
+          "logs": {
+            "inactive": "",
+            "active": "",
+            "completed": "",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
       "key": "main-000",
-      "name": "The Journey Begins With Darkness",
+      "name": "The Journey Begins With Darkness...",
       "iconIndex": 0,
       "categoryKey": "main",
       "tagKeys": [
@@ -420,6 +470,1110 @@
           "fulfillment": {
             "indiscriminate": {
               "hint": "Enter the inn."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "main-002",
+      "name": "Bearcats For Pudding?",
+      "iconIndex": 0,
+      "categoryKey": "main",
+      "tagKeys": [
+        "ch1"
+      ],
+      "unknownHint": "",
+      "overview": "The mandate by the busty innkeeper is that if you want to use her inn's kitchen, you first have to go do some cleanup of the bearcat population. Specifically the bearcats that like to hang out outside the town gates since they are apparently terrorizing the citizens- or something like that.",
+      "recommendedLevel": 6,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Slay",
+          "description": "Before you're allowed to use the kitchen, you have to go chop up bearcats.",
+          "logs": {
+            "inactive": "",
+            "active": "Go chop up the bearcats to gain access to the kitchen.",
+            "completed": "Maybe if you're lucky you might've gotten some of their flank, too!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 17,
+              "amount": 4
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Go back and boast about your amazing efforts chopping up bearcats.",
+          "logs": {
+            "inactive": "",
+            "active": "The innkeeper will surely be pleased you chopped up four of them.",
+            "completed": "The innkeeper was pleased you chopped them up so swiftly, albeit a bit surprised you survived.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Report back to the innkeeper about your genocide."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Fetch",
+          "description": "Go make the \\item[151].",
+          "logs": {
+            "inactive": "",
+            "active": "The kitchen is available to you! The pudding is finally within your grasp!",
+            "completed": "Well... that wasn't what one would expect from \"pudding\"...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Item",
+              "id": 151,
+              "amount": 1
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "main-003",
+      "name": "The Mayor of Raevula",
+      "iconIndex": 0,
+      "categoryKey": "main",
+      "tagKeys": [
+        "ch1"
+      ],
+      "unknownHint": "",
+      "overview": "\\N[2] detects something ominous about the citizenry of \\C[1]Raevula\\C[0] and suggests some investigation is in order. \\N[1] agrees and suggests they just skip the shit and go directly to the important blue house- it is probably a mayor's house and the mayor probably knows what is up with their own people...",
+      "recommendedLevel": 8,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Check out the blue-roofed house- which probably belongs to the mayor in \\C[1]the Northwestern quadrant of Raevula\\C[0].",
+          "logs": {
+            "inactive": "",
+            "active": "Hopefully the blue-roofed house in the NW of Raevula has some answers.",
+            "completed": "Wow this place is huger than it looks from the outside.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Go check out the blue-roofed house in NW Raevula."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Go have a chat with the mayor- he is waiting in the entry hall of his mansion.",
+          "logs": {
+            "inactive": "",
+            "active": "Damn this is one huge mansion... is that the mayor up there looking down on you from the second floor?",
+            "completed": "Okay well no one expected the mayor would be like \\_that\\_.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Have a chat with the mayor."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "You don't want to wait to see what the mayor has in store for you, so figure out how to escape the wing.",
+          "logs": {
+            "inactive": "",
+            "active": "Seek out a means to escape the mansion wing you've been locked in.",
+            "completed": "Jumping down mysterious holes in the wall does \\_technically\\_ count as an escape...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Figure out how to escape the mansion wing."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "It is unclear why there were mines directly beneath the mayor's mansion, but you should escape those, too.",
+          "logs": {
+            "inactive": "",
+            "active": "The mine tunnels and caverns are twisted and labyrinthine, but escaping is the only alternative to death.",
+            "completed": "Holy fucking cripes, mines suck as a first real dungeon.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Navigate out of the mines."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Indiscriminate",
+          "description": "Going from one dungeon directly to another usually means there is something at the end... but what?",
+          "logs": {
+            "inactive": "",
+            "active": "This forest holds an aura of mystery and danger, what could be at the heart of it?",
+            "completed": "A... cabin?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Explore the depths of the forest."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 5,
+          "type": "Indiscriminate",
+          "description": "What could a cabin be doing so deep in such a deadly forest? Only one way to find out...",
+          "logs": {
+            "inactive": "",
+            "active": "An adventurer never leaves such a juicy secret unrevealed- explore that damn cabin.",
+            "completed": "Definitely didn't expect to find the mayor out here!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Investigate the busted up cabin."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 6,
+          "type": "Slay",
+          "description": "Who would've guessed the mayor was hanging out in the basement of a busted up cabin? Take care of business.",
+          "logs": {
+            "inactive": "",
+            "active": "The mayor isn't leaving you much of a choice- defeat him!",
+            "completed": "He called himself \"the sin of gluttony\"... what could that mean?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 32,
+              "amount": 1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "main-004",
+      "name": "A Way to the Kingdom!",
+      "iconIndex": 0,
+      "categoryKey": "main",
+      "tagKeys": [
+        "ch2"
+      ],
+      "unknownHint": "",
+      "overview": "After bouncing ideas back and forth, \\N[1] and \\N[2] decide its probably best to head out and check out this kingdom. There was no reason a party of adventurers would've wanted to come out to Raevula all on their own, so might as well go follow the clues to see if you can solve this conundrum.",
+      "recommendedLevel": 18,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "The innkeeper probably knows the directions to the Erocian Kingdom, so why not ask her?",
+          "logs": {
+            "inactive": "",
+            "active": "There is only one way to find out if she knows- might as well ask.",
+            "completed": "What a convoluted fucking route...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Go chat with the innkeeper back in Raevula."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Apparently, the pink-haired kid knows about the alchemist??? Sure why not.",
+          "logs": {
+            "inactive": "",
+            "active": "The pink-haired kid probably listened to the boastful Alchemist, so get him to cough up some answers!",
+            "completed": "So the nature-lover has the answer? Back to \\C[3]The Forest of Dreams\\C[0] then.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Have a chat with the pink-haired kid."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "So the Nature-Lover is acquainted with the Alchemist? The forest has the answer then.",
+          "logs": {
+            "inactive": "",
+            "active": "The 'hawt hippie' is definitely the Nature-Lover... and she is in the forest.",
+            "completed": "Seems like the cliffs were the way the Alchemist took. You're getting somewhere.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Ask the Nature-Lover about the Alchemist."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "With the other fork blocked by a mysterious rock, you have no choice but to descend into the depths of \\C[2]The Forlorn Basin\\C[0].",
+          "logs": {
+            "inactive": "",
+            "active": "Its basically a dank ass wet cave, and the alchemist is somewhere down there. Probably.",
+            "completed": "Woops, guess ya better save him from his demise!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Navigate \\C[2]The Forlorn Basin\\C[0] and find the alchemist."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Slay",
+          "description": "The alchemist was located, and just in the nick of time- he was about to get his face melted by a stupid slime!",
+          "logs": {
+            "inactive": "",
+            "active": "Holy shit, save him before he dies! You'll never get a tool if he gets melted by a \\Enemy[43]!",
+            "completed": "Why does everything in this stupid cave regenerate so much???",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 43,
+              "amount": 1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 5,
+          "type": "Indiscriminate",
+          "description": "With a new tool in-hand, the other path leading to \\C[1]The Outer Cliffs\\C[0] is available.",
+          "logs": {
+            "inactive": "",
+            "active": "One only need return to the entrance of the basin to find the blocked path to the cliffs.",
+            "completed": "Wow, where are those leaves falling from?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Use the tool to reach the cliffs."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 6,
+          "type": "Indiscriminate",
+          "description": "Physics aside, \\C[1]The Outer Cliffs\\C[0] are a nice breath of fresh air- now time to get through em.",
+          "logs": {
+            "inactive": "",
+            "active": "They are pretty windy, but navigating them should be a breeze!",
+            "completed": "Did we take a wrong turn?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Navigate through the cliffs."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "neo-9999",
+      "name": "=== TRAINING QUESTS",
+      "iconIndex": 0,
+      "categoryKey": "",
+      "tagKeys": [],
+      "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
+      "overview": "A new quest for brave adventurers to undertake the journey of a lifetime.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "",
+          "logs": {
+            "inactive": "",
+            "active": "",
+            "completed": "",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "train-000",
+      "name": "The Lord of Training - Part 1",
+      "iconIndex": 0,
+      "categoryKey": "side",
+      "tagKeys": [],
+      "unknownHint": "Is that a transdimensional portal I see over there?",
+      "overview": "Beyond a transdimensional rift, a very strange and almost-omniscient fellow gives you a call-to-action, offering you some friendly advice on how to survive in various combat situations beyond what was encountered in the \\C[1]Lair of Erocian Death\\C[0] in exchange for loot.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Why in the world are there transdimensional portals on such an obviously-not-that-advanced planet???",
+          "logs": {
+            "inactive": "",
+            "active": "Transdimensional portals are out of place in this land, you should probably investigate.",
+            "completed": "What the actual fuck?",
+            "failed": "",
+            "missed": "It was just a transdimensional portal, who cares why it was here?"
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Enter the transdimensional portal in \\C[1]Raevula\\C[0]."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "It seems you have no choice- if you want the loot, you must undertake this Lord's challenge.",
+          "logs": {
+            "inactive": "",
+            "active": "Seems accepting the offer is the only way to advance, but is it worth it?",
+            "completed": "What is the worst that can happen? Death?",
+            "failed": "",
+            "missed": "Walking away and ignoring side quests is always an option."
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Accept \\C[1]Trainer Lord\\C[0]'s offer to learn more."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "Looks like you have to complete Trainer Lord's series of tests in and reach the bottom to acquire the loot.",
+          "logs": {
+            "inactive": "",
+            "active": "There are a multitude of tests and combat scenarios to complete to get the loot, hopefully its worth it.",
+            "completed": "Loot is always worth the risk.",
+            "failed": "",
+            "missed": "Tests are hard, death is scary- no loot is worth having to try."
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Complete the tests and reach the bottom of the training zone."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "neo-9999",
+      "name": "=== SIDE QUESTS",
+      "iconIndex": 0,
+      "categoryKey": "",
+      "tagKeys": [],
+      "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
+      "overview": "A new quest for brave adventurers to undertake the journey of a lifetime.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "",
+          "logs": {
+            "inactive": "",
+            "active": "",
+            "completed": "",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "side-001",
+      "name": "Bring 'gramps' Home",
+      "iconIndex": 0,
+      "categoryKey": "side",
+      "tagKeys": [],
+      "unknownHint": "The town of Raevula has a pretty impressive smithery...",
+      "overview": "The smithery of Raevula is impressive to behold, yet the primary smith is a fucking drunkard- not the most conducive to you getting your smithery things done.",
+      "recommendedLevel": 1,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Go find the smith and convince him to return to \\C[3]The Metal Petal\\C[0].",
+          "logs": {
+            "inactive": "",
+            "active": "The smith is probably drunk at the pub again, so you should give him some 'encouragement'.",
+            "completed": "What a great mode of encouragement!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Go talk to the smith at the pub."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "That smith is a hoot! Viskra is sure to appreciate your assistance.",
+          "logs": {
+            "inactive": "",
+            "active": "Viskra has to thank you for going out of your way to help a total stranger!",
+            "completed": "She was indeed thankful, and now the smith will surely help you.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Report to Viskra your success."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "side-002",
+      "name": "A Self-Exiled Nature-Lover?",
+      "iconIndex": 0,
+      "categoryKey": "side",
+      "tagKeys": [],
+      "unknownHint": "Does anyone know what the deal is with that empty lot in Raevula?",
+      "overview": "According to the random citizen of Raevula, the empty lot was once a house that the nature-lover lived in... but she left to \\C[2]The Forest of Dreams\\C[0], claiming something about how the Mayor was 'violating nature' or something. \r\nWhat was their deal?",
+      "recommendedLevel": 14,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Perhaps if you encounter the Nature-Lover in \\C[2]The Forest of Dreams\\C[0], you could ask more about what happened?",
+          "logs": {
+            "inactive": "",
+            "active": "Who knows why Nature-Lovers do what they do? Everyone has morals they follow...",
+            "completed": "Damn that mayor is one fucking douchebag- but hey, more recipeeeeeees!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Have a talk with the Nature-Lover to understand more."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "y1": -1,
+              "x2": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": "Unset",
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "side-003",
+      "name": "Four Former Protagonists",
+      "iconIndex": 0,
+      "categoryKey": "side",
+      "tagKeys": [
+        "ch1"
+      ],
+      "unknownHint": "",
+      "overview": "Seems the would-be adventurers that visited the Mayor suffered a similar fate and were locked up in the same wing as you were- however, their escape was... less than successful. No sense in leaving their goods to go to waste, might as well see what all four of em had before you exit the mines.",
+      "recommendedLevel": 12,
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "If you want the free loot, you'll need to take some extra effort to find their bodies first- all four of em.",
+          "logs": {
+            "inactive": "",
+            "active": "Four bodies mean four sets of loot- totally worth it, right?",
+            "completed": "Better you have this stuff than them- ya know, since they are dead.",
+            "failed": "",
+            "missed": "No amount of loot is worth navigating those fucking mines, forget it."
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Loot the four dead protagonists before exiting the mines."
             },
             "destination": {
               "mapId": -1,

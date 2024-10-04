@@ -3551,13 +3551,29 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function()
     // find one by the same key in the existing trackings.
     const foundTracking = trackings.find(tracking => tracking.key === omniquest.key);
 
-    // check if we found a tracking.
-    if (!foundTracking)
+    const newTracking = this.toTrackedOmniQuest(omniquest);
+    
+    // if the tracking already exists, it should be updated.
+    if (foundTracking)
+    {
+      console.log(`updating existing quest; ${omniquest.key}`);
+
+      // update the category.
+      foundTracking.categoryKey = omniquest.categoryKey;
+      
+      // if the objective length hasn't changed, then don't process anymore.
+      if (foundTracking.objectives.length <= omniquest.objectives.length) return;
+
+      // concat the new objectives onto the existing tracking.
+      const objectivesToAdd = newTracking.objectives.slice(foundTracking.objectives.length);
+      foundTracking.objectives.splice(foundTracking.objectives.length, 0, ...objectivesToAdd);
+    }
+    // if the tracking doesn't exist yet, it should be added.
+    else
     {
       console.log(`adding new quest; ${omniquest.key}`);
 
       // we didn't find one, so create and add a new tracking.
-      const newTracking = this.toTrackedOmniQuest(omniquest);
       trackings.push(newTracking);
     }
   });
@@ -3825,8 +3841,8 @@ Game_System.prototype.onAfterLoad = function()
   J.OMNI.EXT.QUEST.Aliased.Game_System.get('onAfterLoad').call(this);
 
   // update the quests.
-  $gameParty.synchronizeQuestopediaAfterLoad();
   $gameParty.updateTrackedOmniQuestsFromConfig();
+  $gameParty.synchronizeQuestopediaAfterLoad();
 };
 //endregion Game_System
 
@@ -4730,7 +4746,7 @@ class Window_QuestopediaDescription extends Window_Base
     this.drawQuestName(x, y);
 
     // draw the recommended level for the quest.
-    const recommendedLevelY = y + (lh * 1);
+    const recommendedLevelY = y + lh;
     this.drawQuestRecommendedLevel(x, recommendedLevelY);
 
     // draw the icons for each tag on this quest.
@@ -4742,7 +4758,7 @@ class Window_QuestopediaDescription extends Window_Base
     this.drawQuestOverview(x, overviewY);
 
     // draw the various logs of the quest.
-    const logsY = y + (lh * 6);
+    const logsY = y + (lh * 9);
     this.drawQuestLogs(x, logsY);
   }
 
@@ -4771,7 +4787,6 @@ class Window_QuestopediaDescription extends Window_Base
     // draw the text.
     this.drawTextEx(resizedText, x, y, textWidth);
   }
-
 
   drawQuestRecommendedLevel(x, y)
   {
@@ -4841,13 +4856,103 @@ class Window_QuestopediaDescription extends Window_Base
     {
       // no empty strings allowed!
       overview = '???';
+
+      // measure accordingly.
+      const textWidth = this.textWidth(overview);
+
+      // draw the overview.
+      this.drawTextEx(overview, x, y, textWidth);
+
+      // done.
+      return;
     }
 
-    // measure accordingly.
-    const textWidth = this.textWidth(overview);
+    // convert the quest overview into length-limited lines with words not sliced up.
+    const lines = this.buildQuestOverviewLines(overview, 128);
 
-    // draw the overview.
-    this.drawTextEx(overview, x, y, textWidth);
+    // the text lines for the overview should be tighter.
+    const overviewLineHeight = this.lineHeight() - 10;
+
+    // iterate over each line and draw it.
+    lines.forEach((line, index) =>
+    {
+      // determine the y coordinate for the line.
+      const lineY = y + (index * overviewLineHeight);
+
+      // measure accordingly.
+      const textWidth = this.textWidth(overview);
+
+      // draw the overview.
+      this.drawTextEx(line, x, lineY, textWidth);
+    });
+  }
+
+  /**
+   * Chops up the very long overview string into multiple lines based on the given max line length.
+   * @param {string} overview The overview to be chopped into lines.
+   * @param {number=} [maxLineLength=128] The maximum line length for any one line.
+   * @returns {string[]} The overview chopped up into lines.
+   */
+  buildQuestOverviewLines(overview, maxLineLength = 128)
+  {
+    // split the text blob into words based on spaces.
+    const words = overview.split(/\s/);
+
+    // start with an empty collection for the lines.
+    const lines = [];
+
+    // reduce the words into lines by size, and capture the final line.
+    const finalLine = words.reduce((currentLine, word) =>
+    {
+      // check if the word was translated to an empty string- the indicator it was a newline.
+      if (word === String.empty)
+      {
+        // check if we even have a current line currently.
+        if (currentLine.length > 0)
+        {
+          // finish the previous line.
+          lines.push(currentLine);
+        }
+
+        // arbitrary check to prevent two or more new lines in a row.
+        if (lines.length >= 2 && lines.at(-1) === String.empty)
+        {
+          return String.empty;
+        }
+
+        // manually add a new and empty line.
+        lines.push(String.empty);
+
+        // start a new line with the word- sans the new line indicators.
+        return String.empty;
+      }
+
+      // the first word of a line doesn't need a space in front of it.
+      if (currentLine.length === 0) return word;
+
+      // translate the word if necessary- as escape codes are shorter than most actual words.
+      const translatedWord = this.convertEscapeCharacters(word);
+
+      // check the current line with the new word to see if the line is too long.
+      const testLine = `${currentLine} ${translatedWord}`;
+
+      // if the line does not exceed 120 characters, then keep going.
+      if (testLine.length <= maxLineLength) return `${currentLine} ${word}`;
+
+      // adding the new word would go beyond the fixed length of 120, so capture the line.
+      lines.push(currentLine);
+
+      // and start a new line.
+      return word;
+
+      // start with an empty string.
+    }, String.empty);
+
+    // add the last line to the running list.
+    lines.push(finalLine);
+
+    // return the lines of the text.
+    return lines;
   }
 
   /**
